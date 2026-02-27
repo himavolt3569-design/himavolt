@@ -48,90 +48,92 @@ export default function Hero() {
               "url('https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&w=2674&auto=format&fit=crop')",
           }}
         />
-        {/* Swiggy-style dark gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#1F2A2A]/80 via-[#1F2A2A]/60 to-[#F5F0E8] pointer-events-none" />
+        {/* Refined gradient overlay for better text contrast and premium feel */}
+        <div className="absolute inset-0 bg-linear-to-b from-[#0A4D3C]/90 via-[#1F2A2A]/70 to-[#F5F0E8] pointer-events-none mix-blend-multiply" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#F5F0E8] via-transparent to-transparent opacity-90" />
       </motion.div>
 
-      <div className="container relative z-10 mx-auto px-4 text-center md:px-6 mt-16 md:mt-0">
+      <div className="container relative z-10 mx-auto px-4 text-center md:px-6 mt-20 md:mt-10">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           className="mx-auto max-w-4xl"
         >
-          <h1 className="mb-4 text-5xl font-extrabold tracking-tight text-white sm:text-6xl md:text-7xl lg:text-[80px] drop-shadow-xl">
+          <h1 className="mb-6 text-5xl font-extrabold tracking-tight text-white sm:text-6xl md:text-7xl lg:text-[80px] drop-shadow-2xl">
             What's on your mind?
           </h1>
-          <p className="mb-10 text-lg font-medium text-white/90 sm:text-xl md:text-2xl drop-shadow-md max-w-2xl mx-auto">
+          <p className="mb-12 text-lg font-medium text-white/95 sm:text-xl md:text-2xl drop-shadow-lg max-w-2xl mx-auto tracking-wide">
             Order from table or book your perfect stay in Nepal.
           </p>
 
-          {/* Big Search Bar */}
+          {/* Big Search Bar - Enhanced */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="mx-auto flex max-w-3xl flex-col gap-2 rounded-2xl bg-white/10 p-2 backdrop-blur-md sm:flex-row sm:rounded-full sm:p-2 border border-white/20 shadow-2xl"
+            className="mx-auto flex max-w-4xl flex-col gap-2 rounded-3xl bg-white/20 p-2 sm:p-3 backdrop-blur-xl sm:flex-row sm:rounded-full border border-white/30 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)]"
           >
-            <div className="relative flex flex-1 items-center rounded-xl sm:rounded-l-full bg-white transition-all hover:bg-gray-50 focus-within:ring-2 focus-within:ring-[#FF9933] overflow-hidden">
-              <MapPin className="absolute left-5 h-5 w-5 text-gray-400" />
+            <div className="relative flex flex-1 items-center rounded-2xl sm:rounded-l-full bg-white transition-all hover:bg-gray-50 focus-within:ring-4 focus-within:ring-[#FF9933]/50 focus-within:bg-white overflow-hidden shadow-inner group">
+              <MapPin className="absolute left-6 h-5 w-5 text-gray-400 group-focus-within:text-[#FF9933] transition-colors" />
               <input
                 type="text"
-                className="w-full bg-transparent py-4 pl-14 pr-4 font-medium text-[#1F2A2A] placeholder-gray-500 focus:outline-none"
+                className="w-full bg-transparent py-4 pl-14 pr-4 text-lg font-medium text-[#1F2A2A] placeholder-gray-400 focus:outline-none"
                 placeholder="Pokhara, Nepal"
               />
-              <div className="absolute right-0 top-1/2 h-8 w-px -translate-y-1/2 bg-gray-200" />
+              <div className="absolute right-0 top-1/2 h-8 w-px -translate-y-1/2 bg-gray-200 hidden sm:block" />
             </div>
 
-            <div className="relative flex flex-[2] items-center rounded-xl sm:rounded-none bg-white transition-all hover:bg-gray-50 focus-within:ring-2 focus-within:ring-[#FF9933] focus-within:z-10 overflow-hidden mt-1 sm:mt-0">
-              <Search className="absolute left-5 h-5 w-5 text-gray-400" />
+            <div className="relative flex flex-[2] items-center rounded-2xl sm:rounded-none bg-white transition-all hover:bg-gray-50 focus-within:ring-4 focus-within:ring-[#FF9933]/50 focus-within:bg-white focus-within:z-10 overflow-hidden mt-1 sm:mt-0 shadow-inner group">
+              <Search className="absolute left-6 h-5 w-5 text-gray-400 group-focus-within:text-[#FF9933] transition-colors" />
               <input
                 type="text"
-                className="w-full bg-transparent py-4 pl-14 pr-4 font-medium text-[#1F2A2A] placeholder-gray-500 focus:outline-none"
-                placeholder="Find restaurants & hotels..."
+                className="w-full bg-transparent py-4 pl-14 pr-4 text-lg font-medium text-[#1F2A2A] placeholder-gray-400 focus:outline-none"
+                placeholder="Search restaurants, hotels, or dishes..."
               />
             </div>
-            <button className="rounded-xl sm:rounded-full bg-[#FF9933] px-8 py-4 font-bold text-white shadow-lg transition-all hover:bg-[#ff8811] hover:scale-105 active:scale-95 mt-1 sm:mt-0">
+
+            <button className="rounded-2xl sm:rounded-full bg-gradient-to-r from-[#FF9933] to-[#ff8811] px-10 py-4 text-lg font-bold text-white shadow-xl transition-all hover:shadow-[#FF9933]/40 hover:-translate-y-0.5 active:translate-y-0 mt-1 sm:mt-0">
               Search
             </button>
           </motion.div>
 
-          {/* Two Big CTAs */}
+          {/* Two Big CTAs - Enhanced */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="mx-auto mt-12 grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2 lg:gap-8"
+            className="mx-auto mt-16 grid max-w-3xl grid-cols-1 gap-5 sm:grid-cols-2 lg:gap-8"
           >
-            <button className="group relative overflow-hidden rounded-2xl bg-white p-6 text-left shadow-xl transition-all hover:-translate-y-1 hover:shadow-2xl">
-              <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-[#0A4D3C]/5 transition-transform group-hover:scale-150" />
-              <div className="relative z-10 flex items-center gap-4">
-                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#0A4D3C]/10 text-[#0A4D3C] transition-colors group-hover:bg-[#0A4D3C] group-hover:text-[#FF9933]">
-                  <QrCode className="h-7 w-7" />
+            <button className="group relative overflow-hidden rounded-3xl bg-white/90 backdrop-blur-md p-6 text-left shadow-2xl transition-all hover:-translate-y-2 hover:bg-white hover:shadow-[0_20px_40px_-10px_rgba(255,153,51,0.2)] border border-white/50">
+              <div className="absolute -right-6 -top-6 h-32 w-32 rounded-full bg-gradient-to-br from-[#0A4D3C]/5 to-[#1E9A6F]/10 transition-transform duration-500 group-hover:scale-[2.5]" />
+              <div className="relative z-10 flex items-center gap-5">
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#0A4D3C]/10 to-[#1E9A6F]/20 text-[#0A4D3C] transition-all duration-300 group-hover:scale-110 group-hover:bg-[#0A4D3C] group-hover:text-[#FF9933] shadow-sm">
+                  <QrCode className="h-8 w-8" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-[#1F2A2A]">
+                  <h3 className="text-xl font-extrabold text-[#1F2A2A] tracking-tight group-hover:text-[#0A4D3C] transition-colors">
                     Scan QR at Table
                   </h3>
-                  <p className="mt-1 text-sm font-medium text-gray-500">
-                    Order instantly
+                  <p className="mt-1 text-sm font-semibold text-gray-500">
+                    Order instantly & securely
                   </p>
                 </div>
               </div>
             </button>
 
-            <button className="group relative overflow-hidden rounded-2xl bg-white p-6 text-left shadow-xl transition-all hover:-translate-y-1 hover:shadow-2xl">
-              <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-[#FF9933]/5 transition-transform group-hover:scale-150" />
-              <div className="relative z-10 flex items-center gap-4">
-                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#FF9933]/10 text-[#FF9933] transition-colors group-hover:bg-[#FF9933] group-hover:text-white">
-                  <Building2 className="h-7 w-7" />
+            <button className="group relative overflow-hidden rounded-3xl bg-white/90 backdrop-blur-md p-6 text-left shadow-2xl transition-all hover:-translate-y-2 hover:bg-white hover:shadow-[0_20px_40px_-10px_rgba(10,77,60,0.2)] border border-white/50">
+              <div className="absolute -right-6 -top-6 h-32 w-32 rounded-full bg-gradient-to-br from-[#FF9933]/5 to-[#ff8811]/10 transition-transform duration-500 group-hover:scale-[2.5]" />
+              <div className="relative z-10 flex items-center gap-5">
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#FF9933]/10 to-[#ff8811]/20 text-[#FF9933] transition-all duration-300 group-hover:scale-110 group-hover:bg-[#FF9933] group-hover:text-white shadow-sm">
+                  <Building2 className="h-8 w-8" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-[#1F2A2A]">
+                  <h3 className="text-xl font-extrabold text-[#1F2A2A] tracking-tight group-hover:text-[#FF9933] transition-colors">
                     Book Hotels & Resorts
                   </h3>
-                  <p className="mt-1 text-sm font-medium text-gray-500">
-                    Premium stays
+                  <p className="mt-1 text-sm font-semibold text-gray-500">
+                    Premium Himalayan stays
                   </p>
                 </div>
               </div>
@@ -140,8 +142,8 @@ export default function Hero() {
         </motion.div>
       </div>
 
-      {/* Fade out bottom to blend with next section */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#F5F0E8] to-transparent pointer-events-none" />
+      {/* Enhanced Fade out bottom to blend with next section */}
+      <div className="absolute bottom-0 left-0 right-0 h-40 bg-linear-to-t from-[#F5F0E8] via-[#F5F0E8]/80 to-transparent pointer-events-none" />
     </section>
   );
 }
