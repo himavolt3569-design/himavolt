@@ -7,7 +7,7 @@ const steps = [
   {
     icon: <QrCode className="h-7 w-7 text-[#0A4D3C]" />,
     title: "Scan & Browse",
-    desc: "Scan the QR code at your table or browse restaurants near you.",
+    desc: "Scan the QR code at your table or browse restaurants near you!",
   },
   {
     icon: <UtensilsCrossed className="h-7 w-7 text-[#0A4D3C]" />,
