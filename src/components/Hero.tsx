@@ -5,6 +5,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { Search, QrCode, Utensils } from "lucide-react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
+import Link from "next/link";
 
 export default function Hero() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -105,7 +106,7 @@ export default function Hero() {
             transition={{ duration: 0.6, delay: 0.5 }}
             className="mt-8 flex flex-row gap-3 justify-center"
           >
-            <button className="group flex items-center gap-3 rounded-xl bg-white px-4 py-3 shadow-sm transition-all hover:shadow-md border border-gray-100 hover:border-[#FF9933]/20 hover:-translate-y-0.5 active:translate-y-0">
+            <Link href="/scan" className="group flex items-center gap-3 rounded-xl bg-white px-4 py-3 shadow-sm transition-all hover:shadow-md border border-gray-100 hover:border-[#FF9933]/20 hover:-translate-y-0.5 active:translate-y-0">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#FF9933]/10 text-[#FF9933] transition-colors group-hover:bg-[#FF9933] group-hover:text-white">
                 <QrCode className="h-[18px] w-[18px]" />
               </div>
@@ -115,9 +116,9 @@ export default function Hero() {
                 </h3>
                 <p className="text-[11px] text-gray-500 leading-tight">Order at table</p>
               </div>
-            </button>
+            </Link>
 
-            <button className="group flex items-center gap-3 rounded-xl bg-white px-4 py-3 shadow-sm transition-all hover:shadow-md border border-gray-100 hover:border-[#FF9933]/20 hover:-translate-y-0.5 active:translate-y-0">
+            <Link href="/menu" className="group flex items-center gap-3 rounded-xl bg-white px-4 py-3 shadow-sm transition-all hover:shadow-md border border-gray-100 hover:border-[#FF9933]/20 hover:-translate-y-0.5 active:translate-y-0">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#FF9933]/10 text-[#FF9933] transition-colors group-hover:bg-[#FF9933] group-hover:text-white">
                 <Utensils className="h-[18px] w-[18px]" />
               </div>
@@ -127,7 +128,7 @@ export default function Hero() {
                 </h3>
                 <p className="text-[11px] text-gray-500 leading-tight">Restaurants near you</p>
               </div>
-            </button>
+            </Link>
           </motion.div>
         </div>
       </div>

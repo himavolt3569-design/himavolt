@@ -25,9 +25,11 @@ const panelVariants = {
 export default function CartSidebar({
   open,
   onClose,
+  onProceed,
 }: {
   open: boolean;
   onClose: () => void;
+  onProceed?: () => void;
 }) {
   const { items, increaseQty, decreaseQty, removeItem, subtotal, totalItems } =
     useCart();
@@ -42,14 +44,14 @@ export default function CartSidebar({
             animate="visible"
             exit="exit"
             onClick={onClose}
-            className="fixed inset-0 z-[90] bg-black/50 backdrop-blur-[2px]"
+            className="fixed inset-0 z-90 bg-black/50 backdrop-blur-[2px]"
           />
           <motion.aside
             variants={panelVariants}
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="fixed top-0 right-0 bottom-0 z-[95] w-full max-w-[420px] bg-white shadow-2xl flex flex-col"
+            className="fixed top-0 right-0 bottom-0 z-95 w-full max-w-[420px] bg-white shadow-2xl flex flex-col"
           >
             <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
               <div className="flex items-center gap-3">
@@ -144,7 +146,10 @@ export default function CartSidebar({
                       Rs. {subtotal}
                     </span>
                   </div>
-                  <button className="w-full rounded-xl bg-[#FF9933] py-4 text-base font-bold text-white transition-all hover:bg-[#ff8811] active:scale-[0.98] shadow-lg shadow-[#FF9933]/25">
+                  <button
+                    onClick={onProceed}
+                    className="w-full rounded-xl bg-[#FF9933] py-4 text-base font-bold text-white transition-all hover:bg-[#ff8811] active:scale-[0.98] shadow-lg shadow-[#FF9933]/25"
+                  >
                     Proceed to Order
                   </button>
                 </div>

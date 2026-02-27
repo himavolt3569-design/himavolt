@@ -13,12 +13,10 @@ import AuthModals from "@/components/AuthModals";
 import CartSidebar from "@/components/CartSidebar";
 import FoodDetailModal from "@/components/FoodDetailModal";
 import type { FoodItem } from "@/lib/data";
-import { CartProvider } from "@/context/CartContext";
-import { ToastProvider } from "@/context/ToastContext";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 
-function AppContent() {
+export default function Home() {
   const [loading, setLoading] = useState(true);
   const [loginOpen, setLoginOpen] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
@@ -53,11 +51,6 @@ function AppContent() {
     { scope: clockRef, dependencies: [loading] },
   );
 
-  const handleFoodClick = (food: FoodItem) => {
-    setSelectedFood(food);
-    setFoodModalOpen(true);
-  };
-
   return (
     <>
       <AnimatePresence>
@@ -91,40 +84,18 @@ function AppContent() {
             onRegisterClick={() => setRegisterOpen(true)}
             onCartClick={() => setCartOpen(true)}
           />
-
           <Hero />
           <FoodCategories />
           <OffersCarousel />
-          <TopPlaces onFoodClick={handleFoodClick} />
+          <TopPlaces onFoodClick={(food: FoodItem) => { setSelectedFood(food); setFoodModalOpen(true); }} />
           <HowItWorks />
           <Footer />
 
-          <AuthModals
-            loginOpen={loginOpen}
-            setLoginOpen={setLoginOpen}
-            registerOpen={registerOpen}
-            setRegisterOpen={setRegisterOpen}
-          />
-
+          <AuthModals loginOpen={loginOpen} setLoginOpen={setLoginOpen} registerOpen={registerOpen} setRegisterOpen={setRegisterOpen} />
           <CartSidebar open={cartOpen} onClose={() => setCartOpen(false)} />
-
-          <FoodDetailModal
-            food={selectedFood}
-            open={foodModalOpen}
-            onClose={() => setFoodModalOpen(false)}
-          />
+          <FoodDetailModal food={selectedFood} open={foodModalOpen} onClose={() => setFoodModalOpen(false)} />
         </motion.main>
       )}
     </>
-  );
-}
-
-export default function Home() {
-  return (
-    <CartProvider>
-      <ToastProvider>
-        <AppContent />
-      </ToastProvider>
-    </CartProvider>
   );
 }
