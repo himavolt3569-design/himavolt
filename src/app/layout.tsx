@@ -9,9 +9,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "HimalHub - Nepal's Smartest Hospitality Hub",
+  title: "HimalHub - Nepal's Smartest Food Delivery",
   description:
-    "Scan. Order. Stay. — Nepal's premium QR table ordering + hotel/resort platform.",
+    "Scan. Order. Enjoy. — Nepal's premium QR table ordering and food delivery platform.",
 };
 
 export default function RootLayout({

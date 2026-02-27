@@ -12,18 +12,30 @@
   --color-gompa-slate: #1f2a2a;
   --color-rhododendron-green: #1e9a6f;
 
-  --color-background: var(--color-annapurna-linen);
+  --color-background: #ffffff;
   --color-foreground: var(--color-gompa-slate);
 }
 
 @layer base {
   * {
-    border-color: var(--color-gompa-slate);
+    border-color: theme(--color-gray-200);
     outline-color: var(--color-saffron-flame);
   }
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
   }
 }

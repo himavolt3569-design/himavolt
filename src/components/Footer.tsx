@@ -1,37 +1,37 @@
 export default function Footer() {
   return (
-    <footer className="bg-[#0A4D3C] border-t border-white/10 text-white/80 py-12 md:py-16">
-      <div className="container mx-auto px-4 md:px-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
-          {/* Brand */}
-          <div className="md:col-span-1">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="text-2xl font-bold text-white tracking-tight">
+    <footer className="bg-[#f8f8f8] border-t border-gray-200 text-gray-600 py-10 md:py-14">
+      <div className="mx-auto max-w-[1440px] px-4 md:px-6 lg:px-10">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
+          <div className="col-span-2 md:col-span-1">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-xl font-extrabold text-[#1F2A2A] tracking-tight">
                 Himal<span className="text-[#FF9933]">Hub</span>
               </span>
             </div>
-            <p className="text-sm">
-              Nepal's smartest hospitality hub. Order from table, book your
-              stay, and explore the best of Nepal seamlessly.
+            <p className="text-sm leading-relaxed text-gray-500 max-w-[280px]">
+              Nepal&apos;s smartest food delivery platform. Order from table
+              or get delivered — explore the best restaurants in Nepal.
             </p>
           </div>
 
-          {/* Links */}
           <div>
-            <h4 className="text-white font-bold mb-4">Company</h4>
+            <h4 className="text-sm font-bold text-[#1F2A2A] mb-3 uppercase tracking-wider">
+              Company
+            </h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <a href="#" className="hover:text-white transition-colors">
+                <a href="#" className="hover:text-[#FF9933] transition-colors">
                   About Us
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition-colors">
+                <a href="#" className="hover:text-[#FF9933] transition-colors">
                   Careers
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition-colors">
+                <a href="#" className="hover:text-[#FF9933] transition-colors">
                   Team
                 </a>
               </li>
@@ -39,20 +39,22 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="text-white font-bold mb-4">Contact Us</h4>
+            <h4 className="text-sm font-bold text-[#1F2A2A] mb-3 uppercase tracking-wider">
+              Contact Us
+            </h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <a href="#" className="hover:text-white transition-colors">
+                <a href="#" className="hover:text-[#FF9933] transition-colors">
                   Help & Support
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition-colors">
+                <a href="#" className="hover:text-[#FF9933] transition-colors">
                   Partner with us
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition-colors">
+                <a href="#" className="hover:text-[#FF9933] transition-colors">
                   Ride with us
                 </a>
               </li>
@@ -60,20 +62,22 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="text-white font-bold mb-4">Legal</h4>
+            <h4 className="text-sm font-bold text-[#1F2A2A] mb-3 uppercase tracking-wider">
+              Legal
+            </h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <a href="#" className="hover:text-white transition-colors">
+                <a href="#" className="hover:text-[#FF9933] transition-colors">
                   Terms & Conditions
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition-colors">
+                <a href="#" className="hover:text-[#FF9933] transition-colors">
                   Refund & Cancellation
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition-colors">
+                <a href="#" className="hover:text-[#FF9933] transition-colors">
                   Privacy Policy
                 </a>
               </li>
@@ -81,16 +85,16 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="pt-8 border-t border-white/20 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-sm font-medium">
-            © {new Date().getFullYear()} HimalHub.{" "}
+        <div className="pt-6 border-t border-gray-200 flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-xs font-medium text-gray-400">
+            &copy; {new Date().getFullYear()} HimalHub.{" "}
             <span className="text-[#FF9933]">Made for Nepal.</span>
           </p>
           <div className="flex items-center gap-4">
-            <a href="#" className="hover:text-white transition-colors">
+            <a href="#" className="text-gray-400 hover:text-[#1F2A2A] transition-colors">
               <span className="sr-only">Facebook</span>
               <svg
-                className="h-6 w-6"
+                className="h-5 w-5"
                 fill="currentColor"
                 viewBox="0 0 24 24"
                 aria-hidden="true"
@@ -102,10 +106,10 @@ export default function Footer() {
                 />
               </svg>
             </a>
-            <a href="#" className="hover:text-white transition-colors">
+            <a href="#" className="text-gray-400 hover:text-[#1F2A2A] transition-colors">
               <span className="sr-only">Instagram</span>
               <svg
-                className="h-6 w-6"
+                className="h-5 w-5"
                 fill="currentColor"
                 viewBox="0 0 24 24"
                 aria-hidden="true"

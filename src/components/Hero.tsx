@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { Search, MapPin, QrCode, Building2, Map } from "lucide-react";
+import { Search, QrCode, Utensils } from "lucide-react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 
@@ -10,17 +10,15 @@ export default function Hero() {
   const containerRef = useRef<HTMLDivElement>(null);
   const bgRef = useRef<HTMLDivElement>(null);
 
-  // Smooth parallax with framer motion
   const { scrollY } = useScroll();
-  const y = useTransform(scrollY, [0, 1000], [0, 400]);
+  const heroOpacity = useTransform(scrollY, [0, 500], [1, 0.3]);
 
-  // Gentle subtle zoom on load with GSAP
   useGSAP(
     () => {
       if (bgRef.current) {
         gsap.to(bgRef.current, {
-          scale: 1.05,
-          duration: 10,
+          scale: 1.04,
+          duration: 14,
           ease: "power1.inOut",
           yoyo: true,
           repeat: -1,
@@ -31,260 +29,110 @@ export default function Hero() {
   );
 
   return (
-    <section
+    <motion.section
       ref={containerRef}
-      className="relative flex min-h-[90vh] w-full items-center justify-center overflow-hidden bg-linear-to-br from-white via-[#F5F0E8] to-[#f9f6f0]"
+      style={{ opacity: heroOpacity }}
+      className="relative flex w-full items-center justify-center overflow-hidden bg-linear-to-br from-white via-[#F5F0E8] to-[#f9f6f0]"
     >
-      {/* Subtle background decoration */}
-      <div className="absolute top-0 right-0 -mr-40 -mt-40 h-[600px] w-[600px] rounded-full bg-[#FF9933]/5 blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-0 -ml-40 -mb-40 h-[600px] w-[600px] rounded-full bg-[#FF9933]/10 blur-3xl pointer-events-none" />
+      <div
+        ref={bgRef}
+        className="absolute inset-0 pointer-events-none"
+      >
+        <div className="absolute top-0 right-0 -mr-48 -mt-48 h-[700px] w-[700px] rounded-full bg-[#FF9933]/4 blur-3xl" />
+        <div className="absolute bottom-0 left-0 -ml-48 -mb-48 h-[700px] w-[700px] rounded-full bg-[#FF9933]/[0.07] blur-3xl" />
+      </div>
 
-      <div className="container relative z-10 mx-auto px-4 md:px-6 pt-24 pb-16 lg:py-0">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
-          {/* Left Content */}
+      <div className="relative z-10 mx-auto max-w-[1440px] w-full px-4 md:px-6 lg:px-10 pt-20 pb-16 md:pt-28 md:pb-20">
+        <div className="flex flex-col items-center text-center max-w-3xl mx-auto">
           <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            className="flex flex-col text-center lg:text-left z-20"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#FF9933]/10 text-[#FF9933] font-bold text-sm mb-6 border border-[#FF9933]/20"
           >
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#FF9933]/10 text-[#FF9933] font-bold text-sm w-fit mx-auto lg:mx-0 mb-6 border border-[#FF9933]/20"
-            >
-              <span className="relative flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF9933] opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-[#FF9933]"></span>
-              </span>
-              Nepal's #1 Premium Delivery & Booking
-            </motion.div>
-
-            <h1 className="mb-6 text-5xl font-extrabold tracking-tight text-[#1F2A2A] sm:text-6xl md:text-7xl drop-shadow-sm leading-tight">
-              Craving something <br className="hidden lg:block" />
-              <span className="text-transparent bg-clip-text bg-linear-to-r from-[#FF9933] to-[#ff6b00]">
-                Extraordinary?
-              </span>
-            </h1>
-
-            <p className="mb-10 text-lg font-medium text-gray-600 sm:text-xl max-w-xl mx-auto lg:mx-0 leading-relaxed">
-              Order premium food right to your table, or book your perfect
-              Himalayan stay in seconds.
-            </p>
-
-            {/* Powerful Search Bar */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="flex flex-col gap-3 rounded-3xl bg-white p-3 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] sm:flex-row sm:rounded-full border border-gray-100 max-w-2xl mx-auto lg:mx-0 w-full"
-            >
-              <div className="relative flex flex-[1.5] items-center rounded-2xl sm:rounded-l-full bg-gray-50 transition-all hover:bg-gray-100 focus-within:ring-2 focus-within:ring-[#FF9933]/50 focus-within:bg-white overflow-hidden group">
-                <MapPin className="absolute left-5 h-5 w-5 text-gray-400 group-focus-within:text-[#FF9933] transition-colors" />
-                <input
-                  type="text"
-                  className="w-full bg-transparent py-4 pl-12 pr-4 text-base font-semibold text-[#1F2A2A] placeholder-gray-400 focus:outline-none"
-                  placeholder="Where are you?"
-                />
-                <div className="absolute right-0 top-1/2 h-8 w-px -translate-y-1/2 bg-gray-200 hidden sm:block" />
-              </div>
-
-              <div className="relative flex flex-2 items-center rounded-2xl sm:rounded-none bg-gray-50 transition-all hover:bg-gray-100 focus-within:ring-2 focus-within:ring-[#FF9933]/50 focus-within:bg-white focus-within:z-10 overflow-hidden group">
-                <Search className="absolute left-5 h-5 w-5 text-gray-400 group-focus-within:text-[#FF9933] transition-colors" />
-                <input
-                  type="text"
-                  className="w-full bg-transparent py-4 pl-12 pr-4 text-base font-semibold text-[#1F2A2A] placeholder-gray-400 focus:outline-none"
-                  placeholder="Restaurant, hotel, dish..."
-                />
-              </div>
-
-              <button className="rounded-2xl sm:rounded-full bg-linear-to-r from-[#FF9933] to-[#ff8811] px-8 py-4 text-base font-bold text-white shadow-lg transition-all hover:shadow-xl hover:shadow-[#FF9933]/40 hover:-translate-y-0.5 active:translate-y-0 shrink-0">
-                Let's Go
-              </button>
-            </motion.div>
-
-            {/* Quick Action CTAs */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.5 }}
-              className="mt-12 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
-            >
-              <button className="group flex items-center gap-4 rounded-2xl bg-white px-6 py-4 shadow-md transition-all hover:shadow-xl border border-gray-100 hover:border-[#FF9933]/30 hover:-translate-y-1">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#FF9933]/10 text-[#FF9933] transition-colors group-hover:bg-[#FF9933] group-hover:text-white">
-                  <QrCode className="h-6 w-6" />
-                </div>
-                <div className="text-left">
-                  <h3 className="text-base font-bold text-[#1F2A2A] group-hover:text-[#FF9933] transition-colors">
-                    Scan QR
-                  </h3>
-                  <p className="text-xs font-medium text-gray-500">
-                    Order at table
-                  </p>
-                </div>
-              </button>
-
-              <button className="group flex items-center gap-4 rounded-2xl bg-white px-6 py-4 shadow-md transition-all hover:shadow-xl border border-gray-100 hover:border-[#FF9933]/30 hover:-translate-y-1">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#FF9933]/10 text-[#FF9933] transition-colors group-hover:bg-[#FF9933] group-hover:text-white">
-                  <Building2 className="h-6 w-6" />
-                </div>
-                <div className="text-left">
-                  <h3 className="text-base font-bold text-[#1F2A2A] group-hover:text-[#FF9933] transition-colors">
-                    Book Stay
-                  </h3>
-                  <p className="text-xs font-medium text-gray-500">
-                    Hotels & Resorts
-                  </p>
-                </div>
-              </button>
-            </motion.div>
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF9933] opacity-75" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#FF9933]" />
+            </span>
+            Nepal&apos;s #1 Food Delivery Platform
           </motion.div>
 
-          {/* Right Content - 3D Floating Food Universe */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1 }}
-            className="relative h-[400px] lg:h-[600px] w-full hidden md:block perspective-1000"
+          <motion.h1
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+            className="mb-5 text-[2.5rem] font-extrabold tracking-tight text-[#1F2A2A] sm:text-5xl md:text-6xl lg:text-7xl leading-[1.08]"
           >
-            {/* Center Main Dish */}
-            <motion.div
-              animate={{ y: [0, -20, 0], rotate: [0, 2, 0] }}
-              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-30"
-            >
-              <div className="relative h-64 w-64 lg:h-80 lg:w-80 rounded-full overflow-hidden shadow-[0_30px_60px_rgba(0,0,0,0.2)] border-8 border-white">
-                <img
-                  src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=800&q=80"
-                  alt="Premium Burger"
-                  className="h-full w-full object-cover"
-                />
-              </div>
-            </motion.div>
+            Craving something{" "}
+            <span className="text-transparent bg-clip-text bg-linear-to-r from-[#FF9933] to-[#ff6b00]">
+              Extraordinary?
+            </span>
+          </motion.h1>
 
-            {/* Floating Element 1 - Top Right */}
-            <motion.div
-              animate={{ y: [0, -15, 0], x: [0, 10, 0], rotate: [0, -5, 0] }}
-              transition={{
-                duration: 5,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: 1,
-              }}
-              className="absolute right-0 lg:right-4 top-10 lg:top-20 z-20"
-            >
-              <div className="relative h-40 w-40 lg:h-48 lg:w-48 rounded-full overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.15)] border-4 border-white">
-                <img
-                  src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=400&q=80"
-                  alt="Pizza"
-                  className="h-full w-full object-cover"
-                />
-              </div>
-            </motion.div>
+          <motion.p
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.25 }}
+            className="mb-8 text-base font-medium text-gray-500 sm:text-lg md:text-xl max-w-xl leading-relaxed"
+          >
+            Order premium food right to your table or get it delivered
+            to your doorstep in minutes.
+          </motion.p>
 
-            {/* New Floating Element - Top Center */}
-            <motion.div
-              animate={{ y: [0, -12, 0], rotate: [0, 8, 0] }}
-              transition={{
-                duration: 4.5,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: 0.8,
-              }}
-              className="absolute left-1/3 lg:left-1/2 -top-4 lg:-top-8 z-10 -translate-x-1/2"
-            >
-              <div className="relative h-28 w-28 lg:h-36 lg:w-36 rounded-full overflow-hidden shadow-[0_15px_30px_rgba(0,0,0,0.15)] border-4 border-white">
-                <img
-                  src="https://images.unsplash.com/photo-1528207776546-365bb710ee93?auto=format&fit=crop&w=400&q=80"
-                  alt="Pancakes"
-                  className="h-full w-full object-cover"
-                />
-              </div>
-            </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.35 }}
+            className="flex w-full max-w-xl rounded-2xl bg-white p-2 shadow-[0_8px_40px_-12px_rgba(0,0,0,0.12)] sm:rounded-full border border-gray-100/80"
+          >
+            <div className="relative flex flex-1 items-center rounded-xl sm:rounded-l-full bg-gray-50 transition-all hover:bg-gray-100 focus-within:ring-2 focus-within:ring-[#FF9933]/40 focus-within:bg-white overflow-hidden group">
+              <Search className="absolute left-4 h-[18px] w-[18px] text-gray-400 group-focus-within:text-[#FF9933] transition-colors shrink-0" />
+              <input
+                type="text"
+                className="w-full bg-transparent py-3.5 pl-11 pr-4 text-sm font-semibold text-[#1F2A2A] placeholder-gray-400 focus:outline-none"
+                placeholder="Search for restaurant, cuisine, or dish..."
+              />
+            </div>
 
-            {/* New Floating Element - Bottom Center */}
-            <motion.div
-              animate={{ y: [0, 15, 0], x: [0, 5, 0], rotate: [0, -4, 0] }}
-              transition={{
-                duration: 5.5,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: 1.2,
-              }}
-              className="absolute left-1/2 bottom-0 lg:bottom-4 z-40 -translate-x-1/3"
-            >
-              <div className="relative h-36 w-36 lg:h-44 lg:w-44 rounded-full overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.2)] border-4 border-white">
-                <img
-                  src="https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=400&q=80"
-                  alt="Coffee"
-                  className="h-full w-full object-cover"
-                />
-              </div>
-            </motion.div>
+            <button className="ml-2 rounded-xl sm:rounded-full bg-linear-to-r from-[#FF9933] to-[#ff8811] px-6 py-3.5 text-sm font-bold text-white shadow-md transition-all hover:shadow-lg hover:shadow-[#FF9933]/30 hover:-translate-y-0.5 active:translate-y-0 shrink-0">
+              Search
+            </button>
+          </motion.div>
 
-            {/* New Floating Element - Bottom Right */}
-            <motion.div
-              animate={{ y: [0, -18, 0], x: [0, -8, 0], rotate: [0, 6, 0] }}
-              transition={{
-                duration: 6.5,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: 0.3,
-              }}
-              className="absolute right-4 lg:right-12 bottom-12 lg:bottom-20 z-20"
-            >
-              <div className="relative h-40 w-40 lg:h-48 lg:w-48 rounded-full overflow-hidden shadow-[0_25px_50px_rgba(0,0,0,0.18)] border-6 border-white">
-                <img
-                  src="https://images.unsplash.com/photo-1562376552-0d160a2f9fa4?auto=format&fit=crop&w=400&q=80"
-                  alt="Dessert"
-                  className="h-full w-full object-cover"
-                />
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+            className="mt-8 flex flex-row gap-3 justify-center"
+          >
+            <button className="group flex items-center gap-3 rounded-xl bg-white px-4 py-3 shadow-sm transition-all hover:shadow-md border border-gray-100 hover:border-[#FF9933]/20 hover:-translate-y-0.5 active:translate-y-0">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#FF9933]/10 text-[#FF9933] transition-colors group-hover:bg-[#FF9933] group-hover:text-white">
+                <QrCode className="h-[18px] w-[18px]" />
               </div>
-            </motion.div>
-
-            {/* Floating Sub-element - Top Left */}
-            <motion.div
-              animate={{ y: [0, -10, 0], rotate: [0, -10, 0] }}
-              transition={{
-                duration: 4,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: 2,
-              }}
-              className="absolute left-10 lg:left-20 top-0 lg:top-10 z-10"
-            >
-              <div className="relative h-24 w-24 lg:h-32 lg:w-32 rounded-full overflow-hidden shadow-[0_15px_30px_rgba(0,0,0,0.1)] border-4 border-white">
-                <img
-                  src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=400&q=80"
-                  alt="Salad"
-                  className="h-full w-full object-cover"
-                />
+              <div className="text-left">
+                <h3 className="text-sm font-bold text-[#1F2A2A] group-hover:text-[#FF9933] transition-colors leading-tight">
+                  Scan QR
+                </h3>
+                <p className="text-[11px] text-gray-500 leading-tight">Order at table</p>
               </div>
-            </motion.div>
+            </button>
 
-            {/* Decorative Floating Dots */}
-            <motion.div
-              animate={{ y: [0, -30, 0], opacity: [0.5, 1, 0.5] }}
-              transition={{ duration: 4, repeat: Infinity }}
-              className="absolute right-1/4 top-1/4 h-4 w-4 rounded-full bg-[#FF9933] blur-sm"
-            />
-            <motion.div
-              animate={{ y: [0, 40, 0], opacity: [0.3, 0.8, 0.3] }}
-              transition={{ duration: 6, repeat: Infinity, delay: 1 }}
-              className="absolute left-1/3 bottom-1/4 h-6 w-6 rounded-full bg-[#ff6b00] blur-md"
-            />
-            <motion.div
-              animate={{ y: [0, -20, 0], opacity: [0.4, 0.9, 0.4] }}
-              transition={{ duration: 5, repeat: Infinity, delay: 2 }}
-              className="absolute right-1/3 bottom-1/3 h-3 w-3 rounded-full bg-yellow-400 blur-sm"
-            />
+            <button className="group flex items-center gap-3 rounded-xl bg-white px-4 py-3 shadow-sm transition-all hover:shadow-md border border-gray-100 hover:border-[#FF9933]/20 hover:-translate-y-0.5 active:translate-y-0">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#FF9933]/10 text-[#FF9933] transition-colors group-hover:bg-[#FF9933] group-hover:text-white">
+                <Utensils className="h-[18px] w-[18px]" />
+              </div>
+              <div className="text-left">
+                <h3 className="text-sm font-bold text-[#1F2A2A] group-hover:text-[#FF9933] transition-colors leading-tight">
+                  Browse Menu
+                </h3>
+                <p className="text-[11px] text-gray-500 leading-tight">Restaurants near you</p>
+              </div>
+            </button>
           </motion.div>
         </div>
       </div>
 
-      {/* Fade out bottom to blend with next section */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-linear-to-t from-white to-transparent pointer-events-none" />
-    </section>
+      <div className="absolute bottom-0 left-0 right-0 h-20 bg-linear-to-t from-white to-transparent pointer-events-none" />
+    </motion.section>
   );
 }
