@@ -1,0 +1,390 @@
+"use client";
+
+import { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Clock,
+  CheckCircle2,
+  XCircle,
+  ChefHat,
+  PackageCheck,
+  Truck,
+  RefreshCw,
+} from "lucide-react";
+import { useLiveOrders, type LiveOrder, type LiveOrderStatus } from "@/context/LiveOrdersContext";
+import DineInRequestModal from "@/components/DineInRequestModal";
+import gsap from "gsap";
+
+const STATUS_CONFIG: Record<
+  LiveOrderStatus,
+  { label: string; bg: string; text: string; icon: typeof Clock }
+> = {
+  new: { label: "New", bg: "bg-orange-100", text: "text-orange-700", icon: Clock },
+  accepted: { label: "Accepted", bg: "bg-blue-100", text: "text-blue-700", icon: CheckCircle2 },
+  preparing: { label: "Preparing", bg: "bg-amber-100", text: "text-amber-700", icon: ChefHat },
+  ready: { label: "Ready", bg: "bg-green-100", text: "text-green-700", icon: PackageCheck },
+  delivered: { label: "Delivered", bg: "bg-gray-100", text: "text-gray-600", icon: Truck },
+  rejected: { label: "Rejected", bg: "bg-red-100", text: "text-red-600", icon: XCircle },
+};
+
+function PreparingClock() {
+  const clockRef = useRef<HTMLDivElement>(null);
+  const handRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.to(handRef.current!, {
+        rotation: 360,
+        duration: 1.5,
+        repeat: -1,
+        ease: "linear",
+        transformOrigin: "bottom center",
+      });
+    });
+    return () => ctx.revert();
+  }, []);
+
+  return (
+    <div
+      ref={clockRef}
+      className="relative flex h-5 w-5 items-center justify-center rounded-full border-2 border-amber-500 bg-amber-50"
+    >
+      <div className="absolute top-1/2 left-1/2 h-0.5 w-0.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-600" />
+      <div
+        ref={handRef}
+        className="absolute bottom-1/2 left-1/2 h-1.5 w-px -translate-x-1/2 rounded-full bg-amber-600 origin-bottom"
+      />
+    </div>
+  );
+}
+
+function StatusBadge({ status }: { status: LiveOrderStatus }) {
+  const cfg = STATUS_CONFIG[status];
+  const Icon = cfg.icon;
+  return (
+    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold ${cfg.bg} ${cfg.text}`}>
+      {status === "preparing" ? <PreparingClock /> : <Icon className="h-3 w-3" />}
+      {cfg.label}
+    </span>
+  );
+}
+
+function TimeAgo({ ts }: { ts: number }) {
+  const secs = Math.floor((Date.now() - ts) / 1000);
+  if (secs < 60) return <span className="text-[11px] text-gray-400">{secs}s ago</span>;
+  const mins = Math.floor(secs / 60);
+  if (mins < 60) return <span className="text-[11px] text-gray-400">{mins}m ago</span>;
+  return <span className="text-[11px] text-gray-400">{Math.floor(mins / 60)}h ago</span>;
+}
+
+export default function LiveOrdersTab() {
+  const { orders, acceptOrder, rejectOrder, markPreparing, markReady, markDelivered } = useLiveOrders();
+  const [selectedOrder, setSelectedOrder] = useState<LiveOrder | null>(null);
+  const [filterStatus, setFilterStatus] = useState<LiveOrderStatus | "all">("all");
+
+  const filtered = orders.filter(
+    (o) => filterStatus === "all" || o.status === filterStatus,
+  );
+
+  const newCount = orders.filter((o) => o.status === "new").length;
+
+  return (
+    <div className="space-y-5">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-bold text-[#1F2A2A]">Live Orders</h2>
+          <p className="text-sm text-gray-400">
+            {newCount > 0 ? (
+              <span className="font-semibold text-[#FF9933]">
+                {newCount} new order{newCount > 1 ? "s" : ""} waiting
+              </span>
+            ) : (
+              "All orders managed"
+            )}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="flex h-2 w-2 items-center justify-center">
+            <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-green-400 opacity-75" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-green-400" />
+          </div>
+          <span className="text-xs font-semibold text-green-600">Live</span>
+          <RefreshCw className="h-3.5 w-3.5 text-gray-400 animate-spin" style={{ animationDuration: "3s" }} />
+        </div>
+      </div>
+
+      {/* Filter pills */}
+      <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+        {(["all", "new", "accepted", "preparing", "ready", "delivered"] as const).map((s) => (
+          <button
+            key={s}
+            onClick={() => setFilterStatus(s)}
+            className={`shrink-0 rounded-full px-4 py-2 text-xs font-bold transition-all capitalize ${
+              filterStatus === s
+                ? "bg-[#0A4D3C] text-white shadow-md"
+                : "bg-white border border-gray-200 text-gray-500 hover:border-gray-300"
+            }`}
+          >
+            {s === "all" ? "All Orders" : s}
+            {s === "new" && newCount > 0 && (
+              <span className="ml-1.5 rounded-full bg-[#FF9933] px-1.5 py-0.5 text-[10px] text-white">
+                {newCount}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* Orders — desktop table + mobile cards */}
+      <div>
+        {/* Desktop table */}
+        <div className="hidden md:block overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-sm">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-100 bg-gray-50/80">
+                <th className="px-5 py-3.5 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                  Order
+                </th>
+                <th className="px-4 py-3.5 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                  Table
+                </th>
+                <th className="px-4 py-3.5 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                  Items
+                </th>
+                <th className="px-4 py-3.5 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                  Total
+                </th>
+                <th className="px-4 py-3.5 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-4 py-3.5 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                  Time
+                </th>
+                <th className="px-5 py-3.5 text-right text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <AnimatePresence>
+                {filtered.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="py-16 text-center text-sm text-gray-400">
+                      No orders found
+                    </td>
+                  </tr>
+                ) : (
+                  filtered.map((order) => (
+                    <motion.tr
+                      key={order.id}
+                      layout
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      transition={{ duration: 0.25 }}
+                      onClick={() => setSelectedOrder(order)}
+                      className={`border-b border-gray-50 cursor-pointer transition-colors hover:bg-gray-50/70 last:border-b-0 ${
+                        order.status === "new" ? "bg-orange-50/40" : ""
+                      }`}
+                    >
+                      <td className="px-5 py-4">
+                        <span className="font-bold text-[#1F2A2A]">{order.id}</span>
+                        {order.note && (
+                          <p className="text-[10px] text-gray-400 mt-0.5 italic">
+                            &ldquo;{order.note}&rdquo;
+                          </p>
+                        )}
+                      </td>
+                      <td className="px-4 py-4">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#0A4D3C]/10 text-sm font-bold text-[#0A4D3C]">
+                          {order.tableNo}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="text-xs text-gray-600 space-y-0.5">
+                          {order.items.slice(0, 2).map((item, i) => (
+                            <div key={i}>
+                              <span className="font-semibold">{item.qty}×</span> {item.name}
+                            </div>
+                          ))}
+                          {order.items.length > 2 && (
+                            <span className="text-gray-400">+{order.items.length - 2} more</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 font-bold text-[#1F2A2A]">
+                        Rs. {order.total}
+                      </td>
+                      <td className="px-4 py-4">
+                        <StatusBadge status={order.status} />
+                      </td>
+                      <td className="px-4 py-4">
+                        <TimeAgo ts={order.createdAt} />
+                      </td>
+                      <td className="px-5 py-4">
+                        <OrderActions
+                          order={order}
+                          onAccept={() => acceptOrder(order.id)}
+                          onReject={() => rejectOrder(order.id)}
+                          onPreparing={() => markPreparing(order.id)}
+                          onReady={() => markReady(order.id)}
+                          onDelivered={() => markDelivered(order.id)}
+                        />
+                      </td>
+                    </motion.tr>
+                  ))
+                )}
+              </AnimatePresence>
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile cards */}
+        <div className="md:hidden space-y-3">
+          <AnimatePresence>
+            {filtered.map((order) => (
+              <motion.div
+                key={order.id}
+                layout
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                onClick={() => setSelectedOrder(order)}
+                className={`rounded-2xl border bg-white p-4 shadow-sm cursor-pointer ${
+                  order.status === "new"
+                    ? "border-orange-200 bg-orange-50/30"
+                    : "border-gray-200"
+                }`}
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold text-[#1F2A2A]">{order.id}</span>
+                      <StatusBadge status={order.status} />
+                    </div>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="flex h-6 w-6 items-center justify-center rounded-md bg-[#0A4D3C]/10 text-xs font-bold text-[#0A4D3C]">
+                        {order.tableNo}
+                      </span>
+                      <span className="text-xs text-gray-400">Table {order.tableNo}</span>
+                      <TimeAgo ts={order.createdAt} />
+                    </div>
+                  </div>
+                  <span className="text-sm font-bold text-[#1F2A2A]">Rs. {order.total}</span>
+                </div>
+                <div className="text-xs text-gray-500 mb-3 space-y-0.5">
+                  {order.items.map((item, i) => (
+                    <div key={i}>
+                      {item.qty}× {item.name}
+                    </div>
+                  ))}
+                </div>
+                <OrderActions
+                  order={order}
+                  onAccept={() => acceptOrder(order.id)}
+                  onReject={() => rejectOrder(order.id)}
+                  onPreparing={() => markPreparing(order.id)}
+                  onReady={() => markReady(order.id)}
+                  onDelivered={() => markDelivered(order.id)}
+                />
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+      </div>
+
+      {/* Dine-in modal */}
+      <DineInRequestModal
+        order={selectedOrder}
+        onClose={() => setSelectedOrder(null)}
+        onAccept={(id) => { acceptOrder(id); setSelectedOrder(null); }}
+        onReject={(id) => { rejectOrder(id); setSelectedOrder(null); }}
+      />
+    </div>
+  );
+}
+
+function OrderActions({
+  order,
+  onAccept,
+  onReject,
+  onPreparing,
+  onReady,
+  onDelivered,
+}: {
+  order: LiveOrder;
+  onAccept: () => void;
+  onReject: () => void;
+  onPreparing: () => void;
+  onReady: () => void;
+  onDelivered: () => void;
+}) {
+  const stop = (e: React.MouseEvent, fn: () => void) => {
+    e.stopPropagation();
+    fn();
+  };
+
+  if (order.status === "new") {
+    return (
+      <div className="flex items-center gap-2 flex-wrap">
+        <button
+          onClick={(e) => stop(e, onAccept)}
+          className="flex items-center gap-1.5 rounded-lg bg-[#0A4D3C] px-3 py-1.5 text-[11px] font-bold text-white hover:bg-[#083a2d] transition-colors"
+        >
+          <CheckCircle2 className="h-3 w-3" />
+          Accept
+        </button>
+        <button
+          onClick={(e) => stop(e, onReject)}
+          className="flex items-center gap-1.5 rounded-lg border border-red-200 px-3 py-1.5 text-[11px] font-bold text-red-500 hover:bg-red-50 transition-colors"
+        >
+          <XCircle className="h-3 w-3" />
+          Reject
+        </button>
+      </div>
+    );
+  }
+
+  if (order.status === "accepted") {
+    return (
+      <button
+        onClick={(e) => stop(e, onPreparing)}
+        className="flex items-center gap-1.5 rounded-lg bg-amber-500 px-3 py-1.5 text-[11px] font-bold text-white hover:bg-amber-600 transition-colors"
+      >
+        <ChefHat className="h-3 w-3" />
+        Start Cooking
+      </button>
+    );
+  }
+
+  if (order.status === "preparing") {
+    return (
+      <button
+        onClick={(e) => stop(e, onReady)}
+        className="flex items-center gap-1.5 rounded-lg bg-green-500 px-3 py-1.5 text-[11px] font-bold text-white hover:bg-green-600 transition-colors"
+      >
+        <PackageCheck className="h-3 w-3" />
+        Mark Ready
+      </button>
+    );
+  }
+
+  if (order.status === "ready") {
+    return (
+      <button
+        onClick={(e) => stop(e, onDelivered)}
+        className="flex items-center gap-1.5 rounded-lg bg-[#0A4D3C] px-3 py-1.5 text-[11px] font-bold text-white hover:bg-[#083a2d] transition-colors"
+      >
+        <Truck className="h-3 w-3" />
+        Delivered
+      </button>
+    );
+  }
+
+  return (
+    <span className="text-xs text-gray-400 italic">
+      {order.status === "delivered" ? "Completed" : "Cancelled"}
+    </span>
+  );
+}

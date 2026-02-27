@@ -10,9 +10,11 @@ import {
   ChevronDown,
   User,
   ShoppingBag,
+  LayoutDashboard,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/context/CartContext";
+import Link from "next/link";
 
 export default function Navbar({
   onLoginClick,
@@ -68,6 +70,13 @@ export default function Navbar({
           </div>
 
           <div className="hidden shrink-0 items-center gap-2 md:flex">
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-xs font-bold text-gray-600 hover:bg-gray-50 hover:border-[#0A4D3C]/30 hover:text-[#0A4D3C] transition-all"
+            >
+              <LayoutDashboard className="h-3.5 w-3.5" />
+              <span className="hidden lg:inline">Owner View</span>
+            </Link>
             <button
               onClick={onCartClick}
               className="relative group flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-bold transition-all hover:bg-gray-50 text-[#1F2A2A]"
@@ -185,6 +194,14 @@ export default function Navbar({
                   Sign Up
                 </button>
               </div>
+              <Link
+                href="/dashboard"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center justify-center gap-2 rounded-lg border border-gray-200 py-3 text-center text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors"
+              >
+                <LayoutDashboard className="h-4 w-4" />
+                Switch to Owner View
+              </Link>
             </div>
           </motion.div>
         )}
