@@ -49,24 +49,10 @@ export default function FoodCategories() {
       ref={containerRef}
       className="container mx-auto px-4 md:px-6 py-12 md:py-16"
     >
-      <div className="flex items-center justify-between mb-8">
+      <div className="mb-8">
         <h2 className="text-2xl font-bold tracking-tight text-[#1F2A2A] md:text-3xl">
           What's on your mind?
         </h2>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={scrollLeft}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-[#1F2A2A] transition-colors hover:bg-gray-200 active:bg-gray-300"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </button>
-          <button
-            onClick={scrollRight}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-[#1F2A2A] transition-colors hover:bg-gray-200 active:bg-gray-300"
-          >
-            <ArrowRight className="h-5 w-5" />
-          </button>
-        </div>
       </div>
 
       <div

@@ -33,7 +33,7 @@ export default function Hero() {
   return (
     <section
       ref={containerRef}
-      className="relative flex min-h-[90vh] w-full items-center justify-center overflow-hidden bg-gradient-to-br from-white via-[#F5F0E8] to-[#f9f6f0]"
+      className="relative flex min-h-[90vh] w-full items-center justify-center overflow-hidden bg-linear-to-br from-white via-[#F5F0E8] to-[#f9f6f0]"
     >
       {/* Subtle background decoration */}
       <div className="absolute top-0 right-0 -mr-40 -mt-40 h-[600px] w-[600px] rounded-full bg-[#FF9933]/5 blur-3xl pointer-events-none" />
@@ -63,7 +63,7 @@ export default function Hero() {
 
             <h1 className="mb-6 text-5xl font-extrabold tracking-tight text-[#1F2A2A] sm:text-6xl md:text-7xl drop-shadow-sm leading-tight">
               Craving something <br className="hidden lg:block" />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF9933] to-[#ff6b00]">
+              <span className="text-transparent bg-clip-text bg-linear-to-r from-[#FF9933] to-[#ff6b00]">
                 Extraordinary?
               </span>
             </h1>
@@ -90,7 +90,7 @@ export default function Hero() {
                 <div className="absolute right-0 top-1/2 h-8 w-px -translate-y-1/2 bg-gray-200 hidden sm:block" />
               </div>
 
-              <div className="relative flex flex-[2] items-center rounded-2xl sm:rounded-none bg-gray-50 transition-all hover:bg-gray-100 focus-within:ring-2 focus-within:ring-[#FF9933]/50 focus-within:bg-white focus-within:z-10 overflow-hidden group">
+              <div className="relative flex flex-2 items-center rounded-2xl sm:rounded-none bg-gray-50 transition-all hover:bg-gray-100 focus-within:ring-2 focus-within:ring-[#FF9933]/50 focus-within:bg-white focus-within:z-10 overflow-hidden group">
                 <Search className="absolute left-5 h-5 w-5 text-gray-400 group-focus-within:text-[#FF9933] transition-colors" />
                 <input
                   type="text"
@@ -99,7 +99,7 @@ export default function Hero() {
                 />
               </div>
 
-              <button className="rounded-2xl sm:rounded-full bg-gradient-to-r from-[#FF9933] to-[#ff8811] px-8 py-4 text-base font-bold text-white shadow-lg transition-all hover:shadow-xl hover:shadow-[#FF9933]/40 hover:-translate-y-0.5 active:translate-y-0 shrink-0">
+              <button className="rounded-2xl sm:rounded-full bg-linear-to-r from-[#FF9933] to-[#ff8811] px-8 py-4 text-base font-bold text-white shadow-lg transition-all hover:shadow-xl hover:shadow-[#FF9933]/40 hover:-translate-y-0.5 active:translate-y-0 shrink-0">
                 Let's Go
               </button>
             </motion.div>
@@ -183,21 +183,61 @@ export default function Hero() {
               </div>
             </motion.div>
 
-            {/* Floating Element 2 - Bottom Left */}
+            {/* New Floating Element - Top Center */}
             <motion.div
-              animate={{ y: [0, 20, 0], x: [0, -10, 0], rotate: [0, 5, 0] }}
+              animate={{ y: [0, -12, 0], rotate: [0, 8, 0] }}
               transition={{
-                duration: 7,
+                duration: 4.5,
                 repeat: Infinity,
                 ease: "easeInOut",
-                delay: 0.5,
+                delay: 0.8,
               }}
-              className="absolute left-0 lg:left-4 bottom-10 lg:bottom-20 z-40"
+              className="absolute left-1/3 lg:left-1/2 -top-4 lg:-top-8 z-10 -translate-x-1/2"
             >
-              <div className="relative h-44 w-44 lg:h-52 lg:w-52 rounded-full overflow-hidden shadow-[0_25px_50px_rgba(0,0,0,0.2)] border-6 border-white">
+              <div className="relative h-28 w-28 lg:h-36 lg:w-36 rounded-full overflow-hidden shadow-[0_15px_30px_rgba(0,0,0,0.15)] border-4 border-white">
                 <img
-                  src="https://images.unsplash.com/photo-1496116218417-1a781b1c416c?auto=format&fit=crop&w=400&q=80"
-                  alt="Healthy Bowl"
+                  src="https://images.unsplash.com/photo-1528207776546-365bb710ee93?auto=format&fit=crop&w=400&q=80"
+                  alt="Pancakes"
+                  className="h-full w-full object-cover"
+                />
+              </div>
+            </motion.div>
+
+            {/* New Floating Element - Bottom Center */}
+            <motion.div
+              animate={{ y: [0, 15, 0], x: [0, 5, 0], rotate: [0, -4, 0] }}
+              transition={{
+                duration: 5.5,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: 1.2,
+              }}
+              className="absolute left-1/2 bottom-0 lg:bottom-4 z-40 -translate-x-1/3"
+            >
+              <div className="relative h-36 w-36 lg:h-44 lg:w-44 rounded-full overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.2)] border-4 border-white">
+                <img
+                  src="https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=400&q=80"
+                  alt="Coffee"
+                  className="h-full w-full object-cover"
+                />
+              </div>
+            </motion.div>
+
+            {/* New Floating Element - Bottom Right */}
+            <motion.div
+              animate={{ y: [0, -18, 0], x: [0, -8, 0], rotate: [0, 6, 0] }}
+              transition={{
+                duration: 6.5,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: 0.3,
+              }}
+              className="absolute right-4 lg:right-12 bottom-12 lg:bottom-20 z-20"
+            >
+              <div className="relative h-40 w-40 lg:h-48 lg:w-48 rounded-full overflow-hidden shadow-[0_25px_50px_rgba(0,0,0,0.18)] border-6 border-white">
+                <img
+                  src="https://images.unsplash.com/photo-1562376552-0d160a2f9fa4?auto=format&fit=crop&w=400&q=80"
+                  alt="Dessert"
                   className="h-full w-full object-cover"
                 />
               </div>

@@ -9,6 +9,8 @@ export const categories = [
   { id: 8, name: "Continental", image: "🍝" },
   { id: 9, name: "Desserts", image: "🧁" },
   { id: 10, name: "Healthy", image: "🥗" },
+  { id: 11, name: "Drinks", image: "🥤" },
+  { id: 12, name: "Bakery", image: "🥐" },
 ];
 
 export const offers = [
