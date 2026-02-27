@@ -1,17 +1,19 @@
 "use client";
 
+import { useRef } from "react";
 import { motion, type Variants } from "framer-motion";
-import { bestFoods } from "@/lib/data";
-import { Star, Heart, Clock } from "lucide-react";
+import { bestFoods, type FoodItem } from "@/lib/data";
+import { Star, Heart, Clock, Plus } from "lucide-react";
+import { useCart } from "@/context/CartContext";
+import { useToast } from "@/context/ToastContext";
+import { useGSAP } from "@gsap/react";
+import gsap from "gsap";
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: {
-      staggerChildren: 0.06,
-      delayChildren: 0.1,
-    },
+    transition: { staggerChildren: 0.06, delayChildren: 0.1 },
   },
 };
 
@@ -27,10 +29,79 @@ const itemVariants: Variants = {
   },
 };
 
-function MobileCard({ food }: { food: (typeof bestFoods)[number] }) {
+function AddButton({
+  food,
+  size = "md",
+}: {
+  food: FoodItem;
+  size?: "sm" | "md";
+}) {
+  const { addItem, getItemQty } = useCart();
+  const { showToast } = useToast();
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const qty = getItemQty(food.id);
+
+  useGSAP(
+    () => {
+      if (!btnRef.current) return;
+      const el = btnRef.current;
+      const enter = () => gsap.to(el, { scale: 1.15, duration: 0.2, ease: "back.out(3)" });
+      const leave = () => gsap.to(el, { scale: 1, duration: 0.15, ease: "power2.out" });
+      el.addEventListener("mouseenter", enter);
+      el.addEventListener("mouseleave", leave);
+      return () => {
+        el.removeEventListener("mouseenter", enter);
+        el.removeEventListener("mouseleave", leave);
+      };
+    },
+    { scope: btnRef },
+  );
+
+  const handleAdd = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    addItem({ id: food.id, name: food.name, price: food.price, image: food.image });
+    showToast(`${food.name} added!`);
+    if (btnRef.current) {
+      gsap.fromTo(btnRef.current, { scale: 0.8 }, { scale: 1, duration: 0.3, ease: "back.out(3)" });
+    }
+  };
+
+  const dims = size === "sm" ? "h-9 w-9" : "h-10 w-10";
+  const iconSize = size === "sm" ? "h-4 w-4" : "h-5 w-5";
+
+  return (
+    <div className="relative">
+      <button
+        ref={btnRef}
+        onClick={handleAdd}
+        className={`${dims} flex items-center justify-center rounded-full bg-[#FF9933] text-white shadow-md shadow-[#FF9933]/30 transition-colors hover:bg-[#ff8811] active:bg-[#e88520]`}
+      >
+        <Plus className={iconSize} strokeWidth={3} />
+      </button>
+      {qty > 0 && (
+        <motion.span
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#0A4D3C] text-[10px] font-bold text-white shadow-sm"
+        >
+          {qty}
+        </motion.span>
+      )}
+    </div>
+  );
+}
+
+function MobileCard({
+  food,
+  onClick,
+}: {
+  food: FoodItem;
+  onClick: () => void;
+}) {
   return (
     <motion.div
       variants={itemVariants}
+      onClick={onClick}
       className="flex gap-4 py-4 border-b border-gray-100 last:border-b-0 cursor-pointer group"
     >
       <div className="relative h-[120px] w-[120px] shrink-0 rounded-2xl overflow-hidden">
@@ -47,7 +118,10 @@ function MobileCard({ food }: { food: (typeof bestFoods)[number] }) {
             </span>
           </div>
         )}
-        <button className="absolute top-2 right-2 p-1.5 rounded-full bg-white/80 text-gray-400 backdrop-blur-sm transition-all hover:bg-white hover:text-red-500 active:scale-90">
+        <button
+          onClick={(e) => e.stopPropagation()}
+          className="absolute top-2 right-2 p-1.5 rounded-full bg-white/80 text-gray-400 backdrop-blur-sm transition-all hover:bg-white hover:text-red-500 active:scale-90"
+        >
           <Heart className="h-4 w-4" />
         </button>
       </div>
@@ -65,18 +139,28 @@ function MobileCard({ food }: { food: (typeof bestFoods)[number] }) {
         <p className="text-[13px] text-gray-500 mt-0.5 truncate">
           {food.restaurant}
         </p>
-        <p className="text-[13px] font-bold text-[#FF9933] mt-0.5">
-          {food.price}
-        </p>
+        <div className="flex items-center justify-between mt-1.5">
+          <p className="text-[14px] font-bold text-[#FF9933]">
+            {food.priceLabel}
+          </p>
+          <AddButton food={food} size="sm" />
+        </div>
       </div>
     </motion.div>
   );
 }
 
-function DesktopCard({ food }: { food: (typeof bestFoods)[number] }) {
+function DesktopCard({
+  food,
+  onClick,
+}: {
+  food: FoodItem;
+  onClick: () => void;
+}) {
   return (
     <motion.div
       variants={itemVariants}
+      onClick={onClick}
       className="group cursor-pointer"
     >
       <div className="relative w-full aspect-square rounded-2xl overflow-hidden">
@@ -88,7 +172,10 @@ function DesktopCard({ food }: { food: (typeof bestFoods)[number] }) {
         />
         <div className="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-transparent" />
 
-        <button className="absolute top-2.5 right-2.5 p-1.5 rounded-full bg-white/90 text-gray-400 backdrop-blur-sm transition-all hover:bg-white hover:text-red-500 hover:scale-110 active:scale-95 shadow-sm">
+        <button
+          onClick={(e) => e.stopPropagation()}
+          className="absolute top-2.5 right-2.5 p-1.5 rounded-full bg-white/90 text-gray-400 backdrop-blur-sm transition-all hover:bg-white hover:text-red-500 hover:scale-110 active:scale-95 shadow-sm"
+        >
           <Heart className="h-4 w-4" />
         </button>
 
@@ -98,10 +185,13 @@ function DesktopCard({ food }: { food: (typeof bestFoods)[number] }) {
           </div>
         )}
 
-        <div className="absolute bottom-0 left-0 right-0 px-3 pb-2.5">
+        <div className="absolute bottom-0 left-0 right-0 px-3 pb-2.5 flex items-end justify-between">
           <span className="text-white text-lg font-extrabold drop-shadow-md">
-            {food.price}
+            {food.priceLabel}
           </span>
+          <div onClick={(e) => e.stopPropagation()}>
+            <AddButton food={food} />
+          </div>
         </div>
       </div>
 
@@ -122,7 +212,11 @@ function DesktopCard({ food }: { food: (typeof bestFoods)[number] }) {
   );
 }
 
-export default function TopPlaces() {
+export default function TopPlaces({
+  onFoodClick,
+}: {
+  onFoodClick: (food: FoodItem) => void;
+}) {
   return (
     <section className="bg-white">
       <div className="mx-auto max-w-[1440px] px-4 md:px-6 lg:px-10 py-6 md:py-10">
@@ -132,7 +226,6 @@ export default function TopPlaces() {
           </h2>
         </div>
 
-        {/* Mobile: Swiggy-style horizontal list cards */}
         <motion.div
           variants={containerVariants}
           initial="hidden"
@@ -141,11 +234,14 @@ export default function TopPlaces() {
           className="flex flex-col md:hidden"
         >
           {bestFoods.map((food) => (
-            <MobileCard key={food.id} food={food} />
+            <MobileCard
+              key={food.id}
+              food={food}
+              onClick={() => onFoodClick(food)}
+            />
           ))}
         </motion.div>
 
-        {/* Desktop: grid layout */}
         <motion.div
           variants={containerVariants}
           initial="hidden"
@@ -154,7 +250,11 @@ export default function TopPlaces() {
           className="hidden md:grid md:grid-cols-3 lg:grid-cols-4 gap-x-7 gap-y-8"
         >
           {bestFoods.map((food) => (
-            <DesktopCard key={food.id} food={food} />
+            <DesktopCard
+              key={food.id}
+              food={food}
+              onClick={() => onFoodClick(food)}
+            />
           ))}
         </motion.div>
       </div>

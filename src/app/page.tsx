@@ -10,13 +10,21 @@ import TopPlaces from "@/components/TopPlaces";
 import HowItWorks from "@/components/HowItWorks";
 import Footer from "@/components/Footer";
 import AuthModals from "@/components/AuthModals";
+import CartSidebar from "@/components/CartSidebar";
+import FoodDetailModal from "@/components/FoodDetailModal";
+import type { FoodItem } from "@/lib/data";
+import { CartProvider } from "@/context/CartContext";
+import { ToastProvider } from "@/context/ToastContext";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 
-export default function Home() {
+function AppContent() {
   const [loading, setLoading] = useState(true);
   const [loginOpen, setLoginOpen] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
+  const [selectedFood, setSelectedFood] = useState<FoodItem | null>(null);
+  const [foodModalOpen, setFoodModalOpen] = useState(false);
 
   const clockRef = useRef<HTMLDivElement>(null);
   const minuteHandRef = useRef<HTMLDivElement>(null);
@@ -29,42 +37,26 @@ export default function Home() {
 
   useGSAP(
     () => {
-      if (
-        loading &&
-        clockRef.current &&
-        minuteHandRef.current &&
-        hourHandRef.current
-      ) {
+      if (loading && clockRef.current && minuteHandRef.current && hourHandRef.current) {
         gsap.to(minuteHandRef.current, {
-          rotation: 360,
-          duration: 1,
-          repeat: -1,
-          ease: "linear",
-          transformOrigin: "bottom center",
+          rotation: 360, duration: 1, repeat: -1, ease: "linear", transformOrigin: "bottom center",
         });
         gsap.to(hourHandRef.current, {
-          rotation: 360,
-          duration: 12,
-          repeat: -1,
-          ease: "linear",
-          transformOrigin: "bottom center",
+          rotation: 360, duration: 12, repeat: -1, ease: "linear", transformOrigin: "bottom center",
         });
-        gsap.fromTo(
-          clockRef.current,
+        gsap.fromTo(clockRef.current,
           { scale: 0.92, opacity: 0.8 },
-          {
-            scale: 1.08,
-            opacity: 1,
-            yoyo: true,
-            repeat: -1,
-            duration: 0.9,
-            ease: "power1.inOut",
-          },
+          { scale: 1.08, opacity: 1, yoyo: true, repeat: -1, duration: 0.9, ease: "power1.inOut" },
         );
       }
     },
     { scope: clockRef, dependencies: [loading] },
   );
+
+  const handleFoodClick = (food: FoodItem) => {
+    setSelectedFood(food);
+    setFoodModalOpen(true);
+  };
 
   return (
     <>
@@ -74,28 +66,15 @@ export default function Home() {
             key="loader"
             exit={{ opacity: 0, scale: 0.96 }}
             transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white"
+            className="fixed inset-0 z-100 flex flex-col items-center justify-center bg-white"
           >
-            <div
-              ref={clockRef}
-              className="relative flex h-20 w-20 items-center justify-center rounded-full border-[3px] border-[#0A4D3C] bg-white shadow-xl"
-            >
+            <div ref={clockRef} className="relative flex h-20 w-20 items-center justify-center rounded-full border-[3px] border-[#0A4D3C] bg-white shadow-xl">
               <div className="absolute top-1/2 left-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#FF9933] z-10" />
-              <div
-                ref={hourHandRef}
-                className="absolute bottom-1/2 left-1/2 h-5 w-[3px] -translate-x-1/2 rounded-full bg-[#1F2A2A] origin-bottom"
-              />
-              <div
-                ref={minuteHandRef}
-                className="absolute bottom-1/2 left-1/2 h-7 w-[2px] -translate-x-1/2 rounded-full bg-[#FF9933] origin-bottom"
-              />
+              <div ref={hourHandRef} className="absolute bottom-1/2 left-1/2 h-5 w-[3px] -translate-x-1/2 rounded-full bg-[#1F2A2A] origin-bottom" />
+              <div ref={minuteHandRef} className="absolute bottom-1/2 left-1/2 h-7 w-[2px] -translate-x-1/2 rounded-full bg-[#FF9933] origin-bottom" />
             </div>
-            <h2 className="mt-6 text-xl font-bold text-[#0A4D3C] tracking-tight">
-              HimalHub
-            </h2>
-            <p className="mt-1.5 text-sm font-medium text-gray-400">
-              Loading the best places in Nepal
-            </p>
+            <h2 className="mt-6 text-xl font-bold text-[#0A4D3C] tracking-tight">HimalHub</h2>
+            <p className="mt-1.5 text-sm font-medium text-gray-400">Loading the best food in Nepal</p>
           </motion.div>
         )}
       </AnimatePresence>
@@ -110,12 +89,13 @@ export default function Home() {
           <Navbar
             onLoginClick={() => setLoginOpen(true)}
             onRegisterClick={() => setRegisterOpen(true)}
+            onCartClick={() => setCartOpen(true)}
           />
 
           <Hero />
           <FoodCategories />
           <OffersCarousel />
-          <TopPlaces />
+          <TopPlaces onFoodClick={handleFoodClick} />
           <HowItWorks />
           <Footer />
 
@@ -125,8 +105,26 @@ export default function Home() {
             registerOpen={registerOpen}
             setRegisterOpen={setRegisterOpen}
           />
+
+          <CartSidebar open={cartOpen} onClose={() => setCartOpen(false)} />
+
+          <FoodDetailModal
+            food={selectedFood}
+            open={foodModalOpen}
+            onClose={() => setFoodModalOpen(false)}
+          />
         </motion.main>
       )}
     </>
+  );
+}
+
+export default function Home() {
+  return (
+    <CartProvider>
+      <ToastProvider>
+        <AppContent />
+      </ToastProvider>
+    </CartProvider>
   );
 }

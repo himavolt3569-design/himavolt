@@ -9,17 +9,22 @@ import {
   X,
   ChevronDown,
   User,
+  ShoppingBag,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useCart } from "@/context/CartContext";
 
 export default function Navbar({
   onLoginClick,
   onRegisterClick,
+  onCartClick,
 }: {
   onLoginClick: () => void;
   onRegisterClick: () => void;
+  onCartClick: () => void;
 }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { totalItems } = useCart();
 
   return (
     <nav className="sticky top-0 z-50 w-full bg-white shadow-[0_1px_6px_rgba(0,0,0,0.06)] transition-all duration-300">
@@ -64,6 +69,22 @@ export default function Navbar({
 
           <div className="hidden shrink-0 items-center gap-2 md:flex">
             <button
+              onClick={onCartClick}
+              className="relative group flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-bold transition-all hover:bg-gray-50 text-[#1F2A2A]"
+            >
+              <ShoppingBag className="h-[20px] w-[20px] text-gray-500 group-hover:text-[#FF9933] transition-colors" />
+              {totalItems > 0 && (
+                <motion.span
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="absolute -top-0.5 left-6 flex h-5 w-5 items-center justify-center rounded-full bg-[#FF9933] text-[10px] font-bold text-white shadow-sm"
+                >
+                  {totalItems}
+                </motion.span>
+              )}
+              <span className="hidden lg:inline">Cart</span>
+            </button>
+            <button
               onClick={onLoginClick}
               className="group flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold transition-all hover:bg-gray-50 text-[#1F2A2A]"
             >
@@ -78,16 +99,33 @@ export default function Navbar({
             </button>
           </div>
 
-          <button
-            className="rounded-lg bg-gray-50 p-2 text-gray-600 transition-colors hover:bg-gray-100 md:hidden"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            {isMobileMenuOpen ? (
-              <X className="h-5 w-5" />
-            ) : (
-              <Menu className="h-5 w-5" />
-            )}
-          </button>
+          <div className="flex items-center gap-2 md:hidden">
+            <button
+              onClick={onCartClick}
+              className="relative rounded-lg bg-gray-50 p-2 text-gray-600 transition-colors hover:bg-gray-100"
+            >
+              <ShoppingBag className="h-5 w-5" />
+              {totalItems > 0 && (
+                <motion.span
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#FF9933] text-[10px] font-bold text-white shadow-sm"
+                >
+                  {totalItems}
+                </motion.span>
+              )}
+            </button>
+            <button
+              className="rounded-lg bg-gray-50 p-2 text-gray-600 transition-colors hover:bg-gray-100"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              {isMobileMenuOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
+            </button>
+          </div>
         </div>
 
         <div className="pb-3 lg:hidden">
