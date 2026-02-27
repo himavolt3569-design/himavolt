@@ -22,24 +22,24 @@ export default function Navbar({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <nav className="sticky top-0 z-50 w-full bg-[#0A4D3C] text-white shadow-xl shadow-black/5">
+    <nav className="sticky top-0 z-50 w-full bg-white/85 backdrop-blur-xl text-[#1F2A2A] border-b border-gray-200/60 shadow-sm transition-all duration-300">
       <div className="container mx-auto px-4 md:px-6">
         <div className="flex h-20 items-center justify-between gap-4 lg:gap-8">
           {/* Logo */}
           <div className="flex shrink-0 items-center gap-2 cursor-pointer transition-transform hover:scale-105 active:scale-95">
             <Mountain className="h-8 w-8 text-[#FF9933]" strokeWidth={2.5} />
-            <span className="hidden text-2xl font-bold tracking-tight sm:block">
+            <span className="hidden text-2xl font-extrabold tracking-tight sm:block">
               Himal<span className="text-[#FF9933]">Hub</span>
             </span>
           </div>
 
           {/* Location & Search - Desktop */}
           <div className="hidden flex-1 items-center gap-4 lg:flex lg:max-w-3xl">
-            <div className="group relative flex cursor-pointer items-center gap-2 rounded-full bg-white/10 px-4 py-2 hover:bg-white/20 transition-colors">
+            <div className="group relative flex cursor-pointer items-center gap-2 rounded-full bg-gray-100/80 px-4 py-2 hover:bg-gray-200/80 transition-colors border border-gray-200/50">
               <MapPin className="h-4 w-4 text-[#FF9933]" />
-              <div className="flex items-center gap-1 group-hover:text-white/90">
-                <span className="text-sm font-medium">Kathmandu, Nepal</span>
-                <ChevronDown className="h-4 w-4" />
+              <div className="flex items-center gap-1 group-hover:text-gray-900">
+                <span className="text-sm font-semibold">Kathmandu, Nepal</span>
+                <ChevronDown className="h-4 w-4 text-gray-500" />
               </div>
             </div>
 
@@ -49,7 +49,7 @@ export default function Navbar({
               </div>
               <input
                 type="text"
-                className="w-full rounded-full bg-white py-3 pl-12 pr-4 text-sm text-[#1F2A2A] placeholder-gray-500 shadow-inner focus:outline-none focus:ring-2 focus:ring-[#FF9933]/50 transition-all font-medium"
+                className="w-full rounded-full bg-gray-100/80 py-3 pl-12 pr-4 text-sm text-[#1F2A2A] placeholder-gray-500 shadow-inner focus:outline-none focus:ring-2 focus:ring-[#FF9933]/50 focus:bg-white border border-gray-200/50 transition-all font-medium"
                 placeholder="Search restaurants, hotels or dishes..."
               />
             </div>
@@ -59,14 +59,14 @@ export default function Navbar({
           <div className="hidden shrink-0 items-center gap-4 md:flex">
             <button
               onClick={onLoginClick}
-              className="group flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-colors hover:bg-white/10"
+              className="group flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-bold transition-all hover:bg-gray-100 hover:text-[#FF9933]"
             >
-              <User className="h-4 w-4 text-white/80 group-hover:text-white transition-colors" />
+              <User className="h-5 w-5 text-gray-600 group-hover:text-[#FF9933] transition-colors" />
               <span>Login</span>
             </button>
             <button
               onClick={onRegisterClick}
-              className="rounded-full bg-[#FF9933] px-6 py-2.5 text-sm font-bold shadow-lg shadow-[#FF9933]/20 transition-all hover:-translate-y-0.5 hover:bg-[#ff8811] hover:shadow-xl hover:shadow-[#FF9933]/30 active:translate-y-0 active:bg-[#e68a2e]"
+              className="rounded-full bg-gradient-to-r from-[#FF9933] to-[#ff8811] px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-[#FF9933]/20 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-[#FF9933]/30 active:translate-y-0"
             >
               Register
             </button>
@@ -74,7 +74,7 @@ export default function Navbar({
 
           {/* Mobile Menu Button */}
           <button
-            className="rounded-full bg-white/10 p-2 text-white transition-colors hover:bg-white/20 md:hidden"
+            className="rounded-full bg-gray-100 p-2 text-gray-700 transition-colors hover:bg-gray-200 hover:text-[#FF9933] md:hidden"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           >
             {isMobileMenuOpen ? (
@@ -93,7 +93,7 @@ export default function Navbar({
             </div>
             <input
               type="text"
-              className="w-full rounded-full bg-white py-3 pl-12 pr-4 text-sm text-[#1F2A2A] placeholder-gray-500 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#FF9933]/50 transition-all font-medium"
+              className="w-full rounded-full bg-gray-100 py-3 pl-12 pr-4 text-sm text-[#1F2A2A] placeholder-gray-500 shadow-inner focus:outline-none focus:ring-2 focus:ring-[#FF9933]/50 focus:bg-white transition-all font-medium"
               placeholder="Search restaurants or hotels..."
             />
           </div>
@@ -107,16 +107,18 @@ export default function Navbar({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="border-t border-white/10 bg-[#0A4D3C] md:hidden overflow-hidden"
+            className="border-t border-gray-200 bg-white md:hidden overflow-hidden shadow-xl"
           >
             <div className="container mx-auto space-y-4 p-4">
-              <div className="flex cursor-pointer items-center gap-3 rounded-xl bg-white/5 p-4 transition-colors hover:bg-white/10">
+              <div className="flex cursor-pointer items-center gap-3 rounded-xl bg-gray-50 p-4 transition-colors hover:bg-gray-100 border border-gray-100">
                 <MapPin className="h-5 w-5 text-[#FF9933]" />
                 <div className="flex flex-col">
-                  <span className="text-xs text-white/60">
+                  <span className="text-xs text-gray-500 font-medium">
                     Current Location
                   </span>
-                  <span className="font-medium">Kathmandu, Nepal</span>
+                  <span className="font-bold text-[#1F2A2A]">
+                    Kathmandu, Nepal
+                  </span>
                 </div>
               </div>
 
@@ -126,7 +128,7 @@ export default function Navbar({
                     setIsMobileMenuOpen(false);
                     onLoginClick();
                   }}
-                  className="rounded-xl bg-white/10 py-3 text-center font-semibold transition-colors hover:bg-white/20"
+                  className="rounded-xl bg-gray-100 py-3 text-center font-bold text-gray-700 transition-colors hover:bg-gray-200 hover:text-[#FF9933]"
                 >
                   Login
                 </button>
@@ -135,7 +137,7 @@ export default function Navbar({
                     setIsMobileMenuOpen(false);
                     onRegisterClick();
                   }}
-                  className="rounded-xl bg-[#FF9933] py-3 text-center font-bold shadow-lg transition-colors hover:bg-[#ff8811]"
+                  className="rounded-xl bg-gradient-to-r from-[#FF9933] to-[#ff8811] py-3 text-center font-bold text-white shadow-lg transition-all hover:shadow-xl hover:-translate-y-0.5"
                 >
                   Register
                 </button>
