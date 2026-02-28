@@ -36,7 +36,6 @@ const backdrop = {
   exit: { opacity: 0, transition: { duration: 0.2 } },
 };
 
-// Centered card: scale + fade on desktop
 const card = {
   hidden: { opacity: 0, scale: 0.95, y: 12 },
   visible: {
@@ -53,7 +52,6 @@ const card = {
   },
 };
 
-// Bottom-sheet on mobile
 const sheet = {
   hidden: { y: "100%" },
   visible: {
@@ -126,7 +124,7 @@ function Field({
           onBlur={() => setFocused(false)}
           className="flex-1 bg-transparent px-3.5 py-4 text-[15px] font-medium text-[#1F2A2A] placeholder-gray-300 outline-none"
         />
-        {isPassword && value.length > 0 && (
+        {isPassword && (
           <button
             type="button"
             tabIndex={-1}
@@ -168,7 +166,7 @@ function PinInput({ value, onChange }: { value: string; onChange: (v: string) =>
 
   return (
     <div className="space-y-2">
-      <label className="block text-[10px] font-black uppercase tracking-[0.14em] text-gray-400">
+      <label className="block text-[11px] font-black uppercase tracking-[0.14em] text-gray-400">
         Your PIN
       </label>
       <div className="flex justify-center gap-4">
@@ -196,13 +194,13 @@ function FileUpload({ label }: { label: string }) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   return (
-    <div className="space-y-1.5">
-      <label className="block text-[10px] font-black uppercase tracking-[0.14em] text-gray-400">
+    <div className="space-y-2">
+      <label className="block text-[11px] font-black uppercase tracking-[0.14em] text-gray-400">
         {label}
       </label>
       <div
         onClick={() => inputRef.current?.click()}
-        className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed py-5 transition-all hover:border-[#FF9933]/40 hover:bg-[#FF9933]/4 ${
+        className={`flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed py-8 transition-all hover:border-[#FF9933]/40 hover:bg-[#FF9933]/3 ${
           fileName
             ? "border-[#0A4D3C]/40 bg-[#0A4D3C]/5"
             : "border-gray-200 bg-gray-50/60"
@@ -217,19 +215,26 @@ function FileUpload({ label }: { label: string }) {
         />
         {fileName ? (
           <>
-            <FileCheck2 className="h-6 w-6 text-[#0A4D3C]" />
-            <p className="text-[11px] font-bold text-[#0A4D3C] text-center px-2 truncate max-w-full">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#0A4D3C]/10">
+              <FileCheck2 className="h-6 w-6 text-[#0A4D3C]" />
+            </div>
+            <p className="text-[13px] font-bold text-[#0A4D3C] text-center px-4 truncate max-w-full">
               {fileName}
             </p>
           </>
         ) : (
           <>
-            <Upload className="h-5 w-5 text-gray-400" />
-            <p className="text-[11px] font-semibold text-gray-400 text-center leading-snug">
-              Click to upload proof
-              <br />
-              <span className="font-medium text-gray-300">PDF, JPG, PNG · max 10 MB</span>
-            </p>
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
+              <Upload className="h-5 w-5 text-gray-400" />
+            </div>
+            <div className="text-center space-y-1">
+              <p className="text-[13px] font-semibold text-gray-500">
+                Click to upload proof
+              </p>
+              <p className="text-[11.5px] font-medium text-gray-300 leading-snug">
+                Board photo, registration, PAN, license — max 10 MB
+              </p>
+            </div>
           </>
         )}
       </div>
@@ -252,7 +257,6 @@ function ModalShell({
       <AnimatePresence>
         {open && (
           <Dialog.Portal forceMount>
-            {/* Backdrop */}
             <Dialog.Overlay asChild>
               <motion.div
                 key="backdrop"
@@ -286,7 +290,7 @@ function ModalShell({
                   initial="hidden"
                   animate="visible"
                   exit="exit"
-                  className="fixed left-1/2 top-1/2 z-50 hidden max-h-[90dvh] w-full max-w-[580px] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-3xl bg-[#FAFAF9] shadow-2xl md:block focus:outline-none"
+                  className="fixed left-1/2 top-1/2 z-50 hidden max-h-[90dvh] w-full max-w-[560px] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-3xl bg-[#FAFAF9] shadow-2xl md:block focus:outline-none"
                 >
                   {children}
                 </motion.div>
@@ -301,6 +305,11 @@ function ModalShell({
 
 /* ─── Secure Login ──────────────────────────────────────────────────── */
 type LoginTab = "owner" | "pin";
+
+const TAB_COLORS: Record<LoginTab, string> = {
+  owner: "bg-[#FFE4E4]",
+  pin: "bg-[#F5ECD7]",
+};
 
 function SecureLogin({
   onClose,
@@ -320,19 +329,19 @@ function SecureLogin({
       variants={stagger}
       initial="hidden"
       animate="visible"
-      className="p-8 sm:p-10 space-y-7"
+      className="p-7 sm:p-9 space-y-6"
     >
       {/* Header */}
       <motion.div variants={fadeUp} className="flex items-start justify-between">
-        <div className="flex items-center gap-4">
-          <div className="flex h-13 w-13 items-center justify-center rounded-2xl bg-[#FF9933]/10">
+        <div className="flex items-center gap-3.5">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FF9933]/10">
             <ShieldCheck className="h-6 w-6 text-[#FF9933]" strokeWidth={2} />
           </div>
           <div>
-            <Dialog.Title className="text-2xl font-extrabold tracking-tight text-[#1F2A2A] leading-tight">
+            <Dialog.Title className="text-[22px] font-extrabold tracking-tight text-[#1F2A2A] leading-tight">
               Secure Login
             </Dialog.Title>
-            <Dialog.Description className="text-sm text-gray-400 font-medium mt-0.5">
+            <Dialog.Description className="text-[13px] text-gray-400 font-medium mt-0.5">
               Access your operational dashboard.
             </Dialog.Description>
           </div>
@@ -354,24 +363,25 @@ function SecureLogin({
       >
         {(
           [
-            { id: "owner" as LoginTab, label: "Owner / Email" },
-            { id: "pin" as LoginTab, label: "Staff PIN" },
+            { id: "owner" as LoginTab, label: "Owner / Email", icon: null },
+            { id: "pin" as LoginTab, label: "Staff PIN", icon: KeyRound },
           ] as const
         ).map((t) => (
           <button
             key={t.id}
             onClick={() => setActiveTab(t.id)}
-            className={`relative flex-1 rounded-xl py-3 text-sm font-bold transition-all ${
+            className={`relative flex-1 flex items-center justify-center gap-1.5 rounded-xl py-3 text-[13px] font-bold transition-all ${
               activeTab === t.id ? "text-[#1F2A2A]" : "text-gray-400 hover:text-gray-600"
             }`}
           >
             {activeTab === t.id && (
               <motion.div
                 layoutId="login-tab"
-                className="absolute inset-0 rounded-xl bg-white shadow-sm"
-                transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
+                className={`absolute inset-0 rounded-xl shadow-sm ${TAB_COLORS[t.id]}`}
+                transition={{ type: "spring", bounce: 0.18, duration: 0.45 }}
               />
             )}
+            {t.icon && <t.icon className="relative z-10 h-3.5 w-3.5" />}
             <span className="relative z-10">{t.label}</span>
           </button>
         ))}
@@ -386,7 +396,7 @@ function SecureLogin({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2 }}
-            className="space-y-4"
+            className="space-y-5"
           >
             <Field
               label="Email"
@@ -404,11 +414,6 @@ function SecureLogin({
               value={password}
               onChange={setPassword}
             />
-            <div className="flex justify-end">
-              <button className="text-[11px] font-semibold text-gray-400 hover:text-[#FF9933] transition-colors">
-                Forgot password?
-              </button>
-            </div>
           </motion.div>
         ) : (
           <motion.div
@@ -417,7 +422,7 @@ function SecureLogin({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2 }}
-            className="space-y-4"
+            className="space-y-5"
           >
             <Field
               label="Restaurant Code"
@@ -433,44 +438,25 @@ function SecureLogin({
 
       {/* CTA */}
       <motion.div variants={fadeUp}>
-        <button className="group flex w-full items-center justify-center gap-2.5 rounded-xl bg-[#FF9933] py-4 text-[15px] font-extrabold text-white shadow-lg shadow-[#FF9933]/25 transition-all hover:bg-[#ff8811] active:scale-[0.97]">
+        <button className="group flex w-full items-center justify-center gap-2.5 rounded-2xl bg-[#E63939] py-4 text-[15px] font-extrabold text-white shadow-lg shadow-[#E63939]/20 transition-all hover:bg-[#D42F2F] active:scale-[0.97]">
           {activeTab === "owner" ? (
             <>
               Initiate Login
-              <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-0.5" />
+              <ArrowRight className="h-[18px] w-[18px] transition-transform group-hover:translate-x-0.5" />
             </>
           ) : (
             <>
-              <KeyRound className="h-5 w-5" />
+              <KeyRound className="h-[18px] w-[18px]" />
               Login with PIN
             </>
           )}
         </button>
       </motion.div>
 
-      {/* Divider */}
-      <motion.div variants={fadeUp} className="flex items-center gap-3">
-        <div className="h-px flex-1 bg-gray-200" />
-        <span className="text-xs font-bold uppercase tracking-widest text-gray-300">or</span>
-        <div className="h-px flex-1 bg-gray-200" />
-      </motion.div>
-
-      {/* Google */}
-      <motion.div variants={fadeUp}>
-        <button className="flex w-full items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white py-4 text-[15px] font-bold text-[#1F2A2A] shadow-sm transition-all hover:bg-gray-50 hover:border-gray-300 active:scale-[0.97]">
-          <img
-            src="https://www.svgrepo.com/show/475656/google-color.svg"
-            alt="Google"
-            className="h-5 w-5"
-          />
-          Continue with Google
-        </button>
-      </motion.div>
-
       {/* Footer link */}
       <motion.p
         variants={fadeUp}
-        className="text-center text-[12.5px] text-gray-400 pb-1"
+        className="text-center text-[13px] text-gray-400 pb-1"
       >
         No active configuration?{" "}
         <button
@@ -512,20 +498,20 @@ function EstablishSystem({
       variants={stagger}
       initial="hidden"
       animate="visible"
-      className="p-8 sm:p-10 space-y-7"
+      className="p-7 sm:p-9 space-y-6"
     >
       {/* Header */}
       <motion.div variants={fadeUp} className="flex items-start justify-between">
-        <div className="flex items-center gap-4">
-          <div className="flex h-13 w-13 items-center justify-center rounded-2xl bg-[#0A4D3C]/10">
+        <div className="flex items-center gap-3.5">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0A4D3C]/10">
             <Cpu className="h-6 w-6 text-[#0A4D3C]" strokeWidth={1.8} />
           </div>
           <div>
-            <Dialog.Title className="text-2xl font-extrabold tracking-tight text-[#1F2A2A] leading-tight">
+            <Dialog.Title className="text-[22px] font-extrabold tracking-tight text-[#1F2A2A] leading-tight">
               Establish Your System
             </Dialog.Title>
-            <Dialog.Description className="text-sm text-gray-400 font-medium mt-0.5 leading-snug max-w-[300px]">
-              Deploy HimalHub&apos;s precision layer. Submit credentials below.
+            <Dialog.Description className="text-[13px] text-gray-400 font-medium mt-0.5 leading-snug max-w-[340px]">
+              Deploy ScanSwad&apos;s precision layer for your restaurant. Submit credentials below.
             </Dialog.Description>
           </div>
         </div>
@@ -539,7 +525,7 @@ function EstablishSystem({
         </Dialog.Close>
       </motion.div>
 
-      {/* Thin accent bar */}
+      {/* Accent bar */}
       <motion.div
         variants={fadeUp}
         className="h-[2px] w-full rounded-full bg-linear-to-r from-[#FF9933] via-[#0A4D3C] to-transparent"
@@ -548,7 +534,7 @@ function EstablishSystem({
       {/* Two-column form grid */}
       <motion.div
         variants={fadeUp}
-        className="grid grid-cols-1 sm:grid-cols-2 gap-4"
+        className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-5"
       >
         <Field
           label="Establishment Name"
@@ -597,14 +583,14 @@ function EstablishSystem({
         />
       </motion.div>
 
-      {/* Upload — full width */}
+      {/* Upload */}
       <motion.div variants={fadeUp}>
         <FileUpload label="Business Proof Document" />
       </motion.div>
 
-      {/* Terms note */}
-      <motion.p variants={fadeUp} className="text-[10.5px] text-gray-400 leading-relaxed">
-        By submitting, you confirm all provided details are accurate and agree to HimalHub&apos;s{" "}
+      {/* Terms */}
+      <motion.p variants={fadeUp} className="text-[11px] text-gray-400 leading-relaxed">
+        By submitting, you confirm all provided details are accurate and agree to ScanSwad&apos;s{" "}
         <a href="#" className="font-bold text-gray-500 hover:text-[#0A4D3C] transition-colors">
           Terms of Service
         </a>{" "}
@@ -617,16 +603,16 @@ function EstablishSystem({
 
       {/* CTA */}
       <motion.div variants={fadeUp}>
-        <button className="group flex w-full items-center justify-center gap-2.5 rounded-xl bg-[#FF9933] py-4 text-[15px] font-extrabold text-white shadow-lg shadow-[#FF9933]/25 transition-all hover:bg-[#ff8811] active:scale-[0.97]">
+        <button className="group flex w-full items-center justify-center gap-2.5 rounded-2xl bg-[#E63939] py-4 text-[15px] font-extrabold text-white shadow-lg shadow-[#E63939]/20 transition-all hover:bg-[#D42F2F] active:scale-[0.97]">
           Initialize Deployment
-          <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-0.5" />
+          <ArrowRight className="h-[18px] w-[18px] transition-transform group-hover:translate-x-0.5" />
         </button>
       </motion.div>
 
       {/* Footer link */}
       <motion.p
         variants={fadeUp}
-        className="text-center text-[12.5px] text-gray-400 pb-1"
+        className="text-center text-[13px] text-gray-400 pb-1"
       >
         System already active?{" "}
         <button
@@ -660,7 +646,6 @@ export default function AuthModals({
 
   return (
     <>
-      {/* Secure Login */}
       <ModalShell open={loginOpen} onOpenChange={setLoginOpen}>
         <SecureLogin
           onClose={() => setLoginOpen(false)}
@@ -668,7 +653,6 @@ export default function AuthModals({
         />
       </ModalShell>
 
-      {/* Establish Your System */}
       <ModalShell open={registerOpen} onOpenChange={setRegisterOpen}>
         <EstablishSystem
           onClose={() => setRegisterOpen(false)}
