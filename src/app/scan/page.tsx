@@ -1,15 +1,28 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { motion } from "framer-motion";
-import { QrCode, ArrowLeft, Hash, ArrowRight, Mountain } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  QrCode,
+  ArrowLeft,
+  Hash,
+  ArrowRight,
+  Mountain,
+  Flashlight,
+  FlashlightOff,
+  CheckCircle2,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/context/ToastContext";
 import gsap from "gsap";
 import Link from "next/link";
 
 export default function ScanPage() {
   const router = useRouter();
+  const { showToast } = useToast();
   const [scanning, setScanning] = useState(false);
+  const [scanSuccess, setScanSuccess] = useState(false);
+  const [flashlightOn, setFlashlightOn] = useState(false);
   const [tableNum, setTableNum] = useState("");
   const scanBoxRef = useRef<HTMLDivElement>(null);
   const lineRef = useRef<HTMLDivElement>(null);
@@ -19,28 +32,45 @@ export default function ScanPage() {
   };
 
   useEffect(() => {
-    if (scanning && lineRef.current && scanBoxRef.current) {
+    if (scanning && !scanSuccess && lineRef.current && scanBoxRef.current) {
       const ctx = gsap.context(() => {
         gsap.fromTo(
           lineRef.current!,
-          { top: "10%" },
-          { top: "90%", duration: 1.2, yoyo: true, repeat: 2, ease: "power1.inOut" },
+          { top: "5%" },
+          {
+            top: "95%",
+            duration: 1.5,
+            yoyo: true,
+            repeat: -1,
+            ease: "sine.inOut",
+          },
         );
       });
 
       const timer = setTimeout(() => {
-        router.push("/menu");
-      }, 3000);
+        setScanSuccess(true);
+        showToast("Table scanned successfully!", "success");
+      }, 2500);
 
       return () => {
         ctx.revert();
         clearTimeout(timer);
       };
     }
-  }, [scanning, router]);
+  }, [scanning, scanSuccess, showToast]);
+
+  useEffect(() => {
+    if (scanSuccess) {
+      const navTimer = setTimeout(() => {
+        router.push("/menu");
+      }, 1000);
+      return () => clearTimeout(navTimer);
+    }
+  }, [scanSuccess, router]);
 
   const handleTableSubmit = () => {
     if (tableNum.length >= 1 && tableNum.length <= 2) {
+      showToast("Table confirmed!", "success");
       router.push("/menu");
     }
   };
@@ -81,54 +111,95 @@ export default function ScanPage() {
         {/* QR Box */}
         <div
           ref={scanBoxRef}
-          className={`relative mx-auto flex h-64 w-64 items-center justify-center rounded-3xl border-2 transition-all duration-500 ${
-            scanning
-              ? "border-[#FF9933] shadow-xl shadow-[#FF9933]/15 bg-[#FF9933]/5"
-              : "border-gray-200 bg-gray-50"
+          className={`relative mx-auto flex h-64 w-64 items-center justify-center rounded-3xl border-2 transition-all duration-500 overflow-hidden ${
+            scanSuccess
+              ? "border-[#0A4D3C] bg-[#0A4D3C]/10 shadow-2xl shadow-[#0A4D3C]/20"
+              : scanning
+                ? "border-[#FF9933] shadow-xl shadow-[#FF9933]/15 bg-black/5"
+                : "border-gray-200 bg-gray-50"
           }`}
         >
-          {/* Corner accents */}
-          <div className="absolute top-0 left-0 h-8 w-8 rounded-tl-3xl border-t-4 border-l-4 border-[#0A4D3C]" />
-          <div className="absolute top-0 right-0 h-8 w-8 rounded-tr-3xl border-t-4 border-r-4 border-[#0A4D3C]" />
-          <div className="absolute bottom-0 left-0 h-8 w-8 rounded-bl-3xl border-b-4 border-l-4 border-[#0A4D3C]" />
-          <div className="absolute bottom-0 right-0 h-8 w-8 rounded-br-3xl border-b-4 border-r-4 border-[#0A4D3C]" />
+          {/* Realistic Camera Frame Overlay */}
+          <div className="absolute inset-0 z-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')]" />
 
-          {scanning ? (
-            <>
-              <div
-                ref={lineRef}
-                className="absolute left-[10%] right-[10%] h-0.5 rounded-full bg-[#FF9933] shadow-lg shadow-[#FF9933]/50"
-              />
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: [0.5, 1, 0.5] }}
-                transition={{ duration: 1.5, repeat: Infinity }}
-                className="text-sm font-bold text-[#FF9933]"
-              >
-                Scanning...
-              </motion.p>
-            </>
-          ) : (
-            <div className="flex flex-col items-center gap-3 text-gray-300">
-              <QrCode className="h-16 w-16" />
-              <p className="text-xs font-medium text-gray-400">
-                Tap below to scan
-              </p>
-            </div>
+          {/* Flashlight Toggle */}
+          <button
+            onClick={() => setFlashlightOn(!flashlightOn)}
+            className="absolute top-3 right-3 z-20 p-2 rounded-full bg-white/50 backdrop-blur text-charcoal-slate hover:bg-white transition-colors"
+          >
+            {flashlightOn ? (
+              <Flashlight className="w-5 h-5 text-saffron-flame" />
+            ) : (
+              <FlashlightOff className="w-5 h-5" />
+            )}
+          </button>
+
+          {/* Corner accents */}
+          <div className="absolute top-0 left-0 h-10 w-10 rounded-tl-3xl border-t-4 border-l-4 border-[#0A4D3C] transition-colors" />
+          <div className="absolute top-0 right-0 h-10 w-10 rounded-tr-3xl border-t-4 border-r-4 border-[#0A4D3C] transition-colors" />
+          <div className="absolute bottom-0 left-0 h-10 w-10 rounded-bl-3xl border-b-4 border-l-4 border-[#0A4D3C] transition-colors" />
+          <div className="absolute bottom-0 right-0 h-10 w-10 rounded-br-3xl border-b-4 border-r-4 border-[#0A4D3C] transition-colors" />
+
+          {/* Flashlight overlay effect */}
+          {flashlightOn && (
+            <div className="absolute inset-0 bg-yellow-200/20 mix-blend-overlay pointer-events-none" />
           )}
+
+          <AnimatePresence mode="wait">
+            {scanSuccess ? (
+              <motion.div
+                key="success"
+                initial={{ scale: 0.5, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="flex flex-col items-center gap-2 z-10"
+              >
+                <div className="bg-white rounded-full p-2 shadow-lg">
+                  <CheckCircle2 className="h-12 w-12 text-[#0A4D3C]" />
+                </div>
+                <p className="text-[#0A4D3C] font-bold text-lg drop-shadow-sm">
+                  Success!
+                </p>
+              </motion.div>
+            ) : scanning ? (
+              <motion.div
+                key="scanning"
+                className="relative w-full h-full z-10"
+              >
+                <div
+                  ref={lineRef}
+                  className="absolute left-[5%] right-[5%] h-[3px] rounded-full bg-[#FF9933] shadow-[0_0_15px_rgba(255,153,51,0.8)]"
+                />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="idle"
+                exit={{ opacity: 0 }}
+                className="flex flex-col items-center gap-3 text-gray-300 z-10"
+              >
+                <QrCode className="h-16 w-16" />
+                <p className="text-xs font-medium text-gray-400">
+                  Tap below to scan
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Scan button */}
         <button
           onClick={handleScan}
-          disabled={scanning}
+          disabled={scanning || scanSuccess}
           className={`w-full rounded-2xl py-4 text-base font-bold text-white transition-all shadow-lg active:scale-[0.98] ${
-            scanning
+            scanning || scanSuccess
               ? "bg-gray-300 cursor-not-allowed shadow-none"
-              : "bg-[#0A4D3C] hover:bg-[#083a2d] shadow-[#0A4D3C]/25"
+              : "bg-[#0A4D3C] hover:bg-[#083a2d] hover:shadow-xl hover:-translate-y-0.5 shadow-[#0A4D3C]/25"
           }`}
         >
-          {scanning ? "Connecting to restaurant..." : "Scan Table QR"}
+          {scanSuccess
+            ? "Redirecting..."
+            : scanning
+              ? "Connecting to camera..."
+              : "Scan Table QR"}
         </button>
 
         {/* Divider */}

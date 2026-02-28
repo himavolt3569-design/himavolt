@@ -3,6 +3,9 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Plus, Minus, ShoppingBag, Trash2 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
+import { useGSAP } from "@gsap/react";
+import gsap from "gsap";
+import { useRef, useEffect } from "react";
 
 const overlayVariants = {
   hidden: { opacity: 0 },
@@ -18,7 +21,10 @@ const panelVariants = {
   },
   exit: {
     x: "100%",
-    transition: { duration: 0.25, ease: [0.4, 0, 1, 1] as [number, number, number, number] },
+    transition: {
+      duration: 0.25,
+      ease: [0.4, 0, 1, 1] as [number, number, number, number],
+    },
   },
 };
 
@@ -33,6 +39,20 @@ export default function CartSidebar({
 }) {
   const { items, increaseQty, decreaseQty, removeItem, subtotal, totalItems } =
     useCart();
+  const priceRef = useRef<HTMLSpanElement>(null);
+
+  useGSAP(
+    () => {
+      if (priceRef.current && totalItems > 0) {
+        gsap.fromTo(
+          priceRef.current,
+          { scale: 1.1, color: "#FF9933" },
+          { scale: 1, color: "#1F2A2A", duration: 0.4, ease: "back.out(2)" },
+        );
+      }
+    },
+    { dependencies: [subtotal, open] },
+  );
 
   return (
     <AnimatePresence>
@@ -98,6 +118,7 @@ export default function CartSidebar({
                           <img
                             src={item.image}
                             alt={item.name}
+                            loading="lazy"
                             className="h-full w-full object-cover"
                           />
                         </div>
@@ -142,7 +163,10 @@ export default function CartSidebar({
                     <span className="text-sm font-medium text-gray-500">
                       Subtotal
                     </span>
-                    <span className="text-lg font-bold text-[#1F2A2A]">
+                    <span
+                      ref={priceRef}
+                      className="text-lg font-bold text-[#1F2A2A]"
+                    >
                       Rs. {subtotal}
                     </span>
                   </div>

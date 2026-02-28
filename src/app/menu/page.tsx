@@ -2,6 +2,19 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+};
+
 import {
   ArrowLeft,
   Search,
@@ -120,7 +133,12 @@ function DishDetail({
 
   const handleAdd = () => {
     for (let i = 0; i < qty; i++) {
-      addItem({ id: dish.id, name: dish.name, price: unitPrice, image: dish.image });
+      addItem({
+        id: dish.id,
+        name: dish.name,
+        price: unitPrice,
+        image: dish.image,
+      });
     }
     showToast(`${dish.name} added to cart!`);
   };
@@ -133,6 +151,7 @@ function DishDetail({
         <img
           src={dish.image}
           alt={dish.name}
+          loading="lazy"
           className="h-full w-full object-cover"
         />
         <button
@@ -155,7 +174,9 @@ function DishDetail({
             {dish.hasEgg && <Egg className="h-3.5 w-3.5 text-yellow-500" />}
           </div>
           <h2 className="text-xl font-bold text-[#1F2A2A]">{dish.name}</h2>
-          <p className="mt-1 text-sm text-gray-500 leading-relaxed">{dish.description}</p>
+          <p className="mt-1 text-sm text-gray-500 leading-relaxed">
+            {dish.description}
+          </p>
           <div className="mt-2 flex items-center gap-3 text-xs text-gray-400">
             <span className="flex items-center gap-1">
               <Star className="h-3.5 w-3.5 fill-[#FF9933] text-[#FF9933]" />
@@ -176,7 +197,10 @@ function DishDetail({
         <div className="flex items-end justify-between">
           <div>
             <span className="text-xs text-gray-400">Price</span>
-            <p className="text-2xl font-extrabold text-[#1F2A2A]" ref={priceRef}>
+            <p
+              className="text-2xl font-extrabold text-[#1F2A2A]"
+              ref={priceRef}
+            >
               Rs. {total}
             </p>
           </div>
@@ -233,11 +257,17 @@ function DishDetail({
                           : "border-gray-300"
                       }`}
                     >
-                      {selectedAddOns.has(a.id) && <Check className="h-3 w-3 text-white" />}
+                      {selectedAddOns.has(a.id) && (
+                        <Check className="h-3 w-3 text-white" />
+                      )}
                     </div>
-                    <span className="text-sm font-medium text-[#1F2A2A]">{a.name}</span>
+                    <span className="text-sm font-medium text-[#1F2A2A]">
+                      {a.name}
+                    </span>
                   </div>
-                  <span className="text-sm font-bold text-gray-500">+Rs. {a.price}</span>
+                  <span className="text-sm font-bold text-gray-500">
+                    +Rs. {a.price}
+                  </span>
                   <input
                     type="checkbox"
                     className="sr-only"
@@ -275,7 +305,12 @@ function MenuItemCard({
 
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.stopPropagation();
-    addItem({ id: item.id, name: item.name, price: item.price, image: item.image });
+    addItem({
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      image: item.image,
+    });
     showToast(`${item.name} added!`);
     if (btnRef.current) {
       gsap.fromTo(
@@ -288,9 +323,7 @@ function MenuItemCard({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
+      variants={itemVariants}
       onClick={() => onSelect(item)}
       className="group relative flex gap-4 rounded-2xl bg-white p-3 cursor-pointer transition-shadow hover:shadow-lg border border-gray-100"
     >
@@ -298,6 +331,7 @@ function MenuItemCard({
         <img
           src={item.image}
           alt={item.name}
+          loading="lazy"
           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
         />
         {item.badge && (
@@ -321,14 +355,18 @@ function MenuItemCard({
             {item.isVeg ? <VegIcon /> : <NonVegIcon />}
             {item.hasEgg && <Egg className="h-3 w-3 text-yellow-500" />}
           </div>
-          <h3 className="text-sm font-bold text-[#1F2A2A] truncate pr-8">{item.name}</h3>
+          <h3 className="text-sm font-bold text-[#1F2A2A] truncate pr-8">
+            {item.name}
+          </h3>
           <p className="mt-0.5 text-[11px] text-gray-400 line-clamp-2 leading-relaxed">
             {item.description}
           </p>
         </div>
         <div className="flex items-end justify-between">
           <div className="flex items-center gap-2.5">
-            <span className="text-sm font-extrabold text-[#1F2A2A]">Rs. {item.price}</span>
+            <span className="text-sm font-extrabold text-[#1F2A2A]">
+              Rs. {item.price}
+            </span>
             <span className="flex items-center gap-0.5 text-[11px] text-gray-400">
               <Star className="h-3 w-3 fill-[#FF9933] text-[#FF9933]" />
               {item.rating}
@@ -370,10 +408,20 @@ function PairingCard({ item }: { item: (typeof pairings)[number] }) {
   return (
     <div className="shrink-0 w-36 snap-start">
       <div className="relative h-28 w-full overflow-hidden rounded-xl bg-gray-100 mb-2">
-        <img src={item.image} alt={item.name} className="h-full w-full object-cover" />
+        <img
+          src={item.image}
+          alt={item.name}
+          loading="lazy"
+          className="h-full w-full object-cover"
+        />
         <button
           onClick={() => {
-            addItem({ id: item.id, name: item.name, price: item.price, image: item.image });
+            addItem({
+              id: item.id,
+              name: item.name,
+              price: item.price,
+              image: item.image,
+            });
             showToast(`${item.name} added!`);
           }}
           className="absolute bottom-2 right-2 flex h-7 w-7 items-center justify-center rounded-full bg-white shadow-md text-[#FF9933] hover:bg-[#FF9933] hover:text-white transition-all"
@@ -388,7 +436,8 @@ function PairingCard({ item }: { item: (typeof pairings)[number] }) {
 }
 
 export default function MenuPage() {
-  const [activeCategory, setActiveCategory] = useState<MenuCategory>("Main Dishes");
+  const [activeCategory, setActiveCategory] =
+    useState<MenuCategory>("Main Dishes");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDish, setSelectedDish] = useState<MenuItem | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
@@ -421,7 +470,12 @@ export default function MenuPage() {
   }, [activeOrder?.step]);
 
   const filteredItems = menuItems.filter((item) => {
-    if (activeCategory === "Alcohol" ? item.category !== "Alcohol" : item.category !== activeCategory) return false;
+    if (
+      activeCategory === "Alcohol"
+        ? item.category !== "Alcohol"
+        : item.category !== activeCategory
+    )
+      return false;
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       if (
@@ -522,7 +576,10 @@ export default function MenuPage() {
             </div>
 
             {/* Category tabs */}
-            <div ref={tabsRef} className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+            <div
+              ref={tabsRef}
+              className="flex gap-2 overflow-x-auto scrollbar-hide pb-1"
+            >
               {menuCategories.map((cat) => (
                 <button
                   key={cat}
@@ -575,7 +632,10 @@ export default function MenuPage() {
             {/* Hero dish (first item or selected category's top-rated) */}
             {filteredItems.length > 0 && !searchQuery && (
               <HeroDish
-                dish={filteredItems.find((d) => d.badge === "Bestseller") ?? filteredItems[0]}
+                dish={
+                  filteredItems.find((d) => d.badge === "Bestseller") ??
+                  filteredItems[0]
+                }
                 onSelect={(d) => setSelectedDish(d)}
               />
             )}
@@ -584,7 +644,9 @@ export default function MenuPage() {
             <div className="space-y-3">
               <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">
                 {activeCategory}
-                <span className="ml-2 text-[#1F2A2A]">({filteredItems.length})</span>
+                <span className="ml-2 text-[#1F2A2A]">
+                  ({filteredItems.length})
+                </span>
               </h3>
               <AnimatePresence mode="popLayout">
                 {filteredItems.length === 0 ? (
@@ -597,13 +659,21 @@ export default function MenuPage() {
                     No dishes found. Try a different filter.
                   </motion.p>
                 ) : (
-                  filteredItems.map((item) => (
-                    <MenuItemCard
-                      key={item.id}
-                      item={item}
-                      onSelect={(d) => setSelectedDish(d)}
-                    />
-                  ))
+                  <motion.div
+                    key="list"
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                    className="space-y-3"
+                  >
+                    {filteredItems.map((item) => (
+                      <MenuItemCard
+                        key={item.id}
+                        item={item}
+                        onSelect={(d) => setSelectedDish(d)}
+                      />
+                    ))}
+                  </motion.div>
                 )}
               </AnimatePresence>
             </div>
@@ -645,7 +715,8 @@ export default function MenuPage() {
                 {totalItems}
               </span>
               <span className="text-sm font-bold">
-                {totalItems} {totalItems === 1 ? "item" : "items"} | Rs. {subtotal}
+                {totalItems} {totalItems === 1 ? "item" : "items"} | Rs.{" "}
+                {subtotal}
               </span>
             </div>
             <div className="flex items-center gap-1 text-sm font-bold">
@@ -673,7 +744,11 @@ export default function MenuPage() {
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
-              transition={{ type: "spring" as const, damping: 30, stiffness: 300 }}
+              transition={{
+                type: "spring" as const,
+                damping: 30,
+                stiffness: 300,
+              }}
               className="fixed top-0 right-0 bottom-0 z-50 w-full max-w-md bg-white shadow-2xl overflow-hidden"
             >
               <DishDetail
@@ -723,6 +798,7 @@ function HeroDish({
         <img
           src={dish.image}
           alt={dish.name}
+          loading="lazy"
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
         <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent" />
@@ -743,8 +819,12 @@ function HeroDish({
               </span>
             )}
           </div>
-          <h2 className="text-lg md:text-xl font-bold text-white">{dish.name}</h2>
-          <p className="text-xs text-white/70 line-clamp-1 mt-0.5">{dish.description}</p>
+          <h2 className="text-lg md:text-xl font-bold text-white">
+            {dish.name}
+          </h2>
+          <p className="text-xs text-white/70 line-clamp-1 mt-0.5">
+            {dish.description}
+          </p>
           <span
             ref={priceRef}
             className="mt-1.5 inline-block text-xl font-extrabold text-[#FF9933]"
@@ -790,7 +870,8 @@ function DesktopCartPreview({
   onProceed: () => void;
   onOpenFull: () => void;
 }) {
-  const { items, subtotal, totalItems, increaseQty, decreaseQty, removeItem } = useCart();
+  const { items, subtotal, totalItems, increaseQty, decreaseQty, removeItem } =
+    useCart();
 
   return (
     <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
@@ -809,8 +890,12 @@ function DesktopCartPreview({
       {items.length === 0 ? (
         <div className="px-5 py-10 text-center">
           <ShoppingBag className="mx-auto h-8 w-8 text-gray-200 mb-2" />
-          <p className="text-xs font-medium text-gray-400">Your cart is empty</p>
-          <p className="text-[11px] text-gray-300 mt-0.5">Add dishes from the menu</p>
+          <p className="text-xs font-medium text-gray-400">
+            Your cart is empty
+          </p>
+          <p className="text-[11px] text-gray-300 mt-0.5">
+            Add dishes from the menu
+          </p>
         </div>
       ) : (
         <>
@@ -818,10 +903,17 @@ function DesktopCartPreview({
             {items.map((item) => (
               <div key={item.id} className="flex items-center gap-3 py-2">
                 <div className="h-10 w-10 rounded-lg overflow-hidden shrink-0">
-                  <img src={item.image} alt={item.name} className="h-full w-full object-cover" />
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    loading="lazy"
+                    className="h-full w-full object-cover"
+                  />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-[#1F2A2A] truncate">{item.name}</p>
+                  <p className="text-xs font-bold text-[#1F2A2A] truncate">
+                    {item.name}
+                  </p>
                   <p className="text-xs font-semibold text-[#FF9933]">
                     Rs. {item.price * item.quantity}
                   </p>
@@ -833,7 +925,9 @@ function DesktopCartPreview({
                   >
                     <Minus className="h-3 w-3" />
                   </button>
-                  <span className="w-5 text-center text-[11px] font-bold">{item.quantity}</span>
+                  <span className="w-5 text-center text-[11px] font-bold">
+                    {item.quantity}
+                  </span>
                   <button
                     onClick={() => increaseQty(item.id)}
                     className="flex h-6 w-6 items-center justify-center rounded-md bg-[#FF9933] text-white text-xs"
@@ -846,8 +940,12 @@ function DesktopCartPreview({
           </div>
           <div className="border-t border-gray-100 px-5 py-4 space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-gray-500">Subtotal</span>
-              <span className="text-sm font-bold text-[#1F2A2A]">Rs. {subtotal}</span>
+              <span className="text-xs font-medium text-gray-500">
+                Subtotal
+              </span>
+              <span className="text-sm font-bold text-[#1F2A2A]">
+                Rs. {subtotal}
+              </span>
             </div>
             <button
               onClick={onProceed}

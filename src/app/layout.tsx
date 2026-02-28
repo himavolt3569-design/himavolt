@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Providers from "./providers";
+import PWAInstallPrompt from "@/components/PWAInstallPrompt";
+import BottomNav from "@/components/BottomNav";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -10,7 +12,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "HimalHub - Nepal's Smartest Food Delivery",
+  title: "HimalHub — Scan. Order. Stay.",
   description:
     "Scan. Order. Enjoy. — Nepal's premium QR table ordering and food delivery platform.",
 };
@@ -25,7 +27,11 @@ export default function RootLayout({
       <body
         className={`${inter.variable} antialiased selection:bg-saffron-flame selection:text-white`}
       >
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+          <BottomNav />
+          <PWAInstallPrompt />
+        </Providers>
       </body>
     </html>
   );

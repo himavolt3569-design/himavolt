@@ -23,7 +23,10 @@ const modalVariants = {
   },
   exit: {
     y: "100%",
-    transition: { duration: 0.3, ease: [0.4, 0, 1, 1] as [number, number, number, number] },
+    transition: {
+      duration: 0.3,
+      ease: [0.4, 0, 1, 1] as [number, number, number, number],
+    },
   },
 };
 
@@ -45,6 +48,21 @@ export default function FoodDetailModal({
   const [comment, setComment] = useState("");
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
   const imageRef = useRef<HTMLDivElement>(null);
+  const priceBtnRef = useRef<HTMLButtonElement>(null);
+  const plusBtnRef = useRef<HTMLButtonElement>(null);
+
+  useGSAP(
+    () => {
+      if (priceBtnRef.current) {
+        gsap.fromTo(
+          priceBtnRef.current,
+          { scale: 1.05 },
+          { scale: 1, duration: 0.3, ease: "back.out(2)" },
+        );
+      }
+    },
+    { dependencies: [qty, selectedAddOns] },
+  );
 
   useGSAP(
     () => {
@@ -94,7 +112,11 @@ export default function FoodDetailModal({
 
   const handleSubmitRating = () => {
     if (userRating === 0) return;
-    console.log("Rating submitted:", { food: food.name, rating: userRating, comment });
+    console.log("Rating submitted:", {
+      food: food.name,
+      rating: userRating,
+      comment,
+    });
     setRatingSubmitted(true);
     showToast("Thanks for your rating!");
     setTimeout(() => setRatingSubmitted(false), 3000);
@@ -119,17 +141,20 @@ export default function FoodDetailModal({
             animate="visible"
             exit="exit"
             onClick={handleClose}
-            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-[2px]"
+            className="fixed inset-0 z-100 bg-black/60 backdrop-blur-[2px]"
           />
           <motion.div
             variants={modalVariants}
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="fixed inset-x-0 bottom-0 top-0 md:top-[5vh] md:left-1/2 md:-translate-x-1/2 md:max-w-lg md:bottom-auto md:max-h-[90vh] z-[105] bg-white md:rounded-t-3xl md:rounded-b-3xl overflow-hidden flex flex-col"
+            className="fixed inset-x-0 bottom-0 top-0 md:top-[5vh] md:left-1/2 md:-translate-x-1/2 md:max-w-lg md:bottom-auto md:max-h-[90vh] z-105 bg-white md:rounded-t-3xl md:rounded-b-3xl overflow-hidden flex flex-col"
           >
             <div className="flex-1 overflow-y-auto">
-              <div ref={imageRef} className="relative w-full aspect-[4/3] overflow-hidden">
+              <div
+                ref={imageRef}
+                className="relative w-full aspect-4/3 overflow-hidden"
+              >
                 <img
                   src={food.image}
                   alt={food.name}
@@ -161,7 +186,9 @@ export default function FoodDetailModal({
                 <div className="flex items-center gap-3 mt-2 text-sm">
                   <div className="flex items-center gap-1">
                     <Star className="h-3.5 w-3.5 fill-[#FF9933] text-[#FF9933]" />
-                    <span className="font-bold text-[#1F2A2A]">{food.rating}</span>
+                    <span className="font-bold text-[#1F2A2A]">
+                      {food.rating}
+                    </span>
                   </div>
                   <div className="flex items-center gap-1 text-gray-500">
                     <Clock className="h-3.5 w-3.5" />
@@ -293,13 +320,24 @@ export default function FoodDetailModal({
                   {qty}
                 </span>
                 <button
-                  onClick={() => setQty(qty + 1)}
+                  ref={plusBtnRef}
+                  onClick={() => {
+                    setQty(qty + 1);
+                    if (plusBtnRef.current) {
+                      gsap.fromTo(
+                        plusBtnRef.current,
+                        { scale: 0.8 },
+                        { scale: 1, duration: 0.3, ease: "back.out(3)" },
+                      );
+                    }
+                  }}
                   className="flex h-10 w-10 items-center justify-center text-gray-500 hover:text-[#1F2A2A] transition-colors"
                 >
                   <Plus className="h-4 w-4" />
                 </button>
               </div>
               <button
+                ref={priceBtnRef}
                 onClick={handleAddToCart}
                 className="flex-1 rounded-xl bg-[#FF9933] py-3.5 text-base font-bold text-white transition-all hover:bg-[#ff8811] active:scale-[0.98] shadow-lg shadow-[#FF9933]/25"
               >
