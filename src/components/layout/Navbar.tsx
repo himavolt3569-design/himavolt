@@ -1,17 +1,41 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Mountain,
-  Menu,
-  X,
-  ShoppingBag,
-  Store,
-} from "lucide-react";
+import { Mountain, Menu, X, ShoppingBag, Store } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
 import { useCart } from "@/context/CartContext";
 import Link from "next/link";
+
+const clerkEnabled = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+
+// Lazily import Clerk components only when Clerk is configured
+let SignedIn: React.FC<{ children: React.ReactNode }> = () => null;
+let SignedOut: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <>{children}</>
+);
+let SignInButton: React.FC<{
+  children: React.ReactNode;
+  mode?: string;
+  appearance?: object;
+}> = ({ children }) => <>{children}</>;
+let SignUpButton: React.FC<{
+  children: React.ReactNode;
+  mode?: string;
+  appearance?: object;
+}> = ({ children }) => <>{children}</>;
+let UserButton: React.FC<{
+  afterSignOutUrl?: string;
+  appearance?: object;
+}> = () => null;
+
+if (clerkEnabled) {
+  const clerk = require("@clerk/nextjs");
+  SignedIn = clerk.SignedIn;
+  SignedOut = clerk.SignedOut;
+  SignInButton = clerk.SignInButton;
+  SignUpButton = clerk.SignUpButton;
+  UserButton = clerk.UserButton;
+}
 
 const clerkAppearance = {
   elements: {
@@ -26,11 +50,7 @@ const clerkAppearance = {
   },
 };
 
-export default function Navbar({
-  onCartClick,
-}: {
-  onCartClick: () => void;
-}) {
+export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { totalItems } = useCart();
 
@@ -39,7 +59,10 @@ export default function Navbar({
       <div className="mx-auto max-w-[1440px] px-4 md:px-8 lg:px-12">
         <div className="flex h-[64px] md:h-[72px] items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex shrink-0 items-center gap-2.5 cursor-pointer transition-transform hover:scale-[1.02] active:scale-95">
+          <Link
+            href="/"
+            className="flex shrink-0 items-center gap-2.5 cursor-pointer transition-transform hover:scale-[1.02] active:scale-95"
+          >
             <Mountain className="h-7 w-7 text-[#E23744]" strokeWidth={2.5} />
             <span className="text-xl font-extrabold tracking-tight text-[#1F2A2A]">
               Himal<span className="text-[#E23744]">Hub</span>
