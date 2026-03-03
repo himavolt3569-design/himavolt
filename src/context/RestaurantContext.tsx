@@ -8,7 +8,6 @@ import {
   useEffect,
   type ReactNode,
 } from "react";
-import { useAuth } from "@clerk/nextjs";
 import { apiFetch } from "@/lib/api-client";
 
 export interface StaffMember {
@@ -89,7 +88,6 @@ interface RestaurantContextType {
 const RestaurantContext = createContext<RestaurantContextType | null>(null);
 
 export function RestaurantProvider({ children }: { children: ReactNode }) {
-  const { isSignedIn } = useAuth();
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [selectedRestaurant, setSelectedRestaurant] =
     useState<Restaurant | null>(null);
@@ -112,13 +110,8 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (isSignedIn) {
-      fetchRestaurants();
-    } else {
-      setRestaurants([]);
-      setSelectedRestaurant(null);
-    }
-  }, [isSignedIn, fetchRestaurants]);
+    fetchRestaurants();
+  }, [fetchRestaurants]);
 
   const createRestaurant = useCallback(
     async (data: {
