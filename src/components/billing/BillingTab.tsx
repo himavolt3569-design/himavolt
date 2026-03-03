@@ -1,0 +1,900 @@
+"use client";
+
+import { useEffect, useState, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Receipt,
+  CreditCard,
+  DollarSign,
+  Wallet,
+  Banknote,
+  Check,
+  Clock,
+  Loader2,
+  Search,
+  Filter,
+  Eye,
+  X,
+  Tag,
+  TrendingUp,
+  ArrowRight,
+  Printer,
+  Download,
+  AlertCircle,
+  CheckCircle2,
+  Hash,
+  Utensils,
+  User as UserIcon,
+} from "lucide-react";
+
+/* ── Types ────────────────────────────────────────────────────────── */
+
+interface BillOrder {
+  id: string;
+  orderNo: string;
+  tableNo: number | null;
+  status: string;
+  subtotal: number;
+  tax: number;
+  total: number;
+  note: string | null;
+  type: string;
+  createdAt: string;
+  deliveredAt: string | null;
+  items: {
+    id: string;
+    name: string;
+    quantity: number;
+    price: number;
+    addOns?: string | null;
+  }[];
+  user: { name: string | null; email: string; phone: string | null } | null;
+  payment: {
+    id: string;
+    method: string;
+    status: string;
+    amount: number;
+    transactionId: string | null;
+    paidAt: string | null;
+  } | null;
+  bill: {
+    id: string;
+    billNo: string;
+    subtotal: number;
+    tax: number;
+    serviceCharge: number;
+    discount: number;
+    total: number;
+    paidVia: string | null;
+  } | null;
+}
+
+interface DailySummary {
+  totalOrders: number;
+  completedOrders: number;
+  paidOrders: number;
+  unpaidOrders: number;
+  totalRevenue: number;
+  cashRevenue: number;
+  onlineRevenue: number;
+  pendingAmount: number;
+  totalDiscount: number;
+}
+
+interface BillingTabProps {
+  restaurantId: string;
+  staffRole?: string;
+}
+
+/* ── Helpers ──────────────────────────────────────────────────────── */
+
+function timeAgo(dateStr: string) {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "Just now";
+  if (mins < 60) return `${mins}m ago`;
+  return `${Math.floor(mins / 60)}h ${mins % 60}m ago`;
+}
+
+function paymentMethodLabel(method: string) {
+  const map: Record<string, string> = {
+    ESEWA: "eSewa",
+    KHALTI: "Khalti",
+    BANK: "Bank Transfer",
+    CASH: "Cash",
+  };
+  return map[method] || method;
+}
+
+function paymentMethodIcon(method: string) {
+  switch (method) {
+    case "ESEWA":
+    case "KHALTI":
+      return Wallet;
+    case "BANK":
+      return Banknote;
+    case "CASH":
+    default:
+      return DollarSign;
+  }
+}
+
+async function staffFetch(url: string, opts?: RequestInit) {
+  const res = await fetch(url, {
+    ...opts,
+    headers: { "Content-Type": "application/json", ...(opts?.headers || {}) },
+    credentials: "include",
+  });
+  if (!res.ok) throw new Error("Request failed");
+  return res.json();
+}
+
+const STATUS_COLORS: Record<string, string> = {
+  PENDING: "bg-orange-100 text-orange-700",
+  ACCEPTED: "bg-blue-100 text-blue-700",
+  PREPARING: "bg-amber-100 text-amber-700",
+  READY: "bg-green-100 text-green-700",
+  DELIVERED: "bg-gray-100 text-gray-600",
+  CANCELLED: "bg-red-100 text-red-600",
+  REJECTED: "bg-red-100 text-red-600",
+};
+
+/* ── BillingTab Component ────────────────────────────────────────── */
+
+export default function BillingTab({
+  restaurantId,
+  staffRole,
+}: BillingTabProps) {
+  const [orders, setOrders] = useState<BillOrder[]>([]);
+  const [summary, setSummary] = useState<DailySummary | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<string>("unpaid");
+  const [search, setSearch] = useState("");
+  const [selectedOrder, setSelectedOrder] = useState<BillOrder | null>(null);
+  const [showCollect, setShowCollect] = useState(false);
+  const [showDiscount, setShowDiscount] = useState(false);
+  const [collectMethod, setCollectMethod] = useState<string>("CASH");
+  const [collectTxn, setCollectTxn] = useState("");
+  const [discountAmount, setDiscountAmount] = useState("");
+  const [discountReason, setDiscountReason] = useState("");
+  const [actionLoading, setActionLoading] = useState(false);
+
+  const canDiscount =
+    staffRole === "MANAGER" || staffRole === "SUPER_ADMIN" || !staffRole;
+
+  const loadOrders = useCallback(async () => {
+    try {
+      const data = await staffFetch(
+        `/api/restaurants/${restaurantId}/billing?filter=${filter}`,
+      );
+      setOrders(data.orders || []);
+    } catch {
+      /* ignore */
+    }
+    setLoading(false);
+  }, [restaurantId, filter]);
+
+  const loadSummary = useCallback(async () => {
+    try {
+      const data = await staffFetch(
+        `/api/restaurants/${restaurantId}/billing/summary`,
+      );
+      setSummary(data);
+    } catch {
+      /* ignore */
+    }
+  }, [restaurantId]);
+
+  useEffect(() => {
+    loadOrders();
+    loadSummary();
+    const iv = setInterval(() => {
+      loadOrders();
+      loadSummary();
+    }, 15000);
+    return () => clearInterval(iv);
+  }, [loadOrders, loadSummary]);
+
+  const handleCollectPayment = async () => {
+    if (!selectedOrder) return;
+    setActionLoading(true);
+    try {
+      await staffFetch(`/api/restaurants/${restaurantId}/billing/collect`, {
+        method: "POST",
+        body: JSON.stringify({
+          orderId: selectedOrder.id,
+          method: collectMethod,
+          transactionId: collectTxn || undefined,
+        }),
+      });
+      setShowCollect(false);
+      setCollectTxn("");
+      setSelectedOrder(null);
+      loadOrders();
+      loadSummary();
+    } catch {
+      /* ignore */
+    }
+    setActionLoading(false);
+  };
+
+  const handleApplyDiscount = async () => {
+    if (!selectedOrder) return;
+    const amount = parseFloat(discountAmount);
+    if (isNaN(amount) || amount <= 0) return;
+    setActionLoading(true);
+    try {
+      await staffFetch(`/api/restaurants/${restaurantId}/billing/discount`, {
+        method: "POST",
+        body: JSON.stringify({
+          orderId: selectedOrder.id,
+          amount,
+          reason: discountReason || undefined,
+        }),
+      });
+      setShowDiscount(false);
+      setDiscountAmount("");
+      setDiscountReason("");
+      setSelectedOrder(null);
+      loadOrders();
+      loadSummary();
+    } catch {
+      /* ignore */
+    }
+    setActionLoading(false);
+  };
+
+  const filtered = orders.filter((o) => {
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return (
+      o.orderNo.toLowerCase().includes(q) ||
+      o.user?.name?.toLowerCase().includes(q) ||
+      o.tableNo?.toString().includes(q)
+    );
+  });
+
+  const isPaid = (o: BillOrder) => o.payment?.status === "COMPLETED";
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-20">
+        <Loader2 className="h-6 w-6 animate-spin text-[#E23744]" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-5">
+      {/* ── Daily Summary Cards ──────────────────────── */}
+      {summary && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <SummaryCard
+            label="Total Revenue"
+            value={`Rs. ${summary.totalRevenue.toLocaleString()}`}
+            icon={TrendingUp}
+            color="text-emerald-600"
+            bg="bg-emerald-50"
+          />
+          <SummaryCard
+            label="Cash Collected"
+            value={`Rs. ${summary.cashRevenue.toLocaleString()}`}
+            icon={DollarSign}
+            color="text-blue-600"
+            bg="bg-blue-50"
+          />
+          <SummaryCard
+            label="Pending"
+            value={`Rs. ${summary.pendingAmount.toLocaleString()}`}
+            icon={Clock}
+            color="text-orange-600"
+            bg="bg-orange-50"
+            highlight={summary.pendingAmount > 0}
+          />
+          <SummaryCard
+            label="Discounts"
+            value={`Rs. ${summary.totalDiscount.toLocaleString()}`}
+            icon={Tag}
+            color="text-pink-600"
+            bg="bg-pink-50"
+          />
+        </div>
+      )}
+
+      {/* ── Stats Row ────────────────────────────────── */}
+      {summary && (
+        <div className="flex items-center gap-4 text-xs text-gray-500">
+          <span className="flex items-center gap-1">
+            <Receipt className="h-3 w-3" />
+            {summary.totalOrders} orders today
+          </span>
+          <span className="flex items-center gap-1">
+            <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+            {summary.paidOrders} paid
+          </span>
+          <span className="flex items-center gap-1">
+            <AlertCircle className="h-3 w-3 text-orange-500" />
+            {summary.unpaidOrders} unpaid
+          </span>
+          {summary.onlineRevenue > 0 && (
+            <span className="flex items-center gap-1">
+              <Wallet className="h-3 w-3 text-purple-500" />
+              Rs. {summary.onlineRevenue.toLocaleString()} online
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* ── Filter + Search ──────────────────────────── */}
+      <div className="flex flex-col sm:flex-row gap-2">
+        <div className="flex gap-1.5 flex-wrap">
+          {[
+            { key: "unpaid", label: "Unpaid", count: summary?.unpaidOrders },
+            { key: "paid", label: "Paid", count: summary?.paidOrders },
+            { key: "today", label: "All Today" },
+          ].map((f) => (
+            <button
+              key={f.key}
+              onClick={() => {
+                setFilter(f.key);
+                setLoading(true);
+              }}
+              className={`flex items-center gap-1 rounded-xl px-3.5 py-2 text-xs font-bold transition-all ${
+                filter === f.key
+                  ? "bg-[#1F2A2A] text-white shadow-sm"
+                  : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+              }`}
+            >
+              <Filter className="h-3 w-3" />
+              {f.label}
+              {f.count !== undefined && f.count > 0 && (
+                <span
+                  className={`ml-1 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[9px] font-bold ${
+                    filter === f.key
+                      ? "bg-white/20 text-white"
+                      : "bg-gray-300 text-gray-700"
+                  }`}
+                >
+                  {f.count}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search order #, customer, table..."
+            className="w-full rounded-xl border border-gray-200 bg-white pl-10 pr-4 py-2.5 text-sm font-medium text-[#1F2A2A] placeholder-gray-400 outline-none focus:border-[#0A4D3C] focus:ring-2 focus:ring-[#0A4D3C]/10 transition-all"
+          />
+        </div>
+      </div>
+
+      {/* ── Orders List ──────────────────────────────── */}
+      {filtered.length === 0 && (
+        <div className="text-center py-16 text-gray-400">
+          <Receipt className="mx-auto h-10 w-10 mb-3 opacity-40" />
+          <p className="font-bold">No orders found</p>
+          <p className="text-xs mt-1">
+            {filter === "unpaid"
+              ? "All orders have been paid!"
+              : "No matching orders"}
+          </p>
+        </div>
+      )}
+
+      <div className="space-y-3">
+        {filtered.map((order) => (
+          <motion.div
+            key={order.id}
+            layout
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`rounded-2xl bg-white border p-4 shadow-sm hover:shadow-md transition-all ${
+              isPaid(order)
+                ? "border-gray-100"
+                : "border-orange-200 bg-orange-50/20"
+            }`}
+          >
+            {/* Header row */}
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-extrabold text-[#1F2A2A]">
+                  #{order.orderNo}
+                </span>
+                {order.tableNo && (
+                  <span className="rounded-lg bg-gray-100 px-2 py-0.5 text-[10px] font-bold text-gray-600">
+                    <Utensils className="inline h-2.5 w-2.5 mr-0.5" />
+                    Table {order.tableNo}
+                  </span>
+                )}
+                <span
+                  className={`rounded-lg px-2 py-0.5 text-[10px] font-bold ${STATUS_COLORS[order.status] || "bg-gray-100"}`}
+                >
+                  {order.status}
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                {isPaid(order) ? (
+                  <span className="flex items-center gap-1 rounded-lg bg-emerald-50 px-2 py-1 text-[10px] font-bold text-emerald-700">
+                    <CheckCircle2 className="h-3 w-3" />
+                    PAID
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1 rounded-lg bg-orange-50 px-2 py-1 text-[10px] font-bold text-orange-700">
+                    <Clock className="h-3 w-3" />
+                    UNPAID
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Items summary */}
+            <div className="space-y-1 mb-3">
+              {order.items.slice(0, 3).map((item) => (
+                <div key={item.id} className="flex justify-between text-xs">
+                  <span className="text-gray-600">
+                    {item.quantity}× {item.name}
+                  </span>
+                  <span className="font-bold text-gray-500">
+                    Rs. {item.price * item.quantity}
+                  </span>
+                </div>
+              ))}
+              {order.items.length > 3 && (
+                <p className="text-[10px] text-gray-400">
+                  +{order.items.length - 3} more items
+                </p>
+              )}
+            </div>
+
+            {/* Bill breakdown */}
+            <div className="rounded-xl bg-gray-50 p-3 space-y-1 mb-3">
+              <div className="flex justify-between text-xs">
+                <span className="text-gray-500">Subtotal</span>
+                <span className="font-medium">
+                  Rs. {(order.bill?.subtotal ?? order.subtotal).toFixed(0)}
+                </span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-gray-500">Tax (13%)</span>
+                <span className="font-medium">
+                  Rs. {(order.bill?.tax ?? order.tax).toFixed(0)}
+                </span>
+              </div>
+              {order.bill && order.bill.serviceCharge > 0 && (
+                <div className="flex justify-between text-xs">
+                  <span className="text-gray-500">Service Charge (10%)</span>
+                  <span className="font-medium">
+                    Rs. {order.bill.serviceCharge.toFixed(0)}
+                  </span>
+                </div>
+              )}
+              {order.bill && order.bill.discount > 0 && (
+                <div className="flex justify-between text-xs">
+                  <span className="text-[#E23744]">Discount</span>
+                  <span className="font-medium text-[#E23744]">
+                    -Rs. {order.bill.discount.toFixed(0)}
+                  </span>
+                </div>
+              )}
+              <div className="flex justify-between text-sm font-extrabold border-t border-gray-200 pt-1.5 mt-1.5">
+                <span className="text-[#1F2A2A]">Total</span>
+                <span className="text-[#1F2A2A]">
+                  Rs. {(order.bill?.total ?? order.total).toFixed(0)}
+                </span>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-[10px] text-gray-400">
+                <Clock className="h-3 w-3" />
+                {timeAgo(order.createdAt)}
+                {order.user?.name && (
+                  <span className="flex items-center gap-0.5">
+                    <UserIcon className="h-2.5 w-2.5" />
+                    {order.user.name}
+                  </span>
+                )}
+                {order.payment && (
+                  <span className="flex items-center gap-0.5">
+                    <CreditCard className="h-2.5 w-2.5" />
+                    {paymentMethodLabel(order.payment.method)}
+                  </span>
+                )}
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                {/* View Bill */}
+                <a
+                  href={`/bill/${order.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 rounded-lg bg-gray-100 px-2.5 py-1.5 text-[10px] font-bold text-gray-600 hover:bg-gray-200 transition-all"
+                >
+                  <Eye className="h-3 w-3" />
+                  View
+                </a>
+
+                {/* Print */}
+                <a
+                  href={`/bill/${order.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 rounded-lg bg-gray-100 px-2.5 py-1.5 text-[10px] font-bold text-gray-600 hover:bg-gray-200 transition-all"
+                >
+                  <Printer className="h-3 w-3" />
+                </a>
+
+                {/* Discount button — only for Manager/SuperAdmin */}
+                {canDiscount && !isPaid(order) && (
+                  <button
+                    onClick={() => {
+                      setSelectedOrder(order);
+                      setShowDiscount(true);
+                    }}
+                    className="flex items-center gap-1 rounded-lg bg-pink-50 px-2.5 py-1.5 text-[10px] font-bold text-pink-700 hover:bg-pink-100 transition-all"
+                  >
+                    <Tag className="h-3 w-3" />
+                    Discount
+                  </button>
+                )}
+
+                {/* Collect Payment — only for unpaid */}
+                {!isPaid(order) &&
+                  order.status !== "CANCELLED" &&
+                  order.status !== "REJECTED" && (
+                    <button
+                      onClick={() => {
+                        setSelectedOrder(order);
+                        setShowCollect(true);
+                      }}
+                      className="flex items-center gap-1 rounded-lg bg-emerald-500 px-3 py-1.5 text-[10px] font-bold text-white hover:bg-emerald-600 transition-all shadow-sm"
+                    >
+                      <CreditCard className="h-3 w-3" />
+                      Collect
+                    </button>
+                  )}
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* ── Collect Payment Modal ────────────────────── */}
+      <AnimatePresence>
+        {showCollect && selectedOrder && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl"
+            >
+              <div className="flex items-center justify-between mb-5">
+                <div>
+                  <h2 className="text-lg font-extrabold text-[#1F2A2A]">
+                    Collect Payment
+                  </h2>
+                  <p className="text-xs text-gray-400">
+                    Order #{selectedOrder.orderNo}
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowCollect(false);
+                    setSelectedOrder(null);
+                  }}
+                  className="rounded-full bg-gray-100 p-2 text-gray-500 hover:bg-gray-200"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* Amount */}
+              <div className="rounded-2xl bg-gray-50 p-4 mb-5 text-center">
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">
+                  Amount Due
+                </p>
+                <p className="text-3xl font-extrabold text-[#1F2A2A]">
+                  Rs.{" "}
+                  {(selectedOrder.bill?.total ?? selectedOrder.total).toFixed(
+                    0,
+                  )}
+                </p>
+                {selectedOrder.bill?.discount &&
+                  selectedOrder.bill.discount > 0 && (
+                    <p className="text-xs text-[#E23744] mt-1">
+                      Discount applied: Rs.{" "}
+                      {selectedOrder.bill.discount.toFixed(0)}
+                    </p>
+                  )}
+              </div>
+
+              {/* Payment Method Selection */}
+              <div className="space-y-2 mb-5">
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                  Payment Method
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  {(["CASH", "ESEWA", "KHALTI", "BANK"] as const).map(
+                    (method) => {
+                      const Icon = paymentMethodIcon(method);
+                      const isSelected = collectMethod === method;
+                      return (
+                        <button
+                          key={method}
+                          onClick={() => setCollectMethod(method)}
+                          className={`flex items-center gap-2 rounded-xl border-2 px-3 py-3 text-left transition-all ${
+                            isSelected
+                              ? "border-emerald-400 bg-emerald-50 shadow-sm"
+                              : "border-gray-100 bg-white hover:border-gray-200"
+                          }`}
+                        >
+                          <Icon
+                            className={`h-4 w-4 ${isSelected ? "text-emerald-600" : "text-gray-400"}`}
+                          />
+                          <span
+                            className={`text-xs font-bold ${isSelected ? "text-emerald-700" : "text-gray-600"}`}
+                          >
+                            {paymentMethodLabel(method)}
+                          </span>
+                        </button>
+                      );
+                    },
+                  )}
+                </div>
+              </div>
+
+              {/* Transaction ID for non-cash */}
+              {collectMethod !== "CASH" && (
+                <div className="mb-5">
+                  <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5 block">
+                    Transaction / Reference ID
+                  </label>
+                  <input
+                    value={collectTxn}
+                    onChange={(e) => setCollectTxn(e.target.value)}
+                    placeholder="Enter transaction ID..."
+                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 transition-all"
+                  />
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    setShowCollect(false);
+                    setSelectedOrder(null);
+                  }}
+                  className="flex-1 rounded-xl border border-gray-200 py-3 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCollectPayment}
+                  disabled={actionLoading}
+                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-emerald-500 py-3 text-sm font-bold text-white hover:bg-emerald-600 disabled:bg-gray-300 transition-all shadow-sm"
+                >
+                  {actionLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Check className="h-4 w-4" />
+                  )}
+                  {actionLoading ? "Processing..." : "Confirm Payment"}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Apply Discount Modal ─────────────────────── */}
+      <AnimatePresence>
+        {showDiscount && selectedOrder && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl"
+            >
+              <div className="flex items-center justify-between mb-5">
+                <div>
+                  <h2 className="text-lg font-extrabold text-[#1F2A2A]">
+                    Apply Discount
+                  </h2>
+                  <p className="text-xs text-gray-400">
+                    Order #{selectedOrder.orderNo}
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowDiscount(false);
+                    setSelectedOrder(null);
+                  }}
+                  className="rounded-full bg-gray-100 p-2 text-gray-500 hover:bg-gray-200"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* Current total */}
+              <div className="rounded-2xl bg-gray-50 p-4 mb-5">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Current Bill Total</span>
+                  <span className="font-bold text-[#1F2A2A]">
+                    Rs.{" "}
+                    {(selectedOrder.bill?.total ?? selectedOrder.total).toFixed(
+                      0,
+                    )}
+                  </span>
+                </div>
+                {selectedOrder.bill?.discount &&
+                  selectedOrder.bill.discount > 0 && (
+                    <div className="flex justify-between text-sm mt-1">
+                      <span className="text-[#E23744]">Existing Discount</span>
+                      <span className="font-bold text-[#E23744]">
+                        Rs. {selectedOrder.bill.discount.toFixed(0)}
+                      </span>
+                    </div>
+                  )}
+              </div>
+
+              {/* Discount inputs */}
+              <div className="space-y-3 mb-5">
+                <div>
+                  <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5 block">
+                    Discount Amount (Rs.)
+                  </label>
+                  <input
+                    value={discountAmount}
+                    onChange={(e) => setDiscountAmount(e.target.value)}
+                    placeholder="e.g., 100"
+                    type="number"
+                    min="0"
+                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-pink-400 focus:ring-2 focus:ring-pink-100 transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5 block">
+                    Reason (optional)
+                  </label>
+                  <input
+                    value={discountReason}
+                    onChange={(e) => setDiscountReason(e.target.value)}
+                    placeholder="e.g., Regular customer, promo code..."
+                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-pink-400 focus:ring-2 focus:ring-pink-100 transition-all"
+                  />
+                </div>
+
+                {/* Quick discount buttons */}
+                <div className="flex flex-wrap gap-1.5">
+                  {[50, 100, 200, 500].map((amt) => (
+                    <button
+                      key={amt}
+                      onClick={() => setDiscountAmount(amt.toString())}
+                      className="rounded-lg bg-pink-50 px-3 py-1.5 text-xs font-bold text-pink-700 hover:bg-pink-100 transition-all"
+                    >
+                      Rs. {amt}
+                    </button>
+                  ))}
+                  {/* Percentage buttons */}
+                  {[5, 10, 15, 20].map((pct) => {
+                    const base =
+                      selectedOrder.bill?.subtotal ?? selectedOrder.subtotal;
+                    const amt = Math.round((base * pct) / 100);
+                    return (
+                      <button
+                        key={`pct-${pct}`}
+                        onClick={() => setDiscountAmount(amt.toString())}
+                        className="rounded-lg bg-purple-50 px-3 py-1.5 text-xs font-bold text-purple-700 hover:bg-purple-100 transition-all"
+                      >
+                        {pct}% (Rs. {amt})
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Preview */}
+              {discountAmount && parseFloat(discountAmount) > 0 && (
+                <div className="rounded-xl bg-pink-50 p-3 mb-5 border border-pink-100">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-pink-600 font-medium">
+                      New Total after Discount
+                    </span>
+                    <span className="font-extrabold text-[#1F2A2A]">
+                      Rs.{" "}
+                      {Math.max(
+                        0,
+                        (selectedOrder.bill?.subtotal ??
+                          selectedOrder.subtotal) +
+                          (selectedOrder.bill?.tax ?? selectedOrder.tax) +
+                          (selectedOrder.bill?.serviceCharge ?? 0) -
+                          parseFloat(discountAmount),
+                      ).toFixed(0)}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    setShowDiscount(false);
+                    setSelectedOrder(null);
+                  }}
+                  className="flex-1 rounded-xl border border-gray-200 py-3 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleApplyDiscount}
+                  disabled={
+                    actionLoading ||
+                    !discountAmount ||
+                    parseFloat(discountAmount) <= 0
+                  }
+                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-pink-500 py-3 text-sm font-bold text-white hover:bg-pink-600 disabled:bg-gray-300 transition-all shadow-sm"
+                >
+                  {actionLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Tag className="h-4 w-4" />
+                  )}
+                  {actionLoading ? "Applying..." : "Apply Discount"}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+/* ── Summary Card Sub-component ─────────────────────────────────── */
+
+function SummaryCard({
+  label,
+  value,
+  icon: Icon,
+  color,
+  bg,
+  highlight,
+}: {
+  label: string;
+  value: string;
+  icon: typeof TrendingUp;
+  color: string;
+  bg: string;
+  highlight?: boolean;
+}) {
+  return (
+    <div
+      className={`rounded-2xl border p-3.5 transition-all ${
+        highlight
+          ? "border-orange-200 bg-orange-50/30 shadow-sm"
+          : "border-gray-100 bg-white shadow-sm"
+      }`}
+    >
+      <div className="flex items-center gap-2 mb-2">
+        <div
+          className={`flex h-7 w-7 items-center justify-center rounded-lg ${bg}`}
+        >
+          <Icon className={`h-3.5 w-3.5 ${color}`} />
+        </div>
+        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+          {label}
+        </span>
+      </div>
+      <p className="text-base font-extrabold text-[#1F2A2A]">{value}</p>
+    </div>
+  );
+}

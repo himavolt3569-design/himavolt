@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { Suspense, useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   QrCode,
@@ -12,13 +12,23 @@ import {
   FlashlightOff,
   CheckCircle2,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "@/context/ToastContext";
 import gsap from "gsap";
 import Link from "next/link";
 
 export default function ScanPage() {
+  return (
+    <Suspense>
+      <ScanPageContent />
+    </Suspense>
+  );
+}
+
+function ScanPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const restaurantSlug = searchParams.get("restaurant");
   const { showToast } = useToast();
   const [scanning, setScanning] = useState(false);
   const [scanSuccess, setScanSuccess] = useState(false);
@@ -26,6 +36,18 @@ export default function ScanPage() {
   const [tableNum, setTableNum] = useState("");
   const scanBoxRef = useRef<HTMLDivElement>(null);
   const lineRef = useRef<HTMLDivElement>(null);
+
+  const navigateToMenu = (table?: string) => {
+    if (restaurantSlug) {
+      const url = table
+        ? `/menu/${restaurantSlug}?table=${table}`
+        : `/menu/${restaurantSlug}`;
+      router.push(url);
+    } else {
+      showToast("Please scan a valid QR code at a restaurant table", "info");
+      router.push("/");
+    }
+  };
 
   const handleScan = () => {
     setScanning(true);
@@ -62,25 +84,23 @@ export default function ScanPage() {
   useEffect(() => {
     if (scanSuccess) {
       const navTimer = setTimeout(() => {
-        router.push("/menu");
+        navigateToMenu(tableNum || "1");
       }, 1000);
       return () => clearTimeout(navTimer);
     }
-  }, [scanSuccess, router]);
+  }, [scanSuccess]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleTableSubmit = () => {
     if (tableNum.length >= 1 && tableNum.length <= 2) {
       showToast("Table confirmed!", "success");
-      router.push("/menu");
+      navigateToMenu(tableNum);
     }
   };
 
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center bg-white overflow-hidden">
-      {/* Subtle background pattern */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,153,51,0.04),transparent_50%),radial-gradient(circle_at_70%_80%,rgba(10,77,60,0.03),transparent_50%)]" />
 
-      {/* Back button */}
       <Link
         href="/"
         className="absolute top-5 left-5 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
@@ -88,7 +108,6 @@ export default function ScanPage() {
         <ArrowLeft className="h-4 w-4" />
       </Link>
 
-      {/* Logo */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -101,14 +120,18 @@ export default function ScanPage() {
         </span>
       </motion.div>
 
-      {/* Scan area */}
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5, delay: 0.1 }}
         className="relative z-10 w-full max-w-sm px-6 space-y-8"
       >
-        {/* QR Box */}
+        {restaurantSlug && (
+          <p className="text-center text-sm text-gray-500">
+            Scanning for <strong className="text-[#1F2A2A]">{restaurantSlug.replace(/-/g, " ")}</strong>
+          </p>
+        )}
+
         <div
           ref={scanBoxRef}
           className={`relative mx-auto flex h-64 w-64 items-center justify-center rounded-3xl border-2 transition-all duration-500 overflow-hidden ${
@@ -119,10 +142,8 @@ export default function ScanPage() {
                 : "border-gray-200 bg-gray-50"
           }`}
         >
-          {/* Realistic Camera Frame Overlay */}
           <div className="absolute inset-0 z-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')]" />
 
-          {/* Flashlight Toggle */}
           <button
             onClick={() => setFlashlightOn(!flashlightOn)}
             className="absolute top-3 right-3 z-20 p-2 rounded-full bg-white/50 backdrop-blur text-charcoal-slate hover:bg-white transition-colors"
@@ -134,13 +155,11 @@ export default function ScanPage() {
             )}
           </button>
 
-          {/* Corner accents */}
           <div className="absolute top-0 left-0 h-10 w-10 rounded-tl-3xl border-t-4 border-l-4 border-[#0A4D3C] transition-colors" />
           <div className="absolute top-0 right-0 h-10 w-10 rounded-tr-3xl border-t-4 border-r-4 border-[#0A4D3C] transition-colors" />
           <div className="absolute bottom-0 left-0 h-10 w-10 rounded-bl-3xl border-b-4 border-l-4 border-[#0A4D3C] transition-colors" />
           <div className="absolute bottom-0 right-0 h-10 w-10 rounded-br-3xl border-b-4 border-r-4 border-[#0A4D3C] transition-colors" />
 
-          {/* Flashlight overlay effect */}
           {flashlightOn && (
             <div className="absolute inset-0 bg-yellow-200/20 mix-blend-overlay pointer-events-none" />
           )}
@@ -185,7 +204,6 @@ export default function ScanPage() {
           </AnimatePresence>
         </div>
 
-        {/* Scan button */}
         <button
           onClick={handleScan}
           disabled={scanning || scanSuccess}
@@ -202,7 +220,6 @@ export default function ScanPage() {
               : "Scan Table QR"}
         </button>
 
-        {/* Divider */}
         <div className="flex items-center gap-4">
           <div className="flex-1 h-px bg-gray-200" />
           <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
@@ -211,7 +228,6 @@ export default function ScanPage() {
           <div className="flex-1 h-px bg-gray-200" />
         </div>
 
-        {/* Table number input */}
         <div className="space-y-3">
           <p className="text-sm font-bold text-[#1F2A2A] text-center">
             Enter table number manually
@@ -245,13 +261,12 @@ export default function ScanPage() {
           </div>
         </div>
 
-        {/* Skip link */}
         <div className="text-center pt-2">
           <Link
-            href="/menu"
+            href="/"
             className="text-xs font-bold text-[#0A4D3C] hover:underline"
           >
-            Skip & Browse Menu Directly
+            Skip & Browse Restaurants
           </Link>
         </div>
       </motion.div>

@@ -2,35 +2,30 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Navbar from "@/components/Navbar";
-import Hero from "@/components/Hero";
-import FoodCategories from "@/components/FoodCategories";
-import OffersCarousel from "@/components/OffersCarousel";
-import TopPlaces from "@/components/TopPlaces";
-import HowItWorks from "@/components/HowItWorks";
-import Footer from "@/components/Footer";
-import AuthModals from "@/components/AuthModals";
-import CartSidebar from "@/components/CartSidebar";
-import FoodDetailModal from "@/components/FoodDetailModal";
-import LoadingClock from "@/components/LoadingClock";
-import type { FoodItem } from "@/lib/data";
+import Navbar from "@/components/layout/Navbar";
+import Hero from "@/components/home/Hero";
+import FoodCategories from "@/components/home/FoodCategories";
+import PopularFoods from "@/components/home/PopularFoods";
+import HowItWorks from "@/components/home/HowItWorks";
+import TopPlaces from "@/components/home/TopPlaces";
+import OffersCarousel from "@/components/home/OffersCarousel";
+import Footer from "@/components/layout/Footer";
+import CartSidebar from "@/components/cart/CartSidebar";
+import LoadingClock from "@/components/shared/LoadingClock";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 
 export default function Home() {
   const [loading, setLoading] = useState(true);
-  const [loginOpen, setLoginOpen] = useState(false);
-  const [registerOpen, setRegisterOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
-  const [selectedFood, setSelectedFood] = useState<FoodItem | null>(null);
-  const [foodModalOpen, setFoodModalOpen] = useState(false);
+  const [activeCategory, setActiveCategory] = useState("All");
 
   const clockRef = useRef<HTMLDivElement>(null);
   const minuteHandRef = useRef<HTMLDivElement>(null);
   const hourHandRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 1800);
+    const timer = setTimeout(() => setLoading(false), 1200);
     return () => clearTimeout(timer);
   }, []);
 
@@ -95,35 +90,16 @@ export default function Home() {
           transition={{ duration: 0.5, ease: "easeOut" }}
           className="min-h-screen relative bg-white"
         >
-          <Navbar
-            onLoginClick={() => setLoginOpen(true)}
-            onRegisterClick={() => setRegisterOpen(true)}
-            onCartClick={() => setCartOpen(true)}
-          />
+          <Navbar onCartClick={() => setCartOpen(true)} />
           <Hero />
-          <FoodCategories />
-          <OffersCarousel />
-          <TopPlaces
-            onFoodClick={(food: FoodItem) => {
-              setSelectedFood(food);
-              setFoodModalOpen(true);
-            }}
-          />
+          <FoodCategories onCategoryChange={setActiveCategory} />
+          <PopularFoods activeCategory={activeCategory} />
           <HowItWorks />
+          <TopPlaces />
+          <OffersCarousel />
           <Footer />
 
-          <AuthModals
-            loginOpen={loginOpen}
-            setLoginOpen={setLoginOpen}
-            registerOpen={registerOpen}
-            setRegisterOpen={setRegisterOpen}
-          />
           <CartSidebar open={cartOpen} onClose={() => setCartOpen(false)} />
-          <FoodDetailModal
-            food={selectedFood}
-            open={foodModalOpen}
-            onClose={() => setFoodModalOpen(false)}
-          />
         </motion.main>
       )}
     </>

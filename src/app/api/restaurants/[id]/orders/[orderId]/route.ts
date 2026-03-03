@@ -1,0 +1,156 @@
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import { getOrCreateUser } from "@/lib/auth";
+import { notifyCustomerOrderUpdate } from "@/lib/notifications";
+
+export async function GET(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string; orderId: string }> },
+) {
+  const { id, orderId } = await params;
+
+  const order = await db.order.findFirst({
+    where: { id: orderId, restaurantId: id },
+    include: {
+      items: { include: { menuItem: true } },
+      user: { select: { name: true, email: true, phone: true } },
+      payment: true,
+      bill: true,
+      restaurant: { select: { name: true } },
+      delivery: {
+        include: {
+          driver: {
+            select: {
+              name: true,
+              phone: true,
+              vehicleType: true,
+              vehicleNo: true,
+              currentLat: true,
+              currentLng: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!order) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  return NextResponse.json(order);
+}
+
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string; orderId: string }> },
+) {
+  const { id, orderId } = await params;
+  const user = await getOrCreateUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const restaurant = await db.restaurant.findFirst({
+    where: { id, ownerId: user.id },
+  });
+
+  const isStaff = !restaurant
+    ? await db.staffMember.findFirst({
+        where: { userId: user.id, restaurantId: id, isActive: true },
+      })
+    : null;
+
+  if (!restaurant && !isStaff) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const body = await req.json();
+  const { status, estimatedTime } = body;
+  const validStatuses = [
+    "ACCEPTED",
+    "PREPARING",
+    "READY",
+    "DELIVERED",
+    "CANCELLED",
+    "REJECTED",
+  ];
+
+  if (!status || !validStatuses.includes(status)) {
+    return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+  }
+
+  const timestamps: Record<string, Date> = {};
+  if (status === "ACCEPTED") timestamps.acceptedAt = new Date();
+  if (status === "PREPARING") timestamps.preparingAt = new Date();
+  if (status === "READY") timestamps.readyAt = new Date();
+  if (status === "DELIVERED") timestamps.deliveredAt = new Date();
+
+  const order = await db.order.update({
+    where: { id: orderId },
+    data: {
+      status,
+      ...timestamps,
+      ...(estimatedTime !== undefined ? { estimatedTime } : {}),
+    },
+    include: {
+      items: true,
+      payment: true,
+      bill: true,
+      restaurant: { select: { name: true } },
+      delivery: {
+        include: {
+          driver: {
+            select: {
+              name: true,
+              phone: true,
+              vehicleType: true,
+              vehicleNo: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  // Auto-update delivery status when order status changes
+  if (order.delivery) {
+    if (status === "READY" && order.delivery.status === "PENDING") {
+      // Order ready, delivery still pending — keep as pending for driver assignment
+    }
+    if (status === "DELIVERED") {
+      await db.delivery.update({
+        where: { orderId },
+        data: { status: "DELIVERED", deliveredAt: new Date() },
+      });
+    }
+    if (status === "CANCELLED" || status === "REJECTED") {
+      await db.delivery.update({
+        where: { orderId },
+        data: {
+          status: "CANCELLED",
+          cancelledAt: new Date(),
+          cancelReason: `Order ${status.toLowerCase()}`,
+        },
+      });
+    }
+  }
+
+  if (status === "DELIVERED" && order.payment?.method === "CASH") {
+    await db.payment.update({
+      where: { orderId },
+      data: { status: "COMPLETED", paidAt: new Date() },
+    });
+  }
+
+  if (order.userId) {
+    notifyCustomerOrderUpdate(
+      order.userId,
+      order.orderNo,
+      status,
+      order.restaurant.name,
+    ).catch(() => {});
+  }
+
+  return NextResponse.json(order);
+}

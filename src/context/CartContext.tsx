@@ -9,7 +9,7 @@ import {
 } from "react";
 
 export interface CartItem {
-  id: number;
+  id: string;
   name: string;
   price: number;
   quantity: number;
@@ -18,11 +18,13 @@ export interface CartItem {
 
 interface CartContextType {
   items: CartItem[];
-  addItem: (item: Omit<CartItem, "quantity">) => void;
-  removeItem: (id: number) => void;
-  increaseQty: (id: number) => void;
-  decreaseQty: (id: number) => void;
-  getItemQty: (id: number) => number;
+  restaurantId: string | null;
+  restaurantSlug: string | null;
+  addItem: (item: Omit<CartItem, "quantity">, restaurantId: string, restaurantSlug: string) => void;
+  removeItem: (id: string) => void;
+  increaseQty: (id: string) => void;
+  decreaseQty: (id: string) => void;
+  getItemQty: (id: string) => number;
   totalItems: number;
   subtotal: number;
   clearCart: () => void;
@@ -32,51 +34,75 @@ const CartContext = createContext<CartContextType | null>(null);
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [restaurantId, setRestaurantId] = useState<string | null>(null);
+  const [restaurantSlug, setRestaurantSlug] = useState<string | null>(null);
 
-  const addItem = useCallback((item: Omit<CartItem, "quantity">) => {
-    setItems((prev) => {
-      const existing = prev.find((i) => i.id === item.id);
-      if (existing) {
-        return prev.map((i) =>
-          i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i,
-        );
+  const addItem = useCallback(
+    (item: Omit<CartItem, "quantity">, restId: string, restSlug: string) => {
+      if (restaurantId && restaurantId !== restId) {
+        setItems([{ ...item, quantity: 1 }]);
+        setRestaurantId(restId);
+        setRestaurantSlug(restSlug);
+        return;
       }
-      return [...prev, { ...item, quantity: 1 }];
-    });
-  }, []);
+      setRestaurantId(restId);
+      setRestaurantSlug(restSlug);
+      setItems((prev) => {
+        const existing = prev.find((i) => i.id === item.id);
+        if (existing) {
+          return prev.map((i) =>
+            i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i,
+          );
+        }
+        return [...prev, { ...item, quantity: 1 }];
+      });
+    },
+    [restaurantId],
+  );
 
-  const removeItem = useCallback((id: number) => {
-    setItems((prev) => prev.filter((i) => i.id !== id));
-  }, []);
+  const removeItem = useCallback(
+    (id: string) => setItems((prev) => prev.filter((i) => i.id !== id)),
+    [],
+  );
 
-  const increaseQty = useCallback((id: number) => {
-    setItems((prev) =>
-      prev.map((i) => (i.id === id ? { ...i, quantity: i.quantity + 1 } : i)),
-    );
-  }, []);
+  const increaseQty = useCallback(
+    (id: string) =>
+      setItems((prev) =>
+        prev.map((i) => (i.id === id ? { ...i, quantity: i.quantity + 1 } : i)),
+      ),
+    [],
+  );
 
-  const decreaseQty = useCallback((id: number) => {
-    setItems((prev) =>
-      prev
-        .map((i) => (i.id === id ? { ...i, quantity: i.quantity - 1 } : i))
-        .filter((i) => i.quantity > 0),
-    );
-  }, []);
+  const decreaseQty = useCallback(
+    (id: string) =>
+      setItems((prev) =>
+        prev
+          .map((i) => (i.id === id ? { ...i, quantity: i.quantity - 1 } : i))
+          .filter((i) => i.quantity > 0),
+      ),
+    [],
+  );
 
   const getItemQty = useCallback(
-    (id: number) => items.find((i) => i.id === id)?.quantity ?? 0,
+    (id: string) => items.find((i) => i.id === id)?.quantity ?? 0,
     [items],
   );
 
   const totalItems = items.reduce((sum, i) => sum + i.quantity, 0);
   const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
-  const clearCart = useCallback(() => setItems([]), []);
+  const clearCart = useCallback(() => {
+    setItems([]);
+    setRestaurantId(null);
+    setRestaurantSlug(null);
+  }, []);
 
   return (
     <CartContext.Provider
       value={{
         items,
+        restaurantId,
+        restaurantSlug,
         addItem,
         removeItem,
         increaseQty,

@@ -9,61 +9,190 @@ import {
   useRef,
   type ReactNode,
 } from "react";
+import { apiFetch } from "@/lib/api-client";
 
-export type OrderStep = "ordered" | "preparing" | "ready" | "delivered";
+export type OrderStatus =
+  | "PENDING"
+  | "ACCEPTED"
+  | "PREPARING"
+  | "READY"
+  | "DELIVERED"
+  | "CANCELLED"
+  | "REJECTED";
+
+export type PaymentMethodType = "ESEWA" | "KHALTI" | "BANK" | "CASH";
+
+export type OrderType = "DINE_IN" | "DELIVERY" | "TAKEAWAY";
+
+export interface OrderItem {
+  id: string;
+  name: string;
+  quantity: number;
+  price: number;
+}
+
+export interface OrderPayment {
+  method: string;
+  status: string;
+  paidAt: string | null;
+}
+
+export interface OrderDelivery {
+  id: string;
+  status: string;
+  estimatedMins: number | null;
+  fee: number;
+  driver?: {
+    name: string;
+    phone: string;
+    vehicleType: string;
+    vehicleNo: string | null;
+    currentLat: number | null;
+    currentLng: number | null;
+  } | null;
+}
 
 export interface Order {
   id: string;
-  step: OrderStep;
-  items: { name: string; qty: number; price: number }[];
+  orderNo: string;
+  tableNo: number | null;
+  status: OrderStatus;
+  subtotal: number;
+  tax: number;
   total: number;
-  createdAt: number;
+  note: string | null;
+  type: string;
+  estimatedTime: number | null;
+  createdAt: string;
+  items: OrderItem[];
+  restaurantId: string;
+  // Delivery fields
+  deliveryAddress: string | null;
+  deliveryPhone: string | null;
+  deliveryFee: number;
+  delivery?: OrderDelivery | null;
+  payment?: OrderPayment | null;
+  bill?: {
+    billNo: string;
+    total: number;
+  } | null;
+}
+
+export interface DeliveryInfo {
+  address: string;
+  phone: string;
+  lat?: number;
+  lng?: number;
+  note?: string;
 }
 
 interface OrderContextType {
   activeOrder: Order | null;
-  placeOrder: (items: { name: string; qty: number; price: number }[], total: number) => void;
+  placeOrder: (
+    restaurantId: string,
+    items: {
+      name: string;
+      quantity: number;
+      price: number;
+      menuItemId?: string;
+    }[],
+    orderType: OrderType,
+    tableNo?: number,
+    note?: string,
+    paymentMethod?: PaymentMethodType,
+    deliveryInfo?: DeliveryInfo,
+  ) => Promise<Order>;
   cancelOrder: () => void;
 }
 
 const OrderContext = createContext<OrderContextType | null>(null);
 
-const STEP_SEQUENCE: OrderStep[] = ["ordered", "preparing", "ready", "delivered"];
-const STEP_DELAYS = [0, 6000, 10000, 14000];
-
 export function OrderProvider({ children }: { children: ReactNode }) {
   const [activeOrder, setActiveOrder] = useState<Order | null>(null);
-  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const clearTimers = () => {
-    timersRef.current.forEach(clearTimeout);
-    timersRef.current = [];
-  };
+  const stopPolling = useCallback(() => {
+    if (pollRef.current) {
+      clearInterval(pollRef.current);
+      pollRef.current = null;
+    }
+  }, []);
+
+  const startPolling = useCallback(
+    (restaurantId: string, orderId: string) => {
+      stopPolling();
+      pollRef.current = setInterval(async () => {
+        try {
+          const order = await apiFetch<Order>(
+            `/api/restaurants/${restaurantId}/orders/${orderId}`,
+          );
+          setActiveOrder(order);
+          if (
+            order.status === "DELIVERED" ||
+            order.status === "CANCELLED" ||
+            order.status === "REJECTED"
+          ) {
+            stopPolling();
+          }
+        } catch {
+          /* ignore poll errors */
+        }
+      }, 5000);
+    },
+    [stopPolling],
+  );
 
   const placeOrder = useCallback(
-    (items: { name: string; qty: number; price: number }[], total: number) => {
-      clearTimers();
-      const id = `HH-${String(Math.floor(10000 + Math.random() * 90000))}`;
-      const order: Order = { id, step: "ordered", items, total, createdAt: Date.now() };
+    async (
+      restaurantId: string,
+      items: {
+        name: string;
+        quantity: number;
+        price: number;
+        menuItemId?: string;
+      }[],
+      orderType: OrderType,
+      tableNo?: number,
+      note?: string,
+      paymentMethod?: PaymentMethodType,
+      deliveryInfo?: DeliveryInfo,
+    ) => {
+      const order = await apiFetch<Order>(
+        `/api/restaurants/${restaurantId}/orders`,
+        {
+          method: "POST",
+          body: {
+            items,
+            tableNo: orderType === "DINE_IN" ? tableNo : undefined,
+            note,
+            type: orderType,
+            paymentMethod: paymentMethod || "CASH",
+            // Delivery fields
+            ...(orderType === "DELIVERY" && deliveryInfo
+              ? {
+                  deliveryAddress: deliveryInfo.address,
+                  deliveryPhone: deliveryInfo.phone,
+                  deliveryLat: deliveryInfo.lat,
+                  deliveryLng: deliveryInfo.lng,
+                  deliveryNote: deliveryInfo.note,
+                }
+              : {}),
+          },
+        },
+      );
       setActiveOrder(order);
-
-      STEP_SEQUENCE.forEach((step, i) => {
-        if (i === 0) return;
-        const t = setTimeout(() => {
-          setActiveOrder((prev) => (prev && prev.id === id ? { ...prev, step } : prev));
-        }, STEP_DELAYS[i]);
-        timersRef.current.push(t);
-      });
+      startPolling(restaurantId, order.id);
+      return order;
     },
-    [],
+    [startPolling],
   );
 
   const cancelOrder = useCallback(() => {
-    clearTimers();
+    stopPolling();
     setActiveOrder(null);
-  }, []);
+  }, [stopPolling]);
 
-  useEffect(() => () => clearTimers(), []);
+  useEffect(() => () => stopPolling(), [stopPolling]);
 
   return (
     <OrderContext.Provider value={{ activeOrder, placeOrder, cancelOrder }}>
