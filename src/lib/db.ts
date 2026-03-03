@@ -1,14 +1,23 @@
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@/generated/prisma";
 
-const globalForPrisma = globalThis as unknown as { prisma: PrismaClient | undefined };
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined;
+};
 
 function createPrismaClient() {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) {
     throw new Error("DATABASE_URL is not set");
   }
-  const adapter = new PrismaPg({ connectionString });
+  // In serverless environments (Vercel) each function instance has its own
+  // connection pool. Limit to 1-2 connections to avoid exhausting Supabase limits.
+  const isServerless =
+    !!process.env.VERCEL || process.env.NODE_ENV === "production";
+  const adapter = new PrismaPg({
+    connectionString,
+    max: isServerless ? 2 : 10,
+  });
   return new PrismaClient({ adapter });
 }
 
