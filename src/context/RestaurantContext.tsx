@@ -8,7 +8,7 @@ import {
   useEffect,
   type ReactNode,
 } from "react";
-import { useUser } from "@clerk/nextjs";
+import { useAuth } from "@clerk/nextjs";
 import { apiFetch } from "@/lib/api-client";
 
 export interface StaffMember {
@@ -66,12 +66,21 @@ interface RestaurantContextType {
     city?: string;
   }) => Promise<Restaurant>;
   deleteRestaurant: (id: string) => Promise<void>;
-  updateRestaurant: (id: string, data: Record<string, unknown>) => Promise<void>;
+  updateRestaurant: (
+    id: string,
+    data: Record<string, unknown>,
+  ) => Promise<void>;
   selectRestaurant: (id: string) => void;
   clearSelection: () => void;
   addStaff: (
     restaurantId: string,
-    data: { name: string; email: string; phone?: string; role: string; pin: string },
+    data: {
+      name: string;
+      email: string;
+      phone?: string;
+      role: string;
+      pin: string;
+    },
   ) => Promise<any>;
   removeStaff: (restaurantId: string, staffId: string) => Promise<void>;
   toggleStaffActive: (restaurantId: string, staffId: string) => Promise<void>;
@@ -80,9 +89,10 @@ interface RestaurantContextType {
 const RestaurantContext = createContext<RestaurantContextType | null>(null);
 
 export function RestaurantProvider({ children }: { children: ReactNode }) {
-  const { isSignedIn } = useUser();
+  const { isSignedIn } = useAuth();
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
-  const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
+  const [selectedRestaurant, setSelectedRestaurant] =
+    useState<Restaurant | null>(null);
   const [loading, setLoading] = useState(false);
 
   const fetchRestaurants = useCallback(async () => {
@@ -158,7 +168,13 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
   const addStaff = useCallback(
     async (
       restaurantId: string,
-      data: { name: string; email: string; phone?: string; role: string; pin: string },
+      data: {
+        name: string;
+        email: string;
+        phone?: string;
+        role: string;
+        pin: string;
+      },
     ) => {
       const res = await apiFetch(`/api/restaurants/${restaurantId}/staff`, {
         method: "POST",
@@ -218,6 +234,7 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
 
 export function useRestaurant() {
   const ctx = useContext(RestaurantContext);
-  if (!ctx) throw new Error("useRestaurant must be used inside RestaurantProvider");
+  if (!ctx)
+    throw new Error("useRestaurant must be used inside RestaurantProvider");
   return ctx;
 }
