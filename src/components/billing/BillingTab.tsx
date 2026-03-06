@@ -17,14 +17,14 @@ import {
   X,
   Tag,
   TrendingUp,
-  ArrowRight,
   Printer,
-  Download,
   AlertCircle,
   CheckCircle2,
-  Hash,
   Utensils,
   User as UserIcon,
+  Banknote as BillIcon,
+  ScanLine,
+  ExternalLink,
 } from "lucide-react";
 
 /* ── Types ────────────────────────────────────────────────────────── */
@@ -141,6 +141,8 @@ const STATUS_COLORS: Record<string, string> = {
 
 /* ── BillingTab Component ────────────────────────────────────────── */
 
+type PayType = "all" | "cash" | "online";
+
 export default function BillingTab({
   restaurantId,
   staffRole,
@@ -149,6 +151,7 @@ export default function BillingTab({
   const [summary, setSummary] = useState<DailySummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("unpaid");
+  const [payType, setPayType] = useState<PayType>("all");
   const [search, setSearch] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<BillOrder | null>(null);
   const [showCollect, setShowCollect] = useState(false);
@@ -244,7 +247,17 @@ export default function BillingTab({
     setActionLoading(false);
   };
 
+  const isCashOrder = (o: BillOrder) =>
+    !o.payment || o.payment.method === "CASH";
+  const isOnlineOrder = (o: BillOrder) =>
+    o.payment && o.payment.method !== "CASH";
+  const isPaid = (o: BillOrder) => o.payment?.status === "COMPLETED";
+
   const filtered = orders.filter((o) => {
+    // Pay type filter
+    if (payType === "cash" && !isCashOrder(o)) return false;
+    if (payType === "online" && !isOnlineOrder(o)) return false;
+    // Text search
     if (!search) return true;
     const q = search.toLowerCase();
     return (
@@ -254,7 +267,8 @@ export default function BillingTab({
     );
   });
 
-  const isPaid = (o: BillOrder) => o.payment?.status === "COMPLETED";
+  const cashCount = orders.filter(isCashOrder).length;
+  const onlineCount = orders.filter((o) => !!isOnlineOrder(o)).length;
 
   if (loading) {
     return (
@@ -322,6 +336,66 @@ export default function BillingTab({
               Rs. {summary.onlineRevenue.toLocaleString()} online
             </span>
           )}
+        </div>
+      )}
+
+      {/* ── Cash vs Online Split Tabs ─────────────────── */}
+      <div className="flex rounded-2xl bg-gray-100/80 p-1 gap-1">
+        {([
+          { key: "all" as PayType, label: "All Orders", icon: Receipt, count: orders.length },
+          { key: "cash" as PayType, label: "Cash Bills", icon: BillIcon, count: cashCount },
+          { key: "online" as PayType, label: "Online Receipts", icon: ScanLine, count: onlineCount },
+        ]).map((t) => {
+          const Icon = t.icon;
+          const isActive = payType === t.key;
+          return (
+            <button
+              key={t.key}
+              onClick={() => setPayType(t.key)}
+              className={`flex-1 flex items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-xs font-bold transition-all ${
+                isActive
+                  ? t.key === "cash"
+                    ? "bg-white text-emerald-700 shadow-sm"
+                    : t.key === "online"
+                    ? "bg-white text-purple-700 shadow-sm"
+                    : "bg-white text-[#1F2A2A] shadow-sm"
+                  : "text-gray-400 hover:text-gray-600"
+              }`}
+            >
+              <Icon className={`h-3.5 w-3.5 ${
+                isActive
+                  ? t.key === "cash" ? "text-emerald-500" : t.key === "online" ? "text-purple-500" : "text-[#1F2A2A]"
+                  : "text-gray-400"
+              }`} />
+              <span className="hidden sm:inline">{t.label}</span>
+              <span className="sm:hidden">{t.key === "all" ? "All" : t.key === "cash" ? "Cash" : "Online"}</span>
+              {t.count > 0 && (
+                <span className={`inline-flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[9px] font-bold ${
+                  isActive
+                    ? t.key === "cash" ? "bg-emerald-100 text-emerald-700" : t.key === "online" ? "bg-purple-100 text-purple-700" : "bg-gray-100 text-gray-700"
+                    : "bg-gray-200 text-gray-500"
+                }`}>{t.count}</span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Context hint for selected tab */}
+      {payType === "cash" && (
+        <div className="flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-100 px-4 py-2.5">
+          <BillIcon className="h-4 w-4 text-emerald-600 shrink-0" />
+          <p className="text-xs text-emerald-700 font-medium">
+            <span className="font-bold">Cash Bills</span> — Customer pays at the counter. Collect cash and mark as paid.
+          </p>
+        </div>
+      )}
+      {payType === "online" && (
+        <div className="flex items-center gap-2 rounded-xl bg-purple-50 border border-purple-100 px-4 py-2.5">
+          <ScanLine className="h-4 w-4 text-purple-600 shrink-0" />
+          <p className="text-xs text-purple-700 font-medium">
+            <span className="font-bold">Online Receipts</span> — Payment collected via eSewa / Khalti / Bank. View or print the receipt.
+          </p>
         </div>
       )}
 
@@ -400,7 +474,7 @@ export default function BillingTab({
           >
             {/* Header row */}
             <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-sm font-extrabold text-[#1F2A2A]">
                   #{order.orderNo}
                 </span>
@@ -415,6 +489,25 @@ export default function BillingTab({
                 >
                   {order.status}
                 </span>
+                {/* Receipt type pill */}
+                {order.payment ? (
+                  order.payment.method === "CASH" ? (
+                    <span className="flex items-center gap-0.5 rounded-lg bg-emerald-50 border border-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
+                      <BillIcon className="h-2.5 w-2.5" />
+                      Cash Bill
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-0.5 rounded-lg bg-purple-50 border border-purple-100 px-2 py-0.5 text-[10px] font-bold text-purple-700">
+                      <ScanLine className="h-2.5 w-2.5" />
+                      {paymentMethodLabel(order.payment.method)} Receipt
+                    </span>
+                  )
+                ) : (
+                  <span className="flex items-center gap-0.5 rounded-lg bg-gray-50 border border-gray-100 px-2 py-0.5 text-[10px] font-bold text-gray-500">
+                    <BillIcon className="h-2.5 w-2.5" />
+                    Bill
+                  </span>
+                )}
               </div>
               <div className="flex items-center gap-1.5">
                 {isPaid(order) ? (
@@ -430,6 +523,14 @@ export default function BillingTab({
                 )}
               </div>
             </div>
+            {/* Online transaction ID */}
+            {order.payment && order.payment.method !== "CASH" && order.payment.transactionId && (
+              <div className="mb-3 flex items-center gap-2 rounded-xl bg-purple-50 border border-purple-100 px-3 py-2">
+                <ScanLine className="h-3.5 w-3.5 text-purple-500 shrink-0" />
+                <span className="text-[10px] font-bold text-purple-600 uppercase tracking-wider">Txn ID:</span>
+                <span className="text-[11px] font-mono text-purple-700 select-all truncate">{order.payment.transactionId}</span>
+              </div>
+            )}
 
             {/* Items summary */}
             <div className="space-y-1 mb-3">
@@ -507,16 +608,20 @@ export default function BillingTab({
                 )}
               </div>
 
-              <div className="flex items-center gap-1.5">
-                {/* View Bill */}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {/* View Bill / Receipt */}
                 <a
                   href={`/bill/${order.id}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1 rounded-lg bg-gray-100 px-2.5 py-1.5 text-[10px] font-bold text-gray-600 hover:bg-gray-200 transition-all"
+                  className={`flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[10px] font-bold transition-all ${
+                    order.payment && order.payment.method !== "CASH"
+                      ? "bg-purple-50 text-purple-700 hover:bg-purple-100"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
                 >
-                  <Eye className="h-3 w-3" />
-                  View
+                  <ExternalLink className="h-3 w-3" />
+                  {order.payment && order.payment.method !== "CASH" ? "Receipt" : "Bill"}
                 </a>
 
                 {/* Print */}
@@ -525,6 +630,7 @@ export default function BillingTab({
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-1 rounded-lg bg-gray-100 px-2.5 py-1.5 text-[10px] font-bold text-gray-600 hover:bg-gray-200 transition-all"
+                  title="Print"
                 >
                   <Printer className="h-3 w-3" />
                 </a>
@@ -543,10 +649,11 @@ export default function BillingTab({
                   </button>
                 )}
 
-                {/* Collect Payment — only for unpaid */}
+                {/* Collect Cash — only for cash unpaid orders */}
                 {!isPaid(order) &&
                   order.status !== "CANCELLED" &&
-                  order.status !== "REJECTED" && (
+                  order.status !== "REJECTED" &&
+                  (!order.payment || order.payment.method === "CASH") && (
                     <button
                       onClick={() => {
                         setSelectedOrder(order);
@@ -555,7 +662,7 @@ export default function BillingTab({
                       className="flex items-center gap-1 rounded-lg bg-emerald-500 px-3 py-1.5 text-[10px] font-bold text-white hover:bg-emerald-600 transition-all shadow-sm"
                     >
                       <CreditCard className="h-3 w-3" />
-                      Collect
+                      Collect Cash
                     </button>
                   )}
               </div>

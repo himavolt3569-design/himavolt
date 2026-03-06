@@ -17,6 +17,9 @@
 }
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
   * {
     border-color: theme(--color-gray-200);
     outline-color: var(--color-saffron-flame);

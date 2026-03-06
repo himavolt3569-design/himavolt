@@ -224,6 +224,10 @@ export default function BillPage() {
 
   const { order } = bill;
   const isPaid = order.payment?.status === "COMPLETED";
+  const isOnlinePayment = order.payment && order.payment.method !== "CASH";
+  const docLabel = isOnlinePayment ? "Payment Receipt" : "Invoice";
+  const downloadLabel = isOnlinePayment ? "Download Receipt PDF" : "Download Bill PDF";
+  const printLabel = isOnlinePayment ? "Print Receipt" : "Print Bill";
 
   /* ── Bill ──────────────────────────────────────────────── */
   return (
@@ -249,14 +253,14 @@ export default function BillPage() {
               ) : (
                 <Download className="h-3.5 w-3.5" />
               )}
-              {downloading ? "Generating…" : "Download PDF"}
+              {downloading ? "Generating…" : downloadLabel}
             </button>
             <button
               onClick={handlePrint}
               className="flex items-center gap-2 rounded-xl bg-[#E23744] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#c92e3c] transition-all shadow-sm shadow-[#E23744]/20"
             >
               <Printer className="h-3.5 w-3.5" />
-              Print
+              {printLabel}
             </button>
           </div>
         </div>
@@ -283,7 +287,7 @@ export default function BillPage() {
                   <div className="flex items-center gap-2 mb-1">
                     <Receipt className="h-5 w-5 text-[#FF6B81]" />
                     <span className="text-[11px] font-bold uppercase tracking-widest text-gray-400">
-                      Invoice
+                      {docLabel}
                     </span>
                   </div>
                   <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
@@ -532,14 +536,14 @@ export default function BillPage() {
             ) : (
               <Download className="h-4 w-4" />
             )}
-            {downloading ? "Generating PDF…" : "Download PDF"}
+            {downloading ? "Generating PDF…" : downloadLabel}
           </button>
           <button
             onClick={handlePrint}
             className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#E23744] to-[#FF6B81] px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-[#E23744]/20 hover:shadow-xl hover:-translate-y-0.5 transition-all"
           >
             <Printer className="h-4 w-4" />
-            Print Bill
+            {printLabel}
           </button>
         </motion.div>
       </div>

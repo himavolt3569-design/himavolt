@@ -5,38 +5,41 @@ const STATIC_CACHE = `himalhub-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `himalhub-dynamic-${CACHE_VERSION}`;
 const OFFLINE_URL = "/offline.html";
 
-const PRECACHE_URLS = [
-  OFFLINE_URL,
-  "/manifest.json",
-];
+const PRECACHE_URLS = [OFFLINE_URL, "/manifest.json"];
 
 // ─── Firebase Cloud Messaging ───────────────────────────────────────────────
-importScripts("https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js");
-importScripts("https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js");
+importScripts(
+  "https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js",
+);
+importScripts(
+  "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js",
+);
 
-firebase.initializeApp({
-  apiKey: self.__FIREBASE_CONFIG__?.apiKey || "",
-  authDomain: self.__FIREBASE_CONFIG__?.authDomain || "",
-  projectId: self.__FIREBASE_CONFIG__?.projectId || "",
-  storageBucket: self.__FIREBASE_CONFIG__?.storageBucket || "",
-  messagingSenderId: self.__FIREBASE_CONFIG__?.messagingSenderId || "",
-  appId: self.__FIREBASE_CONFIG__?.appId || "",
-});
-
-const messaging = firebase.messaging();
-
-messaging.onBackgroundMessage((payload) => {
-  const { title, body, icon } = payload.notification || {};
-
-  self.registration.showNotification(title || "HimalHub", {
-    body: body || "You have a new notification",
-    icon: icon || "/icons/icon-192x192.png",
-    badge: "/icons/icon-72x72.png",
-    data: payload.data,
-    vibrate: [200, 100, 200],
-    tag: payload.data?.type || "default",
+if (self.__FIREBASE_CONFIG__?.projectId) {
+  firebase.initializeApp({
+    apiKey: self.__FIREBASE_CONFIG__.apiKey || "",
+    authDomain: self.__FIREBASE_CONFIG__.authDomain || "",
+    projectId: self.__FIREBASE_CONFIG__.projectId,
+    storageBucket: self.__FIREBASE_CONFIG__.storageBucket || "",
+    messagingSenderId: self.__FIREBASE_CONFIG__.messagingSenderId || "",
+    appId: self.__FIREBASE_CONFIG__.appId || "",
   });
-});
+
+  const messaging = firebase.messaging();
+
+  messaging.onBackgroundMessage((payload) => {
+    const { title, body, icon } = payload.notification || {};
+
+    self.registration.showNotification(title || "HimalHub", {
+      body: body || "You have a new notification",
+      icon: icon || "/icons/icon-192x192.png",
+      badge: "/icons/icon-72x72.png",
+      data: payload.data,
+      vibrate: [200, 100, 200],
+      tag: payload.data?.type || "default",
+    });
+  });
+}
 
 // ─── PWA Caching ────────────────────────────────────────────────────────────
 
@@ -45,7 +48,7 @@ self.addEventListener("install", (event) => {
     caches
       .open(STATIC_CACHE)
       .then((cache) => cache.addAll(PRECACHE_URLS))
-      .then(() => self.skipWaiting())
+      .then(() => self.skipWaiting()),
   );
 });
 
@@ -57,10 +60,10 @@ self.addEventListener("activate", (event) => {
         Promise.all(
           keys
             .filter((k) => k !== STATIC_CACHE && k !== DYNAMIC_CACHE)
-            .map((k) => caches.delete(k))
-        )
+            .map((k) => caches.delete(k)),
+        ),
       )
-      .then(() => self.clients.claim())
+      .then(() => self.clients.claim()),
   );
 });
 
@@ -69,7 +72,9 @@ function isNavigationRequest(request) {
 }
 
 function isStaticAsset(url) {
-  return /\.(js|css|png|jpg|jpeg|svg|gif|webp|ico|woff2?|ttf|eot)(\?.*)?$/.test(url);
+  return /\.(js|css|png|jpg|jpeg|svg|gif|webp|ico|woff2?|ttf|eot)(\?.*)?$/.test(
+    url,
+  );
 }
 
 function isApiRequest(url) {
@@ -86,14 +91,16 @@ function handleNavigationRequest(event) {
     fetch(event.request)
       .then((response) => {
         const clone = response.clone();
-        caches.open(DYNAMIC_CACHE).then((cache) => cache.put(event.request, clone));
+        caches
+          .open(DYNAMIC_CACHE)
+          .then((cache) => cache.put(event.request, clone));
         return response;
       })
       .catch(() =>
         caches
           .match(event.request)
-          .then((cached) => cached || caches.match(OFFLINE_URL))
-      )
+          .then((cached) => cached || caches.match(OFFLINE_URL)),
+      ),
   );
 }
 
@@ -105,11 +112,13 @@ function handleStaticAsset(event) {
       return fetch(event.request).then((response) => {
         if (response.ok) {
           const clone = response.clone();
-          caches.open(STATIC_CACHE).then((cache) => cache.put(event.request, clone));
+          caches
+            .open(STATIC_CACHE)
+            .then((cache) => cache.put(event.request, clone));
         }
         return response;
       });
-    })
+    }),
   );
 }
 
@@ -120,12 +129,14 @@ function handleNextInternal(event) {
       const networkFetch = fetch(event.request).then((response) => {
         if (response.ok) {
           const clone = response.clone();
-          caches.open(STATIC_CACHE).then((cache) => cache.put(event.request, clone));
+          caches
+            .open(STATIC_CACHE)
+            .then((cache) => cache.put(event.request, clone));
         }
         return response;
       });
       return cached || networkFetch;
-    })
+    }),
   );
 }
 
@@ -134,13 +145,25 @@ function handleApiRequest(event) {
   event.respondWith(
     fetch(event.request)
       .then((response) => {
+        if (response.redirected && !response.url.startsWith(self.location.origin)) {
+          return response;
+        }
         if (response.ok) {
           const clone = response.clone();
-          caches.open(DYNAMIC_CACHE).then((cache) => cache.put(event.request, clone));
+          caches
+            .open(DYNAMIC_CACHE)
+            .then((cache) => cache.put(event.request, clone));
         }
         return response;
       })
-      .catch(() => caches.match(event.request))
+      .catch(() =>
+        caches.match(event.request).then(
+          (cached) => cached || new Response(JSON.stringify({ error: "Offline" }), {
+            status: 503,
+            headers: { "Content-Type": "application/json" },
+          }),
+        ),
+      ),
   );
 }
 
@@ -165,11 +188,17 @@ self.addEventListener("fetch", (event) => {
         .then((response) => {
           if (response.ok) {
             const clone = response.clone();
-            caches.open(DYNAMIC_CACHE).then((cache) => cache.put(event.request, clone));
+            caches
+              .open(DYNAMIC_CACHE)
+              .then((cache) => cache.put(event.request, clone));
           }
           return response;
         })
-        .catch(() => caches.match(event.request))
+        .catch(() =>
+          caches.match(event.request).then(
+            (cached) => cached || new Response("Offline", { status: 503 }),
+          ),
+        ),
     );
   }
 });
@@ -197,6 +226,6 @@ self.addEventListener("notificationclick", (event) => {
         }
       }
       return self.clients.openWindow(url);
-    })
+    }),
   );
 });

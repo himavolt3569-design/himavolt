@@ -15,6 +15,7 @@ import {
   Wallet,
   Banknote,
   DollarSign,
+  ExternalLink,
 } from "lucide-react";
 import { useLiveOrders, type LiveOrder, type LiveOrderStatus } from "@/context/LiveOrdersContext";
 import DineInRequestModal from "@/components/modals/DineInRequestModal";
@@ -487,8 +488,22 @@ function OrderActions({
   }
 
   return (
-    <span className="text-xs text-gray-400 italic">
-      {order.status === "DELIVERED" ? "Completed" : "Cancelled"}
+    <span className="flex items-center gap-2 text-xs">
+      <span className="text-gray-400 italic">
+        {order.status === "DELIVERED" ? "Completed" : "Cancelled"}
+      </span>
+      {order.status === "DELIVERED" && (
+        <a
+          href={`/bill/${order.id}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          className="inline-flex items-center gap-1 rounded-lg bg-gray-100 px-2 py-1 text-[10px] font-bold text-gray-600 hover:bg-gray-200 hover:text-[#E23744] transition-all"
+        >
+          <ExternalLink className="h-2.5 w-2.5" />
+          View Bill
+        </a>
+      )}
     </span>
   );
 }
