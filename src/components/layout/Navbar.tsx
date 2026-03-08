@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Mountain, Menu, X, ShoppingBag, Store, KeyRound } from "lucide-react";
+import { Mountain, Menu, X, ShoppingBag, Store, KeyRound, Search } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/context/CartContext";
 import Link from "next/link";
@@ -28,6 +28,7 @@ const clerkAppearance = {
 
 export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
   const { totalItems } = useCart();
 
   return (
@@ -44,6 +45,20 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
               Himal<span className="text-[#E23744]">Hub</span>
             </span>
           </Link>
+
+          {/* Desktop search bar */}
+          <div className="hidden md:flex flex-1 max-w-sm mx-6">
+            <div className="relative flex w-full items-center rounded-xl bg-gray-50 border border-gray-200 focus-within:border-[#E23744]/30 focus-within:bg-white transition-all">
+              <Search className="absolute left-3 h-4 w-4 text-gray-400 pointer-events-none" />
+              <input
+                type="text"
+                value={searchValue}
+                onChange={(e) => setSearchValue(e.target.value)}
+                placeholder="Search for food..."
+                className="w-full bg-transparent py-2.5 pl-9 pr-4 text-sm text-[#1F2A2A] placeholder-gray-400 focus:outline-none"
+              />
+            </div>
+          </div>
 
           {/* Desktop actions */}
           <div className="hidden shrink-0 items-center gap-2.5 md:flex">

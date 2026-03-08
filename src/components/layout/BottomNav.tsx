@@ -3,14 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { Home, Menu as MenuIcon, Receipt, User, QrCode } from "lucide-react";
+import { Home, Menu as MenuIcon, Receipt, User } from "lucide-react";
 import clsx from "clsx";
 
 const NAV_ITEMS = [
   { name: "Home", href: "/", icon: Home },
   { name: "Menu", href: "/", icon: MenuIcon },
-  // Placeholder spacer for the FAB
-  { name: "SCAN", href: "/scan", icon: QrCode, isFab: true },
   { name: "Orders", href: "/dashboard", icon: Receipt },
   { name: "Profile", href: "/manage-restaurants", icon: User },
 ];
@@ -25,28 +23,6 @@ export default function BottomNav() {
       <div className="flex justify-around items-center h-16 px-2">
         {NAV_ITEMS.map((item) => {
           const isActive = pathname === item.href;
-
-          if (item.isFab) {
-            return (
-              <div
-                key="fab"
-                className="relative -top-6 flex flex-col items-center"
-              >
-                <Link href={item.href}>
-                  <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="w-14 h-14 bg-saffron-flame rounded-full flex items-center justify-center text-white shadow-lg shadow-saffron-flame/30 border-4 border-white"
-                  >
-                    <QrCode className="w-6 h-6" />
-                  </motion.div>
-                </Link>
-                <span className="text-[10px] font-semibold text-charcoal-slate mt-1">
-                  Scan
-                </span>
-              </div>
-            );
-          }
 
           return (
             <Link

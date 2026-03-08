@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useMemo } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { Star, Clock, ChevronDown, SlidersHorizontal, Flame, Sparkles } from "lucide-react";
+import { Star, Clock, ChevronDown, SlidersHorizontal, Flame, Sparkles, Tag, Plus } from "lucide-react";
 import Link from "next/link";
+import { useCart } from "@/context/CartContext";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -165,22 +166,23 @@ const FILTERS = [
   { id: "offers", label: "Offers" },
 ];
 
-/* ── Vertical Food Card with GSAP ─────────────────────────────────── */
+/* ── Food Card ────────────────────────────────────────────────────── */
 
 function FoodCard({ item }: { item: FoodItem }) {
   const cardRef = useRef<HTMLDivElement>(null);
+  const { addItem } = useCart();
 
   useGSAP(
     () => {
       if (!cardRef.current) return;
       gsap.fromTo(
         cardRef.current,
-        { opacity: 0, y: 50, scale: 0.95 },
+        { opacity: 0, y: 40, scale: 0.97 },
         {
           opacity: 1,
           y: 0,
           scale: 1,
-          duration: 0.6,
+          duration: 0.55,
           ease: "power3.out",
           scrollTrigger: {
             trigger: cardRef.current,
@@ -193,9 +195,87 @@ function FoodCard({ item }: { item: FoodItem }) {
     { scope: cardRef }
   );
 
+  const vegDotColor = item.isVeg ? "bg-[#1E7B3E]" : "bg-[#E23744]";
+  const vegBorderColor = item.isVeg ? "border-[#1E7B3E]" : "border-[#E23744]";
+
   return (
-    <Link href={`/food/${item.id}`}>
-      <div ref={cardRef} className="group cursor-pointer">
+    <div ref={cardRef} className="group">
+
+      {/* ── Mobile: Swiggy-style horizontal card ── */}
+      <div className="flex items-start gap-4 py-4 sm:hidden">
+        {/* Left: tapping navigates to detail */}
+        <Link href={`/food/${item.id}`} className="flex-1 min-w-0">
+          {/* Veg / Non-veg indicator */}
+          <div className={`mb-1.5 flex h-[18px] w-[18px] items-center justify-center rounded-sm border-2 ${vegBorderColor} bg-white`}>
+            <div className={`h-2 w-2 rounded-full ${vegDotColor}`} />
+          </div>
+
+          <h3 className="text-[15px] font-bold text-[#1F2A2A] leading-snug line-clamp-2">
+            {item.name}
+          </h3>
+
+          {/* Rating + prep time */}
+          <div className="mt-1 flex items-center gap-2">
+            <span className={`inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[11px] font-bold text-white leading-none ${
+              item.rating >= 4.0 ? "bg-[#1E7B3E]" : item.rating >= 3.0 ? "bg-[#DB7C10]" : "bg-[#E23744]"
+            }`}>
+              {item.rating.toFixed(1)}
+              <Star className="h-2.5 w-2.5 fill-white ml-0.5" />
+            </span>
+            <span className="text-[11px] text-gray-400">•</span>
+            <div className="flex items-center gap-0.5">
+              <Clock className="h-3 w-3 text-gray-400" />
+              <span className="text-[11px] text-gray-500">{item.prepTime}</span>
+            </div>
+          </div>
+
+          <p className="mt-0.5 text-[12px] text-gray-400 truncate">{item.tags.join(", ")}</p>
+
+          {/* Price */}
+          <p className="mt-2 text-[17px] font-extrabold text-[#1F2A2A] tracking-tight">
+            Rs. {item.price}
+          </p>
+
+          {/* Offer badge */}
+          {item.offer && (
+            <div className="mt-1.5 inline-flex items-center gap-1 rounded-md bg-[#F0FAF4] border border-[#1E7B3E]/20 px-2 py-1">
+              <Tag className="h-3 w-3 text-[#1E7B3E] shrink-0" />
+              <span className="text-[11px] font-bold text-[#1E7B3E] leading-none">{item.offer}</span>
+            </div>
+          )}
+        </Link>
+
+        {/* Right: image (navigates) + ADD button (adds to cart) */}
+        <div className="relative shrink-0 w-27.5">
+          <Link href={`/food/${item.id}`}>
+            <img
+              src={item.image}
+              alt={item.name}
+              loading="lazy"
+              className="h-27.5 w-27.5 rounded-2xl object-cover shadow-sm"
+            />
+          </Link>
+          {/* ADD button — outside any <Link> so it never navigates */}
+          <div className="absolute -bottom-3 left-1/2 -translate-x-1/2">
+            <button
+              onClick={() =>
+                addItem(
+                  { id: String(item.id), name: item.name, price: item.price, image: item.image },
+                  "home",
+                  "home"
+                )
+              }
+              className="flex items-center gap-0.5 rounded-xl border-2 border-[#E23744] bg-white px-4 py-1 text-[13px] font-extrabold text-[#E23744] shadow-md whitespace-nowrap active:scale-95 transition-transform"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              ADD
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Desktop: vertical card ── */}
+      <Link href={`/food/${item.id}`} className="hidden sm:block">
         {/* Image */}
         <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-gray-100 shadow-sm">
           <img
@@ -209,7 +289,8 @@ function FoodCard({ item }: { item: FoodItem }) {
           {/* Offer badge */}
           {item.offer && (
             <div className="absolute bottom-2.5 left-2.5">
-              <span className="inline-block rounded-md bg-[#E23744] px-2 py-1 text-[11px] font-extrabold text-white leading-none shadow-lg">
+              <span className="inline-flex items-center gap-1 rounded-md bg-[#E23744] px-2 py-1 text-[11px] font-extrabold text-white leading-none shadow-lg">
+                <Tag className="h-2.5 w-2.5" />
                 {item.offer}
               </span>
             </div>
@@ -217,22 +298,18 @@ function FoodCard({ item }: { item: FoodItem }) {
 
           {/* Rating badge */}
           <div className="absolute bottom-2.5 right-2.5">
-            <span
-              className={`inline-flex items-center gap-0.5 rounded-md px-1.5 py-1 text-[11px] font-bold text-white leading-none shadow-lg ${
-                item.rating >= 4.0 ? "bg-[#1E7B3E]" : item.rating >= 3.0 ? "bg-[#DB7C10]" : "bg-[#E23744]"
-              }`}
-            >
+            <span className={`inline-flex items-center gap-0.5 rounded-md px-1.5 py-1 text-[11px] font-bold text-white leading-none shadow-lg ${
+              item.rating >= 4.0 ? "bg-[#1E7B3E]" : item.rating >= 3.0 ? "bg-[#DB7C10]" : "bg-[#E23744]"
+            }`}>
               {item.rating.toFixed(1)}
               <Star className="h-2.5 w-2.5 fill-white" />
             </span>
           </div>
 
           {/* Veg indicator */}
-          {item.isVeg && (
-            <div className="absolute top-2.5 left-2.5 flex h-5 w-5 items-center justify-center rounded-sm border-2 border-[#1E7B3E] bg-white">
-              <div className="h-2 w-2 rounded-full bg-[#1E7B3E]" />
-            </div>
-          )}
+          <div className={`absolute top-2.5 left-2.5 flex h-5 w-5 items-center justify-center rounded-sm border-2 ${vegBorderColor} bg-white`}>
+            <div className={`h-2 w-2 rounded-full ${vegDotColor}`} />
+          </div>
         </div>
 
         {/* Details */}
@@ -245,10 +322,11 @@ function FoodCard({ item }: { item: FoodItem }) {
             <span className="text-[12px] text-gray-500">{item.prepTime}</span>
           </div>
           <p className="text-[12px] text-gray-400 truncate mt-0.5">{item.tags.join(", ")}</p>
-          <p className="text-[14px] font-bold text-[#1F2A2A] mt-1">Rs. {item.price}</p>
+          <p className="text-[15px] font-bold text-[#1F2A2A] mt-1">Rs. {item.price}</p>
         </div>
-      </div>
-    </Link>
+      </Link>
+
+    </div>
   );
 }
 
@@ -370,9 +448,11 @@ export default function PopularFoods({
         )}
 
         {/* Food grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-7">
-          {displayed.map((item) => (
-            <FoodCard key={item.id} item={item} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-7 sm:gap-y-7 pb-4 sm:pb-0">
+          {displayed.map((item, idx) => (
+            <div key={item.id} className={idx !== 0 ? "sm:border-t-0 border-t border-gray-100" : ""}>
+              <FoodCard item={item} />
+            </div>
           ))}
         </div>
 
