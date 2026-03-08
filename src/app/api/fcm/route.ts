@@ -1,33 +1,38 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getOrCreateUser } from "@/lib/auth";
+import { safeHandler, unauthorized } from "@/lib/api-helpers";
+import { z } from "zod";
 
-export async function POST(req: NextRequest) {
-  const user = await getOrCreateUser();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+const fcmTokenSchema = z.object({
+  token: z.string().min(1, "Token is required"),
+  device: z.string().max(100).optional().nullable(),
+});
 
-  const { token, device } = await req.json();
-  if (!token) {
-    return NextResponse.json({ error: "Token is required" }, { status: 400 });
-  }
+export const POST = safeHandler(
+  async (_req, { body }) => {
+    const user = await getOrCreateUser();
+    if (!user) return unauthorized();
 
-  await db.fCMToken.upsert({
-    where: { token },
-    update: { userId: user.id, device: device || null, updatedAt: new Date() },
-    create: { token, userId: user.id, device: device || null },
-  });
+    await db.fCMToken.upsert({
+      where: { token: body.token },
+      update: { userId: user.id, device: body.device ?? null, updatedAt: new Date() },
+      create: { token: body.token, userId: user.id, device: body.device ?? null },
+    });
 
-  return NextResponse.json({ success: true });
-}
+    return NextResponse.json({ success: true });
+  },
+  { schema: fcmTokenSchema },
+);
 
-export async function DELETE(req: NextRequest) {
-  const { token } = await req.json();
-  if (!token) {
-    return NextResponse.json({ error: "Token is required" }, { status: 400 });
-  }
+const deleteTokenSchema = z.object({
+  token: z.string().min(1, "Token is required"),
+});
 
-  await db.fCMToken.deleteMany({ where: { token } });
-  return NextResponse.json({ success: true });
-}
+export const DELETE = safeHandler(
+  async (_req, { body }) => {
+    await db.fCMToken.deleteMany({ where: { token: body.token } });
+    return NextResponse.json({ success: true });
+  },
+  { schema: deleteTokenSchema },
+);

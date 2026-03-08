@@ -55,7 +55,10 @@ export async function POST(req: Request) {
   if (eventType === "user.deleted") {
     const { id } = evt.data;
     if (id) {
-      await db.user.delete({ where: { id } }).catch(() => {});
+      await db.user.delete({ where: { id } }).catch((err: unknown) => {
+        // User may not exist in our DB yet (e.g. never completed sign-up)
+        console.warn("[Webhook] user.deleted — user not found in DB:", err);
+      });
     }
   }
 

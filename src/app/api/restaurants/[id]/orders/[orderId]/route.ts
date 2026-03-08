@@ -2,6 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getOrCreateUser } from "@/lib/auth";
 import { notifyCustomerOrderUpdate } from "@/lib/notifications";
+import { z } from "zod";
+
+const ORDER_STATUSES = ["ACCEPTED", "PREPARING", "READY", "DELIVERED", "CANCELLED", "REJECTED"] as const;
+
+const updateOrderSchema = z.object({
+  status: z.enum(ORDER_STATUSES),
+  estimatedTime: z.number().int().positive().optional(),
+});
 
 export async function GET(
   _req: NextRequest,
@@ -65,20 +73,14 @@ export async function PATCH(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const body = await req.json();
-  const { status, estimatedTime } = body;
-  const validStatuses = [
-    "ACCEPTED",
-    "PREPARING",
-    "READY",
-    "DELIVERED",
-    "CANCELLED",
-    "REJECTED",
-  ];
-
-  if (!status || !validStatuses.includes(status)) {
-    return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+  const parsed = updateOrderSchema.safeParse(await req.json());
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Validation failed", issues: parsed.error.flatten().fieldErrors },
+      { status: 400 },
+    );
   }
+  const { status, estimatedTime } = parsed.data;
 
   const timestamps: Record<string, Date> = {};
   if (status === "ACCEPTED") timestamps.acceptedAt = new Date();
@@ -149,7 +151,9 @@ export async function PATCH(
       order.orderNo,
       status,
       order.restaurant.name,
-    ).catch(() => {});
+    ).catch((err: unknown) => {
+      console.error("[Orders] Failed to send customer notification:", err);
+    });
   }
 
   return NextResponse.json(order);

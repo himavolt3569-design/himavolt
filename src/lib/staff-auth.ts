@@ -34,7 +34,15 @@ export async function getStaffSession(
 
   try {
     const { payload } = await jwtVerify(token, secret);
-    return payload as unknown as StaffPayload;
+    const { staffId, restaurantId, role } = payload as Record<string, unknown>;
+    if (
+      typeof staffId !== "string" ||
+      typeof restaurantId !== "string" ||
+      typeof role !== "string"
+    ) {
+      return null;
+    }
+    return { staffId, restaurantId, role };
   } catch {
     return null;
   }

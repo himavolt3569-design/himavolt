@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Mountain, Menu, X, ShoppingBag, Store } from "lucide-react";
+import { Mountain, Menu, X, ShoppingBag, Store, KeyRound } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/context/CartContext";
 import Link from "next/link";
@@ -32,8 +32,8 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
 
   return (
     <nav className="sticky top-0 z-50 w-full bg-white/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.05)] border-b border-gray-100/80 transition-all duration-300">
-      <div className="mx-auto max-w-[1440px] px-4 md:px-8 lg:px-12">
-        <div className="flex h-[64px] md:h-[72px] items-center justify-between">
+      <div className="mx-auto max-w-360 px-4 md:px-8 lg:px-12">
+        <div className="flex h-16 md:h-18 items-center justify-between">
           {/* Logo */}
           <Link
             href="/"
@@ -56,6 +56,17 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
                 <span className="hidden lg:inline">My Restaurants</span>
               </Link>
             </SignedIn>
+
+            {/* Staff Portal — always visible */}
+            <Link
+              href="/staff-login"
+              className="flex items-center gap-1.5 rounded-xl px-3 py-2.5 text-xs font-semibold text-gray-500 hover:text-[#0A4D3C] hover:bg-gray-50 transition-all"
+            >
+              <KeyRound className="h-3.5 w-3.5" />
+              <span className="hidden lg:inline">Staff Portal</span>
+            </Link>
+
+            {/* Cart */}
             <button
               onClick={onCartClick}
               className="relative group flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-sm font-bold transition-all hover:bg-gray-50 text-[#1F2A2A]"
@@ -72,23 +83,19 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
               )}
               <span className="hidden lg:inline">Cart</span>
             </button>
+
+            {/* Signed in — user avatar (click to sign out) */}
             <SignedIn>
               <UserButton
                 afterSignOutUrl="/"
                 appearance={{
-                  elements: {
-                    avatarBox: "h-9 w-9",
-                  },
+                  elements: { avatarBox: "h-9 w-9" },
                 }}
               />
             </SignedIn>
+
+            {/* Signed out — Login + Sign Up */}
             <SignedOut>
-              <Link
-                href="/staff-login"
-                className="rounded-xl px-3 py-2.5 text-xs font-semibold text-gray-400 hover:text-[#0A4D3C] transition-colors"
-              >
-                Staff Portal
-              </Link>
               <SignInButton mode="modal" appearance={clerkAppearance}>
                 <button className="rounded-xl px-4 py-2.5 text-sm font-bold transition-all hover:bg-gray-50 text-[#1F2A2A]">
                   Login
@@ -143,7 +150,7 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
             className="border-t border-gray-100 bg-white md:hidden overflow-hidden"
           >
-            <div className="mx-auto max-w-[1440px] space-y-3 p-5">
+            <div className="mx-auto max-w-360 space-y-3 p-5">
               <SignedIn>
                 <Link
                   href="/manage-restaurants"
@@ -154,6 +161,17 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
                   My Restaurants
                 </Link>
               </SignedIn>
+
+              {/* Staff Portal — always visible in mobile menu too */}
+              <Link
+                href="/staff-login"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center justify-center gap-2 rounded-xl border border-gray-200 py-3.5 text-center text-sm font-semibold text-gray-600 hover:text-[#0A4D3C] hover:border-[#0A4D3C]/30 transition-all"
+              >
+                <KeyRound className="h-4 w-4" />
+                Staff Portal
+              </Link>
+
               <SignedOut>
                 <div className="grid grid-cols-2 gap-3">
                   <SignInButton mode="modal" appearance={clerkAppearance}>
@@ -173,14 +191,19 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
                     </button>
                   </SignUpButton>
                 </div>
-                <Link
-                  href="/staff-login"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="block text-center text-xs font-semibold text-gray-400 hover:text-[#0A4D3C] py-2 transition-colors"
-                >
-                  Staff Portal
-                </Link>
               </SignedOut>
+
+              <SignedIn>
+                <div className="flex items-center justify-center gap-3 pt-1">
+                  <UserButton
+                    afterSignOutUrl="/"
+                    appearance={{
+                      elements: { avatarBox: "h-9 w-9" },
+                    }}
+                  />
+                  <span className="text-xs text-gray-400">Tap avatar to sign out</span>
+                </div>
+              </SignedIn>
             </div>
           </motion.div>
         )}

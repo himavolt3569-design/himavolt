@@ -8,7 +8,7 @@ import {
   useEffect,
   type ReactNode,
 } from "react";
-import { useAuth } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 import { apiFetch } from "@/lib/api-client";
 
 export interface StaffMember {
@@ -81,7 +81,7 @@ interface RestaurantContextType {
       role: string;
       pin: string;
     },
-  ) => Promise<any>;
+  ) => Promise<StaffMember & { _generatedPin?: string; _restaurantCode?: string }>;
   removeStaff: (restaurantId: string, staffId: string) => Promise<void>;
   toggleStaffActive: (restaurantId: string, staffId: string) => Promise<void>;
 }
@@ -89,7 +89,7 @@ interface RestaurantContextType {
 const RestaurantContext = createContext<RestaurantContextType | null>(null);
 
 export function RestaurantProvider({ children }: { children: ReactNode }) {
-  const { isSignedIn, isLoaded } = useAuth();
+  const { isSignedIn, isLoaded } = useUser();
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [selectedRestaurant, setSelectedRestaurant] =
     useState<Restaurant | null>(null);
@@ -177,10 +177,10 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
         pin: string;
       },
     ) => {
-      const res = await apiFetch(`/api/restaurants/${restaurantId}/staff`, {
-        method: "POST",
-        body: data,
-      });
+      const res = await apiFetch<StaffMember & { _generatedPin?: string; _restaurantCode?: string }>(
+        `/api/restaurants/${restaurantId}/staff`,
+        { method: "POST", body: data },
+      );
       await fetchRestaurants();
       return res;
     },

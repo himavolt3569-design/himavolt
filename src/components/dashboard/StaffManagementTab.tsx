@@ -12,17 +12,14 @@ import {
   Shield,
   ChefHat,
   X,
-  Eye,
-  EyeOff,
   Check,
   Building2,
   Calendar,
   Clock,
   ArrowRight,
-  ClipboardList,
   Users,
 } from "lucide-react";
-import { useRestaurant } from "@/context/RestaurantContext";
+import { useRestaurant, type Restaurant, type StaffMember } from "@/context/RestaurantContext";
 import { apiFetch } from "@/lib/api-client";
 
 type StaffRole = "SUPER_ADMIN" | "MANAGER" | "CHEF" | "WAITER" | "CASHIER";
@@ -52,6 +49,17 @@ const ROLE_LABELS: Record<StaffRole, string> = {
 };
 
 const ALL_ROLES: StaffRole[] = ["SUPER_ADMIN", "MANAGER", "CHEF", "WAITER", "CASHIER"];
+
+interface AttendanceLog {
+  id: string;
+  date: string;
+  checkIn: string;
+  checkOut: string | null;
+  staff: {
+    role: string;
+    user: { name: string };
+  };
+}
 
 export default function StaffManagementTab() {
   const { selectedRestaurant, restaurants, addStaff, removeStaff, toggleStaffActive } = useRestaurant();
@@ -137,15 +145,19 @@ export default function StaffManagementTab() {
 }
 
 function AttendanceLogsView({ restaurantId }: { restaurantId: string }) {
-  const [logs, setLogs] = useState<any[]>([]);
+  const [logs, setLogs] = useState<AttendanceLog[]>([]);
   const [loading, setLoading] = useState(true);
 
   const loadLogs = useCallback(async () => {
     try {
-      const data = await apiFetch(`/api/restaurants/${restaurantId}/attendance`);
-      setLogs((data as any[]) || []);
-    } catch { /* ignore */ }
-    setLoading(false);
+      const data = await apiFetch<AttendanceLog[]>(`/api/restaurants/${restaurantId}/attendance`);
+      setLogs(data ?? []);
+    } catch (err) {
+      console.error("[AttendanceLogs] Failed to load:", err);
+      setLogs([]);
+    } finally {
+      setLoading(false);
+    }
   }, [restaurantId]);
 
   useEffect(() => { loadLogs(); }, [loadLogs]);
@@ -211,14 +223,14 @@ function StaffDirectoryView({
   removeStaff,
   toggleStaffActive,
 }: {
-  restaurant: any;
+  restaurant: Restaurant;
   removeStaff: (rid: string, sid: string) => void;
   toggleStaffActive: (rid: string, sid: string) => void;
 }) {
   const [search, setSearch] = useState("");
   const [filterRole, setFilterRole] = useState<StaffRole | "all">("all");
 
-  const staff = restaurant.staff.filter((s: any) => {
+  const staff = restaurant.staff.filter((s: StaffMember) => {
     const matchesSearch =
       s.user.name.toLowerCase().includes(search.toLowerCase()) ||
       s.user.email.toLowerCase().includes(search.toLowerCase());
@@ -259,9 +271,9 @@ function StaffDirectoryView({
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
           { label: "Total Staff", value: restaurant.staff.length, color: "text-[#1F2A2A]" },
-          { label: "Active", value: restaurant.staff.filter((s: any) => s.isActive).length, color: "text-emerald-600" },
-          { label: "Inactive", value: restaurant.staff.filter((s: any) => !s.isActive).length, color: "text-amber-600" },
-          { label: "Roles Used", value: new Set(restaurant.staff.map((s: any) => s.role)).size, color: "text-blue-600" },
+          { label: "Active", value: restaurant.staff.filter((s: StaffMember) => s.isActive).length, color: "text-emerald-600" },
+          { label: "Inactive", value: restaurant.staff.filter((s: StaffMember) => !s.isActive).length, color: "text-amber-600" },
+          { label: "Roles Used", value: new Set(restaurant.staff.map((s: StaffMember) => s.role)).size, color: "text-blue-600" },
         ].map((stat) => (
           <div key={stat.label} className="rounded-2xl bg-white border border-gray-100 p-4 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
             <p className="text-xs font-semibold text-gray-500">{stat.label}</p>
@@ -283,7 +295,7 @@ function StaffDirectoryView({
               <p className="text-sm text-gray-400 mt-1">Add your first team member to get started</p>
             </motion.div>
           ) : (
-            staff.map((member: any, i: number) => {
+            staff.map((member: StaffMember, i: number) => {
               const roleKey = member.role as StaffRole;
               const RoleIcon = ROLE_ICONS[roleKey] ?? Shield;
               const colors = ROLE_COLORS[roleKey] ?? ROLE_COLORS.WAITER;
@@ -375,20 +387,25 @@ function AddStaffModal({
     if (!name.trim() || !email.trim() || saving) return;
     setSaving(true);
     try {
-      // @ts-ignore - Assuming api methods return the full payload including _generatedPin
-      const result = await addStaff(restaurantId, { name: name.trim(), email: email.trim(), phone: phone.trim(), role, pin: "auto" });
-      if (result && (result as any)._generatedPin) {
+      const result = await addStaff(restaurantId, {
+        name: name.trim(),
+        email: email.trim(),
+        phone: phone.trim(),
+        role,
+        pin: "auto",
+      });
+      if (result?._generatedPin) {
         setSuccessData({
-          pin: (result as any)._generatedPin,
-          code: (result as any)._restaurantCode || 'Pending Sync',
-          name: name.trim()
+          pin: result._generatedPin,
+          code: result._restaurantCode ?? "Pending Sync",
+          name: name.trim(),
         });
       } else {
         reset();
         onClose();
       }
     } catch (err) {
-      console.error(err);
+      console.error("[AddStaff] Failed:", err);
     } finally {
       setSaving(false);
     }
@@ -434,7 +451,7 @@ function AddStaffModal({
                     Please share these login details with <span className="font-bold">{successData.name}</span>.
                   </p>
                   <p className="text-xs text-emerald-600 mb-4">They will need both the code and the PIN to log in.</p>
-                  
+
                   <div className="bg-white rounded-xl p-4 shadow-sm space-y-3">
                     <div className="flex justify-between items-center border-b pb-3">
                       <span className="text-xs font-bold tracking-wider text-gray-500 uppercase">Restaurant Code</span>
@@ -461,82 +478,82 @@ function AddStaffModal({
             ) : (
               <>
                 <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-bold text-[#1F2A2A] mb-1.5">Full Name <span className="text-[#FF9933]">*</span></label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Ram Shrestha"
-                  className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#1F2A2A] placeholder-gray-400 outline-none transition-all focus:border-[#0A4D3C] focus:ring-2 focus:ring-[#0A4D3C]/15"
-                />
-              </div>
+                  <div>
+                    <label className="block text-sm font-bold text-[#1F2A2A] mb-1.5">Full Name <span className="text-[#FF9933]">*</span></label>
+                    <input
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="e.g. Ram Shrestha"
+                      className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#1F2A2A] placeholder-gray-400 outline-none transition-all focus:border-[#0A4D3C] focus:ring-2 focus:ring-[#0A4D3C]/15"
+                    />
+                  </div>
 
-              <div>
-                <label className="block text-sm font-bold text-[#1F2A2A] mb-1.5">Email <span className="text-[#FF9933]">*</span></label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="staff@restaurant.com"
-                  className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#1F2A2A] placeholder-gray-400 outline-none transition-all focus:border-[#0A4D3C] focus:ring-2 focus:ring-[#0A4D3C]/15"
-                />
-              </div>
+                  <div>
+                    <label className="block text-sm font-bold text-[#1F2A2A] mb-1.5">Email <span className="text-[#FF9933]">*</span></label>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="staff@restaurant.com"
+                      className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#1F2A2A] placeholder-gray-400 outline-none transition-all focus:border-[#0A4D3C] focus:ring-2 focus:ring-[#0A4D3C]/15"
+                    />
+                  </div>
 
-              <div>
-                <label className="block text-sm font-bold text-[#1F2A2A] mb-1.5">Phone</label>
-                <input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
-                  placeholder="98XXXXXXXX"
-                  className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#1F2A2A] placeholder-gray-400 outline-none transition-all focus:border-[#0A4D3C] focus:ring-2 focus:ring-[#0A4D3C]/15"
-                />
-              </div>
+                  <div>
+                    <label className="block text-sm font-bold text-[#1F2A2A] mb-1.5">Phone</label>
+                    <input
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
+                      placeholder="98XXXXXXXX"
+                      className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#1F2A2A] placeholder-gray-400 outline-none transition-all focus:border-[#0A4D3C] focus:ring-2 focus:ring-[#0A4D3C]/15"
+                    />
+                  </div>
 
-              <div>
-                <label className="block text-sm font-bold text-[#1F2A2A] mb-2">Role <span className="text-[#FF9933]">*</span></label>
-                <div className="flex flex-wrap gap-2">
-                  {ALL_ROLES.map((r) => {
-                    const colors = ROLE_COLORS[r];
-                    return (
-                      <button
-                        key={r}
-                        onClick={() => setRole(r)}
-                        className={`rounded-lg border px-3 py-2 text-xs font-bold transition-all ${
-                          role === r
-                            ? `${colors.bg} ${colors.text} ${colors.border}`
-                            : "border-gray-200 bg-white text-gray-500 hover:bg-gray-50"
-                        }`}
-                      >
-                        {ROLE_LABELS[r]}
-                      </button>
-                    );
-                  })}
+                  <div>
+                    <label className="block text-sm font-bold text-[#1F2A2A] mb-2">Role <span className="text-[#FF9933]">*</span></label>
+                    <div className="flex flex-wrap gap-2">
+                      {ALL_ROLES.map((r) => {
+                        const colors = ROLE_COLORS[r];
+                        return (
+                          <button
+                            key={r}
+                            onClick={() => setRole(r)}
+                            className={`rounded-lg border px-3 py-2 text-xs font-bold transition-all ${
+                              role === r
+                                ? `${colors.bg} ${colors.text} ${colors.border}`
+                                : "border-gray-200 bg-white text-gray-500 hover:bg-gray-50"
+                            }`}
+                          >
+                            {ROLE_LABELS[r]}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
 
-            <div className="mt-6 flex items-center justify-end gap-3">
-              <button
-                onClick={() => { reset(); onClose(); }}
-                className="rounded-xl px-5 py-2.5 text-sm font-bold text-gray-500 hover:text-[#1F2A2A] hover:bg-gray-50 transition-all"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={!isValid || saving}
-                className={`flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-bold text-white shadow-lg transition-all active:scale-[0.97] ${
-                  isValid && !saving
-                    ? "bg-[#0A4D3C] shadow-[#0A4D3C]/20 hover:bg-[#083a2d]"
-                    : "bg-gray-300 shadow-none cursor-not-allowed"
-                }`}
-              >
-                <Plus className="h-4 w-4" />
-                {saving ? "Adding…" : "Add Staff"}
-              </button>
-            </div>
+                <div className="mt-6 flex items-center justify-end gap-3">
+                  <button
+                    onClick={() => { reset(); onClose(); }}
+                    className="rounded-xl px-5 py-2.5 text-sm font-bold text-gray-500 hover:text-[#1F2A2A] hover:bg-gray-50 transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSave}
+                    disabled={!isValid || saving}
+                    className={`flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-bold text-white shadow-lg transition-all active:scale-[0.97] ${
+                      isValid && !saving
+                        ? "bg-[#0A4D3C] shadow-[#0A4D3C]/20 hover:bg-[#083a2d]"
+                        : "bg-gray-300 shadow-none cursor-not-allowed"
+                    }`}
+                  >
+                    <Plus className="h-4 w-4" />
+                    {saving ? "Adding…" : "Add Staff"}
+                  </button>
+                </div>
               </>
             )}
           </motion.div>

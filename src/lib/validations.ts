@@ -107,6 +107,11 @@ export const createOrderSchema = z.object({
     .optional()
     .default("DINE_IN"),
   paymentMethod: z.string().optional(),
+  deliveryAddress: z.string().max(300).optional().nullable(),
+  deliveryLat: z.number().optional().nullable(),
+  deliveryLng: z.number().optional().nullable(),
+  deliveryPhone: z.string().max(20).optional().nullable(),
+  deliveryNote: z.string().max(300).optional().nullable(),
 });
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
 
