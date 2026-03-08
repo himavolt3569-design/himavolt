@@ -3,7 +3,9 @@
     "allow": [
       "Bash(head -100 /d/Official_Projects/himalhub/src/app/api/restaurants/[id]/attendance/route.ts)",
       "Bash(head -80 /d/Official_Projects/himalhub/src/app/api/restaurants/[id]/financials/route.ts)",
-      "Bash(head -80 /d/Official_Projects/himalhub/src/app/bill/[orderId]/page.tsx)"
+      "Bash(head -80 /d/Official_Projects/himalhub/src/app/bill/[orderId]/page.tsx)",
+      "Bash(npx tsc --noEmit)",
+      "Bash(npx next build)"
     ]
   }
 }

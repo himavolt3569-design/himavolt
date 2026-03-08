@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getOrCreateUser } from "@/lib/auth";
 import { notifyCustomerOrderUpdate } from "@/lib/notifications";
+import { logAudit, getClientIp, type AuditAction } from "@/lib/audit";
 import { z } from "zod";
 
 const ORDER_STATUSES = ["ACCEPTED", "PREPARING", "READY", "DELIVERED", "CANCELLED", "REJECTED"] as const;
@@ -144,6 +145,17 @@ export async function PATCH(
       data: { status: "COMPLETED", paidAt: new Date() },
     });
   }
+
+  logAudit({
+    action: `ORDER_${status}` as AuditAction,
+    entity: "Order",
+    entityId: orderId,
+    detail: `Order ${order.orderNo} status changed to ${status}`,
+    metadata: { orderNo: order.orderNo, status, estimatedTime },
+    userId: user.id,
+    restaurantId: id,
+    ipAddress: getClientIp(req.headers),
+  });
 
   if (order.userId) {
     notifyCustomerOrderUpdate(

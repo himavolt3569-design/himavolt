@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { SignJWT } from "jose";
 import { safeHandler } from "@/lib/api-helpers";
 import { staffLoginSchema } from "@/lib/validations";
+import { logAudit, getClientIp } from "@/lib/audit";
 
 function getJwtSecret() {
   const raw = process.env.JWT_SECRET;
@@ -67,6 +68,17 @@ export const POST = safeHandler(
       maxAge: 60 * 60 * 24, // 24 hours
       path: "/",
       sameSite: "lax",
+    });
+
+    logAudit({
+      action: "STAFF_LOGIN",
+      entity: "StaffMember",
+      entityId: staffMember.id,
+      detail: `${staffMember.user.name} (${staffMember.role}) logged in`,
+      metadata: { role: staffMember.role, restaurantName: restaurant.name },
+      userId: staffMember.userId,
+      restaurantId: restaurant.id,
+      ipAddress: getClientIp(_req.headers),
     });
 
     return response;

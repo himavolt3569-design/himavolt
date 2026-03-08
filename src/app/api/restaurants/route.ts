@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { getOrCreateUser } from "@/lib/auth";
 import { safeHandler, unauthorized } from "@/lib/api-helpers";
 import { createRestaurantSchema } from "@/lib/validations";
+import { logAudit } from "@/lib/audit";
 
 export const GET = safeHandler(async () => {
   const user = await getOrCreateUser();
@@ -55,6 +56,16 @@ export const POST = safeHandler(
         staff: { include: { user: true } },
         _count: { select: { orders: true, menuItems: true } },
       },
+    });
+
+    logAudit({
+      action: "RESTAURANT_CREATED",
+      entity: "Restaurant",
+      entityId: restaurant.id,
+      detail: `Restaurant "${body.name}" created`,
+      metadata: { name: body.name, type: body.type, city: body.city },
+      userId: user.id,
+      restaurantId: restaurant.id,
     });
 
     return NextResponse.json(restaurant, { status: 201 });

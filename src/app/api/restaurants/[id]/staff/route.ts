@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { getOrCreateUser } from "@/lib/auth";
 import { safeHandler, unauthorized, forbidden } from "@/lib/api-helpers";
 import { createStaffSchema } from "@/lib/validations";
+import { logAudit } from "@/lib/audit";
 
 export const GET = safeHandler(async (_req, { params }) => {
   const { id } = await params;
@@ -84,6 +85,16 @@ export const POST = safeHandler(
           select: { name: true, email: true, phone: true, imageUrl: true },
         },
       },
+    });
+
+    logAudit({
+      action: "STAFF_ADDED",
+      entity: "StaffMember",
+      entityId: member.id,
+      detail: `Staff "${name}" added as ${role}`,
+      metadata: { name, email, role },
+      userId: user.id,
+      restaurantId: id,
     });
 
     // Return PIN + code only once on creation — owner should note them down.

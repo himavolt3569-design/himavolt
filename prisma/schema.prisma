@@ -24,6 +24,7 @@ model User {
   orders           Order[]
   reviews          Review[]
   fcmTokens        FCMToken[]
+  auditLogs        AuditLog[]
 
   @@map("users")
 }
@@ -69,6 +70,7 @@ model Restaurant {
   inventory     InventoryItem[]
   stories       Story[]
   deliveryZones DeliveryZone[]
+  auditLogs     AuditLog[]
 
   @@index([ownerId])
   @@index([slug])
@@ -469,6 +471,32 @@ model Story {
 enum StoryType {
   IMAGE
   VIDEO
+}
+
+// ─── Audit Logs ───────────────────────────────────────────────────
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  action    String // e.g. ORDER_CREATED, MENU_ITEM_UPDATED, STAFF_ADDED
+  entity    String // e.g. Order, MenuItem, StaffMember
+  entityId  String? // ID of the affected record
+  detail    String? // Human-readable summary of what happened
+  metadata  String? // JSON string with extra context (old/new values, etc.)
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  // Who performed the action
+  userId       String?
+  user         User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  restaurantId String?
+  restaurant   Restaurant? @relation(fields: [restaurantId], references: [id], onDelete: SetNull)
+
+  @@index([action])
+  @@index([entity])
+  @@index([userId])
+  @@index([restaurantId])
+  @@index([createdAt])
+  @@map("audit_logs")
 }
 
 // ─── Contact Submissions ───────────────────────────────────────────

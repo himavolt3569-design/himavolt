@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getOrCreateUser } from "@/lib/auth";
+import { logAudit, getClientIp } from "@/lib/audit";
 
 export async function GET(
   req: NextRequest,
@@ -80,6 +81,17 @@ export async function POST(
         : undefined,
     },
     include: { sizes: true, addOns: true, category: true },
+  });
+
+  logAudit({
+    action: "MENU_ITEM_CREATED",
+    entity: "MenuItem",
+    entityId: item.id,
+    detail: `Menu item "${name}" added (Rs.${price})`,
+    metadata: { name, price, categoryId },
+    userId: user.id,
+    restaurantId: id,
+    ipAddress: getClientIp(req.headers),
   });
 
   return NextResponse.json(item, { status: 201 });

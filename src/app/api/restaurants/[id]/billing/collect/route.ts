@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { collectPayment } from "@/lib/billing";
 import { db } from "@/lib/db";
 import { requireStaffForRestaurant } from "@/lib/staff-auth";
+import { logAudit, getClientIp } from "@/lib/audit";
 
 async function verifyStaffAccess(req: NextRequest, restaurantId: string) {
   const staff = await requireStaffForRestaurant(req, restaurantId);
@@ -54,6 +55,18 @@ export async function POST(
 
   try {
     const payment = await collectPayment(orderId, method, transactionId);
+
+    logAudit({
+      action: "PAYMENT_COLLECTED",
+      entity: "Payment",
+      entityId: orderId,
+      detail: `Payment collected via ${method} for order ${order.orderNo} (Rs.${order.total})`,
+      metadata: { method, orderNo: order.orderNo, amount: order.total, transactionId },
+      userId: staff.staffId,
+      restaurantId: id,
+      ipAddress: getClientIp(req.headers),
+    });
+
     return NextResponse.json({ success: true, payment });
   } catch (err) {
     return NextResponse.json(

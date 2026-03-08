@@ -5,6 +5,7 @@ import { notifyKitchenNewOrder } from "@/lib/notifications";
 import { generateBill } from "@/lib/billing";
 import { safeHandler, unauthorized, notFound } from "@/lib/api-helpers";
 import { createOrderSchema } from "@/lib/validations";
+import { logAudit, getClientIp } from "@/lib/audit";
 
 export async function GET(
   req: NextRequest,
@@ -125,7 +126,7 @@ export const POST = safeHandler(
     const order = await db.order.create({
       data: {
         orderNo,
-        tableNo: orderType === "DINE_IN" ? tableNo ?? null : null,
+        tableNo: orderType === "DINE_IN" && tableNo ? parseInt(tableNo, 10) : null,
         subtotal,
         tax,
         total,
@@ -170,7 +171,7 @@ export const POST = safeHandler(
       await db.payment.create({
         data: {
           orderId: order.id,
-          method: paymentMethod,
+          method: paymentMethod as "CASH" | "ESEWA" | "KHALTI" | "BANK",
           status: "PENDING",
           amount: total,
         },
@@ -184,7 +185,7 @@ export const POST = safeHandler(
       data: { totalOrders: { increment: 1 } },
     });
 
-    notifyKitchenNewOrder(id, orderNo, total, tableNo ?? null).catch((err: unknown) => {
+    notifyKitchenNewOrder(id, orderNo, total, tableNo ? parseInt(tableNo, 10) : null).catch((err: unknown) => {
       console.error("[Orders] Failed to send kitchen notification:", err);
     });
 
@@ -196,6 +197,17 @@ export const POST = safeHandler(
         bill: true,
         delivery: true,
       },
+    });
+
+    logAudit({
+      action: "ORDER_CREATED",
+      entity: "Order",
+      entityId: order.id,
+      detail: `Order ${orderNo} placed (${orderType}, ${items.length} items, Rs.${total})`,
+      metadata: { orderNo, type: orderType, total, itemCount: items.length },
+      userId: userId,
+      restaurantId: id,
+      ipAddress: getClientIp(req.headers),
     });
 
     return NextResponse.json(fullOrder, { status: 201 });

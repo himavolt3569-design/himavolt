@@ -4,6 +4,7 @@ import { getEsewaPaymentUrl } from "@/lib/payments/esewa";
 import { initiateKhaltiPayment } from "@/lib/payments/khalti";
 import { safeHandler, notFound } from "@/lib/api-helpers";
 import { initiatePaymentSchema } from "@/lib/validations";
+import { logAudit } from "@/lib/audit";
 
 export const POST = safeHandler(
   async (_req, { body }) => {
@@ -22,6 +23,16 @@ export const POST = safeHandler(
         { status: 400 },
       );
     }
+
+    logAudit({
+      action: "PAYMENT_INITIATED",
+      entity: "Payment",
+      entityId: orderId,
+      detail: `Payment initiated via ${method} for order ${order.orderNo} (Rs.${order.total})`,
+      metadata: { method, orderNo: order.orderNo, amount: order.total },
+      userId: order.userId ?? undefined,
+      restaurantId: order.restaurantId,
+    });
 
     if (method === "CASH") {
       const payment = await db.payment.upsert({
