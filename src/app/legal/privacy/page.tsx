@@ -14,9 +14,9 @@ import {
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy | HimalHub",
+  title: "Privacy Policy | HimaVolt",
   description:
-    "Learn how HimalHub collects, uses, and protects your personal information when you use our food ordering platform.",
+    "Learn how HimaVolt collects, uses, and protects your personal information when you use our food ordering platform.",
 };
 
 const sections = [
@@ -48,7 +48,7 @@ const sections = [
     icon: Cookie,
     title: "5. Cookies and Tracking",
     content:
-      "We use cookies and similar tracking technologies to enhance your experience on HimalHub. Essential cookies are required for the platform to function properly. Analytics cookies help us understand how users interact with our platform. Marketing cookies may be used to provide relevant advertisements. You can manage your cookie preferences through your browser settings, though disabling certain cookies may affect platform functionality.",
+      "We use cookies and similar tracking technologies to enhance your experience on HimaVolt. Essential cookies are required for the platform to function properly. Analytics cookies help us understand how users interact with our platform. Marketing cookies may be used to provide relevant advertisements. You can manage your cookie preferences through your browser settings, though disabling certain cookies may affect platform functionality.",
   },
   {
     icon: UserCheck,
@@ -66,7 +66,7 @@ const sections = [
     icon: Bell,
     title: "8. Changes to This Policy",
     content:
-      "We may update this Privacy Policy from time to time to reflect changes in our practices or applicable laws. We will notify you of any material changes by posting the updated policy on our platform and, where appropriate, sending you an email notification. Your continued use of HimalHub after changes are posted constitutes acceptance of the updated policy. We recommend reviewing this policy periodically.",
+      "We may update this Privacy Policy from time to time to reflect changes in our practices or applicable laws. We will notify you of any material changes by posting the updated policy on our platform and, where appropriate, sending you an email notification. Your continued use of HimaVolt after changes are posted constitutes acceptance of the updated policy. We recommend reviewing this policy periodically.",
   },
 ];
 
@@ -120,7 +120,7 @@ export default function PrivacyPage() {
               Privacy Policy
             </h1>
             <p className="text-base text-white/50 font-medium max-w-lg">
-              Last updated: March 1, 2026. This policy describes how HimalHub
+              Last updated: March 1, 2026. This policy describes how HimaVolt
               collects, uses, and protects your personal information.
             </p>
           </div>

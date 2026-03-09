@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Admin Panel | HimalHub",
+  title: "Admin Panel | HimaVolt",
   description: "System administration, audit logs, and platform analytics.",
 };
 

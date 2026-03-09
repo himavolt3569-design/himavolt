@@ -11,9 +11,9 @@ import {
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Terms & Conditions | HimalHub",
+  title: "Terms & Conditions | HimaVolt",
   description:
-    "Read the terms and conditions governing your use of the HimalHub food ordering platform in Nepal.",
+    "Read the terms and conditions governing your use of the HimaVolt food ordering platform in Nepal.",
 };
 
 const sections = [
@@ -21,7 +21,7 @@ const sections = [
     icon: FileText,
     title: "1. Acceptance of Terms",
     content:
-      "By accessing and using HimalHub, you agree to be bound by these Terms and Conditions. If you do not agree with any part of these terms, you must not use our platform. These terms apply to all visitors, users, restaurant owners, and others who access or use the Service.",
+      "By accessing and using HimaVolt, you agree to be bound by these Terms and Conditions. If you do not agree with any part of these terms, you must not use our platform. These terms apply to all visitors, users, restaurant owners, and others who access or use the Service.",
   },
   {
     icon: Shield,
@@ -33,13 +33,13 @@ const sections = [
     icon: Scale,
     title: "3. Orders and Payments",
     content:
-      "All orders placed through HimalHub are subject to acceptance by the respective restaurant. Prices listed on the platform are set by the restaurants and may change without notice. You agree to pay the total amount shown at checkout including food charges, applicable taxes, service fees, and delivery charges. Payment processing is handled through secure third-party payment gateways.",
+      "All orders placed through HimaVolt are subject to acceptance by the respective restaurant. Prices listed on the platform are set by the restaurants and may change without notice. You agree to pay the total amount shown at checkout including food charges, applicable taxes, service fees, and delivery charges. Payment processing is handled through secure third-party payment gateways.",
   },
   {
     icon: Globe,
     title: "4. Restaurant Partners",
     content:
-      "Restaurant partners registered on HimalHub are responsible for maintaining the accuracy of their menus, pricing, and availability. HimalHub acts as an intermediary platform and is not directly responsible for the quality, safety, or legality of the food items offered by restaurant partners. Restaurants must comply with all applicable food safety regulations in Nepal.",
+      "Restaurant partners registered on HimaVolt are responsible for maintaining the accuracy of their menus, pricing, and availability. HimaVolt acts as an intermediary platform and is not directly responsible for the quality, safety, or legality of the food items offered by restaurant partners. Restaurants must comply with all applicable food safety regulations in Nepal.",
   },
   {
     icon: AlertTriangle,
@@ -51,13 +51,13 @@ const sections = [
     icon: Shield,
     title: "6. Intellectual Property",
     content:
-      "The HimalHub platform, including its logo, design, text, graphics, and other content, is the property of HimalHub and is protected by copyright, trademark, and other intellectual property laws. You may not reproduce, distribute, modify, or create derivative works from any content on the platform without prior written consent.",
+      "The HimaVolt platform, including its logo, design, text, graphics, and other content, is the property of HimaVolt and is protected by copyright, trademark, and other intellectual property laws. You may not reproduce, distribute, modify, or create derivative works from any content on the platform without prior written consent.",
   },
   {
     icon: AlertTriangle,
     title: "7. Limitation of Liability",
     content:
-      "HimalHub shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the platform. Our liability in any case shall not exceed the amount you paid for the specific order in question. We do not guarantee uninterrupted or error-free operation of the platform.",
+      "HimaVolt shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the platform. Our liability in any case shall not exceed the amount you paid for the specific order in question. We do not guarantee uninterrupted or error-free operation of the platform.",
   },
   {
     icon: Scale,
@@ -69,7 +69,7 @@ const sections = [
     icon: FileText,
     title: "9. Changes to Terms",
     content:
-      "HimalHub reserves the right to modify or replace these Terms at any time. Material changes will be communicated through the platform or via email. Your continued use of the Service after changes are posted constitutes acceptance of those changes.",
+      "HimaVolt reserves the right to modify or replace these Terms at any time. Material changes will be communicated through the platform or via email. Your continued use of the Service after changes are posted constitutes acceptance of those changes.",
   },
 ];
 
@@ -125,7 +125,7 @@ export default function TermsPage() {
             </h1>
             <p className="text-base text-white/50 font-medium max-w-lg">
               Last updated: March 1, 2026. Please read these terms carefully
-              before using the HimalHub platform.
+              before using the HimaVolt platform.
             </p>
           </div>
         </div>

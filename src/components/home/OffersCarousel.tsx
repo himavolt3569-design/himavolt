@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { offers } from "@/lib/data";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, Sparkles, ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 export default function OffersCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -157,10 +158,10 @@ export default function OffersCarousel() {
                   }}
                   className="mt-5"
                 >
-                  <button className="group inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-xs sm:text-sm font-bold text-[#1F2A2A] shadow-lg shadow-black/20 transition-all hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 cursor-pointer">
+                  <Link href="/offers" className="group inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-xs sm:text-sm font-bold text-[#1F2A2A] shadow-lg shadow-black/20 transition-all hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 cursor-pointer">
                     {offer.cta}
                     <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-                  </button>
+                  </Link>
                 </motion.div>
               </div>
             </motion.div>

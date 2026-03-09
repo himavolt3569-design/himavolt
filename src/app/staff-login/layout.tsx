@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Staff Login | HimalHub",
-  description: "Staff login portal for HimalHub restaurant team members.",
+  title: "Staff Login | HimaVolt",
+  description: "Staff login portal for HimaVolt restaurant team members.",
 };
 
 export default function StaffLoginLayout({

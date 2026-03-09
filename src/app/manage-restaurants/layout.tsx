@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Manage Restaurants | HimalHub",
+  title: "Manage Restaurants | HimaVolt",
   description:
-    "Create and manage your restaurants on HimalHub — Nepal's premier food ordering platform.",
+    "Create and manage your restaurants on HimaVolt — Nepal's premier food ordering platform.",
 };
 
 export default function ManageRestaurantsLayout({

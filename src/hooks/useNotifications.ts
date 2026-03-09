@@ -51,7 +51,7 @@ export function useNotifications() {
       const notification = (payload as { notification?: { title?: string; body?: string } })
         .notification;
       if (notification && "Notification" in window) {
-        new Notification(notification.title || "HimalHub", {
+        new Notification(notification.title || "HimaVolt", {
           body: notification.body,
           icon: "/icons/icon-192x192.png",
         });

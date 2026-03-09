@@ -13,9 +13,9 @@ import {
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Refund & Cancellation Policy | HimalHub",
+  title: "Refund & Cancellation Policy | HimaVolt",
   description:
-    "Understand how refunds and cancellations work on HimalHub. Learn about eligibility, process, and timelines.",
+    "Understand how refunds and cancellations work on HimaVolt. Learn about eligibility, process, and timelines.",
 };
 
 const sections = [
@@ -41,7 +41,7 @@ const sections = [
     icon: CreditCard,
     title: "4. Refund Process",
     content:
-      "Once a refund is approved, it will be processed within 5 to 7 business days. Refunds will be credited to the original payment method used for the order. For cash payments, refunds will be provided as HimalHub credits in your account wallet. You will receive a confirmation notification once the refund has been initiated.",
+      "Once a refund is approved, it will be processed within 5 to 7 business days. Refunds will be credited to the original payment method used for the order. For cash payments, refunds will be provided as HimaVolt credits in your account wallet. You will receive a confirmation notification once the refund has been initiated.",
   },
   {
     icon: CheckCircle2,
@@ -59,7 +59,7 @@ const sections = [
     icon: HelpCircle,
     title: "7. How to Request a Refund",
     content:
-      "To request a refund: (a) Navigate to your order history in the HimalHub app or website; (b) Select the order in question and tap 'Request Refund'; (c) Choose the reason for your refund request; (d) Provide any additional details or photos to support your claim; (e) Submit the request. Alternatively, you can contact our customer support team directly through the Contact Us page or by calling our support hotline.",
+      "To request a refund: (a) Navigate to your order history in the HimaVolt app or website; (b) Select the order in question and tap 'Request Refund'; (c) Choose the reason for your refund request; (d) Provide any additional details or photos to support your claim; (e) Submit the request. Alternatively, you can contact our customer support team directly through the Contact Us page or by calling our support hotline.",
   },
 ];
 
@@ -114,7 +114,7 @@ export default function RefundPage() {
             </h1>
             <p className="text-base text-white/70 font-medium max-w-lg">
               Last updated: March 1, 2026. Understand how refunds and
-              cancellations work on HimalHub.
+              cancellations work on HimaVolt.
             </p>
           </div>
         </div>

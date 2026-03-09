@@ -106,8 +106,10 @@ function paymentLabel(method: string) {
 }
 
 function statusColor(status: string) {
-  if (status === "DELIVERED") return "bg-emerald-50 text-emerald-700 border-emerald-200";
-  if (status === "CANCELLED" || status === "REJECTED") return "bg-red-50 text-red-700 border-red-200";
+  if (status === "DELIVERED")
+    return "bg-emerald-50 text-emerald-700 border-emerald-200";
+  if (status === "CANCELLED" || status === "REJECTED")
+    return "bg-red-50 text-red-700 border-red-200";
   return "bg-amber-50 text-amber-700 border-amber-200";
 }
 
@@ -117,7 +119,10 @@ function handlePrint() {
   window.print();
 }
 
-async function handleDownload(billRef: React.RefObject<HTMLDivElement | null>, billNo: string) {
+async function handleDownload(
+  billRef: React.RefObject<HTMLDivElement | null>,
+  billNo: string,
+) {
   // Dynamic import to avoid SSR issues
   const html2canvas = (await import("html2canvas")).default;
   const { jsPDF } = await import("jspdf");
@@ -191,7 +196,9 @@ export default function BillPage() {
           className="flex flex-col items-center gap-3"
         >
           <Loader2 className="h-8 w-8 animate-spin text-[#E23744]" />
-          <p className="text-sm font-medium text-gray-400">Generating your bill…</p>
+          <p className="text-sm font-medium text-gray-400">
+            Generating your bill…
+          </p>
         </motion.div>
       </div>
     );
@@ -210,7 +217,9 @@ export default function BillPage() {
             <AlertCircle className="h-7 w-7 text-[#E23744]" />
           </div>
           <p className="text-lg font-bold text-[#1F2A2A]">Bill not found</p>
-          <p className="text-sm text-gray-400">This order may not have a bill yet</p>
+          <p className="text-sm text-gray-400">
+            This order may not have a bill yet
+          </p>
           <Link
             href="/"
             className="inline-flex items-center gap-2 rounded-xl bg-[#E23744] px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-[#E23744]/20"
@@ -226,7 +235,9 @@ export default function BillPage() {
   const isPaid = order.payment?.status === "COMPLETED";
   const isOnlinePayment = order.payment && order.payment.method !== "CASH";
   const docLabel = isOnlinePayment ? "Payment Receipt" : "Invoice";
-  const downloadLabel = isOnlinePayment ? "Download Receipt PDF" : "Download Bill PDF";
+  const downloadLabel = isOnlinePayment
+    ? "Download Receipt PDF"
+    : "Download Bill PDF";
   const printLabel = isOnlinePayment ? "Print Receipt" : "Print Bill";
 
   /* ── Bill ──────────────────────────────────────────────── */
@@ -327,10 +338,15 @@ export default function BillPage() {
           {/* ── Restaurant & Customer info ──────────── */}
           <div className="px-6 sm:px-8 py-5 border-b border-gray-100 grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">From</p>
-              <p className="text-sm font-bold text-[#1F2A2A]">{order.restaurant.name}</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                From
+              </p>
+              <p className="text-sm font-bold text-[#1F2A2A]">
+                {order.restaurant.name}
+              </p>
               <p className="text-[12px] text-gray-500 flex items-center gap-1">
-                <MapPin className="h-3 w-3 shrink-0" /> {order.restaurant.address}
+                <MapPin className="h-3 w-3 shrink-0" />{" "}
+                {order.restaurant.address}
               </p>
               <p className="text-[12px] text-gray-500 flex items-center gap-1">
                 <Phone className="h-3 w-3 shrink-0" /> {order.restaurant.phone}
@@ -345,7 +361,9 @@ export default function BillPage() {
                   {order.user.name || "Guest"}
                 </p>
                 {order.user.email && (
-                  <p className="text-[12px] text-gray-500">{order.user.email}</p>
+                  <p className="text-[12px] text-gray-500">
+                    {order.user.email}
+                  </p>
                 )}
                 {order.user.phone && (
                   <p className="text-[12px] text-gray-500 flex items-center gap-1 sm:justify-end">
@@ -361,7 +379,9 @@ export default function BillPage() {
             <span
               className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-bold border ${statusColor(order.status)}`}
             >
-              {order.status === "DELIVERED" && <CheckCircle2 className="h-3 w-3" />}
+              {order.status === "DELIVERED" && (
+                <CheckCircle2 className="h-3 w-3" />
+              )}
               {order.status}
             </span>
             <span className="inline-flex items-center gap-1 rounded-lg bg-gray-50 px-2.5 py-1 text-[11px] font-bold text-gray-500 border border-gray-100">
@@ -396,7 +416,9 @@ export default function BillPage() {
                     className={`${i < order.items.length - 1 ? "border-b border-gray-50" : ""}`}
                   >
                     <td className="py-3">
-                      <p className="font-bold text-[#1F2A2A] text-[13px]">{item.name}</p>
+                      <p className="font-bold text-[#1F2A2A] text-[13px]">
+                        {item.name}
+                      </p>
                       {item.addOns && (
                         <p className="text-[11px] text-gray-400 mt-0.5">
                           + {item.addOns}
@@ -422,12 +444,16 @@ export default function BillPage() {
           <div className="px-6 sm:px-8 py-5 bg-gray-50/50 border-t border-gray-100 space-y-2.5 print:bg-gray-50">
             <div className="flex justify-between text-[13px]">
               <span className="text-gray-500">Subtotal</span>
-              <span className="font-medium text-[#1F2A2A]">Rs. {bill.subtotal.toFixed(2)}</span>
+              <span className="font-medium text-[#1F2A2A]">
+                Rs. {bill.subtotal.toFixed(2)}
+              </span>
             </div>
             {bill.tax > 0 && (
               <div className="flex justify-between text-[13px]">
                 <span className="text-gray-500">Tax (VAT 13%)</span>
-                <span className="font-medium text-[#1F2A2A]">Rs. {bill.tax.toFixed(2)}</span>
+                <span className="font-medium text-[#1F2A2A]">
+                  Rs. {bill.tax.toFixed(2)}
+                </span>
               </div>
             )}
             {bill.serviceCharge > 0 && (
@@ -448,7 +474,9 @@ export default function BillPage() {
             )}
 
             <div className="border-t-2 border-dashed border-gray-200 mt-3 pt-3 flex justify-between items-baseline">
-              <span className="text-base font-extrabold text-[#1F2A2A]">Grand Total</span>
+              <span className="text-base font-extrabold text-[#1F2A2A]">
+                Grand Total
+              </span>
               <span className="text-2xl font-extrabold text-[#1F2A2A]">
                 Rs. {bill.total.toFixed(2)}
               </span>
@@ -509,12 +537,16 @@ export default function BillPage() {
 
           {/* ── Footer ─────────────────────────────── */}
           <div className="px-6 sm:px-8 py-6 border-t border-gray-100 text-center space-y-2">
-            <p className="text-[12px] font-bold text-[#E23744]">Thank you for dining with us!</p>
+            <p className="text-[12px] font-bold text-[#E23744]">
+              Thank you for dining with us!
+            </p>
             <p className="text-[11px] text-gray-400">
-              This is a computer-generated invoice and does not require a signature.
+              This is a computer-generated invoice and does not require a
+              signature.
             </p>
             <p className="text-[10px] text-gray-300 mt-2 print:hidden">
-              Powered by <span className="font-bold text-gray-400">HimalHub</span>
+              Powered by{" "}
+              <span className="font-bold text-gray-400">HimaVolt</span>
             </p>
           </div>
         </motion.div>
@@ -555,22 +587,52 @@ export default function BillPage() {
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
-          nav, footer, .print\\:hidden {
+          nav,
+          footer,
+          .print\\:hidden {
             display: none !important;
           }
-          .print\\:bg-white { background: white !important; }
-          .print\\:from-white { --tw-gradient-from: white !important; }
-          .print\\:to-white { --tw-gradient-to: white !important; }
-          .print\\:shadow-none { box-shadow: none !important; }
-          .print\\:border-none { border: none !important; }
-          .print\\:rounded-none { border-radius: 0 !important; }
-          .print\\:bg-black { background: #1F2A2A !important; }
-          .print\\:from-black { --tw-gradient-from: #1F2A2A !important; }
-          .print\\:to-black { --tw-gradient-to: #2d3d3d !important; }
-          .print\\:py-0 { padding-top: 0 !important; padding-bottom: 0 !important; }
-          .print\\:px-0 { padding-left: 0 !important; padding-right: 0 !important; }
-          .print\\:max-w-none { max-width: none !important; }
-          .print\\:bg-gray-50 { background: #f9fafb !important; }
+          .print\\:bg-white {
+            background: white !important;
+          }
+          .print\\:from-white {
+            --tw-gradient-from: white !important;
+          }
+          .print\\:to-white {
+            --tw-gradient-to: white !important;
+          }
+          .print\\:shadow-none {
+            box-shadow: none !important;
+          }
+          .print\\:border-none {
+            border: none !important;
+          }
+          .print\\:rounded-none {
+            border-radius: 0 !important;
+          }
+          .print\\:bg-black {
+            background: #1f2a2a !important;
+          }
+          .print\\:from-black {
+            --tw-gradient-from: #1f2a2a !important;
+          }
+          .print\\:to-black {
+            --tw-gradient-to: #2d3d3d !important;
+          }
+          .print\\:py-0 {
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+          }
+          .print\\:px-0 {
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+          }
+          .print\\:max-w-none {
+            max-width: none !important;
+          }
+          .print\\:bg-gray-50 {
+            background: #f9fafb !important;
+          }
         }
       `}</style>
     </div>

@@ -13,14 +13,14 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "HimalHub -- Scan. Order. Stay.",
+  title: "HimaVolt -- Scan. Order. Stay.",
   description:
     "Scan. Order. Enjoy. -- Nepal's premium QR table ordering and food delivery platform.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "HimalHub",
+    title: "HimaVolt",
   },
   other: {
     "mobile-web-app-capable": "yes",

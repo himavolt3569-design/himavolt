@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Kitchen Display | HimalHub",
+  title: "Kitchen Display | HimaVolt",
   description:
-    "Real-time kitchen order display for restaurant staff on HimalHub.",
+    "Real-time kitchen order display for restaurant staff on HimaVolt.",
 };
 
 export default function KitchenLayout({

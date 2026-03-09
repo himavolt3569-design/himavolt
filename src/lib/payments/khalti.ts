@@ -27,7 +27,7 @@ export async function initiateKhaltiPayment(params: {
     website_url: APP_URL,
     amount: Math.round(amount * 100), // convert to paisa
     purchase_order_id: orderId,
-    purchase_order_name: `HimalHub Order #${orderNo}`,
+    purchase_order_name: `HimaVolt Order #${orderNo}`,
     customer_info: {
       name: customerName || "Customer",
       email: customerEmail || "",

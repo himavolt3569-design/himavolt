@@ -547,7 +547,7 @@ export default function AdminPage() {
                 Admin Panel
               </h1>
               <p className="text-[11px] text-gray-400">
-                HimalHub System Administration
+                HimaVolt System Administration
               </p>
             </div>
           </div>

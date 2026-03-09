@@ -37,8 +37,8 @@ const CONTACT_INFO = [
   {
     icon: Mail,
     label: "Email",
-    value: "hello@himalhub.com",
-    href: "mailto:hello@himalhub.com",
+    value: "hello@himavolt.com",
+    href: "mailto:hello@himavolt.com",
     description: "We reply within 24 hours",
   },
   {
@@ -73,14 +73,14 @@ const QUICK_CONTACTS = [
   {
     icon: Mail,
     label: "General Inquiries",
-    value: "info@himalhub.com",
-    href: "mailto:info@himalhub.com",
+    value: "info@himavolt.com",
+    href: "mailto:info@himavolt.com",
   },
   {
     icon: Mail,
     label: "Partnership",
-    value: "partners@himalhub.com",
-    href: "mailto:partners@himalhub.com",
+    value: "partners@himavolt.com",
+    href: "mailto:partners@himavolt.com",
   },
 ];
 

@@ -19,7 +19,7 @@ function createSvg(size) {
     font-size="${fontSize}" fill="white">H</text>
   <text x="50%" y="72%" text-anchor="middle" dominant-baseline="central"
     font-family="Arial,Helvetica,sans-serif" font-weight="500"
-    font-size="${subFontSize}" fill="rgba(255,255,255,0.9)">HimalHub</text>
+    font-size="${subFontSize}" fill="rgba(255,255,255,0.9)">HimaVolt</text>
 </svg>`;
 }
 
@@ -39,7 +39,7 @@ async function generate() {
     font-size="140" fill="white">H</text>
   <text x="50%" y="62%" text-anchor="middle" dominant-baseline="central"
     font-family="Arial,Helvetica,sans-serif" font-weight="500"
-    font-size="40" fill="rgba(255,255,255,0.9)">HimalHub</text>
+    font-size="40" fill="rgba(255,255,255,0.9)">HimaVolt</text>
 </svg>`);
 
   const maskPath = path.join(outDir, "maskable-icon-512x512.png");

@@ -1,0 +1,6 @@
+FoodCategories.tsx
+Hero.tsx
+HowItWorks.tsx
+OffersCarousel.tsx
+PopularFoods.tsx
+TopPlaces.tsx

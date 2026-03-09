@@ -131,7 +131,7 @@ export const POST = safeHandler(
         paymentId: payment.id,
         bankDetails: {
           bankName: process.env.BANK_NAME || "Nepal Bank Limited",
-          accountName: process.env.BANK_ACCOUNT_NAME || "HimalHub Pvt. Ltd.",
+          accountName: process.env.BANK_ACCOUNT_NAME || "HimaVolt Pvt. Ltd.",
           accountNumber: process.env.BANK_ACCOUNT_NUMBER,
           branch: process.env.BANK_BRANCH || "Kathmandu",
           note: `Please include Order #${order.orderNo} in transfer remarks`,

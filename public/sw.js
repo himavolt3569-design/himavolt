@@ -1,8 +1,8 @@
 /* eslint-disable no-undef */
 
 const CACHE_VERSION = "v1";
-const STATIC_CACHE = `himalhub-static-${CACHE_VERSION}`;
-const DYNAMIC_CACHE = `himalhub-dynamic-${CACHE_VERSION}`;
+const STATIC_CACHE = `himavolt-static-${CACHE_VERSION}`;
+const DYNAMIC_CACHE = `himavolt-dynamic-${CACHE_VERSION}`;
 const OFFLINE_URL = "/offline.html";
 
 const PRECACHE_URLS = [OFFLINE_URL, "/manifest.json"];
@@ -30,7 +30,7 @@ if (self.__FIREBASE_CONFIG__?.projectId) {
   messaging.onBackgroundMessage((payload) => {
     const { title, body, icon } = payload.notification || {};
 
-    self.registration.showNotification(title || "HimalHub", {
+    self.registration.showNotification(title || "HimaVolt", {
       body: body || "You have a new notification",
       icon: icon || "/icons/icon-192x192.png",
       badge: "/icons/icon-72x72.png",

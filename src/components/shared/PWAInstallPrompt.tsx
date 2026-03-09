@@ -79,7 +79,7 @@ export default function PWAInstallPrompt() {
 
             <div className="grow">
               <h3 className="font-semibold text-charcoal-slate mb-1">
-                Install HimalHub
+                Install HimaVolt
               </h3>
               <p className="text-sm text-charcoal-slate/70 mb-3">
                 Add to your home screen for faster ordering and a better

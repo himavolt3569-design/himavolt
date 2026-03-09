@@ -291,7 +291,7 @@ async function buildQRCanvas(
   ctx.fillStyle = cfg.textSecondary;
   ctx.font = `9px sans-serif`;
   ctx.textAlign = "center";
-  ctx.fillText("Powered by HimalHub", W / 2, H - 20);
+  ctx.fillText("Powered by HimaVolt", W / 2, H - 20);
 
   // ── Bottom accent bar (Classic / Modern) ─────
   if (style === "classic") {
@@ -505,7 +505,7 @@ export default function QRCodesTab() {
   const { selectedRestaurant, restaurants, updateRestaurant } = useRestaurant();
   const restaurant = selectedRestaurant ?? restaurants[0];
   const tableCount = restaurant?.tableCount ?? 12;
-  const restaurantName = restaurant?.name ?? "HimalHub";
+  const restaurantName = restaurant?.name ?? "HimaVolt";
   const [downloading, setDownloading] = useState(false);
   const [cardStyle, setCardStyle] = useState<CardStyle>("classic");
 

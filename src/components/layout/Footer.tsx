@@ -108,13 +108,13 @@ export default function Footer() {
                   +977 9801234567
                 </a>
                 <a
-                  href="mailto:hello@himalhub.com"
+                  href="mailto:hello@himavolt.com"
                   className="group flex items-center gap-3 text-sm text-gray-500 hover:text-[#FF9933] transition-colors"
                 >
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/[0.05] group-hover:bg-[#FF9933]/10 transition-colors">
                     <Mail className="h-3.5 w-3.5" />
                   </div>
-                  hello@himalhub.com
+                  hello@himavolt.com
                 </a>
                 <div className="flex items-center gap-3 text-sm text-gray-500">
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/[0.05]">
@@ -242,7 +242,7 @@ export default function Footer() {
           {/* Bottom bar */}
           <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-xs font-medium text-gray-600">
-              &copy; {new Date().getFullYear()} HimalHub.{" "}
+              &copy; {new Date().getFullYear()} HimaVolt.{" "}
               <span className="text-[#FF9933]">Made for Nepal.</span>
             </p>
             <div className="flex items-center gap-4">
