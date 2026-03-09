@@ -58,22 +58,24 @@ export const POST = safeHandler(
       data: { updatedAt: new Date() },
     });
 
-    // Fire-and-forget notifications
-    if (sender === "CUSTOMER" && room.order.restaurantId) {
-      sendNotificationToRestaurantStaff(room.order.restaurantId, {
-        title: "Message from Customer",
-        body: content.trim().slice(0, 100),
-        data: { type: "CHAT_MESSAGE", roomId, orderNo: room.order.orderNo },
-      }).catch(() => {});
-    } else if (
-      (sender === "KITCHEN" || sender === "BILLING") &&
-      room.order.userId
-    ) {
-      sendNotificationToUser(room.order.userId, {
-        title: `Message from ${sender === "KITCHEN" ? "Kitchen" : "Billing"}`,
-        body: content.trim().slice(0, 100),
-        data: { type: "CHAT_MESSAGE", roomId, orderNo: room.order.orderNo },
-      }).catch(() => {});
+    // Fire-and-forget notifications (only for order-linked rooms)
+    if (room.order) {
+      if (sender === "CUSTOMER" && room.order.restaurantId) {
+        sendNotificationToRestaurantStaff(room.order.restaurantId, {
+          title: "Message from Customer",
+          body: content.trim().slice(0, 100),
+          data: { type: "CHAT_MESSAGE", roomId, orderNo: room.order.orderNo },
+        }).catch(() => {});
+      } else if (
+        (sender === "KITCHEN" || sender === "BILLING") &&
+        room.order.userId
+      ) {
+        sendNotificationToUser(room.order.userId, {
+          title: `Message from ${sender === "KITCHEN" ? "Kitchen" : "Billing"}`,
+          body: content.trim().slice(0, 100),
+          data: { type: "CHAT_MESSAGE", roomId, orderNo: room.order.orderNo },
+        }).catch(() => {});
+      }
     }
 
     return NextResponse.json(message, { status: 201 });

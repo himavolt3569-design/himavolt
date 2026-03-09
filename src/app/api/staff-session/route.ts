@@ -10,6 +10,8 @@ export const GET = safeHandler(async (req) => {
     staffId: session.staffId,
     restaurantId: session.restaurantId,
     role: session.role,
+    userId: session.userId,
+    name: session.name,
   });
 });
 

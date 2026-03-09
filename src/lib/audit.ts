@@ -3,6 +3,7 @@ import { db } from "./db";
 export type AuditAction =
   // Orders
   | "ORDER_CREATED"
+  | "ORDER_UPDATED"
   | "ORDER_ACCEPTED"
   | "ORDER_PREPARING"
   | "ORDER_READY"

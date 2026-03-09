@@ -56,6 +56,7 @@ export interface Order {
   id: string;
   orderNo: string;
   tableNo: number | null;
+  roomNo: string | null;
   status: OrderStatus;
   subtotal: number;
   tax: number;
@@ -101,6 +102,18 @@ interface OrderContextType {
     note?: string,
     paymentMethod?: PaymentMethodType,
     deliveryInfo?: DeliveryInfo,
+    roomNo?: string,
+  ) => Promise<Order>;
+  addToOrder: (
+    restaurantId: string,
+    orderId: string,
+    items: {
+      name: string;
+      quantity: number;
+      price: number;
+      menuItemId?: string;
+    }[],
+    note?: string,
   ) => Promise<Order>;
   cancelOrder: () => void;
 }
@@ -156,6 +169,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
       note?: string,
       paymentMethod?: PaymentMethodType,
       deliveryInfo?: DeliveryInfo,
+      roomNo?: string,
     ) => {
       const order = await apiFetch<Order>(
         `/api/restaurants/${restaurantId}/orders`,
@@ -163,7 +177,8 @@ export function OrderProvider({ children }: { children: ReactNode }) {
           method: "POST",
           body: {
             items,
-            tableNo: orderType === "DINE_IN" ? tableNo : undefined,
+            tableNo: orderType === "DINE_IN" && tableNo != null ? String(tableNo) : undefined,
+            roomNo: roomNo || undefined,
             note,
             type: orderType,
             paymentMethod: paymentMethod || "CASH",
@@ -187,6 +202,38 @@ export function OrderProvider({ children }: { children: ReactNode }) {
     [startPolling],
   );
 
+  const addToOrder = useCallback(
+    async (
+      restaurantId: string,
+      orderId: string,
+      items: {
+        name: string;
+        quantity: number;
+        price: number;
+        menuItemId?: string;
+      }[],
+      note?: string,
+    ) => {
+      const order = await apiFetch<Order>(
+        `/api/restaurants/${restaurantId}/orders`,
+        {
+          method: "POST",
+          body: {
+            items,
+            addToOrderId: orderId,
+            note,
+            type: "DINE_IN",
+            paymentMethod: "CASH",
+          },
+        },
+      );
+      setActiveOrder(order);
+      startPolling(restaurantId, order.id);
+      return order;
+    },
+    [startPolling],
+  );
+
   const cancelOrder = useCallback(() => {
     stopPolling();
     setActiveOrder(null);
@@ -195,7 +242,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
   useEffect(() => () => stopPolling(), [stopPolling]);
 
   return (
-    <OrderContext.Provider value={{ activeOrder, placeOrder, cancelOrder }}>
+    <OrderContext.Provider value={{ activeOrder, placeOrder, addToOrder, cancelOrder }}>
       {children}
     </OrderContext.Provider>
   );

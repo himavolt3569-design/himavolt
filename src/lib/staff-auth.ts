@@ -21,6 +21,8 @@ export interface StaffPayload {
   staffId: string;
   restaurantId: string;
   role: string;
+  userId: string;
+  name: string;
 }
 
 export async function getStaffSession(
@@ -34,7 +36,7 @@ export async function getStaffSession(
 
   try {
     const { payload } = await jwtVerify(token, secret);
-    const { staffId, restaurantId, role } = payload as Record<string, unknown>;
+    const { staffId, restaurantId, role, userId, name } = payload as Record<string, unknown>;
     if (
       typeof staffId !== "string" ||
       typeof restaurantId !== "string" ||
@@ -42,7 +44,13 @@ export async function getStaffSession(
     ) {
       return null;
     }
-    return { staffId, restaurantId, role };
+    return {
+      staffId,
+      restaurantId,
+      role,
+      userId: typeof userId === "string" ? userId : "",
+      name: typeof name === "string" ? name : "",
+    };
   } catch {
     return null;
   }

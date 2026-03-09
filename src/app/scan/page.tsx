@@ -11,6 +11,7 @@ import {
   Flashlight,
   FlashlightOff,
   CheckCircle2,
+  BedDouble,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "@/context/ToastContext";
@@ -34,14 +35,18 @@ function ScanPageContent() {
   const [scanSuccess, setScanSuccess] = useState(false);
   const [flashlightOn, setFlashlightOn] = useState(false);
   const [tableNum, setTableNum] = useState("");
+  const [roomNum, setRoomNum] = useState("");
+  const [inputMode, setInputMode] = useState<"table" | "room">("table");
   const scanBoxRef = useRef<HTMLDivElement>(null);
   const lineRef = useRef<HTMLDivElement>(null);
 
-  const navigateToMenu = (table?: string) => {
+  const navigateToMenu = (table?: string, room?: string) => {
     if (restaurantSlug) {
-      const url = table
-        ? `/menu/${restaurantSlug}?table=${table}`
-        : `/menu/${restaurantSlug}`;
+      const params = new URLSearchParams();
+      if (table) params.set("table", table);
+      if (room) params.set("room", room);
+      const qs = params.toString();
+      const url = `/menu/${restaurantSlug}${qs ? `?${qs}` : ""}`;
       router.push(url);
     } else {
       showToast("Please scan a valid QR code at a restaurant table", "info");
@@ -84,16 +89,19 @@ function ScanPageContent() {
   useEffect(() => {
     if (scanSuccess) {
       const navTimer = setTimeout(() => {
-        navigateToMenu(tableNum || "1");
+        navigateToMenu(tableNum || "1", roomNum || undefined);
       }, 1000);
       return () => clearTimeout(navTimer);
     }
   }, [scanSuccess]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleTableSubmit = () => {
-    if (tableNum.length >= 1 && tableNum.length <= 2) {
+    if (inputMode === "table" && tableNum.length >= 1) {
       showToast("Table confirmed!", "success");
-      navigateToMenu(tableNum);
+      navigateToMenu(tableNum, roomNum || undefined);
+    } else if (inputMode === "room" && roomNum.length >= 1) {
+      showToast("Room confirmed!", "success");
+      navigateToMenu(tableNum || undefined, roomNum);
     }
   };
 
@@ -229,29 +237,68 @@ function ScanPageContent() {
         </div>
 
         <div className="space-y-3">
+          {/* Toggle: Table or Room */}
+          <div className="flex justify-center gap-2">
+            <button
+              onClick={() => setInputMode("table")}
+              className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-bold transition-all ${
+                inputMode === "table"
+                  ? "bg-[#0A4D3C] text-white"
+                  : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+              }`}
+            >
+              <Hash className="h-3.5 w-3.5" />
+              Table Number
+            </button>
+            <button
+              onClick={() => setInputMode("room")}
+              className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-bold transition-all ${
+                inputMode === "room"
+                  ? "bg-[#0A4D3C] text-white"
+                  : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+              }`}
+            >
+              <BedDouble className="h-3.5 w-3.5" />
+              Room Number
+            </button>
+          </div>
+
           <p className="text-sm font-bold text-[#1F2A2A] text-center">
-            Enter table number manually
+            {inputMode === "table"
+              ? "Enter table number manually"
+              : "Enter guest house room number"}
           </p>
           <div className="flex gap-3">
             <div className="relative flex-1">
-              <Hash className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              {inputMode === "table" ? (
+                <Hash className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              ) : (
+                <BedDouble className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              )}
               <input
                 type="text"
-                value={tableNum}
+                value={inputMode === "table" ? tableNum : roomNum}
                 onChange={(e) => {
-                  const val = e.target.value.replace(/\D/g, "").slice(0, 2);
-                  setTableNum(val);
+                  if (inputMode === "table") {
+                    setTableNum(e.target.value.replace(/\D/g, "").slice(0, 2));
+                  } else {
+                    setRoomNum(e.target.value.slice(0, 10));
+                  }
                 }}
-                placeholder="e.g. 07"
-                maxLength={2}
+                placeholder={inputMode === "table" ? "e.g. 07" : "e.g. 101"}
+                maxLength={inputMode === "table" ? 2 : 10}
                 className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3.5 pl-11 pr-4 text-center text-lg font-bold text-[#1F2A2A] placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FF9933]/30 focus:border-[#FF9933]/30 focus:bg-white transition-all tracking-[0.3em]"
               />
             </div>
             <button
               onClick={handleTableSubmit}
-              disabled={tableNum.length < 1}
+              disabled={
+                inputMode === "table"
+                  ? tableNum.length < 1
+                  : roomNum.length < 1
+              }
               className={`flex h-[52px] w-[52px] items-center justify-center rounded-xl transition-all ${
-                tableNum.length >= 1
+                (inputMode === "table" ? tableNum.length >= 1 : roomNum.length >= 1)
                   ? "bg-[#FF9933] text-white shadow-md hover:bg-[#ff8811]"
                   : "bg-gray-100 text-gray-300 cursor-not-allowed"
               }`}

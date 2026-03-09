@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Receipt,
@@ -143,6 +143,24 @@ const STATUS_COLORS: Record<string, string> = {
 
 type PayType = "all" | "cash" | "online";
 
+function playBillingAlert() {
+  try {
+    const ctx = new AudioContext();
+    // Three-tone alert: C5 → G5 → C6
+    [523.25, 783.99, 1046.5].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.25, ctx.currentTime + i * 0.18);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.18 + 0.35);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(ctx.currentTime + i * 0.18);
+      osc.stop(ctx.currentTime + i * 0.18 + 0.35);
+    });
+  } catch { /* audio not available */ }
+}
+
 export default function BillingTab({
   restaurantId,
   staffRole,
@@ -161,6 +179,8 @@ export default function BillingTab({
   const [discountAmount, setDiscountAmount] = useState("");
   const [discountReason, setDiscountReason] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
+  const knownOrderIds = useRef<Set<string>>(new Set());
+  const isFirstLoad = useRef(true);
 
   const canDiscount =
     staffRole === "MANAGER" || staffRole === "SUPER_ADMIN" || !staffRole;
@@ -170,7 +190,16 @@ export default function BillingTab({
       const data = await staffFetch(
         `/api/restaurants/${restaurantId}/billing?filter=${filter}`,
       );
-      setOrders(data.orders || []);
+      const fetched: BillOrder[] = data.orders || [];
+
+      if (!isFirstLoad.current) {
+        const newOnes = fetched.filter((o) => !knownOrderIds.current.has(o.id));
+        if (newOnes.length > 0) playBillingAlert();
+      }
+
+      knownOrderIds.current = new Set(fetched.map((o) => o.id));
+      isFirstLoad.current = false;
+      setOrders(fetched);
     } catch {
       /* ignore */
     }
@@ -189,12 +218,14 @@ export default function BillingTab({
   }, [restaurantId]);
 
   useEffect(() => {
+    isFirstLoad.current = true;
+    knownOrderIds.current = new Set();
     loadOrders();
     loadSummary();
     const iv = setInterval(() => {
       loadOrders();
       loadSummary();
-    }, 15000);
+    }, 8000); // poll every 8s for faster notification
     return () => clearInterval(iv);
   }, [loadOrders, loadSummary]);
 

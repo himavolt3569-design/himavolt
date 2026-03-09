@@ -304,7 +304,7 @@ export default function StaffLoginPage() {
       const res = await fetch("/api/staff-login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: code.toUpperCase(), pin }),
+        body: JSON.stringify({ restaurantCode: code.toUpperCase(), pin }),
       });
 
       const data = await res.json();

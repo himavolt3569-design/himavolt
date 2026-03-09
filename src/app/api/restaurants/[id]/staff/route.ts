@@ -65,11 +65,38 @@ export const POST = safeHandler(
       where: {
         userId_restaurantId: { userId: staffUser.id, restaurantId: id },
       },
+      include: {
+        user: { select: { name: true, email: true, phone: true, imageUrl: true } },
+      },
     });
+
     if (existing) {
+      if (existing.isActive) {
+        return NextResponse.json(
+          { error: "This staff member is already active at this restaurant" },
+          { status: 409 },
+        );
+      }
+      // Reactivate the deactivated staff member with a fresh PIN and updated role
+      const reactivated = await db.staffMember.update({
+        where: { id: existing.id },
+        data: { isActive: true, pin, role },
+        include: {
+          user: { select: { name: true, email: true, phone: true, imageUrl: true } },
+        },
+      });
+      logAudit({
+        action: "STAFF_ADDED",
+        entity: "StaffMember",
+        entityId: reactivated.id,
+        detail: `Staff "${name}" reactivated as ${role}`,
+        metadata: { name, email, role, reactivated: true },
+        userId: user.id,
+        restaurantId: id,
+      });
       return NextResponse.json(
-        { error: "Staff member already exists" },
-        { status: 409 },
+        { ...reactivated, _generatedPin: pin, _restaurantCode: restaurantCode },
+        { status: 200 },
       );
     }
 

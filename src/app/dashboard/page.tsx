@@ -36,6 +36,7 @@ import {
   CalendarDays,
   Zap,
   CircleDot,
+  Wallet,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -48,6 +49,7 @@ import StaffManagementTab from "@/components/dashboard/StaffManagementTab";
 import ChatTab from "@/components/dashboard/ChatTab";
 import BillingTab from "@/components/billing/BillingTab";
 import StoryManager from "@/components/stories/StoryManager";
+import PaymentQRTab from "@/components/dashboard/PaymentQRTab";
 import { useLiveOrders } from "@/context/LiveOrdersContext";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { getTypeLabel } from "@/lib/restaurant-types";
@@ -61,7 +63,8 @@ type DashTab =
   | "staff"
   | "chat"
   | "billing"
-  | "stories";
+  | "stories"
+  | "payment-qr";
 
 /* ─── Navigation groups for sidebar ───────────────────────────────── */
 const NAV_MAIN: {
@@ -80,6 +83,7 @@ const NAV_MANAGE: typeof NAV_MAIN = [
   { id: "menu", label: "Menu", icon: UtensilsCrossed },
   { id: "staff", label: "Staff", icon: UsersRound },
   { id: "qr", label: "QR Codes", icon: QrCode },
+  { id: "payment-qr", label: "Payment QR", icon: Wallet },
 ];
 
 const NAV_MORE: typeof NAV_MAIN = [
@@ -949,6 +953,7 @@ export default function DashboardPage() {
               {activeTab === "menu" && <MenuManagementTab />}
               {activeTab === "staff" && <StaffManagementTab />}
               {activeTab === "qr" && <QRCodesTab />}
+              {activeTab === "payment-qr" && <PaymentQRTab />}
               {activeTab === "reports" && <ReportsTab />}
               {activeTab === "stories" && selectedRestaurant && (
                 <StoryManager

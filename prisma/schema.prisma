@@ -71,6 +71,7 @@ model Restaurant {
   stories       Story[]
   deliveryZones DeliveryZone[]
   auditLogs     AuditLog[]
+  paymentQRs    PaymentQR[]
 
   @@index([ownerId])
   @@index([slug])
@@ -96,6 +97,24 @@ model InventoryItem {
 
   @@index([restaurantId])
   @@map("inventory_items")
+}
+
+// ─── Payment QR Images ───────────────────────────────────────────
+
+model PaymentQR {
+  id        String   @id @default(cuid())
+  label     String // e.g. "eSewa", "Khalti", "Fonepay", "Bank QR"
+  imageUrl  String // uploaded QR image URL
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@index([restaurantId])
+  @@map("payment_qrs")
 }
 
 enum RestaurantType {
@@ -241,6 +260,7 @@ model Order {
   id            String      @id @default(cuid())
   orderNo       String      @unique
   tableNo       Int?
+  roomNo        String? // guest house room number
   status        OrderStatus @default(PENDING)
   subtotal      Float
   tax           Float       @default(0)
@@ -405,21 +425,27 @@ model Review {
 // ─── Chat ───────────────────────────────────────────────────────────
 
 model ChatRoom {
-  id        String   @id @default(cuid())
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        String       @id @default(cuid())
+  type      ChatRoomType @default(CUSTOMER)
+  isActive  Boolean      @default(true)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
 
-  orderId      String     @unique
-  order        Order      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId      String?    @unique // null for internal/broadcast channels
+  order        Order?     @relation(fields: [orderId], references: [id], onDelete: Cascade)
   restaurantId String
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
 
   messages ChatMessage[]
 
   @@index([restaurantId])
-  @@index([orderId])
+  @@index([restaurantId, type])
   @@map("chat_rooms")
+}
+
+enum ChatRoomType {
+  CUSTOMER  // per-order customer chat
+  BROADCAST // admin-to-all-staff channel
 }
 
 model ChatMessage {
@@ -442,6 +468,8 @@ enum ChatSender {
   CUSTOMER
   KITCHEN
   BILLING
+  ADMIN
+  MANAGER
 }
 
 // ─── Stories ────────────────────────────────────────────────────────

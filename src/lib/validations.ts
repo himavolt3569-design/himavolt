@@ -99,7 +99,11 @@ const orderItemSchema = z.object({
 });
 
 export const createOrderSchema = z.object({
-  tableNo: z.string().max(20).optional().nullable(),
+  tableNo: z
+    .union([z.string().max(20), z.number().int()])
+    .optional()
+    .nullable(),
+  roomNo: z.string().max(20).optional().nullable(),
   items: z.array(orderItemSchema).min(1, "At least one item required"),
   note: z.string().max(500).optional().nullable(),
   type: z
@@ -107,6 +111,7 @@ export const createOrderSchema = z.object({
     .optional()
     .default("DINE_IN"),
   paymentMethod: z.string().optional(),
+  addToOrderId: z.string().optional().nullable(), // existing order ID for cash add-on
   deliveryAddress: z.string().max(300).optional().nullable(),
   deliveryLat: z.number().optional().nullable(),
   deliveryLng: z.number().optional().nullable(),
@@ -149,11 +154,28 @@ export const createChatRoomSchema = z.object({
 
 export const sendMessageSchema = z.object({
   content: z.string().trim().min(1).max(1000),
-  sender: z.enum(["CUSTOMER", "KITCHEN", "BILLING"]),
+  sender: z.enum(["CUSTOMER", "KITCHEN", "BILLING", "ADMIN", "MANAGER"]),
   senderName: z.string().max(60).optional().nullable(),
   userId: z.string().optional().nullable(),
 });
 export type SendMessageInput = z.infer<typeof sendMessageSchema>;
+
+// ─── Payment QR ───────────────────────────────────────────────────────────────
+
+export const createPaymentQRSchema = z.object({
+  label: z.string().trim().min(1, "Label is required").max(50),
+  imageUrl: z.string().url("Valid image URL is required"),
+  sortOrder: z.number().int().min(0).optional().default(0),
+});
+export type CreatePaymentQRInput = z.infer<typeof createPaymentQRSchema>;
+
+export const updatePaymentQRSchema = z.object({
+  label: z.string().trim().min(1).max(50).optional(),
+  imageUrl: z.string().url().optional(),
+  isActive: z.boolean().optional(),
+  sortOrder: z.number().int().min(0).optional(),
+});
+export type UpdatePaymentQRInput = z.infer<typeof updatePaymentQRSchema>;
 
 // ─── Staff Login ───────────────────────────────────────────────────────────────
 

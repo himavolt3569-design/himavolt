@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getOrCreateUser } from "@/lib/auth";
+import { getStaffSession } from "@/lib/staff-auth";
 import { notifyKitchenNewOrder } from "@/lib/notifications";
 import { generateBill } from "@/lib/billing";
 import { safeHandler, unauthorized, notFound } from "@/lib/api-helpers";
@@ -12,9 +13,14 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const user = await getOrCreateUser();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  // Accept staff JWT or owner Clerk session
+  const staff = await getStaffSession(req);
+  if (!staff || staff.restaurantId !== id) {
+    const user = await getOrCreateUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const restaurant = await db.restaurant.findFirst({ where: { id, ownerId: user.id } });
+    if (!restaurant) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const { searchParams } = new URL(req.url);
@@ -63,10 +69,12 @@ export const POST = safeHandler(
 
     const {
       tableNo,
+      roomNo,
       items,
       note,
       type,
       paymentMethod,
+      addToOrderId,
       deliveryAddress,
       deliveryLat,
       deliveryLng,
@@ -79,6 +87,75 @@ export const POST = safeHandler(
 
     const orderType = type ?? "DINE_IN";
 
+    // ── Add items to existing cash order ─────────────────────────────
+    if (addToOrderId) {
+      const existing = await db.order.findFirst({
+        where: {
+          id: addToOrderId,
+          restaurantId: id,
+          status: { in: ["PENDING", "ACCEPTED", "PREPARING"] },
+        },
+        include: { payment: true },
+      });
+
+      if (!existing) {
+        return NextResponse.json(
+          { error: "Active order not found" },
+          { status: 404 },
+        );
+      }
+
+      if (existing.payment?.method !== "CASH") {
+        return NextResponse.json(
+          { error: "Can only add items to cash orders" },
+          { status: 400 },
+        );
+      }
+
+      const addSubtotal = items.reduce(
+        (sum, item) => sum + item.price * item.quantity,
+        0,
+      );
+      const addTax = Math.round(addSubtotal * 0.13 * 100) / 100;
+
+      await db.orderItem.createMany({
+        data: items.map((item) => ({
+          orderId: addToOrderId,
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+          menuItemId: item.menuItemId ?? null,
+        })),
+      });
+
+      const updated = await db.order.update({
+        where: { id: addToOrderId },
+        data: {
+          subtotal: { increment: addSubtotal },
+          tax: { increment: addTax },
+          total: { increment: addSubtotal + addTax },
+          note: note ? (existing.note ? `${existing.note}; ${note}` : note) : undefined,
+        },
+        include: { items: true, payment: true, bill: true, delivery: true },
+      });
+
+      // Regenerate bill with updated totals
+      await generateBill(addToOrderId);
+
+      logAudit({
+        action: "ORDER_UPDATED",
+        entity: "Order",
+        entityId: addToOrderId,
+        detail: `Added ${items.length} items to order ${existing.orderNo} (+Rs.${addSubtotal + addTax})`,
+        metadata: { orderNo: existing.orderNo, addedItems: items.length, addedTotal: addSubtotal + addTax },
+        restaurantId: id,
+        ipAddress: getClientIp(req.headers),
+      });
+
+      return NextResponse.json(updated, { status: 200 });
+    }
+
+    // ── Create new order ─────────────────────────────────────────────
     if (orderType === "DELIVERY" && !deliveryAddress) {
       return NextResponse.json(
         { error: "Delivery address is required" },
@@ -126,7 +203,8 @@ export const POST = safeHandler(
     const order = await db.order.create({
       data: {
         orderNo,
-        tableNo: orderType === "DINE_IN" && tableNo ? parseInt(tableNo, 10) : null,
+        tableNo: orderType === "DINE_IN" && tableNo ? parseInt(String(tableNo), 10) : null,
+        roomNo: roomNo ?? null,
         subtotal,
         tax,
         total,
@@ -185,7 +263,7 @@ export const POST = safeHandler(
       data: { totalOrders: { increment: 1 } },
     });
 
-    notifyKitchenNewOrder(id, orderNo, total, tableNo ? parseInt(tableNo, 10) : null).catch((err: unknown) => {
+    notifyKitchenNewOrder(id, orderNo, total, tableNo ? parseInt(String(tableNo), 10) : null).catch((err: unknown) => {
       console.error("[Orders] Failed to send kitchen notification:", err);
     });
 

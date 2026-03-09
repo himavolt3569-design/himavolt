@@ -847,6 +847,7 @@ function MenuPageContent() {
   const tableNo = searchParams.get("table")
     ? Number(searchParams.get("table"))
     : null;
+  const roomNo = searchParams.get("room") || null;
 
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
@@ -1065,6 +1066,11 @@ function MenuPageContent() {
                 {tableNo && (
                   <span className="ml-2 text-[#FF9933] font-bold">
                     Table {tableNo}
+                  </span>
+                )}
+                {roomNo && (
+                  <span className="ml-2 text-[#FF9933] font-bold">
+                    Room {roomNo}
                   </span>
                 )}
               </p>
@@ -1360,7 +1366,9 @@ function MenuPageContent() {
           open={checkoutOpen}
           onClose={() => setCheckoutOpen(false)}
           restaurantId={restaurantId}
+          restaurantSlug={slug}
           tableNo={tableNo}
+          roomNo={roomNo}
           onOrderPlaced={handleOrderPlaced}
         />
       )}

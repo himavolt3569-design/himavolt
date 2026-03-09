@@ -23,7 +23,11 @@ export async function apiFetch<T = unknown>(
 
   if (!res.ok) {
     const error = await res.json().catch(() => ({ error: "Request failed" }));
-    throw new Error(error.error || `API error: ${res.status}`);
+    const msg = error.error || `API error: ${res.status}`;
+    if (error.issues) {
+      console.error(`[API ${res.status}] ${msg}`, error.issues);
+    }
+    throw new Error(msg);
   }
 
   return res.json();

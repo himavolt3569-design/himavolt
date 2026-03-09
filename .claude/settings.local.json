@@ -6,7 +6,22 @@
       "Bash(head -80 /d/Official_Projects/himalhub/src/app/bill/[orderId]/page.tsx)",
       "Bash(npx tsc --noEmit)",
       "Bash(npx next build)",
-      "Bash(xargs basename -a)"
+      "Bash(xargs basename -a)",
+      "Bash(mkdir -p \"d:/Official_Projects/himalhub/src/app/api/restaurants/[id]/payment-qrs\")",
+      "Bash(mkdir -p \"d:/Official_Projects/himalhub/src/app/api/restaurants/[id]/payment-qrs/[qrId]\")",
+      "Bash(npx prisma generate)",
+      "Bash(wc -l /d/Official_Projects/himalhub/src/app/menu/[slug]/page.tsx)",
+      "Bash(npx tsc --noEmit --pretty)",
+      "Bash(xargs grep -l \"SSE\\\\|EventSource\\\\|text/event-stream\")",
+      "Bash(xargs grep -l \"track\\\\|orderId\")",
+      "Bash(npx prisma migrate dev --name \"chat_broadcast_channel_anonymous\")",
+      "Bash(npx prisma db push --accept-data-loss)",
+      "Bash(node -e \"console.log\\(require\\(''crypto''\\).randomBytes\\(64\\).toString\\(''hex''\\)\\)\")",
+      "Bash(ls -la /d/Official_Projects/himalhub/src/app/api/restaurants/[id]/payment-qrs/)",
+      "Bash(ls -la /d/Official_Projects/himalhub/src/app/api/public/restaurants/[slug]/payment-qrs/)"
+    ],
+    "additionalDirectories": [
+      "d:\\Official_Projects\\himalhub\\src\\app\\api\\public\\restaurants\\[slug]"
     ]
   }
 }

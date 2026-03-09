@@ -18,6 +18,9 @@ import {
   Truck,
   UtensilsCrossed,
   ShoppingCart,
+  QrCode,
+  BedDouble,
+  PlusCircle,
 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import {
@@ -28,6 +31,12 @@ import {
 } from "@/context/OrderContext";
 import { apiFetch } from "@/lib/api-client";
 import gsap from "gsap";
+
+interface PaymentQRImage {
+  id: string;
+  label: string;
+  imageUrl: string;
+}
 
 const PAYMENT_METHODS: {
   id: PaymentMethodType;
@@ -101,7 +110,9 @@ interface CheckoutSheetProps {
   open: boolean;
   onClose: () => void;
   restaurantId: string;
+  restaurantSlug?: string;
   tableNo: number | null;
+  roomNo?: string | null;
   onOrderPlaced: (orderId: string) => void;
 }
 
@@ -109,17 +120,26 @@ export default function CheckoutSheet({
   open,
   onClose,
   restaurantId,
+  restaurantSlug,
   tableNo,
+  roomNo,
   onOrderPlaced,
 }: CheckoutSheetProps) {
-  const { items, subtotal, totalItems, clearCart } = useCart();
-  const { placeOrder } = useOrder();
+  const { items, subtotal, totalItems, clearCart, restaurantSlug: cartSlug } =
+    useCart();
+  const { placeOrder, addToOrder, activeOrder } = useOrder();
   const [selectedPayment, setSelectedPayment] =
     useState<PaymentMethodType>("CASH");
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
-  const [step, setStep] = useState<"review" | "payment">("review");
+  const [step, setStep] = useState<"review" | "payment" | "scan-qr">(
+    "review",
+  );
   const totalRef = useRef<HTMLSpanElement>(null);
+
+  // Payment QR images
+  const [paymentQRs, setPaymentQRs] = useState<PaymentQRImage[]>([]);
+  const [selectedQR, setSelectedQR] = useState<PaymentQRImage | null>(null);
 
   // Order type & delivery state
   const [orderType, setOrderType] = useState<OrderType>(
@@ -129,10 +149,32 @@ export default function CheckoutSheet({
   const [deliveryPhone, setDeliveryPhone] = useState("");
   const [deliveryNote, setDeliveryNote] = useState("");
 
-  const DELIVERY_FEE = 50; // default, matches backend DeliveryZone baseFee default
+  const slug = restaurantSlug || cartSlug;
+
+  const DELIVERY_FEE = 50;
   const deliveryFee = orderType === "DELIVERY" ? DELIVERY_FEE : 0;
   const tax = Math.round(subtotal * 0.13 * 100) / 100;
   const total = subtotal + tax + deliveryFee;
+
+  const isOnlinePayment = selectedPayment !== "CASH";
+
+  // Check if there's an active cash order we can add to
+  const canAddToExisting =
+    selectedPayment === "CASH" &&
+    activeOrder &&
+    activeOrder.restaurantId === restaurantId &&
+    activeOrder.payment?.method === "CASH" &&
+    ["PENDING", "ACCEPTED", "PREPARING"].includes(activeOrder.status);
+
+  // Fetch payment QR images
+  useEffect(() => {
+    if (!open || !slug) return;
+    apiFetch<PaymentQRImage[]>(
+      `/api/public/restaurants/${slug}/payment-qrs`,
+    )
+      .then(setPaymentQRs)
+      .catch(() => setPaymentQRs([]));
+  }, [open, slug]);
 
   // Reset order type when tableNo changes
   useEffect(() => {
@@ -163,6 +205,25 @@ export default function CheckoutSheet({
     setLoading(true);
 
     try {
+      // For cash: add to existing active order if available
+      if (canAddToExisting && activeOrder) {
+        const order = await addToOrder(
+          restaurantId,
+          activeOrder.id,
+          items.map((i) => ({
+            name: i.name,
+            quantity: i.quantity,
+            price: i.price,
+            menuItemId: i.id,
+          })),
+          note || undefined,
+        );
+        clearCart();
+        onClose();
+        onOrderPlaced(order.id);
+        return;
+      }
+
       const deliveryInfo: DeliveryInfo | undefined =
         orderType === "DELIVERY"
           ? {
@@ -185,6 +246,7 @@ export default function CheckoutSheet({
         note || undefined,
         selectedPayment,
         deliveryInfo,
+        roomNo || undefined,
       );
 
       if (selectedPayment === "ESEWA") {
@@ -237,6 +299,15 @@ export default function CheckoutSheet({
     }
   };
 
+  const handleContinueToPayment = () => {
+    // If restaurant has QR codes, show them before placing order
+    if (paymentQRs.length > 0) {
+      setStep("scan-qr");
+    } else {
+      setStep("payment");
+    }
+  };
+
   return (
     <AnimatePresence>
       {open && (
@@ -260,7 +331,11 @@ export default function CheckoutSheet({
               <div className="flex items-center gap-2">
                 <ShoppingBag className="h-5 w-5 text-[#FF9933]" />
                 <h2 className="text-lg font-bold text-[#1F2A2A]">
-                  {step === "review" ? "Review Order" : "Payment"}
+                  {step === "review"
+                    ? "Review Order"
+                    : step === "scan-qr"
+                      ? "Scan & Pay"
+                      : "Payment"}
                 </h2>
               </div>
               <button
@@ -274,6 +349,21 @@ export default function CheckoutSheet({
             <div className="flex-1 overflow-y-auto">
               {step === "review" ? (
                 <div className="px-6 py-5 space-y-5">
+                  {/* Add to existing order banner */}
+                  {canAddToExisting && activeOrder && (
+                    <div className="flex items-start gap-3 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3">
+                      <PlusCircle className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
+                      <div>
+                        <p className="text-xs font-bold text-amber-800">
+                          Adding to order #{activeOrder.orderNo}
+                        </p>
+                        <p className="text-[11px] text-amber-600 mt-0.5">
+                          These items will be added to your active cash order
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Order Type Selector */}
                   <div>
                     <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
@@ -446,16 +536,104 @@ export default function CheckoutSheet({
                     </div>
                   </div>
 
-                  {tableNo && orderType === "DINE_IN" && (
+                  {/* Table / Room info */}
+                  {(tableNo || roomNo) && orderType === "DINE_IN" && (
                     <div className="flex items-center gap-2 rounded-xl bg-[#0A4D3C]/5 px-4 py-3">
-                      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#0A4D3C]/10 text-sm font-bold text-[#0A4D3C]">
-                        {tableNo}
-                      </span>
-                      <span className="text-sm font-medium text-[#0A4D3C]">
-                        Table {tableNo} &middot; Dine In
-                      </span>
+                      {tableNo && (
+                        <>
+                          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#0A4D3C]/10 text-sm font-bold text-[#0A4D3C]">
+                            {tableNo}
+                          </span>
+                          <span className="text-sm font-medium text-[#0A4D3C]">
+                            Table {tableNo}
+                          </span>
+                        </>
+                      )}
+                      {roomNo && (
+                        <>
+                          <BedDouble className="h-4 w-4 text-[#0A4D3C] ml-1" />
+                          <span className="text-sm font-medium text-[#0A4D3C]">
+                            Room {roomNo}
+                          </span>
+                        </>
+                      )}
                     </div>
                   )}
+                </div>
+              ) : step === "scan-qr" ? (
+                /* ── Scan & Pay step: show restaurant payment QR images ── */
+                <div className="px-6 py-5 space-y-4">
+                  <div className="flex items-start gap-3 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3">
+                    <QrCode className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-xs font-bold text-amber-800">
+                        {selectedPayment === "CASH"
+                          ? "Optional: Pay via QR before ordering"
+                          : "Pay first, then your order will be placed"}
+                      </p>
+                      <p className="text-[11px] text-amber-600 mt-0.5">
+                        Scan one of the QR codes below to pay Rs. {total}. After
+                        payment, tap &ldquo;I&apos;ve Paid&rdquo; to confirm your order.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    {paymentQRs.map((qr) => (
+                      <button
+                        key={qr.id}
+                        onClick={() =>
+                          setSelectedQR(selectedQR?.id === qr.id ? null : qr)
+                        }
+                        className={`w-full rounded-xl border-2 p-3 text-left transition-all ${
+                          selectedQR?.id === qr.id
+                            ? "border-[#FF9933] bg-[#FF9933]/5 shadow-sm"
+                            : "border-gray-100 hover:border-gray-200"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100">
+                            <QrCode className="h-5 w-5 text-gray-500" />
+                          </div>
+                          <span className="text-sm font-bold text-[#1F2A2A]">
+                            {qr.label}
+                          </span>
+                          <ChevronRight
+                            className={`ml-auto h-4 w-4 text-gray-400 transition-transform ${
+                              selectedQR?.id === qr.id ? "rotate-90" : ""
+                            }`}
+                          />
+                        </div>
+                        <AnimatePresence>
+                          {selectedQR?.id === qr.id && (
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: "auto" }}
+                              exit={{ opacity: 0, height: 0 }}
+                              className="mt-3 overflow-hidden"
+                            >
+                              <img
+                                src={qr.imageUrl}
+                                alt={qr.label}
+                                className="w-full max-h-72 object-contain rounded-xl bg-white border border-gray-100 p-2"
+                              />
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="rounded-xl bg-gray-50 p-4">
+                    <div className="flex justify-between">
+                      <span className="text-sm font-bold text-[#1F2A2A]">
+                        Amount to Pay
+                      </span>
+                      <span className="text-lg font-extrabold text-[#FF9933]">
+                        Rs. {total}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               ) : (
                 <div className="px-6 py-5 space-y-4">
@@ -519,6 +697,17 @@ export default function CheckoutSheet({
                     })}
                   </div>
 
+                  {/* Show QR hint if restaurant has payment QRs */}
+                  {paymentQRs.length > 0 && (
+                    <div className="flex items-start gap-2 rounded-xl bg-blue-50 border border-blue-200 px-4 py-3">
+                      <QrCode className="h-4 w-4 text-blue-500 mt-0.5 shrink-0" />
+                      <p className="text-[11px] text-blue-700">
+                        You&apos;ll be shown the restaurant&apos;s payment QR
+                        code to scan before your order is placed.
+                      </p>
+                    </div>
+                  )}
+
                   <div className="flex items-center gap-2 rounded-xl bg-gray-50 px-4 py-3">
                     <Shield className="h-4 w-4 text-gray-400" />
                     <p className="text-[11px] text-gray-500">
@@ -540,7 +729,7 @@ export default function CheckoutSheet({
                   Continue to Payment
                   <ChevronRight className="h-4 w-4" />
                 </button>
-              ) : (
+              ) : step === "scan-qr" ? (
                 <div className="space-y-2">
                   <button
                     onClick={handlePlaceOrder}
@@ -550,7 +739,44 @@ export default function CheckoutSheet({
                     {loading ? (
                       <>
                         <Loader2 className="h-4 w-4 animate-spin" />
+                        Confirming...
+                      </>
+                    ) : (
+                      <>I&apos;ve Paid &middot; Place Order</>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => setStep("payment")}
+                    className="w-full rounded-xl border border-gray-200 py-3 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors"
+                  >
+                    Back to Payment Methods
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <button
+                    onClick={
+                      paymentQRs.length > 0
+                        ? handleContinueToPayment
+                        : handlePlaceOrder
+                    }
+                    disabled={loading}
+                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#0A4D3C] py-4 text-base font-bold text-white transition-all hover:bg-[#083a2d] active:scale-[0.98] shadow-lg shadow-[#0A4D3C]/25 disabled:opacity-60"
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
                         Processing...
+                      </>
+                    ) : paymentQRs.length > 0 ? (
+                      <>
+                        Scan & Pay &middot; Rs. {total}
+                        <ChevronRight className="h-4 w-4" />
+                      </>
+                    ) : canAddToExisting ? (
+                      <>
+                        <PlusCircle className="h-4 w-4" />
+                        Add to Order &middot; Rs. {total}
                       </>
                     ) : (
                       <>Place Order &middot; Rs. {total}</>

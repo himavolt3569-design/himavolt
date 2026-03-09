@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getOrCreateUser } from "@/lib/auth";
+import { getStaffSession } from "@/lib/staff-auth";
 import { notifyCustomerOrderUpdate } from "@/lib/notifications";
 import { logAudit, getClientIp, type AuditAction } from "@/lib/audit";
 import { z } from "zod";
@@ -55,23 +56,20 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string; orderId: string }> },
 ) {
   const { id, orderId } = await params;
-  const user = await getOrCreateUser();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
 
-  const restaurant = await db.restaurant.findFirst({
-    where: { id, ownerId: user.id },
-  });
+  // Staff JWT auth (kitchen/billing staff)
+  const staff = await getStaffSession(req);
+  let actorId: string | undefined;
 
-  const isStaff = !restaurant
-    ? await db.staffMember.findFirst({
-        where: { userId: user.id, restaurantId: id, isActive: true },
-      })
-    : null;
-
-  if (!restaurant && !isStaff) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (staff && staff.restaurantId === id) {
+    actorId = staff.userId || staff.staffId;
+  } else {
+    // Fall back to Clerk owner auth
+    const user = await getOrCreateUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const restaurant = await db.restaurant.findFirst({ where: { id, ownerId: user.id } });
+    if (!restaurant) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    actorId = user.id;
   }
 
   const parsed = updateOrderSchema.safeParse(await req.json());
@@ -152,7 +150,7 @@ export async function PATCH(
     entityId: orderId,
     detail: `Order ${order.orderNo} status changed to ${status}`,
     metadata: { orderNo: order.orderNo, status, estimatedTime },
-    userId: user.id,
+    userId: actorId,
     restaurantId: id,
     ipAddress: getClientIp(req.headers),
   });

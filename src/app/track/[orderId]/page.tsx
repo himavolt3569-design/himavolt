@@ -19,6 +19,9 @@ import {
   Phone,
   Timer,
   Loader2,
+  BedDouble,
+  QrCode,
+  ChevronDown,
 } from "lucide-react";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api-client";
@@ -30,6 +33,7 @@ interface TrackingOrder {
   orderNo: string;
   restaurantId: string;
   tableNo: number | null;
+  roomNo: string | null;
   status: string;
   subtotal: number;
   tax: number;
@@ -275,6 +279,9 @@ export default function TrackOrderPage() {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [showBill, setShowBill] = useState(false);
+  const [showQRs, setShowQRs] = useState(false);
+  const [paymentQRs, setPaymentQRs] = useState<{ id: string; label: string; imageUrl: string }[]>([]);
+  const [selectedQR, setSelectedQR] = useState<string | null>(null);
   const clockRef = useRef<HTMLDivElement>(null);
   const handRef = useRef<HTMLDivElement>(null);
 
@@ -292,11 +299,66 @@ export default function TrackOrderPage() {
     }
   }, [orderId]);
 
+  // SSE-based real-time updates with polling fallback
   useEffect(() => {
+    let es: EventSource | null = null;
+    let fallbackInterval: ReturnType<typeof setInterval> | null = null;
+
+    const connectSSE = () => {
+      try {
+        es = new EventSource(`/api/track/stream?orderId=${orderId}`);
+
+        es.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            if (data.type === "order" && data.order) {
+              setOrder(data.order);
+              setError(null);
+              setLoading(false);
+            } else if (data.type === "error") {
+              setError(data.message);
+              setLoading(false);
+            }
+          } catch {
+            /* ignore parse errors */
+          }
+        };
+
+        es.onerror = () => {
+          // SSE connection failed — fall back to polling
+          es?.close();
+          es = null;
+          if (!fallbackInterval) {
+            fallbackInterval = setInterval(fetchOrder, 5000);
+          }
+        };
+      } catch {
+        // EventSource not supported — use polling
+        fetchOrder();
+        fallbackInterval = setInterval(fetchOrder, 5000);
+      }
+    };
+
+    // Initial fetch + SSE connection
     fetchOrder();
-    const interval = setInterval(fetchOrder, 5000);
-    return () => clearInterval(interval);
-  }, [fetchOrder]);
+    connectSSE();
+
+    return () => {
+      es?.close();
+      if (fallbackInterval) clearInterval(fallbackInterval);
+    };
+  }, [orderId, fetchOrder]);
+
+  // Fetch payment QRs once order is loaded
+  useEffect(() => {
+    if (!order?.restaurant.slug) return;
+    if (order.payment?.status === "COMPLETED") return;
+    apiFetch<{ id: string; label: string; imageUrl: string }[]>(
+      `/api/public/restaurants/${order.restaurant.slug}/payment-qrs`
+    )
+      .then(setPaymentQRs)
+      .catch(() => setPaymentQRs([]));
+  }, [order?.restaurant.slug, order?.payment?.status]);
 
   useEffect(() => {
     if (
@@ -462,15 +524,27 @@ export default function TrackOrderPage() {
                   )}
                 </button>
               </div>
-              {order.tableNo && (
-                <p className="text-xs text-gray-500 mt-1">
-                  Table {order.tableNo} &middot;{" "}
-                  {order.type === "DINE_IN"
-                    ? "Dine In"
-                    : order.type === "TAKEAWAY"
-                      ? "Takeaway"
-                      : "Delivery"}
-                </p>
+              {(order.tableNo || order.roomNo || order.type) && (
+                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                  {order.tableNo && (
+                    <span className="text-xs text-gray-500">
+                      Table {order.tableNo}
+                    </span>
+                  )}
+                  {order.roomNo && (
+                    <span className="inline-flex items-center gap-1 text-xs text-purple-600 font-medium">
+                      <BedDouble className="h-3 w-3" />
+                      Room {order.roomNo}
+                    </span>
+                  )}
+                  <span className="text-xs text-gray-400">
+                    {order.type === "DINE_IN"
+                      ? "Dine In"
+                      : order.type === "TAKEAWAY"
+                        ? "Takeaway"
+                        : "Delivery"}
+                  </span>
+                </div>
               )}
             </div>
             <div className="text-right">
@@ -519,6 +593,85 @@ export default function TrackOrderPage() {
             </div>
           )}
         </motion.div>
+
+        {/* Payment QR section — shown when payment is still pending */}
+        {paymentQRs.length > 0 && order.payment && order.payment.status !== "COMPLETED" && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="rounded-2xl border border-amber-200 bg-amber-50 overflow-hidden shadow-sm"
+          >
+            <button
+              onClick={() => setShowQRs(!showQRs)}
+              className="w-full flex items-center justify-between px-5 py-4"
+            >
+              <div className="flex items-center gap-2">
+                <QrCode className="h-4 w-4 text-amber-600" />
+                <span className="text-sm font-bold text-amber-800">
+                  Scan to Pay &middot; Rs. {order.total}
+                </span>
+              </div>
+              <motion.div animate={{ rotate: showQRs ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                <ChevronDown className="h-4 w-4 text-amber-600" />
+              </motion.div>
+            </button>
+            <AnimatePresence>
+              {showQRs && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden"
+                >
+                  <div className="px-5 pb-5 space-y-3">
+                    <p className="text-[11px] text-amber-700">
+                      Scan one of the QR codes below to complete your payment.
+                    </p>
+                    {paymentQRs.map((qr) => (
+                      <button
+                        key={qr.id}
+                        onClick={() => setSelectedQR(selectedQR === qr.id ? null : qr.id)}
+                        className={`w-full rounded-xl border-2 p-3 text-left transition-all bg-white ${
+                          selectedQR === qr.id ? "border-amber-400" : "border-gray-100 hover:border-gray-200"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-100">
+                            <QrCode className="h-4 w-4 text-amber-600" />
+                          </div>
+                          <span className="text-sm font-bold text-[#1F2A2A]">{qr.label}</span>
+                          <motion.div
+                            animate={{ rotate: selectedQR === qr.id ? 180 : 0 }}
+                            className="ml-auto"
+                          >
+                            <ChevronDown className="h-4 w-4 text-gray-400" />
+                          </motion.div>
+                        </div>
+                        <AnimatePresence>
+                          {selectedQR === qr.id && (
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: "auto" }}
+                              exit={{ opacity: 0, height: 0 }}
+                              className="mt-3 overflow-hidden"
+                            >
+                              <img
+                                src={qr.imageUrl}
+                                alt={qr.label}
+                                className="w-full max-h-72 object-contain rounded-xl bg-white border border-gray-100 p-2"
+                              />
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </button>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        )}
 
         {/* Countdown timer */}
         {showTimer && (

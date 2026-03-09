@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -58,6 +58,7 @@ interface Order {
   id: string;
   orderNo: string;
   tableNo: number | null;
+  roomNo: string | null;
   status: string;
   subtotal: number;
   tax: number;
@@ -226,10 +227,33 @@ async function staffFetch(url: string, opts?: RequestInit) {
 
 /* ── ORDERS TAB ──────────────────────────────────────────────────── */
 
+function playAlertSound() {
+  try {
+    const ctx = new AudioContext();
+    // Two-tone bell: C5 then E5
+    [523.25, 659.25].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.3, ctx.currentTime + i * 0.15);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.15 + 0.4);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(ctx.currentTime + i * 0.15);
+      osc.stop(ctx.currentTime + i * 0.15 + 0.4);
+    });
+  } catch {
+    /* audio not available */
+  }
+}
+
 function OrdersTab({ restaurantId }: { restaurantId: string }) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("active");
+  const [acceptingId, setAcceptingId] = useState<string | null>(null);
+  const [estTime, setEstTime] = useState("15");
+  const { showToast } = useToast();
 
   const load = useCallback(async () => {
     try {
@@ -243,22 +267,94 @@ function OrdersTab({ restaurantId }: { restaurantId: string }) {
     setLoading(false);
   }, [restaurantId]);
 
+  // SSE-based real-time updates with polling fallback
   useEffect(() => {
-    load();
-    const iv = setInterval(load, 8000);
-    return () => clearInterval(iv);
-  }, [load]);
+    let es: EventSource | null = null;
+    let fallbackInterval: ReturnType<typeof setInterval> | null = null;
 
-  const updateStatus = async (orderId: string, status: string) => {
+    const connectSSE = () => {
+      try {
+        es = new EventSource(
+          `/api/restaurants/${restaurantId}/orders/stream`,
+        );
+
+        es.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            if (data.type === "orders" && data.orders) {
+              setOrders(data.orders);
+              setLoading(false);
+
+              // Play alert sound for new pending orders
+              if (data.newPendingCount > 0) {
+                playAlertSound();
+                showToast(
+                  `${data.newPendingCount} new order${data.newPendingCount > 1 ? "s" : ""}!`,
+                  "info",
+                );
+              }
+            }
+          } catch {
+            /* ignore parse errors */
+          }
+        };
+
+        es.onerror = () => {
+          es?.close();
+          es = null;
+          // Fall back to polling
+          if (!fallbackInterval) {
+            fallbackInterval = setInterval(load, 8000);
+          }
+        };
+      } catch {
+        // EventSource not supported
+        load();
+        fallbackInterval = setInterval(load, 8000);
+      }
+    };
+
+    load();
+    connectSSE();
+
+    return () => {
+      es?.close();
+      if (fallbackInterval) clearInterval(fallbackInterval);
+    };
+  }, [restaurantId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const updateStatus = async (
+    orderId: string,
+    status: string,
+    extra?: Record<string, unknown>,
+  ) => {
     try {
       await staffFetch(`/api/restaurants/${restaurantId}/orders/${orderId}`, {
         method: "PATCH",
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({ status, ...extra }),
       });
+      // SSE will pick up the change; also do an immediate fetch
       load();
     } catch {
       /* ignore */
     }
+  };
+
+  const handleAccept = async (orderId: string) => {
+    const mins = parseInt(estTime, 10);
+    if (!mins || mins < 1) {
+      showToast("Please enter a valid estimated time", "error");
+      return;
+    }
+    await updateStatus(orderId, "ACCEPTED", { estimatedTime: mins });
+    setAcceptingId(null);
+    setEstTime("15");
+    showToast("Order accepted!", "success");
+  };
+
+  const handleReject = async (orderId: string) => {
+    await updateStatus(orderId, "REJECTED");
+    showToast("Order rejected", "info");
   };
 
   const filtered = orders.filter((o) => {
@@ -325,7 +421,7 @@ function OrdersTab({ restaurantId }: { restaurantId: string }) {
             className={`rounded-2xl bg-white border border-gray-100 border-l-4 ${STATUS_BORDER_LEFT[order.status] || "border-l-gray-300"} p-4 shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-all`}
           >
             <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-sm font-extrabold text-[#1F2A2A]">
                   #{order.orderNo}
                 </span>
@@ -334,13 +430,29 @@ function OrdersTab({ restaurantId }: { restaurantId: string }) {
                     Table {order.tableNo}
                   </span>
                 )}
+                {order.roomNo && (
+                  <span className="rounded-lg bg-purple-50 px-2 py-0.5 text-[10px] font-bold text-purple-600">
+                    Room {order.roomNo}
+                  </span>
+                )}
+                {order.type !== "DINE_IN" && (
+                  <span className="rounded-lg bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-600">
+                    {order.type === "DELIVERY" ? "Delivery" : "Takeaway"}
+                  </span>
+                )}
               </div>
               <span
-                className={`rounded-lg px-2 py-0.5 text-[10px] font-bold border ${STATUS_COLORS[order.status] || "bg-gray-100"}`}
+                className={`rounded-lg px-2 py-0.5 text-[10px] font-bold border shrink-0 ${STATUS_COLORS[order.status] || "bg-gray-100"}`}
               >
                 {order.status}
               </span>
             </div>
+
+            {order.note && (
+              <div className="mb-3 rounded-lg bg-amber-50 px-3 py-2 text-[11px] text-amber-700">
+                <strong>Note:</strong> {order.note}
+              </div>
+            )}
 
             {/* Items */}
             <div className="space-y-1 mb-3">
@@ -361,27 +473,139 @@ function OrdersTab({ restaurantId }: { restaurantId: string }) {
                 <Clock className="h-3 w-3" />
                 {timeAgo(order.createdAt)}
                 {order.user?.name && <span>· {order.user.name}</span>}
+                {order.estimatedTime && order.status !== "PENDING" && (
+                  <span className="text-[#FF9933] font-bold">
+                    · ~{order.estimatedTime}min
+                  </span>
+                )}
               </div>
               <span className="text-sm font-extrabold text-[#1F2A2A]">
                 Rs. {order.total}
               </span>
             </div>
 
+            {order.payment && (
+              <div className="mt-2 flex items-center gap-1.5 text-[10px]">
+                <CreditCard className="h-3 w-3 text-gray-400" />
+                <span className="font-bold text-gray-500">
+                  {order.payment.method}
+                </span>
+                <span
+                  className={`rounded-full px-1.5 py-0.5 font-bold ${
+                    order.payment.status === "COMPLETED"
+                      ? "bg-green-50 text-green-600"
+                      : "bg-amber-50 text-amber-600"
+                  }`}
+                >
+                  {order.payment.status === "COMPLETED" ? "Paid" : "Pending"}
+                </span>
+              </div>
+            )}
+
             {/* Actions */}
             {order.status === "PENDING" && (
-              <div className="flex gap-2 mt-3">
-                <button
-                  onClick={() => updateStatus(order.id, "ACCEPTED")}
-                  className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-[#0A4D3C] py-2.5 text-xs font-bold text-white hover:bg-[#083a2d] transition-all"
-                >
-                  <Check className="h-3.5 w-3.5" /> Accept
-                </button>
-                <button
-                  onClick={() => updateStatus(order.id, "REJECTED")}
-                  className="flex items-center justify-center gap-1 rounded-xl bg-red-50 px-4 py-2.5 text-xs font-bold text-red-600 hover:bg-red-100 transition-all"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
+              <div className="mt-3 space-y-2">
+                <AnimatePresence>
+                  {acceptingId === order.id ? (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="rounded-xl bg-[#0A4D3C]/5 p-3 space-y-2">
+                        <label className="text-[11px] font-bold text-[#0A4D3C]">
+                          Estimated prep time (minutes)
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1 flex-1">
+                            <button
+                              onClick={() =>
+                                setEstTime((v) =>
+                                  String(Math.max(1, parseInt(v || "0", 10) - 5)),
+                                )
+                              }
+                              className="flex h-9 w-9 items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"
+                            >
+                              <Minus className="h-3.5 w-3.5" />
+                            </button>
+                            <div className="relative flex-1">
+                              <Clock className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#FF9933]" />
+                              <input
+                                type="number"
+                                min="1"
+                                max="120"
+                                value={estTime}
+                                onChange={(e) => setEstTime(e.target.value)}
+                                className="w-full rounded-lg border border-gray-200 bg-white py-2 pl-8 pr-3 text-center text-sm font-bold text-[#1F2A2A] outline-none focus:border-[#0A4D3C] focus:ring-1 focus:ring-[#0A4D3C]/20"
+                              />
+                            </div>
+                            <button
+                              onClick={() =>
+                                setEstTime((v) =>
+                                  String(Math.min(120, parseInt(v || "0", 10) + 5)),
+                                )
+                              }
+                              className="flex h-9 w-9 items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"
+                            >
+                              <Plus className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                          <span className="text-xs font-bold text-gray-400">
+                            min
+                          </span>
+                        </div>
+                        <div className="flex gap-2 pt-1">
+                          {[10, 15, 20, 30, 45].map((t) => (
+                            <button
+                              key={t}
+                              onClick={() => setEstTime(String(t))}
+                              className={`flex-1 rounded-lg py-1.5 text-[10px] font-bold transition-all ${
+                                estTime === String(t)
+                                  ? "bg-[#FF9933] text-white"
+                                  : "bg-white border border-gray-200 text-gray-500 hover:border-[#FF9933] hover:text-[#FF9933]"
+                              }`}
+                            >
+                              {t}m
+                            </button>
+                          ))}
+                        </div>
+                        <div className="flex gap-2 pt-1">
+                          <button
+                            onClick={() => handleAccept(order.id)}
+                            className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-[#0A4D3C] py-2.5 text-xs font-bold text-white hover:bg-[#083a2d] transition-all"
+                          >
+                            <Check className="h-3.5 w-3.5" /> Confirm Accept
+                          </button>
+                          <button
+                            onClick={() => {
+                              setAcceptingId(null);
+                              setEstTime("15");
+                            }}
+                            className="rounded-xl bg-gray-100 px-3 py-2.5 text-xs font-bold text-gray-500 hover:bg-gray-200 transition-all"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setAcceptingId(order.id)}
+                        className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-[#0A4D3C] py-2.5 text-xs font-bold text-white hover:bg-[#083a2d] transition-all"
+                      >
+                        <Check className="h-3.5 w-3.5" /> Accept
+                      </button>
+                      <button
+                        onClick={() => handleReject(order.id)}
+                        className="flex items-center justify-center gap-1 rounded-xl bg-red-50 px-4 py-2.5 text-xs font-bold text-red-600 hover:bg-red-100 transition-all"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  )}
+                </AnimatePresence>
               </div>
             )}
             {order.status === "ACCEPTED" && (
@@ -539,51 +763,154 @@ function MenuTab({ restaurantId }: { restaurantId: string }) {
 
 /* ── CHAT TAB ────────────────────────────────────────────────────── */
 
-function ChatTab({ restaurantId }: { restaurantId: string }) {
+function ChatTab({
+  restaurantId,
+  staffRole,
+  staffName,
+}: {
+  restaurantId: string;
+  staffRole: string;
+  staffName: string;
+}) {
+  const [tab, setTab] = useState<"customers" | "broadcast">("customers");
   const [rooms, setRooms] = useState<ChatRoom[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeRoom, setActiveRoom] = useState<string | null>(null);
   const [messages, setMessages] = useState<
-    { id: string; content: string; sender: string; createdAt: string }[]
+    { id: string; content: string; sender: string; senderName: string | null; createdAt: string }[]
   >([]);
   const [msg, setMsg] = useState("");
+  const [broadcastRoomId, setBroadcastRoomId] = useState<string | null>(null);
+  const [broadcastMsgs, setBroadcastMsgs] = useState<
+    { id: string; content: string; sender: string; senderName: string | null; createdAt: string }[]
+  >([]);
+  const [broadcastMsg, setBroadcastMsg] = useState("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const broadcastEndRef = useRef<HTMLDivElement>(null);
+  const sseRef = useRef<EventSource | null>(null);
+  const broadcastSseRef = useRef<EventSource | null>(null);
+
+  // Can this role send in broadcast channel?
+  const canBroadcast = ["SUPER_ADMIN", "MANAGER"].includes(staffRole);
+  // Sender label for current role
+  const senderLabel = staffRole === "SUPER_ADMIN" ? "ADMIN" : staffRole as "KITCHEN" | "BILLING" | "MANAGER";
 
   const loadRooms = useCallback(async () => {
     try {
       const data = await staffFetch(`/api/chat?restaurantId=${restaurantId}`);
       setRooms(data || []);
-    } catch {
-      /* ignore */
-    }
+    } catch { /* ignore */ }
     setLoading(false);
   }, [restaurantId]);
 
+  // SSE for active customer chat room
+  const connectRoomSSE = useCallback((roomId: string) => {
+    sseRef.current?.close();
+    const es = new EventSource(`/api/chat/${roomId}/stream`);
+    es.onmessage = (event) => {
+      try {
+        const newMsgs = JSON.parse(event.data);
+        if (Array.isArray(newMsgs) && newMsgs.length > 0) {
+          setMessages((prev) => {
+            const ids = new Set(prev.map((m) => m.id));
+            const added = newMsgs.filter((m) => !ids.has(m.id));
+            if (added.length === 0) return prev;
+            setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
+            return [...prev, ...added];
+          });
+        }
+      } catch { /* ignore */ }
+    };
+    es.onerror = () => { es.close(); setTimeout(() => connectRoomSSE(roomId), 4000); };
+    sseRef.current = es;
+  }, []);
+
+  // SSE for broadcast channel
+  const connectBroadcastSSE = useCallback((roomId: string) => {
+    broadcastSseRef.current?.close();
+    const es = new EventSource(`/api/chat/${roomId}/stream`);
+    es.onmessage = (event) => {
+      try {
+        const newMsgs = JSON.parse(event.data);
+        if (Array.isArray(newMsgs) && newMsgs.length > 0) {
+          setBroadcastMsgs((prev) => {
+            const ids = new Set(prev.map((m) => m.id));
+            const added = newMsgs.filter((m) => !ids.has(m.id));
+            if (added.length === 0) return prev;
+            setTimeout(() => broadcastEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
+            return [...prev, ...added];
+          });
+        }
+      } catch { /* ignore */ }
+    };
+    es.onerror = () => { es.close(); setTimeout(() => connectBroadcastSSE(roomId), 4000); };
+    broadcastSseRef.current = es;
+  }, []);
+
+  // Load broadcast channel
+  useEffect(() => {
+    (async () => {
+      try {
+        const room = await staffFetch(`/api/chat?restaurantId=${restaurantId}&type=BROADCAST`);
+        if (room?.id) {
+          setBroadcastRoomId(room.id);
+          const msgs = await staffFetch(`/api/chat/${room.id}/messages`);
+          setBroadcastMsgs(msgs || []);
+          connectBroadcastSSE(room.id);
+        }
+      } catch { /* ignore */ }
+    })();
+    return () => { broadcastSseRef.current?.close(); };
+  }, [restaurantId, connectBroadcastSSE]);
+
   useEffect(() => {
     loadRooms();
+    const interval = setInterval(loadRooms, 10000); // refresh room list every 10s
+    return () => clearInterval(interval);
   }, [loadRooms]);
+
+  useEffect(() => {
+    return () => { sseRef.current?.close(); };
+  }, []);
 
   const openRoom = async (roomId: string) => {
     setActiveRoom(roomId);
     try {
       const data = await staffFetch(`/api/chat/${roomId}/messages`);
       setMessages(data || []);
-    } catch {
-      /* ignore */
-    }
+      setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
+    } catch { /* ignore */ }
+    connectRoomSSE(roomId);
+  };
+
+  const closeRoom = () => {
+    sseRef.current?.close();
+    setActiveRoom(null);
+    setMessages([]);
   };
 
   const sendMessage = async () => {
     if (!msg.trim() || !activeRoom) return;
+    const text = msg.trim();
+    setMsg("");
     try {
       await staffFetch(`/api/chat/${activeRoom}/messages`, {
         method: "POST",
-        body: JSON.stringify({ content: msg.trim(), sender: "KITCHEN" }),
+        body: JSON.stringify({ content: text, sender: senderLabel, senderName: staffName }),
       });
-      setMsg("");
-      openRoom(activeRoom);
-    } catch {
-      /* ignore */
-    }
+    } catch { setMsg(text); }
+  };
+
+  const sendBroadcast = async () => {
+    if (!broadcastMsg.trim() || !broadcastRoomId || !canBroadcast) return;
+    const text = broadcastMsg.trim();
+    setBroadcastMsg("");
+    try {
+      await staffFetch(`/api/chat/${broadcastRoomId}/messages`, {
+        method: "POST",
+        body: JSON.stringify({ content: text, sender: senderLabel, senderName: staffName }),
+      });
+    } catch { setBroadcastMsg(text); }
   };
 
   if (loading)
@@ -593,19 +920,29 @@ function ChatTab({ restaurantId }: { restaurantId: string }) {
       </div>
     );
 
+  // Active customer chat room view
   if (activeRoom) {
     const room = rooms.find((r) => r.id === activeRoom);
     return (
       <div className="flex flex-col h-[65vh]">
         <button
-          onClick={() => setActiveRoom(null)}
+          onClick={closeRoom}
           className="flex items-center gap-2 text-sm font-bold text-[#0A4D3C] mb-3 hover:underline"
         >
-          ← Back to rooms
+          ← Back to chats
         </button>
-        <div className="rounded-xl bg-gray-50 border border-gray-100 p-2 mb-2">
+        <div className="rounded-xl bg-gray-50 border border-gray-100 p-2 mb-2 flex items-center gap-2">
+          <MessageCircle className="h-3.5 w-3.5 text-gray-400" />
           <span className="text-xs font-bold text-gray-500">
             Order #{room?.order?.orderNo || "?"}
+            {room?.order?.tableNo ? ` · Table ${room.order.tableNo}` : ""}
+          </span>
+          <span className="ml-auto flex items-center gap-1">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400" />
+            </span>
+            <span className="text-[10px] text-green-600 font-bold">Live</span>
           </span>
         </div>
         <div
@@ -613,44 +950,39 @@ function ChatTab({ restaurantId }: { restaurantId: string }) {
           style={{ scrollbarWidth: "thin" }}
         >
           {messages.map((m) => (
-            <div
-              key={m.id}
-              className={`flex ${m.sender !== "CUSTOMER" ? "justify-end" : "justify-start"}`}
-            >
-              <div
-                className={`max-w-[75%] rounded-2xl px-3.5 py-2 text-sm ${
-                  m.sender !== "CUSTOMER"
-                    ? "bg-[#0A4D3C] text-white rounded-br-md"
-                    : "bg-white border border-gray-200 text-[#1F2A2A] rounded-bl-md"
-                }`}
-              >
+            <div key={m.id} className={`flex ${m.sender !== "CUSTOMER" ? "justify-end" : "justify-start"}`}>
+              <div className={`max-w-[75%] rounded-2xl px-3.5 py-2 text-sm ${
+                m.sender !== "CUSTOMER"
+                  ? "bg-[#0A4D3C] text-white rounded-br-md"
+                  : "bg-white border border-gray-200 text-[#1F2A2A] rounded-bl-md"
+              }`}>
+                {m.sender !== "CUSTOMER" && m.senderName && (
+                  <p className="text-[10px] font-bold text-white/60 mb-0.5">{m.senderName}</p>
+                )}
                 {m.content}
                 <span className="block text-[9px] mt-0.5 opacity-50">
-                  {new Date(m.createdAt).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
+                  {new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                 </span>
               </div>
             </div>
           ))}
           {messages.length === 0 && (
-            <p className="text-center text-xs text-gray-400 py-10">
-              No messages yet
-            </p>
+            <p className="text-center text-xs text-gray-400 py-10">No messages yet</p>
           )}
+          <div ref={messagesEndRef} />
         </div>
         <div className="flex gap-2">
           <input
             value={msg}
             onChange={(e) => setMsg(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-            placeholder="Type a message..."
+            placeholder="Reply to customer..."
             className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-[#0A4D3C] transition-all"
           />
           <button
             onClick={sendMessage}
-            className="rounded-xl bg-[#0A4D3C] px-4 py-2.5 text-white hover:bg-[#083a2d] transition-all"
+            disabled={!msg.trim()}
+            className="rounded-xl bg-[#0A4D3C] px-4 py-2.5 text-white hover:bg-[#083a2d] transition-all disabled:opacity-40"
           >
             <Send className="h-4 w-4" />
           </button>
@@ -660,38 +992,121 @@ function ChatTab({ restaurantId }: { restaurantId: string }) {
   }
 
   return (
-    <div className="space-y-3">
-      {rooms.length === 0 && (
-        <div className="text-center py-16">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100 mb-4">
-            <MessageCircle className="h-8 w-8 text-gray-300" />
-          </div>
-          <p className="font-bold text-gray-500">No active chats</p>
-          <p className="text-xs text-gray-400 mt-1">
-            Chats appear when customers place orders
-          </p>
+    <div className="space-y-4">
+      {/* Tab selector */}
+      <div className="flex gap-2">
+        <button
+          onClick={() => setTab("customers")}
+          className={`flex-1 rounded-xl py-2.5 text-xs font-bold transition-all ${
+            tab === "customers" ? "bg-[#0A4D3C] text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+          }`}
+        >
+          Customer Chats {rooms.length > 0 && `(${rooms.length})`}
+        </button>
+        <button
+          onClick={() => setTab("broadcast")}
+          className={`flex-1 rounded-xl py-2.5 text-xs font-bold transition-all ${
+            tab === "broadcast" ? "bg-[#FF9933] text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+          }`}
+        >
+          Staff Broadcast
+        </button>
+      </div>
+
+      {tab === "customers" && (
+        <div className="space-y-3">
+          {rooms.length === 0 ? (
+            <div className="text-center py-16">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100 mb-4">
+                <MessageCircle className="h-8 w-8 text-gray-300" />
+              </div>
+              <p className="font-bold text-gray-500">No active chats</p>
+              <p className="text-xs text-gray-400 mt-1">Chats appear when customers message about their order</p>
+            </div>
+          ) : (
+            rooms.map((room) => (
+              <button
+                key={room.id}
+                onClick={() => openRoom(room.id)}
+                className="w-full flex items-center gap-3 rounded-2xl bg-white border border-gray-100 p-4 shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-all text-left"
+              >
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#FF9933]/10 text-[#FF9933] shrink-0">
+                  <MessageCircle className="h-5 w-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-[#1F2A2A]">
+                    Order #{room.order?.orderNo}
+                    {room.order?.tableNo ? ` · T${room.order.tableNo}` : ""}
+                  </p>
+                  <p className="text-[11px] text-gray-400 truncate">
+                    {room.messages[0]?.content || "No messages yet"}
+                  </p>
+                </div>
+                <ArrowRight className="h-4 w-4 text-gray-300 shrink-0" />
+              </button>
+            ))
+          )}
         </div>
       )}
-      {rooms.map((room) => (
-        <button
-          key={room.id}
-          onClick={() => openRoom(room.id)}
-          className="w-full flex items-center gap-3 rounded-2xl bg-white border border-gray-100 p-4 shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-all text-left"
-        >
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#FF9933]/10 text-[#FF9933] shrink-0">
-            <MessageCircle className="h-5 w-5" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-[#1F2A2A]">
-              Order #{room.order?.orderNo}
-            </p>
-            <p className="text-[11px] text-gray-400 truncate">
-              {room.messages[0]?.content || "No messages"}
+
+      {tab === "broadcast" && (
+        <div className="flex flex-col h-[60vh]">
+          <div className="rounded-xl bg-amber-50 border border-amber-100 p-3 mb-3">
+            <p className="text-xs font-bold text-amber-700">
+              {canBroadcast
+                ? "You can send broadcast messages visible to all staff"
+                : "Read-only — only Admin/Manager can post here"}
             </p>
           </div>
-          <ArrowRight className="h-4 w-4 text-gray-300 shrink-0" />
-        </button>
-      ))}
+          <div
+            className="flex-1 overflow-y-auto space-y-2 mb-3 scroll-smooth"
+            style={{ scrollbarWidth: "thin" }}
+          >
+            {broadcastMsgs.map((m) => {
+              const isOwn = m.senderName === staffName;
+              return (
+                <div key={m.id} className={`flex ${isOwn ? "justify-end" : "justify-start"}`}>
+                  <div className={`max-w-[75%] rounded-2xl px-3.5 py-2 text-sm ${
+                    isOwn ? "bg-[#FF9933] text-white rounded-br-md" : "bg-white border border-gray-200 text-[#1F2A2A] rounded-bl-md"
+                  }`}>
+                    {!isOwn && (
+                      <p className="text-[10px] font-bold text-gray-500 mb-0.5">
+                        {m.senderName || m.sender}
+                      </p>
+                    )}
+                    {m.content}
+                    <span className="block text-[9px] mt-0.5 opacity-50">
+                      {new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+            {broadcastMsgs.length === 0 && (
+              <p className="text-center text-xs text-gray-400 py-10">No broadcast messages yet</p>
+            )}
+            <div ref={broadcastEndRef} />
+          </div>
+          {canBroadcast && (
+            <div className="flex gap-2">
+              <input
+                value={broadcastMsg}
+                onChange={(e) => setBroadcastMsg(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && sendBroadcast()}
+                placeholder="Broadcast to all staff..."
+                className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-[#FF9933] transition-all"
+              />
+              <button
+                onClick={sendBroadcast}
+                disabled={!broadcastMsg.trim()}
+                className="rounded-xl bg-[#FF9933] px-4 py-2.5 text-white hover:bg-[#ff8811] transition-all disabled:opacity-40"
+              >
+                <Send className="h-4 w-4" />
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -1373,7 +1788,11 @@ export default function KitchenPage() {
               <MenuTab restaurantId={session.restaurantId} />
             )}
             {activeTab === "chat" && (
-              <ChatTab restaurantId={session.restaurantId} />
+              <ChatTab
+                restaurantId={session.restaurantId}
+                staffRole={session.role}
+                staffName={session.name}
+              />
             )}
             {activeTab === "inventory" && (
               <InventoryTab restaurantId={session.restaurantId} />

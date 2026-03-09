@@ -373,6 +373,7 @@ function AddStaffModal({
   const [phone, setPhone] = useState("");
   const [role, setRole] = useState<StaffRole>("WAITER");
   const [saving, setSaving] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
   const [successData, setSuccessData] = useState<{ pin: string; code: string; name: string } | null>(null);
 
   const reset = useCallback(() => {
@@ -381,11 +382,13 @@ function AddStaffModal({
     setPhone("");
     setRole("WAITER");
     setSuccessData(null);
+    setErrorMsg("");
   }, []);
 
   const handleSave = async () => {
     if (!name.trim() || !email.trim() || saving) return;
     setSaving(true);
+    setErrorMsg("");
     try {
       const result = await addStaff(restaurantId, {
         name: name.trim(),
@@ -405,7 +408,7 @@ function AddStaffModal({
         onClose();
       }
     } catch (err) {
-      console.error("[AddStaff] Failed:", err);
+      setErrorMsg(err instanceof Error ? err.message : "Failed to add staff");
     } finally {
       setSaving(false);
     }
@@ -534,7 +537,13 @@ function AddStaffModal({
                   </div>
                 </div>
 
-                <div className="mt-6 flex items-center justify-end gap-3">
+                {errorMsg && (
+                  <p className="mt-4 rounded-xl bg-red-50 border border-red-100 px-4 py-2.5 text-sm font-medium text-red-600">
+                    {errorMsg}
+                  </p>
+                )}
+
+                <div className="mt-4 flex items-center justify-end gap-3">
                   <button
                     onClick={() => { reset(); onClose(); }}
                     className="rounded-xl px-5 py-2.5 text-sm font-bold text-gray-500 hover:text-[#1F2A2A] hover:bg-gray-50 transition-all"
