@@ -36,26 +36,30 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return (
-    <ClerkProvider>
-      <html lang="en" data-scroll-behavior="smooth">
-        <head>
-          <link
-            rel="apple-touch-icon"
-            sizes="180x180"
-            href="/icons/icon-192x192.png"
-          />
-        </head>
-        <body
-          className={`${inter.variable} antialiased selection:bg-saffron-flame selection:text-white`}
-        >
-          <Providers>
-            {children}
-            <BottomNav />
-            <PWAInstallPrompt />
-          </Providers>
-        </body>
-      </html>
-    </ClerkProvider>
+  const body = (
+    <html lang="en" data-scroll-behavior="smooth">
+      <head>
+        <link
+          rel="apple-touch-icon"
+          sizes="180x180"
+          href="/icons/icon-192x192.png"
+        />
+      </head>
+      <body
+        className={`${inter.variable} antialiased selection:bg-saffron-flame selection:text-white`}
+      >
+        <Providers>
+          {children}
+          <BottomNav />
+          <PWAInstallPrompt />
+        </Providers>
+      </body>
+    </html>
+  );
+
+  return process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ? (
+    <ClerkProvider>{body}</ClerkProvider>
+  ) : (
+    body
   );
 }
