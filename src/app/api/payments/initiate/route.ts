@@ -5,6 +5,7 @@ import { initiateKhaltiPayment } from "@/lib/payments/khalti";
 import { safeHandler, notFound } from "@/lib/api-helpers";
 import { initiatePaymentSchema } from "@/lib/validations";
 import { logAudit } from "@/lib/audit";
+import { decryptIfPresent } from "@/lib/encryption";
 
 export const POST = safeHandler(
   async (_req, { body }) => {
@@ -23,6 +24,11 @@ export const POST = safeHandler(
         { status: 400 },
       );
     }
+
+    // Fetch per-restaurant payment config
+    const paymentConfig = await db.paymentConfig.findUnique({
+      where: { restaurantId: order.restaurantId },
+    });
 
     logAudit({
       action: "PAYMENT_INITIATED",
@@ -53,6 +59,16 @@ export const POST = safeHandler(
     }
 
     if (method === "ESEWA") {
+      const merchantCode = decryptIfPresent(paymentConfig?.esewaMerchantCode);
+      const secretKey = decryptIfPresent(paymentConfig?.esewaSecretKey);
+
+      if (!merchantCode || !secretKey || !paymentConfig?.esewaEnabled) {
+        return NextResponse.json(
+          { error: "eSewa is not configured for this restaurant" },
+          { status: 400 },
+        );
+      }
+
       const payment = await db.payment.upsert({
         where: { orderId },
         update: { method: "ESEWA", status: "PENDING" },
@@ -69,6 +85,8 @@ export const POST = safeHandler(
         amount: order.subtotal,
         taxAmount: order.tax,
         totalAmount: order.total,
+        merchantCode,
+        secretKey,
       });
 
       return NextResponse.json({
@@ -80,6 +98,15 @@ export const POST = safeHandler(
     }
 
     if (method === "KHALTI") {
+      const secretKey = decryptIfPresent(paymentConfig?.khaltiSecretKey);
+
+      if (!secretKey || !paymentConfig?.khaltiEnabled) {
+        return NextResponse.json(
+          { error: "Khalti is not configured for this restaurant" },
+          { status: 400 },
+        );
+      }
+
       const payment = await db.payment.upsert({
         where: { orderId },
         update: { method: "KHALTI", status: "PENDING" },
@@ -98,6 +125,7 @@ export const POST = safeHandler(
         customerName: order.user?.name,
         customerEmail: order.user?.email,
         customerPhone: order.user?.phone || undefined,
+        secretKey,
       });
 
       await db.payment.update({
@@ -114,6 +142,13 @@ export const POST = safeHandler(
     }
 
     if (method === "BANK") {
+      if (!paymentConfig?.bankEnabled) {
+        return NextResponse.json(
+          { error: "Bank transfer is not configured for this restaurant" },
+          { status: 400 },
+        );
+      }
+
       const payment = await db.payment.upsert({
         where: { orderId },
         update: { method: "BANK", status: "PENDING" },
@@ -130,10 +165,11 @@ export const POST = safeHandler(
         method: "BANK",
         paymentId: payment.id,
         bankDetails: {
-          bankName: process.env.BANK_NAME || "Nepal Bank Limited",
-          accountName: process.env.BANK_ACCOUNT_NAME || "HimaVolt Pvt. Ltd.",
-          accountNumber: process.env.BANK_ACCOUNT_NUMBER,
-          branch: process.env.BANK_BRANCH || "Kathmandu",
+          bankName: decryptIfPresent(paymentConfig.bankName) || "",
+          accountName: decryptIfPresent(paymentConfig.bankAccountName) || "",
+          accountNumber:
+            decryptIfPresent(paymentConfig.bankAccountNumber) || "",
+          branch: decryptIfPresent(paymentConfig.bankBranch) || "",
           note: `Please include Order #${order.orderNo} in transfer remarks`,
         },
       });

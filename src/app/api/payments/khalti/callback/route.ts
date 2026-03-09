@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { verifyKhaltiPayment } from "@/lib/payments/khalti";
+import { decryptIfPresent } from "@/lib/encryption";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
@@ -15,7 +16,19 @@ export async function GET(req: NextRequest) {
   }
 
   if (khaltiStatus === "Completed" && pidx) {
-    const verification = await verifyKhaltiPayment(pidx);
+    // Get restaurant's Khalti secret key
+    const order = await db.order.findUnique({
+      where: { id: orderId },
+      select: { restaurantId: true },
+    });
+    const paymentConfig = order
+      ? await db.paymentConfig.findUnique({
+          where: { restaurantId: order.restaurantId },
+        })
+      : null;
+    const secretKey = decryptIfPresent(paymentConfig?.khaltiSecretKey) || "";
+
+    const verification = await verifyKhaltiPayment(pidx, secretKey);
 
     if (verification) {
       await db.payment.updateMany({
@@ -28,7 +41,7 @@ export async function GET(req: NextRequest) {
         },
       });
       return NextResponse.redirect(
-        `${APP_URL}/track/${orderId}?payment=success`
+        `${APP_URL}/track/${orderId}?payment=success`,
       );
     }
   }
@@ -38,7 +51,5 @@ export async function GET(req: NextRequest) {
     data: { status: "FAILED" },
   });
 
-  return NextResponse.redirect(
-    `${APP_URL}/track/${orderId}?payment=failed`
-  );
+  return NextResponse.redirect(`${APP_URL}/track/${orderId}?payment=failed`);
 }

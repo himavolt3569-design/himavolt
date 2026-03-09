@@ -1,8 +1,9 @@
-const KHALTI_SECRET_KEY = process.env.KHALTI_SECRET_KEY || "";
 const KHALTI_GATEWAY_URL =
-  process.env.KHALTI_GATEWAY_URL || "https://a.khalti.com/api/v2/epayment/initiate/";
+  process.env.KHALTI_GATEWAY_URL ||
+  "https://a.khalti.com/api/v2/epayment/initiate/";
 const KHALTI_VERIFY_URL =
-  process.env.KHALTI_VERIFY_URL || "https://a.khalti.com/api/v2/epayment/lookup/";
+  process.env.KHALTI_VERIFY_URL ||
+  "https://a.khalti.com/api/v2/epayment/lookup/";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
 export async function initiateKhaltiPayment(params: {
@@ -12,6 +13,7 @@ export async function initiateKhaltiPayment(params: {
   customerName?: string;
   customerEmail?: string;
   customerPhone?: string;
+  secretKey: string; // per-restaurant secret key
 }) {
   const {
     orderId,
@@ -20,6 +22,7 @@ export async function initiateKhaltiPayment(params: {
     customerName,
     customerEmail,
     customerPhone,
+    secretKey,
   } = params;
 
   const payload = {
@@ -38,7 +41,7 @@ export async function initiateKhaltiPayment(params: {
   const res = await fetch(KHALTI_GATEWAY_URL, {
     method: "POST",
     headers: {
-      Authorization: `Key ${KHALTI_SECRET_KEY}`,
+      Authorization: `Key ${secretKey}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify(payload),
@@ -56,11 +59,11 @@ export async function initiateKhaltiPayment(params: {
   };
 }
 
-export async function verifyKhaltiPayment(pidx: string) {
+export async function verifyKhaltiPayment(pidx: string, secretKey: string) {
   const res = await fetch(KHALTI_VERIFY_URL, {
     method: "POST",
     headers: {
-      Authorization: `Key ${KHALTI_SECRET_KEY}`,
+      Authorization: `Key ${secretKey}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ pidx }),

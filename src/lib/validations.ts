@@ -88,6 +88,23 @@ export const initiatePaymentSchema = z.object({
 });
 export type InitiatePaymentInput = z.infer<typeof initiatePaymentSchema>;
 
+export const updatePaymentConfigSchema = z.object({
+  cashEnabled: z.boolean().optional(),
+  esewaEnabled: z.boolean().optional(),
+  khaltiEnabled: z.boolean().optional(),
+  bankEnabled: z.boolean().optional(),
+  esewaMerchantCode: z.string().max(100).optional().nullable(),
+  esewaSecretKey: z.string().max(200).optional().nullable(),
+  khaltiSecretKey: z.string().max(200).optional().nullable(),
+  bankName: z.string().max(100).optional().nullable(),
+  bankAccountName: z.string().max(100).optional().nullable(),
+  bankAccountNumber: z.string().max(50).optional().nullable(),
+  bankBranch: z.string().max(100).optional().nullable(),
+});
+export type UpdatePaymentConfigInput = z.infer<
+  typeof updatePaymentConfigSchema
+>;
+
 // ─── Order ─────────────────────────────────────────────────────────────────────
 
 const orderItemSchema = z.object({

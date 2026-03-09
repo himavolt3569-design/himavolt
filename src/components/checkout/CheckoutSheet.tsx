@@ -38,7 +38,17 @@ interface PaymentQRImage {
   imageUrl: string;
 }
 
-const PAYMENT_METHODS: {
+interface PaymentMethodsResponse {
+  enabledMethods: string[];
+  bankDetails: {
+    bankName: string;
+    accountName: string;
+    accountNumber: string;
+    branch: string;
+  } | null;
+}
+
+const ALL_PAYMENT_METHODS: {
   id: PaymentMethodType;
   label: string;
   sublabel: string;
@@ -125,21 +135,29 @@ export default function CheckoutSheet({
   roomNo,
   onOrderPlaced,
 }: CheckoutSheetProps) {
-  const { items, subtotal, totalItems, clearCart, restaurantSlug: cartSlug } =
-    useCart();
+  const {
+    items,
+    subtotal,
+    totalItems,
+    clearCart,
+    restaurantSlug: cartSlug,
+  } = useCart();
   const { placeOrder, addToOrder, activeOrder } = useOrder();
   const [selectedPayment, setSelectedPayment] =
     useState<PaymentMethodType>("CASH");
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
-  const [step, setStep] = useState<"review" | "payment" | "scan-qr">(
-    "review",
-  );
+  const [step, setStep] = useState<"review" | "payment" | "scan-qr">("review");
   const totalRef = useRef<HTMLSpanElement>(null);
 
   // Payment QR images
   const [paymentQRs, setPaymentQRs] = useState<PaymentQRImage[]>([]);
   const [selectedQR, setSelectedQR] = useState<PaymentQRImage | null>(null);
+
+  // Enabled payment methods for this restaurant
+  const [enabledMethods, setEnabledMethods] = useState<string[]>(["CASH"]);
+  const [restaurantBankDetails, setRestaurantBankDetails] =
+    useState<PaymentMethodsResponse["bankDetails"]>(null);
 
   // Order type & delivery state
   const [orderType, setOrderType] = useState<OrderType>(
@@ -166,15 +184,33 @@ export default function CheckoutSheet({
     activeOrder.payment?.method === "CASH" &&
     ["PENDING", "ACCEPTED", "PREPARING"].includes(activeOrder.status);
 
-  // Fetch payment QR images
+  // Fetch payment QR images and enabled payment methods
   useEffect(() => {
     if (!open || !slug) return;
-    apiFetch<PaymentQRImage[]>(
-      `/api/public/restaurants/${slug}/payment-qrs`,
-    )
+    apiFetch<PaymentQRImage[]>(`/api/public/restaurants/${slug}/payment-qrs`)
       .then(setPaymentQRs)
       .catch(() => setPaymentQRs([]));
+
+    apiFetch<PaymentMethodsResponse>(
+      `/api/public/restaurants/${slug}/payment-methods`,
+    )
+      .then((data) => {
+        setEnabledMethods(data.enabledMethods);
+        setRestaurantBankDetails(data.bankDetails);
+        if (data.enabledMethods.length > 0) {
+          setSelectedPayment(data.enabledMethods[0] as PaymentMethodType);
+        }
+      })
+      .catch(() => {
+        setEnabledMethods(["CASH"]);
+        setSelectedPayment("CASH");
+      });
   }, [open, slug]);
+
+  // Filter payment methods to only show enabled ones
+  const PAYMENT_METHODS = ALL_PAYMENT_METHODS.filter((m) =>
+    enabledMethods.includes(m.id),
+  );
 
   // Reset order type when tableNo changes
   useEffect(() => {
@@ -573,7 +609,8 @@ export default function CheckoutSheet({
                       </p>
                       <p className="text-[11px] text-amber-600 mt-0.5">
                         Scan one of the QR codes below to pay Rs. {total}. After
-                        payment, tap &ldquo;I&apos;ve Paid&rdquo; to confirm your order.
+                        payment, tap &ldquo;I&apos;ve Paid&rdquo; to confirm
+                        your order.
                       </p>
                     </div>
                   </div>

@@ -89,7 +89,7 @@ export default function Footer() {
                   strokeWidth={2.5}
                 />
                 <span className="text-xl font-extrabold text-white tracking-tight">
-                  Himal<span className="text-[#FF9933]">Hub</span>
+                  Hima<span className="text-[#FF9933]">Volt</span>
                 </span>
               </div>
               <p className="text-sm leading-relaxed text-gray-500 max-w-[300px] mb-7">

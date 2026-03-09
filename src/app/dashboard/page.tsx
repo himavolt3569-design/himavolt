@@ -50,6 +50,7 @@ import ChatTab from "@/components/dashboard/ChatTab";
 import BillingTab from "@/components/billing/BillingTab";
 import StoryManager from "@/components/stories/StoryManager";
 import PaymentQRTab from "@/components/dashboard/PaymentQRTab";
+import PaymentSettingsTab from "@/components/dashboard/PaymentSettingsTab";
 import { useLiveOrders } from "@/context/LiveOrdersContext";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { getTypeLabel } from "@/lib/restaurant-types";
@@ -64,7 +65,8 @@ type DashTab =
   | "chat"
   | "billing"
   | "stories"
-  | "payment-qr";
+  | "payment-qr"
+  | "payment-settings";
 
 /* ─── Navigation groups for sidebar ───────────────────────────────── */
 const NAV_MAIN: {
@@ -84,6 +86,7 @@ const NAV_MANAGE: typeof NAV_MAIN = [
   { id: "staff", label: "Staff", icon: UsersRound },
   { id: "qr", label: "QR Codes", icon: QrCode },
   { id: "payment-qr", label: "Payment QR", icon: Wallet },
+  { id: "payment-settings", label: "Payment Settings", icon: Settings },
 ];
 
 const NAV_MORE: typeof NAV_MAIN = [
@@ -954,6 +957,7 @@ export default function DashboardPage() {
               {activeTab === "staff" && <StaffManagementTab />}
               {activeTab === "qr" && <QRCodesTab />}
               {activeTab === "payment-qr" && <PaymentQRTab />}
+              {activeTab === "payment-settings" && <PaymentSettingsTab />}
               {activeTab === "reports" && <ReportsTab />}
               {activeTab === "stories" && selectedRestaurant && (
                 <StoryManager

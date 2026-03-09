@@ -18,9 +18,13 @@ export async function GET(
   const staff = await getStaffSession(req);
   if (!staff || staff.restaurantId !== id) {
     const user = await getOrCreateUser();
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    const restaurant = await db.restaurant.findFirst({ where: { id, ownerId: user.id } });
-    if (!restaurant) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (!user)
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const restaurant = await db.restaurant.findFirst({
+      where: { id, ownerId: user.id },
+    });
+    if (!restaurant)
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const { searchParams } = new URL(req.url);
@@ -134,7 +138,11 @@ export const POST = safeHandler(
           subtotal: { increment: addSubtotal },
           tax: { increment: addTax },
           total: { increment: addSubtotal + addTax },
-          note: note ? (existing.note ? `${existing.note}; ${note}` : note) : undefined,
+          note: note
+            ? existing.note
+              ? `${existing.note}; ${note}`
+              : note
+            : undefined,
         },
         include: { items: true, payment: true, bill: true, delivery: true },
       });
@@ -147,7 +155,11 @@ export const POST = safeHandler(
         entity: "Order",
         entityId: addToOrderId,
         detail: `Added ${items.length} items to order ${existing.orderNo} (+Rs.${addSubtotal + addTax})`,
-        metadata: { orderNo: existing.orderNo, addedItems: items.length, addedTotal: addSubtotal + addTax },
+        metadata: {
+          orderNo: existing.orderNo,
+          addedItems: items.length,
+          addedTotal: addSubtotal + addTax,
+        },
         restaurantId: id,
         ipAddress: getClientIp(req.headers),
       });
@@ -176,7 +188,8 @@ export const POST = safeHandler(
         where: { restaurantId: id, isActive: true },
       });
       if (zone) {
-        deliveryFee = zone.freeAbove && subtotal >= zone.freeAbove ? 0 : zone.baseFee;
+        deliveryFee =
+          zone.freeAbove && subtotal >= zone.freeAbove ? 0 : zone.baseFee;
       } else {
         deliveryFee = 50; // default delivery charge
       }
@@ -203,7 +216,10 @@ export const POST = safeHandler(
     const order = await db.order.create({
       data: {
         orderNo,
-        tableNo: orderType === "DINE_IN" && tableNo ? parseInt(String(tableNo), 10) : null,
+        tableNo:
+          orderType === "DINE_IN" && tableNo
+            ? parseInt(String(tableNo), 10)
+            : null,
         roomNo: roomNo ?? null,
         subtotal,
         tax,
@@ -213,11 +229,13 @@ export const POST = safeHandler(
         estimatedTime: totalPrepTime,
         restaurantId: id,
         userId: userId ?? null,
-        deliveryAddress: orderType === "DELIVERY" ? deliveryAddress ?? null : null,
-        deliveryLat: orderType === "DELIVERY" ? deliveryLat ?? null : null,
-        deliveryLng: orderType === "DELIVERY" ? deliveryLng ?? null : null,
-        deliveryPhone: orderType === "DELIVERY" ? deliveryPhone ?? null : null,
-        deliveryNote: orderType === "DELIVERY" ? deliveryNote ?? null : null,
+        deliveryAddress:
+          orderType === "DELIVERY" ? (deliveryAddress ?? null) : null,
+        deliveryLat: orderType === "DELIVERY" ? (deliveryLat ?? null) : null,
+        deliveryLng: orderType === "DELIVERY" ? (deliveryLng ?? null) : null,
+        deliveryPhone:
+          orderType === "DELIVERY" ? (deliveryPhone ?? null) : null,
+        deliveryNote: orderType === "DELIVERY" ? (deliveryNote ?? null) : null,
         deliveryFee,
         items: {
           createMany: {
@@ -263,7 +281,12 @@ export const POST = safeHandler(
       data: { totalOrders: { increment: 1 } },
     });
 
-    notifyKitchenNewOrder(id, orderNo, total, tableNo ? parseInt(String(tableNo), 10) : null).catch((err: unknown) => {
+    notifyKitchenNewOrder(
+      id,
+      orderNo,
+      total,
+      tableNo ? parseInt(String(tableNo), 10) : null,
+    ).catch((err: unknown) => {
       console.error("[Orders] Failed to send kitchen notification:", err);
     });
 

@@ -1,16 +1,16 @@
 import crypto from "crypto";
 
-const ESEWA_MERCHANT_CODE = process.env.ESEWA_MERCHANT_CODE || "";
-const ESEWA_SECRET_KEY = process.env.ESEWA_SECRET_KEY || "";
 const ESEWA_GATEWAY_URL =
-  process.env.ESEWA_GATEWAY_URL || "https://rc-epay.esewa.com.np/api/epay/main/v2/form";
+  process.env.ESEWA_GATEWAY_URL ||
+  "https://rc-epay.esewa.com.np/api/epay/main/v2/form";
 const ESEWA_VERIFY_URL =
-  process.env.ESEWA_VERIFY_URL || "https://uat.esewa.com.np/api/epay/transaction/status/";
+  process.env.ESEWA_VERIFY_URL ||
+  "https://uat.esewa.com.np/api/epay/transaction/status/";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
-function generateSignature(message: string): string {
+function generateSignature(message: string, secretKey: string): string {
   return crypto
-    .createHmac("sha256", ESEWA_SECRET_KEY)
+    .createHmac("sha256", secretKey)
     .update(message)
     .digest("base64");
 }
@@ -20,12 +20,15 @@ export function getEsewaPaymentUrl(params: {
   amount: number;
   taxAmount: number;
   totalAmount: number;
+  merchantCode: string; // per-restaurant merchant code
+  secretKey: string; // per-restaurant secret key
 }) {
-  const { orderId, amount, taxAmount, totalAmount } = params;
+  const { orderId, amount, taxAmount, totalAmount, merchantCode, secretKey } =
+    params;
   const transactionUuid = `${orderId}-${Date.now()}`;
 
-  const signatureString = `total_amount=${totalAmount},transaction_uuid=${transactionUuid},product_code=${ESEWA_MERCHANT_CODE}`;
-  const signature = generateSignature(signatureString);
+  const signatureString = `total_amount=${totalAmount},transaction_uuid=${transactionUuid},product_code=${merchantCode}`;
+  const signature = generateSignature(signatureString, secretKey);
 
   return {
     url: ESEWA_GATEWAY_URL,
@@ -34,7 +37,7 @@ export function getEsewaPaymentUrl(params: {
       tax_amount: taxAmount.toString(),
       total_amount: totalAmount.toString(),
       transaction_uuid: transactionUuid,
-      product_code: ESEWA_MERCHANT_CODE,
+      product_code: merchantCode,
       product_service_charge: "0",
       product_delivery_charge: "0",
       success_url: `${APP_URL}/api/payments/esewa/callback?orderId=${orderId}`,
@@ -45,10 +48,14 @@ export function getEsewaPaymentUrl(params: {
   };
 }
 
-export async function verifyEsewaPayment(transactionUuid: string, totalAmount: number) {
+export async function verifyEsewaPayment(
+  transactionUuid: string,
+  totalAmount: number,
+  merchantCode: string,
+) {
   try {
     const url = new URL(ESEWA_VERIFY_URL);
-    url.searchParams.set("product_code", ESEWA_MERCHANT_CODE);
+    url.searchParams.set("product_code", merchantCode);
     url.searchParams.set("total_amount", totalAmount.toString());
     url.searchParams.set("transaction_uuid", transactionUuid);
 

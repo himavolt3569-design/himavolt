@@ -72,6 +72,7 @@ model Restaurant {
   deliveryZones DeliveryZone[]
   auditLogs     AuditLog[]
   paymentQRs    PaymentQR[]
+  paymentConfig PaymentConfig?
 
   @@index([ownerId])
   @@index([slug])
@@ -115,6 +116,39 @@ model PaymentQR {
 
   @@index([restaurantId])
   @@map("payment_qrs")
+}
+
+// ─── Per-Restaurant Payment Configuration ────────────────────────
+
+model PaymentConfig {
+  id String @id @default(cuid())
+
+  // Which payment methods are enabled
+  cashEnabled   Boolean @default(true)
+  esewaEnabled  Boolean @default(false)
+  khaltiEnabled Boolean @default(false)
+  bankEnabled   Boolean @default(false)
+
+  // eSewa credentials (encrypted)
+  esewaMerchantCode String?
+  esewaSecretKey    String?
+
+  // Khalti credentials (encrypted)
+  khaltiSecretKey String?
+
+  // Bank transfer details
+  bankName          String?
+  bankAccountName   String?
+  bankAccountNumber String?
+  bankBranch        String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  restaurantId String     @unique
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@map("payment_configs")
 }
 
 enum RestaurantType {

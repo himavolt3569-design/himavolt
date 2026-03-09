@@ -1,7 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Mountain, Menu, X, ShoppingBag, Store, KeyRound, Search } from "lucide-react";
+import {
+  Mountain,
+  Menu,
+  X,
+  ShoppingBag,
+  Store,
+  KeyRound,
+  Search,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/context/CartContext";
 import Link from "next/link";
@@ -42,7 +50,7 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
           >
             <Mountain className="h-7 w-7 text-[#E23744]" strokeWidth={2.5} />
             <span className="text-xl font-extrabold tracking-tight text-[#1F2A2A]">
-              Himal<span className="text-[#E23744]">Hub</span>
+              Hima<span className="text-[#E23744]">Volt</span>
             </span>
           </Link>
 
@@ -216,7 +224,9 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
                       elements: { avatarBox: "h-9 w-9" },
                     }}
                   />
-                  <span className="text-xs text-gray-400">Tap avatar to sign out</span>
+                  <span className="text-xs text-gray-400">
+                    Tap avatar to sign out
+                  </span>
                 </div>
               </SignedIn>
             </div>
