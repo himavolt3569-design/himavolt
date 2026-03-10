@@ -1,5 +1,4 @@
 import { PrismaPg } from "@prisma/adapter-pg";
-import { Pool } from "pg";
 import { PrismaClient } from "@/generated/prisma";
 
 const globalForPrisma = globalThis as unknown as {
@@ -15,12 +14,11 @@ function createPrismaClient() {
   // connection pool. Limit to 1-2 connections to avoid exhausting Supabase limits.
   const isServerless =
     !!process.env.VERCEL || process.env.NODE_ENV === "production";
-  const pool = new Pool({
+  const adapter = new PrismaPg({
     connectionString,
     max: isServerless ? 2 : 10,
-    ssl: { rejectUnauthorized: false },
+    ssl: isServerless ? { rejectUnauthorized: false } : undefined,
   });
-  const adapter = new PrismaPg(pool);
   return new PrismaClient({ adapter });
 }
 
