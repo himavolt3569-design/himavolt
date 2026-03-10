@@ -20,7 +20,7 @@ function createPrismaClient() {
     max: isServerless ? 2 : 10,
     ssl: { rejectUnauthorized: false },
   });
-  const adapter = new PrismaPg({ pool });
+  const adapter = new PrismaPg(pool);
   return new PrismaClient({ adapter });
 }
 
