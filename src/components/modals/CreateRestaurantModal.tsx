@@ -249,9 +249,9 @@ function ModalBody({
               <Dialog.Title className="text-lg font-bold tracking-tight text-gray-900">
                 New Restaurant
               </Dialog.Title>
-              <p className="text-[13px] text-gray-400 mt-0.5">
+              <Dialog.Description className="text-[13px] text-gray-400 mt-0.5">
                 Set up in seconds — edit anytime later.
-              </p>
+              </Dialog.Description>
             </div>
           </div>
           <Dialog.Close asChild>
