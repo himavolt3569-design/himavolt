@@ -33,8 +33,10 @@ import {
   ScanLine,
   Monitor,
   Settings,
+  Package,
 } from "lucide-react";
 import { useToast } from "@/context/ToastContext";
+import StockTab from "@/components/dashboard/StockTab";
 
 /* ── Types ────────────────────────────────────────────────────────── */
 
@@ -1485,7 +1487,7 @@ function BillingPanel({
 
 /* ── MAIN COUNTER PAGE ───────────────────────────────────────────── */
 
-type ViewMode = "billing" | "board" | "split";
+type ViewMode = "billing" | "board" | "split" | "stock";
 
 export default function CounterPage() {
   const router = useRouter();
@@ -1659,6 +1661,7 @@ export default function CounterPage() {
                     { id: "billing", icon: Receipt, label: "Billing" },
                     { id: "board", icon: Monitor, label: "Board" },
                     { id: "split", icon: Utensils, label: "Split" },
+                    { id: "stock", icon: Package, label: "Stock" },
                   ] as { id: ViewMode; icon: typeof Monitor; label: string }[]
                 ).map((v) => (
                   <button
@@ -1750,6 +1753,7 @@ export default function CounterPage() {
               { id: "billing", icon: Receipt, label: "Billing" },
               { id: "board", icon: Monitor, label: "Board" },
               { id: "split", icon: Utensils, label: "Split" },
+              { id: "stock", icon: Package, label: "Stock" },
             ] as { id: ViewMode; icon: typeof Monitor; label: string }[]
           ).map((v) => (
             <button
@@ -1796,6 +1800,8 @@ export default function CounterPage() {
             </div>
           </div>
         )}
+
+        {viewMode === "stock" && <StockTab />}
       </main>
     </div>
   );

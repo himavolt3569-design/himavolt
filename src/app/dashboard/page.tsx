@@ -37,6 +37,7 @@ import {
   Zap,
   CircleDot,
   Wallet,
+  Package,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -52,6 +53,7 @@ import StoryManager from "@/components/stories/StoryManager";
 import PaymentQRTab from "@/components/dashboard/PaymentQRTab";
 import PaymentSettingsTab from "@/components/dashboard/PaymentSettingsTab";
 import TaxChargesTab from "@/components/dashboard/TaxChargesTab";
+import StockTab from "@/components/dashboard/StockTab";
 import { useLiveOrders } from "@/context/LiveOrdersContext";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { getTypeLabel } from "@/lib/restaurant-types";
@@ -68,7 +70,8 @@ type DashTab =
   | "stories"
   | "payment-qr"
   | "payment-settings"
-  | "tax-charges";
+  | "tax-charges"
+  | "stock";
 
 /* ─── Navigation groups for sidebar ───────────────────────────────── */
 const NAV_MAIN: {
@@ -90,6 +93,7 @@ const NAV_MANAGE: typeof NAV_MAIN = [
   { id: "payment-qr", label: "Payment QR", icon: Wallet },
   { id: "payment-settings", label: "Payment Settings", icon: Settings },
   { id: "tax-charges" as DashTab, label: "Tax & Charges", icon: Receipt },
+  { id: "stock" as DashTab, label: "Stock", icon: Package },
 ];
 
 const NAV_MORE: typeof NAV_MAIN = [
@@ -962,6 +966,7 @@ export default function DashboardPage() {
               {activeTab === "payment-qr" && <PaymentQRTab />}
               {activeTab === "payment-settings" && <PaymentSettingsTab />}
               {activeTab === "tax-charges" && <TaxChargesTab />}
+              {activeTab === "stock" && <StockTab />}
               {activeTab === "reports" && <ReportsTab />}
               {activeTab === "stories" && selectedRestaurant && (
                 <StoryManager
