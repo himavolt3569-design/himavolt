@@ -4,11 +4,25 @@ import { getOrCreateUser } from "@/lib/auth";
 import { safeHandler, unauthorized } from "@/lib/api-helpers";
 import { createRestaurantSchema } from "@/lib/validations";
 import { logAudit } from "@/lib/audit";
+import crypto from "crypto";
+
+async function generateUniqueCode(): Promise<string> {
+  for (let i = 0; i < 10; i++) {
+    const code = `HH-${crypto.randomBytes(2).toString("hex").toUpperCase()}`;
+    const exists = await db.restaurant.findUnique({
+      where: { restaurantCode: code },
+    });
+    if (!exists) return code;
+  }
+  // Fallback — longer suffix to avoid collision
+  return `HH-${crypto.randomBytes(3).toString("hex").toUpperCase()}`;
+}
 
 export const GET = safeHandler(async () => {
   const user = await getOrCreateUser();
   if (!user) return unauthorized();
 
+  // Backfill: assign codes to any restaurants that don't have one yet
   const restaurants = await db.restaurant.findMany({
     where: { ownerId: user.id },
     include: {
@@ -17,6 +31,17 @@ export const GET = safeHandler(async () => {
     },
     orderBy: { createdAt: "desc" },
   });
+
+  for (const r of restaurants) {
+    if (!r.restaurantCode) {
+      const code = await generateUniqueCode();
+      await db.restaurant.update({
+        where: { id: r.id },
+        data: { restaurantCode: code },
+      });
+      r.restaurantCode = code;
+    }
+  }
 
   return NextResponse.json(restaurants);
 });
@@ -33,6 +58,8 @@ export const POST = safeHandler(
         .replace(/^-|-$/g, "") +
       "-" +
       Date.now().toString(36);
+
+    const restaurantCode = await generateUniqueCode();
 
     if (user.role === "CUSTOMER") {
       await db.user.update({
@@ -51,6 +78,7 @@ export const POST = safeHandler(
         address: body.address,
         city: body.city,
         ownerId: user.id,
+        restaurantCode,
       },
       include: {
         staff: { include: { user: true } },

@@ -39,10 +39,12 @@ export const POST = safeHandler(
     // Generate random 4-digit PIN
     const pin = Math.floor(1000 + Math.random() * 9000).toString();
 
-    // Ensure restaurant has a code
+    // Restaurant code should already exist (generated on creation)
+    // Fallback for legacy restaurants without one
     let restaurantCode = restaurant.restaurantCode;
     if (!restaurantCode) {
-      restaurantCode = `HH-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+      const crypto = await import("crypto");
+      restaurantCode = `HH-${crypto.randomBytes(2).toString("hex").toUpperCase()}`;
       await db.restaurant.update({
         where: { id: restaurant.id },
         data: { restaurantCode },
@@ -66,7 +68,9 @@ export const POST = safeHandler(
         userId_restaurantId: { userId: staffUser.id, restaurantId: id },
       },
       include: {
-        user: { select: { name: true, email: true, phone: true, imageUrl: true } },
+        user: {
+          select: { name: true, email: true, phone: true, imageUrl: true },
+        },
       },
     });
 
@@ -82,7 +86,9 @@ export const POST = safeHandler(
         where: { id: existing.id },
         data: { isActive: true, pin, role },
         include: {
-          user: { select: { name: true, email: true, phone: true, imageUrl: true } },
+          user: {
+            select: { name: true, email: true, phone: true, imageUrl: true },
+          },
         },
       });
       logAudit({
