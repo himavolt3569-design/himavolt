@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { getOrCreateUser } from "@/lib/auth";
 import { getStaffSession } from "@/lib/staff-auth";
 import { notifyKitchenNewOrder } from "@/lib/notifications";
-import { generateBill } from "@/lib/billing";
+import { generateBill, getTaxConfig } from "@/lib/billing";
 import { safeHandler, unauthorized, notFound } from "@/lib/api-helpers";
 import { createOrderSchema } from "@/lib/validations";
 import { logAudit, getClientIp } from "@/lib/audit";
@@ -120,7 +120,10 @@ export const POST = safeHandler(
         (sum, item) => sum + item.price * item.quantity,
         0,
       );
-      const addTax = Math.round(addSubtotal * 0.13 * 100) / 100;
+      const taxCfg = await getTaxConfig(id);
+      const addTax = taxCfg.taxEnabled
+        ? Math.round(addSubtotal * (taxCfg.taxRate / 100) * 100) / 100
+        : 0;
 
       await db.orderItem.createMany({
         data: items.map((item) => ({
@@ -179,7 +182,10 @@ export const POST = safeHandler(
       (sum, item) => sum + item.price * item.quantity,
       0,
     );
-    const tax = Math.round(subtotal * 0.13 * 100) / 100;
+    const taxCfgNew = await getTaxConfig(id);
+    const tax = taxCfgNew.taxEnabled
+      ? Math.round(subtotal * (taxCfgNew.taxRate / 100) * 100) / 100
+      : 0;
 
     // Calculate delivery fee — single query to avoid race conditions
     let deliveryFee = 0;

@@ -55,6 +55,13 @@ model Restaurant {
   closingTime    String         @default("23:00")
   rating         Float          @default(0)
   totalOrders    Int            @default(0)
+
+  // Tax & Service Charge config
+  taxRate              Float   @default(13)   // percentage, e.g. 13 = 13%
+  taxEnabled           Boolean @default(true)
+  serviceChargeRate    Float   @default(10)   // percentage, e.g. 10 = 10%
+  serviceChargeEnabled Boolean @default(true)
+
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 

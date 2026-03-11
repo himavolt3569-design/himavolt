@@ -30,6 +30,7 @@ const isPublicRoute = createRouteMatcher([
   "/api/upload(.*)",
   "/staff-login(.*)",
   "/kitchen(.*)",
+  "/counter(.*)",
   "/sign-in(.*)",
   "/sign-up(.*)",
   "/manifest.json",
@@ -43,8 +44,11 @@ const handler = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
   ? clerkMiddleware(async (auth, req) => {
       // If route is public, let it pass
       if (isPublicRoute(req)) {
-        // Extra check: /kitchen requires a valid staff JWT
-        if (req.nextUrl.pathname.startsWith("/kitchen")) {
+        // Extra check: /kitchen and /counter require a valid staff JWT
+        if (
+          req.nextUrl.pathname.startsWith("/kitchen") ||
+          req.nextUrl.pathname.startsWith("/counter")
+        ) {
           const staffCookie = req.cookies.get("staff_session")?.value;
           if (!staffCookie || !process.env.JWT_SECRET) {
             return NextResponse.redirect(new URL("/staff-login", req.url));

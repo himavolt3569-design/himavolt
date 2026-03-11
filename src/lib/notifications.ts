@@ -10,7 +10,7 @@ interface NotificationPayload {
 
 export async function sendNotificationToUser(
   userId: string,
-  payload: NotificationPayload
+  payload: NotificationPayload,
 ) {
   const messaging = getMessaging();
   if (!messaging) return;
@@ -61,7 +61,7 @@ export async function sendNotificationToUser(
 
 export async function sendNotificationToRestaurantStaff(
   restaurantId: string,
-  payload: NotificationPayload
+  payload: NotificationPayload,
 ) {
   const staff = await db.staffMember.findMany({
     where: { restaurantId, isActive: true },
@@ -79,7 +79,7 @@ export async function sendNotificationToRestaurantStaff(
   ]);
 
   await Promise.all(
-    Array.from(userIds).map((uid) => sendNotificationToUser(uid, payload))
+    Array.from(userIds).map((uid) => sendNotificationToUser(uid, payload)),
   );
 }
 
@@ -87,8 +87,9 @@ export async function notifyKitchenNewOrder(
   restaurantId: string,
   orderNo: string,
   total: number,
-  tableNo: number | null
+  tableNo: number | null,
 ) {
+  // Sends to ALL staff (kitchen + counter) so both sides are aware
   await sendNotificationToRestaurantStaff(restaurantId, {
     title: "New Order Received!",
     body: `Order #${orderNo}${tableNo ? ` (Table ${tableNo})` : ""} — Rs. ${total}`,
@@ -100,11 +101,28 @@ export async function notifyKitchenNewOrder(
   });
 }
 
+export async function notifyCounterOrderReady(
+  restaurantId: string,
+  orderNo: string,
+  tableNo: number | null,
+) {
+  // Notify counter/all staff that an order is ready for pickup/serving
+  await sendNotificationToRestaurantStaff(restaurantId, {
+    title: "Order Ready for Pickup!",
+    body: `Order #${orderNo}${tableNo ? ` (Table ${tableNo})` : ""} is ready to serve`,
+    data: {
+      type: "ORDER_READY",
+      orderNo,
+      restaurantId,
+    },
+  });
+}
+
 export async function notifyCustomerOrderUpdate(
   userId: string,
   orderNo: string,
   status: string,
-  restaurantName: string
+  restaurantName: string,
 ) {
   const statusMessages: Record<string, { title: string; body: string }> = {
     ACCEPTED: {

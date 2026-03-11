@@ -237,7 +237,10 @@ function playAlertSound() {
       osc.type = "sine";
       osc.frequency.value = freq;
       gain.gain.setValueAtTime(0.3, ctx.currentTime + i * 0.15);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.15 + 0.4);
+      gain.gain.exponentialRampToValueAtTime(
+        0.001,
+        ctx.currentTime + i * 0.15 + 0.4,
+      );
       osc.connect(gain).connect(ctx.destination);
       osc.start(ctx.currentTime + i * 0.15);
       osc.stop(ctx.currentTime + i * 0.15 + 0.4);
@@ -274,9 +277,7 @@ function OrdersTab({ restaurantId }: { restaurantId: string }) {
 
     const connectSSE = () => {
       try {
-        es = new EventSource(
-          `/api/restaurants/${restaurantId}/orders/stream`,
-        );
+        es = new EventSource(`/api/restaurants/${restaurantId}/orders/stream`);
 
         es.onmessage = (event) => {
           try {
@@ -522,7 +523,9 @@ function OrdersTab({ restaurantId }: { restaurantId: string }) {
                             <button
                               onClick={() =>
                                 setEstTime((v) =>
-                                  String(Math.max(1, parseInt(v || "0", 10) - 5)),
+                                  String(
+                                    Math.max(1, parseInt(v || "0", 10) - 5),
+                                  ),
                                 )
                               }
                               className="flex h-9 w-9 items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"
@@ -543,7 +546,9 @@ function OrdersTab({ restaurantId }: { restaurantId: string }) {
                             <button
                               onClick={() =>
                                 setEstTime((v) =>
-                                  String(Math.min(120, parseInt(v || "0", 10) + 5)),
+                                  String(
+                                    Math.min(120, parseInt(v || "0", 10) + 5),
+                                  ),
                                 )
                               }
                               className="flex h-9 w-9 items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"
@@ -777,12 +782,24 @@ function ChatTab({
   const [loading, setLoading] = useState(true);
   const [activeRoom, setActiveRoom] = useState<string | null>(null);
   const [messages, setMessages] = useState<
-    { id: string; content: string; sender: string; senderName: string | null; createdAt: string }[]
+    {
+      id: string;
+      content: string;
+      sender: string;
+      senderName: string | null;
+      createdAt: string;
+    }[]
   >([]);
   const [msg, setMsg] = useState("");
   const [broadcastRoomId, setBroadcastRoomId] = useState<string | null>(null);
   const [broadcastMsgs, setBroadcastMsgs] = useState<
-    { id: string; content: string; sender: string; senderName: string | null; createdAt: string }[]
+    {
+      id: string;
+      content: string;
+      sender: string;
+      senderName: string | null;
+      createdAt: string;
+    }[]
   >([]);
   const [broadcastMsg, setBroadcastMsg] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -793,13 +810,18 @@ function ChatTab({
   // Can this role send in broadcast channel?
   const canBroadcast = ["SUPER_ADMIN", "MANAGER"].includes(staffRole);
   // Sender label for current role
-  const senderLabel = staffRole === "SUPER_ADMIN" ? "ADMIN" : staffRole as "KITCHEN" | "BILLING" | "MANAGER";
+  const senderLabel =
+    staffRole === "SUPER_ADMIN"
+      ? "ADMIN"
+      : (staffRole as "KITCHEN" | "BILLING" | "MANAGER");
 
   const loadRooms = useCallback(async () => {
     try {
       const data = await staffFetch(`/api/chat?restaurantId=${restaurantId}`);
       setRooms(data || []);
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     setLoading(false);
   }, [restaurantId]);
 
@@ -815,13 +837,22 @@ function ChatTab({
             const ids = new Set(prev.map((m) => m.id));
             const added = newMsgs.filter((m) => !ids.has(m.id));
             if (added.length === 0) return prev;
-            setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
+            setTimeout(
+              () =>
+                messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }),
+              50,
+            );
             return [...prev, ...added];
           });
         }
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     };
-    es.onerror = () => { es.close(); setTimeout(() => connectRoomSSE(roomId), 4000); };
+    es.onerror = () => {
+      es.close();
+      setTimeout(() => connectRoomSSE(roomId), 4000);
+    };
     sseRef.current = es;
   }, []);
 
@@ -837,13 +868,22 @@ function ChatTab({
             const ids = new Set(prev.map((m) => m.id));
             const added = newMsgs.filter((m) => !ids.has(m.id));
             if (added.length === 0) return prev;
-            setTimeout(() => broadcastEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
+            setTimeout(
+              () =>
+                broadcastEndRef.current?.scrollIntoView({ behavior: "smooth" }),
+              50,
+            );
             return [...prev, ...added];
           });
         }
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     };
-    es.onerror = () => { es.close(); setTimeout(() => connectBroadcastSSE(roomId), 4000); };
+    es.onerror = () => {
+      es.close();
+      setTimeout(() => connectBroadcastSSE(roomId), 4000);
+    };
     broadcastSseRef.current = es;
   }, []);
 
@@ -851,16 +891,22 @@ function ChatTab({
   useEffect(() => {
     (async () => {
       try {
-        const room = await staffFetch(`/api/chat?restaurantId=${restaurantId}&type=BROADCAST`);
+        const room = await staffFetch(
+          `/api/chat?restaurantId=${restaurantId}&type=BROADCAST`,
+        );
         if (room?.id) {
           setBroadcastRoomId(room.id);
           const msgs = await staffFetch(`/api/chat/${room.id}/messages`);
           setBroadcastMsgs(msgs || []);
           connectBroadcastSSE(room.id);
         }
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     })();
-    return () => { broadcastSseRef.current?.close(); };
+    return () => {
+      broadcastSseRef.current?.close();
+    };
   }, [restaurantId, connectBroadcastSSE]);
 
   useEffect(() => {
@@ -870,7 +916,9 @@ function ChatTab({
   }, [loadRooms]);
 
   useEffect(() => {
-    return () => { sseRef.current?.close(); };
+    return () => {
+      sseRef.current?.close();
+    };
   }, []);
 
   const openRoom = async (roomId: string) => {
@@ -878,8 +926,13 @@ function ChatTab({
     try {
       const data = await staffFetch(`/api/chat/${roomId}/messages`);
       setMessages(data || []);
-      setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
-    } catch { /* ignore */ }
+      setTimeout(
+        () => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }),
+        50,
+      );
+    } catch {
+      /* ignore */
+    }
     connectRoomSSE(roomId);
   };
 
@@ -896,9 +949,15 @@ function ChatTab({
     try {
       await staffFetch(`/api/chat/${activeRoom}/messages`, {
         method: "POST",
-        body: JSON.stringify({ content: text, sender: senderLabel, senderName: staffName }),
+        body: JSON.stringify({
+          content: text,
+          sender: senderLabel,
+          senderName: staffName,
+        }),
       });
-    } catch { setMsg(text); }
+    } catch {
+      setMsg(text);
+    }
   };
 
   const sendBroadcast = async () => {
@@ -908,9 +967,15 @@ function ChatTab({
     try {
       await staffFetch(`/api/chat/${broadcastRoomId}/messages`, {
         method: "POST",
-        body: JSON.stringify({ content: text, sender: senderLabel, senderName: staffName }),
+        body: JSON.stringify({
+          content: text,
+          sender: senderLabel,
+          senderName: staffName,
+        }),
       });
-    } catch { setBroadcastMsg(text); }
+    } catch {
+      setBroadcastMsg(text);
+    }
   };
 
   if (loading)
@@ -950,24 +1015,36 @@ function ChatTab({
           style={{ scrollbarWidth: "thin" }}
         >
           {messages.map((m) => (
-            <div key={m.id} className={`flex ${m.sender !== "CUSTOMER" ? "justify-end" : "justify-start"}`}>
-              <div className={`max-w-[75%] rounded-2xl px-3.5 py-2 text-sm ${
-                m.sender !== "CUSTOMER"
-                  ? "bg-[#0A4D3C] text-white rounded-br-md"
-                  : "bg-white border border-gray-200 text-[#1F2A2A] rounded-bl-md"
-              }`}>
+            <div
+              key={m.id}
+              className={`flex ${m.sender !== "CUSTOMER" ? "justify-end" : "justify-start"}`}
+            >
+              <div
+                className={`max-w-[75%] rounded-2xl px-3.5 py-2 text-sm ${
+                  m.sender !== "CUSTOMER"
+                    ? "bg-[#0A4D3C] text-white rounded-br-md"
+                    : "bg-white border border-gray-200 text-[#1F2A2A] rounded-bl-md"
+                }`}
+              >
                 {m.sender !== "CUSTOMER" && m.senderName && (
-                  <p className="text-[10px] font-bold text-white/60 mb-0.5">{m.senderName}</p>
+                  <p className="text-[10px] font-bold text-white/60 mb-0.5">
+                    {m.senderName}
+                  </p>
                 )}
                 {m.content}
                 <span className="block text-[9px] mt-0.5 opacity-50">
-                  {new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  {new Date(m.createdAt).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
                 </span>
               </div>
             </div>
           ))}
           {messages.length === 0 && (
-            <p className="text-center text-xs text-gray-400 py-10">No messages yet</p>
+            <p className="text-center text-xs text-gray-400 py-10">
+              No messages yet
+            </p>
           )}
           <div ref={messagesEndRef} />
         </div>
@@ -998,7 +1075,9 @@ function ChatTab({
         <button
           onClick={() => setTab("customers")}
           className={`flex-1 rounded-xl py-2.5 text-xs font-bold transition-all ${
-            tab === "customers" ? "bg-[#0A4D3C] text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+            tab === "customers"
+              ? "bg-[#0A4D3C] text-white"
+              : "bg-gray-100 text-gray-500 hover:bg-gray-200"
           }`}
         >
           Customer Chats {rooms.length > 0 && `(${rooms.length})`}
@@ -1006,7 +1085,9 @@ function ChatTab({
         <button
           onClick={() => setTab("broadcast")}
           className={`flex-1 rounded-xl py-2.5 text-xs font-bold transition-all ${
-            tab === "broadcast" ? "bg-[#FF9933] text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+            tab === "broadcast"
+              ? "bg-[#FF9933] text-white"
+              : "bg-gray-100 text-gray-500 hover:bg-gray-200"
           }`}
         >
           Staff Broadcast
@@ -1021,7 +1102,9 @@ function ChatTab({
                 <MessageCircle className="h-8 w-8 text-gray-300" />
               </div>
               <p className="font-bold text-gray-500">No active chats</p>
-              <p className="text-xs text-gray-400 mt-1">Chats appear when customers message about their order</p>
+              <p className="text-xs text-gray-400 mt-1">
+                Chats appear when customers message about their order
+              </p>
             </div>
           ) : (
             rooms.map((room) => (
@@ -1065,10 +1148,17 @@ function ChatTab({
             {broadcastMsgs.map((m) => {
               const isOwn = m.senderName === staffName;
               return (
-                <div key={m.id} className={`flex ${isOwn ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-[75%] rounded-2xl px-3.5 py-2 text-sm ${
-                    isOwn ? "bg-[#FF9933] text-white rounded-br-md" : "bg-white border border-gray-200 text-[#1F2A2A] rounded-bl-md"
-                  }`}>
+                <div
+                  key={m.id}
+                  className={`flex ${isOwn ? "justify-end" : "justify-start"}`}
+                >
+                  <div
+                    className={`max-w-[75%] rounded-2xl px-3.5 py-2 text-sm ${
+                      isOwn
+                        ? "bg-[#FF9933] text-white rounded-br-md"
+                        : "bg-white border border-gray-200 text-[#1F2A2A] rounded-bl-md"
+                    }`}
+                  >
                     {!isOwn && (
                       <p className="text-[10px] font-bold text-gray-500 mb-0.5">
                         {m.senderName || m.sender}
@@ -1076,14 +1166,19 @@ function ChatTab({
                     )}
                     {m.content}
                     <span className="block text-[9px] mt-0.5 opacity-50">
-                      {new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      {new Date(m.createdAt).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
                     </span>
                   </div>
                 </div>
               );
             })}
             {broadcastMsgs.length === 0 && (
-              <p className="text-center text-xs text-gray-400 py-10">No broadcast messages yet</p>
+              <p className="text-center text-xs text-gray-400 py-10">
+                No broadcast messages yet
+              </p>
             )}
             <div ref={broadcastEndRef} />
           </div>
@@ -1613,6 +1708,14 @@ export default function KitchenPage() {
                   {isPunchedIn ? "Punched In" : "Punch In"}
                 </span>
               </button>
+
+              <a
+                href="/counter"
+                className="flex items-center gap-1 rounded-lg border border-gray-200 px-2.5 py-1.5 text-[10px] font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 transition-all"
+              >
+                <CreditCard className="h-3 w-3" />
+                <span className="hidden sm:inline">Counter</span>
+              </a>
 
               <button
                 onClick={() => setShowProfile(true)}

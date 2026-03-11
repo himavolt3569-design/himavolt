@@ -2,11 +2,21 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getOrCreateUser } from "@/lib/auth";
 import { getStaffSession } from "@/lib/staff-auth";
-import { notifyCustomerOrderUpdate } from "@/lib/notifications";
+import {
+  notifyCustomerOrderUpdate,
+  notifyCounterOrderReady,
+} from "@/lib/notifications";
 import { logAudit, getClientIp, type AuditAction } from "@/lib/audit";
 import { z } from "zod";
 
-const ORDER_STATUSES = ["ACCEPTED", "PREPARING", "READY", "DELIVERED", "CANCELLED", "REJECTED"] as const;
+const ORDER_STATUSES = [
+  "ACCEPTED",
+  "PREPARING",
+  "READY",
+  "DELIVERED",
+  "CANCELLED",
+  "REJECTED",
+] as const;
 
 const updateOrderSchema = z.object({
   status: z.enum(ORDER_STATUSES),
@@ -66,16 +76,23 @@ export async function PATCH(
   } else {
     // Fall back to Clerk owner auth
     const user = await getOrCreateUser();
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    const restaurant = await db.restaurant.findFirst({ where: { id, ownerId: user.id } });
-    if (!restaurant) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (!user)
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const restaurant = await db.restaurant.findFirst({
+      where: { id, ownerId: user.id },
+    });
+    if (!restaurant)
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     actorId = user.id;
   }
 
   const parsed = updateOrderSchema.safeParse(await req.json());
   if (!parsed.success) {
     return NextResponse.json(
-      { error: "Validation failed", issues: parsed.error.flatten().fieldErrors },
+      {
+        error: "Validation failed",
+        issues: parsed.error.flatten().fieldErrors,
+      },
       { status: 400 },
     );
   }
@@ -154,6 +171,15 @@ export async function PATCH(
     restaurantId: id,
     ipAddress: getClientIp(req.headers),
   });
+
+  // Notify counter staff when order is ready for pickup/serving
+  if (status === "READY") {
+    notifyCounterOrderReady(id, order.orderNo, order.tableNo).catch(
+      (err: unknown) => {
+        console.error("[Orders] Failed to send counter notification:", err);
+      },
+    );
+  }
 
   if (order.userId) {
     notifyCustomerOrderUpdate(

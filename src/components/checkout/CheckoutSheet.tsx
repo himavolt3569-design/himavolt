@@ -147,8 +147,13 @@ export default function CheckoutSheet({
     useState<PaymentMethodType>("CASH");
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
-  const [step, setStep] = useState<"review" | "payment" | "scan-qr">("review");
+  const [step, setStep] = useState<
+    "review" | "payment" | "scan-qr" | "waiting"
+  >("review");
   const totalRef = useRef<HTMLSpanElement>(null);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const paymentWindowRef = useRef<Window | null>(null);
+  const [waitingOrderId, setWaitingOrderId] = useState<string | null>(null);
 
   // Payment QR images
   const [paymentQRs, setPaymentQRs] = useState<PaymentQRImage[]>([]);
@@ -158,6 +163,10 @@ export default function CheckoutSheet({
   const [enabledMethods, setEnabledMethods] = useState<string[]>(["CASH"]);
   const [restaurantBankDetails, setRestaurantBankDetails] =
     useState<PaymentMethodsResponse["bankDetails"]>(null);
+
+  // Tax & service charge config
+  const [taxRate, setTaxRate] = useState(13);
+  const [taxEnabled, setTaxEnabled] = useState(true);
 
   // Order type & delivery state
   const [orderType, setOrderType] = useState<OrderType>(
@@ -171,7 +180,9 @@ export default function CheckoutSheet({
 
   const DELIVERY_FEE = 50;
   const deliveryFee = orderType === "DELIVERY" ? DELIVERY_FEE : 0;
-  const tax = Math.round(subtotal * 0.13 * 100) / 100;
+  const tax = taxEnabled
+    ? Math.round(subtotal * (taxRate / 100) * 100) / 100
+    : 0;
   const total = subtotal + tax + deliveryFee;
 
   const isOnlinePayment = selectedPayment !== "CASH";
@@ -205,6 +216,18 @@ export default function CheckoutSheet({
         setEnabledMethods(["CASH"]);
         setSelectedPayment("CASH");
       });
+
+    // Fetch tax config
+    apiFetch<{
+      taxRate: number;
+      taxEnabled: boolean;
+    }>(`/api/public/restaurants/${slug}`)
+      .then((data) => {
+        if (typeof data.taxRate === "number") setTaxRate(data.taxRate);
+        if (typeof data.taxEnabled === "boolean")
+          setTaxEnabled(data.taxEnabled);
+      })
+      .catch(() => {});
   }, [open, slug]);
 
   // Filter payment methods to only show enabled ones
@@ -216,6 +239,13 @@ export default function CheckoutSheet({
   useEffect(() => {
     if (tableNo) setOrderType("DINE_IN");
   }, [tableNo]);
+
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     if (totalRef.current && open) {
@@ -230,6 +260,35 @@ export default function CheckoutSheet({
   const canProceed =
     orderType !== "DELIVERY" ||
     (deliveryAddress.trim() !== "" && deliveryPhone.trim() !== "");
+
+  const startPaymentPolling = (orderId: string) => {
+    setWaitingOrderId(orderId);
+    setStep("waiting");
+    setLoading(false);
+
+    if (pollRef.current) clearInterval(pollRef.current);
+    pollRef.current = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/payments/${orderId}/status`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.status === "COMPLETED") {
+          if (pollRef.current) clearInterval(pollRef.current);
+          pollRef.current = null;
+          clearCart();
+          onClose();
+          onOrderPlaced(orderId);
+        } else if (data.status === "FAILED") {
+          if (pollRef.current) clearInterval(pollRef.current);
+          pollRef.current = null;
+          setStep("payment");
+          setWaitingOrderId(null);
+        }
+      } catch {
+        /* ignore poll errors */
+      }
+    }, 3000);
+  };
 
   const handlePlaceOrder = async () => {
     if (items.length === 0 || !restaurantId) return;
@@ -293,18 +352,55 @@ export default function CheckoutSheet({
           body: { orderId: order.id, method: "ESEWA" },
         });
 
-        const form = document.createElement("form");
-        form.method = "POST";
-        form.action = paymentRes.gateway.url;
-        Object.entries(paymentRes.gateway.formData).forEach(([key, value]) => {
-          const input = document.createElement("input");
-          input.type = "hidden";
-          input.name = key;
-          input.value = value;
-          form.appendChild(input);
-        });
-        document.body.appendChild(form);
-        form.submit();
+        // Build a temporary form in a new window to submit to eSewa
+        const w = window.open("about:blank", "_blank");
+        if (w) {
+          paymentWindowRef.current = w;
+          const doc = w.document;
+          doc.open();
+          doc.write(
+            "<html><body><form id='f' method='POST' action='" +
+              paymentRes.gateway.url +
+              "'>",
+          );
+          Object.entries(paymentRes.gateway.formData).forEach(
+            ([key, value]) => {
+              doc.write(
+                "<input type='hidden' name='" +
+                  key +
+                  "' value='" +
+                  value +
+                  "' />",
+              );
+            },
+          );
+          doc.write(
+            "</form><p style='font-family:sans-serif;text-align:center;margin-top:40px'>Redirecting to eSewa...</p>",
+          );
+          doc.write(
+            "<script>document.getElementById('f').submit();<\/script></body></html>",
+          );
+          doc.close();
+        } else {
+          // Fallback: submit form in same window if popup blocked
+          const form = document.createElement("form");
+          form.method = "POST";
+          form.action = paymentRes.gateway.url;
+          Object.entries(paymentRes.gateway.formData).forEach(
+            ([key, value]) => {
+              const input = document.createElement("input");
+              input.type = "hidden";
+              input.name = key;
+              input.value = value;
+              form.appendChild(input);
+            },
+          );
+          document.body.appendChild(form);
+          form.submit();
+          return;
+        }
+
+        startPaymentPolling(order.id);
         return;
       }
 
@@ -316,7 +412,18 @@ export default function CheckoutSheet({
             body: { orderId: order.id, method: "KHALTI" },
           },
         );
-        window.location.href = paymentRes.paymentUrl;
+
+        // Open Khalti in a new window/tab
+        const w = window.open(paymentRes.paymentUrl, "_blank");
+        if (w) {
+          paymentWindowRef.current = w;
+        } else {
+          // Fallback: redirect in same window if popup blocked
+          window.location.href = paymentRes.paymentUrl;
+          return;
+        }
+
+        startPaymentPolling(order.id);
         return;
       }
 
@@ -371,7 +478,9 @@ export default function CheckoutSheet({
                     ? "Review Order"
                     : step === "scan-qr"
                       ? "Scan & Pay"
-                      : "Payment"}
+                      : step === "waiting"
+                        ? "Completing Payment"
+                        : "Payment"}
                 </h2>
               </div>
               <button
@@ -543,12 +652,14 @@ export default function CheckoutSheet({
                         Rs. {subtotal}
                       </span>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">Tax (13%)</span>
-                      <span className="font-semibold text-[#1F2A2A]">
-                        Rs. {tax}
-                      </span>
-                    </div>
+                    {taxEnabled && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-500">Tax ({taxRate}%)</span>
+                        <span className="font-semibold text-[#1F2A2A]">
+                          Rs. {tax}
+                        </span>
+                      </div>
+                    )}
                     {orderType === "DELIVERY" && (
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-500 flex items-center gap-1">
@@ -753,6 +864,59 @@ export default function CheckoutSheet({
                   </div>
                 </div>
               )}
+
+              {/* ── Waiting for payment step ── */}
+              {step === "waiting" && (
+                <div className="px-6 py-10 space-y-6 text-center">
+                  <div className="flex justify-center">
+                    <div className="relative">
+                      <div className="h-20 w-20 rounded-full bg-[#FF9933]/10 flex items-center justify-center">
+                        <Loader2 className="h-10 w-10 animate-spin text-[#FF9933]" />
+                      </div>
+                      <div className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-white shadow flex items-center justify-center">
+                        {selectedPayment === "ESEWA" ? (
+                          <Wallet className="h-4 w-4 text-green-600" />
+                        ) : selectedPayment === "KHALTI" ? (
+                          <Wallet className="h-4 w-4 text-purple-600" />
+                        ) : (
+                          <CreditCard className="h-4 w-4 text-blue-600" />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-[#1F2A2A]">
+                      Waiting for Payment
+                    </h3>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Complete your payment in the{" "}
+                      {selectedPayment === "ESEWA"
+                        ? "eSewa"
+                        : selectedPayment === "KHALTI"
+                          ? "Khalti"
+                          : "payment"}{" "}
+                      window. This page will update automatically.
+                    </p>
+                  </div>
+                  <div className="rounded-xl bg-gray-50 p-4">
+                    <div className="flex justify-between">
+                      <span className="text-sm font-bold text-[#1F2A2A]">
+                        Amount
+                      </span>
+                      <span className="text-lg font-extrabold text-[#FF9933]">
+                        Rs. {total}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-left">
+                    <Shield className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
+                    <p className="text-[11px] text-amber-700">
+                      Don&apos;t close this page. If the payment window was
+                      blocked, try allowing pop-ups for this site.
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Footer */}
@@ -787,6 +951,21 @@ export default function CheckoutSheet({
                     className="w-full rounded-xl border border-gray-200 py-3 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors"
                   >
                     Back to Payment Methods
+                  </button>
+                </div>
+              ) : step === "waiting" ? (
+                <div className="space-y-2">
+                  <button
+                    onClick={() => {
+                      if (pollRef.current) clearInterval(pollRef.current);
+                      pollRef.current = null;
+                      setStep("payment");
+                      setWaitingOrderId(null);
+                      setLoading(false);
+                    }}
+                    className="w-full rounded-xl border border-gray-200 py-3 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel &amp; Choose Another Method
                   </button>
                 </div>
               ) : (

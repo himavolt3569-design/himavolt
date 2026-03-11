@@ -1,5 +1,28 @@
 import { db } from "./db";
 
+/** Fetch tax & service charge config for a restaurant */
+export async function getTaxConfig(restaurantId: string) {
+  const r = await db.restaurant.findUnique({
+    where: { id: restaurantId },
+    select: {
+      taxRate: true,
+      taxEnabled: true,
+      serviceChargeRate: true,
+      serviceChargeEnabled: true,
+    },
+  });
+  return {
+    taxRate: r?.taxEnabled ? (r.taxRate ?? 13) : 0,
+    serviceChargeRate: r?.serviceChargeEnabled
+      ? (r.serviceChargeRate ?? 10)
+      : 0,
+    taxEnabled: r?.taxEnabled ?? true,
+    serviceChargeEnabled: r?.serviceChargeEnabled ?? true,
+    taxPct: r?.taxRate ?? 13,
+    scPct: r?.serviceChargeRate ?? 10,
+  };
+}
+
 export async function generateBill(orderId: string) {
   const order = await db.order.findUnique({
     where: { id: orderId },
@@ -10,7 +33,10 @@ export async function generateBill(orderId: string) {
   if (order.bill) return order.bill;
 
   const billNo = `INV-${order.orderNo.replace("HH-", "")}`;
-  const serviceCharge = Math.round(order.subtotal * 0.1 * 100) / 100;
+  const config = await getTaxConfig(order.restaurantId);
+  const serviceCharge = config.serviceChargeEnabled
+    ? Math.round(order.subtotal * (config.serviceChargeRate / 100) * 100) / 100
+    : 0;
   const total =
     Math.round((order.subtotal + order.tax + serviceCharge) * 100) / 100;
 

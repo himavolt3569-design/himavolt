@@ -70,11 +70,41 @@ interface TrackingOrder {
 }
 
 const STEPS = [
-  { key: "PENDING", label: "Order Placed", icon: CheckCircle2, color: "text-blue-500", bg: "bg-blue-500" },
-  { key: "ACCEPTED", label: "Accepted", icon: CheckCircle2, color: "text-emerald-500", bg: "bg-emerald-500" },
-  { key: "PREPARING", label: "Preparing", icon: ChefHat, color: "text-amber-500", bg: "bg-amber-500" },
-  { key: "READY", label: "Ready", icon: PackageCheck, color: "text-green-500", bg: "bg-green-500" },
-  { key: "DELIVERED", label: "Delivered", icon: Truck, color: "text-[#0A4D3C]", bg: "bg-[#0A4D3C]" },
+  {
+    key: "PENDING",
+    label: "Order Placed",
+    icon: CheckCircle2,
+    color: "text-blue-500",
+    bg: "bg-blue-500",
+  },
+  {
+    key: "ACCEPTED",
+    label: "Accepted",
+    icon: CheckCircle2,
+    color: "text-emerald-500",
+    bg: "bg-emerald-500",
+  },
+  {
+    key: "PREPARING",
+    label: "Preparing",
+    icon: ChefHat,
+    color: "text-amber-500",
+    bg: "bg-amber-500",
+  },
+  {
+    key: "READY",
+    label: "Ready",
+    icon: PackageCheck,
+    color: "text-green-500",
+    bg: "bg-green-500",
+  },
+  {
+    key: "DELIVERED",
+    label: "Delivered",
+    icon: Truck,
+    color: "text-[#0A4D3C]",
+    bg: "bg-[#0A4D3C]",
+  },
 ];
 
 function getStepIndex(status: string): number {
@@ -107,12 +137,7 @@ function CountdownTimer({
   const secs = remaining % 60;
   const progress = Math.max(
     0,
-    Math.min(
-      1,
-      1 -
-        remaining /
-          (estimatedTime * 60)
-    )
+    Math.min(1, 1 - remaining / (estimatedTime * 60)),
   );
 
   return (
@@ -145,7 +170,9 @@ function CountdownTimer({
           <span className="text-2xl font-black text-[#1F2A2A] tabular-nums">
             {mins}:{secs.toString().padStart(2, "0")}
           </span>
-          <span className="text-[10px] font-medium text-gray-400">remaining</span>
+          <span className="text-[10px] font-medium text-gray-400">
+            remaining
+          </span>
         </div>
       </div>
       {remaining === 0 && (
@@ -168,20 +195,23 @@ function PaymentBadge({ method, status }: { method: string; status: string }) {
     BANK: { label: "Bank Transfer", color: "bg-blue-100 text-blue-700" },
     CASH: { label: "Cash", color: "bg-gray-100 text-gray-700" },
   };
-  const m = methods[method] || { label: method, color: "bg-gray-100 text-gray-700" };
+  const m = methods[method] || {
+    label: method,
+    color: "bg-gray-100 text-gray-700",
+  };
   const isPaid = status === "COMPLETED";
 
   return (
     <div className="flex items-center gap-2">
-      <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold ${m.color}`}>
+      <span
+        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold ${m.color}`}
+      >
         <CreditCard className="h-3 w-3" />
         {m.label}
       </span>
       <span
         className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold ${
-          isPaid
-            ? "bg-green-100 text-green-700"
-            : "bg-amber-100 text-amber-700"
+          isPaid ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
         }`}
       >
         {isPaid ? (
@@ -198,7 +228,13 @@ function PaymentBadge({ method, status }: { method: string; status: string }) {
   );
 }
 
-function BillSection({ bill, order }: { bill: TrackingOrder["bill"]; order: TrackingOrder }) {
+function BillSection({
+  bill,
+  order,
+}: {
+  bill: TrackingOrder["bill"];
+  order: TrackingOrder;
+}) {
   if (!bill) return null;
 
   return (
@@ -236,12 +272,12 @@ function BillSection({ bill, order }: { bill: TrackingOrder["bill"]; order: Trac
             <span>Rs. {bill.subtotal}</span>
           </div>
           <div className="flex justify-between text-xs text-gray-500">
-            <span>Tax (13%)</span>
+            <span>Tax</span>
             <span>Rs. {bill.tax}</span>
           </div>
           {bill.serviceCharge > 0 && (
             <div className="flex justify-between text-xs text-gray-500">
-              <span>Service Charge (10%)</span>
+              <span>Service Charge</span>
               <span>Rs. {bill.serviceCharge}</span>
             </div>
           )}
@@ -280,7 +316,9 @@ export default function TrackOrderPage() {
   const [copied, setCopied] = useState(false);
   const [showBill, setShowBill] = useState(false);
   const [showQRs, setShowQRs] = useState(false);
-  const [paymentQRs, setPaymentQRs] = useState<{ id: string; label: string; imageUrl: string }[]>([]);
+  const [paymentQRs, setPaymentQRs] = useState<
+    { id: string; label: string; imageUrl: string }[]
+  >([]);
   const [selectedQR, setSelectedQR] = useState<string | null>(null);
   const clockRef = useRef<HTMLDivElement>(null);
   const handRef = useRef<HTMLDivElement>(null);
@@ -288,7 +326,7 @@ export default function TrackOrderPage() {
   const fetchOrder = useCallback(async () => {
     try {
       const data = await apiFetch<TrackingOrder>(
-        `/api/track?orderId=${orderId}`
+        `/api/track?orderId=${orderId}`,
       );
       setOrder(data);
       setError(null);
@@ -354,7 +392,7 @@ export default function TrackOrderPage() {
     if (!order?.restaurant.slug) return;
     if (order.payment?.status === "COMPLETED") return;
     apiFetch<{ id: string; label: string; imageUrl: string }[]>(
-      `/api/public/restaurants/${order.restaurant.slug}/payment-qrs`
+      `/api/public/restaurants/${order.restaurant.slug}/payment-qrs`,
     )
       .then(setPaymentQRs)
       .catch(() => setPaymentQRs([]));
@@ -371,11 +409,7 @@ export default function TrackOrderPage() {
   }, [order?.status]);
 
   useEffect(() => {
-    if (
-      order?.status === "PREPARING" &&
-      clockRef.current &&
-      handRef.current
-    ) {
+    if (order?.status === "PREPARING" && clockRef.current && handRef.current) {
       const ctx = gsap.context(() => {
         gsap.to(handRef.current!, {
           rotation: 360,
@@ -440,9 +474,7 @@ export default function TrackOrderPage() {
   const isComplete = order.status === "DELIVERED";
   const isActive = !isCancelled && !isComplete;
   const showTimer =
-    isActive &&
-    order.estimatedTime &&
-    (order.preparingAt || order.acceptedAt);
+    isActive && order.estimatedTime && (order.preparingAt || order.acceptedAt);
 
   return (
     <div className="min-h-screen bg-gray-50/50">
@@ -457,9 +489,7 @@ export default function TrackOrderPage() {
               <ArrowLeft className="h-4 w-4" />
             </Link>
             <div className="flex-1 min-w-0">
-              <h1 className="text-sm font-bold text-[#1F2A2A]">
-                Track Order
-              </h1>
+              <h1 className="text-sm font-bold text-[#1F2A2A]">Track Order</h1>
               <p className="text-[11px] text-gray-400">Live updates</p>
             </div>
             {isActive && (
@@ -595,83 +625,96 @@ export default function TrackOrderPage() {
         </motion.div>
 
         {/* Payment QR section — shown when payment is still pending */}
-        {paymentQRs.length > 0 && order.payment && order.payment.status !== "COMPLETED" && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="rounded-2xl border border-amber-200 bg-amber-50 overflow-hidden shadow-sm"
-          >
-            <button
-              onClick={() => setShowQRs(!showQRs)}
-              className="w-full flex items-center justify-between px-5 py-4"
+        {paymentQRs.length > 0 &&
+          order.payment &&
+          order.payment.status !== "COMPLETED" && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="rounded-2xl border border-amber-200 bg-amber-50 overflow-hidden shadow-sm"
             >
-              <div className="flex items-center gap-2">
-                <QrCode className="h-4 w-4 text-amber-600" />
-                <span className="text-sm font-bold text-amber-800">
-                  Scan to Pay &middot; Rs. {order.total}
-                </span>
-              </div>
-              <motion.div animate={{ rotate: showQRs ? 180 : 0 }} transition={{ duration: 0.2 }}>
-                <ChevronDown className="h-4 w-4 text-amber-600" />
-              </motion.div>
-            </button>
-            <AnimatePresence>
-              {showQRs && (
+              <button
+                onClick={() => setShowQRs(!showQRs)}
+                className="w-full flex items-center justify-between px-5 py-4"
+              >
+                <div className="flex items-center gap-2">
+                  <QrCode className="h-4 w-4 text-amber-600" />
+                  <span className="text-sm font-bold text-amber-800">
+                    Scan to Pay &middot; Rs. {order.total}
+                  </span>
+                </div>
                 <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
+                  animate={{ rotate: showQRs ? 180 : 0 }}
                   transition={{ duration: 0.2 }}
-                  className="overflow-hidden"
                 >
-                  <div className="px-5 pb-5 space-y-3">
-                    <p className="text-[11px] text-amber-700">
-                      Scan one of the QR codes below to complete your payment.
-                    </p>
-                    {paymentQRs.map((qr) => (
-                      <button
-                        key={qr.id}
-                        onClick={() => setSelectedQR(selectedQR === qr.id ? null : qr.id)}
-                        className={`w-full rounded-xl border-2 p-3 text-left transition-all bg-white ${
-                          selectedQR === qr.id ? "border-amber-400" : "border-gray-100 hover:border-gray-200"
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-100">
-                            <QrCode className="h-4 w-4 text-amber-600" />
-                          </div>
-                          <span className="text-sm font-bold text-[#1F2A2A]">{qr.label}</span>
-                          <motion.div
-                            animate={{ rotate: selectedQR === qr.id ? 180 : 0 }}
-                            className="ml-auto"
-                          >
-                            <ChevronDown className="h-4 w-4 text-gray-400" />
-                          </motion.div>
-                        </div>
-                        <AnimatePresence>
-                          {selectedQR === qr.id && (
-                            <motion.div
-                              initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: "auto" }}
-                              exit={{ opacity: 0, height: 0 }}
-                              className="mt-3 overflow-hidden"
-                            >
-                              <img
-                                src={qr.imageUrl}
-                                alt={qr.label}
-                                className="w-full max-h-72 object-contain rounded-xl bg-white border border-gray-100 p-2"
-                              />
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </button>
-                    ))}
-                  </div>
+                  <ChevronDown className="h-4 w-4 text-amber-600" />
                 </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
-        )}
+              </button>
+              <AnimatePresence>
+                {showQRs && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="px-5 pb-5 space-y-3">
+                      <p className="text-[11px] text-amber-700">
+                        Scan one of the QR codes below to complete your payment.
+                      </p>
+                      {paymentQRs.map((qr) => (
+                        <button
+                          key={qr.id}
+                          onClick={() =>
+                            setSelectedQR(selectedQR === qr.id ? null : qr.id)
+                          }
+                          className={`w-full rounded-xl border-2 p-3 text-left transition-all bg-white ${
+                            selectedQR === qr.id
+                              ? "border-amber-400"
+                              : "border-gray-100 hover:border-gray-200"
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-100">
+                              <QrCode className="h-4 w-4 text-amber-600" />
+                            </div>
+                            <span className="text-sm font-bold text-[#1F2A2A]">
+                              {qr.label}
+                            </span>
+                            <motion.div
+                              animate={{
+                                rotate: selectedQR === qr.id ? 180 : 0,
+                              }}
+                              className="ml-auto"
+                            >
+                              <ChevronDown className="h-4 w-4 text-gray-400" />
+                            </motion.div>
+                          </div>
+                          <AnimatePresence>
+                            {selectedQR === qr.id && (
+                              <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: "auto" }}
+                                exit={{ opacity: 0, height: 0 }}
+                                className="mt-3 overflow-hidden"
+                              >
+                                <img
+                                  src={qr.imageUrl}
+                                  alt={qr.label}
+                                  className="w-full max-h-72 object-contain rounded-xl bg-white border border-gray-100 p-2"
+                                />
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </button>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          )}
 
         {/* Countdown timer */}
         {showTimer && (
@@ -761,8 +804,7 @@ export default function TrackOrderPage() {
                   "Your order has been sent to the kitchen"}
                 {order.status === "ACCEPTED" &&
                   "Restaurant confirmed your order"}
-                {order.status === "PREPARING" &&
-                  "Chef is working on your food"}
+                {order.status === "PREPARING" && "Chef is working on your food"}
                 {order.status === "READY" && "Your food is ready for pickup!"}
               </p>
             </div>
@@ -887,10 +929,7 @@ export default function TrackOrderPage() {
           </h3>
           <div className="space-y-2.5">
             {order.items.map((item) => (
-              <div
-                key={item.id}
-                className="flex items-center justify-between"
-              >
+              <div key={item.id} className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
                   <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#FF9933]/10 text-[11px] font-bold text-[#FF9933]">
                     {item.quantity}

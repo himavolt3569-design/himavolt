@@ -51,6 +51,7 @@ import BillingTab from "@/components/billing/BillingTab";
 import StoryManager from "@/components/stories/StoryManager";
 import PaymentQRTab from "@/components/dashboard/PaymentQRTab";
 import PaymentSettingsTab from "@/components/dashboard/PaymentSettingsTab";
+import TaxChargesTab from "@/components/dashboard/TaxChargesTab";
 import { useLiveOrders } from "@/context/LiveOrdersContext";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { getTypeLabel } from "@/lib/restaurant-types";
@@ -66,7 +67,8 @@ type DashTab =
   | "billing"
   | "stories"
   | "payment-qr"
-  | "payment-settings";
+  | "payment-settings"
+  | "tax-charges";
 
 /* ─── Navigation groups for sidebar ───────────────────────────────── */
 const NAV_MAIN: {
@@ -87,6 +89,7 @@ const NAV_MANAGE: typeof NAV_MAIN = [
   { id: "qr", label: "QR Codes", icon: QrCode },
   { id: "payment-qr", label: "Payment QR", icon: Wallet },
   { id: "payment-settings", label: "Payment Settings", icon: Settings },
+  { id: "tax-charges" as DashTab, label: "Tax & Charges", icon: Receipt },
 ];
 
 const NAV_MORE: typeof NAV_MAIN = [
@@ -127,22 +130,22 @@ function RestaurantSwitcher({ onNavigate }: { onNavigate?: () => void }) {
     <div className="relative mx-3 mb-4" ref={panelRef}>
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center gap-3 rounded-xl bg-white/6 p-3 transition-all duration-150 hover:bg-white/10"
+        className="flex w-full items-center gap-3 rounded-xl bg-gray-50 p-3 transition-all duration-150 hover:bg-gray-100 ring-1 ring-gray-100"
       >
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-500/15">
-          <Store className="h-4 w-4 text-amber-400" />
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-50">
+          <Store className="h-4 w-4 text-amber-500" />
         </div>
         <div className="min-w-0 flex-1 text-left">
-          <p className="truncate text-[13px] font-semibold text-white/90">
+          <p className="truncate text-[13px] font-semibold text-gray-800">
             {current.name}
           </p>
           <div className="flex items-center gap-1.5 mt-0.5">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <p className="text-[10px] text-white/40">Active</p>
+            <p className="text-[10px] text-gray-400">Active</p>
           </div>
         </div>
         <ChevronDown
-          className={`h-3.5 w-3.5 text-white/30 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          className={`h-3.5 w-3.5 text-gray-400 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
         />
       </button>
 
@@ -153,19 +156,19 @@ function RestaurantSwitcher({ onNavigate }: { onNavigate?: () => void }) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.15 }}
-            className="absolute left-0 right-0 top-full mt-1.5 z-50 rounded-xl bg-[#1E2433] ring-1 ring-white/10 overflow-hidden shadow-2xl"
+            className="absolute left-0 right-0 top-full mt-1.5 z-50 rounded-xl bg-white ring-1 ring-gray-200 overflow-hidden shadow-xl"
           >
             {/* Current */}
-            <div className="p-3 border-b border-white/5">
+            <div className="p-3 border-b border-gray-100">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500/15">
-                  <Store className="h-4.5 w-4.5 text-amber-400" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-50">
+                  <Store className="h-4.5 w-4.5 text-amber-500" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[13px] font-bold text-white">
+                  <p className="truncate text-[13px] font-bold text-gray-800">
                     {current.name}
                   </p>
-                  <span className="text-[10px] text-white/40">
+                  <span className="text-[10px] text-gray-400">
                     {getTypeLabel(current.type)}
                   </span>
                 </div>
@@ -174,14 +177,14 @@ function RestaurantSwitcher({ onNavigate }: { onNavigate?: () => void }) {
             </div>
 
             {/* Quick links */}
-            <div className="px-1.5 py-1.5 border-b border-white/5">
+            <div className="px-1.5 py-1.5 border-b border-gray-100">
               {[
                 { icon: UsersRound, label: "Manage Users" },
                 { icon: Settings, label: "Settings" },
               ].map((item) => (
                 <button
                   key={item.label}
-                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-[12px] font-medium text-white/50 hover:bg-white/6 hover:text-white/80 transition-all"
+                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-[12px] font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-all"
                 >
                   <item.icon className="h-3.5 w-3.5" />
                   {item.label}
@@ -191,8 +194,8 @@ function RestaurantSwitcher({ onNavigate }: { onNavigate?: () => void }) {
 
             {/* Other restaurants */}
             {otherRestaurants.length > 0 && (
-              <div className="px-3 py-2.5 border-b border-white/5">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-white/25 mb-2">
+              <div className="px-3 py-2.5 border-b border-gray-100">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">
                   Switch to
                 </p>
                 <div className="space-y-1">
@@ -200,17 +203,17 @@ function RestaurantSwitcher({ onNavigate }: { onNavigate?: () => void }) {
                     <button
                       key={r.id}
                       onClick={() => handleSwitch(r.id)}
-                      className="flex w-full items-center gap-3 rounded-lg p-2 hover:bg-white/6 transition-all"
+                      className="flex w-full items-center gap-3 rounded-lg p-2 hover:bg-gray-50 transition-all"
                     >
-                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/6">
-                        <Store className="h-3.5 w-3.5 text-white/50" />
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100">
+                        <Store className="h-3.5 w-3.5 text-gray-500" />
                       </div>
                       <div className="min-w-0 flex-1 text-left">
-                        <p className="truncate text-[12px] font-semibold text-white/80">
+                        <p className="truncate text-[12px] font-semibold text-gray-700">
                           {r.name}
                         </p>
                         {r.address && (
-                          <span className="flex items-center gap-0.5 text-[10px] text-white/30 truncate">
+                          <span className="flex items-center gap-0.5 text-[10px] text-gray-400 truncate">
                             <MapPin className="h-2.5 w-2.5 shrink-0" />
                             {r.address}
                           </span>
@@ -230,7 +233,7 @@ function RestaurantSwitcher({ onNavigate }: { onNavigate?: () => void }) {
                   setOpen(false);
                   onNavigate?.();
                 }}
-                className="flex-1 text-center text-[12px] font-semibold text-amber-400 hover:text-amber-300 transition-colors py-2 rounded-lg hover:bg-amber-400/5"
+                className="flex-1 text-center text-[12px] font-semibold text-amber-600 hover:text-amber-500 transition-colors py-2 rounded-lg hover:bg-amber-50"
               >
                 Manage All
               </Link>
@@ -271,7 +274,7 @@ function NavSection({
 }) {
   return (
     <div className="mb-3">
-      <p className="px-3 mb-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-white/20">
+      <p className="px-3 mb-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-gray-400">
         {label}
       </p>
       <div className="space-y-0.5">
@@ -287,8 +290,8 @@ function NavSection({
               }}
               className={`group relative flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium transition-all duration-150 ${
                 isActive
-                  ? "bg-white/8 text-white"
-                  : "text-white/45 hover:bg-white/4 hover:text-white/75"
+                  ? "bg-amber-50 text-gray-900 shadow-sm ring-1 ring-amber-100/60"
+                  : "text-gray-500 hover:bg-gray-50 hover:text-gray-700"
               }`}
             >
               {/* Left accent bar */}
@@ -300,11 +303,11 @@ function NavSection({
                 />
               )}
               <Icon
-                className={`h-4 w-4 shrink-0 transition-colors ${isActive ? "text-amber-400" : ""}`}
+                className={`h-4 w-4 shrink-0 transition-colors ${isActive ? "text-amber-500" : ""}`}
               />
               <span className="flex-1 text-left">{item.label}</span>
               {item.badge === "live" && newOrderCount > 0 && (
-                <span className="flex h-5 min-w-5 items-center justify-center rounded-md bg-rose-500/20 px-1.5 text-[10px] font-bold text-rose-400">
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-md bg-rose-50 px-1.5 text-[10px] font-bold text-rose-500 ring-1 ring-rose-100">
                   {newOrderCount}
                 </span>
               )}
@@ -334,21 +337,21 @@ function Sidebar({
   onClose?: () => void;
 }) {
   return (
-    <aside className="flex h-full w-full flex-col bg-[#0F1219] text-white">
+    <aside className="flex h-full w-full flex-col bg-white border-r border-gray-200/80">
       {/* Logo */}
       <div className="flex items-center justify-between px-5 pt-6 pb-5">
         <Link href="/" className="group flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500 shadow-sm">
             <Mountain className="h-4 w-4 text-white" strokeWidth={2.5} />
           </div>
-          <span className="text-[17px] font-bold tracking-tight">
-            Himal<span className="text-amber-400">Hub</span>
+          <span className="text-[17px] font-bold tracking-tight text-gray-900">
+            Himal<span className="text-amber-500">Hub</span>
           </span>
         </Link>
         {onClose && (
           <button
             onClick={onClose}
-            className="rounded-lg p-1.5 hover:bg-white/10 transition-colors lg:hidden"
+            className="rounded-lg p-1.5 hover:bg-gray-100 transition-colors lg:hidden text-gray-500"
           >
             <X className="h-4 w-4" />
           </button>
@@ -388,10 +391,10 @@ function Sidebar({
 
       {/* Bottom */}
       <div className="px-3 pb-4 pt-2">
-        <div className="h-px w-full bg-white/5 mb-3" />
+        <div className="h-px w-full bg-gray-100 mb-3" />
         <Link
           href="/"
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-white/4 py-2.5 text-[12px] font-medium text-white/40 transition-all hover:bg-white/8 hover:text-white/70"
+          className="flex w-full items-center justify-center gap-2 rounded-lg bg-gray-50 py-2.5 text-[12px] font-medium text-gray-400 transition-all hover:bg-gray-100 hover:text-gray-600 ring-1 ring-gray-100"
         >
           <ExternalLink className="h-3.5 w-3.5" />
           Customer View
@@ -958,6 +961,7 @@ export default function DashboardPage() {
               {activeTab === "qr" && <QRCodesTab />}
               {activeTab === "payment-qr" && <PaymentQRTab />}
               {activeTab === "payment-settings" && <PaymentSettingsTab />}
+              {activeTab === "tax-charges" && <TaxChargesTab />}
               {activeTab === "reports" && <ReportsTab />}
               {activeTab === "stories" && selectedRestaurant && (
                 <StoryManager

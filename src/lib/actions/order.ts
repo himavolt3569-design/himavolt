@@ -2,7 +2,7 @@
 
 import { db } from "@/lib/db";
 import { getOrCreateUser } from "@/lib/auth";
-import { generateBill } from "@/lib/billing";
+import { generateBill, getTaxConfig } from "@/lib/billing";
 import { revalidatePath } from "next/cache";
 
 export async function placeOrder(data: {
@@ -36,7 +36,10 @@ export async function placeOrder(data: {
     (sum, item) => sum + item.price * item.quantity,
     0,
   );
-  const tax = Math.round(subtotal * 0.13 * 100) / 100;
+  const taxCfg = await getTaxConfig(data.restaurantId);
+  const tax = taxCfg.taxEnabled
+    ? Math.round(subtotal * (taxCfg.taxRate / 100) * 100) / 100
+    : 0;
 
   // Calculate delivery fee
   let deliveryFee = 0;

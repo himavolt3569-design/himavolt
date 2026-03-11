@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: Promise<{ slug: string }> }
+  { params }: { params: Promise<{ slug: string }> },
 ) {
   const { slug } = await params;
 
@@ -23,6 +23,10 @@ export async function GET(
       openingTime: true,
       closingTime: true,
       tableCount: true,
+      taxRate: true,
+      taxEnabled: true,
+      serviceChargeRate: true,
+      serviceChargeEnabled: true,
       categories: {
         where: { isActive: true },
         orderBy: { sortOrder: "asc" },

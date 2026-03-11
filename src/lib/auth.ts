@@ -1,7 +1,10 @@
 import { db } from "./db";
 
 function isClerkConfigured() {
-  return !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && !!process.env.CLERK_SECRET_KEY;
+  return (
+    !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY &&
+    !!process.env.CLERK_SECRET_KEY
+  );
 }
 
 export async function getAuthUser() {
@@ -31,13 +34,17 @@ export async function getOrCreateUser() {
   const email = clerkUser.emailAddresses[0]?.emailAddress ?? "";
 
   // If a user with this email already exists (e.g. from dev Clerk), update their ID
-  const existing = email ? await db.user.findUnique({ where: { email } }) : null;
+  const existing = email
+    ? await db.user.findUnique({ where: { email } })
+    : null;
   if (existing) {
     user = await db.user.update({
       where: { email },
       data: {
         id: clerkUser.id,
-        name: `${clerkUser.firstName ?? ""} ${clerkUser.lastName ?? ""}`.trim() || existing.name,
+        name:
+          `${clerkUser.firstName ?? ""} ${clerkUser.lastName ?? ""}`.trim() ||
+          existing.name,
         imageUrl: clerkUser.imageUrl ?? existing.imageUrl,
       },
     });
@@ -48,7 +55,9 @@ export async function getOrCreateUser() {
     data: {
       id: clerkUser.id,
       email,
-      name: `${clerkUser.firstName ?? ""} ${clerkUser.lastName ?? ""}`.trim() || "User",
+      name:
+        `${clerkUser.firstName ?? ""} ${clerkUser.lastName ?? ""}`.trim() ||
+        "User",
       phone: clerkUser.phoneNumbers[0]?.phoneNumber,
       imageUrl: clerkUser.imageUrl,
     },

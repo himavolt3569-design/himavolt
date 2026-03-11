@@ -19,11 +19,33 @@ export async function POST(
   const { id } = await params;
 
   const staff = await verifyStaffAccess(req, id);
+  let actorId = staff?.staffId;
+
   if (!staff) {
-    return NextResponse.json(
-      { error: "Unauthorized — Cashier/Manager access required" },
-      { status: 401 },
-    );
+    // Fallback: allow restaurant owner via Clerk auth
+    try {
+      const { auth } = await import("@clerk/nextjs/server");
+      const { userId } = await auth();
+      if (!userId) {
+        return NextResponse.json(
+          { error: "Unauthorized — Cashier/Manager access required" },
+          { status: 401 },
+        );
+      }
+      const restaurant = await db.restaurant.findUnique({
+        where: { id },
+        select: { ownerId: true },
+      });
+      if (!restaurant || restaurant.ownerId !== userId) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+      actorId = userId;
+    } catch {
+      return NextResponse.json(
+        { error: "Unauthorized — Cashier/Manager access required" },
+        { status: 401 },
+      );
+    }
   }
 
   const body = await req.json();
@@ -61,8 +83,13 @@ export async function POST(
       entity: "Payment",
       entityId: orderId,
       detail: `Payment collected via ${method} for order ${order.orderNo} (Rs.${order.total})`,
-      metadata: { method, orderNo: order.orderNo, amount: order.total, transactionId },
-      userId: staff.staffId,
+      metadata: {
+        method,
+        orderNo: order.orderNo,
+        amount: order.total,
+        transactionId,
+      },
+      userId: actorId,
       restaurantId: id,
       ipAddress: getClientIp(req.headers),
     });

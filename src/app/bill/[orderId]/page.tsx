@@ -450,7 +450,7 @@ export default function BillPage() {
             </div>
             {bill.tax > 0 && (
               <div className="flex justify-between text-[13px]">
-                <span className="text-gray-500">Tax (VAT 13%)</span>
+                <span className="text-gray-500">Tax</span>
                 <span className="font-medium text-[#1F2A2A]">
                   Rs. {bill.tax.toFixed(2)}
                 </span>
@@ -458,7 +458,7 @@ export default function BillPage() {
             )}
             {bill.serviceCharge > 0 && (
               <div className="flex justify-between text-[13px]">
-                <span className="text-gray-500">Service Charge (10%)</span>
+                <span className="text-gray-500">Service Charge</span>
                 <span className="font-medium text-[#1F2A2A]">
                   Rs. {bill.serviceCharge.toFixed(2)}
                 </span>
