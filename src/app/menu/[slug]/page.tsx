@@ -59,6 +59,8 @@ import TableSessionBanner from "@/components/menu/TableSessionBanner";
 import GetBillButton from "@/components/menu/GetBillButton";
 import { useTableSession } from "@/hooks/useTableSession";
 import FoodSlider from "@/components/menu/FoodSlider";
+import MenuStoryHero from "@/components/three/MenuStoryHero";
+import ScrollStorySection from "@/components/three/ScrollStorySection";
 
 const PLACEHOLDER_IMG =
   "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&h=300&fit=crop";
@@ -1083,7 +1085,18 @@ function MenuPageContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F7F8FA]">
+    <div className="min-h-screen bg-[#F7F8FA] relative">
+      {/* Cinematic restaurant hero */}
+      <MenuStoryHero
+        name={restaurant.name}
+        address={restaurant.address}
+        rating={restaurant.rating}
+        openingTime={restaurant.openingTime}
+        closingTime={restaurant.closingTime}
+        coverUrl={restaurant.coverUrl}
+        imageUrl={restaurant.imageUrl}
+      />
+
       {/* Header */}
       <motion.header
         initial={{ y: -20, opacity: 0 }}
@@ -1159,12 +1172,14 @@ function MenuPageContent() {
         </div>
       </motion.header>
 
-      <div className="mx-auto max-w-7xl px-4 md:px-6">
+      <div className="relative z-10 mx-auto max-w-7xl px-4 md:px-6">
         <div className="flex flex-col lg:flex-row gap-6 py-4 lg:py-6">
           {/* Main content */}
           <div className="flex-1 min-w-0 space-y-4">
-            {/* Stories */}
-            <MenuStories slug={slug} />
+            {/* Stories - with scroll reveal */}
+            <ScrollStorySection fadeIn slideFrom="bottom" scrub={false}>
+              <MenuStories slug={slug} />
+            </ScrollStorySection>
 
             {/* Table session banner */}
             {hasSessionOrder && sessionOrder && (
@@ -1275,7 +1290,8 @@ function MenuPageContent() {
               />
             )}
 
-            {/* Dish list — grouped by category */}
+            {/* Dish list — grouped by category, scroll-revealed */}
+            <ScrollStorySection fadeIn slideFrom="bottom" scrub={false}>
             <div className="space-y-6">
               <AnimatePresence mode="popLayout">
                 {smartSorted.length === 0 ? (
@@ -1385,6 +1401,7 @@ function MenuPageContent() {
                 )}
               </AnimatePresence>
             </div>
+            </ScrollStorySection>
           </div>
 
           {/* Desktop cart sidebar */}

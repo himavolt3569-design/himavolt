@@ -52,3 +52,30 @@ input[type="number"] {
   -moz-appearance: textfield;
   appearance: textfield;
 }
+
+/* ═══ Scroll Storytelling ═══ */
+
+/* GSAP ScrollTrigger pinned sections need proper z-index stacking */
+.pin-spacer {
+  z-index: 1 !important;
+}
+
+/* Ensure Three.js canvas doesn't capture pointer events */
+canvas[data-engine] {
+  pointer-events: none !important;
+}
+
+/* Smooth scroll override for GSAP pinning (GSAP handles its own scroll) */
+.gsap-scroll-active html {
+  scroll-behavior: auto;
+}
+
+/* Story section reveal animations — fallback for no-JS */
+@media (prefers-reduced-motion: reduce) {
+  .pin-spacer,
+  [data-scroll-story] {
+    transform: none !important;
+    opacity: 1 !important;
+    filter: none !important;
+  }
+}
