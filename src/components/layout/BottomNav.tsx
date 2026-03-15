@@ -8,9 +8,9 @@ import clsx from "clsx";
 
 const NAV_ITEMS = [
   { name: "Home", href: "/", icon: Home },
-  { name: "Menu", href: "/", icon: MenuIcon },
-  { name: "Orders", href: "/dashboard", icon: Receipt },
-  { name: "Profile", href: "/manage-restaurants", icon: User },
+  { name: "Menu", href: "/menu", icon: MenuIcon },
+  { name: "Orders", href: "/orders", icon: Receipt },
+  { name: "Account", href: "/profile", icon: User },
 ];
 
 export default function BottomNav() {
@@ -22,7 +22,7 @@ export default function BottomNav() {
     <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-snow-white/20 pb-safe shadow-[0_-4px_24px_rgba(0,0,0,0.06)]">
       <div className="flex justify-around items-center h-16 px-2">
         {NAV_ITEMS.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
 
           return (
             <Link

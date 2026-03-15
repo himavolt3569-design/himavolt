@@ -129,6 +129,7 @@ export const createOrderSchema = z.object({
     .default("DINE_IN"),
   paymentMethod: z.string().optional(),
   addToOrderId: z.string().optional().nullable(), // existing order ID for cash add-on
+  tableSessionId: z.string().optional().nullable(), // link to table session
   deliveryAddress: z.string().max(300).optional().nullable(),
   deliveryLat: z.number().optional().nullable(),
   deliveryLng: z.number().optional().nullable(),
@@ -165,8 +166,10 @@ export const updateInventoryItemSchema = z.object({
 // ─── Chat ──────────────────────────────────────────────────────────────────────
 
 export const createChatRoomSchema = z.object({
-  orderId: z.string().min(1),
+  orderId: z.string().min(1).optional(),
   restaurantId: z.string().min(1),
+  tableNo: z.number().optional(),
+  roomNo: z.string().optional(),
 });
 
 export const sendMessageSchema = z.object({

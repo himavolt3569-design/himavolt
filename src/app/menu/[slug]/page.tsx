@@ -53,6 +53,12 @@ import OrderStatus from "@/components/shared/OrderStatus";
 import CartSidebar from "@/components/cart/CartSidebar";
 import CheckoutSheet from "@/components/checkout/CheckoutSheet";
 import MenuStories from "@/components/stories/MenuStories";
+import ChatWidget from "@/components/chat/ChatWidget";
+import OfferCountdown from "@/components/menu/OfferCountdown";
+import TableSessionBanner from "@/components/menu/TableSessionBanner";
+import GetBillButton from "@/components/menu/GetBillButton";
+import { useTableSession } from "@/hooks/useTableSession";
+import FoodSlider from "@/components/menu/FoodSlider";
 
 const PLACEHOLDER_IMG =
   "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&h=300&fit=crop";
@@ -111,6 +117,8 @@ interface MenuItem {
   discount: number;
   discountLabel: string | null;
   isFeatured: boolean;
+  offerExpiresAt: string | null;
+  offerStartedAt: string | null;
   categoryId: string;
   category: { name: string; slug: string };
   sizes: MenuItemSize[];
@@ -302,6 +310,7 @@ function DishDetail({
               <Clock className="h-3.5 w-3.5" />
               {dish.prepTime}
             </span>
+            <OfferCountdown expiresAt={dish.offerExpiresAt} compact />
             {cartQty > 0 && (
               <motion.span
                 initial={{ scale: 0 }}
@@ -511,73 +520,78 @@ function MenuItemCard({
   return (
     <motion.div
       variants={itemVariants}
-      onClick={() => onSelect(item)}
       whileHover={{ y: -3, boxShadow: "0 8px 30px rgba(0,0,0,0.08)" }}
       transition={{ type: "spring", stiffness: 400, damping: 25 }}
-      className="group relative flex gap-4 rounded-2xl bg-white p-3 cursor-pointer border border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.04)]"
+      className="group rounded-2xl bg-white border border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.04)] overflow-hidden"
     >
-      <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-xl bg-gray-100">
-        <img
-          src={img(item.imageUrl)}
-          alt={item.name}
-          loading="lazy"
-          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-        />
-        {item.badge && (
-          <motion.span
-            initial={{ opacity: 0, x: -8 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{
-              delay: 0.15,
-              type: "spring",
-              stiffness: 400,
-              damping: 20,
-            }}
-            className={`absolute top-1.5 left-1.5 rounded-full px-2 py-0.5 text-[10px] font-bold text-white shadow ${
-              item.badge === "Bestseller"
-                ? "bg-[#FF9933]"
-                : item.badge === "Most Liked"
-                  ? "bg-[#0A4D3C]"
-                  : "bg-purple-500"
-            }`}
-          >
-            {item.badge === "Bestseller" ? "# Bestseller" : item.badge}
-          </motion.span>
-        )}
-        {item.discountLabel && (
-          <motion.span
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{
-              delay: 0.2,
-              type: "spring",
-              stiffness: 500,
-              damping: 15,
-            }}
-            className="absolute bottom-1.5 left-1.5 rounded-md bg-[#E23744] px-1.5 py-0.5 text-[9px] font-extrabold text-white shadow"
-          >
-            {item.discountLabel}
-          </motion.span>
-        )}
-      </div>
-
-      <div className="flex flex-1 flex-col justify-between min-w-0 py-0.5">
-        <div>
-          <div className="flex items-center gap-1.5 mb-0.5">
-            {item.isVeg ? <VegIcon /> : <NonVegIcon />}
-            {item.hasEgg && <Egg className="h-3 w-3 text-yellow-500" />}
-          </div>
-          <h3 className="text-sm font-bold text-[#1F2A2A] truncate pr-8 flex items-center gap-1">
-            {item.name}
-            {item.isFeatured && (
-              <Star className="h-3 w-3 fill-[#FF9933] text-[#FF9933] shrink-0" />
-            )}
-          </h3>
-          <p className="mt-0.5 text-[11px] text-gray-400 line-clamp-2 leading-relaxed">
-            {item.description}
-          </p>
+      <div
+        className="flex gap-4 p-3 cursor-pointer"
+        onClick={() => onSelect(item)}
+      >
+        {/* Image on the left */}
+        <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-xl bg-gray-100">
+          <img
+            src={img(item.imageUrl)}
+            alt={item.name}
+            loading="lazy"
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+          />
+          <OfferCountdown expiresAt={item.offerExpiresAt} />
+          {item.badge && (
+            <motion.span
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{
+                delay: 0.15,
+                type: "spring",
+                stiffness: 400,
+                damping: 20,
+              }}
+              className={`absolute top-1.5 left-1.5 rounded-full px-2 py-0.5 text-[10px] font-bold text-white shadow ${
+                item.badge === "Bestseller"
+                  ? "bg-[#FF9933]"
+                  : item.badge === "Most Liked"
+                    ? "bg-[#0A4D3C]"
+                    : "bg-purple-500"
+              }`}
+            >
+              {item.badge === "Bestseller" ? "# Bestseller" : item.badge}
+            </motion.span>
+          )}
+          {item.discountLabel && (
+            <motion.span
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{
+                delay: 0.2,
+                type: "spring",
+                stiffness: 500,
+                damping: 15,
+              }}
+              className="absolute bottom-1.5 left-1.5 rounded-md bg-[#E23744] px-1.5 py-0.5 text-[9px] font-extrabold text-white shadow"
+            >
+              {item.discountLabel}
+            </motion.span>
+          )}
         </div>
-        <div className="flex items-end justify-between">
+
+        {/* Text on the right */}
+        <div className="flex flex-1 flex-col justify-between min-w-0 py-0.5">
+          <div>
+            <div className="flex items-center gap-1.5 mb-0.5">
+              {item.isVeg ? <VegIcon /> : <NonVegIcon />}
+              {item.hasEgg && <Egg className="h-3 w-3 text-yellow-500" />}
+            </div>
+            <h3 className="text-sm font-bold text-[#1F2A2A] truncate flex items-center gap-1">
+              {item.name}
+              {item.isFeatured && (
+                <Star className="h-3 w-3 fill-[#FF9933] text-[#FF9933] shrink-0" />
+              )}
+            </h3>
+            <p className="mt-0.5 text-[11px] text-gray-400 line-clamp-2 leading-relaxed">
+              {item.description}
+            </p>
+          </div>
           <div className="flex items-center gap-2.5">
             <span className="text-sm font-extrabold text-[#1F2A2A]">
               Rs. {item.price}
@@ -594,26 +608,26 @@ function MenuItemCard({
         </div>
       </div>
 
-      <div className="absolute bottom-3 right-3 flex items-center gap-1.5">
-        {qty > 0 && (
-          <motion.span
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: "spring", stiffness: 500, damping: 15 }}
-            className="flex h-5 w-5 items-center justify-center rounded-full bg-[#0A4D3C] text-[10px] font-bold text-white"
-          >
-            {qty}
-          </motion.span>
-        )}
+      {/* Add to Cart button — always visible below */}
+      <div className="px-3 pb-3">
         <motion.button
           ref={btnRef}
           onClick={handleQuickAdd}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.85 }}
-          transition={{ type: "spring", stiffness: 400, damping: 15 }}
-          className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#FF9933] text-white shadow-md shadow-[#FF9933]/20 hover:bg-[#ff8811]"
+          whileTap={{ scale: 0.96 }}
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#FF9933] py-2.5 text-[13px] font-bold text-white shadow-sm shadow-[#FF9933]/20 hover:bg-[#ff8811] transition-colors cursor-pointer"
         >
           <Plus className="h-4 w-4" strokeWidth={3} />
+          Add to Cart
+          {qty > 0 && (
+            <motion.span
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 500, damping: 15 }}
+              className="flex h-5 min-w-5 items-center justify-center rounded-full bg-white/25 px-1.5 text-[10px] font-bold"
+            >
+              {qty}
+            </motion.span>
+          )}
         </motion.button>
       </div>
     </motion.div>
@@ -848,6 +862,7 @@ function MenuPageContent() {
     ? Number(searchParams.get("table"))
     : null;
   const roomNo = searchParams.get("room") || null;
+  const addToOrderId = searchParams.get("addTo") || null;
 
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
@@ -867,7 +882,7 @@ function MenuPageContent() {
   const [filterBestseller, setFilterBestseller] = useState(false);
   const tabsRef = useRef<HTMLDivElement>(null);
   const { totalItems, items, subtotal } = useCart();
-  const { activeOrder } = useOrder();
+  const { activeOrder, restoreOrder, restoreFromStorage } = useOrder();
 
   const restaurantId = restaurant?.id ?? null;
 
@@ -900,6 +915,39 @@ function MenuPageContent() {
       cancelled = true;
     };
   }, [slug]);
+
+  // Table session for persistent ordering
+  const {
+    session: tableSession,
+    order: sessionOrder,
+    hasActiveOrder: hasSessionOrder,
+    getBill,
+  } = useTableSession(restaurantId, tableNo);
+
+  // Restore active order when returning from tracking page with ?addTo=orderId
+  useEffect(() => {
+    if (addToOrderId && restaurantId) {
+      restoreOrder(restaurantId, addToOrderId);
+    }
+  }, [addToOrderId, restaurantId, restoreOrder]);
+
+  // Auto-restore order from localStorage or table session
+  useEffect(() => {
+    if (restaurantId && !activeOrder && !addToOrderId) {
+      if (sessionOrder) {
+        restoreOrder(restaurantId, sessionOrder.id);
+      } else {
+        restoreFromStorage(restaurantId, tableNo ?? undefined);
+      }
+    }
+  }, [restaurantId, activeOrder, addToOrderId, sessionOrder, tableNo, restoreOrder, restoreFromStorage]);
+
+  // Save last visited menu for BottomNav
+  useEffect(() => {
+    if (slug && typeof window !== "undefined") {
+      localStorage.setItem("hh_last_menu", `/menu/${slug}${tableNo ? `?table=${tableNo}` : ""}`);
+    }
+  }, [slug, tableNo]);
 
   const handleProceedToCheckout = useCallback(() => {
     setCartOpen(false);
@@ -1064,12 +1112,12 @@ function MenuPageContent() {
               <p className="text-[11px] text-gray-400 font-medium">
                 {restaurant.address}
                 {tableNo && (
-                  <span className="ml-2 text-[#FF9933] font-bold">
+                  <span className="ml-2 inline-flex items-center gap-1 rounded-md bg-[#FF9933]/15 px-2 py-0.5 text-[12px] font-black text-[#FF9933]">
                     Table {tableNo}
                   </span>
                 )}
                 {roomNo && (
-                  <span className="ml-2 text-[#FF9933] font-bold">
+                  <span className="ml-2 inline-flex items-center gap-1 rounded-md bg-[#FF9933]/15 px-2 py-0.5 text-[12px] font-black text-[#FF9933]">
                     Room {roomNo}
                   </span>
                 )}
@@ -1117,6 +1165,16 @@ function MenuPageContent() {
           <div className="flex-1 min-w-0 space-y-4">
             {/* Stories */}
             <MenuStories slug={slug} />
+
+            {/* Table session banner */}
+            {hasSessionOrder && sessionOrder && (
+              <TableSessionBanner
+                tableNo={tableNo ?? sessionOrder.tableNo ?? 0}
+                itemCount={sessionOrder.items.reduce((s, i) => s + i.quantity, 0)}
+                total={sessionOrder.total}
+                status={sessionOrder.status}
+              />
+            )}
 
             {/* Search */}
             <motion.div
@@ -1206,25 +1264,19 @@ function MenuPageContent() {
               />
             </motion.div>
 
-            {/* Hero dish */}
-            {smartSorted.length > 0 && !searchQuery && (
-              <HeroDish
-                dish={
-                  smartSorted.find((d) => d.badge === "Bestseller") ??
-                  smartSorted[0]
-                }
-                onSelect={(d) => setSelectedDish(d)}
+            {/* Hero slider */}
+            {!searchQuery && (
+              <FoodSlider
+                restaurantSlug={slug}
+                onSlideClick={(linkItemId) => {
+                  const item = smartSorted.find((d) => d.id === linkItemId);
+                  if (item) setSelectedDish(item);
+                }}
               />
             )}
 
-            {/* Dish list */}
-            <div className="space-y-3">
-              <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">
-                {activeCategory || "All Items"}
-                <span className="ml-2 text-[#1F2A2A]">
-                  ({smartSorted.length})
-                </span>
-              </h3>
+            {/* Dish list — grouped by category */}
+            <div className="space-y-6">
               <AnimatePresence mode="popLayout">
                 {smartSorted.length === 0 ? (
                   <motion.p
@@ -1235,24 +1287,101 @@ function MenuPageContent() {
                   >
                     No dishes found. Try a different filter.
                   </motion.p>
+                ) : activeCategory ? (
+                  /* Single category selected */
+                  <div key="single" className="space-y-3">
+                    <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">
+                      {activeCategory}
+                      <span className="ml-2 text-[#1F2A2A]">
+                        ({smartSorted.length})
+                      </span>
+                    </h3>
+                    <motion.div
+                      variants={containerVariants}
+                      initial="hidden"
+                      animate="visible"
+                      className="space-y-3"
+                    >
+                      {smartSorted.map((item) => (
+                        <MenuItemCard
+                          key={item.id}
+                          item={item}
+                          restaurantId={restaurant.id}
+                          restaurantSlug={restaurant.slug}
+                          onSelect={(d) => setSelectedDish(d)}
+                        />
+                      ))}
+                    </motion.div>
+                  </div>
                 ) : (
-                  <motion.div
-                    key="list"
-                    variants={containerVariants}
-                    initial="hidden"
-                    animate="visible"
-                    className="space-y-3"
-                  >
-                    {smartSorted.map((item) => (
-                      <MenuItemCard
-                        key={item.id}
-                        item={item}
-                        restaurantId={restaurant.id}
-                        restaurantSlug={restaurant.slug}
-                        onSelect={(d) => setSelectedDish(d)}
-                      />
-                    ))}
-                  </motion.div>
+                  /* All items — grouped by category */
+                  <div key="grouped" className="space-y-6">
+                    {categories.map((cat) => {
+                      const catItems = smartSorted.filter(
+                        (item) => item.category.name === cat.name,
+                      );
+                      if (catItems.length === 0) return null;
+                      return (
+                        <div key={cat.id} className="space-y-3">
+                          <div className="flex items-center gap-3">
+                            <h3 className="text-sm font-bold text-[#1F2A2A]">
+                              {cat.name}
+                            </h3>
+                            <span className="text-[11px] font-semibold text-gray-400">
+                              {catItems.length} {catItems.length === 1 ? "item" : "items"}
+                            </span>
+                            <div className="flex-1 h-px bg-gray-100" />
+                          </div>
+                          <motion.div
+                            variants={containerVariants}
+                            initial="hidden"
+                            animate="visible"
+                            className="space-y-3"
+                          >
+                            {catItems.map((item) => (
+                              <MenuItemCard
+                                key={item.id}
+                                item={item}
+                                restaurantId={restaurant.id}
+                                restaurantSlug={restaurant.slug}
+                                onSelect={(d) => setSelectedDish(d)}
+                              />
+                            ))}
+                          </motion.div>
+                        </div>
+                      );
+                    })}
+                    {/* Items with categories not in the restaurant categories list */}
+                    {smartSorted.filter(
+                      (item) => !categories.some((c) => c.name === item.category.name),
+                    ).length > 0 && (
+                      <div className="space-y-3">
+                        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">
+                          Other
+                        </h3>
+                        <motion.div
+                          variants={containerVariants}
+                          initial="hidden"
+                          animate="visible"
+                          className="space-y-3"
+                        >
+                          {smartSorted
+                            .filter(
+                              (item) => !categories.some((c) => c.name === item.category.name),
+                            )
+                            .map((item) => (
+                              <MenuItemCard
+                                key={item.id}
+                                item={item}
+                                restaurantId={restaurant.id}
+                                restaurantSlug={restaurant.slug}
+                                onSelect={(d) => setSelectedDish(d)}
+                              />
+                            ))}
+                        </motion.div>
+                      </div>
+                    )}
+                  </div>
                 )}
               </AnimatePresence>
             </div>
@@ -1353,6 +1482,16 @@ function MenuPageContent() {
         )}
       </AnimatePresence>
 
+      {/* Get Bill button — shown when dine-in order is active */}
+      {hasSessionOrder && sessionOrder && (
+        <GetBillButton
+          total={sessionOrder.total}
+          itemCount={sessionOrder.items.reduce((s, i) => s + i.quantity, 0)}
+          paymentMethod={sessionOrder.payment?.method}
+          onGetBill={getBill}
+        />
+      )}
+
       {/* Cart sidebar */}
       <CartSidebar
         open={cartOpen}
@@ -1369,7 +1508,20 @@ function MenuPageContent() {
           restaurantSlug={slug}
           tableNo={tableNo}
           roomNo={roomNo}
+          tableSessionId={tableSession?.id}
           onOrderPlaced={handleOrderPlaced}
+        />
+      )}
+
+      {/* Customer chat — visible as soon as user lands on menu */}
+      {restaurantId && (tableNo || roomNo || activeOrder) && (
+        <ChatWidget
+          orderId={activeOrder?.id}
+          restaurantId={restaurantId}
+          tableNo={tableNo}
+          roomNo={roomNo}
+          senderRole="CUSTOMER"
+          senderName={tableNo ? `Table ${tableNo}` : roomNo ? `Room ${roomNo}` : "Customer"}
         />
       )}
     </div>

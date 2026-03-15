@@ -24,6 +24,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
+import RatingInput from "@/components/menu/RatingInput";
+import OfferCountdown from "@/components/menu/OfferCountdown";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -45,6 +47,8 @@ interface MenuItemData {
   discountLabel: string | null;
   isFeatured: boolean;
   badge: string | null;
+  offerExpiresAt: string | null;
+  offerStartedAt: string | null;
   restaurantId: string;
   restaurant: {
     id: string;
@@ -105,45 +109,47 @@ function SuggestionCard({
     <Link href={`/food/${item.id}`}>
       <div
         ref={ref}
-        className="group shrink-0 w-[160px] sm:w-[200px] cursor-pointer"
+        className="group shrink-0 w-[260px] sm:w-[300px] cursor-pointer"
       >
-        <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-gray-100 shadow-sm group-hover:shadow-xl transition-shadow duration-300">
-          <img
-            src={img(item.imageUrl)}
-            alt={item.name}
-            loading="lazy"
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-          />
-          <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/60 to-transparent" />
-          {item.discountLabel && (
-            <div className="absolute bottom-2 left-2">
-              <span className="inline-block rounded-md bg-[#E23744] px-1.5 py-0.5 text-[10px] font-extrabold text-white leading-none shadow-sm">
+        <div className="flex gap-3 rounded-2xl bg-white border border-gray-100 shadow-sm p-2.5 group-hover:shadow-xl transition-shadow duration-300">
+          {/* Image on the left */}
+          <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-gray-100">
+            <img
+              src={img(item.imageUrl)}
+              alt={item.name}
+              loading="lazy"
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+            />
+            {item.discountLabel && (
+              <span className="absolute bottom-1 left-1 rounded-md bg-[#E23744] px-1 py-0.5 text-[9px] font-extrabold text-white leading-none shadow-sm">
                 {item.discountLabel}
               </span>
-            </div>
-          )}
-          <div className="absolute bottom-2 right-2">
-            <span
-              className={`inline-flex items-center gap-0.5 rounded px-1 py-0.5 text-[10px] font-bold text-white leading-none ${
-                item.rating >= 4 ? "bg-[#1E7B3E]" : "bg-[#DB7C10]"
-              }`}
-            >
-              {item.rating.toFixed(1)}
-              <Star className="h-2 w-2 fill-white" />
-            </span>
+            )}
           </div>
-        </div>
-        <div className="mt-2 px-0.5">
-          <h4 className="text-[13px] font-bold text-[#1F2A2A] truncate group-hover:text-[#E23744] transition-colors">
-            {item.name}
-          </h4>
-          <div className="flex items-center justify-between mt-0.5">
-            <span className="text-[12px] font-bold text-[#1F2A2A]">
+
+          {/* Details on the right */}
+          <div className="flex flex-1 flex-col justify-between min-w-0 py-0.5">
+            <div>
+              <h4 className="text-[13px] font-bold text-[#1F2A2A] truncate group-hover:text-[#E23744] transition-colors">
+                {item.name}
+              </h4>
+              <div className="flex items-center gap-1.5 mt-1">
+                <span
+                  className={`inline-flex items-center gap-0.5 rounded px-1 py-0.5 text-[10px] font-bold text-white leading-none ${
+                    item.rating >= 4 ? "bg-[#1E7B3E]" : "bg-[#DB7C10]"
+                  }`}
+                >
+                  {item.rating.toFixed(1)}
+                  <Star className="h-2 w-2 fill-white" />
+                </span>
+                <span className="text-[10px] text-gray-400 flex items-center gap-0.5">
+                  <Clock className="h-2.5 w-2.5" />
+                  {item.prepTime}
+                </span>
+              </div>
+            </div>
+            <span className="text-[13px] font-extrabold text-[#1F2A2A]">
               Rs. {item.price}
-            </span>
-            <span className="text-[10px] text-gray-400 flex items-center gap-0.5">
-              <Clock className="h-2.5 w-2.5" />
-              {item.prepTime}
             </span>
           </div>
         </div>
@@ -437,11 +443,20 @@ export default function FoodDetailsPage() {
           className="absolute bottom-4 left-4 right-4 sm:left-6 sm:right-6 flex items-end justify-between z-10"
         >
           <div>
-            {food.discountLabel && (
-              <span className="inline-block rounded-lg bg-[#E23744] px-3 py-1.5 text-xs font-extrabold text-white shadow-lg shadow-[#E23744]/30 mb-2">
-                {food.discountLabel}
-              </span>
-            )}
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
+              {food.discountLabel && (
+                <span className="inline-block rounded-lg bg-[#E23744] px-3 py-1.5 text-xs font-extrabold text-white shadow-lg shadow-[#E23744]/30">
+                  {food.discountLabel}
+                </span>
+              )}
+              {food.offerExpiresAt && (
+                <OfferCountdown
+                  expiresAt={food.offerExpiresAt}
+                  compact
+                  className="relative top-auto left-auto"
+                />
+              )}
+            </div>
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white tracking-tight drop-shadow-lg">
               {food.name}
             </h1>
@@ -515,6 +530,17 @@ export default function FoodDetailsPage() {
             <p className="text-[14px] sm:text-[15px] text-gray-600 leading-relaxed">
               {food.description}
             </p>
+          </div>
+
+          {/* Rating Input */}
+          <div className="detail-anim">
+            <RatingInput
+              menuItemId={food.id}
+              restaurantId={food.restaurant.id}
+              onRated={(avg) => {
+                setFood((prev) => (prev ? { ...prev, rating: avg } : prev));
+              }}
+            />
           </div>
 
           {/* Restaurant info */}

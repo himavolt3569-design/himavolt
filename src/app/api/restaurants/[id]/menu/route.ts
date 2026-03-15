@@ -50,6 +50,7 @@ export async function POST(
     isVeg, hasEgg, hasOnionGarlic, badge, tags,
     categoryId, sizes, addOns,
     discount, discountLabel, isFeatured,
+    spiceLevel, calories, allergens,
   } = body;
 
   if (!name || !price || !categoryId) {
@@ -71,6 +72,9 @@ export async function POST(
       discount: discount ?? 0,
       discountLabel: discountLabel ?? null,
       isFeatured: isFeatured ?? false,
+      spiceLevel: spiceLevel ?? 0,
+      calories: calories ?? null,
+      allergens: allergens ?? [],
       restaurantId: id,
       categoryId,
       sizes: sizes?.length

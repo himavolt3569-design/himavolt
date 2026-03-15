@@ -15,6 +15,19 @@ export async function GET(req: NextRequest) {
     where: { userId: user.id },
     include: {
       items: true,
+      payment: {
+        select: { method: true, status: true, paidAt: true },
+      },
+      bill: {
+        select: {
+          billNo: true,
+          subtotal: true,
+          tax: true,
+          serviceCharge: true,
+          discount: true,
+          total: true,
+        },
+      },
       restaurant: {
         select: { name: true, slug: true, imageUrl: true },
       },

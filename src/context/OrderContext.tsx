@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { apiFetch } from "@/lib/api-client";
+import { playSound } from "@/lib/sounds";
 
 export type OrderStatus =
   | "PENDING"
@@ -103,6 +104,7 @@ interface OrderContextType {
     paymentMethod?: PaymentMethodType,
     deliveryInfo?: DeliveryInfo,
     roomNo?: string,
+    tableSessionId?: string,
   ) => Promise<Order>;
   addToOrder: (
     restaurantId: string,
@@ -116,6 +118,26 @@ interface OrderContextType {
     note?: string,
   ) => Promise<Order>;
   cancelOrder: () => void;
+  restoreOrder: (restaurantId: string, orderId: string) => Promise<void>;
+  restoreFromStorage: (restaurantId: string, tableNo?: number) => Promise<void>;
+}
+
+function orderStorageKey(restaurantId: string, tableNo?: number) {
+  return tableNo ? `hh_order_${restaurantId}_${tableNo}` : `hh_order_${restaurantId}`;
+}
+
+function saveOrderToStorage(restaurantId: string, orderId: string, tableNo?: number) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(orderStorageKey(restaurantId, tableNo), orderId);
+  } catch { /* ignore */ }
+}
+
+function clearOrderStorage(restaurantId: string, tableNo?: number) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.removeItem(orderStorageKey(restaurantId, tableNo));
+  } catch { /* ignore */ }
 }
 
 const OrderContext = createContext<OrderContextType | null>(null);
@@ -123,6 +145,7 @@ const OrderContext = createContext<OrderContextType | null>(null);
 export function OrderProvider({ children }: { children: ReactNode }) {
   const [activeOrder, setActiveOrder] = useState<Order | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const prevStatusRef = useRef<OrderStatus | null>(null);
 
   const stopPolling = useCallback(() => {
     if (pollRef.current) {
@@ -139,6 +162,17 @@ export function OrderProvider({ children }: { children: ReactNode }) {
           const order = await apiFetch<Order>(
             `/api/restaurants/${restaurantId}/orders/${orderId}`,
           );
+
+          // Play sound when order becomes READY
+          if (
+            order.status === "READY" &&
+            prevStatusRef.current !== null &&
+            prevStatusRef.current !== "READY"
+          ) {
+            playSound("orderReady");
+          }
+          prevStatusRef.current = order.status;
+
           setActiveOrder(order);
           if (
             order.status === "DELIVERED" ||
@@ -170,6 +204,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
       paymentMethod?: PaymentMethodType,
       deliveryInfo?: DeliveryInfo,
       roomNo?: string,
+      tableSessionId?: string,
     ) => {
       const order = await apiFetch<Order>(
         `/api/restaurants/${restaurantId}/orders`,
@@ -182,6 +217,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
             note,
             type: orderType,
             paymentMethod: paymentMethod || "CASH",
+            tableSessionId: tableSessionId || undefined,
             // Delivery fields
             ...(orderType === "DELIVERY" && deliveryInfo
               ? {
@@ -196,6 +232,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
         },
       );
       setActiveOrder(order);
+      saveOrderToStorage(restaurantId, order.id, tableNo);
       startPolling(restaurantId, order.id);
       return order;
     },
@@ -236,13 +273,46 @@ export function OrderProvider({ children }: { children: ReactNode }) {
 
   const cancelOrder = useCallback(() => {
     stopPolling();
+    if (activeOrder) {
+      clearOrderStorage(activeOrder.restaurantId, activeOrder.tableNo ?? undefined);
+    }
     setActiveOrder(null);
-  }, [stopPolling]);
+  }, [stopPolling, activeOrder]);
+
+  const restoreOrder = useCallback(
+    async (restaurantId: string, orderId: string) => {
+      if (activeOrder?.id === orderId) return; // already loaded
+      try {
+        const order = await apiFetch<Order>(
+          `/api/restaurants/${restaurantId}/orders/${orderId}`,
+        );
+        if (order && !["DELIVERED", "CANCELLED", "REJECTED"].includes(order.status)) {
+          setActiveOrder(order);
+          startPolling(restaurantId, order.id);
+        }
+      } catch {
+        // order not found or inaccessible — ignore
+      }
+    },
+    [activeOrder?.id, startPolling],
+  );
+
+  const restoreFromStorage = useCallback(
+    async (restaurantId: string, tableNo?: number) => {
+      if (activeOrder) return; // already have an active order
+      if (typeof window === "undefined") return;
+      const storedId = localStorage.getItem(orderStorageKey(restaurantId, tableNo));
+      if (storedId) {
+        await restoreOrder(restaurantId, storedId);
+      }
+    },
+    [activeOrder, restoreOrder],
+  );
 
   useEffect(() => () => stopPolling(), [stopPolling]);
 
   return (
-    <OrderContext.Provider value={{ activeOrder, placeOrder, addToOrder, cancelOrder }}>
+    <OrderContext.Provider value={{ activeOrder, placeOrder, addToOrder, cancelOrder, restoreOrder, restoreFromStorage }}>
       {children}
     </OrderContext.Provider>
   );

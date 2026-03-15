@@ -997,10 +997,45 @@ export default function TrackOrderPage() {
           )}
         </AnimatePresence>
 
-        {/* Back button */}
+        {/* Cash order actions — add more items or request bill */}
+        {order.payment?.method === "CASH" &&
+          order.payment?.status !== "COMPLETED" &&
+          !["DELIVERED", "CANCELLED", "REJECTED"].includes(order.status) && (
+            <div className="rounded-2xl border-2 border-amber-200 bg-amber-50/60 p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <Receipt className="h-4 w-4 text-amber-700" />
+                <span className="text-sm font-bold text-amber-900">
+                  Running Tab · Cash Payment
+                </span>
+              </div>
+              <p className="text-xs text-amber-700/80">
+                Your order is open. Add more items anytime — pay once when you&apos;re done.
+              </p>
+              <div className="flex gap-2">
+                <Link
+                  href={`/menu/${order.restaurant.slug}?table=${order.tableNo || ""}&addTo=${order.id}`}
+                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-white border border-amber-200 py-3 text-sm font-bold text-amber-800 hover:bg-amber-50 transition-colors cursor-pointer"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                  </svg>
+                  Add More Items
+                </Link>
+                <button
+                  onClick={() => setShowBill(true)}
+                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-amber-700 py-3 text-sm font-bold text-white hover:bg-amber-600 transition-colors cursor-pointer"
+                >
+                  <CreditCard className="h-4 w-4" />
+                  Pay at Counter
+                </button>
+              </div>
+            </div>
+          )}
+
+        {/* Back to menu */}
         <Link
-          href={`/menu/${order.restaurant.slug}`}
-          className="block w-full rounded-xl bg-[#0A4D3C] py-4 text-center text-sm font-bold text-white hover:bg-[#083a2d] transition-colors shadow-lg"
+          href={`/menu/${order.restaurant.slug}${order.tableNo ? `?table=${order.tableNo}` : ""}`}
+          className="block w-full rounded-xl bg-[#0A4D3C] py-4 text-center text-sm font-bold text-white hover:bg-[#083a2d] transition-colors shadow-lg cursor-pointer"
         >
           Back to Menu
         </Link>

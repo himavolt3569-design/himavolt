@@ -12,6 +12,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { apiFetch } from "@/lib/api-client";
+import { playSound } from "@/lib/sounds";
 
 interface ChatMessage {
   id: string;
@@ -22,8 +23,11 @@ interface ChatMessage {
 }
 
 interface ChatWidgetProps {
-  orderId: string;
+  chatRoomId?: string;
+  orderId?: string;
   restaurantId: string;
+  tableNo?: string | number | null;
+  roomNo?: string | null;
   senderRole: "CUSTOMER" | "KITCHEN" | "BILLING";
   senderName?: string;
   userId?: string;
@@ -37,8 +41,11 @@ const SENDER_CONFIG = {
 };
 
 export default function ChatWidget({
+  chatRoomId,
   orderId,
   restaurantId,
+  tableNo,
+  roomNo,
   senderRole,
   senderName,
   userId,
@@ -60,24 +67,49 @@ export default function ChatWidget({
 
   const initRoom = useCallback(async () => {
     try {
-      const room = await apiFetch<{ id: string } | null>(
-        `/api/chat?orderId=${orderId}`
-      );
-      if (room?.id) {
-        setRoomId(room.id);
-        return room.id;
+      // Direct room ID provided (e.g. staff opening from dashboard)
+      if (chatRoomId) {
+        setRoomId(chatRoomId);
+        return chatRoomId;
       }
 
-      const newRoom = await apiFetch<{ id: string }>("/api/chat", {
-        method: "POST",
-        body: { orderId, restaurantId },
-      });
-      setRoomId(newRoom.id);
-      return newRoom.id;
+      // Order-based chat
+      if (orderId) {
+        const room = await apiFetch<{ id: string } | null>(
+          `/api/chat?orderId=${orderId}`
+        );
+        if (room?.id) {
+          setRoomId(room.id);
+          return room.id;
+        }
+
+        const newRoom = await apiFetch<{ id: string }>("/api/chat", {
+          method: "POST",
+          body: { orderId, restaurantId },
+        });
+        setRoomId(newRoom.id);
+        return newRoom.id;
+      }
+
+      // Pre-order chat (table/room scan) — uses broadcast channel
+      if (tableNo || roomNo) {
+        const newRoom = await apiFetch<{ id: string }>("/api/chat", {
+          method: "POST",
+          body: {
+            restaurantId,
+            ...(tableNo ? { tableNo: Number(tableNo) } : {}),
+            ...(roomNo ? { roomNo } : {}),
+          },
+        });
+        setRoomId(newRoom.id);
+        return newRoom.id;
+      }
+
+      return null;
     } catch {
       return null;
     }
-  }, [orderId, restaurantId]);
+  }, [chatRoomId, orderId, restaurantId, tableNo, roomNo]);
 
   const loadMessages = useCallback(
     async (rid: string) => {
@@ -115,6 +147,10 @@ export default function ChatWidget({
             const existingIds = new Set(prev.map((m) => m.id));
             const unique = newMessages.filter((m) => !existingIds.has(m.id));
             if (unique.length === 0) return prev;
+
+            // Play sound for messages from others
+            const hasOthers = unique.some((m) => m.sender !== senderRole);
+            if (hasOthers) playSound("newMessage");
 
             if (!isOpen) {
               const othersCount = unique.filter(
@@ -177,6 +213,17 @@ export default function ChatWidget({
     setInput("");
     setSending(true);
 
+    // Optimistic: show immediately
+    const tempId = `temp-${Date.now()}`;
+    const optimistic: ChatMessage = {
+      id: tempId,
+      content: text,
+      sender: senderRole,
+      senderName: senderName || null,
+      createdAt: new Date().toISOString(),
+    };
+    setMessages((prev) => [...prev, optimistic]);
+
     try {
       const msg = await apiFetch<ChatMessage>(
         `/api/chat/${roomId}/messages`,
@@ -190,11 +237,13 @@ export default function ChatWidget({
           },
         }
       );
-      setMessages((prev) => {
-        if (prev.some((m) => m.id === msg.id)) return prev;
-        return [...prev, msg];
-      });
+      // Replace optimistic with real message
+      setMessages((prev) =>
+        prev.map((m) => (m.id === tempId ? msg : m))
+      );
     } catch {
+      // Remove optimistic and restore input
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
       setInput(text);
     } finally {
       setSending(false);
@@ -269,6 +318,11 @@ export default function ChatWidget({
                   <h3 className="text-sm font-bold text-[#1F2A2A]">
                     Live Chat
                   </h3>
+                  {senderName && (
+                    <span className="rounded-md bg-amber-100 px-2 py-0.5 text-[12px] font-black text-amber-800">
+                      {senderName}
+                    </span>
+                  )}
                   <span className="flex items-center gap-1">
                     <span className="relative flex h-2 w-2">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
@@ -285,7 +339,7 @@ export default function ChatWidget({
               </div>
 
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 min-h-[200px]">
+              <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 min-h-50">
                 {loading ? (
                   <div className="flex items-center justify-center py-8">
                     <Loader2 className="h-5 w-5 animate-spin text-gray-400" />

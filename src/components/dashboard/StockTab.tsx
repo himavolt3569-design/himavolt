@@ -18,6 +18,12 @@ import {
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
 
+interface UsedInMenuItem {
+  id: string;
+  name: string;
+  quantityUsed: number;
+}
+
 interface InventoryItem {
   id: string;
   name: string;
@@ -28,6 +34,7 @@ interface InventoryItem {
   category: string;
   notes: string | null;
   updatedAt: string;
+  usedInMenuItems?: UsedInMenuItem[];
 }
 
 const UNITS = ["kg", "g", "litre", "ml", "pcs", "packs", "dozen", "bottle"];
@@ -83,6 +90,15 @@ export default function StockTab() {
   useEffect(() => {
     fetchItems();
   }, [fetchItems]);
+
+  // 30-second polling for auto-refresh of stock levels
+  useEffect(() => {
+    if (!restaurant) return;
+    const interval = setInterval(() => {
+      fetchItems();
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [restaurant, fetchItems]);
 
   if (!restaurant) return null;
 
@@ -293,6 +309,19 @@ export default function StockTab() {
                       <p className="text-[11px] text-gray-400 mt-0.5 truncate">
                         {item.notes}
                       </p>
+                    )}
+                    {item.usedInMenuItems && item.usedInMenuItems.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        <span className="text-[10px] font-semibold text-amber-600">Used in:</span>
+                        {item.usedInMenuItems.map((mi) => (
+                          <span
+                            key={mi.id}
+                            className="shrink-0 rounded-md bg-amber-50 border border-amber-200 px-1.5 py-0.5 text-[10px] font-bold text-amber-700"
+                          >
+                            {mi.name}
+                          </span>
+                        ))}
+                      </div>
                     )}
                   </div>
 

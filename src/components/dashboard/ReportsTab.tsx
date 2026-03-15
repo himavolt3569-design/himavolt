@@ -8,10 +8,11 @@ import {
   DollarSign,
   Package,
   PiggyBank,
-  Wallet,
   Activity,
-  ArrowRight,
   Calendar,
+  ArrowUpRight,
+  ArrowDownRight,
+  Loader2,
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { useLiveOrders } from "@/context/LiveOrdersContext";
@@ -29,7 +30,7 @@ interface FinancialData {
 
 export default function ReportsTab() {
   const { selectedRestaurant } = useRestaurant();
-  const { orders } = useLiveOrders(); // For live order count
+  const { orders } = useLiveOrders();
 
   const [data, setData] = useState<FinancialData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -46,149 +47,137 @@ export default function ReportsTab() {
   useEffect(() => { loadFinancials(); }, [loadFinancials]);
 
   if (loading) {
-    return <div className="py-20 text-center font-bold text-gray-400">Loading financials...</div>;
+    return (
+      <div className="flex items-center justify-center py-24">
+        <Loader2 className="h-5 w-5 animate-spin text-amber-400" />
+      </div>
+    );
   }
 
-  // Use live data for some metrics if possible, but the API gives us the DB truth
   const totalOrders = data?.totalOrders ?? 0;
   const totalRevenue = data?.totalRevenue ?? 0;
   const todayRevenue = data?.todayRevenue ?? 0;
   const monthRevenue = data?.monthRevenue ?? 0;
   const totalInventoryCost = data?.totalInventoryCost ?? 0;
-  
-  // Profit = Revenue - Inventory Cost
   const estimatedProfit = data?.estimatedProfit ?? 0;
+  const liveCount = orders.filter(o => o.status !== "DELIVERED" && o.status !== "CANCELLED").length;
+  const profitMargin = totalRevenue > 0 ? ((estimatedProfit / totalRevenue) * 100).toFixed(1) : "0";
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-5xl space-y-8">
+      {/* Header */}
       <div>
-        <h2 className="text-xl font-extrabold tracking-tight text-[#1F2A2A]">Financial Reports</h2>
-        <p className="mt-1 text-sm text-gray-500">
-          Revenue, costs, and estimated profit for <strong className="text-[#1F2A2A]">{selectedRestaurant?.name}</strong>
+        <h2 className="text-lg font-bold text-amber-950">Financial Reports</h2>
+        <p className="text-sm text-amber-700/50 mt-0.5">
+          Revenue, costs &amp; profit for{" "}
+          <span className="font-semibold text-amber-800">{selectedRestaurant?.name}</span>
         </p>
       </div>
 
-      {/* Main Highlights */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Revenue */}
+      {/* Top-line numbers */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="rounded-3xl border border-gray-100 bg-white p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)]"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative overflow-hidden rounded-2xl bg-white/80 ring-1 ring-amber-100/40 p-6"
         >
-          <div className="flex items-center gap-3 mb-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
-              <TrendingUp className="h-5 w-5" />
-            </div>
-            <h3 className="text-sm font-bold text-gray-500">Total Revenue</h3>
+          <div className="flex items-center gap-2 mb-4">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-500">
+              <TrendingUp className="h-4 w-4" />
+            </span>
+            <span className="text-[13px] font-semibold text-amber-700/60">Total Revenue</span>
           </div>
-          <p className="text-3xl font-black text-[#1F2A2A]">Rs. {totalRevenue.toLocaleString()}</p>
-          <div className="mt-4 flex items-center gap-2 text-xs font-bold text-emerald-600 bg-emerald-50 rounded-lg px-2 py-1 w-fit">
-            <Activity className="h-3.5 w-3.5" />
-            Active Sales
+          <p className="text-[28px] font-extrabold text-amber-950 leading-none">
+            Rs. {totalRevenue.toLocaleString()}
+          </p>
+          <div className="mt-3 flex items-center gap-1 text-[11px] font-bold text-emerald-600">
+            <ArrowUpRight className="h-3 w-3" />
+            Lifetime earnings
           </div>
         </motion.div>
 
-        {/* Costs */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="rounded-3xl border border-gray-100 bg-white p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)]"
+          className="relative overflow-hidden rounded-2xl bg-white/80 ring-1 ring-amber-100/40 p-6"
         >
-          <div className="flex items-center gap-3 mb-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-orange-50 text-orange-600">
-              <Package className="h-5 w-5" />
-            </div>
-            <h3 className="text-sm font-bold text-gray-500">Inventory Cost</h3>
+          <div className="flex items-center gap-2 mb-4">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-50 text-orange-500">
+              <Package className="h-4 w-4" />
+            </span>
+            <span className="text-[13px] font-semibold text-amber-700/60">Inventory Cost</span>
           </div>
-          <p className="text-3xl font-black text-[#1F2A2A]">Rs. {totalInventoryCost.toLocaleString()}</p>
-          <div className="mt-4 flex items-center gap-2 text-xs font-bold text-orange-600 bg-orange-50 rounded-lg px-2 py-1 w-fit">
-            <Wallet className="h-3.5 w-3.5" />
-            Estimated Sunk Cost
+          <p className="text-[28px] font-extrabold text-amber-950 leading-none">
+            Rs. {totalInventoryCost.toLocaleString()}
+          </p>
+          <div className="mt-3 flex items-center gap-1 text-[11px] font-bold text-orange-500">
+            <ArrowDownRight className="h-3 w-3" />
+            Total sunk cost
           </div>
         </motion.div>
 
-        {/* Profit */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="rounded-3xl border border-[#0A4D3C]/20 bg-gradient-to-br from-[#0A4D3C] to-[#083a2d] p-6 shadow-xl shadow-[#0A4D3C]/20 text-white"
+          className="relative overflow-hidden rounded-2xl bg-linear-to-br from-amber-600 to-amber-700 p-6 text-white"
         >
-          <div className="flex items-center gap-3 mb-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 text-emerald-300">
-              <PiggyBank className="h-5 w-5" />
-            </div>
-            <h3 className="text-sm font-bold text-emerald-50">Estimated Profit</h3>
+          <div className="flex items-center gap-2 mb-4">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/15 text-amber-100">
+              <PiggyBank className="h-4 w-4" />
+            </span>
+            <span className="text-[13px] font-semibold text-amber-100/80">Estimated Profit</span>
           </div>
-          <p className="text-3xl font-black">Rs. {estimatedProfit.toLocaleString()}</p>
-          <div className="mt-4 flex items-center gap-2 text-xs font-bold text-emerald-100 bg-black/20 rounded-lg px-2 py-1 w-fit border border-white/10">
-            <DollarSign className="h-3.5 w-3.5" />
-            Revenue  minus  Cost
+          <p className="text-[28px] font-extrabold leading-none">
+            Rs. {estimatedProfit.toLocaleString()}
+          </p>
+          <div className="mt-3 flex items-center gap-1 text-[11px] font-bold text-amber-100/70">
+            <DollarSign className="h-3 w-3" />
+            {profitMargin}% margin
           </div>
         </motion.div>
       </div>
 
-      {/* Breakdown */}
-      <h3 className="pt-2 text-base font-extrabold text-[#1F2A2A]">Revenue Breakdown</h3>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          {
-            label: "Today's Revenue",
-            value: `Rs. ${todayRevenue.toLocaleString()}`,
-            icon: DollarSign,
-            color: "text-blue-500",
-            bg: "bg-blue-50",
-          },
-          {
-            label: "This Month",
-            value: `Rs. ${monthRevenue.toLocaleString()}`,
-            icon: Calendar,
-            color: "text-indigo-500",
-            bg: "bg-indigo-50",
-          },
-          {
-            label: "Total Orders",
-            value: totalOrders.toLocaleString(),
-            icon: ShoppingBag,
-            color: "text-[#FF9933]",
-            bg: "bg-[#FF9933]/10",
-          },
-          {
-            label: "Live Orders",
-            value: orders.filter(o => o.status !== "DELIVERED" && o.status !== "CANCELLED").length.toString(),
-            icon: Activity,
-            color: "text-emerald-500",
-            bg: "bg-emerald-50",
-          },
-        ].map((s, i) => {
-          const Icon = s.icon || DollarSign;
-          return (
-            <motion.div
-              key={s.label}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-              className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm hover:shadow-md transition-shadow"
-            >
-              <div className={`flex h-8 w-8 items-center justify-center rounded-xl ${s.bg} mb-3`}>
-                <Icon className={`h-4 w-4 ${s.color}`} />
-              </div>
-              <p className="text-xs font-bold text-gray-400 mb-0.5">{s.label}</p>
-              <p className="text-lg font-black text-[#1F2A2A]">{s.value}</p>
-            </motion.div>
-          );
-        })}
+      {/* Revenue breakdown */}
+      <div>
+        <h3 className="text-[13px] font-bold text-amber-700/50 uppercase tracking-wider mb-4">Revenue Breakdown</h3>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            { label: "Today", value: `Rs. ${todayRevenue.toLocaleString()}`, icon: DollarSign, accent: "#3b82f6" },
+            { label: "This Month", value: `Rs. ${monthRevenue.toLocaleString()}`, icon: Calendar, accent: "#6366f1" },
+            { label: "Total Orders", value: totalOrders.toLocaleString(), icon: ShoppingBag, accent: "#f59e0b" },
+            { label: "Live Orders", value: liveCount.toString(), icon: Activity, accent: "#10b981" },
+          ].map((s, i) => {
+            const Icon = s.icon;
+            return (
+              <motion.div
+                key={s.label}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 + i * 0.04 }}
+                className="flex items-center gap-4 rounded-xl bg-white/80 ring-1 ring-amber-100/40 px-4 py-4"
+              >
+                <span
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
+                  style={{ background: `${s.accent}12` }}
+                >
+                  <Icon className="h-4 w-4" style={{ color: s.accent }} />
+                </span>
+                <div>
+                  <p className="text-[11px] font-semibold text-amber-700/50">{s.label}</p>
+                  <p className="text-base font-extrabold text-amber-950">{s.value}</p>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
       </div>
-      
-      {/* Notice */}
-      <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4 flex gap-3 text-sm text-blue-800">
-        <Activity className="h-5 w-5 shrink-0 text-blue-500" />
-        <p>
-          <strong>Note on Profit:</strong> Estimated profit is calculated by subtracting your current total inventory cost from your total lifetime revenue. This is a simple estimation model intended for a quick financial overview.
-        </p>
-      </div>
+
+      {/* Note */}
+      <p className="text-[12px] text-amber-600/40 leading-relaxed">
+        Profit is estimated by subtracting total inventory cost from lifetime revenue. This is a simplified overview for quick reference.
+      </p>
     </div>
   );
 }

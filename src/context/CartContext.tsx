@@ -5,6 +5,8 @@ import {
   useContext,
   useState,
   useCallback,
+  useEffect,
+  useRef,
   type ReactNode,
 } from "react";
 
@@ -14,6 +16,12 @@ export interface CartItem {
   price: number;
   quantity: number;
   image: string;
+}
+
+interface CartState {
+  items: CartItem[];
+  restaurantId: string | null;
+  restaurantSlug: string | null;
 }
 
 interface CartContextType {
@@ -30,12 +38,58 @@ interface CartContextType {
   clearCart: () => void;
 }
 
+const STORAGE_KEY = "hh_cart";
+
+function loadCart(): CartState {
+  if (typeof window === "undefined") return { items: [], restaurantId: null, restaurantSlug: null };
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return { items: [], restaurantId: null, restaurantSlug: null };
+    const parsed = JSON.parse(raw);
+    return {
+      items: Array.isArray(parsed.items) ? parsed.items : [],
+      restaurantId: parsed.restaurantId ?? null,
+      restaurantSlug: parsed.restaurantSlug ?? null,
+    };
+  } catch {
+    return { items: [], restaurantId: null, restaurantSlug: null };
+  }
+}
+
+function saveCart(state: CartState) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch {
+    // QuotaExceededError — ignore
+  }
+}
+
 const CartContext = createContext<CartContextType | null>(null);
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>([]);
-  const [restaurantId, setRestaurantId] = useState<string | null>(null);
-  const [restaurantSlug, setRestaurantSlug] = useState<string | null>(null);
+  const [items, setItems] = useState<CartItem[]>(() => loadCart().items);
+  const [restaurantId, setRestaurantId] = useState<string | null>(() => loadCart().restaurantId);
+  const [restaurantSlug, setRestaurantSlug] = useState<string | null>(() => loadCart().restaurantSlug);
+  const initialized = useRef(false);
+
+  // Hydrate from localStorage on mount (client only)
+  useEffect(() => {
+    if (initialized.current) return;
+    initialized.current = true;
+    const saved = loadCart();
+    if (saved.items.length > 0) {
+      setItems(saved.items);
+      setRestaurantId(saved.restaurantId);
+      setRestaurantSlug(saved.restaurantSlug);
+    }
+  }, []);
+
+  // Persist to localStorage on every change
+  useEffect(() => {
+    if (!initialized.current) return;
+    saveCart({ items, restaurantId, restaurantSlug });
+  }, [items, restaurantId, restaurantSlug]);
 
   const addItem = useCallback(
     (item: Omit<CartItem, "quantity">, restId: string, restSlug: string) => {
@@ -95,6 +149,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems([]);
     setRestaurantId(null);
     setRestaurantSlug(null);
+    if (typeof window !== "undefined") {
+      try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
+    }
   }, []);
 
   return (

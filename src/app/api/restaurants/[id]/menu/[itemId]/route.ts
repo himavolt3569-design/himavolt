@@ -24,11 +24,42 @@ export async function PATCH(
     "name", "description", "price", "imageUrl", "prepTime",
     "isVeg", "hasEgg", "hasOnionGarlic", "isAvailable",
     "badge", "tags", "categoryId", "sortOrder",
+    "discount", "discountLabel", "isFeatured",
+    "spiceLevel", "calories", "allergens",
   ];
 
   const data: Record<string, unknown> = {};
   for (const key of allowedFields) {
     if (body[key] !== undefined) data[key] = body[key];
+  }
+
+  // Handle sizes replacement
+  if (body.sizes !== undefined) {
+    await db.menuItemSize.deleteMany({ where: { menuItemId: itemId } });
+    if (body.sizes?.length) {
+      await db.menuItemSize.createMany({
+        data: body.sizes.map((s: { label: string; grams: string; priceAdd: number }) => ({
+          menuItemId: itemId,
+          label: s.label,
+          grams: s.grams,
+          priceAdd: s.priceAdd ?? 0,
+        })),
+      });
+    }
+  }
+
+  // Handle addOns replacement
+  if (body.addOns !== undefined) {
+    await db.menuItemAddOn.deleteMany({ where: { menuItemId: itemId } });
+    if (body.addOns?.length) {
+      await db.menuItemAddOn.createMany({
+        data: body.addOns.map((a: { name: string; price: number }) => ({
+          menuItemId: itemId,
+          name: a.name,
+          price: a.price,
+        })),
+      });
+    }
   }
 
   const item = await db.menuItem.update({

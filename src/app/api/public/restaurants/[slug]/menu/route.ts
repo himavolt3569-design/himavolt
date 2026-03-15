@@ -27,8 +27,17 @@ export async function GET(
   if (categorySlug) {
     const category = await db.menuCategory.findFirst({
       where: { restaurantId: restaurant.id, slug: categorySlug },
+      include: { children: { select: { id: true } } },
     });
-    if (category) where.categoryId = category.id;
+    if (category) {
+      // If parent category, include all children items too
+      const childIds = category.children?.map((c) => c.id) ?? [];
+      if (childIds.length > 0) {
+        where.categoryId = { in: [category.id, ...childIds] };
+      } else {
+        where.categoryId = category.id;
+      }
+    }
   }
 
   if (search) {
@@ -44,7 +53,7 @@ export async function GET(
     include: {
       sizes: true,
       addOns: true,
-      category: { select: { name: true, slug: true } },
+      category: { select: { id: true, name: true, slug: true, parentId: true, icon: true } },
     },
     orderBy: [{ sortOrder: "asc" }, { rating: "desc" }],
   });

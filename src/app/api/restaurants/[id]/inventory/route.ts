@@ -32,10 +32,28 @@ export const GET = safeHandler(async (req, { params }) => {
 
   const items = await db.inventoryItem.findMany({
     where: { restaurantId: id },
+    include: {
+      menuItems: {
+        include: {
+          menuItem: { select: { id: true, name: true } },
+        },
+      },
+    },
     orderBy: [{ category: "asc" }, { name: "asc" }],
   });
 
-  return NextResponse.json(items);
+  // Flatten the menuItems relation for easier consumption
+  const result = items.map((item) => ({
+    ...item,
+    usedInMenuItems: item.menuItems.map((mi) => ({
+      id: mi.menuItem.id,
+      name: mi.menuItem.name,
+      quantityUsed: mi.quantityUsed,
+    })),
+    menuItems: undefined,
+  }));
+
+  return NextResponse.json(result);
 });
 
 // POST — add new inventory item

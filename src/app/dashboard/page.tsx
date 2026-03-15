@@ -38,6 +38,8 @@ import {
   CircleDot,
   Wallet,
   Package,
+  Tag,
+  Image as ImageIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -54,6 +56,8 @@ import PaymentQRTab from "@/components/dashboard/PaymentQRTab";
 import PaymentSettingsTab from "@/components/dashboard/PaymentSettingsTab";
 import TaxChargesTab from "@/components/dashboard/TaxChargesTab";
 import StockTab from "@/components/dashboard/StockTab";
+import OffersTab from "@/components/dashboard/OffersTab";
+import HeroSlidesManager from "@/components/dashboard/HeroSlidesManager";
 import { useLiveOrders } from "@/context/LiveOrdersContext";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { getTypeLabel } from "@/lib/restaurant-types";
@@ -71,7 +75,9 @@ type DashTab =
   | "payment-qr"
   | "payment-settings"
   | "tax-charges"
-  | "stock";
+  | "stock"
+  | "offers"
+  | "hero-slides";
 
 /* ─── Navigation groups for sidebar ───────────────────────────────── */
 const NAV_MAIN: {
@@ -84,6 +90,7 @@ const NAV_MAIN: {
   { id: "orders", label: "Live Orders", icon: ClipboardList, badge: "live" },
   { id: "billing", label: "Billing", icon: Receipt },
   { id: "chat", label: "Chats", icon: MessageCircle },
+  { id: "offers" as DashTab, label: "Offers", icon: Tag },
 ];
 
 const NAV_MANAGE: typeof NAV_MAIN = [
@@ -94,6 +101,7 @@ const NAV_MANAGE: typeof NAV_MAIN = [
   { id: "payment-settings", label: "Payment Settings", icon: Settings },
   { id: "tax-charges" as DashTab, label: "Tax & Charges", icon: Receipt },
   { id: "stock" as DashTab, label: "Stock", icon: Package },
+  { id: "hero-slides" as DashTab, label: "Hero Slides", icon: ImageIcon },
 ];
 
 const NAV_MORE: typeof NAV_MAIN = [
@@ -134,7 +142,7 @@ function RestaurantSwitcher({ onNavigate }: { onNavigate?: () => void }) {
     <div className="relative mx-3 mb-4" ref={panelRef}>
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center gap-3 rounded-xl bg-gray-50 p-3 transition-all duration-150 hover:bg-gray-100 ring-1 ring-gray-100"
+        className="flex w-full items-center gap-3 rounded-xl bg-amber-50/60 p-3 transition-all duration-150 hover:bg-amber-100/50 ring-1 ring-amber-200/40 cursor-pointer"
       >
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-50">
           <Store className="h-4 w-4 text-amber-500" />
@@ -278,7 +286,7 @@ function NavSection({
 }) {
   return (
     <div className="mb-3">
-      <p className="px-3 mb-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-gray-400">
+      <p className="px-3 mb-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-gray-500">
         {label}
       </p>
       <div className="space-y-0.5">
@@ -292,10 +300,10 @@ function NavSection({
                 setActive(item.id);
                 onClose?.();
               }}
-              className={`group relative flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium transition-all duration-150 ${
+              className={`group relative flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium transition-all duration-150 cursor-pointer ${
                 isActive
-                  ? "bg-amber-50 text-gray-900 shadow-sm ring-1 ring-amber-100/60"
-                  : "text-gray-500 hover:bg-gray-50 hover:text-gray-700"
+                  ? "bg-amber-100/80 text-black shadow-sm ring-1 ring-amber-200/60"
+                  : "text-amber-800/60 hover:bg-amber-50 hover:text-black"
               }`}
             >
               {/* Left accent bar */}
@@ -341,7 +349,7 @@ function Sidebar({
   onClose?: () => void;
 }) {
   return (
-    <aside className="flex h-full w-full flex-col bg-white border-r border-gray-200/80">
+    <aside className="flex h-full w-full flex-col bg-[#fffbeb] border-r border-amber-100">
       {/* Logo */}
       <div className="flex items-center justify-between px-5 pt-6 pb-5">
         <Link href="/" className="group flex items-center gap-2.5">
@@ -395,10 +403,10 @@ function Sidebar({
 
       {/* Bottom */}
       <div className="px-3 pb-4 pt-2">
-        <div className="h-px w-full bg-gray-100 mb-3" />
+        <div className="h-px w-full bg-amber-200/40 mb-3" />
         <Link
           href="/"
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-gray-50 py-2.5 text-[12px] font-medium text-gray-400 transition-all hover:bg-gray-100 hover:text-gray-600 ring-1 ring-gray-100"
+          className="flex w-full items-center justify-center gap-2 rounded-lg bg-amber-100/50 py-2.5 text-[12px] font-medium text-amber-700/60 transition-all hover:bg-amber-200/50 hover:text-amber-800 ring-1 ring-amber-200/30 cursor-pointer"
         >
           <ExternalLink className="h-3.5 w-3.5" />
           Customer View
@@ -422,24 +430,28 @@ function StatCard({ label, value, sub, accent, icon: Icon }: StatCardProps) {
     <motion.div
       whileHover={{ y: -2 }}
       transition={{ duration: 0.15 }}
-      className="relative rounded-xl bg-white ring-1 ring-gray-100 p-5 cursor-default overflow-hidden group"
+      className="relative rounded-2xl bg-white/80 backdrop-blur-sm ring-1 ring-amber-100/50 p-5 cursor-default overflow-hidden group"
     >
       {/* Colored top strip */}
       <div
-        className="absolute top-0 inset-x-0 h-0.75"
+        className="absolute top-0 inset-x-0 h-1 rounded-t-2xl"
         style={{ background: accent }}
       />
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-[12px] font-medium text-gray-400 mb-1">{label}</p>
-          <p className="text-2xl font-extrabold text-gray-900 tracking-tight">
+          <p className="text-[12px] font-medium text-black/60 mb-1">
+            {label}
+          </p>
+          <p className="text-2xl font-extrabold text-black tracking-tight">
             {value}
           </p>
-          <p className="text-[11px] font-medium text-gray-400 mt-1">{sub}</p>
+          <p className="text-[11px] font-medium text-gray-500 mt-1">
+            {sub}
+          </p>
         </div>
         <div
-          className="flex h-10 w-10 items-center justify-center rounded-lg transition-transform group-hover:scale-110"
-          style={{ background: `${accent}15` }}
+          className="flex h-10 w-10 items-center justify-center rounded-xl transition-transform group-hover:scale-110"
+          style={{ background: `${accent}12` }}
         >
           <Icon className="h-4.5 w-4.5" style={{ color: accent }} />
         </div>
@@ -566,23 +578,23 @@ function OverviewTab({ setTab }: { setTab: (t: DashTab) => void }) {
         className="relative overflow-hidden rounded-2xl p-6 sm:p-8"
         style={{
           background:
-            "linear-gradient(135deg, #0F1219 0%, #1a1f2e 50%, #252b3d 100%)",
+            "linear-gradient(135deg, #fffbeb 0%, #fef3c7 50%, #fde68a 100%)",
         }}
       >
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="h-4 w-4 text-amber-400" />
-              <span className="text-[11px] font-semibold text-amber-400 uppercase tracking-wider">
+              <Sparkles className="h-4 w-4 text-amber-600" />
+              <span className="text-[11px] font-semibold text-amber-700 uppercase tracking-wider">
                 {dateStr}
               </span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-bold text-white mb-1">
+            <h1 className="text-xl sm:text-2xl font-bold text-black mb-1">
               {getGreeting()}, welcome back!
             </h1>
-            <p className="text-sm text-white/50">
+            <p className="text-sm text-gray-600">
               Here&apos;s how{" "}
-              <span className="text-amber-400 font-semibold">
+              <span className="text-amber-800 font-semibold">
                 {restaurantName}
               </span>{" "}
               is performing today.
@@ -591,7 +603,7 @@ function OverviewTab({ setTab }: { setTab: (t: DashTab) => void }) {
           <div className="flex gap-2">
             <button
               onClick={() => setTab("menu")}
-              className="flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2.5 text-[13px] font-semibold text-white hover:bg-amber-400 transition-all active:scale-[0.97]"
+              className="flex items-center gap-2 rounded-lg bg-amber-600 px-4 py-2.5 text-[13px] font-semibold text-white hover:bg-amber-500 transition-all active:scale-[0.97]"
             >
               <UtensilsCrossed className="h-3.5 w-3.5" />
               Manage Menu
@@ -600,10 +612,10 @@ function OverviewTab({ setTab }: { setTab: (t: DashTab) => void }) {
         </div>
         {/* Decorative dots grid */}
         <div
-          className="absolute top-0 right-0 w-48 h-48 opacity-[0.04]"
+          className="absolute top-0 right-0 w-48 h-48 opacity-[0.15]"
           style={{
             backgroundImage:
-              "radial-gradient(circle, #fff 1px, transparent 1px)",
+              "radial-gradient(circle, #d97706 1px, transparent 1px)",
             backgroundSize: "16px 16px",
           }}
         />
@@ -630,14 +642,14 @@ function OverviewTab({ setTab }: { setTab: (t: DashTab) => void }) {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25 }}
-          className="lg:col-span-3 rounded-xl bg-white ring-1 ring-gray-100 p-6"
+          className="lg:col-span-3 rounded-2xl bg-white/80 ring-1 ring-amber-100/40 p-6"
         >
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-[15px] font-bold text-gray-900">
+              <h3 className="text-[15px] font-bold text-black">
                 Revenue Trend
               </h3>
-              <p className="text-[11px] text-gray-400 mt-0.5">
+              <p className="text-[11px] text-gray-500 mt-0.5">
                 This week&apos;s performance
               </p>
             </div>
@@ -688,10 +700,10 @@ function OverviewTab({ setTab }: { setTab: (t: DashTab) => void }) {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="lg:col-span-2 rounded-xl bg-white ring-1 ring-gray-100 p-6"
+          className="lg:col-span-2 rounded-2xl bg-white/80 ring-1 ring-amber-100/40 p-6"
         >
           <div className="flex items-center justify-between mb-5">
-            <h3 className="text-[15px] font-bold text-gray-900">Activity</h3>
+            <h3 className="text-[15px] font-bold text-black">Activity</h3>
             <button
               onClick={() => setTab("orders")}
               className="text-[12px] font-semibold text-amber-500 hover:text-amber-600 transition-colors"
@@ -715,7 +727,7 @@ function OverviewTab({ setTab }: { setTab: (t: DashTab) => void }) {
                     initial={{ opacity: 0, x: 8 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.35 + i * 0.04 }}
-                    className="flex items-start gap-3 group cursor-pointer"
+                    className="flex items-start gap-3 group"
                   >
                     {/* Timeline dot */}
                     <div className="flex flex-col items-center pt-1">
@@ -730,7 +742,7 @@ function OverviewTab({ setTab }: { setTab: (t: DashTab) => void }) {
 
                     <div className="flex-1 min-w-0 pb-3">
                       <div className="flex items-start justify-between gap-2">
-                        <p className="text-[13px] font-semibold text-gray-800 group-hover:text-amber-600 transition-colors truncate">
+                        <p className="text-[13px] font-semibold text-black group-hover:text-amber-600 transition-colors truncate">
                           #{order.orderNo} ·{" "}
                           {order.status.charAt(0) +
                             order.status.slice(1).toLowerCase()}
@@ -788,7 +800,7 @@ function OverviewTab({ setTab }: { setTab: (t: DashTab) => void }) {
             transition={{ delay: 0.4 + i * 0.06 }}
             whileHover={{ y: -2 }}
             onClick={() => setTab(c.tab)}
-            className="group text-left rounded-xl bg-white ring-1 ring-gray-100 p-5 transition-all hover:ring-gray-200 active:scale-[0.98]"
+            className="group text-left rounded-2xl bg-white/80 ring-1 ring-amber-100/40 p-5 transition-all hover:ring-amber-200/60 active:scale-[0.98] cursor-pointer"
           >
             <div className="flex items-center justify-between mb-3">
               <div
@@ -805,10 +817,10 @@ function OverviewTab({ setTab }: { setTab: (t: DashTab) => void }) {
             >
               {c.value}
             </p>
-            <p className="text-[13px] font-semibold text-gray-700 mt-1">
+            <p className="text-[13px] font-semibold text-black mt-1">
               {c.label}
             </p>
-            <p className="text-[11px] text-gray-400">{c.hint}</p>
+            <p className="text-[11px] text-gray-500">{c.hint}</p>
           </motion.button>
         ))}
       </div>
@@ -818,6 +830,7 @@ function OverviewTab({ setTab }: { setTab: (t: DashTab) => void }) {
 
 /* ─── Root page ────────────────────────────────────────────────────── */
 export default function DashboardPage() {
+  const [isHydrated, setIsHydrated] = useState(false);
   const [activeTab, setActiveTab] = useState<DashTab>("overview");
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const { orders, setRestaurantId } = useLiveOrders();
@@ -834,11 +847,25 @@ export default function DashboardPage() {
   }, [selectedRestaurant, restaurants, selectRestaurant]);
 
   useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
+  useEffect(() => {
     setRestaurantId(selectedRestaurant?.id ?? null);
   }, [selectedRestaurant?.id, setRestaurantId]);
 
+  if (!isHydrated) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-[#fefcf6]">
+        <span className="text-sm font-medium text-amber-700/70">
+          Loading dashboard...
+        </span>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex h-screen overflow-hidden bg-[#F5F6F8] font-sans">
+    <div className="flex h-screen overflow-hidden bg-[#fefcf6] font-sans">
       {/* ── Desktop sidebar ───────────────────────────────────── */}
       <div className="hidden lg:block w-56 shrink-0 h-full">
         <Sidebar
@@ -882,7 +909,7 @@ export default function DashboardPage() {
       {/* ── Main area ─────────────────────────────────────────── */}
       <div className="relative flex flex-1 flex-col overflow-hidden">
         {/* Topbar */}
-        <header className="flex items-center justify-between border-b border-gray-200/70 bg-white px-5 lg:px-8 py-3 shrink-0">
+        <header className="flex items-center justify-between border-b border-amber-100/60 bg-[#fffdf5] px-5 lg:px-8 py-3 shrink-0">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setMobileSidebarOpen(true)}
@@ -967,6 +994,8 @@ export default function DashboardPage() {
               {activeTab === "payment-settings" && <PaymentSettingsTab />}
               {activeTab === "tax-charges" && <TaxChargesTab />}
               {activeTab === "stock" && <StockTab />}
+              {activeTab === "offers" && <OffersTab />}
+              {activeTab === "hero-slides" && <HeroSlidesManager />}
               {activeTab === "reports" && <ReportsTab />}
               {activeTab === "stories" && selectedRestaurant && (
                 <StoryManager

@@ -123,6 +123,7 @@ interface CheckoutSheetProps {
   restaurantSlug?: string;
   tableNo: number | null;
   roomNo?: string | null;
+  tableSessionId?: string;
   onOrderPlaced: (orderId: string) => void;
 }
 
@@ -133,6 +134,7 @@ export default function CheckoutSheet({
   restaurantSlug,
   tableNo,
   roomNo,
+  tableSessionId,
   onOrderPlaced,
 }: CheckoutSheetProps) {
   const {
@@ -342,6 +344,7 @@ export default function CheckoutSheet({
         selectedPayment,
         deliveryInfo,
         roomNo || undefined,
+        tableSessionId,
       );
 
       if (selectedPayment === "ESEWA") {

@@ -161,6 +161,28 @@ export async function PATCH(
     });
   }
 
+  // Restore stock when order is cancelled or rejected
+  if (status === "CANCELLED" || status === "REJECTED") {
+    const orderWithItems = await db.order.findUnique({
+      where: { id: orderId },
+      include: { items: true },
+    });
+    if (orderWithItems) {
+      for (const item of orderWithItems.items) {
+        if (!item.menuItemId) continue;
+        const ingredients = await db.menuItemIngredient.findMany({
+          where: { menuItemId: item.menuItemId },
+        });
+        for (const ing of ingredients) {
+          await db.inventoryItem.update({
+            where: { id: ing.inventoryItemId },
+            data: { quantity: { increment: ing.quantityUsed * item.quantity } },
+          });
+        }
+      }
+    }
+  }
+
   logAudit({
     action: `ORDER_${status}` as AuditAction,
     entity: "Order",

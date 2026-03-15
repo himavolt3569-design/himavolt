@@ -30,7 +30,7 @@ import {
   BedDouble,
 } from "lucide-react";
 
-/* ── Types ────────────────────────────────────────────────────────── */
+/* Types */
 
 interface BillOrder {
   id: string;
@@ -90,7 +90,7 @@ interface BillingTabProps {
   staffRole?: string;
 }
 
-/* ── Helpers ──────────────────────────────────────────────────────── */
+/* Helpers */
 
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -143,7 +143,7 @@ const STATUS_COLORS: Record<string, string> = {
   REJECTED: "bg-red-100 text-red-600",
 };
 
-/* ── BillingTab Component ────────────────────────────────────────── */
+/* BillingTab Component */
 
 type PayType = "all" | "cash" | "online";
 
@@ -342,7 +342,7 @@ export default function BillingTab({
 
   return (
     <div className="space-y-5">
-      {/* ── Daily Summary Cards ──────────────────────── */}
+      {/* Daily Summary Cards */}
       {summary && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <SummaryCard
@@ -377,7 +377,7 @@ export default function BillingTab({
         </div>
       )}
 
-      {/* ── Stats Row ────────────────────────────────── */}
+      {/* Stats Row */}
       {summary && (
         <div className="flex items-center gap-4 text-xs text-gray-500">
           <span className="flex items-center gap-1">
@@ -401,7 +401,7 @@ export default function BillingTab({
         </div>
       )}
 
-      {/* ── Cash vs Online Split Tabs ─────────────────── */}
+      {/* Cash vs Online Split Tabs */}
       <div className="flex rounded-2xl bg-gray-100/80 p-1 gap-1">
         {[
           {
@@ -494,7 +494,7 @@ export default function BillingTab({
         </div>
       )}
 
-      {/* ── Filter + Search ──────────────────────────── */}
+      {/* Filter + Search */}
       <div className="flex flex-col sm:flex-row gap-2">
         <div className="flex gap-1.5 flex-wrap">
           {[
@@ -541,7 +541,7 @@ export default function BillingTab({
         </div>
       </div>
 
-      {/* ── Orders List ──────────────────────────────── */}
+      {/* Orders List */}
       {filtered.length === 0 && (
         <div className="text-center py-16 text-gray-400">
           <Receipt className="mx-auto h-10 w-10 mb-3 opacity-40" />
@@ -796,7 +796,7 @@ export default function BillingTab({
         ))}
       </div>
 
-      {/* ── Collect Payment Modal ────────────────────── */}
+      {/* Collect Payment Modal */}
       <AnimatePresence>
         {showCollect && selectedOrder && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
@@ -961,7 +961,7 @@ export default function BillingTab({
         )}
       </AnimatePresence>
 
-      {/* ── Apply Discount Modal ─────────────────────── */}
+      {/* Apply Discount Modal */}
       <AnimatePresence>
         {showDiscount && selectedOrder && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
@@ -1127,7 +1127,7 @@ export default function BillingTab({
   );
 }
 
-/* ── Summary Card Sub-component ─────────────────────────────────── */
+/* Summary Card Sub-component */
 
 function SummaryCard({
   label,

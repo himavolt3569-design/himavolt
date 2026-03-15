@@ -17,7 +17,10 @@ import ChatWidget from "@/components/chat/ChatWidget";
 
 interface ChatRoomPreview {
   id: string;
-  orderId: string;
+  type: "CUSTOMER" | "BROADCAST" | "TABLE_CHAT";
+  orderId: string | null;
+  tableNo: number | null;
+  roomNo: string | null;
   isActive: boolean;
   updatedAt: string;
   order: {
@@ -25,11 +28,12 @@ interface ChatRoomPreview {
     status: string;
     tableNo: number | null;
     user?: { name: string } | null;
-  };
+  } | null;
   messages: {
     id: string;
     content: string;
     sender: string;
+    senderName?: string | null;
     createdAt: string;
   }[];
 }
@@ -57,7 +61,7 @@ export default function ChatTab() {
       const data = await apiFetch<ChatRoomPreview[]>(
         `/api/chat?restaurantId=${restaurantId}`
       );
-      setRooms(data);
+      setRooms(Array.isArray(data) ? data : []);
     } catch {
       // silent
     } finally {
@@ -81,22 +85,26 @@ export default function ChatTab() {
   }
 
   if (selectedRoom) {
+    const isBroadcast = selectedRoom.type === "BROADCAST" || selectedRoom.type === "TABLE_CHAT";
     return (
       <div className="space-y-4">
         <div className="flex items-center gap-3">
           <button
             onClick={() => { setSelectedRoom(null); fetchRooms(); }}
-            className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+            className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors cursor-pointer"
           >
             <ArrowLeft className="h-4 w-4" />
           </button>
           <div className="flex-1">
-            <h2 className="text-sm font-bold text-[#1F2A2A]">
-              Chat — {selectedRoom.order.orderNo}
+            <h2 className="text-sm font-bold text-amber-950">
+              {isBroadcast
+                ? `Table ${selectedRoom.tableNo ?? selectedRoom.roomNo ?? ""} Chat`
+                : `Chat — ${selectedRoom.order?.orderNo}`}
             </h2>
             <p className="text-[11px] text-gray-400">
-              {selectedRoom.order.user?.name || "Guest"}{" "}
-              {selectedRoom.order.tableNo ? `· Table ${selectedRoom.order.tableNo}` : ""}
+              {isBroadcast
+                ? "Pre-order messages from this table"
+                : `${selectedRoom.order?.user?.name || "Guest"} ${selectedRoom.order?.tableNo ? `· Table ${selectedRoom.order.tableNo}` : ""}`}
             </p>
           </div>
 
@@ -104,9 +112,9 @@ export default function ChatTab() {
           <div className="flex rounded-lg border border-gray-200 overflow-hidden">
             <button
               onClick={() => setReplyAs("KITCHEN")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold transition-all cursor-pointer ${
                 replyAs === "KITCHEN"
-                  ? "bg-[#0A4D3C] text-white"
+                  ? "bg-amber-700 text-white"
                   : "bg-white text-gray-500 hover:bg-gray-50"
               }`}
             >
@@ -115,7 +123,7 @@ export default function ChatTab() {
             </button>
             <button
               onClick={() => setReplyAs("BILLING")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold transition-all cursor-pointer ${
                 replyAs === "BILLING"
                   ? "bg-blue-500 text-white"
                   : "bg-white text-gray-500 hover:bg-gray-50"
@@ -129,7 +137,8 @@ export default function ChatTab() {
 
         <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden h-[500px] flex flex-col">
           <ChatWidget
-            orderId={selectedRoom.orderId}
+            chatRoomId={isBroadcast ? selectedRoom.id : undefined}
+            orderId={selectedRoom.orderId ?? undefined}
             restaurantId={restaurantId!}
             senderRole={replyAs}
             senderName={replyAs === "KITCHEN" ? "Kitchen Team" : "Billing Desk"}
@@ -144,7 +153,7 @@ export default function ChatTab() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-bold text-[#1F2A2A]">Order Chats</h2>
+          <h2 className="text-lg font-bold text-amber-950">Chats</h2>
           <p className="text-sm text-gray-400">
             {rooms.length} active conversation{rooms.length !== 1 ? "s" : ""}
           </p>
@@ -168,7 +177,10 @@ export default function ChatTab() {
           <AnimatePresence>
             {rooms.map((room) => {
               const lastMsg = room.messages[0];
-              const statusClass = STATUS_COLORS[room.order.status] || STATUS_COLORS.PENDING;
+              const isBroadcast = room.type === "BROADCAST" || room.type === "TABLE_CHAT";
+              const statusClass = room.order
+                ? STATUS_COLORS[room.order.status] || STATUS_COLORS.PENDING
+                : "";
 
               return (
                 <motion.button
@@ -178,41 +190,60 @@ export default function ChatTab() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                   onClick={() => setSelectedRoom(room)}
-                  className="w-full flex items-center gap-3 rounded-2xl border border-gray-200 bg-white p-4 text-left hover:border-[#0A4D3C]/30 hover:shadow-sm transition-all"
+                  className="w-full flex items-center gap-3 rounded-2xl border border-gray-200 bg-white p-4 text-left hover:border-amber-300 hover:shadow-sm transition-all cursor-pointer"
                 >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0A4D3C]/10 shrink-0">
-                    <User className="h-4 w-4 text-[#0A4D3C]" />
+                  <div className={`flex h-10 w-10 items-center justify-center rounded-full shrink-0 ${
+                    isBroadcast ? "bg-amber-100" : "bg-amber-50"
+                  }`}>
+                    {isBroadcast
+                      ? <MessageCircle className="h-4 w-4 text-amber-700" />
+                      : <User className="h-4 w-4 text-amber-700" />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-bold text-[#1F2A2A]">
-                        {room.order.user?.name || "Guest"}
-                      </span>
-                      <span className="flex items-center gap-1 text-[11px] font-mono text-gray-400">
-                        <Hash className="h-2.5 w-2.5" />
-                        {room.order.orderNo}
-                      </span>
-                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${statusClass}`}>
-                        {room.order.status}
-                      </span>
+                      {isBroadcast ? (
+                        <>
+                          <span className="text-sm font-bold text-amber-950">
+                            Table {room.tableNo ?? room.roomNo ?? "?"} Chat
+                          </span>
+                          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">
+                            PRE-ORDER
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-sm font-bold text-amber-950">
+                            {room.order?.user?.name || "Guest"}
+                          </span>
+                          <span className="flex items-center gap-1 text-[11px] font-mono text-gray-400">
+                            <Hash className="h-2.5 w-2.5" />
+                            {room.order?.orderNo}
+                          </span>
+                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${statusClass}`}>
+                            {room.order?.status}
+                          </span>
+                        </>
+                      )}
                     </div>
                     {lastMsg && (
                       <p className="text-xs text-gray-400 truncate mt-0.5">
                         <span className="font-semibold">
-                          {lastMsg.sender === "CUSTOMER"
-                            ? "Customer: "
-                            : lastMsg.sender === "KITCHEN"
-                              ? "Kitchen: "
-                              : "Billing: "}
+                          {lastMsg.senderName
+                            ? `${lastMsg.senderName}: `
+                            : lastMsg.sender === "CUSTOMER"
+                              ? "Customer: "
+                              : lastMsg.sender === "KITCHEN"
+                                ? "Kitchen: "
+                                : "Billing: "}
                         </span>
                         {lastMsg.content}
                       </p>
                     )}
                   </div>
                   <div className="text-right shrink-0">
-                    {room.order.tableNo && (
-                      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0A4D3C]/10 text-xs font-bold text-[#0A4D3C]">
-                        {room.order.tableNo}
+                    {(room.tableNo || room.order?.tableNo) && (
+                      <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-100 text-sm font-black text-amber-800 ring-2 ring-amber-200/60">
+                        {room.tableNo ?? room.order?.tableNo}
                       </span>
                     )}
                     {lastMsg && (

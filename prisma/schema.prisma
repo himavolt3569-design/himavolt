@@ -25,6 +25,7 @@ model User {
   reviews          Review[]
   fcmTokens        FCMToken[]
   auditLogs        AuditLog[]
+  menuItemRatings  MenuItemRating[]
 
   @@map("users")
 }
@@ -68,18 +69,20 @@ model Restaurant {
   ownerId String
   owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
-  staff         StaffMember[]
-  categories    MenuCategory[]
-  menuItems     MenuItem[]
-  orders        Order[]
-  reviews       Review[]
-  chatRooms     ChatRoom[]
-  inventory     InventoryItem[]
-  stories       Story[]
-  deliveryZones DeliveryZone[]
-  auditLogs     AuditLog[]
-  paymentQRs    PaymentQR[]
-  paymentConfig PaymentConfig?
+  staff          StaffMember[]
+  categories     MenuCategory[]
+  menuItems      MenuItem[]
+  orders         Order[]
+  reviews        Review[]
+  chatRooms      ChatRoom[]
+  inventory      InventoryItem[]
+  stories        Story[]
+  deliveryZones  DeliveryZone[]
+  auditLogs      AuditLog[]
+  paymentQRs     PaymentQR[]
+  paymentConfig  PaymentConfig?
+  heroSlides     HeroSlide[]
+  tableSessions  TableSession[]
 
   @@index([ownerId])
   @@index([slug])
@@ -102,6 +105,8 @@ model InventoryItem {
 
   restaurantId String
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  menuItems MenuItemIngredient[]
 
   @@index([restaurantId])
   @@map("inventory_items")
@@ -221,6 +226,7 @@ model MenuCategory {
   id        String   @id @default(cuid())
   name      String
   slug      String
+  icon      String?  // emoji or icon name
   sortOrder Int      @default(0)
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
@@ -228,10 +234,16 @@ model MenuCategory {
 
   restaurantId String
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
-  items        MenuItem[]
+
+  parentId String?
+  parent   MenuCategory?  @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children MenuCategory[] @relation("CategoryHierarchy")
+
+  items MenuItem[]
 
   @@unique([restaurantId, slug])
   @@index([restaurantId])
+  @@index([parentId])
   @@map("menu_categories")
 }
 
@@ -253,6 +265,9 @@ model MenuItem {
   discount       Float    @default(0) // percentage off (e.g. 20 = 20% off)
   discountLabel  String? // display text e.g. "FLAT Rs.100 OFF"
   isFeatured     Boolean  @default(false) // starred/highlighted by restaurant
+  spiceLevel     Int      @default(0) // 0=none, 1=mild, 2=medium, 3=hot, 4=extra-hot
+  calories       Int?     // kcal per serving
+  allergens      String[] @default([]) // e.g. ["gluten","dairy","nuts"]
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
@@ -261,9 +276,15 @@ model MenuItem {
   categoryId   String
   category     MenuCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
-  sizes      MenuItemSize[]
-  addOns     MenuItemAddOn[]
-  orderItems OrderItem[]
+  offerExpiresAt DateTime?
+  offerStartedAt DateTime?
+
+  sizes       MenuItemSize[]
+  addOns      MenuItemAddOn[]
+  orderItems  OrderItem[]
+  ratings     MenuItemRating[]
+  heroSlides  HeroSlide[]
+  ingredients MenuItemIngredient[]
 
   @@index([restaurantId])
   @@index([categoryId])
@@ -329,11 +350,12 @@ model Order {
   restaurantId String
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
 
-  items    OrderItem[]
-  payment  Payment?
-  bill     Bill?
-  chatRoom ChatRoom?
-  delivery Delivery?
+  items        OrderItem[]
+  payment      Payment?
+  bill         Bill?
+  chatRoom     ChatRoom?
+  delivery     Delivery?
+  tableSession TableSession?
 
   @@index([restaurantId])
   @@index([userId])
@@ -477,16 +499,23 @@ model ChatRoom {
   restaurantId String
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
 
+  // Pre-order table/room chat fields
+  tableNo Int?
+  roomNo  String?
+
   messages ChatMessage[]
 
   @@index([restaurantId])
   @@index([restaurantId, type])
+  @@index([restaurantId, tableNo, isActive])
+  @@index([restaurantId, roomNo, isActive])
   @@map("chat_rooms")
 }
 
 enum ChatRoomType {
-  CUSTOMER  // per-order customer chat
-  BROADCAST // admin-to-all-staff channel
+  CUSTOMER    // per-order customer chat
+  BROADCAST   // admin-to-all-staff channel
+  TABLE_CHAT  // pre-order per-table chat
 }
 
 model ChatMessage {
@@ -665,4 +694,80 @@ model DeliveryZone {
 
   @@index([restaurantId])
   @@map("delivery_zones")
+}
+
+// ─── Food Ratings ────────────────────────────────────────────────
+
+model MenuItemRating {
+  id        String   @id @default(cuid())
+  rating    Int // 1-5 stars
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  menuItemId String
+  menuItem   MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, menuItemId])
+  @@index([menuItemId])
+  @@map("menu_item_ratings")
+}
+
+// ─── Hero Slides ─────────────────────────────────────────────────
+
+model HeroSlide {
+  id        String   @id @default(cuid())
+  imageUrl  String
+  title     String?
+  subtitle  String?
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  linkItemId String?
+  linkItem   MenuItem? @relation(fields: [linkItemId], references: [id], onDelete: SetNull)
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@index([restaurantId])
+  @@map("hero_slides")
+}
+
+// ─── Table Sessions ──────────────────────────────────────────────
+
+model TableSession {
+  id           String    @id @default(cuid())
+  tableNo      Int
+  sessionToken String    @unique @default(cuid())
+  isActive     Boolean   @default(true)
+  startedAt    DateTime  @default(now())
+  endedAt      DateTime?
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  orderId      String?    @unique
+  order        Order?     @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@unique([restaurantId, tableNo, isActive])
+  @@index([sessionToken])
+  @@map("table_sessions")
+}
+
+// ─── Menu Item Ingredients (for stock deduction) ─────────────────
+
+model MenuItemIngredient {
+  id           String @id @default(cuid())
+  quantityUsed Float // amount of this ingredient per serving
+
+  menuItemId      String
+  menuItem        MenuItem      @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  inventoryItemId String
+  inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+
+  @@unique([menuItemId, inventoryItemId])
+  @@map("menu_item_ingredients")
 }

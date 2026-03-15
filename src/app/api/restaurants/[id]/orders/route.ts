@@ -35,6 +35,16 @@ export async function GET(
   const where: Record<string, unknown> = { restaurantId: id };
   if (status) where.status = status;
 
+  // For live-orders view: exclude terminal orders older than 2 hours
+  const liveMode = searchParams.get("live") === "1";
+  if (liveMode) {
+    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
+    where.OR = [
+      { status: { in: ["PENDING", "ACCEPTED", "PREPARING", "READY"] } },
+      { status: { in: ["DELIVERED", "CANCELLED", "REJECTED"] }, createdAt: { gte: twoHoursAgo } },
+    ];
+  }
+
   const [orders, total] = await Promise.all([
     db.order.findMany({
       where,
@@ -79,6 +89,7 @@ export const POST = safeHandler(
       type,
       paymentMethod,
       addToOrderId,
+      tableSessionId,
       deliveryAddress,
       deliveryLat,
       deliveryLng,
@@ -109,12 +120,8 @@ export const POST = safeHandler(
         );
       }
 
-      if (existing.payment?.method !== "CASH") {
-        return NextResponse.json(
-          { error: "Can only add items to cash orders" },
-          { status: 400 },
-        );
-      }
+      // Allow adding items to any active dine-in order (cash or online)
+      // Previously restricted to CASH only — now supports all payment methods for table sessions
 
       const addSubtotal = items.reduce(
         (sum, item) => sum + item.price * item.quantity,
@@ -150,8 +157,43 @@ export const POST = safeHandler(
         include: { items: true, payment: true, bill: true, delivery: true },
       });
 
+      // Update payment amount to match new total
+      if (existing.payment) {
+        await db.payment.update({
+          where: { id: existing.payment.id },
+          data: { amount: { increment: addSubtotal + addTax } },
+        });
+      }
+
       // Regenerate bill with updated totals
       await generateBill(addToOrderId);
+
+      // Deduct stock for each added item
+      for (const item of items) {
+        if (!item.menuItemId) continue;
+        const ingredients = await db.menuItemIngredient.findMany({
+          where: { menuItemId: item.menuItemId },
+          include: { inventoryItem: true },
+        });
+        for (const ing of ingredients) {
+          const updatedInv = await db.inventoryItem.update({
+            where: { id: ing.inventoryItemId },
+            data: { quantity: { decrement: ing.quantityUsed * item.quantity } },
+          });
+          // Auto-unavailable if stock depleted
+          if (updatedInv.quantity <= 0) {
+            const dependents = await db.menuItemIngredient.findMany({
+              where: { inventoryItemId: ing.inventoryItemId },
+            });
+            for (const dep of dependents) {
+              await db.menuItem.update({
+                where: { id: dep.menuItemId },
+                data: { isAvailable: false },
+              });
+            }
+          }
+        }
+      }
 
       logAudit({
         action: "ORDER_UPDATED",
@@ -280,6 +322,16 @@ export const POST = safeHandler(
       });
     }
 
+    // Link to table session if provided
+    if (tableSessionId) {
+      await db.tableSession.update({
+        where: { id: tableSessionId },
+        data: { orderId: order.id },
+      }).catch(() => {
+        // Session might not exist or already linked — non-critical
+      });
+    }
+
     await generateBill(order.id);
 
     await db.restaurant.update({
@@ -305,6 +357,33 @@ export const POST = safeHandler(
         delivery: true,
       },
     });
+
+    // Deduct stock for each ordered item
+    for (const item of items) {
+      if (!item.menuItemId) continue;
+      const ingredients = await db.menuItemIngredient.findMany({
+        where: { menuItemId: item.menuItemId },
+        include: { inventoryItem: true },
+      });
+      for (const ing of ingredients) {
+        const updatedInv = await db.inventoryItem.update({
+          where: { id: ing.inventoryItemId },
+          data: { quantity: { decrement: ing.quantityUsed * item.quantity } },
+        });
+        // Auto-unavailable if stock depleted
+        if (updatedInv.quantity <= 0) {
+          const dependents = await db.menuItemIngredient.findMany({
+            where: { inventoryItemId: ing.inventoryItemId },
+          });
+          for (const dep of dependents) {
+            await db.menuItem.update({
+              where: { id: dep.menuItemId },
+              data: { isAvailable: false },
+            });
+          }
+        }
+      }
+    }
 
     logAudit({
       action: "ORDER_CREATED",

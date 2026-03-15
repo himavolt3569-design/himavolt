@@ -120,7 +120,7 @@ export default function PaymentSettingsTab() {
     <div className="space-y-6 max-w-2xl">
       {/* Header */}
       <div>
-        <h2 className="text-lg font-bold text-[#1F2A2A]">Payment Settings</h2>
+        <h2 className="text-lg font-bold text-amber-950">Payment Settings</h2>
         <p className="text-sm text-gray-500 mt-1">
           Configure which payment methods customers can use and enter your
           gateway credentials.
@@ -244,7 +244,7 @@ export default function PaymentSettingsTab() {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="flex items-center gap-2 rounded-xl bg-[#0A4D3C] px-6 py-3 text-sm font-bold text-white transition-all hover:bg-[#083a2d] active:scale-[0.98] disabled:opacity-60"
+          className="flex items-center gap-2 rounded-xl bg-amber-700 px-6 py-3 text-sm font-bold text-white transition-all hover:bg-amber-600 active:scale-[0.98] disabled:opacity-60"
         >
           {saving ? (
             <>
@@ -308,14 +308,14 @@ function PaymentSection({
             {icon}
           </div>
           <div>
-            <p className="text-sm font-bold text-[#1F2A2A]">{title}</p>
+            <p className="text-sm font-bold text-amber-950">{title}</p>
             <p className="text-xs text-gray-500">{description}</p>
           </div>
         </div>
         <button
           onClick={() => onToggle(!enabled)}
           className={`relative h-7 w-12 rounded-full transition-colors ${
-            enabled ? "bg-[#0A4D3C]" : "bg-gray-300"
+            enabled ? "bg-amber-700" : "bg-gray-300"
           }`}
         >
           <motion.div
@@ -369,7 +369,7 @@ function SecretField({
           placeholder={
             isMasked ? "••••••  (saved — enter new to update)" : placeholder
           }
-          className="w-full rounded-xl border border-gray-200 py-2.5 pl-4 pr-10 text-sm text-[#1F2A2A] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0A4D3C]/20 focus:border-[#0A4D3C]/30"
+          className="w-full rounded-xl border border-gray-200 py-2.5 pl-4 pr-10 text-sm text-amber-950 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/30"
         />
         <button
           type="button"
@@ -404,7 +404,7 @@ function InputField({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full rounded-xl border border-gray-200 py-2.5 px-4 text-sm text-[#1F2A2A] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0A4D3C]/20 focus:border-[#0A4D3C]/30"
+        className="w-full rounded-xl border border-gray-200 py-2.5 px-4 text-sm text-amber-950 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/30"
       />
     </div>
   );

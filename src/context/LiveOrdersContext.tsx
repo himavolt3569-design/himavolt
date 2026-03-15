@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { apiFetch } from "@/lib/api-client";
+import { playSound } from "@/lib/sounds";
 
 export type LiveOrderStatus =
   | "PENDING"
@@ -70,6 +71,8 @@ export function LiveOrdersProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(false);
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const knownOrderIdsRef = useRef<Set<string>>(new Set());
+  const initialFetchDoneRef = useRef(false);
   const restIdRef = useRef(restaurantId);
   restIdRef.current = restaurantId;
 
@@ -78,8 +81,23 @@ export function LiveOrdersProvider({ children }: { children: ReactNode }) {
     if (!rid) return;
     try {
       const data = await apiFetch<{ orders: LiveOrder[] }>(
-        `/api/restaurants/${rid}/orders?limit=50`,
+        `/api/restaurants/${rid}/orders?limit=50&live=1`,
       );
+
+      // Detect new orders (skip the very first fetch to avoid false positives)
+      if (initialFetchDoneRef.current) {
+        const newOrders = data.orders.filter(
+          (o) => !knownOrderIdsRef.current.has(o.id),
+        );
+        if (newOrders.length > 0) {
+          playSound("newOrder");
+        }
+      }
+
+      // Update known IDs
+      knownOrderIdsRef.current = new Set(data.orders.map((o) => o.id));
+      initialFetchDoneRef.current = true;
+
       setOrders(data.orders);
     } catch {
       /* ignore */
@@ -96,8 +114,13 @@ export function LiveOrdersProvider({ children }: { children: ReactNode }) {
     if (pollRef.current) clearInterval(pollRef.current);
     if (!restaurantId) {
       setOrders([]);
+      knownOrderIdsRef.current = new Set();
+      initialFetchDoneRef.current = false;
       return;
     }
+    // Reset tracking when switching restaurants
+    knownOrderIdsRef.current = new Set();
+    initialFetchDoneRef.current = false;
     refresh();
     pollRef.current = setInterval(fetchOrders, 10000);
     return () => {

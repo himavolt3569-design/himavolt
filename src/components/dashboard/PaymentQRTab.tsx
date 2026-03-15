@@ -165,7 +165,7 @@ export default function PaymentQRTab() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-lg font-bold text-[#1F2A2A]">Payment QR Codes</h2>
+          <h2 className="text-lg font-bold text-amber-950">Payment QR Codes</h2>
           <p className="text-sm text-gray-400">
             Upload QR images for eSewa, Khalti, Fonepay, bank, etc. Customers see
             these when ordering online.
@@ -173,7 +173,7 @@ export default function PaymentQRTab() {
         </div>
         <button
           onClick={() => setShowAddForm(true)}
-          className="flex items-center gap-2 rounded-xl bg-[#0A4D3C] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#083a2d] shadow-md shadow-[#0A4D3C]/20 transition-all active:scale-[0.97]"
+          className="flex items-center gap-2 rounded-xl bg-amber-700 px-5 py-2.5 text-sm font-bold text-white hover:bg-amber-600 shadow-md shadow-amber-700/20 transition-all active:scale-[0.97]"
         >
           <Plus className="h-4 w-4" />
           Add Payment QR
@@ -181,9 +181,9 @@ export default function PaymentQRTab() {
       </div>
 
       {/* Info banner */}
-      <div className="flex items-start gap-3 rounded-xl bg-[#0A4D3C]/5 border border-[#0A4D3C]/10 px-4 py-3">
-        <Check className="h-4 w-4 text-[#0A4D3C] mt-0.5 shrink-0" />
-        <p className="text-xs font-medium text-[#1F2A2A]">
+      <div className="flex items-start gap-3 rounded-xl bg-amber-50 border border-amber-200/40 px-4 py-3">
+        <Check className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
+        <p className="text-xs font-medium text-amber-950">
           Add multiple payment QR codes — one for each payment provider. Customers
           will see these options when placing an online order.
         </p>
@@ -211,7 +211,7 @@ export default function PaymentQRTab() {
               <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                 <div className="flex items-center gap-2">
                   <QrCode className="h-5 w-5 text-[#FF9933]" />
-                  <h3 className="text-base font-bold text-[#1F2A2A]">
+                  <h3 className="text-base font-bold text-amber-950">
                     Add Payment QR
                   </h3>
                 </div>
@@ -233,7 +233,7 @@ export default function PaymentQRTab() {
                     value={label}
                     onChange={(e) => setLabel(e.target.value)}
                     placeholder="e.g. eSewa, Khalti, Fonepay, Bank QR"
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-[#1F2A2A] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FF9933]/30 focus:bg-white transition-all"
+                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-amber-950 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FF9933]/30 focus:bg-white transition-all"
                   />
                 </div>
 
@@ -291,7 +291,7 @@ export default function PaymentQRTab() {
                             <Upload className="h-5 w-5 text-[#FF9933]" />
                           </div>
                           <div className="text-center">
-                            <p className="text-sm font-bold text-[#1F2A2A]">
+                            <p className="text-sm font-bold text-amber-950">
                               Upload QR image
                             </p>
                             <p className="text-xs text-gray-400 mt-0.5">
@@ -308,7 +308,7 @@ export default function PaymentQRTab() {
                 <button
                   onClick={handleAdd}
                   disabled={!label.trim() || !uploadedUrl || submitting}
-                  className="w-full rounded-xl bg-[#0A4D3C] py-3 text-sm font-bold text-white hover:bg-[#083a2d] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full rounded-xl bg-amber-700 py-3 text-sm font-bold text-white hover:bg-amber-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {submitting ? (
                     <>
@@ -346,7 +346,7 @@ export default function PaymentQRTab() {
               className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-100 w-[90%] max-w-sm rounded-2xl bg-white shadow-2xl overflow-hidden"
             >
               <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
-                <h3 className="text-sm font-bold text-[#1F2A2A]">
+                <h3 className="text-sm font-bold text-amber-950">
                   {previewQR.label}
                 </h3>
                 <button
@@ -403,7 +403,7 @@ export default function PaymentQRTab() {
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <GripVertical className="h-4 w-4 text-gray-300" />
-                  <h3 className="text-sm font-bold text-[#1F2A2A]">
+                  <h3 className="text-sm font-bold text-amber-950">
                     {qr.label}
                   </h3>
                 </div>

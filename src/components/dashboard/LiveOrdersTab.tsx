@@ -248,7 +248,7 @@ export default function LiveOrdersTab() {
                       exit={{ opacity: 0, x: -20 }}
                       transition={{ duration: 0.25 }}
                       onClick={() => setSelectedOrder(order)}
-                      className={`border-b border-gray-50 cursor-pointer transition-colors hover:bg-gray-50/70 last:border-b-0 ${
+                      className={`border-b border-gray-50 transition-colors hover:bg-gray-50/70 last:border-b-0 cursor-pointer ${
                         order.status === "PENDING" ? "bg-orange-50/40" : ""
                       }`}
                     >
@@ -261,7 +261,7 @@ export default function LiveOrdersTab() {
                         )}
                       </td>
                       <td className="px-4 py-4">
-                        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#0A4D3C]/10 text-sm font-bold text-[#0A4D3C]">
+                        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-lg font-black text-amber-800 ring-2 ring-amber-200/60">
                           {order.tableNo ?? "–"}
                         </span>
                       </td>
@@ -322,7 +322,7 @@ export default function LiveOrdersTab() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 onClick={() => setSelectedOrder(order)}
-                className={`rounded-2xl border bg-white p-4 shadow-sm cursor-pointer ${
+                className={`rounded-2xl border bg-white p-4 shadow-sm ${
                   order.status === "PENDING"
                     ? "border-orange-200 bg-orange-50/30"
                     : "border-gray-200"
@@ -334,11 +334,11 @@ export default function LiveOrdersTab() {
                       <span className="text-sm font-bold text-[#1F2A2A]">{order.orderNo}</span>
                       <StatusBadge status={order.status} />
                     </div>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="flex h-6 w-6 items-center justify-center rounded-md bg-[#0A4D3C]/10 text-xs font-bold text-[#0A4D3C]">
+                    <div className="flex items-center gap-2 mt-1.5">
+                      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100 text-sm font-black text-amber-800 ring-2 ring-amber-200/60">
                         {order.tableNo ?? "–"}
                       </span>
-                      <span className="text-xs text-gray-400">Table {order.tableNo ?? "–"}</span>
+                      <span className="text-xs font-bold text-amber-700">Table {order.tableNo ?? "–"}</span>
                       <TimeAgo ts={order.createdAt} />
                     </div>
                   </div>

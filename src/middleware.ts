@@ -26,6 +26,7 @@ const isPublicRoute = createRouteMatcher([
   "/api/restaurants/(.+)/inventory(.*)",
   "/api/restaurants/(.+)/chat(.*)",
   "/api/restaurants/(.+)/menu(.*)",
+  "/api/restaurants/(.+)/categories(.*)",
   "/api/restaurants/(.+)/stories(.*)",
   "/api/upload(.*)",
   "/staff-login(.*)",
@@ -78,7 +79,12 @@ const handler = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
         }
       }
 
-      // Default Clerk Protection
+      // For API routes, return 401 JSON instead of redirecting
+      if (req.nextUrl.pathname.startsWith("/api/")) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+
+      // Default Clerk Protection (redirects to sign-in for pages)
       await auth.protect();
     })
   : passthrough;

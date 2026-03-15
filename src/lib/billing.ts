@@ -150,6 +150,9 @@ export async function getOrdersForBilling(
 ) {
   const where: Record<string, unknown> = { restaurantId };
 
+  // Default: limit to last 24h to keep lists manageable
+  const last24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
   if (filter === "unpaid") {
     where.OR = [
       { payment: null },
@@ -158,10 +161,13 @@ export async function getOrdersForBilling(
     where.status = { notIn: ["CANCELLED", "REJECTED"] };
   } else if (filter === "paid") {
     where.payment = { status: "COMPLETED" };
+    where.createdAt = { gte: last24h };
   } else if (filter === "today") {
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
     where.createdAt = { gte: startOfDay };
+  } else {
+    where.createdAt = { gte: last24h };
   }
 
   return db.order.findMany({
