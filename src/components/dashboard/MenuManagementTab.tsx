@@ -42,6 +42,7 @@ import {
 import { useRestaurant } from "@/context/RestaurantContext";
 import { apiFetch } from "@/lib/api-client";
 import { useToast } from "@/context/ToastContext";
+import { formatPrice, getCurrencySymbol } from "@/lib/currency";
 import ImagePicker from "@/components/shared/ImagePicker";
 
 /* ─── Types ─────────────────────────────────────────────────────────── */
@@ -118,10 +119,10 @@ const SPICE_COLORS = ["text-gray-400", "text-green-500", "text-yellow-500", "tex
 
 /* ─── Helpers ───────────────────────────────────────────────────────── */
 
-function PriceInput({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder?: string }) {
+function PriceInput({ value, onChange, placeholder, currencySymbol = "Rs." }: { value: string; onChange: (v: string) => void; placeholder?: string; currencySymbol?: string }) {
   return (
     <div className="relative">
-      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[11px] font-semibold text-gray-400 select-none">Rs.</span>
+      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[11px] font-semibold text-gray-400 select-none">{currencySymbol}</span>
       <input
         type="text"
         inputMode="decimal"
@@ -158,7 +159,7 @@ function SpiceLevelPicker({ level, onChange }: { level: number; onChange: (l: nu
 
 /* ─── Stats Banner ──────────────────────────────────────────────────── */
 
-function MenuStats({ items, categories }: { items: MenuItem[]; categories: MenuCategory[] }) {
+function MenuStats({ items, categories, currency }: { items: MenuItem[]; categories: MenuCategory[]; currency: string }) {
   const active = items.filter((i) => i.isAvailable).length;
   const vegCount = items.filter((i) => i.isVeg).length;
   const avgPrice = items.length ? Math.round(items.reduce((s, i) => s + i.price, 0) / items.length) : 0;
@@ -170,7 +171,7 @@ function MenuStats({ items, categories }: { items: MenuItem[]; categories: MenuC
     { label: "Total Items", value: items.length, icon: UtensilsCrossed, color: "text-amber-500", bg: "bg-amber-50" },
     { label: "Active", value: `${active}/${items.length}`, icon: Eye, color: "text-green-500", bg: "bg-green-50" },
     { label: "Categories", value: `${topCats.length} + ${totalSubs} sub`, icon: Layers, color: "text-indigo-500", bg: "bg-indigo-50" },
-    { label: "Avg Price", value: `Rs.${avgPrice}`, icon: TrendingUp, color: "text-blue-500", bg: "bg-blue-50" },
+    { label: "Avg Price", value: formatPrice(avgPrice, currency), icon: TrendingUp, color: "text-blue-500", bg: "bg-blue-50" },
     { label: "Veg / Non-Veg", value: `${vegCount}/${items.length - vegCount}`, icon: Leaf, color: "text-emerald-500", bg: "bg-emerald-50" },
     { label: "Featured", value: featuredCount, icon: Star, color: "text-amber-500", bg: "bg-amber-50" },
   ];
@@ -305,12 +306,14 @@ function MenuItemCard({
   onDelete,
   onToggle,
   onDuplicate,
+  currency,
 }: {
   item: MenuItem;
   onEdit: () => void;
   onDelete: () => void;
   onToggle: () => void;
   onDuplicate: () => void;
+  currency: string;
 }) {
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -427,9 +430,9 @@ function MenuItemCard({
           <h4 className="text-[13px] font-bold text-gray-900 leading-tight line-clamp-1">{item.name}</h4>
           <div className="flex items-baseline gap-1 shrink-0">
             {item.discount > 0 && (
-              <span className="text-[10px] text-gray-400 line-through">Rs.{item.price}</span>
+              <span className="text-[10px] text-gray-400 line-through">{formatPrice(item.price, currency)}</span>
             )}
-            <span className="text-sm font-bold text-gray-900">Rs.{discountedPrice}</span>
+            <span className="text-sm font-bold text-gray-900">{formatPrice(discountedPrice, currency)}</span>
           </div>
         </div>
 
@@ -537,12 +540,14 @@ function DishForm({
   onSubmit,
   onCancel,
   submitLabel,
+  currency = "NPR",
 }: {
   categories: MenuCategory[];
   initial?: Partial<DishFormData>;
   onSubmit: (data: DishFormData) => void;
   onCancel: () => void;
   submitLabel: string;
+  currency?: string;
 }) {
   const { showToast } = useToast();
   const [showImagePicker, setShowImagePicker] = useState(false);
@@ -681,7 +686,7 @@ function DishForm({
                 />
                 <div className="flex gap-3">
                   <div className="w-32">
-                    <PriceInput value={form.price} onChange={(v) => update({ price: v })} placeholder="Price *" />
+                    <PriceInput value={form.price} onChange={(v) => update({ price: v })} placeholder="Price *" currencySymbol={getCurrencySymbol(currency)} />
                   </div>
                   <input
                     value={form.prepTime}
@@ -837,14 +842,14 @@ function DishForm({
                 <input
                   value={form.discountLabel}
                   onChange={(e) => update({ discountLabel: e.target.value })}
-                  placeholder="Label e.g. 'FLAT Rs.50 OFF'"
+                  placeholder={`Label e.g. 'FLAT ${getCurrencySymbol(currency)}50 OFF'`}
                   className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 placeholder-gray-300 focus:outline-none focus:border-amber-400"
                 />
               </div>
               {Number(form.discount) > 0 && Number(form.price) > 0 && (
                 <p className="text-[11px] text-green-600 mt-1.5">
-                  Customer pays: Rs.{Math.round(Number(form.price) * (1 - Number(form.discount) / 100))}
-                  {" "}(was Rs.{form.price})
+                  Customer pays: {formatPrice(Math.round(Number(form.price) * (1 - Number(form.discount) / 100)), currency)}
+                  {" "}(was {formatPrice(Number(form.price), currency)})
                 </p>
               )}
             </div>
@@ -909,7 +914,7 @@ function DishForm({
                         className="w-20 rounded-lg border border-gray-200 px-3 py-1.5 text-[12px] focus:outline-none focus:border-amber-400"
                       />
                       <div className="relative w-24">
-                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-400">+Rs.</span>
+                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-400">+{getCurrencySymbol(currency)}</span>
                         <input
                           value={size.priceAdd}
                           onChange={(e) => {
@@ -970,6 +975,7 @@ function DishForm({
                             update({ addOns: next });
                           }}
                           placeholder="Price"
+                          currencySymbol={getCurrencySymbol(currency)}
                         />
                       </div>
                       <button
@@ -1115,6 +1121,8 @@ function AddSubCategoryInline({
 
 export default function MenuManagementTab() {
   const { selectedRestaurant } = useRestaurant();
+  const cur = selectedRestaurant?.currency ?? "NPR";
+  const curSymbol = getCurrencySymbol(cur);
   const { showToast } = useToast();
   const [items, setItems] = useState<MenuItem[]>([]);
   const [categories, setCategories] = useState<MenuCategory[]>([]);
@@ -1393,7 +1401,7 @@ export default function MenuManagementTab() {
       </div>
 
       {/* Stats */}
-      <MenuStats items={items} categories={flatCategories} />
+      <MenuStats items={items} categories={flatCategories} currency={cur} />
 
       {/* Seed prompt */}
       {!loading && categories.length === 0 && !showNewCat && (
@@ -1469,6 +1477,7 @@ export default function MenuManagementTab() {
             onSubmit={addItem}
             onCancel={() => setShowAddForm(false)}
             submitLabel="Add to menu"
+            currency={cur}
           />
         )}
         {editingItem && (
@@ -1499,6 +1508,7 @@ export default function MenuManagementTab() {
             onSubmit={editItem}
             onCancel={() => setEditingItem(null)}
             submitLabel="Save Changes"
+            currency={cur}
           />
         )}
       </AnimatePresence>
@@ -1583,6 +1593,7 @@ export default function MenuManagementTab() {
                   <MenuItemCard
                     key={item.id}
                     item={item}
+                    currency={cur}
                     onEdit={() => { setEditingItem(item); setShowAddForm(false); }}
                     onDelete={() => deleteItem(item.id)}
                     onToggle={() => toggleItem(item.id, item.isAvailable)}

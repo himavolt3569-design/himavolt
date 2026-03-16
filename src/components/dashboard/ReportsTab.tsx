@@ -17,6 +17,7 @@ import {
 import { useRestaurant } from "@/context/RestaurantContext";
 import { useLiveOrders } from "@/context/LiveOrdersContext";
 import { apiFetch } from "@/lib/api-client";
+import { formatPrice } from "@/lib/currency";
 
 interface FinancialData {
   totalRevenue: number;
@@ -30,6 +31,7 @@ interface FinancialData {
 
 export default function ReportsTab() {
   const { selectedRestaurant } = useRestaurant();
+  const cur = selectedRestaurant?.currency ?? "NPR";
   const { orders } = useLiveOrders();
 
   const [data, setData] = useState<FinancialData | null>(null);
@@ -88,7 +90,7 @@ export default function ReportsTab() {
             <span className="text-[13px] font-semibold text-amber-700/60">Total Revenue</span>
           </div>
           <p className="text-[28px] font-extrabold text-amber-950 leading-none">
-            Rs. {totalRevenue.toLocaleString()}
+            {formatPrice(totalRevenue, cur)}
           </p>
           <div className="mt-3 flex items-center gap-1 text-[11px] font-bold text-emerald-600">
             <ArrowUpRight className="h-3 w-3" />
@@ -109,7 +111,7 @@ export default function ReportsTab() {
             <span className="text-[13px] font-semibold text-amber-700/60">Inventory Cost</span>
           </div>
           <p className="text-[28px] font-extrabold text-amber-950 leading-none">
-            Rs. {totalInventoryCost.toLocaleString()}
+            {formatPrice(totalInventoryCost, cur)}
           </p>
           <div className="mt-3 flex items-center gap-1 text-[11px] font-bold text-orange-500">
             <ArrowDownRight className="h-3 w-3" />
@@ -130,7 +132,7 @@ export default function ReportsTab() {
             <span className="text-[13px] font-semibold text-amber-100/80">Estimated Profit</span>
           </div>
           <p className="text-[28px] font-extrabold leading-none">
-            Rs. {estimatedProfit.toLocaleString()}
+            {formatPrice(estimatedProfit, cur)}
           </p>
           <div className="mt-3 flex items-center gap-1 text-[11px] font-bold text-amber-100/70">
             <DollarSign className="h-3 w-3" />
@@ -144,8 +146,8 @@ export default function ReportsTab() {
         <h3 className="text-[13px] font-bold text-amber-700/50 uppercase tracking-wider mb-4">Revenue Breakdown</h3>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { label: "Today", value: `Rs. ${todayRevenue.toLocaleString()}`, icon: DollarSign, accent: "#3b82f6" },
-            { label: "This Month", value: `Rs. ${monthRevenue.toLocaleString()}`, icon: Calendar, accent: "#6366f1" },
+            { label: "Today", value: formatPrice(todayRevenue, cur), icon: DollarSign, accent: "#3b82f6" },
+            { label: "This Month", value: formatPrice(monthRevenue, cur), icon: Calendar, accent: "#6366f1" },
             { label: "Total Orders", value: totalOrders.toLocaleString(), icon: ShoppingBag, accent: "#f59e0b" },
             { label: "Live Orders", value: liveCount.toString(), icon: Activity, accent: "#10b981" },
           ].map((s, i) => {

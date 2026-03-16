@@ -1,15 +1,64 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useEffect, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { Sparkles } from "lucide-react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 
+const TYPEWRITER_WORDS = [
+  "Delicious?",
+  "Spicy?",
+  "Fresh?",
+  "Authentic?",
+  "Healthy?",
+  "Special?",
+];
+
+function useTypewriter(words: string[], typingSpeed = 80, pauseMs = 1800, deletingSpeed = 50) {
+  const [display, setDisplay] = useState("");
+  const [wordIdx, setWordIdx] = useState(0);
+  const [phase, setPhase] = useState<"typing" | "pausing" | "deleting">("typing");
+  const [charIdx, setCharIdx] = useState(0);
+
+  useEffect(() => {
+    const word = words[wordIdx];
+
+    if (phase === "typing") {
+      if (charIdx < word.length) {
+        const t = setTimeout(() => {
+          setDisplay(word.slice(0, charIdx + 1));
+          setCharIdx((c) => c + 1);
+        }, typingSpeed);
+        return () => clearTimeout(t);
+      } else {
+        const t = setTimeout(() => setPhase("deleting"), pauseMs);
+        return () => clearTimeout(t);
+      }
+    }
+
+    if (phase === "deleting") {
+      if (charIdx > 0) {
+        const t = setTimeout(() => {
+          setCharIdx((c) => c - 1);
+          setDisplay(word.slice(0, charIdx - 1));
+        }, deletingSpeed);
+        return () => clearTimeout(t);
+      } else {
+        setPhase("typing");
+        setWordIdx((i) => (i + 1) % words.length);
+      }
+    }
+  }, [charIdx, phase, wordIdx, words, typingSpeed, pauseMs, deletingSpeed]);
+
+  return display;
+}
+
 export default function Hero() {
   const containerRef = useRef<HTMLDivElement>(null);
   const bgRef = useRef<HTMLDivElement>(null);
   const floatingRef = useRef<HTMLDivElement>(null);
+  const typedWord = useTypewriter(TYPEWRITER_WORDS);
 
   const { scrollY } = useScroll();
   const heroOpacity = useTransform(scrollY, [0, 500], [1, 0.3]);
@@ -110,18 +159,21 @@ export default function Hero() {
             initial={{ opacity: 0, y: 24, filter: "blur(8px)" }}
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             transition={{ duration: 0.7, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-            className="mb-5 text-[2.5rem] font-extrabold tracking-tight text-[#1F2A2A] sm:text-5xl md:text-6xl lg:text-7xl leading-[1.08]"
+            className="mb-5 text-[2.5rem] font-extrabold tracking-tight text-[#1F2A2A] sm:text-5xl md:text-6xl lg:text-7xl leading-[1.15]"
           >
-            Craving something{" "}
-            <motion.span
-              className="text-transparent bg-clip-text bg-gradient-to-r from-[#E23744] to-[#FF6B81] inline-block"
-              animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
-              transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
-              style={{ backgroundSize: "200% 200%" }}
-            >
-              Delicious?
-            </motion.span>
+            <span className="block">Craving something</span>
+            <span className="block min-h-[1.15em]">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#E23744] via-[#FF6B81] to-[#FF9933]" style={{ backgroundSize: "200% 200%" }}>
+                {typedWord}
+              </span>
+              <span
+                className="inline-block w-[2px] h-[0.8em] bg-[#E23744] ml-[2px] align-middle rounded-sm"
+                style={{ animation: "blink 1s step-start infinite" }}
+              />
+            </span>
           </motion.h1>
+
+          <style>{`@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }`}</style>
 
           <motion.p
             initial={{ opacity: 0, y: 16, filter: "blur(6px)" }}

@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Plus, Minus, ShoppingBag, Trash2 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
+import { formatPrice } from "@/lib/currency";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { useRef, useEffect } from "react";
@@ -37,7 +38,7 @@ export default function CartSidebar({
   onClose: () => void;
   onProceed?: () => void;
 }) {
-  const { items, increaseQty, decreaseQty, removeItem, subtotal, totalItems } =
+  const { items, increaseQty, decreaseQty, removeItem, subtotal, totalItems, currency } =
     useCart();
   const priceRef = useRef<HTMLSpanElement>(null);
 
@@ -134,7 +135,7 @@ export default function CartSidebar({
                             {item.name}
                           </p>
                           <p className="text-sm font-semibold text-[#FF9933]">
-                            Rs. {item.price * item.quantity}
+                            {formatPrice(item.price * item.quantity, currency)}
                           </p>
                         </div>
                         <div className="flex items-center gap-1">
@@ -174,7 +175,7 @@ export default function CartSidebar({
                       ref={priceRef}
                       className="text-lg font-bold text-[#1F2A2A]"
                     >
-                      Rs. {subtotal}
+                      {formatPrice(subtotal, currency)}
                     </span>
                   </div>
                   <button

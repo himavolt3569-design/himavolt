@@ -22,6 +22,7 @@ export async function GET(
             phone: true,
             address: true,
             imageUrl: true,
+            currency: true,
           },
         },
       },

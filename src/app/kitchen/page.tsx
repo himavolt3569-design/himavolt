@@ -36,6 +36,72 @@ import {
 import BillingTab from "@/components/billing/BillingTab";
 import StoryManager from "@/components/stories/StoryManager";
 import { useToast } from "@/context/ToastContext";
+import { formatPrice } from "@/lib/currency";
+import {
+  getFeatureTabsForType,
+  type FeatureTabId,
+} from "@/lib/restaurant-types";
+
+/* ── Lazy feature tab imports for staff ─────────────────────────── */
+import QuickCounterTab from "@/components/dashboard/features/QuickCounterTab";
+import ComboMealsTab from "@/components/dashboard/features/ComboMealsTab";
+import RushHourTab from "@/components/dashboard/features/RushHourTab";
+import TakeawayTab from "@/components/dashboard/features/TakeawayTab";
+import RoomServiceTab from "@/components/dashboard/features/RoomServiceTab";
+import MultiOutletTab from "@/components/dashboard/features/MultiOutletTab";
+import EventCateringTab from "@/components/dashboard/features/EventCateringTab";
+import GuestBillingTab from "@/components/dashboard/features/GuestBillingTab";
+import BuffetManagerTab from "@/components/dashboard/features/BuffetManagerTab";
+import PreOrdersTab from "@/components/dashboard/features/PreOrdersTab";
+import CustomCakesTab from "@/components/dashboard/features/CustomCakesTab";
+import DailySpecialsTab from "@/components/dashboard/features/DailySpecialsTab";
+import DisplayCounterTab from "@/components/dashboard/features/DisplayCounterTab";
+import DeliveryOpsTab from "@/components/dashboard/features/DeliveryOpsTab";
+import MultiBrandTab from "@/components/dashboard/features/MultiBrandTab";
+import DeliveryZonesTab from "@/components/dashboard/features/DeliveryZonesTab";
+import PackageTrackingTab from "@/components/dashboard/features/PackageTrackingTab";
+import HappyHoursTab from "@/components/dashboard/features/HappyHoursTab";
+import TabManagementTab from "@/components/dashboard/features/TabManagementTab";
+import CocktailMenuTab from "@/components/dashboard/features/CocktailMenuTab";
+import LiveEventsTab from "@/components/dashboard/features/LiveEventsTab";
+import LoyaltyRewardsTab from "@/components/dashboard/features/LoyaltyRewardsTab";
+import WifiSeatingTab from "@/components/dashboard/features/WifiSeatingTab";
+import SeasonalMenuTab from "@/components/dashboard/features/SeasonalMenuTab";
+import BrunchModeTab from "@/components/dashboard/features/BrunchModeTab";
+import TableReservationsTab from "@/components/dashboard/features/TableReservationsTab";
+import WaitlistTab from "@/components/dashboard/features/WaitlistTab";
+import PrivateDiningTab from "@/components/dashboard/features/PrivateDiningTab";
+
+const STAFF_FEATURE_COMPONENTS: Record<FeatureTabId, React.ComponentType> = {
+  "quick-counter": QuickCounterTab,
+  "combo-meals": ComboMealsTab,
+  "rush-hour": RushHourTab,
+  "takeaway": TakeawayTab,
+  "room-service": RoomServiceTab,
+  "multi-outlet": MultiOutletTab,
+  "event-catering": EventCateringTab,
+  "guest-billing": GuestBillingTab,
+  "buffet-manager": BuffetManagerTab,
+  "pre-orders": PreOrdersTab,
+  "custom-cakes": CustomCakesTab,
+  "daily-specials": DailySpecialsTab,
+  "display-counter": DisplayCounterTab,
+  "delivery-ops": DeliveryOpsTab,
+  "multi-brand": MultiBrandTab,
+  "delivery-zones": DeliveryZonesTab,
+  "package-tracking": PackageTrackingTab,
+  "happy-hours": HappyHoursTab,
+  "tab-management": TabManagementTab,
+  "cocktail-menu": CocktailMenuTab,
+  "live-events": LiveEventsTab,
+  "loyalty-rewards": LoyaltyRewardsTab,
+  "wifi-seating": WifiSeatingTab,
+  "seasonal-menu": SeasonalMenuTab,
+  "brunch-mode": BrunchModeTab,
+  "table-reservations": TableReservationsTab,
+  "waitlist": WaitlistTab,
+  "private-dining": PrivateDiningTab,
+};
 
 /* ── Types ────────────────────────────────────────────────────────── */
 
@@ -45,6 +111,8 @@ interface StaffSession {
   restaurantId: string;
   role: string;
   name: string;
+  restaurantType: string;
+  currency: string;
 }
 
 interface OrderItem {
@@ -108,7 +176,7 @@ interface ChatRoom {
   }[];
 }
 
-type TabId = "orders" | "menu" | "chat" | "inventory" | "billing" | "stories";
+type TabId = "orders" | "menu" | "chat" | "inventory" | "billing" | "stories" | FeatureTabId;
 
 const ALL_TABS: {
   id: TabId;
@@ -250,7 +318,7 @@ function playAlertSound() {
   }
 }
 
-function OrdersTab({ restaurantId }: { restaurantId: string }) {
+function OrdersTab({ restaurantId, currency }: { restaurantId: string; currency: string }) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("active");
@@ -463,7 +531,7 @@ function OrdersTab({ restaurantId }: { restaurantId: string }) {
                     {item.quantity}× {item.name}
                   </span>
                   <span className="font-bold text-gray-500">
-                    Rs. {item.price * item.quantity}
+                    {formatPrice(item.price * item.quantity, currency)}
                   </span>
                 </div>
               ))}
@@ -481,7 +549,7 @@ function OrdersTab({ restaurantId }: { restaurantId: string }) {
                 )}
               </div>
               <span className="text-sm font-extrabold text-[#1F2A2A]">
-                Rs. {order.total}
+                {formatPrice(order.total, currency)}
               </span>
             </div>
 
@@ -646,7 +714,7 @@ function OrdersTab({ restaurantId }: { restaurantId: string }) {
 
 /* ── MENU TAB ────────────────────────────────────────────────────── */
 
-function MenuTab({ restaurantId }: { restaurantId: string }) {
+function MenuTab({ restaurantId, currency }: { restaurantId: string; currency: string }) {
   const [items, setItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -737,7 +805,7 @@ function MenuTab({ restaurantId }: { restaurantId: string }) {
               </div>
               <div className="flex items-center gap-2 mt-0.5">
                 <span className="text-xs font-bold text-gray-500">
-                  Rs. {item.price}
+                  {formatPrice(item.price, currency)}
                 </span>
                 <span className="text-[10px] text-gray-400">
                   {item.category?.name}
@@ -1208,7 +1276,7 @@ function ChatTab({
 
 /* ── INVENTORY TAB ───────────────────────────────────────────────── */
 
-function InventoryTab({ restaurantId }: { restaurantId: string }) {
+function InventoryTab({ restaurantId, currency }: { restaurantId: string; currency: string }) {
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
@@ -1415,7 +1483,7 @@ function InventoryTab({ restaurantId }: { restaurantId: string }) {
               </div>
               <div>
                 <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
-                  Cost per Unit (Rs.)
+                  Cost per Unit
                 </label>
                 <input
                   value={newCost}
@@ -1502,7 +1570,7 @@ function InventoryTab({ restaurantId }: { restaurantId: string }) {
                       </span>
                       {item.costPerUnit > 0 && (
                         <span className="text-[10px] text-gray-400">
-                          Rs. {item.costPerUnit}/{item.unit}
+                          {formatPrice(item.costPerUnit, currency)}/{item.unit}
                         </span>
                       )}
                     </div>
@@ -1665,7 +1733,20 @@ export default function KitchenPage() {
   const config = ROLE_CONFIG[roleKey] || ROLE_CONFIG.CASHIER;
 
   // Filter tabs based on staff role
-  const TABS = ALL_TABS.filter((tab) => tab.roles.includes(roleKey));
+  const baseTabs = ALL_TABS.filter((tab) => tab.roles.includes(roleKey));
+
+  // Add type-specific feature tabs (available to SUPER_ADMIN and MANAGER)
+  const featureTabs = getFeatureTabsForType(session.restaurantType || "RESTAURANT");
+  const featureTabItems = (roleKey === "SUPER_ADMIN" || roleKey === "MANAGER")
+    ? featureTabs.map((f) => ({
+        id: f.id as TabId,
+        label: f.label,
+        icon: ClipboardList,
+        roles: ["SUPER_ADMIN", "MANAGER"],
+      }))
+    : [];
+
+  const TABS = [...baseTabs, ...featureTabItems];
 
   // Default tab based on role
   const defaultTab = roleKey === "CASHIER" ? "billing" : "orders";
@@ -1879,7 +1960,7 @@ export default function KitchenPage() {
             transition={{ duration: 0.2 }}
           >
             {activeTab === "orders" && (
-              <OrdersTab restaurantId={session.restaurantId} />
+              <OrdersTab restaurantId={session.restaurantId} currency={session.currency ?? "NPR"} />
             )}
             {activeTab === "billing" && (
               <BillingTab
@@ -1888,7 +1969,7 @@ export default function KitchenPage() {
               />
             )}
             {activeTab === "menu" && (
-              <MenuTab restaurantId={session.restaurantId} />
+              <MenuTab restaurantId={session.restaurantId} currency={session.currency ?? "NPR"} />
             )}
             {activeTab === "chat" && (
               <ChatTab
@@ -1898,7 +1979,7 @@ export default function KitchenPage() {
               />
             )}
             {activeTab === "inventory" && (
-              <InventoryTab restaurantId={session.restaurantId} />
+              <InventoryTab restaurantId={session.restaurantId} currency={session.currency ?? "NPR"} />
             )}
             {activeTab === "stories" && (
               <StoryManager
@@ -1906,6 +1987,12 @@ export default function KitchenPage() {
                 staffRole={session.role}
               />
             )}
+            {/* Type-specific feature tabs */}
+            {(() => {
+              const FeatureComponent = STAFF_FEATURE_COMPONENTS[activeTab as FeatureTabId];
+              if (!FeatureComponent) return null;
+              return <FeatureComponent />;
+            })()}
           </motion.div>
         </AnimatePresence>
       </main>

@@ -13,7 +13,6 @@ import {
   Menu,
   ExternalLink,
   TrendingUp,
-  TrendingDown,
   Users,
   ShoppingBag,
   Star,
@@ -29,17 +28,39 @@ import {
   MessageCircle,
   Receipt,
   Camera,
-  ArrowUpRight,
   Sparkles,
   Activity,
   ChevronRight,
-  CalendarDays,
-  Zap,
-  CircleDot,
   Wallet,
   Package,
   Tag,
   Image as ImageIcon,
+  AlertTriangle,
+  Eye,
+  Zap,
+  Layers,
+  Timer,
+  PackageCheck,
+  BedDouble,
+  LayoutGrid,
+  PartyPopper,
+  CreditCard,
+  ChefHat,
+  CalendarClock,
+  Cake,
+  Monitor,
+  Truck,
+  Building2,
+  PackageSearch,
+  Wine,
+  Music,
+  Award,
+  Wifi,
+  Leaf,
+  Sun,
+  CalendarCheck,
+  ListOrdered,
+  DoorOpen,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -60,7 +81,42 @@ import OffersTab from "@/components/dashboard/OffersTab";
 import HeroSlidesManager from "@/components/dashboard/HeroSlidesManager";
 import { useLiveOrders } from "@/context/LiveOrdersContext";
 import { useRestaurant } from "@/context/RestaurantContext";
-import { getTypeLabel } from "@/lib/restaurant-types";
+import {
+  getTypeLabel,
+  getFeatureTabsForType,
+  type FeatureTabId,
+} from "@/lib/restaurant-types";
+import { formatPrice } from "@/lib/currency";
+
+/* ── Type-specific feature tab imports ────────────────────────────── */
+import QuickCounterTab from "@/components/dashboard/features/QuickCounterTab";
+import ComboMealsTab from "@/components/dashboard/features/ComboMealsTab";
+import RushHourTab from "@/components/dashboard/features/RushHourTab";
+import TakeawayTab from "@/components/dashboard/features/TakeawayTab";
+import RoomServiceTab from "@/components/dashboard/features/RoomServiceTab";
+import MultiOutletTab from "@/components/dashboard/features/MultiOutletTab";
+import EventCateringTab from "@/components/dashboard/features/EventCateringTab";
+import GuestBillingTab from "@/components/dashboard/features/GuestBillingTab";
+import BuffetManagerTab from "@/components/dashboard/features/BuffetManagerTab";
+import PreOrdersTab from "@/components/dashboard/features/PreOrdersTab";
+import CustomCakesTab from "@/components/dashboard/features/CustomCakesTab";
+import DailySpecialsTab from "@/components/dashboard/features/DailySpecialsTab";
+import DisplayCounterTab from "@/components/dashboard/features/DisplayCounterTab";
+import DeliveryOpsTab from "@/components/dashboard/features/DeliveryOpsTab";
+import MultiBrandTab from "@/components/dashboard/features/MultiBrandTab";
+import DeliveryZonesTab from "@/components/dashboard/features/DeliveryZonesTab";
+import PackageTrackingTab from "@/components/dashboard/features/PackageTrackingTab";
+import HappyHoursTab from "@/components/dashboard/features/HappyHoursTab";
+import TabManagementTab from "@/components/dashboard/features/TabManagementTab";
+import CocktailMenuTab from "@/components/dashboard/features/CocktailMenuTab";
+import LiveEventsTab from "@/components/dashboard/features/LiveEventsTab";
+import LoyaltyRewardsTab from "@/components/dashboard/features/LoyaltyRewardsTab";
+import WifiSeatingTab from "@/components/dashboard/features/WifiSeatingTab";
+import SeasonalMenuTab from "@/components/dashboard/features/SeasonalMenuTab";
+import BrunchModeTab from "@/components/dashboard/features/BrunchModeTab";
+import TableReservationsTab from "@/components/dashboard/features/TableReservationsTab";
+import WaitlistTab from "@/components/dashboard/features/WaitlistTab";
+import PrivateDiningTab from "@/components/dashboard/features/PrivateDiningTab";
 
 type DashTab =
   | "overview"
@@ -77,7 +133,8 @@ type DashTab =
   | "tax-charges"
   | "stock"
   | "offers"
-  | "hero-slides";
+  | "hero-slides"
+  | FeatureTabId;
 
 /* ─── Navigation groups for sidebar ───────────────────────────────── */
 const NAV_MAIN: {
@@ -110,6 +167,103 @@ const NAV_MORE: typeof NAV_MAIN = [
 ];
 
 const ALL_NAV = [...NAV_MAIN, ...NAV_MANAGE, ...NAV_MORE];
+
+/* ── Feature tab icon mapping ─────────────────────────────────────── */
+const FEATURE_ICONS: Record<FeatureTabId, typeof Zap> = {
+  "quick-counter": Zap,
+  "combo-meals": Layers,
+  "rush-hour": Timer,
+  takeaway: PackageCheck,
+  "room-service": BedDouble,
+  "multi-outlet": LayoutGrid,
+  "event-catering": PartyPopper,
+  "guest-billing": CreditCard,
+  "buffet-manager": ChefHat,
+  "pre-orders": CalendarClock,
+  "custom-cakes": Cake,
+  "daily-specials": Sparkles,
+  "display-counter": Monitor,
+  "delivery-ops": Truck,
+  "multi-brand": Building2,
+  "delivery-zones": MapPin,
+  "package-tracking": PackageSearch,
+  "happy-hours": Clock,
+  "tab-management": Receipt,
+  "cocktail-menu": Wine,
+  "live-events": Music,
+  "loyalty-rewards": Award,
+  "wifi-seating": Wifi,
+  "seasonal-menu": Leaf,
+  "brunch-mode": Sun,
+  "table-reservations": CalendarCheck,
+  waitlist: ListOrdered,
+  "private-dining": DoorOpen,
+};
+
+/* ── Feature tab component mapping ────────────────────────────────── */
+const FEATURE_COMPONENTS: Record<FeatureTabId, React.ComponentType> = {
+  "quick-counter": QuickCounterTab,
+  "combo-meals": ComboMealsTab,
+  "rush-hour": RushHourTab,
+  takeaway: TakeawayTab,
+  "room-service": RoomServiceTab,
+  "multi-outlet": MultiOutletTab,
+  "event-catering": EventCateringTab,
+  "guest-billing": GuestBillingTab,
+  "buffet-manager": BuffetManagerTab,
+  "pre-orders": PreOrdersTab,
+  "custom-cakes": CustomCakesTab,
+  "daily-specials": DailySpecialsTab,
+  "display-counter": DisplayCounterTab,
+  "delivery-ops": DeliveryOpsTab,
+  "multi-brand": MultiBrandTab,
+  "delivery-zones": DeliveryZonesTab,
+  "package-tracking": PackageTrackingTab,
+  "happy-hours": HappyHoursTab,
+  "tab-management": TabManagementTab,
+  "cocktail-menu": CocktailMenuTab,
+  "live-events": LiveEventsTab,
+  "loyalty-rewards": LoyaltyRewardsTab,
+  "wifi-seating": WifiSeatingTab,
+  "seasonal-menu": SeasonalMenuTab,
+  "brunch-mode": BrunchModeTab,
+  "table-reservations": TableReservationsTab,
+  waitlist: WaitlistTab,
+  "private-dining": PrivateDiningTab,
+};
+
+/* ─── Animated number counter ─────────────────────────────────────── */
+function AnimatedNumber({
+  value,
+  duration = 800,
+}: {
+  value: number;
+  duration?: number;
+}) {
+  const [displayed, setDisplayed] = useState(0);
+
+  useEffect(() => {
+    if (value === 0) {
+      setDisplayed(0);
+      return;
+    }
+    const startTime = performance.now();
+    let raf: number;
+
+    function animate(now: number) {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplayed(Math.round(eased * value));
+      if (progress < 1) raf = requestAnimationFrame(animate);
+    }
+
+    raf = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(raf);
+  }, [value, duration]);
+
+  return <>{displayed.toLocaleString()}</>;
+}
 
 /* ─── Restaurant Switcher ──────────────────────────────────────────── */
 function RestaurantSwitcher({ onNavigate }: { onNavigate?: () => void }) {
@@ -269,6 +423,15 @@ function RestaurantSwitcher({ onNavigate }: { onNavigate?: () => void }) {
 }
 
 /* ─── Sidebar ──────────────────────────────────────────────────────── */
+/* Shortcut key lookup for sidebar hints */
+const SHORTCUT_KEYS: Partial<Record<DashTab, string>> = {
+  overview: "1",
+  orders: "2",
+  menu: "3",
+  staff: "4",
+  reports: "5",
+};
+
 function NavSection({
   label,
   items,
@@ -293,6 +456,7 @@ function NavSection({
         {items.map((item) => {
           const Icon = item.icon;
           const isActive = active === item.id;
+          const shortcut = SHORTCUT_KEYS[item.id];
           return (
             <button
               key={item.id}
@@ -318,6 +482,14 @@ function NavSection({
                 className={`h-4 w-4 shrink-0 transition-colors ${isActive ? "text-amber-500" : ""}`}
               />
               <span className="flex-1 text-left">{item.label}</span>
+
+              {/* Keyboard shortcut hint */}
+              {shortcut && !item.badge && (
+                <span className="hidden lg:flex h-4.5 w-4.5 items-center justify-center rounded text-[9px] font-bold text-gray-300 bg-gray-50 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {shortcut}
+                </span>
+              )}
+
               {item.badge === "live" && newOrderCount > 0 && (
                 <span className="flex h-5 min-w-5 items-center justify-center rounded-md bg-rose-50 px-1.5 text-[10px] font-bold text-rose-500 ring-1 ring-rose-100">
                   {newOrderCount}
@@ -342,12 +514,27 @@ function Sidebar({
   setActive,
   newOrderCount,
   onClose,
+  restaurantType,
 }: {
   active: DashTab;
   setActive: (t: DashTab) => void;
   newOrderCount: number;
   onClose?: () => void;
+  restaurantType?: string;
 }) {
+  /* Build dynamic feature nav items from restaurant type */
+  const featureNavItems = useMemo(() => {
+    if (!restaurantType) return [];
+    const features = getFeatureTabsForType(restaurantType);
+    return features.map((f) => ({
+      id: f.id as DashTab,
+      label: f.label,
+      icon: FEATURE_ICONS[f.id] ?? Sparkles,
+    }));
+  }, [restaurantType]);
+
+  const typeLabel = restaurantType ? getTypeLabel(restaurantType) : "";
+
   return (
     <aside className="flex h-full w-full flex-col bg-[#fffbeb] border-r border-amber-100">
       {/* Logo */}
@@ -383,6 +570,19 @@ function Sidebar({
           newOrderCount={newOrderCount}
           onClose={onClose}
         />
+
+        {/* Type-specific features section */}
+        {featureNavItems.length > 0 && (
+          <NavSection
+            label={`${typeLabel} Features`}
+            items={featureNavItems}
+            active={active}
+            setActive={setActive}
+            newOrderCount={newOrderCount}
+            onClose={onClose}
+          />
+        )}
+
         <NavSection
           label="Manage"
           items={NAV_MANAGE}
@@ -420,38 +620,61 @@ function Sidebar({
 interface StatCardProps {
   label: string;
   value: string;
+  numericValue?: number;
+  prefix?: string;
+  suffix?: string;
   sub: string;
   accent: string;
   icon: typeof TrendingUp;
 }
 
-function StatCard({ label, value, sub, accent, icon: Icon }: StatCardProps) {
+function StatCard({
+  label,
+  value,
+  numericValue,
+  prefix = "",
+  suffix = "",
+  sub,
+  accent,
+  icon: Icon,
+}: StatCardProps) {
   return (
     <motion.div
-      whileHover={{ y: -2 }}
+      whileHover={{ y: -3, scale: 1.01 }}
       transition={{ duration: 0.15 }}
-      className="relative rounded-2xl bg-white/80 backdrop-blur-sm ring-1 ring-amber-100/50 p-5 cursor-default overflow-hidden group"
+      className="relative rounded-2xl bg-white/90 backdrop-blur-sm ring-1 ring-gray-100/80 p-5 cursor-default overflow-hidden group shadow-sm hover:shadow-md transition-shadow"
     >
       {/* Colored top strip */}
       <div
         className="absolute top-0 inset-x-0 h-1 rounded-t-2xl"
         style={{ background: accent }}
       />
-      <div className="flex items-start justify-between">
+      {/* Subtle gradient glow */}
+      <div
+        className="absolute -top-8 -right-8 h-24 w-24 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-2xl"
+        style={{ background: accent }}
+      />
+      <div className="relative flex items-start justify-between">
         <div>
-          <p className="text-[12px] font-medium text-black/60 mb-1">
+          <p className="text-[12px] font-medium text-gray-500 mb-1.5">
             {label}
           </p>
-          <p className="text-2xl font-extrabold text-black tracking-tight">
-            {value}
+          <p className="text-2xl font-extrabold text-gray-900 tracking-tight">
+            {numericValue !== undefined ? (
+              <>
+                {prefix}
+                <AnimatedNumber value={numericValue} />
+                {suffix}
+              </>
+            ) : (
+              value
+            )}
           </p>
-          <p className="text-[11px] font-medium text-gray-500 mt-1">
-            {sub}
-          </p>
+          <p className="text-[11px] font-medium text-gray-400 mt-1.5">{sub}</p>
         </div>
         <div
-          className="flex h-10 w-10 items-center justify-center rounded-xl transition-transform group-hover:scale-110"
-          style={{ background: `${accent}12` }}
+          className="flex h-10 w-10 items-center justify-center rounded-xl transition-all group-hover:scale-110 group-hover:shadow-sm"
+          style={{ background: `${accent}14` }}
         >
           <Icon className="h-4.5 w-4.5" style={{ color: accent }} />
         </div>
@@ -470,10 +693,17 @@ function getGreeting() {
   return "Good night";
 }
 
-function OverviewTab({ setTab }: { setTab: (t: DashTab) => void }) {
+function OverviewTab({
+  setTab,
+  userName,
+}: {
+  setTab: (t: DashTab) => void;
+  userName?: string;
+}) {
   const { selectedRestaurant, restaurants } = useRestaurant();
   const { orders } = useLiveOrders();
   const current = selectedRestaurant ?? restaurants[0];
+  const cur = selectedRestaurant?.currency ?? "NPR";
   const restaurantName = current?.name ?? "Your Restaurant";
 
   const todayStart = useMemo(() => {
@@ -498,19 +728,24 @@ function OverviewTab({ setTab }: { setTab: (t: DashTab) => void }) {
   const pendingCount = orders.filter((o) => o.status === "PENDING").length;
   const menuItemCount = current?._count?.menuItems ?? 0;
 
+  const deliveredCount = todayOrders.filter(
+    (o) => o.status === "DELIVERED",
+  ).length;
+
   const stats: StatCardProps[] = [
     {
       label: "Revenue Today",
-      value: `Rs. ${todayRevenue.toLocaleString()}`,
-      sub: todayOrders.filter((o) => o.status === "DELIVERED").length
-        ? `${todayOrders.filter((o) => o.status === "DELIVERED").length} delivered`
-        : "No sales yet",
+      value: formatPrice(todayRevenue, cur),
+      numericValue: todayRevenue,
+      prefix: "",
+      sub: deliveredCount ? `${deliveredCount} delivered` : "No sales yet",
       accent: "#10B981",
       icon: TrendingUp,
     },
     {
-      label: "Orders",
+      label: "Orders Today",
       value: String(todayOrders.length),
+      numericValue: todayOrders.length,
       sub: pendingCount > 0 ? `${pendingCount} pending` : "All clear",
       accent: "#F59E0B",
       icon: ShoppingBag,
@@ -518,6 +753,7 @@ function OverviewTab({ setTab }: { setTab: (t: DashTab) => void }) {
     {
       label: "Tables",
       value: String(current?.tableCount ?? 0),
+      numericValue: current?.tableCount ?? 0,
       sub: `${current?.tableCount ?? 0} configured`,
       accent: "#6366F1",
       icon: Users,
@@ -525,6 +761,10 @@ function OverviewTab({ setTab }: { setTab: (t: DashTab) => void }) {
     {
       label: "Rating",
       value: current?.rating ? `${current.rating} ★` : "N/A",
+      numericValue: current?.rating
+        ? parseFloat(String(current.rating))
+        : undefined,
+      suffix: current?.rating ? " ★" : "",
       sub: current?.rating ? "From reviews" : "No reviews yet",
       accent: "#EF4444",
       icon: Star,
@@ -562,6 +802,41 @@ function OverviewTab({ setTab }: { setTab: (t: DashTab) => void }) {
     [orders],
   );
 
+  /* Order status distribution for pipeline visualization */
+  const statusDistribution = useMemo(() => {
+    const STATUS_META: Record<
+      string,
+      { label: string; color: string; order: number }
+    > = {
+      PENDING: { label: "Pending", color: "#F59E0B", order: 0 },
+      ACCEPTED: { label: "Accepted", color: "#3B82F6", order: 1 },
+      PREPARING: { label: "Preparing", color: "#F97316", order: 2 },
+      READY: { label: "Ready", color: "#8B5CF6", order: 3 },
+      DELIVERED: { label: "Delivered", color: "#10B981", order: 4 },
+      CANCELLED: { label: "Cancelled", color: "#EF4444", order: 5 },
+      REJECTED: { label: "Rejected", color: "#EF4444", order: 6 },
+    };
+
+    const counts: Record<string, number> = {};
+    todayOrders.forEach((o) => {
+      counts[o.status] = (counts[o.status] || 0) + 1;
+    });
+
+    return Object.entries(counts)
+      .map(([status, count]) => ({
+        status,
+        count,
+        percent:
+          todayOrders.length > 0 ? (count / todayOrders.length) * 100 : 0,
+        ...(STATUS_META[status] ?? {
+          label: status,
+          color: "#9CA3AF",
+          order: 99,
+        }),
+      }))
+      .sort((a, b) => a.order - b.order);
+  }, [todayOrders]);
+
   const today = new Date();
   const dateStr = today.toLocaleDateString("en-US", {
     weekday: "long",
@@ -589,8 +864,9 @@ function OverviewTab({ setTab }: { setTab: (t: DashTab) => void }) {
                 {dateStr}
               </span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-bold text-black mb-1">
-              {getGreeting()}, welcome back!
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
+              {getGreeting()}
+              {userName ? `, ${userName}` : ""}!
             </h1>
             <p className="text-sm text-gray-600">
               Here&apos;s how{" "}
@@ -602,8 +878,15 @@ function OverviewTab({ setTab }: { setTab: (t: DashTab) => void }) {
           </div>
           <div className="flex gap-2">
             <button
+              onClick={() => setTab("orders")}
+              className="flex items-center gap-2 rounded-lg bg-white/70 backdrop-blur-sm px-4 py-2.5 text-[13px] font-semibold text-gray-700 hover:bg-white transition-all active:scale-[0.97] ring-1 ring-amber-200/50"
+            >
+              <Eye className="h-3.5 w-3.5" />
+              View Orders
+            </button>
+            <button
               onClick={() => setTab("menu")}
-              className="flex items-center gap-2 rounded-lg bg-amber-600 px-4 py-2.5 text-[13px] font-semibold text-white hover:bg-amber-500 transition-all active:scale-[0.97]"
+              className="flex items-center gap-2 rounded-lg bg-amber-600 px-4 py-2.5 text-[13px] font-semibold text-white hover:bg-amber-500 transition-all active:scale-[0.97] shadow-sm"
             >
               <UtensilsCrossed className="h-3.5 w-3.5" />
               Manage Menu
@@ -621,6 +904,33 @@ function OverviewTab({ setTab }: { setTab: (t: DashTab) => void }) {
         />
       </motion.div>
 
+      {/* ── Attention banner — pending orders ──────────────────── */}
+      <AnimatePresence>
+        {pendingCount > 0 && (
+          <motion.button
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            onClick={() => setTab("orders")}
+            className="flex items-center gap-3 w-full rounded-xl bg-rose-50 border border-rose-100 p-4 text-left hover:bg-rose-100/60 transition-all group cursor-pointer"
+          >
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-rose-100">
+              <AlertTriangle className="h-5 w-5 text-rose-500" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[13px] font-bold text-rose-700">
+                {pendingCount} order{pendingCount > 1 ? "s" : ""} waiting for
+                action
+              </p>
+              <p className="text-[11px] text-rose-500">
+                Click to review and accept pending orders
+              </p>
+            </div>
+            <ChevronRight className="h-4 w-4 text-rose-300 group-hover:text-rose-500 group-hover:translate-x-0.5 transition-all shrink-0" />
+          </motion.button>
+        )}
+      </AnimatePresence>
+
       {/* ── Stat cards ────────────────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((s, i) => (
@@ -635,6 +945,62 @@ function OverviewTab({ setTab }: { setTab: (t: DashTab) => void }) {
         ))}
       </div>
 
+      {/* ── Order Pipeline ───────────────────────────────────── */}
+      {todayOrders.length > 0 && statusDistribution.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="rounded-2xl bg-white/90 ring-1 ring-gray-100/80 p-5 shadow-sm"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-[14px] font-bold text-gray-900">
+                Order Pipeline
+              </h3>
+              <p className="text-[11px] text-gray-400 mt-0.5">
+                Today&apos;s order status breakdown
+              </p>
+            </div>
+            <span className="text-[12px] font-semibold text-gray-500">
+              {todayOrders.length} total
+            </span>
+          </div>
+
+          {/* Status bar */}
+          <div className="flex h-3 rounded-full overflow-hidden gap-0.5">
+            {statusDistribution.map((s) => (
+              <motion.div
+                key={s.status}
+                initial={{ width: 0 }}
+                animate={{ width: `${s.percent}%` }}
+                transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
+                className="rounded-full first:rounded-l-full last:rounded-r-full"
+                style={{ background: s.color, minWidth: s.percent > 0 ? 8 : 0 }}
+                title={`${s.label}: ${s.count}`}
+              />
+            ))}
+          </div>
+
+          {/* Legend */}
+          <div className="flex flex-wrap gap-x-5 gap-y-1.5 mt-3">
+            {statusDistribution.map((s) => (
+              <span
+                key={s.status}
+                className="flex items-center gap-1.5 text-[11px] font-medium text-gray-500"
+              >
+                <span
+                  className="h-2 w-2 rounded-full shrink-0"
+                  style={{ background: s.color }}
+                />
+                {s.label}:{" "}
+                <span className="font-bold text-gray-700">{s.count}</span>
+              </span>
+            ))}
+          </div>
+        </motion.div>
+      )}
+
       {/* ── Body grid ─────────────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
         {/* Revenue chart area — 3 cols */}
@@ -642,7 +1008,7 @@ function OverviewTab({ setTab }: { setTab: (t: DashTab) => void }) {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25 }}
-          className="lg:col-span-3 rounded-2xl bg-white/80 ring-1 ring-amber-100/40 p-6"
+          className="lg:col-span-3 rounded-2xl bg-white/90 ring-1 ring-gray-100/80 p-6 shadow-sm"
         >
           <div className="flex items-center justify-between mb-6">
             <div>
@@ -655,7 +1021,7 @@ function OverviewTab({ setTab }: { setTab: (t: DashTab) => void }) {
             </div>
             <span className="flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-1.5 text-[12px] font-bold text-emerald-600">
               <TrendingUp className="h-3 w-3" />
-              Rs. {todayRevenue.toLocaleString()}
+              {formatPrice(todayRevenue, cur)}
             </span>
           </div>
 
@@ -700,7 +1066,7 @@ function OverviewTab({ setTab }: { setTab: (t: DashTab) => void }) {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="lg:col-span-2 rounded-2xl bg-white/80 ring-1 ring-amber-100/40 p-6"
+          className="lg:col-span-2 rounded-2xl bg-white/90 ring-1 ring-gray-100/80 p-6 shadow-sm"
         >
           <div className="flex items-center justify-between mb-5">
             <h3 className="text-[15px] font-bold text-black">Activity</h3>
@@ -752,8 +1118,7 @@ function OverviewTab({ setTab }: { setTab: (t: DashTab) => void }) {
                         </span>
                       </div>
                       <p className="text-[11px] text-gray-400 mt-0.5 truncate">
-                        {order.tableNo ? `Table ${order.tableNo} · ` : ""}Rs.{" "}
-                        {(order.total ?? 0).toLocaleString()} ·{" "}
+                        {order.tableNo ? `Table ${order.tableNo} · ` : ""}{formatPrice(order.total ?? 0, cur)} ·{" "}
                         {order.items?.length ?? 0} items
                       </p>
                     </div>
@@ -765,80 +1130,131 @@ function OverviewTab({ setTab }: { setTab: (t: DashTab) => void }) {
         </motion.div>
       </div>
 
-      {/* ── Quick actions ─────────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {[
-          {
-            label: "Pending Orders",
-            value: String(pendingCount),
-            hint: pendingCount > 0 ? "Needs attention" : "All caught up",
-            accent: "#F59E0B",
-            tab: "orders" as DashTab,
-            icon: ClipboardList,
-          },
-          {
-            label: "Menu Items",
-            value: String(menuItemCount),
-            hint: menuItemCount > 0 ? "On your menu" : "Add items to start",
-            accent: "#10B981",
-            tab: "menu" as DashTab,
-            icon: UtensilsCrossed,
-          },
-          {
-            label: "Tables",
-            value: String(current?.tableCount ?? 0),
-            hint: "Generate QR codes",
-            accent: "#6366F1",
-            tab: "qr" as DashTab,
-            icon: QrCode,
-          },
-        ].map((c, i) => (
-          <motion.button
-            key={c.label}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 + i * 0.06 }}
-            whileHover={{ y: -2 }}
-            onClick={() => setTab(c.tab)}
-            className="group text-left rounded-2xl bg-white/80 ring-1 ring-amber-100/40 p-5 transition-all hover:ring-amber-200/60 active:scale-[0.98] cursor-pointer"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div
-                className="flex h-9 w-9 items-center justify-center rounded-lg"
-                style={{ background: `${c.accent}15` }}
-              >
-                <c.icon className="h-4 w-4" style={{ color: c.accent }} />
-              </div>
-              <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-gray-500 group-hover:translate-x-0.5 transition-all" />
-            </div>
-            <p
-              className="text-2xl font-extrabold text-gray-900"
-              style={{ color: c.accent }}
+      {/* ── Quick Actions ─────────────────────────────────────── */}
+      <div>
+        <h3 className="text-[14px] font-bold text-gray-900 mb-3">
+          Quick Actions
+        </h3>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          {[
+            {
+              icon: ClipboardList,
+              label: "Live Orders",
+              tab: "orders" as DashTab,
+              accent: "#F59E0B",
+              badge: pendingCount || undefined,
+            },
+            {
+              icon: UtensilsCrossed,
+              label: "Edit Menu",
+              tab: "menu" as DashTab,
+              accent: "#10B981",
+              badge: undefined,
+            },
+            {
+              icon: UsersRound,
+              label: "Staff",
+              tab: "staff" as DashTab,
+              accent: "#6366F1",
+              badge: undefined,
+            },
+            {
+              icon: QrCode,
+              label: "QR Codes",
+              tab: "qr" as DashTab,
+              accent: "#3B82F6",
+              badge: undefined,
+            },
+            {
+              icon: Package,
+              label: "Stock",
+              tab: "stock" as DashTab,
+              accent: "#F97316",
+              badge: undefined,
+            },
+            {
+              icon: Tag,
+              label: "Offers",
+              tab: "offers" as DashTab,
+              accent: "#EC4899",
+              badge: undefined,
+            },
+          ].map((action, i) => (
+            <motion.button
+              key={action.label}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35 + i * 0.04 }}
+              whileHover={{ y: -2 }}
+              onClick={() => setTab(action.tab)}
+              className="relative flex flex-col items-center gap-2.5 rounded-xl bg-white/90 ring-1 ring-gray-100/80 p-4 hover:ring-amber-200 hover:shadow-md transition-all active:scale-[0.97] group cursor-pointer shadow-sm"
             >
-              {c.value}
-            </p>
-            <p className="text-[13px] font-semibold text-black mt-1">
-              {c.label}
-            </p>
-            <p className="text-[11px] text-gray-500">{c.hint}</p>
-          </motion.button>
-        ))}
+              <div
+                className="flex h-10 w-10 items-center justify-center rounded-xl transition-transform group-hover:scale-110"
+                style={{ background: `${action.accent}14` }}
+              >
+                <action.icon
+                  className="h-4.5 w-4.5"
+                  style={{ color: action.accent }}
+                />
+              </div>
+              <span className="text-[11px] font-semibold text-gray-500 group-hover:text-gray-800 transition-colors">
+                {action.label}
+              </span>
+              {action.badge && (
+                <span className="absolute top-2 right-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white px-1 shadow-sm">
+                  {action.badge}
+                </span>
+              )}
+            </motion.button>
+          ))}
+        </div>
       </div>
     </div>
   );
 }
 
-/* ─── Root page ────────────────────────────────────────────────────── */
+/* ─── Root page + keyboard shortcuts ───────────────────────────────── */
+const SHORTCUTS: Record<string, DashTab> = {
+  "1": "overview",
+  "2": "orders",
+  "3": "menu",
+  "4": "staff",
+  "5": "reports",
+};
+
 export default function DashboardPage() {
   const [isHydrated, setIsHydrated] = useState(false);
   const [activeTab, setActiveTab] = useState<DashTab>("overview");
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
   const { orders, setRestaurantId } = useLiveOrders();
   const { restaurants, selectedRestaurant, selectRestaurant } = useRestaurant();
+  const { user } = useUser();
   const newOrderCount = orders.filter((o) => o.status === "PENDING").length;
 
-  const activeLabel =
-    ALL_NAV.find((n) => n.id === activeTab)?.label ?? "Overview";
+  const restaurantType = selectedRestaurant?.type ?? "";
+  const featureTabs = useMemo(
+    () => getFeatureTabsForType(restaurantType),
+    [restaurantType],
+  );
+
+  /* Resolve active tab label and icon (including type-specific feature tabs) */
+  const activeLabel = useMemo(() => {
+    const navMatch = ALL_NAV.find((n) => n.id === activeTab);
+    if (navMatch) return navMatch.label;
+    const featureMatch = featureTabs.find((f) => f.id === activeTab);
+    if (featureMatch) return featureMatch.label;
+    return "Overview";
+  }, [activeTab, featureTabs]);
+
+  const ActiveIcon = useMemo(() => {
+    const navMatch = ALL_NAV.find((n) => n.id === activeTab);
+    if (navMatch) return navMatch.icon;
+    const featureId = activeTab as FeatureTabId;
+    if (FEATURE_ICONS[featureId]) return FEATURE_ICONS[featureId];
+    return LayoutDashboard;
+  }, [activeTab]);
 
   useEffect(() => {
     if (!selectedRestaurant && restaurants.length > 0) {
@@ -853,6 +1269,47 @@ export default function DashboardPage() {
   useEffect(() => {
     setRestaurantId(selectedRestaurant?.id ?? null);
   }, [selectedRestaurant?.id, setRestaurantId]);
+
+  /* Reset to overview if current tab is a feature tab not available for the new type */
+  useEffect(() => {
+    const featureId = activeTab as FeatureTabId;
+    if (FEATURE_COMPONENTS[featureId] && restaurantType) {
+      const available = getFeatureTabsForType(restaurantType);
+      if (!available.some((f) => f.id === featureId)) {
+        setActiveTab("overview");
+      }
+    }
+  }, [restaurantType, activeTab]);
+
+  /* Live clock — updates every minute */
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  /* Keyboard shortcuts for fast tab switching */
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement ||
+        e.target instanceof HTMLSelectElement ||
+        e.metaKey ||
+        e.ctrlKey ||
+        e.altKey
+      )
+        return;
+
+      const tab = SHORTCUTS[e.key];
+      if (tab) {
+        e.preventDefault();
+        setActiveTab(tab);
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   if (!isHydrated) {
     return (
@@ -872,6 +1329,7 @@ export default function DashboardPage() {
           active={activeTab}
           setActive={setActiveTab}
           newOrderCount={newOrderCount}
+          restaurantType={restaurantType}
         />
       </div>
 
@@ -900,6 +1358,7 @@ export default function DashboardPage() {
                 setActive={setActiveTab}
                 newOrderCount={newOrderCount}
                 onClose={() => setMobileSidebarOpen(false)}
+                restaurantType={restaurantType}
               />
             </motion.div>
           </>
@@ -909,7 +1368,7 @@ export default function DashboardPage() {
       {/* ── Main area ─────────────────────────────────────────── */}
       <div className="relative flex flex-1 flex-col overflow-hidden">
         {/* Topbar */}
-        <header className="flex items-center justify-between border-b border-amber-100/60 bg-[#fffdf5] px-5 lg:px-8 py-3 shrink-0">
+        <header className="flex items-center justify-between border-b border-amber-100/60 bg-[#fffdf5]/80 backdrop-blur-sm px-5 lg:px-8 py-3 shrink-0">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setMobileSidebarOpen(true)}
@@ -918,11 +1377,14 @@ export default function DashboardPage() {
               <Menu className="h-5 w-5" />
             </button>
 
-            {/* Breadcrumb */}
+            {/* Breadcrumb with icon */}
             <div className="hidden sm:flex items-center gap-1.5 text-[13px]">
               <span className="text-gray-400">Dashboard</span>
               <ChevronRight className="h-3 w-3 text-gray-300" />
-              <span className="font-semibold text-gray-800">{activeLabel}</span>
+              <span className="flex items-center gap-1.5 font-semibold text-gray-800">
+                <ActiveIcon className="h-3.5 w-3.5 text-amber-500" />
+                {activeLabel}
+              </span>
             </div>
 
             {/* Search */}
@@ -937,6 +1399,19 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex items-center gap-2.5">
+            {/* Live clock */}
+            <div className="hidden lg:flex items-center gap-1.5 text-[11px] text-gray-400">
+              <Clock className="h-3 w-3" />
+              <span className="font-medium tabular-nums">
+                {currentTime.toLocaleTimeString("en-US", {
+                  hour: "numeric",
+                  minute: "2-digit",
+                })}
+              </span>
+            </div>
+
+            <div className="hidden lg:block h-4 w-px bg-gray-200" />
+
             {/* Live pill */}
             <div className="hidden sm:flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -980,7 +1455,10 @@ export default function DashboardPage() {
               transition={{ duration: 0.18, ease: "easeOut" }}
             >
               {activeTab === "overview" && (
-                <OverviewTab setTab={setActiveTab} />
+                <OverviewTab
+                  setTab={setActiveTab}
+                  userName={user?.firstName ?? undefined}
+                />
               )}
               {activeTab === "orders" && <LiveOrdersTab />}
               {activeTab === "billing" && selectedRestaurant && (
@@ -1004,6 +1482,13 @@ export default function DashboardPage() {
                   restaurantAvatar={selectedRestaurant.imageUrl ?? undefined}
                 />
               )}
+              {/* ── Type-specific feature tabs ──────────────────── */}
+              {(() => {
+                const FeatureComponent =
+                  FEATURE_COMPONENTS[activeTab as FeatureTabId];
+                if (!FeatureComponent) return null;
+                return <FeatureComponent />;
+              })()}
             </motion.div>
           </AnimatePresence>
         </main>

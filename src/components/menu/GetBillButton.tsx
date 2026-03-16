@@ -3,12 +3,14 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Receipt, X, Loader2, CreditCard, Banknote } from "lucide-react";
+import { formatPrice } from "@/lib/currency";
 
 interface GetBillButtonProps {
   total: number;
   itemCount: number;
   paymentMethod?: string;
   onGetBill: () => Promise<unknown>;
+  currency?: string;
 }
 
 export default function GetBillButton({
@@ -16,6 +18,7 @@ export default function GetBillButton({
   itemCount,
   paymentMethod,
   onGetBill,
+  currency = "NPR",
 }: GetBillButtonProps) {
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -124,7 +127,7 @@ export default function GetBillButton({
                       <div className="border-t border-gray-200 pt-2 flex justify-between">
                         <span className="font-bold text-gray-900">Total</span>
                         <span className="font-bold text-green-700 text-lg">
-                          Rs. {total.toLocaleString()}
+                          {formatPrice(total, currency)}
                         </span>
                       </div>
                     </div>

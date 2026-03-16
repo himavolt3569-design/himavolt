@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getOrCreateUser } from "@/lib/auth";
 import { logAudit, getClientIp } from "@/lib/audit";
+import { getCurrencySymbol } from "@/lib/currency";
 
 export async function GET(
   req: NextRequest,
@@ -91,7 +92,7 @@ export async function POST(
     action: "MENU_ITEM_CREATED",
     entity: "MenuItem",
     entityId: item.id,
-    detail: `Menu item "${name}" added (Rs.${price})`,
+    detail: `Menu item "${name}" added (${getCurrencySymbol(restaurant.currency ?? "NPR")}${price})`,
     metadata: { name, price, categoryId },
     userId: user.id,
     restaurantId: id,

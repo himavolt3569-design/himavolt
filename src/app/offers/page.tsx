@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api-client";
+import { formatPrice } from "@/lib/currency";
 import { getTypeLabel } from "@/lib/restaurant-types";
 
 type Restaurant = {
@@ -42,13 +43,13 @@ type OfferBadge = {
 
 const OFFER_BADGES: OfferBadge[] = [
   { label: "BUY 1 GET 1", isAd: true, bgColor: "bg-black/70" },
-  { label: "60% OFF", subLabel: "UPTO Rs.110", isAd: true, bgColor: "bg-black/70" },
-  { label: "FLAT Rs.100 OFF", isAd: false, bgColor: "bg-[#E23744]/80" },
+  { label: "60% OFF", subLabel: `UPTO ${formatPrice(110, "NPR")}`, isAd: true, bgColor: "bg-black/70" },
+  { label: `FLAT ${formatPrice(100, "NPR")} OFF`, isAd: false, bgColor: "bg-[#E23744]/80" },
   { label: "FREE DELIVERY", isAd: false, bgColor: "bg-[#0A4D3C]/80" },
-  { label: "20% OFF", subLabel: "MIN ORDER Rs.299", isAd: false, bgColor: "bg-[#FF9933]/90" },
+  { label: "20% OFF", subLabel: `MIN ORDER ${formatPrice(299, "NPR")}`, isAd: false, bgColor: "bg-[#FF9933]/90" },
   { label: "BUY 1 GET 1", isAd: true, bgColor: "bg-black/70" },
-  { label: "30% OFF", subLabel: "UPTO Rs.75", isAd: false, bgColor: "bg-[#E23744]/80" },
-  { label: "50% OFF", subLabel: "UPTO Rs.150", isAd: true, bgColor: "bg-black/70" },
+  { label: "30% OFF", subLabel: `UPTO ${formatPrice(75, "NPR")}`, isAd: false, bgColor: "bg-[#E23744]/80" },
+  { label: "50% OFF", subLabel: `UPTO ${formatPrice(150, "NPR")}`, isAd: true, bgColor: "bg-black/70" },
 ];
 
 const CUISINE_MAP: Record<string, string[]> = {

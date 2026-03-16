@@ -7,6 +7,7 @@ import { generateBill, getTaxConfig } from "@/lib/billing";
 import { safeHandler, unauthorized, notFound } from "@/lib/api-helpers";
 import { createOrderSchema } from "@/lib/validations";
 import { logAudit, getClientIp } from "@/lib/audit";
+import { getCurrencySymbol } from "@/lib/currency";
 
 export async function GET(
   req: NextRequest,
@@ -199,7 +200,7 @@ export const POST = safeHandler(
         action: "ORDER_UPDATED",
         entity: "Order",
         entityId: addToOrderId,
-        detail: `Added ${items.length} items to order ${existing.orderNo} (+Rs.${addSubtotal + addTax})`,
+        detail: `Added ${items.length} items to order ${existing.orderNo} (+${getCurrencySymbol(restaurant.currency ?? "NPR")}${addSubtotal + addTax})`,
         metadata: {
           orderNo: existing.orderNo,
           addedItems: items.length,
@@ -344,6 +345,7 @@ export const POST = safeHandler(
       orderNo,
       total,
       tableNo ? parseInt(String(tableNo), 10) : null,
+      restaurant.currency ?? "NPR",
     ).catch((err: unknown) => {
       console.error("[Orders] Failed to send kitchen notification:", err);
     });
@@ -389,7 +391,7 @@ export const POST = safeHandler(
       action: "ORDER_CREATED",
       entity: "Order",
       entityId: order.id,
-      detail: `Order ${orderNo} placed (${orderType}, ${items.length} items, Rs.${total})`,
+      detail: `Order ${orderNo} placed (${orderType}, ${items.length} items, ${getCurrencySymbol(restaurant.currency ?? "NPR")}${total})`,
       metadata: { orderNo, type: orderType, total, itemCount: items.length },
       userId: userId,
       restaurantId: id,

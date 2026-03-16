@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
         },
       },
       restaurant: {
-        select: { name: true, slug: true, imageUrl: true },
+        select: { name: true, slug: true, imageUrl: true, currency: true },
       },
     },
     orderBy: { createdAt: "desc" },

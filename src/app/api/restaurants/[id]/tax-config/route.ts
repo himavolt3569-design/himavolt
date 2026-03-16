@@ -36,6 +36,7 @@ export async function GET(
   const restaurant = await db.restaurant.findUnique({
     where: { id },
     select: {
+      currency: true,
       taxRate: true,
       taxEnabled: true,
       serviceChargeRate: true,
@@ -60,9 +61,12 @@ export async function PUT(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
-  const { taxRate, taxEnabled, serviceChargeRate, serviceChargeEnabled } = body;
+  const { currency, taxRate, taxEnabled, serviceChargeRate, serviceChargeEnabled } = body;
 
+  const VALID_CURRENCIES = ["NPR", "INR", "USD"];
   const data: Record<string, unknown> = {};
+  if (typeof currency === "string" && VALID_CURRENCIES.includes(currency))
+    data.currency = currency;
   if (typeof taxRate === "number" && taxRate >= 0 && taxRate <= 100)
     data.taxRate = taxRate;
   if (typeof taxEnabled === "boolean") data.taxEnabled = taxEnabled;
@@ -82,6 +86,7 @@ export async function PUT(
     where: { id },
     data,
     select: {
+      currency: true,
       taxRate: true,
       taxEnabled: true,
       serviceChargeRate: true,

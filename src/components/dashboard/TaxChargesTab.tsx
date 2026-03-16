@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRestaurant } from "@/context/RestaurantContext";
-import { Loader2, Save, Receipt, Percent } from "lucide-react";
+import { Loader2, Save, Receipt, Percent, Coins } from "lucide-react";
+import { CURRENCIES, formatPrice, type CurrencyCode } from "@/lib/currency";
 
 interface TaxConfig {
+  currency: string;
   taxRate: number;
   taxEnabled: boolean;
   serviceChargeRate: number;
@@ -24,6 +26,7 @@ async function staffFetch(url: string, opts?: RequestInit) {
 export default function TaxChargesTab() {
   const { selectedRestaurant } = useRestaurant();
   const [config, setConfig] = useState<TaxConfig>({
+    currency: "NPR",
     taxRate: 13,
     taxEnabled: true,
     serviceChargeRate: 10,
@@ -61,6 +64,8 @@ export default function TaxChargesTab() {
     setSaving(false);
   };
 
+  const cur = config.currency;
+
   if (loading) {
     return (
       <div className="flex justify-center py-20">
@@ -74,11 +79,38 @@ export default function TaxChargesTab() {
       <div>
         <h2 className="text-lg font-extrabold text-[#1F2A2A] flex items-center gap-2">
           <Receipt className="h-5 w-5 text-[#0A4D3C]" />
-          Tax &amp; Service Charge
+          Currency, Tax &amp; Service Charge
         </h2>
         <p className="text-sm text-gray-500 mt-1">
-          Configure tax and service charge for all new orders.
+          Configure currency, tax and service charge for all new orders.
         </p>
+      </div>
+
+      {/* Currency */}
+      <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-4">
+        <div className="flex items-center gap-2">
+          <Coins className="h-4 w-4 text-[#0A4D3C]" />
+          <h3 className="text-sm font-bold text-[#1F2A2A]">Currency</h3>
+        </div>
+        <div className="flex gap-2">
+          {CURRENCIES.map((c) => (
+            <button
+              key={c.code}
+              onClick={() =>
+                setConfig((prev) => ({ ...prev, currency: c.code }))
+              }
+              className={`flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold transition-all border ${
+                config.currency === c.code
+                  ? "border-[#0A4D3C] bg-[#0A4D3C]/5 text-[#0A4D3C] ring-2 ring-[#0A4D3C]/10"
+                  : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+              <span className="text-lg">{c.flag}</span>
+              <span>{c.symbol}</span>
+              <span className="text-xs text-gray-400">{c.code}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Tax */}
@@ -219,18 +251,18 @@ export default function TaxChargesTab() {
       {/* Preview */}
       <div className="rounded-2xl border border-gray-200 bg-gray-50 p-5">
         <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
-          Preview — Rs. 1,000 order
+          Preview — {formatPrice(1000, cur)} order
         </h3>
         <div className="space-y-1.5 text-sm">
           <div className="flex justify-between">
             <span className="text-gray-500">Subtotal</span>
-            <span className="font-medium">Rs. 1,000</span>
+            <span className="font-medium">{formatPrice(1000, cur)}</span>
           </div>
           {config.taxEnabled && (
             <div className="flex justify-between">
               <span className="text-gray-500">Tax ({config.taxRate}%)</span>
               <span className="font-medium">
-                Rs. {((1000 * config.taxRate) / 100).toFixed(0)}
+                {formatPrice((1000 * config.taxRate) / 100, cur)}
               </span>
             </div>
           )}
@@ -240,21 +272,21 @@ export default function TaxChargesTab() {
                 Service Charge ({config.serviceChargeRate}%)
               </span>
               <span className="font-medium">
-                Rs. {((1000 * config.serviceChargeRate) / 100).toFixed(0)}
+                {formatPrice((1000 * config.serviceChargeRate) / 100, cur)}
               </span>
             </div>
           )}
           <div className="flex justify-between border-t border-gray-200 pt-2 mt-2 font-extrabold text-[#1F2A2A]">
             <span>Total</span>
             <span>
-              Rs.{" "}
-              {(
+              {formatPrice(
                 1000 +
-                (config.taxEnabled ? (1000 * config.taxRate) / 100 : 0) +
-                (config.serviceChargeEnabled
-                  ? (1000 * config.serviceChargeRate) / 100
-                  : 0)
-              ).toFixed(0)}
+                  (config.taxEnabled ? (1000 * config.taxRate) / 100 : 0) +
+                  (config.serviceChargeEnabled
+                    ? (1000 * config.serviceChargeRate) / 100
+                    : 0),
+                cur,
+              )}
             </span>
           </div>
         </div>

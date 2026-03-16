@@ -1,9 +1,61 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState, useCallback } from "react";
 import gsap from "gsap";
 import { Sparkles } from "lucide-react";
 import { motion, useScroll, useTransform } from "framer-motion";
+
+/* ── Typewriter hook — cycles through words with type/delete effect ──── */
+const ROTATING_WORDS = ["Delicious?", "Spicy?", "Sweet?", "Fresh?", "Authentic?"];
+
+function useTypewriter(
+  words: string[],
+  typingSpeed = 90,
+  deletingSpeed = 50,
+  pauseTime = 2200,
+) {
+  const [displayText, setDisplayText] = useState("");
+  const [wordIndex, setWordIndex] = useState(0);
+  const [phase, setPhase] = useState<"typing" | "paused" | "deleting">("typing");
+
+  const tick = useCallback(() => {
+    const currentWord = words[wordIndex];
+
+    if (phase === "typing") {
+      const next = currentWord.slice(0, displayText.length + 1);
+      setDisplayText(next);
+      if (next === currentWord) setPhase("paused");
+    } else if (phase === "deleting") {
+      const next = currentWord.slice(0, displayText.length - 1);
+      setDisplayText(next);
+      if (next === "") {
+        setPhase("typing");
+        setWordIndex((prev) => (prev + 1) % words.length);
+      }
+    }
+  }, [displayText, phase, wordIndex, words]);
+
+  useEffect(() => {
+    const delay =
+      phase === "paused"
+        ? pauseTime
+        : phase === "deleting"
+          ? deletingSpeed
+          : typingSpeed;
+
+    const timer = setTimeout(() => {
+      if (phase === "paused") {
+        setPhase("deleting");
+      } else {
+        tick();
+      }
+    }, delay);
+
+    return () => clearTimeout(timer);
+  }, [tick, phase, typingSpeed, deletingSpeed, pauseTime]);
+
+  return displayText;
+}
 
 /* ── Inline SVG food pattern (sandwich, donut, cake outlines) ──────── */
 const FOOD_PATTERN_SVG = `url("data:image/svg+xml,${encodeURIComponent(`
@@ -76,6 +128,7 @@ const FLOAT_ITEMS = [
 export default function StoryHero() {
   const containerRef = useRef<HTMLDivElement>(null);
   const floatingRef = useRef<HTMLDivElement>(null);
+  const typedWord = useTypewriter(ROTATING_WORDS);
 
   const { scrollY } = useScroll();
   const heroOpacity = useTransform(scrollY, [0, 500], [1, 0.3]);
@@ -164,7 +217,7 @@ export default function StoryHero() {
             </span>
           </motion.div>
 
-          {/* Heading */}
+          {/* Heading with typewriter effect */}
           <motion.h1
             initial={{ opacity: 0, y: 24, filter: "blur(8px)" }}
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
@@ -172,14 +225,17 @@ export default function StoryHero() {
             className="mb-2 text-[2.5rem] font-extrabold tracking-tight text-[#1F2A2A] sm:text-5xl md:text-6xl lg:text-7xl leading-[1.08]"
           >
             Craving something{" "}
-            <motion.span
-              className="text-transparent bg-clip-text bg-gradient-to-r from-[#E23744] via-[#FF6B81] to-[#FF9933] inline-block"
-              animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
-              transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
-              style={{ backgroundSize: "200% 200%" }}
-            >
-              Delicious?
-            </motion.span>
+            <span className="relative inline-block">
+              <motion.span
+                className="text-transparent bg-clip-text bg-gradient-to-r from-[#E23744] via-[#FF6B81] to-[#FF9933]"
+                animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
+                transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
+                style={{ backgroundSize: "200% 200%" }}
+              >
+                {typedWord}
+              </motion.span>
+              <span className="animate-cursor text-[#E23744] ml-[1px] font-light">|</span>
+            </span>
           </motion.h1>
 
           {/* Subtitle */}

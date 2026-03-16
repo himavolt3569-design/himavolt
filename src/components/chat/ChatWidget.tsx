@@ -10,6 +10,8 @@ import {
   User,
   Receipt,
   Loader2,
+  ChevronDown,
+  ShoppingBag,
 } from "lucide-react";
 import { apiFetch } from "@/lib/api-client";
 import { playSound } from "@/lib/sounds";
@@ -20,6 +22,20 @@ interface ChatMessage {
   sender: "CUSTOMER" | "KITCHEN" | "BILLING";
   senderName: string | null;
   createdAt: string;
+}
+
+interface OrderSummaryItem {
+  id: string;
+  name: string;
+  quantity: number;
+  price: number;
+}
+
+interface OrderSummary {
+  orderNo: string;
+  status: string;
+  items: OrderSummaryItem[];
+  total: number;
 }
 
 interface ChatWidgetProps {
@@ -58,12 +74,45 @@ export default function ChatWidget({
   const [roomId, setRoomId] = useState<string | null>(null);
   const [unread, setUnread] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [orderSummary, setOrderSummary] = useState<OrderSummary | null>(null);
+  const [orderExpanded, setOrderExpanded] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
+
+  // Fetch order summary when orderId is available
+  useEffect(() => {
+    if (!orderId || !restaurantId) return;
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const order = await apiFetch<{
+          orderNo: string;
+          status: string;
+          total: number;
+          items: OrderSummaryItem[];
+        }>(`/api/restaurants/${restaurantId}/orders/${orderId}`);
+        if (!cancelled && order?.items?.length > 0) {
+          setOrderSummary({
+            orderNo: order.orderNo,
+            status: order.status,
+            items: order.items,
+            total: order.total,
+          });
+        }
+      } catch {
+        // silent — chat works without order summary
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [orderId, restaurantId]);
 
   const initRoom = useCallback(async () => {
     try {
@@ -269,6 +318,9 @@ export default function ChatWidget({
         senderRole={senderRole}
         loading={loading}
         messagesEndRef={messagesEndRef}
+        orderSummary={orderSummary}
+        orderExpanded={orderExpanded}
+        setOrderExpanded={setOrderExpanded}
       />
     );
   }
@@ -338,6 +390,15 @@ export default function ChatWidget({
                 </button>
               </div>
 
+              {/* Order Items Card */}
+              {orderSummary && (
+                <OrderItemsCard
+                  summary={orderSummary}
+                  expanded={orderExpanded}
+                  onToggle={() => setOrderExpanded(!orderExpanded)}
+                />
+              )}
+
               {/* Messages */}
               <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 min-h-50">
                 {loading ? (
@@ -394,6 +455,81 @@ export default function ChatWidget({
         )}
       </AnimatePresence>
     </>
+  );
+}
+
+function OrderItemsCard({
+  summary,
+  expanded,
+  onToggle,
+}: {
+  summary: OrderSummary;
+  expanded: boolean;
+  onToggle: () => void;
+}) {
+  const totalItems = summary.items.reduce((sum, i) => sum + i.quantity, 0);
+
+  return (
+    <div className="shrink-0 bg-amber-50 border-b border-amber-100">
+      <button
+        onClick={onToggle}
+        className="w-full flex items-center justify-between px-4 py-2.5 text-left"
+      >
+        <div className="flex items-center gap-2">
+          <ShoppingBag className="h-3.5 w-3.5 text-amber-700" />
+          <span className="text-xs font-bold text-amber-800">
+            Order #{summary.orderNo}
+          </span>
+          <span className="text-[10px] text-amber-600">
+            {totalItems} item{totalItems !== 1 && "s"}
+          </span>
+        </div>
+        <motion.div
+          animate={{ rotate: expanded ? 180 : 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <ChevronDown className="h-3.5 w-3.5 text-amber-600" />
+        </motion.div>
+      </button>
+
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="px-4 pb-3 max-h-40 overflow-y-auto">
+              <div className="space-y-1.5">
+                {summary.items.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between text-[11px]"
+                  >
+                    <span className="text-amber-800">
+                      {item.quantity}x {item.name}
+                    </span>
+                    <span className="text-amber-700 font-medium">
+                      Rs. {item.price * item.quantity}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-2 pt-2 border-t border-amber-200 flex items-center justify-between">
+                <span className="text-[11px] font-bold text-amber-800">
+                  Total
+                </span>
+                <span className="text-xs font-extrabold text-amber-900">
+                  Rs. {summary.total}
+                </span>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 
@@ -462,6 +598,9 @@ function CompactChat({
   senderRole,
   loading,
   messagesEndRef,
+  orderSummary,
+  orderExpanded,
+  setOrderExpanded,
 }: {
   messages: ChatMessage[];
   input: string;
@@ -472,9 +611,21 @@ function CompactChat({
   senderRole: string;
   loading: boolean;
   messagesEndRef: React.RefObject<HTMLDivElement | null>;
+  orderSummary: OrderSummary | null;
+  orderExpanded: boolean;
+  setOrderExpanded: (v: boolean) => void;
 }) {
   return (
     <div className="flex flex-col h-full">
+      {/* Order Items Card */}
+      {orderSummary && (
+        <OrderItemsCard
+          summary={orderSummary}
+          expanded={orderExpanded}
+          onToggle={() => setOrderExpanded(!orderExpanded)}
+        />
+      )}
+
       <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 min-h-0">
         {loading ? (
           <div className="flex items-center justify-center py-8">
@@ -488,9 +639,9 @@ function CompactChat({
             </p>
           </div>
         ) : (
-          messages.map((msg) => (
+          messages.map((msg, idx) => (
             <MessageBubble
-              key={msg.id}
+              key={`${msg.id}-${idx}`}
               message={msg}
               isMine={msg.sender === senderRole}
             />

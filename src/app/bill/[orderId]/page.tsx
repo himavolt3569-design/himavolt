@@ -21,6 +21,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import Link from "next/link";
+import { formatPrice } from "@/lib/currency";
 
 /* ── Types ──────────────────────────────────────────────────────── */
 
@@ -64,6 +65,7 @@ interface BillData {
       name: string;
       address: string;
       phone: string;
+      currency?: string;
     };
     user: {
       name: string | null;
@@ -232,6 +234,7 @@ export default function BillPage() {
   }
 
   const { order } = bill;
+  const cur = order.restaurant.currency ?? "NPR";
   const isPaid = order.payment?.status === "COMPLETED";
   const isOnlinePayment = order.payment && order.payment.method !== "CASH";
   const docLabel = isOnlinePayment ? "Payment Receipt" : "Invoice";
@@ -429,10 +432,10 @@ export default function BillPage() {
                       {item.quantity}
                     </td>
                     <td className="py-3 text-right text-gray-500 font-medium">
-                      Rs. {item.price.toFixed(0)}
+                      {formatPrice(item.price, cur)}
                     </td>
                     <td className="py-3 text-right font-bold text-[#1F2A2A]">
-                      Rs. {(item.price * item.quantity).toFixed(0)}
+                      {formatPrice(item.price * item.quantity, cur)}
                     </td>
                   </tr>
                 ))}
@@ -445,14 +448,14 @@ export default function BillPage() {
             <div className="flex justify-between text-[13px]">
               <span className="text-gray-500">Subtotal</span>
               <span className="font-medium text-[#1F2A2A]">
-                Rs. {bill.subtotal.toFixed(2)}
+                {formatPrice(bill.subtotal, cur)}
               </span>
             </div>
             {bill.tax > 0 && (
               <div className="flex justify-between text-[13px]">
                 <span className="text-gray-500">Tax</span>
                 <span className="font-medium text-[#1F2A2A]">
-                  Rs. {bill.tax.toFixed(2)}
+                  {formatPrice(bill.tax, cur)}
                 </span>
               </div>
             )}
@@ -460,7 +463,7 @@ export default function BillPage() {
               <div className="flex justify-between text-[13px]">
                 <span className="text-gray-500">Service Charge</span>
                 <span className="font-medium text-[#1F2A2A]">
-                  Rs. {bill.serviceCharge.toFixed(2)}
+                  {formatPrice(bill.serviceCharge, cur)}
                 </span>
               </div>
             )}
@@ -468,7 +471,7 @@ export default function BillPage() {
               <div className="flex justify-between text-[13px]">
                 <span className="text-[#E23744] font-medium">Discount</span>
                 <span className="font-medium text-[#E23744]">
-                  - Rs. {bill.discount.toFixed(2)}
+                  -{formatPrice(bill.discount, cur)}
                 </span>
               </div>
             )}
@@ -478,7 +481,7 @@ export default function BillPage() {
                 Grand Total
               </span>
               <span className="text-2xl font-extrabold text-[#1F2A2A]">
-                Rs. {bill.total.toFixed(2)}
+                {formatPrice(bill.total, cur)}
               </span>
             </div>
           </div>

@@ -18,6 +18,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { useUser } from "@clerk/nextjs";
 import { apiFetch } from "@/lib/api-client";
+import { formatPrice } from "@/lib/currency";
+import { useActiveTableSession } from "@/hooks/useActiveTableSession";
+import { useOrder } from "@/context/OrderContext";
 
 interface OrderItem {
   id: string;
@@ -55,6 +58,7 @@ interface UserOrder {
     name: string;
     slug: string;
     imageUrl: string | null;
+    currency?: string;
   };
 }
 
@@ -224,7 +228,7 @@ function OrderCard({
             <div className="flex items-center justify-between mt-2.5">
               <StatusBadge status={order.status} />
               <span className="text-sm font-extrabold text-saffron-flame">
-                Rs. {order.total}
+                {formatPrice(order.total, order.restaurant.currency ?? "NPR")}
               </span>
             </div>
           </div>
@@ -234,8 +238,146 @@ function OrderCard({
   );
 }
 
+function TableSessionOrderView() {
+  const { activeOrder } = useOrder();
+  const activeSession = useActiveTableSession();
+
+  if (!activeOrder) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50/50 p-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col items-center justify-center text-center max-w-sm"
+        >
+          <div className="flex h-24 w-24 items-center justify-center rounded-full bg-saffron-flame/10 mb-5">
+            <ShoppingBag className="h-12 w-12 text-saffron-flame" />
+          </div>
+          <h2 className="text-lg font-bold text-gompa-slate mb-2">
+            No orders yet
+          </h2>
+          <p className="text-sm text-gray-500 max-w-xs mb-6">
+            Place your first order from the menu!
+          </p>
+          {activeSession && (
+            <Link
+              href={`/menu/${activeSession.restaurantSlug}?table=${activeSession.tableNo}`}
+              className="inline-flex items-center gap-2 rounded-xl bg-saffron-flame px-6 py-3 text-sm font-bold text-white hover:bg-saffron-flame/90 transition-colors shadow-lg shadow-saffron-flame/20"
+            >
+              <UtensilsCrossed className="h-4 w-4" />
+              Go to Menu
+            </Link>
+          )}
+        </motion.div>
+      </div>
+    );
+  }
+
+  const isActive = !TERMINAL_STATUSES.includes(activeOrder.status);
+  const config = STATUS_CONFIG[activeOrder.status] || STATUS_CONFIG.PENDING;
+  const StatusIcon = config.icon;
+
+  return (
+    <div className="min-h-screen bg-gray-50/50">
+      <header className="sticky top-0 z-40 bg-white border-b border-gray-100 shadow-sm">
+        <div className="mx-auto max-w-2xl px-4">
+          <div className="flex h-14 items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-saffron-flame/10">
+              <Receipt className="h-5 w-5 text-saffron-flame" />
+            </div>
+            <div className="flex-1">
+              <h1 className="text-base font-bold text-gompa-slate">
+                Your Order
+              </h1>
+              <p className="text-[11px] text-gray-400">
+                Table {activeOrder.tableNo}
+              </p>
+            </div>
+            {isActive && (
+              <div className="flex items-center gap-1.5">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400" />
+                </span>
+                <span className="text-[11px] font-bold text-green-600">
+                  Active
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      </header>
+
+      <div className="mx-auto max-w-2xl px-4 py-5 pb-20">
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <Link
+            href={`/track/${activeOrder.id}`}
+            className={`block rounded-2xl border bg-white p-5 shadow-sm transition-all hover:shadow-md active:scale-[0.98] ${
+              isActive
+                ? "border-saffron-flame/20 ring-1 ring-saffron-flame/10"
+                : "border-gray-200"
+            }`}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-xs text-gray-400">
+                  Order #{activeOrder.orderNo}
+                </p>
+                <p className="text-[11px] text-gray-400 mt-0.5">
+                  {new Date(activeOrder.createdAt).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </p>
+              </div>
+              <span
+                className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold ${config.bg} ${config.color}`}
+              >
+                <StatusIcon className="h-3 w-3" />
+                {config.label}
+              </span>
+            </div>
+
+            <div className="space-y-2 mb-4">
+              {activeOrder.items.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between text-sm"
+                >
+                  <span className="text-gray-700">
+                    {item.quantity}x {item.name}
+                  </span>
+                  <span className="text-gray-500 font-medium">
+                    Rs. {item.price * item.quantity}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <div className="border-t border-gray-100 pt-3 flex items-center justify-between">
+              <span className="text-sm font-bold text-gompa-slate">Total</span>
+              <span className="text-base font-extrabold text-saffron-flame">
+                Rs. {activeOrder.total}
+              </span>
+            </div>
+
+            <div className="mt-3 flex items-center justify-center gap-1 text-xs text-gray-400">
+              <span>Tap to track order</span>
+              <ChevronRight className="h-3 w-3" />
+            </div>
+          </Link>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
+
 export default function OrdersPage() {
   const { isSignedIn, isLoaded } = useUser();
+  const activeSession = useActiveTableSession();
   const [orders, setOrders] = useState<UserOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -290,8 +432,12 @@ export default function OrdersPage() {
     TERMINAL_STATUSES.includes(o.status)
   );
 
-  // Not signed in
+  // Not signed in — show table session order or sign-in prompt
   if (isLoaded && !isSignedIn) {
+    if (activeSession) {
+      return <TableSessionOrderView />;
+    }
+
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50/50 p-6">
         <motion.div

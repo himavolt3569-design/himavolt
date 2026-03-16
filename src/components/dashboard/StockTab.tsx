@@ -17,6 +17,7 @@ import {
   Filter,
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
+import { formatPrice } from "@/lib/currency";
 
 interface UsedInMenuItem {
   id: string;
@@ -65,6 +66,7 @@ async function apiFetch(url: string, opts?: RequestInit) {
 export default function StockTab() {
   const { selectedRestaurant, restaurants } = useRestaurant();
   const restaurant = selectedRestaurant ?? restaurants[0];
+  const cur = selectedRestaurant?.currency ?? "NPR";
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -169,7 +171,7 @@ export default function StockTab() {
           },
           {
             label: "Total Value",
-            value: `Rs. ${totalValue.toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`,
+            value: formatPrice(totalValue, cur),
             color: "text-[#1F2A2A]",
             icon: TrendingDown,
             iconColor: "text-amber-500",
@@ -301,7 +303,7 @@ export default function StockTab() {
                       {item.costPerUnit > 0 && (
                         <>
                           {" "}
-                          &middot; Rs.{item.costPerUnit}/{item.unit}
+                          &middot; {formatPrice(item.costPerUnit, cur)}/{item.unit}
                         </>
                       )}
                     </p>

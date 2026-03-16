@@ -17,17 +17,20 @@ import {
 } from "lucide-react";
 import { type LiveOrder } from "@/context/LiveOrdersContext";
 import { useToast } from "@/context/ToastContext";
+import { formatPrice } from "@/lib/currency";
 
 export default function DineInRequestModal({
   order,
   onClose,
   onAccept,
   onReject,
+  currency = "NPR",
 }: {
   order: LiveOrder | null;
   onClose: () => void;
   onAccept: (id: string) => void;
   onReject: (id: string) => void;
+  currency?: string;
 }) {
   const { showToast } = useToast();
 
@@ -117,7 +120,7 @@ export default function DineInRequestModal({
                 </div>
                 <div>
                   <p className="text-[10px] text-gray-400 font-medium">Total</p>
-                  <p className="text-sm font-extrabold text-[#1F2A2A]">Rs. {order.total}</p>
+                  <p className="text-sm font-extrabold text-[#1F2A2A]">{formatPrice(order.total, currency)}</p>
                 </div>
               </div>
             </div>
@@ -140,7 +143,7 @@ export default function DineInRequestModal({
                       <span className="text-sm font-semibold text-[#1F2A2A]">{item.name}</span>
                     </div>
                     <span className="text-sm font-bold text-gray-500">
-                      Rs. {item.price * item.quantity}
+                      {formatPrice(item.price * item.quantity, currency)}
                     </span>
                   </div>
                 ))}
@@ -149,7 +152,7 @@ export default function DineInRequestModal({
               {/* Sub-total */}
               <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
                 <span className="text-sm font-bold text-[#1F2A2A]">Total</span>
-                <span className="text-lg font-extrabold text-[#FF9933]">Rs. {order.total}</span>
+                <span className="text-lg font-extrabold text-[#FF9933]">{formatPrice(order.total, currency)}</span>
               </div>
             </div>
 

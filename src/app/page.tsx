@@ -105,8 +105,14 @@ export default function Home() {
             <PopularFoods activeCategory={activeCategory} />
           </ScrollStorySection>
 
+          {/* Gradient bridge: light → dark */}
+          <div className="h-32 bg-gradient-to-b from-white to-[#0B0E14]" />
+
           {/* How It Works — pinned phone mockup storytelling */}
           <StoryHowItWorks />
+
+          {/* Gradient bridge: dark → light */}
+          <div className="h-32 bg-gradient-to-b from-[#0B0E14] to-white" />
 
           <ScrollStorySection fadeIn slideFrom="bottom" scrub={false}>
             <TopPlaces />

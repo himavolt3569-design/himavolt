@@ -1,6 +1,9 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
-export const FOOD_IMAGES_BUCKET = "food-images";
+export const FOOD_IMAGES_BUCKET = process.env.SUPABASE_STORAGE_BUCKET || "food-images";
+
+// S3-compatible endpoint for external tools (AWS CLI, boto3, etc.)
+export const SUPABASE_S3_ENDPOINT = process.env.SUPABASE_S3_ENDPOINT || "";
 
 let _supabase: SupabaseClient | null = null;
 

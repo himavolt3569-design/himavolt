@@ -32,6 +32,7 @@ import {
   X,
 } from "lucide-react";
 import { useUser, UserButton } from "@clerk/nextjs";
+import { formatPrice } from "@/lib/currency";
 import Link from "next/link";
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -184,7 +185,7 @@ function timeAgo(date: string): string {
 }
 
 function formatCurrency(amount: number): string {
-  return `Rs. ${amount.toLocaleString("en-NP", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+  return formatPrice(amount, "NPR");
 }
 
 function formatAction(action: string): string {

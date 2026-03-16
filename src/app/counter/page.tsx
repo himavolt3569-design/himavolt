@@ -36,7 +36,73 @@ import {
   Package,
 } from "lucide-react";
 import { useToast } from "@/context/ToastContext";
+import { formatPrice } from "@/lib/currency";
 import StockTab from "@/components/dashboard/StockTab";
+import {
+  getFeatureTabsForType,
+  type FeatureTabId,
+} from "@/lib/restaurant-types";
+
+/* ── Feature tab imports for counter staff ──────────────────────── */
+import QuickCounterTab from "@/components/dashboard/features/QuickCounterTab";
+import ComboMealsTab from "@/components/dashboard/features/ComboMealsTab";
+import RushHourTab from "@/components/dashboard/features/RushHourTab";
+import TakeawayTab from "@/components/dashboard/features/TakeawayTab";
+import RoomServiceTab from "@/components/dashboard/features/RoomServiceTab";
+import MultiOutletTab from "@/components/dashboard/features/MultiOutletTab";
+import EventCateringTab from "@/components/dashboard/features/EventCateringTab";
+import GuestBillingTab from "@/components/dashboard/features/GuestBillingTab";
+import BuffetManagerTab from "@/components/dashboard/features/BuffetManagerTab";
+import PreOrdersTab from "@/components/dashboard/features/PreOrdersTab";
+import CustomCakesTab from "@/components/dashboard/features/CustomCakesTab";
+import DailySpecialsTab from "@/components/dashboard/features/DailySpecialsTab";
+import DisplayCounterTab from "@/components/dashboard/features/DisplayCounterTab";
+import DeliveryOpsTab from "@/components/dashboard/features/DeliveryOpsTab";
+import MultiBrandTab from "@/components/dashboard/features/MultiBrandTab";
+import DeliveryZonesTab from "@/components/dashboard/features/DeliveryZonesTab";
+import PackageTrackingTab from "@/components/dashboard/features/PackageTrackingTab";
+import HappyHoursTab from "@/components/dashboard/features/HappyHoursTab";
+import TabManagementTab from "@/components/dashboard/features/TabManagementTab";
+import CocktailMenuTab from "@/components/dashboard/features/CocktailMenuTab";
+import LiveEventsTab from "@/components/dashboard/features/LiveEventsTab";
+import LoyaltyRewardsTab from "@/components/dashboard/features/LoyaltyRewardsTab";
+import WifiSeatingTab from "@/components/dashboard/features/WifiSeatingTab";
+import SeasonalMenuTab from "@/components/dashboard/features/SeasonalMenuTab";
+import BrunchModeTab from "@/components/dashboard/features/BrunchModeTab";
+import TableReservationsTab from "@/components/dashboard/features/TableReservationsTab";
+import WaitlistTab from "@/components/dashboard/features/WaitlistTab";
+import PrivateDiningTab from "@/components/dashboard/features/PrivateDiningTab";
+
+const COUNTER_FEATURE_COMPONENTS: Record<FeatureTabId, React.ComponentType> = {
+  "quick-counter": QuickCounterTab,
+  "combo-meals": ComboMealsTab,
+  "rush-hour": RushHourTab,
+  "takeaway": TakeawayTab,
+  "room-service": RoomServiceTab,
+  "multi-outlet": MultiOutletTab,
+  "event-catering": EventCateringTab,
+  "guest-billing": GuestBillingTab,
+  "buffet-manager": BuffetManagerTab,
+  "pre-orders": PreOrdersTab,
+  "custom-cakes": CustomCakesTab,
+  "daily-specials": DailySpecialsTab,
+  "display-counter": DisplayCounterTab,
+  "delivery-ops": DeliveryOpsTab,
+  "multi-brand": MultiBrandTab,
+  "delivery-zones": DeliveryZonesTab,
+  "package-tracking": PackageTrackingTab,
+  "happy-hours": HappyHoursTab,
+  "tab-management": TabManagementTab,
+  "cocktail-menu": CocktailMenuTab,
+  "live-events": LiveEventsTab,
+  "loyalty-rewards": LoyaltyRewardsTab,
+  "wifi-seating": WifiSeatingTab,
+  "seasonal-menu": SeasonalMenuTab,
+  "brunch-mode": BrunchModeTab,
+  "table-reservations": TableReservationsTab,
+  "waitlist": WaitlistTab,
+  "private-dining": PrivateDiningTab,
+};
 
 /* ── Types ────────────────────────────────────────────────────────── */
 
@@ -46,6 +112,8 @@ interface StaffSession {
   restaurantId: string;
   role: string;
   name: string;
+  restaurantType: string;
+  currency: string;
 }
 
 interface OrderItem {
@@ -381,10 +449,12 @@ function SummaryCard({
 function BillingPanel({
   restaurantId,
   staffRole,
+  currency,
   onRefresh,
 }: {
   restaurantId: string;
   staffRole: string;
+  currency: string;
   onRefresh: () => void;
 }) {
   const { showToast } = useToast();
@@ -573,21 +643,21 @@ function BillingPanel({
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <SummaryCard
             label="Total Revenue"
-            value={`Rs. ${summary.totalRevenue.toLocaleString()}`}
+            value={formatPrice(summary.totalRevenue, currency)}
             icon={TrendingUp}
             color="text-emerald-600"
             bg="bg-emerald-50"
           />
           <SummaryCard
             label="Cash Collected"
-            value={`Rs. ${summary.cashRevenue.toLocaleString()}`}
+            value={formatPrice(summary.cashRevenue, currency)}
             icon={DollarSign}
             color="text-blue-600"
             bg="bg-blue-50"
           />
           <SummaryCard
             label="Pending"
-            value={`Rs. ${summary.pendingAmount.toLocaleString()}`}
+            value={formatPrice(summary.pendingAmount, currency)}
             icon={Clock}
             color="text-orange-600"
             bg="bg-orange-50"
@@ -595,7 +665,7 @@ function BillingPanel({
           />
           <SummaryCard
             label="Discounts"
-            value={`Rs. ${summary.totalDiscount.toLocaleString()}`}
+            value={formatPrice(summary.totalDiscount, currency)}
             icon={Tag}
             color="text-pink-600"
             bg="bg-pink-50"
@@ -621,7 +691,7 @@ function BillingPanel({
           {summary.onlineRevenue > 0 && (
             <span className="flex items-center gap-1">
               <Wallet className="h-3 w-3 text-purple-500" />
-              Rs. {summary.onlineRevenue.toLocaleString()} online
+              {formatPrice(summary.onlineRevenue, currency)} online
             </span>
           )}
           <button
@@ -1023,7 +1093,7 @@ function BillingPanel({
                     {item.quantity}× {item.name}
                   </span>
                   <span className="font-bold text-gray-500">
-                    Rs. {item.price * item.quantity}
+                    {formatPrice(item.price * item.quantity, currency)}
                   </span>
                 </div>
               ))}
@@ -1039,14 +1109,14 @@ function BillingPanel({
               <div className="flex justify-between text-xs">
                 <span className="text-gray-500">Subtotal</span>
                 <span className="font-medium">
-                  Rs. {(order.bill?.subtotal ?? order.subtotal).toFixed(0)}
+                  {formatPrice(order.bill?.subtotal ?? order.subtotal, currency)}
                 </span>
               </div>
               {taxEnabled && (
                 <div className="flex justify-between text-xs">
                   <span className="text-gray-500">Tax ({taxRate}%)</span>
                   <span className="font-medium">
-                    Rs. {(order.bill?.tax ?? order.tax).toFixed(0)}
+                    {formatPrice(order.bill?.tax ?? order.tax, currency)}
                   </span>
                 </div>
               )}
@@ -1056,7 +1126,7 @@ function BillingPanel({
                     Service Charge ({scRate}%)
                   </span>
                   <span className="font-medium">
-                    Rs. {order.bill.serviceCharge.toFixed(0)}
+                    {formatPrice(order.bill.serviceCharge, currency)}
                   </span>
                 </div>
               )}
@@ -1064,14 +1134,14 @@ function BillingPanel({
                 <div className="flex justify-between text-xs">
                   <span className="text-pink-600 font-medium">Discount</span>
                   <span className="font-medium text-pink-600">
-                    -Rs. {order.bill.discount.toFixed(0)}
+                    -{formatPrice(order.bill.discount, currency)}
                   </span>
                 </div>
               )}
               <div className="flex justify-between text-sm font-extrabold border-t border-gray-200 pt-1.5 mt-1.5">
                 <span className="text-[#1F2A2A]">Total</span>
                 <span className="text-[#1F2A2A]">
-                  Rs. {(order.bill?.total ?? order.total).toFixed(0)}
+                  {formatPrice(order.bill?.total ?? order.total, currency)}
                 </span>
               </div>
             </div>
@@ -1189,16 +1259,12 @@ function BillingPanel({
                   Amount Due
                 </p>
                 <p className="text-3xl font-extrabold text-[#1F2A2A]">
-                  Rs.{" "}
-                  {(selectedOrder.bill?.total ?? selectedOrder.total).toFixed(
-                    0,
-                  )}
+                  {formatPrice(selectedOrder.bill?.total ?? selectedOrder.total, currency)}
                 </p>
                 {selectedOrder.bill?.discount &&
                   selectedOrder.bill.discount > 0 && (
                     <p className="text-xs text-pink-600 mt-1">
-                      Discount applied: Rs.{" "}
-                      {selectedOrder.bill.discount.toFixed(0)}
+                      Discount applied: {formatPrice(selectedOrder.bill.discount, currency)}
                     </p>
                   )}
               </div>
@@ -1208,17 +1274,13 @@ function BillingPanel({
                 <div className="flex justify-between text-xs">
                   <span className="text-gray-500">Subtotal</span>
                   <span>
-                    Rs.{" "}
-                    {(
-                      selectedOrder.bill?.subtotal ?? selectedOrder.subtotal
-                    ).toFixed(0)}
+                    {formatPrice(selectedOrder.bill?.subtotal ?? selectedOrder.subtotal, currency)}
                   </span>
                 </div>
                 <div className="flex justify-between text-xs">
                   <span className="text-gray-500">Tax ({taxRate}%)</span>
                   <span>
-                    Rs.{" "}
-                    {(selectedOrder.bill?.tax ?? selectedOrder.tax).toFixed(0)}
+                    {formatPrice(selectedOrder.bill?.tax ?? selectedOrder.tax, currency)}
                   </span>
                 </div>
                 {selectedOrder.bill && selectedOrder.bill.serviceCharge > 0 && (
@@ -1227,14 +1289,14 @@ function BillingPanel({
                       Service Charge ({scRate}%)
                     </span>
                     <span>
-                      Rs. {selectedOrder.bill.serviceCharge.toFixed(0)}
+                      {formatPrice(selectedOrder.bill.serviceCharge, currency)}
                     </span>
                   </div>
                 )}
                 {selectedOrder.bill && selectedOrder.bill.discount > 0 && (
                   <div className="flex justify-between text-xs text-pink-600">
                     <span>Discount</span>
-                    <span>-Rs. {selectedOrder.bill.discount.toFixed(0)}</span>
+                    <span>-{formatPrice(selectedOrder.bill.discount, currency)}</span>
                   </div>
                 )}
               </div>
@@ -1355,10 +1417,7 @@ function BillingPanel({
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Current Bill Total</span>
                   <span className="font-bold text-[#1F2A2A]">
-                    Rs.{" "}
-                    {(selectedOrder.bill?.total ?? selectedOrder.total).toFixed(
-                      0,
-                    )}
+                    {formatPrice(selectedOrder.bill?.total ?? selectedOrder.total, currency)}
                   </span>
                 </div>
                 {selectedOrder.bill?.discount &&
@@ -1366,7 +1425,7 @@ function BillingPanel({
                     <div className="flex justify-between text-sm mt-1">
                       <span className="text-pink-600">Existing Discount</span>
                       <span className="font-bold text-pink-600">
-                        Rs. {selectedOrder.bill.discount.toFixed(0)}
+                        {formatPrice(selectedOrder.bill.discount, currency)}
                       </span>
                     </div>
                   )}
@@ -1376,7 +1435,7 @@ function BillingPanel({
               <div className="space-y-3 mb-5">
                 <div>
                   <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5 block">
-                    Discount Amount (Rs.)
+                    Discount Amount
                   </label>
                   <input
                     value={discountAmount}
@@ -1407,7 +1466,7 @@ function BillingPanel({
                       onClick={() => setDiscountAmount(amt.toString())}
                       className="rounded-lg bg-pink-50 px-3 py-1.5 text-xs font-bold text-pink-700 hover:bg-pink-100 transition-all"
                     >
-                      Rs. {amt}
+                      {formatPrice(amt, currency)}
                     </button>
                   ))}
                   {[5, 10, 15, 20].map((pct) => {
@@ -1420,7 +1479,7 @@ function BillingPanel({
                         onClick={() => setDiscountAmount(amt.toString())}
                         className="rounded-lg bg-purple-50 px-3 py-1.5 text-xs font-bold text-purple-700 hover:bg-purple-100 transition-all"
                       >
-                        {pct}% (Rs. {amt})
+                        {pct}% ({formatPrice(amt, currency)})
                       </button>
                     );
                   })}
@@ -1435,15 +1494,14 @@ function BillingPanel({
                       New Total after Discount
                     </span>
                     <span className="font-extrabold text-[#1F2A2A]">
-                      Rs.{" "}
-                      {Math.max(
+                      {formatPrice(Math.max(
                         0,
                         (selectedOrder.bill?.subtotal ??
                           selectedOrder.subtotal) +
                           (selectedOrder.bill?.tax ?? selectedOrder.tax) +
                           (selectedOrder.bill?.serviceCharge ?? 0) -
                           parseFloat(discountAmount),
-                      ).toFixed(0)}
+                      ), currency)}
                     </span>
                   </div>
                 </div>
@@ -1487,7 +1545,7 @@ function BillingPanel({
 
 /* ── MAIN COUNTER PAGE ───────────────────────────────────────────── */
 
-type ViewMode = "billing" | "board" | "split" | "stock";
+type ViewMode = "billing" | "board" | "split" | "stock" | FeatureTabId;
 
 export default function CounterPage() {
   const router = useRouter();
@@ -1655,19 +1713,26 @@ export default function CounterPage() {
 
             <div className="flex items-center gap-1.5 sm:gap-2">
               {/* View Mode Toggle */}
-              <div className="hidden sm:flex items-center gap-1 rounded-lg border border-gray-200 p-0.5 bg-white">
+              <div className="hidden sm:flex items-center gap-1 rounded-lg border border-gray-200 p-0.5 bg-white overflow-x-auto">
                 {(
                   [
                     { id: "billing", icon: Receipt, label: "Billing" },
                     { id: "board", icon: Monitor, label: "Board" },
                     { id: "split", icon: Utensils, label: "Split" },
                     { id: "stock", icon: Package, label: "Stock" },
+                    ...(session?.restaurantType && (session.role === "SUPER_ADMIN" || session.role === "MANAGER")
+                      ? getFeatureTabsForType(session.restaurantType).map((f) => ({
+                          id: f.id,
+                          icon: Receipt,
+                          label: f.label,
+                        }))
+                      : []),
                   ] as { id: ViewMode; icon: typeof Monitor; label: string }[]
                 ).map((v) => (
                   <button
                     key={v.id}
                     onClick={() => setViewMode(v.id)}
-                    className={`flex items-center gap-1 rounded-md px-2.5 py-1.5 text-[10px] font-bold transition-all ${
+                    className={`flex items-center gap-1 rounded-md px-2.5 py-1.5 text-[10px] font-bold transition-all whitespace-nowrap ${
                       viewMode === v.id
                         ? "bg-[#0A4D3C] text-white"
                         : "text-gray-500 hover:bg-gray-50"
@@ -1747,19 +1812,26 @@ export default function CounterPage() {
 
       {/* Mobile View Toggle */}
       <div className="sm:hidden sticky top-14 z-40 bg-white/80 backdrop-blur-xl border-b border-gray-200/60 px-4 py-2">
-        <div className="flex items-center gap-1 rounded-lg border border-gray-200 p-0.5 bg-white">
+        <div className="flex items-center gap-1 rounded-lg border border-gray-200 p-0.5 bg-white overflow-x-auto">
           {(
             [
               { id: "billing", icon: Receipt, label: "Billing" },
               { id: "board", icon: Monitor, label: "Board" },
               { id: "split", icon: Utensils, label: "Split" },
               { id: "stock", icon: Package, label: "Stock" },
+              ...(session?.restaurantType && (session.role === "SUPER_ADMIN" || session.role === "MANAGER")
+                ? getFeatureTabsForType(session.restaurantType).map((f) => ({
+                    id: f.id,
+                    icon: Receipt,
+                    label: f.label,
+                  }))
+                : []),
             ] as { id: ViewMode; icon: typeof Monitor; label: string }[]
           ).map((v) => (
             <button
               key={v.id}
               onClick={() => setViewMode(v.id)}
-              className={`flex-1 flex items-center justify-center gap-1 rounded-md px-2 py-2 text-[10px] font-bold transition-all ${
+              className={`flex-1 flex items-center justify-center gap-1 rounded-md px-2 py-2 text-[10px] font-bold transition-all whitespace-nowrap ${
                 viewMode === v.id
                   ? "bg-[#0A4D3C] text-white"
                   : "text-gray-500 hover:bg-gray-50"
@@ -1778,6 +1850,7 @@ export default function CounterPage() {
           <BillingPanel
             restaurantId={session.restaurantId}
             staffRole={session.role}
+            currency={session.currency ?? "NPR"}
             onRefresh={loadOrders}
           />
         )}
@@ -1795,6 +1868,7 @@ export default function CounterPage() {
               <BillingPanel
                 restaurantId={session.restaurantId}
                 staffRole={session.role}
+                currency={session.currency ?? "NPR"}
                 onRefresh={loadOrders}
               />
             </div>
@@ -1802,6 +1876,13 @@ export default function CounterPage() {
         )}
 
         {viewMode === "stock" && <StockTab />}
+
+        {/* Type-specific feature tabs */}
+        {(() => {
+          const FeatureComponent = COUNTER_FEATURE_COMPONENTS[viewMode as FeatureTabId];
+          if (!FeatureComponent) return null;
+          return <FeatureComponent />;
+        })()}
       </main>
     </div>
   );

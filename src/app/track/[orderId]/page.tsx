@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api-client";
+import { formatPrice } from "@/lib/currency";
 import ChatWidget from "@/components/chat/ChatWidget";
 import gsap from "gsap";
 
@@ -66,6 +67,7 @@ interface TrackingOrder {
     address: string;
     phone: string;
     imageUrl: string | null;
+    currency?: string;
   };
 }
 
@@ -231,9 +233,11 @@ function PaymentBadge({ method, status }: { method: string; status: string }) {
 function BillSection({
   bill,
   order,
+  currency,
 }: {
   bill: TrackingOrder["bill"];
   order: TrackingOrder;
+  currency: string;
 }) {
   if (!bill) return null;
 
@@ -262,34 +266,34 @@ function BillSection({
               {item.name}
             </span>
             <span className="font-semibold text-[#1F2A2A]">
-              Rs. {item.price * item.quantity}
+              {formatPrice(item.price * item.quantity, currency)}
             </span>
           </div>
         ))}
         <div className="border-t border-dashed border-gray-200 pt-3 mt-3 space-y-1.5">
           <div className="flex justify-between text-xs text-gray-500">
             <span>Subtotal</span>
-            <span>Rs. {bill.subtotal}</span>
+            <span>{formatPrice(bill.subtotal, currency)}</span>
           </div>
           <div className="flex justify-between text-xs text-gray-500">
             <span>Tax</span>
-            <span>Rs. {bill.tax}</span>
+            <span>{formatPrice(bill.tax, currency)}</span>
           </div>
           {bill.serviceCharge > 0 && (
             <div className="flex justify-between text-xs text-gray-500">
               <span>Service Charge</span>
-              <span>Rs. {bill.serviceCharge}</span>
+              <span>{formatPrice(bill.serviceCharge, currency)}</span>
             </div>
           )}
           {bill.discount > 0 && (
             <div className="flex justify-between text-xs text-green-600">
               <span>Discount</span>
-              <span>-Rs. {bill.discount}</span>
+              <span>-{formatPrice(bill.discount, currency)}</span>
             </div>
           )}
           <div className="flex justify-between text-base font-extrabold pt-2 border-t border-gray-200">
             <span className="text-[#1F2A2A]">Total</span>
-            <span className="text-[#FF9933]">Rs. {bill.total}</span>
+            <span className="text-[#FF9933]">{formatPrice(bill.total, currency)}</span>
           </div>
         </div>
         <Link
@@ -585,7 +589,7 @@ export default function TrackOrderPage() {
                 })}
               </p>
               <p className="text-lg font-extrabold text-[#FF9933] mt-0.5">
-                Rs. {order.total}
+                {formatPrice(order.total, order.restaurant.currency ?? "NPR")}
               </p>
             </div>
           </div>
@@ -640,7 +644,7 @@ export default function TrackOrderPage() {
                 <div className="flex items-center gap-2">
                   <QrCode className="h-4 w-4 text-amber-600" />
                   <span className="text-sm font-bold text-amber-800">
-                    Scan to Pay &middot; Rs. {order.total}
+                    Scan to Pay &middot; {formatPrice(order.total, order.restaurant.currency ?? "NPR")}
                   </span>
                 </div>
                 <motion.div
@@ -939,7 +943,7 @@ export default function TrackOrderPage() {
                   </span>
                 </div>
                 <span className="text-sm font-bold text-gray-500">
-                  Rs. {item.price * item.quantity}
+                  {formatPrice(item.price * item.quantity, order.restaurant.currency ?? "NPR")}
                 </span>
               </div>
             ))}
@@ -947,7 +951,7 @@ export default function TrackOrderPage() {
           <div className="border-t border-gray-100 mt-3 pt-3 flex items-center justify-between">
             <span className="text-sm font-bold text-[#1F2A2A]">Total</span>
             <span className="text-base font-extrabold text-[#FF9933]">
-              Rs. {order.total}
+              {formatPrice(order.total, order.restaurant.currency ?? "NPR")}
             </span>
           </div>
         </motion.div>
@@ -992,7 +996,7 @@ export default function TrackOrderPage() {
               transition={{ duration: 0.2 }}
               className="overflow-hidden"
             >
-              <BillSection bill={order.bill} order={order} />
+              <BillSection bill={order.bill} order={order} currency={order.restaurant.currency ?? "NPR"} />
             </motion.div>
           )}
         </AnimatePresence>

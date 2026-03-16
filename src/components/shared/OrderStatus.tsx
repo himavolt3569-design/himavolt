@@ -13,6 +13,7 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { useOrder, type OrderStatus as OrderStatusType } from "@/context/OrderContext";
+import { formatPrice } from "@/lib/currency";
 import gsap from "gsap";
 
 const STEPS: { label: string; icon: typeof Clock }[] = [
@@ -38,7 +39,7 @@ function statusToStep(status: OrderStatusType): number {
   }
 }
 
-export default function OrderStatus({ onClose }: { onClose: () => void }) {
+export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: () => void; currency?: string }) {
   const { activeOrder, cancelOrder } = useOrder();
   const [showCancel, setShowCancel] = useState(false);
   const clockRef = useRef<HTMLDivElement>(null);
@@ -240,14 +241,14 @@ export default function OrderStatus({ onClose }: { onClose: () => void }) {
                 <span className="text-sm font-medium text-[#1F2A2A]">{item.name}</span>
               </div>
               <span className="text-sm font-bold text-gray-500">
-                Rs. {item.price * item.quantity}
+                {formatPrice(item.price * item.quantity, currency)}
               </span>
             </div>
           ))}
           <div className="border-t border-gray-200 pt-3 flex items-center justify-between">
             <span className="text-sm font-bold text-[#1F2A2A]">Total</span>
             <span className="text-base font-extrabold text-[#FF9933]">
-              Rs. {activeOrder.total}
+              {formatPrice(activeOrder.total, currency)}
             </span>
           </div>
         </div>

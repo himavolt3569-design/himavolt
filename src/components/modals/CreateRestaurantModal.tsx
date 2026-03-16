@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -19,9 +19,15 @@ import {
   Cake,
   Umbrella,
   Loader2,
+  Search,
+  Sparkles,
+  CheckCircle2,
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
-import { RESTAURANT_TYPE_OPTIONS } from "@/lib/restaurant-types";
+import {
+  RESTAURANT_TYPE_OPTIONS,
+  TYPE_FEATURES,
+} from "@/lib/restaurant-types";
 
 const TYPE_ICONS: Record<string, typeof Flame> = {
   FAST_FOOD: Flame,
@@ -33,6 +39,35 @@ const TYPE_ICONS: Record<string, typeof Flame> = {
   CAFE: Coffee,
   RESTAURANT: UtensilsCrossed,
 };
+
+/* Accent colors for each type (warm, calming palette) */
+const TYPE_ACCENTS: Record<string, { bg: string; ring: string; iconBg: string; text: string }> = {
+  FAST_FOOD: { bg: "bg-orange-500", ring: "ring-orange-400", iconBg: "bg-orange-50", text: "text-orange-600" },
+  RESORT: { bg: "bg-teal-500", ring: "ring-teal-400", iconBg: "bg-teal-50", text: "text-teal-600" },
+  HOTEL: { bg: "bg-indigo-500", ring: "ring-indigo-400", iconBg: "bg-indigo-50", text: "text-indigo-600" },
+  BAKERY: { bg: "bg-pink-500", ring: "ring-pink-400", iconBg: "bg-pink-50", text: "text-pink-600" },
+  CLOUD_KITCHEN: { bg: "bg-violet-500", ring: "ring-violet-400", iconBg: "bg-violet-50", text: "text-violet-600" },
+  BAR: { bg: "bg-rose-500", ring: "ring-rose-400", iconBg: "bg-rose-50", text: "text-rose-600" },
+  CAFE: { bg: "bg-amber-500", ring: "ring-amber-400", iconBg: "bg-amber-50", text: "text-amber-600" },
+  RESTAURANT: { bg: "bg-emerald-500", ring: "ring-emerald-400", iconBg: "bg-emerald-50", text: "text-emerald-600" },
+};
+
+/* ── Nominatim result type ──────────────────────────────────────────── */
+interface NominatimResult {
+  place_id: number;
+  display_name: string;
+  lat: string;
+  lon: string;
+  type: string;
+  address?: {
+    suburb?: string;
+    city?: string;
+    town?: string;
+    village?: string;
+    state?: string;
+    country?: string;
+  };
+}
 
 const backdrop = {
   hidden: { opacity: 0 },
@@ -64,7 +99,7 @@ const card = {
   },
 };
 
-const sheet = {
+const sheetVariants = {
   hidden: { y: "100%" },
   visible: {
     y: 0,
@@ -145,7 +180,7 @@ export default function CreateRestaurantModal({ open, onOpenChange }: Props) {
               <div>
                 <motion.div
                   key="sheet"
-                  variants={sheet}
+                  variants={sheetVariants}
                   initial="hidden"
                   animate="visible"
                   exit="exit"
@@ -202,6 +237,7 @@ export default function CreateRestaurantModal({ open, onOpenChange }: Props) {
   );
 }
 
+/* ── Modal Body ────────────────────────────────────────────────────── */
 function ModalBody({
   name,
   setName,
@@ -232,6 +268,120 @@ function ModalBody({
   saving: boolean;
 }) {
   const isValid = name.trim() && phone.trim() && selectedType;
+
+  /* ── Location search state (local to ModalBody) ─────────────────── */
+  const [locationQuery, setLocationQuery] = useState("");
+  const [locationResults, setLocationResults] = useState<NominatimResult[]>([]);
+  const [searchingLocation, setSearchingLocation] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  const [selectedCoords, setSelectedCoords] = useState<{
+    lat: number;
+    lon: number;
+  } | null>(null);
+  const [locatingMe, setLocatingMe] = useState(false);
+  const locationRef = useRef<HTMLDivElement>(null);
+
+  /* Close dropdown on outside click */
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (
+        locationRef.current &&
+        !locationRef.current.contains(e.target as Node)
+      ) {
+        setShowResults(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  /* Debounced Nominatim search */
+  useEffect(() => {
+    if (locationQuery.length < 3) {
+      setLocationResults([]);
+      setShowResults(false);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setSearchingLocation(true);
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationQuery)}&limit=5&addressdetails=1&countrycodes=np`,
+          { headers: { "Accept-Language": "en" } },
+        );
+        const data: NominatimResult[] = await res.json();
+        setLocationResults(data);
+        setShowResults(true);
+      } catch {
+        /* silent fail */
+      }
+      setSearchingLocation(false);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [locationQuery]);
+
+  /* Select a location from search results */
+  const handleSelectLocation = (result: NominatimResult) => {
+    const city =
+      result.address?.city ||
+      result.address?.town ||
+      result.address?.village ||
+      "";
+    const shortAddr = city
+      ? `${result.display_name.split(",").slice(0, 3).join(",").trim()}`
+      : result.display_name.split(",").slice(0, 3).join(",").trim();
+
+    setAddress(shortAddr);
+    setLocationQuery(shortAddr);
+    setSelectedCoords({
+      lat: parseFloat(result.lat),
+      lon: parseFloat(result.lon),
+    });
+    setShowResults(false);
+    setLocationResults([]);
+  };
+
+  /* Use my location — browser Geolocation + Nominatim reverse */
+  const handleLocateMe = () => {
+    if (!navigator.geolocation) return;
+    setLocatingMe(true);
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`,
+            { headers: { "Accept-Language": "en" } },
+          );
+          const data = await res.json();
+          const addr =
+            data.display_name?.split(",").slice(0, 3).join(",").trim() ||
+            `${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
+          setAddress(addr);
+          setLocationQuery(addr);
+          setSelectedCoords({
+            lat: pos.coords.latitude,
+            lon: pos.coords.longitude,
+          });
+          setLocationResults([]);
+          setShowResults(false);
+        } catch {
+          /* silent fail */
+        }
+        setLocatingMe(false);
+      },
+      () => setLocatingMe(false),
+      { enableHighAccuracy: true, timeout: 10000 },
+    );
+  };
+
+  /* Type features for the selected type */
+  const features = selectedType ? TYPE_FEATURES[selectedType] ?? [] : [];
+  const accent = selectedType
+    ? TYPE_ACCENTS[selectedType] ?? TYPE_ACCENTS.RESTAURANT
+    : null;
 
   return (
     <div>
@@ -265,7 +415,7 @@ function ModalBody({
         </div>
 
         <div className="space-y-5">
-          {/* Name */}
+          {/* ── Name ─────────────────────────────────────────────── */}
           <div>
             <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">
               Restaurant Name <span className="text-amber-500">*</span>
@@ -282,7 +432,7 @@ function ModalBody({
             </div>
           </div>
 
-          {/* Phone */}
+          {/* ── Phone ────────────────────────────────────────────── */}
           <div>
             <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">
               Phone Number <span className="text-amber-500">*</span>
@@ -307,7 +457,7 @@ function ModalBody({
             </div>
           </div>
 
-          {/* Type */}
+          {/* ── Type Selection ───────────────────────────────────── */}
           <div>
             <label className="block text-[13px] font-semibold text-gray-700 mb-2">
               Type <span className="text-amber-500">*</span>
@@ -318,19 +468,20 @@ function ModalBody({
                   TYPE_ICONS[value as keyof typeof TYPE_ICONS] ??
                   UtensilsCrossed;
                 const selected = selectedType === value;
+                const typeAccent = TYPE_ACCENTS[value] ?? TYPE_ACCENTS.RESTAURANT;
                 return (
                   <button
                     key={value}
                     onClick={() => setSelectedType(value)}
-                    className={`flex flex-col items-center gap-1.5 rounded-xl px-1 py-3 text-center transition-all ring-1 ${
+                    className={`flex flex-col items-center gap-1.5 rounded-xl px-1 py-3 text-center transition-all ring-1 cursor-pointer ${
                       selected
-                        ? "bg-[#0F1219] text-white ring-[#0F1219] shadow-md"
+                        ? `${typeAccent.bg} text-white ${typeAccent.ring} shadow-md`
                         : "bg-white text-gray-600 ring-gray-200/80 hover:ring-gray-300 hover:bg-gray-50"
                     }`}
                   >
                     <Icon
                       className={`h-4.5 w-4.5 ${
-                        selected ? "text-amber-400" : "text-gray-400"
+                        selected ? "text-white/90" : "text-gray-400"
                       }`}
                     />
                     <span className="text-[11px] font-medium leading-tight">
@@ -342,27 +493,161 @@ function ModalBody({
             </div>
           </div>
 
-          {/* Address */}
+          {/* ── Type-Specific Features ───────────────────────────── */}
+          <AnimatePresence mode="wait">
+            {selectedType && features.length > 0 && accent && (
+              <motion.div
+                key={selectedType}
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
+                className="overflow-hidden"
+              >
+                <div className={`rounded-xl ${accent.iconBg} p-4 ring-1 ring-gray-100/80`}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Sparkles className={`h-3.5 w-3.5 ${accent.text}`} />
+                    <p className={`text-[12px] font-bold ${accent.text} uppercase tracking-wider`}>
+                      {RESTAURANT_TYPE_OPTIONS.find((t) => t.value === selectedType)?.label} Features
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {features.map((f) => (
+                      <div
+                        key={f.label}
+                        className="flex items-start gap-2 rounded-lg bg-white/80 p-2.5 ring-1 ring-gray-100/60"
+                      >
+                        <CheckCircle2
+                          className={`h-3.5 w-3.5 shrink-0 mt-0.5 ${accent.text}`}
+                        />
+                        <div className="min-w-0">
+                          <p className="text-[11px] font-semibold text-gray-800 leading-tight">
+                            {f.label}
+                          </p>
+                          <p className="text-[10px] text-gray-400 leading-tight mt-0.5">
+                            {f.desc}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* ── Address with Nominatim Search ────────────────────── */}
           <div>
             <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">
               Address
             </label>
             <div className="flex gap-2">
-              <div className="relative flex-1">
-                <MapPin className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <div className="relative flex-1" ref={locationRef}>
+                {searchingLocation ? (
+                  <Loader2 className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-amber-500 animate-spin" />
+                ) : (
+                  <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                )}
                 <input
                   type="text"
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  placeholder="Search location"
-                  className="w-full rounded-xl bg-gray-50 pl-10 pr-9 py-3 text-sm text-gray-800 placeholder-gray-400 outline-none ring-1 ring-gray-200/80 transition-all focus:bg-white focus:ring-amber-400"
+                  value={locationQuery}
+                  onChange={(e) => {
+                    setLocationQuery(e.target.value);
+                    if (e.target.value !== address) {
+                      setSelectedCoords(null);
+                    }
+                  }}
+                  onFocus={() => {
+                    if (locationResults.length > 0) setShowResults(true);
+                  }}
+                  placeholder="Search for a place in Nepal..."
+                  className="w-full rounded-xl bg-gray-50 pl-10 pr-3.5 py-3 text-sm text-gray-800 placeholder-gray-400 outline-none ring-1 ring-gray-200/80 transition-all focus:bg-white focus:ring-amber-400"
                 />
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+
+                {/* Search results dropdown */}
+                <AnimatePresence>
+                  {showResults && locationResults.length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -4 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute left-0 right-0 top-full mt-1.5 z-30 rounded-xl bg-white ring-1 ring-gray-200 shadow-xl overflow-hidden"
+                    >
+                      {locationResults.map((result) => {
+                        const parts = result.display_name.split(",");
+                        const primary = parts.slice(0, 2).join(",").trim();
+                        const secondary = parts.slice(2, 4).join(",").trim();
+                        return (
+                          <button
+                            key={result.place_id}
+                            onClick={() => handleSelectLocation(result)}
+                            className="flex items-start gap-2.5 w-full px-3.5 py-2.5 text-left hover:bg-amber-50/60 transition-colors border-b border-gray-50 last:border-0"
+                          >
+                            <MapPin className="h-3.5 w-3.5 shrink-0 mt-0.5 text-amber-500" />
+                            <div className="min-w-0 flex-1">
+                              <p className="text-[12px] font-semibold text-gray-800 truncate">
+                                {primary}
+                              </p>
+                              {secondary && (
+                                <p className="text-[10px] text-gray-400 truncate">
+                                  {secondary}
+                                </p>
+                              )}
+                            </div>
+                          </button>
+                        );
+                      })}
+                      <div className="px-3 py-1.5 bg-gray-50/80 border-t border-gray-100">
+                        <p className="text-[9px] text-gray-300 text-right">
+                          Powered by OpenStreetMap
+                        </p>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
-              <button className="flex h-11.5 w-11.5 shrink-0 items-center justify-center rounded-xl bg-gray-50 text-gray-400 ring-1 ring-gray-200/80 hover:bg-amber-50 hover:text-amber-500 hover:ring-amber-300 transition-all">
-                <LocateFixed className="h-4 w-4" />
+
+              {/* Locate me button */}
+              <button
+                onClick={handleLocateMe}
+                disabled={locatingMe}
+                className="flex h-11.5 w-11.5 shrink-0 items-center justify-center rounded-xl bg-gray-50 text-gray-400 ring-1 ring-gray-200/80 hover:bg-amber-50 hover:text-amber-500 hover:ring-amber-300 transition-all disabled:opacity-50"
+                title="Use my location"
+              >
+                {locatingMe ? (
+                  <Loader2 className="h-4 w-4 animate-spin text-amber-500" />
+                ) : (
+                  <LocateFixed className="h-4 w-4" />
+                )}
               </button>
             </div>
+
+            {/* Map preview */}
+            <AnimatePresence>
+              {selectedCoords && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden"
+                >
+                  <div className="mt-2.5 rounded-xl overflow-hidden ring-1 ring-gray-200/80">
+                    <iframe
+                      src={`https://www.openstreetmap.org/export/embed.html?bbox=${selectedCoords.lon - 0.006},${selectedCoords.lat - 0.004},${selectedCoords.lon + 0.006},${selectedCoords.lat + 0.004}&layer=mapnik&marker=${selectedCoords.lat},${selectedCoords.lon}`}
+                      className="w-full h-36 border-0"
+                      loading="lazy"
+                      title="Selected location"
+                    />
+                  </div>
+                  <p className="text-[10px] text-gray-400 mt-1.5 flex items-center gap-1">
+                    <MapPin className="h-2.5 w-2.5" />
+                    {address}
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
 

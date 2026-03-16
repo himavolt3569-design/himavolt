@@ -22,13 +22,15 @@ interface CartState {
   items: CartItem[];
   restaurantId: string | null;
   restaurantSlug: string | null;
+  currency: string;
 }
 
 interface CartContextType {
   items: CartItem[];
   restaurantId: string | null;
   restaurantSlug: string | null;
-  addItem: (item: Omit<CartItem, "quantity">, restaurantId: string, restaurantSlug: string) => void;
+  currency: string;
+  addItem: (item: Omit<CartItem, "quantity">, restaurantId: string, restaurantSlug: string, currency?: string) => void;
   removeItem: (id: string) => void;
   increaseQty: (id: string) => void;
   decreaseQty: (id: string) => void;
@@ -41,18 +43,19 @@ interface CartContextType {
 const STORAGE_KEY = "hh_cart";
 
 function loadCart(): CartState {
-  if (typeof window === "undefined") return { items: [], restaurantId: null, restaurantSlug: null };
+  if (typeof window === "undefined") return { items: [], restaurantId: null, restaurantSlug: null, currency: "NPR" };
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { items: [], restaurantId: null, restaurantSlug: null };
+    if (!raw) return { items: [], restaurantId: null, restaurantSlug: null, currency: "NPR" };
     const parsed = JSON.parse(raw);
     return {
       items: Array.isArray(parsed.items) ? parsed.items : [],
       restaurantId: parsed.restaurantId ?? null,
       restaurantSlug: parsed.restaurantSlug ?? null,
+      currency: parsed.currency ?? "NPR",
     };
   } catch {
-    return { items: [], restaurantId: null, restaurantSlug: null };
+    return { items: [], restaurantId: null, restaurantSlug: null, currency: "NPR" };
   }
 }
 
@@ -71,6 +74,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>(() => loadCart().items);
   const [restaurantId, setRestaurantId] = useState<string | null>(() => loadCart().restaurantId);
   const [restaurantSlug, setRestaurantSlug] = useState<string | null>(() => loadCart().restaurantSlug);
+  const [currency, setCurrency] = useState<string>(() => loadCart().currency);
   const initialized = useRef(false);
 
   // Hydrate from localStorage on mount (client only)
@@ -82,25 +86,28 @@ export function CartProvider({ children }: { children: ReactNode }) {
       setItems(saved.items);
       setRestaurantId(saved.restaurantId);
       setRestaurantSlug(saved.restaurantSlug);
+      setCurrency(saved.currency);
     }
   }, []);
 
   // Persist to localStorage on every change
   useEffect(() => {
     if (!initialized.current) return;
-    saveCart({ items, restaurantId, restaurantSlug });
-  }, [items, restaurantId, restaurantSlug]);
+    saveCart({ items, restaurantId, restaurantSlug, currency });
+  }, [items, restaurantId, restaurantSlug, currency]);
 
   const addItem = useCallback(
-    (item: Omit<CartItem, "quantity">, restId: string, restSlug: string) => {
+    (item: Omit<CartItem, "quantity">, restId: string, restSlug: string, cur?: string) => {
       if (restaurantId && restaurantId !== restId) {
         setItems([{ ...item, quantity: 1 }]);
         setRestaurantId(restId);
         setRestaurantSlug(restSlug);
+        if (cur) setCurrency(cur);
         return;
       }
       setRestaurantId(restId);
       setRestaurantSlug(restSlug);
+      if (cur) setCurrency(cur);
       setItems((prev) => {
         const existing = prev.find((i) => i.id === item.id);
         if (existing) {
@@ -149,6 +156,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems([]);
     setRestaurantId(null);
     setRestaurantSlug(null);
+    setCurrency("NPR");
     if (typeof window !== "undefined") {
       try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
     }
@@ -160,6 +168,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         items,
         restaurantId,
         restaurantSlug,
+        currency,
         addItem,
         removeItem,
         increaseQty,

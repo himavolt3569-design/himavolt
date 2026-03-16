@@ -2,12 +2,14 @@
 
 import { motion } from "framer-motion";
 import { UtensilsCrossed, ShoppingBag } from "lucide-react";
+import { formatPrice } from "@/lib/currency";
 
 interface TableSessionBannerProps {
   tableNo: number;
   itemCount: number;
   total: number;
   status: string;
+  currency?: string;
 }
 
 export default function TableSessionBanner({
@@ -15,6 +17,7 @@ export default function TableSessionBanner({
   itemCount,
   total,
   status,
+  currency = "NPR",
 }: TableSessionBannerProps) {
   const statusColor =
     status === "PREPARING"
@@ -45,7 +48,7 @@ export default function TableSessionBanner({
       </div>
       <div className="flex items-center gap-2 text-right">
         <div>
-          <p className="text-sm font-bold text-amber-900">Rs. {total.toLocaleString()}</p>
+          <p className="text-sm font-bold text-amber-900">{formatPrice(total, currency)}</p>
           <p className="text-[10px] text-amber-500 flex items-center gap-0.5 justify-end">
             <ShoppingBag className="h-2.5 w-2.5" />
             {itemCount} items

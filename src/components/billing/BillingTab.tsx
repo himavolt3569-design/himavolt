@@ -29,6 +29,8 @@ import {
   ShoppingCart,
   BedDouble,
 } from "lucide-react";
+import { useRestaurant } from "@/context/RestaurantContext";
+import { formatPrice, getCurrencySymbol } from "@/lib/currency";
 
 /* Types */
 
@@ -174,6 +176,8 @@ export default function BillingTab({
   restaurantId,
   staffRole,
 }: BillingTabProps) {
+  const { selectedRestaurant } = useRestaurant();
+  const cur = selectedRestaurant?.currency ?? "NPR";
   const [orders, setOrders] = useState<BillOrder[]>([]);
   const [summary, setSummary] = useState<DailySummary | null>(null);
   const [loading, setLoading] = useState(true);
@@ -347,21 +351,21 @@ export default function BillingTab({
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <SummaryCard
             label="Total Revenue"
-            value={`Rs. ${summary.totalRevenue.toLocaleString()}`}
+            value={formatPrice(summary.totalRevenue, cur)}
             icon={TrendingUp}
             color="text-emerald-600"
             bg="bg-emerald-50"
           />
           <SummaryCard
             label="Cash Collected"
-            value={`Rs. ${summary.cashRevenue.toLocaleString()}`}
+            value={formatPrice(summary.cashRevenue, cur)}
             icon={DollarSign}
             color="text-blue-600"
             bg="bg-blue-50"
           />
           <SummaryCard
             label="Pending"
-            value={`Rs. ${summary.pendingAmount.toLocaleString()}`}
+            value={formatPrice(summary.pendingAmount, cur)}
             icon={Clock}
             color="text-orange-600"
             bg="bg-orange-50"
@@ -369,7 +373,7 @@ export default function BillingTab({
           />
           <SummaryCard
             label="Discounts"
-            value={`Rs. ${summary.totalDiscount.toLocaleString()}`}
+            value={formatPrice(summary.totalDiscount, cur)}
             icon={Tag}
             color="text-pink-600"
             bg="bg-pink-50"
@@ -395,7 +399,7 @@ export default function BillingTab({
           {summary.onlineRevenue > 0 && (
             <span className="flex items-center gap-1">
               <Wallet className="h-3 w-3 text-purple-500" />
-              Rs. {summary.onlineRevenue.toLocaleString()} online
+              {formatPrice(summary.onlineRevenue, cur)} online
             </span>
           )}
         </div>
@@ -659,7 +663,7 @@ export default function BillingTab({
                     {item.quantity}× {item.name}
                   </span>
                   <span className="font-bold text-gray-500">
-                    Rs. {item.price * item.quantity}
+                    {formatPrice(item.price * item.quantity, cur)}
                   </span>
                 </div>
               ))}
@@ -675,14 +679,14 @@ export default function BillingTab({
               <div className="flex justify-between text-xs">
                 <span className="text-gray-500">Subtotal</span>
                 <span className="font-medium">
-                  Rs. {(order.bill?.subtotal ?? order.subtotal).toFixed(0)}
+                  {formatPrice(order.bill?.subtotal ?? order.subtotal, cur)}
                 </span>
               </div>
               {taxEnabled && (
                 <div className="flex justify-between text-xs">
                   <span className="text-gray-500">Tax ({taxRate}%)</span>
                   <span className="font-medium">
-                    Rs. {(order.bill?.tax ?? order.tax).toFixed(0)}
+                    {formatPrice(order.bill?.tax ?? order.tax, cur)}
                   </span>
                 </div>
               )}
@@ -692,7 +696,7 @@ export default function BillingTab({
                     Service Charge ({scRate}%)
                   </span>
                   <span className="font-medium">
-                    Rs. {order.bill.serviceCharge.toFixed(0)}
+                    {formatPrice(order.bill.serviceCharge, cur)}
                   </span>
                 </div>
               )}
@@ -700,14 +704,14 @@ export default function BillingTab({
                 <div className="flex justify-between text-xs">
                   <span className="text-pink-600">Discount</span>
                   <span className="font-medium text-pink-600">
-                    -Rs. {order.bill.discount.toFixed(0)}
+                    -{formatPrice(order.bill.discount, cur)}
                   </span>
                 </div>
               )}
               <div className="flex justify-between text-sm font-extrabold border-t border-gray-200 pt-1.5 mt-1.5">
                 <span className="text-[#1F2A2A]">Total</span>
                 <span className="text-[#1F2A2A]">
-                  Rs. {(order.bill?.total ?? order.total).toFixed(0)}
+                  {formatPrice(order.bill?.total ?? order.total, cur)}
                 </span>
               </div>
             </div>
@@ -832,16 +836,12 @@ export default function BillingTab({
                   Amount Due
                 </p>
                 <p className="text-3xl font-extrabold text-[#1F2A2A]">
-                  Rs.{" "}
-                  {(selectedOrder.bill?.total ?? selectedOrder.total).toFixed(
-                    0,
-                  )}
+                  {formatPrice(selectedOrder.bill?.total ?? selectedOrder.total, cur)}
                 </p>
                 {selectedOrder.bill?.discount &&
                   selectedOrder.bill.discount > 0 && (
                     <p className="text-xs text-pink-600 mt-1">
-                      Discount applied: Rs.{" "}
-                      {selectedOrder.bill.discount.toFixed(0)}
+                      Discount applied: {formatPrice(selectedOrder.bill.discount, cur)}
                     </p>
                   )}
               </div>
@@ -851,17 +851,13 @@ export default function BillingTab({
                 <div className="flex justify-between text-xs">
                   <span className="text-gray-500">Subtotal</span>
                   <span>
-                    Rs.{" "}
-                    {(
-                      selectedOrder.bill?.subtotal ?? selectedOrder.subtotal
-                    ).toFixed(0)}
+                    {formatPrice(selectedOrder.bill?.subtotal ?? selectedOrder.subtotal, cur)}
                   </span>
                 </div>
                 <div className="flex justify-between text-xs">
                   <span className="text-gray-500">Tax ({taxRate}%)</span>
                   <span>
-                    Rs.{" "}
-                    {(selectedOrder.bill?.tax ?? selectedOrder.tax).toFixed(0)}
+                    {formatPrice(selectedOrder.bill?.tax ?? selectedOrder.tax, cur)}
                   </span>
                 </div>
                 {selectedOrder.bill && selectedOrder.bill.serviceCharge > 0 && (
@@ -870,14 +866,14 @@ export default function BillingTab({
                       Service Charge ({scRate}%)
                     </span>
                     <span>
-                      Rs. {selectedOrder.bill.serviceCharge.toFixed(0)}
+                      {formatPrice(selectedOrder.bill.serviceCharge, cur)}
                     </span>
                   </div>
                 )}
                 {selectedOrder.bill && selectedOrder.bill.discount > 0 && (
                   <div className="flex justify-between text-xs text-pink-600">
                     <span>Discount</span>
-                    <span>-Rs. {selectedOrder.bill.discount.toFixed(0)}</span>
+                    <span>-{formatPrice(selectedOrder.bill.discount, cur)}</span>
                   </div>
                 )}
               </div>
@@ -996,10 +992,7 @@ export default function BillingTab({
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Current Bill Total</span>
                   <span className="font-bold text-[#1F2A2A]">
-                    Rs.{" "}
-                    {(selectedOrder.bill?.total ?? selectedOrder.total).toFixed(
-                      0,
-                    )}
+                    {formatPrice(selectedOrder.bill?.total ?? selectedOrder.total, cur)}
                   </span>
                 </div>
                 {selectedOrder.bill?.discount &&
@@ -1007,7 +1000,7 @@ export default function BillingTab({
                     <div className="flex justify-between text-sm mt-1">
                       <span className="text-pink-600">Existing Discount</span>
                       <span className="font-bold text-pink-600">
-                        Rs. {selectedOrder.bill.discount.toFixed(0)}
+                        {formatPrice(selectedOrder.bill.discount, cur)}
                       </span>
                     </div>
                   )}
@@ -1017,7 +1010,7 @@ export default function BillingTab({
               <div className="space-y-3 mb-5">
                 <div>
                   <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5 block">
-                    Discount Amount (Rs.)
+                    Discount Amount ({getCurrencySymbol(cur)})
                   </label>
                   <input
                     value={discountAmount}
@@ -1048,7 +1041,7 @@ export default function BillingTab({
                       onClick={() => setDiscountAmount(amt.toString())}
                       className="rounded-lg bg-pink-50 px-3 py-1.5 text-xs font-bold text-pink-700 hover:bg-pink-100 transition-all"
                     >
-                      Rs. {amt}
+                      {formatPrice(amt, cur)}
                     </button>
                   ))}
                   {/* Percentage buttons */}
@@ -1062,7 +1055,7 @@ export default function BillingTab({
                         onClick={() => setDiscountAmount(amt.toString())}
                         className="rounded-lg bg-purple-50 px-3 py-1.5 text-xs font-bold text-purple-700 hover:bg-purple-100 transition-all"
                       >
-                        {pct}% (Rs. {amt})
+                        {pct}% ({formatPrice(amt, cur)})
                       </button>
                     );
                   })}
@@ -1077,15 +1070,14 @@ export default function BillingTab({
                       New Total after Discount
                     </span>
                     <span className="font-extrabold text-[#1F2A2A]">
-                      Rs.{" "}
-                      {Math.max(
+                      {formatPrice(Math.max(
                         0,
                         (selectedOrder.bill?.subtotal ??
                           selectedOrder.subtotal) +
                           (selectedOrder.bill?.tax ?? selectedOrder.tax) +
                           (selectedOrder.bill?.serviceCharge ?? 0) -
                           parseFloat(discountAmount),
-                      ).toFixed(0)}
+                      ), cur)}
                     </span>
                   </div>
                 </div>

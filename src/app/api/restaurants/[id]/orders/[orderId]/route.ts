@@ -36,7 +36,7 @@ export async function GET(
       user: { select: { name: true, email: true, phone: true } },
       payment: true,
       bill: true,
-      restaurant: { select: { name: true } },
+      restaurant: { select: { name: true, currency: true } },
       delivery: {
         include: {
           driver: {
@@ -115,7 +115,7 @@ export async function PATCH(
       items: true,
       payment: true,
       bill: true,
-      restaurant: { select: { name: true } },
+      restaurant: { select: { name: true, currency: true } },
       delivery: {
         include: {
           driver: {

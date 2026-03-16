@@ -18,6 +18,8 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { useLiveOrders, type LiveOrder, type LiveOrderStatus } from "@/context/LiveOrdersContext";
+import { useRestaurant } from "@/context/RestaurantContext";
+import { formatPrice } from "@/lib/currency";
 import DineInRequestModal from "@/components/modals/DineInRequestModal";
 import gsap from "gsap";
 
@@ -128,6 +130,8 @@ function PaymentBadge({ method, status }: { method: string; status: string }) {
 }
 
 export default function LiveOrdersTab() {
+  const { selectedRestaurant } = useRestaurant();
+  const cur = selectedRestaurant?.currency ?? "NPR";
   const { orders, loading, refresh, acceptOrder, rejectOrder, markPreparing, markReady, markDelivered } = useLiveOrders();
   const [selectedOrder, setSelectedOrder] = useState<LiveOrder | null>(null);
   const [filterStatus, setFilterStatus] = useState<LiveOrderStatus | "ALL">("ALL");
@@ -278,7 +282,7 @@ export default function LiveOrdersTab() {
                         </div>
                       </td>
                       <td className="px-4 py-4 font-bold text-[#1F2A2A]">
-                        Rs. {order.total}
+                        {formatPrice(order.total, cur)}
                       </td>
                       <td className="px-4 py-4">
                         {order.payment ? (
@@ -342,7 +346,7 @@ export default function LiveOrdersTab() {
                       <TimeAgo ts={order.createdAt} />
                     </div>
                   </div>
-                  <span className="text-sm font-bold text-[#1F2A2A]">Rs. {order.total}</span>
+                  <span className="text-sm font-bold text-[#1F2A2A]">{formatPrice(order.total, cur)}</span>
                 </div>
                 {order.payment && (
                   <div className="mb-2">

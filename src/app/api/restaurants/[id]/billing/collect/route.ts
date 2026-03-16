@@ -3,6 +3,7 @@ import { collectPayment } from "@/lib/billing";
 import { db } from "@/lib/db";
 import { requireStaffForRestaurant } from "@/lib/staff-auth";
 import { logAudit, getClientIp } from "@/lib/audit";
+import { getCurrencySymbol } from "@/lib/currency";
 
 async function verifyStaffAccess(req: NextRequest, restaurantId: string) {
   const staff = await requireStaffForRestaurant(req, restaurantId);
@@ -67,9 +68,11 @@ export async function POST(
   }
 
   // Verify the order belongs to this restaurant
-  const order = await db.order.findFirst({
-    where: { id: orderId, restaurantId: id },
-  });
+  const [order, restaurantForCurrency] = await Promise.all([
+    db.order.findFirst({ where: { id: orderId, restaurantId: id } }),
+    db.restaurant.findUnique({ where: { id }, select: { currency: true } }),
+  ]);
+  const currSym = getCurrencySymbol(restaurantForCurrency?.currency ?? "NPR");
 
   if (!order) {
     return NextResponse.json({ error: "Order not found" }, { status: 404 });
@@ -82,7 +85,7 @@ export async function POST(
       action: "PAYMENT_COLLECTED",
       entity: "Payment",
       entityId: orderId,
-      detail: `Payment collected via ${method} for order ${order.orderNo} (Rs.${order.total})`,
+      detail: `Payment collected via ${method} for order ${order.orderNo} (${currSym}${order.total})`,
       metadata: {
         method,
         orderNo: order.orderNo,

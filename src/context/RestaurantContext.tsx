@@ -45,6 +45,7 @@ export interface Restaurant {
   closingTime: string;
   rating: number;
   totalOrders: number;
+  currency: string;
   createdAt: string;
   updatedAt: string;
   ownerId: string;

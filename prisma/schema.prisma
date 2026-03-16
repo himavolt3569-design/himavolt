@@ -57,7 +57,8 @@ model Restaurant {
   rating         Float          @default(0)
   totalOrders    Int            @default(0)
 
-  // Tax & Service Charge config
+  // Currency & Tax config
+  currency             String  @default("NPR") // NPR, INR, USD
   taxRate              Float   @default(13)   // percentage, e.g. 13 = 13%
   taxEnabled           Boolean @default(true)
   serviceChargeRate    Float   @default(10)   // percentage, e.g. 10 = 10%

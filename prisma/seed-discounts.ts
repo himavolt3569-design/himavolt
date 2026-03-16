@@ -5,6 +5,9 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/index.js";
 import "dotenv/config";
 
+// Default currency symbol for seed data
+const CURRENCY_SYMBOL = "Rs.";
+
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) {
   console.error("DATABASE_URL not set");
@@ -33,7 +36,7 @@ async function main() {
     const discountAmt = Math.round(item.price * (discountPercent / 100));
     const discountLabel = shouldDiscount
       ? discountAmt >= 50
-        ? `FLAT Rs.${discountAmt} OFF`
+        ? `FLAT ${CURRENCY_SYMBOL}${discountAmt} OFF`
         : `${discountPercent}% OFF`
       : null;
 

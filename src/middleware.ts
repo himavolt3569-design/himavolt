@@ -79,12 +79,9 @@ const handler = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
         }
       }
 
-      // For API routes, return 401 JSON instead of redirecting
-      if (req.nextUrl.pathname.startsWith("/api/")) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-      }
-
-      // Default Clerk Protection (redirects to sign-in for pages)
+      // For all protected routes (API and pages), use Clerk protection.
+      // This returns 401 for unauthenticated API requests and
+      // redirects to sign-in for unauthenticated page requests.
       await auth.protect();
     })
   : passthrough;

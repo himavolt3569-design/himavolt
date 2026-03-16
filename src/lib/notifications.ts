@@ -1,5 +1,6 @@
 import { getMessaging } from "./firebase-admin";
 import { db } from "./db";
+import { formatPrice } from "./currency";
 
 interface NotificationPayload {
   title: string;
@@ -88,11 +89,12 @@ export async function notifyKitchenNewOrder(
   orderNo: string,
   total: number,
   tableNo: number | null,
+  currencyCode: string = "NPR",
 ) {
   // Sends to ALL staff (kitchen + counter) so both sides are aware
   await sendNotificationToRestaurantStaff(restaurantId, {
     title: "New Order Received!",
-    body: `Order #${orderNo}${tableNo ? ` (Table ${tableNo})` : ""} — Rs. ${total}`,
+    body: `Order #${orderNo}${tableNo ? ` (Table ${tableNo})` : ""} — ${formatPrice(total, currencyCode)}`,
     data: {
       type: "NEW_ORDER",
       orderNo,

@@ -41,6 +41,15 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+
+  /* Typewriter cursor blink */
+  .animate-cursor {
+    animation: cursor-blink 0.7s steps(1) infinite;
+  }
+  @keyframes cursor-blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+  }
 }
 
 input[type="number"]::-webkit-inner-spin-button,

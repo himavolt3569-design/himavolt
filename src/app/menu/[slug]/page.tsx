@@ -42,6 +42,8 @@ import {
   Egg,
   ChevronRight,
   Loader2,
+  Megaphone,
+  Tag,
 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useToast } from "@/context/ToastContext";
@@ -54,10 +56,12 @@ import CartSidebar from "@/components/cart/CartSidebar";
 import CheckoutSheet from "@/components/checkout/CheckoutSheet";
 import MenuStories from "@/components/stories/MenuStories";
 import ChatWidget from "@/components/chat/ChatWidget";
+import { formatPrice } from "@/lib/currency";
 import OfferCountdown from "@/components/menu/OfferCountdown";
 import TableSessionBanner from "@/components/menu/TableSessionBanner";
 import GetBillButton from "@/components/menu/GetBillButton";
 import { useTableSession } from "@/hooks/useTableSession";
+import { setActiveTableSession } from "@/hooks/useActiveTableSession";
 import FoodSlider from "@/components/menu/FoodSlider";
 import MenuStoryHero from "@/components/three/MenuStoryHero";
 import ScrollStorySection from "@/components/three/ScrollStorySection";
@@ -85,6 +89,7 @@ interface Restaurant {
   openingTime: string;
   closingTime: string;
   tableCount: number;
+  currency: string;
   categories: RestaurantCategory[];
 }
 
@@ -185,16 +190,22 @@ function SizeSelector({
   );
 }
 
-function DishDetail({
+function DishDetailModal({
   dish,
   restaurantId,
   restaurantSlug,
+  restaurantCurrency,
+  allItems,
   onClose,
+  onSelectDish,
 }: {
   dish: MenuItem;
   restaurantId: string;
   restaurantSlug: string;
+  restaurantCurrency: string;
+  allItems: MenuItem[];
   onClose: () => void;
+  onSelectDish: (item: MenuItem) => void;
 }) {
   const { addItem, getItemQty } = useCart();
   const { showToast } = useToast();
@@ -202,6 +213,7 @@ function DishDetail({
   const [sizeIdx, setSizeIdx] = useState(0);
   const [selectedAddOns, setSelectedAddOns] = useState<Set<string>>(new Set());
   const priceRef = useRef<HTMLParagraphElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
 
   const sizeAdd = dish.sizes.length > 0 ? dish.sizes[sizeIdx].priceAdd : 0;
   const addOnTotal = dish.addOns
@@ -209,6 +221,14 @@ function DishDetail({
     .reduce((s, a) => s + a.price, 0);
   const unitPrice = dish.price + sizeAdd + addOnTotal;
   const total = unitPrice * qty;
+
+  // Reset state when dish changes
+  useEffect(() => {
+    setQty(1);
+    setSizeIdx(0);
+    setSelectedAddOns(new Set());
+    modalRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+  }, [dish.id]);
 
   useEffect(() => {
     if (priceRef.current) {
@@ -219,6 +239,15 @@ function DishDetail({
       );
     }
   }, [total]);
+
+  // Close on Escape
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [onClose]);
 
   const toggleAddOn = (id: string) => {
     setSelectedAddOns((prev) => {
@@ -240,6 +269,7 @@ function DishDetail({
         },
         restaurantId,
         restaurantSlug,
+        restaurantCurrency,
       );
     }
     showToast(`${dish.name} added to cart!`);
@@ -247,237 +277,416 @@ function DishDetail({
 
   const cartQty = getItemQty(dish.id);
 
+  // Recommended items: same category, excluding current dish, top rated
+  const recommended = allItems
+    .filter((i) => i.id !== dish.id && i.categoryId === dish.categoryId && i.isAvailable)
+    .sort((a, b) => b.rating - a.rating)
+    .slice(0, 6);
+
+  // If not enough from same category, fill from other categories
+  const moreRecommended = recommended.length < 4
+    ? allItems
+        .filter((i) => i.id !== dish.id && i.categoryId !== dish.categoryId && i.isAvailable && !recommended.some((r) => r.id === i.id))
+        .sort((a, b) => b.rating - a.rating)
+        .slice(0, 4 - recommended.length)
+    : [];
+
+  const allRecommended = [...recommended, ...moreRecommended];
+
   return (
-    <div className="flex flex-col h-full overflow-y-auto">
+    <>
+      {/* Glassmorphism backdrop */}
       <motion.div
-        className="relative w-full aspect-video overflow-hidden bg-gray-100"
-        initial={{ opacity: 0, scale: 1.05 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        key="glass-overlay"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.25 }}
+        onClick={onClose}
+        className="fixed inset-0 z-50 bg-black/40 backdrop-blur-md"
+      />
+
+      {/* Modal */}
+      <motion.div
+        key="glass-modal"
+        initial={{ opacity: 0, scale: 0.92, y: 30 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        transition={{ type: "spring", damping: 28, stiffness: 350, mass: 0.8 }}
+        className="fixed inset-4 sm:inset-6 md:inset-x-auto md:inset-y-6 md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-2xl lg:max-w-3xl z-50 flex flex-col rounded-3xl overflow-hidden border border-white/20 shadow-2xl shadow-black/20"
+        style={{
+          background: "rgba(255, 255, 255, 0.85)",
+          backdropFilter: "blur(24px) saturate(180%)",
+          WebkitBackdropFilter: "blur(24px) saturate(180%)",
+        }}
       >
-        <img
-          src={img(dish.imageUrl)}
-          alt={dish.name}
-          loading="lazy"
-          className="h-full w-full object-cover"
-        />
-        <motion.button
-          onClick={onClose}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          transition={{ type: "spring", stiffness: 400, damping: 17 }}
-          className="absolute top-4 left-4 flex h-9 w-9 items-center justify-center rounded-xl bg-white/90 backdrop-blur-sm shadow-md text-gray-700 hover:bg-white hover:text-[#1F2A2A] transition-all"
-        >
-          <X className="h-4 w-4" />
-        </motion.button>
-        {dish.badge && (
-          <motion.span
-            className="absolute top-4 right-4 rounded-full bg-[#FF9933] px-3 py-1 text-[11px] font-bold text-white shadow-md"
-            initial={{ opacity: 0, scale: 0.6 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{
-              delay: 0.2,
-              type: "spring",
-              stiffness: 500,
-              damping: 15,
-            }}
-          >
-            {dish.badge}
-          </motion.span>
-        )}
-      </motion.div>
-
-      <div className="flex-1 px-5 py-5 space-y-5">
-        <motion.div
-          initial={{ opacity: 0, y: 16, filter: "blur(4px)" }}
-          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-          transition={{ duration: 0.4, delay: 0.1 }}
-        >
-          <div className="flex items-center gap-2 mb-1">
-            {dish.isVeg ? <VegIcon /> : <NonVegIcon />}
-            {dish.hasEgg && <Egg className="h-3.5 w-3.5 text-yellow-500" />}
-          </div>
-          <h2 className="text-xl font-bold text-[#1F2A2A]">{dish.name}</h2>
-          <p className="mt-1 text-sm text-gray-500 leading-relaxed">
-            {dish.description}
-          </p>
-          <div className="mt-2 flex items-center gap-3 text-xs text-gray-400">
-            <span className="flex items-center gap-1">
-              <Star className="h-3.5 w-3.5 fill-[#FF9933] text-[#FF9933]" />
-              <span className="font-bold text-[#1F2A2A]">
-                {dish.rating.toFixed(1)}
-              </span>
-            </span>
-            <span className="flex items-center gap-1">
-              <Clock className="h-3.5 w-3.5" />
-              {dish.prepTime}
-            </span>
-            <OfferCountdown expiresAt={dish.offerExpiresAt} compact />
-            {cartQty > 0 && (
-              <motion.span
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: "spring", stiffness: 500, damping: 15 }}
-                className="rounded-full bg-[#0A4D3C] px-2 py-0.5 text-[10px] font-bold text-white"
-              >
-                {cartQty} in cart
-              </motion.span>
-            )}
-          </div>
-        </motion.div>
-
-        <motion.div
-          className="flex items-end justify-between"
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.2 }}
-        >
-          <div>
-            <span className="text-xs text-gray-400">Price</span>
-            <p
-              className="text-2xl font-extrabold text-[#1F2A2A]"
-              ref={priceRef}
-            >
-              Rs. {total}
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <motion.button
-              onClick={() => setQty((q) => Math.max(1, q - 1))}
-              whileTap={{ scale: 0.85 }}
-              transition={{ type: "spring", stiffness: 400, damping: 17 }}
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"
-            >
-              <Minus className="h-4 w-4" />
-            </motion.button>
-            <motion.span
-              key={qty}
-              initial={{ scale: 1.3 }}
-              animate={{ scale: 1 }}
-              className="w-8 text-center text-sm font-bold"
-            >
-              {qty}
-            </motion.span>
-            <motion.button
-              onClick={() => setQty((q) => q + 1)}
-              whileTap={{ scale: 0.85 }}
-              transition={{ type: "spring", stiffness: 400, damping: 17 }}
-              className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#FF9933] text-white hover:bg-[#ff8811] transition-colors"
-            >
-              <Plus className="h-4 w-4" />
-            </motion.button>
-          </div>
-        </motion.div>
-
-        {dish.sizes.length > 0 && (
-          <div>
-            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-              Choose Size
-            </h4>
-            <SizeSelector
-              sizes={dish.sizes}
-              selected={sizeIdx}
-              onSelect={setSizeIdx}
-            />
-          </div>
-        )}
-
-        {dish.addOns.length > 0 && (
+        {/* Scrollable content */}
+        <div ref={modalRef} className="flex-1 overflow-y-auto overscroll-contain">
+          {/* Hero image */}
           <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.35 }}
+            className="relative w-full aspect-[16/9] sm:aspect-[2.2/1] overflow-hidden bg-gray-100"
+            initial={{ opacity: 0, scale: 1.05 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
           >
-            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-              Build Your Meal
-            </h4>
-            <div className="space-y-2">
-              {dish.addOns.map((a) => (
-                <motion.label
-                  key={a.id}
-                  whileTap={{ scale: 0.98 }}
-                  className={`flex items-center justify-between rounded-xl px-4 py-3 cursor-pointer transition-all ${
-                    selectedAddOns.has(a.id)
-                      ? "bg-[#FF9933]/10 border border-[#FF9933]/30"
-                      : "bg-gray-50 border border-transparent hover:bg-gray-100"
+            <img
+              src={img(dish.imageUrl)}
+              alt={dish.name}
+              loading="lazy"
+              className="h-full w-full object-cover"
+            />
+            <div className="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-black/10" />
+
+            {/* Close button */}
+            <motion.button
+              onClick={onClose}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              transition={{ type: "spring", stiffness: 400, damping: 17 }}
+              className="absolute top-4 right-4 flex h-9 w-9 items-center justify-center rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white hover:bg-white/40 transition-all"
+            >
+              <X className="h-4 w-4" />
+            </motion.button>
+
+            {/* Badges on image */}
+            <div className="absolute top-4 left-4 flex items-center gap-2">
+              {dish.badge && (
+                <motion.span
+                  className={`rounded-full px-3 py-1 text-[11px] font-bold text-white shadow-md backdrop-blur-sm ${
+                    dish.badge === "Bestseller"
+                      ? "bg-[#FF9933]/90"
+                      : dish.badge === "Most Liked"
+                        ? "bg-[#0A4D3C]/90"
+                        : "bg-purple-500/90"
                   }`}
+                  initial={{ opacity: 0, scale: 0.6 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.2, type: "spring", stiffness: 500, damping: 15 }}
                 >
-                  <div className="flex items-center gap-3">
-                    <motion.div
-                      className={`flex h-5 w-5 items-center justify-center rounded-md border-2 transition-colors ${
-                        selectedAddOns.has(a.id)
-                          ? "border-[#FF9933] bg-[#FF9933]"
-                          : "border-gray-300"
-                      }`}
-                      animate={
-                        selectedAddOns.has(a.id) ? { scale: [1, 1.2, 1] } : {}
-                      }
-                      transition={{ duration: 0.25 }}
-                    >
-                      <AnimatePresence>
-                        {selectedAddOns.has(a.id) && (
-                          <motion.div
-                            initial={{ scale: 0, rotate: -90 }}
-                            animate={{ scale: 1, rotate: 0 }}
-                            exit={{ scale: 0, rotate: 90 }}
-                            transition={{
-                              type: "spring",
-                              stiffness: 500,
-                              damping: 15,
-                            }}
-                          >
-                            <Check className="h-3 w-3 text-white" />
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </motion.div>
-                    <span className="text-sm font-medium text-[#1F2A2A]">
-                      {a.name}
-                    </span>
-                  </div>
-                  <span className="text-sm font-bold text-gray-500">
-                    +Rs. {a.price}
-                  </span>
-                  <input
-                    type="checkbox"
-                    className="sr-only"
-                    checked={selectedAddOns.has(a.id)}
-                    onChange={() => toggleAddOn(a.id)}
-                  />
-                </motion.label>
-              ))}
+                  {dish.badge === "Bestseller" ? "# Bestseller" : dish.badge}
+                </motion.span>
+              )}
+              {dish.discountLabel && (
+                <motion.span
+                  className="rounded-full bg-[#E23744]/90 backdrop-blur-sm px-3 py-1 text-[11px] font-extrabold text-white shadow-md flex items-center gap-1"
+                  initial={{ opacity: 0, scale: 0.6 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.25, type: "spring", stiffness: 500, damping: 15 }}
+                >
+                  <Tag className="h-3 w-3" />
+                  {dish.discountLabel}
+                </motion.span>
+              )}
+            </div>
+
+            {/* Price overlay */}
+            <div className="absolute bottom-4 left-5">
+              <span className="text-2xl font-extrabold text-white drop-shadow-lg" ref={priceRef}>
+                {formatPrice(total, restaurantCurrency)}
+              </span>
             </div>
           </motion.div>
-        )}
 
-        <motion.button
-          onClick={handleAdd}
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.4 }}
-          whileHover={{
-            scale: 1.01,
-            boxShadow: "0 12px 24px -6px rgba(255,153,51,0.35)",
-          }}
-          whileTap={{ scale: 0.97 }}
-          className="relative w-full rounded-xl bg-[#FF9933] py-4 text-base font-bold text-white overflow-hidden shadow-lg shadow-[#FF9933]/20"
-        >
-          {/* Shimmer */}
-          <motion.div
-            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent"
-            initial={{ x: "-100%" }}
-            animate={{ x: "200%" }}
-            transition={{
-              duration: 2.5,
-              repeat: Infinity,
-              repeatDelay: 4,
-              ease: "easeInOut",
+          {/* Content */}
+          <div className="px-5 sm:px-7 py-5 space-y-5">
+            {/* Title & meta */}
+            <motion.div
+              initial={{ opacity: 0, y: 16, filter: "blur(4px)" }}
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    {dish.isVeg ? <VegIcon /> : <NonVegIcon />}
+                    {dish.hasEgg && <Egg className="h-3.5 w-3.5 text-yellow-500" />}
+                    {dish.isFeatured && (
+                      <span className="flex items-center gap-0.5 rounded-full bg-[#FF9933]/10 px-2 py-0.5 text-[10px] font-bold text-[#FF9933]">
+                        <Star className="h-3 w-3 fill-[#FF9933]" /> Featured
+                      </span>
+                    )}
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-bold text-[#1F2A2A]">{dish.name}</h2>
+                  <p className="mt-1.5 text-sm text-gray-500 leading-relaxed">
+                    {dish.description}
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-gray-400">
+                <span className="flex items-center gap-1 rounded-full bg-gray-50 px-2.5 py-1">
+                  <Star className="h-3.5 w-3.5 fill-[#FF9933] text-[#FF9933]" />
+                  <span className="font-bold text-[#1F2A2A]">
+                    {dish.rating.toFixed(1)}
+                  </span>
+                </span>
+                <span className="flex items-center gap-1 rounded-full bg-gray-50 px-2.5 py-1">
+                  <Clock className="h-3.5 w-3.5" />
+                  {dish.prepTime}
+                </span>
+                <OfferCountdown expiresAt={dish.offerExpiresAt} compact />
+                {cartQty > 0 && (
+                  <motion.span
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 500, damping: 15 }}
+                    className="rounded-full bg-[#0A4D3C] px-2.5 py-1 text-[10px] font-bold text-white"
+                  >
+                    {cartQty} in cart
+                  </motion.span>
+                )}
+              </div>
+
+              {/* Tags */}
+              {dish.tags.length > 0 && (
+                <div className="mt-2.5 flex flex-wrap gap-1.5">
+                  {dish.tags.map((tag) => (
+                    <span key={tag} className="rounded-full bg-gray-100 px-2.5 py-1 text-[10px] font-medium text-gray-500">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+
+            {/* Divider */}
+            <div className="h-px bg-gray-100" />
+
+            {/* Quantity & Price */}
+            <motion.div
+              className="flex items-center justify-between"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.2 }}
+            >
+              <div className="flex items-center gap-3">
+                <motion.button
+                  onClick={() => setQty((q) => Math.max(1, q - 1))}
+                  whileTap={{ scale: 0.85 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                  className="flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"
+                >
+                  <Minus className="h-4 w-4" />
+                </motion.button>
+                <motion.span
+                  key={qty}
+                  initial={{ scale: 1.3 }}
+                  animate={{ scale: 1 }}
+                  className="w-8 text-center text-base font-bold text-[#1F2A2A]"
+                >
+                  {qty}
+                </motion.span>
+                <motion.button
+                  onClick={() => setQty((q) => q + 1)}
+                  whileTap={{ scale: 0.85 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#FF9933] text-white hover:bg-[#ff8811] transition-colors"
+                >
+                  <Plus className="h-4 w-4" />
+                </motion.button>
+              </div>
+              <div className="text-right">
+                <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Total</span>
+                <p className="text-xl font-extrabold text-[#1F2A2A]">
+                  {formatPrice(total, restaurantCurrency)}
+                </p>
+              </div>
+            </motion.div>
+
+            {/* Size selector */}
+            {dish.sizes.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.25 }}
+              >
+                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                  Choose Size
+                </h4>
+                <SizeSelector
+                  sizes={dish.sizes}
+                  selected={sizeIdx}
+                  onSelect={setSizeIdx}
+                />
+              </motion.div>
+            )}
+
+            {/* Add-ons */}
+            {dish.addOns.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.3 }}
+              >
+                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                  Build Your Meal
+                </h4>
+                <div className="space-y-2">
+                  {dish.addOns.map((a) => (
+                    <motion.label
+                      key={a.id}
+                      whileTap={{ scale: 0.98 }}
+                      className={`flex items-center justify-between rounded-xl px-4 py-3 cursor-pointer transition-all ${
+                        selectedAddOns.has(a.id)
+                          ? "bg-[#FF9933]/10 border border-[#FF9933]/30"
+                          : "bg-white/60 border border-gray-100 hover:bg-white/80"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <motion.div
+                          className={`flex h-5 w-5 items-center justify-center rounded-md border-2 transition-colors ${
+                            selectedAddOns.has(a.id)
+                              ? "border-[#FF9933] bg-[#FF9933]"
+                              : "border-gray-300"
+                          }`}
+                          animate={
+                            selectedAddOns.has(a.id) ? { scale: [1, 1.2, 1] } : {}
+                          }
+                          transition={{ duration: 0.25 }}
+                        >
+                          <AnimatePresence>
+                            {selectedAddOns.has(a.id) && (
+                              <motion.div
+                                initial={{ scale: 0, rotate: -90 }}
+                                animate={{ scale: 1, rotate: 0 }}
+                                exit={{ scale: 0, rotate: 90 }}
+                                transition={{ type: "spring", stiffness: 500, damping: 15 }}
+                              >
+                                <Check className="h-3 w-3 text-white" />
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </motion.div>
+                        <span className="text-sm font-medium text-[#1F2A2A]">
+                          {a.name}
+                        </span>
+                      </div>
+                      <span className="text-sm font-bold text-gray-500">
+                        +{formatPrice(a.price, restaurantCurrency)}
+                      </span>
+                      <input
+                        type="checkbox"
+                        className="sr-only"
+                        checked={selectedAddOns.has(a.id)}
+                        onChange={() => toggleAddOn(a.id)}
+                      />
+                    </motion.label>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
+            {/* Recommended from this restaurant */}
+            {allRecommended.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.35 }}
+              >
+                <div className="h-px bg-gray-100 mb-5" />
+                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                  <Flame className="h-3.5 w-3.5 text-[#FF9933]" />
+                  You might also like
+                </h4>
+                <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: "none" }}>
+                  {allRecommended.map((rec) => (
+                    <motion.div
+                      key={rec.id}
+                      whileHover={{ y: -2 }}
+                      whileTap={{ scale: 0.97 }}
+                      onClick={() => onSelectDish(rec)}
+                      className="shrink-0 w-36 cursor-pointer group/rec"
+                    >
+                      <div className="relative h-24 w-full overflow-hidden rounded-xl bg-gray-100">
+                        <img
+                          src={img(rec.imageUrl)}
+                          alt={rec.name}
+                          loading="lazy"
+                          className="h-full w-full object-cover transition-transform duration-300 group-hover/rec:scale-110"
+                        />
+                        {rec.discountLabel && (
+                          <span className="absolute top-1.5 right-1.5 rounded-md bg-[#E23744] px-1.5 py-0.5 text-[8px] font-extrabold text-white">
+                            {rec.discountLabel}
+                          </span>
+                        )}
+                        <div className="absolute bottom-1.5 left-1.5">
+                          <span className={`inline-flex items-center gap-0.5 rounded px-1 py-0.5 text-[9px] font-bold text-white ${
+                            rec.rating >= 4.0 ? "bg-[#0A4D3C]/90" : "bg-[#FF9933]/90"
+                          }`}>
+                            {rec.rating.toFixed(1)}
+                            <Star className="h-2 w-2 fill-white" />
+                          </span>
+                        </div>
+                      </div>
+                      <div className="mt-1.5 px-0.5">
+                        <p className="text-[12px] font-bold text-[#1F2A2A] truncate">{rec.name}</p>
+                        <p className="text-[11px] font-semibold text-gray-500">{formatPrice(rec.price, restaurantCurrency)}</p>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
+            {/* Ad space */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.4 }}
+            >
+              <div className="h-px bg-gray-100 mb-5" />
+              <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50/50 p-5 text-center">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FF9933]/10">
+                    <Megaphone className="h-4 w-4 text-[#FF9933]" />
+                  </div>
+                  <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Sponsored</span>
+                </div>
+                <p className="text-xs text-gray-400 leading-relaxed">
+                  Ad space available for promotions & offers
+                </p>
+                <p className="text-[10px] text-gray-300 mt-1">
+                  Restaurant owners can showcase specials here
+                </p>
+              </div>
+            </motion.div>
+
+            {/* Bottom spacer for the fixed button */}
+            <div className="h-20" />
+          </div>
+        </div>
+
+        {/* Fixed add to cart button at bottom */}
+        <div className="shrink-0 border-t border-white/30 px-5 sm:px-7 py-4" style={{ background: "rgba(255,255,255,0.9)", backdropFilter: "blur(12px)" }}>
+          <motion.button
+            onClick={handleAdd}
+            whileHover={{
+              scale: 1.01,
+              boxShadow: "0 12px 24px -6px rgba(255,153,51,0.35)",
             }}
-          />
-          <span className="relative z-[1]">Add to Cart — Rs. {total}</span>
-        </motion.button>
-      </div>
-    </div>
+            whileTap={{ scale: 0.97 }}
+            className="relative w-full rounded-xl bg-[#FF9933] py-3.5 text-base font-bold text-white overflow-hidden shadow-lg shadow-[#FF9933]/20"
+          >
+            {/* Shimmer */}
+            <motion.div
+              className="absolute inset-0 bg-linear-to-r from-transparent via-white/15 to-transparent"
+              initial={{ x: "-100%" }}
+              animate={{ x: "200%" }}
+              transition={{
+                duration: 2.5,
+                repeat: Infinity,
+                repeatDelay: 4,
+                ease: "easeInOut",
+              }}
+            />
+            <span className="relative z-[1] flex items-center justify-center gap-2">
+              <Plus className="h-4 w-4" strokeWidth={3} />
+              Add to Cart — {formatPrice(total, restaurantCurrency)}
+            </span>
+          </motion.button>
+        </div>
+      </motion.div>
+    </>
   );
 }
 
@@ -485,11 +694,13 @@ function MenuItemCard({
   item,
   restaurantId,
   restaurantSlug,
+  restaurantCurrency,
   onSelect,
 }: {
   item: MenuItem;
   restaurantId: string;
   restaurantSlug: string;
+  restaurantCurrency: string;
   onSelect: (item: MenuItem) => void;
 }) {
   const { addItem, getItemQty } = useCart();
@@ -508,6 +719,7 @@ function MenuItemCard({
       },
       restaurantId,
       restaurantSlug,
+      restaurantCurrency,
     );
     showToast(`${item.name} added!`);
     if (btnRef.current) {
@@ -560,21 +772,6 @@ function MenuItemCard({
               {item.badge === "Bestseller" ? "# Bestseller" : item.badge}
             </motion.span>
           )}
-          {item.discountLabel && (
-            <motion.span
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{
-                delay: 0.2,
-                type: "spring",
-                stiffness: 500,
-                damping: 15,
-              }}
-              className="absolute bottom-1.5 left-1.5 rounded-md bg-[#E23744] px-1.5 py-0.5 text-[9px] font-extrabold text-white shadow"
-            >
-              {item.discountLabel}
-            </motion.span>
-          )}
         </div>
 
         {/* Text on the right */}
@@ -596,7 +793,7 @@ function MenuItemCard({
           </div>
           <div className="flex items-center gap-2.5">
             <span className="text-sm font-extrabold text-[#1F2A2A]">
-              Rs. {item.price}
+              {formatPrice(item.price, restaurantCurrency)}
             </span>
             <span className="flex items-center gap-0.5 text-[11px] text-gray-400">
               <Star className="h-3 w-3 fill-[#FF9933] text-[#FF9933]" />
@@ -607,6 +804,22 @@ function MenuItemCard({
               {item.prepTime}
             </span>
           </div>
+          {/* Offer badge — right side */}
+          {item.discountLabel && (
+            <motion.span
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{
+                delay: 0.2,
+                type: "spring",
+                stiffness: 500,
+                damping: 15,
+              }}
+              className="mt-1 inline-flex w-fit items-center gap-1 rounded-md bg-[#E23744] px-2 py-0.5 text-[10px] font-extrabold text-white shadow"
+            >
+              {item.discountLabel}
+            </motion.span>
+          )}
         </div>
       </div>
 
@@ -638,9 +851,11 @@ function MenuItemCard({
 
 function HeroDish({
   dish,
+  currency,
   onSelect,
 }: {
   dish: MenuItem;
+  currency: string;
   onSelect: (dish: MenuItem) => void;
 }) {
   const priceRef = useRef<HTMLSpanElement>(null);
@@ -699,7 +914,7 @@ function HeroDish({
             ref={priceRef}
             className="mt-1.5 inline-block text-xl font-extrabold text-[#FF9933]"
           >
-            Rs. {dish.price}
+            {formatPrice(dish.price, currency)}
           </span>
         </div>
       </div>
@@ -737,9 +952,11 @@ function FilterPill({
 }
 
 function DesktopCartPreview({
+  currency,
   onProceed,
   onOpenFull,
 }: {
+  currency: string;
   onProceed: () => void;
   onOpenFull: () => void;
 }) {
@@ -787,7 +1004,7 @@ function DesktopCartPreview({
                     {item.name}
                   </p>
                   <p className="text-xs font-semibold text-[#FF9933]">
-                    Rs. {item.price * item.quantity}
+                    {formatPrice(item.price * item.quantity, currency)}
                   </p>
                 </div>
                 <div className="flex items-center gap-1">
@@ -816,7 +1033,7 @@ function DesktopCartPreview({
                 Subtotal
               </span>
               <span className="text-sm font-bold text-[#1F2A2A]">
-                Rs. {subtotal}
+                {formatPrice(subtotal, currency)}
               </span>
             </div>
             <motion.button
@@ -887,6 +1104,7 @@ function MenuPageContent() {
   const { activeOrder, restoreOrder, restoreFromStorage } = useOrder();
 
   const restaurantId = restaurant?.id ?? null;
+  const cur = restaurant?.currency ?? "NPR";
 
   useEffect(() => {
     let cancelled = false;
@@ -944,12 +1162,16 @@ function MenuPageContent() {
     }
   }, [restaurantId, activeOrder, addToOrderId, sessionOrder, tableNo, restoreOrder, restoreFromStorage]);
 
-  // Save last visited menu for BottomNav
+  // Save last visited menu for BottomNav + active table session
   useEffect(() => {
     if (slug && typeof window !== "undefined") {
       localStorage.setItem("hh_last_menu", `/menu/${slug}${tableNo ? `?table=${tableNo}` : ""}`);
+
+      if (tableNo && restaurantId) {
+        setActiveTableSession({ restaurantSlug: slug, tableNo, restaurantId });
+      }
     }
-  }, [slug, tableNo]);
+  }, [slug, tableNo, restaurantId]);
 
   const handleProceedToCheckout = useCallback(() => {
     setCartOpen(false);
@@ -1324,6 +1546,7 @@ function MenuPageContent() {
                           item={item}
                           restaurantId={restaurant.id}
                           restaurantSlug={restaurant.slug}
+                          restaurantCurrency={cur}
                           onSelect={(d) => setSelectedDish(d)}
                         />
                       ))}
@@ -1360,6 +1583,7 @@ function MenuPageContent() {
                                 item={item}
                                 restaurantId={restaurant.id}
                                 restaurantSlug={restaurant.slug}
+                                restaurantCurrency={cur}
                                 onSelect={(d) => setSelectedDish(d)}
                               />
                             ))}
@@ -1391,6 +1615,7 @@ function MenuPageContent() {
                                 item={item}
                                 restaurantId={restaurant.id}
                                 restaurantSlug={restaurant.slug}
+                                restaurantCurrency={cur}
                                 onSelect={(d) => setSelectedDish(d)}
                               />
                             ))}
@@ -1408,6 +1633,7 @@ function MenuPageContent() {
           <div className="hidden lg:block w-[340px] shrink-0">
             <div className="sticky top-[80px]">
               <DesktopCartPreview
+                currency={cur}
                 onProceed={handleProceedToCheckout}
                 onOpenFull={() => setCartOpen(true)}
               />
@@ -1442,8 +1668,8 @@ function MenuPageContent() {
                   {totalItems}
                 </motion.span>
                 <span className="text-sm font-bold">
-                  {totalItems} {totalItems === 1 ? "item" : "items"} | Rs.{" "}
-                  {subtotal}
+                  {totalItems} {totalItems === 1 ? "item" : "items"} |{" "}
+                  {formatPrice(subtotal, cur)}
                 </span>
               </div>
               <div className="flex items-center gap-1 text-sm font-bold">
@@ -1464,38 +1690,18 @@ function MenuPageContent() {
         )}
       </AnimatePresence>
 
-      {/* Dish detail sheet */}
+      {/* Dish detail glassmorphism modal */}
       <AnimatePresence>
         {selectedDish && (
-          <>
-            <motion.div
-              key="overlay"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setSelectedDish(null)}
-              className="fixed inset-0 z-50 bg-black/50 backdrop-blur-[2px]"
-            />
-            <motion.div
-              key="detail-panel"
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{
-                type: "spring" as const,
-                damping: 30,
-                stiffness: 300,
-              }}
-              className="fixed top-0 right-0 bottom-0 z-50 w-full max-w-md bg-white shadow-2xl overflow-hidden"
-            >
-              <DishDetail
-                dish={selectedDish}
-                restaurantId={restaurant.id}
-                restaurantSlug={restaurant.slug}
-                onClose={() => setSelectedDish(null)}
-              />
-            </motion.div>
-          </>
+          <DishDetailModal
+            dish={selectedDish}
+            restaurantId={restaurant.id}
+            restaurantSlug={restaurant.slug}
+            restaurantCurrency={cur}
+            allItems={menuItems}
+            onClose={() => setSelectedDish(null)}
+            onSelectDish={(d) => setSelectedDish(d)}
+          />
         )}
       </AnimatePresence>
 

@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
       },
       bill: true,
       restaurant: {
-        select: { name: true, slug: true, address: true, phone: true, imageUrl: true },
+        select: { name: true, slug: true, address: true, phone: true, imageUrl: true, currency: true },
       },
     },
   });

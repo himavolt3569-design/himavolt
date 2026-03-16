@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
+import { formatPrice } from "@/lib/currency";
 import RatingInput from "@/components/menu/RatingInput";
 import OfferCountdown from "@/components/menu/OfferCountdown";
 
@@ -57,6 +58,7 @@ interface MenuItemData {
     phone: string;
     address: string;
     imageUrl: string | null;
+    currency?: string;
   };
   category: { name: string; slug: string };
   sizes: { id: string; label: string; grams: string; priceAdd: number }[];
@@ -75,9 +77,11 @@ function img(url: string | null) {
 function SuggestionCard({
   item,
   index,
+  currency,
 }: {
   item: MenuItemData;
   index: number;
+  currency: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -149,7 +153,7 @@ function SuggestionCard({
               </div>
             </div>
             <span className="text-[13px] font-extrabold text-[#1F2A2A]">
-              Rs. {item.price}
+              {formatPrice(item.price, currency)}
             </span>
           </div>
         </div>
@@ -166,12 +170,14 @@ function ScrollSection({
   icon: Icon,
   iconColor,
   items,
+  currency,
 }: {
   title: string;
   subtitle: string;
-  icon: React.ElementType;
+  icon: React.ComponentType<{ className?: string }>;
   iconColor: string;
   items: MenuItemData[];
+  currency: string;
 }) {
   if (items.length === 0) return null;
 
@@ -219,7 +225,7 @@ function ScrollSection({
         style={{ scrollbarWidth: "none" }}
       >
         {items.map((item, i) => (
-          <SuggestionCard key={item.id} item={item} index={i} />
+          <SuggestionCard key={item.id} item={item} index={i} currency={currency} />
         ))}
       </div>
     </div>
@@ -243,6 +249,8 @@ export default function FoodDetailsPage() {
   const [related, setRelated] = useState<MenuItemData[]>([]);
   const [topRated, setTopRated] = useState<MenuItemData[]>([]);
   const [trending, setTrending] = useState<MenuItemData[]>([]);
+
+  const cur = food?.restaurant?.currency ?? "NPR";
 
   const heroRef = useRef<HTMLDivElement>(null);
   const detailsRef = useRef<HTMLDivElement>(null);
@@ -339,7 +347,8 @@ export default function FoodDetailsPage() {
           image: img(food.imageUrl),
         },
         food.restaurant.id,
-        food.restaurant.slug
+        food.restaurant.slug,
+        food.restaurant.currency ?? "NPR"
       );
     }
     // Visual feedback
@@ -575,11 +584,11 @@ export default function FoodDetailsPage() {
               </p>
               <div className="flex items-baseline gap-2">
                 <span className="text-2xl sm:text-3xl font-extrabold text-[#1F2A2A]">
-                  Rs. {food.price * qty}
+                  {formatPrice(food.price * qty, cur)}
                 </span>
                 {qty > 1 && (
                   <span className="text-xs sm:text-sm font-medium text-gray-400">
-                    ({qty} × Rs. {food.price})
+                    ({qty} x {formatPrice(food.price, cur)})
                   </span>
                 )}
               </div>
@@ -619,7 +628,7 @@ export default function FoodDetailsPage() {
             className="detail-anim w-full flex items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-[#E23744] to-[#FF6B81] py-4 text-base font-bold text-white shadow-xl shadow-[#E23744]/25 transition-all"
           >
             <ShoppingBag className="h-5 w-5" />
-            Add to Cart — Rs. {food.price * qty}
+            Add to Cart — {formatPrice(food.price * qty, cur)}
           </motion.button>
         </div>
       </div>
@@ -632,6 +641,7 @@ export default function FoodDetailsPage() {
           icon={Sparkles}
           iconColor="bg-gradient-to-br from-[#E23744] to-[#FF6B81]"
           items={related}
+          currency={cur}
         />
 
         <ScrollSection
@@ -640,6 +650,7 @@ export default function FoodDetailsPage() {
           icon={TrendingUp}
           iconColor="bg-gradient-to-br from-[#FF9933] to-[#FFB366]"
           items={trending}
+          currency={cur}
         />
 
         <ScrollSection
@@ -648,6 +659,7 @@ export default function FoodDetailsPage() {
           icon={Award}
           iconColor="bg-gradient-to-br from-[#1E7B3E] to-[#34D058]"
           items={topRated}
+          currency={cur}
         />
       </div>
     </div>

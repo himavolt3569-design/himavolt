@@ -23,6 +23,7 @@ export async function GET(
       openingTime: true,
       closingTime: true,
       tableCount: true,
+      currency: true,
       taxRate: true,
       taxEnabled: true,
       serviceChargeRate: true,

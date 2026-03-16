@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { apiFetch } from "@/lib/api-client";
+import { clearActiveTableSession } from "@/hooks/useActiveTableSession";
 
 interface OrderItem {
   id: string;
@@ -116,6 +117,7 @@ export function useTableSession(restaurantId: string | null, tableNo: number | n
         localStorage.removeItem(storageKey(restaurantId, session.tableNo));
         localStorage.removeItem(`hh_cart_${restaurantId}`);
         localStorage.removeItem(`hh_order_${restaurantId}_${session.tableNo}`);
+        clearActiveTableSession();
       }
 
       setSession(null);

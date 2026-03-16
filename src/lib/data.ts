@@ -1,3 +1,5 @@
+import { formatPrice } from "./currency";
+
 export const categories = [
   {
     id: 1,
@@ -124,8 +126,8 @@ export const categories = [
 export const offers = [
   {
     id: 1,
-    title: "60% OFF up to Rs. 120",
-    subtitle: "USE STEALDEAL | ABOVE Rs. 159",
+    title: `60% OFF up to ${formatPrice(120, "NPR")}`,
+    subtitle: `USE STEALDEAL | ABOVE ${formatPrice(159, "NPR")}`,
     bgColor: "from-[#E23744] via-[#C62828] to-[#B71C1C]",
     image:
       "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=600&h=400&fit=crop",
@@ -135,7 +137,7 @@ export const offers = [
   {
     id: 2,
     title: "FREE DELIVERY",
-    subtitle: "ON ORDERS ABOVE Rs. 499",
+    subtitle: `ON ORDERS ABOVE ${formatPrice(499, "NPR")}`,
     bgColor: "from-[#0A4D3C] via-[#1B5E46] to-[#2E7D5E]",
     image:
       "https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=600&h=400&fit=crop",
@@ -144,7 +146,7 @@ export const offers = [
   },
   {
     id: 3,
-    title: "FLAT Rs. 100 OFF",
+    title: `FLAT ${formatPrice(100, "NPR")} OFF`,
     subtitle: "USE HIMAL100 | FIRST ORDER",
     bgColor: "from-[#E65100] via-[#F57C00] to-[#FF9933]",
     image:

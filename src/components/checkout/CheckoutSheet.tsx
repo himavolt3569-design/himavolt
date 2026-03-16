@@ -30,6 +30,7 @@ import {
   type DeliveryInfo,
 } from "@/context/OrderContext";
 import { apiFetch } from "@/lib/api-client";
+import { formatPrice } from "@/lib/currency";
 import gsap from "gsap";
 
 interface PaymentQRImage {
@@ -143,6 +144,7 @@ export default function CheckoutSheet({
     totalItems,
     clearCart,
     restaurantSlug: cartSlug,
+    currency,
   } = useCart();
   const { placeOrder, addToOrder, activeOrder } = useOrder();
   const [selectedPayment, setSelectedPayment] =
@@ -622,11 +624,11 @@ export default function CheckoutSheet({
                             {item.name}
                           </p>
                           <p className="text-xs text-gray-400">
-                            {item.quantity} x Rs. {item.price}
+                            {item.quantity} x {formatPrice(item.price, currency)}
                           </p>
                         </div>
                         <span className="text-sm font-bold text-[#1F2A2A]">
-                          Rs. {item.price * item.quantity}
+                          {formatPrice(item.price * item.quantity, currency)}
                         </span>
                       </div>
                     ))}
@@ -652,14 +654,14 @@ export default function CheckoutSheet({
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-500">Subtotal</span>
                       <span className="font-semibold text-[#1F2A2A]">
-                        Rs. {subtotal}
+                        {formatPrice(subtotal, currency)}
                       </span>
                     </div>
                     {taxEnabled && (
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-500">Tax ({taxRate}%)</span>
                         <span className="font-semibold text-[#1F2A2A]">
-                          Rs. {tax}
+                          {formatPrice(tax, currency)}
                         </span>
                       </div>
                     )}
@@ -669,7 +671,7 @@ export default function CheckoutSheet({
                           <Truck className="h-3 w-3" /> Delivery Fee
                         </span>
                         <span className="font-semibold text-[#1F2A2A]">
-                          {deliveryFee > 0 ? `Rs. ${deliveryFee}` : "FREE"}
+                          {deliveryFee > 0 ? formatPrice(deliveryFee, currency) : "FREE"}
                         </span>
                       </div>
                     )}
@@ -681,7 +683,7 @@ export default function CheckoutSheet({
                         ref={totalRef}
                         className="text-lg font-extrabold text-[#FF9933]"
                       >
-                        Rs. {total}
+                        {formatPrice(total, currency)}
                       </span>
                     </div>
                   </div>
@@ -722,7 +724,7 @@ export default function CheckoutSheet({
                           : "Pay first, then your order will be placed"}
                       </p>
                       <p className="text-[11px] text-amber-600 mt-0.5">
-                        Scan one of the QR codes below to pay Rs. {total}. After
+                        Scan one of the QR codes below to pay {formatPrice(total, currency)}. After
                         payment, tap &ldquo;I&apos;ve Paid&rdquo; to confirm
                         your order.
                       </p>
@@ -781,7 +783,7 @@ export default function CheckoutSheet({
                         Amount to Pay
                       </span>
                       <span className="text-lg font-extrabold text-[#FF9933]">
-                        Rs. {total}
+                        {formatPrice(total, currency)}
                       </span>
                     </div>
                   </div>
@@ -907,7 +909,7 @@ export default function CheckoutSheet({
                         Amount
                       </span>
                       <span className="text-lg font-extrabold text-[#FF9933]">
-                        Rs. {total}
+                        {formatPrice(total, currency)}
                       </span>
                     </div>
                   </div>
@@ -989,16 +991,16 @@ export default function CheckoutSheet({
                       </>
                     ) : paymentQRs.length > 0 ? (
                       <>
-                        Scan & Pay &middot; Rs. {total}
+                        Scan & Pay &middot; {formatPrice(total, currency)}
                         <ChevronRight className="h-4 w-4" />
                       </>
                     ) : canAddToExisting ? (
                       <>
                         <PlusCircle className="h-4 w-4" />
-                        Add to Order &middot; Rs. {total}
+                        Add to Order &middot; {formatPrice(total, currency)}
                       </>
                     ) : (
-                      <>Place Order &middot; Rs. {total}</>
+                      <>Place Order &middot; {formatPrice(total, currency)}</>
                     )}
                   </button>
                   <button

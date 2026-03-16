@@ -5,6 +5,7 @@ import { initiateKhaltiPayment } from "@/lib/payments/khalti";
 import { safeHandler, notFound } from "@/lib/api-helpers";
 import { initiatePaymentSchema } from "@/lib/validations";
 import { logAudit } from "@/lib/audit";
+import { getCurrencySymbol } from "@/lib/currency";
 import { decryptIfPresent } from "@/lib/encryption";
 
 export const POST = safeHandler(
@@ -17,6 +18,12 @@ export const POST = safeHandler(
     });
 
     if (!order) return notFound("Order not found");
+
+    const restaurant = await db.restaurant.findUnique({
+      where: { id: order.restaurantId },
+      select: { currency: true },
+    });
+    const currSym = getCurrencySymbol(restaurant?.currency ?? "NPR");
 
     if (order.payment?.status === "COMPLETED") {
       return NextResponse.json(
@@ -34,7 +41,7 @@ export const POST = safeHandler(
       action: "PAYMENT_INITIATED",
       entity: "Payment",
       entityId: orderId,
-      detail: `Payment initiated via ${method} for order ${order.orderNo} (Rs.${order.total})`,
+      detail: `Payment initiated via ${method} for order ${order.orderNo} (${currSym}${order.total})`,
       metadata: { method, orderNo: order.orderNo, amount: order.total },
       userId: order.userId ?? undefined,
       restaurantId: order.restaurantId,
