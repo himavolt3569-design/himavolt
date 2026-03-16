@@ -4,7 +4,9 @@ const KHALTI_GATEWAY_URL =
 const KHALTI_VERIFY_URL =
   process.env.KHALTI_VERIFY_URL ||
   "https://a.khalti.com/api/v2/epayment/lookup/";
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+const APP_URL =
+  process.env.NEXT_PUBLIC_APP_URL ||
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "");
 
 export async function initiateKhaltiPayment(params: {
   orderId: string;

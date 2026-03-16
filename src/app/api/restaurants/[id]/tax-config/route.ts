@@ -1,26 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireStaffForRestaurant } from "@/lib/staff-auth";
+import { getAuthUser } from "@/lib/auth";
 
 async function verifyAccess(req: NextRequest, restaurantId: string) {
   // Try staff auth first
   const staff = await requireStaffForRestaurant(req, restaurantId);
   if (staff) return { type: "staff" as const, id: staff.staffId };
 
-  // Fallback: Clerk owner auth
-  try {
-    const { auth } = await import("@clerk/nextjs/server");
-    const { userId } = await auth();
-    if (!userId) return null;
-    const restaurant = await db.restaurant.findUnique({
-      where: { id: restaurantId },
-      select: { ownerId: true },
-    });
-    if (!restaurant || restaurant.ownerId !== userId) return null;
-    return { type: "owner" as const, id: userId };
-  } catch {
-    return null;
-  }
+  // Fallback: owner auth
+  const user = await getAuthUser();
+  if (!user) return null;
+  const restaurant = await db.restaurant.findUnique({
+    where: { id: restaurantId },
+    select: { ownerId: true },
+  });
+  if (!restaurant || restaurant.ownerId !== user.id) return null;
+  return { type: "owner" as const, id: user.id };
 }
 
 // GET /api/restaurants/[id]/tax-config

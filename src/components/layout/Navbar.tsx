@@ -9,35 +9,19 @@ import {
   Store,
   KeyRound,
   Search,
+  User,
+  LogOut,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
-import {
-  SignedIn,
-  SignedOut,
-  SignInButton,
-  SignUpButton,
-  UserButton,
-} from "@clerk/nextjs";
-
-const clerkAppearance = {
-  elements: {
-    socialButtonsBlockButton:
-      "border-gray-200 hover:bg-gray-50 transition-all rounded-xl",
-    formButtonPrimary:
-      "bg-[#E23744] hover:bg-[#c92e3c] rounded-xl font-bold shadow-lg shadow-[#E23744]/20",
-    footerActionLink: "text-[#E23744] hover:text-[#c92e3c] font-bold",
-    card: "shadow-2xl rounded-3xl",
-    headerTitle: "text-[#1F2A2A] font-extrabold",
-    headerSubtitle: "text-gray-400",
-  },
-};
 
 export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const { totalItems } = useCart();
+  const { isSignedIn, isLoaded, user, signOut } = useAuth();
 
   return (
     <nav className="sticky top-0 z-50 w-full bg-white/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.05)] border-b border-gray-100/80 transition-all duration-300">
@@ -70,7 +54,7 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
 
           {/* Desktop actions */}
           <div className="hidden shrink-0 items-center gap-2.5 md:flex">
-            <SignedIn>
+            {isLoaded && isSignedIn && (
               <Link
                 href="/manage-restaurants"
                 className="flex items-center gap-2 rounded-xl bg-[#1F2A2A] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#333] transition-all"
@@ -78,7 +62,7 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
                 <Store className="h-3.5 w-3.5" />
                 <span className="hidden lg:inline">My Restaurants</span>
               </Link>
-            </SignedIn>
+            )}
 
             {/* Staff Portal — always visible */}
             <Link
@@ -107,29 +91,51 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
               <span className="hidden lg:inline">Cart</span>
             </button>
 
-            {/* Signed in — user avatar (click to sign out) */}
-            <SignedIn>
-              <UserButton
-                afterSignOutUrl="/"
-                appearance={{
-                  elements: { avatarBox: "h-9 w-9" },
-                }}
-              />
-            </SignedIn>
-
-            {/* Signed out — Login + Sign Up */}
-            <SignedOut>
-              <SignInButton mode="modal" appearance={clerkAppearance}>
-                <button className="rounded-xl px-4 py-2.5 text-sm font-bold transition-all hover:bg-gray-50 text-[#1F2A2A]">
-                  Login
-                </button>
-              </SignInButton>
-              <SignUpButton mode="modal" appearance={clerkAppearance}>
-                <button className="rounded-xl bg-[#E23744] px-5 py-2.5 text-sm font-bold text-white transition-all hover:bg-[#c92e3c] active:scale-[0.97] shadow-sm shadow-[#E23744]/20">
-                  Sign Up
-                </button>
-              </SignUpButton>
-            </SignedOut>
+            {/* Auth buttons */}
+            {isLoaded && (
+              <>
+                {isSignedIn ? (
+                  <div className="flex items-center gap-2">
+                    <Link
+                      href="/profile"
+                      className="flex h-9 w-9 items-center justify-center rounded-full bg-[#E23744]/10 hover:bg-[#E23744]/20 transition-colors"
+                    >
+                      {user?.user_metadata?.avatar_url ? (
+                        <img
+                          src={user.user_metadata.avatar_url}
+                          alt="Profile"
+                          className="h-9 w-9 rounded-full object-cover"
+                        />
+                      ) : (
+                        <User className="h-4 w-4 text-[#E23744]" />
+                      )}
+                    </Link>
+                    <button
+                      onClick={signOut}
+                      className="flex items-center gap-1.5 rounded-xl px-3 py-2.5 text-xs font-semibold text-gray-500 hover:text-red-600 hover:bg-red-50 transition-all"
+                    >
+                      <LogOut className="h-3.5 w-3.5" />
+                      <span className="hidden lg:inline">Sign Out</span>
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <Link
+                      href="/sign-in"
+                      className="rounded-xl px-4 py-2.5 text-sm font-bold transition-all hover:bg-gray-50 text-[#1F2A2A]"
+                    >
+                      Login
+                    </Link>
+                    <Link
+                      href="/sign-up"
+                      className="rounded-xl bg-[#E23744] px-5 py-2.5 text-sm font-bold text-white transition-all hover:bg-[#c92e3c] active:scale-[0.97] shadow-sm shadow-[#E23744]/20"
+                    >
+                      Sign Up
+                    </Link>
+                  </>
+                )}
+              </>
+            )}
           </div>
 
           {/* Mobile actions */}
@@ -174,7 +180,7 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
             className="border-t border-gray-100 bg-white md:hidden overflow-hidden"
           >
             <div className="mx-auto max-w-360 space-y-3 p-5">
-              <SignedIn>
+              {isLoaded && isSignedIn && (
                 <Link
                   href="/manage-restaurants"
                   onClick={() => setIsMobileMenuOpen(false)}
@@ -183,7 +189,7 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
                   <Store className="h-4 w-4" />
                   My Restaurants
                 </Link>
-              </SignedIn>
+              )}
 
               {/* Staff Portal — always visible in mobile menu too */}
               <Link
@@ -195,40 +201,49 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
                 Staff Portal
               </Link>
 
-              <SignedOut>
-                <div className="grid grid-cols-2 gap-3">
-                  <SignInButton mode="modal" appearance={clerkAppearance}>
-                    <button
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="rounded-xl bg-gray-100 py-3.5 text-center font-bold text-[#1F2A2A] text-sm transition-colors hover:bg-gray-200"
-                    >
-                      Login
-                    </button>
-                  </SignInButton>
-                  <SignUpButton mode="modal" appearance={clerkAppearance}>
-                    <button
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="rounded-xl bg-[#E23744] py-3.5 text-center font-bold text-white text-sm transition-all hover:bg-[#c92e3c]"
-                    >
-                      Sign Up
-                    </button>
-                  </SignUpButton>
-                </div>
-              </SignedOut>
-
-              <SignedIn>
-                <div className="flex items-center justify-center gap-3 pt-1">
-                  <UserButton
-                    afterSignOutUrl="/"
-                    appearance={{
-                      elements: { avatarBox: "h-9 w-9" },
-                    }}
-                  />
-                  <span className="text-xs text-gray-400">
-                    Tap avatar to sign out
-                  </span>
-                </div>
-              </SignedIn>
+              {isLoaded && (
+                <>
+                  {isSignedIn ? (
+                    <div className="space-y-3">
+                      <Link
+                        href="/profile"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="flex items-center justify-center gap-2 rounded-xl border border-gray-200 py-3.5 text-center text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-all"
+                      >
+                        <User className="h-4 w-4" />
+                        Profile
+                      </Link>
+                      <button
+                        onClick={() => {
+                          setIsMobileMenuOpen(false);
+                          signOut();
+                        }}
+                        className="w-full flex items-center justify-center gap-2 rounded-xl border border-red-200 py-3.5 text-center text-sm font-semibold text-red-600 hover:bg-red-50 transition-all"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        Sign Out
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-3">
+                      <Link
+                        href="/sign-in"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="rounded-xl bg-gray-100 py-3.5 text-center font-bold text-[#1F2A2A] text-sm transition-colors hover:bg-gray-200"
+                      >
+                        Login
+                      </Link>
+                      <Link
+                        href="/sign-up"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="rounded-xl bg-[#E23744] py-3.5 text-center font-bold text-white text-sm transition-all hover:bg-[#c92e3c]"
+                      >
+                        Sign Up
+                      </Link>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </motion.div>
         )}

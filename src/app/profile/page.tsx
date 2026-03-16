@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { useUser, useClerk } from "@clerk/nextjs";
+import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api-client";
 
 const SOUND_STORAGE_KEY = "hh_sound_enabled";
@@ -38,8 +38,7 @@ const fadeUp = {
 };
 
 export default function ProfilePage() {
-  const { user, isSignedIn, isLoaded } = useUser();
-  const { signOut } = useClerk();
+  const { user, isSignedIn, isLoaded, signOut } = useAuth();
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [stats, setStats] = useState<QuickStats>({ totalOrders: 0 });
   const [signingOut, setSigningOut] = useState(false);
@@ -70,7 +69,7 @@ export default function ProfilePage() {
   const handleSignOut = async () => {
     setSigningOut(true);
     try {
-      await signOut({ redirectUrl: "/" });
+      await signOut();
     } catch {
       setSigningOut(false);
     }
@@ -115,8 +114,14 @@ export default function ProfilePage() {
     );
   }
 
-  const memberSince = user.createdAt
-    ? new Date(user.createdAt).toLocaleDateString([], {
+  const displayName =
+    user.user_metadata?.full_name ??
+    user.user_metadata?.name ??
+    user.email?.split("@")[0] ??
+    "User";
+  const avatarUrl = user.user_metadata?.avatar_url ?? null;
+  const memberSince = user.created_at
+    ? new Date(user.created_at).toLocaleDateString([], {
         month: "long",
         year: "numeric",
       })
@@ -145,10 +150,10 @@ export default function ProfilePage() {
         >
           <div className="flex items-center gap-4">
             <div className="relative h-16 w-16 shrink-0 rounded-full overflow-hidden ring-2 ring-saffron-flame/20 ring-offset-2">
-              {user.imageUrl ? (
+              {avatarUrl ? (
                 <Image
-                  src={user.imageUrl}
-                  alt={user.fullName || "Profile"}
+                  src={avatarUrl}
+                  alt={displayName}
                   fill
                   className="object-cover"
                   sizes="64px"
@@ -161,10 +166,10 @@ export default function ProfilePage() {
             </div>
             <div className="flex-1 min-w-0">
               <h2 className="text-lg font-bold text-gompa-slate truncate">
-                {user.fullName || "User"}
+                {displayName}
               </h2>
               <p className="text-sm text-gray-500 truncate">
-                {user.primaryEmailAddress?.emailAddress || ""}
+                {user.email || ""}
               </p>
             </div>
           </div>

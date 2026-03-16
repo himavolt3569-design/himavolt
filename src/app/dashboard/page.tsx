@@ -61,10 +61,11 @@ import {
   CalendarCheck,
   ListOrdered,
   DoorOpen,
+  User,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useUser, UserButton } from "@clerk/nextjs";
+import { useAuth } from "@/context/AuthContext";
 import LiveOrdersTab from "@/components/dashboard/LiveOrdersTab";
 import QRCodesTab from "@/components/dashboard/QRCodesTab";
 import MenuManagementTab from "@/components/dashboard/MenuManagementTab";
@@ -1230,7 +1231,7 @@ export default function DashboardPage() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const { orders, setRestaurantId } = useLiveOrders();
   const { restaurants, selectedRestaurant, selectRestaurant } = useRestaurant();
-  const { user } = useUser();
+  const { user } = useAuth();
   const newOrderCount = orders.filter((o) => o.status === "PENDING").length;
 
   const restaurantType = selectedRestaurant?.type ?? "";
@@ -1433,14 +1434,20 @@ export default function DashboardPage() {
             <div className="hidden sm:block h-6 w-px bg-gray-200" />
 
             {/* User */}
-            <UserButton
-              appearance={{
-                elements: {
-                  avatarBox:
-                    "h-8 w-8 ring-2 ring-gray-100 hover:ring-amber-300 transition-all",
-                },
-              }}
-            />
+            <Link
+              href="/profile"
+              className="flex h-8 w-8 items-center justify-center rounded-full ring-2 ring-gray-100 hover:ring-amber-300 transition-all overflow-hidden bg-[#E23744]/10"
+            >
+              {user?.user_metadata?.avatar_url ? (
+                <img
+                  src={user.user_metadata.avatar_url}
+                  alt="Profile"
+                  className="h-8 w-8 object-cover"
+                />
+              ) : (
+                <User className="h-4 w-4 text-[#E23744]" />
+              )}
+            </Link>
           </div>
         </header>
 

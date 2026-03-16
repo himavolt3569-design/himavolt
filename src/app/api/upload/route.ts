@@ -11,8 +11,8 @@ async function getAnyAuthUser(req: NextRequest): Promise<boolean> {
 
   // Fallback: check Clerk auth
   try {
-    const clerkUser = await getOrCreateUser();
-    if (clerkUser) return true;
+    const authUser = await getOrCreateUser();
+    if (authUser) return true;
   } catch {
     // Clerk not available or not authenticated
   }

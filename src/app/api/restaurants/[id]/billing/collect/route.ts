@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { requireStaffForRestaurant } from "@/lib/staff-auth";
 import { logAudit, getClientIp } from "@/lib/audit";
 import { getCurrencySymbol } from "@/lib/currency";
+import { getAuthUser } from "@/lib/auth";
 
 async function verifyStaffAccess(req: NextRequest, restaurantId: string) {
   const staff = await requireStaffForRestaurant(req, restaurantId);
@@ -23,30 +24,21 @@ export async function POST(
   let actorId = staff?.staffId;
 
   if (!staff) {
-    // Fallback: allow restaurant owner via Clerk auth
-    try {
-      const { auth } = await import("@clerk/nextjs/server");
-      const { userId } = await auth();
-      if (!userId) {
-        return NextResponse.json(
-          { error: "Unauthorized — Cashier/Manager access required" },
-          { status: 401 },
-        );
-      }
-      const restaurant = await db.restaurant.findUnique({
-        where: { id },
-        select: { ownerId: true },
-      });
-      if (!restaurant || restaurant.ownerId !== userId) {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-      }
-      actorId = userId;
-    } catch {
+    const user = await getAuthUser();
+    if (!user) {
       return NextResponse.json(
         { error: "Unauthorized — Cashier/Manager access required" },
         { status: 401 },
       );
     }
+    const restaurant = await db.restaurant.findUnique({
+      where: { id },
+      select: { ownerId: true },
+    });
+    if (!restaurant || restaurant.ownerId !== user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+    actorId = user.id;
   }
 
   const body = await req.json();

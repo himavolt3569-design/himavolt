@@ -3,13 +3,19 @@ import { db } from "@/lib/db";
 import { verifyEsewaPayment } from "@/lib/payments/esewa";
 import { decryptIfPresent } from "@/lib/encryption";
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+// Derive the app origin from the incoming request so redirects always
+// point to the correct domain regardless of deployment environment.
+function getAppUrl(req: NextRequest): string {
+  return process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
+}
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const orderId = searchParams.get("orderId");
   const status = searchParams.get("status");
   const encodedData = searchParams.get("data");
+
+  const APP_URL = getAppUrl(req);
 
   if (!orderId) {
     return NextResponse.redirect(`${APP_URL}?payment=error`);

@@ -6,7 +6,9 @@ const ESEWA_GATEWAY_URL =
 const ESEWA_VERIFY_URL =
   process.env.ESEWA_VERIFY_URL ||
   "https://uat.esewa.com.np/api/epay/transaction/status/";
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+const APP_URL =
+  process.env.NEXT_PUBLIC_APP_URL ||
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "");
 
 function generateSignature(message: string, secretKey: string): string {
   return crypto

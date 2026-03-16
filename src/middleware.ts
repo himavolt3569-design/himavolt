@@ -1,92 +1,145 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 
-const isPublicRoute = createRouteMatcher([
-  "/",
-  "/food(.*)",
-  "/menu(.*)",
-  "/scan(.*)",
-  "/bill(.*)",
-  "/contact(.*)",
-  "/legal(.*)",
-  "/track(.*)",
-  "/api/public(.*)",
-  "/api/webhooks(.*)",
-  "/api/contact",
-  "/api/track(.*)",
-  "/api/restaurants/(.+)/orders",
-  "/api/orders/(.+)/bill",
-  "/api/payments/esewa/callback(.*)",
-  "/api/payments/khalti/callback(.*)",
-  "/api/chat(.*)",
-  "/api/staff-login(.*)",
-  "/api/staff-session(.*)",
-  "/api/restaurants/(.+)/inventory(.*)",
-  "/api/restaurants/(.+)/chat(.*)",
-  "/api/restaurants/(.+)/menu(.*)",
-  "/api/restaurants/(.+)/categories(.*)",
-  "/api/restaurants/(.+)/stories(.*)",
-  "/api/upload(.*)",
-  "/staff-login(.*)",
-  "/kitchen(.*)",
-  "/counter(.*)",
-  "/sign-in(.*)",
-  "/sign-up(.*)",
-  "/manifest.json",
-]);
+const PUBLIC_ROUTES = [
+  /^\/$/,
+  /^\/food(\/|$)/,
+  /^\/menu(\/|$)/,
+  /^\/scan(\/|$)/,
+  /^\/bill(\/|$)/,
+  /^\/contact(\/|$)/,
+  /^\/legal(\/|$)/,
+  /^\/track(\/|$)/,
+  /^\/guide(\/|$)/,
+  /^\/sign-in(\/|$)/,
+  /^\/sign-up(\/|$)/,
+  /^\/auth(\/|$)/,
+  /^\/staff-login(\/|$)/,
+  /^\/manifest\.json$/,
+  /^\/api\/public(\/|$)/,
+  /^\/api\/webhooks(\/|$)/,
+  /^\/api\/contact$/,
+  /^\/api\/track(\/|$)/,
+  /^\/api\/restaurants\/[^/]+\/orders$/,
+  /^\/api\/orders\/[^/]+\/bill$/,
+  /^\/api\/payments\/esewa\/callback/,
+  /^\/api\/payments\/khalti\/callback/,
+  /^\/api\/chat(\/|$)/,
+  /^\/api\/staff-login(\/|$)/,
+  /^\/api\/staff-session(\/|$)/,
+  /^\/api\/restaurants\/[^/]+\/inventory(\/|$)/,
+  /^\/api\/restaurants\/[^/]+\/chat(\/|$)/,
+  /^\/api\/restaurants\/[^/]+\/menu(\/|$)/,
+  /^\/api\/restaurants\/[^/]+\/categories(\/|$)/,
+  /^\/api\/restaurants\/[^/]+\/stories(\/|$)/,
+  /^\/api\/upload(\/|$)/,
+];
 
-function passthrough(_req: NextRequest) {
-  return NextResponse.next();
+const STAFF_ONLY_ROUTES = [/^\/kitchen(\/|$)/, /^\/counter(\/|$)/];
+
+function isPublicRoute(pathname: string) {
+  return PUBLIC_ROUTES.some((r) => r.test(pathname));
 }
 
-const handler = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
-  ? clerkMiddleware(async (auth, req) => {
-      // If route is public, let it pass
-      if (isPublicRoute(req)) {
-        // Extra check: /kitchen and /counter require a valid staff JWT
-        if (
-          req.nextUrl.pathname.startsWith("/kitchen") ||
-          req.nextUrl.pathname.startsWith("/counter")
-        ) {
-          const staffCookie = req.cookies.get("staff_session")?.value;
-          if (!staffCookie || !process.env.JWT_SECRET) {
-            return NextResponse.redirect(new URL("/staff-login", req.url));
-          }
-          try {
-            const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-            await jwtVerify(staffCookie, secret);
-          } catch {
-            const res = NextResponse.redirect(new URL("/staff-login", req.url));
-            res.cookies.delete("staff_session");
-            return res;
-          }
-        }
-        return;
-      }
+function isStaffRoute(pathname: string) {
+  return STAFF_ONLY_ROUTES.some((r) => r.test(pathname));
+}
 
-      // Check for Custom Staff JWT Session
-      const staffCookie = req.cookies.get("staff_session")?.value;
-      if (staffCookie && process.env.JWT_SECRET) {
-        try {
-          const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-          await jwtVerify(staffCookie, secret);
-          // Valid staff session, bypass Clerk check
-          return;
-        } catch {
-          // Token invalid/expired, fall through to Clerk
-        }
-      }
+async function verifyStaffJwt(req: NextRequest): Promise<boolean> {
+  const staffCookie = req.cookies.get("staff_session")?.value;
+  if (!staffCookie || !process.env.JWT_SECRET) return false;
+  try {
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+    await jwtVerify(staffCookie, secret);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
-      // For all protected routes (API and pages), use Clerk protection.
-      // This returns 401 for unauthenticated API requests and
-      // redirects to sign-in for unauthenticated page requests.
-      await auth.protect();
-    })
-  : passthrough;
+export async function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl;
 
-export default handler;
+  // Staff-only routes: require valid staff JWT
+  if (isStaffRoute(pathname)) {
+    const valid = await verifyStaffJwt(req);
+    if (!valid) {
+      const res = NextResponse.redirect(new URL("/staff-login", req.url));
+      res.cookies.delete("staff_session");
+      return res;
+    }
+    return NextResponse.next();
+  }
+
+  // Public routes: pass through, but refresh Supabase session cookies
+  if (isPublicRoute(pathname)) {
+    return refreshSupabaseSession(req);
+  }
+
+  // Protected routes: check staff JWT first, then Supabase session
+  const staffValid = await verifyStaffJwt(req);
+  if (staffValid) return NextResponse.next();
+
+  // Check Supabase session
+  let res = NextResponse.next();
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return req.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            res.cookies.set(name, value, options);
+          });
+        },
+      },
+    },
+  );
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    // API routes: return 401
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    // Page routes: redirect to sign-in
+    return NextResponse.redirect(new URL("/sign-in", req.url));
+  }
+
+  return res;
+}
+
+async function refreshSupabaseSession(req: NextRequest) {
+  const res = NextResponse.next();
+
+  createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return req.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            res.cookies.set(name, value, options);
+          });
+        },
+      },
+    },
+  );
+
+  return res;
+}
 
 export const config = {
   matcher: [

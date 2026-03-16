@@ -1,6 +1,7 @@
 "use client";
 
 import { type ReactNode, useEffect } from "react";
+import { AuthProvider } from "@/context/AuthContext";
 import { CartProvider } from "@/context/CartContext";
 import { ToastProvider } from "@/context/ToastContext";
 import { OrderProvider } from "@/context/OrderContext";
@@ -15,17 +16,19 @@ export default function Providers({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <RestaurantProvider>
-      <CartProvider>
-        <OrderProvider>
-          <LiveOrdersProvider>
-            <ToastProvider>
-              {children}
-              <NotificationSetup />
-            </ToastProvider>
-          </LiveOrdersProvider>
-        </OrderProvider>
-      </CartProvider>
-    </RestaurantProvider>
+    <AuthProvider>
+      <RestaurantProvider>
+        <CartProvider>
+          <OrderProvider>
+            <LiveOrdersProvider>
+              <ToastProvider>
+                {children}
+                <NotificationSetup />
+              </ToastProvider>
+            </LiveOrdersProvider>
+          </OrderProvider>
+        </CartProvider>
+      </RestaurantProvider>
+    </AuthProvider>
   );
 }

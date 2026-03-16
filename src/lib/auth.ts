@@ -1,66 +1,40 @@
 import { db } from "./db";
-
-function isClerkConfigured() {
-  return (
-    !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY &&
-    !!process.env.CLERK_SECRET_KEY
-  );
-}
+import { getSupabaseServerClient } from "./supabase-server";
 
 export async function getAuthUser() {
-  if (!isClerkConfigured()) return null;
+  const supabase = await getSupabaseServerClient();
+  const {
+    data: { user: supabaseUser },
+  } = await supabase.auth.getUser();
+  if (!supabaseUser) return null;
 
-  const { auth } = await import("@clerk/nextjs/server");
-  const { userId } = await auth();
-  if (!userId) return null;
-
-  const user = await db.user.findUnique({ where: { id: userId } });
+  const user = await db.user.findUnique({ where: { id: supabaseUser.id } });
   return user;
 }
 
 export async function getOrCreateUser() {
-  if (!isClerkConfigured()) return null;
+  const supabase = await getSupabaseServerClient();
+  const {
+    data: { user: supabaseUser },
+  } = await supabase.auth.getUser();
+  if (!supabaseUser) return null;
 
-  const { auth, currentUser } = await import("@clerk/nextjs/server");
-  const { userId } = await auth();
-  if (!userId) return null;
+  const email = supabaseUser.email ?? "";
+  const name =
+    supabaseUser.user_metadata?.full_name ??
+    supabaseUser.user_metadata?.name ??
+    email.split("@")[0] ??
+    "User";
+  const imageUrl =
+    supabaseUser.user_metadata?.avatar_url ??
+    supabaseUser.user_metadata?.picture ??
+    null;
+  const phone = supabaseUser.phone ?? null;
 
-  let user = await db.user.findUnique({ where: { id: userId } });
-  if (user) return user;
-
-  const clerkUser = await currentUser();
-  if (!clerkUser) return null;
-
-  const email = clerkUser.emailAddresses[0]?.emailAddress ?? "";
-
-  // If a user with this email already exists (e.g. from dev Clerk), update their ID
-  const existing = email
-    ? await db.user.findUnique({ where: { email } })
-    : null;
-  if (existing) {
-    user = await db.user.update({
-      where: { email },
-      data: {
-        id: clerkUser.id,
-        name:
-          `${clerkUser.firstName ?? ""} ${clerkUser.lastName ?? ""}`.trim() ||
-          existing.name,
-        imageUrl: clerkUser.imageUrl ?? existing.imageUrl,
-      },
-    });
-    return user;
-  }
-
-  user = await db.user.create({
-    data: {
-      id: clerkUser.id,
-      email,
-      name:
-        `${clerkUser.firstName ?? ""} ${clerkUser.lastName ?? ""}`.trim() ||
-        "User",
-      phone: clerkUser.phoneNumbers[0]?.phoneNumber,
-      imageUrl: clerkUser.imageUrl,
-    },
+  const user = await db.user.upsert({
+    where: { id: supabaseUser.id },
+    update: { email, name, imageUrl, phone },
+    create: { id: supabaseUser.id, email, name, imageUrl, phone },
   });
 
   return user;

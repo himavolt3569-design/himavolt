@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { useUser } from "@clerk/nextjs";
+import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api-client";
 import { formatPrice } from "@/lib/currency";
 import { useActiveTableSession } from "@/hooks/useActiveTableSession";
@@ -376,7 +376,7 @@ function TableSessionOrderView() {
 }
 
 export default function OrdersPage() {
-  const { isSignedIn, isLoaded } = useUser();
+  const { isSignedIn, isLoaded } = useAuth();
   const activeSession = useActiveTableSession();
   const [orders, setOrders] = useState<UserOrder[]>([]);
   const [loading, setLoading] = useState(true);

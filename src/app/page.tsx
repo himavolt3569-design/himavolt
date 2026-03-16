@@ -6,7 +6,6 @@ import Navbar from "@/components/layout/Navbar";
 import FoodCategories from "@/components/home/FoodCategories";
 import PopularFoods from "@/components/home/PopularFoods";
 import TopPlaces from "@/components/home/TopPlaces";
-import OffersCarousel from "@/components/home/OffersCarousel";
 import Footer from "@/components/layout/Footer";
 import CartSidebar from "@/components/cart/CartSidebar";
 import LoadingClock from "@/components/shared/LoadingClock";
@@ -106,20 +105,16 @@ export default function Home() {
           </ScrollStorySection>
 
           {/* Gradient bridge: light → dark */}
-          <div className="h-32 bg-gradient-to-b from-white to-[#0B0E14]" />
+          <div className="h-32 bg-linear-to-b from-white to-[#0B0E14]" />
 
           {/* How It Works — pinned phone mockup storytelling */}
           <StoryHowItWorks />
 
           {/* Gradient bridge: dark → light */}
-          <div className="h-32 bg-gradient-to-b from-[#0B0E14] to-white" />
+          <div className="h-32 bg-linear-to-b from-[#0B0E14] to-white" />
 
           <ScrollStorySection fadeIn slideFrom="bottom" scrub={false}>
             <TopPlaces />
-          </ScrollStorySection>
-
-          <ScrollStorySection fadeIn slideFrom="bottom" scrub={false}>
-            <OffersCarousel />
           </ScrollStorySection>
 
           <Footer />

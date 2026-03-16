@@ -1,4 +1,9 @@
-const BASE = typeof window !== "undefined" ? "" : process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+// On the client, use relative URLs. On the server, NEXT_PUBLIC_APP_URL must be set.
+const BASE =
+  typeof window !== "undefined"
+    ? ""
+    : process.env.NEXT_PUBLIC_APP_URL ||
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "");
 
 type FetchOptions = {
   method?: "GET" | "POST" | "PATCH" | "DELETE";

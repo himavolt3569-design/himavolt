@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getOrdersForBilling } from "@/lib/billing";
 import { db } from "@/lib/db";
 import { requireStaffForRestaurant } from "@/lib/staff-auth";
+import { getAuthUser } from "@/lib/auth";
 
 async function verifyStaffAccess(req: NextRequest, restaurantId: string) {
   const staff = await requireStaffForRestaurant(req, restaurantId);
@@ -21,22 +22,16 @@ export async function GET(
   const staff = await verifyStaffAccess(req, id);
 
   if (!staff) {
-    // Try Clerk auth for owners
-    try {
-      const { auth } = await import("@clerk/nextjs/server");
-      const { userId } = await auth();
-      if (!userId) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-      }
-      const restaurant = await db.restaurant.findUnique({
-        where: { id },
-        select: { ownerId: true },
-      });
-      if (!restaurant || restaurant.ownerId !== userId) {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-      }
-    } catch {
+    const user = await getAuthUser();
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const restaurant = await db.restaurant.findUnique({
+      where: { id },
+      select: { ownerId: true },
+    });
+    if (!restaurant || restaurant.ownerId !== user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
   }
 

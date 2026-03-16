@@ -3,9 +3,8 @@ import { db } from "@/lib/db";
 import { verifyKhaltiPayment } from "@/lib/payments/khalti";
 import { decryptIfPresent } from "@/lib/encryption";
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-
 export async function GET(req: NextRequest) {
+  const APP_URL = process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
   const { searchParams } = new URL(req.url);
   const orderId = searchParams.get("orderId");
   const pidx = searchParams.get("pidx");

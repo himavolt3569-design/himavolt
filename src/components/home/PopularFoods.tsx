@@ -7,7 +7,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Star, Clock, ChevronDown, SlidersHorizontal, Flame, Sparkles, Tag, Plus } from "lucide-react";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
-import { formatPrice, getCurrencySymbol } from "@/lib/currency";
+import { formatPrice } from "@/lib/currency";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -31,148 +31,6 @@ interface FoodItem {
   restaurantName: string;
 }
 
-/* ── Hardcoded fallback data ───────────────────────────────────────── */
-
-let _id = 0;
-const f = (
-  name: string,
-  image: string,
-  price: number,
-  rating: number,
-  prepTime: string,
-  tags: string[],
-  category: string,
-  offer?: string,
-  isVeg?: boolean
-): FoodItem => ({
-  id: String(++_id),
-  name,
-  image,
-  price,
-  rating,
-  prepTime,
-  tags,
-  category,
-  offer,
-  isVeg,
-  restaurantId: "home",
-  restaurantSlug: "home",
-  restaurantName: "",
-});
-
-const FALLBACK_FOODS: FoodItem[] = [
-  // ─── Nepali Favorites ────────────────────────────
-  f("Buff Momo", "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=400&h=300&fit=crop", 220, 4.5, "15-20 min", ["Nepali", "Momo"], "Momo"),
-  f("Chicken Momo", "https://images.unsplash.com/photo-1625220194771-7ebdea0b70b9?w=400&h=300&fit=crop", 200, 4.3, "15-20 min", ["Nepali", "Momo"], "Momo", `FLAT ${getCurrencySymbol("NPR")}50 OFF`),
-  f("Veg Momo", "https://images.unsplash.com/photo-1496116218417-1a781b1c416c?w=400&h=300&fit=crop", 160, 4.2, "15-20 min", ["Nepali", "Vegetarian"], "Momo", undefined, true),
-  f("Jhol Momo", "https://images.unsplash.com/photo-1609501676725-7186f017a4b7?w=400&h=300&fit=crop", 240, 4.6, "20-25 min", ["Nepali", "Spicy"], "Momo"),
-  f("Fried Momo", "https://images.unsplash.com/photo-1625220194771-7ebdea0b70b9?w=400&h=300&fit=crop", 220, 4.4, "20-25 min", ["Nepali", "Fried"], "Momo"),
-  f("Kothey Momo", "https://images.unsplash.com/photo-1496116218417-1a781b1c416c?w=400&h=300&fit=crop", 230, 4.3, "20-25 min", ["Nepali", "Pan-fried"], "Momo"),
-  f("Dal Bhat", "https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=400&h=300&fit=crop", 350, 4.7, "25-30 min", ["Nepali", "Thali"], "Nepali"),
-  f("Thakali Set", "https://images.unsplash.com/photo-1574484284002-952d92456975?w=400&h=300&fit=crop", 450, 4.8, "30-35 min", ["Nepali", "Thali"], "Nepali", `FLAT ${getCurrencySymbol("NPR")}100 OFF`),
-  f("Sel Roti", "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=400&h=300&fit=crop", 80, 4.0, "10-15 min", ["Nepali", "Snack"], "Nepali"),
-  f("Chatamari", "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&h=300&fit=crop", 180, 4.2, "15-20 min", ["Newari", "Crepe"], "Nepali", undefined, true),
-  f("Choyla", "https://images.unsplash.com/photo-1544025162-d76694265947?w=400&h=300&fit=crop", 280, 4.5, "20-25 min", ["Newari", "Grilled"], "Nepali"),
-  f("Sekuwa", "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&h=300&fit=crop", 350, 4.6, "25-30 min", ["Nepali", "BBQ"], "Nepali", "20% OFF"),
-  f("Aloo Tama", "https://images.unsplash.com/photo-1455619452474-d2be8b1e70cd?w=400&h=300&fit=crop", 200, 4.1, "20-25 min", ["Nepali", "Curry"], "Nepali", undefined, true),
-  f("Bara", "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&h=300&fit=crop", 120, 4.2, "10-15 min", ["Newari", "Lentil"], "Nepali", undefined, true),
-  f("Samay Baji", "https://images.unsplash.com/photo-1574484284002-952d92456975?w=400&h=300&fit=crop", 400, 4.7, "25-30 min", ["Newari", "Platter"], "Nepali"),
-  f("Pani Puri", "https://images.unsplash.com/photo-1601050690117-94f5f6fa8bd7?w=400&h=300&fit=crop", 100, 4.3, "5-10 min", ["Street Food"], "Nepali", undefined, true),
-  f("Buff Chhoila", "https://images.unsplash.com/photo-1544025162-d76694265947?w=400&h=300&fit=crop", 300, 4.5, "20-25 min", ["Newari", "Spicy"], "Nepali"),
-  f("Sukuti", "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=300&fit=crop", 280, 4.4, "10-15 min", ["Nepali", "Dried Meat"], "Nepali"),
-  f("Newari Khaja", "https://images.unsplash.com/photo-1574484284002-952d92456975?w=400&h=300&fit=crop", 380, 4.6, "25-30 min", ["Newari", "Platter"], "Nepali", `FLAT ${getCurrencySymbol("NPR")}50 OFF`),
-  f("Dhido", "https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=400&h=300&fit=crop", 200, 4.0, "20-25 min", ["Nepali", "Traditional"], "Nepali", undefined, true),
-  f("Yomari", "https://images.unsplash.com/photo-1551024506-0bccd828d307?w=400&h=300&fit=crop", 120, 4.3, "15-20 min", ["Newari", "Sweet"], "Desserts"),
-  f("Gundruk Jhol", "https://images.unsplash.com/photo-1547592166-23ac45744acd?w=400&h=300&fit=crop", 150, 4.0, "15-20 min", ["Nepali", "Soup"], "Nepali", undefined, true),
-  f("Kwati", "https://images.unsplash.com/photo-1547592166-23ac45744acd?w=400&h=300&fit=crop", 180, 4.1, "20-25 min", ["Nepali", "Bean Soup"], "Nepali", undefined, true),
-  f("Aloo Chop", "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=400&h=300&fit=crop", 80, 4.0, "10-15 min", ["Street Food", "Snack"], "Nepali", undefined, true),
-  f("Steam Momo", "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=400&h=300&fit=crop", 200, 4.1, "15-20 min", ["Nepali", "Momo"], "Momo"),
-  f("Phapar Roti", "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=400&h=300&fit=crop", 100, 3.9, "15-20 min", ["Nepali", "Bread"], "Nepali", undefined, true),
-  f("Chicken Chhoila", "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&h=300&fit=crop", 320, 4.4, "20-25 min", ["Newari", "Grilled"], "Nepali"),
-
-  // ─── Curries & Rice ──────────────────────────────
-  f("Chicken Curry", "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=400&h=300&fit=crop", 320, 4.4, "25-30 min", ["Indian", "Curry"], "Nepali"),
-  f("Mutton Curry", "https://images.unsplash.com/photo-1545247181-516773cae754?w=400&h=300&fit=crop", 450, 4.6, "35-40 min", ["Indian", "Curry"], "Nepali", `FLAT ${getCurrencySymbol("NPR")}100 OFF`),
-  f("Butter Chicken", "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=400&h=300&fit=crop", 380, 4.7, "25-30 min", ["Indian", "Mughlai"], "Nepali"),
-  f("Paneer Butter Masala", "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=400&h=300&fit=crop", 300, 4.5, "20-25 min", ["Indian", "Vegetarian"], "Nepali", undefined, true),
-  f("Egg Curry", "https://images.unsplash.com/photo-1574484284002-952d92456975?w=400&h=300&fit=crop", 200, 4.2, "20-25 min", ["Indian", "Curry"], "Nepali"),
-  f("Fish Curry", "https://images.unsplash.com/photo-1574484284002-952d92456975?w=400&h=300&fit=crop", 350, 4.3, "25-30 min", ["Indian", "Seafood"], "Nepali"),
-  f("Dal Makhani", "https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=400&h=300&fit=crop", 250, 4.5, "25-30 min", ["Indian", "Lentil"], "Nepali", "20% OFF", true),
-  f("Chana Masala", "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=400&h=300&fit=crop", 220, 4.3, "20-25 min", ["Indian", "Vegetarian"], "Nepali", undefined, true),
-  f("Palak Paneer", "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=400&h=300&fit=crop", 280, 4.4, "20-25 min", ["Indian", "Vegetarian"], "Healthy", undefined, true),
-  f("Chicken Biryani", "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=400&h=300&fit=crop", 350, 4.6, "30-35 min", ["Indian", "Rice"], "Biryani"),
-  f("Mutton Biryani", "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=400&h=300&fit=crop", 450, 4.7, "35-40 min", ["Indian", "Rice"], "Biryani", `FLAT ${getCurrencySymbol("NPR")}50 OFF`),
-  f("Veg Biryani", "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=400&h=300&fit=crop", 250, 4.2, "25-30 min", ["Indian", "Vegetarian"], "Biryani", undefined, true),
-  f("Fried Rice", "https://images.unsplash.com/photo-1512058564366-18510be2db19?w=400&h=300&fit=crop", 220, 4.1, "15-20 min", ["Chinese", "Rice"], "Chinese"),
-  f("Tikka Masala", "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=400&h=300&fit=crop", 350, 4.5, "25-30 min", ["Indian", "Tandoor"], "Tandoori"),
-  f("Kadhai Paneer", "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=400&h=300&fit=crop", 300, 4.4, "20-25 min", ["Indian", "Vegetarian"], "Nepali", undefined, true),
-  f("Malai Kofta", "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=400&h=300&fit=crop", 280, 4.3, "25-30 min", ["Indian", "Vegetarian"], "Nepali", undefined, true),
-  f("Rajma Rice", "https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=400&h=300&fit=crop", 200, 4.2, "20-25 min", ["Indian", "Comfort"], "Nepali", undefined, true),
-  f("Mushroom Masala", "https://images.unsplash.com/photo-1455619452474-d2be8b1e70cd?w=400&h=300&fit=crop", 260, 4.1, "20-25 min", ["Indian", "Vegetarian"], "Healthy", undefined, true),
-  f("Keema Curry", "https://images.unsplash.com/photo-1545247181-516773cae754?w=400&h=300&fit=crop", 300, 4.3, "25-30 min", ["Indian", "Minced"], "Nepali"),
-  f("Prawn Curry", "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=400&h=300&fit=crop", 500, 4.5, "25-30 min", ["Indian", "Seafood"], "Nepali"),
-  f("Aloo Gobi", "https://images.unsplash.com/photo-1455619452474-d2be8b1e70cd?w=400&h=300&fit=crop", 200, 4.1, "20-25 min", ["Indian", "Vegetarian"], "Nepali", undefined, true),
-  f("Jeera Rice", "https://images.unsplash.com/photo-1516684732162-798a0062be99?w=400&h=300&fit=crop", 150, 4.1, "10-15 min", ["Indian", "Rice"], "Nepali", undefined, true),
-  f("Steamed Rice", "https://images.unsplash.com/photo-1516684732162-798a0062be99?w=400&h=300&fit=crop", 80, 4.0, "10-15 min", ["Sides", "Rice"], "Nepali", undefined, true),
-
-  // ─── Snacks & Fast Food ──────────────────────────
-  f("Cheese Burger", "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop", 280, 4.3, "10-15 min", ["Burger", "American"], "Burger", `FLAT ${getCurrencySymbol("NPR")}100 OFF`),
-  f("Chicken Burger", "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=400&h=300&fit=crop", 300, 4.4, "10-15 min", ["Burger", "American"], "Burger"),
-  f("French Fries", "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400&h=300&fit=crop", 150, 4.2, "10-15 min", ["Snack", "Fried"], "Burger", undefined, true),
-  f("Chicken Wings", "https://images.unsplash.com/photo-1527477396000-e27163b4d4fc?w=400&h=300&fit=crop", 320, 4.5, "15-20 min", ["American", "Fried"], "Burger"),
-  f("Pizza Margherita", "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400&h=300&fit=crop", 350, 4.4, "20-25 min", ["Pizza", "Italian"], "Pizza", undefined, true),
-  f("Pepperoni Pizza", "https://images.unsplash.com/photo-1628840042765-356cda07504e?w=400&h=300&fit=crop", 450, 4.6, "20-25 min", ["Pizza", "Italian"], "Pizza", `FLAT ${getCurrencySymbol("NPR")}50 OFF`),
-  f("Chicken Pizza", "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&h=300&fit=crop", 400, 4.5, "20-25 min", ["Pizza", "Italian"], "Pizza"),
-  f("Veg Pizza", "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400&h=300&fit=crop", 320, 4.1, "20-25 min", ["Pizza", "Vegetarian"], "Pizza", undefined, true),
-  f("Chilli Chicken", "https://images.unsplash.com/photo-1525755662778-989d0524087e?w=400&h=300&fit=crop", 280, 4.3, "15-20 min", ["Chinese", "Spicy"], "Chinese"),
-  f("Spring Rolls", "https://images.unsplash.com/photo-1544378730-8b5104b38a67?w=400&h=300&fit=crop", 180, 4.1, "10-15 min", ["Chinese", "Snack"], "Chinese", undefined, true),
-  f("Samosa", "https://images.unsplash.com/photo-1601050690117-94f5f6fa8bd7?w=400&h=300&fit=crop", 60, 4.2, "5-10 min", ["Indian", "Street Food"], "Nepali", "10% OFF", true),
-  f("Chowmein", "https://images.unsplash.com/photo-1585032226651-759b368d7246?w=400&h=300&fit=crop", 180, 4.2, "15-20 min", ["Chinese", "Noodles"], "Noodles"),
-  f("Thukpa", "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400&h=300&fit=crop", 200, 4.3, "15-20 min", ["Tibetan", "Soup"], "Noodles"),
-  f("Chicken Chowmein", "https://images.unsplash.com/photo-1585032226651-759b368d7246?w=400&h=300&fit=crop", 220, 4.3, "15-20 min", ["Chinese", "Noodles"], "Noodles"),
-  f("Sandwich", "https://images.unsplash.com/photo-1553909489-cd47e0907980?w=400&h=300&fit=crop", 180, 4.0, "10-15 min", ["Continental", "Bread"], "Bakery"),
-  f("Club Sandwich", "https://images.unsplash.com/photo-1553909489-cd47e0907980?w=400&h=300&fit=crop", 250, 4.2, "10-15 min", ["Continental", "Bread"], "Bakery"),
-  f("Chicken Nuggets", "https://images.unsplash.com/photo-1562967914-608f82629710?w=400&h=300&fit=crop", 220, 4.1, "10-15 min", ["American", "Fried"], "Burger"),
-  f("Nachos", "https://images.unsplash.com/photo-1513456852971-30c0b8199d4d?w=400&h=300&fit=crop", 250, 4.2, "10-15 min", ["Mexican", "Snack"], "Burger"),
-  f("Pasta Alfredo", "https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?w=400&h=300&fit=crop", 300, 4.4, "15-20 min", ["Italian", "Pasta"], "Noodles"),
-  f("Spaghetti", "https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=400&h=300&fit=crop", 280, 4.3, "15-20 min", ["Italian", "Pasta"], "Noodles", "20% OFF"),
-  f("Chicken Wrap", "https://images.unsplash.com/photo-1626700051175-6818013e1d4f?w=400&h=300&fit=crop", 250, 4.2, "10-15 min", ["Continental", "Wrap"], "Rolls"),
-  f("Garlic Bread", "https://images.unsplash.com/photo-1573140247632-f8fd74997d5c?w=400&h=300&fit=crop", 150, 4.1, "10-15 min", ["Italian", "Bread"], "Bakery", undefined, true),
-  f("Buff Chowmein", "https://images.unsplash.com/photo-1585032226651-759b368d7246?w=400&h=300&fit=crop", 220, 4.3, "15-20 min", ["Chinese", "Noodles"], "Noodles"),
-  f("Hot Dog", "https://images.unsplash.com/photo-1612392062631-94e17bf42008?w=400&h=300&fit=crop", 200, 4.0, "5-10 min", ["American"], "Burger"),
-  f("Fish n Chips", "https://images.unsplash.com/photo-1579208030886-b1f5b7d0a8b4?w=400&h=300&fit=crop", 350, 4.3, "15-20 min", ["British", "Seafood"], "Burger"),
-  f("Pakora", "https://images.unsplash.com/photo-1601050690117-94f5f6fa8bd7?w=400&h=300&fit=crop", 100, 4.1, "10-15 min", ["Indian", "Snack"], "Nepali", undefined, true),
-  f("Onion Rings", "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400&h=300&fit=crop", 160, 4.0, "10-15 min", ["Snack", "Fried"], "Burger", undefined, true),
-
-  // ─── Drinks & Desserts ───────────────────────────
-  f("Masala Tea", "https://images.unsplash.com/photo-1571934811356-5cc061b6821f?w=400&h=300&fit=crop", 50, 4.5, "5 min", ["Tea", "Hot"], "Drinks", undefined, true),
-  f("Iced Coffee", "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=400&h=300&fit=crop", 180, 4.3, "5-10 min", ["Coffee", "Cold"], "Coffee"),
-  f("Cappuccino", "https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=400&h=300&fit=crop", 200, 4.4, "5-10 min", ["Coffee", "Hot"], "Coffee"),
-  f("Mango Lassi", "https://images.unsplash.com/photo-1553530666-ba11a7da3888?w=400&h=300&fit=crop", 150, 4.6, "5-10 min", ["Drink", "Yogurt"], "Drinks", `FLAT ${getCurrencySymbol("NPR")}30 OFF`),
-  f("Fresh Lime Soda", "https://images.unsplash.com/photo-1513558161293-cdaf765ed514?w=400&h=300&fit=crop", 100, 4.2, "5 min", ["Drink", "Refreshing"], "Drinks", undefined, true),
-  f("Chocolate Shake", "https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=400&h=300&fit=crop", 200, 4.5, "5-10 min", ["Shake", "Cold"], "Drinks"),
-  f("Gulab Jamun", "https://images.unsplash.com/photo-1666190100349-f7c919c28c6f?w=400&h=300&fit=crop", 120, 4.6, "5-10 min", ["Dessert", "Indian"], "Desserts", "20% OFF"),
-  f("Rasgulla", "https://images.unsplash.com/photo-1666190100349-f7c919c28c6f?w=400&h=300&fit=crop", 120, 4.4, "5-10 min", ["Dessert", "Indian"], "Desserts"),
-  f("Jalebi", "https://images.unsplash.com/photo-1666190100349-f7c919c28c6f?w=400&h=300&fit=crop", 100, 4.5, "5-10 min", ["Dessert", "Street Food"], "Desserts", undefined, true),
-  f("Ice Cream", "https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?w=400&h=300&fit=crop", 120, 4.3, "5 min", ["Dessert", "Cold"], "Ice Cream"),
-  f("Brownie", "https://images.unsplash.com/photo-1564355808539-22fda35bed7e?w=400&h=300&fit=crop", 200, 4.5, "5-10 min", ["Dessert", "Bakery"], "Desserts"),
-  f("Cheesecake", "https://images.unsplash.com/photo-1567171466295-4afa63d45416?w=400&h=300&fit=crop", 300, 4.6, "5-10 min", ["Dessert", "Bakery"], "Desserts", `FLAT ${getCurrencySymbol("NPR")}50 OFF`),
-  f("Tiramisu", "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=400&h=300&fit=crop", 350, 4.7, "5-10 min", ["Dessert", "Italian"], "Desserts"),
-  f("Latte", "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=400&h=300&fit=crop", 220, 4.3, "5-10 min", ["Coffee", "Hot"], "Coffee"),
-  f("Espresso", "https://images.unsplash.com/photo-1510707577719-ae7c14805e3a?w=400&h=300&fit=crop", 150, 4.2, "5 min", ["Coffee", "Hot"], "Coffee"),
-  f("Green Tea", "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=400&h=300&fit=crop", 80, 4.1, "5 min", ["Tea", "Healthy"], "Healthy", undefined, true),
-  f("Orange Juice", "https://images.unsplash.com/photo-1613478223719-2ab802602423?w=400&h=300&fit=crop", 120, 4.2, "5-10 min", ["Juice", "Fresh"], "Juice"),
-  f("Watermelon Juice", "https://images.unsplash.com/photo-1613478223719-2ab802602423?w=400&h=300&fit=crop", 120, 4.3, "5-10 min", ["Juice", "Fresh"], "Juice"),
-  f("Kulfi", "https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?w=400&h=300&fit=crop", 100, 4.4, "5 min", ["Dessert", "Indian"], "Ice Cream"),
-  f("Fruit Salad", "https://images.unsplash.com/photo-1564093497595-593b96d80180?w=400&h=300&fit=crop", 150, 4.0, "5-10 min", ["Healthy", "Fresh"], "Healthy", undefined, true),
-  f("Hot Chocolate", "https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=400&h=300&fit=crop", 180, 4.4, "5-10 min", ["Drink", "Hot"], "Coffee"),
-  f("Smoothie Bowl", "https://images.unsplash.com/photo-1553530666-ba11a7da3888?w=400&h=300&fit=crop", 250, 4.3, "5-10 min", ["Healthy", "Cold"], "Healthy", undefined, true),
-  f("Coconut Water", "https://images.unsplash.com/photo-1513558161293-cdaf765ed514?w=400&h=300&fit=crop", 80, 4.1, "5 min", ["Drink", "Natural"], "Drinks", undefined, true),
-  f("Chai Latte", "https://images.unsplash.com/photo-1571934811356-5cc061b6821f?w=400&h=300&fit=crop", 200, 4.3, "5-10 min", ["Tea", "Hot"], "Coffee", "15% OFF"),
-  f("Kheer", "https://images.unsplash.com/photo-1551024506-0bccd828d307?w=400&h=300&fit=crop", 150, 4.3, "10-15 min", ["Dessert", "Indian"], "Desserts", undefined, true),
-  f("Banana Shake", "https://images.unsplash.com/photo-1553530666-ba11a7da3888?w=400&h=300&fit=crop", 150, 4.1, "5-10 min", ["Shake", "Cold"], "Drinks"),
-  f("Panna Cotta", "https://images.unsplash.com/photo-1551024506-0bccd828d307?w=400&h=300&fit=crop", 280, 4.5, "5-10 min", ["Dessert", "Italian"], "Desserts"),
-];
 
 /* ── API data transformer ──────────────────────────────────────────── */
 
@@ -401,7 +259,8 @@ export default function PopularFoods({
 }: {
   activeCategory?: string;
 }) {
-  const [foods, setFoods] = useState<FoodItem[]>(FALLBACK_FOODS);
+  const [foods, setFoods] = useState<FoodItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isLive, setIsLive] = useState(false);
   const [activeFilters, setActiveFilters] = useState<Set<string>>(new Set());
   const [showAll, setShowAll] = useState(false);
@@ -419,7 +278,9 @@ export default function PopularFoods({
         setIsLive(true);
       }
     } catch {
-      // Keep fallback data on error
+      // remain empty on error
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
@@ -524,8 +385,37 @@ export default function PopularFoods({
           </div>
         </div>
 
-        {/* No results */}
-        {filtered.length === 0 && (
+        {/* Loading skeleton */}
+        {isLoading && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-7 pb-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="animate-pulse">
+                <div className="aspect-4/3 rounded-2xl bg-gray-100" />
+                <div className="mt-3 space-y-2 px-0.5">
+                  <div className="h-4 w-3/4 rounded bg-gray-100" />
+                  <div className="h-3 w-1/2 rounded bg-gray-100" />
+                  <div className="h-4 w-1/3 rounded bg-gray-100" />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* No dishes — loading complete but DB is empty */}
+        {!isLoading && filtered.length === 0 && foods.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 mb-4">
+              <Sparkles className="h-7 w-7 text-gray-300" />
+            </div>
+            <p className="text-base font-bold text-[#1F2A2A]">No dishes yet</p>
+            <p className="text-sm text-gray-400 mt-1">
+              Restaurants are coming soon — check back shortly!
+            </p>
+          </div>
+        )}
+
+        {/* Filtered empty state */}
+        {!isLoading && foods.length > 0 && filtered.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 mb-4">
               <Sparkles className="h-7 w-7 text-gray-300" />
@@ -536,13 +426,15 @@ export default function PopularFoods({
         )}
 
         {/* Food grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-7 sm:gap-y-7 pb-4 sm:pb-0">
-          {displayed.map((item, idx) => (
-            <div key={item.id} className={idx !== 0 ? "sm:border-t-0 border-t border-gray-100" : ""}>
-              <FoodCard item={item} />
-            </div>
-          ))}
-        </div>
+        {!isLoading && displayed.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-7 sm:gap-y-7 pb-4 sm:pb-0">
+            {displayed.map((item, idx) => (
+              <div key={item.id} className={idx !== 0 ? "sm:border-t-0 border-t border-gray-100" : ""}>
+                <FoodCard item={item} />
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Show more */}
         {filtered.length > VISIBLE && (

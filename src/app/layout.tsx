@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
-import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 import Providers from "./providers";
 import PWAInstallPrompt from "@/components/shared/PWAInstallPrompt";
@@ -36,7 +35,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const body = (
+  return (
     <html lang="en" data-scroll-behavior="smooth">
       <head>
         <link
@@ -55,11 +54,5 @@ export default function RootLayout({
         </Providers>
       </body>
     </html>
-  );
-
-  return process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ? (
-    <ClerkProvider>{body}</ClerkProvider>
-  ) : (
-    body
   );
 }

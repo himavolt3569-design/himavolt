@@ -30,8 +30,9 @@ import {
   ArrowUpRight,
   Radio,
   X,
+  User,
 } from "lucide-react";
-import { useUser, UserButton } from "@clerk/nextjs";
+import { useAuth } from "@/context/AuthContext";
 import { formatPrice } from "@/lib/currency";
 import Link from "next/link";
 
@@ -357,7 +358,7 @@ function AuditRow({ log, isNew }: { log: AuditLog; isNew?: boolean }) {
    ═══════════════════════════════════════════════════════════════════ */
 
 export default function AdminPage() {
-  const { user, isLoaded } = useUser();
+  const { user, isLoaded } = useAuth();
   const [tab, setTab] = useState<AdminTab>("overview");
   const [stats, setStats] = useState<Stats | null>(null);
   const [logs, setLogs] = useState<AuditLog[]>([]);
@@ -560,7 +561,22 @@ export default function AdminPage() {
             >
               Dashboard <ArrowUpRight className="h-3 w-3" />
             </Link>
-            {user && <UserButton />}
+            {user && (
+              <Link
+                href="/profile"
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors overflow-hidden"
+              >
+                {user.user_metadata?.avatar_url ? (
+                  <img
+                    src={user.user_metadata.avatar_url}
+                    alt="Profile"
+                    className="h-8 w-8 object-cover"
+                  />
+                ) : (
+                  <User className="h-4 w-4 text-gray-600" />
+                )}
+              </Link>
+            )}
           </div>
         </div>
       </header>

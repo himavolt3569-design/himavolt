@@ -1,21 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireStaffForRestaurant } from "@/lib/staff-auth";
+import { getAuthUser } from "@/lib/auth";
 
 async function verifyOwner(restaurantId: string) {
-  try {
-    const { auth } = await import("@clerk/nextjs/server");
-    const { userId } = await auth();
-    if (!userId) return null;
-    const restaurant = await db.restaurant.findUnique({
-      where: { id: restaurantId },
-      select: { ownerId: true },
-    });
-    if (!restaurant || restaurant.ownerId !== userId) return null;
-    return userId;
-  } catch {
-    return null;
-  }
+  const user = await getAuthUser();
+  if (!user) return null;
+  const restaurant = await db.restaurant.findUnique({
+    where: { id: restaurantId },
+    select: { ownerId: true },
+  });
+  if (!restaurant || restaurant.ownerId !== user.id) return null;
+  return user.id;
 }
 
 async function authorize(req: NextRequest, restaurantId: string) {
