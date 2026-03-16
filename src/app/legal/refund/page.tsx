@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import {
   ArrowLeft,
   Mountain,
@@ -79,7 +79,7 @@ export default function RefundPage() {
             <Link href="/" className="flex items-center gap-2">
               <Mountain className="h-6 w-6 text-[#FF9933]" strokeWidth={2.5} />
               <span className="text-lg font-extrabold tracking-tight text-[#1F2A2A]">
-                Himal<span className="text-[#FF9933]">Hub</span>
+                Hima<span className="text-[#FF9933]">Volt</span>
               </span>
             </Link>
           </div>

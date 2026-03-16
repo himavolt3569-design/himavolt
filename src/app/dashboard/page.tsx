@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -544,7 +544,7 @@ function Sidebar({
             <Mountain className="h-4 w-4 text-white" strokeWidth={2.5} />
           </div>
           <span className="text-[17px] font-bold tracking-tight text-gray-900">
-            Himal<span className="text-amber-500">Hub</span>
+            Hima<span className="text-amber-500">Volt</span>
           </span>
         </Link>
         {onClose && (

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -425,7 +425,7 @@ export default function StaffLoginPage() {
                 />
               </motion.div>
               <span className="text-xl font-extrabold text-white tracking-tight">
-                Himal<span className="text-[#FF9933]">Hub</span>
+                Hima<span className="text-[#FF9933]">Volt</span>
               </span>
             </Link>
           </motion.div>
@@ -524,7 +524,7 @@ export default function StaffLoginPage() {
           <Link href="/" className="flex items-center gap-2">
             <Mountain className="h-5 w-5 text-[#FF9933]" strokeWidth={2.5} />
             <span className="text-lg font-extrabold text-white tracking-tight">
-              Himal<span className="text-[#FF9933]">Hub</span>
+              Hima<span className="text-[#FF9933]">Volt</span>
             </span>
           </Link>
           <Link

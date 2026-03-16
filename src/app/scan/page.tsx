@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Suspense, useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -124,7 +124,7 @@ function ScanPageContent() {
       >
         <Mountain className="h-7 w-7 text-[#FF9933]" strokeWidth={2.5} />
         <span className="text-xl font-extrabold tracking-tight text-[#1F2A2A]">
-          Himal<span className="text-[#FF9933]">Hub</span>
+          Hima<span className="text-[#FF9933]">Volt</span>
         </span>
       </motion.div>
 

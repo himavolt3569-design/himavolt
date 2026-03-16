@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -1760,7 +1760,7 @@ export default function KitchenPage() {
             <div className="flex items-center gap-2">
               <Mountain className="h-5 w-5 text-[#FF9933]" strokeWidth={2.5} />
               <span className="text-base font-extrabold tracking-tight text-[#1F2A2A]">
-                Himal<span className="text-[#FF9933]">Hub</span>
+                Hima<span className="text-[#FF9933]">Volt</span>
               </span>
               <span
                 className={`ml-1 rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${config.color} ${config.bg}`}
