@@ -1464,7 +1464,7 @@ export default function DashboardPage() {
               {activeTab === "overview" && (
                 <OverviewTab
                   setTab={setActiveTab}
-                  userName={user?.firstName ?? undefined}
+                  userName={user?.user_metadata?.full_name ?? undefined}
                 />
               )}
               {activeTab === "orders" && <LiveOrdersTab />}
