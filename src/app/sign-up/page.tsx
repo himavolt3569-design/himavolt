@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 import {
   Mountain,
@@ -14,9 +14,19 @@ import {
   Users,
   ClipboardList,
   Heart,
+  AtSign,
 } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+
+function useDebounce(value: string, delay: number) {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(t);
+  }, [value, delay]);
+  return debounced;
+}
 
 type Role = "CUSTOMER" | "OWNER";
 type Step = "role" | "form";
@@ -38,14 +48,44 @@ export default function SignUpPage() {
   const [role, setRole] = useState<Role | null>(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
+  const [usernameStatus, setUsernameStatus] = useState<"idle" | "checking" | "available" | "taken" | "invalid">("idle");
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const debouncedUsername = useDebounce(username, 400);
+  const checkedRef = useRef("");
+
+  useEffect(() => {
+    const u = debouncedUsername;
+    if (!u || checkedRef.current === u) return;
+
+    if (!/^[a-z0-9_]{3,20}$/.test(u)) {
+      setUsernameStatus(u.length < 3 ? "idle" : "invalid");
+      return;
+    }
+
+    checkedRef.current = u;
+    setUsernameStatus("checking");
+    fetch(`/api/me/username-check?username=${encodeURIComponent(u)}`)
+      .then((r) => r.json())
+      .then(({ available }) => setUsernameStatus(available ? "available" : "taken"))
+      .catch(() => setUsernameStatus("idle"));
+  }, [debouncedUsername]);
+
+  const handleUsernameChange = (val: string) => {
+    const cleaned = val.toLowerCase().replace(/[^a-z0-9_]/g, "").slice(0, 20);
+    setUsername(cleaned);
+    setUsernameStatus("idle");
+    checkedRef.current = "";
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (usernameStatus !== "available") return;
     setError("");
     setLoading(true);
 
@@ -57,6 +97,7 @@ export default function SignUpPage() {
         data: {
           full_name: name,
           intended_role: role,
+          username,
           ...(phone ? { phone } : {}),
         },
         emailRedirectTo: `${window.location.origin}/auth/callback`,
@@ -375,6 +416,45 @@ export default function SignUpPage() {
                     />
                   </div>
 
+                  {/* Username */}
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-gray-700">
+                      Username <span className="text-[#E23744]">*</span>
+                    </label>
+                    <div className="relative">
+                      <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <input
+                        type="text"
+                        value={username}
+                        onChange={(e) => handleUsernameChange(e.target.value)}
+                        required
+                        placeholder="your_username"
+                        className={`w-full rounded-xl border px-4 py-2.5 pl-9 text-sm focus:outline-none focus:ring-1 transition-colors ${
+                          usernameStatus === "available"
+                            ? "border-green-400 focus:border-green-400 focus:ring-green-200"
+                            : usernameStatus === "taken" || usernameStatus === "invalid"
+                            ? "border-red-400 focus:border-red-400 focus:ring-red-200"
+                            : "border-gray-200 focus:border-[#E23744]/30 focus:ring-[#E23744]/30"
+                        }`}
+                      />
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                        {usernameStatus === "checking" && <Loader2 className="h-4 w-4 animate-spin text-gray-400" />}
+                        {usernameStatus === "available" && <Check className="h-4 w-4 text-green-500" />}
+                      </div>
+                    </div>
+                    <p className={`mt-1 text-[11px] ${
+                      usernameStatus === "available" ? "text-green-600"
+                      : usernameStatus === "taken" ? "text-red-500"
+                      : usernameStatus === "invalid" ? "text-red-500"
+                      : "text-gray-400"
+                    }`}>
+                      {usernameStatus === "available" && "Username is available!"}
+                      {usernameStatus === "taken" && "Username is already taken"}
+                      {usernameStatus === "invalid" && "3–20 chars: lowercase, numbers, underscores"}
+                      {(usernameStatus === "idle" || usernameStatus === "checking") && "3–20 chars: a–z, 0–9, underscores only"}
+                    </p>
+                  </div>
+
                   <div>
                     <label className="mb-1 block text-sm font-medium text-gray-700">
                       Email
@@ -430,8 +510,8 @@ export default function SignUpPage() {
 
                   <button
                     type="submit"
-                    disabled={loading}
-                    className="w-full rounded-xl bg-[#E23744] py-3 text-sm font-bold text-white transition-all hover:bg-[#c92e3c] active:scale-[0.98] disabled:opacity-50 shadow-sm shadow-[#E23744]/20"
+                    disabled={loading || usernameStatus !== "available"}
+                    className="w-full rounded-xl bg-[#E23744] py-3 text-sm font-bold text-white transition-all hover:bg-[#c92e3c] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-[#E23744]/20"
                   >
                     {loading ? (
                       <Loader2 className="mx-auto h-4 w-4 animate-spin" />

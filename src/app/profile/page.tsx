@@ -42,11 +42,20 @@ export default function ProfilePage() {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [stats, setStats] = useState<QuickStats>({ totalOrders: 0 });
   const [signingOut, setSigningOut] = useState(false);
+  const [dbRole, setDbRole] = useState<string | null>(null);
 
   // Load sound preference from localStorage
   useEffect(() => {
     setSoundEnabled(getStoredSoundPref());
   }, []);
+
+  // Fetch DB role
+  useEffect(() => {
+    if (!isSignedIn) return;
+    apiFetch<{ role: string | null }>("/api/me")
+      .then((data) => setDbRole(data.role))
+      .catch(() => {});
+  }, [isSignedIn]);
 
   // Fetch basic stats (total orders count)
   useEffect(() => {
@@ -171,6 +180,17 @@ export default function ProfilePage() {
               <p className="text-sm text-gray-500 truncate">
                 {user.email || ""}
               </p>
+              {dbRole && (
+                <span className={`mt-1.5 inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
+                  dbRole === "OWNER"
+                    ? "bg-amber-100 text-amber-700"
+                    : dbRole === "ADMIN"
+                    ? "bg-purple-100 text-purple-700"
+                    : "bg-[#E23744]/10 text-[#E23744]"
+                }`}>
+                  {dbRole === "OWNER" ? "Restaurant Owner" : dbRole === "ADMIN" ? "Admin" : "Food Lover"}
+                </span>
+              )}
             </div>
           </div>
         </motion.div>

@@ -35,6 +35,7 @@ const PUBLIC_ROUTES = [
   /^\/api\/restaurants\/[^/]+\/categories(\/|$)/,
   /^\/api\/restaurants\/[^/]+\/stories(\/|$)/,
   /^\/api\/upload(\/|$)/,
+  /^\/api\/me\/username-check(\/|$)/,
 ];
 
 const STAFF_ONLY_ROUTES = [/^\/kitchen(\/|$)/, /^\/counter(\/|$)/];
