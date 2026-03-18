@@ -103,8 +103,8 @@ export default function Hero() {
       {/* Vibrant gradient background */}
       <div ref={bgRef} className="absolute inset-0 pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-br from-[#FFF5F5] via-[#FFE8E8] to-[#FFF0F5]" />
-        <div className="absolute top-0 right-0 -mr-32 -mt-32 h-[600px] w-[600px] rounded-full bg-[#E23744]/[0.06] blur-3xl" />
-        <div className="absolute bottom-0 left-0 -ml-32 -mb-32 h-[600px] w-[600px] rounded-full bg-[#FF6B81]/[0.08] blur-3xl" />
+        <div className="absolute top-0 right-0 -mr-32 -mt-32 h-[600px] w-[600px] rounded-full bg-[#eaa94d]/[0.06] blur-3xl" />
+        <div className="absolute bottom-0 left-0 -ml-32 -mb-32 h-[600px] w-[600px] rounded-full bg-[#e58f2a]/[0.08] blur-3xl" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[400px] w-[400px] rounded-full bg-[#1E7B3E]/[0.03] blur-3xl" />
       </div>
 
@@ -144,7 +144,7 @@ export default function Hero() {
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
             className="mb-5"
           >
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#E23744]/[0.08] px-4 py-1.5 text-[11px] font-bold text-[#E23744] uppercase tracking-wider border border-[#E23744]/10">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#eaa94d]/[0.08] px-4 py-1.5 text-[11px] font-bold text-[#eaa94d] uppercase tracking-wider border border-[#eaa94d]/10">
               <motion.span
                 animate={{ rotate: [0, 15, -15, 0], scale: [1, 1.2, 1] }}
                 transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
@@ -159,15 +159,15 @@ export default function Hero() {
             initial={{ opacity: 0, y: 24, filter: "blur(8px)" }}
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             transition={{ duration: 0.7, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-            className="mb-5 text-[2.5rem] font-extrabold tracking-tight text-[#1F2A2A] sm:text-5xl md:text-6xl lg:text-7xl leading-[1.15]"
+            className="mb-5 text-[2.5rem] font-extrabold tracking-tight text-[#3e1e0c] sm:text-5xl md:text-6xl lg:text-7xl leading-[1.15]"
           >
             <span className="block">Craving something</span>
             <span className="block min-h-[1.15em]">
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#E23744] via-[#FF6B81] to-[#FF9933]" style={{ backgroundSize: "200% 200%" }}>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#eaa94d] via-[#e58f2a] to-[#eaa94d]" style={{ backgroundSize: "200% 200%" }}>
                 {typedWord}
               </span>
               <span
-                className="inline-block w-[2px] h-[0.8em] bg-[#E23744] ml-[2px] align-middle rounded-sm"
+                className="inline-block w-[2px] h-[0.8em] bg-[#eaa94d] ml-[2px] align-middle rounded-sm"
                 style={{ animation: "blink 1s step-start infinite" }}
               />
             </span>

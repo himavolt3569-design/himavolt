@@ -30,22 +30,22 @@ const STYLES: Record<CardStyle, StyleConfig> = {
   classic: {
     label: "Classic",
     bg: "#FFFDF7",
-    headerBg: "#0A4D3C",
+    headerBg: "#3e1e0c",
     headerText: "#FFFFFF",
-    accent: "#FF9933",
-    qrFg: "#0A4D3C",
-    textPrimary: "#1F2A2A",
+    accent: "#eaa94d",
+    qrFg: "#3e1e0c",
+    textPrimary: "#3e1e0c",
     textSecondary: "#5a7a72",
-    border: "#0A4D3C",
+    border: "#3e1e0c",
     cornerAccent: true,
     roundedHeader: false,
   },
   modern: {
     label: "Modern",
     bg: "#111827",
-    headerBg: "#FF9933",
+    headerBg: "#eaa94d",
     headerText: "#111827",
-    accent: "#FF9933",
+    accent: "#eaa94d",
     qrFg: "#F9FAFB",
     textPrimary: "#F9FAFB",
     textSecondary: "#9CA3AF",
@@ -317,7 +317,7 @@ interface Particle {
 }
 
 function ConfettiBurst({ active, origin }: { active: boolean; origin: { x: number; y: number } }) {
-  const COLORS = ["#FF9933", "#0A4D3C", "#4ECDC4", "#FFE66D", "#6C63FF", "#34d399"];
+  const COLORS = ["#eaa94d", "#3e1e0c", "#4ECDC4", "#FFE66D", "#6C63FF", "#34d399"];
   const particles: Particle[] = Array.from({ length: 24 }, (_, i) => ({
     id: i,
     x: origin.x,
@@ -397,7 +397,7 @@ function QRCard({
       link.click();
       showToast(`QR for Table ${tableNo} downloaded!`);
       if (downloadRef.current) {
-        gsap.fromTo(downloadRef.current, { scale: 1.2, color: "#FF9933" }, { scale: 1, color: "", duration: 0.3, ease: "back.out(2)" });
+        gsap.fromTo(downloadRef.current, { scale: 1.2, color: "#eaa94d" }, { scale: 1, color: "", duration: 0.3, ease: "back.out(2)" });
       }
     } catch (error) {
       console.error(error);
@@ -448,19 +448,19 @@ function QRCard({
         <div ref={qrRef} id={`qr-printable-${tableNo}`} className="w-full flex flex-col items-center bg-white pb-4 rounded-xl">
           <div className="mb-4 flex w-full items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0A4D3C]/10 text-xs font-bold text-[#0A4D3C]">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#3e1e0c]/10 text-xs font-bold text-[#3e1e0c]">
                 {tableNo}
               </span>
-              <span className="text-sm font-bold text-[#1F2A2A]">Table {tableNo}</span>
+              <span className="text-sm font-bold text-[#3e1e0c]">Table {tableNo}</span>
             </div>
             <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold text-green-600">Active</span>
           </div>
 
           <div className="relative rounded-xl bg-gray-50 p-4 mb-4 border border-gray-100">
-            <QRCode value={tableUrl} size={120} fgColor="#0A4D3C" bgColor="transparent" level="M" />
+            <QRCode value={tableUrl} size={120} fgColor="#3e1e0c" bgColor="transparent" level="M" />
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="rounded-sm bg-white flex items-center justify-center border border-gray-100 px-1 py-0.5">
-                <span className="text-[7px] font-black text-[#FF9933] leading-none">
+                <span className="text-[7px] font-black text-[#eaa94d] leading-none">
                   {restaurantName.split(/\s+/).map(w => w[0]).join("").toUpperCase().slice(0, 3)}
                 </span>
               </div>
@@ -472,7 +472,7 @@ function QRCard({
           <button
             ref={downloadRef}
             onClick={handleDownload}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[#0A4D3C] py-2.5 text-xs font-bold text-white hover:bg-[#083a2d] transition-all active:scale-[0.97]"
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[#3e1e0c] py-2.5 text-xs font-bold text-white hover:bg-[#2d1508] transition-all active:scale-[0.97]"
           >
             <Download className="h-3.5 w-3.5" />
             Download
@@ -487,7 +487,7 @@ function QRCard({
           <button
             ref={shareRef}
             onClick={handleShare}
-            className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#FF9933]/10 text-[#FF9933] hover:bg-[#FF9933] hover:text-white transition-all"
+            className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#eaa94d]/10 text-[#eaa94d] hover:bg-[#eaa94d] hover:text-white transition-all"
             title="Copy link"
           >
             <Share2 className="h-3.5 w-3.5" />
@@ -577,7 +577,7 @@ export default function QRCodesTab() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-lg font-bold text-[#1F2A2A]">QR Codes</h2>
+          <h2 className="text-lg font-bold text-[#3e1e0c]">QR Codes</h2>
           <p className="text-sm text-gray-400">Unlimited QR codes — one per table, customers scan to order</p>
         </div>
         <button
@@ -586,7 +586,7 @@ export default function QRCodesTab() {
           className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold transition-all ${
             downloading
               ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-              : "bg-[#0A4D3C] text-white hover:bg-[#083a2d] shadow-md shadow-[#0A4D3C]/20 active:scale-[0.97]"
+              : "bg-[#3e1e0c] text-white hover:bg-[#2d1508] shadow-md shadow-[#3e1e0c]/20 active:scale-[0.97]"
           }`}
         >
           {downloading ? (
@@ -606,16 +606,16 @@ export default function QRCodesTab() {
       {/* Controls row */}
       <div className="flex flex-col sm:flex-row gap-3">
         {/* Info banner */}
-        <div className="flex-1 flex items-start gap-3 rounded-xl bg-[#0A4D3C]/5 border border-[#0A4D3C]/10 px-4 py-3">
-          <Check className="h-4 w-4 text-[#0A4D3C] mt-0.5 shrink-0" />
-          <p className="text-xs font-medium text-[#1F2A2A]">
+        <div className="flex-1 flex items-start gap-3 rounded-xl bg-[#3e1e0c]/5 border border-[#3e1e0c]/10 px-4 py-3">
+          <Check className="h-4 w-4 text-[#3e1e0c] mt-0.5 shrink-0" />
+          <p className="text-xs font-medium text-[#3e1e0c]">
             Each QR links to your menu with the table number pre-selected. Customers scan and order instantly — no app needed.
           </p>
         </div>
 
         {/* Style picker */}
         <div className="flex items-center gap-2 rounded-xl bg-white border border-gray-200 px-3 py-2 shadow-sm shrink-0">
-          <Palette className="h-4 w-4 text-[#FF9933]" />
+          <Palette className="h-4 w-4 text-[#eaa94d]" />
           <span className="text-xs font-bold text-gray-500">Print Style:</span>
           <div className="flex gap-1">
             {(Object.keys(STYLES) as CardStyle[]).map((s) => (
@@ -624,7 +624,7 @@ export default function QRCodesTab() {
                 onClick={() => setCardStyle(s)}
                 className={`rounded-lg px-2.5 py-1 text-[11px] font-bold transition-all ${
                   cardStyle === s
-                    ? "bg-[#0A4D3C] text-white shadow-sm"
+                    ? "bg-[#3e1e0c] text-white shadow-sm"
                     : "bg-gray-100 text-gray-500 hover:bg-gray-200"
                 }`}
               >
@@ -636,7 +636,7 @@ export default function QRCodesTab() {
 
         {/* Table count */}
         <div className="flex items-center gap-2 rounded-xl bg-white border border-gray-200 px-3 py-2 shadow-sm shrink-0">
-          <Infinity className="h-4 w-4 text-[#FF9933]" />
+          <Infinity className="h-4 w-4 text-[#eaa94d]" />
           <span className="text-xs font-bold text-gray-500">Tables:</span>
           <div className="flex items-center gap-1">
             <button
@@ -646,10 +646,10 @@ export default function QRCodesTab() {
             >
               <Minus className="h-3 w-3" />
             </button>
-            <span className="w-8 text-center text-sm font-extrabold text-[#1F2A2A]">{tableCount}</span>
+            <span className="w-8 text-center text-sm font-extrabold text-[#3e1e0c]">{tableCount}</span>
             <button
               onClick={() => adjustTables(1)}
-              className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0A4D3C]/10 text-[#0A4D3C] hover:bg-[#0A4D3C]/20 transition-colors"
+              className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#3e1e0c]/10 text-[#3e1e0c] hover:bg-[#3e1e0c]/20 transition-colors"
             >
               <Plus className="h-3 w-3" />
             </button>
@@ -659,9 +659,9 @@ export default function QRCodesTab() {
 
       {/* Style preview hint */}
       <div className="flex items-center gap-2 text-xs text-gray-400">
-        <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#0A4D3C]" />
+        <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#3e1e0c]" />
         <span>
-          <span className="font-semibold text-[#1F2A2A]">{STYLES[cardStyle].label}</span> style selected — this affects how downloaded &amp; printed cards look.
+          <span className="font-semibold text-[#3e1e0c]">{STYLES[cardStyle].label}</span> style selected — this affects how downloaded &amp; printed cards look.
         </span>
       </div>
 

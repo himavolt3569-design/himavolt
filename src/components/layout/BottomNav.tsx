@@ -13,6 +13,8 @@ import {
   KeyRound,
   UserPlus,
   UtensilsCrossed,
+  LayoutDashboard,
+  Shield,
 } from "lucide-react";
 import clsx from "clsx";
 import { useActiveTableSession } from "@/hooks/useActiveTableSession";
@@ -30,7 +32,7 @@ interface NavItem {
 export default function BottomNav() {
   const pathname = usePathname();
   const activeSession = useActiveTableSession();
-  const { isSignedIn, isLoaded, user } = useAuth();
+  const { isSignedIn, isLoaded, user, userRole } = useAuth();
 
   /* Build initials for logged-in avatar */
   const userInitials = useMemo(() => {
@@ -69,7 +71,41 @@ export default function BottomNav() {
       ];
     }
 
-    /* ── Logged in: full customer experience ── */
+    /* ── Admin: platform management ── */
+    if (isSignedIn && userRole === "ADMIN") {
+      return [
+        { name: "Home", href: "/", icon: Home },
+        { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, matchPath: "/dashboard" },
+        { name: "Admin", href: "/admin", icon: Shield, matchPath: "/admin" },
+        {
+          name: "Account",
+          href: "/profile",
+          icon: User,
+          matchPath: "/profile",
+          avatar: avatarUrl,
+          initials: userInitials,
+        },
+      ];
+    }
+
+    /* ── Owner: restaurant management ── */
+    if (isSignedIn && userRole === "OWNER") {
+      return [
+        { name: "Home", href: "/", icon: Home },
+        { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, matchPath: "/dashboard" },
+        { name: "Orders", href: "/orders", icon: Receipt },
+        {
+          name: "Account",
+          href: "/profile",
+          icon: User,
+          matchPath: "/profile",
+          avatar: avatarUrl,
+          initials: userInitials,
+        },
+      ];
+    }
+
+    /* ── Logged-in customer: full experience ── */
     if (isSignedIn) {
       return [
         { name: "Home", href: "/", icon: Home },
@@ -77,36 +113,35 @@ export default function BottomNav() {
         { name: "Orders", href: "/orders", icon: Receipt },
         {
           name: "Account",
-          href: "/dashboard",
+          href: "/profile",
           icon: User,
-          matchPath: "/dashboard",
+          matchPath: "/profile",
           avatar: avatarUrl,
           initials: userInitials,
         },
       ];
     }
 
-    /* ── Not logged in: discovery + access ── */
+    /* ── Guest (not logged in): discovery + access ── */
     return [
       { name: "Home", href: "/", icon: Home },
       { name: "Explore", href: "/menu", icon: Search },
       { name: "Staff", href: "/staff-login", icon: KeyRound },
       { name: "Sign In", href: "/sign-in", icon: UserPlus },
     ];
-  }, [activeSession, isSignedIn, avatarUrl, userInitials]);
+  }, [activeSession, isSignedIn, avatarUrl, userInitials, userRole]);
 
   /* ── Hide conditions ── */
-  // Hide on owner portal
   if (pathname === "/manage-restaurants") return null;
-  // Hide on scan page when no active session
   if (pathname === "/scan" && !activeSession) return null;
-  // Hide on dashboard (CustomerDashboard has its own nav)
+  if (pathname === "/kitchen" || pathname === "/counter") return null;
   if (pathname === "/dashboard") return null;
-  // Wait for auth to load to prevent flash
+  if (pathname === "/admin") return null;
+  if (pathname === "/staff-login") return null;
   if (!isLoaded) return null;
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-t border-gray-200/60 pb-safe">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-t border-brand-200/40 pb-safe">
       <div className="flex justify-around items-center h-[56px] px-1">
         {navItems.map((item) => {
           const match = item.matchPath || item.href;
@@ -123,7 +158,7 @@ export default function BottomNav() {
               {isActive && (
                 <motion.div
                   layoutId="bottomNavActive"
-                  className="absolute inset-x-2 top-1 bottom-1 bg-[#E23744]/8 rounded-2xl"
+                  className="absolute inset-x-2 top-1 bottom-1 bg-brand-400/10 rounded-2xl"
                   transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
                 />
               )}
@@ -138,7 +173,7 @@ export default function BottomNav() {
                       className={clsx(
                         "h-5.5 w-5.5 rounded-full object-cover transition-all",
                         isActive
-                          ? "ring-[1.5px] ring-[#E23744] ring-offset-1"
+                          ? "ring-[1.5px] ring-brand-400 ring-offset-1"
                           : "opacity-60 group-hover:opacity-90"
                       )}
                     />
@@ -147,8 +182,8 @@ export default function BottomNav() {
                       className={clsx(
                         "flex h-5.5 w-5.5 items-center justify-center rounded-full text-[8px] font-bold transition-all",
                         isActive
-                          ? "bg-[#E23744] text-white ring-[1.5px] ring-[#E23744] ring-offset-1"
-                          : "bg-gray-200 text-gray-500 group-hover:bg-gray-300"
+                          ? "bg-brand-400 text-white ring-[1.5px] ring-brand-400 ring-offset-1"
+                          : "bg-brand-100 text-brand-700 group-hover:bg-brand-200"
                       )}
                     >
                       {item.initials}
@@ -160,8 +195,8 @@ export default function BottomNav() {
                   className={clsx(
                     "h-5 w-5 mb-0.5 transition-all z-10",
                     isActive
-                      ? "text-[#E23744]"
-                      : "text-gray-400 group-hover:text-gray-600"
+                      ? "text-brand-400"
+                      : "text-gray-400 group-hover:text-brand-600"
                   )}
                   strokeWidth={isActive ? 2.2 : 1.8}
                 />
@@ -172,8 +207,8 @@ export default function BottomNav() {
                 className={clsx(
                   "text-[10px] font-semibold transition-all z-10 leading-none",
                   isActive
-                    ? "text-[#E23744]"
-                    : "text-gray-400 group-hover:text-gray-600"
+                    ? "text-brand-500"
+                    : "text-gray-400 group-hover:text-brand-600"
                 )}
               >
                 {item.name}

@@ -47,8 +47,8 @@ const PAYMENT_METHODS = [
 ];
 
 const CHAT_SENDERS = [
-  { label: "Customer", color: "bg-[#FF9933]", icon: User, desc: "Messages from the customer" },
-  { label: "Kitchen", color: "bg-[#0A4D3C]", icon: ChefHat, desc: "Messages from kitchen staff" },
+  { label: "Customer", color: "bg-[#eaa94d]", icon: User, desc: "Messages from the customer" },
+  { label: "Kitchen", color: "bg-[#3e1e0c]", icon: ChefHat, desc: "Messages from kitchen staff" },
   { label: "Billing", color: "bg-blue-500", icon: Receipt, desc: "Messages from billing/cashier" },
 ];
 
@@ -60,12 +60,12 @@ export default function GuidePage() {
         <div>
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-[#FF9933] transition-colors mb-4"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-[#eaa94d] transition-colors mb-4"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Home
           </Link>
-          <h1 className="text-2xl font-extrabold text-[#1F2A2A]">
+          <h1 className="text-2xl font-extrabold text-[#3e1e0c]">
             Site Guide
           </h1>
           <p className="text-sm text-gray-500 mt-1">
@@ -200,7 +200,7 @@ export default function GuidePage() {
                   <c.icon className="h-3.5 w-3.5 text-white" />
                 </span>
                 <div>
-                  <span className="text-sm font-bold text-[#1F2A2A]">{c.label}</span>
+                  <span className="text-sm font-bold text-[#3e1e0c]">{c.label}</span>
                   <span className="text-sm text-gray-500 ml-2">{c.desc}</span>
                 </div>
               </div>
@@ -240,9 +240,9 @@ export default function GuidePage() {
               <Link
                 key={nav.label}
                 href={nav.href}
-                className="rounded-xl border border-gray-200 p-3 hover:border-[#FF9933]/30 hover:bg-[#FF9933]/5 transition-all"
+                className="rounded-xl border border-gray-200 p-3 hover:border-[#eaa94d]/30 hover:bg-[#eaa94d]/5 transition-all"
               >
-                <p className="font-bold text-[#1F2A2A]">{nav.label}</p>
+                <p className="font-bold text-[#3e1e0c]">{nav.label}</p>
                 <p className="text-xs text-gray-500 mt-0.5">{nav.desc}</p>
               </Link>
             ))}
@@ -265,8 +265,8 @@ function Section({
   return (
     <div className="rounded-2xl bg-white border border-gray-100 p-6 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
       <div className="flex items-center gap-2 mb-4">
-        <span className="text-[#FF9933]">{icon}</span>
-        <h2 className="text-base font-extrabold text-[#1F2A2A]">{title}</h2>
+        <span className="text-[#eaa94d]">{icon}</span>
+        <h2 className="text-base font-extrabold text-[#3e1e0c]">{title}</h2>
       </div>
       {children}
     </div>

@@ -73,14 +73,14 @@ export default function DineInRequestModal({
                 <div className="flex items-center gap-2 mb-0.5">
                   <span
                     className={`flex h-2.5 w-2.5 rounded-full ${
-                      order.status === "PENDING" ? "bg-[#FF9933] animate-pulse" : "bg-[#0A4D3C]"
+                      order.status === "PENDING" ? "bg-[#eaa94d] animate-pulse" : "bg-[#3e1e0c]"
                     }`}
                   />
                   <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
                     {order.status === "PENDING" ? "New Dine-In Request" : `Order ${order.status}`}
                   </span>
                 </div>
-                <h2 className="text-lg font-bold text-[#1F2A2A]">{order.orderNo}</h2>
+                <h2 className="text-lg font-bold text-[#3e1e0c]">{order.orderNo}</h2>
               </div>
               <button
                 onClick={onClose}
@@ -93,22 +93,22 @@ export default function DineInRequestModal({
             {/* Info row */}
             <div className="flex items-center gap-4 px-6 py-4 border-b border-gray-100">
               <div className="flex items-center gap-2">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0A4D3C]/10">
-                  <MapPin className="h-4.5 w-4.5 text-[#0A4D3C]" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#3e1e0c]/10">
+                  <MapPin className="h-4.5 w-4.5 text-[#3e1e0c]" />
                 </div>
                 <div>
                   <p className="text-[10px] text-gray-400 font-medium">Table</p>
-                  <p className="text-base font-extrabold text-[#1F2A2A]">#{order.tableNo}</p>
+                  <p className="text-base font-extrabold text-[#3e1e0c]">#{order.tableNo}</p>
                 </div>
               </div>
               <div className="h-8 w-px bg-gray-200" />
               <div className="flex items-center gap-2">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#FF9933]/10">
-                  <Clock className="h-4.5 w-4.5 text-[#FF9933]" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#eaa94d]/10">
+                  <Clock className="h-4.5 w-4.5 text-[#eaa94d]" />
                 </div>
                 <div>
                   <p className="text-[10px] text-gray-400 font-medium">Placed</p>
-                  <p className="text-sm font-bold text-[#1F2A2A]">
+                  <p className="text-sm font-bold text-[#3e1e0c]">
                     {Math.floor((Date.now() - new Date(order.createdAt).getTime()) / 60000)}m ago
                   </p>
                 </div>
@@ -120,7 +120,7 @@ export default function DineInRequestModal({
                 </div>
                 <div>
                   <p className="text-[10px] text-gray-400 font-medium">Total</p>
-                  <p className="text-sm font-extrabold text-[#1F2A2A]">{formatPrice(order.total, currency)}</p>
+                  <p className="text-sm font-extrabold text-[#3e1e0c]">{formatPrice(order.total, currency)}</p>
                 </div>
               </div>
             </div>
@@ -137,10 +137,10 @@ export default function DineInRequestModal({
                     className="flex items-center justify-between rounded-xl bg-gray-50 px-4 py-3"
                   >
                     <div className="flex items-center gap-3">
-                      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#FF9933]/10 text-[11px] font-black text-[#FF9933]">
+                      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#eaa94d]/10 text-[11px] font-black text-[#eaa94d]">
                         {item.quantity}
                       </span>
-                      <span className="text-sm font-semibold text-[#1F2A2A]">{item.name}</span>
+                      <span className="text-sm font-semibold text-[#3e1e0c]">{item.name}</span>
                     </div>
                     <span className="text-sm font-bold text-gray-500">
                       {formatPrice(item.price * item.quantity, currency)}
@@ -151,8 +151,8 @@ export default function DineInRequestModal({
 
               {/* Sub-total */}
               <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
-                <span className="text-sm font-bold text-[#1F2A2A]">Total</span>
-                <span className="text-lg font-extrabold text-[#FF9933]">{formatPrice(order.total, currency)}</span>
+                <span className="text-sm font-bold text-[#3e1e0c]">Total</span>
+                <span className="text-lg font-extrabold text-[#eaa94d]">{formatPrice(order.total, currency)}</span>
               </div>
             </div>
 
@@ -164,7 +164,7 @@ export default function DineInRequestModal({
                 {order.payment.method === "BANK" && <Banknote className="h-4 w-4 text-blue-600" />}
                 {order.payment.method === "CASH" && <DollarSign className="h-4 w-4 text-gray-600" />}
                 {!["ESEWA", "KHALTI", "BANK", "CASH"].includes(order.payment.method) && <CreditCard className="h-4 w-4 text-gray-600" />}
-                <span className="text-sm font-bold text-[#1F2A2A]">
+                <span className="text-sm font-bold text-[#3e1e0c]">
                   {order.payment.method === "ESEWA" ? "eSewa" : order.payment.method === "KHALTI" ? "Khalti" : order.payment.method === "BANK" ? "Bank Transfer" : "Cash"}
                 </span>
                 <span
@@ -199,14 +199,14 @@ export default function DineInRequestModal({
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       onClick={handleAcceptPrint}
-                      className="flex items-center justify-center gap-1.5 rounded-xl bg-[#0A4D3C] py-3.5 text-sm font-bold text-white hover:bg-[#083a2d] transition-all active:scale-[0.98]"
+                      className="flex items-center justify-center gap-1.5 rounded-xl bg-[#3e1e0c] py-3.5 text-sm font-bold text-white hover:bg-[#2d1508] transition-all active:scale-[0.98]"
                     >
                       <Printer className="h-4 w-4" />
                       Accept & Print
                     </button>
                     <button
                       onClick={() => { onAccept(order.id); }}
-                      className="flex items-center justify-center gap-1.5 rounded-xl bg-[#FF9933] py-3.5 text-sm font-bold text-white hover:bg-[#ff8811] transition-all active:scale-[0.98]"
+                      className="flex items-center justify-center gap-1.5 rounded-xl bg-[#eaa94d] py-3.5 text-sm font-bold text-white hover:bg-[#d67620] transition-all active:scale-[0.98]"
                     >
                       <CheckCircle2 className="h-4 w-4" />
                       Accept Order
@@ -231,7 +231,7 @@ export default function DineInRequestModal({
                   </button>
                   <button
                     onClick={onClose}
-                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[#0A4D3C] py-3.5 text-sm font-bold text-white hover:bg-[#083a2d] transition-all"
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[#3e1e0c] py-3.5 text-sm font-bold text-white hover:bg-[#2d1508] transition-all"
                   >
                     Close
                   </button>

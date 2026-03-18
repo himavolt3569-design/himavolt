@@ -26,8 +26,8 @@ const steps = [
     Icon: QrCode,
     title: "Scan & Browse",
     desc: "Scan the QR code at your table or browse restaurants near you.",
-    accent: "from-[#E23744] to-[#FF6B81]",
-    accentColor: "#E23744",
+    accent: "from-[#eaa94d] to-[#d67620]",
+    accentColor: "#eaa94d",
     image:
       "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=400&h=700&fit=crop",
     phoneLabel: "Scanning QR...",
@@ -36,8 +36,8 @@ const steps = [
     Icon: UtensilsCrossed,
     title: "Pick & Order",
     desc: "Choose from digital menus and customize your order effortlessly.",
-    accent: "from-[#FF9933] to-[#FFB347]",
-    accentColor: "#FF9933",
+    accent: "from-[#eaa94d] to-[#f1c980]",
+    accentColor: "#eaa94d",
     image:
       "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=700&fit=crop",
     phoneLabel: "Choose your meal",
@@ -235,7 +235,7 @@ export default function StoryHowItWorks() {
       <div className="absolute -top-32 left-0 right-0 h-32 bg-gradient-to-b from-transparent to-[#0B0E14] pointer-events-none z-10" />
 
       {/* Ambient glows — softer, fewer */}
-      <div className="absolute top-[15%] left-[15%] h-[500px] w-[500px] rounded-full bg-[#E23744]/[0.03] blur-[150px] pointer-events-none" />
+      <div className="absolute top-[15%] left-[15%] h-[500px] w-[500px] rounded-full bg-[#eaa94d]/[0.03] blur-[150px] pointer-events-none" />
       <div className="absolute bottom-[10%] right-[15%] h-[450px] w-[450px] rounded-full bg-[#6366F1]/[0.03] blur-[140px] pointer-events-none" />
 
       <div className="relative z-10 mx-auto max-w-[1440px] px-4 md:px-8 lg:px-12 h-screen flex items-center">
@@ -250,7 +250,7 @@ export default function StoryHowItWorks() {
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight leading-[1.1]">
                 From scan to savour
                 <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF9933] to-[#FFB347]">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#eaa94d] to-[#f1c980]">
                   in four easy steps.
                 </span>
               </h2>
@@ -309,7 +309,7 @@ export default function StoryHowItWorks() {
               ref={phoneGlowRef}
               className="absolute w-[280px] h-[280px] rounded-full opacity-0"
               style={{
-                backgroundColor: "#E23744",
+                backgroundColor: "#eaa94d",
                 filter: "blur(120px)",
               }}
             />
@@ -391,7 +391,7 @@ export default function StoryHowItWorks() {
                               </div>
                             </div>
                             <div className="flex items-center gap-2 rounded-xl bg-white/8 p-2.5">
-                              <MapPin className="h-4 w-4 text-[#FF9933]" />
+                              <MapPin className="h-4 w-4 text-[#eaa94d]" />
                               <div>
                                 <p className="text-[10px] font-bold text-white">
                                   Or browse nearby
@@ -424,14 +424,14 @@ export default function StoryHowItWorks() {
                                         {name}
                                       </p>
                                       <div className="flex items-center gap-1">
-                                        <Star className="h-2 w-2 fill-[#FF9933] text-[#FF9933]" />
+                                        <Star className="h-2 w-2 fill-[#eaa94d] text-[#eaa94d]" />
                                         <span className="text-[8px] text-white/40">
                                           {(4.3 + j * 0.2).toFixed(1)}
                                         </span>
                                       </div>
                                     </div>
                                   </div>
-                                  <span className="text-[9px] font-bold text-[#FF9933]">
+                                  <span className="text-[9px] font-bold text-[#eaa94d]">
                                     {formatPrice(220 + j * 130, "NPR")}
                                   </span>
                                 </div>
@@ -515,7 +515,7 @@ export default function StoryHowItWorks() {
                                 </span>
                               </div>
                               <div className="flex items-center gap-1">
-                                <Star className="h-2.5 w-2.5 text-[#FF9933]" />
+                                <Star className="h-2.5 w-2.5 text-[#eaa94d]" />
                                 <span className="text-[9px] text-white/50">
                                   Rate your experience
                                 </span>

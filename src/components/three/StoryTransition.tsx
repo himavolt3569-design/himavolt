@@ -15,7 +15,7 @@ if (typeof window !== "undefined") {
 export default function StoryTransition({
   title,
   subtitle,
-  gradient = "from-[#E23744] to-[#FF6B81]",
+  gradient = "from-[#eaa94d] to-[#d67620]",
   dark = false,
 }: {
   title: string;
@@ -93,7 +93,7 @@ export default function StoryTransition({
         <h2
           ref={titleRef}
           className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight leading-[1.1] opacity-0 ${
-            dark ? "text-white" : "text-[#1F2A2A]"
+            dark ? "text-white" : "text-[#3e1e0c]"
           }`}
         >
           {title}

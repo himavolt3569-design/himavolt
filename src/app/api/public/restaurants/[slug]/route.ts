@@ -31,7 +31,7 @@ export async function GET(
       categories: {
         where: { isActive: true },
         orderBy: { sortOrder: "asc" },
-        select: { id: true, name: true, slug: true },
+        select: { id: true, name: true, slug: true, parentId: true, icon: true },
       },
     },
   });

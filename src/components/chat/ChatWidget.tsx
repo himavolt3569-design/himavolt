@@ -51,8 +51,8 @@ interface ChatWidgetProps {
 }
 
 const SENDER_CONFIG = {
-  CUSTOMER: { label: "You", icon: User, color: "bg-[#FF9933]" },
-  KITCHEN: { label: "Kitchen", icon: ChefHat, color: "bg-[#0A4D3C]" },
+  CUSTOMER: { label: "You", icon: User, color: "bg-[#eaa94d]" },
+  KITCHEN: { label: "Kitchen", icon: ChefHat, color: "bg-[#3e1e0c]" },
   BILLING: { label: "Billing", icon: Receipt, color: "bg-blue-500" },
 };
 
@@ -330,7 +330,7 @@ export default function ChatWidget({
       {/* Floating button */}
       <motion.button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-20 right-4 z-80 flex h-14 w-14 items-center justify-center rounded-full bg-[#0A4D3C] text-white shadow-xl hover:bg-[#083a2d] transition-colors md:bottom-6"
+        className="fixed bottom-20 right-4 z-80 flex h-14 w-14 items-center justify-center rounded-full bg-[#3e1e0c] text-white shadow-xl hover:bg-[#2d1508] transition-colors md:bottom-6"
         whileTap={{ scale: 0.95 }}
       >
         <MessageCircle className="h-6 w-6" />
@@ -366,8 +366,8 @@ export default function ChatWidget({
               {/* Header */}
               <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 shrink-0">
                 <div className="flex items-center gap-2">
-                  <MessageCircle className="h-4 w-4 text-[#0A4D3C]" />
-                  <h3 className="text-sm font-bold text-[#1F2A2A]">
+                  <MessageCircle className="h-4 w-4 text-[#3e1e0c]" />
+                  <h3 className="text-sm font-bold text-[#3e1e0c]">
                     Live Chat
                   </h3>
                   {senderName && (
@@ -435,12 +435,12 @@ export default function ChatWidget({
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder="Type a message..."
-                    className="flex-1 rounded-xl bg-gray-100 px-4 py-2.5 text-sm text-[#1F2A2A] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0A4D3C]/20"
+                    className="flex-1 rounded-xl bg-gray-100 px-4 py-2.5 text-sm text-[#3e1e0c] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#3e1e0c]/20"
                   />
                   <button
                     onClick={sendMessage}
                     disabled={!input.trim() || sending}
-                    className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0A4D3C] text-white hover:bg-[#083a2d] transition-colors disabled:opacity-50"
+                    className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#3e1e0c] text-white hover:bg-[#2d1508] transition-colors disabled:opacity-50"
                   >
                     {sending ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -557,8 +557,8 @@ function MessageBubble({
       <div
         className={`max-w-[75%] rounded-2xl px-3.5 py-2 ${
           isMine
-            ? "bg-[#0A4D3C] text-white rounded-br-md"
-            : "bg-gray-100 text-[#1F2A2A] rounded-bl-md"
+            ? "bg-[#3e1e0c] text-white rounded-br-md"
+            : "bg-gray-100 text-[#3e1e0c] rounded-bl-md"
         }`}
       >
         {!isMine && message.senderName && (
@@ -656,12 +656,12 @@ function CompactChat({
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Type a message..."
-            className="flex-1 rounded-xl bg-gray-100 px-4 py-2.5 text-sm text-[#1F2A2A] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0A4D3C]/20"
+            className="flex-1 rounded-xl bg-gray-100 px-4 py-2.5 text-sm text-[#3e1e0c] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#3e1e0c]/20"
           />
           <button
             onClick={sendMessage}
             disabled={!input.trim() || sending}
-            className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0A4D3C] text-white hover:bg-[#083a2d] transition-colors disabled:opacity-50"
+            className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#3e1e0c] text-white hover:bg-[#2d1508] transition-colors disabled:opacity-50"
           >
             {sending ? (
               <Loader2 className="h-4 w-4 animate-spin" />

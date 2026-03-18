@@ -19,7 +19,7 @@ function GlowOrbs({ scrollProgress }: { scrollProgress: number }) {
         scale: 0.15 + Math.random() * 0.35,
         speed: 0.15 + Math.random() * 0.4,
         offset: Math.random() * Math.PI * 2,
-        color: ["#E23744", "#FF9933", "#1E7B3E", "#6366F1", "#FF6B81"][i % 5],
+        color: ["#eaa94d", "#eaa94d", "#1E7B3E", "#6366F1", "#e58f2a"][i % 5],
       })),
     [],
   );
@@ -79,7 +79,7 @@ function Scene({ scrollProgress }: { scrollProgress: number }) {
     <>
       <MenuCamera scrollProgress={scrollProgress} />
       <ambientLight intensity={0.5} />
-      <pointLight position={[3, 3, 5]} intensity={0.8} color="#FF9933" distance={15} />
+      <pointLight position={[3, 3, 5]} intensity={0.8} color="#eaa94d" distance={15} />
       <GlowOrbs scrollProgress={scrollProgress} />
       <fog attach="fog" args={["#F7F8FA", 5, 18]} />
     </>

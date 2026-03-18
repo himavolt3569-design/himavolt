@@ -209,13 +209,13 @@ export default function StoryManager({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-bold text-[#1F2A2A]">Stories</h2>
+          <h2 className="text-lg font-bold text-[#3e1e0c]">Stories</h2>
           <p className="text-xs text-gray-500 mt-0.5">
             Share photos & videos that customers see when they open the menu.
             Stories auto-expire after the set duration.
           </p>
         </div>
-        <label className="flex items-center gap-2 rounded-xl bg-[#FF9933] px-4 py-2.5 text-sm font-bold text-white cursor-pointer hover:bg-[#ff8811] transition-colors shadow-md">
+        <label className="flex items-center gap-2 rounded-xl bg-[#eaa94d] px-4 py-2.5 text-sm font-bold text-white cursor-pointer hover:bg-[#d67620] transition-colors shadow-md">
           <Plus className="h-4 w-4" />
           Add Story
           <input
@@ -245,7 +245,7 @@ export default function StoryManager({
               timestamp={activeStories[0]?.createdAt}
             />
             <div className="text-sm text-gray-500">
-              <span className="font-bold text-[#1F2A2A]">
+              <span className="font-bold text-[#3e1e0c]">
                 {activeStories.length}
               </span>{" "}
               active {activeStories.length === 1 ? "story" : "stories"}
@@ -475,7 +475,7 @@ export default function StoryManager({
               className="fixed inset-x-4 top-[10%] z-50 mx-auto max-w-lg rounded-2xl bg-white shadow-2xl overflow-hidden"
             >
               <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-                <h3 className="text-base font-bold text-[#1F2A2A]">
+                <h3 className="text-base font-bold text-[#3e1e0c]">
                   Add Story
                 </h3>
                 <button
@@ -507,7 +507,7 @@ export default function StoryManager({
                     )}
                   </div>
                 ) : (
-                  <label className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 py-16 cursor-pointer hover:border-[#FF9933] hover:bg-orange-50/50 transition-colors">
+                  <label className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 py-16 cursor-pointer hover:border-[#eaa94d] hover:bg-orange-50/50 transition-colors">
                     <Upload className="h-8 w-8 text-gray-400 mb-2" />
                     <span className="text-sm font-medium text-gray-500">
                       Click to upload an image or video
@@ -535,7 +535,7 @@ export default function StoryManager({
                     onChange={(e) => setCaption(e.target.value)}
                     placeholder="What's happening today?"
                     maxLength={120}
-                    className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF9933]/30 focus:border-[#FF9933]/30"
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#eaa94d]/30 focus:border-[#eaa94d]/30"
                   />
                 </div>
 
@@ -551,7 +551,7 @@ export default function StoryManager({
                         onClick={() => setDurationHours(h)}
                         className={`flex-1 rounded-lg px-3 py-2 text-xs font-bold transition-all ${
                           durationHours === h
-                            ? "bg-[#0A4D3C] text-white"
+                            ? "bg-[#3e1e0c] text-white"
                             : "bg-gray-100 text-gray-500 hover:bg-gray-200"
                         }`}
                       >
@@ -565,7 +565,7 @@ export default function StoryManager({
                 <button
                   onClick={handleUpload}
                   disabled={!previewFile || uploading}
-                  className="w-full rounded-xl bg-[#FF9933] py-3 text-sm font-bold text-white transition-all hover:bg-[#ff8811] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full rounded-xl bg-[#eaa94d] py-3 text-sm font-bold text-white transition-all hover:bg-[#d67620] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {uploading ? (
                     <>

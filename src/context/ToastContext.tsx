@@ -59,7 +59,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               transition={{ type: "spring", damping: 25, stiffness: 400 }}
               className={`flex items-center gap-3 rounded-full px-5 py-3 text-sm font-medium shadow-xl pointer-events-auto border ${
                 t.type === "success"
-                  ? "bg-[#0A4D3C] text-white border-[#0A4D3C]/20"
+                  ? "bg-[#3e1e0c] text-white border-[#3e1e0c]/20"
                   : t.type === "error"
                     ? "bg-red-500 text-white border-red-500/20"
                     : "bg-white text-charcoal-slate border-snow-white/20"
@@ -67,13 +67,13 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             >
               <div className="shrink-0">
                 {t.type === "success" && (
-                  <Check className="h-5 w-5 text-[#FF9933]" />
+                  <Check className="h-5 w-5 text-[#eaa94d]" />
                 )}
                 {t.type === "error" && (
                   <XCircle className="h-5 w-5 text-white" />
                 )}
                 {t.type === "info" && (
-                  <Info className="h-5 w-5 text-[#FF9933]" />
+                  <Info className="h-5 w-5 text-[#eaa94d]" />
                 )}
               </div>
               <p className="grow">{t.message}</p>

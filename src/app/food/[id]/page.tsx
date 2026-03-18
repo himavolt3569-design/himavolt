@@ -125,7 +125,7 @@ function SuggestionCard({
               className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
             />
             {item.discountLabel && (
-              <span className="absolute bottom-1 left-1 rounded-md bg-[#E23744] px-1 py-0.5 text-[9px] font-extrabold text-white leading-none shadow-sm">
+              <span className="absolute bottom-1 left-1 rounded-md bg-[#eaa94d] px-1 py-0.5 text-[9px] font-extrabold text-white leading-none shadow-sm">
                 {item.discountLabel}
               </span>
             )}
@@ -134,13 +134,13 @@ function SuggestionCard({
           {/* Details on the right */}
           <div className="flex flex-1 flex-col justify-between min-w-0 py-0.5">
             <div>
-              <h4 className="text-[13px] font-bold text-[#1F2A2A] truncate group-hover:text-[#E23744] transition-colors">
+              <h4 className="text-[13px] font-bold text-[#3e1e0c] truncate group-hover:text-[#eaa94d] transition-colors">
                 {item.name}
               </h4>
               <div className="flex items-center gap-1.5 mt-1">
                 <span
                   className={`inline-flex items-center gap-0.5 rounded px-1 py-0.5 text-[10px] font-bold text-white leading-none ${
-                    item.rating >= 4 ? "bg-[#1E7B3E]" : "bg-[#DB7C10]"
+                    item.rating >= 4 ? "bg-[#1E7B3E]" : "bg-[#d67620]"
                   }`}
                 >
                   {item.rating.toFixed(1)}
@@ -152,7 +152,7 @@ function SuggestionCard({
                 </span>
               </div>
             </div>
-            <span className="text-[13px] font-extrabold text-[#1F2A2A]">
+            <span className="text-[13px] font-extrabold text-[#3e1e0c]">
               {formatPrice(item.price, currency)}
             </span>
           </div>
@@ -214,7 +214,7 @@ function ScrollSection({
           <Icon className="h-4 w-4 text-white" />
         </div>
         <div>
-          <h3 className="text-sm font-bold text-[#1F2A2A] tracking-tight">
+          <h3 className="text-sm font-bold text-[#3e1e0c] tracking-tight">
             {title}
           </h3>
           <p className="text-[11px] text-gray-400">{subtitle}</p>
@@ -321,9 +321,9 @@ export default function FoodDetailsPage() {
       if (ctaRef.current) {
         gsap.fromTo(
           ctaRef.current,
-          { boxShadow: "0 4px 20px rgba(226,55,68,0.2)" },
+          { boxShadow: "0 4px 20px rgba(234,169,77,0.2)" },
           {
-            boxShadow: "0 8px 40px rgba(226,55,68,0.4)",
+            boxShadow: "0 8px 40px rgba(234,169,77,0.4)",
             duration: 1.5,
             yoyo: true,
             repeat: -1,
@@ -364,13 +364,13 @@ export default function FoodDetailsPage() {
   // Loading State
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-[#FFF5F5] to-white">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-[#fdf9ef] to-white">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="text-center"
         >
-          <Loader2 className="mx-auto h-10 w-10 text-[#E23744] animate-spin mb-4" />
+          <Loader2 className="mx-auto h-10 w-10 text-[#eaa94d] animate-spin mb-4" />
           <p className="text-sm font-bold text-gray-400">Loading dish...</p>
         </motion.div>
       </div>
@@ -380,22 +380,22 @@ export default function FoodDetailsPage() {
   // Error / Not Found
   if (error || !food) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-[#FFF5F5] to-white">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-[#fdf9ef] to-white">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           className="text-center"
         >
-          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#FFF0F1] mb-5">
-            <Utensils className="h-8 w-8 text-[#E23744]" />
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#fdf9ef] mb-5">
+            <Utensils className="h-8 w-8 text-[#eaa94d]" />
           </div>
-          <p className="text-xl font-bold text-[#1F2A2A]">Dish not found</p>
+          <p className="text-xl font-bold text-[#3e1e0c]">Dish not found</p>
           <p className="text-sm text-gray-400 mt-1">
             This item might have been removed
           </p>
           <Link
             href="/"
-            className="mt-6 inline-flex items-center gap-2 rounded-2xl bg-[#E23744] px-6 py-3 text-sm font-bold text-white shadow-lg shadow-[#E23744]/20"
+            className="mt-6 inline-flex items-center gap-2 rounded-2xl bg-[#eaa94d] px-6 py-3 text-sm font-bold text-white shadow-lg shadow-[#eaa94d]/20"
           >
             <ArrowLeft className="h-4 w-4" /> Browse Menu
           </Link>
@@ -438,7 +438,7 @@ export default function FoodDetailsPage() {
           >
             <Heart
               className={`h-5 w-5 transition-all duration-300 ${
-                liked ? "fill-[#E23744] text-[#E23744] scale-110" : ""
+                liked ? "fill-[#eaa94d] text-[#eaa94d] scale-110" : ""
               }`}
             />
           </button>
@@ -454,7 +454,7 @@ export default function FoodDetailsPage() {
           <div>
             <div className="flex items-center gap-2 mb-2 flex-wrap">
               {food.discountLabel && (
-                <span className="inline-block rounded-lg bg-[#E23744] px-3 py-1.5 text-xs font-extrabold text-white shadow-lg shadow-[#E23744]/30">
+                <span className="inline-block rounded-lg bg-[#eaa94d] px-3 py-1.5 text-xs font-extrabold text-white shadow-lg shadow-[#eaa94d]/30">
                   {food.discountLabel}
                 </span>
               )}
@@ -481,7 +481,7 @@ export default function FoodDetailsPage() {
             )}
             <span
               className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-sm font-bold text-white shadow-lg ${
-                food.rating >= 4 ? "bg-[#1E7B3E]" : "bg-[#DB7C10]"
+                food.rating >= 4 ? "bg-[#1E7B3E]" : "bg-[#d67620]"
               }`}
             >
               <Star className="h-3.5 w-3.5 fill-white" />
@@ -499,8 +499,8 @@ export default function FoodDetailsPage() {
         <div className="rounded-3xl bg-white shadow-2xl shadow-black/5 p-5 sm:p-8 space-y-5 border border-gray-100/50">
           {/* Meta badges */}
           <div className="detail-anim flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-xl bg-[#FFF0F1] px-3 py-1.5 text-[12px] font-bold text-[#E23744]">
-              <Star className="h-3 w-3 fill-[#E23744]" />
+            <span className="inline-flex items-center gap-1.5 rounded-xl bg-[#fdf9ef] px-3 py-1.5 text-[12px] font-bold text-[#eaa94d]">
+              <Star className="h-3 w-3 fill-[#eaa94d]" />
               {food.rating.toFixed(1)}
             </span>
             <span className="inline-flex items-center gap-1.5 rounded-xl bg-gray-100 px-3 py-1.5 text-[12px] font-bold text-gray-600">
@@ -554,11 +554,11 @@ export default function FoodDetailsPage() {
 
           {/* Restaurant info */}
           <div className="detail-anim flex items-center gap-3 p-3 rounded-2xl bg-gray-50/80 border border-gray-100">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#0A4D3C] text-white">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#3e1e0c] text-white">
               <Utensils className="h-4 w-4" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-[13px] font-bold text-[#1F2A2A] truncate">
+              <p className="text-[13px] font-bold text-[#3e1e0c] truncate">
                 {food.restaurant.name}
               </p>
               <p className="text-[11px] text-gray-400 truncate">
@@ -567,7 +567,7 @@ export default function FoodDetailsPage() {
             </div>
             <Link
               href={`/menu/${food.restaurant.slug}`}
-              className="shrink-0 text-[11px] font-bold text-[#E23744] flex items-center gap-0.5"
+              className="shrink-0 text-[11px] font-bold text-[#eaa94d] flex items-center gap-0.5"
             >
               View Menu
               <ChevronRight className="h-3 w-3" />
@@ -583,7 +583,7 @@ export default function FoodDetailsPage() {
                 Total
               </p>
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl sm:text-3xl font-extrabold text-[#1F2A2A]">
+                <span className="text-2xl sm:text-3xl font-extrabold text-[#3e1e0c]">
                   {formatPrice(food.price * qty, cur)}
                 </span>
                 {qty > 1 && (
@@ -606,13 +606,13 @@ export default function FoodDetailsPage() {
                 key={qty}
                 initial={{ scale: 0.5 }}
                 animate={{ scale: 1 }}
-                className="w-8 sm:w-10 text-center text-lg font-extrabold text-[#1F2A2A]"
+                className="w-8 sm:w-10 text-center text-lg font-extrabold text-[#3e1e0c]"
               >
                 {qty}
               </motion.span>
               <button
                 onClick={() => setQty(qty + 1)}
-                className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-[#E23744] text-white hover:bg-[#c92e3c] transition-all active:scale-90 shadow-sm shadow-[#E23744]/20"
+                className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-[#eaa94d] text-white hover:bg-[#d67620] transition-all active:scale-90 shadow-sm shadow-[#eaa94d]/20"
               >
                 <Plus className="h-4 w-4" strokeWidth={2.5} />
               </button>
@@ -625,7 +625,7 @@ export default function FoodDetailsPage() {
             onClick={handleAddToCart}
             whileTap={{ scale: 0.96 }}
             whileHover={{ y: -2 }}
-            className="detail-anim w-full flex items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-[#E23744] to-[#FF6B81] py-4 text-base font-bold text-white shadow-xl shadow-[#E23744]/25 transition-all"
+            className="detail-anim w-full flex items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-[#eaa94d] to-[#e58f2a] py-4 text-base font-bold text-white shadow-xl shadow-[#eaa94d]/25 transition-all"
           >
             <ShoppingBag className="h-5 w-5" />
             Add to Cart — {formatPrice(food.price * qty, cur)}
@@ -639,7 +639,7 @@ export default function FoodDetailsPage() {
           title="Similar dishes"
           subtitle={`More from ${food.category.name}`}
           icon={Sparkles}
-          iconColor="bg-gradient-to-br from-[#E23744] to-[#FF6B81]"
+          iconColor="bg-gradient-to-br from-[#eaa94d] to-[#e58f2a]"
           items={related}
           currency={cur}
         />
@@ -648,7 +648,7 @@ export default function FoodDetailsPage() {
           title="Trending now"
           subtitle="Popular at this restaurant"
           icon={TrendingUp}
-          iconColor="bg-gradient-to-br from-[#FF9933] to-[#FFB366]"
+          iconColor="bg-gradient-to-br from-[#eaa94d] to-[#f1c980]"
           items={trending}
           currency={cur}
         />

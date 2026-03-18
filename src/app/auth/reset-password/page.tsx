@@ -65,7 +65,7 @@ function ResetPasswordForm() {
   if (status === "loading") {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50/50">
-        <Loader2 className="h-8 w-8 animate-spin text-[#E23744]" />
+        <Loader2 className="h-8 w-8 animate-spin text-[#eaa94d]" />
       </div>
     );
   }
@@ -77,13 +77,13 @@ function ResetPasswordForm() {
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
             <span className="text-2xl">🔗</span>
           </div>
-          <h2 className="text-lg font-bold text-[#1F2A2A] mb-2">Link expired or invalid</h2>
+          <h2 className="text-lg font-bold text-[#3e1e0c] mb-2">Link expired or invalid</h2>
           <p className="text-sm text-gray-500 mb-6">
             This reset link has expired or already been used. Request a new one.
           </p>
           <Link
             href="/auth/forgot-password"
-            className="inline-block rounded-xl bg-[#E23744] px-6 py-3 text-sm font-bold text-white hover:bg-[#c92e3c] transition-colors"
+            className="inline-block rounded-xl bg-[#eaa94d] px-6 py-3 text-sm font-bold text-white hover:bg-[#d67620] transition-colors"
           >
             Request new link
           </Link>
@@ -103,7 +103,7 @@ function ResetPasswordForm() {
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
             <Check className="h-8 w-8 text-green-600" />
           </div>
-          <h2 className="text-lg font-bold text-[#1F2A2A] mb-2">Password updated!</h2>
+          <h2 className="text-lg font-bold text-[#3e1e0c] mb-2">Password updated!</h2>
           <p className="text-sm text-gray-500">Redirecting you to sign in…</p>
         </motion.div>
       </div>
@@ -120,12 +120,12 @@ function ResetPasswordForm() {
       >
         <div className="mb-8 text-center">
           <Link href="/" className="inline-flex items-center gap-2">
-            <Mountain className="h-8 w-8 text-[#E23744]" strokeWidth={2.5} />
-            <span className="text-2xl font-extrabold tracking-tight text-[#1F2A2A]">
-              Hima<span className="text-[#E23744]">Volt</span>
+            <Mountain className="h-8 w-8 text-[#eaa94d]" strokeWidth={2.5} />
+            <span className="text-2xl font-extrabold tracking-tight text-[#3e1e0c]">
+              Hima<span className="text-[#eaa94d]">Volt</span>
             </span>
           </Link>
-          <p className="mt-3 text-base font-bold text-[#1F2A2A]">Set a new password</p>
+          <p className="mt-3 text-base font-bold text-[#3e1e0c]">Set a new password</p>
           <p className="mt-1 text-sm text-gray-400">Choose something strong and memorable</p>
         </div>
 
@@ -145,7 +145,7 @@ function ResetPasswordForm() {
                   required
                   minLength={8}
                   autoFocus
-                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 pr-10 text-sm focus:border-[#E23744]/30 focus:outline-none focus:ring-1 focus:ring-[#E23744]/30"
+                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 pr-10 text-sm focus:border-[#eaa94d]/30 focus:outline-none focus:ring-1 focus:ring-[#eaa94d]/30"
                   placeholder="Min 8 characters"
                 />
                 <button
@@ -170,7 +170,7 @@ function ResetPasswordForm() {
                     ? "border-red-400 focus:border-red-400 focus:ring-red-200"
                     : confirm && confirm === password
                     ? "border-green-400 focus:border-green-400 focus:ring-green-200"
-                    : "border-gray-200 focus:border-[#E23744]/30 focus:ring-[#E23744]/30"
+                    : "border-gray-200 focus:border-[#eaa94d]/30 focus:ring-[#eaa94d]/30"
                 }`}
                 placeholder="Repeat password"
               />
@@ -182,7 +182,7 @@ function ResetPasswordForm() {
             <button
               type="submit"
               disabled={loading || !password || !confirm}
-              className="w-full rounded-xl bg-[#E23744] py-3 text-sm font-bold text-white transition-all hover:bg-[#c92e3c] active:scale-[0.98] disabled:opacity-50 shadow-sm shadow-[#E23744]/20"
+              className="w-full rounded-xl bg-[#eaa94d] py-3 text-sm font-bold text-white transition-all hover:bg-[#d67620] active:scale-[0.98] disabled:opacity-50 shadow-sm shadow-[#eaa94d]/20"
             >
               {loading ? <Loader2 className="mx-auto h-4 w-4 animate-spin" /> : "Update Password"}
             </button>
@@ -197,7 +197,7 @@ export default function ResetPasswordPage() {
   return (
     <Suspense fallback={
       <div className="flex min-h-screen items-center justify-center bg-gray-50/50">
-        <Loader2 className="h-8 w-8 animate-spin text-[#E23744]" />
+        <Loader2 className="h-8 w-8 animate-spin text-[#eaa94d]" />
       </div>
     }>
       <ResetPasswordForm />

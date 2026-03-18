@@ -2,14 +2,7 @@
 
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { useGSAP } from "@gsap/react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Star, Quote } from "lucide-react";
-
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
-}
 
 const reviews = [
   {
@@ -91,41 +84,6 @@ export default function Testimonials() {
 
   const bgY = useTransform(scrollYProgress, [0, 1], ["-5%", "5%"]);
 
-  /* GSAP: stagger cards on scroll */
-  useGSAP(
-    () => {
-      if (!sectionRef.current) return;
-
-      const cards = gsap.utils.toArray<HTMLElement>(".testimonial-card");
-      cards.forEach((card, i) => {
-        gsap.fromTo(
-          card,
-          {
-            opacity: 0,
-            y: 60,
-            rotateY: -8,
-            scale: 0.92,
-          },
-          {
-            opacity: 1,
-            y: 0,
-            rotateY: 0,
-            scale: 1,
-            duration: 0.8,
-            delay: i * 0.1,
-            ease: "power3.out",
-            scrollTrigger: {
-              trigger: card,
-              start: "top 88%",
-              toggleActions: "play none none none",
-            },
-          },
-        );
-      });
-    },
-    { scope: sectionRef },
-  );
-
   return (
     <section ref={sectionRef} className="relative py-20 md:py-28 overflow-hidden">
       {/* Parallax background */}
@@ -169,8 +127,12 @@ export default function Testimonials() {
           {reviews.map((review, i) => (
             <motion.div
               key={review.name}
+              initial={{ opacity: 0, y: 40, scale: 0.95 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] }}
               whileHover={{ y: -6, transition: { type: "spring", stiffness: 300, damping: 20 } }}
-              className="testimonial-card group relative rounded-2xl bg-white p-6 md:p-7 shadow-[0_1px_3px_rgba(62,30,12,0.04)] hover:shadow-[0_12px_40px_rgba(234,169,77,0.1)] border border-[#f4d69a]/20 hover:border-[#eaa94d]/25 transition-all duration-500"
+              className="group relative rounded-2xl bg-white p-6 md:p-7 shadow-[0_1px_3px_rgba(62,30,12,0.04)] hover:shadow-[0_12px_40px_rgba(234,169,77,0.1)] border border-[#f4d69a]/20 hover:border-[#eaa94d]/25 transition-all duration-500"
               style={{ perspective: "800px" }}
             >
               {/* Quote accent */}

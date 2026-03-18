@@ -339,7 +339,7 @@ export default function BillingTab({
   if (loading) {
     return (
       <div className="flex justify-center py-20">
-        <Loader2 className="h-6 w-6 animate-spin text-[#E23744]" />
+        <Loader2 className="h-6 w-6 animate-spin text-[#eaa94d]" />
       </div>
     );
   }
@@ -439,7 +439,7 @@ export default function BillingTab({
                     ? "bg-white text-emerald-700 shadow-sm"
                     : t.key === "online"
                       ? "bg-white text-purple-700 shadow-sm"
-                      : "bg-white text-[#1F2A2A] shadow-sm"
+                      : "bg-white text-[#3e1e0c] shadow-sm"
                   : "text-gray-400 hover:text-gray-600"
               }`}
             >
@@ -450,7 +450,7 @@ export default function BillingTab({
                       ? "text-emerald-500"
                       : t.key === "online"
                         ? "text-purple-500"
-                        : "text-[#1F2A2A]"
+                        : "text-[#3e1e0c]"
                     : "text-gray-400"
                 }`}
               />
@@ -514,7 +514,7 @@ export default function BillingTab({
               }}
               className={`flex items-center gap-1 rounded-xl px-3.5 py-2 text-xs font-bold transition-all ${
                 filter === f.key
-                  ? "bg-[#1F2A2A] text-white shadow-sm"
+                  ? "bg-[#3e1e0c] text-white shadow-sm"
                   : "bg-gray-100 text-gray-500 hover:bg-gray-200"
               }`}
             >
@@ -540,7 +540,7 @@ export default function BillingTab({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search order #, customer, table..."
-            className="w-full rounded-xl border border-gray-200 bg-white pl-10 pr-4 py-2.5 text-sm font-medium text-[#1F2A2A] placeholder-gray-400 outline-none focus:border-[#0A4D3C] focus:ring-2 focus:ring-[#0A4D3C]/10 transition-all"
+            className="w-full rounded-xl border border-gray-200 bg-white pl-10 pr-4 py-2.5 text-sm font-medium text-[#3e1e0c] placeholder-gray-400 outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/10 transition-all"
           />
         </div>
       </div>
@@ -574,7 +574,7 @@ export default function BillingTab({
             {/* Header row */}
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-sm font-extrabold text-[#1F2A2A]">
+                <span className="text-sm font-extrabold text-[#3e1e0c]">
                   #{order.orderNo}
                 </span>
                 {order.tableNo && (
@@ -709,8 +709,8 @@ export default function BillingTab({
                 </div>
               )}
               <div className="flex justify-between text-sm font-extrabold border-t border-gray-200 pt-1.5 mt-1.5">
-                <span className="text-[#1F2A2A]">Total</span>
-                <span className="text-[#1F2A2A]">
+                <span className="text-[#3e1e0c]">Total</span>
+                <span className="text-[#3e1e0c]">
                   {formatPrice(order.bill?.total ?? order.total, cur)}
                 </span>
               </div>
@@ -812,7 +812,7 @@ export default function BillingTab({
             >
               <div className="flex items-center justify-between mb-5">
                 <div>
-                  <h2 className="text-lg font-extrabold text-[#1F2A2A]">
+                  <h2 className="text-lg font-extrabold text-[#3e1e0c]">
                     Collect Payment
                   </h2>
                   <p className="text-xs text-gray-400">
@@ -835,7 +835,7 @@ export default function BillingTab({
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">
                   Amount Due
                 </p>
-                <p className="text-3xl font-extrabold text-[#1F2A2A]">
+                <p className="text-3xl font-extrabold text-[#3e1e0c]">
                   {formatPrice(selectedOrder.bill?.total ?? selectedOrder.total, cur)}
                 </p>
                 {selectedOrder.bill?.discount &&
@@ -969,7 +969,7 @@ export default function BillingTab({
             >
               <div className="flex items-center justify-between mb-5">
                 <div>
-                  <h2 className="text-lg font-extrabold text-[#1F2A2A]">
+                  <h2 className="text-lg font-extrabold text-[#3e1e0c]">
                     Apply Discount
                   </h2>
                   <p className="text-xs text-gray-400">
@@ -991,7 +991,7 @@ export default function BillingTab({
               <div className="rounded-2xl bg-gray-50 p-4 mb-5">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Current Bill Total</span>
-                  <span className="font-bold text-[#1F2A2A]">
+                  <span className="font-bold text-[#3e1e0c]">
                     {formatPrice(selectedOrder.bill?.total ?? selectedOrder.total, cur)}
                   </span>
                 </div>
@@ -1069,7 +1069,7 @@ export default function BillingTab({
                     <span className="text-pink-600 font-medium">
                       New Total after Discount
                     </span>
-                    <span className="font-extrabold text-[#1F2A2A]">
+                    <span className="font-extrabold text-[#3e1e0c]">
                       {formatPrice(Math.max(
                         0,
                         (selectedOrder.bill?.subtotal ??
@@ -1154,7 +1154,7 @@ function SummaryCard({
           {label}
         </span>
       </div>
-      <p className="text-base font-extrabold text-[#1F2A2A]">{value}</p>
+      <p className="text-base font-extrabold text-[#3e1e0c]">{value}</p>
     </div>
   );
 }

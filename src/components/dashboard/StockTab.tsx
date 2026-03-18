@@ -125,12 +125,12 @@ export default function StockTab() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-extrabold tracking-tight text-[#1F2A2A]">
+          <h2 className="text-2xl font-extrabold tracking-tight text-[#3e1e0c]">
             Stock / Inventory
           </h2>
           <p className="mt-1 text-sm text-gray-500">
             Track ingredients and supplies for{" "}
-            <strong className="text-[#1F2A2A]">{restaurant.name}</strong>
+            <strong className="text-[#3e1e0c]">{restaurant.name}</strong>
           </p>
         </div>
         <button
@@ -138,7 +138,7 @@ export default function StockTab() {
             setEditItem(null);
             setShowAdd(true);
           }}
-          className="flex items-center gap-2 rounded-xl bg-[#0A4D3C] px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-[#0A4D3C]/20 transition-all hover:bg-[#083a2d] active:scale-[0.97]"
+          className="flex items-center gap-2 rounded-xl bg-[#3e1e0c] px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-[#3e1e0c]/20 transition-all hover:bg-[#2d1508] active:scale-[0.97]"
         >
           <Plus className="h-4 w-4" />
           Add Item
@@ -151,7 +151,7 @@ export default function StockTab() {
           {
             label: "Total Items",
             value: items.length,
-            color: "text-[#1F2A2A]",
+            color: "text-[#3e1e0c]",
             icon: Box,
             iconColor: "text-blue-500",
           },
@@ -172,7 +172,7 @@ export default function StockTab() {
           {
             label: "Total Value",
             value: formatPrice(totalValue, cur),
-            color: "text-[#1F2A2A]",
+            color: "text-[#3e1e0c]",
             icon: TrendingDown,
             iconColor: "text-amber-500",
           },
@@ -201,7 +201,7 @@ export default function StockTab() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search items..."
-            className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm font-medium text-[#1F2A2A] placeholder-gray-400 outline-none transition-all focus:border-[#FF9933] focus:ring-2 focus:ring-[#FF9933]/15"
+            className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm font-medium text-[#3e1e0c] placeholder-gray-400 outline-none transition-all focus:border-[#eaa94d] focus:ring-2 focus:ring-[#eaa94d]/15"
           />
         </div>
         <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
@@ -211,7 +211,7 @@ export default function StockTab() {
               onClick={() => setFilterStatus(s)}
               className={`shrink-0 rounded-lg px-3 py-2 text-xs font-bold transition-all ${
                 filterStatus === s
-                  ? "bg-[#1F2A2A] text-white"
+                  ? "bg-[#3e1e0c] text-white"
                   : "bg-gray-100 text-gray-500 hover:bg-gray-200"
               }`}
             >
@@ -222,7 +222,7 @@ export default function StockTab() {
         <select
           value={filterCat}
           onChange={(e) => setFilterCat(e.target.value)}
-          className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-bold text-gray-600 outline-none focus:border-[#FF9933]"
+          className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-bold text-gray-600 outline-none focus:border-[#eaa94d]"
         >
           <option value="all">All Categories</option>
           {categories.map((c) => (
@@ -283,7 +283,7 @@ export default function StockTab() {
                   {/* Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <h4 className="font-bold text-[#1F2A2A] truncate">
+                      <h4 className="font-bold text-[#3e1e0c] truncate">
                         {item.name}
                       </h4>
                       <span className="shrink-0 rounded-md bg-gray-100 border border-gray-200 px-2 py-0.5 text-[10px] font-bold text-gray-500">
@@ -296,7 +296,7 @@ export default function StockTab() {
                       )}
                     </div>
                     <p className="text-xs text-gray-500 mt-0.5">
-                      <span className="font-semibold text-[#1F2A2A]">
+                      <span className="font-semibold text-[#3e1e0c]">
                         {item.quantity}
                       </span>{" "}
                       {item.unit} &middot; Min: {item.minStock} {item.unit}
@@ -425,7 +425,7 @@ function QuickAdjust({
           onChange={(e) => setVal(e.target.value)}
           placeholder={String(item.quantity)}
           autoFocus
-          className="w-16 rounded-md border border-amber-300 bg-amber-50/50 px-2 py-1 text-xs font-bold text-[#1F2A2A] outline-none focus:ring-2 focus:ring-amber-200 text-center"
+          className="w-16 rounded-md border border-amber-300 bg-amber-50/50 px-2 py-1 text-xs font-bold text-[#3e1e0c] outline-none focus:ring-2 focus:ring-amber-200 text-center"
         />
         <button
           onClick={() => save(Number(val) || item.quantity)}
@@ -461,7 +461,7 @@ function QuickAdjust({
       </button>
       <button
         onClick={() => setAdjusting(true)}
-        className="min-w-[3rem] rounded-lg bg-gray-50 px-2 py-1 text-center text-sm font-bold text-[#1F2A2A] hover:bg-gray-100 transition-all cursor-pointer"
+        className="min-w-[3rem] rounded-lg bg-gray-50 px-2 py-1 text-center text-sm font-bold text-[#3e1e0c] hover:bg-gray-100 transition-all cursor-pointer"
         title="Click to set quantity"
       >
         {item.quantity}
@@ -579,7 +579,7 @@ function AddEditModal({
             className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl sm:p-8 max-h-[90dvh]"
           >
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-extrabold text-[#1F2A2A]">
+              <h3 className="text-xl font-extrabold text-[#3e1e0c]">
                 {item ? "Edit Item" : "Add Inventory Item"}
               </h3>
               <button
@@ -593,28 +593,28 @@ function AddEditModal({
             <div className="space-y-4">
               {/* Name */}
               <div>
-                <label className="block text-sm font-bold text-[#1F2A2A] mb-1.5">
-                  Item Name <span className="text-[#FF9933]">*</span>
+                <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">
+                  Item Name <span className="text-[#eaa94d]">*</span>
                 </label>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Chicken, Rice, Cooking Oil"
-                  className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#1F2A2A] placeholder-gray-400 outline-none transition-all focus:border-[#0A4D3C] focus:ring-2 focus:ring-[#0A4D3C]/15"
+                  className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#3e1e0c] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
                 />
               </div>
 
               {/* Unit + Category row */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-bold text-[#1F2A2A] mb-1.5">
+                  <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">
                     Unit
                   </label>
                   <select
                     value={unit}
                     onChange={(e) => setUnit(e.target.value)}
-                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#1F2A2A] outline-none focus:border-[#0A4D3C] focus:ring-2 focus:ring-[#0A4D3C]/15"
+                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#3e1e0c] outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
                   >
                     {UNITS.map((u) => (
                       <option key={u} value={u}>
@@ -624,13 +624,13 @@ function AddEditModal({
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-[#1F2A2A] mb-1.5">
+                  <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">
                     Category
                   </label>
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#1F2A2A] outline-none focus:border-[#0A4D3C] focus:ring-2 focus:ring-[#0A4D3C]/15"
+                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#3e1e0c] outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
                   >
                     {CATEGORIES.map((c) => (
                       <option key={c} value={c}>
@@ -644,7 +644,7 @@ function AddEditModal({
               {/* Quantity + Min Stock */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-bold text-[#1F2A2A] mb-1.5">
+                  <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">
                     Current Qty
                   </label>
                   <input
@@ -653,11 +653,11 @@ function AddEditModal({
                     onChange={(e) => setQuantity(e.target.value)}
                     placeholder="0"
                     min="0"
-                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#1F2A2A] placeholder-gray-400 outline-none transition-all focus:border-[#0A4D3C] focus:ring-2 focus:ring-[#0A4D3C]/15"
+                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#3e1e0c] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-[#1F2A2A] mb-1.5">
+                  <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">
                     Min Stock Alert
                   </label>
                   <input
@@ -666,14 +666,14 @@ function AddEditModal({
                     onChange={(e) => setMinStock(e.target.value)}
                     placeholder="5"
                     min="0"
-                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#1F2A2A] placeholder-gray-400 outline-none transition-all focus:border-[#0A4D3C] focus:ring-2 focus:ring-[#0A4D3C]/15"
+                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#3e1e0c] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
                   />
                 </div>
               </div>
 
               {/* Cost per unit */}
               <div>
-                <label className="block text-sm font-bold text-[#1F2A2A] mb-1.5">
+                <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">
                   Cost per {unit}
                 </label>
                 <input
@@ -682,13 +682,13 @@ function AddEditModal({
                   onChange={(e) => setCostPerUnit(e.target.value)}
                   placeholder="0"
                   min="0"
-                  className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#1F2A2A] placeholder-gray-400 outline-none transition-all focus:border-[#0A4D3C] focus:ring-2 focus:ring-[#0A4D3C]/15"
+                  className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#3e1e0c] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
                 />
               </div>
 
               {/* Notes */}
               <div>
-                <label className="block text-sm font-bold text-[#1F2A2A] mb-1.5">
+                <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">
                   Notes
                 </label>
                 <input
@@ -696,7 +696,7 @@ function AddEditModal({
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Optional notes..."
-                  className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#1F2A2A] placeholder-gray-400 outline-none transition-all focus:border-[#0A4D3C] focus:ring-2 focus:ring-[#0A4D3C]/15"
+                  className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#3e1e0c] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
                 />
               </div>
             </div>
@@ -710,7 +710,7 @@ function AddEditModal({
             <div className="mt-6 flex items-center justify-end gap-3">
               <button
                 onClick={onClose}
-                className="rounded-xl px-5 py-2.5 text-sm font-bold text-gray-500 hover:text-[#1F2A2A] hover:bg-gray-50 transition-all"
+                className="rounded-xl px-5 py-2.5 text-sm font-bold text-gray-500 hover:text-[#3e1e0c] hover:bg-gray-50 transition-all"
               >
                 Cancel
               </button>
@@ -719,7 +719,7 @@ function AddEditModal({
                 disabled={!name.trim() || saving}
                 className={`flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-bold text-white shadow-lg transition-all active:scale-[0.97] ${
                   name.trim() && !saving
-                    ? "bg-[#0A4D3C] shadow-[#0A4D3C]/20 hover:bg-[#083a2d]"
+                    ? "bg-[#3e1e0c] shadow-[#3e1e0c]/20 hover:bg-[#2d1508]"
                     : "bg-gray-300 shadow-none cursor-not-allowed"
                 }`}
               >

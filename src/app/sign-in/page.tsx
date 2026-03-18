@@ -49,9 +49,9 @@ export default function SignInPage() {
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <Link href="/" className="inline-flex items-center gap-2">
-            <Mountain className="h-8 w-8 text-[#E23744]" strokeWidth={2.5} />
-            <span className="text-2xl font-extrabold tracking-tight text-[#1F2A2A]">
-              Hima<span className="text-[#E23744]">Volt</span>
+            <Mountain className="h-8 w-8 text-[#eaa94d]" strokeWidth={2.5} />
+            <span className="text-2xl font-extrabold tracking-tight text-[#3e1e0c]">
+              Hima<span className="text-[#eaa94d]">Volt</span>
             </span>
           </Link>
           <p className="mt-2 text-sm text-gray-500">Sign in to your account</p>
@@ -74,7 +74,7 @@ export default function SignInPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-[#E23744]/30 focus:outline-none focus:ring-1 focus:ring-[#E23744]/30"
+                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-[#eaa94d]/30 focus:outline-none focus:ring-1 focus:ring-[#eaa94d]/30"
                 placeholder="you@example.com"
               />
             </div>
@@ -84,7 +84,7 @@ export default function SignInPage() {
                 <label className="text-sm font-medium text-gray-700">Password</label>
                 <Link
                   href="/auth/forgot-password"
-                  className="text-xs font-semibold text-[#E23744] hover:text-[#c92e3c]"
+                  className="text-xs font-semibold text-[#eaa94d] hover:text-[#d67620]"
                 >
                   Forgot password?
                 </Link>
@@ -94,7 +94,7 @@ export default function SignInPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-[#E23744]/30 focus:outline-none focus:ring-1 focus:ring-[#E23744]/30"
+                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-[#eaa94d]/30 focus:outline-none focus:ring-1 focus:ring-[#eaa94d]/30"
                 placeholder="Your password"
               />
             </div>
@@ -102,7 +102,7 @@ export default function SignInPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-xl bg-[#E23744] py-3 text-sm font-bold text-white transition-all hover:bg-[#c92e3c] active:scale-[0.98] disabled:opacity-50 shadow-sm shadow-[#E23744]/20"
+              className="w-full rounded-xl bg-[#eaa94d] py-3 text-sm font-bold text-white transition-all hover:bg-[#d67620] active:scale-[0.98] disabled:opacity-50 shadow-sm shadow-[#eaa94d]/20"
             >
               {loading ? (
                 <Loader2 className="mx-auto h-4 w-4 animate-spin" />
@@ -127,7 +127,7 @@ export default function SignInPage() {
           Don&apos;t have an account?{" "}
           <Link
             href="/sign-up"
-            className="font-bold text-[#E23744] hover:text-[#c92e3c]"
+            className="font-bold text-[#eaa94d] hover:text-[#d67620]"
           >
             Sign Up
           </Link>

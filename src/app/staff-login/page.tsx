@@ -77,7 +77,7 @@ function FloatingImage({
 }) {
   return (
     <motion.div
-      className={`absolute overflow-hidden rounded-2xl shadow-2xl shadow-black/40 pointer-events-none ${className}`}
+      className={`absolute overflow-hidden rounded-2xl shadow-2xl shadow-brand-950/50 pointer-events-none ${className}`}
       initial={{ opacity: 0, scale: 0.6, rotate: -10 }}
       animate={{ opacity: 1, scale: 1, rotate: 0 }}
       transition={{ delay, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
@@ -177,7 +177,7 @@ function PinBox({
       <AnimatePresence>
         {focused && (
           <motion.div
-            className="absolute -inset-1 rounded-2xl bg-[#FF9933]/20"
+            className="absolute -inset-1 rounded-2xl bg-brand-400/20"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
@@ -190,7 +190,7 @@ function PinBox({
       <AnimatePresence>
         {digit && (
           <motion.div
-            className="absolute -top-1 -right-1 z-10 h-3 w-3 rounded-full bg-[#FF9933] border-2 border-[#0A0D14]"
+            className="absolute -top-1 -right-1 z-10 h-3 w-3 rounded-full bg-brand-400 border-2 border-brand-50"
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
@@ -209,11 +209,11 @@ function PinBox({
         onKeyDown={(e) => onKeyDown(index, e)}
         animate={
           digit
-            ? { scale: [1, 1.08, 1], borderColor: "rgba(255,153,51,0.3)" }
-            : { scale: 1, borderColor: "rgba(255,255,255,0.08)" }
+            ? { scale: [1, 1.08, 1], borderColor: "rgba(234,169,77,0.4)" }
+            : { scale: 1, borderColor: "rgba(62,30,12,0.10)" }
         }
         transition={{ duration: 0.2 }}
-        className="relative z-[1] h-14 w-full text-center text-xl font-bold bg-white/[0.04] border border-white/[0.08] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[#FF9933]/30 focus:border-[#FF9933]/40 transition-colors font-mono"
+        className="relative z-[1] h-14 w-full text-center text-xl font-bold bg-white border border-brand-200/60 rounded-xl text-brand-950 shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-400/40 focus:border-brand-400/50 transition-colors font-mono"
         aria-label={`PIN digit ${index + 1}`}
       />
     </motion.div>
@@ -332,10 +332,10 @@ export default function StaffLoginPage() {
   const isReady = code.length > 0 && pin.length === 4 && !loading;
 
   return (
-    <div className="min-h-screen flex bg-[#0F1219]">
+    <div className="min-h-screen flex bg-[#fefcf6]">
       {/* ── Left panel — animated food imagery ── */}
       <div
-        className="hidden lg:flex lg:w-[45%] xl:w-[50%] relative overflow-hidden bg-[#0F1219]"
+        className="hidden lg:flex lg:w-[45%] xl:w-[50%] relative overflow-hidden bg-brand-950"
         onMouseMove={handleMouseMove}
       >
         {/* Parallax food background */}
@@ -347,26 +347,26 @@ export default function StaffLoginPage() {
         />
 
         {/* Gradient overlays */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0F1219] via-[#0F1219]/60 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[#0F1219]/80" />
+        <div className="absolute inset-0 bg-linear-to-t from-brand-950 via-brand-950/60 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-r from-transparent to-brand-950/80" />
 
         {/* Animated orbs */}
         <Orb
-          color="rgba(226,55,68,0.15)"
+          color="rgba(234,169,77,0.18)"
           size={200}
           x="20%"
           y="30%"
           delay={0}
         />
         <Orb
-          color="rgba(255,153,51,0.12)"
+          color="rgba(214,118,32,0.14)"
           size={160}
           x="60%"
           y="60%"
           delay={3}
         />
         <Orb
-          color="rgba(52,211,153,0.08)"
+          color="rgba(244,214,154,0.10)"
           size={120}
           x="40%"
           y="15%"
@@ -420,12 +420,12 @@ export default function StaffLoginPage() {
                 }}
               >
                 <Mountain
-                  className="h-6 w-6 text-[#FF9933]"
+                  className="h-6 w-6 text-brand-400"
                   strokeWidth={2.5}
                 />
               </motion.div>
               <span className="text-xl font-extrabold text-white tracking-tight">
-                Hima<span className="text-[#FF9933]">Volt</span>
+                Hima<span className="text-brand-400">Volt</span>
               </span>
             </Link>
           </motion.div>
@@ -437,14 +437,14 @@ export default function StaffLoginPage() {
               className="flex items-center gap-3 mb-6"
             >
               {[
-                { Icon: ChefHat, color: "text-[#FF9933]" },
-                { Icon: Utensils, color: "text-[#E23744]" },
-                { Icon: Coffee, color: "text-[#34D399]" },
-                { Icon: Flame, color: "text-[#FF6B81]" },
+                { Icon: ChefHat, color: "text-brand-400" },
+                { Icon: Utensils, color: "text-brand-600" },
+                { Icon: Coffee, color: "text-brand-300" },
+                { Icon: Flame, color: "text-brand-500" },
               ].map(({ Icon, color }, i) => (
                 <motion.div
                   key={i}
-                  className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/[0.06] border border-white/[0.06]"
+                  className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-400/10 border border-brand-400/15"
                   whileHover={{ scale: 1.15, rotate: -5 }}
                   transition={{ type: "spring", stiffness: 400, damping: 15 }}
                 >
@@ -459,14 +459,14 @@ export default function StaffLoginPage() {
             >
               Kitchen & POS
               <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF9933] to-[#FFB347]">
+              <span className="text-transparent bg-clip-text bg-linear-to-r from-brand-400 to-brand-300">
                 Command Centre.
               </span>
             </motion.h1>
 
             <motion.p
               variants={fadeUp}
-              className="text-sm text-gray-500 max-w-sm leading-relaxed"
+              className="text-sm text-brand-200/60 max-w-sm leading-relaxed"
             >
               Manage orders, update menus, and track everything in real-time
               from one secure portal.
@@ -478,7 +478,7 @@ export default function StaffLoginPage() {
                 (label, i) => (
                   <motion.span
                     key={label}
-                    className="rounded-full bg-white/[0.05] border border-white/[0.06] px-3 py-1.5 text-[11px] font-semibold text-white/40"
+                    className="rounded-full bg-brand-400/10 border border-brand-400/15 px-3 py-1.5 text-[11px] font-semibold text-brand-200/70"
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{
@@ -497,17 +497,17 @@ export default function StaffLoginPage() {
       </div>
 
       {/* ── Right panel — animated login form ── */}
-      <div className="flex-1 flex flex-col bg-[#0F1219] lg:bg-[#0A0D14] relative overflow-hidden">
+      <div className="flex-1 flex flex-col bg-[#fefcf6] lg:bg-brand-50 relative overflow-hidden">
         {/* Background animated orbs for right panel */}
         <Orb
-          color="rgba(255,153,51,0.06)"
+          color="rgba(234,169,77,0.08)"
           size={300}
           x="70%"
           y="20%"
           delay={2}
         />
         <Orb
-          color="rgba(226,55,68,0.05)"
+          color="rgba(214,118,32,0.06)"
           size={250}
           x="10%"
           y="70%"
@@ -522,14 +522,14 @@ export default function StaffLoginPage() {
           transition={{ duration: 0.4 }}
         >
           <Link href="/" className="flex items-center gap-2">
-            <Mountain className="h-5 w-5 text-[#FF9933]" strokeWidth={2.5} />
-            <span className="text-lg font-extrabold text-white tracking-tight">
-              Hima<span className="text-[#FF9933]">Volt</span>
+            <Mountain className="h-5 w-5 text-brand-400" strokeWidth={2.5} />
+            <span className="text-lg font-extrabold text-brand-950 tracking-tight">
+              Hima<span className="text-brand-400">Volt</span>
             </span>
           </Link>
           <Link
             href="/"
-            className="text-xs font-medium text-gray-500 hover:text-white transition-colors"
+            className="text-xs font-medium text-brand-600 hover:text-brand-800 transition-colors"
           >
             &larr; Back to App
           </Link>
@@ -582,7 +582,7 @@ export default function StaffLoginPage() {
                   </div>
                 </motion.div>
                 <motion.h3
-                  className="text-xl font-extrabold text-white mb-2"
+                  className="text-xl font-extrabold text-brand-950 mb-2"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
@@ -590,7 +590,7 @@ export default function StaffLoginPage() {
                   Welcome back!
                 </motion.h3>
                 <motion.p
-                  className="text-sm text-gray-500"
+                  className="text-sm text-brand-700/70"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.5 }}
@@ -625,13 +625,13 @@ export default function StaffLoginPage() {
                 key="form"
                 variants={shake}
                 animate={formShake ? "error" : "idle"}
-                className="w-full max-w-sm"
+                className="w-full max-w-sm bg-white/70 backdrop-blur-sm rounded-2xl p-8 shadow-xl shadow-brand-200/20 border border-brand-100"
               >
                 <motion.div variants={stagger} initial="hidden" animate="show">
                   {/* Header */}
                   <motion.div variants={fadeUp} className="mb-9">
                     <motion.div
-                      className="inline-flex items-center gap-1.5 rounded-full bg-white/[0.06] backdrop-blur-sm px-3.5 py-1.5 text-[11px] font-bold text-white/60 uppercase tracking-wider border border-white/[0.06] mb-5"
+                      className="inline-flex items-center gap-1.5 rounded-full bg-brand-100/60 backdrop-blur-sm px-3.5 py-1.5 text-[11px] font-bold text-brand-700 uppercase tracking-wider border border-brand-200/60 mb-5"
                       variants={scaleIn}
                     >
                       <motion.div
@@ -645,14 +645,14 @@ export default function StaffLoginPage() {
                           ease: "easeInOut",
                         }}
                       >
-                        <ShieldCheck className="h-3 w-3 text-[#34D399]" />
+                        <ShieldCheck className="h-3 w-3 text-brand-500" />
                       </motion.div>
                       Secure staff access
                     </motion.div>
-                    <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                    <h2 className="text-2xl sm:text-3xl font-extrabold text-brand-950 tracking-tight">
                       Staff Portal
                     </h2>
-                    <p className="mt-2 text-sm text-gray-500">
+                    <p className="mt-2 text-sm text-brand-700/70">
                       Enter your restaurant code and PIN to continue.
                     </p>
                   </motion.div>
@@ -662,13 +662,13 @@ export default function StaffLoginPage() {
                     <motion.div variants={fadeUp}>
                       <label
                         htmlFor="code"
-                        className="block text-[11px] font-bold text-white/50 uppercase tracking-wider mb-2.5"
+                        className="block text-[11px] font-bold text-brand-800/60 uppercase tracking-wider mb-2.5"
                       >
                         Restaurant Code
                       </label>
                       <div className="relative group">
                         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                          <Building2 className="h-4 w-4 text-gray-600 group-focus-within:text-[#FF9933] transition-colors" />
+                          <Building2 className="h-4 w-4 text-brand-300 group-focus-within:text-brand-500 transition-colors" />
                         </div>
                         <motion.input
                           id="code"
@@ -681,7 +681,7 @@ export default function StaffLoginPage() {
                           }}
                           whileFocus={{ scale: 1.01 }}
                           transition={{ duration: 0.15 }}
-                          className="block w-full pl-11 pr-4 py-3.5 bg-white/[0.04] border border-white/[0.08] rounded-xl text-white font-mono tracking-widest text-sm placeholder:tracking-normal placeholder:font-sans placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#FF9933]/30 focus:border-[#FF9933]/40 transition-all"
+                          className="block w-full pl-11 pr-4 py-3.5 bg-white border border-brand-200/60 rounded-xl text-brand-950 font-mono tracking-widest text-sm shadow-sm placeholder:tracking-normal placeholder:font-sans placeholder:text-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-400/40 focus:border-brand-400/50 transition-all"
                           placeholder="e.g. HH-1A2B"
                         />
                         {/* Filled indicator */}
@@ -707,7 +707,7 @@ export default function StaffLoginPage() {
 
                     {/* 4-Digit PIN — animated individual boxes */}
                     <motion.div variants={fadeUp}>
-                      <label className="block text-[11px] font-bold text-white/50 uppercase tracking-wider mb-2.5">
+                      <label className="block text-[11px] font-bold text-brand-800/60 uppercase tracking-wider mb-2.5">
                         4-Digit PIN
                       </label>
                       <div className="flex gap-3" onPaste={handlePinPaste}>
@@ -731,9 +731,9 @@ export default function StaffLoginPage() {
                       </div>
 
                       {/* PIN progress bar */}
-                      <div className="mt-3 h-1 rounded-full bg-white/[0.04] overflow-hidden">
+                      <div className="mt-3 h-1 rounded-full bg-brand-100 overflow-hidden">
                         <motion.div
-                          className="h-full rounded-full bg-gradient-to-r from-[#FF9933] to-[#FFB347]"
+                          className="h-full rounded-full bg-linear-to-r from-brand-400 to-brand-300"
                           initial={{ width: "0%" }}
                           animate={{
                             width: `${(pin.length / 4) * 100}%`,
@@ -769,7 +769,7 @@ export default function StaffLoginPage() {
                             filter: "blur(8px)",
                           }}
                           transition={{ duration: 0.3 }}
-                          className="flex items-center gap-2.5 p-3.5 rounded-xl bg-[#E23744]/10 border border-[#E23744]/20 text-[#FF6B81]"
+                          className="flex items-center gap-2.5 p-3.5 rounded-xl bg-[#eaa94d]/10 border border-[#eaa94d]/20 text-[#e58f2a]"
                         >
                           <motion.div
                             animate={{ rotate: [0, -10, 10, -5, 5, 0] }}
@@ -789,13 +789,13 @@ export default function StaffLoginPage() {
                       <motion.button
                         type="submit"
                         disabled={loading || !code || pin.length !== 4}
-                        className="relative w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl text-sm font-bold transition-colors cursor-pointer disabled:cursor-not-allowed bg-gradient-to-r from-[#E23744] to-[#FF6B81] text-white shadow-lg shadow-[#E23744]/20 disabled:from-gray-700 disabled:to-gray-700 disabled:text-gray-500 disabled:shadow-none overflow-hidden"
+                        className="relative w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl text-sm font-bold transition-colors cursor-pointer disabled:cursor-not-allowed bg-linear-to-br from-brand-400 to-brand-600 text-white shadow-lg shadow-brand-400/25 disabled:from-gray-300 disabled:to-gray-300 disabled:text-gray-500 disabled:shadow-none overflow-hidden"
                         whileHover={
                           isReady
                             ? {
                                 scale: 1.02,
                                 boxShadow:
-                                  "0 20px 40px -12px rgba(226,55,68,0.35)",
+                                  "0 20px 40px -12px rgba(234,169,77,0.4)",
                               }
                             : {}
                         }
@@ -809,7 +809,7 @@ export default function StaffLoginPage() {
                         {/* Animated shine effect when ready */}
                         {isReady && (
                           <motion.div
-                            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
+                            className="absolute inset-0 bg-linear-to-r from-transparent via-white/10 to-transparent"
                             initial={{ x: "-100%" }}
                             animate={{ x: "200%" }}
                             transition={{
@@ -846,11 +846,11 @@ export default function StaffLoginPage() {
                   {/* Footer link */}
                   <motion.div
                     variants={fadeUp}
-                    className="hidden lg:block mt-8 pt-6 border-t border-white/[0.06]"
+                    className="hidden lg:block mt-8 pt-6 border-t border-brand-200/40"
                   >
                     <Link
                       href="/"
-                      className="text-sm font-medium text-gray-600 hover:text-white transition-colors flex items-center justify-center gap-1.5"
+                      className="text-sm font-medium text-brand-600 hover:text-brand-800 transition-colors flex items-center justify-center gap-1.5"
                     >
                       &larr; Back to App
                     </Link>

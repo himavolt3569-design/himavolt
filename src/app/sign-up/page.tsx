@@ -137,7 +137,7 @@ export default function SignUpPage() {
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
             <Check className="h-8 w-8 text-green-600" />
           </div>
-          <h2 className="text-lg font-bold text-[#1F2A2A] mb-2">
+          <h2 className="text-lg font-bold text-[#3e1e0c] mb-2">
             Check your email
           </h2>
           <p className="text-sm text-gray-500">
@@ -146,7 +146,7 @@ export default function SignUpPage() {
           </p>
           <Link
             href="/sign-in"
-            className="mt-6 inline-block text-sm font-bold text-[#E23744] hover:text-[#c92e3c]"
+            className="mt-6 inline-block text-sm font-bold text-[#eaa94d] hover:text-[#d67620]"
           >
             Back to Sign In
           </Link>
@@ -171,12 +171,12 @@ export default function SignUpPage() {
             {/* Logo */}
             <div className="mb-8 text-center">
               <Link href="/" className="inline-flex items-center gap-2">
-                <Mountain className="h-8 w-8 text-[#E23744]" strokeWidth={2.5} />
-                <span className="text-2xl font-extrabold tracking-tight text-[#1F2A2A]">
-                  Hima<span className="text-[#E23744]">Volt</span>
+                <Mountain className="h-8 w-8 text-[#eaa94d]" strokeWidth={2.5} />
+                <span className="text-2xl font-extrabold tracking-tight text-[#3e1e0c]">
+                  Hima<span className="text-[#eaa94d]">Volt</span>
                 </span>
               </Link>
-              <p className="mt-3 text-lg font-bold text-[#1F2A2A]">
+              <p className="mt-3 text-lg font-bold text-[#3e1e0c]">
                 How will you use HimaVolt?
               </p>
               <p className="mt-1 text-sm text-gray-400">
@@ -191,7 +191,7 @@ export default function SignUpPage() {
                 onClick={() => setRole("CUSTOMER")}
                 className={`relative rounded-2xl border-2 p-5 text-left transition-all duration-200 ${
                   role === "CUSTOMER"
-                    ? "border-[#E23744] bg-[#E23744]/5 shadow-lg shadow-[#E23744]/10"
+                    ? "border-[#eaa94d] bg-[#eaa94d]/5 shadow-lg shadow-[#eaa94d]/10"
                     : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm"
                 }`}
               >
@@ -199,16 +199,16 @@ export default function SignUpPage() {
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    className="absolute right-4 top-4 flex h-6 w-6 items-center justify-center rounded-full bg-[#E23744]"
+                    className="absolute right-4 top-4 flex h-6 w-6 items-center justify-center rounded-full bg-[#eaa94d]"
                   >
                     <Check className="h-3.5 w-3.5 text-white" />
                   </motion.div>
                 )}
 
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#E23744]/10">
-                  <UtensilsCrossed className="h-6 w-6 text-[#E23744]" />
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#eaa94d]/10">
+                  <UtensilsCrossed className="h-6 w-6 text-[#eaa94d]" />
                 </div>
-                <h3 className="text-base font-bold text-[#1F2A2A] mb-1">
+                <h3 className="text-base font-bold text-[#3e1e0c] mb-1">
                   Food Lover
                 </h3>
                 <p className="text-xs text-gray-500 mb-4 leading-relaxed">
@@ -220,7 +220,7 @@ export default function SignUpPage() {
                       key={text}
                       className="flex items-center gap-2 text-xs text-gray-500"
                     >
-                      <Icon className="h-3.5 w-3.5 shrink-0 text-[#E23744]" />
+                      <Icon className="h-3.5 w-3.5 shrink-0 text-[#eaa94d]" />
                       {text}
                     </li>
                   ))}
@@ -232,7 +232,7 @@ export default function SignUpPage() {
                 onClick={() => setRole("OWNER")}
                 className={`relative rounded-2xl border-2 p-5 text-left transition-all duration-200 ${
                   role === "OWNER"
-                    ? "border-[#1F2A2A] bg-[#1F2A2A] shadow-lg shadow-[#1F2A2A]/20"
+                    ? "border-[#3e1e0c] bg-[#3e1e0c] shadow-lg shadow-[#3e1e0c]/20"
                     : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm"
                 }`}
               >
@@ -242,7 +242,7 @@ export default function SignUpPage() {
                     animate={{ scale: 1 }}
                     className="absolute right-4 top-4 flex h-6 w-6 items-center justify-center rounded-full bg-amber-400"
                   >
-                    <Check className="h-3.5 w-3.5 text-[#1F2A2A]" />
+                    <Check className="h-3.5 w-3.5 text-[#3e1e0c]" />
                   </motion.div>
                 ) : (
                   <span className="absolute right-4 top-4 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-700">
@@ -263,7 +263,7 @@ export default function SignUpPage() {
                 </div>
                 <h3
                   className={`text-base font-bold mb-1 ${
-                    role === "OWNER" ? "text-white" : "text-[#1F2A2A]"
+                    role === "OWNER" ? "text-white" : "text-[#3e1e0c]"
                   }`}
                 >
                   Restaurant Owner
@@ -299,7 +299,7 @@ export default function SignUpPage() {
             <button
               onClick={() => role && setStep("form")}
               disabled={!role}
-              className="w-full rounded-xl bg-[#E23744] py-3 text-sm font-bold text-white transition-all hover:bg-[#c92e3c] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed shadow-sm shadow-[#E23744]/20 mb-3"
+              className="w-full rounded-xl bg-[#eaa94d] py-3 text-sm font-bold text-white transition-all hover:bg-[#d67620] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed shadow-sm shadow-[#eaa94d]/20 mb-3"
             >
               Continue
             </button>
@@ -316,7 +316,7 @@ export default function SignUpPage() {
               Already have an account?{" "}
               <Link
                 href="/sign-in"
-                className="font-bold text-[#E23744] hover:text-[#c92e3c]"
+                className="font-bold text-[#eaa94d] hover:text-[#d67620]"
               >
                 Sign In
               </Link>
@@ -346,18 +346,18 @@ export default function SignUpPage() {
               <div>
                 <Link href="/" className="flex items-center gap-1.5">
                   <Mountain
-                    className="h-5 w-5 text-[#E23744]"
+                    className="h-5 w-5 text-[#eaa94d]"
                     strokeWidth={2.5}
                   />
-                  <span className="text-base font-extrabold tracking-tight text-[#1F2A2A]">
-                    Hima<span className="text-[#E23744]">Volt</span>
+                  <span className="text-base font-extrabold tracking-tight text-[#3e1e0c]">
+                    Hima<span className="text-[#eaa94d]">Volt</span>
                   </span>
                 </Link>
                 <div className="mt-0.5 flex items-center gap-1.5">
                   {role === "OWNER" ? (
                     <Building2 className="h-3.5 w-3.5 text-amber-500" />
                   ) : (
-                    <UtensilsCrossed className="h-3.5 w-3.5 text-[#E23744]" />
+                    <UtensilsCrossed className="h-3.5 w-3.5 text-[#eaa94d]" />
                   )}
                   <span className="text-xs font-semibold text-gray-400">
                     {role === "OWNER"
@@ -373,7 +373,7 @@ export default function SignUpPage() {
               {/* Role strip */}
               <div
                 className={`px-5 py-3 ${
-                  role === "OWNER" ? "bg-[#1F2A2A]" : "bg-[#E23744]/5"
+                  role === "OWNER" ? "bg-[#3e1e0c]" : "bg-[#eaa94d]/5"
                 }`}
               >
                 <div className="flex items-center gap-2">
@@ -386,8 +386,8 @@ export default function SignUpPage() {
                     </>
                   ) : (
                     <>
-                      <UtensilsCrossed className="h-4 w-4 text-[#E23744]" />
-                      <span className="text-xs font-bold text-[#E23744]">
+                      <UtensilsCrossed className="h-4 w-4 text-[#eaa94d]" />
+                      <span className="text-xs font-bold text-[#eaa94d]">
                         Setting up Food Lover account
                       </span>
                     </>
@@ -412,7 +412,7 @@ export default function SignUpPage() {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       required
-                      className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-[#E23744]/30 focus:outline-none focus:ring-1 focus:ring-[#E23744]/30"
+                      className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-[#eaa94d]/30 focus:outline-none focus:ring-1 focus:ring-[#eaa94d]/30"
                       placeholder="Your full name"
                     />
                   </div>
@@ -420,7 +420,7 @@ export default function SignUpPage() {
                   {/* Username */}
                   <div>
                     <label className="mb-1 block text-sm font-medium text-gray-700">
-                      Username <span className="text-[#E23744]">*</span>
+                      Username <span className="text-[#eaa94d]">*</span>
                     </label>
                     <div className="relative">
                       <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -435,7 +435,7 @@ export default function SignUpPage() {
                             ? "border-green-400 focus:border-green-400 focus:ring-green-200"
                             : usernameStatus === "taken" || usernameStatus === "invalid"
                             ? "border-red-400 focus:border-red-400 focus:ring-red-200"
-                            : "border-gray-200 focus:border-[#E23744]/30 focus:ring-[#E23744]/30"
+                            : "border-gray-200 focus:border-[#eaa94d]/30 focus:ring-[#eaa94d]/30"
                         }`}
                       />
                       <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -465,7 +465,7 @@ export default function SignUpPage() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-[#E23744]/30 focus:outline-none focus:ring-1 focus:ring-[#E23744]/30"
+                      className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-[#eaa94d]/30 focus:outline-none focus:ring-1 focus:ring-[#eaa94d]/30"
                       placeholder="you@example.com"
                     />
                   </div>
@@ -478,14 +478,14 @@ export default function SignUpPage() {
                     >
                       <label className="mb-1 block text-sm font-medium text-gray-700">
                         Phone Number{" "}
-                        <span className="text-[#E23744]">*</span>
+                        <span className="text-[#eaa94d]">*</span>
                       </label>
                       <input
                         type="tel"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                         required
-                        className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-[#E23744]/30 focus:outline-none focus:ring-1 focus:ring-[#E23744]/30"
+                        className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-[#eaa94d]/30 focus:outline-none focus:ring-1 focus:ring-[#eaa94d]/30"
                         placeholder="+977 98XXXXXXXX"
                       />
                       <p className="mt-1 text-[11px] text-gray-400">
@@ -504,7 +504,7 @@ export default function SignUpPage() {
                       onChange={(e) => setPassword(e.target.value)}
                       required
                       minLength={6}
-                      className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-[#E23744]/30 focus:outline-none focus:ring-1 focus:ring-[#E23744]/30"
+                      className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-[#eaa94d]/30 focus:outline-none focus:ring-1 focus:ring-[#eaa94d]/30"
                       placeholder="Min 6 characters"
                     />
                   </div>
@@ -512,7 +512,7 @@ export default function SignUpPage() {
                   <button
                     type="submit"
                     disabled={loading || usernameStatus !== "available"}
-                    className="w-full rounded-xl bg-[#E23744] py-3 text-sm font-bold text-white transition-all hover:bg-[#c92e3c] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-[#E23744]/20"
+                    className="w-full rounded-xl bg-[#eaa94d] py-3 text-sm font-bold text-white transition-all hover:bg-[#d67620] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-[#eaa94d]/20"
                   >
                     {loading ? (
                       <Loader2 className="mx-auto h-4 w-4 animate-spin" />
@@ -548,7 +548,7 @@ export default function SignUpPage() {
               Already have an account?{" "}
               <Link
                 href="/sign-in"
-                className="font-bold text-[#E23744] hover:text-[#c92e3c]"
+                className="font-bold text-[#eaa94d] hover:text-[#d67620]"
               >
                 Sign In
               </Link>

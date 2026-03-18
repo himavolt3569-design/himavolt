@@ -127,7 +127,7 @@ export default function CompleteProfilePage() {
   if (!sessionReady) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50/50">
-        <Loader2 className="h-8 w-8 animate-spin text-[#E23744]" />
+        <Loader2 className="h-8 w-8 animate-spin text-[#eaa94d]" />
       </div>
     );
   }
@@ -145,9 +145,9 @@ export default function CompleteProfilePage() {
         {/* Logo */}
         <div className="mb-6 text-center">
           <Link href="/" className="inline-flex items-center gap-2">
-            <Mountain className="h-8 w-8 text-[#E23744]" strokeWidth={2.5} />
-            <span className="text-2xl font-extrabold tracking-tight text-[#1F2A2A]">
-              Hima<span className="text-[#E23744]">Volt</span>
+            <Mountain className="h-8 w-8 text-[#eaa94d]" strokeWidth={2.5} />
+            <span className="text-2xl font-extrabold tracking-tight text-[#3e1e0c]">
+              Hima<span className="text-[#eaa94d]">Volt</span>
             </span>
           </Link>
           <p className="mt-2 text-sm font-semibold text-gray-500">
@@ -157,7 +157,7 @@ export default function CompleteProfilePage() {
 
         <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
           {/* Role strip */}
-          <div className={`px-5 py-3 ${isOwner ? "bg-[#1F2A2A]" : "bg-[#E23744]/5"}`}>
+          <div className={`px-5 py-3 ${isOwner ? "bg-[#3e1e0c]" : "bg-[#eaa94d]/5"}`}>
             <div className="flex items-center gap-2">
               {isOwner ? (
                 <>
@@ -166,8 +166,8 @@ export default function CompleteProfilePage() {
                 </>
               ) : (
                 <>
-                  <UtensilsCrossed className="h-4 w-4 text-[#E23744]" />
-                  <span className="text-xs font-bold text-[#E23744]">Food Lover account</span>
+                  <UtensilsCrossed className="h-4 w-4 text-[#eaa94d]" />
+                  <span className="text-xs font-bold text-[#eaa94d]">Food Lover account</span>
                 </>
               )}
             </div>
@@ -204,7 +204,7 @@ export default function CompleteProfilePage() {
               {/* Username */}
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">
-                  Username <span className="text-[#E23744]">*</span>
+                  Username <span className="text-[#eaa94d]">*</span>
                 </label>
                 <div className="relative">
                   <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -219,7 +219,7 @@ export default function CompleteProfilePage() {
                         ? "border-green-400 focus:border-green-400 focus:ring-green-200"
                         : usernameStatus === "taken" || usernameStatus === "invalid"
                         ? "border-red-400 focus:border-red-400 focus:ring-red-200"
-                        : "border-gray-200 focus:border-[#E23744]/30 focus:ring-[#E23744]/30"
+                        : "border-gray-200 focus:border-[#eaa94d]/30 focus:ring-[#eaa94d]/30"
                     }`}
                   />
                   <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -271,7 +271,7 @@ export default function CompleteProfilePage() {
                       required={wantPassword}
                       minLength={8}
                       placeholder="Min 8 characters"
-                      className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-[#E23744]/30 focus:outline-none focus:ring-1 focus:ring-[#E23744]/30"
+                      className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-[#eaa94d]/30 focus:outline-none focus:ring-1 focus:ring-[#eaa94d]/30"
                     />
                   </motion.div>
                 )}
@@ -280,7 +280,7 @@ export default function CompleteProfilePage() {
               <button
                 type="submit"
                 disabled={loading || usernameStatus !== "available"}
-                className="w-full rounded-xl bg-[#E23744] py-3 text-sm font-bold text-white transition-all hover:bg-[#c92e3c] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed shadow-sm shadow-[#E23744]/20"
+                className="w-full rounded-xl bg-[#eaa94d] py-3 text-sm font-bold text-white transition-all hover:bg-[#d67620] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed shadow-sm shadow-[#eaa94d]/20"
               >
                 {loading ? (
                   <Loader2 className="mx-auto h-4 w-4 animate-spin" />

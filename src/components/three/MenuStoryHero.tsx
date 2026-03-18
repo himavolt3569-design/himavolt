@@ -73,7 +73,7 @@ export default function MenuStoryHero({
           className="mb-3"
         >
           <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-md px-3.5 py-1.5 text-sm font-bold text-white border border-white/10">
-            <Star className="h-3.5 w-3.5 fill-[#FF9933] text-[#FF9933]" />
+            <Star className="h-3.5 w-3.5 fill-[#eaa94d] text-[#eaa94d]" />
             {rating.toFixed(1)}
           </span>
         </motion.div>

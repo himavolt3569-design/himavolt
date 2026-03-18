@@ -27,13 +27,7 @@ function FooterLink({
 }
 
 /* ── Social icon button ── */
-function SocialIcon({
-  label,
-  path,
-}: {
-  label: string;
-  path: string;
-}) {
+function SocialIcon({ label, path }: { label: string; path: string }) {
   return (
     <motion.a
       href="#"

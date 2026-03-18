@@ -14,13 +14,13 @@ const steps = [
     Icon: QrCode,
     title: "Scan & Browse",
     desc: "Scan the QR code at your table or browse restaurants near you.",
-    accent: "from-[#E23744] to-[#FF6B81]",
+    accent: "from-[#eaa94d] to-[#e58f2a]",
   },
   {
     Icon: UtensilsCrossed,
     title: "Pick & Order",
     desc: "Choose from digital menus and customize your order effortlessly.",
-    accent: "from-[#FF9933] to-[#FFB347]",
+    accent: "from-[#eaa94d] to-[#f1c980]",
   },
   {
     Icon: Bell,
@@ -40,8 +40,8 @@ export default function HowItWorks() {
   return (
     <section className="relative overflow-hidden bg-[#0F1219] text-white py-20 md:py-28">
       {/* Ambient glows */}
-      <div className="absolute top-0 left-1/4 h-[500px] w-[500px] rounded-full bg-[#E23744]/[0.04] blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-0 right-1/4 h-[400px] w-[400px] rounded-full bg-[#FF9933]/[0.04] blur-[100px] pointer-events-none" />
+      <div className="absolute top-0 left-1/4 h-[500px] w-[500px] rounded-full bg-[#eaa94d]/[0.04] blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 h-[400px] w-[400px] rounded-full bg-[#eaa94d]/[0.04] blur-[100px] pointer-events-none" />
 
       {/* Noise texture */}
       <div
@@ -62,7 +62,7 @@ export default function HowItWorks() {
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
           >
             <span className="inline-flex items-center gap-1.5 rounded-full bg-white/[0.06] backdrop-blur-sm px-3.5 py-1.5 text-[11px] font-bold text-white/70 uppercase tracking-wider border border-white/[0.06] mb-5">
-              <ArrowRight className="h-3 w-3 text-[#FF9933]" />
+              <ArrowRight className="h-3 w-3 text-[#eaa94d]" />
               How it works
             </span>
           </motion.div>
@@ -75,7 +75,7 @@ export default function HowItWorks() {
           >
             From scan to savour
             <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF9933] to-[#FFB347]">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#eaa94d] to-[#f1c980]">
               in four easy steps.
             </span>
           </motion.h2>

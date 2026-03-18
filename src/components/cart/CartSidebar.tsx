@@ -47,8 +47,8 @@ export default function CartSidebar({
       if (priceRef.current && totalItems > 0) {
         gsap.fromTo(
           priceRef.current,
-          { scale: 1.1, color: "#FF9933" },
-          { scale: 1, color: "#1F2A2A", duration: 0.4, ease: "back.out(2)" },
+          { scale: 1.1, color: "#eaa94d" },
+          { scale: 1, color: "#3e1e0c", duration: 0.4, ease: "back.out(2)" },
         );
       }
     },
@@ -83,8 +83,8 @@ export default function CartSidebar({
           >
             <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
               <div className="flex items-center gap-3">
-                <ShoppingBag className="h-5 w-5 text-[#FF9933]" />
-                <h2 className="text-lg font-bold text-[#1F2A2A]">
+                <ShoppingBag className="h-5 w-5 text-[#eaa94d]" />
+                <h2 className="text-lg font-bold text-[#3e1e0c]">
                   Your Cart
                   {totalItems > 0 && (
                     <span className="ml-2 text-sm font-medium text-gray-400">
@@ -106,7 +106,7 @@ export default function CartSidebar({
                 <div className="h-20 w-20 rounded-full bg-gray-100 flex items-center justify-center mb-4">
                   <ShoppingBag className="h-8 w-8 text-gray-300" />
                 </div>
-                <p className="text-base font-bold text-[#1F2A2A] mb-1">
+                <p className="text-base font-bold text-[#3e1e0c] mb-1">
                   Your cart is empty
                 </p>
                 <p className="text-sm text-gray-400">
@@ -131,10 +131,10 @@ export default function CartSidebar({
                           />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold text-[#1F2A2A] truncate">
+                          <p className="text-sm font-bold text-[#3e1e0c] truncate">
                             {item.name}
                           </p>
-                          <p className="text-sm font-semibold text-[#FF9933]">
+                          <p className="text-sm font-semibold text-[#eaa94d]">
                             {formatPrice(item.price * item.quantity, currency)}
                           </p>
                         </div>
@@ -145,12 +145,12 @@ export default function CartSidebar({
                           >
                             <Minus className="h-3.5 w-3.5" />
                           </button>
-                          <span className="w-7 text-center text-sm font-bold text-[#1F2A2A]">
+                          <span className="w-7 text-center text-sm font-bold text-[#3e1e0c]">
                             {item.quantity}
                           </span>
                           <button
                             onClick={() => increaseQty(item.id)}
-                            className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#FF9933] text-white hover:bg-[#ff8811] transition-colors"
+                            className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#eaa94d] text-white hover:bg-[#d67620] transition-colors"
                           >
                             <Plus className="h-3.5 w-3.5" />
                           </button>
@@ -173,14 +173,14 @@ export default function CartSidebar({
                     </span>
                     <span
                       ref={priceRef}
-                      className="text-lg font-bold text-[#1F2A2A]"
+                      className="text-lg font-bold text-[#3e1e0c]"
                     >
                       {formatPrice(subtotal, currency)}
                     </span>
                   </div>
                   <button
                     onClick={onProceed}
-                    className="w-full rounded-xl bg-[#FF9933] py-4 text-base font-bold text-white transition-all hover:bg-[#ff8811] active:scale-[0.98] shadow-lg shadow-[#FF9933]/25"
+                    className="w-full rounded-xl bg-[#eaa94d] py-4 text-base font-bold text-white transition-all hover:bg-[#d67620] active:scale-[0.98] shadow-lg shadow-[#eaa94d]/25"
                   >
                     Proceed to Order
                   </button>

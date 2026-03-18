@@ -60,51 +60,51 @@ function useTypewriter(
 /* ── Inline SVG food pattern (sandwich, donut, cake outlines) ──────── */
 const FOOD_PATTERN_SVG = `url("data:image/svg+xml,${encodeURIComponent(`
 <svg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260'>
-  <circle cx='40' cy='40' r='18' fill='none' stroke='%23E23744' stroke-width='1.2' opacity='0.12'/>
-  <circle cx='40' cy='40' r='8' fill='none' stroke='%23E23744' stroke-width='1' opacity='0.10'/>
-  <circle cx='32' cy='34' r='2' fill='%23FF6B81' opacity='0.10'/>
-  <circle cx='46' cy='36' r='1.5' fill='%23FF9933' opacity='0.10'/>
+  <circle cx='40' cy='40' r='18' fill='none' stroke='%23eaa94d' stroke-width='1.2' opacity='0.12'/>
+  <circle cx='40' cy='40' r='8' fill='none' stroke='%23eaa94d' stroke-width='1' opacity='0.10'/>
+  <circle cx='32' cy='34' r='2' fill='%23d67620' opacity='0.10'/>
+  <circle cx='46' cy='36' r='1.5' fill='%23eaa94d' opacity='0.10'/>
   <circle cx='38' cy='50' r='1.8' fill='%231E7B3E' opacity='0.10'/>
   <g transform='translate(150,30)' opacity='0.12'>
-    <path d='M-22,8 Q0,-8 22,8' fill='none' stroke='%23FF9933' stroke-width='1.3' stroke-linecap='round'/>
+    <path d='M-22,8 Q0,-8 22,8' fill='none' stroke='%23eaa94d' stroke-width='1.3' stroke-linecap='round'/>
     <line x1='-20' y1='12' x2='20' y2='12' stroke='%231E7B3E' stroke-width='2' opacity='0.9'/>
-    <line x1='-18' y1='16' x2='18' y2='16' stroke='%23E23744' stroke-width='1.5' opacity='0.8'/>
-    <line x1='-19' y1='20' x2='19' y2='20' stroke='%23FFB347' stroke-width='1.2' opacity='0.7'/>
-    <path d='M-20,22 Q0,30 20,22' fill='none' stroke='%23FF9933' stroke-width='1.3' stroke-linecap='round'/>
+    <line x1='-18' y1='16' x2='18' y2='16' stroke='%23eaa94d' stroke-width='1.5' opacity='0.8'/>
+    <line x1='-19' y1='20' x2='19' y2='20' stroke='%23f1c980' stroke-width='1.2' opacity='0.7'/>
+    <path d='M-20,22 Q0,30 20,22' fill='none' stroke='%23eaa94d' stroke-width='1.3' stroke-linecap='round'/>
   </g>
   <g transform='translate(40,160)' opacity='0.12'>
-    <rect x='-16' y='0' width='32' height='18' rx='3' fill='none' stroke='%23FF6B81' stroke-width='1.2'/>
-    <rect x='-20' y='18' width='40' height='16' rx='3' fill='none' stroke='%23E23744' stroke-width='1.2'/>
-    <line x1='-2' y1='-8' x2='-2' y2='0' stroke='%23FFB347' stroke-width='1'/>
-    <circle cx='-2' cy='-10' r='2.5' fill='%23FF9933' opacity='0.9'/>
-    <path d='M-14,6 Q-7,2 0,6 Q7,2 14,6' fill='none' stroke='%23FFB347' stroke-width='0.8'/>
+    <rect x='-16' y='0' width='32' height='18' rx='3' fill='none' stroke='%23d67620' stroke-width='1.2'/>
+    <rect x='-20' y='18' width='40' height='16' rx='3' fill='none' stroke='%23eaa94d' stroke-width='1.2'/>
+    <line x1='-2' y1='-8' x2='-2' y2='0' stroke='%23f1c980' stroke-width='1'/>
+    <circle cx='-2' cy='-10' r='2.5' fill='%23eaa94d' opacity='0.9'/>
+    <path d='M-14,6 Q-7,2 0,6 Q7,2 14,6' fill='none' stroke='%23f1c980' stroke-width='0.8'/>
   </g>
-  <circle cx='220' cy='140' r='16' fill='none' stroke='%23FF9933' stroke-width='1.2' opacity='0.10'/>
-  <circle cx='220' cy='140' r='7' fill='none' stroke='%23FF9933' stroke-width='1' opacity='0.08'/>
-  <circle cx='213' cy='135' r='1.8' fill='%23E23744' opacity='0.09'/>
+  <circle cx='220' cy='140' r='16' fill='none' stroke='%23eaa94d' stroke-width='1.2' opacity='0.10'/>
+  <circle cx='220' cy='140' r='7' fill='none' stroke='%23eaa94d' stroke-width='1' opacity='0.08'/>
+  <circle cx='213' cy='135' r='1.8' fill='%23eaa94d' opacity='0.09'/>
   <circle cx='226' cy='137' r='2' fill='%231E7B3E' opacity='0.09'/>
   <g transform='translate(130,200)' opacity='0.10'>
-    <path d='M-18,6 Q0,-6 18,6' fill='none' stroke='%23FF9933' stroke-width='1.2' stroke-linecap='round'/>
+    <path d='M-18,6 Q0,-6 18,6' fill='none' stroke='%23eaa94d' stroke-width='1.2' stroke-linecap='round'/>
     <line x1='-16' y1='10' x2='16' y2='10' stroke='%231E7B3E' stroke-width='1.8'/>
-    <line x1='-15' y1='14' x2='15' y2='14' stroke='%23E23744' stroke-width='1.2'/>
-    <path d='M-16,17 Q0,23 16,17' fill='none' stroke='%23FF9933' stroke-width='1.2' stroke-linecap='round'/>
+    <line x1='-15' y1='14' x2='15' y2='14' stroke='%23eaa94d' stroke-width='1.2'/>
+    <path d='M-16,17 Q0,23 16,17' fill='none' stroke='%23eaa94d' stroke-width='1.2' stroke-linecap='round'/>
   </g>
   <g transform='translate(230,40)' opacity='0.11'>
-    <path d='M-10,8 L-14,22 L14,22 L10,8' fill='none' stroke='%23FFB347' stroke-width='1'/>
-    <path d='M-12,8 Q-8,-4 0,2 Q8,-4 12,8' fill='none' stroke='%23FF6B81' stroke-width='1.2'/>
-    <circle cx='0' cy='-4' r='2' fill='%23E23744' opacity='0.9'/>
+    <path d='M-10,8 L-14,22 L14,22 L10,8' fill='none' stroke='%23f1c980' stroke-width='1'/>
+    <path d='M-12,8 Q-8,-4 0,2 Q8,-4 12,8' fill='none' stroke='%23d67620' stroke-width='1.2'/>
+    <circle cx='0' cy='-4' r='2' fill='%23eaa94d' opacity='0.9'/>
   </g>
   <g transform='translate(80,100)' opacity='0.10'>
-    <path d='M0,0 L20,16 L-20,16 Z' fill='none' stroke='%23E23744' stroke-width='1'/>
-    <line x1='-16' y1='12' x2='16' y2='12' stroke='%23FFB347' stroke-width='0.8'/>
-    <circle cx='0' cy='6' r='2' fill='%23FF9933' opacity='0.8'/>
+    <path d='M0,0 L20,16 L-20,16 Z' fill='none' stroke='%23eaa94d' stroke-width='1'/>
+    <line x1='-16' y1='12' x2='16' y2='12' stroke='%23f1c980' stroke-width='0.8'/>
+    <circle cx='0' cy='6' r='2' fill='%23eaa94d' opacity='0.8'/>
   </g>
   <circle cx='140' cy='120' r='14' fill='none' stroke='%236366F1' stroke-width='1' opacity='0.08'/>
   <circle cx='140' cy='120' r='6' fill='none' stroke='%236366F1' stroke-width='0.8' opacity='0.06'/>
-  <rect x='60' y='60' width='4' height='1.5' rx='0.75' fill='%23E23744' opacity='0.08' transform='rotate(30 62 61)'/>
-  <rect x='180' y='80' width='4' height='1.5' rx='0.75' fill='%23FF9933' opacity='0.08' transform='rotate(-20 182 81)'/>
+  <rect x='60' y='60' width='4' height='1.5' rx='0.75' fill='%23eaa94d' opacity='0.08' transform='rotate(30 62 61)'/>
+  <rect x='180' y='80' width='4' height='1.5' rx='0.75' fill='%23eaa94d' opacity='0.08' transform='rotate(-20 182 81)'/>
   <rect x='100' y='220' width='4' height='1.5' rx='0.75' fill='%231E7B3E' opacity='0.08' transform='rotate(45 102 221)'/>
-  <rect x='200' y='200' width='4' height='1.5' rx='0.75' fill='%23FF6B81' opacity='0.08' transform='rotate(-35 202 201)'/>
+  <rect x='200' y='200' width='4' height='1.5' rx='0.75' fill='%23d67620' opacity='0.08' transform='rotate(-35 202 201)'/>
 </svg>
 `)}")`;
 
@@ -170,9 +170,9 @@ export default function StoryHero() {
       />
 
       {/* Ambient glows */}
-      <div className="absolute top-[10%] right-[10%] h-[350px] w-[350px] rounded-full bg-[#E23744]/[0.06] blur-[100px] pointer-events-none" />
-      <div className="absolute bottom-[10%] left-[10%] h-[400px] w-[400px] rounded-full bg-[#FF9933]/[0.08] blur-[100px] pointer-events-none" />
-      <div className="absolute top-[40%] left-[40%] h-[300px] w-[300px] rounded-full bg-[#FF6B81]/[0.04] blur-[80px] pointer-events-none" />
+      <div className="absolute top-[10%] right-[10%] h-[350px] w-[350px] rounded-full bg-[#eaa94d]/[0.06] blur-[100px] pointer-events-none" />
+      <div className="absolute bottom-[10%] left-[10%] h-[400px] w-[400px] rounded-full bg-[#eaa94d]/[0.08] blur-[100px] pointer-events-none" />
+      <div className="absolute top-[40%] left-[40%] h-[300px] w-[300px] rounded-full bg-[#d67620]/[0.04] blur-[80px] pointer-events-none" />
 
       {/* Floating food images */}
       <div ref={floatingRef} className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -206,7 +206,7 @@ export default function StoryHero() {
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
             className="mb-5"
           >
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/80 backdrop-blur-sm px-4 py-2 text-[11px] font-bold text-[#E23744] uppercase tracking-wider border border-[#E23744]/10 shadow-sm">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/80 backdrop-blur-sm px-4 py-2 text-[11px] font-bold text-[#eaa94d] uppercase tracking-wider border border-[#eaa94d]/10 shadow-sm">
               <motion.span
                 animate={{ rotate: [0, 15, -15, 0], scale: [1, 1.2, 1] }}
                 transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
@@ -222,19 +222,19 @@ export default function StoryHero() {
             initial={{ opacity: 0, y: 24, filter: "blur(8px)" }}
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             transition={{ duration: 0.7, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-            className="mb-2 text-[2.5rem] font-extrabold tracking-tight text-[#1F2A2A] sm:text-5xl md:text-6xl lg:text-7xl leading-[1.08]"
+            className="mb-2 text-[2.5rem] font-extrabold tracking-tight text-[#3e1e0c] sm:text-5xl md:text-6xl lg:text-7xl leading-[1.08]"
           >
             Craving something{" "}
             <span className="relative inline-block">
               <motion.span
-                className="text-transparent bg-clip-text bg-gradient-to-r from-[#E23744] via-[#FF6B81] to-[#FF9933]"
+                className="text-transparent bg-clip-text bg-gradient-to-r from-[#eaa94d] via-[#d67620] to-[#eaa94d]"
                 animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
                 transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
                 style={{ backgroundSize: "200% 200%" }}
               >
                 {typedWord}
               </motion.span>
-              <span className="animate-cursor text-[#E23744] ml-[1px] font-light">|</span>
+              <span className="animate-cursor text-[#eaa94d] ml-[1px] font-light">|</span>
             </span>
           </motion.h1>
 

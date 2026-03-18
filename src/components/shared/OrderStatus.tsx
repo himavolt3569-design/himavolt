@@ -73,10 +73,10 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
     return (
       <div className="flex min-h-screen items-center justify-center bg-white p-6">
         <div className="text-center">
-          <p className="text-lg font-bold text-[#1F2A2A]">No active order</p>
+          <p className="text-lg font-bold text-[#3e1e0c]">No active order</p>
           <button
             onClick={onClose}
-            className="mt-4 rounded-xl bg-[#0A4D3C] px-6 py-3 text-sm font-bold text-white hover:bg-[#083a2d] transition-colors"
+            className="mt-4 rounded-xl bg-[#3e1e0c] px-6 py-3 text-sm font-bold text-white hover:bg-[#2d1508] transition-colors"
           >
             Back to Menu
           </button>
@@ -102,7 +102,7 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
           <ArrowLeft className="h-4 w-4" />
         </button>
         <div className="text-center">
-          <h2 className="text-sm font-bold text-[#1F2A2A]">Order #{activeOrder.orderNo}</h2>
+          <h2 className="text-sm font-bold text-[#3e1e0c]">Order #{activeOrder.orderNo}</h2>
           <p className="text-[11px] text-gray-400">Live tracking</p>
         </div>
         <div className="w-9" />
@@ -123,12 +123,12 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
           ) : activeOrder.status === "PREPARING" ? (
             <div
               ref={clockRef}
-              className="mx-auto relative flex h-20 w-20 items-center justify-center rounded-full border-[3px] border-[#FF9933] bg-white shadow-xl mb-4"
+              className="mx-auto relative flex h-20 w-20 items-center justify-center rounded-full border-[3px] border-[#eaa94d] bg-white shadow-xl mb-4"
             >
-              <div className="absolute top-1/2 left-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#FF9933] z-10" />
+              <div className="absolute top-1/2 left-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#eaa94d] z-10" />
               <div
                 ref={handRef}
-                className="absolute bottom-1/2 left-1/2 h-6 w-[2px] -translate-x-1/2 rounded-full bg-[#FF9933] origin-bottom"
+                className="absolute bottom-1/2 left-1/2 h-6 w-[2px] -translate-x-1/2 rounded-full bg-[#eaa94d] origin-bottom"
               />
             </div>
           ) : activeOrder.status === "DELIVERED" ? (
@@ -136,20 +136,20 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ type: "spring", damping: 15, stiffness: 200 }}
-              className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#0A4D3C] mb-4"
+              className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#3e1e0c] mb-4"
             >
               <CheckCircle2 className="h-10 w-10 text-white" />
             </motion.div>
           ) : (
-            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#FF9933]/10 mb-4">
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#eaa94d]/10 mb-4">
               {(() => {
                 const Icon = STEPS[currentIdx]?.icon ?? Clock;
-                return <Icon className="h-10 w-10 text-[#FF9933]" />;
+                return <Icon className="h-10 w-10 text-[#eaa94d]" />;
               })()}
             </div>
           )}
 
-          <h2 className="text-xl font-bold text-[#1F2A2A]">
+          <h2 className="text-xl font-bold text-[#3e1e0c]">
             {isCancelled
               ? activeOrder.status === "REJECTED"
                 ? "Order Rejected"
@@ -183,7 +183,7 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
                     initial={false}
                     animate={{
                       scale: isCurrent ? 1.15 : 1,
-                      backgroundColor: isActive ? "#0A4D3C" : "#f3f4f6",
+                      backgroundColor: isActive ? "#3e1e0c" : "#f3f4f6",
                     }}
                     transition={{ type: "spring", damping: 20 }}
                     className="flex h-10 w-10 items-center justify-center rounded-full"
@@ -196,13 +196,13 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
                     <motion.div
                       animate={{ scale: [1, 1.6, 1], opacity: [0.5, 0, 0.5] }}
                       transition={{ duration: 2, repeat: Infinity }}
-                      className="absolute inset-0 rounded-full bg-[#0A4D3C]"
+                      className="absolute inset-0 rounded-full bg-[#3e1e0c]"
                     />
                   )}
                 </div>
                 <span
                   className={`text-[10px] font-bold text-center leading-tight ${
-                    isActive ? "text-[#0A4D3C]" : "text-gray-400"
+                    isActive ? "text-[#3e1e0c]" : "text-gray-400"
                   }`}
                 >
                   {step.label}
@@ -223,7 +223,7 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
             initial={false}
             animate={{ width: `${((currentIdx + 1) / STEPS.length) * 100}%` }}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className="absolute inset-y-0 left-0 rounded-full bg-[#0A4D3C]"
+            className="absolute inset-y-0 left-0 rounded-full bg-[#3e1e0c]"
           />
         </div>
 
@@ -235,10 +235,10 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
           {activeOrder.items.map((item) => (
             <div key={item.id} className="flex items-center justify-between py-1.5">
               <div className="flex items-center gap-2">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#FF9933]/10 text-[10px] font-bold text-[#FF9933]">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#eaa94d]/10 text-[10px] font-bold text-[#eaa94d]">
                   {item.quantity}
                 </span>
-                <span className="text-sm font-medium text-[#1F2A2A]">{item.name}</span>
+                <span className="text-sm font-medium text-[#3e1e0c]">{item.name}</span>
               </div>
               <span className="text-sm font-bold text-gray-500">
                 {formatPrice(item.price * item.quantity, currency)}
@@ -246,8 +246,8 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
             </div>
           ))}
           <div className="border-t border-gray-200 pt-3 flex items-center justify-between">
-            <span className="text-sm font-bold text-[#1F2A2A]">Total</span>
-            <span className="text-base font-extrabold text-[#FF9933]">
+            <span className="text-sm font-bold text-[#3e1e0c]">Total</span>
+            <span className="text-base font-extrabold text-[#eaa94d]">
               {formatPrice(activeOrder.total, currency)}
             </span>
           </div>
@@ -286,7 +286,7 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
                 <div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-100">
                   <AlertTriangle className="h-7 w-7 text-red-500" />
                 </div>
-                <h3 className="text-lg font-bold text-[#1F2A2A]">Cancel Order?</h3>
+                <h3 className="text-lg font-bold text-[#3e1e0c]">Cancel Order?</h3>
                 <p className="text-sm text-gray-500">
                   This action cannot be undone. Your order will be cancelled immediately.
                 </p>

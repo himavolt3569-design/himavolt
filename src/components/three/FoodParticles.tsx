@@ -5,7 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
 const SPRINKLE_COLORS = [
-  "#E23744", "#FF6B81", "#FF9933", "#FFB347",
+  "#eaa94d", "#e58f2a", "#eaa94d", "#f1c980",
   "#1E7B3E", "#34D399", "#6366F1", "#818CF8",
   "#D4A052", "#CC0033",
 ];

@@ -197,7 +197,7 @@ export default function BillPage() {
           animate={{ opacity: 1, scale: 1 }}
           className="flex flex-col items-center gap-3"
         >
-          <Loader2 className="h-8 w-8 animate-spin text-[#E23744]" />
+          <Loader2 className="h-8 w-8 animate-spin text-[#eaa94d]" />
           <p className="text-sm font-medium text-gray-400">
             Generating your bill…
           </p>
@@ -216,15 +216,15 @@ export default function BillPage() {
           className="text-center space-y-4"
         >
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-red-50">
-            <AlertCircle className="h-7 w-7 text-[#E23744]" />
+            <AlertCircle className="h-7 w-7 text-[#eaa94d]" />
           </div>
-          <p className="text-lg font-bold text-[#1F2A2A]">Bill not found</p>
+          <p className="text-lg font-bold text-[#3e1e0c]">Bill not found</p>
           <p className="text-sm text-gray-400">
             This order may not have a bill yet
           </p>
           <Link
             href="/"
-            className="inline-flex items-center gap-2 rounded-xl bg-[#E23744] px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-[#E23744]/20"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#eaa94d] px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-[#eaa94d]/20"
           >
             <ArrowLeft className="h-4 w-4" /> Back to Home
           </Link>
@@ -251,7 +251,7 @@ export default function BillPage() {
         <div className="mx-auto max-w-2xl flex items-center justify-between px-4 py-3">
           <Link
             href={`/track/${order.id}`}
-            className="flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-[#1F2A2A] transition-colors"
+            className="flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-[#3e1e0c] transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Order
@@ -260,7 +260,7 @@ export default function BillPage() {
             <button
               onClick={onDownload}
               disabled={downloading}
-              className="flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5 text-xs font-bold text-gray-600 hover:bg-gray-50 hover:border-[#E23744]/20 hover:text-[#E23744] transition-all disabled:opacity-50"
+              className="flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5 text-xs font-bold text-gray-600 hover:bg-gray-50 hover:border-[#eaa94d]/20 hover:text-[#eaa94d] transition-all disabled:opacity-50"
             >
               {downloading ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -271,7 +271,7 @@ export default function BillPage() {
             </button>
             <button
               onClick={handlePrint}
-              className="flex items-center gap-2 rounded-xl bg-[#E23744] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#c92e3c] transition-all shadow-sm shadow-[#E23744]/20"
+              className="flex items-center gap-2 rounded-xl bg-[#eaa94d] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#d67620] transition-all shadow-sm shadow-[#eaa94d]/20"
             >
               <Printer className="h-3.5 w-3.5" />
               {printLabel}
@@ -290,7 +290,7 @@ export default function BillPage() {
           className="bg-white rounded-3xl shadow-2xl shadow-black/5 border border-gray-100/50 overflow-hidden print:shadow-none print:border-none print:rounded-none"
         >
           {/* ── Header ─────────────────────────────── */}
-          <div className="relative px-6 pt-8 pb-6 sm:px-8 bg-gradient-to-br from-[#1F2A2A] to-[#2d3d3d] text-white print:bg-black print:from-black print:to-black">
+          <div className="relative px-6 pt-8 pb-6 sm:px-8 bg-gradient-to-br from-[#3e1e0c] to-[#5a3118] text-white print:bg-black print:from-black print:to-black">
             {/* Decorative circles */}
             <div className="absolute top-0 right-0 h-32 w-32 rounded-full bg-white/5 -mr-10 -mt-10 print:hidden" />
             <div className="absolute bottom-0 left-0 h-20 w-20 rounded-full bg-white/5 -ml-5 -mb-5 print:hidden" />
@@ -299,7 +299,7 @@ export default function BillPage() {
               <div className="flex items-start justify-between">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <Receipt className="h-5 w-5 text-[#FF6B81]" />
+                    <Receipt className="h-5 w-5 text-[#e58f2a]" />
                     <span className="text-[11px] font-bold uppercase tracking-widest text-gray-400">
                       {docLabel}
                     </span>
@@ -344,7 +344,7 @@ export default function BillPage() {
               <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
                 From
               </p>
-              <p className="text-sm font-bold text-[#1F2A2A]">
+              <p className="text-sm font-bold text-[#3e1e0c]">
                 {order.restaurant.name}
               </p>
               <p className="text-[12px] text-gray-500 flex items-center gap-1">
@@ -360,7 +360,7 @@ export default function BillPage() {
                 <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
                   Bill to
                 </p>
-                <p className="text-sm font-bold text-[#1F2A2A]">
+                <p className="text-sm font-bold text-[#3e1e0c]">
                   {order.user.name || "Guest"}
                 </p>
                 {order.user.email && (
@@ -419,7 +419,7 @@ export default function BillPage() {
                     className={`${i < order.items.length - 1 ? "border-b border-gray-50" : ""}`}
                   >
                     <td className="py-3">
-                      <p className="font-bold text-[#1F2A2A] text-[13px]">
+                      <p className="font-bold text-[#3e1e0c] text-[13px]">
                         {item.name}
                       </p>
                       {item.addOns && (
@@ -434,7 +434,7 @@ export default function BillPage() {
                     <td className="py-3 text-right text-gray-500 font-medium">
                       {formatPrice(item.price, cur)}
                     </td>
-                    <td className="py-3 text-right font-bold text-[#1F2A2A]">
+                    <td className="py-3 text-right font-bold text-[#3e1e0c]">
                       {formatPrice(item.price * item.quantity, cur)}
                     </td>
                   </tr>
@@ -447,14 +447,14 @@ export default function BillPage() {
           <div className="px-6 sm:px-8 py-5 bg-gray-50/50 border-t border-gray-100 space-y-2.5 print:bg-gray-50">
             <div className="flex justify-between text-[13px]">
               <span className="text-gray-500">Subtotal</span>
-              <span className="font-medium text-[#1F2A2A]">
+              <span className="font-medium text-[#3e1e0c]">
                 {formatPrice(bill.subtotal, cur)}
               </span>
             </div>
             {bill.tax > 0 && (
               <div className="flex justify-between text-[13px]">
                 <span className="text-gray-500">Tax</span>
-                <span className="font-medium text-[#1F2A2A]">
+                <span className="font-medium text-[#3e1e0c]">
                   {formatPrice(bill.tax, cur)}
                 </span>
               </div>
@@ -462,25 +462,25 @@ export default function BillPage() {
             {bill.serviceCharge > 0 && (
               <div className="flex justify-between text-[13px]">
                 <span className="text-gray-500">Service Charge</span>
-                <span className="font-medium text-[#1F2A2A]">
+                <span className="font-medium text-[#3e1e0c]">
                   {formatPrice(bill.serviceCharge, cur)}
                 </span>
               </div>
             )}
             {bill.discount > 0 && (
               <div className="flex justify-between text-[13px]">
-                <span className="text-[#E23744] font-medium">Discount</span>
-                <span className="font-medium text-[#E23744]">
+                <span className="text-[#eaa94d] font-medium">Discount</span>
+                <span className="font-medium text-[#eaa94d]">
                   -{formatPrice(bill.discount, cur)}
                 </span>
               </div>
             )}
 
             <div className="border-t-2 border-dashed border-gray-200 mt-3 pt-3 flex justify-between items-baseline">
-              <span className="text-base font-extrabold text-[#1F2A2A]">
+              <span className="text-base font-extrabold text-[#3e1e0c]">
                 Grand Total
               </span>
-              <span className="text-2xl font-extrabold text-[#1F2A2A]">
+              <span className="text-2xl font-extrabold text-[#3e1e0c]">
                 {formatPrice(bill.total, cur)}
               </span>
             </div>
@@ -500,7 +500,7 @@ export default function BillPage() {
                   />
                 </div>
                 <div className="flex-1">
-                  <p className="text-[13px] font-bold text-[#1F2A2A]">
+                  <p className="text-[13px] font-bold text-[#3e1e0c]">
                     {paymentLabel(order.payment.method)}
                   </p>
                   <p className="text-[11px] text-gray-400">
@@ -540,7 +540,7 @@ export default function BillPage() {
 
           {/* ── Footer ─────────────────────────────── */}
           <div className="px-6 sm:px-8 py-6 border-t border-gray-100 text-center space-y-2">
-            <p className="text-[12px] font-bold text-[#E23744]">
+            <p className="text-[12px] font-bold text-[#eaa94d]">
               Thank you for dining with us!
             </p>
             <p className="text-[11px] text-gray-400">
@@ -564,7 +564,7 @@ export default function BillPage() {
           <button
             onClick={onDownload}
             disabled={downloading}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-2xl border-2 border-gray-200 px-6 py-3.5 text-sm font-bold text-gray-600 hover:border-[#E23744]/30 hover:text-[#E23744] transition-all disabled:opacity-50"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-2xl border-2 border-gray-200 px-6 py-3.5 text-sm font-bold text-gray-600 hover:border-[#eaa94d]/30 hover:text-[#eaa94d] transition-all disabled:opacity-50"
           >
             {downloading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -575,7 +575,7 @@ export default function BillPage() {
           </button>
           <button
             onClick={handlePrint}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#E23744] to-[#FF6B81] px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-[#E23744]/20 hover:shadow-xl hover:-translate-y-0.5 transition-all"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#eaa94d] to-[#e58f2a] px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-[#eaa94d]/20 hover:shadow-xl hover:-translate-y-0.5 transition-all"
           >
             <Printer className="h-4 w-4" />
             {printLabel}
@@ -614,13 +614,13 @@ export default function BillPage() {
             border-radius: 0 !important;
           }
           .print\\:bg-black {
-            background: #1f2a2a !important;
+            background: #3e1e0c !important;
           }
           .print\\:from-black {
-            --tw-gradient-from: #1f2a2a !important;
+            --tw-gradient-from: #3e1e0c !important;
           }
           .print\\:to-black {
-            --tw-gradient-to: #2d3d3d !important;
+            --tw-gradient-to: #5a3118 !important;
           }
           .print\\:py-0 {
             padding-top: 0 !important;

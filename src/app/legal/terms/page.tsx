@@ -82,28 +82,28 @@ export default function TermsPage() {
           <div className="flex items-center gap-3">
             <Link
               href="/"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-[#1F2A2A] transition-all"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-[#3e1e0c] transition-all"
             >
               <ArrowLeft className="h-4 w-4" />
             </Link>
             <Link href="/" className="flex items-center gap-2">
-              <Mountain className="h-6 w-6 text-[#FF9933]" strokeWidth={2.5} />
-              <span className="text-lg font-extrabold tracking-tight text-[#1F2A2A]">
-                Hima<span className="text-[#FF9933]">Volt</span>
+              <Mountain className="h-6 w-6 text-[#eaa94d]" strokeWidth={2.5} />
+              <span className="text-lg font-extrabold tracking-tight text-[#3e1e0c]">
+                Hima<span className="text-[#eaa94d]">Volt</span>
               </span>
             </Link>
           </div>
           <div className="flex items-center gap-2 text-xs text-gray-400">
             <Link
               href="/legal/refund"
-              className="font-bold hover:text-[#FF9933] transition-colors"
+              className="font-bold hover:text-[#eaa94d] transition-colors"
             >
               Refund Policy
             </Link>
             <span>/</span>
             <Link
               href="/legal/privacy"
-              className="font-bold hover:text-[#FF9933] transition-colors"
+              className="font-bold hover:text-[#eaa94d] transition-colors"
             >
               Privacy Policy
             </Link>
@@ -112,8 +112,8 @@ export default function TermsPage() {
       </header>
 
       {/* Hero */}
-      <section className="bg-gradient-to-br from-[#0A4D3C] via-[#0d3d30] to-[#1F2A2A] text-white">
-        <div className="pointer-events-none absolute -top-32 -right-32 h-96 w-96 rounded-full bg-[#FF9933]/8 blur-3xl" />
+      <section className="bg-gradient-to-br from-[#3e1e0c] via-[#0d3d30] to-[#3e1e0c] text-white">
+        <div className="pointer-events-none absolute -top-32 -right-32 h-96 w-96 rounded-full bg-[#eaa94d]/8 blur-3xl" />
         <div className="relative z-10 mx-auto max-w-4xl px-4 py-16 sm:px-6 sm:py-20 lg:px-10">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-bold text-white/80 mb-5 backdrop-blur-sm border border-white/10">
@@ -144,11 +144,11 @@ export default function TermsPage() {
               }}
             >
               <div className="flex items-start gap-4">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#0A4D3C]/5 text-[#0A4D3C] group-hover:bg-[#0A4D3C]/10 transition-colors mt-0.5">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#3e1e0c]/5 text-[#3e1e0c] group-hover:bg-[#3e1e0c]/10 transition-colors mt-0.5">
                   <section.icon className="h-5 w-5" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-[#1F2A2A] mb-2">
+                  <h2 className="text-lg font-bold text-[#3e1e0c] mb-2">
                     {section.title}
                   </h2>
                   <p className="text-sm text-gray-500 leading-relaxed">
@@ -168,7 +168,7 @@ export default function TermsPage() {
           </p>
           <Link
             href="/contact"
-            className="inline-flex items-center gap-2 rounded-xl bg-[#0A4D3C] px-6 py-3 text-sm font-bold text-white hover:bg-[#083a2d] transition-all"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#3e1e0c] px-6 py-3 text-sm font-bold text-white hover:bg-[#2d1508] transition-all"
           >
             Contact Us
           </Link>

@@ -156,10 +156,10 @@ export default function LiveOrdersTab() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-bold text-[#1F2A2A]">Live Orders</h2>
+          <h2 className="text-lg font-bold text-[#3e1e0c]">Live Orders</h2>
           <p className="text-sm text-gray-400">
             {newCount > 0 ? (
-              <span className="font-semibold text-[#FF9933]">
+              <span className="font-semibold text-[#eaa94d]">
                 {newCount} new order{newCount > 1 ? "s" : ""} waiting
               </span>
             ) : (
@@ -187,13 +187,13 @@ export default function LiveOrdersTab() {
             onClick={() => setFilterStatus(opt.value)}
             className={`shrink-0 rounded-full px-4 py-2 text-xs font-bold transition-all ${
               filterStatus === opt.value
-                ? "bg-[#0A4D3C] text-white shadow-md"
+                ? "bg-[#3e1e0c] text-white shadow-md"
                 : "bg-white border border-gray-200 text-gray-500 hover:border-gray-300"
             }`}
           >
             {opt.label}
             {opt.value === "PENDING" && newCount > 0 && (
-              <span className="ml-1.5 rounded-full bg-[#FF9933] px-1.5 py-0.5 text-[10px] text-white">
+              <span className="ml-1.5 rounded-full bg-[#eaa94d] px-1.5 py-0.5 text-[10px] text-white">
                 {newCount}
               </span>
             )}
@@ -257,7 +257,7 @@ export default function LiveOrdersTab() {
                       }`}
                     >
                       <td className="px-5 py-4">
-                        <span className="font-bold text-[#1F2A2A]">{order.orderNo}</span>
+                        <span className="font-bold text-[#3e1e0c]">{order.orderNo}</span>
                         {order.note && (
                           <p className="text-[10px] text-gray-400 mt-0.5 italic">
                             &ldquo;{order.note}&rdquo;
@@ -281,7 +281,7 @@ export default function LiveOrdersTab() {
                           )}
                         </div>
                       </td>
-                      <td className="px-4 py-4 font-bold text-[#1F2A2A]">
+                      <td className="px-4 py-4 font-bold text-[#3e1e0c]">
                         {formatPrice(order.total, cur)}
                       </td>
                       <td className="px-4 py-4">
@@ -335,7 +335,7 @@ export default function LiveOrdersTab() {
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-[#1F2A2A]">{order.orderNo}</span>
+                      <span className="text-sm font-bold text-[#3e1e0c]">{order.orderNo}</span>
                       <StatusBadge status={order.status} />
                     </div>
                     <div className="flex items-center gap-2 mt-1.5">
@@ -346,7 +346,7 @@ export default function LiveOrdersTab() {
                       <TimeAgo ts={order.createdAt} />
                     </div>
                   </div>
-                  <span className="text-sm font-bold text-[#1F2A2A]">{formatPrice(order.total, cur)}</span>
+                  <span className="text-sm font-bold text-[#3e1e0c]">{formatPrice(order.total, cur)}</span>
                 </div>
                 {order.payment && (
                   <div className="mb-2">
@@ -426,7 +426,7 @@ function OrderActions({
           </div>
           <button
             onClick={(e) => stop(e, () => onAccept(estTime))}
-            className="flex items-center gap-1 rounded-lg bg-[#0A4D3C] px-2.5 py-1.5 text-[11px] font-bold text-white hover:bg-[#083a2d] transition-colors"
+            className="flex items-center gap-1 rounded-lg bg-[#3e1e0c] px-2.5 py-1.5 text-[11px] font-bold text-white hover:bg-[#2d1508] transition-colors"
           >
             <CheckCircle2 className="h-3 w-3" />
             Confirm
@@ -439,7 +439,7 @@ function OrderActions({
       <div className="flex items-center gap-2 flex-wrap">
         <button
           onClick={(e) => { e.stopPropagation(); setShowTimeInput(true); }}
-          className="flex items-center gap-1.5 rounded-lg bg-[#0A4D3C] px-3 py-1.5 text-[11px] font-bold text-white hover:bg-[#083a2d] transition-colors"
+          className="flex items-center gap-1.5 rounded-lg bg-[#3e1e0c] px-3 py-1.5 text-[11px] font-bold text-white hover:bg-[#2d1508] transition-colors"
         >
           <CheckCircle2 className="h-3 w-3" />
           Accept
@@ -483,7 +483,7 @@ function OrderActions({
     return (
       <button
         onClick={(e) => stop(e, onDelivered)}
-        className="flex items-center gap-1.5 rounded-lg bg-[#0A4D3C] px-3 py-1.5 text-[11px] font-bold text-white hover:bg-[#083a2d] transition-colors"
+        className="flex items-center gap-1.5 rounded-lg bg-[#3e1e0c] px-3 py-1.5 text-[11px] font-bold text-white hover:bg-[#2d1508] transition-colors"
       >
         <Truck className="h-3 w-3" />
         Delivered
@@ -502,7 +502,7 @@ function OrderActions({
           target="_blank"
           rel="noopener noreferrer"
           onClick={(e) => e.stopPropagation()}
-          className="inline-flex items-center gap-1 rounded-lg bg-gray-100 px-2 py-1 text-[10px] font-bold text-gray-600 hover:bg-gray-200 hover:text-[#E23744] transition-all"
+          className="inline-flex items-center gap-1 rounded-lg bg-gray-100 px-2 py-1 text-[10px] font-bold text-gray-600 hover:bg-gray-200 hover:text-[#eaa94d] transition-all"
         >
           <ExternalLink className="h-2.5 w-2.5" />
           View Bill

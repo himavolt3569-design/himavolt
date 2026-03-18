@@ -44,11 +44,11 @@ type OfferBadge = {
 const OFFER_BADGES: OfferBadge[] = [
   { label: "BUY 1 GET 1", isAd: true, bgColor: "bg-black/70" },
   { label: "60% OFF", subLabel: `UPTO ${formatPrice(110, "NPR")}`, isAd: true, bgColor: "bg-black/70" },
-  { label: `FLAT ${formatPrice(100, "NPR")} OFF`, isAd: false, bgColor: "bg-[#E23744]/80" },
-  { label: "FREE DELIVERY", isAd: false, bgColor: "bg-[#0A4D3C]/80" },
-  { label: "20% OFF", subLabel: `MIN ORDER ${formatPrice(299, "NPR")}`, isAd: false, bgColor: "bg-[#FF9933]/90" },
+  { label: `FLAT ${formatPrice(100, "NPR")} OFF`, isAd: false, bgColor: "bg-[#eaa94d]/80" },
+  { label: "FREE DELIVERY", isAd: false, bgColor: "bg-[#3e1e0c]/80" },
+  { label: "20% OFF", subLabel: `MIN ORDER ${formatPrice(299, "NPR")}`, isAd: false, bgColor: "bg-[#eaa94d]/90" },
   { label: "BUY 1 GET 1", isAd: true, bgColor: "bg-black/70" },
-  { label: "30% OFF", subLabel: `UPTO ${formatPrice(75, "NPR")}`, isAd: false, bgColor: "bg-[#E23744]/80" },
+  { label: "30% OFF", subLabel: `UPTO ${formatPrice(75, "NPR")}`, isAd: false, bgColor: "bg-[#eaa94d]/80" },
   { label: "50% OFF", subLabel: `UPTO ${formatPrice(150, "NPR")}`, isAd: true, bgColor: "bg-black/70" },
 ];
 
@@ -204,7 +204,7 @@ export default function OffersPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search restaurants, cuisines..."
-                className="flex-1 text-[15px] text-[#1F2A2A] placeholder-gray-400 outline-none bg-transparent"
+                className="flex-1 text-[15px] text-[#3e1e0c] placeholder-gray-400 outline-none bg-transparent"
               />
               {searchQuery && (
                 <button
@@ -227,18 +227,18 @@ export default function OffersPage() {
               <div className="flex items-center gap-3">
                 <Link
                   href="/"
-                  className="p-1.5 -ml-1.5 text-[#1F2A2A] active:text-gray-500 transition-colors"
+                  className="p-1.5 -ml-1.5 text-[#3e1e0c] active:text-gray-500 transition-colors"
                   aria-label="Back"
                 >
                   <ArrowLeft className="h-5 w-5" strokeWidth={2.5} />
                 </Link>
-                <h1 className="text-[17px] font-bold text-[#1F2A2A] tracking-tight">
+                <h1 className="text-[17px] font-bold text-[#3e1e0c] tracking-tight">
                   Flavourful Offers League
                 </h1>
               </div>
               <button
                 onClick={() => setSearchOpen(true)}
-                className="p-1.5 text-[#1F2A2A] active:text-gray-500 transition-colors"
+                className="p-1.5 text-[#3e1e0c] active:text-gray-500 transition-colors"
                 aria-label="Search"
               >
                 <Search className="h-5 w-5" strokeWidth={2} />
@@ -255,14 +255,14 @@ export default function OffersPage() {
               onClick={clearAllFilters}
               className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[13px] font-semibold transition-all active:scale-95 ${
                 activeFiltersCount > 0
-                  ? "border-[#E23744] bg-[#E23744]/5 text-[#E23744]"
-                  : "border-gray-300 bg-white text-[#1F2A2A]"
+                  ? "border-[#eaa94d] bg-[#eaa94d]/5 text-[#eaa94d]"
+                  : "border-gray-300 bg-white text-[#3e1e0c]"
               }`}
             >
               <SlidersHorizontal className="h-3.5 w-3.5" strokeWidth={2.5} />
               Filter
               {activeFiltersCount > 0 && (
-                <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#E23744] text-[10px] font-bold text-white">
+                <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#eaa94d] text-[10px] font-bold text-white">
                   {activeFiltersCount}
                 </span>
               )}
@@ -274,8 +274,8 @@ export default function OffersPage() {
                 onClick={() => { setShowSortMenu(!showSortMenu); setShowVegMenu(false); }}
                 className={`flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[13px] font-semibold transition-all active:scale-95 ${
                   sortBy !== "relevance"
-                    ? "border-[#1F2A2A] bg-[#1F2A2A] text-white"
-                    : "border-gray-300 bg-white text-[#1F2A2A]"
+                    ? "border-[#3e1e0c] bg-[#3e1e0c] text-white"
+                    : "border-gray-300 bg-white text-[#3e1e0c]"
                 }`}
               >
                 Sort by
@@ -295,11 +295,11 @@ export default function OffersPage() {
                         key={opt}
                         onClick={() => { setSortBy(opt); setShowSortMenu(false); }}
                         className={`flex w-full items-center justify-between px-4 py-3 text-[13px] font-semibold transition-colors hover:bg-gray-50 ${
-                          sortBy === opt ? "text-[#E23744]" : "text-[#1F2A2A]"
+                          sortBy === opt ? "text-[#eaa94d]" : "text-[#3e1e0c]"
                         }`}
                       >
                         {opt === "relevance" ? "Relevance" : opt === "rating" ? "Rating" : opt === "delivery" ? "Delivery Time" : "Distance"}
-                        {sortBy === opt && <Star className="h-3 w-3 fill-[#E23744] text-[#E23744]" />}
+                        {sortBy === opt && <Star className="h-3 w-3 fill-[#eaa94d] text-[#eaa94d]" />}
                       </button>
                     ))}
                   </motion.div>
@@ -313,8 +313,8 @@ export default function OffersPage() {
                 onClick={() => { setShowVegMenu(!showVegMenu); setShowSortMenu(false); }}
                 className={`flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[13px] font-semibold transition-all active:scale-95 ${
                   vegFilter !== "all"
-                    ? "border-[#1F2A2A] bg-[#1F2A2A] text-white"
-                    : "border-gray-300 bg-white text-[#1F2A2A]"
+                    ? "border-[#3e1e0c] bg-[#3e1e0c] text-white"
+                    : "border-gray-300 bg-white text-[#3e1e0c]"
                 }`}
               >
                 {vegFilter === "all" ? "Veg/Non-Veg" : vegFilter === "veg" ? "Veg Only" : "Non-Veg"}
@@ -334,7 +334,7 @@ export default function OffersPage() {
                         key={opt}
                         onClick={() => { setVegFilter(opt); setShowVegMenu(false); }}
                         className={`flex w-full items-center gap-2.5 px-4 py-3 text-[13px] font-semibold transition-colors hover:bg-gray-50 ${
-                          vegFilter === opt ? "text-[#E23744]" : "text-[#1F2A2A]"
+                          vegFilter === opt ? "text-[#eaa94d]" : "text-[#3e1e0c]"
                         }`}
                       >
                         <span
@@ -359,16 +359,16 @@ export default function OffersPage() {
               onClick={() => setMinRating(minRating === 4 ? null : 4)}
               className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[13px] font-semibold transition-all active:scale-95 ${
                 minRating != null
-                  ? "border-[#1F2A2A] bg-[#1F2A2A] text-white"
-                  : "border-gray-300 bg-white text-[#1F2A2A]"
+                  ? "border-[#3e1e0c] bg-[#3e1e0c] text-white"
+                  : "border-gray-300 bg-white text-[#3e1e0c]"
               }`}
             >
-              <Star className={`h-3.5 w-3.5 ${minRating != null ? "fill-white text-white" : "fill-[#FF9933] text-[#FF9933]"}`} />
+              <Star className={`h-3.5 w-3.5 ${minRating != null ? "fill-white text-white" : "fill-[#eaa94d] text-[#eaa94d]"}`} />
               Ratings 4.0+
             </button>
 
             {/* New restaurant chip */}
-            <button className="flex shrink-0 items-center gap-1.5 rounded-full border border-gray-300 bg-white px-3.5 py-1.5 text-[13px] font-semibold text-[#1F2A2A] transition-all active:scale-95">
+            <button className="flex shrink-0 items-center gap-1.5 rounded-full border border-gray-300 bg-white px-3.5 py-1.5 text-[13px] font-semibold text-[#3e1e0c] transition-all active:scale-95">
               New Arrivals
             </button>
           </div>
@@ -389,7 +389,7 @@ export default function OffersPage() {
       <div className="mx-auto max-w-2xl">
         {loading ? (
           <div className="flex items-center justify-center py-24">
-            <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-gray-200 border-t-[#E23744]" />
+            <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-gray-200 border-t-[#eaa94d]" />
           </div>
         ) : filtered.length === 0 ? (
           <motion.div
@@ -398,11 +398,11 @@ export default function OffersPage() {
             className="flex flex-col items-center justify-center py-24 px-8 text-center"
           >
             <div className="mb-4 text-5xl">🍽️</div>
-            <p className="text-base font-bold text-[#1F2A2A]">No restaurants found</p>
+            <p className="text-base font-bold text-[#3e1e0c]">No restaurants found</p>
             <p className="mt-1 text-sm text-gray-400">Try adjusting your filters</p>
             <button
               onClick={clearAllFilters}
-              className="mt-4 rounded-full bg-[#E23744] px-5 py-2 text-sm font-bold text-white"
+              className="mt-4 rounded-full bg-[#eaa94d] px-5 py-2 text-sm font-bold text-white"
             >
               Clear Filters
             </button>
@@ -435,8 +435,8 @@ export default function OffersPage() {
                   (restaurant.rating ?? 0) >= 4
                     ? "text-[#1e9a6f] bg-[#1e9a6f]/10"
                     : (restaurant.rating ?? 0) >= 3.5
-                    ? "text-[#FF9933] bg-[#FF9933]/10"
-                    : "text-[#E23744] bg-[#E23744]/10";
+                    ? "text-[#eaa94d] bg-[#eaa94d]/10"
+                    : "text-[#eaa94d] bg-[#eaa94d]/10";
 
                 return (
                   <motion.div key={restaurant.id} variants={itemVariants}>
@@ -462,7 +462,7 @@ export default function OffersPage() {
                           aria-label={isWished ? "Remove from wishlist" : "Add to wishlist"}
                         >
                           <Heart
-                            className={`h-3.5 w-3.5 transition-colors ${isWished ? "fill-[#E23744] text-[#E23744]" : "text-gray-500"}`}
+                            className={`h-3.5 w-3.5 transition-colors ${isWished ? "fill-[#eaa94d] text-[#eaa94d]" : "text-gray-500"}`}
                             strokeWidth={2}
                           />
                         </button>
@@ -490,7 +490,7 @@ export default function OffersPage() {
                       {/* Info */}
                       <div className="flex min-w-0 flex-1 flex-col justify-between py-0.5">
                         <div className="flex items-start justify-between gap-2">
-                          <h3 className="text-[15px] font-bold text-[#1F2A2A] leading-tight">
+                          <h3 className="text-[15px] font-bold text-[#3e1e0c] leading-tight">
                             {restaurant.name}
                           </h3>
                           <button
@@ -513,7 +513,7 @@ export default function OffersPage() {
                           <span className="text-gray-300 text-xs">•</span>
                           <div className="flex items-center gap-0.5">
                             <Clock className="h-3 w-3 text-gray-400" strokeWidth={2} />
-                            <span className="text-[12px] font-bold text-[#1F2A2A]">
+                            <span className="text-[12px] font-bold text-[#3e1e0c]">
                               {deliveryTime}
                             </span>
                           </div>

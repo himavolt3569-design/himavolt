@@ -224,7 +224,7 @@ export default function IngredientMapper({
               <Link2 className="h-4.5 w-4.5 text-amber-600" />
             </div>
             <div>
-              <h3 className="text-lg font-extrabold text-[#1F2A2A]">
+              <h3 className="text-lg font-extrabold text-[#3e1e0c]">
                 Map Ingredients
               </h3>
               <p className="text-xs text-gray-500">
@@ -264,7 +264,7 @@ export default function IngredientMapper({
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search inventory items..."
-                  className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm font-medium text-[#1F2A2A] placeholder-gray-400 outline-none transition-all focus:border-[#FF9933] focus:ring-2 focus:ring-[#FF9933]/15"
+                  className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm font-medium text-[#3e1e0c] placeholder-gray-400 outline-none transition-all focus:border-[#eaa94d] focus:ring-2 focus:ring-[#eaa94d]/15"
                 />
               </div>
 
@@ -302,7 +302,7 @@ export default function IngredientMapper({
                       {/* Item info */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className="text-sm font-bold text-[#1F2A2A] truncate">
+                          <p className="text-sm font-bold text-[#3e1e0c] truncate">
                             {item.name}
                           </p>
                           <span className="shrink-0 text-[10px] font-semibold text-gray-400">
@@ -322,7 +322,7 @@ export default function IngredientMapper({
                             onChange={(e) =>
                               setQuantity(item.id, parseFloat(e.target.value) || 0.01)
                             }
-                            className="w-20 rounded-lg border border-amber-300 bg-amber-50/50 px-2 py-1.5 text-xs font-bold text-[#1F2A2A] text-center outline-none focus:ring-2 focus:ring-amber-200"
+                            className="w-20 rounded-lg border border-amber-300 bg-amber-50/50 px-2 py-1.5 text-xs font-bold text-[#3e1e0c] text-center outline-none focus:ring-2 focus:ring-amber-200"
                           />
                           <span className="text-[10px] font-semibold text-amber-600 w-6">
                             {item.unit}
@@ -361,7 +361,7 @@ export default function IngredientMapper({
           <div className="flex items-center gap-3">
             <button
               onClick={onClose}
-              className="rounded-xl px-5 py-2.5 text-sm font-bold text-gray-500 hover:text-[#1F2A2A] hover:bg-gray-100 transition-all"
+              className="rounded-xl px-5 py-2.5 text-sm font-bold text-gray-500 hover:text-[#3e1e0c] hover:bg-gray-100 transition-all"
             >
               Cancel
             </button>

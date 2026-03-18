@@ -73,6 +73,8 @@ interface RestaurantCategory {
   id: string;
   name: string;
   slug: string;
+  parentId: string | null;
+  icon: string | null;
 }
 
 interface Restaurant {
@@ -172,14 +174,14 @@ function SizeSelector({
           transition={{ type: "spring", stiffness: 400, damping: 15 }}
           className={`relative rounded-full px-4 py-2 text-xs font-bold transition-colors ${
             selected === i
-              ? "bg-[#FF9933] text-white shadow-lg shadow-[#FF9933]/25"
+              ? "bg-[#eaa94d] text-white shadow-lg shadow-[#eaa94d]/25"
               : "bg-gray-100 text-gray-600 hover:bg-gray-200"
           }`}
         >
           {selected === i && (
             <motion.div
               layoutId="size-pill"
-              className="absolute inset-0 rounded-full bg-[#FF9933]"
+              className="absolute inset-0 rounded-full bg-[#eaa94d]"
               transition={{ type: "spring", stiffness: 500, damping: 28 }}
             />
           )}
@@ -234,8 +236,8 @@ function DishDetailModal({
     if (priceRef.current) {
       gsap.fromTo(
         priceRef.current,
-        { scale: 1.3, color: "#FF9933" },
-        { scale: 1, color: "#1F2A2A", duration: 0.35, ease: "back.out(2)" },
+        { scale: 1.3, color: "#eaa94d" },
+        { scale: 1, color: "#3e1e0c", duration: 0.35, ease: "back.out(2)" },
       );
     }
   }, [total]);
@@ -354,9 +356,9 @@ function DishDetailModal({
                 <motion.span
                   className={`rounded-full px-3 py-1 text-[11px] font-bold text-white shadow-md backdrop-blur-sm ${
                     dish.badge === "Bestseller"
-                      ? "bg-[#FF9933]/90"
+                      ? "bg-[#eaa94d]/90"
                       : dish.badge === "Most Liked"
-                        ? "bg-[#0A4D3C]/90"
+                        ? "bg-[#3e1e0c]/90"
                         : "bg-purple-500/90"
                   }`}
                   initial={{ opacity: 0, scale: 0.6 }}
@@ -368,7 +370,7 @@ function DishDetailModal({
               )}
               {dish.discountLabel && (
                 <motion.span
-                  className="rounded-full bg-[#E23744]/90 backdrop-blur-sm px-3 py-1 text-[11px] font-extrabold text-white shadow-md flex items-center gap-1"
+                  className="rounded-full bg-[#eaa94d]/90 backdrop-blur-sm px-3 py-1 text-[11px] font-extrabold text-white shadow-md flex items-center gap-1"
                   initial={{ opacity: 0, scale: 0.6 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.25, type: "spring", stiffness: 500, damping: 15 }}
@@ -401,12 +403,12 @@ function DishDetailModal({
                     {dish.isVeg ? <VegIcon /> : <NonVegIcon />}
                     {dish.hasEgg && <Egg className="h-3.5 w-3.5 text-yellow-500" />}
                     {dish.isFeatured && (
-                      <span className="flex items-center gap-0.5 rounded-full bg-[#FF9933]/10 px-2 py-0.5 text-[10px] font-bold text-[#FF9933]">
-                        <Star className="h-3 w-3 fill-[#FF9933]" /> Featured
+                      <span className="flex items-center gap-0.5 rounded-full bg-[#eaa94d]/10 px-2 py-0.5 text-[10px] font-bold text-[#eaa94d]">
+                        <Star className="h-3 w-3 fill-[#eaa94d]" /> Featured
                       </span>
                     )}
                   </div>
-                  <h2 className="text-xl sm:text-2xl font-bold text-[#1F2A2A]">{dish.name}</h2>
+                  <h2 className="text-xl sm:text-2xl font-bold text-[#3e1e0c]">{dish.name}</h2>
                   <p className="mt-1.5 text-sm text-gray-500 leading-relaxed">
                     {dish.description}
                   </p>
@@ -415,8 +417,8 @@ function DishDetailModal({
 
               <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-gray-400">
                 <span className="flex items-center gap-1 rounded-full bg-gray-50 px-2.5 py-1">
-                  <Star className="h-3.5 w-3.5 fill-[#FF9933] text-[#FF9933]" />
-                  <span className="font-bold text-[#1F2A2A]">
+                  <Star className="h-3.5 w-3.5 fill-[#eaa94d] text-[#eaa94d]" />
+                  <span className="font-bold text-[#3e1e0c]">
                     {dish.rating.toFixed(1)}
                   </span>
                 </span>
@@ -430,7 +432,7 @@ function DishDetailModal({
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ type: "spring", stiffness: 500, damping: 15 }}
-                    className="rounded-full bg-[#0A4D3C] px-2.5 py-1 text-[10px] font-bold text-white"
+                    className="rounded-full bg-[#3e1e0c] px-2.5 py-1 text-[10px] font-bold text-white"
                   >
                     {cartQty} in cart
                   </motion.span>
@@ -472,7 +474,7 @@ function DishDetailModal({
                   key={qty}
                   initial={{ scale: 1.3 }}
                   animate={{ scale: 1 }}
-                  className="w-8 text-center text-base font-bold text-[#1F2A2A]"
+                  className="w-8 text-center text-base font-bold text-[#3e1e0c]"
                 >
                   {qty}
                 </motion.span>
@@ -480,14 +482,14 @@ function DishDetailModal({
                   onClick={() => setQty((q) => q + 1)}
                   whileTap={{ scale: 0.85 }}
                   transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#FF9933] text-white hover:bg-[#ff8811] transition-colors"
+                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#eaa94d] text-white hover:bg-[#d67620] transition-colors"
                 >
                   <Plus className="h-4 w-4" />
                 </motion.button>
               </div>
               <div className="text-right">
                 <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Total</span>
-                <p className="text-xl font-extrabold text-[#1F2A2A]">
+                <p className="text-xl font-extrabold text-[#3e1e0c]">
                   {formatPrice(total, restaurantCurrency)}
                 </p>
               </div>
@@ -528,7 +530,7 @@ function DishDetailModal({
                       whileTap={{ scale: 0.98 }}
                       className={`flex items-center justify-between rounded-xl px-4 py-3 cursor-pointer transition-all ${
                         selectedAddOns.has(a.id)
-                          ? "bg-[#FF9933]/10 border border-[#FF9933]/30"
+                          ? "bg-[#eaa94d]/10 border border-[#eaa94d]/30"
                           : "bg-white/60 border border-gray-100 hover:bg-white/80"
                       }`}
                     >
@@ -536,7 +538,7 @@ function DishDetailModal({
                         <motion.div
                           className={`flex h-5 w-5 items-center justify-center rounded-md border-2 transition-colors ${
                             selectedAddOns.has(a.id)
-                              ? "border-[#FF9933] bg-[#FF9933]"
+                              ? "border-[#eaa94d] bg-[#eaa94d]"
                               : "border-gray-300"
                           }`}
                           animate={
@@ -557,7 +559,7 @@ function DishDetailModal({
                             )}
                           </AnimatePresence>
                         </motion.div>
-                        <span className="text-sm font-medium text-[#1F2A2A]">
+                        <span className="text-sm font-medium text-[#3e1e0c]">
                           {a.name}
                         </span>
                       </div>
@@ -585,7 +587,7 @@ function DishDetailModal({
               >
                 <div className="h-px bg-gray-100 mb-5" />
                 <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                  <Flame className="h-3.5 w-3.5 text-[#FF9933]" />
+                  <Flame className="h-3.5 w-3.5 text-[#eaa94d]" />
                   You might also like
                 </h4>
                 <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: "none" }}>
@@ -605,13 +607,13 @@ function DishDetailModal({
                           className="h-full w-full object-cover transition-transform duration-300 group-hover/rec:scale-110"
                         />
                         {rec.discountLabel && (
-                          <span className="absolute top-1.5 right-1.5 rounded-md bg-[#E23744] px-1.5 py-0.5 text-[8px] font-extrabold text-white">
+                          <span className="absolute top-1.5 right-1.5 rounded-md bg-[#eaa94d] px-1.5 py-0.5 text-[8px] font-extrabold text-white">
                             {rec.discountLabel}
                           </span>
                         )}
                         <div className="absolute bottom-1.5 left-1.5">
                           <span className={`inline-flex items-center gap-0.5 rounded px-1 py-0.5 text-[9px] font-bold text-white ${
-                            rec.rating >= 4.0 ? "bg-[#0A4D3C]/90" : "bg-[#FF9933]/90"
+                            rec.rating >= 4.0 ? "bg-[#3e1e0c]/90" : "bg-[#eaa94d]/90"
                           }`}>
                             {rec.rating.toFixed(1)}
                             <Star className="h-2 w-2 fill-white" />
@@ -619,7 +621,7 @@ function DishDetailModal({
                         </div>
                       </div>
                       <div className="mt-1.5 px-0.5">
-                        <p className="text-[12px] font-bold text-[#1F2A2A] truncate">{rec.name}</p>
+                        <p className="text-[12px] font-bold text-[#3e1e0c] truncate">{rec.name}</p>
                         <p className="text-[11px] font-semibold text-gray-500">{formatPrice(rec.price, restaurantCurrency)}</p>
                       </div>
                     </motion.div>
@@ -637,8 +639,8 @@ function DishDetailModal({
               <div className="h-px bg-gray-100 mb-5" />
               <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50/50 p-5 text-center">
                 <div className="flex items-center justify-center gap-2 mb-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FF9933]/10">
-                    <Megaphone className="h-4 w-4 text-[#FF9933]" />
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#eaa94d]/10">
+                    <Megaphone className="h-4 w-4 text-[#eaa94d]" />
                   </div>
                   <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Sponsored</span>
                 </div>
@@ -665,7 +667,7 @@ function DishDetailModal({
               boxShadow: "0 12px 24px -6px rgba(255,153,51,0.35)",
             }}
             whileTap={{ scale: 0.97 }}
-            className="relative w-full rounded-xl bg-[#FF9933] py-3.5 text-base font-bold text-white overflow-hidden shadow-lg shadow-[#FF9933]/20"
+            className="relative w-full rounded-xl bg-[#eaa94d] py-3.5 text-base font-bold text-white overflow-hidden shadow-lg shadow-[#eaa94d]/20"
           >
             {/* Shimmer */}
             <motion.div
@@ -763,9 +765,9 @@ function MenuItemCard({
               }}
               className={`absolute top-1.5 left-1.5 rounded-full px-2 py-0.5 text-[10px] font-bold text-white shadow ${
                 item.badge === "Bestseller"
-                  ? "bg-[#FF9933]"
+                  ? "bg-[#eaa94d]"
                   : item.badge === "Most Liked"
-                    ? "bg-[#0A4D3C]"
+                    ? "bg-[#3e1e0c]"
                     : "bg-purple-500"
               }`}
             >
@@ -781,10 +783,10 @@ function MenuItemCard({
               {item.isVeg ? <VegIcon /> : <NonVegIcon />}
               {item.hasEgg && <Egg className="h-3 w-3 text-yellow-500" />}
             </div>
-            <h3 className="text-sm font-bold text-[#1F2A2A] truncate flex items-center gap-1">
+            <h3 className="text-sm font-bold text-[#3e1e0c] truncate flex items-center gap-1">
               {item.name}
               {item.isFeatured && (
-                <Star className="h-3 w-3 fill-[#FF9933] text-[#FF9933] shrink-0" />
+                <Star className="h-3 w-3 fill-[#eaa94d] text-[#eaa94d] shrink-0" />
               )}
             </h3>
             <p className="mt-0.5 text-[11px] text-gray-400 line-clamp-2 leading-relaxed">
@@ -792,11 +794,11 @@ function MenuItemCard({
             </p>
           </div>
           <div className="flex items-center gap-2.5">
-            <span className="text-sm font-extrabold text-[#1F2A2A]">
+            <span className="text-sm font-extrabold text-[#3e1e0c]">
               {formatPrice(item.price, restaurantCurrency)}
             </span>
             <span className="flex items-center gap-0.5 text-[11px] text-gray-400">
-              <Star className="h-3 w-3 fill-[#FF9933] text-[#FF9933]" />
+              <Star className="h-3 w-3 fill-[#eaa94d] text-[#eaa94d]" />
               {item.rating.toFixed(1)}
             </span>
             <span className="flex items-center gap-0.5 text-[11px] text-gray-400">
@@ -815,7 +817,7 @@ function MenuItemCard({
                 stiffness: 500,
                 damping: 15,
               }}
-              className="mt-1 inline-flex w-fit items-center gap-1 rounded-md bg-[#E23744] px-2 py-0.5 text-[10px] font-extrabold text-white shadow"
+              className="mt-1 inline-flex w-fit items-center gap-1 rounded-md bg-[#eaa94d] px-2 py-0.5 text-[10px] font-extrabold text-white shadow"
             >
               {item.discountLabel}
             </motion.span>
@@ -829,7 +831,7 @@ function MenuItemCard({
           ref={btnRef}
           onClick={handleQuickAdd}
           whileTap={{ scale: 0.96 }}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#FF9933] py-2.5 text-[13px] font-bold text-white shadow-sm shadow-[#FF9933]/20 hover:bg-[#ff8811] transition-colors cursor-pointer"
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#eaa94d] py-2.5 text-[13px] font-bold text-white shadow-sm shadow-[#eaa94d]/20 hover:bg-[#d67620] transition-colors cursor-pointer"
         >
           <Plus className="h-4 w-4" strokeWidth={3} />
           Add to Cart
@@ -899,7 +901,7 @@ function HeroDish({
               </span>
             )}
             {dish.badge && (
-              <span className="rounded-full bg-[#FF9933] px-2.5 py-0.5 text-[10px] font-bold text-white">
+              <span className="rounded-full bg-[#eaa94d] px-2.5 py-0.5 text-[10px] font-bold text-white">
                 {dish.badge === "Bestseller" ? "# Bestseller" : dish.badge}
               </span>
             )}
@@ -912,7 +914,7 @@ function HeroDish({
           </p>
           <span
             ref={priceRef}
-            className="mt-1.5 inline-block text-xl font-extrabold text-[#FF9933]"
+            className="mt-1.5 inline-block text-xl font-extrabold text-[#eaa94d]"
           >
             {formatPrice(dish.price, currency)}
           </span>
@@ -941,7 +943,7 @@ function FilterPill({
       transition={{ type: "spring", stiffness: 400, damping: 17 }}
       className={`flex items-center gap-1.5 rounded-xl px-3.5 py-2.5 text-[11px] font-bold transition-colors ${
         active
-          ? "bg-[#0A4D3C] text-white shadow-md shadow-[#0A4D3C]/15"
+          ? "bg-[#3e1e0c] text-white shadow-md shadow-[#3e1e0c]/15"
           : "bg-white text-gray-500 border border-gray-200 hover:border-gray-300 hover:bg-gray-50"
       }`}
     >
@@ -966,11 +968,11 @@ function DesktopCartPreview({
     <div className="rounded-2xl border border-gray-200 bg-white shadow-[0_2px_16px_rgba(0,0,0,0.04)] overflow-hidden">
       <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
         <div className="flex items-center gap-2">
-          <ShoppingBag className="h-4 w-4 text-[#FF9933]" />
-          <h3 className="text-sm font-bold text-[#1F2A2A]">Your Order</h3>
+          <ShoppingBag className="h-4 w-4 text-[#eaa94d]" />
+          <h3 className="text-sm font-bold text-[#3e1e0c]">Your Order</h3>
         </div>
         {totalItems > 0 && (
-          <span className="rounded-full bg-[#FF9933]/10 px-2.5 py-0.5 text-[11px] font-bold text-[#FF9933]">
+          <span className="rounded-full bg-[#eaa94d]/10 px-2.5 py-0.5 text-[11px] font-bold text-[#eaa94d]">
             {totalItems} items
           </span>
         )}
@@ -1000,10 +1002,10 @@ function DesktopCartPreview({
                   />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-[#1F2A2A] truncate">
+                  <p className="text-xs font-bold text-[#3e1e0c] truncate">
                     {item.name}
                   </p>
-                  <p className="text-xs font-semibold text-[#FF9933]">
+                  <p className="text-xs font-semibold text-[#eaa94d]">
                     {formatPrice(item.price * item.quantity, currency)}
                   </p>
                 </div>
@@ -1019,7 +1021,7 @@ function DesktopCartPreview({
                   </span>
                   <button
                     onClick={() => increaseQty(item.id)}
-                    className="flex h-6 w-6 items-center justify-center rounded-md bg-[#FF9933] text-white text-xs"
+                    className="flex h-6 w-6 items-center justify-center rounded-md bg-[#eaa94d] text-white text-xs"
                   >
                     <Plus className="h-3 w-3" />
                   </button>
@@ -1032,7 +1034,7 @@ function DesktopCartPreview({
               <span className="text-xs font-medium text-gray-500">
                 Subtotal
               </span>
-              <span className="text-sm font-bold text-[#1F2A2A]">
+              <span className="text-sm font-bold text-[#3e1e0c]">
                 {formatPrice(subtotal, currency)}
               </span>
             </div>
@@ -1043,7 +1045,7 @@ function DesktopCartPreview({
                 boxShadow: "0 10px 20px -6px rgba(255,153,51,0.35)",
               }}
               whileTap={{ scale: 0.97 }}
-              className="relative w-full rounded-xl bg-[#FF9933] py-3.5 text-sm font-bold text-white overflow-hidden shadow-md shadow-[#FF9933]/25"
+              className="relative w-full rounded-xl bg-[#eaa94d] py-3.5 text-sm font-bold text-white overflow-hidden shadow-md shadow-[#eaa94d]/25"
             >
               <motion.div
                 className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent"
@@ -1089,6 +1091,8 @@ function MenuPageContent() {
   const [error, setError] = useState<string | null>(null);
 
   const [activeCategory, setActiveCategory] = useState<string>("");
+  const [activeSubCategory, setActiveSubCategory] = useState<string>("");
+  const [categoryView, setCategoryView] = useState<"scroll" | "grid">("scroll");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDish, setSelectedDish] = useState<MenuItem | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
@@ -1193,11 +1197,30 @@ function MenuPageContent() {
     }
   }, [activeOrder?.status]);
 
-  const categories = restaurant?.categories ?? [];
+  const allCategories = restaurant?.categories ?? [];
+  const categories = allCategories.filter((c) => !c.parentId);
+  const activeParentCat = categories.find((c) => c.name === activeCategory);
+  const subCategories = activeParentCat
+    ? allCategories.filter((c) => c.parentId === activeParentCat.id)
+    : [];
 
   const filteredItems = menuItems.filter((item) => {
     if (!item.isAvailable) return false;
-    if (activeCategory && item.category.name !== activeCategory) return false;
+    // Category filter: match parent or child categories
+    if (activeCategory) {
+      if (activeSubCategory) {
+        // If subcategory selected, match only that subcategory
+        if (item.category.name !== activeSubCategory) return false;
+      } else {
+        // If only parent category, match parent + all its subcategories
+        const childCatNames = subCategories.map((c) => c.name);
+        if (
+          item.category.name !== activeCategory &&
+          !childCatNames.includes(item.category.name)
+        )
+          return false;
+      }
+    }
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       if (
@@ -1250,9 +1273,9 @@ function MenuPageContent() {
             animate={{ scale: [1, 1.08, 1] }}
             transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
           >
-            <div className="absolute inset-0 rounded-full bg-[#FF9933]/10" />
+            <div className="absolute inset-0 rounded-full bg-[#eaa94d]/10" />
             <motion.div
-              className="absolute inset-1 rounded-full bg-[#FF9933]/20"
+              className="absolute inset-1 rounded-full bg-[#eaa94d]/20"
               animate={{ scale: [1, 1.15, 1] }}
               transition={{
                 duration: 1.5,
@@ -1261,15 +1284,15 @@ function MenuPageContent() {
                 delay: 0.2,
               }}
             />
-            <ShoppingBag className="h-7 w-7 text-[#FF9933] relative z-[1]" />
+            <ShoppingBag className="h-7 w-7 text-[#eaa94d] relative z-[1]" />
           </motion.div>
           <div className="space-y-1.5 text-center">
-            <p className="text-sm font-bold text-[#1F2A2A]">Loading menu</p>
+            <p className="text-sm font-bold text-[#3e1e0c]">Loading menu</p>
             <div className="flex items-center gap-1 justify-center">
               {[0, 1, 2].map((i) => (
                 <motion.div
                   key={i}
-                  className="h-1.5 w-1.5 rounded-full bg-[#FF9933]"
+                  className="h-1.5 w-1.5 rounded-full bg-[#eaa94d]"
                   animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1.2, 0.8] }}
                   transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
                 />
@@ -1288,7 +1311,7 @@ function MenuPageContent() {
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-100 mb-4">
             <X className="h-8 w-8 text-red-500" />
           </div>
-          <h2 className="text-lg font-bold text-[#1F2A2A] mb-1">
+          <h2 className="text-lg font-bold text-[#3e1e0c] mb-1">
             Restaurant not found
           </h2>
           <p className="text-sm text-gray-500 mb-6">
@@ -1296,7 +1319,7 @@ function MenuPageContent() {
           </p>
           <Link
             href="/"
-            className="inline-flex items-center gap-2 rounded-xl bg-[#0A4D3C] px-6 py-3 text-sm font-bold text-white hover:bg-[#083a2d] transition-colors"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#3e1e0c] px-6 py-3 text-sm font-bold text-white hover:bg-[#733e1b] transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Home
@@ -1330,16 +1353,16 @@ function MenuPageContent() {
           <div className="flex h-16 items-center gap-4">
             <Link
               href="/"
-              className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-[#1F2A2A] transition-all shrink-0 shadow-sm"
+              className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-[#3e1e0c] transition-all shrink-0 shadow-sm"
             >
               <ArrowLeft className="h-4 w-4" />
             </Link>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <h1 className="text-base font-bold text-[#1F2A2A] truncate">
+                <h1 className="text-base font-bold text-[#3e1e0c] truncate">
                   {restaurant.name}
                 </h1>
-                <span className="flex items-center gap-0.5 shrink-0 rounded-full bg-[#0A4D3C] px-2 py-0.5 text-[10px] font-bold text-white">
+                <span className="flex items-center gap-0.5 shrink-0 rounded-full bg-[#3e1e0c] px-2 py-0.5 text-[10px] font-bold text-white">
                   <Star className="h-2.5 w-2.5 fill-white" />
                   {restaurant.rating.toFixed(1)}
                 </span>
@@ -1347,12 +1370,12 @@ function MenuPageContent() {
               <p className="text-[11px] text-gray-400 font-medium">
                 {restaurant.address}
                 {tableNo && (
-                  <span className="ml-2 inline-flex items-center gap-1 rounded-md bg-[#FF9933]/15 px-2 py-0.5 text-[12px] font-black text-[#FF9933]">
+                  <span className="ml-2 inline-flex items-center gap-1 rounded-md bg-[#eaa94d]/15 px-2 py-0.5 text-[12px] font-black text-[#eaa94d]">
                     Table {tableNo}
                   </span>
                 )}
                 {roomNo && (
-                  <span className="ml-2 inline-flex items-center gap-1 rounded-md bg-[#FF9933]/15 px-2 py-0.5 text-[12px] font-black text-[#FF9933]">
+                  <span className="ml-2 inline-flex items-center gap-1 rounded-md bg-[#eaa94d]/15 px-2 py-0.5 text-[12px] font-black text-[#eaa94d]">
                     Room {roomNo}
                   </span>
                 )}
@@ -1373,7 +1396,7 @@ function MenuPageContent() {
                 whileHover={{ scale: 1.04 }}
                 whileTap={{ scale: 0.95 }}
                 transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                className="relative flex h-9 items-center gap-1.5 rounded-xl bg-[#FF9933] px-4 text-xs font-bold text-white shadow-md shadow-[#FF9933]/20 hover:bg-[#ff8811]"
+                className="relative flex h-9 items-center gap-1.5 rounded-xl bg-[#eaa94d] px-4 text-xs font-bold text-white shadow-md shadow-[#eaa94d]/20 hover:bg-[#d67620]"
               >
                 <ShoppingBag className="h-4 w-4" />
                 <span className="hidden sm:inline">Cart</span>
@@ -1383,7 +1406,7 @@ function MenuPageContent() {
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ type: "spring", stiffness: 500, damping: 15 }}
-                    className="flex h-5 w-5 items-center justify-center rounded-full bg-white text-[10px] font-bold text-[#FF9933]"
+                    className="flex h-5 w-5 items-center justify-center rounded-full bg-white text-[10px] font-bold text-[#eaa94d]"
                   >
                     {totalItems}
                   </motion.span>
@@ -1413,53 +1436,122 @@ function MenuPageContent() {
               />
             )}
 
-            {/* Search */}
+            {/* Search + Category bar — sticky on scroll */}
+            <div className="sticky top-0 z-20 -mx-4 px-4 md:-mx-6 md:px-6 pt-1 pb-2 bg-white/95 backdrop-blur-md space-y-3">
             <motion.div
               className="relative group"
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.1 }}
             >
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-[#FF9933] transition-colors" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-[#eaa94d] transition-colors" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search dishes, cuisines..."
-                className="w-full rounded-xl bg-white py-3 pl-11 pr-4 text-sm font-medium text-[#1F2A2A] placeholder-gray-400 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#FF9933]/20 focus:border-[#FF9933]/40 transition-all shadow-sm"
+                className="w-full rounded-xl bg-white py-3 pl-11 pr-4 text-sm font-medium text-[#3e1e0c] placeholder-gray-400 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#eaa94d]/20 focus:border-[#eaa94d]/40 transition-all shadow-sm"
               />
             </motion.div>
 
+            {/* Category bar with toggle + search */}
             <motion.div
-              ref={tabsRef}
-              className="flex gap-2 overflow-x-auto scrollbar-hide pb-1"
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.15 }}
+              className="space-y-2"
             >
-              <button
-                onClick={() => setActiveCategory("")}
-                className={`shrink-0 rounded-xl px-5 py-2.5 text-xs font-bold transition-all ${
-                  activeCategory === ""
-                    ? "bg-[#0A4D3C] text-white shadow-md shadow-[#0A4D3C]/15"
-                    : "bg-white text-gray-500 border border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                }`}
-              >
-                All
-              </button>
-              {categories.map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => setActiveCategory(cat.name)}
-                  className={`shrink-0 rounded-xl px-5 py-2.5 text-xs font-bold transition-all ${
-                    activeCategory === cat.name
-                      ? "bg-[#0A4D3C] text-white shadow-md shadow-[#0A4D3C]/15"
-                      : "bg-white text-gray-500 border border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                  }`}
+              {/* Main category pills */}
+              <div className="flex items-center gap-2">
+                <div
+                  ref={tabsRef}
+                  className="flex flex-1 gap-2 overflow-x-auto scrollbar-hide pb-0.5"
                 >
-                  {cat.name}
+                  <button
+                    onClick={() => {
+                      setActiveCategory("");
+                      setActiveSubCategory("");
+                    }}
+                    className={`shrink-0 rounded-xl px-5 py-2.5 text-xs font-bold transition-all ${
+                      activeCategory === ""
+                        ? "bg-brand-950 text-white shadow-md shadow-brand-950/15"
+                        : "bg-white text-gray-500 border border-gray-200 hover:border-brand-200 hover:bg-brand-50"
+                    }`}
+                  >
+                    All
+                  </button>
+                  {categories.map((cat) => (
+                    <button
+                      key={cat.id}
+                      onClick={() => {
+                        setActiveCategory(cat.name === activeCategory ? "" : cat.name);
+                        setActiveSubCategory("");
+                      }}
+                      className={`shrink-0 rounded-xl px-5 py-2.5 text-xs font-bold transition-all flex items-center gap-1.5 ${
+                        activeCategory === cat.name
+                          ? "bg-brand-950 text-white shadow-md shadow-brand-950/15"
+                          : "bg-white text-gray-500 border border-gray-200 hover:border-brand-200 hover:bg-brand-50"
+                      }`}
+                    >
+                      {cat.icon && <span className="text-sm">{cat.icon}</span>}
+                      {cat.name}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Grid / Scroll toggle */}
+                <button
+                  onClick={() => setCategoryView((v) => (v === "scroll" ? "grid" : "scroll"))}
+                  className="shrink-0 flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-400 hover:text-brand-600 hover:border-brand-200 transition-all"
+                  title={categoryView === "scroll" ? "Grid view" : "List view"}
+                >
+                  {categoryView === "scroll" ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /></svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" /><line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" /></svg>
+                  )}
                 </button>
-              ))}
+              </div>
+
+              {/* Subcategory chips — appear when a parent category is selected */}
+              <AnimatePresence>
+                {activeCategory && subCategories.length > 0 && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-0.5">
+                      <button
+                        onClick={() => setActiveSubCategory("")}
+                        className={`shrink-0 rounded-lg px-3 py-1.5 text-[11px] font-semibold transition-all ${
+                          activeSubCategory === ""
+                            ? "bg-brand-400 text-white shadow-sm"
+                            : "bg-brand-50 text-brand-700 hover:bg-brand-100"
+                        }`}
+                      >
+                        All {activeCategory}
+                      </button>
+                      {subCategories.map((sub) => (
+                        <button
+                          key={sub.id}
+                          onClick={() => setActiveSubCategory(sub.name === activeSubCategory ? "" : sub.name)}
+                          className={`shrink-0 rounded-lg px-3 py-1.5 text-[11px] font-semibold transition-all ${
+                            activeSubCategory === sub.name
+                              ? "bg-brand-400 text-white shadow-sm"
+                              : "bg-brand-50 text-brand-700 hover:bg-brand-100"
+                          }`}
+                        >
+                          {sub.icon && <span className="mr-1">{sub.icon}</span>}
+                          {sub.name}
+                        </button>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
 
             {/* Filters */}
@@ -1500,6 +1592,7 @@ function MenuPageContent() {
                 label="Bestseller"
               />
             </motion.div>
+            </div>
 
             {/* Hero slider */}
             {!searchQuery && (
@@ -1530,7 +1623,10 @@ function MenuPageContent() {
                   <div key="single" className="space-y-3">
                     <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">
                       {activeCategory}
-                      <span className="ml-2 text-[#1F2A2A]">
+                      {activeSubCategory && (
+                        <span className="text-brand-500"> / {activeSubCategory}</span>
+                      )}
+                      <span className="ml-2 text-[#3e1e0c]">
                         ({smartSorted.length})
                       </span>
                     </h3>
@@ -1538,7 +1634,10 @@ function MenuPageContent() {
                       variants={containerVariants}
                       initial="hidden"
                       animate="visible"
-                      className="space-y-3"
+                      className={categoryView === "grid"
+                        ? "grid grid-cols-2 gap-3"
+                        : "space-y-3"
+                      }
                     >
                       {smartSorted.map((item) => (
                         <MenuItemCard
@@ -1556,14 +1655,19 @@ function MenuPageContent() {
                   /* All items — grouped by category */
                   <div key="grouped" className="space-y-6">
                     {categories.map((cat) => {
+                      const childCats = allCategories.filter((c) => c.parentId === cat.id);
+                      const childCatNames = childCats.map((c) => c.name);
                       const catItems = smartSorted.filter(
-                        (item) => item.category.name === cat.name,
+                        (item) =>
+                          item.category.name === cat.name ||
+                          childCatNames.includes(item.category.name),
                       );
                       if (catItems.length === 0) return null;
                       return (
                         <div key={cat.id} className="space-y-3">
                           <div className="flex items-center gap-3">
-                            <h3 className="text-sm font-bold text-[#1F2A2A]">
+                            {cat.icon && <span className="text-base">{cat.icon}</span>}
+                            <h3 className="text-sm font-bold text-[#3e1e0c]">
                               {cat.name}
                             </h3>
                             <span className="text-[11px] font-semibold text-gray-400">
@@ -1575,7 +1679,10 @@ function MenuPageContent() {
                             variants={containerVariants}
                             initial="hidden"
                             animate="visible"
-                            className="space-y-3"
+                            className={categoryView === "grid"
+                              ? "grid grid-cols-2 gap-3"
+                              : "space-y-3"
+                            }
                           >
                             {catItems.map((item) => (
                               <MenuItemCard
@@ -1655,7 +1762,7 @@ function MenuPageContent() {
             <motion.button
               onClick={() => setCartOpen(true)}
               whileTap={{ scale: 0.98 }}
-              className="flex w-full items-center justify-between bg-[#0A4D3C] px-5 py-4 text-white shadow-[0_-4px_20px_rgba(0,0,0,0.15)]"
+              className="flex w-full items-center justify-between bg-[#3e1e0c] px-5 py-4 text-white shadow-[0_-4px_20px_rgba(0,0,0,0.15)]"
             >
               <div className="flex items-center gap-2">
                 <motion.span

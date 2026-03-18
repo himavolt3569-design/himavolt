@@ -439,7 +439,7 @@ function OrdersTab({ restaurantId, currency }: { restaurantId: string; currency:
   if (loading)
     return (
       <div className="flex justify-center py-20">
-        <Loader2 className="h-6 w-6 animate-spin text-[#FF9933]" />
+        <Loader2 className="h-6 w-6 animate-spin text-brand-400" />
       </div>
     );
 
@@ -453,13 +453,13 @@ function OrdersTab({ restaurantId, currency }: { restaurantId: string; currency:
             onClick={() => setFilter(f)}
             className={`rounded-xl px-4 py-2.5 text-xs font-bold capitalize transition-all ${
               filter === f
-                ? "bg-[#0A4D3C] text-white shadow-md shadow-[#0A4D3C]/15"
-                : "bg-white text-gray-500 border border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                ? "bg-brand-400 text-white shadow-md shadow-brand-400/20"
+                : "bg-white text-gray-500 border border-gray-200 hover:border-brand-200 hover:bg-brand-50/50"
             }`}
           >
             {f}
             {f === "active" && pendingCount > 0 && (
-              <span className="ml-1.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#FF9933] text-[10px] font-bold text-white">
+              <span className="ml-1.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-brand-500 text-[10px] font-bold text-white">
                 {pendingCount}
               </span>
             )}
@@ -487,11 +487,11 @@ function OrdersTab({ restaurantId, currency }: { restaurantId: string; currency:
             layout
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`rounded-2xl bg-white border border-gray-100 border-l-4 ${STATUS_BORDER_LEFT[order.status] || "border-l-gray-300"} p-4 shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-all`}
+            className={`rounded-2xl bg-white border border-gray-100 border-l-4 ${STATUS_BORDER_LEFT[order.status] || "border-l-gray-300"} p-4 shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] hover:scale-[1.01] transition-all duration-200`}
           >
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-sm font-extrabold text-[#1F2A2A]">
+                <span className="text-sm font-extrabold text-[#3e1e0c]">
                   #{order.orderNo}
                 </span>
                 {order.tableNo && (
@@ -543,12 +543,12 @@ function OrdersTab({ restaurantId, currency }: { restaurantId: string; currency:
                 {timeAgo(order.createdAt)}
                 {order.user?.name && <span>· {order.user.name}</span>}
                 {order.estimatedTime && order.status !== "PENDING" && (
-                  <span className="text-[#FF9933] font-bold">
+                  <span className="text-brand-400 font-bold">
                     · ~{order.estimatedTime}min
                   </span>
                 )}
               </div>
-              <span className="text-sm font-extrabold text-[#1F2A2A]">
+              <span className="text-sm font-extrabold text-[#3e1e0c]">
                 {formatPrice(order.total, currency)}
               </span>
             </div>
@@ -582,8 +582,8 @@ function OrdersTab({ restaurantId, currency }: { restaurantId: string; currency:
                       exit={{ opacity: 0, height: 0 }}
                       className="overflow-hidden"
                     >
-                      <div className="rounded-xl bg-[#0A4D3C]/5 p-3 space-y-2">
-                        <label className="text-[11px] font-bold text-[#0A4D3C]">
+                      <div className="rounded-xl bg-brand-50 p-3 space-y-2">
+                        <label className="text-[11px] font-bold text-brand-700">
                           Estimated prep time (minutes)
                         </label>
                         <div className="flex items-center gap-2">
@@ -601,14 +601,14 @@ function OrdersTab({ restaurantId, currency }: { restaurantId: string; currency:
                               <Minus className="h-3.5 w-3.5" />
                             </button>
                             <div className="relative flex-1">
-                              <Clock className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#FF9933]" />
+                              <Clock className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-brand-400" />
                               <input
                                 type="number"
                                 min="1"
                                 max="120"
                                 value={estTime}
                                 onChange={(e) => setEstTime(e.target.value)}
-                                className="w-full rounded-lg border border-gray-200 bg-white py-2 pl-8 pr-3 text-center text-sm font-bold text-[#1F2A2A] outline-none focus:border-[#0A4D3C] focus:ring-1 focus:ring-[#0A4D3C]/20"
+                                className="w-full rounded-lg border border-gray-200 bg-white py-2 pl-8 pr-3 text-center text-sm font-bold text-[#3e1e0c] outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400/20"
                               />
                             </div>
                             <button
@@ -635,8 +635,8 @@ function OrdersTab({ restaurantId, currency }: { restaurantId: string; currency:
                               onClick={() => setEstTime(String(t))}
                               className={`flex-1 rounded-lg py-1.5 text-[10px] font-bold transition-all ${
                                 estTime === String(t)
-                                  ? "bg-[#FF9933] text-white"
-                                  : "bg-white border border-gray-200 text-gray-500 hover:border-[#FF9933] hover:text-[#FF9933]"
+                                  ? "bg-brand-400 text-white"
+                                  : "bg-white border border-gray-200 text-gray-500 hover:border-brand-400 hover:text-brand-400"
                               }`}
                             >
                               {t}m
@@ -646,7 +646,7 @@ function OrdersTab({ restaurantId, currency }: { restaurantId: string; currency:
                         <div className="flex gap-2 pt-1">
                           <button
                             onClick={() => handleAccept(order.id)}
-                            className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-[#0A4D3C] py-2.5 text-xs font-bold text-white hover:bg-[#083a2d] transition-all"
+                            className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-brand-400 py-2.5 text-xs font-bold text-white hover:bg-brand-500 transition-all shadow-sm shadow-brand-400/20"
                           >
                             <Check className="h-3.5 w-3.5" /> Confirm Accept
                           </button>
@@ -666,7 +666,7 @@ function OrdersTab({ restaurantId, currency }: { restaurantId: string; currency:
                     <div className="flex gap-2">
                       <button
                         onClick={() => setAcceptingId(order.id)}
-                        className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-[#0A4D3C] py-2.5 text-xs font-bold text-white hover:bg-[#083a2d] transition-all"
+                        className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-brand-400 py-2.5 text-xs font-bold text-white hover:bg-brand-500 transition-all shadow-sm shadow-brand-400/20"
                       >
                         <Check className="h-3.5 w-3.5" /> Accept
                       </button>
@@ -700,7 +700,7 @@ function OrdersTab({ restaurantId, currency }: { restaurantId: string; currency:
             {order.status === "READY" && (
               <button
                 onClick={() => updateStatus(order.id, "DELIVERED")}
-                className="mt-3 w-full flex items-center justify-center gap-1.5 rounded-xl bg-[#0A4D3C] py-2.5 text-xs font-bold text-white hover:bg-[#083a2d] transition-all shadow-md shadow-[#0A4D3C]/15"
+                className="mt-3 w-full flex items-center justify-center gap-1.5 rounded-xl bg-brand-400 py-2.5 text-xs font-bold text-white hover:bg-brand-500 transition-all shadow-md shadow-brand-400/20"
               >
                 <Check className="h-3.5 w-3.5" /> Mark Delivered
               </button>
@@ -752,7 +752,7 @@ function MenuTab({ restaurantId, currency }: { restaurantId: string; currency: s
   if (loading)
     return (
       <div className="flex justify-center py-20">
-        <Loader2 className="h-6 w-6 animate-spin text-[#FF9933]" />
+        <Loader2 className="h-6 w-6 animate-spin text-brand-400" />
       </div>
     );
 
@@ -765,7 +765,7 @@ function MenuTab({ restaurantId, currency }: { restaurantId: string; currency: s
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search menu items..."
-          className="w-full rounded-xl border border-gray-200 bg-white pl-10 pr-4 py-2.5 text-sm font-medium text-[#1F2A2A] placeholder-gray-400 outline-none focus:border-[#FF9933] focus:ring-2 focus:ring-[#FF9933]/10 transition-all shadow-sm"
+          className="w-full rounded-xl border border-gray-200 bg-white pl-10 pr-4 py-2.5 text-sm font-medium text-[#3e1e0c] placeholder-gray-400 outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-400/10 transition-all shadow-sm"
         />
       </div>
 
@@ -785,7 +785,7 @@ function MenuTab({ restaurantId, currency }: { restaurantId: string; currency: s
         {filtered.map((item) => (
           <div
             key={item.id}
-            className="flex items-center gap-3 rounded-2xl bg-white border border-gray-100 p-3 shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-all"
+            className="flex items-center gap-3 rounded-2xl bg-white border border-gray-100 p-3 shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] hover:scale-[1.01] transition-all duration-200"
           >
             {item.imageUrl && (
               <img
@@ -799,7 +799,7 @@ function MenuTab({ restaurantId, currency }: { restaurantId: string; currency: s
                 <span
                   className={`inline-block h-2.5 w-2.5 rounded-full shrink-0 ${item.isVeg ? "bg-green-500" : "bg-red-500"}`}
                 />
-                <h4 className="text-sm font-bold text-[#1F2A2A] truncate">
+                <h4 className="text-sm font-bold text-[#3e1e0c] truncate">
                   {item.name}
                 </h4>
               </div>
@@ -1049,7 +1049,7 @@ function ChatTab({
   if (loading)
     return (
       <div className="flex justify-center py-20">
-        <Loader2 className="h-6 w-6 animate-spin text-[#FF9933]" />
+        <Loader2 className="h-6 w-6 animate-spin text-brand-400" />
       </div>
     );
 
@@ -1060,7 +1060,7 @@ function ChatTab({
       <div className="flex flex-col h-[65vh]">
         <button
           onClick={closeRoom}
-          className="flex items-center gap-2 text-sm font-bold text-[#0A4D3C] mb-3 hover:underline"
+          className="flex items-center gap-2 text-sm font-bold text-brand-400 mb-3 hover:underline"
         >
           ← Back to chats
         </button>
@@ -1090,8 +1090,8 @@ function ChatTab({
               <div
                 className={`max-w-[75%] rounded-2xl px-3.5 py-2 text-sm ${
                   m.sender !== "CUSTOMER"
-                    ? "bg-[#0A4D3C] text-white rounded-br-md"
-                    : "bg-white border border-gray-200 text-[#1F2A2A] rounded-bl-md"
+                    ? "bg-brand-700 text-white rounded-br-md"
+                    : "bg-white border border-gray-200 text-[#3e1e0c] rounded-bl-md"
                 }`}
               >
                 {m.sender !== "CUSTOMER" && m.senderName && (
@@ -1122,12 +1122,12 @@ function ChatTab({
             onChange={(e) => setMsg(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && sendMessage()}
             placeholder="Reply to customer..."
-            className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-[#0A4D3C] transition-all"
+            className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-brand-400 transition-all"
           />
           <button
             onClick={sendMessage}
             disabled={!msg.trim()}
-            className="rounded-xl bg-[#0A4D3C] px-4 py-2.5 text-white hover:bg-[#083a2d] transition-all disabled:opacity-40"
+            className="rounded-xl bg-brand-400 px-4 py-2.5 text-white hover:bg-brand-500 transition-all disabled:opacity-40"
           >
             <Send className="h-4 w-4" />
           </button>
@@ -1144,7 +1144,7 @@ function ChatTab({
           onClick={() => setTab("customers")}
           className={`flex-1 rounded-xl py-2.5 text-xs font-bold transition-all ${
             tab === "customers"
-              ? "bg-[#0A4D3C] text-white"
+              ? "bg-brand-400 text-white"
               : "bg-gray-100 text-gray-500 hover:bg-gray-200"
           }`}
         >
@@ -1154,7 +1154,7 @@ function ChatTab({
           onClick={() => setTab("broadcast")}
           className={`flex-1 rounded-xl py-2.5 text-xs font-bold transition-all ${
             tab === "broadcast"
-              ? "bg-[#FF9933] text-white"
+              ? "bg-brand-500 text-white"
               : "bg-gray-100 text-gray-500 hover:bg-gray-200"
           }`}
         >
@@ -1179,13 +1179,13 @@ function ChatTab({
               <button
                 key={room.id}
                 onClick={() => openRoom(room.id)}
-                className="w-full flex items-center gap-3 rounded-2xl bg-white border border-gray-100 p-4 shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-all text-left"
+                className="w-full flex items-center gap-3 rounded-2xl bg-white border border-gray-100 p-4 shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] hover:scale-[1.01] transition-all duration-200 text-left"
               >
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#FF9933]/10 text-[#FF9933] shrink-0">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-100 text-brand-400 shrink-0">
                   <MessageCircle className="h-5 w-5" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-[#1F2A2A]">
+                  <p className="text-sm font-bold text-[#3e1e0c]">
                     Order #{room.order?.orderNo}
                     {room.order?.tableNo ? ` · T${room.order.tableNo}` : ""}
                   </p>
@@ -1223,8 +1223,8 @@ function ChatTab({
                   <div
                     className={`max-w-[75%] rounded-2xl px-3.5 py-2 text-sm ${
                       isOwn
-                        ? "bg-[#FF9933] text-white rounded-br-md"
-                        : "bg-white border border-gray-200 text-[#1F2A2A] rounded-bl-md"
+                        ? "bg-brand-400 text-white rounded-br-md"
+                        : "bg-white border border-gray-200 text-[#3e1e0c] rounded-bl-md"
                     }`}
                   >
                     {!isOwn && (
@@ -1257,12 +1257,12 @@ function ChatTab({
                 onChange={(e) => setBroadcastMsg(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && sendBroadcast()}
                 placeholder="Broadcast to all staff..."
-                className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-[#FF9933] transition-all"
+                className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-brand-400 transition-all"
               />
               <button
                 onClick={sendBroadcast}
                 disabled={!broadcastMsg.trim()}
-                className="rounded-xl bg-[#FF9933] px-4 py-2.5 text-white hover:bg-[#ff8811] transition-all disabled:opacity-40"
+                className="rounded-xl bg-brand-500 px-4 py-2.5 text-white hover:bg-brand-600 transition-all disabled:opacity-40"
               >
                 <Send className="h-4 w-4" />
               </button>
@@ -1365,7 +1365,7 @@ function InventoryTab({ restaurantId, currency }: { restaurantId: string; curren
   if (loading)
     return (
       <div className="flex justify-center py-20">
-        <Loader2 className="h-6 w-6 animate-spin text-[#FF9933]" />
+        <Loader2 className="h-6 w-6 animate-spin text-brand-400" />
       </div>
     );
 
@@ -1401,12 +1401,12 @@ function InventoryTab({ restaurantId, currency }: { restaurantId: string; curren
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search stock..."
-            className="w-full rounded-xl border border-gray-200 bg-white pl-10 pr-4 py-2.5 text-sm font-medium text-[#1F2A2A] placeholder-gray-400 outline-none focus:border-[#FF9933] focus:ring-2 focus:ring-[#FF9933]/10 transition-all shadow-sm"
+            className="w-full rounded-xl border border-gray-200 bg-white pl-10 pr-4 py-2.5 text-sm font-medium text-[#3e1e0c] placeholder-gray-400 outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-400/10 transition-all shadow-sm"
           />
         </div>
         <button
           onClick={() => setShowAdd(!showAdd)}
-          className="flex items-center gap-1.5 rounded-xl bg-[#0A4D3C] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#083a2d] transition-all shrink-0"
+          className="flex items-center gap-1.5 rounded-xl bg-brand-400 px-4 py-2.5 text-xs font-bold text-white hover:bg-brand-500 transition-all shrink-0"
         >
           <Plus className="h-3.5 w-3.5" /> Add
         </button>
@@ -1421,7 +1421,7 @@ function InventoryTab({ restaurantId, currency }: { restaurantId: string; curren
             exit={{ opacity: 0, height: 0 }}
             className="rounded-2xl bg-white border border-gray-100 p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] space-y-4 overflow-hidden"
           >
-            <h4 className="text-sm font-bold text-[#1F2A2A]">Add Stock Item</h4>
+            <h4 className="text-sm font-bold text-[#3e1e0c]">Add Stock Item</h4>
             <div className="grid grid-cols-2 gap-3">
               <div className="col-span-2">
                 <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
@@ -1431,7 +1431,7 @@ function InventoryTab({ restaurantId, currency }: { restaurantId: string; curren
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   placeholder="e.g. Basmati Rice"
-                  className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-[#FF9933] focus:ring-2 focus:ring-[#FF9933]/10 transition-all"
+                  className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-400/10 transition-all"
                 />
               </div>
               <div>
@@ -1441,7 +1441,7 @@ function InventoryTab({ restaurantId, currency }: { restaurantId: string; curren
                 <select
                   value={newUnit}
                   onChange={(e) => setNewUnit(e.target.value)}
-                  className="rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-[#FF9933] w-full"
+                  className="rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-brand-400 w-full"
                 >
                   {[
                     "kg",
@@ -1466,7 +1466,7 @@ function InventoryTab({ restaurantId, currency }: { restaurantId: string; curren
                   onChange={(e) => setNewQty(e.target.value)}
                   placeholder="0"
                   type="number"
-                  className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-[#FF9933]"
+                  className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-brand-400"
                 />
               </div>
               <div>
@@ -1478,7 +1478,7 @@ function InventoryTab({ restaurantId, currency }: { restaurantId: string; curren
                   onChange={(e) => setNewMin(e.target.value)}
                   placeholder="5"
                   type="number"
-                  className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-[#FF9933]"
+                  className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-brand-400"
                 />
               </div>
               <div>
@@ -1490,7 +1490,7 @@ function InventoryTab({ restaurantId, currency }: { restaurantId: string; curren
                   onChange={(e) => setNewCost(e.target.value)}
                   placeholder="0"
                   type="number"
-                  className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-[#FF9933]"
+                  className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-brand-400"
                 />
               </div>
               <div className="col-span-2">
@@ -1500,7 +1500,7 @@ function InventoryTab({ restaurantId, currency }: { restaurantId: string; curren
                 <select
                   value={newCat}
                   onChange={(e) => setNewCat(e.target.value)}
-                  className="col-span-2 rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-[#FF9933] w-full"
+                  className="col-span-2 rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-brand-400 w-full"
                 >
                   {[
                     "General",
@@ -1530,7 +1530,7 @@ function InventoryTab({ restaurantId, currency }: { restaurantId: string; curren
               <button
                 onClick={addItem}
                 disabled={!newName.trim()}
-                className="rounded-xl bg-[#0A4D3C] px-5 py-2 text-xs font-bold text-white hover:bg-[#083a2d] disabled:bg-gray-300"
+                className="rounded-xl bg-brand-400 px-5 py-2 text-xs font-bold text-white hover:bg-brand-500 disabled:bg-gray-300"
               >
                 Add Item
               </button>
@@ -1552,14 +1552,14 @@ function InventoryTab({ restaurantId, currency }: { restaurantId: string; curren
               {catItems.map((item) => (
                 <div
                   key={item.id}
-                  className={`flex items-center gap-3 rounded-2xl bg-white border border-l-4 p-3.5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] transition-all ${
+                  className={`flex items-center gap-3 rounded-2xl bg-white border border-l-4 p-3.5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] hover:scale-[1.01] transition-all duration-200 ${
                     item.quantity <= item.minStock
                       ? "border-red-200 border-l-red-400 bg-red-50/30"
                       : "border-gray-100 border-l-emerald-400"
                   }`}
                 >
                   <div className="flex-1 min-w-0">
-                    <h5 className="text-sm font-bold text-[#1F2A2A] truncate">
+                    <h5 className="text-sm font-bold text-[#3e1e0c] truncate">
                       {item.name}
                     </h5>
                     <div className="flex items-center gap-2 mt-0.5">
@@ -1582,12 +1582,12 @@ function InventoryTab({ restaurantId, currency }: { restaurantId: string; curren
                     >
                       <Minus className="h-3.5 w-3.5 text-gray-600" />
                     </button>
-                    <span className="w-8 text-center text-sm font-extrabold text-[#1F2A2A]">
+                    <span className="w-8 text-center text-sm font-extrabold text-[#3e1e0c]">
                       {item.quantity}
                     </span>
                     <button
                       onClick={() => updateQty(item.id, 1)}
-                      className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#0A4D3C] hover:bg-[#083a2d] transition-all"
+                      className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-400 hover:bg-brand-500 transition-all"
                     >
                       <Plus className="h-3.5 w-3.5 text-white" />
                     </button>
@@ -1718,9 +1718,9 @@ export default function KitchenPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F7F8FA] flex items-center justify-center">
+      <div className="min-h-screen bg-brand-50/30 flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-8 w-8 text-[#FF9933] animate-spin" />
+          <Loader2 className="h-8 w-8 text-brand-400 animate-spin" />
           <p className="text-sm font-medium text-gray-500">Loading portal...</p>
         </div>
       </div>
@@ -1752,15 +1752,15 @@ export default function KitchenPage() {
   const defaultTab = roleKey === "CASHIER" ? "billing" : "orders";
 
   return (
-    <div className="min-h-screen bg-[#F7F8FA]">
+    <div className="min-h-screen bg-brand-50/30">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-2xl shadow-[0_1px_12px_rgba(0,0,0,0.06)] border-b border-gray-200/60">
+      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-2xl shadow-[0_1px_12px_rgba(0,0,0,0.06)] border-b border-brand-100">
         <div className="mx-auto max-w-5xl px-4 sm:px-6">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-2">
-              <Mountain className="h-5 w-5 text-[#FF9933]" strokeWidth={2.5} />
-              <span className="text-base font-extrabold tracking-tight text-[#1F2A2A]">
-                Hima<span className="text-[#FF9933]">Volt</span>
+              <Mountain className="h-5 w-5 text-brand-400" strokeWidth={2.5} />
+              <span className="text-base font-extrabold tracking-tight text-[#3e1e0c]">
+                Hima<span className="text-brand-400">Volt</span>
               </span>
               <span
                 className={`ml-1 rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${config.color} ${config.bg}`}
@@ -1792,7 +1792,7 @@ export default function KitchenPage() {
 
               <a
                 href="/counter"
-                className="flex items-center gap-1 rounded-lg border border-gray-200 px-2.5 py-1.5 text-[10px] font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 transition-all"
+                className="flex items-center gap-1 rounded-lg border border-brand-200 px-2.5 py-1.5 text-[10px] font-bold text-brand-600 bg-brand-50 hover:bg-brand-100 transition-all"
               >
                 <CreditCard className="h-3 w-3" />
                 <span className="hidden sm:inline">Counter</span>
@@ -1829,7 +1829,7 @@ export default function KitchenPage() {
               className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl"
             >
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-extrabold text-[#1F2A2A]">
+                <h2 className="text-xl font-extrabold text-[#3e1e0c]">
                   Staff Profile
                 </h2>
                 <button
@@ -1848,7 +1848,7 @@ export default function KitchenPage() {
                     <config.icon className="h-6 w-6" />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-[#1F2A2A]">
+                    <h3 className="text-base font-bold text-[#3e1e0c]">
                       {session.name}
                     </h3>
                     <p className="text-xs text-gray-500">{config.label}</p>
@@ -1856,7 +1856,7 @@ export default function KitchenPage() {
                 </div>
 
                 <div className="rounded-2xl border border-gray-100 p-4 space-y-3">
-                  <h4 className="text-sm font-bold text-[#1F2A2A]">
+                  <h4 className="text-sm font-bold text-[#3e1e0c]">
                     Change Access PIN
                   </h4>
                   <input
@@ -1865,7 +1865,7 @@ export default function KitchenPage() {
                     value={currentPin}
                     onChange={(e) => setCurrentPin(e.target.value)}
                     placeholder="Current PIN (4 digits)"
-                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-[#0A4D3C]"
+                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-brand-400"
                   />
                   <input
                     type="password"
@@ -1873,7 +1873,7 @@ export default function KitchenPage() {
                     value={newPin}
                     onChange={(e) => setNewPin(e.target.value)}
                     placeholder="New PIN (4 digits)"
-                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-[#0A4D3C]"
+                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-brand-400"
                   />
 
                   {pinChangeStatus === "error" && (
@@ -1894,7 +1894,7 @@ export default function KitchenPage() {
                       newPin.length !== 4 ||
                       pinChangeStatus === "loading"
                     }
-                    className="w-full rounded-xl bg-[#0A4D3C] py-2.5 text-sm font-bold text-white hover:bg-[#083a2d] disabled:bg-gray-300 disabled:cursor-not-allowed transition-all"
+                    className="w-full rounded-xl bg-brand-400 py-2.5 text-sm font-bold text-white hover:bg-brand-500 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all"
                   >
                     {pinChangeStatus === "loading" ? (
                       <Loader2 className="mx-auto h-4 w-4 animate-spin" />
@@ -1910,7 +1910,7 @@ export default function KitchenPage() {
       </AnimatePresence>
 
       {/* Tab Navigation */}
-      <div className="sticky top-16 z-40 bg-white/80 backdrop-blur-xl border-b border-gray-200/60">
+      <div className="sticky top-16 z-40 bg-white/80 backdrop-blur-xl border-b border-brand-100/60">
         <div className="mx-auto max-w-5xl px-4 sm:px-6">
           <div
             className="flex gap-1 overflow-x-auto py-2.5"
@@ -1932,7 +1932,7 @@ export default function KitchenPage() {
                   {isActive && (
                     <motion.div
                       layoutId="kitchen-tab-pill"
-                      className="absolute inset-0 rounded-xl bg-[#0A4D3C] shadow-md shadow-[#0A4D3C]/15"
+                      className="absolute inset-0 rounded-xl bg-brand-400 shadow-md shadow-brand-400/20"
                       transition={{
                         type: "spring",
                         bounce: 0.15,

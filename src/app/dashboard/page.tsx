@@ -66,7 +66,6 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import CustomerDashboard from "./CustomerDashboard";
 import LiveOrdersTab from "@/components/dashboard/LiveOrdersTab";
 import QRCodesTab from "@/components/dashboard/QRCodesTab";
 import MenuManagementTab from "@/components/dashboard/MenuManagementTab";
@@ -1234,6 +1233,7 @@ export default function DashboardPage() {
   const { orders, setRestaurantId } = useLiveOrders();
   const { restaurants, selectedRestaurant, selectRestaurant } = useRestaurant();
   const { user } = useAuth();
+  const dashRouter = useRouter();
 
   /* Fetch role from DB (Supabase user object doesn't carry it) */
   useEffect(() => {
@@ -1332,9 +1332,21 @@ export default function DashboardPage() {
     );
   }
 
-  /* Customers get their own dedicated dashboard */
+  /* Customers go to their orders page — dashboard is for OWNER/ADMIN only */
+  useEffect(() => {
+    if (userRole === "CUSTOMER") {
+      dashRouter.replace("/orders");
+    }
+  }, [userRole, dashRouter]);
+
   if (userRole === "CUSTOMER") {
-    return <CustomerDashboard />;
+    return (
+      <div className="flex h-screen items-center justify-center bg-[#fefcf6]">
+        <span className="text-sm font-medium text-amber-700/70">
+          Redirecting...
+        </span>
+      </div>
+    );
   }
 
   return (
@@ -1451,7 +1463,7 @@ export default function DashboardPage() {
             {/* User */}
             <Link
               href="/profile"
-              className="flex h-8 w-8 items-center justify-center rounded-full ring-2 ring-gray-100 hover:ring-amber-300 transition-all overflow-hidden bg-[#E23744]/10"
+              className="flex h-8 w-8 items-center justify-center rounded-full ring-2 ring-gray-100 hover:ring-amber-300 transition-all overflow-hidden bg-[#eaa94d]/10"
             >
               {user?.user_metadata?.avatar_url ? (
                 <img
@@ -1460,7 +1472,7 @@ export default function DashboardPage() {
                   className="h-8 w-8 object-cover"
                 />
               ) : (
-                <User className="h-4 w-4 text-[#E23744]" />
+                <User className="h-4 w-4 text-[#eaa94d]" />
               )}
             </Link>
           </div>

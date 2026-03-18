@@ -122,9 +122,9 @@ function ScanPageContent() {
         transition={{ duration: 0.5 }}
         className="mb-10 flex items-center gap-2"
       >
-        <Mountain className="h-7 w-7 text-[#FF9933]" strokeWidth={2.5} />
-        <span className="text-xl font-extrabold tracking-tight text-[#1F2A2A]">
-          Hima<span className="text-[#FF9933]">Volt</span>
+        <Mountain className="h-7 w-7 text-[#eaa94d]" strokeWidth={2.5} />
+        <span className="text-xl font-extrabold tracking-tight text-[#3e1e0c]">
+          Hima<span className="text-[#eaa94d]">Volt</span>
         </span>
       </motion.div>
 
@@ -136,7 +136,7 @@ function ScanPageContent() {
       >
         {restaurantSlug && (
           <p className="text-center text-sm text-gray-500">
-            Scanning for <strong className="text-[#1F2A2A]">{restaurantSlug.replace(/-/g, " ")}</strong>
+            Scanning for <strong className="text-[#3e1e0c]">{restaurantSlug.replace(/-/g, " ")}</strong>
           </p>
         )}
 
@@ -144,9 +144,9 @@ function ScanPageContent() {
           ref={scanBoxRef}
           className={`relative mx-auto flex h-64 w-64 items-center justify-center rounded-3xl border-2 transition-all duration-500 overflow-hidden ${
             scanSuccess
-              ? "border-[#0A4D3C] bg-[#0A4D3C]/10 shadow-2xl shadow-[#0A4D3C]/20"
+              ? "border-[#3e1e0c] bg-[#3e1e0c]/10 shadow-2xl shadow-[#3e1e0c]/20"
               : scanning
-                ? "border-[#FF9933] shadow-xl shadow-[#FF9933]/15 bg-black/5"
+                ? "border-[#eaa94d] shadow-xl shadow-[#eaa94d]/15 bg-black/5"
                 : "border-gray-200 bg-gray-50"
           }`}
         >
@@ -163,10 +163,10 @@ function ScanPageContent() {
             )}
           </button>
 
-          <div className="absolute top-0 left-0 h-10 w-10 rounded-tl-3xl border-t-4 border-l-4 border-[#0A4D3C] transition-colors" />
-          <div className="absolute top-0 right-0 h-10 w-10 rounded-tr-3xl border-t-4 border-r-4 border-[#0A4D3C] transition-colors" />
-          <div className="absolute bottom-0 left-0 h-10 w-10 rounded-bl-3xl border-b-4 border-l-4 border-[#0A4D3C] transition-colors" />
-          <div className="absolute bottom-0 right-0 h-10 w-10 rounded-br-3xl border-b-4 border-r-4 border-[#0A4D3C] transition-colors" />
+          <div className="absolute top-0 left-0 h-10 w-10 rounded-tl-3xl border-t-4 border-l-4 border-[#3e1e0c] transition-colors" />
+          <div className="absolute top-0 right-0 h-10 w-10 rounded-tr-3xl border-t-4 border-r-4 border-[#3e1e0c] transition-colors" />
+          <div className="absolute bottom-0 left-0 h-10 w-10 rounded-bl-3xl border-b-4 border-l-4 border-[#3e1e0c] transition-colors" />
+          <div className="absolute bottom-0 right-0 h-10 w-10 rounded-br-3xl border-b-4 border-r-4 border-[#3e1e0c] transition-colors" />
 
           {flashlightOn && (
             <div className="absolute inset-0 bg-yellow-200/20 mix-blend-overlay pointer-events-none" />
@@ -181,9 +181,9 @@ function ScanPageContent() {
                 className="flex flex-col items-center gap-2 z-10"
               >
                 <div className="bg-white rounded-full p-2 shadow-lg">
-                  <CheckCircle2 className="h-12 w-12 text-[#0A4D3C]" />
+                  <CheckCircle2 className="h-12 w-12 text-[#3e1e0c]" />
                 </div>
-                <p className="text-[#0A4D3C] font-bold text-lg drop-shadow-sm">
+                <p className="text-[#3e1e0c] font-bold text-lg drop-shadow-sm">
                   Success!
                 </p>
               </motion.div>
@@ -194,7 +194,7 @@ function ScanPageContent() {
               >
                 <div
                   ref={lineRef}
-                  className="absolute left-[5%] right-[5%] h-[3px] rounded-full bg-[#FF9933] shadow-[0_0_15px_rgba(255,153,51,0.8)]"
+                  className="absolute left-[5%] right-[5%] h-[3px] rounded-full bg-[#eaa94d] shadow-[0_0_15px_rgba(255,153,51,0.8)]"
                 />
               </motion.div>
             ) : (
@@ -218,7 +218,7 @@ function ScanPageContent() {
           className={`w-full rounded-2xl py-4 text-base font-bold text-white transition-all shadow-lg active:scale-[0.98] ${
             scanning || scanSuccess
               ? "bg-gray-300 cursor-not-allowed shadow-none"
-              : "bg-[#0A4D3C] hover:bg-[#083a2d] hover:shadow-xl hover:-translate-y-0.5 shadow-[#0A4D3C]/25"
+              : "bg-[#3e1e0c] hover:bg-[#2d1508] hover:shadow-xl hover:-translate-y-0.5 shadow-[#3e1e0c]/25"
           }`}
         >
           {scanSuccess
@@ -243,7 +243,7 @@ function ScanPageContent() {
               onClick={() => setInputMode("table")}
               className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-bold transition-all ${
                 inputMode === "table"
-                  ? "bg-[#0A4D3C] text-white"
+                  ? "bg-[#3e1e0c] text-white"
                   : "bg-gray-100 text-gray-500 hover:bg-gray-200"
               }`}
             >
@@ -254,7 +254,7 @@ function ScanPageContent() {
               onClick={() => setInputMode("room")}
               className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-bold transition-all ${
                 inputMode === "room"
-                  ? "bg-[#0A4D3C] text-white"
+                  ? "bg-[#3e1e0c] text-white"
                   : "bg-gray-100 text-gray-500 hover:bg-gray-200"
               }`}
             >
@@ -263,7 +263,7 @@ function ScanPageContent() {
             </button>
           </div>
 
-          <p className="text-sm font-bold text-[#1F2A2A] text-center">
+          <p className="text-sm font-bold text-[#3e1e0c] text-center">
             {inputMode === "table"
               ? "Enter table number manually"
               : "Enter guest house room number"}
@@ -287,7 +287,7 @@ function ScanPageContent() {
                 }}
                 placeholder={inputMode === "table" ? "e.g. 07" : "e.g. 101"}
                 maxLength={inputMode === "table" ? 2 : 10}
-                className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3.5 pl-11 pr-4 text-center text-lg font-bold text-[#1F2A2A] placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FF9933]/30 focus:border-[#FF9933]/30 focus:bg-white transition-all tracking-[0.3em]"
+                className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3.5 pl-11 pr-4 text-center text-lg font-bold text-[#3e1e0c] placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-[#eaa94d]/30 focus:border-[#eaa94d]/30 focus:bg-white transition-all tracking-[0.3em]"
               />
             </div>
             <button
@@ -299,7 +299,7 @@ function ScanPageContent() {
               }
               className={`flex h-[52px] w-[52px] items-center justify-center rounded-xl transition-all ${
                 (inputMode === "table" ? tableNum.length >= 1 : roomNum.length >= 1)
-                  ? "bg-[#FF9933] text-white shadow-md hover:bg-[#ff8811]"
+                  ? "bg-[#eaa94d] text-white shadow-md hover:bg-[#d67620]"
                   : "bg-gray-100 text-gray-300 cursor-not-allowed"
               }`}
             >
@@ -311,7 +311,7 @@ function ScanPageContent() {
         <div className="text-center pt-2">
           <Link
             href="/"
-            className="text-xs font-bold text-[#0A4D3C] hover:underline"
+            className="text-xs font-bold text-[#3e1e0c] hover:underline"
           >
             Skip & Browse Restaurants
           </Link>

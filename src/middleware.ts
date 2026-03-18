@@ -13,6 +13,8 @@ const PUBLIC_ROUTES = [
   /^\/legal(\/|$)/,
   /^\/track(\/|$)/,
   /^\/guide(\/|$)/,
+  /^\/orders(\/|$)/,
+  /^\/offers(\/|$)/,
   /^\/sign-in(\/|$)/,
   /^\/sign-up(\/|$)/,
   /^\/auth(\/|$)/,

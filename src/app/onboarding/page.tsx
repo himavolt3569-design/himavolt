@@ -103,9 +103,9 @@ export default function OnboardingPage() {
         {/* Logo */}
         <div className="mb-8 text-center">
           <Link href="/" className="inline-flex items-center gap-2">
-            <Mountain className="h-8 w-8 text-[#E23744]" strokeWidth={2.5} />
-            <span className="text-2xl font-extrabold tracking-tight text-[#1F2A2A]">
-              Hima<span className="text-[#E23744]">Volt</span>
+            <Mountain className="h-8 w-8 text-[#eaa94d]" strokeWidth={2.5} />
+            <span className="text-2xl font-extrabold tracking-tight text-[#3e1e0c]">
+              Hima<span className="text-[#eaa94d]">Volt</span>
             </span>
           </Link>
 
@@ -125,7 +125,7 @@ export default function OnboardingPage() {
                             isDone
                               ? "bg-green-500 text-white"
                               : isActive
-                              ? "bg-[#E23744] text-white"
+                              ? "bg-[#eaa94d] text-white"
                               : "bg-gray-200 text-gray-400"
                           }`}
                         >
@@ -137,7 +137,7 @@ export default function OnboardingPage() {
                         </div>
                         <span
                           className={`text-xs font-medium ${
-                            isActive ? "text-[#1F2A2A]" : "text-gray-400"
+                            isActive ? "text-[#3e1e0c]" : "text-gray-400"
                           }`}
                         >
                           {label}
@@ -151,7 +151,7 @@ export default function OnboardingPage() {
                 })}
               </div>
 
-              <p className="mt-3 text-sm font-semibold text-[#1F2A2A]">
+              <p className="mt-3 text-sm font-semibold text-[#3e1e0c]">
                 {step === 1
                   ? "Tell us about your restaurant"
                   : "Where can customers find you?"}
@@ -177,7 +177,7 @@ export default function OnboardingPage() {
                 {/* Restaurant Name */}
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-700">
-                    Restaurant Name <span className="text-[#E23744]">*</span>
+                    Restaurant Name <span className="text-[#eaa94d]">*</span>
                   </label>
                   <div className="relative">
                     <Store className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
@@ -186,7 +186,7 @@ export default function OnboardingPage() {
                       value={form.name}
                       onChange={(e) => update("name", e.target.value)}
                       required
-                      className="w-full rounded-xl border border-gray-200 py-2.5 pl-9 pr-4 text-sm focus:border-[#E23744]/30 focus:outline-none focus:ring-1 focus:ring-[#E23744]/30"
+                      className="w-full rounded-xl border border-gray-200 py-2.5 pl-9 pr-4 text-sm focus:border-[#eaa94d]/30 focus:outline-none focus:ring-1 focus:ring-[#eaa94d]/30"
                       placeholder="e.g. The Himalayan Kitchen"
                     />
                   </div>
@@ -195,7 +195,7 @@ export default function OnboardingPage() {
                 {/* Restaurant Type */}
                 <div>
                   <label className="mb-2 block text-sm font-medium text-gray-700">
-                    Type <span className="text-[#E23744]">*</span>
+                    Type <span className="text-[#eaa94d]">*</span>
                   </label>
                   <div className="grid grid-cols-4 gap-2">
                     {RESTAURANT_TYPES.map(({ value, label, emoji }) => (
@@ -205,7 +205,7 @@ export default function OnboardingPage() {
                         onClick={() => update("type", value)}
                         className={`flex flex-col items-center gap-1 rounded-xl border-2 py-2.5 px-1 text-center transition-all ${
                           form.type === value
-                            ? "border-[#E23744] bg-[#E23744]/5"
+                            ? "border-[#eaa94d] bg-[#eaa94d]/5"
                             : "border-gray-200 hover:border-gray-300"
                         }`}
                       >
@@ -213,7 +213,7 @@ export default function OnboardingPage() {
                         <span
                           className={`text-[10px] font-semibold leading-tight ${
                             form.type === value
-                              ? "text-[#E23744]"
+                              ? "text-[#eaa94d]"
                               : "text-gray-500"
                           }`}
                         >
@@ -227,7 +227,7 @@ export default function OnboardingPage() {
                 <button
                   type="submit"
                   disabled={!form.name.trim() || !form.type}
-                  className="w-full rounded-xl bg-[#E23744] py-3 text-sm font-bold text-white transition-all hover:bg-[#c92e3c] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed shadow-sm shadow-[#E23744]/20 flex items-center justify-center gap-2"
+                  className="w-full rounded-xl bg-[#eaa94d] py-3 text-sm font-bold text-white transition-all hover:bg-[#d67620] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed shadow-sm shadow-[#eaa94d]/20 flex items-center justify-center gap-2"
                 >
                   Next
                   <ChevronRight className="h-4 w-4" />
@@ -258,7 +258,7 @@ export default function OnboardingPage() {
                 {/* Phone */}
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-700">
-                    Business Phone <span className="text-[#E23744]">*</span>
+                    Business Phone <span className="text-[#eaa94d]">*</span>
                   </label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
@@ -267,7 +267,7 @@ export default function OnboardingPage() {
                       value={form.phone}
                       onChange={(e) => update("phone", e.target.value)}
                       required
-                      className="w-full rounded-xl border border-gray-200 py-2.5 pl-9 pr-4 text-sm focus:border-[#E23744]/30 focus:outline-none focus:ring-1 focus:ring-[#E23744]/30"
+                      className="w-full rounded-xl border border-gray-200 py-2.5 pl-9 pr-4 text-sm focus:border-[#eaa94d]/30 focus:outline-none focus:ring-1 focus:ring-[#eaa94d]/30"
                       placeholder="+977 01-XXXXXXX or 98XXXXXXXX"
                     />
                   </div>
@@ -284,7 +284,7 @@ export default function OnboardingPage() {
                       type="text"
                       value={form.city}
                       onChange={(e) => update("city", e.target.value)}
-                      className="w-full rounded-xl border border-gray-200 py-2.5 pl-9 pr-4 text-sm focus:border-[#E23744]/30 focus:outline-none focus:ring-1 focus:ring-[#E23744]/30"
+                      className="w-full rounded-xl border border-gray-200 py-2.5 pl-9 pr-4 text-sm focus:border-[#eaa94d]/30 focus:outline-none focus:ring-1 focus:ring-[#eaa94d]/30"
                       placeholder="Kathmandu"
                     />
                   </div>
@@ -300,7 +300,7 @@ export default function OnboardingPage() {
                     value={form.address}
                     onChange={(e) => update("address", e.target.value)}
                     rows={2}
-                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-[#E23744]/30 focus:outline-none focus:ring-1 focus:ring-[#E23744]/30 resize-none"
+                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-[#eaa94d]/30 focus:outline-none focus:ring-1 focus:ring-[#eaa94d]/30 resize-none"
                     placeholder="Street, Tole, Landmark..."
                   />
                 </div>
@@ -316,7 +316,7 @@ export default function OnboardingPage() {
                   <button
                     type="submit"
                     disabled={!form.phone.trim() || loading}
-                    className="flex-[2] rounded-xl bg-[#E23744] py-3 text-sm font-bold text-white transition-all hover:bg-[#c92e3c] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed shadow-sm shadow-[#E23744]/20 flex items-center justify-center gap-2"
+                    className="flex-[2] rounded-xl bg-[#eaa94d] py-3 text-sm font-bold text-white transition-all hover:bg-[#d67620] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed shadow-sm shadow-[#eaa94d]/20 flex items-center justify-center gap-2"
                   >
                     {loading ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -344,7 +344,7 @@ export default function OnboardingPage() {
               <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
                 <Building2 className="h-10 w-10 text-green-600" />
               </div>
-              <h2 className="text-xl font-bold text-[#1F2A2A] mb-2">
+              <h2 className="text-xl font-bold text-[#3e1e0c] mb-2">
                 {restaurantName} is live!
               </h2>
               <p className="text-sm text-gray-500 mb-8 leading-relaxed">
@@ -355,7 +355,7 @@ export default function OnboardingPage() {
               <div className="space-y-3">
                 <button
                   onClick={() => router.push("/dashboard")}
-                  className="w-full rounded-xl bg-[#E23744] py-3 text-sm font-bold text-white transition-all hover:bg-[#c92e3c] shadow-sm shadow-[#E23744]/20"
+                  className="w-full rounded-xl bg-[#eaa94d] py-3 text-sm font-bold text-white transition-all hover:bg-[#d67620] shadow-sm shadow-[#eaa94d]/20"
                 >
                   Go to Dashboard
                 </button>

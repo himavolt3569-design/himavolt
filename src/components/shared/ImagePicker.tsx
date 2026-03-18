@@ -119,8 +119,8 @@ export default function ImagePicker({
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 shrink-0">
               <div className="flex items-center gap-2">
-                <Camera className="h-5 w-5 text-[#FF9933]" />
-                <h2 className="text-base font-bold text-[#1F2A2A]">
+                <Camera className="h-5 w-5 text-[#eaa94d]" />
+                <h2 className="text-base font-bold text-[#3e1e0c]">
                   Choose Image
                 </h2>
               </div>
@@ -167,7 +167,7 @@ export default function ImagePicker({
                   onClick={() => setTab(t.id)}
                   className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-[12px] font-bold transition-all ${
                     tab === t.id
-                      ? "bg-[#0A4D3C] text-white"
+                      ? "bg-[#3e1e0c] text-white"
                       : "bg-gray-100 text-gray-500 hover:bg-gray-200"
                   }`}
                 >
@@ -188,7 +188,7 @@ export default function ImagePicker({
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
                       placeholder="Search food images..."
-                      className="w-full rounded-xl border border-gray-200 bg-gray-50 py-2.5 pl-9 pr-3 text-sm text-[#1F2A2A] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FF9933]/30 focus:bg-white transition-all"
+                      className="w-full rounded-xl border border-gray-200 bg-gray-50 py-2.5 pl-9 pr-3 text-sm text-[#3e1e0c] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#eaa94d]/30 focus:bg-white transition-all"
                     />
                   </div>
 
@@ -200,7 +200,7 @@ export default function ImagePicker({
                         onClick={() => setCategory(cat)}
                         className={`shrink-0 rounded-full px-3 py-1.5 text-[11px] font-bold transition-all ${
                           category === cat
-                            ? "bg-[#FF9933] text-white"
+                            ? "bg-[#eaa94d] text-white"
                             : "bg-gray-100 text-gray-500 hover:bg-gray-200"
                         }`}
                       >
@@ -217,7 +217,7 @@ export default function ImagePicker({
                         onClick={() => handleLibrarySelect(img)}
                         onMouseEnter={() => setPreviewUrl(img.url)}
                         onMouseLeave={() => setPreviewUrl(null)}
-                        className="group relative aspect-square rounded-xl overflow-hidden bg-gray-100 hover:ring-2 hover:ring-[#FF9933] transition-all"
+                        className="group relative aspect-square rounded-xl overflow-hidden bg-gray-100 hover:ring-2 hover:ring-[#eaa94d] transition-all"
                       >
                         <img
                           src={img.url}
@@ -230,7 +230,7 @@ export default function ImagePicker({
                           {img.label}
                         </span>
                         {currentImage === img.url && (
-                          <div className="absolute top-1.5 right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#0A4D3C]">
+                          <div className="absolute top-1.5 right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#3e1e0c]">
                             <Check className="h-3 w-3 text-white" />
                           </div>
                         )}
@@ -267,22 +267,22 @@ export default function ImagePicker({
                       const file = e.dataTransfer.files[0];
                       if (file) handleFileUpload(file);
                     }}
-                    className="flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 py-14 cursor-pointer hover:border-[#FF9933] hover:bg-[#FF9933]/5 transition-all"
+                    className="flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 py-14 cursor-pointer hover:border-[#eaa94d] hover:bg-[#eaa94d]/5 transition-all"
                   >
                     {uploading ? (
                       <>
-                        <Loader2 className="h-8 w-8 animate-spin text-[#FF9933]" />
+                        <Loader2 className="h-8 w-8 animate-spin text-[#eaa94d]" />
                         <p className="text-sm font-bold text-gray-500">
                           Uploading...
                         </p>
                       </>
                     ) : (
                       <>
-                        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FF9933]/10">
-                          <Upload className="h-6 w-6 text-[#FF9933]" />
+                        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#eaa94d]/10">
+                          <Upload className="h-6 w-6 text-[#eaa94d]" />
                         </div>
                         <div className="text-center">
-                          <p className="text-sm font-bold text-[#1F2A2A]">
+                          <p className="text-sm font-bold text-[#3e1e0c]">
                             Click to upload or drag & drop
                           </p>
                           <p className="text-xs text-gray-400 mt-0.5">
@@ -307,7 +307,7 @@ export default function ImagePicker({
                         value={urlInput}
                         onChange={(e) => setUrlInput(e.target.value)}
                         placeholder="https://example.com/food-image.jpg"
-                        className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 pl-10 pr-3 text-sm text-[#1F2A2A] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FF9933]/30 focus:bg-white transition-all"
+                        className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 pl-10 pr-3 text-sm text-[#3e1e0c] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#eaa94d]/30 focus:bg-white transition-all"
                       />
                     </div>
                   </div>
@@ -329,7 +329,7 @@ export default function ImagePicker({
                   <button
                     onClick={handleUrlSubmit}
                     disabled={!urlInput.trim()}
-                    className="w-full rounded-xl bg-[#0A4D3C] py-3 text-sm font-bold text-white hover:bg-[#083a2d] transition-colors disabled:opacity-50"
+                    className="w-full rounded-xl bg-[#3e1e0c] py-3 text-sm font-bold text-white hover:bg-[#2d1508] transition-colors disabled:opacity-50"
                   >
                     Use This Image
                   </button>

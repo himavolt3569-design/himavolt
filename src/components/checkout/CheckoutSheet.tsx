@@ -255,8 +255,8 @@ export default function CheckoutSheet({
     if (totalRef.current && open) {
       gsap.fromTo(
         totalRef.current,
-        { scale: 1.1, color: "#FF9933" },
-        { scale: 1, color: "#1F2A2A", duration: 0.4, ease: "back.out(2)" },
+        { scale: 1.1, color: "#eaa94d" },
+        { scale: 1, color: "#3e1e0c", duration: 0.4, ease: "back.out(2)" },
       );
     }
   }, [total, open]);
@@ -477,8 +477,8 @@ export default function CheckoutSheet({
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
               <div className="flex items-center gap-2">
-                <ShoppingBag className="h-5 w-5 text-[#FF9933]" />
-                <h2 className="text-lg font-bold text-[#1F2A2A]">
+                <ShoppingBag className="h-5 w-5 text-[#eaa94d]" />
+                <h2 className="text-lg font-bold text-[#3e1e0c]">
                   {step === "review"
                     ? "Review Order"
                     : step === "scan-qr"
@@ -533,18 +533,18 @@ export default function CheckoutSheet({
                               isDisabled
                                 ? "opacity-40 cursor-not-allowed border-gray-100"
                                 : isActive
-                                  ? "border-[#FF9933] bg-[#FF9933]/5 shadow-sm"
+                                  ? "border-[#eaa94d] bg-[#eaa94d]/5 shadow-sm"
                                   : "border-gray-100 hover:border-gray-200"
                             }`}
                           >
                             <Icon
                               className={`h-5 w-5 ${
-                                isActive ? "text-[#FF9933]" : "text-gray-400"
+                                isActive ? "text-[#eaa94d]" : "text-gray-400"
                               }`}
                             />
                             <span
                               className={`text-xs font-bold ${
-                                isActive ? "text-[#FF9933]" : "text-gray-600"
+                                isActive ? "text-[#eaa94d]" : "text-gray-600"
                               }`}
                             >
                               {ot.label}
@@ -552,7 +552,7 @@ export default function CheckoutSheet({
                             {isActive && (
                               <motion.div
                                 layoutId="orderTypeIndicator"
-                                className="absolute -top-px -right-px h-3 w-3 rounded-full bg-[#FF9933] border-2 border-white"
+                                className="absolute -top-px -right-px h-3 w-3 rounded-full bg-[#eaa94d] border-2 border-white"
                               />
                             )}
                           </button>
@@ -580,7 +580,7 @@ export default function CheckoutSheet({
                             value={deliveryAddress}
                             onChange={(e) => setDeliveryAddress(e.target.value)}
                             placeholder="Delivery address (e.g. Thamel, Kathmandu)"
-                            className="w-full rounded-xl border border-gray-200 py-3 pl-10 pr-4 text-sm text-[#1F2A2A] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FF9933]/30 focus:border-[#FF9933]/30"
+                            className="w-full rounded-xl border border-gray-200 py-3 pl-10 pr-4 text-sm text-[#3e1e0c] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#eaa94d]/30 focus:border-[#eaa94d]/30"
                           />
                         </div>
                         <div className="relative">
@@ -590,7 +590,7 @@ export default function CheckoutSheet({
                             value={deliveryPhone}
                             onChange={(e) => setDeliveryPhone(e.target.value)}
                             placeholder="Phone number (e.g. 9800000000)"
-                            className="w-full rounded-xl border border-gray-200 py-3 pl-10 pr-4 text-sm text-[#1F2A2A] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FF9933]/30 focus:border-[#FF9933]/30"
+                            className="w-full rounded-xl border border-gray-200 py-3 pl-10 pr-4 text-sm text-[#3e1e0c] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#eaa94d]/30 focus:border-[#eaa94d]/30"
                           />
                         </div>
                         <textarea
@@ -598,7 +598,7 @@ export default function CheckoutSheet({
                           onChange={(e) => setDeliveryNote(e.target.value)}
                           placeholder="Delivery instructions (optional)"
                           rows={2}
-                          className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-[#1F2A2A] placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-[#FF9933]/30 focus:border-[#FF9933]/30"
+                          className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-[#3e1e0c] placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-[#eaa94d]/30 focus:border-[#eaa94d]/30"
                         />
                       </motion.div>
                     )}
@@ -620,14 +620,14 @@ export default function CheckoutSheet({
                           />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold text-[#1F2A2A] truncate">
+                          <p className="text-sm font-bold text-[#3e1e0c] truncate">
                             {item.name}
                           </p>
                           <p className="text-xs text-gray-400">
                             {item.quantity} x {formatPrice(item.price, currency)}
                           </p>
                         </div>
-                        <span className="text-sm font-bold text-[#1F2A2A]">
+                        <span className="text-sm font-bold text-[#3e1e0c]">
                           {formatPrice(item.price * item.quantity, currency)}
                         </span>
                       </div>
@@ -645,7 +645,7 @@ export default function CheckoutSheet({
                       onChange={(e) => setNote(e.target.value)}
                       placeholder="e.g., No spice, extra cheese..."
                       rows={2}
-                      className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-[#1F2A2A] placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-[#FF9933]/30 focus:border-[#FF9933]/30"
+                      className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-[#3e1e0c] placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-[#eaa94d]/30 focus:border-[#eaa94d]/30"
                     />
                   </div>
 
@@ -653,14 +653,14 @@ export default function CheckoutSheet({
                   <div className="rounded-xl bg-gray-50 p-4 space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-500">Subtotal</span>
-                      <span className="font-semibold text-[#1F2A2A]">
+                      <span className="font-semibold text-[#3e1e0c]">
                         {formatPrice(subtotal, currency)}
                       </span>
                     </div>
                     {taxEnabled && (
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-500">Tax ({taxRate}%)</span>
-                        <span className="font-semibold text-[#1F2A2A]">
+                        <span className="font-semibold text-[#3e1e0c]">
                           {formatPrice(tax, currency)}
                         </span>
                       </div>
@@ -670,18 +670,18 @@ export default function CheckoutSheet({
                         <span className="text-gray-500 flex items-center gap-1">
                           <Truck className="h-3 w-3" /> Delivery Fee
                         </span>
-                        <span className="font-semibold text-[#1F2A2A]">
+                        <span className="font-semibold text-[#3e1e0c]">
                           {deliveryFee > 0 ? formatPrice(deliveryFee, currency) : "FREE"}
                         </span>
                       </div>
                     )}
                     <div className="border-t border-gray-200 pt-2 flex justify-between">
-                      <span className="text-base font-bold text-[#1F2A2A]">
+                      <span className="text-base font-bold text-[#3e1e0c]">
                         Total
                       </span>
                       <span
                         ref={totalRef}
-                        className="text-lg font-extrabold text-[#FF9933]"
+                        className="text-lg font-extrabold text-[#eaa94d]"
                       >
                         {formatPrice(total, currency)}
                       </span>
@@ -690,21 +690,21 @@ export default function CheckoutSheet({
 
                   {/* Table / Room info */}
                   {(tableNo || roomNo) && orderType === "DINE_IN" && (
-                    <div className="flex items-center gap-2 rounded-xl bg-[#0A4D3C]/5 px-4 py-3">
+                    <div className="flex items-center gap-2 rounded-xl bg-[#3e1e0c]/5 px-4 py-3">
                       {tableNo && (
                         <>
-                          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#0A4D3C]/10 text-sm font-bold text-[#0A4D3C]">
+                          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#3e1e0c]/10 text-sm font-bold text-[#3e1e0c]">
                             {tableNo}
                           </span>
-                          <span className="text-sm font-medium text-[#0A4D3C]">
+                          <span className="text-sm font-medium text-[#3e1e0c]">
                             Table {tableNo}
                           </span>
                         </>
                       )}
                       {roomNo && (
                         <>
-                          <BedDouble className="h-4 w-4 text-[#0A4D3C] ml-1" />
-                          <span className="text-sm font-medium text-[#0A4D3C]">
+                          <BedDouble className="h-4 w-4 text-[#3e1e0c] ml-1" />
+                          <span className="text-sm font-medium text-[#3e1e0c]">
                             Room {roomNo}
                           </span>
                         </>
@@ -740,7 +740,7 @@ export default function CheckoutSheet({
                         }
                         className={`w-full rounded-xl border-2 p-3 text-left transition-all ${
                           selectedQR?.id === qr.id
-                            ? "border-[#FF9933] bg-[#FF9933]/5 shadow-sm"
+                            ? "border-[#eaa94d] bg-[#eaa94d]/5 shadow-sm"
                             : "border-gray-100 hover:border-gray-200"
                         }`}
                       >
@@ -748,7 +748,7 @@ export default function CheckoutSheet({
                           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100">
                             <QrCode className="h-5 w-5 text-gray-500" />
                           </div>
-                          <span className="text-sm font-bold text-[#1F2A2A]">
+                          <span className="text-sm font-bold text-[#3e1e0c]">
                             {qr.label}
                           </span>
                           <ChevronRight
@@ -779,10 +779,10 @@ export default function CheckoutSheet({
 
                   <div className="rounded-xl bg-gray-50 p-4">
                     <div className="flex justify-between">
-                      <span className="text-sm font-bold text-[#1F2A2A]">
+                      <span className="text-sm font-bold text-[#3e1e0c]">
                         Amount to Pay
                       </span>
-                      <span className="text-lg font-extrabold text-[#FF9933]">
+                      <span className="text-lg font-extrabold text-[#eaa94d]">
                         {formatPrice(total, currency)}
                       </span>
                     </div>
@@ -821,7 +821,7 @@ export default function CheckoutSheet({
                           <div className="flex-1">
                             <p
                               className={`text-sm font-bold ${
-                                isSelected ? "text-[#1F2A2A]" : "text-gray-600"
+                                isSelected ? "text-[#3e1e0c]" : "text-gray-600"
                               }`}
                             >
                               {method.label}
@@ -833,7 +833,7 @@ export default function CheckoutSheet({
                           <div
                             className={`flex h-5 w-5 items-center justify-center rounded-full border-2 ${
                               isSelected
-                                ? "border-[#FF9933] bg-[#FF9933]"
+                                ? "border-[#eaa94d] bg-[#eaa94d]"
                                 : "border-gray-300"
                             }`}
                           >
@@ -875,8 +875,8 @@ export default function CheckoutSheet({
                 <div className="px-6 py-10 space-y-6 text-center">
                   <div className="flex justify-center">
                     <div className="relative">
-                      <div className="h-20 w-20 rounded-full bg-[#FF9933]/10 flex items-center justify-center">
-                        <Loader2 className="h-10 w-10 animate-spin text-[#FF9933]" />
+                      <div className="h-20 w-20 rounded-full bg-[#eaa94d]/10 flex items-center justify-center">
+                        <Loader2 className="h-10 w-10 animate-spin text-[#eaa94d]" />
                       </div>
                       <div className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-white shadow flex items-center justify-center">
                         {selectedPayment === "ESEWA" ? (
@@ -890,7 +890,7 @@ export default function CheckoutSheet({
                     </div>
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-[#1F2A2A]">
+                    <h3 className="text-lg font-bold text-[#3e1e0c]">
                       Waiting for Payment
                     </h3>
                     <p className="text-sm text-gray-500 mt-1">
@@ -905,10 +905,10 @@ export default function CheckoutSheet({
                   </div>
                   <div className="rounded-xl bg-gray-50 p-4">
                     <div className="flex justify-between">
-                      <span className="text-sm font-bold text-[#1F2A2A]">
+                      <span className="text-sm font-bold text-[#3e1e0c]">
                         Amount
                       </span>
-                      <span className="text-lg font-extrabold text-[#FF9933]">
+                      <span className="text-lg font-extrabold text-[#eaa94d]">
                         {formatPrice(total, currency)}
                       </span>
                     </div>
@@ -930,7 +930,7 @@ export default function CheckoutSheet({
                 <button
                   onClick={() => setStep("payment")}
                   disabled={items.length === 0 || !canProceed}
-                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#FF9933] py-4 text-base font-bold text-white transition-all hover:bg-[#ff8811] active:scale-[0.98] shadow-lg shadow-[#FF9933]/25 disabled:opacity-50"
+                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#eaa94d] py-4 text-base font-bold text-white transition-all hover:bg-[#d67620] active:scale-[0.98] shadow-lg shadow-[#eaa94d]/25 disabled:opacity-50"
                 >
                   Continue to Payment
                   <ChevronRight className="h-4 w-4" />
@@ -940,7 +940,7 @@ export default function CheckoutSheet({
                   <button
                     onClick={handlePlaceOrder}
                     disabled={loading}
-                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#0A4D3C] py-4 text-base font-bold text-white transition-all hover:bg-[#083a2d] active:scale-[0.98] shadow-lg shadow-[#0A4D3C]/25 disabled:opacity-60"
+                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#3e1e0c] py-4 text-base font-bold text-white transition-all hover:bg-[#2d1508] active:scale-[0.98] shadow-lg shadow-[#3e1e0c]/25 disabled:opacity-60"
                   >
                     {loading ? (
                       <>
@@ -982,7 +982,7 @@ export default function CheckoutSheet({
                         : handlePlaceOrder
                     }
                     disabled={loading}
-                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#0A4D3C] py-4 text-base font-bold text-white transition-all hover:bg-[#083a2d] active:scale-[0.98] shadow-lg shadow-[#0A4D3C]/25 disabled:opacity-60"
+                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#3e1e0c] py-4 text-base font-bold text-white transition-all hover:bg-[#2d1508] active:scale-[0.98] shadow-lg shadow-[#3e1e0c]/25 disabled:opacity-60"
                   >
                     {loading ? (
                       <>

@@ -128,7 +128,7 @@ export const offers = [
     id: 1,
     title: `60% OFF up to ${formatPrice(120, "NPR")}`,
     subtitle: `USE STEALDEAL | ABOVE ${formatPrice(159, "NPR")}`,
-    bgColor: "from-[#E23744] via-[#C62828] to-[#B71C1C]",
+    bgColor: "from-[#eaa94d] via-[#C62828] to-[#B71C1C]",
     image:
       "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=600&h=400&fit=crop",
     badge: "Most Popular",
@@ -138,7 +138,7 @@ export const offers = [
     id: 2,
     title: "FREE DELIVERY",
     subtitle: `ON ORDERS ABOVE ${formatPrice(499, "NPR")}`,
-    bgColor: "from-[#0A4D3C] via-[#1B5E46] to-[#2E7D5E]",
+    bgColor: "from-[#3e1e0c] via-[#1B5E46] to-[#2E7D5E]",
     image:
       "https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=600&h=400&fit=crop",
     badge: "Limited Time",
@@ -148,7 +148,7 @@ export const offers = [
     id: 3,
     title: `FLAT ${formatPrice(100, "NPR")} OFF`,
     subtitle: "USE HIMAL100 | FIRST ORDER",
-    bgColor: "from-[#E65100] via-[#F57C00] to-[#FF9933]",
+    bgColor: "from-[#E65100] via-[#F57C00] to-[#eaa94d]",
     image:
       "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=600&h=400&fit=crop",
     badge: "New Users",

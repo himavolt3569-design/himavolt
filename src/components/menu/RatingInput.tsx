@@ -76,7 +76,7 @@ export default function RatingInput({
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
-        <span className="text-[13px] font-bold text-[#1F2A2A]">
+        <span className="text-[13px] font-bold text-[#3e1e0c]">
           Rate this dish
         </span>
         {selectedRating > 0 && (

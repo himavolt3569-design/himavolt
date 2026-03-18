@@ -186,7 +186,7 @@ export default function ProfilePage() {
                     ? "bg-amber-100 text-amber-700"
                     : dbRole === "ADMIN"
                     ? "bg-purple-100 text-purple-700"
-                    : "bg-[#E23744]/10 text-[#E23744]"
+                    : "bg-saffron-flame/10 text-saffron-flame"
                 }`}>
                   {dbRole === "OWNER" ? "Restaurant Owner" : dbRole === "ADMIN" ? "Admin" : "Food Lover"}
                 </span>
@@ -216,8 +216,8 @@ export default function ProfilePage() {
           </div>
           <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
             <div className="flex items-center gap-2 mb-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-everest-pine/10">
-                <CalendarDays className="h-4 w-4 text-everest-pine" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-saffron-flame/10">
+                <CalendarDays className="h-4 w-4 text-saffron-flame" />
               </div>
             </div>
             <p className="text-sm font-extrabold text-gompa-slate">

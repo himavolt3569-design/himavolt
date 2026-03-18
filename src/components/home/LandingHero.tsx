@@ -5,7 +5,6 @@ import {
   motion,
   useScroll,
   useTransform,
-  useInView,
   useMotionValue,
   useSpring,
   AnimatePresence,
@@ -16,28 +15,18 @@ import gsap from "gsap";
 import Link from "next/link";
 
 /* ═══════════════════════════════════════════════════════
-   ANIMATED COUNTER
+   CRAVING STRIP DATA — mouth-watering food showcase
    ═══════════════════════════════════════════════════════ */
-function useCounter(end: number, duration = 2000) {
-  const [count, setCount] = useState(0);
-  const ref = useRef<HTMLSpanElement>(null);
-  const inView = useInView(ref, { once: true });
-
-  useEffect(() => {
-    if (!inView) return;
-    const startTime = Date.now();
-    const timer = setInterval(() => {
-      const elapsed = Date.now() - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setCount(Math.floor(end * eased));
-      if (progress >= 1) clearInterval(timer);
-    }, 16);
-    return () => clearInterval(timer);
-  }, [inView, end, duration]);
-
-  return { count, ref };
-}
+const cravingItems = [
+  { name: "Chicken Momo", tag: "🔥 Most Ordered", img: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=100&h=100&fit=crop", hot: true },
+  { name: "Thakali Set", tag: "⭐ Top Rated", img: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=100&h=100&fit=crop", hot: false },
+  { name: "Cheese Pizza", tag: "🍕 Trending", img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=100&h=100&fit=crop", hot: true },
+  { name: "Buff Sekuwa", tag: "🔥 Popular", img: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=100&h=100&fit=crop", hot: false },
+  { name: "Newari Khaja", tag: "🏆 Chef's Pick", img: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=100&h=100&fit=crop", hot: true },
+  { name: "Dal Bhat Power", tag: "❤️ Classic", img: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=100&h=100&fit=crop", hot: false },
+  { name: "Chatamari", tag: "🍛 Nepali Pizza", img: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=100&h=100&fit=crop", hot: false },
+  { name: "Buff Chhoila", tag: "🔥 Spicy Hit", img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=100&h=100&fit=crop", hot: true },
+];
 
 /* ═══════════════════════════════════════════════════════
    LIVE ORDER FEED — creates FOMO
@@ -224,10 +213,6 @@ export default function LandingHero() {
   const heroOpacity = useTransform(scrollY, [0, 500], [1, 0]);
   const heroY = useTransform(scrollY, [0, 500], [0, 60]);
 
-  /* Counters */
-  const orders = useCounter(2400);
-  const restaurants = useCounter(150);
-
   /* ── Mouse tracking for 3D tilt + parallax ── */
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
@@ -373,42 +358,41 @@ export default function LandingHero() {
               </MagneticButton>
             </motion.div>
 
-            {/* ── Animated stats ── */}
-            <motion.div
-              variants={fadeUp}
-              className="mt-8 flex items-center justify-center lg:justify-start gap-6"
-            >
-              <div className="text-center lg:text-left">
-                <span
-                  ref={orders.ref}
-                  className="block text-xl font-extrabold text-[#3e1e0c] tabular-nums"
+            {/* ── Craving Strip — auto-scrolling food showcase ── */}
+            <motion.div variants={fadeUp} className="mt-8 w-full max-w-md mx-auto lg:mx-0 lg:max-w-lg">
+              <p className="text-[10px] font-bold text-[#b25c1c]/60 uppercase tracking-widest mb-2.5 text-center lg:text-left">
+                🔥 Trending right now
+              </p>
+              <div className="relative overflow-hidden rounded-2xl">
+                {/* Fade masks */}
+                <div className="absolute left-0 top-0 bottom-0 w-8 bg-linear-to-r from-[#fdf9ef] to-transparent z-10 pointer-events-none" />
+                <div className="absolute right-0 top-0 bottom-0 w-8 bg-linear-to-l from-[#fdf9ef] to-transparent z-10 pointer-events-none" />
+                <motion.div
+                  animate={{ x: ["0%", "-50%"] }}
+                  transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+                  className="flex gap-2.5 w-max"
                 >
-                  {orders.count.toLocaleString()}+
-                </span>
-                <span className="text-[11px] font-medium text-[#8e491e]/35">
-                  orders today
-                </span>
-              </div>
-              <div className="h-8 w-px bg-[#eaa94d]/15" />
-              <div className="text-center lg:text-left">
-                <span
-                  ref={restaurants.ref}
-                  className="block text-xl font-extrabold text-[#3e1e0c] tabular-nums"
-                >
-                  {restaurants.count}+
-                </span>
-                <span className="text-[11px] font-medium text-[#8e491e]/35">
-                  restaurants
-                </span>
-              </div>
-              <div className="h-8 w-px bg-[#eaa94d]/15" />
-              <div className="text-center lg:text-left">
-                <span className="block text-xl font-extrabold text-[#3e1e0c]">
-                  4.8
-                </span>
-                <span className="text-[11px] font-medium text-[#8e491e]/35">
-                  avg rating
-                </span>
+                  {[...cravingItems, ...cravingItems].map((item, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center gap-2.5 rounded-2xl bg-white/80 backdrop-blur-sm pl-1.5 pr-4 py-1.5 border border-[#f4d69a]/25 shadow-sm shrink-0 hover:shadow-md hover:border-[#eaa94d]/30 transition-all duration-300"
+                    >
+                      <div className="relative h-10 w-10 rounded-xl overflow-hidden shrink-0">
+                        <img src={item.img} alt={item.name} className="h-full w-full object-cover" />
+                        {item.hot && (
+                          <span className="absolute -top-0.5 -right-0.5 flex h-3 w-3">
+                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#e58f2a]/60" />
+                            <span className="relative inline-flex h-3 w-3 rounded-full bg-[#e58f2a] border border-white" />
+                          </span>
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[12px] font-bold text-[#3e1e0c] truncate">{item.name}</p>
+                        <p className="text-[10px] text-[#b25c1c]/50 font-medium">{item.tag}</p>
+                      </div>
+                    </div>
+                  ))}
+                </motion.div>
               </div>
             </motion.div>
           </motion.div>

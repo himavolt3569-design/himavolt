@@ -1,17 +1,10 @@
 "use client";
 
 import { useState, useRef, useMemo, useEffect, useCallback } from "react";
-import { useGSAP } from "@gsap/react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Star, Clock, ChevronDown, SlidersHorizontal, Flame, Sparkles, Tag, Plus } from "lucide-react";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 import { formatPrice } from "@/lib/currency";
-
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
-}
 
 /* ── Types ─────────────────────────────────────────────────────────── */
 
@@ -82,28 +75,7 @@ function FoodCard({ item }: { item: FoodItem }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const { addItem } = useCart();
 
-  useGSAP(
-    () => {
-      if (!cardRef.current) return;
-      gsap.fromTo(
-        cardRef.current,
-        { opacity: 0, y: 40, scale: 0.97 },
-        {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.55,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: cardRef.current,
-            start: "top 92%",
-            toggleActions: "play none none none",
-          },
-        }
-      );
-    },
-    { scope: cardRef }
-  );
+  /* Card entrance handled by CSS — no GSAP fromTo needed (avoids mobile invisible bug) */
 
   const vegDotColor = item.isVeg ? "bg-[#1E7B3E]" : "bg-[#E23744]";
   const vegBorderColor = item.isVeg ? "border-[#1E7B3E]" : "border-[#E23744]";
@@ -115,9 +87,36 @@ function FoodCard({ item }: { item: FoodItem }) {
   return (
     <div ref={cardRef} className="group">
 
-      {/* ── Mobile: Swiggy-style horizontal card ── */}
+      {/* ── Mobile: horizontal card — image left, text right ── */}
       <div className="flex items-start gap-4 py-4 sm:hidden">
-        {/* Left: tapping navigates to detail */}
+        {/* Left: image + ADD button */}
+        <div className="relative shrink-0 w-27.5">
+          <Link href={foodLink}>
+            <img
+              src={item.image}
+              alt={item.name}
+              loading="lazy"
+              className="h-27.5 w-27.5 rounded-2xl object-cover shadow-sm"
+            />
+          </Link>
+          <div className="absolute -bottom-3 left-1/2 -translate-x-1/2">
+            <button
+              onClick={() =>
+                addItem(
+                  { id: item.id, name: item.name, price: item.price, image: item.image },
+                  item.restaurantId,
+                  item.restaurantSlug
+                )
+              }
+              className="flex items-center gap-0.5 rounded-xl border-2 border-[#eaa94d] bg-white px-4 py-1 text-[13px] font-extrabold text-[#eaa94d] shadow-md whitespace-nowrap active:scale-95 transition-transform"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              ADD
+            </button>
+          </div>
+        </div>
+
+        {/* Right: text details */}
         <Link href={foodLink} className="flex-1 min-w-0">
           {/* Veg / Non-veg indicator */}
           <div className={`mb-1.5 flex h-[18px] w-[18px] items-center justify-center rounded-sm border-2 ${vegBorderColor} bg-white`}>
@@ -143,8 +142,6 @@ function FoodCard({ item }: { item: FoodItem }) {
             </div>
           </div>
 
-          <p className="mt-0.5 text-[12px] text-gray-400 truncate">{item.tags.join(", ")}</p>
-
           {/* Restaurant name */}
           {item.restaurantName && (
             <p className="mt-0.5 text-[11px] text-gray-400 truncate">by {item.restaurantName}</p>
@@ -163,34 +160,6 @@ function FoodCard({ item }: { item: FoodItem }) {
             </div>
           )}
         </Link>
-
-        {/* Right: image (navigates) + ADD button (adds to cart) */}
-        <div className="relative shrink-0 w-27.5">
-          <Link href={foodLink}>
-            <img
-              src={item.image}
-              alt={item.name}
-              loading="lazy"
-              className="h-27.5 w-27.5 rounded-2xl object-cover shadow-sm"
-            />
-          </Link>
-          {/* ADD button — outside any <Link> so it never navigates */}
-          <div className="absolute -bottom-3 left-1/2 -translate-x-1/2">
-            <button
-              onClick={() =>
-                addItem(
-                  { id: item.id, name: item.name, price: item.price, image: item.image },
-                  item.restaurantId,
-                  item.restaurantSlug
-                )
-              }
-              className="flex items-center gap-0.5 rounded-xl border-2 border-[#eaa94d] bg-white px-4 py-1 text-[13px] font-extrabold text-[#eaa94d] shadow-md whitespace-nowrap active:scale-95 transition-transform"
-            >
-              <Plus className="h-3.5 w-3.5" />
-              ADD
-            </button>
-          </div>
-        </div>
       </div>
 
       {/* ── Desktop: vertical card ── */}
@@ -323,28 +292,7 @@ export default function PopularFoods({
   const VISIBLE = 12;
   const displayed = showAll ? filtered : filtered.slice(0, VISIBLE);
 
-  // GSAP header animation
-  useGSAP(
-    () => {
-      if (!headerRef.current || !sectionRef.current) return;
-      gsap.fromTo(
-        headerRef.current,
-        { opacity: 0, y: 20 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.6,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: "top 85%",
-            toggleActions: "play none none none",
-          },
-        }
-      );
-    },
-    { scope: sectionRef }
-  );
+  /* Header entrance — no GSAP fromTo (avoids mobile invisible bug) */
 
   return (
     <section ref={sectionRef} className="bg-white">

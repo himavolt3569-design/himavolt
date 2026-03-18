@@ -330,7 +330,7 @@ function TokenBoard({ orders }: { orders: SSEOrder[] }) {
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.8 }}
-                  className="relative rounded-xl bg-white p-3 text-center shadow-md"
+                  className="relative rounded-xl bg-white p-3 text-center shadow-md hover:shadow-lg hover:scale-[1.03] transition-all duration-200"
                 >
                   <motion.div
                     animate={{ scale: [1, 1.05, 1] }}
@@ -385,7 +385,7 @@ function TokenBoard({ orders }: { orders: SSEOrder[] }) {
             {preparingOrders.map((order) => (
               <div
                 key={order.id}
-                className="rounded-lg bg-white/90 backdrop-blur p-2 text-center"
+                className="rounded-lg bg-white/90 backdrop-blur p-2 text-center hover:scale-[1.03] transition-all duration-200"
               >
                 <p className="text-lg font-black text-amber-600">
                   #{order.orderNo.split("-").pop()}
@@ -423,9 +423,9 @@ function SummaryCard({
 }) {
   return (
     <div
-      className={`rounded-2xl border p-3.5 transition-all ${
+      className={`rounded-2xl border p-3.5 transition-all hover:scale-[1.02] duration-200 ${
         highlight
-          ? "border-orange-200 bg-orange-50/30 shadow-sm"
+          ? "border-brand-200 bg-brand-50/30 shadow-sm"
           : "border-gray-100 bg-white shadow-sm"
       }`}
     >
@@ -439,7 +439,7 @@ function SummaryCard({
           {label}
         </span>
       </div>
-      <p className="text-base font-extrabold text-[#1F2A2A]">{value}</p>
+      <p className="text-base font-extrabold text-[#3e1e0c]">{value}</p>
     </div>
   );
 }
@@ -631,7 +631,7 @@ function BillingPanel({
   if (loading) {
     return (
       <div className="flex justify-center py-20">
-        <Loader2 className="h-6 w-6 animate-spin text-[#FF9933]" />
+        <Loader2 className="h-6 w-6 animate-spin text-brand-400" />
       </div>
     );
   }
@@ -729,12 +729,12 @@ function BillingPanel({
                 {/* Tax */}
                 <div className="rounded-xl border border-gray-100 p-3 space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-[#1F2A2A]">
+                    <span className="text-xs font-bold text-[#3e1e0c]">
                       Tax (VAT)
                     </span>
                     <button
                       onClick={() => setTaxEnabled((v) => !v)}
-                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${taxEnabled ? "bg-[#0A4D3C]" : "bg-gray-300"}`}
+                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${taxEnabled ? "bg-brand-400" : "bg-gray-300"}`}
                     >
                       <span
                         className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${taxEnabled ? "translate-x-4.5" : "translate-x-0.5"}`}
@@ -757,7 +757,7 @@ function BillingPanel({
                         min="0"
                         max="100"
                         step="0.1"
-                        className="w-full rounded-lg border border-gray-200 px-2 py-1.5 text-xs font-bold text-[#1F2A2A] outline-none focus:border-[#0A4D3C]"
+                        className="w-full rounded-lg border border-gray-200 px-2 py-1.5 text-xs font-bold text-[#3e1e0c] outline-none focus:border-brand-400"
                       />
                       <span className="text-xs text-gray-400">%</span>
                     </div>
@@ -766,12 +766,12 @@ function BillingPanel({
                 {/* Service Charge */}
                 <div className="rounded-xl border border-gray-100 p-3 space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-[#1F2A2A]">
+                    <span className="text-xs font-bold text-[#3e1e0c]">
                       Service Charge
                     </span>
                     <button
                       onClick={() => setScEnabled((v) => !v)}
-                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${scEnabled ? "bg-[#0A4D3C]" : "bg-gray-300"}`}
+                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${scEnabled ? "bg-brand-400" : "bg-gray-300"}`}
                     >
                       <span
                         className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${scEnabled ? "translate-x-4.5" : "translate-x-0.5"}`}
@@ -794,7 +794,7 @@ function BillingPanel({
                         min="0"
                         max="100"
                         step="0.1"
-                        className="w-full rounded-lg border border-gray-200 px-2 py-1.5 text-xs font-bold text-[#1F2A2A] outline-none focus:border-[#0A4D3C]"
+                        className="w-full rounded-lg border border-gray-200 px-2 py-1.5 text-xs font-bold text-[#3e1e0c] outline-none focus:border-brand-400"
                       />
                       <span className="text-xs text-gray-400">%</span>
                     </div>
@@ -824,7 +824,7 @@ function BillingPanel({
                   setTaxSaving(false);
                 }}
                 disabled={taxSaving}
-                className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-[#0A4D3C] py-2 text-xs font-bold text-white hover:bg-[#083a2d] disabled:bg-gray-300 transition-all"
+                className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-brand-400 py-2 text-xs font-bold text-white hover:bg-brand-500 disabled:bg-gray-300 transition-all"
               >
                 {taxSaving ? (
                   <Loader2 className="h-3 w-3 animate-spin" />
@@ -839,7 +839,7 @@ function BillingPanel({
       </AnimatePresence>
 
       {/* ── Cash vs Online Tabs ──────────────────────── */}
-      <div className="flex rounded-2xl bg-gray-100/80 p-1 gap-1">
+      <div className="flex rounded-2xl bg-brand-50/60 p-1 gap-1">
         {(
           [
             {
@@ -877,7 +877,7 @@ function BillingPanel({
                     ? "bg-white text-emerald-700 shadow-sm"
                     : t.key === "online"
                       ? "bg-white text-purple-700 shadow-sm"
-                      : "bg-white text-[#1F2A2A] shadow-sm"
+                      : "bg-white text-[#3e1e0c] shadow-sm"
                   : "text-gray-400 hover:text-gray-600"
               }`}
             >
@@ -888,7 +888,7 @@ function BillingPanel({
                       ? "text-emerald-500"
                       : t.key === "online"
                         ? "text-purple-500"
-                        : "text-[#1F2A2A]"
+                        : "text-[#3e1e0c]"
                     : "text-gray-400"
                 }`}
               />
@@ -950,8 +950,8 @@ function BillingPanel({
               }}
               className={`flex items-center gap-1 rounded-xl px-3.5 py-2 text-xs font-bold transition-all ${
                 filter === f.key
-                  ? "bg-[#1F2A2A] text-white shadow-sm"
-                  : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                  ? "bg-brand-400 text-white shadow-sm shadow-brand-400/20"
+                  : "bg-gray-100 text-gray-500 hover:bg-brand-50"
               }`}
             >
               <Filter className="h-3 w-3" />
@@ -976,7 +976,7 @@ function BillingPanel({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search order #, customer, table..."
-            className="w-full rounded-xl border border-gray-200 bg-white pl-10 pr-4 py-2.5 text-sm font-medium text-[#1F2A2A] placeholder-gray-400 outline-none focus:border-[#0A4D3C] focus:ring-2 focus:ring-[#0A4D3C]/10 transition-all"
+            className="w-full rounded-xl border border-gray-200 bg-white pl-10 pr-4 py-2.5 text-sm font-medium text-[#3e1e0c] placeholder-gray-400 outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-400/10 transition-all"
           />
         </div>
       </div>
@@ -1001,7 +1001,7 @@ function BillingPanel({
             layout
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`rounded-2xl bg-white border p-4 shadow-sm hover:shadow-md transition-all ${
+            className={`rounded-2xl bg-white border p-4 shadow-sm hover:shadow-md hover:scale-[1.005] transition-all duration-200 ${
               isPaid(order)
                 ? "border-gray-100"
                 : "border-orange-200 bg-orange-50/20"
@@ -1010,7 +1010,7 @@ function BillingPanel({
             {/* Header row */}
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-sm font-extrabold text-[#1F2A2A]">
+                <span className="text-sm font-extrabold text-[#3e1e0c]">
                   #{order.orderNo}
                 </span>
                 {order.tableNo && (
@@ -1139,8 +1139,8 @@ function BillingPanel({
                 </div>
               )}
               <div className="flex justify-between text-sm font-extrabold border-t border-gray-200 pt-1.5 mt-1.5">
-                <span className="text-[#1F2A2A]">Total</span>
-                <span className="text-[#1F2A2A]">
+                <span className="text-[#3e1e0c]">Total</span>
+                <span className="text-[#3e1e0c]">
                   {formatPrice(order.bill?.total ?? order.total, currency)}
                 </span>
               </div>
@@ -1232,7 +1232,7 @@ function BillingPanel({
             >
               <div className="flex items-center justify-between mb-5">
                 <div>
-                  <h2 className="text-lg font-extrabold text-[#1F2A2A]">
+                  <h2 className="text-lg font-extrabold text-[#3e1e0c]">
                     Collect Payment
                   </h2>
                   <p className="text-xs text-gray-400">
@@ -1258,7 +1258,7 @@ function BillingPanel({
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">
                   Amount Due
                 </p>
-                <p className="text-3xl font-extrabold text-[#1F2A2A]">
+                <p className="text-3xl font-extrabold text-[#3e1e0c]">
                   {formatPrice(selectedOrder.bill?.total ?? selectedOrder.total, currency)}
                 </p>
                 {selectedOrder.bill?.discount &&
@@ -1394,7 +1394,7 @@ function BillingPanel({
             >
               <div className="flex items-center justify-between mb-5">
                 <div>
-                  <h2 className="text-lg font-extrabold text-[#1F2A2A]">
+                  <h2 className="text-lg font-extrabold text-[#3e1e0c]">
                     Apply Discount
                   </h2>
                   <p className="text-xs text-gray-400">
@@ -1416,7 +1416,7 @@ function BillingPanel({
               <div className="rounded-2xl bg-gray-50 p-4 mb-5">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Current Bill Total</span>
-                  <span className="font-bold text-[#1F2A2A]">
+                  <span className="font-bold text-[#3e1e0c]">
                     {formatPrice(selectedOrder.bill?.total ?? selectedOrder.total, currency)}
                   </span>
                 </div>
@@ -1493,7 +1493,7 @@ function BillingPanel({
                     <span className="text-pink-600 font-medium">
                       New Total after Discount
                     </span>
-                    <span className="font-extrabold text-[#1F2A2A]">
+                    <span className="font-extrabold text-[#3e1e0c]">
                       {formatPrice(Math.max(
                         0,
                         (selectedOrder.bill?.subtotal ??
@@ -1682,9 +1682,9 @@ export default function CounterPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F7F8FA] flex items-center justify-center">
+      <div className="min-h-screen bg-brand-50/30 flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-8 w-8 text-[#FF9933] animate-spin" />
+          <Loader2 className="h-8 w-8 text-brand-400 animate-spin" />
           <p className="text-sm font-medium text-gray-500">
             Loading counter...
           </p>
@@ -1696,24 +1696,24 @@ export default function CounterPage() {
   if (!session) return null;
 
   return (
-    <div className="min-h-screen bg-[#F7F8FA]">
+    <div className="min-h-screen bg-brand-50/30">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-2xl shadow-[0_1px_12px_rgba(0,0,0,0.06)] border-b border-gray-200/60">
+      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-2xl shadow-[0_1px_12px_rgba(0,0,0,0.06)] border-b border-brand-100">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="flex h-14 items-center justify-between">
             <div className="flex items-center gap-2">
-              <Mountain className="h-5 w-5 text-[#FF9933]" strokeWidth={2.5} />
-              <span className="text-base font-extrabold tracking-tight text-[#1F2A2A]">
-                Hima<span className="text-[#FF9933]">Volt</span>
+              <Mountain className="h-5 w-5 text-brand-400" strokeWidth={2.5} />
+              <span className="text-base font-extrabold tracking-tight text-[#3e1e0c]">
+                Hima<span className="text-brand-400">Volt</span>
               </span>
-              <span className="ml-1 rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-blue-600 bg-blue-50">
+              <span className="ml-1 rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-brand-600 bg-brand-50">
                 Counter
               </span>
             </div>
 
             <div className="flex items-center gap-1.5 sm:gap-2">
               {/* View Mode Toggle */}
-              <div className="hidden sm:flex items-center gap-1 rounded-lg border border-gray-200 p-0.5 bg-white overflow-x-auto">
+              <div className="hidden sm:flex items-center gap-1 rounded-lg border border-brand-100 p-0.5 bg-white overflow-x-auto">
                 {(
                   [
                     { id: "billing", icon: Receipt, label: "Billing" },
@@ -1734,8 +1734,8 @@ export default function CounterPage() {
                     onClick={() => setViewMode(v.id)}
                     className={`flex items-center gap-1 rounded-md px-2.5 py-1.5 text-[10px] font-bold transition-all whitespace-nowrap ${
                       viewMode === v.id
-                        ? "bg-[#0A4D3C] text-white"
-                        : "text-gray-500 hover:bg-gray-50"
+                        ? "bg-brand-400 text-white shadow-sm shadow-brand-400/20"
+                        : "text-gray-500 hover:bg-brand-50"
                     }`}
                   >
                     <v.icon className="h-3 w-3" />
@@ -1811,8 +1811,8 @@ export default function CounterPage() {
       </header>
 
       {/* Mobile View Toggle */}
-      <div className="sm:hidden sticky top-14 z-40 bg-white/80 backdrop-blur-xl border-b border-gray-200/60 px-4 py-2">
-        <div className="flex items-center gap-1 rounded-lg border border-gray-200 p-0.5 bg-white overflow-x-auto">
+      <div className="sm:hidden sticky top-14 z-40 bg-white/80 backdrop-blur-xl border-b border-brand-100/60 px-4 py-2">
+        <div className="flex items-center gap-1 rounded-lg border border-brand-100 p-0.5 bg-white overflow-x-auto">
           {(
             [
               { id: "billing", icon: Receipt, label: "Billing" },
@@ -1833,8 +1833,8 @@ export default function CounterPage() {
               onClick={() => setViewMode(v.id)}
               className={`flex-1 flex items-center justify-center gap-1 rounded-md px-2 py-2 text-[10px] font-bold transition-all whitespace-nowrap ${
                 viewMode === v.id
-                  ? "bg-[#0A4D3C] text-white"
-                  : "text-gray-500 hover:bg-gray-50"
+                  ? "bg-brand-400 text-white shadow-sm shadow-brand-400/20"
+                  : "text-gray-500 hover:bg-brand-50"
               }`}
             >
               <v.icon className="h-3 w-3" />

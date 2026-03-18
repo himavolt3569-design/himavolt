@@ -210,7 +210,7 @@ export default function PaymentQRTab() {
               {/* Modal header */}
               <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                 <div className="flex items-center gap-2">
-                  <QrCode className="h-5 w-5 text-[#FF9933]" />
+                  <QrCode className="h-5 w-5 text-[#eaa94d]" />
                   <h3 className="text-base font-bold text-amber-950">
                     Add Payment QR
                   </h3>
@@ -233,7 +233,7 @@ export default function PaymentQRTab() {
                     value={label}
                     onChange={(e) => setLabel(e.target.value)}
                     placeholder="e.g. eSewa, Khalti, Fonepay, Bank QR"
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-amber-950 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FF9933]/30 focus:bg-white transition-all"
+                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-amber-950 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#eaa94d]/30 focus:bg-white transition-all"
                   />
                 </div>
 
@@ -276,19 +276,19 @@ export default function PaymentQRTab() {
                         const file = e.dataTransfer.files[0];
                         if (file) handleFileUpload(file);
                       }}
-                      className="flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 py-10 cursor-pointer hover:border-[#FF9933] hover:bg-[#FF9933]/5 transition-all"
+                      className="flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 py-10 cursor-pointer hover:border-[#eaa94d] hover:bg-[#eaa94d]/5 transition-all"
                     >
                       {uploading ? (
                         <>
-                          <Loader2 className="h-7 w-7 animate-spin text-[#FF9933]" />
+                          <Loader2 className="h-7 w-7 animate-spin text-[#eaa94d]" />
                           <p className="text-sm font-bold text-gray-500">
                             Uploading...
                           </p>
                         </>
                       ) : (
                         <>
-                          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#FF9933]/10">
-                            <Upload className="h-5 w-5 text-[#FF9933]" />
+                          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#eaa94d]/10">
+                            <Upload className="h-5 w-5 text-[#eaa94d]" />
                           </div>
                           <div className="text-center">
                             <p className="text-sm font-bold text-amber-950">
@@ -421,7 +421,7 @@ export default function PaymentQRTab() {
               {/* QR image */}
               <button
                 onClick={() => setPreviewQR(qr)}
-                className="w-full rounded-xl overflow-hidden border border-gray-100 bg-gray-50 hover:border-[#FF9933]/40 transition-colors cursor-pointer"
+                className="w-full rounded-xl overflow-hidden border border-gray-100 bg-gray-50 hover:border-[#eaa94d]/40 transition-colors cursor-pointer"
               >
                 <img
                   src={qr.imageUrl}

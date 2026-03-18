@@ -43,23 +43,23 @@ export default function ForgotPasswordPage() {
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
             <Check className="h-8 w-8 text-green-600" />
           </div>
-          <h2 className="text-lg font-bold text-[#1F2A2A] mb-2">Check your email</h2>
+          <h2 className="text-lg font-bold text-[#3e1e0c] mb-2">Check your email</h2>
           <p className="text-sm text-gray-500 mb-1">
             We&apos;ve sent a password reset link to
           </p>
-          <p className="text-sm font-bold text-[#1F2A2A] mb-6">{email}</p>
+          <p className="text-sm font-bold text-[#3e1e0c] mb-6">{email}</p>
           <p className="text-xs text-gray-400 mb-6">
             Didn&apos;t receive it? Check spam or{" "}
             <button
               onClick={() => setSent(false)}
-              className="text-[#E23744] font-semibold hover:text-[#c92e3c]"
+              className="text-[#eaa94d] font-semibold hover:text-[#d67620]"
             >
               try again
             </button>
           </p>
           <Link
             href="/sign-in"
-            className="inline-flex items-center gap-1.5 text-sm font-bold text-[#E23744] hover:text-[#c92e3c]"
+            className="inline-flex items-center gap-1.5 text-sm font-bold text-[#eaa94d] hover:text-[#d67620]"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             Back to Sign In
@@ -80,12 +80,12 @@ export default function ForgotPasswordPage() {
         {/* Logo */}
         <div className="mb-8 text-center">
           <Link href="/" className="inline-flex items-center gap-2">
-            <Mountain className="h-8 w-8 text-[#E23744]" strokeWidth={2.5} />
-            <span className="text-2xl font-extrabold tracking-tight text-[#1F2A2A]">
-              Hima<span className="text-[#E23744]">Volt</span>
+            <Mountain className="h-8 w-8 text-[#eaa94d]" strokeWidth={2.5} />
+            <span className="text-2xl font-extrabold tracking-tight text-[#3e1e0c]">
+              Hima<span className="text-[#eaa94d]">Volt</span>
             </span>
           </Link>
-          <p className="mt-3 text-base font-bold text-[#1F2A2A]">Forgot your password?</p>
+          <p className="mt-3 text-base font-bold text-[#3e1e0c]">Forgot your password?</p>
           <p className="mt-1 text-sm text-gray-400">
             Enter your email and we&apos;ll send you a reset link
           </p>
@@ -105,7 +105,7 @@ export default function ForgotPasswordPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 autoFocus
-                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-[#E23744]/30 focus:outline-none focus:ring-1 focus:ring-[#E23744]/30"
+                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-[#eaa94d]/30 focus:outline-none focus:ring-1 focus:ring-[#eaa94d]/30"
                 placeholder="you@example.com"
               />
             </div>
@@ -113,7 +113,7 @@ export default function ForgotPasswordPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-xl bg-[#E23744] py-3 text-sm font-bold text-white transition-all hover:bg-[#c92e3c] active:scale-[0.98] disabled:opacity-50 shadow-sm shadow-[#E23744]/20"
+              className="w-full rounded-xl bg-[#eaa94d] py-3 text-sm font-bold text-white transition-all hover:bg-[#d67620] active:scale-[0.98] disabled:opacity-50 shadow-sm shadow-[#eaa94d]/20"
             >
               {loading ? <Loader2 className="mx-auto h-4 w-4 animate-spin" /> : "Send Reset Link"}
             </button>
@@ -122,7 +122,7 @@ export default function ForgotPasswordPage() {
 
         <p className="mt-5 text-center text-sm text-gray-500">
           Remember it?{" "}
-          <Link href="/sign-in" className="font-bold text-[#E23744] hover:text-[#c92e3c]">
+          <Link href="/sign-in" className="font-bold text-[#eaa94d] hover:text-[#d67620]">
             Sign In
           </Link>
         </p>

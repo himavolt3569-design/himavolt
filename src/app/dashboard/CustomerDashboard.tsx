@@ -40,7 +40,7 @@ import { useAuth } from "@/context/AuthContext";
 import { formatPrice } from "@/lib/currency";
 
 /* ── Brand ──────────────────────────────────────────────── */
-const BRAND = "#E23744";
+const BRAND = "#eaa94d";
 
 /* ── Types ──────────────────────────────────────────────── */
 type Tab = "home" | "orders" | "favourites" | "account";
@@ -256,9 +256,9 @@ export default function CustomerDashboard() {
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-xl border-b border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
         <div className="mx-auto flex h-14 max-w-2xl items-center justify-between px-4">
           <Link href="/" className="flex items-center gap-2 transition-transform active:scale-95">
-            <Mountain className="h-5 w-5 text-[#E23744]" strokeWidth={2.5} />
-            <span className="text-base font-extrabold text-[#1F2A2A]">
-              Hima<span className="text-[#E23744]">Volt</span>
+            <Mountain className="h-5 w-5 text-brand-400" strokeWidth={2.5} />
+            <span className="text-base font-extrabold text-[#3e1e0c]">
+              Hima<span className="text-brand-400">Volt</span>
             </span>
           </Link>
           <Link
@@ -330,20 +330,20 @@ export default function CustomerDashboard() {
                 {active && (
                   <motion.div
                     layoutId="dashboardNavActive"
-                    className="absolute inset-x-2 top-1 bottom-1 bg-[#E23744]/8 rounded-2xl"
+                    className="absolute inset-x-2 top-1 bottom-1 bg-brand-400/8 rounded-2xl"
                     transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
                   />
                 )}
                 <Icon
                   className={`h-5 w-5 mb-0.5 z-10 transition-all ${
-                    active ? "text-[#E23744]" : "text-gray-400 group-hover:text-gray-600"
+                    active ? "text-brand-400" : "text-gray-400 group-hover:text-gray-600"
                   }`}
                   strokeWidth={active ? 2.2 : 1.8}
-                  fill={active && id === "favourites" ? "#E23744" : "none"}
+                  fill={active && id === "favourites" ? "#eaa94d" : "none"}
                 />
                 <span
                   className={`text-[10px] font-semibold z-10 leading-none transition-all ${
-                    active ? "text-[#E23744]" : "text-gray-400 group-hover:text-gray-600"
+                    active ? "text-brand-400" : "text-gray-400 group-hover:text-gray-600"
                   }`}
                 >
                   {label}
@@ -398,7 +398,7 @@ function HomeTab({
         {avatarUrl ? (
           <img src={avatarUrl} alt="" className="h-11 w-11 rounded-full object-cover ring-2 ring-white shadow" />
         ) : (
-          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#E23744]/10 text-sm font-bold text-[#E23744] shadow">
+          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-100 text-sm font-bold text-brand-400 shadow">
             {firstName[0]?.toUpperCase()}
           </div>
         )}
@@ -472,7 +472,7 @@ function HomeTab({
             <h2 className="text-sm font-bold text-gray-800">Recent Orders</h2>
             <button
               onClick={onViewOrders}
-              className="text-xs font-semibold text-[#E23744] hover:underline flex items-center gap-0.5"
+              className="text-xs font-semibold text-brand-400 hover:underline flex items-center gap-0.5"
             >
               View All <ChevronRight className="h-3 w-3" />
             </button>
@@ -493,7 +493,7 @@ function HomeTab({
           <p className="text-xs text-gray-400 mb-4">Explore restaurants and place your first order!</p>
           <Link
             href="/"
-            className="inline-block rounded-xl bg-[#E23744] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#c92e3c] transition-colors"
+            className="inline-block rounded-xl bg-brand-400 px-5 py-2.5 text-xs font-bold text-white hover:bg-brand-600 transition-colors"
           >
             Browse Restaurants
           </Link>
@@ -543,7 +543,7 @@ function LiveOrderCard({ order }: { order: Order }) {
   const currentStep = steps.indexOf(order.status);
 
   return (
-    <div className="rounded-2xl border border-[#E23744]/15 bg-gradient-to-br from-[#E23744]/5 to-white p-4 shadow-sm">
+    <div className="rounded-2xl border border-brand-400/15 bg-gradient-to-br from-brand-50 to-white p-4 shadow-sm">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <div className={`flex h-8 w-8 items-center justify-center rounded-full ${meta.bg}`}>
@@ -563,7 +563,7 @@ function LiveOrderCard({ order }: { order: Order }) {
           <div
             key={step}
             className={`h-1.5 flex-1 rounded-full transition-colors ${
-              i <= currentStep ? "bg-[#E23744]" : "bg-gray-200"
+              i <= currentStep ? "bg-brand-400" : "bg-gray-200"
             }`}
           />
         ))}
@@ -622,7 +622,7 @@ function OrdersTab({ orders }: { orders: Order[] }) {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search orders..."
-          className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm focus:border-[#E23744]/30 focus:outline-none focus:ring-1 focus:ring-[#E23744]/30"
+          className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm focus:border-brand-400/30 focus:outline-none focus:ring-1 focus:ring-brand-400/30"
         />
       </div>
 
@@ -634,7 +634,7 @@ function OrdersTab({ orders }: { orders: Order[] }) {
             onClick={() => setFilter(f.id)}
             className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all ${
               filter === f.id
-                ? "bg-[#E23744] text-white shadow-sm"
+                ? "bg-brand-400 text-white shadow-sm"
                 : "bg-white text-gray-500 border border-gray-200 hover:border-gray-300"
             }`}
           >
@@ -854,7 +854,7 @@ function OrderCard({
               {order.status === "DELIVERED" && (
                 <Link
                   href={`/menu/${order.restaurant.slug}`}
-                  className="flex items-center justify-center gap-1.5 rounded-xl bg-[#E23744]/5 py-2.5 text-xs font-semibold text-[#E23744] hover:bg-[#E23744]/10 transition-colors"
+                  className="flex items-center justify-center gap-1.5 rounded-xl bg-brand-50 py-2.5 text-xs font-semibold text-brand-400 hover:bg-brand-100 transition-colors"
                 >
                   <RefreshCw className="h-3.5 w-3.5" />
                   Order Again
@@ -926,7 +926,7 @@ function FavouritesTab({
                   <div className="flex-1 min-w-0">
                     <Link
                       href={`/menu/${r.slug}`}
-                      className="text-sm font-semibold text-gray-800 hover:text-[#E23744] transition-colors"
+                      className="text-sm font-semibold text-gray-800 hover:text-brand-400 transition-colors"
                     >
                       {r.name}
                     </Link>
@@ -950,12 +950,12 @@ function FavouritesTab({
                   <button
                     onClick={() => removeFavourite(r.id)}
                     disabled={removing === r.id}
-                    className="shrink-0 flex h-9 w-9 items-center justify-center rounded-full bg-red-50 text-[#E23744] hover:bg-red-100 transition-colors disabled:opacity-50"
+                    className="shrink-0 flex h-9 w-9 items-center justify-center rounded-full bg-brand-50 text-brand-400 hover:bg-brand-100 transition-colors disabled:opacity-50"
                   >
                     {removing === r.id ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
-                      <Heart className="h-4 w-4 fill-[#E23744]" />
+                      <Heart className="h-4 w-4 fill-brand-400" />
                     )}
                   </button>
                 </div>
@@ -972,7 +972,7 @@ function FavouritesTab({
           </p>
           <Link
             href="/"
-            className="inline-block rounded-xl bg-[#E23744] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#c92e3c] transition-colors"
+            className="inline-block rounded-xl bg-brand-400 px-5 py-2.5 text-xs font-bold text-white hover:bg-brand-600 transition-colors"
           >
             Explore Restaurants
           </Link>
@@ -1015,13 +1015,13 @@ function AccountTab({
             className="mx-auto h-16 w-16 rounded-full object-cover ring-4 ring-white shadow-lg"
           />
         ) : (
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#E23744]/10 text-xl font-bold text-[#E23744] shadow-lg ring-4 ring-white">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-brand-100 text-xl font-bold text-brand-400 shadow-lg ring-4 ring-white">
             {displayName[0]?.toUpperCase()}
           </div>
         )}
         <h3 className="mt-3 text-base font-bold text-gray-900">{displayName}</h3>
         <p className="text-xs text-gray-400">{user?.email}</p>
-        <span className="mt-2 inline-block rounded-full bg-[#E23744]/10 px-3 py-0.5 text-[10px] font-bold text-[#E23744]">
+        <span className="mt-2 inline-block rounded-full bg-brand-100 px-3 py-0.5 text-[10px] font-bold text-brand-400">
           Food Lover
         </span>
       </div>
@@ -1241,7 +1241,7 @@ function UsernameEditor() {
               ? "border-green-400 focus:ring-green-200"
               : status === "taken" || status === "invalid"
               ? "border-red-400 focus:ring-red-200"
-              : "border-gray-200 focus:border-[#E23744]/30 focus:ring-[#E23744]/30"
+              : "border-gray-200 focus:border-brand-400/30 focus:ring-brand-400/30"
           }`}
         />
         <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
@@ -1253,12 +1253,12 @@ function UsernameEditor() {
           {changed && status === "available" && (
             <button
               onClick={handleSave}
-              className="rounded-lg bg-[#E23744] px-2.5 py-1 text-[10px] font-bold text-white hover:bg-[#c92e3c] transition-colors"
+              className="rounded-lg bg-brand-400 px-2.5 py-1 text-[10px] font-bold text-white hover:bg-brand-600 transition-colors"
             >
               Save
             </button>
           )}
-          {status === "saving" && <Loader2 className="h-4 w-4 animate-spin text-[#E23744]" />}
+          {status === "saving" && <Loader2 className="h-4 w-4 animate-spin text-brand-400" />}
         </div>
       </div>
       <p
