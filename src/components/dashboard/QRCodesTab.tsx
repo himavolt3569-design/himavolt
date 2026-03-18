@@ -442,7 +442,7 @@ function QRCard({
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.3 }}
-        className="group flex flex-col items-center rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
+        className="group relative flex flex-col items-center rounded-3xl border border-gray-100/60 bg-white/80 backdrop-blur-md p-6 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.08)] transition-all hover:-translate-y-1"
       >
         {/* Printable content captured by buildQRCanvas */}
         <div ref={qrRef} id={`qr-printable-${tableNo}`} className="w-full flex flex-col items-center bg-white pb-4 rounded-xl">
@@ -573,20 +573,20 @@ export default function QRCodesTab() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 pb-12">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5">
         <div>
-          <h2 className="text-lg font-bold text-[#3e1e0c]">QR Codes</h2>
-          <p className="text-sm text-gray-400">Unlimited QR codes — one per table, customers scan to order</p>
+          <h2 className="text-2xl font-extrabold tracking-tight text-gray-900">QR Codes</h2>
+          <p className="text-sm font-medium text-gray-500 mt-1.5">Unlimited smart QR codes to scan to order instantly.</p>
         </div>
         <button
           onClick={handleDownloadAll}
           disabled={downloading}
-          className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold transition-all ${
+          className={`flex items-center gap-2 rounded-xl px-6 py-3 text-[13px] font-bold transition-all ${
             downloading
               ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-              : "bg-[#3e1e0c] text-white hover:bg-[#2d1508] shadow-md shadow-[#3e1e0c]/20 active:scale-[0.97]"
+              : "bg-gray-900 text-white hover:bg-gray-800 shadow-md hover:shadow-lg hover:-translate-y-0.5 active:scale-[0.97]"
           }`}
         >
           {downloading ? (
@@ -604,28 +604,28 @@ export default function QRCodesTab() {
       </div>
 
       {/* Controls row */}
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="flex flex-col sm:flex-row gap-4">
         {/* Info banner */}
-        <div className="flex-1 flex items-start gap-3 rounded-xl bg-[#3e1e0c]/5 border border-[#3e1e0c]/10 px-4 py-3">
-          <Check className="h-4 w-4 text-[#3e1e0c] mt-0.5 shrink-0" />
-          <p className="text-xs font-medium text-[#3e1e0c]">
-            Each QR links to your menu with the table number pre-selected. Customers scan and order instantly — no app needed.
+        <div className="flex-1 flex items-start gap-3 rounded-2xl bg-amber-50/80 backdrop-blur-sm border border-amber-100/50 px-5 py-4 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.02)]">
+          <Check className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
+          <p className="text-sm font-medium text-amber-900/80 leading-relaxed">
+            Each QR links to your menu with the table number pre-selected. Customers scan and order instantly — <strong className="font-bold text-amber-900">no app needed.</strong>
           </p>
         </div>
 
         {/* Style picker */}
-        <div className="flex items-center gap-2 rounded-xl bg-white border border-gray-200 px-3 py-2 shadow-sm shrink-0">
-          <Palette className="h-4 w-4 text-[#eaa94d]" />
-          <span className="text-xs font-bold text-gray-500">Print Style:</span>
-          <div className="flex gap-1">
+        <div className="flex items-center gap-3 rounded-2xl bg-white/70 backdrop-blur-md border border-gray-100/50 px-4 py-3 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] shrink-0">
+          <Palette className="h-5 w-5 text-amber-500" />
+          <span className="text-xs font-bold uppercase tracking-wide text-gray-500">Style</span>
+          <div className="flex gap-1.5 p-1 bg-gray-100/50 rounded-xl border border-black/5">
             {(Object.keys(STYLES) as CardStyle[]).map((s) => (
               <button
                 key={s}
                 onClick={() => setCardStyle(s)}
-                className={`rounded-lg px-2.5 py-1 text-[11px] font-bold transition-all ${
+                className={`rounded-lg px-3 py-1.5 text-[11px] font-bold transition-all ${
                   cardStyle === s
-                    ? "bg-[#3e1e0c] text-white shadow-sm"
-                    : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                    ? "bg-white text-gray-900 shadow-sm border border-gray-200/50"
+                    : "text-gray-500 hover:text-gray-700 hover:bg-white/50"
                 }`}
               >
                 {STYLES[s].label}

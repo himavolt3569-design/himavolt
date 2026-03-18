@@ -406,7 +406,7 @@ export default function BillingTab({
       )}
 
       {/* Cash vs Online Split Tabs */}
-      <div className="flex rounded-2xl bg-gray-100/80 p-1 gap-1">
+      <div className="flex rounded-2xl bg-gray-100/50 backdrop-blur-sm p-1 gap-1 border border-black/5 shadow-inner">
         {[
           {
             key: "all" as PayType,
@@ -433,41 +433,41 @@ export default function BillingTab({
             <button
               key={t.key}
               onClick={() => setPayType(t.key)}
-              className={`flex-1 flex items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-xs font-bold transition-all ${
+              className={`flex-1 flex items-center justify-center gap-1.5 rounded-xl px-3 py-3 text-xs font-bold transition-all ${
                 isActive
                   ? t.key === "cash"
-                    ? "bg-white text-emerald-700 shadow-sm"
+                    ? "bg-white text-emerald-700 shadow-[0_4px_12px_-4px_rgba(16,185,129,0.3)] ring-1 ring-emerald-100"
                     : t.key === "online"
-                      ? "bg-white text-purple-700 shadow-sm"
-                      : "bg-white text-[#3e1e0c] shadow-sm"
-                  : "text-gray-400 hover:text-gray-600"
+                      ? "bg-white text-purple-700 shadow-[0_4px_12px_-4px_rgba(168,85,247,0.3)] ring-1 ring-purple-100"
+                      : "bg-white text-gray-900 shadow-[0_4px_12px_-4px_rgba(0,0,0,0.1)] ring-1 ring-gray-200"
+                  : "text-gray-500 hover:text-gray-700 hover:bg-white/50"
               }`}
             >
               <Icon
-                className={`h-3.5 w-3.5 ${
+                className={`h-4 w-4 ${
                   isActive
                     ? t.key === "cash"
                       ? "text-emerald-500"
                       : t.key === "online"
                         ? "text-purple-500"
-                        : "text-[#3e1e0c]"
+                        : "text-gray-800"
                     : "text-gray-400"
                 }`}
               />
-              <span className="hidden sm:inline">{t.label}</span>
-              <span className="sm:hidden">
+              <span className="hidden sm:inline tracking-wide">{t.label}</span>
+              <span className="sm:hidden tracking-wide">
                 {t.key === "all" ? "All" : t.key === "cash" ? "Cash" : "Online"}
               </span>
               {t.count > 0 && (
                 <span
-                  className={`inline-flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[9px] font-bold ${
+                  className={`inline-flex h-4 min-w-[16px] items-center justify-center rounded-full px-1.5 text-[10px] font-black ${
                     isActive
                       ? t.key === "cash"
-                        ? "bg-emerald-100 text-emerald-700"
+                        ? "bg-emerald-100/80 text-emerald-700"
                         : t.key === "online"
-                          ? "bg-purple-100 text-purple-700"
-                          : "bg-gray-100 text-gray-700"
-                      : "bg-gray-200 text-gray-500"
+                          ? "bg-purple-100/80 text-purple-700"
+                          : "bg-gray-100 text-gray-800"
+                      : "bg-gray-200/50 text-gray-500"
                   }`}
                 >
                   {t.count}
@@ -558,17 +558,17 @@ export default function BillingTab({
         </div>
       )}
 
-      <div className="space-y-3">
+      <div className="space-y-4">
         {filtered.map((order) => (
           <motion.div
             key={order.id}
             layout
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`rounded-2xl bg-white border p-4 shadow-sm hover:shadow-md transition-all ${
+            className={`relative rounded-3xl backdrop-blur-md p-5 border transition-all hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.06)] hover:-translate-y-0.5 ${
               isPaid(order)
-                ? "border-gray-100"
-                : "border-orange-200 bg-orange-50/20"
+                ? "bg-white/80 border-gray-100/60 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.02)]"
+                : "bg-orange-50/50 border-orange-200/50 shadow-[0_4px_20px_-4px_rgba(249,115,22,0.05)]"
             }`}
           >
             {/* Header row */}
@@ -1137,24 +1137,27 @@ function SummaryCard({
   highlight?: boolean;
 }) {
   return (
-    <div
-      className={`rounded-2xl border p-3.5 transition-all ${
+    <motion.div
+      whileHover={{ y: -2 }}
+      className={`relative overflow-hidden rounded-2xl border p-4 transition-all hover:shadow-md ${
         highlight
-          ? "border-orange-200 bg-orange-50/30 shadow-sm"
-          : "border-gray-100 bg-white shadow-sm"
+          ? "border-orange-200 bg-orange-50/40 shadow-sm"
+          : "border-gray-100/50 bg-white/70 backdrop-blur-md shadow-sm"
       }`}
     >
-      <div className="flex items-center gap-2 mb-2">
-        <div
-          className={`flex h-7 w-7 items-center justify-center rounded-lg ${bg}`}
-        >
-          <Icon className={`h-3.5 w-3.5 ${color}`} />
+      <div className="flex items-start justify-between">
+        <div>
+          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-1">
+            {label}
+          </span>
+          <p className="text-xl font-black text-gray-900 tracking-tight">{value}</p>
         </div>
-        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-          {label}
-        </span>
+        <div
+          className={`flex h-9 w-9 items-center justify-center rounded-xl shadow-sm border border-black/5 ${bg}`}
+        >
+          <Icon className={`h-4.5 w-4.5 ${color}`} />
+        </div>
       </div>
-      <p className="text-base font-extrabold text-[#3e1e0c]">{value}</p>
-    </div>
+    </motion.div>
   );
 }

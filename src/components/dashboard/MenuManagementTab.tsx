@@ -168,26 +168,30 @@ function MenuStats({ items, categories, currency }: { items: MenuItem[]; categor
   const totalSubs = categories.filter((c) => c.parentId).length;
 
   const stats = [
-    { label: "Total Items", value: items.length, icon: UtensilsCrossed, color: "text-amber-500", bg: "bg-amber-50" },
-    { label: "Active", value: `${active}/${items.length}`, icon: Eye, color: "text-green-500", bg: "bg-green-50" },
-    { label: "Categories", value: `${topCats.length} + ${totalSubs} sub`, icon: Layers, color: "text-indigo-500", bg: "bg-indigo-50" },
-    { label: "Avg Price", value: formatPrice(avgPrice, currency), icon: TrendingUp, color: "text-blue-500", bg: "bg-blue-50" },
-    { label: "Veg / Non-Veg", value: `${vegCount}/${items.length - vegCount}`, icon: Leaf, color: "text-emerald-500", bg: "bg-emerald-50" },
-    { label: "Featured", value: featuredCount, icon: Star, color: "text-amber-500", bg: "bg-amber-50" },
+    { label: "Total Items", value: items.length, icon: UtensilsCrossed, color: "text-amber-500", bg: "bg-gradient-to-br from-amber-400/20 to-orange-500/10", border: "border-amber-100/50" },
+    { label: "Active", value: `${active}/${items.length}`, icon: Eye, color: "text-emerald-500", bg: "bg-gradient-to-br from-emerald-400/20 to-green-500/10", border: "border-emerald-100/50" },
+    { label: "Categories", value: `${topCats.length} + ${totalSubs} sub`, icon: Layers, color: "text-indigo-500", bg: "bg-gradient-to-br from-indigo-400/20 to-purple-500/10", border: "border-indigo-100/50" },
+    { label: "Avg Price", value: formatPrice(avgPrice, currency), icon: TrendingUp, color: "text-blue-500", bg: "bg-gradient-to-br from-blue-400/20 to-cyan-500/10", border: "border-blue-100/50" },
+    { label: "Veg / Non-Veg", value: `${vegCount}/${items.length - vegCount}`, icon: Leaf, color: "text-emerald-600", bg: "bg-gradient-to-br from-emerald-400/20 to-teal-500/10", border: "border-emerald-100/50" },
+    { label: "Featured", value: featuredCount, icon: Star, color: "text-amber-500", bg: "bg-gradient-to-br from-amber-400/20 to-yellow-500/10", border: "border-amber-100/50" },
   ];
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
       {stats.map((s) => (
-        <div key={s.label} className="rounded-xl bg-white ring-1 ring-gray-100 p-3.5 flex items-center gap-3">
-          <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${s.bg}`}>
-            <s.icon className={`h-4 w-4 ${s.color}`} />
+        <motion.div 
+          key={s.label} 
+          whileHover={{ y: -2 }}
+          className={`rounded-2xl bg-white/70 backdrop-blur-md border ${s.border} p-4 flex items-center gap-3.5 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.08)] transition-all`}
+        >
+          <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${s.bg} border border-white/40 shadow-sm backdrop-blur-md`}>
+            <s.icon className={`h-4.5 w-4.5 ${s.color} drop-shadow-sm`} />
           </div>
           <div>
-            <p className="text-[11px] text-gray-400 font-medium">{s.label}</p>
-            <p className="text-sm font-bold text-gray-900">{String(s.value)}</p>
+            <p className="text-[11px] text-gray-500 font-bold tracking-wide uppercase">{s.label}</p>
+            <p className="text-lg font-extrabold text-gray-900 leading-none mt-1">{String(s.value)}</p>
           </div>
-        </div>
+        </motion.div>
       ))}
     </div>
   );
@@ -331,92 +335,97 @@ function MenuItemCard({
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
+      variants={{
+        hidden: { opacity: 0, scale: 0.95, y: 15 },
+        visible: { opacity: 1, scale: 1, y: 0 },
+      }}
       exit={{ opacity: 0, scale: 0.95 }}
-      className={`group relative rounded-xl bg-white ring-1 overflow-hidden transition-all hover:shadow-md ${
-        item.isAvailable ? "ring-gray-200" : "ring-gray-100 opacity-60"
+      whileHover={{ y: -4 }}
+      transition={{ type: "spring", stiffness: 400, damping: 25 }}
+      className={`group relative rounded-2xl bg-white/90 backdrop-blur-xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border overflow-hidden transition-all hover:shadow-[0_8px_30px_-4px_rgba(245,158,11,0.15)] ${
+        item.isAvailable ? "border-amber-100/60" : "border-gray-200 opacity-80"
       }`}
     >
       {/* Image */}
-      <div className="relative h-36 bg-gray-100">
+      <div className="relative h-44 overflow-hidden bg-gradient-to-br from-amber-50 to-orange-50/20">
         {item.imageUrl ? (
-          <img src={item.imageUrl} alt={item.name} className="h-full w-full object-cover" loading="lazy" />
+          <img src={item.imageUrl} alt={item.name} className={`h-full w-full object-cover transition-transform duration-700 group-hover:scale-110 ${!item.isAvailable ? 'grayscale-[40%]' : ''}`} loading="lazy" />
         ) : (
           <div className="h-full w-full flex items-center justify-center">
-            <UtensilsCrossed className="h-8 w-8 text-gray-200" />
+            <UtensilsCrossed className="h-10 w-10 text-amber-200/50" />
           </div>
         )}
 
         {/* Top badges */}
-        <div className="absolute top-2 left-2 flex flex-wrap gap-1">
+        <div className="absolute top-2.5 left-2.5 flex flex-wrap gap-1.5 z-10">
           {item.badge && (
-            <span className="rounded-md bg-amber-500 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-sm">
+            <span className="rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-2.5 py-0.5 text-[10px] font-bold tracking-wide text-white shadow-md border border-white/20 backdrop-blur-md">
               {item.badge}
             </span>
           )}
           {item.isFeatured && (
-            <span className="rounded-md bg-indigo-500 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-sm flex items-center gap-0.5">
-              <Star className="h-2 w-2" /> Featured
+            <span className="rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 px-2.5 py-0.5 text-[10px] font-bold tracking-wide text-white shadow-md flex items-center gap-1 border border-white/20 backdrop-blur-md">
+              <Star className="h-2.5 w-2.5" /> Featured
             </span>
           )}
           {item.discount > 0 && (
-            <span className="rounded-md bg-red-500 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-sm">
+            <span className="rounded-full bg-gradient-to-r from-emerald-500 to-green-600 px-2.5 py-0.5 text-[10px] font-bold tracking-wide text-white shadow-md border border-white/20 backdrop-blur-md">
               {item.discountLabel || `${item.discount}% OFF`}
             </span>
           )}
         </div>
 
         {/* Veg indicator */}
-        <div className="absolute top-2 right-2">
-          <span className={`flex h-5 w-5 items-center justify-center rounded border-2 ${
-            item.isVeg ? "border-green-500" : "border-red-500"
-          } bg-white`}>
-            <span className={`h-2 w-2 rounded-full ${item.isVeg ? "bg-green-500" : "bg-red-500"}`} />
+        <div className="absolute top-2.5 right-2.5 z-10">
+          <span className={`flex h-5 w-5 items-center justify-center rounded-md border-2 shadow-sm backdrop-blur-md ${
+            item.isVeg ? "border-emerald-500 bg-white/90" : "border-rose-500 bg-white/90"
+          }`}>
+            <span className={`h-2 w-2 rounded-full ${item.isVeg ? "bg-emerald-500" : "bg-rose-500"}`} />
           </span>
         </div>
 
         {/* Availability overlay */}
         {!item.isAvailable && (
-          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-            <span className="rounded-lg bg-black/60 px-3 py-1.5 text-[11px] font-bold text-white">Unavailable</span>
+          <div className="absolute inset-0 bg-rose-950/30 backdrop-blur-[2px] flex items-center justify-center z-10 transition-all group-hover:bg-rose-950/20">
+            <span className="rounded-full bg-rose-600 px-3.5 py-1 text-[11px] font-bold tracking-wider uppercase text-white shadow-lg ring-1 ring-white/20">Unavailable</span>
           </div>
         )}
 
         {/* Quick actions (shown on hover) */}
-        <div className="absolute bottom-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="absolute bottom-2.5 right-2.5 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20 translate-y-2 group-hover:translate-y-0">
           <button
             onClick={onToggle}
-            className={`rounded-lg p-1.5 shadow-sm transition-colors ${
-              item.isAvailable ? "bg-green-500 text-white hover:bg-green-600" : "bg-gray-500 text-white hover:bg-gray-600"
+            className={`rounded-full p-2 shadow-lg backdrop-blur-md transition-all hover:scale-105 active:scale-95 ${
+              item.isAvailable ? "bg-emerald-500/90 text-white hover:bg-emerald-500" : "bg-gray-800/90 text-white hover:bg-gray-900"
             }`}
             title={item.isAvailable ? "Mark unavailable" : "Mark available"}
           >
-            {item.isAvailable ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+            {item.isAvailable ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
           </button>
-          <button onClick={onEdit} className="rounded-lg bg-white p-1.5 text-gray-600 shadow-sm hover:bg-gray-50">
-            <Pencil className="h-3 w-3" />
+          <button onClick={onEdit} className="rounded-full bg-white/95 backdrop-blur-md p-2 text-indigo-600 shadow-lg hover:bg-white transition-all hover:scale-105 active:scale-95">
+            <Pencil className="h-4 w-4" />
           </button>
           <div className="relative" ref={menuRef}>
             <button
               onClick={() => setShowMenu(!showMenu)}
-              className="rounded-lg bg-white p-1.5 text-gray-600 shadow-sm hover:bg-gray-50"
+              className="rounded-full bg-white/95 backdrop-blur-md p-2 text-gray-700 shadow-lg hover:bg-white transition-all hover:scale-105 active:scale-95"
             >
-              <MoreVertical className="h-3 w-3" />
+              <MoreVertical className="h-4 w-4" />
             </button>
             {showMenu && (
-              <div className="absolute right-0 top-full mt-1 w-36 rounded-lg bg-white shadow-lg ring-1 ring-gray-200 z-20 py-1">
+              <div className="absolute right-0 top-full mt-2 w-40 rounded-xl bg-white/95 backdrop-blur-xl shadow-2xl ring-1 ring-gray-200/50 z-30 py-1.5 overflow-hidden origin-bottom-right">
                 <button
                   onClick={() => { onDuplicate(); setShowMenu(false); }}
-                  className="flex w-full items-center gap-2 px-3 py-1.5 text-[12px] text-gray-600 hover:bg-gray-50"
+                  className="flex w-full items-center gap-2.5 px-3.5 py-2 text-[13px] font-semibold text-gray-700 hover:bg-amber-50 hover:text-amber-700 transition-colors"
                 >
-                  <Copy className="h-3 w-3" /> Duplicate
+                  <Copy className="h-3.5 w-3.5" /> Duplicate
                 </button>
+                <div className="h-px bg-gray-100 my-1 mx-2"></div>
                 <button
                   onClick={() => { onDelete(); setShowMenu(false); }}
-                  className="flex w-full items-center gap-2 px-3 py-1.5 text-[12px] text-red-500 hover:bg-red-50"
+                  className="flex w-full items-center gap-2.5 px-3.5 py-2 text-[13px] font-semibold text-rose-600 hover:bg-rose-50 transition-colors"
                 >
-                  <Trash2 className="h-3 w-3" /> Delete
+                  <Trash2 className="h-3.5 w-3.5" /> Delete Item
                 </button>
               </div>
             )}
@@ -425,25 +434,27 @@ function MenuItemCard({
       </div>
 
       {/* Content */}
-      <div className="p-3.5">
-        <div className="flex items-start justify-between gap-2 mb-1.5">
-          <h4 className="text-[13px] font-bold text-gray-900 leading-tight line-clamp-1">{item.name}</h4>
-          <div className="flex items-baseline gap-1 shrink-0">
+      <div className="p-4 bg-white/40">
+        <div className="flex items-start justify-between gap-3 mb-2">
+          <h4 className="text-[14px] font-extrabold text-gray-900 leading-tight line-clamp-1">{item.name}</h4>
+          <div className="flex items-baseline gap-1.5 shrink-0 bg-amber-50/50 px-2 py-0.5 rounded-md border border-amber-100/50">
             {item.discount > 0 && (
-              <span className="text-[10px] text-gray-400 line-through">{formatPrice(item.price, currency)}</span>
+              <span className="text-[11px] font-medium text-gray-400 line-through">{formatPrice(item.price, currency)}</span>
             )}
-            <span className="text-sm font-bold text-gray-900">{formatPrice(discountedPrice, currency)}</span>
+            <span className="text-[14px] font-extrabold text-amber-600">{formatPrice(discountedPrice, currency)}</span>
           </div>
         </div>
 
         {item.description && (
-          <p className="text-[11px] text-gray-400 line-clamp-1 mb-2">{item.description}</p>
+          <p className="text-[12px] text-gray-500 line-clamp-2 mb-3 leading-relaxed">{item.description}</p>
         )}
+
+        <div className="h-px w-full bg-gradient-to-r from-transparent via-gray-100 to-transparent mb-3" />
 
         {/* Meta row */}
         <div className="flex items-center gap-2 flex-wrap">
           {/* Category */}
-          <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-500">
+          <span className="rounded-md bg-indigo-50/60 border border-indigo-100/50 px-2 py-1 text-[10px] font-bold text-indigo-600">
             {item.category.name}
           </span>
 
@@ -507,6 +518,146 @@ function MenuItemCard({
         )}
       </div>
     </motion.div>
+  );
+}
+
+function CategorySelector({
+  categories,
+  value,
+  onChange,
+}: {
+  categories: any[];
+  value: string;
+  onChange: (id: string) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [expandedCats, setExpandedCats] = useState<Record<string, boolean>>({});
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    if (isOpen) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isOpen]);
+
+  const topCats = useMemo(() => categories.filter((c) => !c.parentId), [categories]);
+  
+  const filteredCats = useMemo(() => {
+    const s = search.toLowerCase();
+    if (!s) return topCats;
+    return topCats.filter(c => {
+      const matchParent = c.name.toLowerCase().includes(s);
+      const subs = categories.filter(sub => sub.parentId === c.id);
+      const matchSub = subs.some(sub => sub.name.toLowerCase().includes(s));
+      return matchParent || matchSub;
+    });
+  }, [search, topCats, categories]);
+
+  const toggleExpand = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    setExpandedCats(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const selectedCat = categories.find(c => c.id === value);
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={`w-full flex items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm font-medium focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-100 ${
+           value ? "text-gray-900" : "text-gray-400"
+        }`}
+      >
+        <span className="truncate">{selectedCat ? selectedCat.name : "Select category / subcategory *"}</span>
+        <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.15 }}
+            className="absolute z-50 mt-1 w-full rounded-xl border border-gray-200 bg-white shadow-xl overflow-hidden text-left"
+          >
+            <div className="p-2 border-b border-gray-100">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search categories..."
+                  className="w-full rounded-md border border-gray-100 bg-gray-50 py-1.5 pl-8 pr-3 text-xs focus:bg-white focus:border-amber-400 focus:ring-1 focus:ring-amber-200 outline-none transition-all"
+                />
+              </div>
+            </div>
+            <div className="max-h-60 overflow-y-auto p-1.5 custom-scrollbar">
+              {filteredCats.length === 0 ? (
+                <div className="p-3 text-center text-xs text-gray-500">No categories found</div>
+              ) : (
+                filteredCats.map(cat => {
+                  const subs = categories.filter(c => c.parentId === cat.id);
+                  const s = search.toLowerCase();
+                  const filteredSubs = s ? subs.filter(sub => sub.name.toLowerCase().includes(s) || cat.name.toLowerCase().includes(s)) : subs;
+                  const isExpanded = expandedCats[cat.id] !== false || (s && filteredSubs.length > 0); 
+                  
+                  return (
+                    <div key={cat.id} className="mb-0.5">
+                      <div
+                        className={`group flex items-center justify-between rounded-md px-2.5 py-2 text-[13px] transition-colors cursor-pointer ${value === cat.id ? "bg-amber-100 text-amber-900 font-bold" : "text-gray-700 font-semibold hover:bg-gray-50"}`}
+                        onClick={() => { onChange(cat.id); setIsOpen(false); }}
+                      >
+                        <span className="truncate">{cat.name}</span>
+                        {subs.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={(e) => toggleExpand(e, cat.id)}
+                            className="p-1 rounded-md hover:bg-gray-200 text-gray-400 hover:text-gray-600 transition-colors"
+                          >
+                            <ChevronDown className={`h-3.5 w-3.5 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+                          </button>
+                        )}
+                      </div>
+                      
+                      <AnimatePresence>
+                        {isExpanded && filteredSubs.length > 0 && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="ml-3 mt-1 mb-1 space-y-0.5 border-l-2 border-gray-100 pl-2">
+                              {filteredSubs.map(sub => (
+                                <div
+                                  key={sub.id}
+                                  className={`flex items-center rounded-md px-2.5 py-1.5 text-xs transition-colors cursor-pointer ${value === sub.id ? "bg-amber-100 text-amber-900 font-bold" : "text-gray-600 hover:bg-gray-50 font-medium"}`}
+                                  onClick={() => { onChange(sub.id); setIsOpen(false); }}
+                                >
+                                  <span className="truncate">{sub.name}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 
@@ -699,20 +850,12 @@ function DishForm({
             </div>
 
             {/* Category */}
-            <div className="relative">
-              <select
+            <div className="relative z-10">
+              <CategorySelector
+                categories={categories}
                 value={form.categoryId}
-                onChange={(e) => update({ categoryId: e.target.value })}
-                className={`w-full appearance-none rounded-lg border border-gray-200 bg-white px-3 py-2.5 pr-9 text-sm font-medium focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-100 ${
-                  form.categoryId ? "text-gray-900" : "text-gray-400"
-                }`}
-              >
-                <option value="" disabled>Select category / subcategory *</option>
-                {categoryOptions.map((c) => (
-                  <option key={c.id} value={c.id}>{c.label}</option>
-                ))}
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                onChange={(id) => update({ categoryId: id })}
+              />
             </div>
 
             {/* Description */}
@@ -1371,28 +1514,28 @@ export default function MenuManagementTab() {
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
         <div>
-          <h2 className="text-lg font-bold text-gray-900">Menu Management</h2>
-          <p className="text-xs text-gray-500 mt-0.5">
+          <h2 className="text-xl font-extrabold text-gray-900 tracking-tight">Menu Management</h2>
+          <p className="text-sm text-gray-500 mt-1 font-medium">
             Manage your dishes, categories, pricing, and more
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2.5">
           {!showAddForm && !editingItem && (
             <>
               <button
                 onClick={() => setShowNewCat(true)}
-                className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-[12px] font-semibold text-gray-600 hover:bg-gray-50 transition-all"
+                className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white shadow-sm px-4 py-2 text-[13px] font-bold text-gray-700 hover:bg-gray-50 hover:text-amber-600 transition-all active:scale-[0.97]"
               >
-                <FolderPlus className="h-3.5 w-3.5" />
+                <FolderPlus className="h-4 w-4" />
                 Category
               </button>
               <button
                 onClick={() => setShowAddForm(true)}
-                className="flex items-center gap-1.5 rounded-lg bg-amber-500 px-4 py-2 text-[13px] font-bold text-white hover:bg-amber-600 active:scale-[0.97] transition-all"
+                className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 shadow-[0_4px_14px_0_rgba(245,158,11,0.39)] px-5 py-2 text-[13px] font-bold text-white hover:shadow-[0_6px_20px_rgba(245,158,11,0.23)] hover:-translate-y-0.5 active:scale-[0.97] transition-all"
               >
-                <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
+                <Plus className="h-4 w-4" strokeWidth={2.5} />
                 Add Dish
               </button>
             </>
@@ -1518,7 +1661,7 @@ export default function MenuManagementTab() {
         {/* Category sidebar */}
         {flatCategories.length > 0 && (
           <div className="hidden lg:block w-52 shrink-0">
-            <div className="sticky top-0 rounded-xl bg-white ring-1 ring-gray-100 p-3">
+            <div className="sticky top-6 max-h-[calc(100vh-120px)] overflow-y-auto custom-scrollbar rounded-xl bg-white ring-1 ring-gray-100 p-3">
               <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-2 px-2">Categories</p>
               <CategoryTree
                 categories={flatCategories}
@@ -1533,18 +1676,18 @@ export default function MenuManagementTab() {
         {/* Items area */}
         <div className="flex-1 min-w-0">
           {/* Search & mobile category filter */}
-          <div className="flex flex-col sm:flex-row gap-2.5 mb-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-300" />
+          <div className="flex flex-col sm:flex-row gap-3 mb-6">
+            <div className="relative flex-1 group">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-amber-500 transition-colors" />
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search dishes…"
-                className="w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm font-medium text-gray-900 placeholder-gray-300 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-100"
+                className="w-full rounded-xl border border-gray-200 bg-white/80 backdrop-blur-sm py-3 pl-10 pr-4 text-sm font-semibold text-gray-900 placeholder-gray-400 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-500/20 shadow-sm transition-all"
               />
             </div>
             {/* Mobile category pills */}
-            <div className="lg:hidden flex gap-1.5 overflow-x-auto scrollbar-hide items-center">
+            <div className="lg:hidden flex gap-2 overflow-x-auto scrollbar-hide items-center pb-1">
               {["All", ...flatCategories.filter((c) => !c.parentId).map((c) => c.name)].map((cat) => {
                 const catObj = flatCategories.find((c) => c.name === cat && !c.parentId);
                 const isActive = cat === "All" ? selectedCatId === "All" : selectedCatId === catObj?.id;
@@ -1552,8 +1695,8 @@ export default function MenuManagementTab() {
                   <button
                     key={cat}
                     onClick={() => setSelectedCatId(cat === "All" ? "All" : catObj?.id || "All")}
-                    className={`shrink-0 rounded-lg px-3 py-2 text-[12px] font-semibold transition-all ${
-                      isActive ? "bg-amber-500 text-white" : "bg-gray-50 text-gray-500 hover:bg-gray-100"
+                    className={`shrink-0 rounded-full px-4 py-2 text-[12px] font-bold tracking-wide transition-all shadow-sm border ${
+                      isActive ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white border-transparent" : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 focus:ring-2 focus:ring-amber-500/20"
                     }`}
                   >
                     {cat}
@@ -1564,7 +1707,15 @@ export default function MenuManagementTab() {
           </div>
 
           {/* Items grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+          <motion.div 
+            initial="hidden"
+            animate="visible"
+            variants={{
+              hidden: { opacity: 0 },
+              visible: { opacity: 1, transition: { staggerChildren: 0.05 } }
+            }}
+            className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5"
+          >
             <AnimatePresence mode="popLayout">
               {filtered.length === 0 ? (
                 <motion.div
@@ -1602,7 +1753,7 @@ export default function MenuManagementTab() {
                 ))
               )}
             </AnimatePresence>
-          </div>
+          </motion.div>
         </div>
       </div>
     </div>

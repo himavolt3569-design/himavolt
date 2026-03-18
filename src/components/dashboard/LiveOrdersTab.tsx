@@ -154,46 +154,52 @@ export default function LiveOrdersTab() {
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
         <div>
-          <h2 className="text-lg font-bold text-[#3e1e0c]">Live Orders</h2>
-          <p className="text-sm text-gray-400">
+          <h2 className="text-xl font-extrabold text-gray-900 tracking-tight">Live Orders</h2>
+          <p className="text-sm text-gray-500 mt-1 font-medium">
             {newCount > 0 ? (
-              <span className="font-semibold text-[#eaa94d]">
+              <span className="font-bold text-amber-500 flex items-center gap-1.5">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                </span>
                 {newCount} new order{newCount > 1 ? "s" : ""} waiting
               </span>
             ) : (
-              "All orders managed"
+              "All clear! Tracking live orders seamlessly."
             )}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="flex h-2 w-2 items-center justify-center">
-            <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-green-400 opacity-75" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-green-400" />
+        <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2 bg-emerald-50/80 border border-emerald-100/50 px-3 py-1.5 rounded-full shadow-sm backdrop-blur-sm">
+            <div className="flex h-2 w-2 items-center justify-center">
+              <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+            </div>
+            <span className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">Live Sync</span>
           </div>
-          <span className="text-xs font-semibold text-green-600">Live</span>
-          <button onClick={() => refresh()} className="p-0.5">
-            <RefreshCw className={`h-3.5 w-3.5 text-gray-400 ${loading ? "animate-spin" : ""}`} style={{ animationDuration: "3s" }} />
+          <button onClick={() => refresh()} className="rounded-full bg-white/80 p-2 shadow-sm border border-gray-100 hover:bg-white hover:shadow-md transition-all active:scale-95">
+            <RefreshCw className={`h-4 w-4 text-gray-500 ${loading ? "animate-spin text-amber-500" : ""}`} style={{ animationDuration: "1s" }} />
           </button>
         </div>
       </div>
 
       {/* Filter pills */}
-      <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+      <div className="flex gap-2.5 overflow-x-auto scrollbar-hide pb-2">
         {FILTER_OPTIONS.map((opt) => (
           <button
             key={opt.value}
             onClick={() => setFilterStatus(opt.value)}
-            className={`shrink-0 rounded-full px-4 py-2 text-xs font-bold transition-all ${
+            className={`shrink-0 rounded-full px-4 py-2 text-[12px] font-bold tracking-wide transition-all shadow-sm border ${
               filterStatus === opt.value
-                ? "bg-[#3e1e0c] text-white shadow-md"
-                : "bg-white border border-gray-200 text-gray-500 hover:border-gray-300"
+                ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white border-transparent"
+                : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 focus:ring-2 focus:ring-amber-500/20"
             }`}
           >
             {opt.label}
             {opt.value === "PENDING" && newCount > 0 && (
-              <span className="ml-1.5 rounded-full bg-[#eaa94d] px-1.5 py-0.5 text-[10px] text-white">
+              <span className={`ml-2 rounded-full px-2 py-0.5 text-[10px] shadow-sm ${filterStatus === opt.value ? "bg-white/20 text-white" : "bg-rose-500 text-white"}`}>
                 {newCount}
               </span>
             )}
@@ -204,32 +210,32 @@ export default function LiveOrdersTab() {
       {/* Orders — desktop table + mobile cards */}
       <div>
         {/* Desktop table */}
-        <div className="hidden md:block overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-sm">
+        <div className="hidden md:block overflow-x-auto overflow-y-hidden rounded-2xl border border-gray-200/60 bg-white/70 backdrop-blur-xl shadow-sm">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-100 bg-gray-50/80">
-                <th className="px-5 py-3.5 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+              <tr className="border-b border-gray-100 bg-white/50">
+                <th className="px-5 py-3.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">
                   Order
                 </th>
-                <th className="px-4 py-3.5 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                <th className="px-4 py-3.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">
                   Table
                 </th>
-                <th className="px-4 py-3.5 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                <th className="px-4 py-3.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">
                   Items
                 </th>
-                <th className="px-4 py-3.5 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                <th className="px-4 py-3.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">
                   Total
                 </th>
-                <th className="px-4 py-3.5 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                <th className="px-4 py-3.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">
                   Payment
                 </th>
-                <th className="px-4 py-3.5 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                <th className="px-4 py-3.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-4 py-3.5 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                <th className="px-4 py-3.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">
                   Time
                 </th>
-                <th className="px-5 py-3.5 text-right text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                <th className="px-5 py-3.5 text-right text-[11px] font-bold text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
@@ -238,8 +244,13 @@ export default function LiveOrdersTab() {
               <AnimatePresence>
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="py-16 text-center text-sm text-gray-400">
-                      No orders found
+                    <td colSpan={8} className="py-20 text-center text-sm font-medium text-gray-400">
+                      <div className="flex flex-col items-center justify-center gap-3">
+                        <div className="h-12 w-12 rounded-full bg-gray-50 flex items-center justify-center border border-gray-100">
+                          <PackageCheck className="h-5 w-5 text-gray-300" />
+                        </div>
+                        No orders matching this status
+                      </div>
                     </td>
                   </tr>
                 ) : (
@@ -249,15 +260,15 @@ export default function LiveOrdersTab() {
                       layout
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, x: -20 }}
-                      transition={{ duration: 0.25 }}
+                      exit={{ opacity: 0, scale: 0.98 }}
+                      transition={{ duration: 0.2 }}
                       onClick={() => setSelectedOrder(order)}
-                      className={`border-b border-gray-50 transition-colors hover:bg-gray-50/70 last:border-b-0 cursor-pointer ${
-                        order.status === "PENDING" ? "bg-orange-50/40" : ""
+                      className={`border-b border-gray-50 transition-all hover:bg-white/80 last:border-b-0 cursor-pointer ${
+                        order.status === "PENDING" ? "bg-amber-50/40" : ""
                       }`}
                     >
                       <td className="px-5 py-4">
-                        <span className="font-bold text-[#3e1e0c]">{order.orderNo}</span>
+                        <span className="font-extrabold text-gray-900">{order.orderNo}</span>
                         {order.note && (
                           <p className="text-[10px] text-gray-400 mt-0.5 italic">
                             &ldquo;{order.note}&rdquo;
@@ -281,7 +292,7 @@ export default function LiveOrdersTab() {
                           )}
                         </div>
                       </td>
-                      <td className="px-4 py-4 font-bold text-[#3e1e0c]">
+                      <td className="px-4 py-4 font-bold text-gray-900">
                         {formatPrice(order.total, cur)}
                       </td>
                       <td className="px-4 py-4">
@@ -335,7 +346,7 @@ export default function LiveOrdersTab() {
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-[#3e1e0c]">{order.orderNo}</span>
+                      <span className="text-sm font-extrabold text-gray-900">{order.orderNo}</span>
                       <StatusBadge status={order.status} />
                     </div>
                     <div className="flex items-center gap-2 mt-1.5">
@@ -346,7 +357,7 @@ export default function LiveOrdersTab() {
                       <TimeAgo ts={order.createdAt} />
                     </div>
                   </div>
-                  <span className="text-sm font-bold text-[#3e1e0c]">{formatPrice(order.total, cur)}</span>
+                  <span className="text-sm font-extrabold text-gray-900">{formatPrice(order.total, cur)}</span>
                 </div>
                 {order.payment && (
                   <div className="mb-2">
@@ -426,7 +437,7 @@ function OrderActions({
           </div>
           <button
             onClick={(e) => stop(e, () => onAccept(estTime))}
-            className="flex items-center gap-1 rounded-lg bg-[#3e1e0c] px-2.5 py-1.5 text-[11px] font-bold text-white hover:bg-[#2d1508] transition-colors"
+            className="flex items-center gap-1 rounded-lg bg-gray-900 px-2.5 py-1.5 text-[11px] font-bold text-white hover:bg-gray-800 transition-colors"
           >
             <CheckCircle2 className="h-3 w-3" />
             Confirm
@@ -439,7 +450,7 @@ function OrderActions({
       <div className="flex items-center gap-2 flex-wrap">
         <button
           onClick={(e) => { e.stopPropagation(); setShowTimeInput(true); }}
-          className="flex items-center gap-1.5 rounded-lg bg-[#3e1e0c] px-3 py-1.5 text-[11px] font-bold text-white hover:bg-[#2d1508] transition-colors"
+          className="flex items-center gap-1.5 rounded-lg bg-gray-900 px-3 py-1.5 text-[11px] font-bold text-white hover:bg-gray-800 transition-colors"
         >
           <CheckCircle2 className="h-3 w-3" />
           Accept
@@ -483,7 +494,7 @@ function OrderActions({
     return (
       <button
         onClick={(e) => stop(e, onDelivered)}
-        className="flex items-center gap-1.5 rounded-lg bg-[#3e1e0c] px-3 py-1.5 text-[11px] font-bold text-white hover:bg-[#2d1508] transition-colors"
+        className="flex items-center gap-1.5 rounded-lg bg-gray-900 px-3 py-1.5 text-[11px] font-bold text-white hover:bg-gray-800 transition-colors"
       >
         <Truck className="h-3 w-3" />
         Delivered
@@ -502,7 +513,7 @@ function OrderActions({
           target="_blank"
           rel="noopener noreferrer"
           onClick={(e) => e.stopPropagation()}
-          className="inline-flex items-center gap-1 rounded-lg bg-gray-100 px-2 py-1 text-[10px] font-bold text-gray-600 hover:bg-gray-200 hover:text-[#eaa94d] transition-all"
+          className="inline-flex items-center gap-1 rounded-lg bg-gray-100 px-2 py-1 text-[10px] font-bold text-gray-600 hover:bg-gray-200 hover:text-amber-500 transition-all"
         >
           <ExternalLink className="h-2.5 w-2.5" />
           View Bill

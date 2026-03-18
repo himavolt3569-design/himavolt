@@ -121,11 +121,11 @@ export default function StaffManagementTab() {
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
-            <h2 className="text-2xl font-extrabold tracking-tight text-[#3e1e0c]">
+            <h2 className="text-2xl font-extrabold tracking-tight text-gray-900">
               Staff Management
             </h2>
             {restaurant.restaurantCode && (
-              <div className="flex items-center gap-1.5 rounded-lg bg-emerald-50 border border-emerald-100 px-3 py-1">
+              <div className="flex items-center gap-1.5 rounded-lg bg-emerald-50/80 border border-emerald-100/50 px-3 py-1 shadow-sm backdrop-blur-sm">
                 <Building2 className="h-3.5 w-3.5 text-emerald-600" />
                 <span className="text-xs font-bold text-emerald-800 tracking-wider">
                   CODE:{" "}
@@ -134,27 +134,27 @@ export default function StaffManagementTab() {
               </div>
             )}
           </div>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1.5 text-sm font-medium text-gray-500">
             Manage team members for{" "}
-            <strong className="text-[#3e1e0c]">{restaurant.name}</strong>
+            <strong className="text-gray-900">{restaurant.name}</strong>
           </p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 rounded-xl bg-[#3e1e0c] px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-[#3e1e0c]/20 transition-all hover:bg-[#2d1508] active:scale-[0.97]"
+          className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-5 py-2.5 text-sm font-bold text-white shadow-[0_4px_14px_0_rgba(245,158,11,0.39)] transition-all hover:shadow-[0_6px_20px_rgba(245,158,11,0.23)] hover:-translate-y-0.5 active:scale-[0.97]"
         >
-          <UserPlus className="h-4 w-4" />
+          <UserPlus className="h-4 w-4" strokeWidth={2.5} />
           Add Staff
         </button>
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-2 border-b border-gray-200 pb-px">
+      <div className="flex items-center gap-4 border-b border-gray-200/60 pb-px">
         <button
           onClick={() => setActiveTab("directory")}
-          className={`group flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-bold transition-all ${
+          className={`group flex items-center gap-2 border-b-2 px-2 py-3 text-sm font-extrabold transition-all outline-none ${
             activeTab === "directory"
-              ? "border-[#3e1e0c] text-[#3e1e0c]"
+              ? "border-amber-500 text-amber-600"
               : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
           }`}
         >
@@ -163,9 +163,9 @@ export default function StaffManagementTab() {
         </button>
         <button
           onClick={() => setActiveTab("attendance")}
-          className={`group flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-bold transition-all ${
+          className={`group flex items-center gap-2 border-b-2 px-2 py-3 text-sm font-extrabold transition-all outline-none ${
             activeTab === "attendance"
-              ? "border-[#3e1e0c] text-[#3e1e0c]"
+              ? "border-amber-500 text-amber-600"
               : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
           }`}
         >
@@ -251,7 +251,7 @@ function AttendanceLogsView({ restaurantId }: { restaurantId: string }) {
                   {log.staff.user.name.charAt(0)}
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-[#3e1e0c]">
+                  <p className="text-sm font-bold text-gray-900">
                     {log.staff.user.name}
                   </p>
                   <p className="text-[10px] font-semibold text-gray-500">
@@ -266,7 +266,7 @@ function AttendanceLogsView({ restaurantId }: { restaurantId: string }) {
                   year: "numeric",
                 })}
               </div>
-              <div className="flex items-center gap-1.5 text-sm font-bold text-[#3e1e0c]">
+              <div className="flex items-center gap-1.5 text-sm font-bold text-gray-900">
                 <Clock className="h-3.5 w-3.5" />
                 {new Date(log.checkIn).toLocaleTimeString([], {
                   hour: "2-digit",
@@ -358,7 +358,7 @@ function StaffDirectoryView({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search staff..."
-            className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm font-medium text-[#3e1e0c] placeholder-gray-400 outline-none transition-all focus:border-[#eaa94d] focus:ring-2 focus:ring-[#eaa94d]/15"
+            className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none transition-all focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 shadow-sm"
           />
         </div>
         <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
@@ -366,10 +366,10 @@ function StaffDirectoryView({
             <button
               key={role}
               onClick={() => setFilterRole(role)}
-              className={`shrink-0 rounded-lg px-3 py-2 text-xs font-bold transition-all ${
+              className={`shrink-0 rounded-lg px-3 py-2 text-xs font-bold transition-all shadow-sm ${
                 filterRole === role
-                  ? "bg-[#3e1e0c] text-white"
-                  : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                  ? "bg-gray-900 text-white"
+                  : "bg-white border border-gray-100 text-gray-500 hover:bg-gray-50"
               }`}
             >
               {role === "all" ? "All Roles" : ROLE_LABELS[role as StaffRole]}
@@ -383,7 +383,7 @@ function StaffDirectoryView({
           {
             label: "Total Staff",
             value: restaurant.staff.length,
-            color: "text-[#3e1e0c]",
+            color: "text-gray-900",
           },
           {
             label: "Active",
@@ -406,7 +406,7 @@ function StaffDirectoryView({
         ].map((stat) => (
           <div
             key={stat.label}
-            className="rounded-2xl bg-white border border-gray-100 p-4 shadow-[0_2px_12px_rgba(0,0,0,0.04)]"
+            className="rounded-2xl bg-white/70 backdrop-blur-md border border-gray-100/50 p-4 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)]"
           >
             <p className="text-xs font-semibold text-gray-500">{stat.label}</p>
             <p className={`text-2xl font-black ${stat.color}`}>{stat.value}</p>
@@ -441,7 +441,7 @@ function StaffDirectoryView({
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ delay: i * 0.03 }}
-                  className="group flex items-center gap-4 rounded-2xl bg-white border border-gray-100 p-4 shadow-[0_2px_12px_rgba(0,0,0,0.04)] transition-all hover:shadow-[0_4px_20px_rgba(0,0,0,0.07)]"
+                  className="group flex items-center gap-4 rounded-2xl bg-white/90 backdrop-blur-xl border border-gray-100 p-4 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] transition-all hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.08)] hover:-translate-y-0.5"
                 >
                   <div
                     className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${colors.bg}`}
@@ -450,7 +450,7 @@ function StaffDirectoryView({
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <h4 className="font-bold text-[#3e1e0c] truncate">
+                      <h4 className="font-bold text-gray-900 truncate">
                         {member.user.name}
                       </h4>
                       <span

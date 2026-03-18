@@ -465,28 +465,20 @@ function NavSection({
                 setActive(item.id);
                 onClose?.();
               }}
-              className={`group relative flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium transition-all duration-150 cursor-pointer ${
+              className={`group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-semibold transition-all duration-300 cursor-pointer overflow-hidden ${
                 isActive
-                  ? "bg-amber-100/80 text-black shadow-sm ring-1 ring-amber-200/60"
-                  : "text-amber-800/60 hover:bg-amber-50 hover:text-black"
+                  ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-[0_4px_14px_0_rgba(245,158,11,0.39)] ring-1 ring-amber-400/50"
+                  : "text-gray-600 hover:bg-gray-100/80 hover:text-gray-900"
               }`}
             >
-              {/* Left accent bar */}
-              {isActive && (
-                <motion.span
-                  layoutId="sidebar-accent"
-                  className="absolute left-0 top-1.5 bottom-1.5 w-0.75 rounded-full bg-amber-400"
-                  transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
-                />
-              )}
               <Icon
-                className={`h-4 w-4 shrink-0 transition-colors ${isActive ? "text-amber-500" : ""}`}
+                className={`h-4 w-4 shrink-0 transition-colors ${isActive ? "text-white" : "text-gray-400 group-hover:text-amber-500"}`}
               />
-              <span className="flex-1 text-left">{item.label}</span>
+              <span className="flex-1 text-left tracking-wide">{item.label}</span>
 
               {/* Keyboard shortcut hint */}
               {shortcut && !item.badge && (
-                <span className="hidden lg:flex h-4.5 w-4.5 items-center justify-center rounded text-[9px] font-bold text-gray-300 bg-gray-50 opacity-0 group-hover:opacity-100 transition-opacity">
+                <span className={`hidden lg:flex h-5 w-5 items-center justify-center rounded text-[9px] font-bold transition-all duration-300 ${isActive ? "bg-white/20 text-white" : "bg-gray-100 text-gray-400 opacity-0 group-hover:opacity-100"}`}>
                   {shortcut}
                 </span>
               )}
@@ -537,7 +529,7 @@ function Sidebar({
   const typeLabel = restaurantType ? getTypeLabel(restaurantType) : "";
 
   return (
-    <aside className="flex h-full w-full flex-col bg-[#fffbeb] border-r border-amber-100">
+    <aside className="flex h-full w-full flex-col bg-white/60 backdrop-blur-3xl border-r border-gray-200/50 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
       {/* Logo */}
       <div className="flex items-center justify-between px-5 pt-6 pb-5">
         <Link href="/" className="group flex items-center gap-2.5">
@@ -602,17 +594,8 @@ function Sidebar({
         />
       </nav>
 
-      {/* Bottom */}
-      <div className="px-3 pb-4 pt-2">
-        <div className="h-px w-full bg-amber-200/40 mb-3" />
-        <Link
-          href="/"
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-amber-100/50 py-2.5 text-[12px] font-medium text-amber-700/60 transition-all hover:bg-amber-200/50 hover:text-amber-800 ring-1 ring-amber-200/30 cursor-pointer"
-        >
-          <ExternalLink className="h-3.5 w-3.5" />
-          Customer View
-        </Link>
-      </div>
+      {/* Bottom spacing */}
+      <div className="pb-4" />
     </aside>
   );
 }
@@ -641,26 +624,21 @@ function StatCard({
 }: StatCardProps) {
   return (
     <motion.div
-      whileHover={{ y: -3, scale: 1.01 }}
-      transition={{ duration: 0.15 }}
-      className="relative rounded-2xl bg-white/90 backdrop-blur-sm ring-1 ring-gray-100/80 p-5 cursor-default overflow-hidden group shadow-sm hover:shadow-md transition-shadow"
+      whileHover={{ y: -4, scale: 1.02 }}
+      transition={{ duration: 0.2 }}
+      className="relative rounded-3xl bg-white/70 backdrop-blur-md border border-gray-100/50 p-6 cursor-default overflow-hidden group shadow-[0_4px_24px_-4px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.08)] transition-all"
     >
-      {/* Colored top strip */}
-      <div
-        className="absolute top-0 inset-x-0 h-1 rounded-t-2xl"
-        style={{ background: accent }}
-      />
       {/* Subtle gradient glow */}
       <div
-        className="absolute -top-8 -right-8 h-24 w-24 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-2xl"
+        className="absolute -top-12 -right-12 h-32 w-32 rounded-full opacity-0 group-hover:opacity-20 transition-opacity duration-500 blur-3xl"
         style={{ background: accent }}
       />
       <div className="relative flex items-start justify-between">
         <div>
-          <p className="text-[12px] font-medium text-gray-500 mb-1.5">
+          <p className="text-[12px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">
             {label}
           </p>
-          <p className="text-2xl font-extrabold text-gray-900 tracking-tight">
+          <p className="text-3xl font-black text-gray-900 tracking-tight leading-none mt-2">
             {numericValue !== undefined ? (
               <>
                 {prefix}
@@ -671,13 +649,13 @@ function StatCard({
               value
             )}
           </p>
-          <p className="text-[11px] font-medium text-gray-400 mt-1.5">{sub}</p>
+          <p className="text-[11px] font-bold text-gray-400 mt-2.5 bg-gray-50/80 w-fit px-2 py-1 rounded-md">{sub}</p>
         </div>
         <div
-          className="flex h-10 w-10 items-center justify-center rounded-xl transition-all group-hover:scale-110 group-hover:shadow-sm"
-          style={{ background: `${accent}14` }}
+          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl transition-all duration-300 group-hover:scale-110 shadow-sm border border-black/5"
+          style={{ background: `${accent}15` }}
         >
-          <Icon className="h-4.5 w-4.5" style={{ color: accent }} />
+          <Icon className="h-5 w-5" style={{ color: accent }} />
         </div>
       </div>
     </motion.div>
@@ -851,58 +829,48 @@ function OverviewTab({
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-2xl p-6 sm:p-8"
+        className="relative overflow-hidden rounded-3xl p-6 sm:p-8 shadow-[0_8px_30px_-4px_rgba(245,158,11,0.2)]"
         style={{
-          background:
-            "linear-gradient(135deg, #fffbeb 0%, #fef3c7 50%, #fde68a 100%)",
+          background: "linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)",
         }}
       >
-        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        {/* Decorative abstract shapes */}
+        <div className="absolute top-0 right-0 -mt-12 -mr-12 h-64 w-64 rounded-full bg-white/10 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 -mb-16 -ml-16 h-48 w-48 rounded-full bg-white/10 blur-2xl pointer-events-none" />
+        
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="h-4 w-4 text-amber-600" />
-              <span className="text-[11px] font-semibold text-amber-700 uppercase tracking-wider">
+            <div className="flex items-center gap-2 mb-3 bg-white/20 w-fit px-3 py-1.5 rounded-full backdrop-blur-md shadow-sm border border-white/10">
+              <Sparkles className="h-3.5 w-3.5 text-white" />
+              <span className="text-[10px] font-extrabold text-white uppercase tracking-widest drop-shadow-sm">
                 {dateStr}
               </span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
+            <h1 className="text-2xl sm:text-3xl font-black text-white mb-1.5 tracking-tight drop-shadow-md">
               {getGreeting()}
               {userName ? `, ${userName}` : ""}!
             </h1>
-            <p className="text-sm text-gray-600">
-              Here&apos;s how{" "}
-              <span className="text-amber-800 font-semibold">
-                {restaurantName}
-              </span>{" "}
-              is performing today.
+            <p className="text-sm font-medium text-amber-50 drop-shadow-sm">
+              Here&apos;s how <strong className="font-extrabold text-white">{restaurantName}</strong> is performing today.
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <button
               onClick={() => setTab("orders")}
-              className="flex items-center gap-2 rounded-lg bg-white/70 backdrop-blur-sm px-4 py-2.5 text-[13px] font-semibold text-gray-700 hover:bg-white transition-all active:scale-[0.97] ring-1 ring-amber-200/50"
+              className="flex items-center gap-2 rounded-xl bg-white/20 backdrop-blur-md px-5 py-3 text-[13px] font-bold text-white hover:bg-white/30 transition-all active:scale-95 border border-white/20 shadow-sm"
             >
-              <Eye className="h-3.5 w-3.5" />
+              <Eye className="h-4 w-4" />
               View Orders
             </button>
             <button
               onClick={() => setTab("menu")}
-              className="flex items-center gap-2 rounded-lg bg-amber-600 px-4 py-2.5 text-[13px] font-semibold text-white hover:bg-amber-500 transition-all active:scale-[0.97] shadow-sm"
+              className="flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-[13px] font-bold text-amber-600 hover:bg-gray-50 transition-all active:scale-95 shadow-md hover:shadow-lg"
             >
-              <UtensilsCrossed className="h-3.5 w-3.5" />
+              <UtensilsCrossed className="h-4 w-4" />
               Manage Menu
             </button>
           </div>
         </div>
-        {/* Decorative dots grid */}
-        <div
-          className="absolute top-0 right-0 w-48 h-48 opacity-[0.15]"
-          style={{
-            backgroundImage:
-              "radial-gradient(circle, #d97706 1px, transparent 1px)",
-            backgroundSize: "16px 16px",
-          }}
-        />
       </motion.div>
 
       {/* ── Attention banner — pending orders ──────────────────── */}
@@ -1186,24 +1154,24 @@ function OverviewTab({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.35 + i * 0.04 }}
-              whileHover={{ y: -2 }}
+              whileHover={{ y: -4, scale: 1.02 }}
               onClick={() => setTab(action.tab)}
-              className="relative flex flex-col items-center gap-2.5 rounded-xl bg-white/90 ring-1 ring-gray-100/80 p-4 hover:ring-amber-200 hover:shadow-md transition-all active:scale-[0.97] group cursor-pointer shadow-sm"
+              className="relative flex flex-col items-center gap-3 rounded-2xl bg-white/70 backdrop-blur-md border border-gray-100/50 p-4 hover:border-amber-200 transition-all active:scale-[0.97] group cursor-pointer shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_-4px_rgba(245,158,11,0.15)]"
             >
               <div
-                className="flex h-10 w-10 items-center justify-center rounded-xl transition-transform group-hover:scale-110"
-                style={{ background: `${action.accent}14` }}
+                className="flex h-12 w-12 items-center justify-center rounded-2xl transition-all duration-300 group-hover:scale-110 shadow-sm border border-black/5"
+                style={{ background: `${action.accent}15` }}
               >
                 <action.icon
-                  className="h-4.5 w-4.5"
+                  className="h-5 w-5"
                   style={{ color: action.accent }}
                 />
               </div>
-              <span className="text-[11px] font-semibold text-gray-500 group-hover:text-gray-800 transition-colors">
+              <span className="text-[12px] font-bold text-gray-500 group-hover:text-gray-900 transition-colors">
                 {action.label}
               </span>
               {action.badge && (
-                <span className="absolute top-2 right-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white px-1 shadow-sm">
+                <span className="absolute top-2 right-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white px-1 shadow-sm ring-2 ring-white">
                   {action.badge}
                 </span>
               )}
@@ -1324,7 +1292,7 @@ export default function DashboardPage() {
 
   if (!isHydrated || !isLoaded || userRole === null) {
     return (
-      <div className="flex h-screen items-center justify-center bg-[#fefcf6]">
+      <div className="flex h-screen items-center justify-center bg-slate-50">
         <span className="text-sm font-medium text-amber-700/70">
           Loading dashboard...
         </span>
@@ -1334,7 +1302,7 @@ export default function DashboardPage() {
 
   if (userRole === "CUSTOMER") {
     return (
-      <div className="flex h-screen items-center justify-center bg-[#fefcf6]">
+      <div className="flex h-screen items-center justify-center bg-slate-50">
         <span className="text-sm font-medium text-amber-700/70">
           Redirecting...
         </span>
@@ -1343,7 +1311,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#fefcf6] font-sans">
+    <div className="flex h-screen overflow-hidden bg-slate-50 font-sans">
       {/* ── Desktop sidebar ───────────────────────────────────── */}
       <div className="hidden lg:block w-56 shrink-0 h-full">
         <Sidebar
@@ -1389,7 +1357,7 @@ export default function DashboardPage() {
       {/* ── Main area ─────────────────────────────────────────── */}
       <div className="relative flex flex-1 flex-col overflow-hidden">
         {/* Topbar */}
-        <header className="flex items-center justify-between border-b border-amber-100/60 bg-[#fffdf5]/80 backdrop-blur-sm px-5 lg:px-8 py-3 shrink-0">
+        <header className="flex items-center justify-between border-b border-gray-200/50 bg-white/70 backdrop-blur-xl shadow-sm px-5 lg:px-8 py-3.5 shrink-0 z-30">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setMobileSidebarOpen(true)}
