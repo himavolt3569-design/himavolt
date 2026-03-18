@@ -35,13 +35,28 @@ export async function getOrCreateUser() {
   const safeRole = intendedRole === "OWNER" ? "OWNER" : "CUSTOMER";
   const username = supabaseUser.user_metadata?.username as string | undefined;
 
-  const user = await db.user.upsert({
-    where: { id: supabaseUser.id },
-    update: { email, name, imageUrl, phone },
-    create: { id: supabaseUser.id, email, name, imageUrl, phone, role: safeRole, username: username ?? null },
-  });
+  let dbUser = await db.user.findUnique({ where: { id: supabaseUser.id } });
 
-  return user;
+  if (!dbUser) {
+    dbUser = await db.user.create({
+      data: { id: supabaseUser.id, email, name, imageUrl, phone, role: safeRole, username: username ?? null },
+    });
+  } else {
+    // Auto-heal broken test accounts where the DB role doesn't match the intended role
+    if (dbUser.role === "CUSTOMER" && safeRole === "OWNER") {
+      dbUser = await db.user.update({
+        where: { id: dbUser.id },
+        data: { role: "OWNER", email, name, imageUrl, phone },
+      });
+    } else {
+      dbUser = await db.user.update({
+        where: { id: dbUser.id },
+        data: { email, name, imageUrl, phone },
+      });
+    }
+  }
+
+  return dbUser;
 }
 
 export async function requireAuth() {
