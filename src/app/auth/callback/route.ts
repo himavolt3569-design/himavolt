@@ -83,7 +83,7 @@ export async function GET(req: NextRequest) {
 
   await db.user.upsert({
     where: { id: user.id },
-    update: { email, name, imageUrl, ...(phone ? { phone } : {}) },
+    update: { email, name, imageUrl, ...(phone ? { phone } : {}), ...(safeRole === "OWNER" ? { role: "OWNER" } : {}) },
     create: { id: user.id, email, name, imageUrl, phone, role: safeRole, username: usernameFromMeta },
   });
 
@@ -100,9 +100,9 @@ export async function GET(req: NextRequest) {
     }
     // New customer via email with explicit role → fall through to `next` (default "/")
   } else if (next === "/" || next === "") {
-    // Returning user — redirect based on their current DB role
-    const role = existingUser?.role ?? "CUSTOMER";
-    if (role === "OWNER" || role === "ADMIN") {
+    // Returning user — redirect based on their current DB role (or upgraded role)
+    const finalRole = safeRole === "OWNER" ? "OWNER" : (existingUser?.role ?? "CUSTOMER");
+    if (finalRole === "OWNER" || finalRole === "ADMIN") {
       redirectTo = "/dashboard";
     }
   }

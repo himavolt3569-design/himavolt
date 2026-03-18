@@ -22,10 +22,12 @@ export async function PATCH(req: Request) {
     if (role !== "CUSTOMER" && role !== "OWNER") {
       return NextResponse.json({ error: "Invalid role" }, { status: 400 });
     }
-    if (user.role !== "CUSTOMER") {
+    if (user.role !== "CUSTOMER" && user.role !== role) {
       return NextResponse.json({ error: "Role cannot be changed" }, { status: 403 });
     }
-    updateData.role = role;
+    if (user.role !== role) {
+      updateData.role = role;
+    }
   }
 
   // Username update
