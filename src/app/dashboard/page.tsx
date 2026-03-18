@@ -1322,6 +1322,13 @@ export default function DashboardPage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  /* Customers go to their orders page — dashboard is for OWNER/ADMIN only */
+  useEffect(() => {
+    if (userRole === "CUSTOMER") {
+      dashRouter.replace("/orders");
+    }
+  }, [userRole, dashRouter]);
+
   if (!isHydrated || userRole === null) {
     return (
       <div className="flex h-screen items-center justify-center bg-[#fefcf6]">
@@ -1331,13 +1338,6 @@ export default function DashboardPage() {
       </div>
     );
   }
-
-  /* Customers go to their orders page — dashboard is for OWNER/ADMIN only */
-  useEffect(() => {
-    if (userRole === "CUSTOMER") {
-      dashRouter.replace("/orders");
-    }
-  }, [userRole, dashRouter]);
 
   if (userRole === "CUSTOMER") {
     return (
