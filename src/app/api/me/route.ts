@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { getAuthUser } from "@/lib/auth";
+import { getAuthUser, getOrCreateUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 
 export async function GET() {
-  const user = await getAuthUser();
+  const user = await getOrCreateUser();
   if (!user) return NextResponse.json({ role: null, username: null });
   return NextResponse.json({ role: user.role, username: user.username });
 }

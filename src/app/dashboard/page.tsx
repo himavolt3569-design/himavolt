@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -1230,7 +1230,7 @@ export default function DashboardPage() {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const { orders, setRestaurantId } = useLiveOrders();
-  const { restaurants, selectedRestaurant, selectRestaurant } = useRestaurant();
+  const { restaurants, selectedRestaurant, selectRestaurant, loading: resLoading } = useRestaurant();
   const { user, isLoaded, userRole } = useAuth();
   const dashRouter = useRouter();
   const newOrderCount = orders.filter((o) => o.status === "PENDING").length;
@@ -1317,8 +1317,10 @@ export default function DashboardPage() {
   useEffect(() => {
     if (userRole === "CUSTOMER") {
       dashRouter.replace("/orders");
+    } else if (userRole === "OWNER" && !resLoading && restaurants.length === 0) {
+      dashRouter.replace("/onboarding");
     }
-  }, [userRole, dashRouter]);
+  }, [userRole, dashRouter, resLoading, restaurants.length]);
 
   if (!isHydrated || !isLoaded || userRole === null) {
     return (

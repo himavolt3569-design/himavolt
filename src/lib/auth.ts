@@ -31,10 +31,14 @@ export async function getOrCreateUser() {
     null;
   const phone = supabaseUser.phone ?? null;
 
+  const intendedRole = supabaseUser.user_metadata?.intended_role;
+  const safeRole = intendedRole === "OWNER" ? "OWNER" : "CUSTOMER";
+  const username = supabaseUser.user_metadata?.username as string | undefined;
+
   const user = await db.user.upsert({
     where: { id: supabaseUser.id },
     update: { email, name, imageUrl, phone },
-    create: { id: supabaseUser.id, email, name, imageUrl, phone },
+    create: { id: supabaseUser.id, email, name, imageUrl, phone, role: safeRole, username: username ?? null },
   });
 
   return user;
