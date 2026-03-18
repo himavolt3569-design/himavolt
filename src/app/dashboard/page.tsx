@@ -1229,19 +1229,10 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<DashTab>("overview");
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [userRole, setUserRole] = useState<string | null>(null);
   const { orders, setRestaurantId } = useLiveOrders();
   const { restaurants, selectedRestaurant, selectRestaurant } = useRestaurant();
-  const { user } = useAuth();
+  const { user, isLoaded, userRole } = useAuth();
   const dashRouter = useRouter();
-
-  /* Fetch role from DB (Supabase user object doesn't carry it) */
-  useEffect(() => {
-    fetch("/api/me")
-      .then((r) => r.json())
-      .then((d) => setUserRole(d.role ?? "CUSTOMER"))
-      .catch(() => setUserRole("CUSTOMER"));
-  }, []);
   const newOrderCount = orders.filter((o) => o.status === "PENDING").length;
 
   const restaurantType = selectedRestaurant?.type ?? "";
@@ -1329,7 +1320,7 @@ export default function DashboardPage() {
     }
   }, [userRole, dashRouter]);
 
-  if (!isHydrated || userRole === null) {
+  if (!isHydrated || !isLoaded || userRole === null) {
     return (
       <div className="flex h-screen items-center justify-center bg-[#fefcf6]">
         <span className="text-sm font-medium text-amber-700/70">
