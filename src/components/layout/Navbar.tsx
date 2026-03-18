@@ -9,7 +9,6 @@ import {
   Store,
   KeyRound,
   Search,
-  User,
   LogOut,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -21,7 +20,20 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const { totalItems } = useCart();
-  const { isSignedIn, isLoaded, user, signOut } = useAuth();
+  const { isSignedIn, isLoaded, user, userRole, signOut } = useAuth();
+  const isOwnerOrAdmin = userRole === "OWNER" || userRole === "ADMIN";
+
+  /* Build initials from user name */
+  const userInitials = (() => {
+    const name =
+      user?.user_metadata?.full_name ||
+      user?.user_metadata?.name ||
+      user?.email ||
+      "";
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    return name.slice(0, 2).toUpperCase();
+  })();
 
   return (
     <nav className="sticky top-0 z-50 w-full bg-white/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.05)] border-b border-gray-100/80 transition-all duration-300">
@@ -54,7 +66,7 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
 
           {/* Desktop actions */}
           <div className="hidden shrink-0 items-center gap-2.5 md:flex">
-            {isLoaded && isSignedIn && (
+            {isLoaded && isSignedIn && isOwnerOrAdmin && (
               <Link
                 href="/manage-restaurants"
                 className="flex items-center gap-2 rounded-xl bg-[#1F2A2A] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#333] transition-all"
@@ -63,15 +75,15 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
                 <span className="hidden lg:inline">My Restaurants</span>
               </Link>
             )}
-
-            {/* Staff Portal — always visible */}
-            <Link
-              href="/staff-login"
-              className="flex items-center gap-1.5 rounded-xl px-3 py-2.5 text-xs font-semibold text-gray-500 hover:text-[#0A4D3C] hover:bg-gray-50 transition-all"
-            >
-              <KeyRound className="h-3.5 w-3.5" />
-              <span className="hidden lg:inline">Staff Portal</span>
-            </Link>
+            {isLoaded && !isSignedIn && (
+              <Link
+                href="/staff-login"
+                className="flex items-center gap-1.5 rounded-xl px-3 py-2.5 text-xs font-semibold text-gray-500 hover:text-[#0A4D3C] hover:bg-gray-50 transition-all"
+              >
+                <KeyRound className="h-3.5 w-3.5" />
+                <span className="hidden lg:inline">Staff Portal</span>
+              </Link>
+            )}
 
             {/* Cart */}
             <button
@@ -97,7 +109,7 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
                 {isSignedIn ? (
                   <div className="flex items-center gap-2">
                     <Link
-                      href="/profile"
+                      href="/dashboard"
                       className="flex h-9 w-9 items-center justify-center rounded-full bg-[#E23744]/10 hover:bg-[#E23744]/20 transition-colors"
                     >
                       {user?.user_metadata?.avatar_url ? (
@@ -107,7 +119,9 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
                           className="h-9 w-9 rounded-full object-cover"
                         />
                       ) : (
-                        <User className="h-4 w-4 text-[#E23744]" />
+                        <span className="text-xs font-bold text-[#E23744]">
+                          {userInitials}
+                        </span>
                       )}
                     </Link>
                     <button
@@ -180,7 +194,7 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
             className="border-t border-gray-100 bg-white md:hidden overflow-hidden"
           >
             <div className="mx-auto max-w-360 space-y-3 p-5">
-              {isLoaded && isSignedIn && (
+              {isLoaded && isSignedIn && isOwnerOrAdmin && (
                 <Link
                   href="/manage-restaurants"
                   onClick={() => setIsMobileMenuOpen(false)}
@@ -190,27 +204,37 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
                   My Restaurants
                 </Link>
               )}
-
-              {/* Staff Portal — always visible in mobile menu too */}
-              <Link
-                href="/staff-login"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center justify-center gap-2 rounded-xl border border-gray-200 py-3.5 text-center text-sm font-semibold text-gray-600 hover:text-[#0A4D3C] hover:border-[#0A4D3C]/30 transition-all"
-              >
-                <KeyRound className="h-4 w-4" />
-                Staff Portal
-              </Link>
+              {isLoaded && !isSignedIn && (
+                <Link
+                  href="/staff-login"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center justify-center gap-2 rounded-xl border border-gray-200 py-3.5 text-center text-sm font-semibold text-gray-600 hover:text-[#0A4D3C] hover:border-[#0A4D3C]/30 transition-all"
+                >
+                  <KeyRound className="h-4 w-4" />
+                  Staff Portal
+                </Link>
+              )}
 
               {isLoaded && (
                 <>
                   {isSignedIn ? (
                     <div className="space-y-3">
                       <Link
-                        href="/profile"
+                        href="/dashboard"
                         onClick={() => setIsMobileMenuOpen(false)}
                         className="flex items-center justify-center gap-2 rounded-xl border border-gray-200 py-3.5 text-center text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-all"
                       >
-                        <User className="h-4 w-4" />
+                        {user?.user_metadata?.avatar_url ? (
+                          <img
+                            src={user.user_metadata.avatar_url}
+                            alt=""
+                            className="h-5 w-5 rounded-full object-cover"
+                          />
+                        ) : (
+                          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#E23744]/10 text-[9px] font-bold text-[#E23744]">
+                            {userInitials}
+                          </span>
+                        )}
                         Profile
                       </Link>
                       <button

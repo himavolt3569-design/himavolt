@@ -303,13 +303,14 @@ export default function SignUpPage() {
             >
               Continue
             </button>
-            <button
-              onClick={handleGoogleSignUp}
-              disabled={!role}
-              className="w-full rounded-xl border border-gray-200 bg-white py-3 text-sm font-semibold text-gray-700 transition-all hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              Continue with Google
-            </button>
+            {role === "OWNER" && (
+              <button
+                onClick={handleGoogleSignUp}
+                className="w-full rounded-xl border border-gray-200 bg-white py-3 text-sm font-semibold text-gray-700 transition-all hover:bg-gray-50"
+              >
+                Continue with Google
+              </button>
+            )}
 
             <p className="mt-5 text-center text-sm text-gray-500">
               Already have an account?{" "}
@@ -521,21 +522,25 @@ export default function SignUpPage() {
                   </button>
                 </form>
 
-                <div className="relative my-5">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-200" />
-                  </div>
-                  <div className="relative flex justify-center text-xs">
-                    <span className="bg-white px-3 text-gray-400">or</span>
-                  </div>
-                </div>
+                {role === "OWNER" && (
+                  <>
+                    <div className="relative my-5">
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-gray-200" />
+                      </div>
+                      <div className="relative flex justify-center text-xs">
+                        <span className="bg-white px-3 text-gray-400">or</span>
+                      </div>
+                    </div>
 
-                <button
-                  onClick={handleGoogleSignUp}
-                  className="w-full rounded-xl border border-gray-200 py-3 text-sm font-semibold text-gray-700 transition-all hover:bg-gray-50"
-                >
-                  Continue with Google
-                </button>
+                    <button
+                      onClick={handleGoogleSignUp}
+                      className="w-full rounded-xl border border-gray-200 py-3 text-sm font-semibold text-gray-700 transition-all hover:bg-gray-50"
+                    >
+                      Continue with Google
+                    </button>
+                  </>
+                )}
               </div>
             </div>
 

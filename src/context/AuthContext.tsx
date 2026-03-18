@@ -16,6 +16,7 @@ interface AuthContextType {
   session: Session | null;
   isLoaded: boolean;
   isSignedIn: boolean;
+  userRole: string | null;
   signOut: () => Promise<void>;
 }
 
@@ -25,6 +26,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  /* Fetch DB role whenever session changes */
+  useEffect(() => {
+    if (!session) {
+      setUserRole(null);
+      return;
+    }
+    fetch("/api/me")
+      .then((r) => r.json())
+      .then((d) => setUserRole(d.role ?? "CUSTOMER"))
+      .catch(() => setUserRole("CUSTOMER"));
+  }, [session]);
 
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
@@ -63,6 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         session,
         isLoaded,
         isSignedIn: !!session,
+        userRole,
         signOut,
       }}
     >

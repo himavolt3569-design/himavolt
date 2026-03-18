@@ -27,6 +27,7 @@ model User {
   fcmTokens        FCMToken[]
   auditLogs        AuditLog[]
   menuItemRatings  MenuItemRating[]
+  favourites       Favourite[]
 
   @@map("users")
 }
@@ -85,6 +86,7 @@ model Restaurant {
   paymentConfig  PaymentConfig?
   heroSlides     HeroSlide[]
   tableSessions  TableSession[]
+  favourites     Favourite[]
 
   @@index([ownerId])
   @@index([slug])
@@ -772,4 +774,20 @@ model MenuItemIngredient {
 
   @@unique([menuItemId, inventoryItemId])
   @@map("menu_item_ingredients")
+}
+
+// ─── Favourites ─────────────────────────────────────────────────
+
+model Favourite {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  userId       String
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, restaurantId])
+  @@index([userId])
+  @@map("favourites")
 }

@@ -112,21 +112,15 @@ export default function SignInPage() {
             </button>
           </form>
 
-          <div className="relative my-5">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-200" />
-            </div>
-            <div className="relative flex justify-center text-xs">
-              <span className="bg-white px-3 text-gray-400">or</span>
-            </div>
+          <div className="mt-5 rounded-xl border border-dashed border-gray-200 bg-gray-50/50 px-4 py-3 text-center">
+            <p className="text-xs text-gray-400 mb-2">Restaurant Owner?</p>
+            <button
+              onClick={handleGoogleSignIn}
+              className="w-full rounded-lg border border-gray-200 bg-white py-2.5 text-sm font-semibold text-gray-700 transition-all hover:bg-gray-50"
+            >
+              Sign in with Google
+            </button>
           </div>
-
-          <button
-            onClick={handleGoogleSignIn}
-            className="w-full rounded-xl border border-gray-200 py-3 text-sm font-semibold text-gray-700 transition-all hover:bg-gray-50"
-          >
-            Continue with Google
-          </button>
         </div>
 
         <p className="mt-5 text-center text-sm text-gray-500">
