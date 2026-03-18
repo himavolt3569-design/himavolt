@@ -30,7 +30,15 @@ export default function SignInPage() {
       return;
     }
 
-    router.push("/");
+    const meRes = await fetch("/api/me");
+    const meData = await meRes.json().catch(() => ({}));
+    const userRole = meData.role ?? "CUSTOMER";
+
+    if (userRole === "OWNER" || userRole === "ADMIN") {
+      router.push("/dashboard");
+    } else {
+      router.push("/");
+    }
     router.refresh();
   };
 

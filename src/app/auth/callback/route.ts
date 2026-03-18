@@ -99,6 +99,12 @@ export async function GET(req: NextRequest) {
       redirectTo = "/onboarding";
     }
     // New customer via email with explicit role → fall through to `next` (default "/")
+  } else if (next === "/" || next === "") {
+    // Returning user — redirect based on their current DB role
+    const role = existingUser?.role ?? "CUSTOMER";
+    if (role === "OWNER" || role === "ADMIN") {
+      redirectTo = "/dashboard";
+    }
   }
 
   // Build final redirect response and attach all session cookies
