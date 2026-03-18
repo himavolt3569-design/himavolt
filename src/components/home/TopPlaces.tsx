@@ -82,7 +82,7 @@ function MobileCard({ restaurant }: { restaurant: Restaurant }) {
         <div className="relative h-[120px] w-[120px] shrink-0 rounded-2xl overflow-hidden">
           <RestaurantImage restaurant={restaurant} />
           <motion.div
-            className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm text-[10px] font-semibold text-[#1F2A2A] px-2 py-0.5 rounded-md"
+            className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm text-[10px] font-semibold text-[#3e1e0c] px-2 py-0.5 rounded-md"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{
@@ -97,14 +97,14 @@ function MobileCard({ restaurant }: { restaurant: Restaurant }) {
         </div>
 
         <div className="flex flex-col justify-center min-w-0 flex-1 py-0.5">
-          <h3 className="text-[15px] font-bold text-[#1F2A2A] leading-tight truncate">
+          <h3 className="text-[15px] font-bold text-[#3e1e0c] leading-tight truncate">
             {restaurant.name}
           </h3>
           <div className="flex items-center gap-1.5 mt-1">
             {restaurant.rating != null && (
               <>
-                <Star className="h-3 w-3 fill-[#0A4D3C] text-[#0A4D3C]" />
-                <span className="text-xs font-bold text-[#1F2A2A]">
+                <Star className="h-3 w-3 fill-[#b25c1c] text-[#b25c1c]" />
+                <span className="text-xs font-bold text-[#3e1e0c]">
                   {restaurant.rating.toFixed(1)}
                 </span>
                 <span className="text-gray-300">&middot;</span>
@@ -136,11 +136,11 @@ function DesktopCard({ restaurant }: { restaurant: Restaurant }) {
       }}
     >
       <Link href={`/menu/${restaurant.slug}`}>
-        <div className="relative w-full aspect-4/3 rounded-2xl overflow-hidden shadow-sm group-hover:shadow-xl group-hover:shadow-[#E23744]/[0.08] transition-shadow duration-300">
+        <div className="relative w-full aspect-4/3 rounded-2xl overflow-hidden shadow-sm group-hover:shadow-xl group-hover:shadow-[#eaa94d]/8 transition-shadow duration-300">
           <RestaurantImage restaurant={restaurant} />
           <div className="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-transparent" />
           <motion.div
-            className="absolute top-2.5 left-2.5 bg-white/90 backdrop-blur-sm text-[10px] font-semibold text-[#1F2A2A] px-2 py-0.5 rounded-md shadow-sm"
+            className="absolute top-2.5 left-2.5 bg-white/90 backdrop-blur-sm text-[10px] font-semibold text-[#3e1e0c] px-2 py-0.5 rounded-md shadow-sm"
             initial={{ opacity: 0, x: -10 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
@@ -167,8 +167,8 @@ function DesktopCard({ restaurant }: { restaurant: Restaurant }) {
                 damping: 15,
               }}
             >
-              <Star className="h-3 w-3 fill-[#FF9933] text-[#FF9933]" />
-              <span className="text-[10px] font-bold text-[#1F2A2A]">
+              <Star className="h-3 w-3 fill-[#eaa94d] text-[#eaa94d]" />
+              <span className="text-[10px] font-bold text-[#3e1e0c]">
                 {restaurant.rating.toFixed(1)}
               </span>
             </motion.div>
@@ -176,14 +176,14 @@ function DesktopCard({ restaurant }: { restaurant: Restaurant }) {
         </div>
 
         <div className="pt-2.5">
-          <h3 className="text-[15px] font-bold text-[#1F2A2A] leading-tight truncate group-hover:text-[#E23744] transition-colors">
+          <h3 className="text-[15px] font-bold text-[#3e1e0c] leading-tight truncate group-hover:text-[#eaa94d] transition-colors">
             {restaurant.name}
           </h3>
           <div className="flex items-center gap-1 mt-1">
             {restaurant.rating != null && (
               <>
-                <Star className="h-3 w-3 fill-[#0A4D3C] text-[#0A4D3C]" />
-                <span className="text-xs font-bold text-[#1F2A2A]">
+                <Star className="h-3 w-3 fill-[#b25c1c] text-[#b25c1c]" />
+                <span className="text-xs font-bold text-[#3e1e0c]">
                   {restaurant.rating.toFixed(1)}
                 </span>
                 <span className="text-gray-300 mx-0.5">&middot;</span>
@@ -225,14 +225,14 @@ export default function TopPlaces() {
           whileInView="visible"
           viewport={{ once: true, margin: "-40px" }}
         >
-          <h2 className="text-xl font-bold tracking-tight text-[#1F2A2A] md:text-2xl">
+          <h2 className="text-xl font-bold tracking-tight text-[#3e1e0c] md:text-2xl">
             Popular Restaurants Near You
           </h2>
         </motion.div>
 
         {loading ? (
           <div className="flex items-center justify-center py-16">
-            <div className="h-8 w-8 animate-spin rounded-full border-3 border-gray-200 border-t-[#FF9933]" />
+            <div className="h-8 w-8 animate-spin rounded-full border-3 border-gray-200 border-t-[#eaa94d]" />
           </div>
         ) : restaurants.length === 0 ? (
           <p className="text-center text-gray-500 py-16">

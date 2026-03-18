@@ -124,7 +124,7 @@ function FoodCard({ item }: { item: FoodItem }) {
             <div className={`h-2 w-2 rounded-full ${vegDotColor}`} />
           </div>
 
-          <h3 className="text-[15px] font-bold text-[#1F2A2A] leading-snug line-clamp-2">
+          <h3 className="text-[15px] font-bold text-[#3e1e0c] leading-snug line-clamp-2">
             {item.name}
           </h3>
 
@@ -151,7 +151,7 @@ function FoodCard({ item }: { item: FoodItem }) {
           )}
 
           {/* Price */}
-          <p className="mt-2 text-[17px] font-extrabold text-[#1F2A2A] tracking-tight">
+          <p className="mt-2 text-[17px] font-extrabold text-[#3e1e0c] tracking-tight">
             {formatPrice(item.price, "NPR")}
           </p>
 
@@ -184,7 +184,7 @@ function FoodCard({ item }: { item: FoodItem }) {
                   item.restaurantSlug
                 )
               }
-              className="flex items-center gap-0.5 rounded-xl border-2 border-[#E23744] bg-white px-4 py-1 text-[13px] font-extrabold text-[#E23744] shadow-md whitespace-nowrap active:scale-95 transition-transform"
+              className="flex items-center gap-0.5 rounded-xl border-2 border-[#eaa94d] bg-white px-4 py-1 text-[13px] font-extrabold text-[#eaa94d] shadow-md whitespace-nowrap active:scale-95 transition-transform"
             >
               <Plus className="h-3.5 w-3.5" />
               ADD
@@ -208,7 +208,7 @@ function FoodCard({ item }: { item: FoodItem }) {
           {/* Offer badge */}
           {item.offer && (
             <div className="absolute bottom-2.5 left-2.5">
-              <span className="inline-flex items-center gap-1 rounded-md bg-[#E23744] px-2 py-1 text-[11px] font-extrabold text-white leading-none shadow-lg">
+              <span className="inline-flex items-center gap-1 rounded-md bg-[#eaa94d] px-2 py-1 text-[11px] font-extrabold text-white leading-none shadow-lg">
                 <Tag className="h-2.5 w-2.5" />
                 {item.offer}
               </span>
@@ -233,7 +233,7 @@ function FoodCard({ item }: { item: FoodItem }) {
 
         {/* Details */}
         <div className="mt-2.5 px-0.5">
-          <h3 className="text-[15px] font-bold text-[#1F2A2A] truncate leading-snug group-hover:text-[#E23744] transition-colors">
+          <h3 className="text-[15px] font-bold text-[#3e1e0c] truncate leading-snug group-hover:text-[#eaa94d] transition-colors">
             {item.name}
           </h3>
           <div className="flex items-center gap-1.5 mt-0.5">
@@ -244,7 +244,7 @@ function FoodCard({ item }: { item: FoodItem }) {
           {item.restaurantName && (
             <p className="text-[11px] text-gray-400 truncate mt-0.5">by {item.restaurantName}</p>
           )}
-          <p className="text-[15px] font-bold text-[#1F2A2A] mt-1">{formatPrice(item.price, "NPR")}</p>
+          <p className="text-[15px] font-bold text-[#3e1e0c] mt-1">{formatPrice(item.price, "NPR")}</p>
         </div>
       </Link>
 
@@ -361,7 +361,7 @@ export default function PopularFoods({
               onClick={() => toggleFilter(f.id)}
               className={`shrink-0 rounded-full border px-4 py-2 text-[13px] font-semibold transition-all ${
                 activeFilters.has(f.id)
-                  ? "border-[#E23744] bg-[#FFF0F1] text-[#E23744]"
+                  ? "border-[#eaa94d] bg-[#fdf9ef] text-[#eaa94d]"
                   : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
               }`}
             >
@@ -372,8 +372,8 @@ export default function PopularFoods({
 
         {/* Section header */}
         <div ref={headerRef} className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#E23744]/10">
-            <Flame className="h-4.5 w-4.5 text-[#E23744]" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#eaa94d]/10">
+            <Flame className="h-4.5 w-4.5 text-[#eaa94d]" />
           </div>
           <div>
             <h2 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">
@@ -407,7 +407,7 @@ export default function PopularFoods({
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 mb-4">
               <Sparkles className="h-7 w-7 text-gray-300" />
             </div>
-            <p className="text-base font-bold text-[#1F2A2A]">No dishes yet</p>
+            <p className="text-base font-bold text-[#3e1e0c]">No dishes yet</p>
             <p className="text-sm text-gray-400 mt-1">
               Restaurants are coming soon — check back shortly!
             </p>
@@ -420,7 +420,7 @@ export default function PopularFoods({
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 mb-4">
               <Sparkles className="h-7 w-7 text-gray-300" />
             </div>
-            <p className="text-base font-bold text-[#1F2A2A]">No dishes found</p>
+            <p className="text-base font-bold text-[#3e1e0c]">No dishes found</p>
             <p className="text-sm text-gray-400 mt-1">Try adjusting your filters</p>
           </div>
         )}
@@ -441,7 +441,7 @@ export default function PopularFoods({
           <div className="flex justify-center pt-2">
             <button
               onClick={() => setShowAll(!showAll)}
-              className="flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-6 py-3 text-[13px] font-bold text-[#E23744] hover:bg-[#FFF0F1] hover:border-[#E23744]/30 transition-all active:scale-[0.97] shadow-sm"
+              className="flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-6 py-3 text-[13px] font-bold text-[#eaa94d] hover:bg-[#fdf9ef] hover:border-[#eaa94d]/30 transition-all active:scale-[0.97] shadow-sm"
             >
               {showAll ? "Show Less" : `See all ${filtered.length} dishes`}
               <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-300 ${showAll ? "rotate-180" : ""}`} />

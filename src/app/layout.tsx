@@ -27,7 +27,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#ff9933",
+  themeColor: "#eaa94d",
 };
 
 export default function RootLayout({
@@ -45,7 +45,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${inter.variable} antialiased selection:bg-saffron-flame selection:text-white`}
+        className={`${inter.variable} antialiased selection:bg-brand-400 selection:text-white`}
       >
         <Providers>
           {children}

@@ -1,72 +1,30 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "@/components/layout/Navbar";
+import LandingHero from "@/components/home/LandingHero";
 import FoodCategories from "@/components/home/FoodCategories";
 import PopularFoods from "@/components/home/PopularFoods";
+import ScrollHowItWorks from "@/components/home/ScrollHowItWorks";
 import TopPlaces from "@/components/home/TopPlaces";
+import DealsSection from "@/components/home/DealsSection";
+import TrustMarquee from "@/components/home/TrustMarquee";
+import StatsCounter from "@/components/home/StatsCounter";
+import Testimonials from "@/components/home/Testimonials";
 import Footer from "@/components/layout/Footer";
 import CartSidebar from "@/components/cart/CartSidebar";
 import LoadingClock from "@/components/shared/LoadingClock";
-import StoryHero from "@/components/three/StoryHero";
-import StoryHowItWorks from "@/components/three/StoryHowItWorks";
-import ScrollStorySection from "@/components/three/ScrollStorySection";
-import gsap from "gsap";
-import { useGSAP } from "@gsap/react";
 
 export default function Home() {
   const [loading, setLoading] = useState(true);
   const [cartOpen, setCartOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState("All");
 
-  const clockRef = useRef<HTMLDivElement>(null);
-  const minuteHandRef = useRef<HTMLDivElement>(null);
-  const hourHandRef = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 1200);
     return () => clearTimeout(timer);
   }, []);
-
-  useGSAP(
-    () => {
-      if (
-        loading &&
-        clockRef.current &&
-        minuteHandRef.current &&
-        hourHandRef.current
-      ) {
-        gsap.to(minuteHandRef.current, {
-          rotation: 360,
-          duration: 1,
-          repeat: -1,
-          ease: "linear",
-          transformOrigin: "bottom center",
-        });
-        gsap.to(hourHandRef.current, {
-          rotation: 360,
-          duration: 12,
-          repeat: -1,
-          ease: "linear",
-          transformOrigin: "bottom center",
-        });
-        gsap.fromTo(
-          clockRef.current,
-          { scale: 0.92, opacity: 0.8 },
-          {
-            scale: 1.08,
-            opacity: 1,
-            yoyo: true,
-            repeat: -1,
-            duration: 0.9,
-            ease: "power1.inOut",
-          },
-        );
-      }
-    },
-    { scope: clockRef, dependencies: [loading] },
-  );
 
   return (
     <>
@@ -92,30 +50,23 @@ export default function Home() {
         >
           <Navbar onCartClick={() => setCartOpen(true)} />
 
-          {/* Hero — animated entrance, no pinning */}
-          <StoryHero />
+          <LandingHero />
 
-          {/* Sections with subtle scroll-triggered reveals */}
-          <ScrollStorySection fadeIn slideFrom="bottom" scrub={false}>
-            <FoodCategories onCategoryChange={setActiveCategory} />
-          </ScrollStorySection>
+          <TrustMarquee />
 
-          <ScrollStorySection fadeIn slideFrom="bottom" scrub={false}>
-            <PopularFoods activeCategory={activeCategory} />
-          </ScrollStorySection>
+          <FoodCategories onCategoryChange={setActiveCategory} />
 
-          {/* Gradient bridge: light → dark */}
-          <div className="h-32 bg-linear-to-b from-white to-[#0B0E14]" />
+          <PopularFoods activeCategory={activeCategory} />
 
-          {/* How It Works — pinned phone mockup storytelling */}
-          <StoryHowItWorks />
+          <ScrollHowItWorks />
 
-          {/* Gradient bridge: dark → light */}
-          <div className="h-32 bg-linear-to-b from-[#0B0E14] to-white" />
+          <StatsCounter />
 
-          <ScrollStorySection fadeIn slideFrom="bottom" scrub={false}>
-            <TopPlaces />
-          </ScrollStorySection>
+          <TopPlaces />
+
+          <DealsSection />
+
+          <Testimonials />
 
           <Footer />
 

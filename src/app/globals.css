@@ -6,14 +6,31 @@
   --font-sans: var(--font-inter);
   --font-mono: var(--font-geist-mono);
 
-  --color-everest-pine: #0a4d3c;
-  --color-saffron-flame: #ff9933;
-  --color-annapurna-linen: #f5f0e8;
-  --color-gompa-slate: #1f2a2a;
-  --color-rhododendron-green: #1e9a6f;
+  /* ── Brand palette (new-orleans) ── */
+  --color-brand-50: #fdf9ef;
+  --color-brand-100: #fbf0d9;
+  --color-brand-200: #f4d69a;
+  --color-brand-300: #f1c980;
+  --color-brand-400: #eaa94d;
+  --color-brand-500: #e58f2a;
+  --color-brand-600: #d67620;
+  --color-brand-700: #b25c1c;
+  --color-brand-800: #8e491e;
+  --color-brand-900: #733e1b;
+  --color-brand-950: #3e1e0c;
 
+  /* ── Semantic ── */
   --color-background: #ffffff;
-  --color-foreground: var(--color-gompa-slate);
+  --color-foreground: #3e1e0c;
+  --color-surface: #fdf9ef;
+  --color-surface-alt: #fbf0d9;
+  --color-success: #1e7b3e;
+  --color-error: #dc2626;
+
+  /* ── Legacy aliases ── */
+  --color-saffron-flame: #eaa94d;
+  --color-gompa-slate: #3e1e0c;
+  --color-annapurna-linen: #fdf9ef;
 }
 
 @layer base {
@@ -22,7 +39,7 @@
   }
   * {
     border-color: theme(--color-gray-200);
-    outline-color: var(--color-saffron-flame);
+    outline-color: var(--color-brand-400);
   }
   body {
     background-color: var(--color-background);
