@@ -272,17 +272,28 @@ export default function LandingHero() {
       style={{ opacity: heroOpacity, y: heroY }}
       className="relative min-h-[100svh] flex items-center overflow-hidden"
     >
-      {/* ── Background ── */}
-      <div className="absolute inset-0 bg-linear-to-br from-white via-[#fdf9ef] to-[#fbf0d9]/70" />
-      <div className="absolute -top-40 -right-40 h-150 w-150 rounded-full bg-[#eaa94d]/7 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-0 -left-32 h-125 w-125 rounded-full bg-[#e58f2a]/5 blur-[100px] pointer-events-none" />
+      {/* ── Video Background ── */}
+      {/* Replace /hero-video.mp4 with your own video file placed in the /public folder */}
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        className="absolute inset-0 h-full w-full object-cover"
+        src="/hero-video.mp4"
+      />
+
+      {/* Warm overlay — left side darker for text legibility, fades right for bento grid */}
+      <div className="absolute inset-0 bg-linear-to-r from-[#3e1e0c]/85 via-[#3e1e0c]/60 to-[#1a0a03]/30" />
+      {/* Extra top/bottom darkening */}
+      <div className="absolute inset-0 bg-linear-to-b from-black/20 via-transparent to-black/40" />
 
       {/* Grain */}
       <div
-        className="absolute inset-0 opacity-[0.025] pointer-events-none"
+        className="absolute inset-0 opacity-[0.04] pointer-events-none"
         style={{
           backgroundImage:
-            "url(\"data:image/svg+xml,%3Csvg width='6' height='6' viewBox='0 0 6 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23000' fill-opacity='1'%3E%3Ccircle cx='1' cy='1' r='0.6'/%3E%3C/g%3E%3C/svg%3E\")",
+            "url(\"data:image/svg+xml,%3Csvg width='6' height='6' viewBox='0 0 6 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23fff' fill-opacity='1'%3E%3Ccircle cx='1' cy='1' r='0.6'/%3E%3C/g%3E%3C/svg%3E\")",
         }}
       />
 
@@ -298,7 +309,7 @@ export default function LandingHero() {
           >
             {/* Badge */}
             <motion.div variants={fadeUp}>
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#eaa94d]/8 px-4 py-1.5 text-[11px] font-bold text-[#b25c1c] uppercase tracking-wider border border-[#eaa94d]/15">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#eaa94d]/20 px-4 py-1.5 text-[11px] font-bold text-[#eaa94d] uppercase tracking-wider border border-[#eaa94d]/30">
                 <span className="relative flex h-1.5 w-1.5">
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#1e7b3e] opacity-75" />
                   <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#1e7b3e]" />
@@ -310,7 +321,7 @@ export default function LandingHero() {
             {/* Headline */}
             <motion.h1
               variants={fadeUp}
-              className="mt-6 text-[2.5rem] leading-[1.05] sm:text-5xl md:text-6xl lg:text-[4.25rem] font-extrabold tracking-tight text-[#3e1e0c]"
+              className="mt-6 text-[2.5rem] leading-[1.05] sm:text-5xl md:text-6xl lg:text-[4.25rem] font-extrabold tracking-tight text-white"
             >
               Nepal&apos;s Smartest
               <br />
@@ -322,7 +333,7 @@ export default function LandingHero() {
             {/* Tagline */}
             <motion.p
               variants={fadeUp}
-              className="mt-4 text-lg sm:text-xl md:text-2xl font-semibold text-[#8e491e]/50 tracking-tight"
+              className="mt-4 text-lg sm:text-xl md:text-2xl font-semibold text-white/70 tracking-tight"
             >
               Scan. Order. Stay.
             </motion.p>
@@ -330,7 +341,7 @@ export default function LandingHero() {
             {/* Description */}
             <motion.p
               variants={fadeUp}
-              className="mt-3 text-sm sm:text-base text-[#8e491e]/40 max-w-md mx-auto lg:mx-0 leading-relaxed"
+              className="mt-3 text-sm sm:text-base text-white/55 max-w-md mx-auto lg:mx-0 leading-relaxed"
             >
               Premium dining & lightning-fast delivery across Kathmandu. Your
               next meal is one scan away.
@@ -360,13 +371,13 @@ export default function LandingHero() {
 
             {/* ── Craving Strip — auto-scrolling food showcase ── */}
             <motion.div variants={fadeUp} className="mt-8 w-full max-w-md mx-auto lg:mx-0 lg:max-w-lg">
-              <p className="text-[10px] font-bold text-[#b25c1c]/60 uppercase tracking-widest mb-2.5 text-center lg:text-left">
+              <p className="text-[10px] font-bold text-white/50 uppercase tracking-widest mb-2.5 text-center lg:text-left">
                 🔥 Trending right now
               </p>
               <div className="relative overflow-hidden rounded-2xl">
                 {/* Fade masks */}
-                <div className="absolute left-0 top-0 bottom-0 w-8 bg-linear-to-r from-[#fdf9ef] to-transparent z-10 pointer-events-none" />
-                <div className="absolute right-0 top-0 bottom-0 w-8 bg-linear-to-l from-[#fdf9ef] to-transparent z-10 pointer-events-none" />
+                <div className="absolute left-0 top-0 bottom-0 w-8 bg-linear-to-r from-black/30 to-transparent z-10 pointer-events-none" />
+                <div className="absolute right-0 top-0 bottom-0 w-8 bg-linear-to-l from-black/30 to-transparent z-10 pointer-events-none" />
                 <motion.div
                   animate={{ x: ["0%", "-50%"] }}
                   transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
@@ -507,12 +518,12 @@ export default function LandingHero() {
             ease: "easeInOut",
           }}
         >
-          <ChevronDown className="h-4 w-4 text-[#eaa94d]/40" />
+          <ChevronDown className="h-4 w-4 text-white/40" />
         </motion.div>
       </motion.div>
 
       {/* Bottom fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-20 bg-linear-to-t from-white to-transparent pointer-events-none" />
+      <div className="absolute bottom-0 left-0 right-0 h-20 bg-linear-to-t from-black/50 to-transparent pointer-events-none" />
     </motion.section>
   );
 }
