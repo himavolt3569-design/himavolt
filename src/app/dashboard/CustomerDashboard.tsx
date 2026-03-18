@@ -253,9 +253,9 @@ export default function CustomerDashboard() {
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
       {/* ── Header ── */}
-      <header className="sticky top-0 z-40 bg-white border-b border-gray-100 shadow-sm">
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-xl border-b border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
         <div className="mx-auto flex h-14 max-w-2xl items-center justify-between px-4">
-          <Link href="/" className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2 transition-transform active:scale-95">
             <Mountain className="h-5 w-5 text-[#E23744]" strokeWidth={2.5} />
             <span className="text-base font-extrabold text-[#1F2A2A]">
               Hima<span className="text-[#E23744]">Volt</span>
@@ -263,9 +263,10 @@ export default function CustomerDashboard() {
           </Link>
           <Link
             href="/"
-            className="rounded-lg bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-100 transition-colors"
+            className="flex items-center gap-1.5 rounded-full bg-gray-50 px-3.5 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-100 active:scale-[0.97] transition-all"
           >
-            Browse Restaurants
+            <Search className="h-3.5 w-3.5" />
+            Explore
           </Link>
         </div>
       </header>
@@ -316,23 +317,35 @@ export default function CustomerDashboard() {
       </main>
 
       {/* ── Bottom Navigation ── */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-200 bg-white/95 backdrop-blur-lg">
-        <div className="mx-auto flex max-w-2xl items-center justify-around py-1.5">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-200/60 bg-white/95 backdrop-blur-xl pb-safe">
+        <div className="mx-auto flex max-w-2xl items-center justify-around h-14">
           {TABS.map(({ id, label, icon: Icon }) => {
             const active = tab === id;
             return (
               <button
                 key={id}
                 onClick={() => setTab(id)}
-                className={`flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-xl transition-all ${
-                  active ? "text-[#E23744]" : "text-gray-400 hover:text-gray-600"
-                }`}
+                className="relative flex flex-1 flex-col items-center justify-center h-full group"
               >
+                {active && (
+                  <motion.div
+                    layoutId="dashboardNavActive"
+                    className="absolute inset-x-2 top-1 bottom-1 bg-[#E23744]/8 rounded-2xl"
+                    transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
+                  />
+                )}
                 <Icon
-                  className={`h-5 w-5 transition-transform ${active ? "scale-110" : ""}`}
+                  className={`h-5 w-5 mb-0.5 z-10 transition-all ${
+                    active ? "text-[#E23744]" : "text-gray-400 group-hover:text-gray-600"
+                  }`}
+                  strokeWidth={active ? 2.2 : 1.8}
                   fill={active && id === "favourites" ? "#E23744" : "none"}
                 />
-                <span className={`text-[10px] font-semibold ${active ? "text-[#E23744]" : ""}`}>
+                <span
+                  className={`text-[10px] font-semibold z-10 leading-none transition-all ${
+                    active ? "text-[#E23744]" : "text-gray-400 group-hover:text-gray-600"
+                  }`}
+                >
                   {label}
                 </span>
               </button>
