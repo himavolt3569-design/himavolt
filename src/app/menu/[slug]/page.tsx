@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useState, useRef, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { useParams, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -238,21 +239,21 @@ function PaymentQRBadge({ paymentQRs }: { paymentQRs?: { id: string; label: stri
       </button>
 
       <AnimatePresence>
-        {open && (
+        {open && typeof document !== "undefined" && createPortal(
           <>
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setOpen(false)}
-              className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm"
+              className="fixed inset-0 z-[9998] bg-black/50 backdrop-blur-sm"
             />
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ type: "spring", stiffness: 400, damping: 25 }}
-              className="fixed left-1/2 top-1/2 z-[101] w-[90%] max-w-sm -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-3xl bg-white shadow-2xl"
+              className="fixed left-1/2 top-1/2 z-[9999] w-[90%] max-w-sm -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-3xl bg-white shadow-2xl"
             >
               <div className="flex items-center justify-between border-b border-gray-100 p-4">
                 <div className="flex items-center gap-2">
@@ -263,28 +264,29 @@ function PaymentQRBadge({ paymentQRs }: { paymentQRs?: { id: string; label: stri
                 </div>
                 <button
                   onClick={() => setOpen(false)}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200"
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
                 >
                   <X className="h-4 w-4" />
                 </button>
               </div>
 
-              <div className="max-h-[60vh] overflow-y-auto p-5 space-y-6">
+              <div className="max-h-[70vh] overflow-y-auto p-5 space-y-6">
                 {paymentQRs.map((qr) => (
-                  <div key={qr.id} className="text-center">
+                  <div key={qr.id} className="text-center flex flex-col items-center">
                     <p className="mb-3 text-sm font-bold text-gray-700">{qr.label}</p>
-                    <div className="mx-auto overflow-hidden rounded-2xl border-2 border-dashed border-gray-200 p-2 bg-gray-50">
+                    <div className="w-full max-w-[280px] overflow-hidden rounded-2xl border border-gray-200 bg-white p-2 shadow-[0_4px_24px_rgba(0,0,0,0.06)]">
                       <img
                         src={img(qr.imageUrl)}
                         alt={qr.label}
-                        className="w-full h-auto object-contain rounded-xl"
+                        className="w-full max-h-[50vh] h-auto object-contain rounded-xl"
                       />
                     </div>
                   </div>
                 ))}
               </div>
             </motion.div>
-          </>
+          </>,
+          document.body
         )}
       </AnimatePresence>
     </>
@@ -1637,8 +1639,8 @@ function MenuPageContent() {
               />
             )}
 
-            {/* Search + Category bar — sticky on scroll */}
-            <div className="sticky top-0 z-20 -mx-4 px-4 md:-mx-6 md:px-6 pt-1 pb-2 bg-white/95 backdrop-blur-md space-y-3">
+            {/* Search + Category bar — sticky seamlessly under header */}
+            <div className="sticky top-[64px] sm:top-[72px] z-30 -mx-4 px-4 md:-mx-6 md:px-6 pt-1 pb-2 bg-white/95 backdrop-blur-md space-y-3">
             <motion.div
               className="relative group"
               initial={{ opacity: 0, y: 12 }}
