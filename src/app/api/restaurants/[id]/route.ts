@@ -49,6 +49,7 @@ export async function PATCH(
   const allowedFields = [
     "name", "phone", "countryCode", "type", "address", "city",
     "imageUrl", "coverUrl", "isActive", "tableCount", "openingTime", "closingTime",
+    "wifiName", "wifiPassword",
   ];
 
   const data: Record<string, unknown> = {};
