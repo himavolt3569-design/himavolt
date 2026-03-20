@@ -1884,7 +1884,7 @@ export default function CounterPage() {
         )}
 
         {viewMode === "stock" && <StockTab />}
-        {viewMode === "media" && <MediaTab />}
+        {viewMode === "media" && <MediaTab restaurantId={session?.restaurantId} />}
 
         {/* Type-specific feature tabs */}
         {(() => {

@@ -2000,7 +2000,7 @@ export default function KitchenPage() {
                 staffRole={session.role}
               />
             )}
-            {activeTab === "media" && <MediaTab />}
+            {activeTab === "media" && <MediaTab restaurantId={session.restaurantId} />}
             {/* Type-specific feature tabs */}
             {(() => {
               const FeatureComponent = STAFF_FEATURE_COMPONENTS[activeTab as FeatureTabId];

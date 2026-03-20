@@ -29,7 +29,7 @@ interface MediaItem {
   uploadedBy: { user: { name: string } } | null;
 }
 
-export default function MediaTab() {
+export default function MediaTab({ restaurantId: propRestaurantId }: { restaurantId?: string }) {
   const { selectedRestaurant } = useRestaurant();
   const { showToast } = useToast();
   const [media, setMedia] = useState<MediaItem[]>([]);
@@ -39,7 +39,7 @@ export default function MediaTab() {
   const [preview, setPreview] = useState<MediaItem | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const restaurantId = selectedRestaurant?.id;
+  const restaurantId = propRestaurantId ?? selectedRestaurant?.id;
 
   const load = useCallback(async () => {
     if (!restaurantId) return;
@@ -108,7 +108,7 @@ export default function MediaTab() {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
-  if (!selectedRestaurant) return null;
+  if (!restaurantId) return null;
 
   return (
     <div className="space-y-6">

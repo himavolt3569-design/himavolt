@@ -24,6 +24,9 @@ const RESTAURANT_TYPES = [
   { value: "HOTEL", label: "Hotel", emoji: "🏨" },
   { value: "RESORT", label: "Resort", emoji: "🏖️" },
   { value: "CLOUD_KITCHEN", label: "Cloud Kitchen", emoji: "📦" },
+  { value: "MO_MO_SHOP", label: "Momo Shop", emoji: "🥟" },
+  { value: "TANDOORI", label: "Tandoori", emoji: "🔥" },
+  { value: "GUEST_HOUSE", label: "Guest House", emoji: "🏠" },
 ] as const;
 
 type RestaurantType = (typeof RESTAURANT_TYPES)[number]["value"];
