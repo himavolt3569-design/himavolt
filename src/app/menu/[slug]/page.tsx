@@ -225,6 +225,11 @@ function WifiBadge({ name, password }: { name: string; password: string | null }
 
 function PaymentQRBadge({ paymentQRs }: { paymentQRs?: { id: string; label: string; imageUrl: string }[] }) {
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   if (!paymentQRs || paymentQRs.length === 0) return null;
 
@@ -238,57 +243,59 @@ function PaymentQRBadge({ paymentQRs }: { paymentQRs?: { id: string; label: stri
         <span className="hidden sm:inline">Pay</span>
       </button>
 
-      <AnimatePresence>
-        {open && typeof document !== "undefined" && createPortal(
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setOpen(false)}
-              className="fixed inset-0 z-[9998] bg-black/50 backdrop-blur-sm"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{ type: "spring", stiffness: 400, damping: 25 }}
-              className="fixed left-1/2 top-1/2 z-[9999] w-[90%] max-w-sm -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-3xl bg-white shadow-2xl"
-            >
-              <div className="flex items-center justify-between border-b border-gray-100 p-4">
-                <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-50">
-                    <QrCode className="h-4 w-4 text-purple-600" />
-                  </div>
-                  <h3 className="font-bold text-gray-900">Scan to Pay</h3>
-                </div>
-                <button
-                  onClick={() => setOpen(false)}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-
-              <div className="max-h-[70vh] overflow-y-auto p-5 space-y-6">
-                {paymentQRs.map((qr) => (
-                  <div key={qr.id} className="text-center flex flex-col items-center">
-                    <p className="mb-3 text-sm font-bold text-gray-700">{qr.label}</p>
-                    <div className="w-full max-w-[280px] overflow-hidden rounded-2xl border border-gray-200 bg-white p-2 shadow-[0_4px_24px_rgba(0,0,0,0.06)]">
-                      <img
-                        src={img(qr.imageUrl)}
-                        alt={qr.label}
-                        className="w-full max-h-[50vh] h-auto object-contain rounded-xl"
-                      />
+      {mounted && typeof document !== "undefined" && createPortal(
+        <AnimatePresence>
+          {open && (
+            <div key="qr-modal-wrapper">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setOpen(false)}
+                className="fixed inset-0 z-[9998] bg-black/50 backdrop-blur-sm"
+              />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                className="fixed left-1/2 top-1/2 z-[9999] w-[90%] max-w-sm -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-3xl bg-white shadow-2xl"
+              >
+                <div className="flex items-center justify-between border-b border-gray-100 p-4">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-50">
+                      <QrCode className="h-4 w-4 text-purple-600" />
                     </div>
+                    <h3 className="font-bold text-gray-900">Scan to Pay</h3>
                   </div>
-                ))}
-              </div>
-            </motion.div>
-          </>,
-          document.body
-        )}
-      </AnimatePresence>
+                  <button
+                    onClick={() => setOpen(false)}
+                    className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+
+                <div className="max-h-[70vh] overflow-y-auto p-5 space-y-6">
+                  {paymentQRs.map((qr) => (
+                    <div key={qr.id} className="text-center flex flex-col items-center">
+                      <p className="mb-3 text-sm font-bold text-gray-700">{qr.label}</p>
+                      <div className="w-full max-w-[280px] overflow-hidden rounded-2xl border border-gray-200 bg-white p-2 shadow-[0_4px_24px_rgba(0,0,0,0.06)]">
+                        <img
+                          src={img(qr.imageUrl)}
+                          alt={qr.label}
+                          className="w-full max-h-[50vh] h-auto object-contain rounded-xl"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </>
   );
 }
