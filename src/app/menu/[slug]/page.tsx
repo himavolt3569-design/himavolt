@@ -62,6 +62,8 @@ import Link from "next/link";
 import OrderStatus from "@/components/shared/OrderStatus";
 import CartSidebar from "@/components/cart/CartSidebar";
 import CheckoutSheet from "@/components/checkout/CheckoutSheet";
+import FoodSlider from "@/components/menu/FoodSlider";
+import ScrollStorySection from "@/components/three/ScrollStorySection";
 import MenuStories from "@/components/stories/MenuStories";
 import ChatWidget from "@/components/chat/ChatWidget";
 import { formatPrice } from "@/lib/currency";
@@ -70,12 +72,14 @@ import TableSessionBanner from "@/components/menu/TableSessionBanner";
 import GetBillButton from "@/components/menu/GetBillButton";
 import { useTableSession } from "@/hooks/useTableSession";
 import { setActiveTableSession } from "@/hooks/useActiveTableSession";
-import FoodSlider from "@/components/menu/FoodSlider";
-import MenuStoryHero from "@/components/three/MenuStoryHero";
-import ScrollStorySection from "@/components/three/ScrollStorySection";
 
 const PLACEHOLDER_IMG =
-  "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&h=300&fit=crop";
+  "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80";
+
+const stripEmojis = (str?: string) => {
+  if (!str) return '';
+  return str.replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, '').trim();
+};
 
 interface RestaurantCategory {
   id: string;
@@ -944,7 +948,7 @@ function MenuItemCard({
               {item.hasEgg && <Egg className="h-3 w-3 text-yellow-500" />}
             </div>
             <h3 className="text-sm font-bold text-[#3e1e0c] truncate flex items-center gap-1">
-              {item.name}
+              {stripEmojis(item.name)}
               {item.isFeatured && (
                 <Star className="h-3 w-3 fill-[#eaa94d] text-[#eaa94d] shrink-0" />
               )}
@@ -1101,10 +1105,10 @@ function FilterPill({
       whileTap={{ scale: 0.92 }}
       animate={active ? { scale: 1 } : { scale: 1 }}
       transition={{ type: "spring", stiffness: 400, damping: 17 }}
-      className={`flex items-center gap-1.5 rounded-xl px-3.5 py-2.5 text-[11px] font-bold transition-colors ${
+      className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-[11px] font-bold tracking-wide transition-all ${
         active
-          ? "bg-[#3e1e0c] text-white shadow-md shadow-[#3e1e0c]/15"
-          : "bg-white text-gray-500 border border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+          ? "bg-[#1a1a1a] text-white shadow-md shadow-black/10"
+          : "bg-white text-gray-500 border border-gray-200 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-900"
       }`}
     >
       {icon}
@@ -1161,10 +1165,10 @@ function DesktopCartPreview({
                     className="h-full w-full object-cover"
                   />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-[#3e1e0c] truncate">
-                    {item.name}
-                  </p>
+                <div className="flex-1">
+                  <h2 className="text-xl font-black text-[#3e1e0c] leading-tight">
+                    {stripEmojis(item.name)}
+                  </h2>
                   <p className="text-xs font-semibold text-[#eaa94d]">
                     {formatPrice(item.price * item.quantity, currency)}
                   </p>
@@ -1493,25 +1497,14 @@ function MenuPageContent() {
 
   return (
     <div className="min-h-screen bg-[#F7F8FA] relative">
-      {/* Cinematic restaurant hero */}
-      <MenuStoryHero
-        name={restaurant.name}
-        address={restaurant.address}
-        rating={restaurant.rating}
-        openingTime={restaurant.openingTime}
-        closingTime={restaurant.closingTime}
-        coverUrl={restaurant.coverUrl}
-        imageUrl={restaurant.imageUrl}
-      />
-
-      {/* Header */}
+      {/* Premium Header */}
       <motion.header
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-        className="sticky top-0 z-40 bg-white/80 backdrop-blur-2xl border-b border-gray-200/60 shadow-[0_1px_12px_rgba(0,0,0,0.04)]"
+        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        className="sticky top-0 z-40 bg-white/95 backdrop-blur-3xl shadow-sm border-b border-black/[0.04]"
       >
-        <div className="mx-auto max-w-7xl px-4 md:px-6">
+        <div className="mx-auto max-w-7xl px-4 md:px-6 py-1">
           <div className="flex h-16 items-center gap-4">
             <Link
               href="/"
@@ -1647,10 +1640,10 @@ function MenuPageContent() {
                       setActiveCategory("");
                       setActiveSubCategory("");
                     }}
-                    className={`shrink-0 rounded-xl px-5 py-2.5 text-xs font-bold transition-all ${
+                    className={`shrink-0 rounded-full px-6 py-2.5 text-[11px] font-bold tracking-wide uppercase transition-all ${
                       activeCategory === ""
-                        ? "bg-brand-950 text-white shadow-md shadow-brand-950/15"
-                        : "bg-white text-gray-500 border border-gray-200 hover:border-brand-200 hover:bg-brand-50"
+                        ? "bg-[#1a1a1a] text-white shadow-md shadow-black/10"
+                        : "bg-white text-gray-500 border border-gray-200 hover:border-gray-300 hover:bg-gray-50 hover:text-[#1a1a1a]"
                     }`}
                   >
                     All
@@ -1662,14 +1655,13 @@ function MenuPageContent() {
                         setActiveCategory(cat.name === activeCategory ? "" : cat.name);
                         setActiveSubCategory("");
                       }}
-                      className={`shrink-0 rounded-xl px-5 py-2.5 text-xs font-bold transition-all flex items-center gap-1.5 ${
+                      className={`shrink-0 rounded-full px-6 py-2.5 text-[11px] font-bold tracking-wide uppercase transition-all flex items-center ${
                         activeCategory === cat.name
-                          ? "bg-brand-950 text-white shadow-md shadow-brand-950/15"
-                          : "bg-white text-gray-500 border border-gray-200 hover:border-brand-200 hover:bg-brand-50"
+                          ? "bg-[#1a1a1a] text-white shadow-md shadow-black/10"
+                          : "bg-white text-gray-500 border border-gray-200 hover:border-gray-300 hover:bg-gray-50 hover:text-[#1a1a1a]"
                       }`}
                     >
-                      {cat.icon && <span className="text-sm">{cat.icon}</span>}
-                      {cat.name}
+                      {stripEmojis(cat.name)}
                     </button>
                   ))}
                 </div>
@@ -1701,26 +1693,25 @@ function MenuPageContent() {
                     <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-0.5">
                       <button
                         onClick={() => setActiveSubCategory("")}
-                        className={`shrink-0 rounded-lg px-3 py-1.5 text-[11px] font-semibold transition-all ${
+                        className={`shrink-0 rounded-full px-4 py-1.5 text-[10px] font-bold tracking-wide uppercase transition-all ${
                           activeSubCategory === ""
-                            ? "bg-brand-400 text-white shadow-sm"
-                            : "bg-brand-50 text-brand-700 hover:bg-brand-100"
+                            ? "bg-[#1a1a1a] text-white shadow-sm"
+                            : "bg-white text-gray-500 border border-gray-200 hover:border-gray-300 hover:bg-gray-50 hover:text-[#1a1a1a]"
                         }`}
                       >
-                        All {activeCategory}
+                        All {stripEmojis(activeCategory)}
                       </button>
                       {subCategories.map((sub) => (
                         <button
                           key={sub.id}
                           onClick={() => setActiveSubCategory(sub.name === activeSubCategory ? "" : sub.name)}
-                          className={`shrink-0 rounded-lg px-3 py-1.5 text-[11px] font-semibold transition-all ${
+                          className={`shrink-0 rounded-full px-4 py-1.5 text-[10px] font-bold tracking-wide uppercase transition-all ${
                             activeSubCategory === sub.name
-                              ? "bg-brand-400 text-white shadow-sm"
-                              : "bg-brand-50 text-brand-700 hover:bg-brand-100"
+                              ? "bg-[#1a1a1a] text-white shadow-sm"
+                              : "bg-white text-gray-500 border border-gray-200 hover:border-gray-300 hover:bg-gray-50 hover:text-[#1a1a1a]"
                           }`}
                         >
-                          {sub.icon && <span className="mr-1">{sub.icon}</span>}
-                          {sub.name}
+                          {stripEmojis(sub.name)}
                         </button>
                       ))}
                     </div>
@@ -1780,8 +1771,7 @@ function MenuPageContent() {
               />
             )}
 
-            {/* Dish list — grouped by category, scroll-revealed */}
-            <ScrollStorySection fadeIn slideFrom="bottom" scrub={false}>
+            {/* Dish list — grouped by category */}
             <div className="space-y-6">
               <AnimatePresence mode="popLayout">
                 {smartSorted.length === 0 ? (
@@ -1797,7 +1787,7 @@ function MenuPageContent() {
                   /* Single category selected */
                   <div key="single" className="space-y-3">
                     <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">
-                      {activeCategory}
+                      {stripEmojis(activeCategory)}
                       {activeSubCategory && (
                         <span className="text-brand-500"> / {activeSubCategory}</span>
                       )}
@@ -1908,7 +1898,6 @@ function MenuPageContent() {
                 )}
               </AnimatePresence>
             </div>
-            </ScrollStorySection>
           </div>
 
           {/* Desktop cart sidebar */}
