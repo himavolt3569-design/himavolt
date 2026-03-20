@@ -456,11 +456,11 @@ function QRCard({
             <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold text-green-600">Active</span>
           </div>
 
-          <div className="relative rounded-xl bg-gray-50 p-4 mb-4 border border-gray-100">
-            <QRCode value={tableUrl} size={120} fgColor="#3e1e0c" bgColor="transparent" level="M" />
+          <div className="relative w-[180px] h-[180px] max-w-full flex items-center justify-center rounded-xl bg-white p-4 mb-4 border border-gray-100 shadow-sm">
+            <QRCode value={tableUrl} size={256} style={{ height: "100%", maxWidth: "100%", width: "100%" }} fgColor="#3e1e0c" bgColor="transparent" level="M" />
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="rounded-sm bg-white flex items-center justify-center border border-gray-100 px-1 py-0.5">
-                <span className="text-[7px] font-black text-[#eaa94d] leading-none">
+              <div className="rounded-sm bg-white flex items-center justify-center border border-gray-100 px-1.5 py-1 shadow-sm">
+                <span className="text-[9px] font-black text-[#eaa94d] leading-none">
                   {restaurantName.split(/\s+/).map(w => w[0]).join("").toUpperCase().slice(0, 3)}
                 </span>
               </div>

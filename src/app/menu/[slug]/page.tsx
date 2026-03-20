@@ -51,6 +51,7 @@ import {
   Utensils,
   ChevronDown,
   QrCode,
+  MapPin,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
@@ -1496,45 +1497,77 @@ function MenuPageContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F7F8FA] relative">
-      {/* Premium Header */}
-      <motion.header
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        className="sticky top-0 z-40 bg-white/95 backdrop-blur-3xl shadow-sm border-b border-black/[0.04]"
-      >
-        <div className="mx-auto max-w-7xl px-4 md:px-6 py-1">
-          <div className="flex h-16 items-center gap-4">
-            <Link
-              href="/"
-              className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-[#3e1e0c] transition-all shrink-0 shadow-sm"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <h1 className="text-base font-bold text-[#3e1e0c] truncate">
-                  {restaurant.name}
-                </h1>
-                <span className="flex items-center gap-0.5 shrink-0 rounded-full bg-[#3e1e0c] px-2 py-0.5 text-[10px] font-bold text-white">
-                  <Star className="h-2.5 w-2.5 fill-white" />
-                  {restaurant.rating.toFixed(1)}
-                </span>
-              </div>
-              <p className="text-[11px] text-gray-400 font-medium">
-                {restaurant.address}
-                {tableNo && (
-                  <span className="ml-2 inline-flex items-center gap-1 rounded-md bg-[#eaa94d]/15 px-2 py-0.5 text-[12px] font-black text-[#eaa94d]">
-                    Table {tableNo}
-                  </span>
-                )}
-                {roomNo && (
-                  <span className="ml-2 inline-flex items-center gap-1 rounded-md bg-[#eaa94d]/15 px-2 py-0.5 text-[12px] font-black text-[#eaa94d]">
-                    Room {roomNo}
-                  </span>
-                )}
-              </p>
+    <div className="min-h-screen bg-[#F7F8FA] flex justify-center w-full">
+      <div className="w-full max-w-5xl bg-white min-h-screen shadow-[0_0_40px_rgba(0,0,0,0.03)] relative flex flex-col">
+        {/* Sleek Cover Banner */}
+        {restaurant.coverUrl && (
+          <div className="relative w-full h-[180px] sm:h-[240px] md:h-[280px] shrink-0">
+            <img 
+               src={restaurant.coverUrl} 
+               alt="Cover" 
+               className="w-full h-full object-cover"
+            />
+            {/* Elegant gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+            
+            {/* Restaurant Info Overlay */}
+            <div className="absolute bottom-6 left-6 right-6 flex items-end gap-3 sm:gap-4">
+               {/* Avatar or Logo */}
+               <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl bg-white p-1 shadow-lg shrink-0 overflow-hidden">
+                 <img src={restaurant.imageUrl || PLACEHOLDER_IMG} alt={restaurant.name} className="h-full w-full object-cover rounded-xl" />
+               </div>
+               <div className="flex-1 pb-1">
+                 <h1 className="text-2xl sm:text-3xl font-black text-white leading-none tracking-tight shadow-black drop-shadow-md">
+                   {restaurant.name}
+                 </h1>
+                 <div className="mt-2 flex items-center gap-3 text-white/90 text-[10px] sm:text-xs font-semibold">
+                    <span className="flex items-center gap-1 bg-black/40 backdrop-blur-md px-2 py-0.5 rounded-md text-[#eaa94d]">
+                      <Star className="h-3 w-3 text-[#eaa94d] fill-[#eaa94d]" />
+                      {restaurant.rating.toFixed(1)}
+                    </span>
+                    <span className="flex items-center gap-1 drop-shadow-md truncate">
+                      <MapPin className="h-3 w-3" />
+                      {restaurant.address}
+                    </span>
+                 </div>
+               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Premium Header Container */}
+        <motion.header
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          className="sticky top-0 z-40 bg-white/95 backdrop-blur-3xl shadow-sm border-b border-black/[0.04]"
+        >
+          <div className="px-4 md:px-6 py-2">
+            <div className="flex h-12 sm:h-14 items-center gap-3 sm:gap-4">
+              <Link
+                href="/"
+                className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-[#3e1e0c] transition-all shrink-0 shadow-sm"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Link>
+            <div className="flex-1 min-w-0 flex items-center">
+              {/* Only show Table/Room badges since Resto Name is in the cover banner now */}
+              {(tableNo || roomNo) ? (
+                <div className="flex gap-2">
+                  {tableNo && (
+                    <span className="inline-flex items-center gap-1 rounded-md bg-[#eaa94d]/15 px-2.5 py-1 text-[13px] font-black text-[#eaa94d]">
+                      Table {tableNo}
+                    </span>
+                  )}
+                  {roomNo && (
+                    <span className="inline-flex items-center gap-1 rounded-md bg-[#eaa94d]/15 px-2.5 py-1 text-[13px] font-black text-[#eaa94d]">
+                      Room {roomNo}
+                    </span>
+                  )}
+                </div>
+              ) : (
+                <span className="text-sm font-bold text-[#3e1e0c] truncate hidden sm:inline-block">Menu</span>
+              )}
             </div>
             <div className="flex items-center gap-2 shrink-0">
               {restaurant.wifiName && (
@@ -1585,10 +1618,10 @@ function MenuPageContent() {
         </div>
       </motion.header>
 
-      <div className="relative z-10 mx-auto max-w-7xl px-4 md:px-6">
-        <div className="flex flex-col lg:flex-row gap-6 py-4 lg:py-6">
+      <div className="relative z-10 flex-1 px-4 md:px-6 pb-24">
+        <div className="flex flex-col md:flex-row gap-6 py-4 lg:py-6 w-full">
           {/* Main content */}
-          <div className="flex-1 min-w-0 space-y-4">
+          <div className="flex-1 min-w-0 space-y-5">
             {/* Stories - with scroll reveal */}
             <ScrollStorySection fadeIn slideFrom="bottom" scrub={false}>
               <MenuStories slug={slug} />
@@ -1901,8 +1934,8 @@ function MenuPageContent() {
           </div>
 
           {/* Desktop cart sidebar */}
-          <div className="hidden lg:block w-[340px] shrink-0">
-            <div className="sticky top-[80px]">
+          <div className="hidden md:block w-[280px] lg:w-[320px] shrink-0">
+            <div className="sticky top-[100px]">
               <DesktopCartPreview
                 currency={cur}
                 onProceed={handleProceedToCheckout}
@@ -1912,12 +1945,13 @@ function MenuPageContent() {
           </div>
         </div>
       </div>
+      </div>
 
       {/* Mobile cart bar */}
       <AnimatePresence>
         {totalItems > 0 && (
           <motion.div
-            className="fixed bottom-0 inset-x-0 z-30 lg:hidden"
+            className="fixed bottom-0 inset-x-0 mx-auto max-w-5xl z-30 md:hidden"
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
