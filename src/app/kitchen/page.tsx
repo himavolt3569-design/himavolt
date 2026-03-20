@@ -32,6 +32,7 @@ import {
   Pencil,
   Receipt,
   Camera,
+  GalleryHorizontalEnd,
 } from "lucide-react";
 import BillingTab from "@/components/billing/BillingTab";
 import StoryManager from "@/components/stories/StoryManager";
@@ -73,6 +74,7 @@ import WaitlistTab from "@/components/dashboard/features/WaitlistTab";
 import PrivateDiningTab from "@/components/dashboard/features/PrivateDiningTab";
 import WifiSettingsTab from "@/components/dashboard/features/WifiSettingsTab";
 import GuestCheckInTab from "@/components/dashboard/GuestCheckInTab";
+import MediaTab from "@/components/dashboard/MediaTab";
 
 const STAFF_FEATURE_COMPONENTS: Record<FeatureTabId, React.ComponentType> = {
   "quick-counter": QuickCounterTab,
@@ -181,7 +183,7 @@ interface ChatRoom {
   }[];
 }
 
-type TabId = "orders" | "menu" | "chat" | "inventory" | "billing" | "stories" | FeatureTabId;
+type TabId = "orders" | "menu" | "chat" | "inventory" | "billing" | "stories" | "media" | FeatureTabId;
 
 const ALL_TABS: {
   id: TabId;
@@ -223,6 +225,12 @@ const ALL_TABS: {
     id: "stories",
     label: "Stories",
     icon: Camera,
+    roles: ["SUPER_ADMIN", "MANAGER", "CHEF", "WAITER", "CASHIER"],
+  },
+  {
+    id: "media",
+    label: "Media",
+    icon: GalleryHorizontalEnd,
     roles: ["SUPER_ADMIN", "MANAGER", "CHEF", "WAITER", "CASHIER"],
   },
 ];
@@ -1992,6 +2000,7 @@ export default function KitchenPage() {
                 staffRole={session.role}
               />
             )}
+            {activeTab === "media" && <MediaTab />}
             {/* Type-specific feature tabs */}
             {(() => {
               const FeatureComponent = STAFF_FEATURE_COMPONENTS[activeTab as FeatureTabId];

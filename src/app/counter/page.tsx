@@ -34,6 +34,7 @@ import {
   Monitor,
   Settings,
   Package,
+  GalleryHorizontalEnd,
 } from "lucide-react";
 import { useToast } from "@/context/ToastContext";
 import { formatPrice } from "@/lib/currency";
@@ -74,6 +75,7 @@ import WaitlistTab from "@/components/dashboard/features/WaitlistTab";
 import PrivateDiningTab from "@/components/dashboard/features/PrivateDiningTab";
 import WifiSettingsTab from "@/components/dashboard/features/WifiSettingsTab";
 import GuestCheckInTab from "@/components/dashboard/GuestCheckInTab";
+import MediaTab from "@/components/dashboard/MediaTab";
 
 const COUNTER_FEATURE_COMPONENTS: Record<FeatureTabId, React.ComponentType> = {
   "quick-counter": QuickCounterTab,
@@ -1550,7 +1552,7 @@ function BillingPanel({
 
 /* ── MAIN COUNTER PAGE ───────────────────────────────────────────── */
 
-type ViewMode = "billing" | "board" | "split" | "stock" | FeatureTabId;
+type ViewMode = "billing" | "board" | "split" | "stock" | "media" | FeatureTabId;
 
 export default function CounterPage() {
   const router = useRouter();
@@ -1725,6 +1727,7 @@ export default function CounterPage() {
                     { id: "board", icon: Monitor, label: "Board" },
                     { id: "split", icon: Utensils, label: "Split" },
                     { id: "stock", icon: Package, label: "Stock" },
+                    { id: "media", icon: GalleryHorizontalEnd, label: "Media" },
                     ...(session?.restaurantType && (session.role === "SUPER_ADMIN" || session.role === "MANAGER")
                       ? getFeatureTabsForType(session.restaurantType).map((f) => ({
                           id: f.id,
@@ -1881,6 +1884,7 @@ export default function CounterPage() {
         )}
 
         {viewMode === "stock" && <StockTab />}
+        {viewMode === "media" && <MediaTab />}
 
         {/* Type-specific feature tabs */}
         {(() => {

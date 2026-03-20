@@ -69,22 +69,42 @@ export async function GET(req: NextRequest) {
   const phone = user.user_metadata?.phone ?? user.phone ?? null;
   const usernameFromMeta = (user.user_metadata?.username as string | undefined) ?? null;
 
-  // Determine role: URL param (Google OAuth) > metadata (email sign-up) > CUSTOMER
-  // We never allow ADMIN to be self-assigned.
-  const metadataRole = user.user_metadata?.intended_role as SafeRole | undefined;
-  const intendedRole: SafeRole | undefined = roleParam ?? metadataRole;
-  const safeRole: SafeRole = intendedRole === "OWNER" ? "OWNER" : "CUSTOMER";
-
   const isGoogleUser = user.app_metadata?.provider === "google";
 
-  // Detect whether this user already exists in our DB (new vs returning)
-  const existingUser = await db.user.findUnique({ where: { id: user.id } });
+  // Look up existing user by Supabase ID first, then fall back to email
+  // (Google OAuth can create a new user ID even for an existing email account)
+  const existingUserById = await db.user.findUnique({ where: { id: user.id } });
+  const existingUserByEmail = !existingUserById && email
+    ? await db.user.findFirst({ where: { email } })
+    : null;
+  const existingUser = existingUserById ?? existingUserByEmail;
   const isNewUser = !existingUser;
+  // True when same email exists in DB under a different auth provider/ID
+  const isAccountLink = !existingUserById && !!existingUserByEmail;
+
+  // Determine role: URL param > existing DB role > metadata (email sign-up) > CUSTOMER
+  // Never allow ADMIN to be self-assigned.
+  const metadataRole = user.user_metadata?.intended_role as SafeRole | undefined;
+  const dbRole = existingUser?.role;
+  const intendedRole: SafeRole | undefined =
+    roleParam ??
+    (dbRole === "OWNER" || dbRole === "ADMIN" ? "OWNER" as SafeRole : undefined) ??
+    metadataRole;
+  const safeRole: SafeRole = intendedRole === "OWNER" ? "OWNER" : "CUSTOMER";
+
+  // Upsert by Supabase user ID; inherit role from linked email account if applicable
+  const inheritedRole = isAccountLink ? (existingUserByEmail!.role as SafeRole) : undefined;
+  const finalCreateRole = inheritedRole ?? safeRole;
 
   await db.user.upsert({
     where: { id: user.id },
-    update: { email, name, imageUrl, ...(phone ? { phone } : {}), ...(safeRole === "OWNER" ? { role: "OWNER" } : {}) },
-    create: { id: user.id, email, name, imageUrl, phone, role: safeRole, username: usernameFromMeta },
+    update: {
+      email, name, imageUrl,
+      ...(phone ? { phone } : {}),
+      ...(safeRole === "OWNER" ? { role: "OWNER" } : {}),
+      ...(inheritedRole && inheritedRole !== "CUSTOMER" ? { role: inheritedRole } : {}),
+    },
+    create: { id: user.id, email, name, imageUrl, phone, role: finalCreateRole, username: usernameFromMeta },
   });
 
   // Determine final redirect URL
@@ -92,17 +112,25 @@ export async function GET(req: NextRequest) {
   if (isNewUser) {
     if (isGoogleUser) {
       // Google users always complete their profile (username + optional password)
-      const roleQ = intendedRole ? `?role=${intendedRole}` : "";
+      const roleQ = safeRole === "OWNER" ? `?role=${safeRole}` : "";
       redirectTo = `/auth/complete-profile${roleQ}`;
     } else if (safeRole === "OWNER") {
       // New owner via email — send to restaurant setup wizard
       redirectTo = "/onboarding";
     }
     // New customer via email with explicit role → fall through to `next` (default "/")
+  } else if (isAccountLink && isGoogleUser) {
+    // Returning user linking Google to existing email account — redirect by DB role
+    const effectiveRole = inheritedRole ?? dbRole ?? "CUSTOMER";
+    if (effectiveRole === "OWNER" || effectiveRole === "ADMIN") {
+      redirectTo = "/dashboard";
+    } else {
+      redirectTo = "/";
+    }
   } else if (next === "/" || next === "") {
     // Returning user — redirect based on their current DB role (or upgraded role)
-    const finalRole = safeRole === "OWNER" ? "OWNER" : (existingUser?.role ?? "CUSTOMER");
-    if (finalRole === "OWNER" || finalRole === "ADMIN") {
+    const effectiveRole = safeRole === "OWNER" ? "OWNER" : (existingUser?.role ?? "CUSTOMER");
+    if (effectiveRole === "OWNER" || effectiveRole === "ADMIN") {
       redirectTo = "/dashboard";
     }
   }

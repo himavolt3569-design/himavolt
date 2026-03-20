@@ -121,6 +121,7 @@ import PrivateDiningTab from "@/components/dashboard/features/PrivateDiningTab";
 import WifiSettingsTab from "@/components/dashboard/features/WifiSettingsTab";
 import DrinksTab from "@/components/dashboard/DrinksTab";
 import GuestCheckInTab from "@/components/dashboard/GuestCheckInTab";
+import MediaTab from "@/components/dashboard/MediaTab";
 
 type DashTab =
   | "overview"
@@ -139,6 +140,7 @@ type DashTab =
   | "stock"
   | "offers"
   | "hero-slides"
+  | "media"
   | FeatureTabId;
 
 /* ─── Navigation groups for sidebar ───────────────────────────────── */
@@ -170,6 +172,7 @@ const NAV_MANAGE: typeof NAV_MAIN = [
 const NAV_MORE: typeof NAV_MAIN = [
   { id: "reports", label: "Reports", icon: BarChart3 },
   { id: "stories", label: "Stories", icon: Camera },
+  { id: "media" as DashTab, label: "Media Library", icon: ImageIcon },
 ];
 
 const ALL_NAV = [...NAV_MAIN, ...NAV_MANAGE, ...NAV_MORE];
@@ -1481,6 +1484,7 @@ export default function DashboardPage() {
               {activeTab === "stock" && <StockTab />}
               {activeTab === "offers" && <OffersTab />}
               {activeTab === "hero-slides" && <HeroSlidesManager />}
+              {activeTab === "media" && <MediaTab />}
               {activeTab === "reports" && <ReportsTab />}
               {activeTab === "stories" && selectedRestaurant && (
                 <StoryManager

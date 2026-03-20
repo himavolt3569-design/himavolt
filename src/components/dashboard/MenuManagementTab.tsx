@@ -340,101 +340,94 @@ function MenuItemCard({
         visible: { opacity: 1, scale: 1, y: 0 },
       }}
       exit={{ opacity: 0, scale: 0.95 }}
-      whileHover={{ y: -4 }}
+      whileHover={{ y: -2 }}
       transition={{ type: "spring", stiffness: 400, damping: 25 }}
       className={`group relative rounded-2xl bg-white/90 backdrop-blur-xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border overflow-hidden transition-all hover:shadow-[0_8px_30px_-4px_rgba(245,158,11,0.15)] ${
         item.isAvailable ? "border-amber-100/60" : "border-gray-200 opacity-80"
       }`}
     >
-      {/* Image */}
-      <div className="relative h-44 overflow-hidden bg-gradient-to-br from-amber-50 to-orange-50/20">
-        {item.imageUrl ? (
-          <img src={item.imageUrl} alt={item.name} className={`h-full w-full object-cover transition-transform duration-700 group-hover:scale-110 ${!item.isAvailable ? 'grayscale-[40%]' : ''}`} loading="lazy" />
-        ) : (
-          <div className="h-full w-full flex items-center justify-center">
-            <UtensilsCrossed className="h-10 w-10 text-amber-200/50" />
-          </div>
-        )}
+      {/* Mobile: image-left / text-right  |  sm+: image-top / content-below */}
+      <div className="flex sm:block">
 
-        {/* Top badges */}
-        <div className="absolute top-2.5 left-2.5 flex flex-wrap gap-1.5 z-10">
-          {item.badge && (
-            <span className="rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-2.5 py-0.5 text-[10px] font-bold tracking-wide text-white shadow-md border border-white/20 backdrop-blur-md">
-              {item.badge}
-            </span>
+        {/* Image */}
+        <div className="relative w-28 shrink-0 sm:w-full sm:h-44 h-auto overflow-hidden bg-gradient-to-br from-amber-50 to-orange-50/20">
+          {item.imageUrl ? (
+            <img src={item.imageUrl} alt={item.name} className={`h-full w-full object-cover aspect-square sm:aspect-auto transition-transform duration-700 group-hover:scale-110 ${!item.isAvailable ? 'grayscale-[40%]' : ''}`} loading="lazy" />
+          ) : (
+            <div className="h-full w-full flex items-center justify-center min-h-[7rem]">
+              <UtensilsCrossed className="h-8 w-8 sm:h-10 sm:w-10 text-amber-200/50" />
+            </div>
           )}
-          {item.isFeatured && (
-            <span className="rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 px-2.5 py-0.5 text-[10px] font-bold tracking-wide text-white shadow-md flex items-center gap-1 border border-white/20 backdrop-blur-md">
-              <Star className="h-2.5 w-2.5" /> Featured
+
+          {/* Veg indicator — always visible */}
+          <div className="absolute top-2 right-2 z-10">
+            <span className={`flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center rounded-md border-2 shadow-sm bg-white/90 ${
+              item.isVeg ? "border-emerald-500" : "border-rose-500"
+            }`}>
+              <span className={`h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full ${item.isVeg ? "bg-emerald-500" : "bg-rose-500"}`} />
             </span>
-          )}
+          </div>
+
+          {/* Discount badge */}
           {item.discount > 0 && (
-            <span className="rounded-full bg-gradient-to-r from-emerald-500 to-green-600 px-2.5 py-0.5 text-[10px] font-bold tracking-wide text-white shadow-md border border-white/20 backdrop-blur-md">
-              {item.discountLabel || `${item.discount}% OFF`}
-            </span>
+            <div className="absolute top-2 left-2 z-10">
+              <span className="rounded-full bg-gradient-to-r from-emerald-500 to-green-600 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-md">
+                {item.discountLabel || `${item.discount}% OFF`}
+              </span>
+            </div>
           )}
-        </div>
 
-        {/* Veg indicator */}
-        <div className="absolute top-2.5 right-2.5 z-10">
-          <span className={`flex h-5 w-5 items-center justify-center rounded-md border-2 shadow-sm backdrop-blur-md ${
-            item.isVeg ? "border-emerald-500 bg-white/90" : "border-rose-500 bg-white/90"
-          }`}>
-            <span className={`h-2 w-2 rounded-full ${item.isVeg ? "bg-emerald-500" : "bg-rose-500"}`} />
-          </span>
-        </div>
+          {/* Availability overlay */}
+          {!item.isAvailable && (
+            <div className="absolute inset-0 bg-rose-950/30 backdrop-blur-[2px] flex items-center justify-center z-10">
+              <span className="rounded-full bg-rose-600 px-2 py-0.5 text-[9px] sm:text-[11px] font-bold uppercase text-white shadow-lg">Unavailable</span>
+            </div>
+          )}
 
-        {/* Availability overlay */}
-        {!item.isAvailable && (
-          <div className="absolute inset-0 bg-rose-950/30 backdrop-blur-[2px] flex items-center justify-center z-10 transition-all group-hover:bg-rose-950/20">
-            <span className="rounded-full bg-rose-600 px-3.5 py-1 text-[11px] font-bold tracking-wider uppercase text-white shadow-lg ring-1 ring-white/20">Unavailable</span>
-          </div>
-        )}
-
-        {/* Quick actions (shown on hover) */}
-        <div className="absolute bottom-2.5 right-2.5 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20 translate-y-2 group-hover:translate-y-0">
-          <button
-            onClick={onToggle}
-            className={`rounded-full p-2 shadow-lg backdrop-blur-md transition-all hover:scale-105 active:scale-95 ${
-              item.isAvailable ? "bg-emerald-500/90 text-white hover:bg-emerald-500" : "bg-gray-800/90 text-white hover:bg-gray-900"
-            }`}
-            title={item.isAvailable ? "Mark unavailable" : "Mark available"}
-          >
-            {item.isAvailable ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-          </button>
-          <button onClick={onEdit} className="rounded-full bg-white/95 backdrop-blur-md p-2 text-indigo-600 shadow-lg hover:bg-white transition-all hover:scale-105 active:scale-95">
-            <Pencil className="h-4 w-4" />
-          </button>
-          <div className="relative" ref={menuRef}>
+          {/* Desktop-only hover quick actions */}
+          <div className="hidden sm:flex absolute bottom-2.5 right-2.5 gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20 translate-y-2 group-hover:translate-y-0">
             <button
-              onClick={() => setShowMenu(!showMenu)}
-              className="rounded-full bg-white/95 backdrop-blur-md p-2 text-gray-700 shadow-lg hover:bg-white transition-all hover:scale-105 active:scale-95"
+              onClick={onToggle}
+              className={`rounded-full p-2 shadow-lg backdrop-blur-md transition-all hover:scale-105 active:scale-95 ${
+                item.isAvailable ? "bg-emerald-500/90 text-white" : "bg-gray-800/90 text-white"
+              }`}
+              title={item.isAvailable ? "Mark unavailable" : "Mark available"}
             >
-              <MoreVertical className="h-4 w-4" />
+              {item.isAvailable ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
             </button>
-            {showMenu && (
-              <div className="absolute right-0 top-full mt-2 w-40 rounded-xl bg-white/95 backdrop-blur-xl shadow-2xl ring-1 ring-gray-200/50 z-30 py-1.5 overflow-hidden origin-bottom-right">
-                <button
-                  onClick={() => { onDuplicate(); setShowMenu(false); }}
-                  className="flex w-full items-center gap-2.5 px-3.5 py-2 text-[13px] font-semibold text-gray-700 hover:bg-amber-50 hover:text-amber-700 transition-colors"
-                >
-                  <Copy className="h-3.5 w-3.5" /> Duplicate
-                </button>
-                <div className="h-px bg-gray-100 my-1 mx-2"></div>
-                <button
-                  onClick={() => { onDelete(); setShowMenu(false); }}
-                  className="flex w-full items-center gap-2.5 px-3.5 py-2 text-[13px] font-semibold text-rose-600 hover:bg-rose-50 transition-colors"
-                >
-                  <Trash2 className="h-3.5 w-3.5" /> Delete Item
-                </button>
-              </div>
-            )}
+            <button onClick={onEdit} className="rounded-full bg-white/95 backdrop-blur-md p-2 text-indigo-600 shadow-lg hover:bg-white transition-all hover:scale-105 active:scale-95">
+              <Pencil className="h-4 w-4" />
+            </button>
+            <div className="relative" ref={menuRef}>
+              <button
+                onClick={() => setShowMenu(!showMenu)}
+                className="rounded-full bg-white/95 backdrop-blur-md p-2 text-gray-700 shadow-lg hover:bg-white transition-all hover:scale-105 active:scale-95"
+              >
+                <MoreVertical className="h-4 w-4" />
+              </button>
+              {showMenu && (
+                <div className="absolute right-0 top-full mt-2 w-40 rounded-xl bg-white/95 backdrop-blur-xl shadow-2xl ring-1 ring-gray-200/50 z-30 py-1.5 overflow-hidden origin-bottom-right">
+                  <button
+                    onClick={() => { onDuplicate(); setShowMenu(false); }}
+                    className="flex w-full items-center gap-2.5 px-3.5 py-2 text-[13px] font-semibold text-gray-700 hover:bg-amber-50 hover:text-amber-700 transition-colors"
+                  >
+                    <Copy className="h-3.5 w-3.5" /> Duplicate
+                  </button>
+                  <div className="h-px bg-gray-100 my-1 mx-2"></div>
+                  <button
+                    onClick={() => { onDelete(); setShowMenu(false); }}
+                    className="flex w-full items-center gap-2.5 px-3.5 py-2 text-[13px] font-semibold text-rose-600 hover:bg-rose-50 transition-colors"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" /> Delete Item
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
       {/* Content */}
-      <div className="p-4 bg-white/40">
+      <div className="flex-1 min-w-0 p-3 sm:p-4 bg-white/40 flex flex-col justify-between sm:block">
         <div className="flex items-start justify-between gap-3 mb-2">
           <h4 className="text-[14px] font-extrabold text-gray-900 leading-tight line-clamp-1">{item.name}</h4>
           <div className="flex items-baseline gap-1.5 shrink-0 bg-amber-50/50 px-2 py-0.5 rounded-md border border-amber-100/50">
@@ -516,7 +509,33 @@ function MenuItemCard({
             <span className="text-[9px] text-orange-500">{item.allergens.join(", ")}</span>
           </div>
         )}
+
+        {/* Mobile action buttons — touch-friendly, hidden on sm+ (desktop uses hover) */}
+        <div className="flex sm:hidden items-center justify-end gap-2 mt-3 pt-2.5 border-t border-gray-100">
+          <button
+            onClick={onToggle}
+            className={`rounded-full p-2 shadow-sm transition-all active:scale-95 ${
+              item.isAvailable ? "bg-emerald-50 text-emerald-600" : "bg-gray-100 text-gray-500"
+            }`}
+            title={item.isAvailable ? "Mark unavailable" : "Mark available"}
+          >
+            {item.isAvailable ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+          </button>
+          <button
+            onClick={onEdit}
+            className="rounded-full bg-indigo-50 p-2 text-indigo-600 shadow-sm transition-all active:scale-95"
+          >
+            <Pencil className="h-4 w-4" />
+          </button>
+          <button
+            onClick={onDelete}
+            className="rounded-full bg-rose-50 p-2 text-rose-600 shadow-sm transition-all active:scale-95"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
       </div>
+      </div>{/* end flex sm:block */}
     </motion.div>
   );
 }

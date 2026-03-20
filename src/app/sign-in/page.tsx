@@ -44,10 +44,12 @@ export default function SignInPage() {
 
   const handleGoogleSignIn = async () => {
     const supabase = getSupabaseBrowserClient();
+    // Pass ?role=OWNER so the callback can correctly handle returning owner accounts
+    // and new owners who sign in from this page
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${window.location.origin}/auth/callback?role=OWNER`,
       },
     });
   };

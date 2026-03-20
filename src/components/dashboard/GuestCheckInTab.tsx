@@ -28,6 +28,7 @@ import { useRestaurant } from "@/context/RestaurantContext";
 import { useToast } from "@/context/ToastContext";
 import { apiFetch } from "@/lib/api-client";
 import QRCode from "qrcode";
+import { createWorker } from "tesseract.js";
 
 interface GuestCheckIn {
   id: string;
@@ -66,6 +67,49 @@ const BLANK_FORM = {
   notes: "",
   idImageUrl: "",
 };
+
+function parseIdText(text: string): {
+  fullName?: string;
+  dob?: string;
+  idNumber?: string;
+  address?: string;
+  nationality?: string;
+  idType?: string;
+} {
+  const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+  const upper = text.toUpperCase();
+
+  let idType: string | undefined;
+  if (upper.includes("PASSPORT")) idType = "PASSPORT";
+  else if (upper.includes("DRIVING") || upper.includes("DRIVER")) idType = "DRIVING_LICENSE";
+  else if (upper.includes("CITIZENSHIP") || upper.includes("CITIZEN")) idType = "CITIZENSHIP";
+  else if (upper.includes("NATIONAL ID") || upper.includes("NATIONAL IDENTITY")) idType = "NATIONAL_ID";
+
+  let fullName: string | undefined;
+  for (const line of lines) {
+    const m = line.match(/(?:name|full\s*name|surname)[\s:]+([A-Za-z\s]{3,50})/i);
+    if (m) { fullName = m[1].trim(); break; }
+  }
+
+  const dobMatch =
+    text.match(/(?:dob|date of birth|birth date|born)[\s:]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i) ||
+    text.match(/(\d{4}[\/\-]\d{2}[\/\-]\d{2})/);
+  const dob = dobMatch?.[1];
+
+  const idMatch =
+    text.match(/(?:no|number|id no|passport no|license no)[\s:.#]*([A-Z0-9]{6,15})/i) ||
+    text.match(/\b([A-Z]{1,3}[0-9]{6,10})\b/) ||
+    text.match(/\b([0-9]{8,12})\b/);
+  const idNumber = idMatch?.[1];
+
+  const natMatch = text.match(/(?:nationality|country)[\s:]+([A-Za-z\s]{3,20})/i);
+  const nationality = natMatch?.[1].trim();
+
+  const addrMatch = text.match(/(?:address|addr)[\s:]+([^\n]+)/i);
+  const address = addrMatch?.[1].trim();
+
+  return { fullName, dob, idNumber, address, nationality, idType };
+}
 
 export default function GuestCheckInTab() {
   const { selectedRestaurant, restaurants } = useRestaurant();
@@ -170,25 +214,23 @@ export default function GuestCheckInTab() {
       setForm((f) => ({ ...f, idImageUrl: url }));
       showToast("ID uploaded — extracting details...", "info");
 
-      // Auto-extract fields via OCR
+      // Auto-extract fields via free client-side OCR (Tesseract.js)
       setExtractingOcr(true);
       try {
-        const ocrRes = await fetch("/api/id-ocr", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ imageUrl: url }),
-        });
-        if (ocrRes.ok) {
-          const { extracted } = await ocrRes.json();
-          setForm((f) => ({
-            ...f,
-            guestName: extracted.fullName || f.guestName,
-            dob: extracted.dob || f.dob,
-            idNumber: extracted.idNumber || f.idNumber,
-            address: extracted.address || f.address,
-            nationality: extracted.nationality || f.nationality,
-            idType: extracted.idType || f.idType,
-          }));
+        const worker = await createWorker("eng");
+        const { data: { text } } = await worker.recognize(file);
+        await worker.terminate();
+        const extracted = parseIdText(text);
+        setForm((f) => ({
+          ...f,
+          guestName: extracted.fullName || f.guestName,
+          dob: extracted.dob || f.dob,
+          idNumber: extracted.idNumber || f.idNumber,
+          address: extracted.address || f.address,
+          nationality: extracted.nationality || f.nationality,
+          idType: extracted.idType || f.idType,
+        }));
+        if (extracted.fullName || extracted.idNumber) {
           showToast("ID details auto-filled!", "success");
         }
       } catch {

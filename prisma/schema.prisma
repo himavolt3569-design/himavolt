@@ -93,6 +93,7 @@ model Restaurant {
   tableSessions  TableSession[]
   favourites     Favourite[]
   guestCheckIns  GuestCheckIn[]
+  media          Media[]
 
   @@index([ownerId])
   @@index([slug])
@@ -204,6 +205,7 @@ model StaffMember {
 
   attendance StaffAttendance[]
   stories    Story[]
+  media      Media[]
 
   @@unique([userId, restaurantId])
   @@index([restaurantId])
@@ -838,4 +840,26 @@ model GuestCheckIn {
   @@index([restaurantId, roomNo])
   @@index([status])
   @@map("guest_check_ins")
+}
+
+// ─── Media Library (staff-uploaded photos & videos) ─────────────────
+model Media {
+  id        String    @id @default(cuid())
+  url       String
+  type      StoryType @default(IMAGE) // reuses IMAGE/VIDEO enum
+  caption   String?
+  fileName  String?
+  fileSize  Int?
+  mimeType  String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  uploadedById String?
+  uploadedBy   StaffMember? @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+
+  @@index([restaurantId])
+  @@map("media_library")
 }
