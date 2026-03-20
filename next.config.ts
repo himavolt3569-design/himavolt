@@ -19,6 +19,9 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   experimental: {
     useLightningcss: true,
+    serverActions: {
+      bodySizeLimit: "50mb",
+    },
   },
   images: {
     remotePatterns: [
