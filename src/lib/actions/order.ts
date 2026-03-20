@@ -87,6 +87,28 @@ export async function placeOrder(data: {
     include: { items: true },
   });
 
+  // Deduct stock for drink items with stock tracking enabled
+  const drinkItemIds = data.items
+    .filter((i) => i.menuItemId)
+    .map((i) => i.menuItemId as string);
+
+  if (drinkItemIds.length > 0) {
+    const drinkMenuItems = await db.menuItem.findMany({
+      where: { id: { in: drinkItemIds }, isDrink: true, stockEnabled: true },
+      select: { id: true, stockQuantity: true },
+    });
+
+    for (const drinkMenuItem of drinkMenuItems) {
+      const orderedItem = data.items.find((i) => i.menuItemId === drinkMenuItem.id);
+      if (!orderedItem) continue;
+      const newQty = Math.max(0, drinkMenuItem.stockQuantity - orderedItem.quantity);
+      await db.menuItem.update({
+        where: { id: drinkMenuItem.id },
+        data: { stockQuantity: newQty },
+      });
+    }
+  }
+
   // Create Delivery record for delivery orders
   if (orderType === "DELIVERY") {
     await db.delivery.create({

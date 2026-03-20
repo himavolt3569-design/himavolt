@@ -7,6 +7,9 @@ export const RESTAURANT_TYPE_OPTIONS = [
   { value: "BAR", label: "Bar", emoji: "🍸" },
   { value: "CAFE", label: "Cafe", emoji: "☕" },
   { value: "RESTAURANT", label: "Restaurant", emoji: "🍽️" },
+  { value: "MO_MO_SHOP", label: "Momo Shop", emoji: "🥟" },
+  { value: "TANDOORI", label: "Tandoori", emoji: "🔥" },
+  { value: "GUEST_HOUSE", label: "Guest House", emoji: "🏠" },
 ] as const;
 
 const TYPE_MAP = Object.fromEntries(
@@ -33,24 +36,30 @@ export const TYPE_FEATURES: Record<string, TypeFeature[]> = {
     { label: "Combo Meals", desc: "Bundle items into value combos" },
     { label: "Rush Hour Mode", desc: "Queue management for peak times" },
     { label: "Takeaway Ready", desc: "Streamlined packaging & delivery" },
+    { label: "WiFi", desc: "Share WiFi credentials with customers" },
   ],
   RESORT: [
     { label: "Room Service", desc: "Deliver directly to guest rooms" },
     { label: "Multi-Outlet", desc: "Pool bar, restaurant, lounge menus" },
     { label: "Event Catering", desc: "Weddings, conferences, parties" },
     { label: "Guest Billing", desc: "Charge meals to room accounts" },
+    { label: "Guest Check-In", desc: "Record guest details & room assignment" },
+    { label: "WiFi", desc: "Share WiFi credentials with guests" },
   ],
   HOTEL: [
     { label: "24/7 Room Service", desc: "Round-the-clock kitchen operations" },
     { label: "Buffet Manager", desc: "Buffet item tracking & rotation" },
     { label: "Conference Catering", desc: "Corporate events & meetings" },
     { label: "Guest Billing", desc: "Integrated room charge system" },
+    { label: "Guest Check-In", desc: "Record guest details & room assignment" },
+    { label: "WiFi", desc: "Share WiFi credentials with guests" },
   ],
   BAKERY: [
     { label: "Pre-Orders", desc: "Schedule pickups for fresh goods" },
     { label: "Custom Cakes", desc: "Custom orders with specifications" },
     { label: "Daily Specials", desc: "Highlight fresh-from-oven items" },
     { label: "Display Counter", desc: "Showcase mode for walk-in customers" },
+    { label: "WiFi", desc: "Share WiFi credentials with customers" },
   ],
   CLOUD_KITCHEN: [
     { label: "Delivery Only", desc: "No dine-in, pure delivery operations" },
@@ -63,6 +72,7 @@ export const TYPE_FEATURES: Record<string, TypeFeature[]> = {
     { label: "Tab Management", desc: "Open tabs & group billing" },
     { label: "Cocktail Menu", desc: "Recipe-based drink builder" },
     { label: "Live Events", desc: "Music nights & event listings" },
+    { label: "WiFi", desc: "Share WiFi credentials with customers" },
   ],
   CAFE: [
     { label: "Loyalty Rewards", desc: "Points & rewards for regulars" },
@@ -75,6 +85,28 @@ export const TYPE_FEATURES: Record<string, TypeFeature[]> = {
     { label: "QR Dine-In", desc: "Scan & order from the table" },
     { label: "Waitlist", desc: "Queue management for walk-ins" },
     { label: "Private Dining", desc: "Special rooms & set menus" },
+    { label: "WiFi", desc: "Share WiFi credentials with diners" },
+  ],
+  MO_MO_SHOP: [
+    { label: "Quick Counter", desc: "Fast counter service for momos" },
+    { label: "Momo Varieties", desc: "Manage steam, fried, jhol & more" },
+    { label: "Rush Hour Mode", desc: "Queue management for peak times" },
+    { label: "Takeaway Ready", desc: "Streamlined packaging & carry-out" },
+    { label: "WiFi", desc: "Share WiFi credentials with customers" },
+  ],
+  TANDOORI: [
+    { label: "Live Counter", desc: "Showcase live tandoor station" },
+    { label: "Pre-Orders", desc: "Accept advance orders for tandoori items" },
+    { label: "Daily Specials", desc: "Highlight fresh tandoori specials" },
+    { label: "Takeaway Ready", desc: "Packaging for carry-out orders" },
+    { label: "WiFi", desc: "Share WiFi credentials with customers" },
+  ],
+  GUEST_HOUSE: [
+    { label: "Guest Check-In", desc: "Record guest details & room assignment" },
+    { label: "Room Service", desc: "Food & drinks delivered to rooms" },
+    { label: "Guest Billing", desc: "Integrated room charge system" },
+    { label: "Room QR Codes", desc: "Generate QR codes per room" },
+    { label: "WiFi", desc: "Share WiFi credentials with guests" },
   ],
 };
 
@@ -107,7 +139,10 @@ export type FeatureTabId =
   | "brunch-mode"
   | "table-reservations"
   | "waitlist"
-  | "private-dining";
+  | "private-dining"
+  | "guest-checkin"
+  | "wifi-settings"
+  | "room-qr-codes";
 
 export interface FeatureTabDef {
   id: FeatureTabId;
@@ -124,24 +159,32 @@ export const TYPE_FEATURE_TABS: Record<string, FeatureTabDef[]> = {
     { id: "combo-meals", label: "Combo Meals", desc: "Bundle items into value combos", iconHint: "Layers" },
     { id: "rush-hour", label: "Rush Hour", desc: "Queue management for peak times", iconHint: "Timer" },
     { id: "takeaway", label: "Takeaway", desc: "Streamlined packaging & delivery", iconHint: "PackageCheck" },
+    { id: "wifi-settings", label: "WiFi", desc: "Share WiFi credentials with customers", iconHint: "Wifi" },
   ],
   RESORT: [
     { id: "room-service", label: "Room Service", desc: "Deliver directly to guest rooms", iconHint: "BedDouble" },
     { id: "multi-outlet", label: "Multi-Outlet", desc: "Pool bar, restaurant, lounge menus", iconHint: "LayoutGrid" },
     { id: "event-catering", label: "Event Catering", desc: "Weddings, conferences, parties", iconHint: "PartyPopper" },
     { id: "guest-billing", label: "Guest Billing", desc: "Charge meals to room accounts", iconHint: "CreditCard" },
+    { id: "guest-checkin", label: "Guest Check-In", desc: "Record guest details & room assignment", iconHint: "ClipboardList" },
+    { id: "room-qr-codes", label: "Room QR Codes", desc: "Generate QR codes per room", iconHint: "QrCode" },
+    { id: "wifi-settings", label: "WiFi", desc: "Share WiFi credentials with guests", iconHint: "Wifi" },
   ],
   HOTEL: [
     { id: "room-service", label: "Room Service", desc: "Round-the-clock kitchen operations", iconHint: "BedDouble" },
     { id: "buffet-manager", label: "Buffet Manager", desc: "Buffet item tracking & rotation", iconHint: "ChefHat" },
     { id: "event-catering", label: "Conference Catering", desc: "Corporate events & meetings", iconHint: "PartyPopper" },
     { id: "guest-billing", label: "Guest Billing", desc: "Integrated room charge system", iconHint: "CreditCard" },
+    { id: "guest-checkin", label: "Guest Check-In", desc: "Record guest details & room assignment", iconHint: "ClipboardList" },
+    { id: "room-qr-codes", label: "Room QR Codes", desc: "Generate QR codes per room", iconHint: "QrCode" },
+    { id: "wifi-settings", label: "WiFi", desc: "Share WiFi credentials with guests", iconHint: "Wifi" },
   ],
   BAKERY: [
     { id: "pre-orders", label: "Pre-Orders", desc: "Schedule pickups for fresh goods", iconHint: "CalendarClock" },
     { id: "custom-cakes", label: "Custom Cakes", desc: "Custom orders with specifications", iconHint: "Cake" },
     { id: "daily-specials", label: "Daily Specials", desc: "Highlight fresh-from-oven items", iconHint: "Sparkles" },
     { id: "display-counter", label: "Display Counter", desc: "Showcase mode for walk-in customers", iconHint: "Monitor" },
+    { id: "wifi-settings", label: "WiFi", desc: "Share WiFi credentials with customers", iconHint: "Wifi" },
   ],
   CLOUD_KITCHEN: [
     { id: "delivery-ops", label: "Delivery Ops", desc: "No dine-in, pure delivery operations", iconHint: "Truck" },
@@ -154,6 +197,7 @@ export const TYPE_FEATURE_TABS: Record<string, FeatureTabDef[]> = {
     { id: "tab-management", label: "Tab Management", desc: "Open tabs & group billing", iconHint: "Receipt" },
     { id: "cocktail-menu", label: "Cocktail Menu", desc: "Recipe-based drink builder", iconHint: "Wine" },
     { id: "live-events", label: "Live Events", desc: "Music nights & event listings", iconHint: "Music" },
+    { id: "wifi-settings", label: "WiFi", desc: "Share WiFi credentials with customers", iconHint: "Wifi" },
   ],
   CAFE: [
     { id: "loyalty-rewards", label: "Loyalty Rewards", desc: "Points & rewards for regulars", iconHint: "Award" },
@@ -165,6 +209,28 @@ export const TYPE_FEATURE_TABS: Record<string, FeatureTabDef[]> = {
     { id: "table-reservations", label: "Reservations", desc: "Online booking & waitlist", iconHint: "CalendarCheck" },
     { id: "waitlist", label: "Waitlist", desc: "Queue management for walk-ins", iconHint: "ListOrdered" },
     { id: "private-dining", label: "Private Dining", desc: "Special rooms & set menus", iconHint: "DoorOpen" },
+    { id: "wifi-settings", label: "WiFi", desc: "Share WiFi credentials with diners", iconHint: "Wifi" },
+  ],
+  MO_MO_SHOP: [
+    { id: "quick-counter", label: "Quick Counter", desc: "Fast counter service for momos", iconHint: "Zap" },
+    { id: "rush-hour", label: "Rush Hour", desc: "Queue management for peak times", iconHint: "Timer" },
+    { id: "daily-specials", label: "Daily Specials", desc: "Highlight today's momo varieties", iconHint: "Sparkles" },
+    { id: "takeaway", label: "Takeaway", desc: "Streamlined packaging & carry-out", iconHint: "PackageCheck" },
+    { id: "wifi-settings", label: "WiFi", desc: "Share WiFi credentials with customers", iconHint: "Wifi" },
+  ],
+  TANDOORI: [
+    { id: "display-counter", label: "Live Counter", desc: "Showcase live tandoor station", iconHint: "Monitor" },
+    { id: "pre-orders", label: "Pre-Orders", desc: "Accept advance orders for tandoori items", iconHint: "CalendarClock" },
+    { id: "daily-specials", label: "Daily Specials", desc: "Highlight fresh tandoori specials", iconHint: "Sparkles" },
+    { id: "takeaway", label: "Takeaway", desc: "Packaging for carry-out orders", iconHint: "PackageCheck" },
+    { id: "wifi-settings", label: "WiFi", desc: "Share WiFi credentials with customers", iconHint: "Wifi" },
+  ],
+  GUEST_HOUSE: [
+    { id: "guest-checkin", label: "Guest Check-In", desc: "Record guest details & room assignment", iconHint: "ClipboardList" },
+    { id: "room-service", label: "Room Service", desc: "Food & drinks delivered to rooms", iconHint: "BedDouble" },
+    { id: "guest-billing", label: "Guest Billing", desc: "Integrated room charge system", iconHint: "CreditCard" },
+    { id: "room-qr-codes", label: "Room QR Codes", desc: "Generate QR codes per room", iconHint: "QrCode" },
+    { id: "wifi-settings", label: "WiFi", desc: "Share WiFi credentials with guests", iconHint: "Wifi" },
   ],
 };
 

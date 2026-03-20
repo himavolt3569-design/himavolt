@@ -26,6 +26,7 @@ export async function PATCH(
     "badge", "tags", "categoryId", "sortOrder",
     "discount", "discountLabel", "isFeatured",
     "spiceLevel", "calories", "allergens",
+    "isDrink", "drinkCategory", "stockEnabled", "stockQuantity",
   ];
 
   const data: Record<string, unknown> = {};

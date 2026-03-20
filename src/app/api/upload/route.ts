@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getOrCreateUser } from "@/lib/auth";
-import { supabase, FOOD_IMAGES_BUCKET } from "@/lib/supabase";
+import { supabaseAdmin, FOOD_IMAGES_BUCKET } from "@/lib/supabase";
 import { v4 as uuid } from "uuid";
 import { getStaffSession } from "@/lib/staff-auth";
 
@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
 
   const buffer = Buffer.from(await file.arrayBuffer());
 
-  const { error } = await supabase.storage
+  const { error } = await supabaseAdmin.storage
     .from(FOOD_IMAGES_BUCKET)
     .upload(filePath, buffer, {
       contentType: file.type,
@@ -77,6 +77,7 @@ export async function POST(req: NextRequest) {
     });
 
   if (error) {
+    console.error("[Upload] Supabase storage error:", error);
     return NextResponse.json(
       { error: `Upload failed: ${error.message}` },
       { status: 500 },
@@ -85,7 +86,7 @@ export async function POST(req: NextRequest) {
 
   const {
     data: { publicUrl },
-  } = supabase.storage.from(FOOD_IMAGES_BUCKET).getPublicUrl(filePath);
+  } = supabaseAdmin.storage.from(FOOD_IMAGES_BUCKET).getPublicUrl(filePath);
 
   return NextResponse.json({ url: publicUrl });
 }

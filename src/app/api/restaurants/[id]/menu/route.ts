@@ -14,6 +14,9 @@ export async function GET(
 
   const where: Record<string, unknown> = { restaurantId: id };
   if (categoryId) where.categoryId = categoryId;
+  const isDrinkParam = searchParams.get("isDrink");
+  if (isDrinkParam === "true") where.isDrink = true;
+  if (isDrinkParam === "false") where.isDrink = false;
 
   const items = await db.menuItem.findMany({
     where,
@@ -52,6 +55,7 @@ export async function POST(
     categoryId, sizes, addOns,
     discount, discountLabel, isFeatured,
     spiceLevel, calories, allergens,
+    isDrink, drinkCategory, stockEnabled, stockQuantity,
   } = body;
 
   if (!name || !price || !categoryId) {
@@ -76,6 +80,10 @@ export async function POST(
       spiceLevel: spiceLevel ?? 0,
       calories: calories ?? null,
       allergens: allergens ?? [],
+      isDrink: isDrink ?? false,
+      drinkCategory: drinkCategory ?? null,
+      stockEnabled: stockEnabled ?? false,
+      stockQuantity: stockQuantity ?? 0,
       restaurantId: id,
       categoryId,
       sizes: sizes?.length

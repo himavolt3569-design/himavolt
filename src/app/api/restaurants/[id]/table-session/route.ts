@@ -13,45 +13,66 @@ export async function POST(req: NextRequest, { params }: Params) {
     return NextResponse.json({ error: "Invalid table number" }, { status: 400 });
   }
 
-  // If sessionToken provided, try to match existing active session
+  const orderInclude = {
+    items: { include: { menuItem: true } },
+    payment: true,
+    bill: true,
+  };
+
+  // 1. If sessionToken provided, try to restore exact session (active or has a live order)
   if (sessionToken) {
-    const existing = await db.tableSession.findFirst({
-      where: { sessionToken, restaurantId, isActive: true },
-      include: {
-        order: {
-          include: {
-            items: { include: { menuItem: true } },
-            payment: true,
-            bill: true,
-          },
-        },
-      },
+    const byToken = await db.tableSession.findFirst({
+      where: { sessionToken, restaurantId },
+      include: { order: { include: orderInclude } },
     });
 
-    if (existing) {
-      return NextResponse.json({ session: existing, restored: true });
+    if (byToken) {
+      // Restore if still active OR if it has an order that isn't done yet
+      const orderAlive =
+        byToken.order &&
+        !["DELIVERED", "CANCELLED", "REJECTED"].includes(byToken.order.status);
+
+      if (byToken.isActive || orderAlive) {
+        return NextResponse.json({ session: byToken, restored: true });
+      }
     }
   }
 
-  // Check for any active session on this table
+  // 2. Check for any active session on this table
   const activeSession = await db.tableSession.findFirst({
     where: { restaurantId, tableNo, isActive: true },
-    include: {
-      order: {
-        include: {
-          items: { include: { menuItem: true } },
-          payment: true,
-          bill: true,
-        },
-      },
-    },
+    include: { order: { include: orderInclude } },
   });
 
   if (activeSession) {
     return NextResponse.json({ session: activeSession, restored: true });
   }
 
-  // Create new session
+  // 3. No active session — check for a session with a live (non-completed) order
+  //    This handles the case where isActive was set false but order is still pending
+  const liveOrderSession = await db.tableSession.findFirst({
+    where: {
+      restaurantId,
+      tableNo,
+      order: {
+        status: { notIn: ["DELIVERED", "CANCELLED", "REJECTED"] },
+      },
+    },
+    include: { order: { include: orderInclude } },
+    orderBy: { startedAt: "desc" },
+  });
+
+  if (liveOrderSession) {
+    // Reactivate the session so it shows correctly
+    const reactivated = await db.tableSession.update({
+      where: { id: liveOrderSession.id },
+      data: { isActive: true },
+      include: { order: { include: orderInclude } },
+    });
+    return NextResponse.json({ session: reactivated, restored: true });
+  }
+
+  // 4. Create new session
   const session = await db.tableSession.create({
     data: { tableNo, restaurantId },
     include: { order: true },

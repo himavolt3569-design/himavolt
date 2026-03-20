@@ -88,8 +88,11 @@ function ScanPageContent() {
 
   useEffect(() => {
     if (scanSuccess) {
+      // Only auto-navigate if a table/room number has been entered
+      // If neither is set, keep user on scan page to enter manually
+      if (!tableNum && !roomNum) return;
       const navTimer = setTimeout(() => {
-        navigateToMenu(tableNum || "1", roomNum || undefined);
+        navigateToMenu(tableNum || undefined, roomNum || undefined);
       }, 1000);
       return () => clearTimeout(navTimer);
     }

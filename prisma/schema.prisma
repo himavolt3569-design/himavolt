@@ -58,6 +58,11 @@ model Restaurant {
   closingTime    String         @default("23:00")
   rating         Float          @default(0)
   totalOrders    Int            @default(0)
+  roomCount      Int            @default(0)   // for GUEST_HOUSE, HOTEL, RESORT
+
+  // WiFi details (shown on menu page)
+  wifiName       String?
+  wifiPassword   String?
 
   // Currency & Tax config
   currency             String  @default("NPR") // NPR, INR, USD
@@ -87,6 +92,7 @@ model Restaurant {
   heroSlides     HeroSlide[]
   tableSessions  TableSession[]
   favourites     Favourite[]
+  guestCheckIns  GuestCheckIn[]
 
   @@index([ownerId])
   @@index([slug])
@@ -176,6 +182,9 @@ enum RestaurantType {
   BAR
   CAFE
   RESTAURANT
+  MO_MO_SHOP
+  TANDOORI
+  GUEST_HOUSE
 }
 
 // ─── Staff ─────────────────────────────────────────────────────────
@@ -279,6 +288,12 @@ model MenuItem {
   restaurant   Restaurant   @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
   categoryId   String
   category     MenuCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  // Drinks tracking
+  isDrink       Boolean  @default(false)
+  drinkCategory String?  // "COLD" | "HOT" | "ALCOHOL"
+  stockEnabled  Boolean  @default(false) // track stock for this item
+  stockQuantity Float    @default(0)     // current stock count
 
   offerExpiresAt DateTime?
   offerStartedAt DateTime?
@@ -790,4 +805,37 @@ model Favourite {
   @@unique([userId, restaurantId])
   @@index([userId])
   @@map("favourites")
+}
+
+// ─── Guest Check-In (for Guest House / Hotel / Resort) ───────────────
+
+model GuestCheckIn {
+  id          String    @id @default(cuid())
+  guestName   String
+  phone       String?
+  email       String?
+  idType      String?   // CITIZENSHIP, PASSPORT, DRIVING_LICENSE, VOTER_ID
+  idNumber    String?
+  idImageUrl  String?
+  address     String?
+  dob         String?   // date of birth (from ID)
+  nationality String?   @default("Nepali")
+  roomNo      String
+  adults      Int       @default(1)
+  children    Int       @default(0)
+  checkInAt   DateTime  @default(now())
+  checkOutAt  DateTime?
+  notes       String?
+  status      String    @default("CHECKED_IN") // CHECKED_IN, CHECKED_OUT
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([restaurantId])
+  @@index([restaurantId, roomNo])
+  @@index([status])
+  @@map("guest_check_ins")
 }

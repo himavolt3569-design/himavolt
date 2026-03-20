@@ -118,11 +118,15 @@ import BrunchModeTab from "@/components/dashboard/features/BrunchModeTab";
 import TableReservationsTab from "@/components/dashboard/features/TableReservationsTab";
 import WaitlistTab from "@/components/dashboard/features/WaitlistTab";
 import PrivateDiningTab from "@/components/dashboard/features/PrivateDiningTab";
+import WifiSettingsTab from "@/components/dashboard/features/WifiSettingsTab";
+import DrinksTab from "@/components/dashboard/DrinksTab";
+import GuestCheckInTab from "@/components/dashboard/GuestCheckInTab";
 
 type DashTab =
   | "overview"
   | "orders"
   | "menu"
+  | "drinks"
   | "qr"
   | "reports"
   | "staff"
@@ -153,6 +157,7 @@ const NAV_MAIN: {
 
 const NAV_MANAGE: typeof NAV_MAIN = [
   { id: "menu", label: "Menu", icon: UtensilsCrossed },
+  { id: "drinks" as DashTab, label: "Drinks", icon: Package },
   { id: "staff", label: "Staff", icon: UsersRound },
   { id: "qr", label: "QR Codes", icon: QrCode },
   { id: "payment-qr", label: "Payment QR", icon: Wallet },
@@ -199,6 +204,9 @@ const FEATURE_ICONS: Record<FeatureTabId, typeof Zap> = {
   "table-reservations": CalendarCheck,
   waitlist: ListOrdered,
   "private-dining": DoorOpen,
+  "wifi-settings": Wifi,
+  "guest-checkin": BedDouble,
+  "room-qr-codes": QrCode,
 };
 
 /* ── Feature tab component mapping ────────────────────────────────── */
@@ -231,6 +239,9 @@ const FEATURE_COMPONENTS: Record<FeatureTabId, React.ComponentType> = {
   "table-reservations": TableReservationsTab,
   waitlist: WaitlistTab,
   "private-dining": PrivateDiningTab,
+  "wifi-settings": WifiSettingsTab,
+  "guest-checkin": GuestCheckInTab,
+  "room-qr-codes": GuestCheckInTab, // Room QR tab uses same component (different section)
 };
 
 /* ─── Animated number counter ─────────────────────────────────────── */
@@ -1461,6 +1472,7 @@ export default function DashboardPage() {
               )}
               {activeTab === "chat" && <ChatTab />}
               {activeTab === "menu" && <MenuManagementTab />}
+              {activeTab === "drinks" && <DrinksTab />}
               {activeTab === "staff" && <StaffManagementTab />}
               {activeTab === "qr" && <QRCodesTab />}
               {activeTab === "payment-qr" && <PaymentQRTab />}

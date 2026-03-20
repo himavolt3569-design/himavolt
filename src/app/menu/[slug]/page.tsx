@@ -44,7 +44,14 @@ import {
   Loader2,
   Megaphone,
   Tag,
+  Wifi,
+  Copy,
+  History,
+  Receipt,
+  Utensils,
+  ChevronDown,
 } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { useToast } from "@/context/ToastContext";
 import { useOrder } from "@/context/OrderContext";
@@ -91,6 +98,9 @@ interface Restaurant {
   openingTime: string;
   closingTime: string;
   tableCount: number;
+  roomCount: number;
+  wifiName: string | null;
+  wifiPassword: string | null;
   currency: string;
   categories: RestaurantCategory[];
 }
@@ -136,6 +146,71 @@ interface MenuItem {
 
 function img(url: string | null) {
   return url || PLACEHOLDER_IMG;
+}
+
+function WifiBadge({ name, password }: { name: string; password: string | null }) {
+  const [open, setOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const copy = async () => {
+    if (password) {
+      await navigator.clipboard.writeText(password);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex h-9 items-center gap-1.5 rounded-full bg-blue-50 px-3 text-xs font-bold text-blue-600 hover:bg-blue-100 transition-colors"
+      >
+        <Wifi className="h-3.5 w-3.5" />
+        <span className="hidden sm:inline">WiFi</span>
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: -4 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: -4 }}
+            transition={{ duration: 0.15 }}
+            className="absolute right-0 top-full mt-2 w-56 rounded-2xl bg-white shadow-xl ring-1 ring-gray-200 p-4 z-50"
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50">
+                <Wifi className="h-4 w-4 text-blue-500" />
+              </div>
+              <span className="text-xs font-bold text-gray-700">WiFi Details</span>
+            </div>
+            <div className="space-y-2">
+              <div>
+                <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">Network</p>
+                <p className="text-sm font-bold text-gray-800">{name}</p>
+              </div>
+              {password ? (
+                <div>
+                  <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">Password</p>
+                  <div className="flex items-center justify-between mt-0.5">
+                    <p className="text-sm font-mono font-bold text-gray-800">{password}</p>
+                    <button
+                      onClick={copy}
+                      className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                    >
+                      {copied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-xs text-gray-400">Open network — no password needed</p>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
 }
 
 function VegIcon() {
@@ -1098,7 +1173,9 @@ function MenuPageContent() {
   const [cartOpen, setCartOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [showOrder, setShowOrder] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const [filterVeg, setFilterVeg] = useState(false);
+  const { isSignedIn } = useAuth();
   const [filterNonVeg, setFilterNonVeg] = useState(false);
   const [filterEgg, setFilterEgg] = useState(false);
   const [filterNoOnionGarlic, setFilterNoOnionGarlic] = useState(false);
@@ -1382,6 +1459,9 @@ function MenuPageContent() {
               </p>
             </div>
             <div className="flex items-center gap-2 shrink-0">
+              {restaurant.wifiName && (
+                <WifiBadge name={restaurant.wifiName} password={restaurant.wifiPassword} />
+              )}
               {restaurant.phone && (
                 <a
                   href={`tel:${restaurant.phone}`}
@@ -1390,6 +1470,15 @@ function MenuPageContent() {
                   <Phone className="h-3.5 w-3.5" />
                   Call
                 </a>
+              )}
+              {isSignedIn && (
+                <button
+                  onClick={() => setShowHistory(true)}
+                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+                  title="My Order History"
+                >
+                  <History className="h-4 w-4" />
+                </button>
               )}
               <motion.button
                 onClick={() => setCartOpen(true)}
@@ -1854,6 +1943,176 @@ function MenuPageContent() {
           senderName={tableNo ? `Table ${tableNo}` : roomNo ? `Room ${roomNo}` : "Customer"}
         />
       )}
+
+      {/* Order History Sheet */}
+      <OrderHistorySheet
+        open={showHistory}
+        onClose={() => setShowHistory(false)}
+        restaurantSlug={slug}
+        currency={restaurant?.currency ?? "NPR"}
+      />
     </div>
+  );
+}
+
+/* ── Order History Sheet ──────────────────────────────── */
+interface HistoryOrder {
+  id: string;
+  orderNo: string;
+  status: string;
+  total: number;
+  createdAt: string;
+  items: { id: string; name: string; quantity: number; price: number }[];
+  payment?: { method: string; status: string } | null;
+}
+
+const H_STATUS: Record<string, { label: string; color: string; bg: string }> = {
+  PENDING:   { label: "Pending",   color: "text-amber-700",  bg: "bg-amber-50" },
+  ACCEPTED:  { label: "Accepted",  color: "text-blue-700",   bg: "bg-blue-50" },
+  PREPARING: { label: "Preparing", color: "text-purple-700", bg: "bg-purple-50" },
+  READY:     { label: "Ready",     color: "text-emerald-700",bg: "bg-emerald-50" },
+  DELIVERED: { label: "Delivered", color: "text-green-700",  bg: "bg-green-50" },
+  CANCELLED: { label: "Cancelled", color: "text-red-700",    bg: "bg-red-50" },
+  REJECTED:  { label: "Rejected",  color: "text-red-700",    bg: "bg-red-50" },
+};
+
+function OrderHistorySheet({
+  open,
+  onClose,
+  restaurantSlug,
+  currency,
+}: {
+  open: boolean;
+  onClose: () => void;
+  restaurantSlug: string;
+  currency: string;
+}) {
+  const [orders, setOrders] = useState<HistoryOrder[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    setLoading(true);
+    fetch(`/api/orders?restaurantSlug=${restaurantSlug}&limit=50`)
+      .then((r) => r.json())
+      .then((data) => setOrders(Array.isArray(data) ? data : []))
+      .catch(() => setOrders([]))
+      .finally(() => setLoading(false));
+  }, [open, restaurantSlug]);
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="fixed inset-0 z-50 bg-black/40 backdrop-blur-[2px]"
+          />
+          <motion.div
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "100%" }}
+            transition={{ type: "spring", damping: 28, stiffness: 280 }}
+            className="fixed right-0 top-0 bottom-0 z-50 w-full max-w-sm bg-white shadow-2xl flex flex-col"
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 shrink-0">
+              <div className="flex items-center gap-2">
+                <History className="h-5 w-5 text-[#eaa94d]" />
+                <h3 className="text-base font-bold text-[#3e1e0c]">My Orders Here</h3>
+              </div>
+              <button onClick={onClose} className="rounded-full p-2 text-gray-400 hover:bg-gray-100 transition-colors">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              {loading ? (
+                <div className="flex items-center justify-center py-16">
+                  <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+                </div>
+              ) : orders.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+                  <Receipt className="h-12 w-12 mb-3 opacity-30" />
+                  <p className="text-sm font-semibold text-gray-500">No orders yet</p>
+                  <p className="text-xs text-gray-400 mt-1">Your orders at this place will appear here</p>
+                </div>
+              ) : (
+                orders.map((order) => {
+                  const meta = H_STATUS[order.status] || H_STATUS.PENDING;
+                  const expanded = expandedId === order.id;
+                  return (
+                    <div key={order.id} className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+                      <button
+                        onClick={() => setExpandedId(expanded ? null : order.id)}
+                        className="w-full p-4 text-left"
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <p className="text-sm font-bold text-gray-800">#{order.orderNo}</p>
+                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${meta.bg} ${meta.color}`}>
+                            {meta.label}
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-400">
+                          {order.items.map((i) => `${i.quantity}x ${i.name}`).join(", ")}
+                        </p>
+                        <div className="flex items-center justify-between mt-2">
+                          <p className="text-sm font-bold text-gray-900">
+                            {formatPrice(order.total, currency)}
+                          </p>
+                          <div className="flex items-center gap-1.5">
+                            <p className="text-[10px] text-gray-400">
+                              {new Date(order.createdAt).toLocaleDateString("en-NP", { month: "short", day: "numeric" })}
+                            </p>
+                            <ChevronDown className={`h-3.5 w-3.5 text-gray-300 transition-transform ${expanded ? "rotate-180" : ""}`} />
+                          </div>
+                        </div>
+                      </button>
+
+                      <AnimatePresence>
+                        {expanded && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="border-t border-gray-100 px-4 py-3 space-y-2">
+                              {order.items.map((item) => (
+                                <div key={item.id} className="flex items-center justify-between">
+                                  <span className="text-xs text-gray-600">{item.quantity}x {item.name}</span>
+                                  <span className="text-xs font-medium text-gray-700">
+                                    {formatPrice(item.price * item.quantity, currency)}
+                                  </span>
+                                </div>
+                              ))}
+                              <div className="border-t border-dashed border-gray-200 pt-2 flex justify-between">
+                                <span className="text-xs font-bold text-gray-800">Total</span>
+                                <span className="text-xs font-bold text-gray-800">{formatPrice(order.total, currency)}</span>
+                              </div>
+                              {order.payment && (
+                                <p className="text-[10px] text-gray-400">
+                                  Paid via {order.payment.method}
+                                </p>
+                              )}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   );
 }

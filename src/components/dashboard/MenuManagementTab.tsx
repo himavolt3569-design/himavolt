@@ -1345,10 +1345,11 @@ export default function MenuManagementTab() {
     if (!restaurantId) return;
     setSeedingCats(true);
     try {
-      await apiFetch(`/api/restaurants/${restaurantId}/categories/seed`, {
-        method: "POST",
-      });
-      showToast("10 categories with subcategories added!");
+      const result = await apiFetch<{ message: string; categories: { name: string }[] }>(
+        `/api/restaurants/${restaurantId}/categories/seed`,
+        { method: "POST" }
+      );
+      showToast(result.message || `${result.categories.length} categories added!`);
       await fetchData();
     } catch {
       showToast("Failed to seed categories");
@@ -1566,7 +1567,7 @@ export default function MenuManagementTab() {
             className="flex items-center gap-1.5 rounded-lg bg-amber-500 px-5 py-2.5 text-[13px] font-bold text-white hover:bg-amber-600 disabled:opacity-50 transition-all shrink-0"
           >
             {seedingCats ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5" />}
-            Add Default Categories
+            Generate Categories for My Place
           </button>
         </motion.div>
       )}

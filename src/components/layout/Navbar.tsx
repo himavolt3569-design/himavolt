@@ -9,6 +9,9 @@ import {
   Search,
   LogOut,
   X,
+  User,
+  LayoutDashboard,
+  ChevronDown,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/context/CartContext";
@@ -23,6 +26,8 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
   const [scrolled, setScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -35,6 +40,17 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
   useEffect(() => {
     if (searchOpen) searchRef.current?.focus();
   }, [searchOpen]);
+
+  // Close profile menu on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target as Node)) {
+        setProfileMenuOpen(false);
+      }
+    };
+    if (profileMenuOpen) document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [profileMenuOpen]);
 
   const userInitials = (() => {
     const name =
@@ -141,10 +157,12 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
               {isLoaded && (
                 <>
                   {isSignedIn ? (
-                    <div className="flex items-center gap-0.5">
-                      <Link
-                        href="/dashboard"
+                    <div className="relative flex items-center gap-0.5" ref={profileMenuRef}>
+                      {/* Avatar button — opens dropdown on all sizes */}
+                      <button
+                        onClick={() => setProfileMenuOpen((v) => !v)}
                         className="flex h-8 w-8 items-center justify-center rounded-full overflow-hidden hover:ring-2 hover:ring-[#eaa94d]/20 transition-all"
+                        aria-label="Account menu"
                       >
                         {user?.user_metadata?.avatar_url ? (
                           <img
@@ -157,7 +175,8 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
                             {userInitials}
                           </span>
                         )}
-                      </Link>
+                      </button>
+                      {/* Desktop-only logout quick button */}
                       <button
                         onClick={signOut}
                         className="hidden md:flex h-8 w-8 items-center justify-center rounded-full text-[#3e1e0c]/25 hover:text-red-500 hover:bg-red-50/50 transition-all"
@@ -165,9 +184,67 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
                       >
                         <LogOut className="h-3.5 w-3.5" />
                       </button>
+
+                      {/* Dropdown menu (mobile + desktop) */}
+                      <AnimatePresence>
+                        {profileMenuOpen && (
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: -6 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: -6 }}
+                            transition={{ duration: 0.15 }}
+                            className="absolute right-0 top-full mt-2 w-48 rounded-2xl bg-white shadow-xl shadow-[#3e1e0c]/8 ring-1 ring-brand-200/30 overflow-hidden z-70"
+                          >
+                            {/* User info */}
+                            <div className="px-4 py-3 border-b border-gray-100">
+                              <p className="text-xs font-bold text-[#3e1e0c] truncate">
+                                {user?.user_metadata?.full_name || user?.user_metadata?.name || "Account"}
+                              </p>
+                              <p className="text-[10px] text-gray-400 truncate">{user?.email}</p>
+                            </div>
+                            <div className="py-1">
+                              <Link
+                                href="/profile"
+                                onClick={() => setProfileMenuOpen(false)}
+                                className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-[#3e1e0c] hover:bg-[#fdf9ef] transition-colors"
+                              >
+                                <User className="h-3.5 w-3.5 text-gray-400" />
+                                View Profile
+                              </Link>
+                              <Link
+                                href="/dashboard"
+                                onClick={() => setProfileMenuOpen(false)}
+                                className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-[#3e1e0c] hover:bg-[#fdf9ef] transition-colors"
+                              >
+                                <LayoutDashboard className="h-3.5 w-3.5 text-gray-400" />
+                                Dashboard
+                              </Link>
+                              {isOwnerOrAdmin && (
+                                <Link
+                                  href="/manage-restaurants"
+                                  onClick={() => setProfileMenuOpen(false)}
+                                  className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-[#3e1e0c] hover:bg-[#fdf9ef] transition-colors"
+                                >
+                                  <Store className="h-3.5 w-3.5 text-gray-400" />
+                                  My Restaurants
+                                </Link>
+                              )}
+                              <div className="border-t border-gray-100 mt-1 pt-1">
+                                <button
+                                  onClick={() => { setProfileMenuOpen(false); signOut(); }}
+                                  className="flex w-full items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-red-500 hover:bg-red-50 transition-colors"
+                                >
+                                  <LogOut className="h-3.5 w-3.5" />
+                                  Sign Out
+                                </button>
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   ) : (
-                    <div className="hidden md:flex items-center gap-1 ml-1">
+                    <div className="flex items-center gap-1 ml-1">
                       <Link
                         href="/sign-in"
                         className="rounded-full px-3 py-1.5 text-xs font-semibold text-[#3e1e0c]/60 hover:text-[#3e1e0c] transition-colors"

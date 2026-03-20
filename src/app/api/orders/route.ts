@@ -10,9 +10,15 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
   const limit = parseInt(searchParams.get("limit") || "20", 10);
+  const restaurantSlug = searchParams.get("restaurantSlug");
+  const restaurantId = searchParams.get("restaurantId");
+
+  const where: Record<string, unknown> = { userId: user.id };
+  if (restaurantSlug) where.restaurant = { slug: restaurantSlug };
+  if (restaurantId) where.restaurantId = restaurantId;
 
   const orders = await db.order.findMany({
-    where: { userId: user.id },
+    where,
     include: {
       items: true,
       payment: {

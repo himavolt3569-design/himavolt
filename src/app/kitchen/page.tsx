@@ -71,6 +71,8 @@ import BrunchModeTab from "@/components/dashboard/features/BrunchModeTab";
 import TableReservationsTab from "@/components/dashboard/features/TableReservationsTab";
 import WaitlistTab from "@/components/dashboard/features/WaitlistTab";
 import PrivateDiningTab from "@/components/dashboard/features/PrivateDiningTab";
+import WifiSettingsTab from "@/components/dashboard/features/WifiSettingsTab";
+import GuestCheckInTab from "@/components/dashboard/GuestCheckInTab";
 
 const STAFF_FEATURE_COMPONENTS: Record<FeatureTabId, React.ComponentType> = {
   "quick-counter": QuickCounterTab,
@@ -101,6 +103,9 @@ const STAFF_FEATURE_COMPONENTS: Record<FeatureTabId, React.ComponentType> = {
   "table-reservations": TableReservationsTab,
   "waitlist": WaitlistTab,
   "private-dining": PrivateDiningTab,
+  "wifi-settings": WifiSettingsTab,
+  "guest-checkin": GuestCheckInTab,
+  "room-qr-codes": GuestCheckInTab,
 };
 
 /* ── Types ────────────────────────────────────────────────────────── */
