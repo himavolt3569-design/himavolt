@@ -50,6 +50,7 @@ import {
   Receipt,
   Utensils,
   ChevronDown,
+  QrCode,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
@@ -103,6 +104,7 @@ interface Restaurant {
   wifiPassword: string | null;
   currency: string;
   categories: RestaurantCategory[];
+  paymentQRs: { id: string; label: string; imageUrl: string }[];
 }
 
 interface MenuItemSize {
@@ -142,6 +144,8 @@ interface MenuItem {
   category: { name: string; slug: string };
   sizes: MenuItemSize[];
   addOns: MenuItemAddOn[];
+  calories: number | null;
+  allergens: string[];
 }
 
 function img(url: string | null) {
@@ -210,6 +214,75 @@ function WifiBadge({ name, password }: { name: string; password: string | null }
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+function PaymentQRBadge({ paymentQRs }: { paymentQRs?: { id: string; label: string; imageUrl: string }[] }) {
+  const [open, setOpen] = useState(false);
+
+  if (!paymentQRs || paymentQRs.length === 0) return null;
+
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        className="flex h-9 items-center gap-1.5 rounded-full bg-purple-50 px-3 text-xs font-bold text-purple-600 hover:bg-purple-100 transition-colors"
+      >
+        <QrCode className="h-3.5 w-3.5" />
+        <span className="hidden sm:inline">Pay</span>
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setOpen(false)}
+              className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              className="fixed left-1/2 top-1/2 z-[101] w-[90%] max-w-sm -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-3xl bg-white shadow-2xl"
+            >
+              <div className="flex items-center justify-between border-b border-gray-100 p-4">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-50">
+                    <QrCode className="h-4 w-4 text-purple-600" />
+                  </div>
+                  <h3 className="font-bold text-gray-900">Scan to Pay</h3>
+                </div>
+                <button
+                  onClick={() => setOpen(false)}
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="max-h-[60vh] overflow-y-auto p-5 space-y-6">
+                {paymentQRs.map((qr) => (
+                  <div key={qr.id} className="text-center">
+                    <p className="mb-3 text-sm font-bold text-gray-700">{qr.label}</p>
+                    <div className="mx-auto overflow-hidden rounded-2xl border-2 border-dashed border-gray-200 p-2 bg-gray-50">
+                      <img
+                        src={img(qr.imageUrl)}
+                        alt={qr.label}
+                        className="w-full h-auto object-contain rounded-xl"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
 
@@ -501,6 +574,18 @@ function DishDetailModal({
                   <Clock className="h-3.5 w-3.5" />
                   {dish.prepTime}
                 </span>
+                {dish.calories && (
+                  <span className="flex items-center gap-1 rounded-full bg-orange-50 text-orange-600 px-2.5 py-1">
+                    <Flame className="h-3.5 w-3.5" />
+                    {dish.calories} kcal
+                  </span>
+                )}
+                {dish.allergens && dish.allergens.length > 0 && (
+                  <span className="flex items-center gap-1 rounded-full bg-red-50 text-red-600 px-2.5 py-1 font-medium">
+                    <Leaf className="h-3.5 w-3.5" />
+                    Contains: {dish.allergens.join(", ")}
+                  </span>
+                )}
                 <OfferCountdown expiresAt={dish.offerExpiresAt} compact />
                 {cartQty > 0 && (
                   <motion.span
@@ -820,7 +905,7 @@ function MenuItemCard({
         onClick={() => onSelect(item)}
       >
         {/* Image on the left */}
-        <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-xl bg-gray-100">
+        <div className="relative h-24 w-24 sm:h-28 sm:w-28 shrink-0 overflow-hidden rounded-xl bg-gray-100">
           <img
             src={img(item.imageUrl)}
             alt={item.name}
@@ -1462,6 +1547,7 @@ function MenuPageContent() {
               {restaurant.wifiName && (
                 <WifiBadge name={restaurant.wifiName} password={restaurant.wifiPassword} />
               )}
+              <PaymentQRBadge paymentQRs={restaurant.paymentQRs} />
               {restaurant.phone && (
                 <a
                   href={`tel:${restaurant.phone}`}
