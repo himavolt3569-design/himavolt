@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { StoryViewer, type Story } from "@/components/ui/story-viewer";
 import { useToast } from "@/context/ToastContext";
+import { uploadFile } from "@/lib/upload";
 
 interface StoryData {
   id: string;
@@ -103,22 +104,8 @@ export default function StoryManager({
     setUploading(true);
 
     try {
-      // 1. Upload file
-      const formData = new FormData();
-      formData.append("file", previewFile.file);
-      formData.append("folder", "stories");
-
-      const uploadRes = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!uploadRes.ok) {
-        const err = await uploadRes.json();
-        throw new Error(err.error || "Upload failed");
-      }
-
-      const { url } = await uploadRes.json();
+      // 1. Upload file securely via pre-signed URL
+      const url = await uploadFile(previewFile.file, "stories");
 
       // 2. Create story record
       const storyRes = await fetch(`/api/restaurants/${restaurantId}/stories`, {

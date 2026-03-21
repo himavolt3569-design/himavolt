@@ -18,6 +18,7 @@ import {
 import { useRestaurant } from "@/context/RestaurantContext";
 import { useToast } from "@/context/ToastContext";
 import { apiFetch } from "@/lib/api-client";
+import { uploadFile } from "@/lib/upload";
 
 interface SlideData {
   id: string;
@@ -105,12 +106,7 @@ export default function HeroSlidesManager() {
     }
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("folder", "hero-slides");
-      const res = await fetch("/api/upload", { method: "POST", body: formData });
-      if (!res.ok) throw new Error("Upload failed");
-      const { url } = await res.json();
+      const url = await uploadFile(file, "hero-slides");
       setUploadedUrl(url);
     } catch {
       showToast("Upload failed", "error");

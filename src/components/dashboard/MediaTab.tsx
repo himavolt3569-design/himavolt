@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { useToast } from "@/context/ToastContext";
+import { uploadFile } from "@/lib/upload";
 
 interface MediaItem {
   id: string;
@@ -64,12 +65,7 @@ export default function MediaTab({ restaurantId: propRestaurantId }: { restauran
     for (const file of fileArr) {
       try {
         // Upload to storage
-        const fd = new FormData();
-        fd.append("file", file);
-        fd.append("folder", "media-library");
-        const upRes = await fetch("/api/upload", { method: "POST", body: fd });
-        if (!upRes.ok) throw new Error((await upRes.json()).error || "Upload failed");
-        const { url } = await upRes.json();
+        const url = await uploadFile(file, "media-library");
 
         // Save to DB
         const isVideo = file.type.startsWith("video/");

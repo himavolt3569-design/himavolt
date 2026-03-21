@@ -18,6 +18,7 @@ import {
   type FoodImage,
 } from "@/lib/food-images";
 import { useToast } from "@/context/ToastContext";
+import { uploadFile } from "@/lib/upload";
 
 interface ImagePickerProps {
   open: boolean;
@@ -59,20 +60,7 @@ export default function ImagePicker({
 
       setUploading(true);
       try {
-        const formData = new FormData();
-        formData.append("file", file);
-
-        const res = await fetch("/api/upload", {
-          method: "POST",
-          body: formData,
-        });
-
-        if (!res.ok) {
-          const err = await res.json();
-          throw new Error(err.error || "Upload failed");
-        }
-
-        const { url } = await res.json();
+        const url = await uploadFile(file, "menu");
         onSelect(url);
         onClose();
       } catch (err) {

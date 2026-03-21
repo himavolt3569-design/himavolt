@@ -20,6 +20,7 @@ import {
 import { useRestaurant } from "@/context/RestaurantContext";
 import { useToast } from "@/context/ToastContext";
 import { apiFetch } from "@/lib/api-client";
+import { uploadFile } from "@/lib/upload";
 
 interface OfferData {
   id: string;
@@ -79,12 +80,7 @@ export default function OffersTab() {
     }
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("folder", "offers");
-      const res = await fetch("/api/upload", { method: "POST", body: formData });
-      if (!res.ok) throw new Error("Upload failed");
-      const { url } = await res.json();
+      const url = await uploadFile(file, "offers");
       setUploadedUrl(url);
     } catch {
       showToast("Upload failed", "error");

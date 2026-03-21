@@ -18,6 +18,7 @@ import {
 import { useRestaurant } from "@/context/RestaurantContext";
 import { useToast } from "@/context/ToastContext";
 import { apiFetch } from "@/lib/api-client";
+import { uploadFile } from "@/lib/upload";
 
 interface PaymentQR {
   id: string;
@@ -72,21 +73,7 @@ export default function PaymentQRTab() {
 
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("folder", "payment-qrs");
-
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Upload failed");
-      }
-
-      const { url } = await res.json();
+      const url = await uploadFile(file, "payment-qrs");
       setUploadedUrl(url);
       showToast("QR image uploaded!");
     } catch (err) {

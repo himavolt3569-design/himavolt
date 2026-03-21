@@ -29,6 +29,7 @@ import { useToast } from "@/context/ToastContext";
 import { apiFetch } from "@/lib/api-client";
 import QRCode from "qrcode";
 import { createWorker } from "tesseract.js";
+import { uploadFile } from "@/lib/upload";
 
 interface GuestCheckIn {
   id: string;
@@ -205,12 +206,7 @@ export default function GuestCheckInTab() {
   const handleIdUpload = async (file: File) => {
     setUploadingId(true);
     try {
-      const fd = new FormData();
-      fd.append("file", file);
-      fd.append("folder", "guest-ids");
-      const res = await fetch("/api/upload", { method: "POST", body: fd });
-      if (!res.ok) throw new Error((await res.json()).error || "Upload failed");
-      const { url } = await res.json();
+      const url = await uploadFile(file, "guest-ids");
       setForm((f) => ({ ...f, idImageUrl: url }));
       showToast("ID uploaded — extracting details...", "info");
 

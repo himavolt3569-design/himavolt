@@ -26,67 +26,68 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const formData = await req.formData();
-  const file = formData.get("file") as File | null;
+  try {
+    const { fileName, fileType, fileSize, folder } = await req.json();
 
-  if (!file) {
-    return NextResponse.json({ error: "No file provided" }, { status: 400 });
+    if (!fileName || !fileType) {
+      return NextResponse.json({ error: "Missing file metadata" }, { status: 400 });
+    }
+
+    const isVideo = fileType.startsWith("video/");
+    const maxSize = isVideo ? 50 * 1024 * 1024 : 5 * 1024 * 1024; // 50MB video, 5MB image
+
+    if (fileSize && fileSize > maxSize) {
+      return NextResponse.json(
+        { error: `File too large (max ${isVideo ? "50MB" : "5MB"})` },
+        { status: 400 },
+      );
+    }
+
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "image/gif",
+      "video/mp4",
+      "video/webm",
+      "video/quicktime",
+    ];
+
+    if (!allowedTypes.includes(fileType)) {
+      return NextResponse.json(
+        {
+          error: "Invalid file type. Use JPEG, PNG, WebP, GIF, MP4, WebM, or MOV",
+        },
+        { status: 400 },
+      );
+    }
+
+    const ext = fileName.split(".").pop() || (isVideo ? "mp4" : "jpg");
+    const uniqueName = `${uuid()}.${ext}`;
+    const uploadFolder = folder || "menu";
+    const filePath = `${uploadFolder}/${uniqueName}`;
+
+    // Request a secure signed URL from Supabase Admin (Server)
+    const { data, error } = await supabaseAdmin.storage
+      .from(FOOD_IMAGES_BUCKET)
+      .createSignedUploadUrl(filePath);
+
+    if (error || !data) {
+      console.error("[Upload] Supabase sign error:", error);
+      return NextResponse.json(
+        { error: `Failed to generate upload URL: ${error?.message}` },
+        { status: 500 },
+      );
+    }
+
+    const {
+      data: { publicUrl },
+    } = supabaseAdmin.storage.from(FOOD_IMAGES_BUCKET).getPublicUrl(filePath);
+
+    // Return the signed URL directly to the client
+    return NextResponse.json({ signedUrl: data.signedUrl, publicUrl });
+  } catch (err) {
+    console.error("[Upload] Parse error:", err);
+    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
-
-  const folder = formData.get("folder") as string | null;
-  const isVideo = file.type.startsWith("video/");
-
-  const maxSize = isVideo ? 50 * 1024 * 1024 : 5 * 1024 * 1024; // 50MB video, 5MB image
-  if (file.size > maxSize) {
-    return NextResponse.json(
-      { error: `File too large (max ${isVideo ? "50MB" : "5MB"})` },
-      { status: 400 },
-    );
-  }
-
-  const allowedTypes = [
-    "image/jpeg",
-    "image/png",
-    "image/webp",
-    "image/gif",
-    "video/mp4",
-    "video/webm",
-    "video/quicktime",
-  ];
-  if (!allowedTypes.includes(file.type)) {
-    return NextResponse.json(
-      {
-        error: "Invalid file type. Use JPEG, PNG, WebP, GIF, MP4, WebM, or MOV",
-      },
-      { status: 400 },
-    );
-  }
-
-  const ext = file.name.split(".").pop() || (isVideo ? "mp4" : "jpg");
-  const fileName = `${uuid()}.${ext}`;
-  const uploadFolder = folder || "menu";
-  const filePath = `${uploadFolder}/${fileName}`;
-
-  const buffer = Buffer.from(await file.arrayBuffer());
-
-  const { error } = await supabaseAdmin.storage
-    .from(FOOD_IMAGES_BUCKET)
-    .upload(filePath, buffer, {
-      contentType: file.type,
-      upsert: false,
-    });
-
-  if (error) {
-    console.error("[Upload] Supabase storage error:", error);
-    return NextResponse.json(
-      { error: `Upload failed: ${error.message}` },
-      { status: 500 },
-    );
-  }
-
-  const {
-    data: { publicUrl },
-  } = supabaseAdmin.storage.from(FOOD_IMAGES_BUCKET).getPublicUrl(filePath);
-
-  return NextResponse.json({ url: publicUrl });
 }
