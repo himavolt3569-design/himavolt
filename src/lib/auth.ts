@@ -8,7 +8,11 @@ export async function getAuthUser() {
   } = await supabase.auth.getUser();
   if (!supabaseUser) return null;
 
-  const user = await db.user.findUnique({ where: { id: supabaseUser.id } });
+  const user = await db.user.findUnique({ where: { id: supabaseUser.id } })
+    // Fall back to email lookup for Google OAuth account linking (different Supabase ID)
+    ?? (supabaseUser.email
+      ? await db.user.findFirst({ where: { email: supabaseUser.email } })
+      : null);
   return user;
 }
 
@@ -54,16 +58,21 @@ export async function getOrCreateUser() {
       data: { id: supabaseUser.id, email, name, imageUrl, phone, role: safeRole, username: username ?? null },
     });
   } else if (!dbUser && userByEmail) {
-    // Google OAuth linked to existing email account — create new record.
+    // Google OAuth with same email as an existing email/password account.
+    // Supabase may auto-link (same user.id) or create a new auth user.
     // Use the higher of intended role vs inherited role (never downgrade).
     const inheritedRole = userByEmail.role;
     const finalRole = safeRole === "OWNER" || inheritedRole === "OWNER" || inheritedRole === "ADMIN"
       ? "OWNER"
       : inheritedRole;
-    dbUser = await db.user.upsert({
-      where: { id: supabaseUser.id },
-      update: { email, name, imageUrl, phone, ...(finalRole === "OWNER" ? { role: "OWNER" } : {}) },
-      create: { id: supabaseUser.id, email, name, imageUrl, phone, role: finalRole, username: userByEmail.username },
+
+    // Update the existing record with fresh metadata & role
+    dbUser = await db.user.update({
+      where: { email },
+      data: {
+        name, imageUrl, phone,
+        ...(finalRole === "OWNER" ? { role: "OWNER" } : {}),
+      },
     });
   } else if (dbUser) {
     // Existing user — upgrade CUSTOMER → OWNER if needed, never downgrade

@@ -112,24 +112,38 @@ export async function GET(req: NextRequest) {
     return safeRole;
   })();
 
-  await db.user.upsert({
-    where: { id: user.id },
-    update: {
-      email, name, imageUrl,
-      ...(phone ? { phone } : {}),
-      // Upgrade to OWNER if intended, but never downgrade
-      ...(finalRole === "OWNER" ? { role: "OWNER" } : {}),
-    },
-    create: {
-      id: user.id, email, name, imageUrl, phone,
-      role: finalRole,
-      username: isAccountLink ? (existingUserByEmail?.username ?? usernameFromMeta) : usernameFromMeta,
-    },
-  });
+  if (isAccountLink && existingUserByEmail) {
+    // Same email exists under a different ID — update the existing record
+    // instead of creating a new one (which would violate `email @unique`).
+    await db.user.update({
+      where: { email },
+      data: {
+        name, imageUrl,
+        ...(phone ? { phone } : {}),
+        ...(finalRole === "OWNER" ? { role: "OWNER" } : {}),
+      },
+    });
+  } else {
+    await db.user.upsert({
+      where: { id: user.id },
+      update: {
+        email, name, imageUrl,
+        ...(phone ? { phone } : {}),
+        // Upgrade to OWNER if intended, but never downgrade
+        ...(finalRole === "OWNER" ? { role: "OWNER" } : {}),
+      },
+      create: {
+        id: user.id, email, name, imageUrl, phone,
+        role: finalRole,
+        username: usernameFromMeta,
+      },
+    });
+  }
 
   // Check if this owner already has restaurants (to decide onboarding vs dashboard)
   let ownerHasRestaurant = false;
   if (finalRole === "OWNER") {
+    // Check by the current auth user ID
     const restaurantCount = await db.restaurant.count({
       where: { ownerId: user.id },
     });
@@ -150,7 +164,8 @@ export async function GET(req: NextRequest) {
   if (isNewUser || (isAccountLink && isGoogleUser)) {
     if (isGoogleUser) {
       // Check if this user already has a username (from linked account)
-      const dbUser = await db.user.findUnique({ where: { id: user.id } });
+      const dbUser = await db.user.findUnique({ where: { id: user.id } })
+        ?? (isAccountLink && email ? await db.user.findFirst({ where: { email } }) : null);
       const hasUsername = !!dbUser?.username;
 
       if (!hasUsername) {
