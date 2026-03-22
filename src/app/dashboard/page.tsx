@@ -122,6 +122,9 @@ import WifiSettingsTab from "@/components/dashboard/features/WifiSettingsTab";
 import DrinksTab from "@/components/dashboard/DrinksTab";
 import GuestCheckInTab from "@/components/dashboard/GuestCheckInTab";
 import MediaTab from "@/components/dashboard/MediaTab";
+import ManualBillingTab from "@/components/dashboard/ManualBillingTab";
+import CouponManagementTab from "@/components/dashboard/CouponManagementTab";
+import RoomManagementTab from "@/components/dashboard/RoomManagementTab";
 
 type DashTab =
   | "overview"
@@ -141,6 +144,9 @@ type DashTab =
   | "offers"
   | "hero-slides"
   | "media"
+  | "manual-billing"
+  | "coupons"
+  | "rooms"
   | FeatureTabId;
 
 /* ─── Navigation groups for sidebar ───────────────────────────────── */
@@ -155,6 +161,7 @@ const NAV_MAIN: {
   { id: "billing", label: "Billing", icon: Receipt },
   { id: "chat", label: "Chats", icon: MessageCircle },
   { id: "offers" as DashTab, label: "Offers", icon: Tag },
+  { id: "manual-billing" as DashTab, label: "Manual Billing", icon: Receipt },
 ];
 
 const NAV_MANAGE: typeof NAV_MAIN = [
@@ -167,6 +174,8 @@ const NAV_MANAGE: typeof NAV_MAIN = [
   { id: "tax-charges" as DashTab, label: "Tax & Charges", icon: Receipt },
   { id: "stock" as DashTab, label: "Stock", icon: Package },
   { id: "hero-slides" as DashTab, label: "Hero Slides", icon: ImageIcon },
+  { id: "coupons" as DashTab, label: "Coupons", icon: Tag },
+  { id: "rooms" as DashTab, label: "Rooms", icon: BedDouble },
 ];
 
 const NAV_MORE: typeof NAV_MAIN = [
@@ -1295,10 +1304,10 @@ export default function DashboardPage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  /* Customers go to their orders page — dashboard is for OWNER/ADMIN only */
+  /* Dashboard is for OWNER/ADMIN only — redirect others appropriately */
   useEffect(() => {
     if (userRole === "CUSTOMER") {
-      dashRouter.replace("/orders");
+      dashRouter.replace("/");
     } else if (userRole === "OWNER" && !resLoading && restaurants.length === 0) {
       dashRouter.replace("/onboarding");
     }
@@ -1483,6 +1492,9 @@ export default function DashboardPage() {
               {activeTab === "tax-charges" && <TaxChargesTab />}
               {activeTab === "stock" && <StockTab />}
               {activeTab === "offers" && <OffersTab />}
+              {activeTab === "manual-billing" && <ManualBillingTab />}
+              {activeTab === "coupons" && <CouponManagementTab />}
+              {activeTab === "rooms" && <RoomManagementTab />}
               {activeTab === "hero-slides" && <HeroSlidesManager />}
               {activeTab === "media" && <MediaTab />}
               {activeTab === "reports" && <ReportsTab />}

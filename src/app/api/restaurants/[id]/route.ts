@@ -50,6 +50,8 @@ export async function PATCH(
     "name", "phone", "countryCode", "type", "address", "city",
     "imageUrl", "coverUrl", "isActive", "tableCount", "openingTime", "closingTime",
     "wifiName", "wifiPassword",
+    "counterPayEnabled", "directPayEnabled", "prepaidEnabled",
+    "taxEnabled", "taxRate",
   ];
 
   const data: Record<string, unknown> = {};

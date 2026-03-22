@@ -107,10 +107,12 @@ export default function CompleteProfilePage() {
     }
 
     // Save username (and role if needed) via API
+    const patchBody: Record<string, string> = { username };
+    if (roleParam) patchBody.role = roleParam;
     const res = await fetch("/api/me", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, ...(roleParam ? { role: roleParam } : {}) }),
+      body: JSON.stringify(patchBody),
     });
 
     if (!res.ok) {
@@ -121,7 +123,20 @@ export default function CompleteProfilePage() {
     }
 
     const { role } = await res.json();
-    router.push(role === "OWNER" ? "/onboarding" : "/");
+
+    if (role === "OWNER") {
+      // Check if owner already has restaurants → dashboard, else → onboarding
+      try {
+        const restRes = await fetch("/api/restaurants");
+        const restData = await restRes.json().catch(() => []);
+        const hasRestaurants = Array.isArray(restData) && restData.length > 0;
+        router.push(hasRestaurants ? "/dashboard" : "/onboarding");
+      } catch {
+        router.push("/onboarding");
+      }
+    } else {
+      router.push("/");
+    }
   };
 
   if (!sessionReady) {

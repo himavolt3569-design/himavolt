@@ -182,6 +182,65 @@ export const POST = safeHandler(
       });
     }
 
+    if (method === "COUNTER") {
+      const restaurantFull = await db.restaurant.findUnique({
+        where: { id: order.restaurantId },
+        select: { counterPayEnabled: true },
+      });
+      if (!restaurantFull?.counterPayEnabled) {
+        return NextResponse.json(
+          { error: "Counter pay is not available for this restaurant" },
+          { status: 400 },
+        );
+      }
+
+      const payment = await db.payment.upsert({
+        where: { orderId },
+        update: { method: "COUNTER", status: "PENDING" },
+        create: {
+          orderId,
+          method: "COUNTER",
+          status: "PENDING",
+          amount: order.total,
+        },
+      });
+      return NextResponse.json({
+        success: true,
+        method: "COUNTER",
+        paymentId: payment.id,
+        message: "Please pay at the counter",
+      });
+    }
+
+    if (method === "DIRECT") {
+      const restaurantFull = await db.restaurant.findUnique({
+        where: { id: order.restaurantId },
+        select: { directPayEnabled: true },
+      });
+      if (!restaurantFull?.directPayEnabled) {
+        return NextResponse.json(
+          { error: "Direct pay is not available for this restaurant" },
+          { status: 400 },
+        );
+      }
+
+      const payment = await db.payment.upsert({
+        where: { orderId },
+        update: { method: "DIRECT", status: "PENDING" },
+        create: {
+          orderId,
+          method: "DIRECT",
+          status: "PENDING",
+          amount: order.total,
+        },
+      });
+      return NextResponse.json({
+        success: true,
+        method: "DIRECT",
+        paymentId: payment.id,
+      });
+    }
+
     return NextResponse.json(
       { error: "Invalid payment method" },
       { status: 400 },

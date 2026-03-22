@@ -35,6 +35,10 @@ interface InventoryItem {
   category: string;
   notes: string | null;
   updatedAt: string;
+  isDrink: boolean;
+  drinkCategory: string | null;
+  sellingPrice: number | null;
+  showOnMenu: boolean;
   usedInMenuItems?: UsedInMenuItem[];
 }
 
@@ -52,6 +56,7 @@ const CATEGORIES = [
   "Snacks",
   "Other",
 ];
+const DRINK_CATEGORIES = ["Soft Drinks", "Hard Drinks", "Alcohol", "Juices", "Water", "Hot Beverages"];
 
 async function apiFetch(url: string, opts?: RequestInit) {
   const res = await fetch(url, {
@@ -74,6 +79,7 @@ export default function StockTab() {
   const [filterStatus, setFilterStatus] = useState<"all" | "low" | "ok">("all");
   const [showAdd, setShowAdd] = useState(false);
   const [editItem, setEditItem] = useState<InventoryItem | null>(null);
+  const [filterType, setFilterType] = useState<"all" | "drinks" | "ingredients">("all");
 
   const fetchItems = useCallback(async () => {
     if (!restaurant) return;
@@ -110,6 +116,8 @@ export default function StockTab() {
     if (filterCat !== "all" && item.category !== filterCat) return false;
     if (filterStatus === "low" && item.quantity > item.minStock) return false;
     if (filterStatus === "ok" && item.quantity <= item.minStock) return false;
+    if (filterType === "drinks" && !item.isDrink) return false;
+    if (filterType === "ingredients" && item.isDrink) return false;
     return true;
   });
 
@@ -218,6 +226,20 @@ export default function StockTab() {
               {s === "all" ? "All" : s === "low" ? "Low Stock" : "In Stock"}
             </button>
           ))}
+          <span className="w-px bg-gray-200 mx-1 shrink-0" />
+          {(["all", "drinks", "ingredients"] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setFilterType(t)}
+              className={`shrink-0 rounded-lg px-3 py-2 text-xs font-bold transition-all ${
+                filterType === t
+                  ? "bg-amber-500 text-white"
+                  : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+              }`}
+            >
+              {t === "all" ? "All Types" : t === "drinks" ? "Drinks" : "Ingredients"}
+            </button>
+          ))}
         </div>
         <select
           value={filterCat}
@@ -289,6 +311,16 @@ export default function StockTab() {
                       <span className="shrink-0 rounded-md bg-gray-100 border border-gray-200 px-2 py-0.5 text-[10px] font-bold text-gray-500">
                         {item.category}
                       </span>
+                      {item.isDrink && (
+                        <span className="shrink-0 rounded-md bg-purple-50 border border-purple-200 px-2 py-0.5 text-[10px] font-bold text-purple-600">
+                          {item.drinkCategory || "Drink"}
+                        </span>
+                      )}
+                      {item.showOnMenu && (
+                        <span className="shrink-0 rounded-md bg-green-50 border border-green-200 px-2 py-0.5 text-[10px] font-bold text-green-600">
+                          On Menu
+                        </span>
+                      )}
                       {isLow && (
                         <span className="shrink-0 rounded-md bg-red-50 border border-red-200 px-2 py-0.5 text-[10px] font-bold text-red-600">
                           Low Stock
@@ -307,6 +339,11 @@ export default function StockTab() {
                         </>
                       )}
                     </p>
+                    {item.sellingPrice != null && item.sellingPrice > 0 && (
+                      <p className="text-[11px] text-amber-600 font-semibold mt-0.5">
+                        Sells at: {formatPrice(item.sellingPrice, cur)}
+                      </p>
+                    )}
                     {item.notes && (
                       <p className="text-[11px] text-gray-400 mt-0.5 truncate">
                         {item.notes}
@@ -497,6 +534,10 @@ function AddEditModal({
   const [costPerUnit, setCostPerUnit] = useState("");
   const [category, setCategory] = useState("General");
   const [notes, setNotes] = useState("");
+  const [isDrink, setIsDrink] = useState(false);
+  const [drinkCategory, setDrinkCategory] = useState("");
+  const [sellingPrice, setSellingPrice] = useState("");
+  const [showOnMenu, setShowOnMenu] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -509,6 +550,10 @@ function AddEditModal({
       setCostPerUnit(String(item.costPerUnit));
       setCategory(item.category);
       setNotes(item.notes ?? "");
+      setIsDrink(item.isDrink ?? false);
+      setDrinkCategory(item.drinkCategory ?? "");
+      setSellingPrice(item.sellingPrice != null ? String(item.sellingPrice) : "");
+      setShowOnMenu(item.showOnMenu ?? false);
     } else {
       setName("");
       setUnit("kg");
@@ -517,6 +562,10 @@ function AddEditModal({
       setCostPerUnit("");
       setCategory("General");
       setNotes("");
+      setIsDrink(false);
+      setDrinkCategory("");
+      setSellingPrice("");
+      setShowOnMenu(false);
     }
     setError("");
   }, [item, open]);
@@ -534,6 +583,10 @@ function AddEditModal({
         costPerUnit: Number(costPerUnit) || 0,
         category,
         notes: notes.trim() || null,
+        isDrink,
+        drinkCategory: isDrink ? (drinkCategory || null) : null,
+        sellingPrice: sellingPrice ? Number(sellingPrice) : null,
+        showOnMenu,
       };
       if (item) {
         await apiFetch(
@@ -698,6 +751,77 @@ function AddEditModal({
                   placeholder="Optional notes..."
                   className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#3e1e0c] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
                 />
+              </div>
+
+              {/* Divider */}
+              <div className="border-t border-gray-100 pt-4">
+                <p className="text-sm font-bold text-[#3e1e0c] mb-3">Drink & Menu Settings</p>
+
+                {/* Is Drink toggle */}
+                <div className="flex items-center justify-between rounded-xl bg-purple-50/50 border border-purple-100 px-4 py-3 mb-3">
+                  <div>
+                    <p className="text-sm font-bold text-[#3e1e0c]">This is a drink</p>
+                    <p className="text-xs text-gray-500">Mark this as a drink/beverage item</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsDrink(!isDrink)}
+                    className={`relative h-6 w-11 rounded-full transition-colors ${isDrink ? "bg-purple-500" : "bg-gray-300"}`}
+                  >
+                    <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${isDrink ? "left-[calc(100%-1.375rem)]" : "left-0.5"}`} />
+                  </button>
+                </div>
+
+                {/* Drink Category */}
+                {isDrink && (
+                  <div className="mb-3">
+                    <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">
+                      Drink Category
+                    </label>
+                    <select
+                      value={drinkCategory}
+                      onChange={(e) => setDrinkCategory(e.target.value)}
+                      className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#3e1e0c] outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
+                    >
+                      <option value="">Select category</option>
+                      {DRINK_CATEGORIES.map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {/* Show on Menu toggle */}
+                <div className="flex items-center justify-between rounded-xl bg-green-50/50 border border-green-100 px-4 py-3 mb-3">
+                  <div>
+                    <p className="text-sm font-bold text-[#3e1e0c]">Show on customer menu</p>
+                    <p className="text-xs text-gray-500">Display as purchasable item for customers</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowOnMenu(!showOnMenu)}
+                    className={`relative h-6 w-11 rounded-full transition-colors ${showOnMenu ? "bg-green-500" : "bg-gray-300"}`}
+                  >
+                    <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${showOnMenu ? "left-[calc(100%-1.375rem)]" : "left-0.5"}`} />
+                  </button>
+                </div>
+
+                {/* Selling Price (shown if showOnMenu is true) */}
+                {showOnMenu && (
+                  <div>
+                    <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">
+                      Selling Price
+                    </label>
+                    <input
+                      type="number"
+                      value={sellingPrice}
+                      onChange={(e) => setSellingPrice(e.target.value)}
+                      placeholder="0"
+                      min="0"
+                      className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#3e1e0c] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
+                    />
+                  </div>
+                )}
               </div>
             </div>
 

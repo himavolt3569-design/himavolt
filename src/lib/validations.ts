@@ -87,7 +87,7 @@ export type ContactInput = z.infer<typeof contactSchema>;
 
 export const initiatePaymentSchema = z.object({
   orderId: z.string().min(1, "Order ID is required"),
-  method: z.enum(["CASH", "ESEWA", "KHALTI", "BANK"]),
+  method: z.enum(["CASH", "ESEWA", "KHALTI", "BANK", "COUNTER", "DIRECT"]),
 });
 export type InitiatePaymentInput = z.infer<typeof initiatePaymentSchema>;
 
@@ -138,6 +138,7 @@ export const createOrderSchema = z.object({
   deliveryLng: z.number().optional().nullable(),
   deliveryPhone: z.string().max(20).optional().nullable(),
   deliveryNote: z.string().max(300).optional().nullable(),
+  couponCode: z.string().max(50).optional().nullable(), // optional coupon code
 });
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
 
@@ -151,6 +152,10 @@ export const createInventoryItemSchema = z.object({
   costPerUnit: z.number().min(0).optional().default(0),
   category: z.string().max(50).optional().default("General"),
   notes: z.string().max(300).optional().nullable(),
+  isDrink: z.boolean().optional().default(false),
+  drinkCategory: z.string().max(50).optional().nullable(),
+  sellingPrice: z.number().min(0).optional().nullable(),
+  showOnMenu: z.boolean().optional().default(false),
 });
 export type CreateInventoryItemInput = z.infer<
   typeof createInventoryItemSchema
@@ -164,6 +169,10 @@ export const updateInventoryItemSchema = z.object({
   costPerUnit: z.number().min(0).optional(),
   category: z.string().max(50).optional(),
   notes: z.string().max(300).optional().nullable(),
+  isDrink: z.boolean().optional(),
+  drinkCategory: z.string().max(50).optional().nullable(),
+  sellingPrice: z.number().min(0).optional().nullable(),
+  showOnMenu: z.boolean().optional(),
 });
 
 // ─── Chat ──────────────────────────────────────────────────────────────────────

@@ -40,7 +40,8 @@ export async function getOrCreateUser() {
     ? await db.user.findFirst({ where: { email } })
     : null;
 
-  // Determine safe role — inherit from existing DB record if found
+  // Determine safe role — intended role or inherited from existing DB record
+  // The intended role (from signup) should always win over inherited CUSTOMER role
   const existingRole = (dbUser ?? userByEmail)?.role;
   const safeRole =
     intendedRole === "OWNER" || existingRole === "OWNER" || existingRole === "ADMIN"
@@ -53,12 +54,16 @@ export async function getOrCreateUser() {
       data: { id: supabaseUser.id, email, name, imageUrl, phone, role: safeRole, username: username ?? null },
     });
   } else if (!dbUser && userByEmail) {
-    // Google OAuth linked to existing email account — create new record with inherited role
+    // Google OAuth linked to existing email account — create new record.
+    // Use the higher of intended role vs inherited role (never downgrade).
     const inheritedRole = userByEmail.role;
+    const finalRole = safeRole === "OWNER" || inheritedRole === "OWNER" || inheritedRole === "ADMIN"
+      ? "OWNER"
+      : inheritedRole;
     dbUser = await db.user.upsert({
       where: { id: supabaseUser.id },
-      update: { email, name, imageUrl, phone },
-      create: { id: supabaseUser.id, email, name, imageUrl, phone, role: inheritedRole, username: userByEmail.username },
+      update: { email, name, imageUrl, phone, ...(finalRole === "OWNER" ? { role: "OWNER" } : {}) },
+      create: { id: supabaseUser.id, email, name, imageUrl, phone, role: finalRole, username: userByEmail.username },
     });
   } else if (dbUser) {
     // Existing user — upgrade CUSTOMER → OWNER if needed, never downgrade

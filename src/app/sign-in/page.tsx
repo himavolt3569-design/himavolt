@@ -43,13 +43,15 @@ export default function SignInPage() {
   };
 
   const handleGoogleSignIn = async () => {
+    // Do NOT hardcode role=OWNER — returning customers who use Google should
+    // keep their existing role. The callback will look up the DB role.
+    // Persist a hint cookie so the callback knows this came from sign-in (not sign-up).
+    document.cookie = `intended_role=; path=/; max-age=0; SameSite=Lax`;
     const supabase = getSupabaseBrowserClient();
-    // Pass ?role=OWNER so the callback can correctly handle returning owner accounts
-    // and new owners who sign in from this page
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?role=OWNER`,
+        redirectTo: `${window.location.origin}/auth/callback`,
       },
     });
   };

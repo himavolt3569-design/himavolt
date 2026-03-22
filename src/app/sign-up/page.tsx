@@ -116,6 +116,9 @@ export default function SignUpPage() {
 
   const handleGoogleSignUp = async () => {
     if (!role) return;
+    // Persist intended role in a cookie so the callback can read it
+    // even if Supabase strips custom query params from the redirect URL.
+    document.cookie = `intended_role=${role}; path=/; max-age=600; SameSite=Lax`;
     const supabase = getSupabaseBrowserClient();
     await supabase.auth.signInWithOAuth({
       provider: "google",

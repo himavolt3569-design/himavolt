@@ -21,7 +21,7 @@ export type OrderStatus =
   | "CANCELLED"
   | "REJECTED";
 
-export type PaymentMethodType = "ESEWA" | "KHALTI" | "BANK" | "CASH";
+export type PaymentMethodType = "ESEWA" | "KHALTI" | "BANK" | "CASH" | "COUNTER" | "DIRECT";
 
 export type OrderType = "DINE_IN" | "DELIVERY" | "TAKEAWAY";
 
@@ -105,6 +105,7 @@ interface OrderContextType {
     deliveryInfo?: DeliveryInfo,
     roomNo?: string,
     tableSessionId?: string,
+    couponCode?: string,
   ) => Promise<Order>;
   addToOrder: (
     restaurantId: string,
@@ -205,6 +206,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
       deliveryInfo?: DeliveryInfo,
       roomNo?: string,
       tableSessionId?: string,
+      couponCode?: string,
     ) => {
       const order = await apiFetch<Order>(
         `/api/restaurants/${restaurantId}/orders`,
@@ -218,6 +220,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
             type: orderType,
             paymentMethod: paymentMethod || "CASH",
             tableSessionId: tableSessionId || undefined,
+            couponCode: couponCode || undefined,
             // Delivery fields
             ...(orderType === "DELIVERY" && deliveryInfo
               ? {

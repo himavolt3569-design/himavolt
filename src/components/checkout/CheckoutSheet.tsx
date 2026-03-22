@@ -21,6 +21,7 @@ import {
   QrCode,
   BedDouble,
   PlusCircle,
+  Tag,
 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import {
@@ -83,11 +84,27 @@ const ALL_PAYMENT_METHODS: {
   },
   {
     id: "CASH",
-    label: "Pay at Counter",
-    sublabel: "Pay when you pick up your order",
+    label: "Cash",
+    sublabel: "Pay cash when order is ready",
     icon: DollarSign,
     color: "text-gray-600",
     bg: "bg-gray-50 border-gray-200",
+  },
+  {
+    id: "COUNTER",
+    label: "Counter Pay",
+    sublabel: "Pay at the counter directly",
+    icon: CreditCard,
+    color: "text-amber-600",
+    bg: "bg-amber-50 border-amber-200",
+  },
+  {
+    id: "DIRECT",
+    label: "Direct Pay",
+    sublabel: "Direct bank/wallet transfer",
+    icon: Banknote,
+    color: "text-teal-600",
+    bg: "bg-teal-50 border-teal-200",
   },
 ];
 
@@ -180,6 +197,13 @@ export default function CheckoutSheet({
   const [deliveryPhone, setDeliveryPhone] = useState("");
   const [deliveryNote, setDeliveryNote] = useState("");
 
+  // Coupon
+  const [couponCode, setCouponCode] = useState("");
+  const [couponDiscount, setCouponDiscount] = useState(0);
+  const [couponError, setCouponError] = useState("");
+  const [couponApplied, setCouponApplied] = useState(false);
+  const [couponLoading, setCouponLoading] = useState(false);
+
   const slug = restaurantSlug || cartSlug;
 
   const DELIVERY_FEE = 50;
@@ -187,9 +211,37 @@ export default function CheckoutSheet({
   const tax = taxEnabled
     ? Math.round(subtotal * (taxRate / 100) * 100) / 100
     : 0;
-  const total = subtotal + tax + deliveryFee;
+  const total = subtotal + tax + deliveryFee - couponDiscount;
 
-  const isOnlinePayment = selectedPayment !== "CASH";
+  const isOnlinePayment = selectedPayment !== "CASH" && selectedPayment !== "COUNTER";
+
+  // Validate coupon code
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim() || !slug) return;
+    setCouponLoading(true);
+    setCouponError("");
+    try {
+      const res = await apiFetch<{ discount: number; message?: string }>(
+        `/api/public/restaurants/${slug}/coupons/validate`,
+        { method: "POST", body: { code: couponCode.trim(), orderTotal: subtotal } },
+      );
+      setCouponDiscount(res.discount);
+      setCouponApplied(true);
+    } catch (err) {
+      setCouponError(err instanceof Error ? err.message : "Invalid coupon");
+      setCouponDiscount(0);
+      setCouponApplied(false);
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setCouponCode("");
+    setCouponDiscount(0);
+    setCouponApplied(false);
+    setCouponError("");
+  };
 
   // Check if there's an active cash order we can add to
   const canAddToExisting =
@@ -347,6 +399,7 @@ export default function CheckoutSheet({
         deliveryInfo,
         roomNo || undefined,
         tableSessionId,
+        couponApplied ? couponCode : undefined,
       );
 
       if (selectedPayment === "ESEWA") {
@@ -436,6 +489,20 @@ export default function CheckoutSheet({
         await apiFetch("/api/payments/initiate", {
           method: "POST",
           body: { orderId: order.id, method: "BANK" },
+        });
+      }
+
+      if (selectedPayment === "COUNTER") {
+        await apiFetch("/api/payments/initiate", {
+          method: "POST",
+          body: { orderId: order.id, method: "COUNTER" },
+        });
+      }
+
+      if (selectedPayment === "DIRECT") {
+        await apiFetch("/api/payments/initiate", {
+          method: "POST",
+          body: { orderId: order.id, method: "DIRECT" },
         });
       }
 
@@ -675,6 +742,14 @@ export default function CheckoutSheet({
                         </span>
                       </div>
                     )}
+                    {couponDiscount > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-green-600 font-medium">Coupon Discount</span>
+                        <span className="font-semibold text-green-600">
+                          -{formatPrice(couponDiscount, currency)}
+                        </span>
+                      </div>
+                    )}
                     <div className="border-t border-gray-200 pt-2 flex justify-between">
                       <span className="text-base font-bold text-[#3e1e0c]">
                         Total
@@ -711,6 +786,48 @@ export default function CheckoutSheet({
                       )}
                     </div>
                   )}
+
+                  {/* Coupon code input */}
+                  <div className="rounded-xl border border-gray-200 p-3">
+                    {couponApplied ? (
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Tag className="h-4 w-4 text-green-600" />
+                          <span className="text-sm font-semibold text-green-600">
+                            {couponCode.toUpperCase()} applied
+                          </span>
+                        </div>
+                        <button
+                          onClick={handleRemoveCoupon}
+                          className="text-xs font-semibold text-red-500 hover:text-red-600"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ) : (
+                      <div>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            placeholder="Coupon code"
+                            value={couponCode}
+                            onChange={(e) => { setCouponCode(e.target.value); setCouponError(""); }}
+                            className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#eaa94d]/30"
+                          />
+                          <button
+                            onClick={handleApplyCoupon}
+                            disabled={!couponCode.trim() || couponLoading}
+                            className="rounded-lg bg-[#eaa94d] px-4 py-2 text-xs font-bold text-white hover:bg-[#d67620] disabled:opacity-40 transition-colors"
+                          >
+                            {couponLoading ? "..." : "Apply"}
+                          </button>
+                        </div>
+                        {couponError && (
+                          <p className="mt-1.5 text-xs text-red-500">{couponError}</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               ) : step === "scan-qr" ? (
                 /* ── Scan & Pay step: show restaurant payment QR images ── */

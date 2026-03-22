@@ -71,6 +71,11 @@ model Restaurant {
   serviceChargeRate    Float   @default(10)   // percentage, e.g. 10 = 10%
   serviceChargeEnabled Boolean @default(true)
 
+  // Prepaid mode
+  prepaidEnabled Boolean @default(false) // if true, customers must pay before food processing begins
+  counterPayEnabled Boolean @default(true) // counter pay available for all types
+  directPayEnabled  Boolean @default(false) // direct bank/wallet pay
+
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
@@ -94,6 +99,10 @@ model Restaurant {
   favourites     Favourite[]
   guestCheckIns  GuestCheckIn[]
   media          Media[]
+  rooms          Room[]
+  roomBookings   RoomBooking[]
+  coupons        Coupon[]
+  prepaidTokens  PrepaidToken[]
 
   @@index([ownerId])
   @@index([slug])
@@ -109,10 +118,19 @@ model InventoryItem {
   quantity    Float    @default(0)
   minStock    Float    @default(5) // alert threshold
   costPerUnit Float    @default(0)
-  category    String   @default("General") // Vegetables, Spices, Meat, etc.
+  category    String   @default("General") // Vegetables, Spices, Meat, Drinks, etc.
   notes       String?
+  imageUrl    String?  // optional product photo
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  // Drink-specific fields
+  isDrink       Boolean @default(false)
+  drinkCategory String? // "Soft Drinks", "Hard Drinks", "Alcohol"
+  sellingPrice  Float?  // price when sold as menu item
+
+  // Stock-to-menu link: should this item appear on the customer menu?
+  showOnMenu    Boolean @default(false)
 
   restaurantId String
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
@@ -120,6 +138,7 @@ model InventoryItem {
   menuItems MenuItemIngredient[]
 
   @@index([restaurantId])
+  @@index([restaurantId, isDrink])
   @@map("inventory_items")
 }
 
@@ -371,12 +390,21 @@ model Order {
   restaurantId String
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
 
-  items        OrderItem[]
-  payment      Payment?
-  bill         Bill?
-  chatRoom     ChatRoom?
-  delivery     Delivery?
-  tableSession TableSession?
+  // Prepaid flow
+  isPrepaid      Boolean  @default(false) // order requires payment before processing
+  prepaidTokenId String?  @unique         // link to PrepaidToken once paid
+
+  // Coupon
+  couponId       String?
+  couponDiscount Float    @default(0) // discount amount applied from coupon
+
+  items          OrderItem[]
+  payment        Payment?
+  bill           Bill?
+  chatRoom       ChatRoom?
+  delivery       Delivery?
+  tableSession   TableSession?
+  prepaidToken   PrepaidToken? @relation(fields: [prepaidTokenId], references: [id])
 
   @@index([restaurantId])
   @@index([userId])
@@ -445,6 +473,8 @@ enum PaymentMethod {
   KHALTI
   BANK
   CASH
+  COUNTER
+  DIRECT
 }
 
 enum PaymentStatus {
@@ -862,4 +892,120 @@ model Media {
 
   @@index([restaurantId])
   @@map("media_library")
+}
+
+// ─── Rooms (for Hotel / Resort / Guest House) ───────────────────────
+
+model Room {
+  id          String   @id @default(cuid())
+  roomNumber  String   // e.g. "101", "A-201"
+  name        String?  // optional display name e.g. "Deluxe Suite"
+  type        String   @default("STANDARD") // STANDARD, DELUXE, SUITE, DORMITORY
+  floor       Int      @default(1)
+  price       Float    @default(0)  // per night rate
+  maxGuests   Int      @default(2)
+  description String?
+  amenities   String[] @default([]) // ["WiFi","AC","TV","Balcony"]
+  imageUrls   String[] @default([]) // multiple room images
+  videoUrl    String?               // optional room video
+  isAvailable Boolean  @default(true)
+  isActive    Boolean  @default(true) // soft delete
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  bookings RoomBooking[]
+
+  @@unique([restaurantId, roomNumber])
+  @@index([restaurantId])
+  @@index([restaurantId, isAvailable])
+  @@map("rooms")
+}
+
+// ─── Room Bookings ──────────────────────────────────────────────────
+
+model RoomBooking {
+  id              String   @id @default(cuid())
+  guestName       String
+  guestPhone      String?
+  guestEmail      String?
+  guestAddress    String?
+  guestIdType     String?  // CITIZENSHIP, PASSPORT, etc.
+  guestIdNumber   String?
+  adults          Int      @default(1)
+  children        Int      @default(0)
+  checkIn         DateTime
+  checkOut        DateTime
+  nights          Int      @default(1)
+  totalPrice      Float    @default(0)
+  advanceAmount   Float    @default(0)  // advance payment required
+  advancePaid     Boolean  @default(false)
+  status          String   @default("PENDING") // PENDING, CONFIRMED, CHECKED_IN, CHECKED_OUT, CANCELLED
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  roomId       String
+  room         Room       @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  // Optional link to user (if customer is logged in)
+  userId String?
+
+  @@index([restaurantId])
+  @@index([roomId])
+  @@index([status])
+  @@index([checkIn, checkOut])
+  @@map("room_bookings")
+}
+
+// ─── Coupons ────────────────────────────────────────────────────────
+
+model Coupon {
+  id          String   @id @default(cuid())
+  code        String   // e.g. "WELCOME20"
+  description String?
+  type        String   @default("PERCENTAGE") // PERCENTAGE, FIXED
+  value       Float    @default(0)   // discount value (percentage or fixed amount)
+  minOrder    Float    @default(0)   // minimum order total to apply
+  maxDiscount Float?                 // cap on discount amount (for percentage type)
+  maxUses     Int?                   // total usage limit (null = unlimited)
+  usedCount   Int      @default(0)
+  isActive    Boolean  @default(true)
+  startsAt    DateTime @default(now())
+  expiresAt   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@unique([restaurantId, code])
+  @@index([restaurantId])
+  @@index([code])
+  @@map("coupons")
+}
+
+// ─── Prepaid Tokens ─────────────────────────────────────────────────
+
+model PrepaidToken {
+  id        String   @id @default(cuid())
+  token     String   @unique @default(cuid()) // unique verification code
+  status    String   @default("ACTIVE") // ACTIVE, USED, EXPIRED
+  amount    Float    @default(0)
+  createdAt DateTime @default(now())
+  usedAt    DateTime?
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  order Order?
+
+  @@index([restaurantId])
+  @@index([token])
+  @@map("prepaid_tokens")
 }

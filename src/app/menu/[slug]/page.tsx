@@ -1956,11 +1956,11 @@ function MenuPageContent() {
       </div>
       </div>
 
-      {/* Mobile cart bar */}
+      {/* Mobile cart bar — must sit above BottomNav (z-50) */}
       <AnimatePresence>
         {totalItems > 0 && (
           <motion.div
-            className="fixed bottom-0 inset-x-0 mx-auto max-w-5xl z-30 md:hidden"
+            className="fixed bottom-0 inset-x-0 mx-auto max-w-5xl z-[60] md:hidden"
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
@@ -1969,7 +1969,7 @@ function MenuPageContent() {
             <motion.button
               onClick={() => setCartOpen(true)}
               whileTap={{ scale: 0.98 }}
-              className="flex w-full items-center justify-between bg-[#3e1e0c] px-5 py-4 text-white shadow-[0_-4px_20px_rgba(0,0,0,0.15)]"
+              className="flex w-full items-center justify-between bg-[#3e1e0c] px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] text-white shadow-[0_-4px_20px_rgba(0,0,0,0.15)]"
             >
               <div className="flex items-center gap-2">
                 <motion.span

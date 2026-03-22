@@ -31,6 +31,9 @@ interface PaymentConfigData {
   bankAccountName: string;
   bankAccountNumber: string;
   bankBranch: string;
+  counterPayEnabled: boolean;
+  directPayEnabled: boolean;
+  prepaidEnabled: boolean;
 }
 
 const DEFAULT_CONFIG: PaymentConfigData = {
@@ -45,6 +48,9 @@ const DEFAULT_CONFIG: PaymentConfigData = {
   bankAccountName: "",
   bankAccountNumber: "",
   bankBranch: "",
+  counterPayEnabled: false,
+  directPayEnabled: false,
+  prepaidEnabled: false,
 };
 
 export default function PaymentSettingsTab() {
@@ -64,13 +70,19 @@ export default function PaymentSettingsTab() {
       const data = await apiFetch<PaymentConfigData>(
         `/api/restaurants/${restaurant.id}/payment-config`,
       );
-      setConfig(data);
+      // Merge restaurant-level payment flags
+      setConfig({
+        ...data,
+        counterPayEnabled: restaurant.counterPayEnabled ?? false,
+        directPayEnabled: restaurant.directPayEnabled ?? false,
+        prepaidEnabled: restaurant.prepaidEnabled ?? false,
+      });
     } catch {
       showToast("Failed to load payment settings", "error");
     } finally {
       setLoading(false);
     }
-  }, [restaurant?.id]);
+  }, [restaurant?.id, restaurant?.counterPayEnabled, restaurant?.directPayEnabled, restaurant?.prepaidEnabled]);
 
   useEffect(() => {
     fetchConfig();
@@ -86,12 +98,33 @@ export default function PaymentSettingsTab() {
         delete payload.esewaMerchantCode;
       if (config.esewaSecretKey === "••••••") delete payload.esewaSecretKey;
       if (config.khaltiSecretKey === "••••••") delete payload.khaltiSecretKey;
+      // Remove restaurant-level flags from payment config payload
+      delete payload.counterPayEnabled;
+      delete payload.directPayEnabled;
+      delete payload.prepaidEnabled;
 
+      // Save payment config
       const updated = await apiFetch<PaymentConfigData>(
         `/api/restaurants/${restaurant.id}/payment-config`,
         { method: "PATCH", body: payload },
       );
-      setConfig(updated);
+
+      // Save restaurant-level payment flags
+      await apiFetch(`/api/restaurants/${restaurant.id}`, {
+        method: "PATCH",
+        body: {
+          counterPayEnabled: config.counterPayEnabled,
+          directPayEnabled: config.directPayEnabled,
+          prepaidEnabled: config.prepaidEnabled,
+        },
+      });
+
+      setConfig({
+        ...updated,
+        counterPayEnabled: config.counterPayEnabled,
+        directPayEnabled: config.directPayEnabled,
+        prepaidEnabled: config.prepaidEnabled,
+      });
       showToast("Payment settings saved!");
     } catch {
       showToast("Failed to save settings", "error");
@@ -198,6 +231,36 @@ export default function PaymentSettingsTab() {
           <CredentialWarning method="Khalti" />
         )}
       </PaymentSection>
+
+      {/* ─── Counter Pay ──────────────────────────────────── */}
+      <PaymentSection
+        title="Counter Pay"
+        description="Customers pay at counter after ordering"
+        icon={<Banknote className="h-5 w-5" />}
+        color="gray"
+        enabled={config.counterPayEnabled}
+        onToggle={(v) => updateField("counterPayEnabled", v)}
+      />
+
+      {/* ─── Direct Pay ───────────────────────────────────── */}
+      <PaymentSection
+        title="Direct Pay"
+        description="Accept direct payments (Fonepay, QR, etc.)"
+        icon={<CreditCard className="h-5 w-5" />}
+        color="blue"
+        enabled={config.directPayEnabled}
+        onToggle={(v) => updateField("directPayEnabled", v)}
+      />
+
+      {/* ─── Prepaid System ───────────────────────────────── */}
+      <PaymentSection
+        title="Prepaid / Token System"
+        description="Customers pay first, get token, food is processed after payment"
+        icon={<ShieldCheck className="h-5 w-5" />}
+        color="green"
+        enabled={config.prepaidEnabled}
+        onToggle={(v) => updateField("prepaidEnabled", v)}
+      />
 
       {/* ─── Bank Transfer ────────────────────────────────── */}
       <PaymentSection

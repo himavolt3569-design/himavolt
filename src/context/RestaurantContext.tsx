@@ -49,6 +49,11 @@ export interface Restaurant {
   createdAt: string;
   updatedAt: string;
   ownerId: string;
+  taxRate: number;
+  taxEnabled: boolean;
+  counterPayEnabled: boolean;
+  directPayEnabled: boolean;
+  prepaidEnabled: boolean;
   staff: StaffMember[];
   _count: { orders: number; menuItems: number };
 }

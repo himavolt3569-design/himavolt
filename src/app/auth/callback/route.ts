@@ -8,8 +8,10 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const code = searchParams.get("code");
   const next = searchParams.get("next") ?? "/";
-  // Role passed via query param for Google OAuth path (set on sign-up page)
+
+  // Role source priority: URL query param > cookie (set before OAuth redirect) > Supabase metadata
   const roleParam = searchParams.get("role")?.toUpperCase() as SafeRole | null;
+  const roleCookie = req.cookies.get("intended_role")?.value?.toUpperCase() as SafeRole | null;
 
   if (!code) {
     return NextResponse.redirect(new URL("/sign-in", req.url));
@@ -82,56 +84,94 @@ export async function GET(req: NextRequest) {
   // True when same email exists in DB under a different auth provider/ID
   const isAccountLink = !existingUserById && !!existingUserByEmail;
 
-  // Determine role: URL param > existing DB role > metadata (email sign-up) > CUSTOMER
+  // Determine role: URL param > cookie > existing DB role > metadata (email sign-up) > CUSTOMER
   // Never allow ADMIN to be self-assigned.
   const metadataRole = user.user_metadata?.intended_role as SafeRole | undefined;
   const dbRole = existingUser?.role;
+
+  // The explicit intended role from signup flow (query param or cookie)
+  const explicitRole: SafeRole | undefined =
+    (roleParam === "OWNER" || roleParam === "CUSTOMER" ? roleParam : undefined) ??
+    (roleCookie === "OWNER" || roleCookie === "CUSTOMER" ? roleCookie : undefined);
+
   const intendedRole: SafeRole | undefined =
-    roleParam ??
+    explicitRole ??
     (dbRole === "OWNER" || dbRole === "ADMIN" ? "OWNER" as SafeRole : undefined) ??
     metadataRole;
   const safeRole: SafeRole = intendedRole === "OWNER" ? "OWNER" : "CUSTOMER";
 
-  // Upsert by Supabase user ID; inherit role from linked email account if applicable
-  const inheritedRole = isAccountLink ? (existingUserByEmail!.role as SafeRole) : undefined;
-  const finalCreateRole = inheritedRole ?? safeRole;
+  // For account linking: the explicit signup role should take priority over
+  // the inherited DB role. An existing CUSTOMER upgrading to OWNER via Google
+  // signup should become OWNER, not stay CUSTOMER.
+  const finalRole: SafeRole = (() => {
+    if (explicitRole === "OWNER") return "OWNER";
+    if (isAccountLink && existingUserByEmail) {
+      const inherited = existingUserByEmail.role;
+      if (inherited === "OWNER" || inherited === "ADMIN") return "OWNER";
+    }
+    return safeRole;
+  })();
 
   await db.user.upsert({
     where: { id: user.id },
     update: {
       email, name, imageUrl,
       ...(phone ? { phone } : {}),
-      ...(safeRole === "OWNER" ? { role: "OWNER" } : {}),
-      ...(inheritedRole && inheritedRole !== "CUSTOMER" ? { role: inheritedRole } : {}),
+      // Upgrade to OWNER if intended, but never downgrade
+      ...(finalRole === "OWNER" ? { role: "OWNER" } : {}),
     },
-    create: { id: user.id, email, name, imageUrl, phone, role: finalCreateRole, username: usernameFromMeta },
+    create: {
+      id: user.id, email, name, imageUrl, phone,
+      role: finalRole,
+      username: isAccountLink ? (existingUserByEmail?.username ?? usernameFromMeta) : usernameFromMeta,
+    },
   });
+
+  // Check if this owner already has restaurants (to decide onboarding vs dashboard)
+  let ownerHasRestaurant = false;
+  if (finalRole === "OWNER") {
+    const restaurantCount = await db.restaurant.count({
+      where: { ownerId: user.id },
+    });
+    // Also check by linked email account ID
+    if (restaurantCount === 0 && isAccountLink && existingUserByEmail) {
+      const linkedCount = await db.restaurant.count({
+        where: { ownerId: existingUserByEmail.id },
+      });
+      ownerHasRestaurant = linkedCount > 0;
+    } else {
+      ownerHasRestaurant = restaurantCount > 0;
+    }
+  }
 
   // Determine final redirect URL
   let redirectTo = next;
-  if (isNewUser) {
+
+  if (isNewUser || (isAccountLink && isGoogleUser)) {
     if (isGoogleUser) {
-      // Google users always complete their profile (username + optional password)
-      const roleQ = safeRole === "OWNER" ? `?role=${safeRole}` : "";
-      redirectTo = `/auth/complete-profile${roleQ}`;
-    } else if (safeRole === "OWNER") {
+      // Check if this user already has a username (from linked account)
+      const dbUser = await db.user.findUnique({ where: { id: user.id } });
+      const hasUsername = !!dbUser?.username;
+
+      if (!hasUsername) {
+        // Google users need to complete their profile (pick a username)
+        const roleQ = finalRole === "OWNER" ? `?role=OWNER` : "";
+        redirectTo = `/auth/complete-profile${roleQ}`;
+      } else if (finalRole === "OWNER") {
+        // Has username already — go to onboarding or dashboard
+        redirectTo = ownerHasRestaurant ? "/dashboard" : "/onboarding";
+      } else {
+        redirectTo = "/";
+      }
+    } else if (finalRole === "OWNER") {
       // New owner via email — send to restaurant setup wizard
-      redirectTo = "/onboarding";
+      redirectTo = ownerHasRestaurant ? "/dashboard" : "/onboarding";
     }
-    // New customer via email with explicit role → fall through to `next` (default "/")
-  } else if (isAccountLink && isGoogleUser) {
-    // Returning user linking Google to existing email account — redirect by DB role
-    const effectiveRole = inheritedRole ?? dbRole ?? "CUSTOMER";
-    if (effectiveRole === "OWNER" || effectiveRole === "ADMIN") {
-      redirectTo = "/dashboard";
-    } else {
-      redirectTo = "/";
-    }
+    // New customer via email → fall through to `next` (default "/")
   } else if (next === "/" || next === "") {
-    // Returning user — redirect based on their current DB role (or upgraded role)
-    const effectiveRole = safeRole === "OWNER" ? "OWNER" : (existingUser?.role ?? "CUSTOMER");
-    if (effectiveRole === "OWNER" || effectiveRole === "ADMIN") {
-      redirectTo = "/dashboard";
+    // Returning user — redirect based on their effective role
+    if (finalRole === "OWNER" || dbRole === "OWNER" || dbRole === "ADMIN") {
+      redirectTo = ownerHasRestaurant ? "/dashboard" : "/onboarding";
     }
   }
 
@@ -140,5 +180,7 @@ export async function GET(req: NextRequest) {
   pendingCookies.forEach(({ name, value, options }) => {
     res.cookies.set(name, value, options as Parameters<typeof res.cookies.set>[2]);
   });
+  // Clear the intended_role cookie now that we've consumed it
+  res.cookies.set("intended_role", "", { path: "/", maxAge: 0 });
   return res;
 }
