@@ -185,9 +185,8 @@ export const POST = safeHandler(
     if (method === "COUNTER") {
       const restaurantFull = await db.restaurant.findUnique({
         where: { id: order.restaurantId },
-        select: { counterPayEnabled: true },
       });
-      if (!restaurantFull?.counterPayEnabled) {
+      if (!(restaurantFull as Record<string, unknown>)?.counterPayEnabled) {
         return NextResponse.json(
           { error: "Counter pay is not available for this restaurant" },
           { status: 400 },
@@ -215,9 +214,8 @@ export const POST = safeHandler(
     if (method === "DIRECT") {
       const restaurantFull = await db.restaurant.findUnique({
         where: { id: order.restaurantId },
-        select: { directPayEnabled: true },
       });
-      if (!restaurantFull?.directPayEnabled) {
+      if (!(restaurantFull as Record<string, unknown>)?.directPayEnabled) {
         return NextResponse.json(
           { error: "Direct pay is not available for this restaurant" },
           { status: 400 },

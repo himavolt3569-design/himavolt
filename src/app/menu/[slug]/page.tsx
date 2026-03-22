@@ -53,6 +53,11 @@ import {
   ChevronDown,
   QrCode,
   MapPin,
+  Wine,
+  BedDouble,
+  Users,
+  Calendar,
+  AlertCircle,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
@@ -91,6 +96,21 @@ interface RestaurantCategory {
   icon: string | null;
 }
 
+interface Room {
+  id: string;
+  roomNumber: string;
+  name: string | null;
+  type: string;
+  floor: number;
+  price: number;
+  maxGuests: number;
+  description: string | null;
+  amenities: string[];
+  imageUrls: string[];
+  videoUrl: string | null;
+  isAvailable: boolean;
+}
+
 interface Restaurant {
   id: string;
   name: string;
@@ -109,6 +129,9 @@ interface Restaurant {
   wifiName: string | null;
   wifiPassword: string | null;
   currency: string;
+  prepaidEnabled: boolean;
+  counterPayEnabled: boolean;
+  directPayEnabled: boolean;
   categories: RestaurantCategory[];
   paymentQRs: { id: string; label: string; imageUrl: string }[];
 }
@@ -152,6 +175,10 @@ interface MenuItem {
   addOns: MenuItemAddOn[];
   calories: number | null;
   allergens: string[];
+  isDrink: boolean;
+  drinkCategory: string | null;
+  lowStock: boolean;
+  outOfStock: boolean;
 }
 
 function img(url: string | null) {
@@ -956,6 +983,16 @@ function MenuItemCard({
             <div className="flex items-center gap-1.5 mb-0.5">
               {item.isVeg ? <VegIcon /> : <NonVegIcon />}
               {item.hasEgg && <Egg className="h-3 w-3 text-yellow-500" />}
+              {item.isDrink && (
+                <span className="rounded-full bg-blue-50 px-1.5 py-0.5 text-[8px] font-bold text-blue-600">
+                  {item.drinkCategory || "Drink"}
+                </span>
+              )}
+              {item.lowStock && !item.outOfStock && (
+                <span className="rounded-full bg-orange-50 px-1.5 py-0.5 text-[8px] font-bold text-orange-600">
+                  Few left
+                </span>
+              )}
             </div>
             <h3 className="text-sm font-bold text-[#3e1e0c] truncate flex items-center gap-1">
               {stripEmojis(item.name)}
@@ -1001,6 +1038,11 @@ function MenuItemCard({
 
       {/* Add to Cart button — always visible below */}
       <div className="px-3 pb-3">
+        {item.outOfStock ? (
+          <div className="flex w-full items-center justify-center gap-2 rounded-xl bg-gray-200 py-2.5 text-[13px] font-bold text-gray-500 cursor-not-allowed">
+            Out of Stock
+          </div>
+        ) : (
         <motion.button
           ref={btnRef}
           onClick={handleQuickAdd}
@@ -1020,6 +1062,7 @@ function MenuItemCard({
             </motion.span>
           )}
         </motion.button>
+        )}
       </div>
     </motion.div>
   );
@@ -1279,6 +1322,10 @@ function MenuPageContent() {
   const [filterEgg, setFilterEgg] = useState(false);
   const [filterNoOnionGarlic, setFilterNoOnionGarlic] = useState(false);
   const [filterBestseller, setFilterBestseller] = useState(false);
+  const [filterDrinks, setFilterDrinks] = useState(false);
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [showRooms, setShowRooms] = useState(false);
+  const [hasCoupons, setHasCoupons] = useState(false);
   const tabsRef = useRef<HTMLDivElement>(null);
   const { totalItems, items, subtotal } = useCart();
   const { activeOrder, restoreOrder, restoreFromStorage } = useOrder();
@@ -1300,6 +1347,25 @@ function MenuPageContent() {
         if (cancelled) return;
         setRestaurant(rest);
         setMenuItems(menu);
+
+        // Load rooms for hotel/resort/guesthouse types
+        const hotelTypes = ["HOTEL", "RESORT", "GUEST_HOUSE"];
+        if (hotelTypes.includes(rest.type)) {
+          apiFetch<Room[]>(`/api/public/restaurants/${slug}/rooms`)
+            .then((r) => { if (!cancelled) setRooms(r); })
+            .catch(() => {});
+        }
+
+        // Check if restaurant has active coupons
+        apiFetch<{ valid: boolean }>(`/api/public/restaurants/${slug}/coupons/validate`, {
+          method: "POST",
+          body: { code: "__CHECK__", orderTotal: 0 },
+        }).catch((err) => {
+          // If error message mentions "not found" it means no coupons; any other error means coupons exist
+          if (err instanceof Error && !err.message.toLowerCase().includes("not found")) {
+            if (!cancelled) setHasCoupons(true);
+          }
+        });
       } catch (err) {
         if (cancelled) return;
         setError(
@@ -1411,6 +1477,7 @@ function MenuPageContent() {
     if (filterEgg && !item.hasEgg) return false;
     if (filterNoOnionGarlic && item.hasOnionGarlic) return false;
     if (filterBestseller && item.badge !== "Bestseller") return false;
+    if (filterDrinks && !item.isDrink) return false;
     return true;
   });
 
@@ -1799,6 +1866,14 @@ function MenuPageContent() {
                 icon={<span className="text-[10px] font-black">#</span>}
                 label="Bestseller"
               />
+              {menuItems.some((i) => i.isDrink) && (
+                <FilterPill
+                  active={filterDrinks}
+                  onClick={() => setFilterDrinks(!filterDrinks)}
+                  icon={<Wine className="h-3 w-3" />}
+                  label="Drinks"
+                />
+              )}
             </motion.div>
             </div>
 
@@ -1811,6 +1886,132 @@ function MenuPageContent() {
                   if (item) setSelectedDish(item);
                 }}
               />
+            )}
+
+            {/* Coupon banner — tell customers coupons are available */}
+            {hasCoupons && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.25 }}
+                className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200/60 px-4 py-3"
+              >
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-green-100 shrink-0">
+                  <Tag className="h-4 w-4 text-green-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold text-green-800">Coupons Available!</p>
+                  <p className="text-[11px] text-green-600">Apply a coupon code at checkout to get a discount</p>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Rooms section — for hotel/resort/guesthouse */}
+            {rooms.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.3 }}
+                className="space-y-3"
+              >
+                <button
+                  onClick={() => setShowRooms(!showRooms)}
+                  className="flex w-full items-center justify-between rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/60 px-4 py-3"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-100 shrink-0">
+                      <BedDouble className="h-4 w-4 text-amber-700" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-xs font-bold text-amber-800">
+                        {rooms.length} Room{rooms.length > 1 ? "s" : ""} Available
+                      </p>
+                      <p className="text-[11px] text-amber-600">Tap to browse & book rooms</p>
+                    </div>
+                  </div>
+                  <ChevronDown className={`h-4 w-4 text-amber-400 transition-transform ${showRooms ? "rotate-180" : ""}`} />
+                </button>
+
+                <AnimatePresence>
+                  {showRooms && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.25 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="space-y-3 pt-1">
+                        {rooms.map((room) => (
+                          <div
+                            key={room.id}
+                            className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden"
+                          >
+                            {room.imageUrls[0] && (
+                              <div className="relative h-36 w-full overflow-hidden">
+                                <img
+                                  src={room.imageUrls[0]}
+                                  alt={room.name || `Room ${room.roomNumber}`}
+                                  className="h-full w-full object-cover"
+                                  loading="lazy"
+                                />
+                                <span className="absolute top-2 right-2 rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-bold text-[#3e1e0c] shadow-sm">
+                                  {formatPrice(room.price, cur)}/night
+                                </span>
+                              </div>
+                            )}
+                            <div className="p-4 space-y-2">
+                              <div className="flex items-center justify-between">
+                                <h4 className="text-sm font-bold text-[#3e1e0c]">
+                                  {room.name || `Room ${room.roomNumber}`}
+                                </h4>
+                                <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                                  room.type === "SUITE" ? "bg-purple-50 text-purple-700" :
+                                  room.type === "DELUXE" ? "bg-amber-50 text-amber-700" :
+                                  "bg-gray-50 text-gray-600"
+                                }`}>
+                                  {room.type}
+                                </span>
+                              </div>
+                              {room.description && (
+                                <p className="text-[11px] text-gray-500 line-clamp-2">{room.description}</p>
+                              )}
+                              <div className="flex items-center gap-3 text-[11px] text-gray-400">
+                                <span className="flex items-center gap-1">
+                                  <Users className="h-3 w-3" />
+                                  Up to {room.maxGuests} guests
+                                </span>
+                                <span>Floor {room.floor}</span>
+                              </div>
+                              {room.amenities.length > 0 && (
+                                <div className="flex flex-wrap gap-1">
+                                  {room.amenities.slice(0, 4).map((a) => (
+                                    <span key={a} className="rounded-full bg-gray-50 px-2 py-0.5 text-[9px] font-medium text-gray-500">
+                                      {a}
+                                    </span>
+                                  ))}
+                                  {room.amenities.length > 4 && (
+                                    <span className="rounded-full bg-gray-50 px-2 py-0.5 text-[9px] font-medium text-gray-400">
+                                      +{room.amenities.length - 4} more
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                              {!room.imageUrls[0] && (
+                                <div className="flex items-center justify-between pt-1">
+                                  <span className="text-sm font-bold text-[#eaa94d]">
+                                    {formatPrice(room.price, cur)}/night
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
             )}
 
             {/* Dish list — grouped by category */}

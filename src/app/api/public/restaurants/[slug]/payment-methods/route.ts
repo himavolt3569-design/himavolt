@@ -10,12 +10,15 @@ export async function GET(
 
   const restaurant = await db.restaurant.findUnique({
     where: { slug },
-    select: { id: true, counterPayEnabled: true, directPayEnabled: true },
   });
 
   if (!restaurant) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
+
+  const r = restaurant as Record<string, unknown>;
+  const counterPayEnabled = r.counterPayEnabled === true;
+  const directPayEnabled = r.directPayEnabled === true;
 
   const config = await db.paymentConfig.findUnique({
     where: { restaurantId: restaurant.id },
@@ -24,8 +27,8 @@ export async function GET(
   if (!config) {
     // Default: cash + counter/direct based on restaurant settings
     const methods: string[] = ["CASH"];
-    if (restaurant.counterPayEnabled) methods.push("COUNTER");
-    if (restaurant.directPayEnabled) methods.push("DIRECT");
+    if (counterPayEnabled) methods.push("COUNTER");
+    if (directPayEnabled) methods.push("DIRECT");
     return NextResponse.json({
       enabledMethods: methods,
       bankDetails: null,
@@ -40,8 +43,8 @@ export async function GET(
     enabledMethods.push("KHALTI");
   if (config.bankEnabled && config.bankAccountNumber)
     enabledMethods.push("BANK");
-  if (restaurant.counterPayEnabled) enabledMethods.push("COUNTER");
-  if (restaurant.directPayEnabled) enabledMethods.push("DIRECT");
+  if (counterPayEnabled) enabledMethods.push("COUNTER");
+  if (directPayEnabled) enabledMethods.push("DIRECT");
 
   // Include bank details for display if bank is enabled
   const bankDetails =

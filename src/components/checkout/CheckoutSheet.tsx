@@ -188,6 +188,9 @@ export default function CheckoutSheet({
   // Tax & service charge config
   const [taxRate, setTaxRate] = useState(13);
   const [taxEnabled, setTaxEnabled] = useState(true);
+  const [serviceChargeRate, setServiceChargeRate] = useState(0);
+  const [serviceChargeEnabled, setServiceChargeEnabled] = useState(false);
+  const [prepaidEnabled, setPrepaidEnabled] = useState(false);
 
   // Order type & delivery state
   const [orderType, setOrderType] = useState<OrderType>(
@@ -211,7 +214,10 @@ export default function CheckoutSheet({
   const tax = taxEnabled
     ? Math.round(subtotal * (taxRate / 100) * 100) / 100
     : 0;
-  const total = subtotal + tax + deliveryFee - couponDiscount;
+  const serviceCharge = serviceChargeEnabled
+    ? Math.round(subtotal * (serviceChargeRate / 100) * 100) / 100
+    : 0;
+  const total = subtotal + tax + serviceCharge + deliveryFee - couponDiscount;
 
   const isOnlinePayment = selectedPayment !== "CASH" && selectedPayment !== "COUNTER";
 
@@ -273,15 +279,24 @@ export default function CheckoutSheet({
         setSelectedPayment("CASH");
       });
 
-    // Fetch tax config
+    // Fetch tax + service charge + prepaid config
     apiFetch<{
       taxRate: number;
       taxEnabled: boolean;
+      serviceChargeRate: number;
+      serviceChargeEnabled: boolean;
+      prepaidEnabled: boolean;
     }>(`/api/public/restaurants/${slug}`)
       .then((data) => {
         if (typeof data.taxRate === "number") setTaxRate(data.taxRate);
         if (typeof data.taxEnabled === "boolean")
           setTaxEnabled(data.taxEnabled);
+        if (typeof data.serviceChargeRate === "number")
+          setServiceChargeRate(data.serviceChargeRate);
+        if (typeof data.serviceChargeEnabled === "boolean")
+          setServiceChargeEnabled(data.serviceChargeEnabled);
+        if (typeof data.prepaidEnabled === "boolean")
+          setPrepaidEnabled(data.prepaidEnabled);
       })
       .catch(() => {});
   }, [open, slug]);
@@ -581,6 +596,21 @@ export default function CheckoutSheet({
                     </div>
                   )}
 
+                  {/* Prepaid notice */}
+                  {prepaidEnabled && (
+                    <div className="flex items-start gap-3 rounded-xl bg-blue-50 border border-blue-200 px-4 py-3">
+                      <Shield className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
+                      <div>
+                        <p className="text-xs font-bold text-blue-800">
+                          Prepaid Restaurant
+                        </p>
+                        <p className="text-[11px] text-blue-600 mt-0.5">
+                          Pay before your food is prepared. You will receive a token/receipt after payment.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Order Type Selector */}
                   <div>
                     <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
@@ -729,6 +759,14 @@ export default function CheckoutSheet({
                         <span className="text-gray-500">Tax ({taxRate}%)</span>
                         <span className="font-semibold text-[#3e1e0c]">
                           {formatPrice(tax, currency)}
+                        </span>
+                      </div>
+                    )}
+                    {serviceChargeEnabled && serviceCharge > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-500">Service Charge ({serviceChargeRate}%)</span>
+                        <span className="font-semibold text-[#3e1e0c]">
+                          {formatPrice(serviceCharge, currency)}
                         </span>
                       </div>
                     )}

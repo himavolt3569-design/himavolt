@@ -19,10 +19,15 @@ export async function GET(
     return NextResponse.json({ error: "Restaurant not found" }, { status: 404 });
   }
 
+  const isDrink = searchParams.get("isDrink");
+
   const where: Record<string, unknown> = {
     restaurantId: restaurant.id,
     isAvailable: true,
   };
+
+  if (isDrink === "true") where.isDrink = true;
+  if (isDrink === "false") where.isDrink = false;
 
   if (categorySlug) {
     const category = await db.menuCategory.findFirst({
@@ -58,5 +63,19 @@ export async function GET(
     orderBy: [{ sortOrder: "asc" }, { rating: "desc" }],
   });
 
-  return NextResponse.json(items);
+  // Expose stock-limited info and drink metadata for customer UI
+  const enrichedItems = items.map((item) => {
+    const i = item as Record<string, unknown>;
+    const stockEnabled = i.stockEnabled === true;
+    const stockQty = typeof i.stockQuantity === "number" ? i.stockQuantity : null;
+    return {
+      ...item,
+      isDrink: i.isDrink === true,
+      drinkCategory: (i.drinkCategory as string) ?? null,
+      lowStock: stockEnabled && stockQty !== null && stockQty <= 5 && stockQty > 0,
+      outOfStock: stockEnabled && stockQty !== null && stockQty <= 0,
+    };
+  });
+
+  return NextResponse.json(enrichedItems);
 }

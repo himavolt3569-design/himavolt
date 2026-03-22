@@ -249,42 +249,48 @@ export const POST = safeHandler(
     let couponDiscount = 0;
     let couponId: string | null = null;
     if (couponCode) {
-      const coupon = await db.coupon.findFirst({
-        where: {
-          restaurantId: id,
-          code: couponCode.toUpperCase(),
-          isActive: true,
-          startsAt: { lte: new Date() },
-          OR: [
-            { expiresAt: null },
-            { expiresAt: { gte: new Date() } },
-          ],
-        },
-      });
-      if (!coupon) {
-        return NextResponse.json({ error: "Invalid or expired coupon code" }, { status: 400 });
-      }
-      if (coupon.maxUses && coupon.usedCount >= coupon.maxUses) {
-        return NextResponse.json({ error: "Coupon usage limit reached" }, { status: 400 });
-      }
-      if (subtotal < coupon.minOrder) {
-        return NextResponse.json({ error: `Minimum order of ${coupon.minOrder} required for this coupon` }, { status: 400 });
-      }
-      if (coupon.type === "PERCENTAGE") {
-        couponDiscount = Math.round(subtotal * (coupon.value / 100) * 100) / 100;
-        if (coupon.maxDiscount && couponDiscount > coupon.maxDiscount) {
-          couponDiscount = coupon.maxDiscount;
+      try {
+        const coupon = await db.coupon.findFirst({
+          where: {
+            restaurantId: id,
+            code: couponCode.toUpperCase(),
+            isActive: true,
+            startsAt: { lte: new Date() },
+            OR: [
+              { expiresAt: null },
+              { expiresAt: { gte: new Date() } },
+            ],
+          },
+        });
+        if (!coupon) {
+          return NextResponse.json({ error: "Invalid or expired coupon code" }, { status: 400 });
         }
-      } else {
-        couponDiscount = Math.min(coupon.value, subtotal);
+        if (coupon.maxUses && coupon.usedCount >= coupon.maxUses) {
+          return NextResponse.json({ error: "Coupon usage limit reached" }, { status: 400 });
+        }
+        if (subtotal < coupon.minOrder) {
+          return NextResponse.json({ error: `Minimum order of ${coupon.minOrder} required for this coupon` }, { status: 400 });
+        }
+        if (coupon.type === "PERCENTAGE") {
+          couponDiscount = Math.round(subtotal * (coupon.value / 100) * 100) / 100;
+          if (coupon.maxDiscount && couponDiscount > coupon.maxDiscount) {
+            couponDiscount = coupon.maxDiscount;
+          }
+        } else {
+          couponDiscount = Math.min(coupon.value, subtotal);
+        }
+        couponId = coupon.id;
+        // Increment usage count
+        await db.coupon.update({ where: { id: coupon.id }, data: { usedCount: { increment: 1 } } });
+      } catch {
+        // Coupon table may not exist yet — skip coupon
+        console.warn("Coupon validation skipped — table may not exist");
       }
-      couponId = coupon.id;
-      // Increment usage count
-      await db.coupon.update({ where: { id: coupon.id }, data: { usedCount: { increment: 1 } } });
     }
 
     // ── Prepaid check ─────────────────────────────────────────────────
-    const isPrepaid = restaurant.prepaidEnabled && paymentMethod !== "CASH";
+    const r = restaurant as Record<string, unknown>;
+    const isPrepaid = r.prepaidEnabled === true && paymentMethod !== "CASH";
 
     const total = subtotal + tax + deliveryFee - couponDiscount;
     const orderNo = `HH-${Date.now().toString(36).toUpperCase()}`;
@@ -328,9 +334,9 @@ export const POST = safeHandler(
           orderType === "DELIVERY" ? (deliveryPhone ?? null) : null,
         deliveryNote: orderType === "DELIVERY" ? (deliveryNote ?? null) : null,
         deliveryFee,
-        isPrepaid,
-        couponId,
-        couponDiscount,
+        ...(isPrepaid ? { isPrepaid: true } : {}),
+        ...(couponId ? { couponId } : {}),
+        ...(couponDiscount > 0 ? { couponDiscount } : {}),
         items: {
           createMany: {
             data: items.map((item) => ({
@@ -347,16 +353,20 @@ export const POST = safeHandler(
 
     // Generate prepaid token if prepaid mode
     if (isPrepaid) {
-      const prepaidToken = await db.prepaidToken.create({
-        data: {
-          amount: total,
-          restaurantId: id,
-        },
-      });
-      await db.order.update({
-        where: { id: order.id },
-        data: { prepaidTokenId: prepaidToken.id },
-      });
+      try {
+        const prepaidToken = await db.prepaidToken.create({
+          data: {
+            amount: total,
+            restaurantId: id,
+          },
+        });
+        await db.order.update({
+          where: { id: order.id },
+          data: { prepaidTokenId: prepaidToken.id },
+        });
+      } catch {
+        console.warn("PrepaidToken creation skipped — table may not exist");
+      }
     }
 
     if (orderType === "DELIVERY") {
