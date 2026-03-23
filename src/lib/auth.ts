@@ -89,6 +89,18 @@ export async function getOrCreateUser() {
     }
   }
 
+  // Auto-repair: if user owns restaurants but is stuck as CUSTOMER, upgrade to OWNER.
+  // This handles cases where Google OAuth account linking previously failed to set the role.
+  if (dbUser && dbUser.role === "CUSTOMER") {
+    const ownsRestaurants = await db.restaurant.count({ where: { ownerId: dbUser.id } });
+    if (ownsRestaurants > 0) {
+      dbUser = await db.user.update({
+        where: { id: dbUser.id },
+        data: { role: "OWNER" },
+      });
+    }
+  }
+
   return dbUser;
 }
 

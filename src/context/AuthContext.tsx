@@ -35,9 +35,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
     fetch("/api/me")
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error(`/api/me returned ${r.status}`);
+        return r.json();
+      })
       .then((d) => setUserRole(d.role ?? "CUSTOMER"))
-      .catch(() => setUserRole("CUSTOMER"));
+      .catch(() => {
+        // Fallback: check Supabase user_metadata for intended_role (set by callback)
+        const metaRole = session.user?.user_metadata?.intended_role;
+        setUserRole(metaRole === "OWNER" ? "OWNER" : "CUSTOMER");
+      });
   }, [session]);
 
   useEffect(() => {

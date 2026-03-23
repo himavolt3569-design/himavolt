@@ -112,6 +112,12 @@ export async function GET(req: NextRequest) {
     return safeRole;
   })();
 
+  // Persist the determined role in Supabase user_metadata so future sign-ins
+  // can reliably read it even if cookies/query params are lost.
+  if (finalRole === "OWNER") {
+    await supabase.auth.updateUser({ data: { intended_role: "OWNER" } });
+  }
+
   if (isAccountLink && existingUserByEmail) {
     // Same email exists under a different ID — update the existing record
     // instead of creating a new one (which would violate `email @unique`).
