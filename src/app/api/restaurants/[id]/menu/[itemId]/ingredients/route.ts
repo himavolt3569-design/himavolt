@@ -4,7 +4,7 @@ import { getOrCreateUser } from "@/lib/auth";
 import { requireStaffForRestaurant } from "@/lib/staff-auth";
 
 /**
- * Authenticate via staff JWT OR Clerk owner session.
+ * Authenticate via staff JWT or owner session.
  */
 async function authorise(req: NextRequest, restaurantId: string) {
   const staff = await requireStaffForRestaurant(req, restaurantId);

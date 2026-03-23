@@ -15,7 +15,7 @@ export async function GET(
 ) {
   const { id } = await params;
 
-  // Accept staff JWT or owner Clerk session
+  // Accept staff JWT or owner session
   const staff = await getStaffSession(req);
   if (!staff || staff.restaurantId !== id) {
     const user = await getOrCreateUser();

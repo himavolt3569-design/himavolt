@@ -74,7 +74,7 @@ export async function PATCH(
   if (staff && staff.restaurantId === id) {
     actorId = staff.userId || staff.staffId;
   } else {
-    // Fall back to Clerk owner auth
+    // Fall back to owner auth
     const user = await getOrCreateUser();
     if (!user)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

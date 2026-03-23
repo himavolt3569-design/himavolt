@@ -6,7 +6,7 @@ import { safeHandler, unauthorized } from "@/lib/api-helpers";
 import { createInventoryItemSchema } from "@/lib/validations";
 
 /**
- * Authenticate via staff JWT OR Clerk owner session.
+ * Authenticate via staff JWT or owner session.
  * Returns true if authorised for this restaurant.
  */
 async function authorise(req: NextRequest, restaurantId: string) {

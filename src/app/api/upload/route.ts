@@ -5,16 +5,16 @@ import { v4 as uuid } from "uuid";
 import { getStaffSession } from "@/lib/staff-auth";
 
 async function getAnyAuthUser(req: NextRequest): Promise<boolean> {
-  // Check staff JWT first — fast, no Clerk dependency
+  // Check staff JWT first
   const session = await getStaffSession(req);
   if (session) return true;
 
-  // Fallback: check Clerk auth
+  // Fallback: check Supabase auth
   try {
     const authUser = await getOrCreateUser();
     if (authUser) return true;
   } catch {
-    // Clerk not available or not authenticated
+    // Not authenticated
   }
 
   return false;

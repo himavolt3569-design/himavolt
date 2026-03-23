@@ -6,7 +6,7 @@ import { getOrCreateUser } from "@/lib/auth";
 /**
  * GET /api/restaurants/[id]/orders/stream
  * SSE stream for real-time kitchen order updates.
- * Authenticated via staff JWT or Clerk session (owner).
+ * Authenticated via staff JWT or Supabase session (owner).
  * Polls every 3 seconds and pushes new/changed orders.
  */
 export async function GET(
@@ -15,7 +15,7 @@ export async function GET(
 ) {
   const { id } = await params;
 
-  // Auth: staff JWT or Clerk owner
+  // Auth: staff JWT or owner session
   const staff = await getStaffSession(req);
   let authorized = staff?.restaurantId === id;
 
@@ -30,7 +30,7 @@ export async function GET(
         authorized = !!restaurant;
       }
     } catch {
-      /* no clerk session */
+      /* no session */
     }
   }
 
