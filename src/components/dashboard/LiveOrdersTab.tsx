@@ -132,7 +132,7 @@ function PaymentBadge({ method, status }: { method: string; status: string }) {
 export default function LiveOrdersTab() {
   const { selectedRestaurant } = useRestaurant();
   const cur = selectedRestaurant?.currency ?? "NPR";
-  const { orders, loading, refresh, acceptOrder, rejectOrder, markPreparing, markReady, markDelivered } = useLiveOrders();
+  const { orders, loading, updatingIds, refresh, acceptOrder, rejectOrder, markPreparing, markReady, markDelivered } = useLiveOrders();
   const [selectedOrder, setSelectedOrder] = useState<LiveOrder | null>(null);
   const [filterStatus, setFilterStatus] = useState<LiveOrderStatus | "ALL">("ALL");
 
@@ -311,6 +311,7 @@ export default function LiveOrdersTab() {
                       <td className="px-5 py-4">
                         <OrderActions
                           order={order}
+                          busy={updatingIds.has(order.id)}
                           onAccept={(et) => acceptOrder(order.id, et)}
                           onReject={() => rejectOrder(order.id)}
                           onPreparing={() => markPreparing(order.id)}
@@ -373,6 +374,7 @@ export default function LiveOrdersTab() {
                 </div>
                 <OrderActions
                   order={order}
+                  busy={updatingIds.has(order.id)}
                   onAccept={(et) => acceptOrder(order.id, et)}
                   onReject={() => rejectOrder(order.id)}
                   onPreparing={() => markPreparing(order.id)}
@@ -396,8 +398,38 @@ export default function LiveOrdersTab() {
   );
 }
 
+function ActionButton({
+  onClick,
+  disabled,
+  busy,
+  icon: Icon,
+  label,
+  className,
+}: {
+  onClick: (e: React.MouseEvent) => void;
+  disabled?: boolean;
+  busy?: boolean;
+  icon: typeof Clock;
+  label: string;
+  className: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled || busy}
+      className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-bold transition-all active:scale-95 ${className} ${
+        busy ? "opacity-70 cursor-wait" : disabled ? "opacity-50 cursor-not-allowed" : ""
+      }`}
+    >
+      {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Icon className="h-3 w-3" />}
+      {busy ? "Updating…" : label}
+    </button>
+  );
+}
+
 function OrderActions({
   order,
+  busy,
   onAccept,
   onReject,
   onPreparing,
@@ -405,6 +437,7 @@ function OrderActions({
   onDelivered,
 }: {
   order: LiveOrder;
+  busy: boolean;
   onAccept: (estimatedTime?: number) => void;
   onReject: () => void;
   onPreparing: () => void;
@@ -431,74 +464,75 @@ function OrderActions({
               max={120}
               value={estTime}
               onChange={(e) => setEstTime(Number(e.target.value))}
+              disabled={busy}
               className="w-10 text-center text-[11px] font-bold border-none outline-none bg-transparent"
             />
             <span className="text-[10px] text-gray-400">min</span>
           </div>
-          <button
+          <ActionButton
             onClick={(e) => stop(e, () => onAccept(estTime))}
-            className="flex items-center gap-1 rounded-lg bg-gray-900 px-2.5 py-1.5 text-[11px] font-bold text-white hover:bg-gray-800 transition-colors"
-          >
-            <CheckCircle2 className="h-3 w-3" />
-            Confirm
-          </button>
+            busy={busy}
+            icon={CheckCircle2}
+            label="Confirm"
+            className="bg-gray-900 text-white hover:bg-gray-800"
+          />
         </div>
       );
     }
 
     return (
       <div className="flex items-center gap-2 flex-wrap">
-        <button
+        <ActionButton
           onClick={(e) => { e.stopPropagation(); setShowTimeInput(true); }}
-          className="flex items-center gap-1.5 rounded-lg bg-gray-900 px-3 py-1.5 text-[11px] font-bold text-white hover:bg-gray-800 transition-colors"
-        >
-          <CheckCircle2 className="h-3 w-3" />
-          Accept
-        </button>
-        <button
+          disabled={busy}
+          icon={CheckCircle2}
+          label="Accept"
+          className="bg-gray-900 text-white hover:bg-gray-800"
+        />
+        <ActionButton
           onClick={(e) => stop(e, onReject)}
-          className="flex items-center gap-1.5 rounded-lg border border-red-200 px-3 py-1.5 text-[11px] font-bold text-red-500 hover:bg-red-50 transition-colors"
-        >
-          <XCircle className="h-3 w-3" />
-          Reject
-        </button>
+          busy={busy}
+          icon={XCircle}
+          label="Reject"
+          className="border border-red-200 text-red-500 hover:bg-red-50"
+        />
       </div>
     );
   }
 
   if (order.status === "ACCEPTED") {
     return (
-      <button
+      <ActionButton
         onClick={(e) => stop(e, onPreparing)}
-        className="flex items-center gap-1.5 rounded-lg bg-amber-500 px-3 py-1.5 text-[11px] font-bold text-white hover:bg-amber-600 transition-colors"
-      >
-        <ChefHat className="h-3 w-3" />
-        Start Cooking
-      </button>
+        busy={busy}
+        icon={ChefHat}
+        label="Start Cooking"
+        className="bg-amber-500 text-white hover:bg-amber-600"
+      />
     );
   }
 
   if (order.status === "PREPARING") {
     return (
-      <button
+      <ActionButton
         onClick={(e) => stop(e, onReady)}
-        className="flex items-center gap-1.5 rounded-lg bg-green-500 px-3 py-1.5 text-[11px] font-bold text-white hover:bg-green-600 transition-colors"
-      >
-        <PackageCheck className="h-3 w-3" />
-        Mark Ready
-      </button>
+        busy={busy}
+        icon={PackageCheck}
+        label="Mark Ready"
+        className="bg-green-500 text-white hover:bg-green-600"
+      />
     );
   }
 
   if (order.status === "READY") {
     return (
-      <button
+      <ActionButton
         onClick={(e) => stop(e, onDelivered)}
-        className="flex items-center gap-1.5 rounded-lg bg-gray-900 px-3 py-1.5 text-[11px] font-bold text-white hover:bg-gray-800 transition-colors"
-      >
-        <Truck className="h-3 w-3" />
-        Delivered
-      </button>
+        busy={busy}
+        icon={Truck}
+        label="Delivered"
+        className="bg-gray-900 text-white hover:bg-gray-800"
+      />
     );
   }
 

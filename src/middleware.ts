@@ -38,6 +38,10 @@ const PUBLIC_ROUTES = [
   /^\/api\/restaurants\/[^/]+\/stories(\/|$)/,
   /^\/api\/upload(\/|$)/,
   /^\/api\/me\/username-check(\/|$)/,
+  /^\/api\/admin\/login(\/|$)/,
+  /^\/api\/admin\/verify(\/|$)/,
+  /^\/api\/admin\/logout(\/|$)/,
+  /^\/admin(\/|$)/,
 ];
 
 const STAFF_ONLY_ROUTES = [/^\/kitchen(\/|$)/, /^\/counter(\/|$)/];
@@ -62,6 +66,18 @@ async function verifyStaffJwt(req: NextRequest): Promise<boolean> {
   }
 }
 
+async function verifyMasterAdminJwt(req: NextRequest): Promise<boolean> {
+  const adminCookie = req.cookies.get("master_admin_session")?.value;
+  if (!adminCookie || !process.env.JWT_SECRET) return false;
+  try {
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+    const { payload } = await jwtVerify(adminCookie, secret);
+    return payload.role === "MASTER_ADMIN";
+  } catch {
+    return false;
+  }
+}
+
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
@@ -81,7 +97,11 @@ export async function middleware(req: NextRequest) {
     return refreshSupabaseSession(req);
   }
 
-  // Protected routes: check staff JWT first, then Supabase session
+  // Protected routes: check master admin JWT first (bypasses Supabase auth)
+  const masterAdminValid = await verifyMasterAdminJwt(req);
+  if (masterAdminValid) return NextResponse.next();
+
+  // Check staff JWT
   const staffValid = await verifyStaffJwt(req);
   if (staffValid) return NextResponse.next();
 
