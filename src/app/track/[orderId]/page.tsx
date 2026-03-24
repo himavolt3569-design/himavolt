@@ -196,6 +196,8 @@ function PaymentBadge({ method, status }: { method: string; status: string }) {
     KHALTI: { label: "Khalti", color: "bg-purple-100 text-purple-700" },
     BANK: { label: "Bank Transfer", color: "bg-blue-100 text-blue-700" },
     CASH: { label: "Cash", color: "bg-gray-100 text-gray-700" },
+    COUNTER: { label: "Counter Pay", color: "bg-amber-100 text-amber-700" },
+    DIRECT: { label: "Direct Pay", color: "bg-teal-100 text-teal-700" },
   };
   const m = methods[method] || {
     label: method,

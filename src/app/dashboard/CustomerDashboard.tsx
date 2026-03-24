@@ -172,6 +172,9 @@ const TYPE_LABELS: Record<string, string> = {
   BAR: "Bar",
   CLOUD_KITCHEN: "Cloud Kitchen",
   RESORT: "Resort",
+  MO_MO_SHOP: "Momo Shop",
+  TANDOORI: "Tandoori",
+  GUEST_HOUSE: "Guest House",
 };
 
 function timeAgo(date: string) {

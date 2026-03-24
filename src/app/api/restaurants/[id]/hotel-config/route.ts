@@ -73,6 +73,14 @@ export async function PATCH(
       { status: 400 },
     );
   }
+  // Prevent percentage values over 100
+  const effectiveType = hotelAdvanceType ?? (await db.restaurant.findUnique({ where: { id }, select: { hotelAdvanceType: true } }))?.hotelAdvanceType;
+  if (effectiveType === "PERCENTAGE" && hotelAdvanceValue !== undefined && hotelAdvanceValue > 100) {
+    return NextResponse.json(
+      { error: "Percentage advance cannot exceed 100%" },
+      { status: 400 },
+    );
+  }
 
   const updated = await db.restaurant.update({
     where: { id },

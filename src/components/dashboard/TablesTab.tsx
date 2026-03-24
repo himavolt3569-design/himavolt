@@ -55,7 +55,7 @@ export default function TablesTab() {
   const { selectedRestaurant } = useRestaurant();
   const rid  = selectedRestaurant?.id;
   const cur  = selectedRestaurant?.currency ?? "NPR";
-  const role = (selectedRestaurant as Record<string, unknown>)?.staffRole as string | undefined;
+  const role = (selectedRestaurant as unknown as Record<string, unknown>)?.staffRole as string | undefined;
   const canManage = !role || ["OWNER", "MANAGER", "SUPER_ADMIN"].includes(role);
 
   const [tables,   setTables]   = useState<TableData[]>([]);

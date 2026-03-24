@@ -78,6 +78,8 @@ import GuestCheckInTab from "@/components/dashboard/GuestCheckInTab";
 import MediaTab from "@/components/dashboard/MediaTab";
 import TablesTab from "@/components/dashboard/TablesTab";
 import ManualBillingTab from "@/components/dashboard/ManualBillingTab";
+import HotelBookingsTab from "@/components/dashboard/HotelBookingsTab";
+import HotelQRTab from "@/components/dashboard/HotelQRTab";
 
 const COUNTER_FEATURE_COMPONENTS: Record<FeatureTabId, React.ComponentType> = {
   "quick-counter": QuickCounterTab,
@@ -111,6 +113,8 @@ const COUNTER_FEATURE_COMPONENTS: Record<FeatureTabId, React.ComponentType> = {
   "wifi-settings": WifiSettingsTab,
   "guest-checkin": GuestCheckInTab,
   "room-qr-codes": GuestCheckInTab,
+  "hotel-bookings": HotelBookingsTab,
+  "hotel-qr": HotelQRTab,
 };
 
 /* ── Types ────────────────────────────────────────────────────────── */
