@@ -34,6 +34,7 @@ import {
   Calendar,
   CreditCard,
   Wallet,
+  BedDouble,
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
@@ -43,7 +44,7 @@ import { formatPrice } from "@/lib/currency";
 const BRAND = "#eaa94d";
 
 /* ── Types ──────────────────────────────────────────────── */
-type Tab = "home" | "orders" | "favourites" | "account";
+type Tab = "home" | "orders" | "favourites" | "account" | "hotel-bookings";
 
 interface OrderItem {
   id: string;
@@ -117,6 +118,37 @@ interface Review {
     imageUrl?: string | null;
     slug: string;
     type: string;
+  };
+}
+
+interface HotelBooking {
+  id: string;
+  guestName: string;
+  checkIn: string;
+  checkOut: string;
+  nights: number;
+  totalPrice: number;
+  advanceAmount: number;
+  advancePaid: boolean;
+  paymentStatus: string;
+  status: string;
+  adults: number;
+  children: number;
+  createdAt: string;
+  room: {
+    roomNumber: string;
+    name: string | null;
+    type: string;
+    bedType: string | null;
+    bedCount: number;
+    imageUrls: string[];
+  };
+  restaurant: {
+    name: string;
+    slug: string;
+    imageUrl: string | null;
+    city: string;
+    currency: string;
   };
 }
 
@@ -198,21 +230,24 @@ export default function CustomerDashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [favourites, setFavourites] = useState<Favourite[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [hotelBookings, setHotelBookings] = useState<HotelBooking[]>([]);
   const [loading, setLoading] = useState(true);
 
   /* ── Fetch all data on mount ── */
   const fetchAll = useCallback(async () => {
     setLoading(true);
-    const [ordersRes, statsRes, favsRes, reviewsRes] = await Promise.allSettled([
+    const [ordersRes, statsRes, favsRes, reviewsRes, hotelBookingsRes] = await Promise.allSettled([
       fetch("/api/orders?limit=100").then((r) => r.json()),
       fetch("/api/me/stats").then((r) => r.json()),
       fetch("/api/me/favourites").then((r) => r.json()),
       fetch("/api/me/reviews").then((r) => r.json()),
+      fetch("/api/me/hotel-bookings").then((r) => r.json()),
     ]);
     if (ordersRes.status === "fulfilled") setOrders(ordersRes.value);
     if (statsRes.status === "fulfilled") setStats(statsRes.value);
     if (favsRes.status === "fulfilled" && Array.isArray(favsRes.value)) setFavourites(favsRes.value);
     if (reviewsRes.status === "fulfilled" && Array.isArray(reviewsRes.value)) setReviews(reviewsRes.value);
+    if (hotelBookingsRes.status === "fulfilled" && Array.isArray(hotelBookingsRes.value)) setHotelBookings(hotelBookingsRes.value);
     setLoading(false);
   }, []);
 
@@ -235,6 +270,7 @@ export default function CustomerDashboard() {
   const TABS: { id: Tab; label: string; icon: typeof LayoutDashboard }[] = [
     { id: "home", label: "Home", icon: LayoutDashboard },
     { id: "orders", label: "Orders", icon: History },
+    { id: "hotel-bookings", label: "Stays", icon: BedDouble },
     { id: "favourites", label: "Saved", icon: Heart },
     { id: "account", label: "Account", icon: User },
   ];
@@ -290,6 +326,11 @@ export default function CustomerDashboard() {
           {tab === "orders" && (
             <TabPanel key="orders">
               <OrdersTab orders={orders} />
+            </TabPanel>
+          )}
+          {tab === "hotel-bookings" && (
+            <TabPanel key="hotel-bookings">
+              <HotelBookingsCustomerTab bookings={hotelBookings} />
             </TabPanel>
           )}
           {tab === "favourites" && (
@@ -368,6 +409,108 @@ function TabPanel({ children }: { children: React.ReactNode }) {
     >
       {children}
     </motion.div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════
+   HOTEL BOOKINGS TAB
+   ════════════════════════════════════════════════════════ */
+const BOOKING_STATUS_META: Record<string, { label: string; color: string; bg: string }> = {
+  PENDING:    { label: "Awaiting Confirmation", color: "text-amber-700",  bg: "bg-amber-50" },
+  CONFIRMED:  { label: "Confirmed",             color: "text-emerald-700",bg: "bg-emerald-50" },
+  CHECKED_IN: { label: "Checked In",            color: "text-blue-700",   bg: "bg-blue-50" },
+  CHECKED_OUT:{ label: "Checked Out",           color: "text-gray-600",   bg: "bg-gray-100" },
+  CANCELLED:  { label: "Cancelled",             color: "text-red-700",    bg: "bg-red-50" },
+};
+
+function HotelBookingsCustomerTab({ bookings }: { bookings: HotelBooking[] }) {
+  if (bookings.length === 0) {
+    return (
+      <div className="py-20 text-center">
+        <BedDouble className="mx-auto h-12 w-12 text-gray-200 mb-3" />
+        <p className="text-[15px] font-semibold text-gray-500">No hotel bookings yet</p>
+        <p className="text-[12px] text-gray-400 mt-1">Book a room from any hotel's QR code or link</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3 py-2">
+      <div className="flex items-center justify-between px-1">
+        <h3 className="text-[16px] font-bold text-gray-900">My Hotel Stays</h3>
+        <span className="text-[11px] text-gray-400">{bookings.length} booking{bookings.length > 1 ? "s" : ""}</span>
+      </div>
+      {bookings.map((b) => {
+        const meta = BOOKING_STATUS_META[b.status] ?? BOOKING_STATUS_META.PENDING;
+        const cur = b.restaurant.currency === "USD" ? "$" : b.restaurant.currency === "INR" ? "₹" : "Rs.";
+        const fmtDate = (d: string) =>
+          new Date(d).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+
+        return (
+          <motion.div
+            key={b.id}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="overflow-hidden rounded-2xl bg-white ring-1 ring-gray-100 shadow-sm"
+          >
+            {/* Room image */}
+            {b.room.imageUrls[0] && (
+              <img src={b.room.imageUrls[0]} alt="Room" className="h-32 w-full object-cover" />
+            )}
+            <div className="p-4 space-y-3">
+              {/* Hotel & room */}
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <p className="text-[13px] font-bold text-gray-900">{b.restaurant.name}</p>
+                  <p className="text-[11px] text-gray-500">
+                    {b.room.name || `Room ${b.room.roomNumber}`} · {b.room.type}
+                  </p>
+                </div>
+                <span className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold ${meta.bg} ${meta.color}`}>
+                  {meta.label}
+                </span>
+              </div>
+
+              {/* Dates */}
+              <div className="flex items-center gap-2 text-[12px] text-gray-600">
+                <Calendar className="h-3.5 w-3.5 text-amber-500" />
+                {fmtDate(b.checkIn)} → {fmtDate(b.checkOut)}
+                <span className="text-gray-400">({b.nights}N)</span>
+              </div>
+
+              {/* Bed */}
+              {b.room.bedType && (
+                <div className="flex items-center gap-2 text-[12px] text-gray-600">
+                  <BedDouble className="h-3.5 w-3.5 text-amber-500" />
+                  {b.room.bedCount}x {b.room.bedType} · {b.adults} adults
+                  {b.children > 0 ? `, ${b.children} children` : ""}
+                </div>
+              )}
+
+              {/* Price */}
+              <div className="flex items-center justify-between rounded-xl bg-amber-50 px-3 py-2">
+                <span className="text-[12px] text-gray-600">Total</span>
+                <span className="text-[13px] font-bold text-amber-700">{cur}{b.totalPrice.toLocaleString()}</span>
+              </div>
+
+              {/* Advance payment */}
+              <div className="flex items-center justify-between text-[11px]">
+                <span className={`flex items-center gap-1 font-medium ${b.advancePaid ? "text-emerald-600" : "text-orange-500"}`}>
+                  <CreditCard className="h-3 w-3" />
+                  Advance {b.advancePaid ? "Paid" : `Due · ${cur}${b.advanceAmount.toLocaleString()}`}
+                </span>
+                <a
+                  href={`/hotel/booking/${b.id}`}
+                  className="font-semibold text-amber-600 hover:text-amber-500 transition-colors"
+                >
+                  View Details →
+                </a>
+              </div>
+            </div>
+          </motion.div>
+        );
+      })}
+    </div>
   );
 }
 
@@ -824,11 +967,13 @@ function OrderCard({
                   {order.type.replace("_", " ")}
                 </span>
                 {order.payment && (
-                  <span className="inline-flex items-center gap-1 rounded-lg bg-gray-50 px-2 py-1 text-[10px] font-medium text-gray-500">
+                  <span className={`inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] font-medium ${order.payment.status === "COMPLETED" ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>
                     <CreditCard className="h-3 w-3" />
                     {order.payment.method}
-                    {order.payment.status === "COMPLETED" && (
+                    {order.payment.status === "COMPLETED" ? (
                       <CheckCircle className="h-3 w-3 text-green-500" />
+                    ) : (
+                      <span className="text-[9px] font-bold uppercase tracking-wide">· Pending</span>
                     )}
                   </span>
                 )}

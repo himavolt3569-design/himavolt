@@ -28,6 +28,7 @@ import {
   Truck,
   ShoppingCart,
   BedDouble,
+  Trash2,
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { formatPrice, getCurrencySymbol } from "@/lib/currency";
@@ -108,6 +109,8 @@ function paymentMethodLabel(method: string) {
     KHALTI: "Khalti",
     BANK: "Bank Transfer",
     CASH: "Cash",
+    COUNTER: "Counter",
+    DIRECT: "Direct",
   };
   return map[method] || method;
 }
@@ -119,6 +122,9 @@ function paymentMethodIcon(method: string) {
       return Wallet;
     case "BANK":
       return Banknote;
+    case "COUNTER":
+    case "DIRECT":
+      return Receipt;
     case "CASH":
     default:
       return DollarSign;
@@ -192,6 +198,7 @@ export default function BillingTab({
   const [discountAmount, setDiscountAmount] = useState("");
   const [discountReason, setDiscountReason] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
+  const [clearingOrderId, setClearingOrderId] = useState<string | null>(null);
   const knownOrderIds = useRef<Set<string>>(new Set());
   const isFirstLoad = useRef(true);
 
@@ -311,6 +318,24 @@ export default function BillingTab({
       /* ignore */
     }
     setActionLoading(false);
+  };
+
+  const handleClearTable = async (order: BillOrder) => {
+    if (!order.tableNo) return;
+    setClearingOrderId(order.id);
+    try {
+      await staffFetch(
+        `/api/restaurants/${restaurantId}/table-session/clear`,
+        {
+          method: "POST",
+          body: JSON.stringify({ orderId: order.id, tableNo: order.tableNo }),
+        },
+      );
+      loadOrders();
+    } catch {
+      /* ignore */
+    }
+    setClearingOrderId(null);
   };
 
   const isCashOrder = (o: BillOrder) =>
@@ -794,6 +819,27 @@ export default function BillingTab({
                       Mark Paid
                     </button>
                   )}
+
+                {/* Clear Table — for dine-in orders that are paid or delivered */}
+                {order.tableNo &&
+                  (isPaid(order) ||
+                    order.status === "DELIVERED" ||
+                    order.status === "CANCELLED" ||
+                    order.status === "REJECTED") && (
+                    <button
+                      onClick={() => handleClearTable(order)}
+                      disabled={clearingOrderId === order.id}
+                      title="Clear table session so next customer starts fresh"
+                      className="flex items-center gap-1 rounded-lg bg-red-50 border border-red-100 px-2.5 py-1.5 text-[10px] font-bold text-red-600 hover:bg-red-100 transition-all disabled:opacity-50"
+                    >
+                      {clearingOrderId === order.id ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-3 w-3" />
+                      )}
+                      Clear Table
+                    </button>
+                  )}
               </div>
             </div>
           </motion.div>
@@ -884,7 +930,7 @@ export default function BillingTab({
                   Payment Method
                 </p>
                 <div className="grid grid-cols-2 gap-2">
-                  {(["CASH", "ESEWA", "KHALTI", "BANK"] as const).map(
+                  {(["CASH", "COUNTER", "DIRECT", "ESEWA", "KHALTI", "BANK"] as const).map(
                     (method) => {
                       const Icon = paymentMethodIcon(method);
                       const isSelected = collectMethod === method;

@@ -14,6 +14,11 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(`${APP_URL}?payment=error`);
   }
 
+  // User explicitly cancelled — redirect without marking FAILED so they can retry
+  if (khaltiStatus === "User canceled") {
+    return NextResponse.redirect(`${APP_URL}/track/${orderId}?payment=cancelled`);
+  }
+
   if (khaltiStatus === "Completed" && pidx) {
     // Get restaurant's Khalti secret key
     const order = await db.order.findUnique({
@@ -45,10 +50,13 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  await db.payment.updateMany({
-    where: { orderId, status: "PENDING" },
-    data: { status: "FAILED" },
-  });
+  // Only mark as FAILED for explicit failure or failed verification
+  if (khaltiStatus === "Expired" || khaltiStatus === "Failed" || (khaltiStatus === "Completed" && pidx)) {
+    await db.payment.updateMany({
+      where: { orderId, status: "PENDING" },
+      data: { status: "FAILED" },
+    });
+  }
 
   return NextResponse.redirect(`${APP_URL}/track/${orderId}?payment=failed`);
 }

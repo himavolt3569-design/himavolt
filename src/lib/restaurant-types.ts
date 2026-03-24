@@ -142,7 +142,9 @@ export type FeatureTabId =
   | "private-dining"
   | "guest-checkin"
   | "wifi-settings"
-  | "room-qr-codes";
+  | "room-qr-codes"
+  | "hotel-bookings"
+  | "hotel-qr";
 
 export interface FeatureTabDef {
   id: FeatureTabId;
@@ -167,6 +169,8 @@ export const TYPE_FEATURE_TABS: Record<string, FeatureTabDef[]> = {
     { id: "event-catering", label: "Event Catering", desc: "Weddings, conferences, parties", iconHint: "PartyPopper" },
     { id: "guest-billing", label: "Guest Billing", desc: "Charge meals to room accounts", iconHint: "CreditCard" },
     { id: "guest-checkin", label: "Guest Check-In", desc: "Record guest details & room assignment", iconHint: "ClipboardList" },
+    { id: "hotel-bookings", label: "Room Bookings", desc: "Manage online room reservations", iconHint: "CalendarCheck" },
+    { id: "hotel-qr", label: "Hotel QR Code", desc: "QR code linking to full hotel booking page", iconHint: "QrCode" },
     { id: "room-qr-codes", label: "Room QR Codes", desc: "Generate QR codes per room", iconHint: "QrCode" },
     { id: "wifi-settings", label: "WiFi", desc: "Share WiFi credentials with guests", iconHint: "Wifi" },
   ],
@@ -176,6 +180,8 @@ export const TYPE_FEATURE_TABS: Record<string, FeatureTabDef[]> = {
     { id: "event-catering", label: "Conference Catering", desc: "Corporate events & meetings", iconHint: "PartyPopper" },
     { id: "guest-billing", label: "Guest Billing", desc: "Integrated room charge system", iconHint: "CreditCard" },
     { id: "guest-checkin", label: "Guest Check-In", desc: "Record guest details & room assignment", iconHint: "ClipboardList" },
+    { id: "hotel-bookings", label: "Room Bookings", desc: "Manage online room reservations", iconHint: "CalendarCheck" },
+    { id: "hotel-qr", label: "Hotel QR Code", desc: "QR code linking to full hotel booking page", iconHint: "QrCode" },
     { id: "room-qr-codes", label: "Room QR Codes", desc: "Generate QR codes per room", iconHint: "QrCode" },
     { id: "wifi-settings", label: "WiFi", desc: "Share WiFi credentials with guests", iconHint: "Wifi" },
   ],
@@ -229,6 +235,8 @@ export const TYPE_FEATURE_TABS: Record<string, FeatureTabDef[]> = {
     { id: "guest-checkin", label: "Guest Check-In", desc: "Record guest details & room assignment", iconHint: "ClipboardList" },
     { id: "room-service", label: "Room Service", desc: "Food & drinks delivered to rooms", iconHint: "BedDouble" },
     { id: "guest-billing", label: "Guest Billing", desc: "Integrated room charge system", iconHint: "CreditCard" },
+    { id: "hotel-bookings", label: "Room Bookings", desc: "Manage online room reservations", iconHint: "CalendarCheck" },
+    { id: "hotel-qr", label: "Hotel QR Code", desc: "QR code linking to full booking page", iconHint: "QrCode" },
     { id: "room-qr-codes", label: "Room QR Codes", desc: "Generate QR codes per room", iconHint: "QrCode" },
     { id: "wifi-settings", label: "WiFi", desc: "Share WiFi credentials with guests", iconHint: "Wifi" },
   ],

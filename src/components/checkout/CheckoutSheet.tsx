@@ -1006,7 +1006,7 @@ export default function CheckoutSheet({
                   </div>
 
                   {/* Show QR hint if restaurant has payment QRs */}
-                  {paymentQRs.length > 0 && (
+                  {paymentQRs.length > 0 && selectedPayment !== "DIRECT" && (
                     <div className="flex items-start gap-2 rounded-xl bg-blue-50 border border-blue-200 px-4 py-3">
                       <QrCode className="h-4 w-4 text-blue-500 mt-0.5 shrink-0" />
                       <p className="text-[11px] text-blue-700">
@@ -1014,6 +1014,85 @@ export default function CheckoutSheet({
                         code to scan before your order is placed.
                       </p>
                     </div>
+                  )}
+
+                  {/* Direct Pay info — show bank details + QR codes inline */}
+                  {selectedPayment === "DIRECT" && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      className="rounded-2xl border border-teal-100 bg-teal-50/60 p-4 space-y-3"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Banknote className="h-4 w-4 text-teal-600 shrink-0" />
+                        <p className="text-xs font-bold text-teal-800">Direct Bank / Wallet Transfer</p>
+                      </div>
+                      <p className="text-[11px] text-teal-700">
+                        Transfer the exact amount to the account below, then place your order. Staff will verify your payment.
+                      </p>
+
+                      {/* Bank details */}
+                      {restaurantBankDetails && (
+                        <div className="rounded-xl bg-white border border-teal-100 p-3 space-y-1.5">
+                          {restaurantBankDetails.bankName && (
+                            <div className="flex justify-between text-xs">
+                              <span className="text-gray-400">Bank</span>
+                              <span className="font-bold text-gray-700">{restaurantBankDetails.bankName}</span>
+                            </div>
+                          )}
+                          {restaurantBankDetails.accountName && (
+                            <div className="flex justify-between text-xs">
+                              <span className="text-gray-400">Account Name</span>
+                              <span className="font-bold text-gray-700">{restaurantBankDetails.accountName}</span>
+                            </div>
+                          )}
+                          {restaurantBankDetails.accountNumber && (
+                            <div className="flex justify-between text-xs">
+                              <span className="text-gray-400">Account No.</span>
+                              <span className="font-bold font-mono text-teal-700 select-all">{restaurantBankDetails.accountNumber}</span>
+                            </div>
+                          )}
+                          {restaurantBankDetails.branch && (
+                            <div className="flex justify-between text-xs">
+                              <span className="text-gray-400">Branch</span>
+                              <span className="font-bold text-gray-700">{restaurantBankDetails.branch}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Payment QR codes (eSewa, Khalti, FonePay, etc.) */}
+                      {paymentQRs.length > 0 && (
+                        <div className="space-y-2">
+                          <p className="text-[10px] font-bold text-teal-600 uppercase tracking-wider">Scan to Pay</p>
+                          <div className="flex gap-2 flex-wrap">
+                            {paymentQRs.map((qr) => (
+                              <button
+                                key={qr.id}
+                                onClick={() => setSelectedQR(selectedQR?.id === qr.id ? null : qr)}
+                                className={`flex flex-col items-center gap-1 rounded-xl border-2 p-2 transition-all ${selectedQR?.id === qr.id ? "border-teal-400 bg-teal-50" : "border-gray-100 bg-white hover:border-teal-200"}`}
+                              >
+                                <QrCode className="h-4 w-4 text-teal-600" />
+                                <span className="text-[9px] font-bold text-gray-600">{qr.label}</span>
+                              </button>
+                            ))}
+                          </div>
+                          {selectedQR && (
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-center">
+                              <div className="rounded-xl bg-white border border-teal-100 p-3 shadow-sm">
+                                <p className="text-[10px] font-bold text-center text-gray-500 mb-2">{selectedQR.label}</p>
+                                <img src={selectedQR.imageUrl} alt={selectedQR.label} className="w-36 h-36 object-contain" />
+                              </div>
+                            </motion.div>
+                          )}
+                        </div>
+                      )}
+
+                      <div className="flex items-center gap-2 rounded-xl bg-amber-50 border border-amber-100 px-3 py-2">
+                        <Shield className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                        <p className="text-[10px] text-amber-700">After placing your order, show your payment screenshot to the staff at the counter.</p>
+                      </div>
+                    </motion.div>
                   )}
 
                   <div className="flex items-center gap-2 rounded-xl bg-gray-50 px-4 py-3">

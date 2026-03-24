@@ -38,6 +38,8 @@ export type AuditAction =
   | "INVENTORY_ADDED"
   | "INVENTORY_UPDATED"
   | "INVENTORY_DELETED"
+  // Table Sessions
+  | "TABLE_CLEARED"
   // Delivery
   | "DELIVERY_ASSIGNED"
   | "DELIVERY_STATUS_UPDATED"

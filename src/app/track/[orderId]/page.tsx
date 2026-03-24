@@ -1002,18 +1002,18 @@ export default function TrackOrderPage() {
         </AnimatePresence>
 
         {/* Cash order actions — add more items or request bill */}
-        {order.payment?.method === "CASH" &&
+        {["CASH", "COUNTER", "DIRECT"].includes(order.payment?.method ?? "") &&
           order.payment?.status !== "COMPLETED" &&
           !["DELIVERED", "CANCELLED", "REJECTED"].includes(order.status) && (
             <div className="rounded-2xl border-2 border-amber-200 bg-amber-50/60 p-4 space-y-3">
               <div className="flex items-center gap-2">
                 <Receipt className="h-4 w-4 text-amber-700" />
                 <span className="text-sm font-bold text-amber-900">
-                  Running Tab · Cash Payment
+                  Running Tab · Pay at Counter
                 </span>
               </div>
               <p className="text-xs text-amber-700/80">
-                Your order is open. Add more items anytime — pay once when you&apos;re done.
+                Your order is open. Add more items anytime — pay at the counter when you&apos;re done.
               </p>
               <div className="flex gap-2">
                 <Link
@@ -1033,6 +1033,23 @@ export default function TrackOrderPage() {
                   Pay at Counter
                 </button>
               </div>
+            </div>
+          )}
+
+        {/* Delivered but unpaid — prompt customer to go pay */}
+        {order.status === "DELIVERED" &&
+          ["CASH", "COUNTER", "DIRECT"].includes(order.payment?.method ?? "") &&
+          order.payment?.status !== "COMPLETED" && (
+            <div className="rounded-2xl border-2 border-emerald-200 bg-emerald-50/70 p-4 space-y-2">
+              <div className="flex items-center gap-2">
+                <CreditCard className="h-4 w-4 text-emerald-700" />
+                <span className="text-sm font-bold text-emerald-900">
+                  Your food has been delivered!
+                </span>
+              </div>
+              <p className="text-xs text-emerald-700/80">
+                Please proceed to the counter to complete your payment. Your bill will be available to download once paid.
+              </p>
             </div>
           )}
 

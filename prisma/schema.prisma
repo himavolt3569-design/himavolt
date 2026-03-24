@@ -76,6 +76,10 @@ model Restaurant {
   counterPayEnabled Boolean @default(true) // counter pay available for all types
   directPayEnabled  Boolean @default(false) // direct bank/wallet pay
 
+  // Hotel / Resort / Guest House booking advance config
+  hotelAdvanceType  String @default("PERCENTAGE") // "PERCENTAGE" or "FIXED"
+  hotelAdvanceValue Float  @default(30)            // 30 = 30% of total, or NPR fixed amount
+
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
@@ -96,6 +100,7 @@ model Restaurant {
   paymentConfig  PaymentConfig?
   heroSlides     HeroSlide[]
   tableSessions  TableSession[]
+  tables         Table[]
   favourites     Favourite[]
   guestCheckIns  GuestCheckIn[]
   media          Media[]
@@ -103,6 +108,7 @@ model Restaurant {
   roomBookings   RoomBooking[]
   coupons        Coupon[]
   prepaidTokens  PrepaidToken[]
+  feedbacks      Feedback[]
 
   @@index([ownerId])
   @@index([slug])
@@ -363,6 +369,7 @@ model Order {
   orderNo       String      @unique
   tableNo       Int?
   roomNo        String? // guest house room number
+  guestName     String?     // for counter/manual orders without an account
   status        OrderStatus @default(PENDING)
   subtotal      Float
   tax           Float       @default(0)
@@ -405,6 +412,7 @@ model Order {
   delivery       Delivery?
   tableSession   TableSession?
   prepaidToken   PrepaidToken? @relation(fields: [prepaidTokenId], references: [id])
+  feedbacks      Feedback[]
 
   @@index([restaurantId])
   @@index([userId])
@@ -808,6 +816,44 @@ model TableSession {
   @@map("table_sessions")
 }
 
+// ─── Physical Tables ─────────────────────────────────────────────
+
+model Table {
+  id        String   @id @default(cuid())
+  tableNo   Int
+  label     String?  // e.g. "Window Seat", "VIP 1"
+  capacity  Int      @default(4)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@unique([restaurantId, tableNo])
+  @@index([restaurantId])
+  @@map("tables")
+}
+
+// ─── Post-Payment Feedback ───────────────────────────────────────
+
+model Feedback {
+  id          String   @id @default(cuid())
+  rating      Int?     // 1-5
+  comment     String?
+  name        String?  // null when anonymous
+  isAnonymous Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  orderId      String?
+  order        Order?  @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@index([restaurantId])
+  @@map("feedbacks")
+}
+
 // ─── Menu Item Ingredients (for stock deduction) ─────────────────
 
 model MenuItemIngredient {
@@ -905,6 +951,8 @@ model Room {
   price       Float    @default(0)  // per night rate
   maxGuests   Int      @default(2)
   description String?
+  bedType     String?              // "King", "Queen", "Twin", "Single", "Double", "Bunk Bed"
+  bedCount    Int      @default(1) // number of beds in this room
   amenities   String[] @default([]) // ["WiFi","AC","TV","Balcony"]
   imageUrls   String[] @default([]) // multiple room images
   videoUrl    String?               // optional room video
@@ -943,6 +991,13 @@ model RoomBooking {
   totalPrice      Float    @default(0)
   advanceAmount   Float    @default(0)  // advance payment required
   advancePaid     Boolean  @default(false)
+  // Advance payment details
+  paymentMethod   String?  // "ESEWA", "KHALTI", "CASH"
+  paymentStatus   String   @default("UNPAID") // UNPAID, PAID, FAILED
+  transactionId   String?
+  pidx            String?  // Khalti payment idx
+  refId           String?  // eSewa reference id
+  paidAt          DateTime?
   status          String   @default("PENDING") // PENDING, CONFIRMED, CHECKED_IN, CHECKED_OUT, CANCELLED
   notes           String?
   createdAt       DateTime @default(now())

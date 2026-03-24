@@ -24,6 +24,8 @@ export function getEsewaPaymentUrl(params: {
   totalAmount: number;
   merchantCode: string; // per-restaurant merchant code
   secretKey: string; // per-restaurant secret key
+  successUrl?: string; // optional override for success redirect
+  failureUrl?: string; // optional override for failure redirect
 }) {
   const { orderId, amount, taxAmount, totalAmount, merchantCode, secretKey } =
     params;
@@ -42,8 +44,8 @@ export function getEsewaPaymentUrl(params: {
       product_code: merchantCode,
       product_service_charge: "0",
       product_delivery_charge: "0",
-      success_url: `${APP_URL}/api/payments/esewa/callback?orderId=${orderId}`,
-      failure_url: `${APP_URL}/api/payments/esewa/callback?orderId=${orderId}&status=failed`,
+      success_url: params.successUrl ?? `${APP_URL}/api/payments/esewa/callback?orderId=${orderId}`,
+      failure_url: params.failureUrl ?? `${APP_URL}/api/payments/esewa/callback?orderId=${orderId}&status=failed`,
       signed_field_names: "total_amount,transaction_uuid,product_code",
       signature,
     },

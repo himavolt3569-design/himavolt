@@ -30,15 +30,33 @@ export async function generateBill(orderId: string) {
   });
 
   if (!order) throw new Error("Order not found");
-  if (order.bill) return order.bill;
 
-  const billNo = `INV-${order.orderNo.replace("HH-", "")}`;
   const config = await getTaxConfig(order.restaurantId);
   const serviceCharge = config.serviceChargeEnabled
     ? Math.round(order.subtotal * (config.serviceChargeRate / 100) * 100) / 100
     : 0;
+  const couponDiscount = order.couponDiscount ?? 0;
   const total =
-    Math.round((order.subtotal + order.tax + serviceCharge) * 100) / 100;
+    Math.round(
+      (order.subtotal + order.tax + serviceCharge + order.deliveryFee - couponDiscount) * 100,
+    ) / 100;
+
+  // Update existing bill with current order totals (e.g. after items are added)
+  if (order.bill) {
+    const updated = await db.bill.update({
+      where: { orderId },
+      data: {
+        subtotal: order.subtotal,
+        tax: order.tax,
+        serviceCharge,
+        discount: couponDiscount,
+        total,
+      },
+    });
+    return updated;
+  }
+
+  const billNo = `INV-${order.orderNo.replace("HH-", "")}`;
 
   const bill = await db.bill.create({
     data: {
@@ -47,7 +65,7 @@ export async function generateBill(orderId: string) {
       subtotal: order.subtotal,
       tax: order.tax,
       serviceCharge,
-      discount: 0,
+      discount: couponDiscount,
       total,
     },
   });
@@ -100,7 +118,7 @@ export async function applyDiscount(
 
 export async function collectPayment(
   orderId: string,
-  method: "CASH" | "ESEWA" | "KHALTI" | "BANK",
+  method: "CASH" | "ESEWA" | "KHALTI" | "BANK" | "COUNTER" | "DIRECT",
   transactionId?: string,
 ) {
   const order = await db.order.findUnique({

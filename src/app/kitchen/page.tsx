@@ -75,6 +75,8 @@ import PrivateDiningTab from "@/components/dashboard/features/PrivateDiningTab";
 import WifiSettingsTab from "@/components/dashboard/features/WifiSettingsTab";
 import GuestCheckInTab from "@/components/dashboard/GuestCheckInTab";
 import MediaTab from "@/components/dashboard/MediaTab";
+import TablesTab from "@/components/dashboard/TablesTab";
+import ManualBillingTab from "@/components/dashboard/ManualBillingTab";
 
 const STAFF_FEATURE_COMPONENTS: Record<FeatureTabId, React.ComponentType> = {
   "quick-counter": QuickCounterTab,
@@ -183,7 +185,7 @@ interface ChatRoom {
   }[];
 }
 
-type TabId = "orders" | "menu" | "chat" | "inventory" | "billing" | "stories" | "media" | FeatureTabId;
+type TabId = "orders" | "menu" | "chat" | "inventory" | "billing" | "stories" | "media" | "tables" | "manual" | FeatureTabId;
 
 const ALL_TABS: {
   id: TabId;
@@ -232,6 +234,18 @@ const ALL_TABS: {
     label: "Media",
     icon: GalleryHorizontalEnd,
     roles: ["SUPER_ADMIN", "MANAGER", "CHEF", "WAITER", "CASHIER"],
+  },
+  {
+    id: "tables",
+    label: "Tables",
+    icon: Utensils,
+    roles: ["SUPER_ADMIN", "MANAGER", "CASHIER", "WAITER"],
+  },
+  {
+    id: "manual",
+    label: "Manual Order",
+    icon: Receipt,
+    roles: ["SUPER_ADMIN", "MANAGER", "CASHIER"],
   },
 ];
 
@@ -2001,6 +2015,8 @@ export default function KitchenPage() {
               />
             )}
             {activeTab === "media" && <MediaTab restaurantId={session.restaurantId} />}
+            {activeTab === "tables" && <TablesTab />}
+            {activeTab === "manual" && <ManualBillingTab />}
             {/* Type-specific feature tabs */}
             {(() => {
               const FeatureComponent = STAFF_FEATURE_COMPONENTS[activeTab as FeatureTabId];

@@ -16,6 +16,7 @@ export async function initiateKhaltiPayment(params: {
   customerEmail?: string;
   customerPhone?: string;
   secretKey: string; // per-restaurant secret key
+  returnUrl?: string; // optional override for return URL
 }) {
   const {
     orderId,
@@ -28,7 +29,7 @@ export async function initiateKhaltiPayment(params: {
   } = params;
 
   const payload = {
-    return_url: `${APP_URL}/api/payments/khalti/callback?orderId=${orderId}`,
+    return_url: params.returnUrl ?? `${APP_URL}/api/payments/khalti/callback?orderId=${orderId}`,
     website_url: APP_URL,
     amount: Math.round(amount * 100), // convert to paisa
     purchase_order_id: orderId,

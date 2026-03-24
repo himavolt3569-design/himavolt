@@ -76,6 +76,8 @@ import PrivateDiningTab from "@/components/dashboard/features/PrivateDiningTab";
 import WifiSettingsTab from "@/components/dashboard/features/WifiSettingsTab";
 import GuestCheckInTab from "@/components/dashboard/GuestCheckInTab";
 import MediaTab from "@/components/dashboard/MediaTab";
+import TablesTab from "@/components/dashboard/TablesTab";
+import ManualBillingTab from "@/components/dashboard/ManualBillingTab";
 
 const COUNTER_FEATURE_COMPONENTS: Record<FeatureTabId, React.ComponentType> = {
   "quick-counter": QuickCounterTab,
@@ -1552,7 +1554,7 @@ function BillingPanel({
 
 /* ── MAIN COUNTER PAGE ───────────────────────────────────────────── */
 
-type ViewMode = "billing" | "board" | "split" | "stock" | "media" | FeatureTabId;
+type ViewMode = "billing" | "board" | "split" | "stock" | "media" | "tables" | "manual" | FeatureTabId;
 
 export default function CounterPage() {
   const router = useRouter();
@@ -1724,6 +1726,8 @@ export default function CounterPage() {
                 {(
                   [
                     { id: "billing", icon: Receipt, label: "Billing" },
+                    { id: "tables", icon: Utensils, label: "Tables" },
+                    { id: "manual", icon: Tag, label: "Manual Order" },
                     { id: "board", icon: Monitor, label: "Board" },
                     { id: "split", icon: Utensils, label: "Split" },
                     { id: "stock", icon: Package, label: "Stock" },
@@ -1824,6 +1828,8 @@ export default function CounterPage() {
           {(
             [
               { id: "billing", icon: Receipt, label: "Billing" },
+              { id: "tables", icon: Utensils, label: "Tables" },
+              { id: "manual", icon: Tag, label: "Manual" },
               { id: "board", icon: Monitor, label: "Board" },
               { id: "split", icon: Utensils, label: "Split" },
               { id: "stock", icon: Package, label: "Stock" },
@@ -1883,6 +1889,8 @@ export default function CounterPage() {
           </div>
         )}
 
+        {viewMode === "tables" && <TablesTab />}
+        {viewMode === "manual" && <ManualBillingTab />}
         {viewMode === "stock" && <StockTab />}
         {viewMode === "media" && <MediaTab restaurantId={session?.restaurantId} />}
 

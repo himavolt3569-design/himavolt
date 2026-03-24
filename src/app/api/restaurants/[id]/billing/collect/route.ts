@@ -51,7 +51,7 @@ export async function POST(
     );
   }
 
-  const validMethods = ["CASH", "ESEWA", "KHALTI", "BANK"];
+  const validMethods = ["CASH", "ESEWA", "KHALTI", "BANK", "COUNTER", "DIRECT"];
   if (!validMethods.includes(method)) {
     return NextResponse.json(
       { error: "Invalid payment method" },
@@ -73,15 +73,21 @@ export async function POST(
   try {
     const payment = await collectPayment(orderId, method, transactionId);
 
+    // Auto-clear the table session so the next customer gets a fresh start
+    await db.tableSession.updateMany({
+      where: { orderId, isActive: true },
+      data: { isActive: false, endedAt: new Date() },
+    });
+
     logAudit({
       action: "PAYMENT_COLLECTED",
       entity: "Payment",
       entityId: orderId,
-      detail: `Payment collected via ${method} for order ${order.orderNo} (${currSym}${order.total})`,
+      detail: `Payment collected via ${method} for order ${order.orderNo} (${currSym}${payment.amount})`,
       metadata: {
         method,
         orderNo: order.orderNo,
-        amount: order.total,
+        amount: payment.amount,
         transactionId,
       },
       userId: actorId,

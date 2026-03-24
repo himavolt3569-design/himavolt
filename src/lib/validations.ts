@@ -124,6 +124,7 @@ export const createOrderSchema = z.object({
     .optional()
     .nullable(),
   roomNo: z.string().max(20).optional().nullable(),
+  guestName: z.string().max(100).optional().nullable(),
   items: z.array(orderItemSchema).min(1, "At least one item required"),
   note: z.string().max(500).optional().nullable(),
   type: z

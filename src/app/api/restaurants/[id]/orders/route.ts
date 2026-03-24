@@ -85,6 +85,7 @@ export const POST = safeHandler(
     const {
       tableNo,
       roomNo,
+      guestName,
       items,
       note,
       type,
@@ -178,9 +179,16 @@ export const POST = safeHandler(
           include: { inventoryItem: true },
         });
         for (const ing of ingredients) {
+          // Prevent inventory from going negative
+          const currentInv = await db.inventoryItem.findUnique({
+            where: { id: ing.inventoryItemId },
+            select: { quantity: true },
+          });
+          const deductAmount = ing.quantityUsed * item.quantity;
+          const newQty = Math.max(0, (currentInv?.quantity ?? 0) - deductAmount);
           const updatedInv = await db.inventoryItem.update({
             where: { id: ing.inventoryItemId },
-            data: { quantity: { decrement: ing.quantityUsed * item.quantity } },
+            data: { quantity: newQty },
           });
           // Auto-unavailable if stock depleted
           if (updatedInv.quantity <= 0) {
@@ -250,38 +258,45 @@ export const POST = safeHandler(
     let couponId: string | null = null;
     if (couponCode) {
       try {
-        const coupon = await db.coupon.findFirst({
-          where: {
-            restaurantId: id,
-            code: couponCode.toUpperCase(),
-            isActive: true,
-            startsAt: { lte: new Date() },
-            OR: [
-              { expiresAt: null },
-              { expiresAt: { gte: new Date() } },
-            ],
-          },
-        });
-        if (!coupon) {
-          return NextResponse.json({ error: "Invalid or expired coupon code" }, { status: 400 });
-        }
-        if (coupon.maxUses && coupon.usedCount >= coupon.maxUses) {
-          return NextResponse.json({ error: "Coupon usage limit reached" }, { status: 400 });
-        }
-        if (subtotal < coupon.minOrder) {
-          return NextResponse.json({ error: `Minimum order of ${coupon.minOrder} required for this coupon` }, { status: 400 });
-        }
-        if (coupon.type === "PERCENTAGE") {
-          couponDiscount = Math.round(subtotal * (coupon.value / 100) * 100) / 100;
-          if (coupon.maxDiscount && couponDiscount > coupon.maxDiscount) {
-            couponDiscount = coupon.maxDiscount;
+        // Use a transaction to atomically validate + increment coupon usage
+        const couponResult = await db.$transaction(async (tx) => {
+          const coupon = await tx.coupon.findFirst({
+            where: {
+              restaurantId: id,
+              code: couponCode.toUpperCase(),
+              isActive: true,
+              startsAt: { lte: new Date() },
+              OR: [
+                { expiresAt: null },
+                { expiresAt: { gte: new Date() } },
+              ],
+            },
+          });
+          if (!coupon) return { error: "Invalid or expired coupon code" };
+          if (coupon.maxUses && coupon.usedCount >= coupon.maxUses) {
+            return { error: "Coupon usage limit reached" };
           }
-        } else {
-          couponDiscount = Math.min(coupon.value, subtotal);
+          if (subtotal < coupon.minOrder) {
+            return { error: `Minimum order of ${coupon.minOrder} required for this coupon` };
+          }
+          let discount = 0;
+          if (coupon.type === "PERCENTAGE") {
+            discount = Math.round(subtotal * (coupon.value / 100) * 100) / 100;
+            if (coupon.maxDiscount && discount > coupon.maxDiscount) {
+              discount = coupon.maxDiscount;
+            }
+          } else {
+            discount = Math.min(coupon.value, subtotal);
+          }
+          // Increment usage count atomically within the transaction
+          await tx.coupon.update({ where: { id: coupon.id }, data: { usedCount: { increment: 1 } } });
+          return { couponId: coupon.id, discount };
+        });
+        if ("error" in couponResult) {
+          return NextResponse.json({ error: couponResult.error }, { status: 400 });
         }
-        couponId = coupon.id;
-        // Increment usage count
-        await db.coupon.update({ where: { id: coupon.id }, data: { usedCount: { increment: 1 } } });
+        couponDiscount = couponResult.discount;
+        couponId = couponResult.couponId;
       } catch {
         // Coupon table may not exist yet — skip coupon
         console.warn("Coupon validation skipped — table may not exist");
@@ -318,6 +333,7 @@ export const POST = safeHandler(
             ? parseInt(String(tableNo), 10)
             : null,
         roomNo: roomNo ?? null,
+        guestName: guestName?.trim() ?? null,
         subtotal,
         tax,
         total,
@@ -437,9 +453,12 @@ export const POST = safeHandler(
         include: { inventoryItem: true },
       });
       for (const ing of ingredients) {
+        // Prevent inventory from going negative
+        const deductAmount = ing.quantityUsed * item.quantity;
+        const newQty = Math.max(0, (ing.inventoryItem.quantity ?? 0) - deductAmount);
         const updatedInv = await db.inventoryItem.update({
           where: { id: ing.inventoryItemId },
-          data: { quantity: { decrement: ing.quantityUsed * item.quantity } },
+          data: { quantity: newQty },
         });
         // Auto-unavailable if stock depleted
         if (updatedInv.quantity <= 0) {

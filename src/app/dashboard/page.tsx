@@ -123,8 +123,11 @@ import DrinksTab from "@/components/dashboard/DrinksTab";
 import GuestCheckInTab from "@/components/dashboard/GuestCheckInTab";
 import MediaTab from "@/components/dashboard/MediaTab";
 import ManualBillingTab from "@/components/dashboard/ManualBillingTab";
+import TablesTab from "@/components/dashboard/TablesTab";
 import CouponManagementTab from "@/components/dashboard/CouponManagementTab";
 import RoomManagementTab from "@/components/dashboard/RoomManagementTab";
+import HotelBookingsTab from "@/components/dashboard/HotelBookingsTab";
+import HotelQRTab from "@/components/dashboard/HotelQRTab";
 
 type DashTab =
   | "overview"
@@ -147,6 +150,7 @@ type DashTab =
   | "manual-billing"
   | "coupons"
   | "rooms"
+  | "tables"
   | FeatureTabId;
 
 /* ─── Navigation groups for sidebar ───────────────────────────────── */
@@ -162,6 +166,7 @@ const NAV_MAIN: {
   { id: "chat", label: "Chats", icon: MessageCircle },
   { id: "offers" as DashTab, label: "Offers", icon: Tag },
   { id: "manual-billing" as DashTab, label: "Manual Billing", icon: Receipt },
+  { id: "tables" as DashTab, label: "Tables", icon: LayoutGrid },
 ];
 
 const NAV_MANAGE: typeof NAV_MAIN = [
@@ -219,6 +224,8 @@ const FEATURE_ICONS: Record<FeatureTabId, typeof Zap> = {
   "wifi-settings": Wifi,
   "guest-checkin": BedDouble,
   "room-qr-codes": QrCode,
+  "hotel-bookings": CalendarCheck,
+  "hotel-qr": QrCode,
 };
 
 /* ── Feature tab component mapping ────────────────────────────────── */
@@ -254,6 +261,8 @@ const FEATURE_COMPONENTS: Record<FeatureTabId, React.ComponentType> = {
   "wifi-settings": WifiSettingsTab,
   "guest-checkin": GuestCheckInTab,
   "room-qr-codes": GuestCheckInTab, // Room QR tab uses same component (different section)
+  "hotel-bookings": HotelBookingsTab,
+  "hotel-qr": HotelQRTab,
 };
 
 /* ─── Animated number counter ─────────────────────────────────────── */
@@ -1493,6 +1502,7 @@ export default function DashboardPage() {
               {activeTab === "stock" && <StockTab />}
               {activeTab === "offers" && <OffersTab />}
               {activeTab === "manual-billing" && <ManualBillingTab />}
+              {activeTab === "tables" && <TablesTab />}
               {activeTab === "coupons" && <CouponManagementTab />}
               {activeTab === "rooms" && <RoomManagementTab />}
               {activeTab === "hero-slides" && <HeroSlidesManager />}

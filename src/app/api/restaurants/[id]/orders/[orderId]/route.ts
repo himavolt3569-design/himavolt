@@ -154,13 +154,6 @@ export async function PATCH(
     }
   }
 
-  if (status === "DELIVERED" && order.payment?.method === "CASH") {
-    await db.payment.update({
-      where: { orderId },
-      data: { status: "COMPLETED", paidAt: new Date() },
-    });
-  }
-
   // Restore stock when order is cancelled or rejected
   if (status === "CANCELLED" || status === "REJECTED") {
     const orderWithItems = await db.order.findUnique({
@@ -170,6 +163,7 @@ export async function PATCH(
     if (orderWithItems) {
       for (const item of orderWithItems.items) {
         if (!item.menuItemId) continue;
+        // Restore ingredient-based inventory stock
         const ingredients = await db.menuItemIngredient.findMany({
           where: { menuItemId: item.menuItemId },
         });
@@ -177,6 +171,27 @@ export async function PATCH(
           await db.inventoryItem.update({
             where: { id: ing.inventoryItemId },
             data: { quantity: { increment: ing.quantityUsed * item.quantity } },
+          });
+          // Re-enable menu items that were marked unavailable
+          const dependents = await db.menuItemIngredient.findMany({
+            where: { inventoryItemId: ing.inventoryItemId },
+          });
+          for (const dep of dependents) {
+            await db.menuItem.update({
+              where: { id: dep.menuItemId },
+              data: { isAvailable: true },
+            });
+          }
+        }
+        // Restore drink stock for items with stock tracking
+        const menuItem = await db.menuItem.findUnique({
+          where: { id: item.menuItemId },
+          select: { isDrink: true, stockEnabled: true },
+        });
+        if (menuItem?.isDrink && menuItem.stockEnabled) {
+          await db.menuItem.update({
+            where: { id: item.menuItemId },
+            data: { stockQuantity: { increment: item.quantity } },
           });
         }
       }

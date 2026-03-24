@@ -21,6 +21,7 @@ import {
   EyeOff,
   AlertCircle,
   KeyRound,
+  BedDouble,
 } from "lucide-react";
 import Link from "next/link";
 import MasterOverview from "@/components/admin/MasterOverview";
@@ -31,6 +32,7 @@ import AllChatsTab from "@/components/admin/AllChatsTab";
 import AllPaymentsTab from "@/components/admin/AllPaymentsTab";
 import AllDeliveriesTab from "@/components/admin/AllDeliveriesTab";
 import AuditTab from "@/components/admin/AuditTab";
+import AllBookingsTab from "@/components/admin/AllBookingsTab";
 
 /* ═══════════════════════════════════════════════════════════════════
    Types & Constants
@@ -44,6 +46,7 @@ type AdminTab =
   | "chats"
   | "payments"
   | "deliveries"
+  | "bookings"
   | "audit";
 
 const TABS: { id: AdminTab; label: string; icon: typeof Activity; mobileLabel?: string }[] = [
@@ -55,6 +58,7 @@ const TABS: { id: AdminTab; label: string; icon: typeof Activity; mobileLabel?: 
   { id: "payments", label: "Payments", icon: CreditCard, mobileLabel: "Pay" },
   { id: "deliveries", label: "Deliveries", icon: Truck, mobileLabel: "Delivery" },
   { id: "audit", label: "Live Audit", icon: Zap, mobileLabel: "Audit" },
+  { id: "bookings", label: "Hotel Bookings", icon: BedDouble, mobileLabel: "Bookings" },
 ];
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -401,6 +405,7 @@ export default function MasterAdminPage() {
             {tab === "payments" && <AllPaymentsTab />}
             {tab === "deliveries" && <AllDeliveriesTab />}
             {tab === "audit" && <AuditTab />}
+            {tab === "bookings" && <AllBookingsTab />}
           </motion.div>
         </AnimatePresence>
       </main>

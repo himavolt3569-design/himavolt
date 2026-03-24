@@ -109,6 +109,34 @@ export async function placeOrder(data: {
     }
   }
 
+  // Deduct ingredient-based stock (inventoryItems)
+  for (const item of data.items) {
+    if (!item.menuItemId) continue;
+    const ingredients = await db.menuItemIngredient.findMany({
+      where: { menuItemId: item.menuItemId },
+      include: { inventoryItem: true },
+    });
+    for (const ing of ingredients) {
+      const deductAmount = ing.quantityUsed * item.quantity;
+      const newQty = Math.max(0, (ing.inventoryItem.quantity ?? 0) - deductAmount);
+      const updatedInv = await db.inventoryItem.update({
+        where: { id: ing.inventoryItemId },
+        data: { quantity: newQty },
+      });
+      if (updatedInv.quantity <= 0) {
+        const dependents = await db.menuItemIngredient.findMany({
+          where: { inventoryItemId: ing.inventoryItemId },
+        });
+        for (const dep of dependents) {
+          await db.menuItem.update({
+            where: { id: dep.menuItemId },
+            data: { isAvailable: false },
+          });
+        }
+      }
+    }
+  }
+
   // Create Delivery record for delivery orders
   if (orderType === "DELIVERY") {
     await db.delivery.create({
@@ -160,13 +188,10 @@ export async function updateOrderStatus(
     include: { items: true, payment: true },
   });
 
-  // Auto-complete CASH payments when order is delivered
-  if (status === "DELIVERED" && order.payment?.method === "CASH") {
-    await db.payment.update({
-      where: { orderId },
-      data: { status: "COMPLETED", paidAt: new Date() },
-    });
-  }
+  // NOTE: Payment completion is handled explicitly by the biller.
+  // Online payments (ESEWA/KHALTI/BANK) are completed at checkout.
+  // Offline payments (CASH/COUNTER/DIRECT) remain PENDING until the
+  // cashier collects payment at the counter.
 
   revalidatePath("/dashboard");
   return order;

@@ -19,9 +19,11 @@ import {
   Clock,
   Loader2,
   AlertCircle,
+  Star,
 } from "lucide-react";
 import Link from "next/link";
 import { formatPrice } from "@/lib/currency";
+import QRCode from "react-qr-code";
 
 /* ── Types ──────────────────────────────────────────────────────── */
 
@@ -55,6 +57,7 @@ interface BillData {
     id: string;
     orderNo: string;
     tableNo: number | null;
+    restaurantId: string;
     status: string;
     type: string;
     note: string | null;
@@ -103,6 +106,8 @@ function paymentLabel(method: string) {
     KHALTI: "Khalti",
     BANK: "Bank Transfer",
     CASH: "Cash",
+    COUNTER: "Counter Pay",
+    DIRECT: "Direct Pay",
   };
   return map[method] || method;
 }
@@ -257,10 +262,17 @@ export default function BillPage() {
             Back to Order
           </Link>
           <div className="flex items-center gap-2">
+            {!isPaid && (
+              <span className="flex items-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs font-bold text-amber-700">
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-500 inline-block" />
+                Payment Pending — Pay at Counter
+              </span>
+            )}
             <button
               onClick={onDownload}
-              disabled={downloading}
-              className="flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5 text-xs font-bold text-gray-600 hover:bg-gray-50 hover:border-[#eaa94d]/20 hover:text-[#eaa94d] transition-all disabled:opacity-50"
+              disabled={downloading || !isPaid}
+              title={!isPaid ? "Bill can only be downloaded after payment is collected" : undefined}
+              className="flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5 text-xs font-bold text-gray-600 hover:bg-gray-50 hover:border-[#eaa94d]/20 hover:text-[#eaa94d] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {downloading ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -563,8 +575,9 @@ export default function BillPage() {
         >
           <button
             onClick={onDownload}
-            disabled={downloading}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-2xl border-2 border-gray-200 px-6 py-3.5 text-sm font-bold text-gray-600 hover:border-[#eaa94d]/30 hover:text-[#eaa94d] transition-all disabled:opacity-50"
+            disabled={downloading || !isPaid}
+            title={!isPaid ? "Bill can only be downloaded after payment is collected" : undefined}
+            className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-2xl border-2 border-gray-200 px-6 py-3.5 text-sm font-bold text-gray-600 hover:border-[#eaa94d]/30 hover:text-[#eaa94d] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {downloading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -581,6 +594,39 @@ export default function BillPage() {
             {printLabel}
           </button>
         </motion.div>
+
+        {/* ── Feedback QR (shown after payment) ─── */}
+        {isPaid && (
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="mt-6 rounded-2xl border border-amber-100 bg-amber-50/60 p-5 text-center print:hidden"
+          >
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <Star className="h-4 w-4 text-amber-500" />
+              <span className="text-sm font-bold text-[#3e1e0c]">Share your feedback</span>
+            </div>
+            <p className="text-xs text-gray-500 mb-4">
+              Scan the QR below or tap the link to rate your experience
+            </p>
+            <div className="flex justify-center mb-3">
+              <div className="rounded-xl bg-white p-3 border border-amber-100 shadow-sm inline-block">
+                <QRCode
+                  value={`${typeof window !== "undefined" ? window.location.origin : ""}/feedback/${order.restaurantId}?order=${order.id}`}
+                  size={100}
+                  fgColor="#3e1e0c"
+                />
+              </div>
+            </div>
+            <Link
+              href={`/feedback/${order.restaurantId}?order=${order.id}`}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-amber-500 px-4 py-2 text-xs font-bold text-white hover:bg-amber-600 transition-colors"
+            >
+              <Star className="h-3.5 w-3.5" /> Leave a Review
+            </Link>
+          </motion.div>
+        )}
       </div>
 
       {/* ── Print styles ───────────────────────────── */}
