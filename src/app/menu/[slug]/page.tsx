@@ -1424,12 +1424,10 @@ function MenuPageContent() {
     setCheckoutOpen(true);
   }, []);
 
-  const handleOrderPlaced = useCallback((orderId: string) => {
+  const handleOrderPlaced = useCallback((_orderId: string) => {
     setCheckoutOpen(false);
     setShowOrder(true);
-    if (typeof window !== "undefined") {
-      window.history.replaceState(null, "", `/track/${orderId}`);
-    }
+    // Do NOT change the URL — preserves ?table=N so Dine-In stays available for repeat orders
   }, []);
 
   useEffect(() => {

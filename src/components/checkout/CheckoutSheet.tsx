@@ -61,7 +61,7 @@ const ALL_PAYMENT_METHODS: {
   {
     id: "ESEWA",
     label: "eSewa",
-    sublabel: "Pay with eSewa wallet",
+    sublabel: "Pay online via eSewa wallet",
     icon: Wallet,
     color: "text-green-600",
     bg: "bg-green-50 border-green-200",
@@ -69,15 +69,15 @@ const ALL_PAYMENT_METHODS: {
   {
     id: "KHALTI",
     label: "Khalti",
-    sublabel: "Pay with Khalti digital wallet",
+    sublabel: "Pay online via Khalti wallet",
     icon: Wallet,
     color: "text-purple-600",
     bg: "bg-purple-50 border-purple-200",
   },
   {
     id: "BANK",
-    label: "Bank Transfer",
-    sublabel: "Pay via bank / mobile banking",
+    label: "Bank",
+    sublabel: "Transfer via bank or mobile banking",
     icon: Banknote,
     color: "text-blue-600",
     bg: "bg-blue-50 border-blue-200",
@@ -85,23 +85,23 @@ const ALL_PAYMENT_METHODS: {
   {
     id: "CASH",
     label: "Cash",
-    sublabel: "Pay cash when order is ready",
+    sublabel: "Pay cash — staff will collect",
     icon: DollarSign,
     color: "text-gray-600",
     bg: "bg-gray-50 border-gray-200",
   },
   {
     id: "COUNTER",
-    label: "Counter Pay",
-    sublabel: "Pay at the counter directly",
+    label: "Counter",
+    sublabel: "Pay cash at the counter before food is prepared",
     icon: CreditCard,
     color: "text-amber-600",
     bg: "bg-amber-50 border-amber-200",
   },
   {
     id: "DIRECT",
-    label: "Direct Pay",
-    sublabel: "Direct bank/wallet transfer",
+    label: "Direct",
+    sublabel: "Send payment directly to restaurant account/QR",
     icon: Banknote,
     color: "text-teal-600",
     bg: "bg-teal-50 border-teal-200",
@@ -175,6 +175,8 @@ export default function CheckoutSheet({
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const paymentWindowRef = useRef<Window | null>(null);
   const [waitingOrderId, setWaitingOrderId] = useState<string | null>(null);
+  // "gateway" = waiting for eSewa/Khalti window; "staff-confirm" = waiting for staff to mark paid
+  const [waitingReason, setWaitingReason] = useState<"gateway" | "staff-confirm">("gateway");
 
   // Payment QR images
   const [paymentQRs, setPaymentQRs] = useState<PaymentQRImage[]>([]);
@@ -306,10 +308,17 @@ export default function CheckoutSheet({
     enabledMethods.includes(m.id),
   );
 
-  // Reset order type when tableNo changes
+  // Reset all modal state whenever the sheet opens
   useEffect(() => {
-    if (tableNo) setOrderType("DINE_IN");
-  }, [tableNo]);
+    if (!open) return;
+    setStep("review");
+    setOrderType(tableNo ? "DINE_IN" : "TAKEAWAY");
+    setNote("");
+    setCouponCode("");
+    setCouponDiscount(0);
+    setCouponApplied(false);
+    setCouponError("");
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Cleanup polling on unmount
   useEffect(() => {
@@ -332,7 +341,8 @@ export default function CheckoutSheet({
     orderType !== "DELIVERY" ||
     (deliveryAddress.trim() !== "" && deliveryPhone.trim() !== "");
 
-  const startPaymentPolling = (orderId: string) => {
+  const startPaymentPolling = (orderId: string, reason: "gateway" | "staff-confirm" = "gateway") => {
+    setWaitingReason(reason);
     setWaitingOrderId(orderId);
     setStep("waiting");
     setLoading(false);
@@ -521,6 +531,14 @@ export default function CheckoutSheet({
         });
       }
 
+      // Prepaid restaurants: hold the screen until staff confirms payment received.
+      // eSewa/Khalti are auto-verified by gateway callbacks — no change needed for those.
+      if (prepaidEnabled && selectedPayment !== "ESEWA" && selectedPayment !== "KHALTI") {
+        clearCart(); // order is placed — cart can be cleared
+        startPaymentPolling(order.id, "staff-confirm");
+        return;
+      }
+
       clearCart();
       onClose();
       onOrderPlaced(order.id);
@@ -530,11 +548,16 @@ export default function CheckoutSheet({
   };
 
   const handleContinueToPayment = () => {
-    // If restaurant has QR codes, show them before placing order
+    // eSewa/Khalti use their own payment gateway — skip the QR scan step to avoid double payment
+    if (selectedPayment === "ESEWA" || selectedPayment === "KHALTI") {
+      handlePlaceOrder();
+      return;
+    }
+    // For cash/counter/direct/bank: show restaurant QR images so customer can pay before ordering
     if (paymentQRs.length > 0) {
       setStep("scan-qr");
     } else {
-      setStep("payment");
+      handlePlaceOrder();
     }
   };
 
@@ -1125,16 +1148,14 @@ export default function CheckoutSheet({
                   </div>
                   <div>
                     <h3 className="text-lg font-bold text-[#3e1e0c]">
-                      Waiting for Payment
+                      {waitingReason === "staff-confirm"
+                        ? "Order Placed — Awaiting Payment"
+                        : "Waiting for Payment"}
                     </h3>
                     <p className="text-sm text-gray-500 mt-1">
-                      Complete your payment in the{" "}
-                      {selectedPayment === "ESEWA"
-                        ? "eSewa"
-                        : selectedPayment === "KHALTI"
-                          ? "Khalti"
-                          : "payment"}{" "}
-                      window. This page will update automatically.
+                      {waitingReason === "staff-confirm"
+                        ? "Your order has been placed. Show your payment to the staff. This screen will update once payment is confirmed."
+                        : `Complete your payment in the ${selectedPayment === "ESEWA" ? "eSewa" : "Khalti"} window. This page will update automatically.`}
                     </p>
                   </div>
                   <div className="rounded-xl bg-gray-50 p-4">
@@ -1150,8 +1171,9 @@ export default function CheckoutSheet({
                   <div className="flex items-start gap-2 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-left">
                     <Shield className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
                     <p className="text-[11px] text-amber-700">
-                      Don&apos;t close this page. If the payment window was
-                      blocked, try allowing pop-ups for this site.
+                      {waitingReason === "staff-confirm"
+                        ? "Do not close this page. Staff will confirm your payment and your order will proceed automatically."
+                        : "Don't close this page. If the payment window was blocked, try allowing pop-ups for this site."}
                     </p>
                   </div>
                 </div>
@@ -1194,18 +1216,33 @@ export default function CheckoutSheet({
                 </div>
               ) : step === "waiting" ? (
                 <div className="space-y-2">
-                  <button
-                    onClick={() => {
-                      if (pollRef.current) clearInterval(pollRef.current);
-                      pollRef.current = null;
-                      setStep("payment");
-                      setWaitingOrderId(null);
-                      setLoading(false);
-                    }}
-                    className="w-full rounded-xl border border-gray-200 py-3 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors"
-                  >
-                    Cancel &amp; Choose Another Method
-                  </button>
+                  {waitingReason === "staff-confirm" ? (
+                    // Order already placed — can't go back. Let them close and track.
+                    <button
+                      onClick={() => {
+                        if (pollRef.current) clearInterval(pollRef.current);
+                        pollRef.current = null;
+                        if (waitingOrderId) onOrderPlaced(waitingOrderId);
+                        onClose();
+                      }}
+                      className="w-full rounded-xl border border-gray-200 py-3 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors"
+                    >
+                      Close &amp; Track Order
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        if (pollRef.current) clearInterval(pollRef.current);
+                        pollRef.current = null;
+                        setStep("payment");
+                        setWaitingOrderId(null);
+                        setLoading(false);
+                      }}
+                      className="w-full rounded-xl border border-gray-200 py-3 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors"
+                    >
+                      Cancel &amp; Choose Another Method
+                    </button>
+                  )}
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -1223,7 +1260,7 @@ export default function CheckoutSheet({
                         <Loader2 className="h-4 w-4 animate-spin" />
                         Processing...
                       </>
-                    ) : paymentQRs.length > 0 ? (
+                    ) : paymentQRs.length > 0 && selectedPayment !== "ESEWA" && selectedPayment !== "KHALTI" ? (
                       <>
                         Scan & Pay &middot; {formatPrice(total, currency)}
                         <ChevronRight className="h-4 w-4" />
