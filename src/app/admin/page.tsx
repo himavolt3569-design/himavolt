@@ -95,11 +95,11 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gompa-slate p-4">
-      {/* Background pattern */}
-      <div className="absolute inset-0 overflow-hidden opacity-5">
-        <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-brand-500" />
-        <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-brand-500" />
+    <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-[#EFF6FF] via-[#F5F8FF] to-[#EDF2FF] p-4">
+      {/* Soft background blobs */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 h-96 w-96 rounded-full bg-blue-100/70 blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 h-96 w-96 rounded-full bg-indigo-100/60 blur-3xl" />
       </div>
 
       <motion.div
@@ -114,20 +114,20 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
             initial={{ scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
-            className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-500 shadow-lg shadow-brand-500/30"
+            className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-linear-to-br from-blue-500 to-indigo-500 shadow-lg shadow-blue-200/60"
           >
             <Shield className="h-8 w-8 text-white" />
           </motion.div>
-          <h1 className="text-2xl font-bold text-white">Master Admin</h1>
-          <p className="mt-1 text-sm text-gray-400">HimalHub System Control Panel</p>
+          <h1 className="text-2xl font-bold text-[#1A2744]">Master Admin</h1>
+          <p className="mt-1 text-sm text-slate-400">HimalHub System Control Panel</p>
         </div>
 
         {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl">
+          <div className="overflow-hidden rounded-2xl border border-blue-100 bg-white/90 shadow-xl shadow-blue-100/40 backdrop-blur-sm">
             {/* Admin ID Field */}
-            <div className="border-b border-white/10 p-4">
-              <label className="mb-1.5 flex items-center gap-2 text-xs font-medium text-gray-400">
+            <div className="border-b border-slate-100 p-4">
+              <label className="mb-1.5 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
                 <KeyRound className="h-3.5 w-3.5" />
                 Admin ID
               </label>
@@ -139,13 +139,13 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
                 required
                 autoFocus
                 autoComplete="off"
-                className="w-full bg-transparent text-sm font-medium text-white placeholder:text-gray-600 focus:outline-none"
+                className="w-full bg-transparent text-sm font-medium text-slate-800 placeholder:text-slate-300 focus:outline-none"
               />
             </div>
 
             {/* Password Field */}
             <div className="p-4">
-              <label className="mb-1.5 flex items-center gap-2 text-xs font-medium text-gray-400">
+              <label className="mb-1.5 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
                 <Lock className="h-3.5 w-3.5" />
                 Password
               </label>
@@ -157,12 +157,12 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
                   placeholder="Enter password"
                   required
                   autoComplete="off"
-                  className="flex-1 bg-transparent text-sm font-medium text-white placeholder:text-gray-600 focus:outline-none"
+                  className="flex-1 bg-transparent text-sm font-medium text-slate-800 placeholder:text-slate-300 focus:outline-none"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((p) => !p)}
-                  className="text-gray-500 hover:text-gray-300 transition-colors"
+                  className="text-slate-300 hover:text-slate-500 transition-colors"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -177,7 +177,7 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
-                className="flex items-center gap-2 rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-2.5 text-xs text-red-400"
+                className="flex items-center gap-2 rounded-xl bg-red-50 border border-red-100 px-4 py-2.5 text-xs text-red-500"
               >
                 <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
                 {error}
@@ -189,7 +189,7 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
           <button
             type="submit"
             disabled={loading || !adminId || !password}
-            className="w-full rounded-xl bg-brand-500 py-3 text-sm font-bold text-white transition-all hover:bg-brand-600 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full rounded-xl bg-linear-to-r from-blue-500 to-indigo-500 py-3 text-sm font-bold text-white shadow-md shadow-blue-200/60 transition-all hover:from-blue-600 hover:to-indigo-600 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
               <div className="flex items-center justify-center gap-2">
@@ -205,7 +205,7 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
           </button>
         </form>
 
-        <p className="mt-6 text-center text-[11px] text-gray-600">
+        <p className="mt-6 text-center text-[11px] text-slate-300">
           Authorized personnel only. All actions are logged.
         </p>
       </motion.div>
@@ -241,10 +241,10 @@ export default function MasterAdminPage() {
   // Loading state
   if (checking) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gompa-slate">
+      <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-[#EFF6FF] via-[#F5F8FF] to-[#EDF2FF]">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-brand-400 border-t-transparent" />
-          <p className="text-sm text-gray-400">Verifying session...</p>
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-400 border-t-transparent" />
+          <p className="text-sm text-slate-400">Verifying session...</p>
         </div>
       </div>
     );
@@ -257,17 +257,17 @@ export default function MasterAdminPage() {
 
   // Authenticated — show dashboard
   return (
-    <div className="min-h-screen bg-brand-50/50">
+    <div className="min-h-screen bg-[#F5F8FF]">
       {/* ── Header ──────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-40 border-b border-brand-100 bg-gradient-to-r from-gompa-slate via-gray-800 to-gompa-slate backdrop-blur-xl">
+      <header className="sticky top-0 z-40 border-b border-blue-100/80 bg-white/90 backdrop-blur-xl shadow-sm shadow-blue-50/60">
         <div className="mx-auto flex max-w-[1400px] items-center justify-between px-4 py-3 sm:px-6">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-500">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-linear-to-br from-blue-500 to-indigo-500 shadow-sm shadow-blue-200/50">
               <Shield className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-white">Master Admin</h1>
-              <p className="text-[11px] text-gray-400">HimalHub System Control</p>
+              <h1 className="text-lg font-bold text-[#1A2744]">Master Admin</h1>
+              <p className="text-[11px] text-slate-400">HimalHub System Control</p>
             </div>
           </div>
 
@@ -275,21 +275,21 @@ export default function MasterAdminPage() {
             {/* Mobile menu toggle */}
             <button
               onClick={() => setMobileMenuOpen((p) => !p)}
-              className="rounded-lg p-2 text-gray-300 hover:bg-white/10 sm:hidden"
+              className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 sm:hidden transition-colors"
             >
               {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
 
             <Link
               href="/dashboard"
-              className="hidden rounded-lg border border-white/20 px-3 py-1.5 text-xs font-medium text-gray-200 transition-all hover:bg-white/10 sm:inline-flex sm:items-center sm:gap-1"
+              className="hidden rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-600 transition-all hover:bg-slate-100 sm:inline-flex sm:items-center sm:gap-1"
             >
               Dashboard <ArrowUpRight className="h-3 w-3" />
             </Link>
 
             <button
               onClick={handleLogout}
-              className="flex items-center gap-1.5 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-300 transition-all hover:bg-red-500/20"
+              className="flex items-center gap-1.5 rounded-lg border border-red-100 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-400 transition-all hover:bg-red-100"
             >
               <LogOut className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Logout</span>
@@ -299,7 +299,7 @@ export default function MasterAdminPage() {
       </header>
 
       {/* ── Desktop Tab Bar ────────────────────────────────────── */}
-      <div className="sticky top-[57px] z-30 hidden border-b border-brand-100 bg-white shadow-sm sm:block">
+      <div className="sticky top-[57px] z-30 hidden border-b border-blue-100/80 bg-white/90 backdrop-blur-xl shadow-sm sm:block">
         <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
           <div className="flex gap-0 overflow-x-auto scrollbar-none">
             {TABS.map((t) => (
@@ -307,7 +307,7 @@ export default function MasterAdminPage() {
                 key={t.id}
                 onClick={() => setTab(t.id)}
                 className={`relative flex items-center gap-2 whitespace-nowrap px-4 py-3 text-sm font-medium transition-all ${
-                  tab === t.id ? "text-saffron-flame" : "text-gray-500 hover:text-gray-700"
+                  tab === t.id ? "text-blue-500" : "text-slate-400 hover:text-slate-600"
                 }`}
               >
                 <t.icon className="h-4 w-4" />
@@ -315,7 +315,7 @@ export default function MasterAdminPage() {
                 {tab === t.id && (
                   <motion.div
                     layoutId="master-admin-tab"
-                    className="absolute inset-x-0 -bottom-px h-0.5 bg-saffron-flame"
+                    className="absolute inset-x-0 -bottom-px h-0.5 bg-linear-to-r from-blue-500 to-indigo-500 rounded-full"
                   />
                 )}
               </button>
@@ -331,7 +331,7 @@ export default function MasterAdminPage() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden border-b border-brand-100 bg-white sm:hidden"
+            className="overflow-hidden border-b border-blue-100/80 bg-white/95 sm:hidden"
           >
             <div className="grid grid-cols-4 gap-1 p-3">
               {TABS.map((t) => (
@@ -343,8 +343,8 @@ export default function MasterAdminPage() {
                   }}
                   className={`flex flex-col items-center gap-1 rounded-xl p-2.5 text-center transition-all ${
                     tab === t.id
-                      ? "bg-brand-50 text-saffron-flame"
-                      : "text-gray-500 hover:bg-gray-50"
+                      ? "bg-blue-50 text-blue-500"
+                      : "text-slate-400 hover:bg-slate-50"
                   }`}
                 >
                   <t.icon className="h-5 w-5" />
@@ -357,14 +357,14 @@ export default function MasterAdminPage() {
       </AnimatePresence>
 
       {/* ── Mobile Bottom Tab Bar ──────────────────────────────── */}
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-brand-100 bg-white/95 backdrop-blur-lg sm:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-blue-100/80 bg-white/95 backdrop-blur-lg sm:hidden">
         <div className="flex items-center justify-around px-1 py-1">
           {TABS.slice(0, 5).map((t) => (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
               className={`flex flex-1 flex-col items-center gap-0.5 rounded-lg py-1.5 transition-all ${
-                tab === t.id ? "text-saffron-flame" : "text-gray-400"
+                tab === t.id ? "text-blue-500" : "text-slate-400"
               }`}
             >
               <t.icon className="h-4.5 w-4.5" />
@@ -374,7 +374,7 @@ export default function MasterAdminPage() {
           <button
             onClick={() => setMobileMenuOpen((p) => !p)}
             className={`flex flex-1 flex-col items-center gap-0.5 rounded-lg py-1.5 transition-all ${
-              TABS.slice(5).some((t) => t.id === tab) ? "text-saffron-flame" : "text-gray-400"
+              TABS.slice(5).some((t) => t.id === tab) ? "text-blue-500" : "text-slate-400"
             }`}
           >
             <Menu className="h-4.5 w-4.5" />
