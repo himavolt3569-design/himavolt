@@ -2025,7 +2025,8 @@ export default function KitchenPage() {
             {(() => {
               const FeatureComponent = STAFF_FEATURE_COMPONENTS[activeTab as FeatureTabId];
               if (!FeatureComponent) return null;
-              return <FeatureComponent />;
+              const Comp = FeatureComponent as React.ComponentType<{ restaurantId?: string }>;
+              return <Comp restaurantId={session.restaurantId} />;
             })()}
           </motion.div>
         </AnimatePresence>

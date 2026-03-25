@@ -1,37 +1,65 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Wifi, WifiOff, Eye, EyeOff, Save, Loader2, Copy, Check } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { useToast } from "@/context/ToastContext";
+import { apiFetch } from "@/lib/api-client";
 
-export default function WifiSettingsTab() {
+export default function WifiSettingsTab({ restaurantId: propRestaurantId }: { restaurantId?: string }) {
   const { selectedRestaurant, restaurants, updateRestaurant } = useRestaurant();
   const { showToast } = useToast();
-  const restaurant = selectedRestaurant ?? restaurants[0];
+
+  // Owner dashboard: use context. Staff pages: use the prop.
+  const contextRestaurant = selectedRestaurant ?? restaurants[0];
+  const effectiveId = contextRestaurant?.id ?? propRestaurantId;
 
   const [wifiName, setWifiName] = useState("");
   const [wifiPassword, setWifiPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [loadedId, setLoadedId] = useState<string | null>(null);
+
+  // When used from staff pages, fetch wifi details directly since context is empty.
+  const fetchWifiData = useCallback(async (id: string) => {
+    try {
+      const data = await apiFetch<{ wifiName?: string; wifiPassword?: string }>(
+        `/api/restaurants/${id}`
+      );
+      setWifiName((data as any).wifiName ?? "");
+      setWifiPassword((data as any).wifiPassword ?? "");
+    } catch { /* silently ignore */ }
+  }, []);
 
   useEffect(() => {
-    if (restaurant) {
-      setWifiName((restaurant as any).wifiName ?? "");
-      setWifiPassword((restaurant as any).wifiPassword ?? "");
+    if (!effectiveId || effectiveId === loadedId) return;
+    setLoadedId(effectiveId);
+    if (contextRestaurant) {
+      setWifiName((contextRestaurant as any).wifiName ?? "");
+      setWifiPassword((contextRestaurant as any).wifiPassword ?? "");
+    } else {
+      fetchWifiData(effectiveId);
     }
-  }, [restaurant?.id]);
+  }, [effectiveId, contextRestaurant, loadedId, fetchWifiData]);
 
   const handleSave = async () => {
-    if (!restaurant) return;
+    if (!effectiveId) return;
     setSaving(true);
     try {
-      await updateRestaurant(restaurant.id, {
-        wifiName: wifiName.trim(),
-        wifiPassword: wifiPassword.trim(),
-      });
+      if (contextRestaurant) {
+        await updateRestaurant(effectiveId, {
+          wifiName: wifiName.trim(),
+          wifiPassword: wifiPassword.trim(),
+        });
+      } else {
+        // Staff path: call API directly
+        await apiFetch(`/api/restaurants/${effectiveId}`, {
+          method: "PATCH",
+          body: { wifiName: wifiName.trim(), wifiPassword: wifiPassword.trim() },
+        });
+      }
       showToast("WiFi details saved!");
     } catch {
       showToast("Failed to save WiFi details", "error");
@@ -47,11 +75,11 @@ export default function WifiSettingsTab() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  if (!restaurant) {
+  if (!effectiveId) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-gray-400">
         <Wifi className="h-10 w-10 mb-3" />
-        <p className="text-sm font-medium">Select a restaurant first</p>
+        <p className="text-sm font-medium">No restaurant found</p>
       </div>
     );
   }

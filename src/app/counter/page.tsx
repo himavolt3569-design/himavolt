@@ -1902,7 +1902,8 @@ export default function CounterPage() {
         {(() => {
           const FeatureComponent = COUNTER_FEATURE_COMPONENTS[viewMode as FeatureTabId];
           if (!FeatureComponent) return null;
-          return <FeatureComponent />;
+          const Comp = FeatureComponent as React.ComponentType<{ restaurantId?: string }>;
+          return <Comp restaurantId={session?.restaurantId} />;
         })()}
       </main>
     </div>
