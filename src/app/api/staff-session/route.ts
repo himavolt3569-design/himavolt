@@ -7,16 +7,26 @@ export const GET = safeHandler(async (req) => {
   const session = await getStaffSession(req);
   if (!session) return unauthorized("Not authenticated");
 
-  // Fetch restaurant type for feature gating
-  const restaurant = await db.restaurant.findUnique({
-    where: { id: session.restaurantId },
-    select: { type: true, currency: true },
-  });
+  // Fetch live DB role + active status alongside restaurant details.
+  // The JWT may be stale if the owner changed the staff member's role —
+  // always use the DB as the source of truth.
+  const [staffMember, restaurant] = await Promise.all([
+    db.staffMember.findUnique({
+      where: { id: session.staffId },
+      select: { role: true, isActive: true },
+    }),
+    db.restaurant.findUnique({
+      where: { id: session.restaurantId },
+      select: { type: true, currency: true },
+    }),
+  ]);
+
+  if (!staffMember?.isActive) return unauthorized("Account deactivated");
 
   return NextResponse.json({
     staffId: session.staffId,
     restaurantId: session.restaurantId,
-    role: session.role,
+    role: staffMember?.role ?? session.role, // live DB role, not JWT role
     userId: session.userId,
     name: session.name,
     restaurantType: restaurant?.type ?? "RESTAURANT",

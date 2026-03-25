@@ -62,6 +62,7 @@ import {
   ListOrdered,
   DoorOpen,
   User,
+  Crown,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -128,6 +129,7 @@ import CouponManagementTab from "@/components/dashboard/CouponManagementTab";
 import RoomManagementTab from "@/components/dashboard/RoomManagementTab";
 import HotelBookingsTab from "@/components/dashboard/HotelBookingsTab";
 import HotelQRTab from "@/components/dashboard/HotelQRTab";
+import OwnerControlPanel from "@/components/dashboard/OwnerControlPanel";
 
 type DashTab =
   | "overview"
@@ -151,6 +153,7 @@ type DashTab =
   | "coupons"
   | "rooms"
   | "tables"
+  | "owner-control"
   | FeatureTabId;
 
 /* ─── Navigation groups for sidebar ───────────────────────────────── */
@@ -181,6 +184,7 @@ const NAV_MANAGE: typeof NAV_MAIN = [
   { id: "hero-slides" as DashTab, label: "Hero Slides", icon: ImageIcon },
   { id: "coupons" as DashTab, label: "Coupons", icon: Tag },
   { id: "rooms" as DashTab, label: "Rooms", icon: BedDouble },
+  { id: "owner-control" as DashTab, label: "Owner Control", icon: Crown },
 ];
 
 const NAV_MORE: typeof NAV_MAIN = [
@@ -1518,6 +1522,7 @@ export default function DashboardPage() {
               {activeTab === "rooms" && <RoomManagementTab />}
               {activeTab === "hero-slides" && <HeroSlidesManager />}
               {activeTab === "media" && <MediaTab />}
+              {activeTab === "owner-control" && <OwnerControlPanel />}
               {activeTab === "reports" && <ReportsTab />}
               {activeTab === "stories" && selectedRestaurant && (
                 <StoryManager
