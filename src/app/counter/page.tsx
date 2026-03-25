@@ -340,17 +340,17 @@ function TokenBoard({ orders }: { orders: SSEOrder[] }) {
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.8 }}
-                  className="relative rounded-xl bg-white p-3 text-center shadow-md hover:shadow-lg hover:scale-[1.03] transition-all duration-200"
+                  className="relative overflow-hidden rounded-xl bg-white p-3 text-center shadow-md hover:shadow-lg hover:scale-[1.03] transition-all duration-200"
                 >
                   <motion.div
                     animate={{ scale: [1, 1.05, 1] }}
                     transition={{ repeat: Infinity, duration: 2 }}
                   >
-                    <p className="text-2xl font-black text-emerald-600">
+                    <p className="text-xl font-black text-emerald-600 leading-tight break-all">
                       #{order.orderNo.split("-").pop()}
                     </p>
                   </motion.div>
-                  <p className="text-[10px] font-bold text-gray-400 mt-1">
+                  <p className="text-[10px] font-bold text-emerald-700 mt-1 truncate">
                     {order.tableNo
                       ? `Table ${order.tableNo}`
                       : order.type === "DELIVERY"
@@ -395,13 +395,13 @@ function TokenBoard({ orders }: { orders: SSEOrder[] }) {
             {preparingOrders.map((order) => (
               <div
                 key={order.id}
-                className="rounded-lg bg-white/90 backdrop-blur p-2 text-center hover:scale-[1.03] transition-all duration-200"
+                className="overflow-hidden rounded-lg bg-white/90 backdrop-blur p-2 text-center hover:scale-[1.03] transition-all duration-200"
               >
-                <p className="text-lg font-black text-amber-600">
+                <p className="text-base font-black text-amber-600 leading-tight break-all">
                   #{order.orderNo.split("-").pop()}
                 </p>
                 {order.estimatedTime && (
-                  <p className="text-[9px] font-bold text-amber-500">
+                  <p className="text-[9px] font-bold text-amber-500 mt-0.5">
                     ~{order.estimatedTime}min
                   </p>
                 )}
