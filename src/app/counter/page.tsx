@@ -39,10 +39,7 @@ import {
 import { useToast } from "@/context/ToastContext";
 import { formatPrice } from "@/lib/currency";
 import StockTab from "@/components/dashboard/StockTab";
-import {
-  getFeatureTabsForType,
-  type FeatureTabId,
-} from "@/lib/restaurant-types";
+import { type FeatureTabId } from "@/lib/restaurant-types";
 
 /* ── Feature tab imports for counter staff ──────────────────────── */
 import QuickCounterTab from "@/components/dashboard/features/QuickCounterTab";
@@ -1726,23 +1723,16 @@ export default function CounterPage() {
 
             <div className="flex items-center gap-1.5 sm:gap-2">
               {/* View Mode Toggle */}
-              <div className="hidden sm:flex items-center gap-1 rounded-lg border border-brand-100 p-0.5 bg-white overflow-x-auto">
+              <div className="hidden sm:flex items-center gap-1 rounded-lg border border-brand-100 p-0.5 bg-white">
                 {(
                   [
                     { id: "billing", icon: Receipt, label: "Billing" },
                     { id: "tables", icon: Utensils, label: "Tables" },
                     { id: "manual", icon: Tag, label: "Manual Order" },
                     { id: "board", icon: Monitor, label: "Board" },
-                    { id: "split", icon: Utensils, label: "Split" },
+                    { id: "split", icon: GalleryHorizontalEnd, label: "Split" },
                     { id: "stock", icon: Package, label: "Stock" },
                     { id: "media", icon: GalleryHorizontalEnd, label: "Media" },
-                    ...(session?.restaurantType && (session.role === "SUPER_ADMIN" || session.role === "MANAGER")
-                      ? getFeatureTabsForType(session.restaurantType).map((f) => ({
-                          id: f.id,
-                          icon: Receipt,
-                          label: f.label,
-                        }))
-                      : []),
                   ] as { id: ViewMode; icon: typeof Monitor; label: string }[]
                 ).map((v) => (
                   <button
@@ -1828,22 +1818,15 @@ export default function CounterPage() {
 
       {/* Mobile View Toggle */}
       <div className="sm:hidden sticky top-14 z-40 bg-white/80 backdrop-blur-xl border-b border-brand-100/60 px-4 py-2">
-        <div className="flex items-center gap-1 rounded-lg border border-brand-100 p-0.5 bg-white overflow-x-auto">
+        <div className="flex items-center gap-1 rounded-lg border border-brand-100 p-0.5 bg-white">
           {(
             [
               { id: "billing", icon: Receipt, label: "Billing" },
               { id: "tables", icon: Utensils, label: "Tables" },
               { id: "manual", icon: Tag, label: "Manual" },
               { id: "board", icon: Monitor, label: "Board" },
-              { id: "split", icon: Utensils, label: "Split" },
+              { id: "split", icon: GalleryHorizontalEnd, label: "Split" },
               { id: "stock", icon: Package, label: "Stock" },
-              ...(session?.restaurantType && (session.role === "SUPER_ADMIN" || session.role === "MANAGER")
-                ? getFeatureTabsForType(session.restaurantType).map((f) => ({
-                    id: f.id,
-                    icon: Receipt,
-                    label: f.label,
-                  }))
-                : []),
             ] as { id: ViewMode; icon: typeof Monitor; label: string }[]
           ).map((v) => (
             <button
