@@ -182,11 +182,11 @@ export default function SignUpPage() {
               <Link href="/" className="inline-flex items-center gap-2">
                 <Mountain className="h-8 w-8 text-[#eaa94d]" strokeWidth={2.5} />
                 <span className="text-2xl font-extrabold tracking-tight text-[#1A2744]">
-                  Hima<span className="text-[#eaa94d]">Hub</span>
+                  Hima<span className="text-[#eaa94d]">Volt</span>
                 </span>
               </Link>
               <p className="mt-3 text-lg font-bold text-[#1A2744]">
-                How will you use HimaHub?
+                How will you use HimaVolt?
               </p>
               <p className="mt-1 text-sm text-slate-400">
                 Choose your account type to get started
@@ -332,7 +332,7 @@ export default function SignUpPage() {
                 <Link href="/" className="flex items-center gap-1.5">
                   <Mountain className="h-5 w-5 text-[#eaa94d]" strokeWidth={2.5} />
                   <span className="text-base font-extrabold tracking-tight text-[#1A2744]">
-                    Hima<span className="text-[#eaa94d]">Hub</span>
+                    Hima<span className="text-[#eaa94d]">Volt</span>
                   </span>
                 </Link>
                 <div className="mt-0.5 flex items-center gap-1.5">

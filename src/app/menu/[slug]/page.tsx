@@ -181,6 +181,31 @@ interface MenuItem {
   outOfStock: boolean;
 }
 
+interface ComboMealItem {
+  id: string;
+  name: string;
+  quantity: number;
+  menuItemId: string | null;
+  menuItem: { id: string; name: string; imageUrl: string | null; price: number; isAvailable: boolean } | null;
+}
+
+interface ComboMeal {
+  id: string;
+  name: string;
+  description: string | null;
+  imageUrl: string | null;
+  comboPrice: number;
+  originalPrice: number;
+  items: ComboMealItem[];
+}
+
+interface RushHourData {
+  isEnabled: boolean;
+  isRushNow: boolean;
+  surgeEnabled: boolean;
+  surgePercent: number;
+}
+
 function img(url: string | null) {
   return url || PLACEHOLDER_IMG;
 }
@@ -389,6 +414,7 @@ function DishDetailModal({
   allItems,
   onClose,
   onSelectDish,
+  surgeMultiplier = 1,
 }: {
   dish: MenuItem;
   restaurantId: string;
@@ -397,6 +423,7 @@ function DishDetailModal({
   allItems: MenuItem[];
   onClose: () => void;
   onSelectDish: (item: MenuItem) => void;
+  surgeMultiplier?: number;
 }) {
   const { addItem, getItemQty } = useCart();
   const { showToast } = useToast();
@@ -410,7 +437,7 @@ function DishDetailModal({
   const addOnTotal = dish.addOns
     .filter((a) => selectedAddOns.has(a.id))
     .reduce((s, a) => s + a.price, 0);
-  const unitPrice = dish.price + sizeAdd + addOnTotal;
+  const unitPrice = Math.round((dish.price + sizeAdd + addOnTotal) * surgeMultiplier);
   const total = unitPrice * qty;
 
   // Reset state when dish changes
@@ -893,23 +920,110 @@ function DishDetailModal({
   );
 }
 
+function ComboDealCard({
+  combo,
+  restaurantId,
+  restaurantSlug,
+  currency,
+  surgeMultiplier = 1,
+}: {
+  combo: ComboMeal;
+  restaurantId: string;
+  restaurantSlug: string;
+  currency: string;
+  surgeMultiplier?: number;
+}) {
+  const { addItem } = useCart();
+  const { showToast } = useToast();
+
+  const effectivePrice = Math.round(combo.comboPrice * surgeMultiplier);
+  const savings = Math.round(combo.originalPrice - combo.comboPrice);
+
+  const handleAddAll = () => {
+    combo.items.forEach((ci) => {
+      const menuItem = ci.menuItem;
+      const itemPrice = menuItem ? Math.round(menuItem.price * surgeMultiplier) : 0;
+      addItem(
+        {
+          id: menuItem?.id ?? ci.id,
+          name: ci.name,
+          price: itemPrice,
+          image: img(menuItem?.imageUrl ?? null),
+        },
+        restaurantId,
+        restaurantSlug,
+        currency,
+      );
+    });
+    showToast(`${combo.name} added to cart!`);
+  };
+
+  return (
+    <div className="flex-shrink-0 w-64 rounded-2xl border border-gray-100 bg-white shadow-[0_2px_12px_rgba(0,0,0,0.06)] overflow-hidden">
+      {combo.imageUrl && (
+        <div className="h-32 w-full overflow-hidden bg-gray-100">
+          <img src={combo.imageUrl} alt={combo.name} className="h-full w-full object-cover" />
+        </div>
+      )}
+      <div className="p-3 space-y-2">
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="text-sm font-bold text-[#3e1e0c] leading-tight">{combo.name}</h3>
+          {savings > 0 && (
+            <span className="flex-shrink-0 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold text-green-700">
+              Save {formatPrice(savings, currency)}
+            </span>
+          )}
+        </div>
+        {combo.description && (
+          <p className="text-[11px] text-gray-400 line-clamp-2">{combo.description}</p>
+        )}
+        <div className="flex flex-wrap gap-1">
+          {combo.items.map((ci) => (
+            <span key={ci.id} className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
+              {ci.quantity > 1 ? `${ci.quantity}× ` : ""}{ci.name}
+            </span>
+          ))}
+        </div>
+        <div className="flex items-center justify-between pt-1">
+          <div>
+            <span className="text-sm font-extrabold text-[#3e1e0c]">{formatPrice(effectivePrice, currency)}</span>
+            {combo.originalPrice > combo.comboPrice && (
+              <span className="ml-1.5 text-[11px] text-gray-400 line-through">{formatPrice(Math.round(combo.originalPrice * surgeMultiplier), currency)}</span>
+            )}
+          </div>
+          <button
+            onClick={handleAddAll}
+            className="flex items-center gap-1.5 rounded-xl bg-[#eaa94d] px-3 py-2 text-[11px] font-bold text-white hover:bg-[#d67620] transition-colors"
+          >
+            <Plus className="h-3 w-3" strokeWidth={3} />
+            Add All
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function MenuItemCard({
   item,
   restaurantId,
   restaurantSlug,
   restaurantCurrency,
   onSelect,
+  surgeMultiplier = 1,
 }: {
   item: MenuItem;
   restaurantId: string;
   restaurantSlug: string;
   restaurantCurrency: string;
   onSelect: (item: MenuItem) => void;
+  surgeMultiplier?: number;
 }) {
   const { addItem, getItemQty } = useCart();
   const { showToast } = useToast();
   const btnRef = useRef<HTMLButtonElement>(null);
   const qty = getItemQty(item.id);
+  const displayPrice = Math.round(item.price * surgeMultiplier);
 
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -917,7 +1031,7 @@ function MenuItemCard({
       {
         id: item.id,
         name: item.name,
-        price: item.price,
+        price: displayPrice,
         image: img(item.imageUrl),
       },
       restaurantId,
@@ -1006,8 +1120,11 @@ function MenuItemCard({
           </div>
           <div className="flex items-center gap-2.5">
             <span className="text-sm font-extrabold text-[#3e1e0c]">
-              {formatPrice(item.price, restaurantCurrency)}
+              {formatPrice(displayPrice, restaurantCurrency)}
             </span>
+            {surgeMultiplier > 1 && (
+              <span className="text-[10px] text-gray-400 line-through">{formatPrice(item.price, restaurantCurrency)}</span>
+            )}
             <span className="flex items-center gap-0.5 text-[11px] text-gray-400">
               <Star className="h-3 w-3 fill-[#eaa94d] text-[#eaa94d]" />
               {item.rating.toFixed(1)}
@@ -1326,12 +1443,15 @@ function MenuPageContent() {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [showRooms, setShowRooms] = useState(false);
   const [hasCoupons, setHasCoupons] = useState(false);
+  const [comboMeals, setComboMeals] = useState<ComboMeal[]>([]);
+  const [rushHour, setRushHour] = useState<RushHourData>({ isEnabled: false, isRushNow: false, surgeEnabled: false, surgePercent: 0 });
   const tabsRef = useRef<HTMLDivElement>(null);
   const { totalItems, items, subtotal } = useCart();
   const { activeOrder, restoreOrder, restoreFromStorage } = useOrder();
 
   const restaurantId = restaurant?.id ?? null;
   const cur = restaurant?.currency ?? "NPR";
+  const surgeMultiplier = (rushHour.isRushNow && rushHour.surgeEnabled) ? (1 + rushHour.surgePercent / 100) : 1;
 
   useEffect(() => {
     let cancelled = false;
@@ -1355,6 +1475,16 @@ function MenuPageContent() {
             .then((r) => { if (!cancelled) setRooms(r); })
             .catch(() => {});
         }
+
+        // Load combo deals
+        apiFetch<ComboMeal[]>(`/api/public/restaurants/${slug}/combo-meals`)
+          .then((c) => { if (!cancelled) setComboMeals(c); })
+          .catch(() => {});
+
+        // Load rush hour config
+        apiFetch<RushHourData>(`/api/public/restaurants/${slug}/rush-hour`)
+          .then((r) => { if (!cancelled) setRushHour(r); })
+          .catch(() => {});
 
         // Check if restaurant has active coupons
         apiFetch<{ valid: boolean }>(`/api/public/restaurants/${slug}/coupons/validate`, {
@@ -1429,6 +1559,16 @@ function MenuPageContent() {
     setShowOrder(true);
     // Do NOT change the URL — preserves ?table=N so Dine-In stays available for repeat orders
   }, []);
+
+  // Auto-show order tracking whenever an active (non-terminal) order is loaded or restored
+  useEffect(() => {
+    if (
+      activeOrder?.id &&
+      !["DELIVERED", "CANCELLED", "REJECTED"].includes(activeOrder.status)
+    ) {
+      setShowOrder(true);
+    }
+  }, [activeOrder?.id]); // only fires when the ORDER IDENTITY changes, not on every status poll
 
   useEffect(() => {
     if (activeOrder?.status === "DELIVERED") {
@@ -1886,6 +2026,53 @@ function MenuPageContent() {
               />
             )}
 
+            {/* Rush Hour banner */}
+            {rushHour.isRushNow && rushHour.surgeEnabled && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+                className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-red-50 to-orange-50 border border-orange-200/60 px-4 py-3"
+              >
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-orange-100 shrink-0">
+                  <Flame className="h-4 w-4 text-orange-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold text-orange-800">Rush Hour Pricing Active</p>
+                  <p className="text-[11px] text-orange-600">Prices +{rushHour.surgePercent}% during peak hours</p>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Combo Deals section */}
+            {comboMeals.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.1 }}
+                className="space-y-3"
+              >
+                <div className="flex items-center gap-2">
+                  <Tag className="h-4 w-4 text-[#3e1e0c]" />
+                  <h2 className="text-sm font-bold text-[#3e1e0c]">Combo Deals</h2>
+                  <span className="text-[11px] font-semibold text-gray-400">{comboMeals.length} deal{comboMeals.length > 1 ? "s" : ""}</span>
+                  <div className="flex-1 h-px bg-gray-100" />
+                </div>
+                <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
+                  {comboMeals.map((combo) => (
+                    <ComboDealCard
+                      key={combo.id}
+                      combo={combo}
+                      restaurantId={restaurant.id}
+                      restaurantSlug={restaurant.slug}
+                      currency={cur}
+                      surgeMultiplier={surgeMultiplier}
+                    />
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
             {/* Coupon banner — tell customers coupons are available */}
             {hasCoupons && (
               <motion.div
@@ -2053,6 +2240,7 @@ function MenuPageContent() {
                           restaurantSlug={restaurant.slug}
                           restaurantCurrency={cur}
                           onSelect={(d) => setSelectedDish(d)}
+                          surgeMultiplier={surgeMultiplier}
                         />
                       ))}
                     </motion.div>
@@ -2098,6 +2286,7 @@ function MenuPageContent() {
                                 restaurantSlug={restaurant.slug}
                                 restaurantCurrency={cur}
                                 onSelect={(d) => setSelectedDish(d)}
+                                surgeMultiplier={surgeMultiplier}
                               />
                             ))}
                           </motion.div>
@@ -2130,6 +2319,7 @@ function MenuPageContent() {
                                 restaurantSlug={restaurant.slug}
                                 restaurantCurrency={cur}
                                 onSelect={(d) => setSelectedDish(d)}
+                                surgeMultiplier={surgeMultiplier}
                               />
                             ))}
                         </motion.div>
@@ -2214,6 +2404,7 @@ function MenuPageContent() {
             allItems={menuItems}
             onClose={() => setSelectedDish(null)}
             onSelectDish={(d) => setSelectedDish(d)}
+            surgeMultiplier={surgeMultiplier}
           />
         )}
       </AnimatePresence>
@@ -2248,6 +2439,19 @@ function MenuPageContent() {
           onOrderPlaced={handleOrderPlaced}
         />
       )}
+
+      {/* Floating "Track Order" button — shown when order is active but overlay is closed */}
+      {activeOrder &&
+        !showOrder &&
+        !["DELIVERED", "CANCELLED", "REJECTED"].includes(activeOrder.status) && (
+          <button
+            onClick={() => setShowOrder(true)}
+            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 rounded-full bg-[#3e1e0c] px-5 py-3 text-sm font-bold text-white shadow-xl shadow-[#3e1e0c]/30 hover:bg-[#2d1508] active:scale-95 transition-all"
+          >
+            <Receipt className="h-4 w-4" />
+            Track Order · {activeOrder.orderNo}
+          </button>
+        )}
 
       {/* Customer chat — visible as soon as user lands on menu */}
       {restaurantId && (tableNo || roomNo || activeOrder) && (

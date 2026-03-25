@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
     const search = searchParams.get("q");
     const limit = parseInt(searchParams.get("limit") || "20", 10);
 
-    const where: Record<string, unknown> = { isActive: true };
+    const where: Record<string, unknown> = { isActive: true, isOpen: true };
     if (city) where.city = city;
     if (type) where.type = type;
     if (search) {

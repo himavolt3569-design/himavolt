@@ -71,6 +71,10 @@ model Restaurant {
   serviceChargeRate    Float   @default(10)   // percentage, e.g. 10 = 10%
   serviceChargeEnabled Boolean @default(true)
 
+  // Operational status (staff-controllable)
+  isOpen           Boolean @default(true)  // when false, hidden from landing page & ordering disabled
+  deliveryEnabled  Boolean @default(false) // when true, delivery option shown in checkout
+
   // Prepaid mode
   prepaidEnabled Boolean @default(false) // if true, customers must pay before food processing begins
   counterPayEnabled Boolean @default(true) // counter pay available for all types
@@ -109,6 +113,8 @@ model Restaurant {
   coupons        Coupon[]
   prepaidTokens  PrepaidToken[]
   feedbacks      Feedback[]
+  comboMeals     ComboMeal[]
+  rushHourConfig RushHourConfig?
 
   @@index([ownerId])
   @@index([slug])
@@ -331,6 +337,7 @@ model MenuItem {
   ratings     MenuItemRating[]
   heroSlides  HeroSlide[]
   ingredients MenuItemIngredient[]
+  comboItems  ComboMealItem[]
 
   @@index([restaurantId])
   @@index([categoryId])
@@ -1063,4 +1070,72 @@ model PrepaidToken {
   @@index([restaurantId])
   @@index([token])
   @@map("prepaid_tokens")
+}
+
+// ─── Combo Deals ─────────────────────────────────────────────────────
+
+model ComboMeal {
+  id            String          @id @default(cuid())
+  name          String
+  description   String?
+  imageUrl      String?
+  comboPrice    Float
+  originalPrice Float
+  isActive      Boolean         @default(true)
+  sortOrder     Int             @default(0)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  restaurantId String
+  restaurant   Restaurant    @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  items        ComboMealItem[]
+
+  @@index([restaurantId])
+  @@map("combo_meals")
+}
+
+model ComboMealItem {
+  id         String    @id @default(cuid())
+  name       String
+  quantity   Int       @default(1)
+
+  comboId    String
+  combo      ComboMeal @relation(fields: [comboId], references: [id], onDelete: Cascade)
+  menuItemId String?
+  menuItem   MenuItem? @relation(fields: [menuItemId], references: [id], onDelete: SetNull)
+
+  @@index([comboId])
+  @@map("combo_meal_items")
+}
+
+// ─── Rush Hour ───────────────────────────────────────────────────────
+
+model RushHourConfig {
+  id           String         @id @default(cuid())
+  isEnabled    Boolean        @default(false)
+  surgeEnabled Boolean        @default(false)
+  surgePercent Float          @default(10)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  restaurantId String         @unique
+  restaurant   Restaurant     @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  slots        RushHourSlot[]
+
+  @@map("rush_hour_configs")
+}
+
+model RushHourSlot {
+  id        String         @id @default(cuid())
+  label     String
+  startTime String
+  endTime   String
+  days      String[]       @default([])
+  isActive  Boolean        @default(true)
+
+  configId  String
+  config    RushHourConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
+
+  @@index([configId])
+  @@map("rush_hour_slots")
 }

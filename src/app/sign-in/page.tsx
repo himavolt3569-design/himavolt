@@ -68,7 +68,7 @@ export default function SignInPage() {
           <Link href="/" className="inline-flex items-center gap-2">
             <Mountain className="h-8 w-8 text-[#eaa94d]" strokeWidth={2.5} />
             <span className="text-2xl font-extrabold tracking-tight text-[#1A2744]">
-              Hima<span className="text-[#eaa94d]">Hub</span>
+              Hima<span className="text-[#eaa94d]">Volt</span>
             </span>
           </Link>
           <p className="mt-2 text-sm text-slate-400">Welcome back — sign in to continue</p>

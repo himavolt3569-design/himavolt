@@ -228,6 +228,17 @@ const FEATURE_ICONS: Record<FeatureTabId, typeof Zap> = {
   "hotel-qr": QrCode,
 };
 
+/* ── Features that are fully implemented (not coming soon) ─────────── */
+const LIVE_FEATURES = new Set<FeatureTabId>([
+  "combo-meals",
+  "rush-hour",
+  "wifi-settings",
+  "guest-checkin",
+  "room-qr-codes",
+  "hotel-bookings",
+  "hotel-qr",
+]);
+
 /* ── Feature tab component mapping ────────────────────────────────── */
 const FEATURE_COMPONENTS: Record<FeatureTabId, React.ComponentType> = {
   "quick-counter": QuickCounterTab,
@@ -1517,10 +1528,32 @@ export default function DashboardPage() {
               )}
               {/* ── Type-specific feature tabs ──────────────────── */}
               {(() => {
-                const FeatureComponent =
-                  FEATURE_COMPONENTS[activeTab as FeatureTabId];
+                const featureId = activeTab as FeatureTabId;
+                const FeatureComponent = FEATURE_COMPONENTS[featureId];
                 if (!FeatureComponent) return null;
-                return <FeatureComponent />;
+
+                // Show Coming Soon overlay for unimplemented features
+                if (!LIVE_FEATURES.has(featureId)) {
+                  const Icon = FEATURE_ICONS[featureId] ?? Sparkles;
+                  return (
+                    <div className="flex flex-col items-center justify-center py-24 text-center gap-4">
+                      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100">
+                        <Icon className="h-8 w-8 text-gray-400" />
+                      </div>
+                      <div>
+                        <p className="text-lg font-bold text-gray-700">Coming Soon</p>
+                        <p className="mt-1 text-sm text-gray-400 max-w-xs">
+                          This feature is under development and will be available soon.
+                        </p>
+                      </div>
+                      <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-700">In Development</span>
+                    </div>
+                  );
+                }
+
+                // Cast to accept restaurantId — tabs that don't need it simply ignore the prop
+                const Comp = FeatureComponent as React.ComponentType<{ restaurantId?: string }>;
+                return <Comp restaurantId={selectedRestaurant?.id} />;
               })()}
             </motion.div>
           </AnimatePresence>

@@ -1302,6 +1302,34 @@ export default function MenuManagementTab() {
 
   const restaurantId = selectedRestaurant?.id;
 
+  // Restaurant status toggles
+  const [isOpen, setIsOpen] = useState(true);
+  const [deliveryEnabled, setDeliveryEnabled] = useState(false);
+  const [statusSaving, setStatusSaving] = useState(false);
+
+  // Load current status
+  useEffect(() => {
+    if (!restaurantId) return;
+    apiFetch<{ isOpen: boolean; deliveryEnabled: boolean }>(`/api/restaurants/${restaurantId}/status`)
+      .then((s) => { setIsOpen(s.isOpen); setDeliveryEnabled(s.deliveryEnabled); })
+      .catch(() => {});
+  }, [restaurantId]);
+
+  const handleStatusToggle = async (field: "isOpen" | "deliveryEnabled", value: boolean) => {
+    if (!restaurantId || statusSaving) return;
+    const prev = field === "isOpen" ? isOpen : deliveryEnabled;
+    if (field === "isOpen") setIsOpen(value); else setDeliveryEnabled(value);
+    setStatusSaving(true);
+    try {
+      await apiFetch(`/api/restaurants/${restaurantId}/status`, { method: "PATCH", body: { [field]: value } });
+    } catch {
+      if (field === "isOpen") setIsOpen(prev); else setDeliveryEnabled(prev);
+      showToast("Failed to update status");
+    } finally {
+      setStatusSaving(false);
+    }
+  };
+
   const fetchData = useCallback(async () => {
     if (!restaurantId) return;
     setLoading(true);
@@ -1561,6 +1589,65 @@ export default function MenuManagementTab() {
             </>
           )}
         </div>
+      </div>
+
+      {/* Restaurant Status Toggles */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        {/* Visibility toggle */}
+        <button
+          onClick={() => handleStatusToggle("isOpen", !isOpen)}
+          disabled={statusSaving}
+          className={`flex flex-1 items-center justify-between gap-3 rounded-2xl border px-4 py-3 transition-all ${
+            isOpen
+              ? "border-green-200 bg-green-50 hover:bg-green-100"
+              : "border-red-200 bg-red-50 hover:bg-red-100"
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${isOpen ? "bg-green-100" : "bg-red-100"}`}>
+              {isOpen ? <Eye className="h-4 w-4 text-green-600" /> : <EyeOff className="h-4 w-4 text-red-500" />}
+            </div>
+            <div className="text-left">
+              <p className={`text-xs font-bold ${isOpen ? "text-green-800" : "text-red-700"}`}>
+                {isOpen ? "Restaurant Visible" : "Restaurant Hidden"}
+              </p>
+              <p className={`text-[11px] ${isOpen ? "text-green-600" : "text-red-500"}`}>
+                {isOpen ? "Showing on landing page" : "Hidden from landing page"}
+              </p>
+            </div>
+          </div>
+          <div className={`relative h-6 w-11 rounded-full transition-colors ${isOpen ? "bg-green-500" : "bg-gray-300"}`}>
+            <div className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${isOpen ? "translate-x-5" : "translate-x-0.5"}`} />
+          </div>
+        </button>
+
+        {/* Delivery toggle */}
+        <button
+          onClick={() => handleStatusToggle("deliveryEnabled", !deliveryEnabled)}
+          disabled={statusSaving}
+          className={`flex flex-1 items-center justify-between gap-3 rounded-2xl border px-4 py-3 transition-all ${
+            deliveryEnabled
+              ? "border-blue-200 bg-blue-50 hover:bg-blue-100"
+              : "border-gray-200 bg-gray-50 hover:bg-gray-100"
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${deliveryEnabled ? "bg-blue-100" : "bg-gray-100"}`}>
+              <Package className={`h-4 w-4 ${deliveryEnabled ? "text-blue-600" : "text-gray-400"}`} />
+            </div>
+            <div className="text-left">
+              <p className={`text-xs font-bold ${deliveryEnabled ? "text-blue-800" : "text-gray-600"}`}>
+                {deliveryEnabled ? "Delivery Enabled" : "Delivery Disabled"}
+              </p>
+              <p className={`text-[11px] ${deliveryEnabled ? "text-blue-600" : "text-gray-400"}`}>
+                {deliveryEnabled ? "Customers can order delivery" : "No delivery available"}
+              </p>
+            </div>
+          </div>
+          <div className={`relative h-6 w-11 rounded-full transition-colors ${deliveryEnabled ? "bg-blue-500" : "bg-gray-300"}`}>
+            <div className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${deliveryEnabled ? "translate-x-5" : "translate-x-0.5"}`} />
+          </div>
+        </button>
       </div>
 
       {/* Stats */}

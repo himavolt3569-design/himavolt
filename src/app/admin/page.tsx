@@ -123,7 +123,7 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
             <Shield className="h-8 w-8 text-white" />
           </motion.div>
           <h1 className="text-2xl font-bold text-[#1A2744]">Master Admin</h1>
-          <p className="mt-1 text-sm text-slate-400">HimalHub System Control Panel</p>
+          <p className="mt-1 text-sm text-slate-400">HimaVolt System Control Panel</p>
         </div>
 
         {/* Login Form */}
@@ -271,7 +271,7 @@ export default function MasterAdminPage() {
             </div>
             <div>
               <h1 className="text-lg font-bold text-[#1A2744]">Master Admin</h1>
-              <p className="text-[11px] text-slate-400">HimalHub System Control</p>
+              <p className="text-[11px] text-slate-400">HimaVolt System Control</p>
             </div>
           </div>
 

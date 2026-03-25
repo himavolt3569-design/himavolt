@@ -193,6 +193,7 @@ export default function CheckoutSheet({
   const [serviceChargeRate, setServiceChargeRate] = useState(0);
   const [serviceChargeEnabled, setServiceChargeEnabled] = useState(false);
   const [prepaidEnabled, setPrepaidEnabled] = useState(false);
+  const [deliveryEnabled, setDeliveryEnabled] = useState(false);
 
   // Order type & delivery state
   const [orderType, setOrderType] = useState<OrderType>(
@@ -288,6 +289,7 @@ export default function CheckoutSheet({
       serviceChargeRate: number;
       serviceChargeEnabled: boolean;
       prepaidEnabled: boolean;
+      deliveryEnabled: boolean;
     }>(`/api/public/restaurants/${slug}`)
       .then((data) => {
         if (typeof data.taxRate === "number") setTaxRate(data.taxRate);
@@ -299,6 +301,8 @@ export default function CheckoutSheet({
           setServiceChargeEnabled(data.serviceChargeEnabled);
         if (typeof data.prepaidEnabled === "boolean")
           setPrepaidEnabled(data.prepaidEnabled);
+        if (typeof data.deliveryEnabled === "boolean")
+          setDeliveryEnabled(data.deliveryEnabled);
       })
       .catch(() => {});
   }, [open, slug]);
@@ -306,6 +310,11 @@ export default function CheckoutSheet({
   // Filter payment methods to only show enabled ones
   const PAYMENT_METHODS = ALL_PAYMENT_METHODS.filter((m) =>
     enabledMethods.includes(m.id),
+  );
+
+  // Hide delivery option if restaurant has it disabled
+  const AVAILABLE_ORDER_TYPES = ORDER_TYPES.filter(
+    (ot) => ot.id !== "DELIVERY" || deliveryEnabled,
   );
 
   // Reset all modal state whenever the sheet opens
@@ -532,8 +541,8 @@ export default function CheckoutSheet({
       }
 
       // Prepaid restaurants: hold the screen until staff confirms payment received.
-      // eSewa/Khalti are auto-verified by gateway callbacks — no change needed for those.
-      if (prepaidEnabled && selectedPayment !== "ESEWA" && selectedPayment !== "KHALTI") {
+      // (eSewa/Khalti already returned above via startPaymentPolling)
+      if (prepaidEnabled) {
         clearCart(); // order is placed — cart can be cleared
         startPaymentPolling(order.id, "staff-confirm");
         return;
@@ -640,7 +649,7 @@ export default function CheckoutSheet({
                       Order Type
                     </h3>
                     <div className="grid grid-cols-3 gap-2">
-                      {ORDER_TYPES.map((ot) => {
+                      {AVAILABLE_ORDER_TYPES.map((ot) => {
                         const Icon = ot.icon;
                         const isActive = orderType === ot.id;
                         const isDisabled = ot.id === "DINE_IN" && !tableNo;

@@ -69,7 +69,7 @@ export default function GuidePage() {
             Site Guide
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            Reference for all signs, symbols, and indicators used throughout HimalHub.
+            Reference for all signs, symbols, and indicators used throughout HimaVolt.
           </p>
         </div>
 

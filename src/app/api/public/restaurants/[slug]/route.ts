@@ -54,6 +54,8 @@ export async function GET(
     counterPayEnabled: r.counterPayEnabled ?? true,
     directPayEnabled: r.directPayEnabled ?? false,
     prepaidEnabled: r.prepaidEnabled ?? false,
+    isOpen: r.isOpen ?? true,
+    deliveryEnabled: r.deliveryEnabled ?? false,
     categories: restaurant.categories,
     paymentQRs: restaurant.paymentQRs,
   });
