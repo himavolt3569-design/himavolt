@@ -93,6 +93,13 @@ export default function SignUpPage() {
     setError("");
     setLoading(true);
 
+    // Persist intended role in a cookie so the callback can read it even if
+    // Supabase metadata is lost/overwritten during email confirmation or
+    // account linking.  Also append it as a query param to the redirect URL.
+    if (role) {
+      document.cookie = `intended_role=${role}; path=/; max-age=86400; SameSite=Lax`;
+    }
+
     const supabase = getSupabaseBrowserClient();
     const { error: signUpError } = await supabase.auth.signUp({
       email,
@@ -104,7 +111,7 @@ export default function SignUpPage() {
           username,
           ...(phone ? { phone } : {}),
         },
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: `${window.location.origin}/auth/callback?role=${role}`,
       },
     });
 

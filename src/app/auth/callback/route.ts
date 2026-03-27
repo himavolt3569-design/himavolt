@@ -7,13 +7,15 @@ type SafeRole = "CUSTOMER" | "OWNER";
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const code = searchParams.get("code");
+  const tokenHash = searchParams.get("token_hash");
+  const type = searchParams.get("type") as string | null;
   const next = searchParams.get("next") ?? "/";
 
   // Role source priority: URL query param > cookie (set before OAuth redirect) > Supabase metadata
   const roleParam = searchParams.get("role")?.toUpperCase() as SafeRole | null;
   const roleCookie = req.cookies.get("intended_role")?.value?.toUpperCase() as SafeRole | null;
 
-  if (!code) {
+  if (!code && !tokenHash) {
     return NextResponse.redirect(new URL("/sign-in", req.url));
   }
 
@@ -46,9 +48,17 @@ export async function GET(req: NextRequest) {
     },
   );
 
-  const { error } = await supabase.auth.exchangeCodeForSession(code);
+  // Handle both PKCE flow (code) and implicit/token-hash flow
+  let authError: Error | null = null;
+  if (code) {
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    authError = error;
+  } else if (tokenHash && type) {
+    const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: type as "signup" | "email" });
+    authError = error;
+  }
 
-  if (error) {
+  if (authError) {
     return NextResponse.redirect(new URL("/sign-in", req.url));
   }
 

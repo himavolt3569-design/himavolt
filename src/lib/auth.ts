@@ -45,10 +45,13 @@ export async function getOrCreateUser() {
     : null;
 
   // Determine safe role — intended role or inherited from existing DB record
-  // The intended role (from signup) should always win over inherited CUSTOMER role
+  // The intended role (from signup) should always win over inherited CUSTOMER role.
+  // Google OAuth users default to OWNER (matching callback logic) since Google
+  // sign-in is exclusively for restaurant owners.
+  const isGoogleUser = supabaseUser.app_metadata?.provider === "google";
   const existingRole = (dbUser ?? userByEmail)?.role;
   const safeRole =
-    intendedRole === "OWNER" || existingRole === "OWNER" || existingRole === "ADMIN"
+    intendedRole === "OWNER" || existingRole === "OWNER" || existingRole === "ADMIN" || isGoogleUser
       ? "OWNER"
       : "CUSTOMER";
 
@@ -99,6 +102,12 @@ export async function getOrCreateUser() {
         data: { role: "OWNER" },
       });
     }
+  }
+
+  // Persist OWNER role in Supabase metadata so future sessions/callbacks can
+  // reliably read it, even if cookies or query params are lost.
+  if (dbUser?.role === "OWNER" && intendedRole !== "OWNER") {
+    await supabase.auth.updateUser({ data: { intended_role: "OWNER" } });
   }
 
   return dbUser;
