@@ -84,8 +84,9 @@ export async function GET(req: NextRequest) {
   // True when same email exists in DB under a different auth provider/ID
   const isAccountLink = !existingUserById && !!existingUserByEmail;
 
-  // Determine role: URL param > cookie > existing DB role > metadata (email sign-up) > CUSTOMER
+  // Determine role: URL param > cookie > existing DB role > metadata (email sign-up) > Google default (OWNER)
   // Never allow ADMIN to be self-assigned.
+  // Google sign-in is exclusively for restaurant owners — always defaults to OWNER.
   const metadataRole = user.user_metadata?.intended_role as SafeRole | undefined;
   const dbRole = existingUser?.role;
 
@@ -97,7 +98,8 @@ export async function GET(req: NextRequest) {
   const intendedRole: SafeRole | undefined =
     explicitRole ??
     (dbRole === "OWNER" || dbRole === "ADMIN" ? "OWNER" as SafeRole : undefined) ??
-    metadataRole;
+    metadataRole ??
+    (isGoogleUser ? "OWNER" as SafeRole : undefined); // Google sign-in = OWNER by default
   const safeRole: SafeRole = intendedRole === "OWNER" ? "OWNER" : "CUSTOMER";
 
   // For account linking: the explicit signup role should take priority over

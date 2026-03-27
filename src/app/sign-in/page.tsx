@@ -44,12 +44,13 @@ export default function SignInPage() {
   };
 
   const handleGoogleSignIn = async () => {
-    document.cookie = `intended_role=; path=/; max-age=0; SameSite=Lax`;
+    // Google sign-in is exclusively for restaurant owners
+    document.cookie = `intended_role=OWNER; path=/; max-age=600; SameSite=Lax`;
     const supabase = getSupabaseBrowserClient();
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${window.location.origin}/auth/callback?role=OWNER`,
       },
     });
   };
