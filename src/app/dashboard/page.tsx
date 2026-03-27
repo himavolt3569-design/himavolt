@@ -67,6 +67,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import CustomerDashboard from "@/app/dashboard/CustomerDashboard";
 import LiveOrdersTab from "@/components/dashboard/LiveOrdersTab";
 import QRCodesTab from "@/components/dashboard/QRCodesTab";
 import MenuManagementTab from "@/components/dashboard/MenuManagementTab";
@@ -1328,11 +1329,9 @@ export default function DashboardPage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  /* Dashboard is for OWNER/ADMIN only — redirect others appropriately */
+  /* Redirect OWNER with no restaurants to onboarding */
   useEffect(() => {
-    if (userRole === "CUSTOMER") {
-      dashRouter.replace("/");
-    } else if (userRole === "OWNER" && !resLoading && restaurants.length === 0) {
+    if (userRole === "OWNER" && !resLoading && restaurants.length === 0) {
       dashRouter.replace("/onboarding");
     }
   }, [userRole, dashRouter, resLoading, restaurants.length]);
@@ -1348,13 +1347,7 @@ export default function DashboardPage() {
   }
 
   if (userRole === "CUSTOMER") {
-    return (
-      <div className="flex h-screen items-center justify-center bg-slate-50">
-        <span className="text-sm font-medium text-amber-700/70">
-          Redirecting...
-        </span>
-      </div>
-    );
+    return <CustomerDashboard />;
   }
 
   return (
