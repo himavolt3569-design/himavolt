@@ -1431,7 +1431,10 @@ function MenuPageContent() {
   const [selectedDish, setSelectedDish] = useState<MenuItem | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
-  const [showOrder, setShowOrder] = useState(false);
+  const [showOrder, setShowOrder] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem(`hh_tracking_${slug}`) === "1";
+  });
   const [showHistory, setShowHistory] = useState(false);
   const [filterVeg, setFilterVeg] = useState(false);
   const { isSignedIn } = useAuth();
@@ -1555,10 +1558,11 @@ function MenuPageContent() {
   }, []);
 
   const handleOrderPlaced = useCallback((_orderId: string) => {
+    localStorage.setItem(`hh_tracking_${slug}`, "1");
     setCheckoutOpen(false);
     setShowOrder(true);
     // Do NOT change the URL — preserves ?table=N so Dine-In stays available for repeat orders
-  }, []);
+  }, [slug]);
 
   // Auto-show order tracking whenever an active (non-terminal) order is loaded or restored
   useEffect(() => {
@@ -1571,11 +1575,23 @@ function MenuPageContent() {
   }, [activeOrder?.id]); // only fires when the ORDER IDENTITY changes, not on every status poll
 
   useEffect(() => {
-    if (activeOrder?.status === "DELIVERED") {
-      const t = setTimeout(() => setShowOrder(false), 3000);
+    if (activeOrder?.status === "DELIVERED" || activeOrder?.status === "CANCELLED" || activeOrder?.status === "REJECTED") {
+      localStorage.removeItem(`hh_tracking_${slug}`);
+      const t = setTimeout(() => setShowOrder(false), activeOrder.status === "DELIVERED" ? 3000 : 0);
       return () => clearTimeout(t);
     }
-  }, [activeOrder?.status]);
+  }, [activeOrder?.status, slug]);
+
+  // If tracking overlay is open but no order is restored within 2s, the stored order
+  // is likely gone — clear the flag and return to the menu
+  useEffect(() => {
+    if (!showOrder || activeOrder) return;
+    const t = setTimeout(() => {
+      localStorage.removeItem(`hh_tracking_${slug}`);
+      setShowOrder(false);
+    }, 2000);
+    return () => clearTimeout(t);
+  }, [showOrder, activeOrder, slug]);
 
   const allCategories = restaurant?.categories ?? [];
   const categories = allCategories.filter((c) => !c.parentId);
@@ -1635,8 +1651,8 @@ function MenuPageContent() {
     return a.sortOrder - b.sortOrder;
   });
 
-  if (showOrder && activeOrder) {
-    return <OrderStatus onClose={() => setShowOrder(false)} />;
+  if (showOrder) {
+    return <OrderStatus onClose={() => { localStorage.removeItem(`hh_tracking_${slug}`); setShowOrder(false); }} />;
   }
 
   if (loading) {

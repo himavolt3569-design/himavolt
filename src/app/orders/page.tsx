@@ -402,6 +402,7 @@ export default function OrdersPage() {
       setLoading(false);
       return;
     }
+    setLoading(true);
     fetchOrders();
   }, [isLoaded, isSignedIn, fetchOrders]);
 

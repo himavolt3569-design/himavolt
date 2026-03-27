@@ -11,10 +11,64 @@ import {
   X,
   AlertTriangle,
   ArrowLeft,
+  Loader2,
+  Timer,
 } from "lucide-react";
 import { useOrder, type OrderStatus as OrderStatusType } from "@/context/OrderContext";
 import { formatPrice } from "@/lib/currency";
 import gsap from "gsap";
+
+function CountdownTimer({
+  estimatedTime,
+  startedAt,
+}: {
+  estimatedTime: number;
+  startedAt: string;
+}) {
+  const [remaining, setRemaining] = useState(0);
+
+  useEffect(() => {
+    function calc() {
+      const start = new Date(startedAt).getTime();
+      const end = start + estimatedTime * 60 * 1000;
+      const diff = Math.max(0, Math.floor((end - Date.now()) / 1000));
+      setRemaining(diff);
+    }
+    calc();
+    const interval = setInterval(calc, 1000);
+    return () => clearInterval(interval);
+  }, [estimatedTime, startedAt]);
+
+  const mins = Math.floor(remaining / 60);
+  const secs = remaining % 60;
+  const progress = Math.max(0, Math.min(1, 1 - remaining / (estimatedTime * 60)));
+
+  return (
+    <div className="flex flex-col items-center">
+      <div className="relative h-24 w-24">
+        <svg className="h-full w-full -rotate-90" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="42" fill="none" stroke="#f3f4f6" strokeWidth="6" />
+          <motion.circle
+            cx="50" cy="50" r="42" fill="none" stroke="#eaa94d" strokeWidth="6"
+            strokeLinecap="round" strokeDasharray={264}
+            animate={{ strokeDashoffset: 264 * (1 - progress) }}
+            transition={{ duration: 1, ease: "easeOut" }}
+          />
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <Timer className="h-3.5 w-3.5 text-[#eaa94d] mb-0.5" />
+          <span className="text-xl font-black text-[#3e1e0c] tabular-nums">
+            {mins}:{secs.toString().padStart(2, "0")}
+          </span>
+          <span className="text-[10px] font-medium text-gray-400">remaining</span>
+        </div>
+      </div>
+      {remaining === 0 && (
+        <p className="mt-2 text-xs font-bold text-[#eaa94d]">Should be ready any moment!</p>
+      )}
+    </div>
+  );
+}
 
 const STEPS: { label: string; icon: typeof Clock }[] = [
   { label: "Order Placed", icon: CheckCircle2 },
@@ -71,16 +125,8 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
 
   if (!activeOrder) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-white p-6">
-        <div className="text-center">
-          <p className="text-lg font-bold text-[#3e1e0c]">No active order</p>
-          <button
-            onClick={onClose}
-            className="mt-4 rounded-xl bg-[#3e1e0c] px-6 py-3 text-sm font-bold text-white hover:bg-[#2d1508] transition-colors"
-          >
-            Back to Menu
-          </button>
-        </div>
+      <div className="flex min-h-screen items-center justify-center bg-white">
+        <Loader2 className="h-8 w-8 animate-spin text-[#eaa94d]" />
       </div>
     );
   }
@@ -168,6 +214,16 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
             {activeOrder.status === "REJECTED" && "The restaurant was unable to fulfil your order"}
           </p>
         </div>
+
+        {/* Countdown timer */}
+        {!isCancelled && activeOrder.estimatedTime && (activeOrder.preparingAt || activeOrder.acceptedAt) && (
+          <div className="flex justify-center">
+            <CountdownTimer
+              estimatedTime={activeOrder.estimatedTime}
+              startedAt={activeOrder.preparingAt || activeOrder.acceptedAt!}
+            />
+          </div>
+        )}
 
         {/* Steps timeline */}
         <div className="flex items-start justify-between px-2">

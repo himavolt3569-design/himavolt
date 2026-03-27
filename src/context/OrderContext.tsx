@@ -65,6 +65,8 @@ export interface Order {
   note: string | null;
   type: string;
   estimatedTime: number | null;
+  acceptedAt: string | null;
+  preparingAt: string | null;
   createdAt: string;
   items: OrderItem[];
   restaurantId: string;
