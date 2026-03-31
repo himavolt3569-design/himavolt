@@ -130,7 +130,7 @@ export default function ThemeSettingsTab() {
     setSaving(true);
     try {
       const updated = await apiFetch<ThemeConfig>(`/api/restaurants/${restaurant.id}/theme`, {
-        method: "PUT",
+        method: "PATCH",
         body: theme,
       });
       setSaved(updated);

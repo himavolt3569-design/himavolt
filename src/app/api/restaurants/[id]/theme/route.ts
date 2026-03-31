@@ -49,8 +49,8 @@ export async function GET(
   return NextResponse.json(restaurant);
 }
 
-// PUT /api/restaurants/[id]/theme
-export async function PUT(
+// PATCH /api/restaurants/[id]/theme
+export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
