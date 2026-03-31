@@ -31,7 +31,8 @@
       "Bash(grep -rn \"isDrink\" /d/Official_Projects/himalhub/src/app/api/restaurants/[id]/orders/)",
       "Bash(grep -A 30 \"Deduct stock for each ordered item\" /d/Official_Projects/himalhub/src/app/api/restaurants/[id]/orders/route.ts)",
       "Bash(grep -c \"DELETE\\\\|export async function DELETE\" /d/Official_Projects/himalhub/src/app/api/restaurants/[id]/categories/route.ts)",
-      "Bash(find d:/Official_Projects/himalhub/src/app/api/restaurants/[id] -type f -name \"*.ts\")"
+      "Bash(find d:/Official_Projects/himalhub/src/app/api/restaurants/[id] -type f -name \"*.ts\")",
+      "Bash(grep -r \"showOrder\\\\|hh_tracking\" d:Official_Projectshimalhubsrc --include=*.tsx --include=*.ts)"
     ],
     "additionalDirectories": [
       "d:\\Official_Projects\\himalhub\\src\\app\\api\\public\\restaurants\\[slug]"

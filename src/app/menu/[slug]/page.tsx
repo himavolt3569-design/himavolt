@@ -1591,14 +1591,14 @@ function MenuPageContent() {
     }
   }, [activeOrder?.status, slug]);
 
-  // If tracking overlay is open but no order is restored within 2s, the stored order
+  // If tracking overlay is open but no order is restored within 8s, the stored order
   // is likely gone — clear the flag and return to the menu
   useEffect(() => {
     if (!showOrder || activeOrder) return;
     const t = setTimeout(() => {
       localStorage.removeItem(`hh_tracking_${slug}`);
       setShowOrder(false);
-    }, 2000);
+    }, 8000);
     return () => clearTimeout(t);
   }, [showOrder, activeOrder, slug]);
 
@@ -1661,6 +1661,14 @@ function MenuPageContent() {
   });
 
   if (showOrder) {
+    if (!activeOrder) {
+      return (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white">
+          <Loader2 className="h-8 w-8 animate-spin text-[#eaa94d] mb-3" />
+          <p className="text-sm font-semibold text-gray-500">Loading your order…</p>
+        </div>
+      );
+    }
     return <OrderStatus onClose={() => { localStorage.removeItem(`hh_tracking_${slug}`); setShowOrder(false); }} />;
   }
 
