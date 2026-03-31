@@ -44,6 +44,7 @@ import { apiFetch } from "@/lib/api-client";
 import { useToast } from "@/context/ToastContext";
 import { formatPrice, getCurrencySymbol } from "@/lib/currency";
 import ImagePicker from "@/components/shared/ImagePicker";
+import { SkeletonCard } from "@/components/shared/Skeleton";
 
 /* ─── Types ─────────────────────────────────────────────────────────── */
 
@@ -204,11 +205,13 @@ function CategoryTree({
   selectedCatId,
   onSelect,
   onAddSub,
+  onDelete,
 }: {
   categories: MenuCategory[];
   selectedCatId: string;
   onSelect: (id: string) => void;
   onAddSub: (parentId: string) => void;
+  onDelete: (categoryId: string) => void;
 }) {
   const topLevel = categories.filter((c) => !c.parentId);
   const [expanded, setExpanded] = useState<Set<string>>(new Set(topLevel.map((c) => c.id)));
@@ -269,6 +272,13 @@ function CategoryTree({
               >
                 <PlusCircle className="h-3 w-3" />
               </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); onDelete(cat.id); }}
+                className="p-1 text-gray-300 hover:text-red-500 transition-colors"
+                title="Delete category"
+              >
+                <Trash2 className="h-3 w-3" />
+              </button>
             </div>
 
             <AnimatePresence>
@@ -281,16 +291,24 @@ function CategoryTree({
                   className="overflow-hidden pl-7"
                 >
                   {subs.map((sub) => (
+                    <div key={sub.id} className="flex items-center group">
                     <button
-                      key={sub.id}
                       onClick={() => onSelect(sub.id)}
-                      className={`flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-[12px] transition-all ${
+                      className={`flex flex-1 items-center gap-2 rounded-md px-2.5 py-1.5 text-[12px] transition-all ${
                         selectedCatId === sub.id ? "bg-amber-50 text-amber-800 font-semibold" : "text-gray-500 hover:bg-gray-50"
                       }`}
                     >
                       <span className="flex-1 text-left truncate">{sub.name}</span>
                       <span className="text-[10px] text-gray-400">{sub._count.items}</span>
                     </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); onDelete(sub.id); }}
+                      className="p-1 text-gray-200 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                      title="Delete subcategory"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                    </div>
                   ))}
                 </motion.div>
               )}
@@ -787,7 +805,7 @@ function DishForm({
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
-      className="rounded-xl border border-gray-200 bg-white shadow-lg overflow-hidden"
+      className="rounded-xl border border-gray-200 bg-white shadow-lg overflow-hidden w-full max-w-full"
     >
       {/* Header */}
       <div className="flex items-center justify-between border-b border-gray-100 px-5 py-3">
@@ -815,16 +833,16 @@ function DishForm({
         ))}
       </div>
 
-      <div className="p-5 space-y-5">
+      <div className="p-4 sm:p-5 space-y-5 overflow-x-hidden">
         {/* ── BASIC INFO ──────────────────────────────────────── */}
         {activeSection === "basic" && (
           <div className="space-y-4">
             {/* Image + Name + Price */}
-            <div className="flex gap-4 items-start">
+            <div className="flex flex-col sm:flex-row gap-4 items-start">
               <button
                 type="button"
                 onClick={() => setShowImagePicker(true)}
-                className="shrink-0 group relative h-24 w-24 rounded-xl overflow-hidden bg-gray-50 border border-gray-200 hover:border-amber-300 transition-colors"
+                className="shrink-0 group relative h-24 w-full sm:w-24 rounded-xl overflow-hidden bg-gray-50 border border-gray-200 hover:border-amber-300 transition-colors"
               >
                 {form.imageUrl ? (
                   <>
@@ -854,15 +872,13 @@ function DishForm({
                   placeholder="Dish name *"
                   className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 placeholder-gray-300 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-100"
                 />
-                <div className="flex gap-3">
-                  <div className="w-32">
-                    <PriceInput value={form.price} onChange={(v) => update({ price: v })} placeholder="Price *" currencySymbol={getCurrencySymbol(currency)} />
-                  </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <PriceInput value={form.price} onChange={(v) => update({ price: v })} placeholder="Price *" currencySymbol={getCurrencySymbol(currency)} />
                   <input
                     value={form.prepTime}
                     onChange={(e) => update({ prepTime: e.target.value })}
                     placeholder="e.g. 15-20 min"
-                    className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 placeholder-gray-300 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-100"
+                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 placeholder-gray-300 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-100"
                   />
                 </div>
               </div>
@@ -1298,6 +1314,12 @@ export default function MenuManagementTab() {
   const [creatingCat, setCreatingCat] = useState(false);
   const [seedingCats, setSeedingCats] = useState(false);
   const [addSubParentId, setAddSubParentId] = useState<string | null>(null);
+  const [deleteCatConfirm, setDeleteCatConfirm] = useState<{
+    categoryId: string;
+    name: string;
+    items: number;
+    subcategories: number;
+  } | null>(null);
   const newCatInputRef = useRef<HTMLInputElement>(null);
 
   const restaurantId = selectedRestaurant?.id;
@@ -1402,6 +1424,35 @@ export default function MenuManagementTab() {
       showToast("Failed to seed categories");
     } finally {
       setSeedingCats(false);
+    }
+  };
+
+  const initDeleteCategory = async (categoryId: string) => {
+    if (!restaurantId) return;
+    try {
+      const res = await apiFetch<{ willDelete: { items: number; subcategories: number }; name: string; categoryId: string }>(
+        `/api/restaurants/${restaurantId}/categories?categoryId=${categoryId}`,
+        { method: "DELETE", body: { categoryId } }
+      );
+      setDeleteCatConfirm({ categoryId, name: res.name, items: res.willDelete.items, subcategories: res.willDelete.subcategories });
+    } catch {
+      showToast("Failed to check category");
+    }
+  };
+
+  const confirmDeleteCategory = async () => {
+    if (!restaurantId || !deleteCatConfirm) return;
+    try {
+      await apiFetch(
+        `/api/restaurants/${restaurantId}/categories?confirm=true`,
+        { method: "DELETE", body: { categoryId: deleteCatConfirm.categoryId } }
+      );
+      showToast(`"${deleteCatConfirm.name}" deleted`);
+      if (selectedCatId === deleteCatConfirm.categoryId) setSelectedCatId("All");
+      setDeleteCatConfirm(null);
+      await fetchData();
+    } catch {
+      showToast("Failed to delete category");
     }
   };
 
@@ -1552,9 +1603,17 @@ export default function MenuManagementTab() {
 
   if (loading && items.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-24 gap-3">
-        <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
-        <p className="text-sm text-gray-400">Loading menu…</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 p-4">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} className="rounded-2xl border border-gray-200 bg-white overflow-hidden shadow-sm">
+            <div className="animate-pulse bg-gray-100 h-40 w-full" />
+            <div className="p-4 space-y-2">
+              <div className="animate-pulse bg-gray-100 h-4 w-3/4 rounded-lg" />
+              <div className="animate-pulse bg-gray-100 h-3 w-1/2 rounded-lg" />
+              <div className="animate-pulse bg-gray-100 h-8 w-full rounded-xl mt-3" />
+            </div>
+          </div>
+        ))}
       </div>
     );
   }
@@ -1775,6 +1834,7 @@ export default function MenuManagementTab() {
                 selectedCatId={selectedCatId}
                 onSelect={setSelectedCatId}
                 onAddSub={setAddSubParentId}
+                onDelete={initDeleteCategory}
               />
             </div>
           </div>
@@ -1863,6 +1923,57 @@ export default function MenuManagementTab() {
           </motion.div>
         </div>
       </div>
+
+      {/* Delete Category Confirmation Dialog */}
+      <AnimatePresence>
+        {deleteCatConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                  <Trash2 className="h-5 w-5 text-red-600" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900">Delete Category</h3>
+                  <p className="text-sm text-gray-500">This cannot be undone</p>
+                </div>
+              </div>
+              <p className="text-sm text-gray-700 mb-1">
+                Deleting <span className="font-semibold">&ldquo;{deleteCatConfirm.name}&rdquo;</span> will also delete:
+              </p>
+              <ul className="text-sm text-red-600 mb-5 list-disc pl-5 space-y-0.5">
+                {deleteCatConfirm.items > 0 && <li>{deleteCatConfirm.items} menu item{deleteCatConfirm.items !== 1 ? "s" : ""}</li>}
+                {deleteCatConfirm.subcategories > 0 && <li>{deleteCatConfirm.subcategories} subcategor{deleteCatConfirm.subcategories !== 1 ? "ies" : "y"}</li>}
+                {deleteCatConfirm.items === 0 && deleteCatConfirm.subcategories === 0 && <li className="text-gray-500">No items or subcategories</li>}
+              </ul>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setDeleteCatConfirm(null)}
+                  className="flex-1 rounded-xl border border-gray-200 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDeleteCategory}
+                  className="flex-1 rounded-xl bg-red-500 py-2.5 text-sm font-bold text-white hover:bg-red-600 transition-colors"
+                >
+                  Delete
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

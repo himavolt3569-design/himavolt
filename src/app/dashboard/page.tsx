@@ -82,6 +82,8 @@ import TaxChargesTab from "@/components/dashboard/TaxChargesTab";
 import StockTab from "@/components/dashboard/StockTab";
 import OffersTab from "@/components/dashboard/OffersTab";
 import HeroSlidesManager from "@/components/dashboard/HeroSlidesManager";
+import ThemeSettingsTab from "@/components/dashboard/ThemeSettingsTab";
+import GlobalChatButton from "@/components/chat/GlobalChatButton";
 import { useLiveOrders } from "@/context/LiveOrdersContext";
 import { useRestaurant } from "@/context/RestaurantContext";
 import {
@@ -155,6 +157,7 @@ type DashTab =
   | "rooms"
   | "tables"
   | "owner-control"
+  | "theme"
   | FeatureTabId;
 
 /* ─── Navigation groups for sidebar ───────────────────────────────── */
@@ -186,6 +189,7 @@ const NAV_MANAGE: typeof NAV_MAIN = [
   { id: "coupons" as DashTab, label: "Coupons", icon: Tag },
   { id: "rooms" as DashTab, label: "Rooms", icon: BedDouble },
   { id: "owner-control" as DashTab, label: "Owner Control", icon: Crown },
+  { id: "theme" as DashTab, label: "Theme", icon: Layers },
 ];
 
 const NAV_MORE: typeof NAV_MAIN = [
@@ -1542,6 +1546,7 @@ export default function DashboardPage() {
               {activeTab === "hero-slides" && <HeroSlidesManager />}
               {activeTab === "media" && <MediaTab />}
               {activeTab === "owner-control" && <OwnerControlPanel />}
+              {activeTab === "theme" && <ThemeSettingsTab />}
               {activeTab === "reports" && <ReportsTab />}
               {activeTab === "stories" && selectedRestaurant && (
                 <StoryManager
@@ -1583,6 +1588,15 @@ export default function DashboardPage() {
           </AnimatePresence>
         </main>
       </div>
+
+      {/* Global floating chat for owner/admin — only when not on chat tab */}
+      {selectedRestaurant && user && activeTab !== "chat" && (
+        <GlobalChatButton
+          restaurantId={selectedRestaurant.id}
+          staffRole={userRole ?? "OWNER"}
+          staffName={user.user_metadata?.name ?? user.email ?? "Owner"}
+        />
+      )}
     </div>
   );
 }

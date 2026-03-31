@@ -55,6 +55,7 @@ export default function ManualBillingTab() {
   const [success,     setSuccess]     = useState(false);
   const [orderId,     setOrderId]     = useState<string | null>(null);
   const [showTables,  setShowTables]  = useState(false);
+  const [payMethod,   setPayMethod]   = useState<"COUNTER" | "DIRECT">("COUNTER");
   const printRef = useRef<HTMLDivElement>(null);
 
   // Fetch menu items and available tables
@@ -124,7 +125,7 @@ export default function ManualBillingTab() {
               menuItemId: b.menuItemId,
             })),
             type: "DINE_IN",
-            paymentMethod: "COUNTER",
+            paymentMethod: payMethod,
             note: `Counter order${tableNo ? ` - Table ${tableNo}` : ""}${guestName.trim() ? ` - ${guestName.trim()}` : ""}`,
           },
         },
@@ -369,6 +370,36 @@ export default function ManualBillingTab() {
               onChange={(e) => setGuestName(e.target.value)}
               className="w-full rounded-xl border border-gray-200 pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-amber-300"
             />
+          </div>
+
+          {/* Payment method toggle */}
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setPayMethod("COUNTER")}
+              className={`flex flex-col items-center rounded-xl border-2 p-2.5 text-center transition-all ${
+                payMethod === "COUNTER"
+                  ? "border-amber-400 bg-amber-50"
+                  : "border-gray-200 bg-white hover:border-gray-300"
+              }`}
+            >
+              <Receipt className={`h-4 w-4 mb-1 ${payMethod === "COUNTER" ? "text-amber-600" : "text-gray-400"}`} />
+              <span className={`text-[11px] font-bold ${payMethod === "COUNTER" ? "text-amber-700" : "text-gray-600"}`}>Manual Pay</span>
+              <span className="text-[10px] text-gray-400 leading-tight">Staff records payment</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setPayMethod("DIRECT")}
+              className={`flex flex-col items-center rounded-xl border-2 p-2.5 text-center transition-all ${
+                payMethod === "DIRECT"
+                  ? "border-teal-400 bg-teal-50"
+                  : "border-gray-200 bg-white hover:border-gray-300"
+              }`}
+            >
+              <Check className={`h-4 w-4 mb-1 ${payMethod === "DIRECT" ? "text-teal-600" : "text-gray-400"}`} />
+              <span className={`text-[11px] font-bold ${payMethod === "DIRECT" ? "text-teal-700" : "text-gray-600"}`}>Direct Pay</span>
+              <span className="text-[10px] text-gray-400 leading-tight">Customer pays at counter</span>
+            </button>
           </div>
         </div>
 

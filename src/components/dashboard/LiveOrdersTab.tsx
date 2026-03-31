@@ -21,6 +21,7 @@ import { useLiveOrders, type LiveOrder, type LiveOrderStatus } from "@/context/L
 import { useRestaurant } from "@/context/RestaurantContext";
 import { formatPrice } from "@/lib/currency";
 import DineInRequestModal from "@/components/modals/DineInRequestModal";
+import { SkeletonOrderCard } from "@/components/shared/Skeleton";
 import gsap from "gsap";
 
 const STATUS_CONFIG: Record<
@@ -95,6 +96,18 @@ function TimeAgo({ ts }: { ts: string }) {
   return <span className="text-[11px] text-gray-400">{Math.floor(mins / 60)}h ago</span>;
 }
 
+function PendingExpiryBadge({ createdAt }: { createdAt: string }) {
+  const ageMs = Date.now() - new Date(createdAt).getTime();
+  const ageMins = Math.floor(ageMs / 60000);
+  if (ageMins < 25) return null;
+  const remaining = 30 - ageMins;
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-600 animate-pulse">
+      ⚠ {remaining <= 0 ? "Expiring..." : `${remaining}m left`}
+    </span>
+  );
+}
+
 const PAYMENT_ICONS: Record<string, typeof CreditCard> = {
   ESEWA: Wallet,
   KHALTI: Wallet,
@@ -107,24 +120,29 @@ const PAYMENT_LABELS: Record<string, string> = {
   KHALTI: "Khalti",
   BANK: "Bank",
   CASH: "Cash",
+  COUNTER: "Manual Pay",
+  DIRECT: "Direct Pay",
 };
 
 function PaymentBadge({ method, status }: { method: string; status: string }) {
   const Icon = PAYMENT_ICONS[method] || CreditCard;
   const label = PAYMENT_LABELS[method] || method;
   const isPaid = status === "COMPLETED";
+  const isDirectPay = method === "DIRECT";
 
   return (
     <span
       className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${
         isPaid
           ? "bg-green-100 text-green-700"
+          : isDirectPay
+          ? "bg-teal-100 text-teal-700"
           : "bg-amber-100 text-amber-700"
       }`}
     >
       <Icon className="h-2.5 w-2.5" />
       {label}
-      {isPaid ? " Paid" : " Due"}
+      {isPaid ? " Paid" : isDirectPay ? " → Counter" : " Due"}
     </span>
   );
 }
@@ -144,9 +162,8 @@ export default function LiveOrdersTab() {
 
   if (loading && orders.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-24 gap-3">
-        <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
-        <p className="text-sm text-gray-400">Loading orders…</p>
+      <div className="space-y-3">
+        {Array.from({ length: 3 }).map((_, i) => <SkeletonOrderCard key={i} />)}
       </div>
     );
   }
@@ -306,7 +323,10 @@ export default function LiveOrdersTab() {
                         <StatusBadge status={order.status} />
                       </td>
                       <td className="px-4 py-4">
-                        <TimeAgo ts={order.createdAt} />
+                        <div className="flex flex-col gap-1">
+                          <TimeAgo ts={order.createdAt} />
+                          {order.status === "PENDING" && <PendingExpiryBadge createdAt={order.createdAt} />}
+                        </div>
                       </td>
                       <td className="px-5 py-4">
                         <OrderActions
@@ -356,6 +376,7 @@ export default function LiveOrdersTab() {
                       </span>
                       <span className="text-xs font-bold text-amber-700">Table {order.tableNo ?? "–"}</span>
                       <TimeAgo ts={order.createdAt} />
+                      {order.status === "PENDING" && <PendingExpiryBadge createdAt={order.createdAt} />}
                     </div>
                   </div>
                   <span className="text-sm font-extrabold text-gray-900">{formatPrice(order.total, cur)}</span>

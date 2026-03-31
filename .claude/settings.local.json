@@ -18,7 +18,20 @@
       "Bash(npx prisma db push --accept-data-loss)",
       "Bash(node -e \"console.log\\(require\\(''crypto''\\).randomBytes\\(64\\).toString\\(''hex''\\)\\)\")",
       "Bash(ls -la /d/Official_Projects/himalhub/src/app/api/restaurants/[id]/payment-qrs/)",
-      "Bash(ls -la /d/Official_Projects/himalhub/src/app/api/public/restaurants/[slug]/payment-qrs/)"
+      "Bash(ls -la /d/Official_Projects/himalhub/src/app/api/public/restaurants/[slug]/payment-qrs/)",
+      "Bash(xargs -I {} sh -c \"echo \"\"=== {} ===\"\" && head -20 {}\")",
+      "Bash(grep -r \"export.*function\\\\|export.*component\" /d/Official_Projects/himalhub/src/components/dashboard/*.tsx -l)",
+      "Bash(find /d/Official_Projects/himalhub/src -type f \\\\\\(-name *.ts -o -name *.tsx \\\\\\))",
+      "Bash(find /d/Official_Projects/himalhub/src -name *waiter* -o -name *foh* -o -name *boh*)",
+      "Bash(grep -n \"api/orders\\\\|DELETE.*order\\\\|CANCEL\" /d/Official_Projects/himalhub/src/app/api/orders*)",
+      "Bash(grep -n \"guestName\\\\|staff\\\\|waiter\\\\|WAITER\" /d/Official_Projects/himalhub/src/app/api/restaurants/[id]/orders/route.ts)",
+      "Bash(grep -l \"POST\" /d/Official_Projects/himalhub/src/app/api/restaurants/[id]/orders/route.ts)",
+      "Bash(grep -n \"export\\\\|component\" /d/Official_Projects/himalhub/src/app/menu/[slug]/page.tsx)",
+      "Bash(grep -n \"stockQuantity\\\\|stockEnabled\" /d/Official_Projects/himalhub/src/app/api/restaurants/[id]/menu/[itemId]/route.ts)",
+      "Bash(grep -rn \"isDrink\" /d/Official_Projects/himalhub/src/app/api/restaurants/[id]/orders/)",
+      "Bash(grep -A 30 \"Deduct stock for each ordered item\" /d/Official_Projects/himalhub/src/app/api/restaurants/[id]/orders/route.ts)",
+      "Bash(grep -c \"DELETE\\\\|export async function DELETE\" /d/Official_Projects/himalhub/src/app/api/restaurants/[id]/categories/route.ts)",
+      "Bash(find d:/Official_Projects/himalhub/src/app/api/restaurants/[id] -type f -name \"*.ts\")"
     ],
     "additionalDirectories": [
       "d:\\Official_Projects\\himalhub\\src\\app\\api\\public\\restaurants\\[slug]"

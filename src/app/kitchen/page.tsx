@@ -79,6 +79,8 @@ import TablesTab from "@/components/dashboard/TablesTab";
 import ManualBillingTab from "@/components/dashboard/ManualBillingTab";
 import HotelBookingsTab from "@/components/dashboard/HotelBookingsTab";
 import HotelQRTab from "@/components/dashboard/HotelQRTab";
+import WaiterOrderTab from "@/components/dashboard/WaiterOrderTab";
+import GlobalChatButton from "@/components/chat/GlobalChatButton";
 
 const STAFF_FEATURE_COMPONENTS: Record<FeatureTabId, React.ComponentType> = {
   "quick-counter": QuickCounterTab,
@@ -189,7 +191,7 @@ interface ChatRoom {
   }[];
 }
 
-type TabId = "orders" | "menu" | "chat" | "inventory" | "billing" | "stories" | "media" | "tables" | "manual" | FeatureTabId;
+type TabId = "orders" | "menu" | "chat" | "inventory" | "billing" | "stories" | "media" | "tables" | "manual" | "waiter-order" | FeatureTabId;
 
 const ALL_TABS: {
   id: TabId;
@@ -197,6 +199,12 @@ const ALL_TABS: {
   icon: typeof ClipboardList;
   roles: string[];
 }[] = [
+  {
+    id: "waiter-order",
+    label: "New Order",
+    icon: Plus,
+    roles: ["SUPER_ADMIN", "MANAGER", "WAITER"],
+  },
   {
     id: "orders",
     label: "Orders",
@@ -1943,39 +1951,89 @@ export default function KitchenPage() {
       {/* Tab Navigation */}
       <div className="sticky top-16 z-40 bg-white/80 backdrop-blur-xl border-b border-brand-100/60">
         <div className="mx-auto max-w-5xl px-4 sm:px-6">
+          {/* FOH / BOH group headers — only shown for roles that have both */}
+          {(() => {
+            const FOH_TAB_IDS: TabId[] = ["waiter-order", "tables", "billing", "manual", "chat", "stories", "media"];
+            const BOH_TAB_IDS: TabId[] = ["orders", "menu", "inventory"];
+            const hasFOH = TABS.some((t) => FOH_TAB_IDS.includes(t.id));
+            const hasBOH = TABS.some((t) => BOH_TAB_IDS.includes(t.id));
+            if (!hasFOH || !hasBOH) return null;
+            return (
+              <div className="flex gap-4 pt-2 text-[10px] font-black uppercase tracking-widest">
+                <span className="flex items-center gap-1 text-emerald-600">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 inline-block" />
+                  Front of House
+                </span>
+                <span className="text-gray-300">·</span>
+                <span className="flex items-center gap-1 text-orange-600">
+                  <span className="h-1.5 w-1.5 rounded-full bg-orange-400 inline-block" />
+                  Back of House
+                </span>
+              </div>
+            );
+          })()}
           <div
             className="flex gap-1 overflow-x-auto py-2.5"
             style={{ scrollbarWidth: "none" }}
           >
-            {TABS.map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`relative flex items-center gap-1.5 shrink-0 rounded-xl px-4 py-2.5 text-xs font-bold transition-all ${
-                    isActive
-                      ? "text-white"
-                      : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
-                  }`}
-                >
-                  {isActive && (
-                    <motion.div
-                      layoutId="kitchen-tab-pill"
-                      className="absolute inset-0 rounded-xl bg-brand-400 shadow-md shadow-brand-400/20"
-                      transition={{
-                        type: "spring",
-                        bounce: 0.15,
-                        duration: 0.5,
-                      }}
-                    />
-                  )}
-                  <Icon className="relative z-10 h-3.5 w-3.5" />
-                  <span className="relative z-10">{tab.label}</span>
-                </button>
-              );
-            })}
+            {(() => {
+              const FOH_TAB_IDS: TabId[] = ["waiter-order", "tables", "billing", "manual", "chat", "stories", "media"];
+              const BOH_TAB_IDS: TabId[] = ["orders", "menu", "inventory"];
+              const hasFOH = TABS.some((t) => FOH_TAB_IDS.includes(t.id));
+              const hasBOH = TABS.some((t) => BOH_TAB_IDS.includes(t.id));
+              const showGroups = hasFOH && hasBOH;
+
+              const elements: React.ReactNode[] = [];
+              let lastGroup: "foh" | "boh" | "other" | null = null;
+
+              TABS.forEach((tab) => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.id;
+                const group = FOH_TAB_IDS.includes(tab.id) ? "foh"
+                  : BOH_TAB_IDS.includes(tab.id) ? "boh" : "other";
+
+                // Add divider between FOH and BOH groups
+                if (showGroups && lastGroup && lastGroup !== group && group !== "other") {
+                  elements.push(
+                    <div key={`divider-${tab.id}`} className="mx-1 w-px self-stretch bg-gray-200 my-1" />
+                  );
+                }
+                lastGroup = group;
+
+                elements.push(
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`relative flex items-center gap-1.5 shrink-0 rounded-xl px-4 py-2.5 text-xs font-bold transition-all ${
+                      isActive
+                        ? "text-white"
+                        : showGroups && group === "foh"
+                          ? "text-emerald-600 hover:bg-emerald-50"
+                          : showGroups && group === "boh"
+                            ? "text-orange-600 hover:bg-orange-50"
+                            : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                    }`}
+                  >
+                    {isActive && (
+                      <motion.div
+                        layoutId="kitchen-tab-pill"
+                        className={`absolute inset-0 rounded-xl shadow-md ${
+                          showGroups && group === "foh"
+                            ? "bg-emerald-600 shadow-emerald-600/20"
+                            : showGroups && group === "boh"
+                              ? "bg-orange-600 shadow-orange-600/20"
+                              : "bg-brand-400 shadow-brand-400/20"
+                        }`}
+                        transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
+                      />
+                    )}
+                    <Icon className="relative z-10 h-3.5 w-3.5" />
+                    <span className="relative z-10">{tab.label}</span>
+                  </button>
+                );
+              });
+              return elements;
+            })()}
           </div>
         </div>
       </div>
@@ -2021,6 +2079,7 @@ export default function KitchenPage() {
             {activeTab === "media" && <MediaTab restaurantId={session.restaurantId} />}
             {activeTab === "tables" && <TablesTab />}
             {activeTab === "manual" && <ManualBillingTab />}
+            {activeTab === "waiter-order" && <WaiterOrderTab />}
             {/* Type-specific feature tabs */}
             {(() => {
               const FeatureComponent = STAFF_FEATURE_COMPONENTS[activeTab as FeatureTabId];
@@ -2031,6 +2090,15 @@ export default function KitchenPage() {
           </motion.div>
         </AnimatePresence>
       </main>
+
+      {/* Global floating chat (only when NOT on chat tab to avoid duplicate) */}
+      {activeTab !== "chat" && (
+        <GlobalChatButton
+          restaurantId={session.restaurantId}
+          staffRole={session.role}
+          staffName={session.name}
+        />
+      )}
     </div>
   );
 }

@@ -322,6 +322,8 @@ export default function TrackOrderPage() {
   const [copied, setCopied] = useState(false);
   const [showBill, setShowBill] = useState(false);
   const [showQRs, setShowQRs] = useState(false);
+  const [cancelConfirm, setCancelConfirm] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   const [paymentQRs, setPaymentQRs] = useState<
     { id: string; label: string; imageUrl: string }[]
   >([]);
@@ -429,6 +431,20 @@ export default function TrackOrderPage() {
     }
   }, [order?.status]);
 
+  const cancelOrder = async () => {
+    if (!order || cancelling) return;
+    setCancelling(true);
+    try {
+      await apiFetch(`/api/orders/${order.id}/cancel`, { method: "POST" });
+      setOrder((prev) => prev ? { ...prev, status: "CANCELLED" } : prev);
+      setCancelConfirm(false);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to cancel order");
+    } finally {
+      setCancelling(false);
+    }
+  };
+
   const copyOrderId = async () => {
     if (!order) return;
     await navigator.clipboard.writeText(order.orderNo);
@@ -479,8 +495,12 @@ export default function TrackOrderPage() {
     order.status === "CANCELLED" || order.status === "REJECTED";
   const isComplete = order.status === "DELIVERED";
   const isActive = !isCancelled && !isComplete;
+  const isDirectPay = order.payment?.method === "DIRECT";
   const showTimer =
-    isActive && order.estimatedTime && (order.preparingAt || order.acceptedAt);
+    isActive &&
+    !isDirectPay &&
+    order.estimatedTime &&
+    (order.preparingAt || order.acceptedAt);
 
   return (
     <div className="min-h-screen bg-gray-50/50">
@@ -626,6 +646,45 @@ export default function TrackOrderPage() {
                 method={order.payment.method}
                 status={order.payment.status}
               />
+              {isDirectPay && (
+                <p className="mt-2 text-xs font-medium text-teal-700 bg-teal-50 rounded-lg px-3 py-2">
+                  Please pay directly at the counter when collecting your order.
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Cancel button — only for PENDING orders */}
+          {order.status === "PENDING" && (
+            <div className="mt-4 pt-4 border-t border-gray-100">
+              {!cancelConfirm ? (
+                <button
+                  onClick={() => setCancelConfirm(true)}
+                  className="w-full rounded-xl border border-red-200 bg-red-50 py-2.5 text-sm font-bold text-red-600 hover:bg-red-100 transition-colors"
+                >
+                  Cancel Order
+                </button>
+              ) : (
+                <div className="rounded-xl bg-red-50 border border-red-200 p-4 space-y-3">
+                  <p className="text-sm font-semibold text-red-700">Are you sure you want to cancel this order?</p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setCancelConfirm(false)}
+                      className="flex-1 rounded-xl border border-gray-200 bg-white py-2 text-sm font-semibold text-gray-700"
+                    >
+                      Keep Order
+                    </button>
+                    <button
+                      onClick={cancelOrder}
+                      disabled={cancelling}
+                      className="flex-1 rounded-xl bg-red-500 py-2 text-sm font-bold text-white hover:bg-red-600 disabled:opacity-60 transition-colors flex items-center justify-center gap-1.5"
+                    >
+                      {cancelling ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+                      {cancelling ? "Cancelling..." : "Yes, Cancel"}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </motion.div>

@@ -58,5 +58,14 @@ export async function GET(
     deliveryEnabled: r.deliveryEnabled ?? false,
     categories: restaurant.categories,
     paymentQRs: restaurant.paymentQRs,
+    // Theme fields
+    primaryColor: r.primaryColor ?? null,
+    secondaryColor: r.secondaryColor ?? null,
+    accentColor: r.accentColor ?? null,
+    fontFamily: r.fontFamily ?? null,
+    menuLayout: r.menuLayout ?? "grid",
+    footerText: r.footerText ?? null,
+    showStories: r.showStories ?? true,
+    showReviews: r.showReviews ?? true,
   });
 }

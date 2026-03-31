@@ -101,6 +101,31 @@ export function LiveOrdersProvider({ children }: { children: ReactNode }) {
       initialFetchDoneRef.current = true;
 
       setOrders(data.orders);
+
+      // Auto-reject PENDING orders older than 30 minutes
+      const now = Date.now();
+      const staleOrders = data.orders.filter(
+        (o) =>
+          o.status === "PENDING" &&
+          now - new Date(o.createdAt).getTime() >= 30 * 60 * 1000,
+      );
+      for (const stale of staleOrders) {
+        try {
+          await apiFetch(`/api/restaurants/${rid}/orders/${stale.id}`, {
+            method: "PATCH",
+            body: { status: "REJECTED" },
+          });
+        } catch {
+          /* ignore — will retry next poll */
+        }
+      }
+      if (staleOrders.length > 0) {
+        // Refetch to reflect auto-rejections
+        const refreshed = await apiFetch<{ orders: LiveOrder[] }>(
+          `/api/restaurants/${rid}/orders?limit=50&live=1`,
+        );
+        setOrders(refreshed.orders);
+      }
     } catch {
       /* ignore */
     }

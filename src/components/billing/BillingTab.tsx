@@ -109,10 +109,22 @@ function paymentMethodLabel(method: string) {
     KHALTI: "Khalti",
     BANK: "Bank Transfer",
     CASH: "Cash",
-    COUNTER: "Counter",
-    DIRECT: "Direct",
+    COUNTER: "Manual Pay",
+    DIRECT: "Direct Pay",
   };
   return map[method] || method;
+}
+
+function paymentMethodDesc(method: string) {
+  const map: Record<string, string> = {
+    COUNTER: "Staff records cash payment",
+    DIRECT: "Customer pays at counter directly",
+    CASH: "Cash on hand",
+    ESEWA: "eSewa digital wallet",
+    KHALTI: "Khalti digital wallet",
+    BANK: "Bank transfer / cheque",
+  };
+  return map[method] || "";
 }
 
 function paymentMethodIcon(method: string) {
@@ -945,13 +957,20 @@ export default function BillingTab({
                           }`}
                         >
                           <Icon
-                            className={`h-4 w-4 ${isSelected ? "text-emerald-600" : "text-gray-400"}`}
+                            className={`h-4 w-4 shrink-0 ${isSelected ? "text-emerald-600" : "text-gray-400"}`}
                           />
-                          <span
-                            className={`text-xs font-bold ${isSelected ? "text-emerald-700" : "text-gray-600"}`}
-                          >
-                            {paymentMethodLabel(method)}
-                          </span>
+                          <div>
+                            <span
+                              className={`text-xs font-bold block ${isSelected ? "text-emerald-700" : "text-gray-600"}`}
+                            >
+                              {paymentMethodLabel(method)}
+                            </span>
+                            {paymentMethodDesc(method) && (
+                              <span className="text-[10px] text-gray-400 leading-tight block">
+                                {paymentMethodDesc(method)}
+                              </span>
+                            )}
+                          </div>
                         </button>
                       );
                     },
@@ -959,8 +978,8 @@ export default function BillingTab({
                 </div>
               </div>
 
-              {/* Transaction ID for non-cash */}
-              {collectMethod !== "CASH" && (
+              {/* Transaction ID for non-cash online methods */}
+              {collectMethod !== "CASH" && collectMethod !== "COUNTER" && collectMethod !== "DIRECT" && (
                 <div className="mb-5">
                   <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5 block">
                     Transaction / Reference ID

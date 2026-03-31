@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import QRCode from "react-qr-code";
-import { Download, Printer, Share2, Check, Plus, Minus, Infinity, Palette } from "lucide-react";
+import { Download, Printer, Share2, Check, Palette, TableProperties } from "lucide-react";
 import { useToast } from "@/context/ToastContext";
 import { useRestaurant } from "@/context/RestaurantContext";
 import gsap from "gsap";
@@ -500,16 +500,37 @@ function QRCard({
 
 // ─── QRCodesTab ───────────────────────────────────────────────────────────────
 
+interface TableRecord {
+  id: string;
+  tableNo: number;
+  label: string | null;
+  capacity: number;
+  isActive: boolean;
+}
+
 export default function QRCodesTab() {
   const { showToast } = useToast();
-  const { selectedRestaurant, restaurants, updateRestaurant } = useRestaurant();
+  const { selectedRestaurant, restaurants } = useRestaurant();
   const restaurant = selectedRestaurant ?? restaurants[0];
-  const tableCount = restaurant?.tableCount ?? 12;
   const restaurantName = restaurant?.name ?? "HimaVolt";
   const [downloading, setDownloading] = useState(false);
   const [cardStyle, setCardStyle] = useState<CardStyle>("classic");
+  const [tables, setTables] = useState<TableRecord[]>([]);
+  const [loadingTables, setLoadingTables] = useState(true);
 
-  const tables = Array.from({ length: tableCount }, (_, i) => i + 1);
+  // Fetch actual table records instead of relying on tableCount
+  useEffect(() => {
+    if (!restaurant?.id) return;
+    setLoadingTables(true);
+    fetch(`/api/restaurants/${restaurant.id}/tables`, { credentials: "include" })
+      .then((r) => r.json())
+      .then((data) => {
+        const tableList: TableRecord[] = data.tables ?? (Array.isArray(data) ? data : []);
+        setTables(tableList.filter((t) => t.isActive).sort((a, b) => a.tableNo - b.tableNo));
+      })
+      .catch(() => setTables([]))
+      .finally(() => setLoadingTables(false));
+  }, [restaurant?.id]);
 
   const handleDownloadAll = async () => {
     setDownloading(true);
@@ -525,7 +546,6 @@ export default function QRCodesTab() {
       const colSpacing = 8;
       const contentW = pageW - margin * 2;
       const cardW = (contentW - colSpacing) / cols;
-      // Card aspect ratio matches buildQRCanvas: W=340, H=480 → H/W ≈ 1.41
       const cardH = cardW * (480 / 340);
       const rowSpacing = 8;
       const rowsPerPage = Math.floor((pageH - margin * 2) / (cardH + rowSpacing));
@@ -534,7 +554,7 @@ export default function QRCodesTab() {
       let row = 0;
 
       for (let i = 0; i < tables.length; i++) {
-        const tableNo = tables[i];
+        const tableNo = tables[i].tableNo;
         const el = document.getElementById(`qr-printable-${tableNo}`);
         if (!el) continue;
 
@@ -558,18 +578,13 @@ export default function QRCodesTab() {
       }
 
       pdf.save(`${restaurant?.slug ?? "restaurant"}-qrcodes.pdf`);
-      showToast(`All ${tableCount} QR codes downloaded as PDF!`);
+      showToast(`All ${tables.length} QR codes downloaded as PDF!`);
     } catch (error) {
       console.error(error);
       showToast("Failed to generate PDF");
     } finally {
       setDownloading(false);
     }
-  };
-
-  const adjustTables = async (delta: number) => {
-    if (!restaurant) return;
-    await updateRestaurant(restaurant.id, { tableCount: tableCount + delta });
   };
 
   return (
@@ -634,26 +649,13 @@ export default function QRCodesTab() {
           </div>
         </div>
 
-        {/* Table count */}
+        {/* Table count info */}
         <div className="flex items-center gap-2 rounded-xl bg-white border border-gray-200 px-3 py-2 shadow-sm shrink-0">
-          <Infinity className="h-4 w-4 text-[#eaa94d]" />
-          <span className="text-xs font-bold text-gray-500">Tables:</span>
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => adjustTables(-1)}
-              disabled={tableCount <= 1}
-              className="flex h-7 w-7 items-center justify-center rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors disabled:opacity-30"
-            >
-              <Minus className="h-3 w-3" />
-            </button>
-            <span className="w-8 text-center text-sm font-extrabold text-[#3e1e0c]">{tableCount}</span>
-            <button
-              onClick={() => adjustTables(1)}
-              className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#3e1e0c]/10 text-[#3e1e0c] hover:bg-[#3e1e0c]/20 transition-colors"
-            >
-              <Plus className="h-3 w-3" />
-            </button>
-          </div>
+          <TableProperties className="h-4 w-4 text-[#eaa94d]" />
+          <span className="text-xs font-bold text-gray-500">
+            {loadingTables ? "Loading..." : `${tables.length} table${tables.length !== 1 ? "s" : ""}`}
+          </span>
+          <span className="text-[10px] text-gray-400">· manage in Tables tab</span>
         </div>
       </div>
 
@@ -666,17 +668,31 @@ export default function QRCodesTab() {
       </div>
 
       {/* QR grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-        {tables.map((t) => (
-          <QRCard
-            key={t}
-            tableNo={t}
-            slug={restaurant?.slug ?? ""}
-            restaurantName={restaurantName}
-            cardStyle={cardStyle}
-          />
-        ))}
-      </div>
+      {loadingTables ? (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="rounded-2xl bg-gray-100 animate-pulse h-64" />
+          ))}
+        </div>
+      ) : tables.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 gap-3 text-center">
+          <TableProperties className="h-10 w-10 text-gray-300" />
+          <p className="text-sm font-semibold text-gray-500">No tables configured</p>
+          <p className="text-xs text-gray-400">Add tables in the <strong>Tables</strong> tab and QR codes will appear here automatically.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          {tables.map((t) => (
+            <QRCard
+              key={t.id}
+              tableNo={t.tableNo}
+              slug={restaurant?.slug ?? ""}
+              restaurantName={restaurantName}
+              cardStyle={cardStyle}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

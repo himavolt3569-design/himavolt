@@ -15,11 +15,14 @@ import {
   ChevronDown,
   ChevronUp,
   AlertTriangle,
+  Camera,
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { useToast } from "@/context/ToastContext";
 import { apiFetch } from "@/lib/api-client";
 import { formatPrice } from "@/lib/currency";
+import ImagePicker from "@/components/shared/ImagePicker";
+import { SkeletonCard } from "@/components/shared/Skeleton";
 
 type DrinkCategory = "COLD" | "HOT" | "ALCOHOL";
 
@@ -57,6 +60,7 @@ const BLANK_FORM = {
   drinkCategory: "COLD" as DrinkCategory,
   stockEnabled: false,
   stockQuantity: "",
+  imageUrl: "",
 };
 
 export default function DrinksTab() {
@@ -73,6 +77,7 @@ export default function DrinksTab() {
   const [activeSection, setActiveSection] = useState<DrinkCategory | "ALL">("ALL");
   const [stockEdits, setStockEdits] = useState<Record<string, string>>({});
   const [savingStock, setSavingStock] = useState<string | null>(null);
+  const [showImagePicker, setShowImagePicker] = useState(false);
 
   const fetchData = useCallback(async () => {
     if (!restaurant) return;
@@ -138,6 +143,7 @@ export default function DrinksTab() {
           drinkCategory: form.drinkCategory,
           stockEnabled: form.stockEnabled,
           stockQuantity: form.stockEnabled ? parseFloat(form.stockQuantity || "0") : 0,
+          imageUrl: form.imageUrl || undefined,
         },
       });
       setDrinks((prev) => [...prev, newItem]);
@@ -283,6 +289,50 @@ export default function DrinksTab() {
                   </div>
                 </div>
 
+                {/* Image */}
+                <div>
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1.5">Photo (optional)</label>
+                  <div className="flex items-center gap-3">
+                    <div className="relative h-16 w-16 shrink-0 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 flex items-center justify-center overflow-hidden">
+                      {form.imageUrl ? (
+                        <img src={form.imageUrl} alt="preview" className="h-full w-full object-cover" />
+                      ) : (
+                        <span className="text-2xl">
+                          {DRINK_CAT_CONFIG[form.drinkCategory].emoji}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setShowImagePicker(true)}
+                        className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+                      >
+                        <Camera className="h-3.5 w-3.5" />
+                        {form.imageUrl ? "Change photo" : "Upload photo"}
+                      </button>
+                      {form.imageUrl && (
+                        <button
+                          type="button"
+                          onClick={() => setForm((f) => ({ ...f, imageUrl: "" }))}
+                          className="text-xs text-red-400 hover:text-red-600 transition-colors text-left"
+                        >
+                          Remove photo
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  <ImagePicker
+                    open={showImagePicker}
+                    currentImage={form.imageUrl || null}
+                    onSelect={(url) => {
+                      setForm((f) => ({ ...f, imageUrl: url }));
+                      setShowImagePicker(false);
+                    }}
+                    onClose={() => setShowImagePicker(false)}
+                  />
+                </div>
+
                 <div>
                   <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1.5">Name</label>
                   <input
@@ -349,8 +399,8 @@ export default function DrinksTab() {
 
       {/* Drinks list */}
       {loading ? (
-        <div className="flex items-center justify-center py-16">
-          <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+        <div className="space-y-3">
+          {Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)}
         </div>
       ) : filteredDrinks.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-gray-400">
@@ -372,7 +422,13 @@ export default function DrinksTab() {
                 className="flex items-center justify-between rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm hover:shadow-md transition-all"
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <span className="text-2xl">{cfg.emoji}</span>
+                  <div className="h-10 w-10 shrink-0 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center">
+                    {item.imageUrl ? (
+                      <img src={item.imageUrl} alt={item.name} className="h-full w-full object-cover" />
+                    ) : (
+                      <span className="text-xl">{cfg.emoji}</span>
+                    )}
+                  </div>
                   <div className="min-w-0">
                     <p className="text-sm font-bold text-amber-950 truncate">{item.name}</p>
                     <div className="flex items-center gap-2 mt-0.5">

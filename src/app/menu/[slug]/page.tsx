@@ -134,6 +134,15 @@ interface Restaurant {
   directPayEnabled: boolean;
   categories: RestaurantCategory[];
   paymentQRs: { id: string; label: string; imageUrl: string }[];
+  // Theme
+  primaryColor: string | null;
+  secondaryColor: string | null;
+  accentColor: string | null;
+  fontFamily: string | null;
+  menuLayout: string;
+  footerText: string | null;
+  showStories: boolean;
+  showReviews: boolean;
 }
 
 interface MenuItemSize {
@@ -1726,8 +1735,16 @@ function MenuPageContent() {
     );
   }
 
+  // Build CSS custom properties from restaurant theme
+  const themeStyle: React.CSSProperties = {
+    ...(restaurant.primaryColor ? { "--menu-primary": restaurant.primaryColor } as React.CSSProperties : {}),
+    ...(restaurant.secondaryColor ? { "--menu-secondary": restaurant.secondaryColor } as React.CSSProperties : {}),
+    ...(restaurant.accentColor ? { "--menu-accent": restaurant.accentColor } as React.CSSProperties : {}),
+    ...(restaurant.fontFamily ? { fontFamily: `${restaurant.fontFamily}, sans-serif` } : {}),
+  };
+
   return (
-    <div className="min-h-screen bg-[#F7F8FA] flex justify-center w-full">
+    <div className="min-h-screen bg-[#F7F8FA] flex justify-center w-full" style={themeStyle}>
       <div className="w-full max-w-5xl bg-white min-h-screen shadow-[0_0_40px_rgba(0,0,0,0.03)] relative flex flex-col">
         {/* Sleek Cover Banner */}
         {restaurant.coverUrl && (
@@ -1853,9 +1870,11 @@ function MenuPageContent() {
           {/* Main content */}
           <div className="flex-1 min-w-0 space-y-5">
             {/* Stories - with scroll reveal */}
-            <ScrollStorySection fadeIn slideFrom="bottom" scrub={false}>
-              <MenuStories slug={slug} />
-            </ScrollStorySection>
+            {restaurant.showStories && (
+              <ScrollStorySection fadeIn slideFrom="bottom" scrub={false}>
+                <MenuStories slug={slug} />
+              </ScrollStorySection>
+            )}
 
             {/* Table session banner */}
             {hasSessionOrder && sessionOrder && (
@@ -2488,6 +2507,13 @@ function MenuPageContent() {
         restaurantSlug={slug}
         currency={restaurant?.currency ?? "NPR"}
       />
+
+      {/* Dynamic footer text */}
+      {restaurant.footerText && (
+        <div className="border-t border-gray-100 px-6 py-4 text-center">
+          <p className="text-xs text-gray-400">{restaurant.footerText}</p>
+        </div>
+      )}
     </div>
   );
 }

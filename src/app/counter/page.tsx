@@ -40,6 +40,7 @@ import { useToast } from "@/context/ToastContext";
 import { formatPrice } from "@/lib/currency";
 import StockTab from "@/components/dashboard/StockTab";
 import { type FeatureTabId } from "@/lib/restaurant-types";
+import GlobalChatButton from "@/components/chat/GlobalChatButton";
 
 /* ── Feature tab imports for counter staff ──────────────────────── */
 import QuickCounterTab from "@/components/dashboard/features/QuickCounterTab";
@@ -1889,6 +1890,14 @@ export default function CounterPage() {
           return <Comp restaurantId={session?.restaurantId} />;
         })()}
       </main>
+
+      {session && (
+        <GlobalChatButton
+          restaurantId={session.restaurantId}
+          staffRole={session.role}
+          staffName={session.name}
+        />
+      )}
     </div>
   );
 }

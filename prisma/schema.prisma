@@ -84,6 +84,16 @@ model Restaurant {
   hotelAdvanceType  String @default("PERCENTAGE") // "PERCENTAGE" or "FIXED"
   hotelAdvanceValue Float  @default(30)            // 30 = 30% of total, or NPR fixed amount
 
+  // Dynamic theme (set by owner/admin via ThemeSettingsTab)
+  primaryColor    String?  // hex e.g. "#eaa94d"
+  secondaryColor  String?
+  accentColor     String?
+  fontFamily      String?  // "Inter" | "Poppins" | "Lato" | etc.
+  menuLayout      String   @default("grid") // "grid" | "list" | "compact"
+  footerText      String?
+  showStories     Boolean  @default(true)
+  showReviews     Boolean  @default(true)
+
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 

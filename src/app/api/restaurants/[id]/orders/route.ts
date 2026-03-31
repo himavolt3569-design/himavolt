@@ -172,8 +172,33 @@ export const POST = safeHandler(
       await generateBill(addToOrderId);
 
       // Deduct stock for each added item
+      const addItemIds = items.filter((i) => i.menuItemId).map((i) => i.menuItemId as string);
+      const addMenuMeta = addItemIds.length
+        ? new Map(
+            (await db.menuItem.findMany({
+              where: { id: { in: addItemIds } },
+              select: { id: true, isDrink: true, stockEnabled: true, stockQuantity: true },
+            })).map((m) => [m.id, m])
+          )
+        : new Map();
+
       for (const item of items) {
         if (!item.menuItemId) continue;
+
+        // Deduct drink stock quantity directly
+        const addMeta = addMenuMeta.get(item.menuItemId);
+        if (addMeta?.isDrink && addMeta.stockEnabled) {
+          const newQty = Math.max(0, (addMeta.stockQuantity ?? 0) - item.quantity);
+          await db.menuItem.update({
+            where: { id: item.menuItemId },
+            data: {
+              stockQuantity: newQty,
+              ...(newQty <= 0 ? { isAvailable: false } : {}),
+            },
+          });
+          addMeta.stockQuantity = newQty;
+        }
+
         const ingredients = await db.menuItemIngredient.findMany({
           where: { menuItemId: item.menuItemId },
           include: { inventoryItem: true },
@@ -318,7 +343,22 @@ export const POST = safeHandler(
       // guest order — no user session
     }
 
+    // Batch-fetch menu item metadata (isDrink, stockEnabled, stockQuantity)
+    // Used for: (1) skipping drinks in prep time, (2) drink stock deduction
+    const menuItemIds = items
+      .filter((i) => i.menuItemId)
+      .map((i) => i.menuItemId as string);
+    const menuItemMetaList = menuItemIds.length
+      ? await db.menuItem.findMany({
+          where: { id: { in: menuItemIds } },
+          select: { id: true, isDrink: true, stockEnabled: true, stockQuantity: true },
+        })
+      : [];
+    const menuItemMeta = new Map(menuItemMetaList.map((m) => [m.id, m]));
+
+    // Skip drink items when calculating prep time (drinks are served immediately)
     const totalPrepTime = items.reduce((max, item) => {
+      if (item.menuItemId && menuItemMeta.get(item.menuItemId)?.isDrink) return max;
       if (!item.prepTime) return max;
       const match = item.prepTime.match(/(\d+)/);
       const mins = match ? parseInt(match[1], 10) : 0;
@@ -448,6 +488,22 @@ export const POST = safeHandler(
     // Deduct stock for each ordered item
     for (const item of items) {
       if (!item.menuItemId) continue;
+
+      // Deduct drink stock quantity directly (drinks track their own stock)
+      const meta = menuItemMeta.get(item.menuItemId);
+      if (meta?.isDrink && meta.stockEnabled) {
+        const newQty = Math.max(0, (meta.stockQuantity ?? 0) - item.quantity);
+        await db.menuItem.update({
+          where: { id: item.menuItemId },
+          data: {
+            stockQuantity: newQty,
+            ...(newQty <= 0 ? { isAvailable: false } : {}),
+          },
+        });
+        // Update local meta so subsequent items use fresh value
+        meta.stockQuantity = newQty;
+      }
+
       const ingredients = await db.menuItemIngredient.findMany({
         where: { menuItemId: item.menuItemId },
         include: { inventoryItem: true },

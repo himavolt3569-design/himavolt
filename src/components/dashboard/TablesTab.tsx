@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { formatPrice } from "@/lib/currency";
+import { SkeletonCard } from "@/components/shared/Skeleton";
 
 /* ── Types ───────────────────────────────────────────────────────── */
 
@@ -198,8 +199,8 @@ export default function TablesTab() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-16">
-          <Loader2 className="h-6 w-6 animate-spin text-amber-500" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
         </div>
       ) : tables.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-gray-400 gap-3">
