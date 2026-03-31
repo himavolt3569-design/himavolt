@@ -235,7 +235,37 @@ export default function ManualBillingTab() {
 
   /* ── Main Layout ─────────────────────────────────────────────── */
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 p-1">
+    <div className="space-y-4 p-1">
+
+      {/* Payment method toggle — always at top on mobile */}
+      <div className="grid grid-cols-2 gap-2 lg:hidden">
+        <button
+          type="button"
+          onClick={() => setPayMethod("COUNTER")}
+          className={`flex items-center justify-center gap-2 rounded-xl border-2 p-2.5 text-center transition-all ${
+            payMethod === "COUNTER"
+              ? "border-amber-400 bg-amber-50"
+              : "border-gray-200 bg-white hover:border-gray-300"
+          }`}
+        >
+          <Receipt className={`h-4 w-4 ${payMethod === "COUNTER" ? "text-amber-600" : "text-gray-400"}`} />
+          <span className={`text-[11px] font-bold ${payMethod === "COUNTER" ? "text-amber-700" : "text-gray-600"}`}>Manual Pay</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setPayMethod("DIRECT")}
+          className={`flex items-center justify-center gap-2 rounded-xl border-2 p-2.5 text-center transition-all ${
+            payMethod === "DIRECT"
+              ? "border-teal-400 bg-teal-50"
+              : "border-gray-200 bg-white hover:border-gray-300"
+          }`}
+        >
+          <Check className={`h-4 w-4 ${payMethod === "DIRECT" ? "text-teal-600" : "text-gray-400"}`} />
+          <span className={`text-[11px] font-bold ${payMethod === "DIRECT" ? "text-teal-700" : "text-gray-600"}`}>Direct Pay</span>
+        </button>
+      </div>
+
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
       {/* Left: Menu items */}
       <div className="lg:col-span-2 space-y-3">
@@ -496,6 +526,7 @@ export default function ManualBillingTab() {
           </div>
         )}
       </div>
+    </div>
     </div>
   );
 }

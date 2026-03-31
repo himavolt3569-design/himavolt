@@ -62,6 +62,7 @@ export default function TablesTab() {
   const [tables,   setTables]   = useState<TableData[]>([]);
   const [loading,  setLoading]  = useState(true);
   const [selected, setSelected] = useState<TableData | null>(null);
+  const [clearingId, setClearingId] = useState<string | null>(null);
 
   // Add-table form
   const [showAdd,   setShowAdd]   = useState(false);
@@ -69,6 +70,14 @@ export default function TablesTab() {
   const [addLabel,  setAddLabel]  = useState("");
   const [addCap,    setAddCap]    = useState("4");
   const [addSaving, setAddSaving] = useState(false);
+
+  // Bulk create form
+  const [showBulk,    setShowBulk]    = useState(false);
+  const [bulkFrom,    setBulkFrom]    = useState("1");
+  const [bulkTo,      setBulkTo]      = useState("20");
+  const [bulkCap,     setBulkCap]     = useState("4");
+  const [bulkSaving,  setBulkSaving]  = useState(false);
+  const [bulkProgress,setBulkProgress]= useState(0);
 
   // Edit-table form
   const [editId,    setEditId]    = useState<string | null>(null);
@@ -136,14 +145,60 @@ export default function TablesTab() {
 
   const handleClearSession = async (orderId: string) => {
     if (!rid) return;
-    await fetch(`/api/restaurants/${rid}/table-session/clear`, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ orderId }),
-    });
-    setSelected(null);
-    load();
+    setClearingId(orderId);
+    try {
+      const res = await fetch(`/api/restaurants/${rid}/table-session/clear`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        alert(err.error ?? "Failed to clear table. Check your permissions.");
+        return;
+      }
+      setSelected(null);
+      await load();
+    } catch {
+      alert("Failed to clear table. Please try again.");
+    } finally {
+      setClearingId(null);
+    }
+  };
+
+  const handleBulkCreate = async () => {
+    if (!rid) return;
+    const from = parseInt(bulkFrom);
+    const to   = parseInt(bulkTo);
+    const cap  = parseInt(bulkCap) || 4;
+    if (!from || !to || from > to || to - from > 99) {
+      alert("Invalid range. Max 100 tables at once.");
+      return;
+    }
+    setBulkSaving(true);
+    setBulkProgress(0);
+    let created = 0;
+    for (let n = from; n <= to; n++) {
+      try {
+        await fetch(`/api/restaurants/${rid}/tables`, {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tableNo: n, capacity: cap }),
+        });
+        created++;
+      } catch { /* skip duplicates */ }
+      setBulkProgress(Math.round(((n - from + 1) / (to - from + 1)) * 100));
+    }
+    setBulkSaving(false);
+    setShowBulk(false);
+    setBulkFrom("1");
+    setBulkTo("20");
+    setBulkCap("4");
+    setBulkProgress(0);
+    await load();
+    if (created > 0) alert(`Created ${created} table(s) successfully.`);
   };
 
   if (!rid) return (
@@ -175,12 +230,20 @@ export default function TablesTab() {
             <RefreshCw className="h-4 w-4" />
           </button>
           {canManage && (
-            <button
-              onClick={() => setShowAdd(true)}
-              className="flex items-center gap-1.5 rounded-xl bg-[#3e1e0c] px-3 py-2 text-xs font-bold text-white hover:bg-[#2d1508] transition-colors"
-            >
-              <Plus className="h-3.5 w-3.5" /> Add Table
-            </button>
+            <>
+              <button
+                onClick={() => setShowBulk(true)}
+                className="flex items-center gap-1.5 rounded-xl border border-[#3e1e0c] px-3 py-2 text-xs font-bold text-[#3e1e0c] hover:bg-amber-50 transition-colors"
+              >
+                <Plus className="h-3.5 w-3.5" /> Bulk Create
+              </button>
+              <button
+                onClick={() => setShowAdd(true)}
+                className="flex items-center gap-1.5 rounded-xl bg-[#3e1e0c] px-3 py-2 text-xs font-bold text-white hover:bg-[#2d1508] transition-colors"
+              >
+                <Plus className="h-3.5 w-3.5" /> Add Table
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -231,7 +294,7 @@ export default function TablesTab() {
                 key={table.id}
                 layout
                 onClick={() => setSelected(table)}
-                className={`relative rounded-2xl border-2 p-4 text-left transition-all hover:-translate-y-0.5 hover:shadow-md ${bgClass}`}
+                className={`group relative rounded-2xl border-2 p-4 text-left transition-all hover:-translate-y-0.5 hover:shadow-md ${bgClass}`}
               >
                 {/* Inline edit controls */}
                 {canManage && editId === table.id ? (
@@ -423,9 +486,13 @@ export default function TablesTab() {
                       {canManage && (
                         <button
                           onClick={() => handleClearSession(order.id)}
-                          className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-red-50 border border-red-100 py-2.5 text-xs font-bold text-red-600 hover:bg-red-100 transition-colors"
+                          disabled={clearingId === order.id}
+                          className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-red-50 border border-red-100 py-2.5 text-xs font-bold text-red-600 hover:bg-red-100 transition-colors disabled:opacity-60"
                         >
-                          <Trash2 className="h-3.5 w-3.5" /> Clear Table
+                          {clearingId === order.id
+                            ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            : <Trash2 className="h-3.5 w-3.5" />}
+                          {clearingId === order.id ? "Clearing..." : "Clear Table"}
                         </button>
                       )}
                     </div>
@@ -494,6 +561,96 @@ export default function TablesTab() {
                   className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[#3e1e0c] py-3 text-sm font-bold text-white hover:bg-[#2d1508] disabled:opacity-40">
                   {addSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
                   Add Table
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Bulk Create Modal ─────────────────────────────────────── */}
+      <AnimatePresence>
+        {showBulk && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+               onClick={() => !bulkSaving && setShowBulk(false)}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl"
+            >
+              <div className="flex items-center justify-between mb-5">
+                <div>
+                  <h3 className="text-lg font-extrabold text-[#3e1e0c]">Bulk Create Tables</h3>
+                  <p className="text-xs text-gray-400 mt-0.5">Create multiple tables with QR codes at once</p>
+                </div>
+                <button onClick={() => !bulkSaving && setShowBulk(false)} className="rounded-full bg-gray-100 p-2 hover:bg-gray-200">
+                  <X className="h-4 w-4 text-gray-500" />
+                </button>
+              </div>
+
+              <div className="space-y-3 mb-5">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">From *</label>
+                    <input
+                      type="number" value={bulkFrom} onChange={(e) => setBulkFrom(e.target.value)}
+                      placeholder="1" min={1}
+                      className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">To *</label>
+                    <input
+                      type="number" value={bulkTo} onChange={(e) => setBulkTo(e.target.value)}
+                      placeholder="20" min={1}
+                      className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Seats per table</label>
+                  <input
+                    type="number" value={bulkCap} onChange={(e) => setBulkCap(e.target.value)}
+                    min={1} max={30}
+                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+                  />
+                </div>
+                {parseInt(bulkFrom) > 0 && parseInt(bulkTo) >= parseInt(bulkFrom) && (
+                  <div className="rounded-xl bg-amber-50 border border-amber-100 px-4 py-2.5 text-xs text-amber-700 font-semibold">
+                    Will create {parseInt(bulkTo) - parseInt(bulkFrom) + 1} tables (T{bulkFrom} to T{bulkTo})
+                  </div>
+                )}
+                {bulkSaving && bulkProgress > 0 && (
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between text-xs text-gray-500">
+                      <span>Creating tables...</span>
+                      <span>{bulkProgress}%</span>
+                    </div>
+                    <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-amber-400 transition-all duration-300"
+                        style={{ width: `${bulkProgress}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <p className="text-xs text-gray-400 mb-4">
+                QR codes are auto-generated when a customer scans. Duplicate table numbers are skipped.
+              </p>
+
+              <div className="flex gap-2">
+                <button onClick={() => !bulkSaving && setShowBulk(false)} disabled={bulkSaving}
+                  className="flex-1 rounded-xl border border-gray-200 py-3 text-sm font-bold text-gray-600 hover:bg-gray-50 disabled:opacity-40">
+                  Cancel
+                </button>
+                <button onClick={handleBulkCreate} disabled={bulkSaving || !bulkFrom || !bulkTo || parseInt(bulkFrom) > parseInt(bulkTo)}
+                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[#3e1e0c] py-3 text-sm font-bold text-white hover:bg-[#2d1508] disabled:opacity-40">
+                  {bulkSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                  {bulkSaving ? `Creating... ${bulkProgress}%` : "Create Tables"}
                 </button>
               </div>
             </motion.div>

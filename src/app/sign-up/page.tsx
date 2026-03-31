@@ -93,9 +93,6 @@ export default function SignUpPage() {
     setError("");
     setLoading(true);
 
-    // Persist intended role in a cookie so the callback can read it even if
-    // Supabase metadata is lost/overwritten during email confirmation or
-    // account linking.  Also append it as a query param to the redirect URL.
     if (role) {
       document.cookie = `intended_role=${role}; path=/; max-age=86400; SameSite=Lax`;
     }
@@ -140,7 +137,7 @@ export default function SignUpPage() {
   /* ─── Success Screen ─── */
   if (success) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-[#EFF6FF] via-[#F5F8FF] to-[#EDF2FF] p-6">
+      <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-[#fdf9ef] via-[#fefcf5] to-[#fdf9ef] p-6">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -149,14 +146,14 @@ export default function SignUpPage() {
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
             <Check className="h-8 w-8 text-green-500" />
           </div>
-          <h2 className="text-lg font-bold text-[#1A2744] mb-2">Check your email</h2>
-          <p className="text-sm text-slate-400">
+          <h2 className="text-lg font-bold text-[#3e1e0c] mb-2">Check your email</h2>
+          <p className="text-sm text-[#8e491e]/50">
             We&apos;ve sent a confirmation link to{" "}
-            <strong className="text-slate-600">{email}</strong>. Click it to activate your account.
+            <strong className="text-[#3e1e0c]">{email}</strong>. Click it to activate your account.
           </p>
           <Link
             href="/sign-in"
-            className="mt-6 inline-block text-sm font-bold text-blue-500 hover:text-blue-600 transition-colors"
+            className="mt-6 inline-block text-sm font-bold text-[#eaa94d] hover:text-[#d67620] transition-colors"
           >
             Back to Sign In
           </Link>
@@ -166,11 +163,11 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-linear-to-br from-[#EFF6FF] via-[#F5F8FF] to-[#EDF2FF] p-6">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-linear-to-br from-[#fdf9ef] via-[#fefcf5] to-[#fdf9ef] p-6">
       {/* Soft background blobs */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -top-32 -right-32 h-96 w-96 rounded-full bg-blue-100/60 blur-3xl" />
-        <div className="absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-indigo-100/50 blur-3xl" />
+        <div className="absolute -top-32 -right-32 h-96 w-96 rounded-full bg-[#eaa94d]/15 blur-3xl" />
+        <div className="absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-[#d67620]/10 blur-3xl" />
       </div>
 
       <AnimatePresence mode="wait">
@@ -188,14 +185,14 @@ export default function SignUpPage() {
             <div className="mb-8 text-center">
               <Link href="/" className="inline-flex items-center gap-2">
                 <Mountain className="h-8 w-8 text-[#eaa94d]" strokeWidth={2.5} />
-                <span className="text-2xl font-extrabold tracking-tight text-[#1A2744]">
+                <span className="text-2xl font-extrabold tracking-tight text-[#3e1e0c]">
                   Hima<span className="text-[#eaa94d]">Volt</span>
                 </span>
               </Link>
-              <p className="mt-3 text-lg font-bold text-[#1A2744]">
+              <p className="mt-3 text-lg font-bold text-[#3e1e0c]">
                 How will you use HimaVolt?
               </p>
-              <p className="mt-1 text-sm text-slate-400">
+              <p className="mt-1 text-sm text-[#8e491e]/50">
                 Choose your account type to get started
               </p>
             </div>
@@ -207,33 +204,33 @@ export default function SignUpPage() {
                 onClick={() => setRole("CUSTOMER")}
                 className={`relative rounded-2xl border-2 p-5 text-left transition-all duration-200 ${
                   role === "CUSTOMER"
-                    ? "border-blue-400 bg-blue-50/80 shadow-lg shadow-blue-100/60"
-                    : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm"
+                    ? "border-[#eaa94d] bg-[#fdf9ef] shadow-lg shadow-[#eaa94d]/15"
+                    : "border-[#f4d69a]/40 bg-white hover:border-[#eaa94d]/40 hover:shadow-sm"
                 }`}
               >
                 {role === "CUSTOMER" && (
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    className="absolute right-4 top-4 flex h-6 w-6 items-center justify-center rounded-full bg-blue-500"
+                    className="absolute right-4 top-4 flex h-6 w-6 items-center justify-center rounded-full bg-[#eaa94d]"
                   >
                     <Check className="h-3.5 w-3.5 text-white" />
                   </motion.div>
                 )}
 
                 <div className={`mb-4 flex h-12 w-12 items-center justify-center rounded-xl ${
-                  role === "CUSTOMER" ? "bg-blue-100" : "bg-slate-100"
+                  role === "CUSTOMER" ? "bg-[#eaa94d]/15" : "bg-slate-100"
                 }`}>
-                  <UtensilsCrossed className={`h-6 w-6 ${role === "CUSTOMER" ? "text-blue-500" : "text-slate-400"}`} />
+                  <UtensilsCrossed className={`h-6 w-6 ${role === "CUSTOMER" ? "text-[#eaa94d]" : "text-slate-400"}`} />
                 </div>
-                <h3 className="text-base font-bold text-[#1A2744] mb-1">Food Lover</h3>
-                <p className="text-xs text-slate-400 mb-4 leading-relaxed">
+                <h3 className="text-base font-bold text-[#3e1e0c] mb-1">Food Lover</h3>
+                <p className="text-xs text-[#8e491e]/40 mb-4 leading-relaxed">
                   Discover restaurants &amp; order your favourite meals
                 </p>
                 <ul className="space-y-2">
                   {CUSTOMER_FEATURES.map(({ icon: Icon, text }) => (
-                    <li key={text} className="flex items-center gap-2 text-xs text-slate-400">
-                      <Icon className={`h-3.5 w-3.5 shrink-0 ${role === "CUSTOMER" ? "text-blue-400" : "text-slate-300"}`} />
+                    <li key={text} className="flex items-center gap-2 text-xs text-[#8e491e]/50">
+                      <Icon className={`h-3.5 w-3.5 shrink-0 ${role === "CUSTOMER" ? "text-[#eaa94d]" : "text-slate-300"}`} />
                       {text}
                     </li>
                   ))}
@@ -245,8 +242,8 @@ export default function SignUpPage() {
                 onClick={() => setRole("OWNER")}
                 className={`relative rounded-2xl border-2 p-5 text-left transition-all duration-200 ${
                   role === "OWNER"
-                    ? "border-indigo-400 bg-linear-to-br from-indigo-500 to-blue-600 shadow-lg shadow-indigo-200/60"
-                    : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm"
+                    ? "border-[#3e1e0c] bg-linear-to-br from-[#3e1e0c] to-[#5a2c10] shadow-lg shadow-[#3e1e0c]/20"
+                    : "border-[#f4d69a]/40 bg-white hover:border-[#eaa94d]/40 hover:shadow-sm"
                 }`}
               >
                 {role === "OWNER" ? (
@@ -258,7 +255,7 @@ export default function SignUpPage() {
                     <Check className="h-3.5 w-3.5 text-white" />
                   </motion.div>
                 ) : (
-                  <span className="absolute right-4 top-4 rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-indigo-500">
+                  <span className="absolute right-4 top-4 rounded-full bg-[#eaa94d]/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#eaa94d]">
                     Business
                   </span>
                 )}
@@ -268,16 +265,16 @@ export default function SignUpPage() {
                 }`}>
                   <Building2 className={`h-6 w-6 ${role === "OWNER" ? "text-white" : "text-slate-400"}`} />
                 </div>
-                <h3 className={`text-base font-bold mb-1 ${role === "OWNER" ? "text-white" : "text-[#1A2744]"}`}>
+                <h3 className={`text-base font-bold mb-1 ${role === "OWNER" ? "text-white" : "text-[#3e1e0c]"}`}>
                   Restaurant Owner
                 </h3>
-                <p className={`text-xs mb-4 leading-relaxed ${role === "OWNER" ? "text-white/65" : "text-slate-400"}`}>
+                <p className={`text-xs mb-4 leading-relaxed ${role === "OWNER" ? "text-white/65" : "text-[#8e491e]/40"}`}>
                   Manage your restaurant, staff &amp; grow your business
                 </p>
                 <ul className="space-y-2">
                   {OWNER_FEATURES.map(({ icon: Icon, text }) => (
-                    <li key={text} className={`flex items-center gap-2 text-xs ${role === "OWNER" ? "text-white/70" : "text-slate-400"}`}>
-                      <Icon className={`h-3.5 w-3.5 shrink-0 ${role === "OWNER" ? "text-blue-200" : "text-slate-300"}`} />
+                    <li key={text} className={`flex items-center gap-2 text-xs ${role === "OWNER" ? "text-white/70" : "text-[#8e491e]/50"}`}>
+                      <Icon className={`h-3.5 w-3.5 shrink-0 ${role === "OWNER" ? "text-[#f4d69a]" : "text-slate-300"}`} />
                       {text}
                     </li>
                   ))}
@@ -289,14 +286,14 @@ export default function SignUpPage() {
             <button
               onClick={() => role && setStep("form")}
               disabled={!role}
-              className="w-full rounded-xl bg-linear-to-r from-blue-500 to-indigo-500 py-3 text-sm font-bold text-white shadow-md shadow-blue-200/60 transition-all hover:from-blue-600 hover:to-indigo-600 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed mb-3"
+              className="w-full rounded-xl bg-[#3e1e0c] py-3 text-sm font-bold text-white shadow-md shadow-[#3e1e0c]/20 transition-all hover:bg-[#2a1408] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed mb-3"
             >
               Continue
             </button>
             {role === "OWNER" && (
               <button
                 onClick={handleGoogleSignUp}
-                className="w-full rounded-xl border border-slate-200 bg-white py-3 text-sm font-semibold text-slate-600 transition-all hover:bg-slate-50 hover:border-slate-300"
+                className="w-full rounded-xl border border-[#f4d69a]/40 bg-white py-3 text-sm font-semibold text-[#3e1e0c] transition-all hover:bg-[#fdf9ef] hover:border-[#eaa94d]/30"
               >
                 <span className="flex items-center justify-center gap-2">
                   <svg className="h-4 w-4" viewBox="0 0 24 24">
@@ -310,9 +307,9 @@ export default function SignUpPage() {
               </button>
             )}
 
-            <p className="mt-5 text-center text-sm text-slate-400">
+            <p className="mt-5 text-center text-sm text-[#8e491e]/40">
               Already have an account?{" "}
-              <Link href="/sign-in" className="font-bold text-blue-500 hover:text-blue-600 transition-colors">
+              <Link href="/sign-in" className="font-bold text-[#eaa94d] hover:text-[#d67620] transition-colors">
                 Sign In
               </Link>
             </p>
@@ -331,24 +328,24 @@ export default function SignUpPage() {
             <div className="mb-6 flex items-center gap-3">
               <button
                 onClick={() => { setStep("role"); setError(""); }}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-colors shadow-sm"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#f4d69a]/40 bg-white hover:bg-[#fdf9ef] transition-colors shadow-sm"
               >
-                <ArrowLeft className="h-4 w-4 text-slate-500" />
+                <ArrowLeft className="h-4 w-4 text-[#8e491e]/50" />
               </button>
               <div>
                 <Link href="/" className="flex items-center gap-1.5">
                   <Mountain className="h-5 w-5 text-[#eaa94d]" strokeWidth={2.5} />
-                  <span className="text-base font-extrabold tracking-tight text-[#1A2744]">
+                  <span className="text-base font-extrabold tracking-tight text-[#3e1e0c]">
                     Hima<span className="text-[#eaa94d]">Volt</span>
                   </span>
                 </Link>
                 <div className="mt-0.5 flex items-center gap-1.5">
                   {role === "OWNER" ? (
-                    <Building2 className="h-3.5 w-3.5 text-indigo-400" />
+                    <Building2 className="h-3.5 w-3.5 text-[#eaa94d]" />
                   ) : (
-                    <UtensilsCrossed className="h-3.5 w-3.5 text-blue-400" />
+                    <UtensilsCrossed className="h-3.5 w-3.5 text-[#eaa94d]" />
                   )}
-                  <span className="text-xs font-semibold text-slate-400">
+                  <span className="text-xs font-semibold text-[#8e491e]/50">
                     {role === "OWNER" ? "Restaurant Owner Account" : "Food Lover Account"}
                   </span>
                 </div>
@@ -356,12 +353,12 @@ export default function SignUpPage() {
             </div>
 
             {/* Card */}
-            <div className="overflow-hidden rounded-2xl border border-blue-100 bg-white/90 shadow-xl shadow-blue-100/40 backdrop-blur-sm">
+            <div className="overflow-hidden rounded-2xl border border-[#f4d69a]/30 bg-white/90 shadow-xl shadow-[#eaa94d]/8 backdrop-blur-sm">
               {/* Role strip */}
               <div className={`px-5 py-3 ${
                 role === "OWNER"
-                  ? "bg-linear-to-r from-indigo-500 to-blue-500"
-                  : "bg-linear-to-r from-blue-50 to-indigo-50"
+                  ? "bg-linear-to-r from-[#3e1e0c] to-[#5a2c10]"
+                  : "bg-linear-to-r from-[#fdf9ef] to-[#fef6e8]"
               }`}>
                 <div className="flex items-center gap-2">
                   {role === "OWNER" ? (
@@ -373,8 +370,8 @@ export default function SignUpPage() {
                     </>
                   ) : (
                     <>
-                      <UtensilsCrossed className="h-4 w-4 text-blue-400" />
-                      <span className="text-xs font-bold text-blue-500">
+                      <UtensilsCrossed className="h-4 w-4 text-[#eaa94d]" />
+                      <span className="text-xs font-bold text-[#eaa94d]">
                         Setting up Food Lover account
                       </span>
                     </>
@@ -392,17 +389,17 @@ export default function SignUpPage() {
 
                   {/* Full Name */}
                   <div>
-                    <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-[#8e491e]/50">
                       Full Name
                     </label>
                     <div className="relative">
-                      <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-300" />
+                      <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#b25c1c]/30" />
                       <input
                         type="text"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         required
-                        className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 pl-10 pr-4 text-sm text-slate-800 placeholder:text-slate-300 focus:border-blue-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all"
+                        className="w-full rounded-xl border border-[#f4d69a]/40 bg-[#fdf9ef]/50 py-2.5 pl-10 pr-4 text-sm text-[#3e1e0c] placeholder:text-[#b25c1c]/30 focus:border-[#eaa94d]/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#eaa94d]/10 transition-all"
                         placeholder="Your full name"
                       />
                     </div>
@@ -410,27 +407,27 @@ export default function SignUpPage() {
 
                   {/* Username */}
                   <div>
-                    <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-400">
-                      Username <span className="text-blue-400">*</span>
+                    <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-[#8e491e]/50">
+                      Username <span className="text-[#eaa94d]">*</span>
                     </label>
                     <div className="relative">
-                      <AtSign className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-300" />
+                      <AtSign className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#b25c1c]/30" />
                       <input
                         type="text"
                         value={username}
                         onChange={(e) => handleUsernameChange(e.target.value)}
                         required
                         placeholder="your_username"
-                        className={`w-full rounded-xl border py-2.5 pl-10 pr-9 text-sm focus:outline-none focus:ring-2 transition-all bg-slate-50/50 focus:bg-white ${
+                        className={`w-full rounded-xl border py-2.5 pl-10 pr-9 text-sm focus:outline-none focus:ring-2 transition-all bg-[#fdf9ef]/50 focus:bg-white ${
                           usernameStatus === "available"
-                            ? "border-green-300 focus:border-green-300 focus:ring-green-100 text-slate-800"
+                            ? "border-green-300 focus:border-green-300 focus:ring-green-100 text-[#3e1e0c]"
                             : usernameStatus === "taken" || usernameStatus === "invalid"
-                            ? "border-red-300 focus:border-red-300 focus:ring-red-100 text-slate-800"
-                            : "border-slate-200 focus:border-blue-300 focus:ring-blue-100 text-slate-800"
+                            ? "border-red-300 focus:border-red-300 focus:ring-red-100 text-[#3e1e0c]"
+                            : "border-[#f4d69a]/40 focus:border-[#eaa94d]/50 focus:ring-[#eaa94d]/10 text-[#3e1e0c]"
                         }`}
                       />
                       <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                        {usernameStatus === "checking" && <Loader2 className="h-4 w-4 animate-spin text-slate-300" />}
+                        {usernameStatus === "checking" && <Loader2 className="h-4 w-4 animate-spin text-[#b25c1c]/30" />}
                         {usernameStatus === "available" && <Check className="h-4 w-4 text-green-500" />}
                       </div>
                     </div>
@@ -438,7 +435,7 @@ export default function SignUpPage() {
                       usernameStatus === "available" ? "text-green-500"
                       : usernameStatus === "taken" ? "text-red-400"
                       : usernameStatus === "invalid" ? "text-red-400"
-                      : "text-slate-300"
+                      : "text-[#b25c1c]/30"
                     }`}>
                       {usernameStatus === "available" && "Username is available!"}
                       {usernameStatus === "taken" && "Username is already taken"}
@@ -449,17 +446,17 @@ export default function SignUpPage() {
 
                   {/* Email */}
                   <div>
-                    <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-[#8e491e]/50">
                       Email
                     </label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-300" />
+                      <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#b25c1c]/30" />
                       <input
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
-                        className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 pl-10 pr-4 text-sm text-slate-800 placeholder:text-slate-300 focus:border-blue-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all"
+                        className="w-full rounded-xl border border-[#f4d69a]/40 bg-[#fdf9ef]/50 py-2.5 pl-10 pr-4 text-sm text-[#3e1e0c] placeholder:text-[#b25c1c]/30 focus:border-[#eaa94d]/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#eaa94d]/10 transition-all"
                         placeholder="you@example.com"
                       />
                     </div>
@@ -472,21 +469,21 @@ export default function SignUpPage() {
                       animate={{ opacity: 1, height: "auto" }}
                       transition={{ duration: 0.18 }}
                     >
-                      <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-400">
-                        Phone Number <span className="text-blue-400">*</span>
+                      <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-[#8e491e]/50">
+                        Phone Number <span className="text-[#eaa94d]">*</span>
                       </label>
                       <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-300" />
+                        <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#b25c1c]/30" />
                         <input
                           type="tel"
                           value={phone}
                           onChange={(e) => setPhone(e.target.value)}
                           required
-                          className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 pl-10 pr-4 text-sm text-slate-800 placeholder:text-slate-300 focus:border-blue-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all"
+                          className="w-full rounded-xl border border-[#f4d69a]/40 bg-[#fdf9ef]/50 py-2.5 pl-10 pr-4 text-sm text-[#3e1e0c] placeholder:text-[#b25c1c]/30 focus:border-[#eaa94d]/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#eaa94d]/10 transition-all"
                           placeholder="+977 98XXXXXXXX"
                         />
                       </div>
-                      <p className="mt-1 text-[11px] text-slate-300">
+                      <p className="mt-1 text-[11px] text-[#b25c1c]/30">
                         Required for restaurant verification
                       </p>
                     </motion.div>
@@ -494,18 +491,18 @@ export default function SignUpPage() {
 
                   {/* Password */}
                   <div>
-                    <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-[#8e491e]/50">
                       Password
                     </label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-300" />
+                      <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#b25c1c]/30" />
                       <input
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
                         minLength={6}
-                        className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 pl-10 pr-4 text-sm text-slate-800 placeholder:text-slate-300 focus:border-blue-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all"
+                        className="w-full rounded-xl border border-[#f4d69a]/40 bg-[#fdf9ef]/50 py-2.5 pl-10 pr-4 text-sm text-[#3e1e0c] placeholder:text-[#b25c1c]/30 focus:border-[#eaa94d]/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#eaa94d]/10 transition-all"
                         placeholder="Min 6 characters"
                       />
                     </div>
@@ -514,7 +511,7 @@ export default function SignUpPage() {
                   <button
                     type="submit"
                     disabled={loading || usernameStatus !== "available"}
-                    className="w-full rounded-xl bg-linear-to-r from-blue-500 to-indigo-500 py-3 text-sm font-bold text-white shadow-md shadow-blue-200/60 transition-all hover:from-blue-600 hover:to-indigo-600 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full rounded-xl bg-[#3e1e0c] py-3 text-sm font-bold text-white shadow-md shadow-[#3e1e0c]/20 transition-all hover:bg-[#2a1408] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {loading ? (
                       <Loader2 className="mx-auto h-4 w-4 animate-spin" />
@@ -528,16 +525,16 @@ export default function SignUpPage() {
                   <>
                     <div className="relative my-5">
                       <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-slate-100" />
+                        <div className="w-full border-t border-[#f4d69a]/30" />
                       </div>
                       <div className="relative flex justify-center text-xs">
-                        <span className="bg-white px-3 text-slate-300">or</span>
+                        <span className="bg-white px-3 text-[#b25c1c]/30">or</span>
                       </div>
                     </div>
 
                     <button
                       onClick={handleGoogleSignUp}
-                      className="w-full rounded-xl border border-slate-200 bg-white py-3 text-sm font-semibold text-slate-600 transition-all hover:bg-slate-50 hover:border-slate-300"
+                      className="w-full rounded-xl border border-[#f4d69a]/40 bg-white py-3 text-sm font-semibold text-[#3e1e0c] transition-all hover:bg-[#fdf9ef] hover:border-[#eaa94d]/30"
                     >
                       <span className="flex items-center justify-center gap-2">
                         <svg className="h-4 w-4" viewBox="0 0 24 24">
@@ -554,9 +551,9 @@ export default function SignUpPage() {
               </div>
             </div>
 
-            <p className="mt-5 text-center text-sm text-slate-400">
+            <p className="mt-5 text-center text-sm text-[#8e491e]/40">
               Already have an account?{" "}
-              <Link href="/sign-in" className="font-bold text-blue-500 hover:text-blue-600 transition-colors">
+              <Link href="/sign-in" className="font-bold text-[#eaa94d] hover:text-[#d67620] transition-colors">
                 Sign In
               </Link>
             </p>

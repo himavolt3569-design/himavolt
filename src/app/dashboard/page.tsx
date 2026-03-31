@@ -82,7 +82,6 @@ import TaxChargesTab from "@/components/dashboard/TaxChargesTab";
 import StockTab from "@/components/dashboard/StockTab";
 import OffersTab from "@/components/dashboard/OffersTab";
 import HeroSlidesManager from "@/components/dashboard/HeroSlidesManager";
-import ThemeSettingsTab from "@/components/dashboard/ThemeSettingsTab";
 import GlobalChatButton from "@/components/chat/GlobalChatButton";
 import { useLiveOrders } from "@/context/LiveOrdersContext";
 import { useRestaurant } from "@/context/RestaurantContext";
@@ -157,7 +156,6 @@ type DashTab =
   | "rooms"
   | "tables"
   | "owner-control"
-  | "theme"
   | FeatureTabId;
 
 /* ─── Navigation groups for sidebar ───────────────────────────────── */
@@ -189,7 +187,6 @@ const NAV_MANAGE: typeof NAV_MAIN = [
   { id: "coupons" as DashTab, label: "Coupons", icon: Tag },
   { id: "rooms" as DashTab, label: "Rooms", icon: BedDouble },
   { id: "owner-control" as DashTab, label: "Owner Control", icon: Crown },
-  { id: "theme" as DashTab, label: "Theme", icon: Layers },
 ];
 
 const NAV_MORE: typeof NAV_MAIN = [
@@ -518,6 +515,7 @@ function NavSection({
   setActive,
   newOrderCount,
   onClose,
+  defaultOpen = true,
 }: {
   label: string;
   items: typeof NAV_MAIN;
@@ -525,12 +523,31 @@ function NavSection({
   setActive: (t: DashTab) => void;
   newOrderCount: number;
   onClose?: () => void;
+  defaultOpen?: boolean;
 }) {
+  const hasActive = items.some((i) => i.id === active);
+  const [open, setOpen] = useState(defaultOpen || hasActive);
+
   return (
-    <div className="mb-3">
-      <p className="px-3 mb-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-gray-500">
-        {label}
-      </p>
+    <div className="mb-2">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-full items-center justify-between px-3 mb-1 py-1 rounded-lg hover:bg-gray-50 transition-colors group"
+      >
+        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-gray-500 group-hover:text-gray-700">
+          {label}
+        </p>
+        <ChevronDown className={`h-3 w-3 text-gray-400 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+      </button>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
       <div className="space-y-0.5">
         {items.map((item) => {
           const Icon = item.icon;
@@ -576,6 +593,9 @@ function NavSection({
           );
         })}
       </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -586,12 +606,16 @@ function Sidebar({
   newOrderCount,
   onClose,
   restaurantType,
+  isCollapsed,
+  onToggleCollapse,
 }: {
   active: DashTab;
   setActive: (t: DashTab) => void;
   newOrderCount: number;
   onClose?: () => void;
   restaurantType?: string;
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
 }) {
   /* Build dynamic feature nav items from restaurant type */
   const featureNavItems = useMemo(() => {
@@ -606,6 +630,50 @@ function Sidebar({
 
   const typeLabel = restaurantType ? getTypeLabel(restaurantType) : "";
 
+  if (isCollapsed) {
+    return (
+      <aside className="flex h-full w-full flex-col items-center bg-white/60 backdrop-blur-3xl border-r border-gray-200/50 shadow-[4px_0_24px_rgba(0,0,0,0.02)] py-4 gap-2">
+        <Link href="/" className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500 shadow-sm mb-2">
+          <Mountain className="h-4 w-4 text-white" strokeWidth={2.5} />
+        </Link>
+        {onToggleCollapse && (
+          <button
+            onClick={onToggleCollapse}
+            className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-gray-100 transition-colors text-gray-500"
+            title="Expand sidebar"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        )}
+        <div className="flex-1 flex flex-col items-center gap-1 mt-2 overflow-y-auto w-full px-2 scrollbar-hide">
+          {ALL_NAV.map((item) => {
+            const Icon = item.icon;
+            const isActive = active === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => setActive(item.id)}
+                title={item.label}
+                className={`relative flex h-9 w-9 items-center justify-center rounded-xl transition-all ${
+                  isActive
+                    ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-[0_4px_14px_0_rgba(245,158,11,0.39)]"
+                    : "text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+                }`}
+              >
+                <Icon className="h-4 w-4" />
+                {item.badge === "live" && newOrderCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-rose-500 text-[7px] font-bold text-white">
+                    {newOrderCount}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </aside>
+    );
+  }
+
   return (
     <aside className="flex h-full w-full flex-col bg-white/60 backdrop-blur-3xl border-r border-gray-200/50 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
       {/* Logo */}
@@ -618,14 +686,25 @@ function Sidebar({
             Hima<span className="text-amber-500">Volt</span>
           </span>
         </Link>
-        {onClose && (
-          <button
-            onClick={onClose}
-            className="rounded-lg p-1.5 hover:bg-gray-100 transition-colors lg:hidden text-gray-500"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        )}
+        <div className="flex items-center gap-1">
+          {onToggleCollapse && (
+            <button
+              onClick={onToggleCollapse}
+              className="rounded-lg p-1.5 hover:bg-gray-100 transition-colors hidden lg:flex text-gray-400 hover:text-gray-600"
+              title="Collapse sidebar"
+            >
+              <ChevronDown className="h-4 w-4 -rotate-90" />
+            </button>
+          )}
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="rounded-lg p-1.5 hover:bg-gray-100 transition-colors lg:hidden text-gray-500"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Restaurant switcher */}
@@ -640,6 +719,7 @@ function Sidebar({
           setActive={setActive}
           newOrderCount={newOrderCount}
           onClose={onClose}
+          defaultOpen={true}
         />
 
         {/* Type-specific features section */}
@@ -651,6 +731,7 @@ function Sidebar({
             setActive={setActive}
             newOrderCount={newOrderCount}
             onClose={onClose}
+            defaultOpen={false}
           />
         )}
 
@@ -661,6 +742,7 @@ function Sidebar({
           setActive={setActive}
           newOrderCount={newOrderCount}
           onClose={onClose}
+          defaultOpen={false}
         />
         <NavSection
           label="More"
@@ -669,6 +751,7 @@ function Sidebar({
           setActive={setActive}
           newOrderCount={newOrderCount}
           onClose={onClose}
+          defaultOpen={false}
         />
       </nav>
 
@@ -1270,16 +1353,24 @@ const SHORTCUTS: Record<string, DashTab> = {
   "5": "reports",
 };
 
+const DASHBOARD_TAB_KEY = "hh_dashboard_tab";
+
 export default function DashboardPage() {
   const [isHydrated, setIsHydrated] = useState(false);
   const [activeTab, setActiveTab] = useState<DashTab>("overview");
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const { orders, setRestaurantId } = useLiveOrders();
   const { restaurants, selectedRestaurant, selectRestaurant, loading: resLoading } = useRestaurant();
   const { user, isLoaded, userRole } = useAuth();
   const dashRouter = useRouter();
   const newOrderCount = orders.filter((o) => o.status === "PENDING").length;
+
+  const handleSetActiveTab = (tab: DashTab) => {
+    setActiveTab(tab);
+    localStorage.setItem(DASHBOARD_TAB_KEY, tab);
+  };
 
   const restaurantType = selectedRestaurant?.type ?? "";
   const featureTabs = useMemo(
@@ -1311,6 +1402,8 @@ export default function DashboardPage() {
   }, [selectedRestaurant, restaurants, selectRestaurant]);
 
   useEffect(() => {
+    const saved = localStorage.getItem(DASHBOARD_TAB_KEY) as DashTab | null;
+    if (saved) setActiveTab(saved);
     setIsHydrated(true);
   }, []);
 
@@ -1324,9 +1417,10 @@ export default function DashboardPage() {
     if (FEATURE_COMPONENTS[featureId] && restaurantType) {
       const available = getFeatureTabsForType(restaurantType);
       if (!available.some((f) => f.id === featureId)) {
-        setActiveTab("overview");
+        handleSetActiveTab("overview");
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [restaurantType, activeTab]);
 
   /* Live clock — updates every minute */
@@ -1351,7 +1445,7 @@ export default function DashboardPage() {
       const tab = SHORTCUTS[e.key];
       if (tab) {
         e.preventDefault();
-        setActiveTab(tab);
+        handleSetActiveTab(tab);
       }
     }
 
@@ -1383,12 +1477,14 @@ export default function DashboardPage() {
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50 font-sans">
       {/* ── Desktop sidebar ───────────────────────────────────── */}
-      <div className="hidden lg:block w-56 shrink-0 h-full">
+      <div className={`hidden lg:block shrink-0 h-full transition-all duration-300 ${sidebarCollapsed ? "w-14" : "w-56"}`}>
         <Sidebar
           active={activeTab}
-          setActive={setActiveTab}
+          setActive={handleSetActiveTab}
           newOrderCount={newOrderCount}
           restaurantType={restaurantType}
+          isCollapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed((c) => !c)}
         />
       </div>
 
@@ -1414,7 +1510,7 @@ export default function DashboardPage() {
             >
               <Sidebar
                 active={activeTab}
-                setActive={setActiveTab}
+                setActive={handleSetActiveTab}
                 newOrderCount={newOrderCount}
                 onClose={() => setMobileSidebarOpen(false)}
                 restaurantType={restaurantType}
@@ -1521,7 +1617,7 @@ export default function DashboardPage() {
             >
               {activeTab === "overview" && (
                 <OverviewTab
-                  setTab={setActiveTab}
+                  setTab={handleSetActiveTab}
                   userName={user?.user_metadata?.full_name ?? undefined}
                 />
               )}
@@ -1546,7 +1642,6 @@ export default function DashboardPage() {
               {activeTab === "hero-slides" && <HeroSlidesManager />}
               {activeTab === "media" && <MediaTab />}
               {activeTab === "owner-control" && <OwnerControlPanel />}
-              {activeTab === "theme" && <ThemeSettingsTab />}
               {activeTab === "reports" && <ReportsTab />}
               {activeTab === "stories" && selectedRestaurant && (
                 <StoryManager

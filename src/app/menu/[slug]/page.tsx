@@ -1542,9 +1542,10 @@ function MenuPageContent() {
   // Auto-restore order from localStorage or table session
   useEffect(() => {
     if (restaurantId && !activeOrder && !addToOrderId) {
-      if (sessionOrder) {
+      if (sessionOrder && !["DELIVERED", "CANCELLED", "REJECTED"].includes(sessionOrder.status)) {
+        // Only restore non-terminal session orders
         restoreOrder(restaurantId, sessionOrder.id);
-      } else {
+      } else if (!sessionOrder) {
         restoreFromStorage(restaurantId, tableNo ?? undefined);
       }
     }
@@ -1573,20 +1574,21 @@ function MenuPageContent() {
     // Do NOT change the URL — preserves ?table=N so Dine-In stays available for repeat orders
   }, [slug]);
 
-  // Auto-show order tracking whenever an active (non-terminal) order is loaded or restored
+  // Auto-show order tracking whenever any order (including terminal) is loaded or restored
   useEffect(() => {
-    if (
-      activeOrder?.id &&
-      !["DELIVERED", "CANCELLED", "REJECTED"].includes(activeOrder.status)
-    ) {
+    if (activeOrder?.id) {
       setShowOrder(true);
     }
   }, [activeOrder?.id]); // only fires when the ORDER IDENTITY changes, not on every status poll
 
   useEffect(() => {
     if (activeOrder?.status === "DELIVERED" || activeOrder?.status === "CANCELLED" || activeOrder?.status === "REJECTED") {
-      localStorage.removeItem(`hh_tracking_${slug}`);
-      const t = setTimeout(() => setShowOrder(false), activeOrder.status === "DELIVERED" ? 3000 : 0);
+      // Remove the tracking flag and close the overlay after a brief delay
+      // (delay BEFORE removal so refresh within window still shows final state)
+      const t = setTimeout(() => {
+        localStorage.removeItem(`hh_tracking_${slug}`);
+        setShowOrder(false);
+      }, activeOrder.status === "DELIVERED" ? 4000 : 1500);
       return () => clearTimeout(t);
     }
   }, [activeOrder?.status, slug]);
@@ -2271,7 +2273,7 @@ function MenuPageContent() {
                       initial="hidden"
                       animate="visible"
                       className={categoryView === "grid"
-                        ? "grid grid-cols-2 gap-3"
+                        ? "grid grid-cols-1 sm:grid-cols-2 gap-3"
                         : "space-y-3"
                       }
                     >
@@ -2303,9 +2305,8 @@ function MenuPageContent() {
                       return (
                         <div key={cat.id} className="space-y-3">
                           <div className="flex items-center gap-3">
-                            {cat.icon && <span className="text-base">{cat.icon}</span>}
                             <h3 className="text-sm font-bold text-[#3e1e0c]">
-                              {cat.name}
+                              {stripEmojis(cat.name)}
                             </h3>
                             <span className="text-[11px] font-semibold text-gray-400">
                               {catItems.length} {catItems.length === 1 ? "item" : "items"}

@@ -22,6 +22,7 @@ import {
   AlertCircle,
   KeyRound,
   BedDouble,
+  LayoutTemplate,
 } from "lucide-react";
 import Link from "next/link";
 import MasterOverview from "@/components/admin/MasterOverview";
@@ -33,6 +34,7 @@ import AllPaymentsTab from "@/components/admin/AllPaymentsTab";
 import AllDeliveriesTab from "@/components/admin/AllDeliveriesTab";
 import AuditTab from "@/components/admin/AuditTab";
 import AllBookingsTab from "@/components/admin/AllBookingsTab";
+import FooterSettingsTab from "@/components/admin/FooterSettingsTab";
 
 /* ═══════════════════════════════════════════════════════════════════
    Types & Constants
@@ -47,7 +49,8 @@ type AdminTab =
   | "payments"
   | "deliveries"
   | "bookings"
-  | "audit";
+  | "audit"
+  | "footer-settings";
 
 const TABS: { id: AdminTab; label: string; icon: typeof Activity; mobileLabel?: string }[] = [
   { id: "overview", label: "Overview", icon: Activity, mobileLabel: "Home" },
@@ -59,6 +62,7 @@ const TABS: { id: AdminTab; label: string; icon: typeof Activity; mobileLabel?: 
   { id: "deliveries", label: "Deliveries", icon: Truck, mobileLabel: "Delivery" },
   { id: "audit", label: "Live Audit", icon: Zap, mobileLabel: "Audit" },
   { id: "bookings", label: "Hotel Bookings", icon: BedDouble, mobileLabel: "Bookings" },
+  { id: "footer-settings", label: "Footer", icon: LayoutTemplate, mobileLabel: "Footer" },
 ];
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -221,14 +225,23 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
    Master Admin Page
    ═══════════════════════════════════════════════════════════════════ */
 
+const ADMIN_TAB_KEY = "hh_admin_tab";
+
 export default function MasterAdminPage() {
   const [authenticated, setAuthenticated] = useState(false);
   const [checking, setChecking] = useState(true);
   const [tab, setTab] = useState<AdminTab>("overview");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  const handleSetTab = (t: AdminTab) => {
+    setTab(t);
+    localStorage.setItem(ADMIN_TAB_KEY, t);
+  };
+
   // Check for existing admin session on mount
   useEffect(() => {
+    const saved = localStorage.getItem(ADMIN_TAB_KEY) as AdminTab | null;
+    if (saved) setTab(saved);
     fetch("/api/admin/verify")
       .then((res) => {
         if (res.ok) setAuthenticated(true);
@@ -309,7 +322,7 @@ export default function MasterAdminPage() {
             {TABS.map((t) => (
               <button
                 key={t.id}
-                onClick={() => setTab(t.id)}
+                onClick={() => handleSetTab(t.id)}
                 className={`relative flex items-center gap-2 whitespace-nowrap px-4 py-3 text-sm font-medium transition-all ${
                   tab === t.id ? "text-blue-500" : "text-slate-400 hover:text-slate-600"
                 }`}
@@ -342,7 +355,7 @@ export default function MasterAdminPage() {
                 <button
                   key={t.id}
                   onClick={() => {
-                    setTab(t.id);
+                    handleSetTab(t.id);
                     setMobileMenuOpen(false);
                   }}
                   className={`flex flex-col items-center gap-1 rounded-xl p-2.5 text-center transition-all ${
@@ -366,7 +379,7 @@ export default function MasterAdminPage() {
           {TABS.slice(0, 5).map((t) => (
             <button
               key={t.id}
-              onClick={() => setTab(t.id)}
+              onClick={() => handleSetTab(t.id)}
               className={`flex flex-1 flex-col items-center gap-0.5 rounded-lg py-1.5 transition-all ${
                 tab === t.id ? "text-blue-500" : "text-slate-400"
               }`}
@@ -397,7 +410,7 @@ export default function MasterAdminPage() {
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.15 }}
           >
-            {tab === "overview" && <MasterOverview onNavigate={(t) => setTab(t as AdminTab)} />}
+            {tab === "overview" && <MasterOverview onNavigate={(t) => handleSetTab(t as AdminTab)} />}
             {tab === "orders" && <AllOrdersTab />}
             {tab === "restaurants" && <AllRestaurantsTab />}
             {tab === "users" && <AllUsersTab />}

@@ -32,7 +32,7 @@ export async function POST(req: NextRequest, { params }: Params) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
     actorId = user.id;
-  } else if (!["CASHIER", "MANAGER", "SUPER_ADMIN"].includes(staff.role)) {
+  } else if (!["OWNER", "CASHIER", "MANAGER", "SUPER_ADMIN"].includes(staff.role)) {
     return NextResponse.json({ error: "Insufficient permissions" }, { status: 403 });
   }
 

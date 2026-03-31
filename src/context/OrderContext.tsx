@@ -291,12 +291,20 @@ export function OrderProvider({ children }: { children: ReactNode }) {
         const order = await apiFetch<Order>(
           `/api/restaurants/${restaurantId}/orders/${orderId}`,
         );
-        if (order && !["DELIVERED", "CANCELLED", "REJECTED"].includes(order.status)) {
-          setActiveOrder(order);
-          startPolling(restaurantId, order.id);
+        if (order) {
+          if (["DELIVERED", "CANCELLED", "REJECTED"].includes(order.status)) {
+            // Show the final state briefly so customer can see the outcome, then clear storage
+            clearOrderStorage(restaurantId, order.tableNo ?? undefined);
+            setActiveOrder(order);
+            // Don't start polling — order is already in terminal state
+          } else {
+            setActiveOrder(order);
+            startPolling(restaurantId, order.id);
+          }
         }
       } catch {
-        // order not found or inaccessible — ignore
+        // order not found or inaccessible — clear stale storage
+        clearOrderStorage(restaurantId, undefined);
       }
     },
     [activeOrder?.id, startPolling],
