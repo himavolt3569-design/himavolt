@@ -1461,11 +1461,21 @@ function MenuPageContent() {
   const [comboMeals, setComboMeals] = useState<ComboMeal[]>([]);
   const [rushHour, setRushHour] = useState<RushHourData>({ isEnabled: false, isRushNow: false, surgeEnabled: false, surgePercent: 0 });
   const tabsRef = useRef<HTMLDivElement>(null);
-  const { totalItems, items, subtotal } = useCart();
+  const { totalItems, items, subtotal, initForRestaurant } = useCart();
   const { activeOrder, restoreOrder, restoreFromStorage } = useOrder();
 
   const restaurantId = restaurant?.id ?? null;
   const cur = restaurant?.currency ?? "NPR";
+
+  // Re-load the saved cart for this specific restaurant as soon as we know its ID.
+  // This ensures re-scanning the same table QR always brings back the customer's cart.
+  useEffect(() => {
+    if (restaurantId && restaurant?.slug && restaurant?.currency) {
+      initForRestaurant(restaurantId, restaurant.slug, restaurant.currency);
+    }
+  // Only run when restaurantId becomes available — not on every render.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [restaurantId]);
   const surgeMultiplier = (rushHour.isRushNow && rushHour.surgeEnabled) ? (1 + rushHour.surgePercent / 100) : 1;
 
   useEffect(() => {
@@ -1542,13 +1552,17 @@ function MenuPageContent() {
     }
   }, [addToOrderId, restaurantId, restoreOrder]);
 
-  // Auto-restore order from localStorage or table session
+  // Auto-restore order from localStorage or table session.
+  // Always falls back to localStorage so a tracked order is never abandoned —
+  // including when sessionOrder is terminal or mismatched.
   useEffect(() => {
     if (restaurantId && !activeOrder && !addToOrderId) {
       if (sessionOrder && !["DELIVERED", "CANCELLED", "REJECTED"].includes(sessionOrder.status)) {
-        // Only restore non-terminal session orders
+        // Active table session — restore its order
         restoreOrder(restaurantId, sessionOrder.id);
-      } else if (!sessionOrder) {
+      } else {
+        // No active session order (no session, terminal session, or sessionOrder still loading):
+        // always fall back to localStorage so the tracking overlay is recovered on refresh.
         restoreFromStorage(restaurantId, tableNo ?? undefined);
       }
     }
@@ -1604,16 +1618,18 @@ function MenuPageContent() {
     }
   }, [activeOrder?.status, slug]);
 
-  // If tracking overlay is open but no order is restored within 8s, the stored order
-  // is likely gone — clear the flag and return to the menu
+  // If the tracking overlay is open but the order hasn't been restored after the
+  // restaurant has fully loaded, the order is likely gone (deleted/expired).
+  // Wait until restaurantId is available so we don't time out during the restaurant
+  // data fetch itself, then give a generous window for the order API call.
   useEffect(() => {
-    if (!showOrder || activeOrder) return;
+    if (!showOrder || activeOrder || !restaurantId) return;
     const t = setTimeout(() => {
       localStorage.removeItem(`hh_tracking_${slug}`);
       setShowOrder(false);
-    }, 8000);
+    }, 12000); // 12s from when restaurant data is ready (enough for slow order API)
     return () => clearTimeout(t);
-  }, [showOrder, activeOrder, slug]);
+  }, [showOrder, activeOrder, restaurantId, slug]);
 
   const allCategories = restaurant?.categories ?? [];
   const categories = allCategories.filter((c) => !c.parentId);

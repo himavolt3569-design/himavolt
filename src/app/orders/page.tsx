@@ -21,6 +21,7 @@ import { apiFetch } from "@/lib/api-client";
 import { formatPrice } from "@/lib/currency";
 import { useActiveTableSession } from "@/hooks/useActiveTableSession";
 import { useOrder } from "@/context/OrderContext";
+import { useCart } from "@/context/CartContext";
 
 interface OrderItem {
   id: string;
@@ -239,8 +240,22 @@ function OrderCard({
 }
 
 function TableSessionOrderView() {
-  const { activeOrder } = useOrder();
+  const { activeOrder, restoreFromStorage } = useOrder();
+  const { initForRestaurant } = useCart();
   const activeSession = useActiveTableSession();
+
+  // If the customer navigates directly to /orders (e.g. re-scanned the QR and
+  // tapped the Orders tab before the menu page ran restoreFromStorage), we
+  // proactively restore their order from localStorage here.
+  useEffect(() => {
+    if (!activeOrder && activeSession?.restaurantId) {
+      restoreFromStorage(activeSession.restaurantId, activeSession.tableNo);
+    }
+    if (activeSession?.restaurantId && activeSession.restaurantSlug) {
+      initForRestaurant(activeSession.restaurantId, activeSession.restaurantSlug, "NPR");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSession?.restaurantId, activeSession?.tableNo]);
 
   if (!activeOrder) {
     return (

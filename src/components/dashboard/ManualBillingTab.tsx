@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus, Minus, Trash2, Printer, Search, Receipt,
   Loader2, Check, X, User, Utensils, ChevronDown,
+  Banknote, CheckCircle2, Clock,
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { formatPrice } from "@/lib/currency";
@@ -51,11 +52,14 @@ export default function ManualBillingTab() {
   const [tableNo,     setTableNo]     = useState<number | "">("");
   const [guestName,   setGuestName]   = useState("");
   const [billItems,   setBillItems]   = useState<BillItem[]>([]);
-  const [submitting,  setSubmitting]  = useState(false);
-  const [success,     setSuccess]     = useState(false);
-  const [orderId,     setOrderId]     = useState<string | null>(null);
-  const [showTables,  setShowTables]  = useState(false);
-  const [payMethod,   setPayMethod]   = useState<"COUNTER" | "DIRECT">("COUNTER");
+  const [submitting,    setSubmitting]    = useState(false);
+  const [success,       setSuccess]       = useState(false);
+  const [orderId,       setOrderId]       = useState<string | null>(null);
+  const [orderNo,       setOrderNo]       = useState<string | null>(null);
+  const [isPaid,        setIsPaid]        = useState(false);
+  const [markingPaid,   setMarkingPaid]   = useState(false);
+  const [showTables,    setShowTables]    = useState(false);
+  const [payMethod,     setPayMethod]     = useState<"COUNTER" | "DIRECT">("COUNTER");
   const printRef = useRef<HTMLDivElement>(null);
 
   // Fetch menu items and available tables
@@ -106,12 +110,12 @@ export default function ManualBillingTab() {
   const tax       = taxEnabled ? Math.round(subtotal * (taxRate / 100) * 100) / 100 : 0;
   const total     = subtotal + tax;
 
-  // Submit — creates order but does NOT auto-deliver. Food must flow through kitchen normally.
+  // Submit — creates order in system
   const handleSubmit = async () => {
     if (!rid || billItems.length === 0) return;
     setSubmitting(true);
     try {
-      const order = await apiFetch<{ id: string }>(
+      const order = await apiFetch<{ id: string; orderNo: string }>(
         `/api/restaurants/${rid}/orders`,
         {
           method: "POST",
@@ -131,11 +135,37 @@ export default function ManualBillingTab() {
         },
       );
       setOrderId(order.id);
+      setOrderNo(order.orderNo);
+      setIsPaid(false);
       setSuccess(true);
     } catch {
       /* error handled by apiFetch */
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  // For Direct Pay: create order in system AND open the print dialog
+  const handleDirectPay = async () => {
+    if (!rid || billItems.length === 0) return;
+    await handleSubmit();
+    handlePrint();
+  };
+
+  // Mark Direct Pay bill as paid via billing/collect
+  const handleMarkPaid = async () => {
+    if (!rid || !orderId) return;
+    setMarkingPaid(true);
+    try {
+      await apiFetch(`/api/restaurants/${rid}/billing/collect`, {
+        method: "POST",
+        body: { orderId, method: "DIRECT" },
+      });
+      setIsPaid(true);
+    } catch {
+      /* silent */
+    } finally {
+      setMarkingPaid(false);
     }
   };
 
@@ -182,15 +212,108 @@ export default function ManualBillingTab() {
   };
 
   const handleReset = () => {
-    setBillItems([]); setTableNo(""); setGuestName(""); setSuccess(false); setOrderId(null);
+    setBillItems([]); setTableNo(""); setGuestName(""); setSuccess(false);
+    setOrderId(null); setOrderNo(null); setIsPaid(false);
   };
 
   if (!rid) return (
     <div className="flex items-center justify-center h-64 text-gray-400 text-sm">Select a restaurant first</div>
   );
 
-  /* ── Success State (Counter pay only) ───────────────────────── */
+  /* ── Success State ───────────────────────────────────────────── */
   if (success) {
+    /* Direct Pay success — shows live paid/unpaid status */
+    if (payMethod === "DIRECT") {
+      return (
+        <div className="flex flex-col items-center justify-center py-12 gap-5 max-w-sm mx-auto text-center">
+          {/* Payment status badge — this is the main thing staff needs to see */}
+          <motion.div
+            key={isPaid ? "paid" : "unpaid"}
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", damping: 14 }}
+            className={`flex h-24 w-24 items-center justify-center rounded-full shadow-lg ${
+              isPaid ? "bg-green-100 ring-4 ring-green-200" : "bg-orange-100 ring-4 ring-orange-200"
+            }`}
+          >
+            {isPaid
+              ? <CheckCircle2 className="h-12 w-12 text-green-600" />
+              : <Clock className="h-12 w-12 text-orange-500" />
+            }
+          </motion.div>
+
+          <div>
+            <AnimatePresence mode="wait">
+              <motion.h3
+                key={isPaid ? "paid-title" : "unpaid-title"}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                className={`text-2xl font-black tracking-wide ${isPaid ? "text-green-700" : "text-orange-600"}`}
+              >
+                {isPaid ? "PAID" : "UNPAID"}
+              </motion.h3>
+            </AnimatePresence>
+            <p className="text-sm text-gray-500 mt-1">
+              {orderNo && <span className="font-semibold text-gray-700">#{orderNo} &middot; </span>}
+              {tableNo ? `Table ${tableNo}` : "No table"}
+              {guestName.trim() && <> &middot; {guestName.trim()}</>}
+            </p>
+            <p className="text-xl font-extrabold text-gray-800 mt-2">
+              {formatPrice(total, currency)}
+            </p>
+          </div>
+
+          {/* Mark as Paid — primary CTA when not yet paid */}
+          {!isPaid && (
+            <button
+              onClick={handleMarkPaid}
+              disabled={markingPaid}
+              className="w-full flex items-center justify-center gap-2 rounded-2xl bg-green-500 py-4 text-base font-bold text-white hover:bg-green-600 disabled:opacity-60 transition-all shadow-lg shadow-green-200 active:scale-[0.98]"
+            >
+              {markingPaid
+                ? <Loader2 className="h-5 w-5 animate-spin" />
+                : <><Banknote className="h-5 w-5" /> Mark as Paid</>
+              }
+            </button>
+          )}
+
+          {isPaid && (
+            <div className="w-full rounded-2xl bg-green-50 border border-green-200 py-3 px-4 text-sm font-semibold text-green-700 flex items-center justify-center gap-2">
+              <CheckCircle2 className="h-4 w-4" /> Payment recorded
+            </div>
+          )}
+
+          {/* Secondary actions */}
+          <div className="flex gap-2 w-full">
+            <button
+              onClick={handlePrint}
+              className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+            >
+              <Printer className="h-4 w-4" /> Reprint
+            </button>
+            {orderId && (
+              <a
+                href={`/bill/${orderId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+              >
+                <Receipt className="h-4 w-4" /> View Bill
+              </a>
+            )}
+            <button
+              onClick={handleReset}
+              className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+            >
+              New Bill
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    /* Manual Pay (COUNTER) success */
     return (
       <div className="flex flex-col items-center justify-center py-16 gap-4">
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
@@ -510,11 +633,11 @@ export default function ManualBillingTab() {
             <div className="flex gap-2 mt-3">
               {payMethod === "DIRECT" ? (
                 <button
-                  onClick={handlePrint}
-                  disabled={billItems.length === 0}
+                  onClick={handleDirectPay}
+                  disabled={submitting || billItems.length === 0}
                   className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-teal-500 py-2.5 text-sm font-bold text-white hover:bg-teal-600 disabled:opacity-40 transition-colors"
                 >
-                  <Printer className="h-4 w-4" /> Download Bill
+                  {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Printer className="h-4 w-4" /> Print &amp; Confirm</>}
                 </button>
               ) : (
                 <>

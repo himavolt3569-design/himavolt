@@ -303,8 +303,9 @@ export function OrderProvider({ children }: { children: ReactNode }) {
           }
         }
       } catch {
-        // order not found or inaccessible — clear stale storage
-        clearOrderStorage(restaurantId, undefined);
+        // order not found or inaccessible — let restoreFromStorage handle cleanup
+        // (it knows the tableNo; don't clear here to avoid incorrect key)
+        throw new Error("restore_failed");
       }
     },
     [activeOrder?.id, startPolling],
@@ -316,7 +317,13 @@ export function OrderProvider({ children }: { children: ReactNode }) {
       if (typeof window === "undefined") return;
       const storedId = localStorage.getItem(orderStorageKey(restaurantId, tableNo));
       if (storedId) {
-        await restoreOrder(restaurantId, storedId);
+        try {
+          await restoreOrder(restaurantId, storedId);
+        } catch {
+          // If restoreOrder throws (e.g. network error), clear the stale key
+          // so the tracking overlay doesn't stay stuck on "Loading your order..."
+          clearOrderStorage(restaurantId, tableNo);
+        }
       }
     },
     [activeOrder, restoreOrder],
