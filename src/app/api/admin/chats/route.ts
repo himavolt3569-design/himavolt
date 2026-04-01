@@ -56,3 +56,24 @@ export async function GET(req: NextRequest) {
     pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
   });
 }
+
+/**
+ * DELETE /api/admin/chats
+ * Permanently delete a chat room and all its messages.
+ */
+export async function DELETE(req: NextRequest) {
+  const admin = await requireAdmin();
+  if (!admin) return unauthorized("Admin access required");
+
+  const { roomId } = await req.json();
+  if (!roomId) {
+    return NextResponse.json({ error: "roomId required" }, { status: 400 });
+  }
+
+  await db.$transaction([
+    db.chatMessage.deleteMany({ where: { chatRoomId: roomId } }),
+    db.chatRoom.delete({ where: { id: roomId } }),
+  ]);
+
+  return NextResponse.json({ success: true });
+}

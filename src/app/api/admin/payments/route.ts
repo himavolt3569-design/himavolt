@@ -75,3 +75,21 @@ export async function GET(req: NextRequest) {
     pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
   });
 }
+
+/**
+ * DELETE /api/admin/payments
+ * Permanently delete a payment record.
+ */
+export async function DELETE(req: NextRequest) {
+  const admin = await requireAdmin();
+  if (!admin) return unauthorized("Admin access required");
+
+  const { paymentId } = await req.json();
+  if (!paymentId) {
+    return NextResponse.json({ error: "paymentId required" }, { status: 400 });
+  }
+
+  await db.payment.delete({ where: { id: paymentId } });
+
+  return NextResponse.json({ success: true });
+}

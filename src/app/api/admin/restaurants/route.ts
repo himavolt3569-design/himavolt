@@ -55,6 +55,34 @@ export async function GET(req: NextRequest) {
 }
 
 /**
+ * DELETE /api/admin/restaurants
+ * Permanently delete a restaurant and all its data.
+ */
+export async function DELETE(req: NextRequest) {
+  const admin = await requireAdmin();
+  if (!admin) return unauthorized("Admin access required");
+
+  const { restaurantId } = await req.json();
+  if (!restaurantId) {
+    return NextResponse.json({ error: "restaurantId required" }, { status: 400 });
+  }
+
+  // Delete order-level children first (payment → order), then restaurant cascades the rest
+  await db.$transaction([
+    db.delivery.deleteMany({ where: { order: { restaurantId } } }),
+    db.payment.deleteMany({ where: { order: { restaurantId } } }),
+    db.bill.deleteMany({ where: { order: { restaurantId } } }),
+    db.tableSession.deleteMany({ where: { order: { restaurantId } } }),
+    db.feedback.deleteMany({ where: { restaurantId } }),
+    db.orderItem.deleteMany({ where: { order: { restaurantId } } }),
+    db.order.deleteMany({ where: { restaurantId } }),
+    db.restaurant.delete({ where: { id: restaurantId } }),
+  ]);
+
+  return NextResponse.json({ success: true });
+}
+
+/**
  * PATCH /api/admin/restaurants
  * Toggle active status or update restaurant fields.
  */

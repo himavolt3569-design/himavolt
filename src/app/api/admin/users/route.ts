@@ -58,6 +58,34 @@ export async function GET(req: NextRequest) {
 }
 
 /**
+ * DELETE /api/admin/users
+ * Permanently delete a user and their data.
+ */
+export async function DELETE(req: NextRequest) {
+  const admin = await requireAdmin();
+  if (!admin) return unauthorized("Admin access required");
+
+  const { userId } = await req.json();
+  if (!userId) {
+    return NextResponse.json({ error: "userId required" }, { status: 400 });
+  }
+
+  // Cascade: delete user's orders' children, then user (restaurants cascade from user via Cascade)
+  await db.$transaction([
+    db.delivery.deleteMany({ where: { order: { userId } } }),
+    db.payment.deleteMany({ where: { order: { userId } } }),
+    db.bill.deleteMany({ where: { order: { userId } } }),
+    db.tableSession.deleteMany({ where: { order: { userId } } }),
+    db.orderItem.deleteMany({ where: { order: { userId } } }),
+    db.order.deleteMany({ where: { userId } }),
+    db.review.deleteMany({ where: { userId } }),
+    db.user.delete({ where: { id: userId } }),
+  ]);
+
+  return NextResponse.json({ success: true });
+}
+
+/**
  * PATCH /api/admin/users
  * Update a user's role.
  */

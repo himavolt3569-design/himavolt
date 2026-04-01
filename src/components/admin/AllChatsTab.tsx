@@ -14,7 +14,9 @@ import {
   Clock,
   Send,
   Filter,
+  Trash2,
 } from "lucide-react";
+import DeleteConfirmDialog from "@/components/admin/DeleteConfirmDialog";
 
 interface ChatMessage {
   id: string;
@@ -72,6 +74,8 @@ export default function AllChatsTab() {
   const [selectedRoom, setSelectedRoom] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [messagesLoading, setMessagesLoading] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<ChatRoom | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const fetchRooms = useCallback(
@@ -110,6 +114,28 @@ export default function AllChatsTab() {
     const interval = setInterval(() => fetchRooms(page), 10000);
     return () => clearInterval(interval);
   }, [fetchRooms, page]);
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      const res = await fetch("/api/admin/chats", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ roomId: deleteTarget.id }),
+      });
+      if (res.ok) {
+        setRooms((prev) => prev.filter((r) => r.id !== deleteTarget.id));
+        if (selectedRoom === deleteTarget.id) { setSelectedRoom(null); setMessages([]); }
+        if (pagination) setPagination((p) => p ? { ...p, total: p.total - 1 } : p);
+      }
+    } catch {
+      // silent
+    } finally {
+      setDeleting(false);
+      setDeleteTarget(null);
+    }
+  };
 
   const fetchMessages = async (roomId: string) => {
     setMessagesLoading(true);
@@ -196,13 +222,16 @@ export default function AllChatsTab() {
                 const lastMsg = room.messages[0];
                 const isSelected = selectedRoom === room.id;
                 return (
-                  <button
+                  <div
                     key={room.id}
-                    type="button"
-                    onClick={() => fetchMessages(room.id)}
-                    className={`flex w-full items-start gap-3 px-4 py-3 text-left transition-all hover:bg-brand-50/40 ${
+                    className={`flex w-full items-start gap-3 px-4 py-3 transition-all hover:bg-brand-50/40 ${
                       isSelected ? "bg-brand-50 border-l-2 border-brand-500" : ""
                     }`}
+                  >
+                  <button
+                    type="button"
+                    onClick={() => fetchMessages(room.id)}
+                    className="flex flex-1 items-start gap-3 text-left"
                   >
                     <div className={`mt-0.5 flex-shrink-0 rounded-lg p-2 ${room.isActive ? "bg-green-100 text-green-600" : "bg-gray-100 text-gray-400"}`}>
                       <MessageCircle className="h-4 w-4" />
@@ -238,6 +267,14 @@ export default function AllChatsTab() {
                       </p>
                     </div>
                   </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setDeleteTarget(room); }}
+                    className="mt-1 flex-shrink-0 rounded-lg p-1.5 text-gray-300 hover:bg-red-50 hover:text-red-400 transition-colors"
+                    title="Delete chat room"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                  </div>
                 );
               })}
             </div>
@@ -316,6 +353,15 @@ export default function AllChatsTab() {
           )}
         </div>
       </div>
+
+      <DeleteConfirmDialog
+        open={!!deleteTarget}
+        title="Delete chat room?"
+        description={`This will permanently delete the chat room for "${deleteTarget?.restaurant?.name ?? "Unknown"}" and all its messages. This cannot be undone.`}
+        loading={deleting}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

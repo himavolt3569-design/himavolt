@@ -15,7 +15,9 @@ import {
   LogIn,
   CreditCard,
   Building2,
+  Trash2,
 } from "lucide-react";
+import DeleteConfirmDialog from "@/components/admin/DeleteConfirmDialog";
 
 interface AdminBooking {
   id: string;
@@ -69,6 +71,8 @@ export default function AllBookingsTab() {
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
+  const [deleteTarget, setDeleteTarget] = useState<AdminBooking | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchBookings = async (showRefreshing = false) => {
     if (showRefreshing) setRefreshing(true); else setLoading(true);
@@ -79,6 +83,26 @@ export default function AllBookingsTab() {
     } finally {
       setLoading(false);
       setRefreshing(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      const res = await fetch("/api/admin/bookings", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookingId: deleteTarget.id }),
+      });
+      if (res.ok) {
+        setBookings((prev) => prev.filter((b) => b.id !== deleteTarget.id));
+      }
+    } catch {
+      // silent
+    } finally {
+      setDeleting(false);
+      setDeleteTarget(null);
     }
   };
 
@@ -189,7 +213,7 @@ export default function AllBookingsTab() {
             <table className="w-full text-[12px]">
               <thead className="border-b border-gray-100 bg-gray-50">
                 <tr>
-                  {["Guest", "Hotel / Room", "Dates", "Guests", "Total", "Advance", "Status"].map((h) => (
+                  {["Guest", "Hotel / Room", "Dates", "Guests", "Total", "Advance", "Status", ""].map((h) => (
                     <th key={h} className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wide text-gray-500">
                       {h}
                     </th>
@@ -248,6 +272,15 @@ export default function AllBookingsTab() {
                           {b.status.replace("_", " ")}
                         </span>
                       </td>
+                      <td className="px-4 py-3">
+                        <button
+                          onClick={() => setDeleteTarget(b)}
+                          className="flex items-center gap-1 rounded-lg bg-red-50 px-2.5 py-1.5 text-[11px] font-medium text-red-500 hover:bg-red-100 transition-all"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                          Delete
+                        </button>
+                      </td>
                     </motion.tr>
                   );
                 })}
@@ -256,6 +289,15 @@ export default function AllBookingsTab() {
           </div>
         </div>
       )}
+
+      <DeleteConfirmDialog
+        open={!!deleteTarget}
+        title={`Delete booking for "${deleteTarget?.guestName}"?`}
+        description={`This will permanently delete the booking for Room ${deleteTarget?.room.roomNumber} at ${deleteTarget?.restaurant.name}. This cannot be undone.`}
+        loading={deleting}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

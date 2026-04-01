@@ -19,7 +19,9 @@ import {
   Phone,
   Calendar,
   UserCheck,
+  Trash2,
 } from "lucide-react";
+import DeleteConfirmDialog from "@/components/admin/DeleteConfirmDialog";
 
 interface UserRecord {
   id: string;
@@ -57,6 +59,8 @@ export default function AllUsersTab() {
   const [showFilters, setShowFilters] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [changingRole, setChangingRole] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<UserRecord | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   const fetchUsers = useCallback(
@@ -102,6 +106,27 @@ export default function AllUsersTab() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: deleteTarget.id }),
+      });
+      if (res.ok) {
+        setUsers((prev) => prev.filter((u) => u.id !== deleteTarget.id));
+        if (pagination) setPagination((p) => p ? { ...p, total: p.total - 1 } : p);
+      }
+    } catch {
+      // silent
+    } finally {
+      setDeleting(false);
+      setDeleteTarget(null);
+    }
+  };
 
   const changeRole = async (userId: string, role: string) => {
     setChangingRole(userId);
@@ -279,7 +304,7 @@ export default function AllUsersTab() {
                           </div>
 
                           {/* Role changer */}
-                          <div className="flex items-center gap-2 pt-1">
+                          <div className="flex flex-wrap items-center gap-2 pt-1">
                             <span className="text-xs font-medium text-gray-500">Change Role:</span>
                             {["CUSTOMER", "OWNER", "ADMIN"].map((role) => (
                               <button
@@ -295,6 +320,13 @@ export default function AllUsersTab() {
                                 {changingRole === user.id ? "..." : role}
                               </button>
                             ))}
+                            <button
+                              onClick={() => setDeleteTarget(user)}
+                              className="ml-auto flex items-center gap-1.5 rounded-lg bg-red-50 px-3 py-1.5 text-xs font-medium text-red-500 hover:bg-red-100 transition-all"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                              Delete User
+                            </button>
                           </div>
                         </div>
                       </motion.div>
@@ -320,6 +352,15 @@ export default function AllUsersTab() {
           </div>
         )}
       </div>
+
+      <DeleteConfirmDialog
+        open={!!deleteTarget}
+        title={`Delete "${deleteTarget?.name || deleteTarget?.email}"?`}
+        description="This will permanently delete the user, their orders, reviews, and all associated data. This cannot be undone."
+        loading={deleting}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

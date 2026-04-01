@@ -37,3 +37,21 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({ bookings, total, limit, offset });
 }
+
+/**
+ * DELETE /api/admin/bookings
+ * Permanently delete a room booking.
+ */
+export async function DELETE(req: NextRequest) {
+  const admin = await requireAdmin();
+  if (!admin) return unauthorized("Admin access required");
+
+  const { bookingId } = await req.json();
+  if (!bookingId) {
+    return NextResponse.json({ error: "bookingId required" }, { status: 400 });
+  }
+
+  await db.roomBooking.delete({ where: { id: bookingId } });
+
+  return NextResponse.json({ success: true });
+}

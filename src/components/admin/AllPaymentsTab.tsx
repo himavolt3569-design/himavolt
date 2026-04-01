@@ -20,8 +20,10 @@ import {
   Banknote,
   Wallet,
   TrendingUp,
+  Trash2,
 } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
+import DeleteConfirmDialog from "@/components/admin/DeleteConfirmDialog";
 
 interface Payment {
   id: string;
@@ -89,6 +91,8 @@ export default function AllPaymentsTab() {
   const [page, setPage] = useState(1);
   const [showFilters, setShowFilters] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Payment | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   const fetchPayments = useCallback(
@@ -136,6 +140,27 @@ export default function AllPaymentsTab() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      const res = await fetch("/api/admin/payments", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paymentId: deleteTarget.id }),
+      });
+      if (res.ok) {
+        setPayments((prev) => prev.filter((p) => p.id !== deleteTarget.id));
+        if (pagination) setPagination((p) => p ? { ...p, total: p.total - 1 } : p);
+      }
+    } catch {
+      // silent
+    } finally {
+      setDeleting(false);
+      setDeleteTarget(null);
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -299,7 +324,7 @@ export default function AllPaymentsTab() {
                         exit={{ height: 0, opacity: 0 }}
                         className="overflow-hidden"
                       >
-                        <div className="border-t border-brand-100 bg-brand-50/30 px-4 py-3">
+                        <div className="border-t border-brand-100 bg-brand-50/30 px-4 py-3 space-y-3">
                           <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-xs sm:grid-cols-4">
                             <div>
                               <span className="text-gray-400">Transaction ID</span>
@@ -328,6 +353,15 @@ export default function AllPaymentsTab() {
                               <p className="font-medium text-gompa-slate">{new Date(payment.createdAt).toLocaleString()}</p>
                             </div>
                           </div>
+                          <div className="pt-1">
+                            <button
+                              onClick={() => setDeleteTarget(payment)}
+                              className="flex items-center gap-1.5 rounded-lg bg-red-50 px-3 py-1.5 text-xs font-medium text-red-500 hover:bg-red-100 transition-all"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                              Delete Payment Record
+                            </button>
+                          </div>
                         </div>
                       </motion.div>
                     )}
@@ -352,6 +386,15 @@ export default function AllPaymentsTab() {
           </div>
         )}
       </div>
+
+      <DeleteConfirmDialog
+        open={!!deleteTarget}
+        title="Delete payment record?"
+        description={`This will permanently delete the payment record for order #${deleteTarget?.order.orderNo} (${formatPrice(deleteTarget?.amount ?? 0, "NPR")}). This cannot be undone.`}
+        loading={deleting}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

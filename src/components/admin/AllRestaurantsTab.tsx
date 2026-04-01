@@ -21,7 +21,9 @@ import {
   ToggleRight,
   Eye,
   ExternalLink,
+  Trash2,
 } from "lucide-react";
+import DeleteConfirmDialog from "@/components/admin/DeleteConfirmDialog";
 
 interface Restaurant {
   id: string;
@@ -76,6 +78,8 @@ export default function AllRestaurantsTab() {
   const [showFilters, setShowFilters] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [toggling, setToggling] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Restaurant | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   const fetchRestaurants = useCallback(
@@ -122,6 +126,27 @@ export default function AllRestaurantsTab() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      const res = await fetch("/api/admin/restaurants", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ restaurantId: deleteTarget.id }),
+      });
+      if (res.ok) {
+        setRestaurants((prev) => prev.filter((r) => r.id !== deleteTarget.id));
+        if (pagination) setPagination((p) => p ? { ...p, total: p.total - 1 } : p);
+      }
+    } catch {
+      // silent
+    } finally {
+      setDeleting(false);
+      setDeleteTarget(null);
+    }
+  };
 
   const toggleActive = async (id: string, current: boolean) => {
     setToggling(id);
@@ -360,6 +385,13 @@ export default function AllRestaurantsTab() {
                               <ExternalLink className="h-3.5 w-3.5" />
                               View Menu
                             </a>
+                            <button
+                              onClick={() => setDeleteTarget(r)}
+                              className="ml-auto flex items-center gap-1.5 rounded-lg bg-red-50 px-3 py-1.5 text-xs font-medium text-red-500 hover:bg-red-100 transition-all"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                              Delete
+                            </button>
                           </div>
                         </div>
                       </motion.div>
@@ -385,6 +417,15 @@ export default function AllRestaurantsTab() {
           </div>
         )}
       </div>
+
+      <DeleteConfirmDialog
+        open={!!deleteTarget}
+        title={`Delete "${deleteTarget?.name}"?`}
+        description="This will permanently delete the restaurant and all its orders, menu, staff, and data. This cannot be undone."
+        loading={deleting}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }
