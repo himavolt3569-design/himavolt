@@ -15,6 +15,7 @@ import {
   Send,
   Filter,
   Trash2,
+  CheckSquare,
 } from "lucide-react";
 import DeleteConfirmDialog from "@/components/admin/DeleteConfirmDialog";
 
@@ -76,7 +77,11 @@ export default function AllChatsTab() {
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<ChatRoom | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const allSelected = rooms.length > 0 && selectedIds.size === rooms.length;
 
   const fetchRooms = useCallback(
     async (p = page) => {
@@ -137,6 +142,28 @@ export default function AllChatsTab() {
     }
   };
 
+  const handleBulkDelete = async () => {
+    setDeleting(true);
+    try {
+      const res = await fetch("/api/admin/chats", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: Array.from(selectedIds) }),
+      });
+      if (res.ok) {
+        setRooms((prev) => prev.filter((r) => !selectedIds.has(r.id)));
+        if (selectedRoom && selectedIds.has(selectedRoom)) { setSelectedRoom(null); setMessages([]); }
+        if (pagination) setPagination((p) => p ? { ...p, total: p.total - selectedIds.size } : p);
+        setSelectedIds(new Set());
+      }
+    } catch {
+      // silent
+    } finally {
+      setDeleting(false);
+      setBulkDeleteOpen(false);
+    }
+  };
+
   const fetchMessages = async (roomId: string) => {
     setMessagesLoading(true);
     setSelectedRoom(roomId);
@@ -190,11 +217,32 @@ export default function AllChatsTab() {
         )}
       </div>
 
+      {selectedIds.size > 0 && (
+        <div className="flex items-center gap-3 rounded-xl border border-red-100 bg-red-50 px-4 py-2.5">
+          <CheckSquare className="h-4 w-4 text-red-500 shrink-0" />
+          <span className="text-sm font-semibold text-red-600">{selectedIds.size} selected</span>
+          <button onClick={() => setSelectedIds(new Set())} className="text-xs text-red-400 hover:text-red-600">Clear</button>
+          <button
+            onClick={() => setBulkDeleteOpen(true)}
+            className="ml-auto flex items-center gap-1.5 rounded-lg bg-red-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-600 transition-all"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            Delete {selectedIds.size}
+          </button>
+        </div>
+      )}
+
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Chat Rooms List */}
         <div className="overflow-hidden rounded-2xl border border-brand-100 bg-white shadow-sm">
           <div className="flex items-center justify-between border-b border-brand-100 px-4 py-2.5">
             <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={allSelected}
+                onChange={() => setSelectedIds(allSelected ? new Set() : new Set(rooms.map((r) => r.id)))}
+                className="h-3.5 w-3.5 rounded accent-gompa-slate"
+              />
               <MessageCircle className="h-4 w-4 text-brand-400" />
               <span className="text-xs font-semibold text-gray-500">Chat Rooms</span>
             </div>
@@ -221,13 +269,24 @@ export default function AllChatsTab() {
               {rooms.map((room) => {
                 const lastMsg = room.messages[0];
                 const isSelected = selectedRoom === room.id;
+                const isBulkSelected = selectedIds.has(room.id);
                 return (
                   <div
                     key={room.id}
                     className={`flex w-full items-start gap-3 px-4 py-3 transition-all hover:bg-brand-50/40 ${
-                      isSelected ? "bg-brand-50 border-l-2 border-brand-500" : ""
+                      isSelected ? "bg-brand-50 border-l-2 border-brand-500" : isBulkSelected ? "bg-red-50/30" : ""
                     }`}
                   >
+                  <input
+                    type="checkbox"
+                    checked={isBulkSelected}
+                    onChange={() => setSelectedIds((prev) => {
+                      const next = new Set(prev);
+                      if (next.has(room.id)) next.delete(room.id); else next.add(room.id);
+                      return next;
+                    })}
+                    className="mt-3 h-3.5 w-3.5 flex-shrink-0 rounded accent-gompa-slate"
+                  />
                   <button
                     type="button"
                     onClick={() => fetchMessages(room.id)}
@@ -361,6 +420,14 @@ export default function AllChatsTab() {
         loading={deleting}
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
+      />
+      <DeleteConfirmDialog
+        open={bulkDeleteOpen}
+        title={`Delete ${selectedIds.size} chat room${selectedIds.size > 1 ? "s" : ""}?`}
+        description={`This will permanently delete ${selectedIds.size} chat room${selectedIds.size > 1 ? "s" : ""} and all their messages. This cannot be undone.`}
+        loading={deleting}
+        onConfirm={handleBulkDelete}
+        onCancel={() => setBulkDeleteOpen(false)}
       />
     </div>
   );

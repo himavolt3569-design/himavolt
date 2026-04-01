@@ -16,8 +16,11 @@ import {
   CheckCircle2,
   Package,
   Navigation,
+  Trash2,
+  CheckSquare,
 } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
+import DeleteConfirmDialog from "@/components/admin/DeleteConfirmDialog";
 
 interface Delivery {
   id: string;
@@ -96,6 +99,12 @@ export default function AllDeliveriesTab() {
   const [statusFilter, setStatusFilter] = useState("All");
   const [page, setPage] = useState(1);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Delivery | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+
+  const allSelected = deliveries.length > 0 && selectedIds.size === deliveries.length;
 
   const fetchDeliveries = useCallback(
     async (p = page) => {
@@ -134,6 +143,48 @@ export default function AllDeliveriesTab() {
     return () => clearInterval(interval);
   }, [fetchDeliveries, page]);
 
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      const res = await fetch("/api/admin/deliveries", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ deliveryId: deleteTarget.id }),
+      });
+      if (res.ok) {
+        setDeliveries((prev) => prev.filter((d) => d.id !== deleteTarget.id));
+        if (pagination) setPagination((p) => p ? { ...p, total: p.total - 1 } : p);
+      }
+    } catch {
+      // silent
+    } finally {
+      setDeleting(false);
+      setDeleteTarget(null);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    setDeleting(true);
+    try {
+      const res = await fetch("/api/admin/deliveries", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: Array.from(selectedIds) }),
+      });
+      if (res.ok) {
+        setDeliveries((prev) => prev.filter((d) => !selectedIds.has(d.id)));
+        if (pagination) setPagination((p) => p ? { ...p, total: p.total - selectedIds.size } : p);
+        setSelectedIds(new Set());
+      }
+    } catch {
+      // silent
+    } finally {
+      setDeleting(false);
+      setBulkDeleteOpen(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* Status Filter */}
@@ -163,10 +214,31 @@ export default function AllDeliveriesTab() {
         )}
       </div>
 
+      {selectedIds.size > 0 && (
+        <div className="flex items-center gap-3 rounded-xl border border-red-100 bg-red-50 px-4 py-2.5">
+          <CheckSquare className="h-4 w-4 text-red-500 shrink-0" />
+          <span className="text-sm font-semibold text-red-600">{selectedIds.size} selected</span>
+          <button onClick={() => setSelectedIds(new Set())} className="text-xs text-red-400 hover:text-red-600">Clear</button>
+          <button
+            onClick={() => setBulkDeleteOpen(true)}
+            className="ml-auto flex items-center gap-1.5 rounded-lg bg-red-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-600 transition-all"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            Delete {selectedIds.size}
+          </button>
+        </div>
+      )}
+
       {/* Deliveries List */}
       <div className="overflow-hidden rounded-2xl border border-brand-100 bg-white shadow-sm">
         <div className="flex items-center justify-between border-b border-brand-100 px-4 py-2.5">
           <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={allSelected}
+              onChange={() => setSelectedIds(allSelected ? new Set() : new Set(deliveries.map((d) => d.id)))}
+              className="h-3.5 w-3.5 rounded accent-gompa-slate"
+            />
             <Truck className="h-4 w-4 text-brand-400" />
             <span className="text-xs font-semibold text-gray-500">Deliveries</span>
           </div>
@@ -193,13 +265,28 @@ export default function AllDeliveriesTab() {
             {deliveries.map((delivery) => {
               const StatusIcon = STATUS_ICONS[delivery.status] || Clock;
               const isExpanded = expandedId === delivery.id;
+              const isSelected = selectedIds.has(delivery.id);
               return (
-                <div key={delivery.id} className="transition-all hover:bg-brand-50/40">
+                <div key={delivery.id} className={`transition-all hover:bg-brand-50/40 ${isSelected ? "bg-red-50/30" : ""}`}>
                   <button
                     type="button"
                     onClick={() => setExpandedId(isExpanded ? null : delivery.id)}
                     className="flex w-full items-center gap-3 px-4 py-3 text-left"
                   >
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        setSelectedIds((prev) => {
+                          const next = new Set(prev);
+                          if (next.has(delivery.id)) next.delete(delivery.id); else next.add(delivery.id);
+                          return next;
+                        });
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      className="h-3.5 w-3.5 flex-shrink-0 rounded accent-gompa-slate"
+                    />
                     <div className={`flex-shrink-0 rounded-lg p-2 ${STATUS_COLORS[delivery.status] || "bg-gray-100 text-gray-600"}`}>
                       <StatusIcon className="h-4 w-4" />
                     </div>
@@ -317,6 +404,15 @@ export default function AllDeliveriesTab() {
                               </div>
                             )}
                           </div>
+                          <div className="pt-1">
+                            <button
+                              onClick={() => setDeleteTarget(delivery)}
+                              className="flex items-center gap-1.5 rounded-lg bg-red-50 px-3 py-1.5 text-xs font-medium text-red-500 hover:bg-red-100 transition-all"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                              Delete Record
+                            </button>
+                          </div>
                         </div>
                       </motion.div>
                     )}
@@ -341,6 +437,23 @@ export default function AllDeliveriesTab() {
           </div>
         )}
       </div>
+
+      <DeleteConfirmDialog
+        open={!!deleteTarget}
+        title="Delete delivery record?"
+        description={`This will permanently delete the delivery record for order #${deleteTarget?.order.orderNo}. This cannot be undone.`}
+        loading={deleting}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
+      <DeleteConfirmDialog
+        open={bulkDeleteOpen}
+        title={`Delete ${selectedIds.size} delivery record${selectedIds.size > 1 ? "s" : ""}?`}
+        description={`This will permanently delete ${selectedIds.size} delivery record${selectedIds.size > 1 ? "s" : ""}. This cannot be undone.`}
+        loading={deleting}
+        onConfirm={handleBulkDelete}
+        onCancel={() => setBulkDeleteOpen(false)}
+      />
     </div>
   );
 }

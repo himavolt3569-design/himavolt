@@ -16,6 +16,7 @@ import {
   CreditCard,
   Building2,
   Trash2,
+  CheckSquare,
 } from "lucide-react";
 import DeleteConfirmDialog from "@/components/admin/DeleteConfirmDialog";
 
@@ -73,6 +74,8 @@ export default function AllBookingsTab() {
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [deleteTarget, setDeleteTarget] = useState<AdminBooking | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
 
   const fetchBookings = async (showRefreshing = false) => {
     if (showRefreshing) setRefreshing(true); else setLoading(true);
@@ -83,6 +86,26 @@ export default function AllBookingsTab() {
     } finally {
       setLoading(false);
       setRefreshing(false);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    setDeleting(true);
+    try {
+      const res = await fetch("/api/admin/bookings", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: Array.from(selectedIds) }),
+      });
+      if (res.ok) {
+        setBookings((prev) => prev.filter((b) => !selectedIds.has(b.id)));
+        setSelectedIds(new Set());
+      }
+    } catch {
+      // silent
+    } finally {
+      setDeleting(false);
+      setBulkDeleteOpen(false);
     }
   };
 
@@ -120,6 +143,8 @@ export default function AllBookingsTab() {
       b.guestPhone?.includes(q)
     );
   });
+
+  const allSelected = filtered.length > 0 && filtered.every((b) => selectedIds.has(b.id));
 
   const stats = {
     total: bookings.length,
@@ -201,6 +226,21 @@ export default function AllBookingsTab() {
         </div>
       </div>
 
+      {selectedIds.size > 0 && (
+        <div className="flex items-center gap-3 rounded-xl border border-red-100 bg-red-50 px-4 py-2.5">
+          <CheckSquare className="h-4 w-4 text-red-500 shrink-0" />
+          <span className="text-sm font-semibold text-red-600">{selectedIds.size} selected</span>
+          <button onClick={() => setSelectedIds(new Set())} className="text-xs text-red-400 hover:text-red-600">Clear</button>
+          <button
+            onClick={() => setBulkDeleteOpen(true)}
+            className="ml-auto flex items-center gap-1.5 rounded-lg bg-red-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-600 transition-all"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            Delete {selectedIds.size}
+          </button>
+        </div>
+      )}
+
       {/* Table */}
       {filtered.length === 0 ? (
         <div className="py-16 text-center">
@@ -213,6 +253,14 @@ export default function AllBookingsTab() {
             <table className="w-full text-[12px]">
               <thead className="border-b border-gray-100 bg-gray-50">
                 <tr>
+                  <th className="px-4 py-3">
+                    <input
+                      type="checkbox"
+                      checked={allSelected}
+                      onChange={() => setSelectedIds(allSelected ? new Set() : new Set(filtered.map((b) => b.id)))}
+                      className="h-3.5 w-3.5 rounded accent-gompa-slate"
+                    />
+                  </th>
                   {["Guest", "Hotel / Room", "Dates", "Guests", "Total", "Advance", "Status", ""].map((h) => (
                     <th key={h} className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wide text-gray-500">
                       {h}
@@ -229,8 +277,20 @@ export default function AllBookingsTab() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ delay: i * 0.02 }}
-                      className="hover:bg-gray-50/50 transition-colors"
+                      className={`hover:bg-gray-50/50 transition-colors ${selectedIds.has(b.id) ? "bg-red-50/30" : ""}`}
                     >
+                      <td className="px-4 py-3">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(b.id)}
+                          onChange={() => setSelectedIds((prev) => {
+                            const next = new Set(prev);
+                            if (next.has(b.id)) next.delete(b.id); else next.add(b.id);
+                            return next;
+                          })}
+                          className="h-3.5 w-3.5 rounded accent-gompa-slate"
+                        />
+                      </td>
                       <td className="px-4 py-3">
                         <p className="font-semibold text-gray-800">{b.guestName}</p>
                         {b.guestPhone && <p className="text-gray-400">{b.guestPhone}</p>}
@@ -297,6 +357,14 @@ export default function AllBookingsTab() {
         loading={deleting}
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
+      />
+      <DeleteConfirmDialog
+        open={bulkDeleteOpen}
+        title={`Delete ${selectedIds.size} booking${selectedIds.size > 1 ? "s" : ""}?`}
+        description={`This will permanently delete ${selectedIds.size} booking${selectedIds.size > 1 ? "s" : ""}. This cannot be undone.`}
+        loading={deleting}
+        onConfirm={handleBulkDelete}
+        onCancel={() => setBulkDeleteOpen(false)}
       />
     </div>
   );

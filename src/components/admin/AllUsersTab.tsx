@@ -20,6 +20,7 @@ import {
   Calendar,
   UserCheck,
   Trash2,
+  CheckSquare,
 } from "lucide-react";
 import DeleteConfirmDialog from "@/components/admin/DeleteConfirmDialog";
 
@@ -61,7 +62,11 @@ export default function AllUsersTab() {
   const [changingRole, setChangingRole] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<UserRecord | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
+
+  const allSelected = users.length > 0 && selectedIds.size === users.length;
 
   const fetchUsers = useCallback(
     async (p = page) => {
@@ -128,6 +133,27 @@ export default function AllUsersTab() {
     }
   };
 
+  const handleBulkDelete = async () => {
+    setDeleting(true);
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: Array.from(selectedIds) }),
+      });
+      if (res.ok) {
+        setUsers((prev) => prev.filter((u) => !selectedIds.has(u.id)));
+        if (pagination) setPagination((p) => p ? { ...p, total: p.total - selectedIds.size } : p);
+        setSelectedIds(new Set());
+      }
+    } catch {
+      // silent
+    } finally {
+      setDeleting(false);
+      setBulkDeleteOpen(false);
+    }
+  };
+
   const changeRole = async (userId: string, role: string) => {
     setChangingRole(userId);
     try {
@@ -189,6 +215,26 @@ export default function AllUsersTab() {
         )}
       </div>
 
+      {selectedIds.size > 0 && (
+        <div className="flex items-center gap-3 rounded-xl border border-red-100 bg-red-50 px-4 py-2.5">
+          <CheckSquare className="h-4 w-4 text-red-500 shrink-0" />
+          <span className="text-sm font-semibold text-red-600">{selectedIds.size} selected</span>
+          <button
+            onClick={() => setSelectedIds(new Set())}
+            className="text-xs text-red-400 hover:text-red-600"
+          >
+            Clear
+          </button>
+          <button
+            onClick={() => setBulkDeleteOpen(true)}
+            className="ml-auto flex items-center gap-1.5 rounded-lg bg-red-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-600 transition-all"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            Delete {selectedIds.size}
+          </button>
+        </div>
+      )}
+
       <AnimatePresence>
         {showFilters && (
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
@@ -215,6 +261,12 @@ export default function AllUsersTab() {
       {/* Users List */}
       <div className="overflow-hidden rounded-2xl border border-brand-100 bg-white shadow-sm">
         <div className="flex items-center gap-2 border-b border-brand-100 px-4 py-2.5">
+          <input
+            type="checkbox"
+            checked={allSelected}
+            onChange={() => setSelectedIds(allSelected ? new Set() : new Set(users.map((u) => u.id)))}
+            className="h-3.5 w-3.5 rounded accent-gompa-slate"
+          />
           <Users className="h-4 w-4 text-brand-400" />
           <span className="text-xs font-semibold text-gray-500">All Users</span>
         </div>
@@ -232,13 +284,28 @@ export default function AllUsersTab() {
           <div className="divide-y divide-gray-50">
             {users.map((user) => {
               const isExpanded = expandedId === user.id;
+              const isSelected = selectedIds.has(user.id);
               return (
-                <div key={user.id} className="transition-all hover:bg-brand-50/40">
+                <div key={user.id} className={`transition-all hover:bg-brand-50/40 ${isSelected ? "bg-red-50/40" : ""}`}>
                   <button
                     type="button"
                     onClick={() => setExpandedId(isExpanded ? null : user.id)}
                     className="flex w-full items-center gap-3 px-4 py-3 text-left"
                   >
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        setSelectedIds((prev) => {
+                          const next = new Set(prev);
+                          if (next.has(user.id)) next.delete(user.id); else next.add(user.id);
+                          return next;
+                        });
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      className="h-3.5 w-3.5 flex-shrink-0 rounded accent-gompa-slate"
+                    />
                     <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-brand-50 overflow-hidden">
                       {user.imageUrl ? (
                         <img src={user.imageUrl} alt={user.name} className="h-10 w-10 object-cover rounded-full" />
@@ -360,6 +427,14 @@ export default function AllUsersTab() {
         loading={deleting}
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
+      />
+      <DeleteConfirmDialog
+        open={bulkDeleteOpen}
+        title={`Delete ${selectedIds.size} user${selectedIds.size > 1 ? "s" : ""}?`}
+        description={`This will permanently delete ${selectedIds.size} user${selectedIds.size > 1 ? "s" : ""} and ALL their associated data (orders, reviews). This cannot be undone.`}
+        loading={deleting}
+        onConfirm={handleBulkDelete}
+        onCancel={() => setBulkDeleteOpen(false)}
       />
     </div>
   );

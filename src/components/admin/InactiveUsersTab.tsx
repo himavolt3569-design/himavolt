@@ -19,6 +19,7 @@ import {
   ShoppingBag,
   Star,
   AlertTriangle,
+  CheckSquare,
 } from "lucide-react";
 import DeleteConfirmDialog from "@/components/admin/DeleteConfirmDialog";
 
@@ -68,7 +69,11 @@ export default function InactiveUsersTab() {
   const [deleteTarget, setDeleteTarget] = useState<InactiveUser | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [reactivating, setReactivating] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
+
+  const allSelected = users.length > 0 && selectedIds.size === users.length;
 
   const fetchUsers = useCallback(
     async (p = page) => {
@@ -134,6 +139,27 @@ export default function InactiveUsersTab() {
     }
   };
 
+  const handleBulkDelete = async () => {
+    setDeleting(true);
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: Array.from(selectedIds) }),
+      });
+      if (res.ok) {
+        setUsers((prev) => prev.filter((u) => !selectedIds.has(u.id)));
+        if (pagination) setPagination((p) => p ? { ...p, total: p.total - selectedIds.size } : p);
+        setSelectedIds(new Set());
+      }
+    } catch {
+      // silent
+    } finally {
+      setDeleting(false);
+      setBulkDeleteOpen(false);
+    }
+  };
+
   const handleReactivate = async (userId: string) => {
     setReactivating(userId);
     try {
@@ -195,9 +221,30 @@ export default function InactiveUsersTab() {
         )}
       </div>
 
+      {selectedIds.size > 0 && (
+        <div className="flex items-center gap-3 rounded-xl border border-red-100 bg-red-50 px-4 py-2.5">
+          <CheckSquare className="h-4 w-4 text-red-500 shrink-0" />
+          <span className="text-sm font-semibold text-red-600">{selectedIds.size} selected</span>
+          <button onClick={() => setSelectedIds(new Set())} className="text-xs text-red-400 hover:text-red-600">Clear</button>
+          <button
+            onClick={() => setBulkDeleteOpen(true)}
+            className="ml-auto flex items-center gap-1.5 rounded-lg bg-red-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-600 transition-all"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            Delete {selectedIds.size}
+          </button>
+        </div>
+      )}
+
       {/* Users List */}
       <div className="overflow-hidden rounded-2xl border border-brand-100 bg-white shadow-sm">
         <div className="flex items-center gap-2 border-b border-brand-100 px-4 py-2.5">
+          <input
+            type="checkbox"
+            checked={allSelected}
+            onChange={() => setSelectedIds(allSelected ? new Set() : new Set(users.map((u) => u.id)))}
+            className="h-3.5 w-3.5 rounded accent-gompa-slate"
+          />
           <UserX className="h-4 w-4 text-amber-400" />
           <span className="text-xs font-semibold text-gray-500">Inactive Accounts (15+ days)</span>
         </div>
@@ -218,14 +265,29 @@ export default function InactiveUsersTab() {
               const isExpanded = expandedId === user.id;
               const inactiveDays = daysSince(user.lastOrderAt ?? user.createdAt);
               const isReactivating = reactivating === user.id;
+              const isSelected = selectedIds.has(user.id);
 
               return (
-                <div key={user.id} className="transition-all hover:bg-amber-50/30">
+                <div key={user.id} className={`transition-all hover:bg-amber-50/30 ${isSelected ? "bg-red-50/30" : ""}`}>
                   <button
                     type="button"
                     onClick={() => setExpandedId(isExpanded ? null : user.id)}
                     className="flex w-full items-center gap-3 px-4 py-3 text-left"
                   >
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        setSelectedIds((prev) => {
+                          const next = new Set(prev);
+                          if (next.has(user.id)) next.delete(user.id); else next.add(user.id);
+                          return next;
+                        });
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      className="h-3.5 w-3.5 flex-shrink-0 rounded accent-gompa-slate"
+                    />
                     {/* Avatar */}
                     <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-amber-50 overflow-hidden">
                       {user.imageUrl ? (
@@ -378,6 +440,14 @@ export default function InactiveUsersTab() {
         loading={deleting}
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
+      />
+      <DeleteConfirmDialog
+        open={bulkDeleteOpen}
+        title={`Delete ${selectedIds.size} inactive account${selectedIds.size > 1 ? "s" : ""}?`}
+        description={`This will permanently delete ${selectedIds.size} account${selectedIds.size > 1 ? "s" : ""} and ALL their associated data. This cannot be undone.`}
+        loading={deleting}
+        onConfirm={handleBulkDelete}
+        onCancel={() => setBulkDeleteOpen(false)}
       />
     </div>
   );
