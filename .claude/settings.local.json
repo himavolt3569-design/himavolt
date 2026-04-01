@@ -38,7 +38,8 @@
       "Bash(grep -E \"\\\\.\\(ts|tsx|js|jsx\\)$\")",
       "Bash(xargs ls:*)",
       "Bash(mkdir -p d:/Official_Projects/himalhub/src/app/api/restaurants/[id]/display-counter)",
-      "Bash(mkdir -p d:/Official_Projects/himalhub/src/app/api/public/restaurants/[slug]/display-counter)"
+      "Bash(mkdir -p d:/Official_Projects/himalhub/src/app/api/public/restaurants/[slug]/display-counter)",
+      "Bash(node -e \"require\\(''jsqr''\\); console.log\\(''jsqr ok''\\)\")"
     ],
     "additionalDirectories": [
       "d:\\Official_Projects\\himalhub\\src\\app\\api\\public\\restaurants\\[slug]"
