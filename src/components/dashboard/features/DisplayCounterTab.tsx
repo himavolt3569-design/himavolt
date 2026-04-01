@@ -53,7 +53,7 @@ export default function DisplayCounterTab() {
 
   const [items, setItems] = useState<DisplayItem[]>([]);
   const [config, setConfig] = useState<DisplayConfig>({ isEnabled: false, autoHideSoldOut: false });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!!restaurantId);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [previewMode, setPreviewMode] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -62,7 +62,11 @@ export default function DisplayCounterTab() {
 
   // Load data from API
   const loadData = useCallback(async () => {
-    if (!restaurantId) return;
+    if (!restaurantId) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
     try {
       const data = await apiFetch<{ items: DisplayItem[]; config: DisplayConfig }>(
         `/api/restaurants/${restaurantId}/display-counter`
@@ -84,8 +88,8 @@ export default function DisplayCounterTab() {
     const newConfig = { ...config, ...updates };
     setConfig(newConfig);
     await apiFetch(`/api/restaurants/${restaurantId}/display-counter`, {
-      method: "POST",
-      body: { config: newConfig, _action: "updateConfig" },
+      method: "PATCH",
+      body: { config: newConfig },
     }).catch(() => setConfig(config));
   };
 
@@ -110,7 +114,7 @@ export default function DisplayCounterTab() {
   const updateItem = async (id: string, updates: Partial<DisplayItem>) => {
     setItems((prev) => prev.map((i) => (i.id === id ? { ...i, ...updates } : i)));
     await apiFetch(`/api/restaurants/${restaurantId}/display-counter`, {
-      method: "PATCH" as "POST",
+      method: "PATCH",
       body: { itemId: id, ...updates },
     }).catch(() => loadData());
   };
@@ -132,7 +136,7 @@ export default function DisplayCounterTab() {
     newItems.sort((a, b) => a.sortOrder - b.sortOrder);
     setItems(newItems);
     await apiFetch(`/api/restaurants/${restaurantId}/display-counter`, {
-      method: "PATCH" as "POST",
+      method: "PATCH",
       body: { reorder: newItems.map((i) => ({ id: i.id, sortOrder: i.sortOrder })) },
     }).catch(() => loadData());
   };
@@ -147,7 +151,7 @@ export default function DisplayCounterTab() {
     newItems.sort((a, b) => a.sortOrder - b.sortOrder);
     setItems(newItems);
     await apiFetch(`/api/restaurants/${restaurantId}/display-counter`, {
-      method: "PATCH" as "POST",
+      method: "PATCH",
       body: { reorder: newItems.map((i) => ({ id: i.id, sortOrder: i.sortOrder })) },
     }).catch(() => loadData());
   };

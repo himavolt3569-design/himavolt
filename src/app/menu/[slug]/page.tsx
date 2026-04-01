@@ -76,6 +76,7 @@ import ChatWidget from "@/components/chat/ChatWidget";
 import { formatPrice } from "@/lib/currency";
 import OfferCountdown from "@/components/menu/OfferCountdown";
 import TableSessionBanner from "@/components/menu/TableSessionBanner";
+import DisplayCounterView from "@/components/menu/DisplayCounterView";
 import GetBillButton from "@/components/menu/GetBillButton";
 import { useTableSession } from "@/hooks/useTableSession";
 import { setActiveTableSession } from "@/hooks/useActiveTableSession";
@@ -1887,6 +1888,9 @@ function MenuPageContent() {
                 <MenuStories slug={slug} />
               </ScrollStorySection>
             )}
+
+            {/* Display Counter - live availability view */}
+            <DisplayCounterView slug={slug} />
 
             {/* Table session banner */}
             {hasSessionOrder && sessionOrder && (

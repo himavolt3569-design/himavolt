@@ -36,6 +36,7 @@ export const TYPE_FEATURES: Record<string, TypeFeature[]> = {
     { label: "Combo Meals", desc: "Bundle items into value combos" },
     { label: "Rush Hour Mode", desc: "Queue management for peak times" },
     { label: "Takeaway Ready", desc: "Streamlined packaging & delivery" },
+    { label: "Display Counter", desc: "Showcase items for walk-in customers" },
     { label: "WiFi", desc: "Share WiFi credentials with customers" },
   ],
   RESORT: [
@@ -44,6 +45,7 @@ export const TYPE_FEATURES: Record<string, TypeFeature[]> = {
     { label: "Event Catering", desc: "Weddings, conferences, parties" },
     { label: "Guest Billing", desc: "Charge meals to room accounts" },
     { label: "Guest Check-In", desc: "Record guest details & room assignment" },
+    { label: "Display Counter", desc: "Showcase available items for guests" },
     { label: "WiFi", desc: "Share WiFi credentials with guests" },
   ],
   HOTEL: [
@@ -52,6 +54,7 @@ export const TYPE_FEATURES: Record<string, TypeFeature[]> = {
     { label: "Conference Catering", desc: "Corporate events & meetings" },
     { label: "Guest Billing", desc: "Integrated room charge system" },
     { label: "Guest Check-In", desc: "Record guest details & room assignment" },
+    { label: "Display Counter", desc: "Showcase available items for guests" },
     { label: "WiFi", desc: "Share WiFi credentials with guests" },
   ],
   BAKERY: [
@@ -66,12 +69,14 @@ export const TYPE_FEATURES: Record<string, TypeFeature[]> = {
     { label: "Multi-Brand", desc: "Run multiple brands from one kitchen" },
     { label: "Delivery Zones", desc: "Set up delivery area coverage" },
     { label: "Package Tracking", desc: "Order packaging & dispatch flow" },
+    { label: "Display Counter", desc: "Showcase available items online" },
   ],
   BAR: [
     { label: "Happy Hours", desc: "Scheduled promotional drink pricing" },
     { label: "Tab Management", desc: "Open tabs & group billing" },
     { label: "Cocktail Menu", desc: "Recipe-based drink builder" },
     { label: "Live Events", desc: "Music nights & event listings" },
+    { label: "Display Counter", desc: "Showcase available drinks & snacks" },
     { label: "WiFi", desc: "Share WiFi credentials with customers" },
   ],
   CAFE: [
@@ -79,12 +84,14 @@ export const TYPE_FEATURES: Record<string, TypeFeature[]> = {
     { label: "WiFi & Seating", desc: "WiFi info & table availability" },
     { label: "Seasonal Menu", desc: "Rotating seasonal specials" },
     { label: "Brunch Mode", desc: "Weekend brunch & pastry focus" },
+    { label: "Display Counter", desc: "Showcase pastries & drinks for customers" },
   ],
   RESTAURANT: [
     { label: "Table Reservations", desc: "Online booking & waitlist" },
     { label: "QR Dine-In", desc: "Scan & order from the table" },
     { label: "Waitlist", desc: "Queue management for walk-ins" },
     { label: "Private Dining", desc: "Special rooms & set menus" },
+    { label: "Display Counter", desc: "Showcase today's specials for customers" },
     { label: "WiFi", desc: "Share WiFi credentials with diners" },
   ],
   MO_MO_SHOP: [
@@ -92,6 +99,7 @@ export const TYPE_FEATURES: Record<string, TypeFeature[]> = {
     { label: "Momo Varieties", desc: "Manage steam, fried, jhol & more" },
     { label: "Rush Hour Mode", desc: "Queue management for peak times" },
     { label: "Takeaway Ready", desc: "Streamlined packaging & carry-out" },
+    { label: "Display Counter", desc: "Showcase available momo varieties" },
     { label: "WiFi", desc: "Share WiFi credentials with customers" },
   ],
   TANDOORI: [
@@ -106,6 +114,7 @@ export const TYPE_FEATURES: Record<string, TypeFeature[]> = {
     { label: "Room Service", desc: "Food & drinks delivered to rooms" },
     { label: "Guest Billing", desc: "Integrated room charge system" },
     { label: "Room QR Codes", desc: "Generate QR codes per room" },
+    { label: "Display Counter", desc: "Showcase available items for guests" },
     { label: "WiFi", desc: "Share WiFi credentials with guests" },
   ],
 };
@@ -161,6 +170,7 @@ export const TYPE_FEATURE_TABS: Record<string, FeatureTabDef[]> = {
     { id: "combo-meals", label: "Combo Meals", desc: "Bundle items into value combos", iconHint: "Layers" },
     { id: "rush-hour", label: "Rush Hour", desc: "Queue management for peak times", iconHint: "Timer" },
     { id: "takeaway", label: "Takeaway", desc: "Streamlined packaging & delivery", iconHint: "PackageCheck" },
+    { id: "display-counter", label: "Display Counter", desc: "Showcase items for walk-in customers", iconHint: "Monitor" },
     { id: "wifi-settings", label: "WiFi", desc: "Share WiFi credentials with customers", iconHint: "Wifi" },
   ],
   RESORT: [
@@ -172,6 +182,7 @@ export const TYPE_FEATURE_TABS: Record<string, FeatureTabDef[]> = {
     { id: "hotel-bookings", label: "Room Bookings", desc: "Manage online room reservations", iconHint: "CalendarCheck" },
     { id: "hotel-qr", label: "Hotel QR Code", desc: "QR code linking to full hotel booking page", iconHint: "QrCode" },
     { id: "room-qr-codes", label: "Room QR Codes", desc: "Generate QR codes per room", iconHint: "QrCode" },
+    { id: "display-counter", label: "Display Counter", desc: "Showcase available items for guests", iconHint: "Monitor" },
     { id: "wifi-settings", label: "WiFi", desc: "Share WiFi credentials with guests", iconHint: "Wifi" },
   ],
   HOTEL: [
@@ -183,6 +194,7 @@ export const TYPE_FEATURE_TABS: Record<string, FeatureTabDef[]> = {
     { id: "hotel-bookings", label: "Room Bookings", desc: "Manage online room reservations", iconHint: "CalendarCheck" },
     { id: "hotel-qr", label: "Hotel QR Code", desc: "QR code linking to full hotel booking page", iconHint: "QrCode" },
     { id: "room-qr-codes", label: "Room QR Codes", desc: "Generate QR codes per room", iconHint: "QrCode" },
+    { id: "display-counter", label: "Display Counter", desc: "Showcase available items for guests", iconHint: "Monitor" },
     { id: "wifi-settings", label: "WiFi", desc: "Share WiFi credentials with guests", iconHint: "Wifi" },
   ],
   BAKERY: [
@@ -197,12 +209,14 @@ export const TYPE_FEATURE_TABS: Record<string, FeatureTabDef[]> = {
     { id: "multi-brand", label: "Multi-Brand", desc: "Run multiple brands from one kitchen", iconHint: "Building2" },
     { id: "delivery-zones", label: "Delivery Zones", desc: "Set up delivery area coverage", iconHint: "MapPin" },
     { id: "package-tracking", label: "Package Tracking", desc: "Order packaging & dispatch flow", iconHint: "PackageSearch" },
+    { id: "display-counter", label: "Display Counter", desc: "Showcase available items online", iconHint: "Monitor" },
   ],
   BAR: [
     { id: "happy-hours", label: "Happy Hours", desc: "Scheduled promotional drink pricing", iconHint: "Clock" },
     { id: "tab-management", label: "Tab Management", desc: "Open tabs & group billing", iconHint: "Receipt" },
     { id: "cocktail-menu", label: "Cocktail Menu", desc: "Recipe-based drink builder", iconHint: "Wine" },
     { id: "live-events", label: "Live Events", desc: "Music nights & event listings", iconHint: "Music" },
+    { id: "display-counter", label: "Display Counter", desc: "Showcase available drinks & snacks", iconHint: "Monitor" },
     { id: "wifi-settings", label: "WiFi", desc: "Share WiFi credentials with customers", iconHint: "Wifi" },
   ],
   CAFE: [
@@ -210,11 +224,13 @@ export const TYPE_FEATURE_TABS: Record<string, FeatureTabDef[]> = {
     { id: "wifi-seating", label: "WiFi & Seating", desc: "WiFi info & table availability", iconHint: "Wifi" },
     { id: "seasonal-menu", label: "Seasonal Menu", desc: "Rotating seasonal specials", iconHint: "Leaf" },
     { id: "brunch-mode", label: "Brunch Mode", desc: "Weekend brunch & pastry focus", iconHint: "Sun" },
+    { id: "display-counter", label: "Display Counter", desc: "Showcase pastries & drinks for customers", iconHint: "Monitor" },
   ],
   RESTAURANT: [
     { id: "table-reservations", label: "Reservations", desc: "Online booking & waitlist", iconHint: "CalendarCheck" },
     { id: "waitlist", label: "Waitlist", desc: "Queue management for walk-ins", iconHint: "ListOrdered" },
     { id: "private-dining", label: "Private Dining", desc: "Special rooms & set menus", iconHint: "DoorOpen" },
+    { id: "display-counter", label: "Display Counter", desc: "Showcase today's specials for customers", iconHint: "Monitor" },
     { id: "wifi-settings", label: "WiFi", desc: "Share WiFi credentials with diners", iconHint: "Wifi" },
   ],
   MO_MO_SHOP: [
@@ -222,6 +238,7 @@ export const TYPE_FEATURE_TABS: Record<string, FeatureTabDef[]> = {
     { id: "rush-hour", label: "Rush Hour", desc: "Queue management for peak times", iconHint: "Timer" },
     { id: "daily-specials", label: "Daily Specials", desc: "Highlight today's momo varieties", iconHint: "Sparkles" },
     { id: "takeaway", label: "Takeaway", desc: "Streamlined packaging & carry-out", iconHint: "PackageCheck" },
+    { id: "display-counter", label: "Display Counter", desc: "Showcase available momo varieties", iconHint: "Monitor" },
     { id: "wifi-settings", label: "WiFi", desc: "Share WiFi credentials with customers", iconHint: "Wifi" },
   ],
   TANDOORI: [
@@ -238,6 +255,7 @@ export const TYPE_FEATURE_TABS: Record<string, FeatureTabDef[]> = {
     { id: "hotel-bookings", label: "Room Bookings", desc: "Manage online room reservations", iconHint: "CalendarCheck" },
     { id: "hotel-qr", label: "Hotel QR Code", desc: "QR code linking to full booking page", iconHint: "QrCode" },
     { id: "room-qr-codes", label: "Room QR Codes", desc: "Generate QR codes per room", iconHint: "QrCode" },
+    { id: "display-counter", label: "Display Counter", desc: "Showcase available items for guests", iconHint: "Monitor" },
     { id: "wifi-settings", label: "WiFi", desc: "Share WiFi credentials with guests", iconHint: "Wifi" },
   ],
 };
