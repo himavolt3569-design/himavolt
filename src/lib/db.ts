@@ -16,7 +16,7 @@ function createPrismaClient() {
     !!process.env.VERCEL || process.env.NODE_ENV === "production";
   const adapter = new PrismaPg({
     connectionString,
-    max: isServerless ? 2 : 10,
+    max: 2, // keep low in all environments — Supabase Session mode pool is limited
     ssl: isServerless ? { rejectUnauthorized: false } : undefined,
   });
   return new PrismaClient({ adapter });
