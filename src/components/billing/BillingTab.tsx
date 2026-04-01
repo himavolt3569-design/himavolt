@@ -30,8 +30,8 @@ import {
   BedDouble,
   Trash2,
 } from "lucide-react";
-import { useRestaurant } from "@/context/RestaurantContext";
 import { formatPrice, getCurrencySymbol } from "@/lib/currency";
+import { useToast } from "@/context/ToastContext";
 
 /* Types */
 
@@ -91,6 +91,7 @@ interface DailySummary {
 interface BillingTabProps {
   restaurantId: string;
   staffRole?: string;
+  currency?: string;
 }
 
 /* Helpers */
@@ -193,9 +194,10 @@ function playBillingAlert() {
 export default function BillingTab({
   restaurantId,
   staffRole,
+  currency = "NPR",
 }: BillingTabProps) {
-  const { selectedRestaurant } = useRestaurant();
-  const cur = selectedRestaurant?.currency ?? "NPR";
+  const { showToast } = useToast();
+  const cur = currency;
   const [orders, setOrders] = useState<BillOrder[]>([]);
   const [summary, setSummary] = useState<DailySummary | null>(null);
   const [loading, setLoading] = useState(true);
@@ -239,7 +241,7 @@ export default function BillingTab({
       isFirstLoad.current = false;
       setOrders(fetched);
     } catch {
-      /* ignore */
+      showToast("Failed to load billing orders", "error");
     }
     setLoading(false);
   }, [restaurantId, filter]);
@@ -295,13 +297,14 @@ export default function BillingTab({
           transactionId: collectTxn || undefined,
         }),
       });
+      showToast(`Payment collected for Order #${selectedOrder.orderNo}`, "success");
       setShowCollect(false);
       setCollectTxn("");
       setSelectedOrder(null);
       loadOrders();
       loadSummary();
-    } catch {
-      /* ignore */
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Failed to collect payment", "error");
     }
     setActionLoading(false);
   };
@@ -320,14 +323,15 @@ export default function BillingTab({
           reason: discountReason || undefined,
         }),
       });
+      showToast(`Discount of ${formatPrice(amount, cur)} applied to Order #${selectedOrder.orderNo}`, "success");
       setShowDiscount(false);
       setDiscountAmount("");
       setDiscountReason("");
       setSelectedOrder(null);
       loadOrders();
       loadSummary();
-    } catch {
-      /* ignore */
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Failed to apply discount", "error");
     }
     setActionLoading(false);
   };
@@ -345,7 +349,7 @@ export default function BillingTab({
       );
       loadOrders();
     } catch {
-      /* ignore */
+      showToast("Failed to clear table", "error");
     }
     setClearingOrderId(null);
   };

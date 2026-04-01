@@ -2060,6 +2060,7 @@ export default function KitchenPage() {
               <BillingTab
                 restaurantId={session.restaurantId}
                 staffRole={session.role}
+                currency={session.currency ?? "NPR"}
               />
             )}
             {activeTab === "menu" && (

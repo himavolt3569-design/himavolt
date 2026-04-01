@@ -1623,7 +1623,7 @@ export default function DashboardPage() {
               )}
               {activeTab === "orders" && <LiveOrdersTab />}
               {activeTab === "billing" && selectedRestaurant && (
-                <BillingTab restaurantId={selectedRestaurant.id} />
+                <BillingTab restaurantId={selectedRestaurant.id} currency={selectedRestaurant.currency ?? "NPR"} />
               )}
               {activeTab === "chat" && <ChatTab />}
               {activeTab === "menu" && <MenuManagementTab />}
