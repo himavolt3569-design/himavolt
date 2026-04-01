@@ -189,7 +189,7 @@ export default function ManualBillingTab() {
     <div className="flex items-center justify-center h-64 text-gray-400 text-sm">Select a restaurant first</div>
   );
 
-  /* ── Success State ───────────────────────────────────────────── */
+  /* ── Success State (Counter pay only) ───────────────────────── */
   if (success) {
     return (
       <div className="flex flex-col items-center justify-center py-16 gap-4">
@@ -260,7 +260,7 @@ export default function ManualBillingTab() {
               : "border-gray-200 bg-white hover:border-gray-300"
           }`}
         >
-          <Check className={`h-4 w-4 ${payMethod === "DIRECT" ? "text-teal-600" : "text-gray-400"}`} />
+          <Printer className={`h-4 w-4 ${payMethod === "DIRECT" ? "text-teal-600" : "text-gray-400"}`} />
           <span className={`text-[11px] font-bold ${payMethod === "DIRECT" ? "text-teal-700" : "text-gray-600"}`}>Direct Pay</span>
         </button>
       </div>
@@ -426,9 +426,9 @@ export default function ManualBillingTab() {
                   : "border-gray-200 bg-white hover:border-gray-300"
               }`}
             >
-              <Check className={`h-4 w-4 mb-1 ${payMethod === "DIRECT" ? "text-teal-600" : "text-gray-400"}`} />
+              <Printer className={`h-4 w-4 mb-1 ${payMethod === "DIRECT" ? "text-teal-600" : "text-gray-400"}`} />
               <span className={`text-[11px] font-bold ${payMethod === "DIRECT" ? "text-teal-700" : "text-gray-600"}`}>Direct Pay</span>
-              <span className="text-[10px] text-gray-400 leading-tight">Customer pays at counter</span>
+              <span className="text-[10px] text-gray-400 leading-tight">Print bill immediately</span>
             </button>
           </div>
         </div>
@@ -508,20 +508,32 @@ export default function ManualBillingTab() {
 
             {/* Actions */}
             <div className="flex gap-2 mt-3">
-              <button
-                onClick={handleSubmit}
-                disabled={submitting || billItems.length === 0}
-                className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-amber-500 py-2.5 text-sm font-bold text-white hover:bg-amber-600 disabled:opacity-40 transition-colors"
-              >
-                {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Check className="h-4 w-4" /> Send to Kitchen</>}
-              </button>
-              <button
-                onClick={handlePrint}
-                disabled={billItems.length === 0}
-                className="flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-40 transition-colors"
-              >
-                <Printer className="h-4 w-4" />
-              </button>
+              {payMethod === "DIRECT" ? (
+                <button
+                  onClick={handlePrint}
+                  disabled={billItems.length === 0}
+                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-teal-500 py-2.5 text-sm font-bold text-white hover:bg-teal-600 disabled:opacity-40 transition-colors"
+                >
+                  <Printer className="h-4 w-4" /> Download Bill
+                </button>
+              ) : (
+                <>
+                  <button
+                    onClick={handleSubmit}
+                    disabled={submitting || billItems.length === 0}
+                    className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-amber-500 py-2.5 text-sm font-bold text-white hover:bg-amber-600 disabled:opacity-40 transition-colors"
+                  >
+                    {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Check className="h-4 w-4" /> Send to Kitchen</>}
+                  </button>
+                  <button
+                    onClick={handlePrint}
+                    disabled={billItems.length === 0}
+                    className="flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-40 transition-colors"
+                  >
+                    <Printer className="h-4 w-4" />
+                  </button>
+                </>
+              )}
             </div>
           </div>
         )}
