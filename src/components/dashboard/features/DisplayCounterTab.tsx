@@ -19,6 +19,9 @@ import {
   Loader2,
   Camera,
   ImageIcon,
+  Search,
+  UtensilsCrossed,
+  PenLine,
 } from "lucide-react";
 import ImagePicker from "@/components/shared/ImagePicker";
 
@@ -40,13 +43,27 @@ interface DisplayConfig {
   autoHideSoldOut: boolean;
 }
 
-const CATEGORIES = ["General", "Breads", "Pastries", "Cakes", "Cookies", "Savory", "Beverages", "Snacks", "Tandoori", "Momo", "Rice", "Noodles"];
+interface MenuCategory {
+  id: string;
+  name: string;
+  parentId: string | null;
+  children?: MenuCategory[];
+}
+
+interface MenuItem {
+  id: string;
+  name: string;
+  price: number;
+  imageUrl: string | null;
+  isAvailable: boolean;
+  category: { id: string; name: string } | null;
+}
 
 const STATUS_CONFIG: Record<ItemStatus, { label: string; color: string; bg: string }> = {
-  available: { label: "Available", color: "text-green-600", bg: "bg-green-50" },
-  "just-baked": { label: "Fresh Now", color: "text-amber-600", bg: "bg-amber-50" },
-  "last-few": { label: "Last Few", color: "text-orange-600", bg: "bg-orange-50" },
-  "sold-out": { label: "Sold Out", color: "text-red-600", bg: "bg-red-50" },
+  available:    { label: "Available", color: "text-green-600",  bg: "bg-green-50"  },
+  "just-baked": { label: "Fresh Now", color: "text-amber-600",  bg: "bg-amber-50"  },
+  "last-few":   { label: "Last Few",  color: "text-orange-600", bg: "bg-orange-50" },
+  "sold-out":   { label: "Sold Out",  color: "text-red-600",    bg: "bg-red-50"    },
 };
 
 export default function DisplayCounterTab() {
@@ -56,28 +73,52 @@ export default function DisplayCounterTab() {
 
   const [items, setItems] = useState<DisplayItem[]>([]);
   const [config, setConfig] = useState<DisplayConfig>({ isEnabled: false, autoHideSoldOut: false });
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [menuCategories, setMenuCategories] = useState<MenuCategory[]>([]);
   const [loading, setLoading] = useState(!!restaurantId);
+
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [previewMode, setPreviewMode] = useState(false);
+
+  // Add form
   const [showAddForm, setShowAddForm] = useState(false);
-  const [newItem, setNewItem] = useState({ name: "", category: "General", price: 0, imageUrl: "" });
+  const [addMode, setAddMode] = useState<"manual" | "menu">("menu");
+  const [menuSearch, setMenuSearch] = useState("");
+  const [menuCatFilter, setMenuCatFilter] = useState("all");
+  const [newItem, setNewItem] = useState({ name: "", category: "", price: 0, imageUrl: "" });
   const [saving, setSaving] = useState(false);
+  const [importingIds, setImportingIds] = useState<Set<string>>(new Set());
+
   const [showAddImagePicker, setShowAddImagePicker] = useState(false);
   const [editImageFor, setEditImageFor] = useState<string | null>(null);
 
-  // Load data from API
+  // Derived: unique category names from menu categories (flat list)
+  const categoryNames = menuCategories.map((c) => c.name);
+
+  // Load display counter + menu data
   const loadData = useCallback(async () => {
-    if (!restaurantId) {
-      setLoading(false);
-      return;
-    }
+    if (!restaurantId) { setLoading(false); return; }
     setLoading(true);
     try {
-      const data = await apiFetch<{ items: DisplayItem[]; config: DisplayConfig }>(
-        `/api/restaurants/${restaurantId}/display-counter`
-      );
-      setItems(data.items);
-      setConfig(data.config);
+      const [counterData, menuData, catData] = await Promise.all([
+        apiFetch<{ items: DisplayItem[]; config: DisplayConfig }>(
+          `/api/restaurants/${restaurantId}/display-counter`
+        ),
+        apiFetch<MenuItem[]>(`/api/restaurants/${restaurantId}/menu`),
+        apiFetch<MenuCategory[]>(`/api/restaurants/${restaurantId}/categories`),
+      ]);
+      // Flatten nested category hierarchy into a flat list of names
+      const flatCats: MenuCategory[] = catData.flatMap((c: MenuCategory) => [
+        c,
+        ...(c.children ?? []),
+      ]);
+      setItems(counterData.items);
+      setConfig(counterData.config);
+      setMenuItems(menuData);
+      setMenuCategories(flatCats);
+      if (flatCats.length > 0) {
+        setNewItem((prev) => ({ ...prev, category: flatCats[0].name }));
+      }
     } catch {
       // ignore
     } finally {
@@ -85,9 +126,7 @@ export default function DisplayCounterTab() {
     }
   }, [restaurantId]);
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  useEffect(() => { loadData(); }, [loadData]);
 
   const updateConfig = async (updates: Partial<DisplayConfig>) => {
     const newConfig = { ...config, ...updates };
@@ -107,12 +146,36 @@ export default function DisplayCounterTab() {
         { method: "POST", body: newItem }
       );
       setItems((prev) => [...prev, item]);
-      setNewItem({ name: "", category: "General", price: 0, imageUrl: "" });
+      setNewItem({ name: "", category: categoryNames[0] ?? "", price: 0, imageUrl: "" });
       setShowAddForm(false);
     } catch {
       // ignore
     } finally {
       setSaving(false);
+    }
+  };
+
+  const addFromMenuItem = async (mi: MenuItem) => {
+    if (!restaurantId) return;
+    setImportingIds((prev) => new Set(prev).add(mi.id));
+    try {
+      const item = await apiFetch<DisplayItem>(
+        `/api/restaurants/${restaurantId}/display-counter`,
+        {
+          method: "POST",
+          body: {
+            name: mi.name,
+            price: mi.price,
+            imageUrl: mi.imageUrl ?? "",
+            category: mi.category?.name ?? categoryNames[0] ?? "General",
+          },
+        }
+      );
+      setItems((prev) => [...prev, item]);
+    } catch {
+      // ignore
+    } finally {
+      setImportingIds((prev) => { const s = new Set(prev); s.delete(mi.id); return s; });
     }
   };
 
@@ -161,6 +224,15 @@ export default function DisplayCounterTab() {
     }).catch(() => loadData());
   };
 
+  // IDs already in the display counter (to grey them out in the import list)
+  const counterItemNames = new Set(items.map((i) => i.name.toLowerCase()));
+
+  const filteredMenuItems = menuItems.filter((mi) => {
+    if (menuCatFilter !== "all" && mi.category?.name !== menuCatFilter) return false;
+    if (!menuSearch) return true;
+    return mi.name.toLowerCase().includes(menuSearch.toLowerCase());
+  });
+
   const displayItems = items
     .filter((i) => {
       if (config.autoHideSoldOut && i.status === "sold-out") return false;
@@ -194,7 +266,7 @@ export default function DisplayCounterTab() {
         </div>
         <div className="flex gap-2">
           <button
-            onClick={() => setShowAddForm(true)}
+            onClick={() => { setShowAddForm(true); setAddMode("menu"); }}
             className="flex items-center gap-2 rounded-xl bg-pink-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-pink-600 transition-all"
           >
             <Plus className="h-4 w-4" />
@@ -258,7 +330,7 @@ export default function DisplayCounterTab() {
         </div>
       </div>
 
-      {/* Add Item Form */}
+      {/* Add Item Panel */}
       <AnimatePresence>
         {showAddForm && (
           <motion.div
@@ -267,71 +339,207 @@ export default function DisplayCounterTab() {
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            <div className="rounded-xl bg-white ring-1 ring-gray-100 p-5 shadow-sm space-y-4">
-              <p className="text-sm font-bold text-gray-800">Add New Display Item</p>
-              <div className="flex gap-3">
-                {/* Image picker button */}
+            <div className="rounded-xl bg-white ring-1 ring-gray-100 shadow-sm overflow-hidden">
+              {/* Mode tabs */}
+              <div className="flex border-b border-gray-100">
                 <button
-                  type="button"
-                  onClick={() => setShowAddImagePicker(true)}
-                  className="relative h-20 w-20 shrink-0 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 hover:border-pink-400 hover:bg-pink-50 transition-all overflow-hidden"
+                  onClick={() => setAddMode("menu")}
+                  className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold transition-all ${
+                    addMode === "menu"
+                      ? "border-b-2 border-pink-500 text-pink-600"
+                      : "text-gray-400 hover:text-gray-600"
+                  }`}
                 >
-                  {newItem.imageUrl ? (
-                    <img src={newItem.imageUrl} alt="" className="h-full w-full object-cover" />
-                  ) : (
-                    <div className="flex flex-col items-center justify-center h-full gap-1">
-                      <Camera className="h-5 w-5 text-gray-300" />
-                      <span className="text-[10px] text-gray-400">Image</span>
-                    </div>
-                  )}
+                  <UtensilsCrossed className="h-3.5 w-3.5" />
+                  From Menu
                 </button>
-                <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <input
-                    type="text"
-                    placeholder="Item name"
-                    value={newItem.name}
-                    onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-                    className="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-pink-400/20 focus:border-pink-400"
-                  />
-                  <select
-                    value={newItem.category}
-                    onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}
-                    className="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-pink-400/20 focus:border-pink-400"
-                  >
-                    {CATEGORIES.map((c) => (
-                      <option key={c} value={c}>{c}</option>
-                    ))}
-                  </select>
-                  <input
-                    type="number"
-                    placeholder="Price"
-                    value={newItem.price || ""}
-                    onChange={(e) => setNewItem({ ...newItem, price: Number(e.target.value) })}
-                    className="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-pink-400/20 focus:border-pink-400"
-                  />
-                </div>
-              </div>
-              <div className="flex gap-2 justify-end">
+                <button
+                  onClick={() => setAddMode("manual")}
+                  className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold transition-all ${
+                    addMode === "manual"
+                      ? "border-b-2 border-pink-500 text-pink-600"
+                      : "text-gray-400 hover:text-gray-600"
+                  }`}
+                >
+                  <PenLine className="h-3.5 w-3.5" />
+                  Manual Entry
+                </button>
                 <button
                   onClick={() => setShowAddForm(false)}
-                  className="rounded-lg px-4 py-2 text-sm font-semibold text-gray-500 hover:bg-gray-50"
+                  className="ml-auto px-4 text-xs text-gray-400 hover:text-gray-600"
                 >
-                  Cancel
-                </button>
-                <button
-                  onClick={addItem}
-                  disabled={saving || !newItem.name.trim()}
-                  className="rounded-lg bg-pink-500 px-4 py-2 text-sm font-semibold text-white hover:bg-pink-600 disabled:opacity-50"
-                >
-                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Add"}
+                  Close
                 </button>
               </div>
+
+              {/* From Menu tab */}
+              {addMode === "menu" && (
+                <div className="p-4 space-y-3">
+                  {menuItems.length === 0 ? (
+                    <div className="py-10 text-center">
+                      <UtensilsCrossed className="h-8 w-8 text-gray-200 mx-auto mb-2" />
+                      <p className="text-sm text-gray-400">No menu items found</p>
+                      <p className="text-xs text-gray-300 mt-1">Add items to your menu first, then import them here</p>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Search + category filter */}
+                      <div className="flex gap-2">
+                        <div className="relative flex-1">
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+                          <input
+                            type="text"
+                            value={menuSearch}
+                            onChange={(e) => setMenuSearch(e.target.value)}
+                            placeholder="Search menu items..."
+                            className="w-full rounded-lg border border-gray-200 bg-gray-50 pl-9 pr-3 py-2 text-sm outline-none focus:ring-2 focus:ring-pink-400/20 focus:border-pink-400"
+                          />
+                        </div>
+                      </div>
+                      {/* Category pills */}
+                      <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-1">
+                        <button
+                          onClick={() => setMenuCatFilter("all")}
+                          className={`shrink-0 rounded-full px-3 py-1 text-[11px] font-semibold transition-all ${
+                            menuCatFilter === "all" ? "bg-pink-500 text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                          }`}
+                        >
+                          All
+                        </button>
+                        {categoryNames.map((c) => (
+                          <button
+                            key={c}
+                            onClick={() => setMenuCatFilter(c)}
+                            className={`shrink-0 rounded-full px-3 py-1 text-[11px] font-semibold transition-all ${
+                              menuCatFilter === c ? "bg-pink-500 text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                            }`}
+                          >
+                            {c}
+                          </button>
+                        ))}
+                      </div>
+                      {/* Items grid */}
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 max-h-72 overflow-y-auto pr-1">
+                        {filteredMenuItems.map((mi) => {
+                          const alreadyAdded = counterItemNames.has(mi.name.toLowerCase());
+                          const isImporting = importingIds.has(mi.id);
+                          return (
+                            <button
+                              key={mi.id}
+                              onClick={() => !alreadyAdded && !isImporting && addFromMenuItem(mi)}
+                              disabled={alreadyAdded || isImporting}
+                              className={`relative flex flex-col rounded-xl border text-left overflow-hidden transition-all ${
+                                alreadyAdded
+                                  ? "border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed"
+                                  : "border-gray-200 bg-white hover:border-pink-400 hover:shadow-md cursor-pointer"
+                              }`}
+                            >
+                              <div className="h-20 w-full bg-pink-50 overflow-hidden">
+                                {mi.imageUrl ? (
+                                  <img src={mi.imageUrl} alt={mi.name} className="h-full w-full object-cover" />
+                                ) : (
+                                  <div className="flex items-center justify-center h-full">
+                                    <Sparkles className="h-5 w-5 text-pink-200" />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="p-2">
+                                <p className="text-xs font-semibold text-gray-800 leading-tight line-clamp-1">{mi.name}</p>
+                                <p className="text-[10px] text-gray-400 mt-0.5">{formatPrice(mi.price, cur)}</p>
+                                {mi.category && (
+                                  <p className="text-[10px] text-pink-400 mt-0.5">{mi.category.name}</p>
+                                )}
+                              </div>
+                              {isImporting && (
+                                <div className="absolute inset-0 flex items-center justify-center bg-white/70">
+                                  <Loader2 className="h-4 w-4 animate-spin text-pink-500" />
+                                </div>
+                              )}
+                              {alreadyAdded && (
+                                <div className="absolute top-1.5 right-1.5 rounded-full bg-green-500 px-1.5 py-0.5">
+                                  <span className="text-[9px] font-bold text-white">Added</span>
+                                </div>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {filteredMenuItems.length === 0 && (
+                        <p className="py-6 text-center text-sm text-gray-400">No items match your search</p>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* Manual Entry tab */}
+              {addMode === "manual" && (
+                <div className="p-5 space-y-4">
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setShowAddImagePicker(true)}
+                      className="relative h-20 w-20 shrink-0 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 hover:border-pink-400 hover:bg-pink-50 transition-all overflow-hidden"
+                    >
+                      {newItem.imageUrl ? (
+                        <img src={newItem.imageUrl} alt="" className="h-full w-full object-cover" />
+                      ) : (
+                        <div className="flex flex-col items-center justify-center h-full gap-1">
+                          <Camera className="h-5 w-5 text-gray-300" />
+                          <span className="text-[10px] text-gray-400">Image</span>
+                        </div>
+                      )}
+                    </button>
+                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <input
+                        type="text"
+                        placeholder="Item name"
+                        value={newItem.name}
+                        onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
+                        className="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-pink-400/20 focus:border-pink-400"
+                      />
+                      <select
+                        value={newItem.category}
+                        onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}
+                        className="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-pink-400/20 focus:border-pink-400"
+                      >
+                        {categoryNames.map((c) => (
+                          <option key={c} value={c}>{c}</option>
+                        ))}
+                        {categoryNames.length === 0 && <option value="General">General</option>}
+                      </select>
+                      <input
+                        type="number"
+                        placeholder="Price"
+                        value={newItem.price || ""}
+                        onChange={(e) => setNewItem({ ...newItem, price: Number(e.target.value) })}
+                        className="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-pink-400/20 focus:border-pink-400"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-2 justify-end">
+                    <button
+                      onClick={() => setShowAddForm(false)}
+                      className="rounded-lg px-4 py-2 text-sm font-semibold text-gray-500 hover:bg-gray-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={addItem}
+                      disabled={saving || !newItem.name.trim()}
+                      className="rounded-lg bg-pink-500 px-4 py-2 text-sm font-semibold text-white hover:bg-pink-600 disabled:opacity-50"
+                    >
+                      {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Add"}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Category filter */}
+      {/* Category filter (uses restaurant's actual categories) */}
       <div className="flex gap-1.5 flex-wrap">
         <button
           onClick={() => setSelectedCategory("all")}
@@ -341,7 +549,7 @@ export default function DisplayCounterTab() {
         >
           All
         </button>
-        {CATEGORIES.map((c) => (
+        {categoryNames.map((c) => (
           <button
             key={c}
             onClick={() => setSelectedCategory(c)}
@@ -413,7 +621,7 @@ export default function DisplayCounterTab() {
                 </button>
               </div>
 
-              {/* Item image */}
+              {/* Item image (click to change) */}
               <button
                 type="button"
                 onClick={() => setEditImageFor(item.id)}
@@ -485,7 +693,7 @@ export default function DisplayCounterTab() {
         </div>
       )}
 
-      {/* Image picker for new item */}
+      {/* Image picker for new item (manual mode) */}
       <ImagePicker
         open={showAddImagePicker}
         currentImage={newItem.imageUrl || null}
