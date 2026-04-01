@@ -1076,7 +1076,6 @@ function MenuItemCard({
             loading="lazy"
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
           />
-          <OfferCountdown expiresAt={item.offerExpiresAt} />
           {item.badge && (
             <motion.span
               initial={{ opacity: 0, x: -8 }}
@@ -1127,7 +1126,7 @@ function MenuItemCard({
               {item.description}
             </p>
           </div>
-          <div className="flex items-center gap-2.5">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="text-sm font-extrabold text-[#3e1e0c]">
               {formatPrice(displayPrice, restaurantCurrency)}
             </span>
@@ -1142,6 +1141,7 @@ function MenuItemCard({
               <Clock className="h-3 w-3" />
               {item.prepTime}
             </span>
+            <OfferCountdown expiresAt={item.offerExpiresAt} compact />
           </div>
           {/* Offer badge — right side */}
           {item.discountLabel && (
@@ -1163,31 +1163,33 @@ function MenuItemCard({
       </div>
 
       {/* Add to Cart button — always visible below */}
-      <div className="px-3 pb-3">
+      <div className="px-3 pb-3 space-y-1.5">
+        {qty > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center justify-center gap-1 text-[11px] font-semibold text-[#3e1e0c]"
+          >
+            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#eaa94d] text-[9px] font-bold text-white">
+              {qty}
+            </span>
+            in cart
+          </motion.div>
+        )}
         {item.outOfStock ? (
           <div className="flex w-full items-center justify-center gap-2 rounded-xl bg-gray-200 py-2.5 text-[13px] font-bold text-gray-500 cursor-not-allowed">
             Out of Stock
           </div>
         ) : (
-        <motion.button
-          ref={btnRef}
-          onClick={handleQuickAdd}
-          whileTap={{ scale: 0.96 }}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#eaa94d] py-2.5 text-[13px] font-bold text-white shadow-sm shadow-[#eaa94d]/20 hover:bg-[#d67620] transition-colors cursor-pointer"
-        >
-          <Plus className="h-4 w-4" strokeWidth={3} />
-          Add to Cart
-          {qty > 0 && (
-            <motion.span
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", stiffness: 500, damping: 15 }}
-              className="flex h-5 min-w-5 items-center justify-center rounded-full bg-white/25 px-1.5 text-[10px] font-bold"
-            >
-              {qty}
-            </motion.span>
-          )}
-        </motion.button>
+          <motion.button
+            ref={btnRef}
+            onClick={handleQuickAdd}
+            whileTap={{ scale: 0.96 }}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#eaa94d] py-2.5 text-[13px] font-bold text-white shadow-sm shadow-[#eaa94d]/20 hover:bg-[#d67620] transition-colors cursor-pointer"
+          >
+            <Plus className="h-4 w-4" strokeWidth={3} />
+            Add to Cart
+          </motion.button>
         )}
       </div>
     </motion.div>
