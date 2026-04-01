@@ -7,13 +7,13 @@ import {
   Search,
   Plus,
   Minus,
-  X,
   Send,
   Loader2,
   ShoppingCart,
   CheckCircle2,
   TableProperties,
   ChevronDown,
+  PersonStanding,
 } from "lucide-react";
 import { useToast } from "@/context/ToastContext";
 import { formatPrice } from "@/lib/currency";
@@ -67,6 +67,8 @@ async function staffFetch<T = unknown>(url: string, opts?: RequestInit): Promise
   return res.json();
 }
 
+type DeliveryMode = "kitchen" | "direct";
+
 export default function WaiterOrderTab({ restaurantId }: { restaurantId: string }) {
   const { showToast } = useToast();
 
@@ -81,8 +83,9 @@ export default function WaiterOrderTab({ restaurantId }: { restaurantId: string 
   const [selectedTable, setSelectedTable] = useState<number | null>(null);
   const [guestName, setGuestName] = useState("");
   const [note, setNote] = useState("");
+  const [deliveryMode, setDeliveryMode] = useState<DeliveryMode>("kitchen");
   const [submitting, setSubmitting] = useState(false);
-  const [createdOrder, setCreatedOrder] = useState<CreatedOrder | null>(null);
+  const [createdOrder, setCreatedOrder] = useState<{ order: CreatedOrder; mode: DeliveryMode } | null>(null);
   const [showTablePicker, setShowTablePicker] = useState(false);
 
   const fetchData = useCallback(async () => {
@@ -91,16 +94,12 @@ export default function WaiterOrderTab({ restaurantId }: { restaurantId: string 
       const [itemsData, catsData, tablesData] = await Promise.all([
         staffFetch<MenuItem[]>(`/api/restaurants/${restaurantId}/menu`),
         staffFetch<MenuCategory[]>(`/api/restaurants/${restaurantId}/categories`),
-        staffFetch<{ tables: TableRecord[] }>(`/api/restaurants/${restaurantId}/tables`),
+        staffFetch<unknown>(`/api/restaurants/${restaurantId}/tables`),
       ]);
       setMenuItems(Array.isArray(itemsData) ? itemsData.filter((i) => i.isAvailable) : []);
       setCategories(Array.isArray(catsData) ? catsData : []);
-      const rawTables = tablesData as unknown;
-      setTables(
-        Array.isArray(rawTables)
-          ? rawTables
-          : (rawTables as { tables?: TableRecord[] }).tables ?? [],
-      );
+      const rawTables = tablesData as { tables?: TableRecord[] } | TableRecord[];
+      setTables(Array.isArray(rawTables) ? rawTables : rawTables.tables ?? []);
     } catch {
       showToast("Failed to load menu", "error");
     } finally {
@@ -121,34 +120,31 @@ export default function WaiterOrderTab({ restaurantId }: { restaurantId: string 
   };
 
   const updateQty = (menuItemId: string, delta: number) => {
-    setCart((prev) => {
-      const updated = prev.map((c) =>
-        c.menuItemId === menuItemId ? { ...c, quantity: Math.max(0, c.quantity + delta) } : c,
-      );
-      return updated.filter((c) => c.quantity > 0);
-    });
+    setCart((prev) =>
+      prev
+        .map((c) => (c.menuItemId === menuItemId ? { ...c, quantity: Math.max(0, c.quantity + delta) } : c))
+        .filter((c) => c.quantity > 0),
+    );
   };
 
   const cartTotal = cart.reduce((sum, c) => sum + c.price * c.quantity, 0);
   const cartCount = cart.reduce((sum, c) => sum + c.quantity, 0);
-
   const topCategories = categories.filter((c) => c.parentId === null);
 
   const filteredItems = menuItems.filter((item) => {
-    const matchSearch = item.name.toLowerCase().includes(search.toLowerCase());
-    if (!matchSearch) return false;
+    if (!item.name.toLowerCase().includes(search.toLowerCase())) return false;
     if (activeCategory === "ALL") return true;
-    // Check if item belongs to the selected top-level category or any of its children
-    const childIds = categories
-      .filter((c) => c.parentId === activeCategory)
-      .map((c) => c.id);
+    const childIds = categories.filter((c) => c.parentId === activeCategory).map((c) => c.id);
     return item.categoryId === activeCategory || childIds.includes(item.categoryId);
   });
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (mode: DeliveryMode) => {
     if (cart.length === 0) return;
     setSubmitting(true);
     try {
+      const extraNote = mode === "direct" ? "[Waiter delivering directly]" : undefined;
+      const fullNote = [note.trim(), extraNote].filter(Boolean).join(" — ") || undefined;
+
       const created = await staffFetch<CreatedOrder>(`/api/restaurants/${restaurantId}/orders`, {
         method: "POST",
         body: JSON.stringify({
@@ -156,11 +152,16 @@ export default function WaiterOrderTab({ restaurantId }: { restaurantId: string 
           paymentMethod: "CASH",
           tableNo: selectedTable ?? undefined,
           guestName: guestName.trim() || undefined,
-          note: note.trim() || undefined,
-          items: cart.map((c) => ({ menuItemId: c.menuItemId, quantity: c.quantity })),
+          note: fullNote,
+          items: cart.map((c) => ({
+            menuItemId: c.menuItemId,
+            name: c.name,
+            price: c.price,
+            quantity: c.quantity,
+          })),
         }),
       });
-      setCreatedOrder(created);
+      setCreatedOrder({ order: created, mode });
       setCart([]);
       setSelectedTable(null);
       setGuestName("");
@@ -172,26 +173,36 @@ export default function WaiterOrderTab({ restaurantId }: { restaurantId: string 
     }
   };
 
-  const handleNewOrder = () => {
-    setCreatedOrder(null);
-  };
+  const handleNewOrder = () => setCreatedOrder(null);
 
+  /* ── Success screen ─────────────────────────────────────────────── */
   if (createdOrder) {
+    const isDirect = createdOrder.mode === "direct";
     return (
       <motion.div
         initial={{ opacity: 0, scale: 0.96 }}
         animate={{ opacity: 1, scale: 1 }}
         className="flex flex-col items-center justify-center py-20 text-center"
       >
-        <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-          <CheckCircle2 className="h-8 w-8 text-green-600" />
+        <div className={`mb-5 flex h-16 w-16 items-center justify-center rounded-full ${isDirect ? "bg-blue-100" : "bg-green-100"}`}>
+          {isDirect
+            ? <PersonStanding className="h-8 w-8 text-blue-600" />
+            : <CheckCircle2 className="h-8 w-8 text-green-600" />
+          }
         </div>
-        <h2 className="text-xl font-black text-gray-900">Order Sent to Kitchen!</h2>
+        <h2 className="text-xl font-black text-gray-900">
+          {isDirect ? "Order Recorded!" : "Order Sent to Kitchen!"}
+        </h2>
         <p className="mt-2 text-sm text-gray-500">
-          Order <span className="font-bold text-amber-700">#{createdOrder.orderNo}</span> has been created.
+          Order <span className="font-bold text-amber-700">#{createdOrder.order.orderNo}</span> has been created.
         </p>
-        <p className="mt-1 text-sm text-gray-500">
-          Total: <span className="font-bold">{formatPrice(createdOrder.total, "NPR")}</span>
+        {isDirect && (
+          <p className="mt-1 text-xs font-medium text-blue-600 bg-blue-50 rounded-lg px-3 py-1.5">
+            You are delivering this order directly to the kitchen
+          </p>
+        )}
+        <p className="mt-2 text-sm text-gray-500">
+          Total: <span className="font-bold">{formatPrice(createdOrder.order.total, "NPR")}</span>
         </p>
         <button
           onClick={handleNewOrder}
@@ -203,15 +214,14 @@ export default function WaiterOrderTab({ restaurantId }: { restaurantId: string 
     );
   }
 
+  /* ── Main UI ────────────────────────────────────────────────────── */
   return (
     <div className="flex flex-col lg:flex-row gap-6 min-h-[calc(100vh-200px)]">
       {/* Left: Menu browser */}
       <div className="flex-1 space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-bold text-amber-950">New Order</h2>
-            <p className="text-sm text-gray-400">Browse menu and build the order</p>
-          </div>
+        <div>
+          <h2 className="text-lg font-bold text-amber-950">New Order</h2>
+          <p className="text-sm text-gray-400">Browse menu and build the order</p>
         </div>
 
         {/* Search */}
@@ -230,9 +240,7 @@ export default function WaiterOrderTab({ restaurantId }: { restaurantId: string 
           <button
             onClick={() => setActiveCategory("ALL")}
             className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
-              activeCategory === "ALL"
-                ? "bg-amber-700 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              activeCategory === "ALL" ? "bg-amber-700 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
             }`}
           >
             All
@@ -242,9 +250,7 @@ export default function WaiterOrderTab({ restaurantId }: { restaurantId: string 
               key={cat.id}
               onClick={() => setActiveCategory(cat.id)}
               className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
-                activeCategory === cat.id
-                  ? "bg-amber-700 text-white"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                activeCategory === cat.id ? "bg-amber-700 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
               }`}
             >
               {cat.name}
@@ -278,11 +284,7 @@ export default function WaiterOrderTab({ restaurantId }: { restaurantId: string 
                   }`}
                 >
                   {item.imageUrl && (
-                    <img
-                      src={item.imageUrl}
-                      alt={item.name}
-                      className="mb-2 h-16 w-full rounded-xl object-cover"
-                    />
+                    <img src={item.imageUrl} alt={item.name} className="mb-2 h-16 w-full rounded-xl object-cover" />
                   )}
                   <p className="text-xs font-bold text-gray-800 line-clamp-2">{item.name}</p>
                   <p className="mt-1 text-xs font-semibold text-amber-700">{formatPrice(item.price, "NPR")}</p>
@@ -322,7 +324,7 @@ export default function WaiterOrderTab({ restaurantId }: { restaurantId: string 
                   initial={{ opacity: 0, y: -5 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -5 }}
-                  className="absolute top-full left-0 right-0 z-10 mt-1 rounded-xl border border-gray-200 bg-white shadow-lg overflow-hidden"
+                  className="absolute top-full left-0 right-0 z-10 mt-1 rounded-xl border border-gray-200 bg-white shadow-lg overflow-hidden max-h-52 overflow-y-auto"
                 >
                   <button
                     onClick={() => { setSelectedTable(null); setShowTablePicker(false); }}
@@ -348,7 +350,7 @@ export default function WaiterOrderTab({ restaurantId }: { restaurantId: string 
           </div>
         </div>
 
-        {/* Guest name */}
+        {/* Guest name & note */}
         <div className="rounded-2xl border border-gray-200 bg-white p-4 space-y-3">
           <div>
             <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1.5">Guest Name</label>
@@ -383,10 +385,7 @@ export default function WaiterOrderTab({ restaurantId }: { restaurantId: string 
               )}
             </h3>
             {cart.length > 0 && (
-              <button
-                onClick={() => setCart([])}
-                className="text-xs text-red-400 hover:text-red-600 transition-colors"
-              >
+              <button onClick={() => setCart([])} className="text-xs text-red-400 hover:text-red-600 transition-colors">
                 Clear
               </button>
             )}
@@ -432,15 +431,26 @@ export default function WaiterOrderTab({ restaurantId }: { restaurantId: string 
           )}
         </div>
 
-        {/* Submit */}
-        <button
-          onClick={handleSubmit}
-          disabled={cart.length === 0 || submitting}
-          className="w-full rounded-xl bg-amber-700 py-3.5 text-sm font-bold text-white hover:bg-amber-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-amber-700/20"
-        >
-          {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-          {submitting ? "Sending..." : `Send to Kitchen · ${formatPrice(cartTotal, "NPR")}`}
-        </button>
+        {/* Submit buttons */}
+        <div className="space-y-2">
+          <button
+            onClick={() => handleSubmit("kitchen")}
+            disabled={cart.length === 0 || submitting}
+            className="w-full rounded-xl bg-amber-700 py-3.5 text-sm font-bold text-white hover:bg-amber-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-amber-700/20"
+          >
+            {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+            {submitting ? "Sending..." : `Send to Kitchen · ${formatPrice(cartTotal, "NPR")}`}
+          </button>
+
+          <button
+            onClick={() => handleSubmit("direct")}
+            disabled={cart.length === 0 || submitting}
+            className="w-full rounded-xl border-2 border-blue-200 bg-blue-50 py-3 text-sm font-bold text-blue-700 hover:bg-blue-100 hover:border-blue-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            <PersonStanding className="h-4 w-4" />
+            Direct — I&apos;ll go to kitchen
+          </button>
+        </div>
       </div>
     </div>
   );
