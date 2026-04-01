@@ -15,8 +15,6 @@ import {
   TableProperties,
   ChevronDown,
 } from "lucide-react";
-import { useRestaurant } from "@/context/RestaurantContext";
-import { apiFetch } from "@/lib/api-client";
 import { useToast } from "@/context/ToastContext";
 import { formatPrice } from "@/lib/currency";
 
@@ -56,10 +54,21 @@ interface CreatedOrder {
   total: number;
 }
 
-export default function WaiterOrderTab() {
-  const { selectedRestaurant, restaurants } = useRestaurant();
+async function staffFetch<T = unknown>(url: string, opts?: RequestInit): Promise<T> {
+  const res = await fetch(url, {
+    ...opts,
+    headers: { "Content-Type": "application/json", ...(opts?.headers || {}) },
+    credentials: "include",
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: "Request failed" }));
+    throw new Error(err.error || `Request failed (${res.status})`);
+  }
+  return res.json();
+}
+
+export default function WaiterOrderTab({ restaurantId }: { restaurantId: string }) {
   const { showToast } = useToast();
-  const restaurant = selectedRestaurant ?? restaurants[0];
 
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [categories, setCategories] = useState<MenuCategory[]>([]);
@@ -77,23 +86,27 @@ export default function WaiterOrderTab() {
   const [showTablePicker, setShowTablePicker] = useState(false);
 
   const fetchData = useCallback(async () => {
-    if (!restaurant) return;
     setLoading(true);
     try {
       const [itemsData, catsData, tablesData] = await Promise.all([
-        apiFetch<MenuItem[]>(`/api/restaurants/${restaurant.id}/menu`),
-        apiFetch<MenuCategory[]>(`/api/restaurants/${restaurant.id}/categories`),
-        apiFetch<TableRecord[]>(`/api/restaurants/${restaurant.id}/tables`),
+        staffFetch<MenuItem[]>(`/api/restaurants/${restaurantId}/menu`),
+        staffFetch<MenuCategory[]>(`/api/restaurants/${restaurantId}/categories`),
+        staffFetch<{ tables: TableRecord[] }>(`/api/restaurants/${restaurantId}/tables`),
       ]);
       setMenuItems(Array.isArray(itemsData) ? itemsData.filter((i) => i.isAvailable) : []);
       setCategories(Array.isArray(catsData) ? catsData : []);
-      setTables(Array.isArray(tablesData) ? tablesData : []);
+      const rawTables = tablesData as unknown;
+      setTables(
+        Array.isArray(rawTables)
+          ? rawTables
+          : (rawTables as { tables?: TableRecord[] }).tables ?? [],
+      );
     } catch {
       showToast("Failed to load menu", "error");
     } finally {
       setLoading(false);
     }
-  }, [restaurant?.id]);
+  }, [restaurantId]);
 
   useEffect(() => {
     fetchData();
@@ -133,19 +146,19 @@ export default function WaiterOrderTab() {
   });
 
   const handleSubmit = async () => {
-    if (!restaurant || cart.length === 0) return;
+    if (cart.length === 0) return;
     setSubmitting(true);
     try {
-      const created = await apiFetch<CreatedOrder>(`/api/restaurants/${restaurant.id}/orders`, {
+      const created = await staffFetch<CreatedOrder>(`/api/restaurants/${restaurantId}/orders`, {
         method: "POST",
-        body: {
+        body: JSON.stringify({
           type: selectedTable ? "DINE_IN" : "TAKEAWAY",
           paymentMethod: "CASH",
           tableNo: selectedTable ?? undefined,
           guestName: guestName.trim() || undefined,
           note: note.trim() || undefined,
           items: cart.map((c) => ({ menuItemId: c.menuItemId, quantity: c.quantity })),
-        },
+        }),
       });
       setCreatedOrder(created);
       setCart([]);

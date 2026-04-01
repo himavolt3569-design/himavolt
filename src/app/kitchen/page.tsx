@@ -128,6 +128,11 @@ interface StaffSession {
   name: string;
   restaurantType: string;
   currency: string;
+  restaurantName: string;
+  restaurantAddress: string;
+  restaurantPhone: string;
+  taxRate: number;
+  taxEnabled: boolean;
 }
 
 interface OrderItem {
@@ -2077,9 +2082,19 @@ export default function KitchenPage() {
               />
             )}
             {activeTab === "media" && <MediaTab restaurantId={session.restaurantId} />}
-            {activeTab === "tables" && <TablesTab />}
-            {activeTab === "manual" && <ManualBillingTab />}
-            {activeTab === "waiter-order" && <WaiterOrderTab />}
+            {activeTab === "tables" && <TablesTab restaurantId={session.restaurantId} currency={session.currency} />}
+            {activeTab === "manual" && (
+              <ManualBillingTab
+                restaurantId={session.restaurantId}
+                currency={session.currency}
+                restaurantName={session.restaurantName}
+                restaurantAddress={session.restaurantAddress}
+                restaurantPhone={session.restaurantPhone}
+                taxRate={session.taxRate}
+                taxEnabled={session.taxEnabled}
+              />
+            )}
+            {activeTab === "waiter-order" && <WaiterOrderTab restaurantId={session.restaurantId} />}
             {/* Type-specific feature tabs */}
             {(() => {
               const FeatureComponent = STAFF_FEATURE_COMPONENTS[activeTab as FeatureTabId];

@@ -1635,8 +1635,20 @@ export default function DashboardPage() {
               {activeTab === "tax-charges" && <TaxChargesTab />}
               {activeTab === "stock" && <StockTab />}
               {activeTab === "offers" && <OffersTab />}
-              {activeTab === "manual-billing" && <ManualBillingTab />}
-              {activeTab === "tables" && <TablesTab />}
+              {activeTab === "manual-billing" && (
+                <ManualBillingTab
+                  restaurantId={selectedRestaurant?.id ?? ""}
+                  currency={selectedRestaurant?.currency ?? "NPR"}
+                  restaurantName={selectedRestaurant?.name ?? ""}
+                  restaurantAddress={selectedRestaurant?.address ?? ""}
+                  restaurantPhone={selectedRestaurant?.phone ?? ""}
+                  taxRate={selectedRestaurant?.taxRate ?? 13}
+                  taxEnabled={selectedRestaurant?.taxEnabled ?? true}
+                />
+              )}
+              {activeTab === "tables" && (
+                <TablesTab restaurantId={selectedRestaurant?.id ?? ""} currency={selectedRestaurant?.currency ?? "NPR"} />
+              )}
               {activeTab === "coupons" && <CouponManagementTab />}
               {activeTab === "rooms" && <RoomManagementTab />}
               {activeTab === "hero-slides" && <HeroSlidesManager />}

@@ -7,9 +7,20 @@ import {
   Loader2, Check, X, User, Utensils, ChevronDown,
   Banknote, CheckCircle2, Clock,
 } from "lucide-react";
-import { useRestaurant } from "@/context/RestaurantContext";
 import { formatPrice } from "@/lib/currency";
-import { apiFetch } from "@/lib/api-client";
+
+async function staffFetch<T = unknown>(url: string, opts?: RequestInit): Promise<T> {
+  const res = await fetch(url, {
+    ...opts,
+    headers: { "Content-Type": "application/json", ...(opts?.headers || {}) },
+    credentials: "include",
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: "Request failed" }));
+    throw new Error(err.error || `Request failed (${res.status})`);
+  }
+  return res.json();
+}
 
 /* ── Types ───────────────────────────────────────────────────────── */
 
@@ -40,10 +51,24 @@ interface TableOption {
 
 /* ── Component ───────────────────────────────────────────────────── */
 
-export default function ManualBillingTab() {
-  const { selectedRestaurant } = useRestaurant();
-  const rid      = selectedRestaurant?.id;
-  const currency = selectedRestaurant?.currency ?? "NPR";
+export default function ManualBillingTab({
+  restaurantId,
+  currency = "NPR",
+  restaurantName = "",
+  restaurantAddress = "",
+  restaurantPhone = "",
+  taxRate: taxRateProp = 13,
+  taxEnabled: taxEnabledProp = true,
+}: {
+  restaurantId: string;
+  currency?: string;
+  restaurantName?: string;
+  restaurantAddress?: string;
+  restaurantPhone?: string;
+  taxRate?: number;
+  taxEnabled?: boolean;
+}) {
+  const rid      = restaurantId;
 
   const [menuItems,   setMenuItems]   = useState<MenuItem[]>([]);
   const [tables,      setTables]      = useState<TableOption[]>([]);
@@ -67,10 +92,11 @@ export default function ManualBillingTab() {
     if (!rid) return;
     setLoading(true);
     Promise.all([
-      apiFetch<{ items?: MenuItem[]; menuItems?: MenuItem[] }>(`/api/restaurants/${rid}/menu`),
-      fetch(`/api/restaurants/${rid}/tables`, { credentials: "include" }).then((r) => r.json()).catch(() => ({ tables: [] })),
+      staffFetch<{ items?: MenuItem[]; menuItems?: MenuItem[] } | MenuItem[]>(`/api/restaurants/${rid}/menu`),
+      staffFetch<{ tables?: TableOption[] }>(`/api/restaurants/${rid}/tables`).catch(() => ({ tables: [] })),
     ]).then(([menuData, tableData]) => {
-      const items = menuData.items ?? menuData.menuItems ?? (Array.isArray(menuData) ? menuData : []);
+      const md = menuData as { items?: MenuItem[]; menuItems?: MenuItem[] } | MenuItem[];
+      const items = Array.isArray(md) ? md : md.items ?? md.menuItems ?? [];
       setMenuItems(items as MenuItem[]);
       setTables((tableData.tables ?? []) as TableOption[]);
     }).catch(() => {}).finally(() => setLoading(false));
@@ -105,8 +131,8 @@ export default function ManualBillingTab() {
 
   // Totals
   const subtotal = billItems.reduce((sum, b) => sum + b.price * b.quantity, 0);
-  const taxRate   = selectedRestaurant?.taxRate ?? 13;
-  const taxEnabled = selectedRestaurant?.taxEnabled ?? true;
+  const taxRate   = taxRateProp;
+  const taxEnabled = taxEnabledProp;
   const tax       = taxEnabled ? Math.round(subtotal * (taxRate / 100) * 100) / 100 : 0;
   const total     = subtotal + tax;
 
@@ -115,11 +141,11 @@ export default function ManualBillingTab() {
     if (!rid || billItems.length === 0) return;
     setSubmitting(true);
     try {
-      const order = await apiFetch<{ id: string; orderNo: string }>(
+      const order = await staffFetch<{ id: string; orderNo: string }>(
         `/api/restaurants/${rid}/orders`,
         {
           method: "POST",
-          body: {
+          body: JSON.stringify({
             tableNo: tableNo ? Number(tableNo) : undefined,
             guestName: guestName.trim() || undefined,
             items: billItems.map((b) => ({
@@ -131,7 +157,7 @@ export default function ManualBillingTab() {
             type: "DINE_IN",
             paymentMethod: payMethod,
             note: `Counter order${tableNo ? ` - Table ${tableNo}` : ""}${guestName.trim() ? ` - ${guestName.trim()}` : ""}`,
-          },
+          }),
         },
       );
       setOrderId(order.id);
@@ -139,7 +165,7 @@ export default function ManualBillingTab() {
       setIsPaid(false);
       setSuccess(true);
     } catch {
-      /* error handled by apiFetch */
+      /* silent */
     } finally {
       setSubmitting(false);
     }
@@ -157,9 +183,9 @@ export default function ManualBillingTab() {
     if (!rid || !orderId) return;
     setMarkingPaid(true);
     try {
-      await apiFetch(`/api/restaurants/${rid}/billing/collect`, {
+      await staffFetch(`/api/restaurants/${rid}/billing/collect`, {
         method: "POST",
-        body: { orderId, method: "DIRECT" },
+        body: JSON.stringify({ orderId, method: "DIRECT" }),
       });
       setIsPaid(true);
     } catch {
@@ -186,9 +212,9 @@ export default function ManualBillingTab() {
         @media print { body { margin:0; padding:10px; } }
       </style></head><body>
       <div class="center">
-        <h2>${selectedRestaurant?.name ?? "Restaurant"}</h2>
-        <p style="font-size:11px;margin:4px 0">${selectedRestaurant?.address ?? ""}</p>
-        <p style="font-size:11px;margin:4px 0">${selectedRestaurant?.phone ?? ""}</p>
+        <h2>${restaurantName || "Restaurant"}</h2>
+        <p style="font-size:11px;margin:4px 0">${restaurantAddress}</p>
+        <p style="font-size:11px;margin:4px 0">${restaurantPhone}</p>
       </div>
       <div class="divider"></div>
       <div class="row">
@@ -216,9 +242,6 @@ export default function ManualBillingTab() {
     setOrderId(null); setOrderNo(null); setIsPaid(false);
   };
 
-  if (!rid) return (
-    <div className="flex items-center justify-center h-64 text-gray-400 text-sm">Select a restaurant first</div>
-  );
 
   /* ── Success State ───────────────────────────────────────────── */
   if (success) {

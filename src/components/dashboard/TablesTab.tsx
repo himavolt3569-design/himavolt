@@ -7,7 +7,6 @@ import {
   Users, Clock, CreditCard, RefreshCw, TableProperties,
   User as UserIcon, ChevronRight,
 } from "lucide-react";
-import { useRestaurant } from "@/context/RestaurantContext";
 import { formatPrice } from "@/lib/currency";
 import { SkeletonCard } from "@/components/shared/Skeleton";
 
@@ -52,12 +51,10 @@ function elapsed(iso: string) {
 
 /* ── Component ───────────────────────────────────────────────────── */
 
-export default function TablesTab() {
-  const { selectedRestaurant } = useRestaurant();
-  const rid  = selectedRestaurant?.id;
-  const cur  = selectedRestaurant?.currency ?? "NPR";
-  const role = (selectedRestaurant as unknown as Record<string, unknown>)?.staffRole as string | undefined;
-  const canManage = !role || ["OWNER", "MANAGER", "SUPER_ADMIN"].includes(role);
+export default function TablesTab({ restaurantId, currency = "NPR" }: { restaurantId: string; currency?: string }) {
+  const rid  = restaurantId;
+  const cur  = currency;
+  const canManage = true; // staff portal — management allowed for all who have table tab access
 
   const [tables,   setTables]   = useState<TableData[]>([]);
   const [loading,  setLoading]  = useState(true);
@@ -200,10 +197,6 @@ export default function TablesTab() {
     await load();
     if (created > 0) alert(`Created ${created} table(s) successfully.`);
   };
-
-  if (!rid) return (
-    <div className="flex items-center justify-center h-64 text-gray-400 text-sm">Select a restaurant first</div>
-  );
 
   const occupied  = tables.filter((t) => t.isOccupied).length;
   const available = tables.filter((t) => !t.isOccupied).length;

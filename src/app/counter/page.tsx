@@ -125,6 +125,11 @@ interface StaffSession {
   name: string;
   restaurantType: string;
   currency: string;
+  restaurantName: string;
+  restaurantAddress: string;
+  restaurantPhone: string;
+  taxRate: number;
+  taxEnabled: boolean;
 }
 
 interface OrderItem {
@@ -1877,8 +1882,18 @@ export default function CounterPage() {
           </div>
         )}
 
-        {viewMode === "tables" && <TablesTab />}
-        {viewMode === "manual" && <ManualBillingTab />}
+        {viewMode === "tables" && <TablesTab restaurantId={session.restaurantId} currency={session.currency} />}
+        {viewMode === "manual" && (
+          <ManualBillingTab
+            restaurantId={session.restaurantId}
+            currency={session.currency}
+            restaurantName={session.restaurantName}
+            restaurantAddress={session.restaurantAddress}
+            restaurantPhone={session.restaurantPhone}
+            taxRate={session.taxRate}
+            taxEnabled={session.taxEnabled}
+          />
+        )}
         {viewMode === "stock" && <StockTab />}
         {viewMode === "media" && <MediaTab restaurantId={session?.restaurantId} />}
 
