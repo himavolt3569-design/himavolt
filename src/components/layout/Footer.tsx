@@ -3,7 +3,22 @@
 import { Mountain, Phone, Mail, MapPin, ArrowUp, Send } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+interface FooterSettings {
+  phone: string;
+  email: string;
+  address: string;
+  description: string;
+}
+
+const FOOTER_DEFAULTS: FooterSettings = {
+  phone: "+977 980-123-4567",
+  email: "hello@himavolt.com",
+  address: "Thamel, Kathmandu",
+  description:
+    "Nepal's smartest food platform. Scan QR, browse the menu, order instantly — or get it delivered to your door.",
+};
 
 /* ── Animated footer link with slide-in underline ── */
 function FooterLink({
@@ -69,6 +84,15 @@ const socials = [
 
 export default function Footer() {
   const [email, setEmail] = useState("");
+  const [settings, setSettings] = useState<FooterSettings>(FOOTER_DEFAULTS);
+
+  useEffect(() => {
+    fetch("/api/admin/footer-settings")
+      .then((r) => r.json())
+      .then((data) => setSettings({ ...FOOTER_DEFAULTS, ...data }))
+      .catch(() => {});
+  }, []);
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -151,35 +175,34 @@ export default function Footer() {
               </span>
             </Link>
             <p className="mt-4 text-[13px] leading-relaxed text-white/30 max-w-70">
-              Nepal&apos;s smartest food platform. Scan QR, browse the menu,
-              order instantly &mdash; or get it delivered to your door.
+              {settings.description}
             </p>
 
             {/* Contact info */}
             <div className="mt-6 space-y-3">
               <a
-                href="tel:+9779801234567"
+                href={`tel:${settings.phone.replace(/\s+/g, "")}`}
                 className="group flex items-center gap-3 text-[13px] text-white/30 hover:text-[#eaa94d] transition-colors duration-300"
               >
                 <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/4 group-hover:bg-[#eaa94d]/10 transition-colors duration-300">
                   <Phone className="h-3.5 w-3.5" />
                 </span>
-                +977 980-123-4567
+                {settings.phone}
               </a>
               <a
-                href="mailto:hello@himavolt.com"
+                href={`mailto:${settings.email}`}
                 className="group flex items-center gap-3 text-[13px] text-white/30 hover:text-[#eaa94d] transition-colors duration-300"
               >
                 <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/4 group-hover:bg-[#eaa94d]/10 transition-colors duration-300">
                   <Mail className="h-3.5 w-3.5" />
                 </span>
-                hello@himavolt.com
+                {settings.email}
               </a>
               <span className="flex items-center gap-3 text-[13px] text-white/30">
                 <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/4">
                   <MapPin className="h-3.5 w-3.5" />
                 </span>
-                Thamel, Kathmandu
+                {settings.address}
               </span>
             </div>
           </div>

@@ -419,6 +419,7 @@ export default function MasterAdminPage() {
             {tab === "deliveries" && <AllDeliveriesTab />}
             {tab === "audit" && <AuditTab />}
             {tab === "bookings" && <AllBookingsTab />}
+            {tab === "footer-settings" && <FooterSettingsTab />}
           </motion.div>
         </AnimatePresence>
       </main>
