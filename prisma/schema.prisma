@@ -123,8 +123,10 @@ model Restaurant {
   coupons        Coupon[]
   prepaidTokens  PrepaidToken[]
   feedbacks      Feedback[]
-  comboMeals     ComboMeal[]
-  rushHourConfig RushHourConfig?
+  comboMeals           ComboMeal[]
+  rushHourConfig       RushHourConfig?
+  displayCounterItems  DisplayCounterItem[]
+  displayCounterConfig DisplayCounterConfig?
 
   @@index([ownerId])
   @@index([slug])
@@ -1116,6 +1118,42 @@ model ComboMealItem {
 
   @@index([comboId])
   @@map("combo_meal_items")
+}
+
+// ─── Display Counter ────────────────────────────────────────────────
+
+model DisplayCounterItem {
+  id        String   @id @default(cuid())
+  name      String
+  category  String   @default("General")
+  price     Float    @default(0)
+  status    String   @default("available") // available, just-baked, last-few, sold-out
+  showPrice Boolean  @default(true)
+  sortOrder Int      @default(0)
+  imageUrl  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@index([restaurantId])
+  @@index([restaurantId, status])
+  @@map("display_counter_items")
+}
+
+model DisplayCounterConfig {
+  id               String  @id @default(cuid())
+  isEnabled        Boolean @default(false)
+  autoHideSoldOut  Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  restaurantId String     @unique
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@map("display_counter_configs")
 }
 
 // ─── Rush Hour ───────────────────────────────────────────────────────

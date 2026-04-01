@@ -23,6 +23,7 @@ import {
   KeyRound,
   BedDouble,
   LayoutTemplate,
+  UserX,
 } from "lucide-react";
 import Link from "next/link";
 import MasterOverview from "@/components/admin/MasterOverview";
@@ -35,6 +36,7 @@ import AllDeliveriesTab from "@/components/admin/AllDeliveriesTab";
 import AuditTab from "@/components/admin/AuditTab";
 import AllBookingsTab from "@/components/admin/AllBookingsTab";
 import FooterSettingsTab from "@/components/admin/FooterSettingsTab";
+import InactiveUsersTab from "@/components/admin/InactiveUsersTab";
 
 /* ═══════════════════════════════════════════════════════════════════
    Types & Constants
@@ -45,6 +47,7 @@ type AdminTab =
   | "orders"
   | "restaurants"
   | "users"
+  | "inactive-users"
   | "chats"
   | "payments"
   | "deliveries"
@@ -57,6 +60,7 @@ const TABS: { id: AdminTab; label: string; icon: typeof Activity; mobileLabel?: 
   { id: "orders", label: "All Orders", icon: ShoppingBag, mobileLabel: "Orders" },
   { id: "restaurants", label: "Restaurants", icon: Store, mobileLabel: "Restaurants" },
   { id: "users", label: "Users", icon: Users, mobileLabel: "Users" },
+  { id: "inactive-users", label: "Inactive Users", icon: UserX, mobileLabel: "Inactive" },
   { id: "chats", label: "Chats", icon: MessageCircle, mobileLabel: "Chats" },
   { id: "payments", label: "Payments", icon: CreditCard, mobileLabel: "Pay" },
   { id: "deliveries", label: "Deliveries", icon: Truck, mobileLabel: "Delivery" },
@@ -414,6 +418,7 @@ export default function MasterAdminPage() {
             {tab === "orders" && <AllOrdersTab />}
             {tab === "restaurants" && <AllRestaurantsTab />}
             {tab === "users" && <AllUsersTab />}
+            {tab === "inactive-users" && <InactiveUsersTab />}
             {tab === "chats" && <AllChatsTab />}
             {tab === "payments" && <AllPaymentsTab />}
             {tab === "deliveries" && <AllDeliveriesTab />}
