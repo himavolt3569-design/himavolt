@@ -13,6 +13,7 @@ import {
   ArrowLeft,
   Loader2,
   Timer,
+  ClipboardCheck,
 } from "lucide-react";
 import { useOrder, type OrderStatus as OrderStatusType } from "@/context/OrderContext";
 import { formatPrice } from "@/lib/currency";
@@ -71,25 +72,21 @@ function CountdownTimer({
 }
 
 const STEPS: { label: string; icon: typeof Clock }[] = [
-  { label: "Order Placed", icon: CheckCircle2 },
-  { label: "Preparing", icon: ChefHat },
-  { label: "Ready for Pickup", icon: PackageCheck },
-  { label: "Delivered", icon: Truck },
+  { label: "Placed",    icon: CheckCircle2   },
+  { label: "Accepted",  icon: ClipboardCheck },
+  { label: "Preparing", icon: ChefHat        },
+  { label: "Ready",     icon: PackageCheck   },
+  { label: "Delivered", icon: Truck          },
 ];
 
 function statusToStep(status: OrderStatusType): number {
   switch (status) {
-    case "PENDING":
-    case "ACCEPTED":
-      return 0;
-    case "PREPARING":
-      return 1;
-    case "READY":
-      return 2;
-    case "DELIVERED":
-      return 3;
-    default:
-      return -1;
+    case "PENDING":   return 0;
+    case "ACCEPTED":  return 1;
+    case "PREPARING": return 2;
+    case "READY":     return 3;
+    case "DELIVERED": return 4;
+    default:          return -1;
   }
 }
 
@@ -200,18 +197,24 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
               ? activeOrder.status === "REJECTED"
                 ? "Order Rejected"
                 : "Order Cancelled"
-              : activeOrder.status === "ACCEPTED"
-                ? "Order Accepted"
-                : (STEPS[currentIdx]?.label ?? "Processing")}
+              : activeOrder.status === "PENDING"
+                ? "Order Placed"
+                : activeOrder.status === "ACCEPTED"
+                  ? "Order Accepted"
+                  : activeOrder.status === "PREPARING"
+                    ? "Being Prepared"
+                    : activeOrder.status === "READY"
+                      ? "Ready for Pickup"
+                      : "Delivered"}
           </h2>
           <p className="mt-1 text-sm text-gray-400">
-            {activeOrder.status === "PENDING" && "Your order has been received by the restaurant"}
-            {activeOrder.status === "ACCEPTED" && "The restaurant has accepted your order"}
-            {activeOrder.status === "PREPARING" && "The chef is working on your delicious food"}
-            {activeOrder.status === "READY" && "Your food is ready for pickup!"}
+            {activeOrder.status === "PENDING"   && "Waiting for the restaurant to confirm…"}
+            {activeOrder.status === "ACCEPTED"  && "Your order has been confirmed!"}
+            {activeOrder.status === "PREPARING" && "The chef is working on your food"}
+            {activeOrder.status === "READY"     && "Your food is ready for pickup!"}
             {activeOrder.status === "DELIVERED" && "Enjoy your meal!"}
             {activeOrder.status === "CANCELLED" && "Your order has been cancelled"}
-            {activeOrder.status === "REJECTED" && "The restaurant was unable to fulfil your order"}
+            {activeOrder.status === "REJECTED"  && "The restaurant was unable to fulfil your order"}
           </p>
         </div>
 
@@ -226,14 +229,14 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
         )}
 
         {/* Steps timeline */}
-        <div className="flex items-start justify-between px-2">
+        <div className="flex items-start justify-between gap-1">
           {STEPS.map((step, i) => {
             const Icon = step.icon;
             const isActive = !isCancelled && i <= currentIdx;
             const isCurrent = !isCancelled && i === currentIdx;
 
             return (
-              <div key={i} className="flex flex-col items-center gap-2 flex-1">
+              <div key={i} className="flex flex-col items-center gap-1.5 flex-1 min-w-0">
                 <div className="relative">
                   <motion.div
                     initial={false}
@@ -242,10 +245,10 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
                       backgroundColor: isActive ? "#3e1e0c" : "#f3f4f6",
                     }}
                     transition={{ type: "spring", damping: 20 }}
-                    className="flex h-10 w-10 items-center justify-center rounded-full"
+                    className="flex h-9 w-9 items-center justify-center rounded-full"
                   >
                     <Icon
-                      className={`h-5 w-5 ${isActive ? "text-white" : "text-gray-400"}`}
+                      className={`h-4 w-4 ${isActive ? "text-white" : "text-gray-400"}`}
                     />
                   </motion.div>
                   {isCurrent && (
@@ -257,17 +260,12 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
                   )}
                 </div>
                 <span
-                  className={`text-[10px] font-bold text-center leading-tight ${
+                  className={`text-[9px] font-bold text-center leading-tight ${
                     isActive ? "text-[#3e1e0c]" : "text-gray-400"
                   }`}
                 >
                   {step.label}
                 </span>
-                {i < STEPS.length - 1 && (
-                  <div
-                    className={`absolute hidden`}
-                  />
-                )}
               </div>
             );
           })}

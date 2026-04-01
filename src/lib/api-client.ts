@@ -9,16 +9,18 @@ type FetchOptions = {
   method?: "GET" | "POST" | "PATCH" | "DELETE";
   body?: unknown;
   headers?: Record<string, string>;
+  cache?: RequestCache;
 };
 
 export async function apiFetch<T = unknown>(
   path: string,
   options: FetchOptions = {}
 ): Promise<T> {
-  const { method = "GET", body, headers = {} } = options;
+  const { method = "GET", body, headers = {}, cache = "no-store" } = options;
 
   const res = await fetch(`${BASE}${path}`, {
     method,
+    cache,
     headers: {
       "Content-Type": "application/json",
       ...headers,
