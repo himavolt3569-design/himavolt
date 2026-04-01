@@ -36,7 +36,9 @@
       "Bash(ls -la /d/Official_Projects/himalhub/*.config.*)",
       "Bash(ls -la /d/Official_Projects/himalhub/*.json)",
       "Bash(grep -E \"\\\\.\\(ts|tsx|js|jsx\\)$\")",
-      "Bash(xargs ls:*)"
+      "Bash(xargs ls:*)",
+      "Bash(mkdir -p d:/Official_Projects/himalhub/src/app/api/restaurants/[id]/display-counter)",
+      "Bash(mkdir -p d:/Official_Projects/himalhub/src/app/api/public/restaurants/[slug]/display-counter)"
     ],
     "additionalDirectories": [
       "d:\\Official_Projects\\himalhub\\src\\app\\api\\public\\restaurants\\[slug]"

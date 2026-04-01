@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatPrice } from "@/lib/currency";
 import { useRestaurant } from "@/context/RestaurantContext";
+import { apiFetch } from "@/lib/api-client";
 import {
   Monitor,
   ChevronUp,
@@ -11,10 +12,11 @@ import {
   Eye,
   EyeOff,
   Tag,
-  X,
+  Plus,
+  Trash2,
   Sparkles,
-  Clock,
   AlertCircle,
+  Loader2,
 } from "lucide-react";
 
 type ItemStatus = "available" | "just-baked" | "last-few" | "sold-out";
@@ -26,14 +28,20 @@ interface DisplayItem {
   price: number;
   status: ItemStatus;
   showPrice: boolean;
-  order: number;
+  sortOrder: number;
+  imageUrl: string | null;
 }
 
-const CATEGORIES = ["Breads", "Pastries", "Cakes", "Cookies", "Savory", "Beverages"];
+interface DisplayConfig {
+  isEnabled: boolean;
+  autoHideSoldOut: boolean;
+}
+
+const CATEGORIES = ["General", "Breads", "Pastries", "Cakes", "Cookies", "Savory", "Beverages", "Snacks", "Tandoori", "Momo", "Rice", "Noodles"];
 
 const STATUS_CONFIG: Record<ItemStatus, { label: string; color: string; bg: string }> = {
   available: { label: "Available", color: "text-green-600", bg: "bg-green-50" },
-  "just-baked": { label: "Just Baked", color: "text-amber-600", bg: "bg-amber-50" },
+  "just-baked": { label: "Fresh Now", color: "text-amber-600", bg: "bg-amber-50" },
   "last-few": { label: "Last Few", color: "text-orange-600", bg: "bg-orange-50" },
   "sold-out": { label: "Sold Out", color: "text-red-600", bg: "bg-red-50" },
 };
@@ -41,55 +49,128 @@ const STATUS_CONFIG: Record<ItemStatus, { label: string; color: string; bg: stri
 export default function DisplayCounterTab() {
   const { selectedRestaurant } = useRestaurant();
   const cur = selectedRestaurant?.currency ?? "NPR";
+  const restaurantId = selectedRestaurant?.id;
+
   const [items, setItems] = useState<DisplayItem[]>([]);
-  const [displayMode, setDisplayMode] = useState(true);
-  const [autoRemoveSoldOut, setAutoRemoveSoldOut] = useState(false);
+  const [config, setConfig] = useState<DisplayConfig>({ isEnabled: false, autoHideSoldOut: false });
+  const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [previewMode, setPreviewMode] = useState(false);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newItem, setNewItem] = useState({ name: "", category: "General", price: 0 });
+  const [saving, setSaving] = useState(false);
+
+  // Load data from API
+  const loadData = useCallback(async () => {
+    if (!restaurantId) return;
+    try {
+      const data = await apiFetch<{ items: DisplayItem[]; config: DisplayConfig }>(
+        `/api/restaurants/${restaurantId}/display-counter`
+      );
+      setItems(data.items);
+      setConfig(data.config);
+    } catch {
+      // ignore
+    } finally {
+      setLoading(false);
+    }
+  }, [restaurantId]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const updateConfig = async (updates: Partial<DisplayConfig>) => {
+    const newConfig = { ...config, ...updates };
+    setConfig(newConfig);
+    await apiFetch(`/api/restaurants/${restaurantId}/display-counter`, {
+      method: "POST",
+      body: { config: newConfig, _action: "updateConfig" },
+    }).catch(() => setConfig(config));
+  };
+
+  const addItem = async () => {
+    if (!newItem.name.trim() || !restaurantId) return;
+    setSaving(true);
+    try {
+      const item = await apiFetch<DisplayItem>(
+        `/api/restaurants/${restaurantId}/display-counter`,
+        { method: "POST", body: newItem }
+      );
+      setItems((prev) => [...prev, item]);
+      setNewItem({ name: "", category: "General", price: 0 });
+      setShowAddForm(false);
+    } catch {
+      // ignore
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const updateItem = async (id: string, updates: Partial<DisplayItem>) => {
+    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, ...updates } : i)));
+    await apiFetch(`/api/restaurants/${restaurantId}/display-counter`, {
+      method: "PATCH" as "POST",
+      body: { itemId: id, ...updates },
+    }).catch(() => loadData());
+  };
+
+  const deleteItem = async (id: string) => {
+    setItems((prev) => prev.filter((i) => i.id !== id));
+    await apiFetch(`/api/restaurants/${restaurantId}/display-counter?itemId=${id}`, {
+      method: "DELETE",
+    }).catch(() => loadData());
+  };
+
+  const handleMoveUp = async (id: string) => {
+    const idx = items.findIndex((i) => i.id === id);
+    if (idx <= 0) return;
+    const newItems = [...items];
+    const thisOrder = newItems[idx].sortOrder;
+    newItems[idx].sortOrder = newItems[idx - 1].sortOrder;
+    newItems[idx - 1].sortOrder = thisOrder;
+    newItems.sort((a, b) => a.sortOrder - b.sortOrder);
+    setItems(newItems);
+    await apiFetch(`/api/restaurants/${restaurantId}/display-counter`, {
+      method: "PATCH" as "POST",
+      body: { reorder: newItems.map((i) => ({ id: i.id, sortOrder: i.sortOrder })) },
+    }).catch(() => loadData());
+  };
+
+  const handleMoveDown = async (id: string) => {
+    const idx = items.findIndex((i) => i.id === id);
+    if (idx >= items.length - 1) return;
+    const newItems = [...items];
+    const thisOrder = newItems[idx].sortOrder;
+    newItems[idx].sortOrder = newItems[idx + 1].sortOrder;
+    newItems[idx + 1].sortOrder = thisOrder;
+    newItems.sort((a, b) => a.sortOrder - b.sortOrder);
+    setItems(newItems);
+    await apiFetch(`/api/restaurants/${restaurantId}/display-counter`, {
+      method: "PATCH" as "POST",
+      body: { reorder: newItems.map((i) => ({ id: i.id, sortOrder: i.sortOrder })) },
+    }).catch(() => loadData());
+  };
 
   const displayItems = items
     .filter((i) => {
-      if (autoRemoveSoldOut && i.status === "sold-out") return false;
+      if (config.autoHideSoldOut && i.status === "sold-out") return false;
       if (selectedCategory !== "all" && i.category !== selectedCategory) return false;
       return true;
     })
-    .sort((a, b) => a.order - b.order);
-
-  const handleStatusChange = (id: string, status: ItemStatus) => {
-    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, status } : i)));
-  };
-
-  const handleTogglePrice = (id: string) => {
-    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, showPrice: !i.showPrice } : i)));
-  };
-
-  const handleMoveUp = (id: string) => {
-    setItems((prev) => {
-      const idx = prev.findIndex((i) => i.id === id);
-      if (idx <= 0) return prev;
-      const newItems = [...prev];
-      const thisOrder = newItems[idx].order;
-      newItems[idx].order = newItems[idx - 1].order;
-      newItems[idx - 1].order = thisOrder;
-      return newItems.sort((a, b) => a.order - b.order);
-    });
-  };
-
-  const handleMoveDown = (id: string) => {
-    setItems((prev) => {
-      const idx = prev.findIndex((i) => i.id === id);
-      if (idx >= prev.length - 1) return prev;
-      const newItems = [...prev];
-      const thisOrder = newItems[idx].order;
-      newItems[idx].order = newItems[idx + 1].order;
-      newItems[idx + 1].order = thisOrder;
-      return newItems.sort((a, b) => a.order - b.order);
-    });
-  };
+    .sort((a, b) => a.sortOrder - b.sortOrder);
 
   const availableCount = items.filter((i) => i.status !== "sold-out").length;
-  const justBakedCount = items.filter((i) => i.status === "just-baked").length;
+  const freshCount = items.filter((i) => i.status === "just-baked").length;
   const soldOutCount = items.filter((i) => i.status === "sold-out").length;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="h-6 w-6 animate-spin text-pink-400" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-10">
@@ -100,9 +181,16 @@ export default function DisplayCounterTab() {
             <Monitor className="h-5 w-5 text-pink-500" />
             Display Counter
           </h2>
-          <p className="text-sm text-gray-500 mt-1">Manage showcase items for walk-in customers</p>
+          <p className="text-sm text-gray-500 mt-1">Manage showcase items visible to your customers</p>
         </div>
         <div className="flex gap-2">
+          <button
+            onClick={() => setShowAddForm(true)}
+            className="flex items-center gap-2 rounded-xl bg-pink-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-pink-600 transition-all"
+          >
+            <Plus className="h-4 w-4" />
+            Add Item
+          </button>
           <button
             onClick={() => setPreviewMode(!previewMode)}
             className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${
@@ -115,7 +203,7 @@ export default function DisplayCounterTab() {
         </div>
       </div>
 
-      {/* Display mode toggle */}
+      {/* Display mode toggles */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex items-center gap-3 rounded-xl bg-white p-4 ring-1 ring-gray-100 shadow-sm flex-1">
           <Monitor className="h-5 w-5 text-pink-500" />
@@ -124,10 +212,10 @@ export default function DisplayCounterTab() {
             <p className="text-xs text-gray-400">Enable customer-facing display</p>
           </div>
           <button
-            onClick={() => setDisplayMode(!displayMode)}
-            className={`relative h-6 w-11 rounded-full transition-colors ${displayMode ? "bg-pink-500" : "bg-gray-200"}`}
+            onClick={() => updateConfig({ isEnabled: !config.isEnabled })}
+            className={`relative h-6 w-11 rounded-full transition-colors ${config.isEnabled ? "bg-pink-500" : "bg-gray-200"}`}
           >
-            <span className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${displayMode ? "translate-x-5" : ""}`} />
+            <span className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${config.isEnabled ? "translate-x-5" : ""}`} />
           </button>
         </div>
         <div className="flex items-center gap-3 rounded-xl bg-white p-4 ring-1 ring-gray-100 shadow-sm flex-1">
@@ -137,10 +225,10 @@ export default function DisplayCounterTab() {
             <p className="text-xs text-gray-400">Remove sold out items from display</p>
           </div>
           <button
-            onClick={() => setAutoRemoveSoldOut(!autoRemoveSoldOut)}
-            className={`relative h-6 w-11 rounded-full transition-colors ${autoRemoveSoldOut ? "bg-pink-500" : "bg-gray-200"}`}
+            onClick={() => updateConfig({ autoHideSoldOut: !config.autoHideSoldOut })}
+            className={`relative h-6 w-11 rounded-full transition-colors ${config.autoHideSoldOut ? "bg-pink-500" : "bg-gray-200"}`}
           >
-            <span className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${autoRemoveSoldOut ? "translate-x-5" : ""}`} />
+            <span className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${config.autoHideSoldOut ? "translate-x-5" : ""}`} />
           </button>
         </div>
       </div>
@@ -152,14 +240,70 @@ export default function DisplayCounterTab() {
           <p className="text-[11px] text-gray-500">Available</p>
         </div>
         <div className="rounded-xl bg-white ring-1 ring-gray-100 p-4 shadow-sm text-center">
-          <p className="text-2xl font-bold text-amber-500">{justBakedCount}</p>
-          <p className="text-[11px] text-gray-500">Just Baked</p>
+          <p className="text-2xl font-bold text-amber-500">{freshCount}</p>
+          <p className="text-[11px] text-gray-500">Fresh Now</p>
         </div>
         <div className="rounded-xl bg-white ring-1 ring-gray-100 p-4 shadow-sm text-center">
           <p className="text-2xl font-bold text-red-500">{soldOutCount}</p>
           <p className="text-[11px] text-gray-500">Sold Out</p>
         </div>
       </div>
+
+      {/* Add Item Form */}
+      <AnimatePresence>
+        {showAddForm && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="rounded-xl bg-white ring-1 ring-gray-100 p-5 shadow-sm space-y-4">
+              <p className="text-sm font-bold text-gray-800">Add New Display Item</p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <input
+                  type="text"
+                  placeholder="Item name"
+                  value={newItem.name}
+                  onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
+                  className="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-pink-400/20 focus:border-pink-400"
+                />
+                <select
+                  value={newItem.category}
+                  onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}
+                  className="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-pink-400/20 focus:border-pink-400"
+                >
+                  {CATEGORIES.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+                <input
+                  type="number"
+                  placeholder="Price"
+                  value={newItem.price || ""}
+                  onChange={(e) => setNewItem({ ...newItem, price: Number(e.target.value) })}
+                  className="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-pink-400/20 focus:border-pink-400"
+                />
+              </div>
+              <div className="flex gap-2 justify-end">
+                <button
+                  onClick={() => setShowAddForm(false)}
+                  className="rounded-lg px-4 py-2 text-sm font-semibold text-gray-500 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={addItem}
+                  disabled={saving || !newItem.name.trim()}
+                  className="rounded-lg bg-pink-500 px-4 py-2 text-sm font-semibold text-white hover:bg-pink-600 disabled:opacity-50"
+                >
+                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Add"}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Category filter */}
       <div className="flex gap-1.5 flex-wrap">
@@ -251,24 +395,33 @@ export default function DisplayCounterTab() {
               {/* Status selector */}
               <select
                 value={item.status}
-                onChange={(e) => handleStatusChange(item.id, e.target.value as ItemStatus)}
+                onChange={(e) => updateItem(item.id, { status: e.target.value as ItemStatus })}
                 className="rounded-lg bg-gray-50 px-2 py-1.5 text-xs ring-1 ring-gray-200 outline-none focus:ring-pink-400"
               >
                 <option value="available">Available</option>
-                <option value="just-baked">Just Baked</option>
+                <option value="just-baked">Fresh Now</option>
                 <option value="last-few">Last Few</option>
                 <option value="sold-out">Sold Out</option>
               </select>
 
               {/* Price toggle */}
               <button
-                onClick={() => handleTogglePrice(item.id)}
+                onClick={() => updateItem(item.id, { showPrice: !item.showPrice })}
                 className={`flex h-8 w-8 items-center justify-center rounded-lg transition-all ${
                   item.showPrice ? "bg-pink-50 text-pink-500" : "bg-gray-50 text-gray-300"
                 }`}
                 title={item.showPrice ? "Hide price" : "Show price"}
               >
                 {item.showPrice ? <Tag className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+              </button>
+
+              {/* Delete */}
+              <button
+                onClick={() => deleteItem(item.id)}
+                className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-50 text-gray-300 hover:text-red-500 hover:bg-red-50 transition-all"
+                title="Remove item"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
               </button>
             </motion.div>
           );
@@ -279,6 +432,7 @@ export default function DisplayCounterTab() {
         <div className="text-center py-16">
           <Monitor className="h-10 w-10 text-gray-200 mx-auto mb-3" />
           <p className="text-sm text-gray-400">No items to display</p>
+          <p className="text-xs text-gray-300 mt-1">Add items to your display counter to get started</p>
         </div>
       )}
     </div>
