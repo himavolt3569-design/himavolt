@@ -17,7 +17,10 @@ import {
   Sparkles,
   AlertCircle,
   Loader2,
+  Camera,
+  ImageIcon,
 } from "lucide-react";
+import ImagePicker from "@/components/shared/ImagePicker";
 
 type ItemStatus = "available" | "just-baked" | "last-few" | "sold-out";
 
@@ -57,8 +60,10 @@ export default function DisplayCounterTab() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [previewMode, setPreviewMode] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [newItem, setNewItem] = useState({ name: "", category: "General", price: 0 });
+  const [newItem, setNewItem] = useState({ name: "", category: "General", price: 0, imageUrl: "" });
   const [saving, setSaving] = useState(false);
+  const [showAddImagePicker, setShowAddImagePicker] = useState(false);
+  const [editImageFor, setEditImageFor] = useState<string | null>(null);
 
   // Load data from API
   const loadData = useCallback(async () => {
@@ -102,7 +107,7 @@ export default function DisplayCounterTab() {
         { method: "POST", body: newItem }
       );
       setItems((prev) => [...prev, item]);
-      setNewItem({ name: "", category: "General", price: 0 });
+      setNewItem({ name: "", category: "General", price: 0, imageUrl: "" });
       setShowAddForm(false);
     } catch {
       // ignore
@@ -264,30 +269,47 @@ export default function DisplayCounterTab() {
           >
             <div className="rounded-xl bg-white ring-1 ring-gray-100 p-5 shadow-sm space-y-4">
               <p className="text-sm font-bold text-gray-800">Add New Display Item</p>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <input
-                  type="text"
-                  placeholder="Item name"
-                  value={newItem.name}
-                  onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-                  className="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-pink-400/20 focus:border-pink-400"
-                />
-                <select
-                  value={newItem.category}
-                  onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}
-                  className="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-pink-400/20 focus:border-pink-400"
+              <div className="flex gap-3">
+                {/* Image picker button */}
+                <button
+                  type="button"
+                  onClick={() => setShowAddImagePicker(true)}
+                  className="relative h-20 w-20 shrink-0 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 hover:border-pink-400 hover:bg-pink-50 transition-all overflow-hidden"
                 >
-                  {CATEGORIES.map((c) => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </select>
-                <input
-                  type="number"
-                  placeholder="Price"
-                  value={newItem.price || ""}
-                  onChange={(e) => setNewItem({ ...newItem, price: Number(e.target.value) })}
-                  className="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-pink-400/20 focus:border-pink-400"
-                />
+                  {newItem.imageUrl ? (
+                    <img src={newItem.imageUrl} alt="" className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full gap-1">
+                      <Camera className="h-5 w-5 text-gray-300" />
+                      <span className="text-[10px] text-gray-400">Image</span>
+                    </div>
+                  )}
+                </button>
+                <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <input
+                    type="text"
+                    placeholder="Item name"
+                    value={newItem.name}
+                    onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
+                    className="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-pink-400/20 focus:border-pink-400"
+                  />
+                  <select
+                    value={newItem.category}
+                    onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}
+                    className="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-pink-400/20 focus:border-pink-400"
+                  >
+                    {CATEGORIES.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                  <input
+                    type="number"
+                    placeholder="Price"
+                    value={newItem.price || ""}
+                    onChange={(e) => setNewItem({ ...newItem, price: Number(e.target.value) })}
+                    className="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-pink-400/20 focus:border-pink-400"
+                  />
+                </div>
               </div>
               <div className="flex gap-2 justify-end">
                 <button
@@ -347,8 +369,12 @@ export default function DisplayCounterTab() {
                 const sc = STATUS_CONFIG[item.status];
                 return (
                   <div key={item.id} className="rounded-xl bg-white p-4 shadow-sm text-center">
-                    <div className="h-16 w-16 mx-auto rounded-xl bg-pink-50 flex items-center justify-center mb-2">
-                      <Sparkles className="h-6 w-6 text-pink-300" />
+                    <div className="h-16 w-16 mx-auto rounded-xl overflow-hidden bg-pink-50 flex items-center justify-center mb-2">
+                      {item.imageUrl ? (
+                        <img src={item.imageUrl} alt={item.name} className="h-full w-full object-cover" />
+                      ) : (
+                        <Sparkles className="h-6 w-6 text-pink-300" />
+                      )}
                     </div>
                     <p className="text-sm font-bold text-gray-800">{item.name}</p>
                     {item.showPrice && <p className="text-sm font-bold text-pink-500 mt-1">{formatPrice(item.price, cur)}</p>}
@@ -386,6 +412,25 @@ export default function DisplayCounterTab() {
                   <ChevronDown className="h-3.5 w-3.5" />
                 </button>
               </div>
+
+              {/* Item image */}
+              <button
+                type="button"
+                onClick={() => setEditImageFor(item.id)}
+                className="relative h-12 w-12 shrink-0 rounded-lg overflow-hidden bg-pink-50 hover:ring-2 hover:ring-pink-400 transition-all"
+                title="Change image"
+              >
+                {item.imageUrl ? (
+                  <img src={item.imageUrl} alt={item.name} className="h-full w-full object-cover" />
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <ImageIcon className="h-4 w-4 text-pink-200" />
+                  </div>
+                )}
+                <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 hover:opacity-100 transition-opacity">
+                  <Camera className="h-3 w-3 text-white" />
+                </div>
+              </button>
 
               {/* Item info */}
               <div className="flex-1 min-w-0">
@@ -439,6 +484,25 @@ export default function DisplayCounterTab() {
           <p className="text-xs text-gray-300 mt-1">Add items to your display counter to get started</p>
         </div>
       )}
+
+      {/* Image picker for new item */}
+      <ImagePicker
+        open={showAddImagePicker}
+        currentImage={newItem.imageUrl || null}
+        onSelect={(url) => setNewItem((prev) => ({ ...prev, imageUrl: url }))}
+        onClose={() => setShowAddImagePicker(false)}
+      />
+
+      {/* Image picker for editing existing item */}
+      <ImagePicker
+        open={!!editImageFor}
+        currentImage={items.find((i) => i.id === editImageFor)?.imageUrl ?? null}
+        onSelect={(url) => {
+          if (editImageFor) updateItem(editImageFor, { imageUrl: url });
+          setEditImageFor(null);
+        }}
+        onClose={() => setEditImageFor(null)}
+      />
     </div>
   );
 }

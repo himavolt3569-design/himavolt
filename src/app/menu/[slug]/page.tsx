@@ -1577,12 +1577,20 @@ function MenuPageContent() {
     // Do NOT change the URL — preserves ?table=N so Dine-In stays available for repeat orders
   }, [slug]);
 
-  // Auto-show order tracking whenever any order (including terminal) is loaded or restored
+  // Auto-show order tracking whenever an active (non-terminal) order is loaded or restored.
+  // Terminal orders restored from storage are cleared immediately without reopening the overlay.
   useEffect(() => {
     if (activeOrder?.id) {
-      setShowOrder(true);
+      const isTerminal = ["DELIVERED", "CANCELLED", "REJECTED"].includes(activeOrder.status);
+      if (isTerminal) {
+        // Order was already done before the page was refreshed — don't reopen overlay
+        localStorage.removeItem(`hh_tracking_${slug}`);
+        setShowOrder(false);
+      } else {
+        setShowOrder(true);
+      }
     }
-  }, [activeOrder?.id]); // only fires when the ORDER IDENTITY changes, not on every status poll
+  }, [activeOrder?.id, slug]); // only fires when the ORDER IDENTITY changes, not on every status poll
 
   useEffect(() => {
     if (activeOrder?.status === "DELIVERED" || activeOrder?.status === "CANCELLED" || activeOrder?.status === "REJECTED") {
