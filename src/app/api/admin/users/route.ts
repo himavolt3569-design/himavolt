@@ -65,24 +65,26 @@ export async function DELETE(req: NextRequest) {
   const admin = await requireAdmin();
   if (!admin) return unauthorized("Admin access required");
 
-  const { userId } = await req.json();
-  if (!userId) {
-    return NextResponse.json({ error: "userId required" }, { status: 400 });
+  const body = await req.json();
+  const ids: string[] = body.ids ?? (body.userId ? [body.userId] : []);
+  if (ids.length === 0) {
+    return NextResponse.json({ error: "userId or ids required" }, { status: 400 });
   }
 
-  // Cascade: delete user's orders' children, then user (restaurants cascade from user via Cascade)
-  await db.$transaction([
-    db.delivery.deleteMany({ where: { order: { userId } } }),
-    db.payment.deleteMany({ where: { order: { userId } } }),
-    db.bill.deleteMany({ where: { order: { userId } } }),
-    db.tableSession.deleteMany({ where: { order: { userId } } }),
-    db.orderItem.deleteMany({ where: { order: { userId } } }),
-    db.order.deleteMany({ where: { userId } }),
-    db.review.deleteMany({ where: { userId } }),
-    db.user.delete({ where: { id: userId } }),
-  ]);
+  for (const userId of ids) {
+    await db.$transaction([
+      db.delivery.deleteMany({ where: { order: { userId } } }),
+      db.payment.deleteMany({ where: { order: { userId } } }),
+      db.bill.deleteMany({ where: { order: { userId } } }),
+      db.tableSession.deleteMany({ where: { order: { userId } } }),
+      db.orderItem.deleteMany({ where: { order: { userId } } }),
+      db.order.deleteMany({ where: { userId } }),
+      db.review.deleteMany({ where: { userId } }),
+      db.user.delete({ where: { id: userId } }),
+    ]);
+  }
 
-  return NextResponse.json({ success: true });
+  return NextResponse.json({ success: true, deleted: ids.length });
 }
 
 /**

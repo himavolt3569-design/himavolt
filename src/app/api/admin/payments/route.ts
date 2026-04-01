@@ -84,12 +84,13 @@ export async function DELETE(req: NextRequest) {
   const admin = await requireAdmin();
   if (!admin) return unauthorized("Admin access required");
 
-  const { paymentId } = await req.json();
-  if (!paymentId) {
-    return NextResponse.json({ error: "paymentId required" }, { status: 400 });
+  const body = await req.json();
+  const ids: string[] = body.ids ?? (body.paymentId ? [body.paymentId] : []);
+  if (ids.length === 0) {
+    return NextResponse.json({ error: "paymentId or ids required" }, { status: 400 });
   }
 
-  await db.payment.delete({ where: { id: paymentId } });
+  await db.payment.deleteMany({ where: { id: { in: ids } } });
 
-  return NextResponse.json({ success: true });
+  return NextResponse.json({ success: true, deleted: ids.length });
 }

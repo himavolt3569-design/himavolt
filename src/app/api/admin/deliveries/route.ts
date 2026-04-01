@@ -50,3 +50,21 @@ export async function GET(req: NextRequest) {
     pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
   });
 }
+
+/**
+ * DELETE /api/admin/deliveries
+ * Delete one or many delivery records.
+ */
+export async function DELETE(req: NextRequest) {
+  const admin = await requireAdmin();
+  if (!admin) return unauthorized("Admin access required");
+
+  const body = await req.json();
+  const ids: string[] = body.ids ?? (body.deliveryId ? [body.deliveryId] : []);
+  if (ids.length === 0) {
+    return NextResponse.json({ error: "deliveryId or ids required" }, { status: 400 });
+  }
+
+  await db.delivery.deleteMany({ where: { id: { in: ids } } });
+  return NextResponse.json({ success: true, deleted: ids.length });
+}

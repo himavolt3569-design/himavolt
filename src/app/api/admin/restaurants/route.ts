@@ -62,24 +62,27 @@ export async function DELETE(req: NextRequest) {
   const admin = await requireAdmin();
   if (!admin) return unauthorized("Admin access required");
 
-  const { restaurantId } = await req.json();
-  if (!restaurantId) {
-    return NextResponse.json({ error: "restaurantId required" }, { status: 400 });
+  const body = await req.json();
+  // Support both single (restaurantId) and bulk (ids: string[]) delete
+  const ids: string[] = body.ids ?? (body.restaurantId ? [body.restaurantId] : []);
+  if (ids.length === 0) {
+    return NextResponse.json({ error: "restaurantId or ids required" }, { status: 400 });
   }
 
-  // Delete order-level children first (payment → order), then restaurant cascades the rest
-  await db.$transaction([
-    db.delivery.deleteMany({ where: { order: { restaurantId } } }),
-    db.payment.deleteMany({ where: { order: { restaurantId } } }),
-    db.bill.deleteMany({ where: { order: { restaurantId } } }),
-    db.tableSession.deleteMany({ where: { order: { restaurantId } } }),
-    db.feedback.deleteMany({ where: { restaurantId } }),
-    db.orderItem.deleteMany({ where: { order: { restaurantId } } }),
-    db.order.deleteMany({ where: { restaurantId } }),
-    db.restaurant.delete({ where: { id: restaurantId } }),
-  ]);
+  for (const restaurantId of ids) {
+    await db.$transaction([
+      db.delivery.deleteMany({ where: { order: { restaurantId } } }),
+      db.payment.deleteMany({ where: { order: { restaurantId } } }),
+      db.bill.deleteMany({ where: { order: { restaurantId } } }),
+      db.tableSession.deleteMany({ where: { order: { restaurantId } } }),
+      db.feedback.deleteMany({ where: { restaurantId } }),
+      db.orderItem.deleteMany({ where: { order: { restaurantId } } }),
+      db.order.deleteMany({ where: { restaurantId } }),
+      db.restaurant.delete({ where: { id: restaurantId } }),
+    ]);
+  }
 
-  return NextResponse.json({ success: true });
+  return NextResponse.json({ success: true, deleted: ids.length });
 }
 
 /**

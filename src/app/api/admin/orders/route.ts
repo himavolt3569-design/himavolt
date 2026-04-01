@@ -107,3 +107,29 @@ export async function PATCH(req: NextRequest) {
 
   return NextResponse.json(order);
 }
+
+/**
+ * DELETE /api/admin/orders
+ * Delete one or many orders and their children.
+ */
+export async function DELETE(req: NextRequest) {
+  const admin = await requireAdmin();
+  if (!admin) return unauthorized("Admin access required");
+
+  const body = await req.json();
+  const ids: string[] = body.ids ?? (body.orderId ? [body.orderId] : []);
+  if (ids.length === 0) {
+    return NextResponse.json({ error: "orderId or ids required" }, { status: 400 });
+  }
+
+  await db.$transaction([
+    db.delivery.deleteMany({ where: { orderId: { in: ids } } }),
+    db.payment.deleteMany({ where: { orderId: { in: ids } } }),
+    db.bill.deleteMany({ where: { orderId: { in: ids } } }),
+    db.tableSession.deleteMany({ where: { orderId: { in: ids } } }),
+    db.orderItem.deleteMany({ where: { orderId: { in: ids } } }),
+    db.order.deleteMany({ where: { id: { in: ids } } }),
+  ]);
+
+  return NextResponse.json({ success: true, deleted: ids.length });
+}
