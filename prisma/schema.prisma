@@ -420,6 +420,10 @@ model Order {
   isPrepaid      Boolean  @default(false) // order requires payment before processing
   prepaidTokenId String?  @unique         // link to PrepaidToken once paid
 
+  // POS hold/recall
+  isHeld    Boolean   @default(false)
+  heldAt    DateTime?
+
   // Coupon
   couponId       String?
   couponDiscount Float    @default(0) // discount amount applied from coupon

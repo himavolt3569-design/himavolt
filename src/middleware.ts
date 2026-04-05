@@ -46,9 +46,10 @@ const PUBLIC_ROUTES = [
   /^\/api\/admin\/verify(\/|$)/,
   /^\/api\/admin\/logout(\/|$)/,
   /^\/admin(\/|$)/,
+  /^\/pos\/(?!staff)(.*)/,
 ];
 
-const STAFF_ONLY_ROUTES = [/^\/kitchen(\/|$)/, /^\/counter(\/|$)/];
+const STAFF_ONLY_ROUTES = [/^\/kitchen(\/|$)/, /^\/counter(\/|$)/, /^\/pos\/staff(\/|$)/];
 
 function isPublicRoute(pathname: string) {
   return PUBLIC_ROUTES.some((r) => r.test(pathname));

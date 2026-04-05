@@ -654,6 +654,15 @@ export default function BillingTab({
                       <BillIcon className="h-2.5 w-2.5" />
                       Cash Bill
                     </span>
+                  ) : order.payment.method === "DIRECT" ? (
+                    <span className={`flex items-center gap-0.5 rounded-lg border px-2 py-0.5 text-[10px] font-bold ${
+                      order.payment.status === "COMPLETED"
+                        ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                        : "bg-orange-50 border-orange-200 text-orange-700"
+                    }`}>
+                      <Receipt className="h-2.5 w-2.5" />
+                      Direct Pay &middot; {order.payment.status === "COMPLETED" ? "Paid" : "Unpaid"}
+                    </span>
                   ) : (
                     <span className="flex items-center gap-0.5 rounded-lg bg-purple-50 border border-purple-100 px-2 py-0.5 text-[10px] font-bold text-purple-700">
                       <ScanLine className="h-2.5 w-2.5" />
