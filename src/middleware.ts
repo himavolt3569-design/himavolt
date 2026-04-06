@@ -27,6 +27,8 @@ const PUBLIC_ROUTES = [
   /^\/api\/contact$/,
   /^\/api\/track(\/|$)/,
   /^\/api\/restaurants\/[^/]+\/orders$/,
+  /^\/api\/restaurants\/[^/]+\/orders\/[^/]+$/,
+  /^\/api\/restaurants\/[^/]+\/table-session(\/|$)/,
   /^\/api\/orders\/[^/]+\/bill$/,
   /^\/api\/payments\/esewa\/callback/,
   /^\/api\/payments\/khalti\/callback/,

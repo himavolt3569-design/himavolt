@@ -469,7 +469,12 @@ export const POST = safeHandler(
       });
     }
 
-    await generateBill(order.id);
+    try {
+      await generateBill(order.id);
+    } catch (billErr) {
+      console.error("[Orders POST] generateBill failed:", billErr);
+      // Non-fatal: order is created, bill can be regenerated later
+    }
 
     await db.restaurant.update({
       where: { id },
