@@ -43,26 +43,34 @@ export async function GET(req: NextRequest) {
     };
   }
 
-  const [orders, total] = await Promise.all([
-    db.order.findMany({
-      where,
-      include: {
-        items: { select: { id: true, name: true, quantity: true, price: true } },
-        payment: { select: { method: true, status: true, paidAt: true, amount: true } },
-        restaurant: { select: { id: true, name: true, slug: true, currency: true } },
-        user: { select: { id: true, name: true, email: true, imageUrl: true } },
-      },
-      orderBy: { createdAt: "desc" },
-      skip: (page - 1) * limit,
-      take: limit,
-    }),
-    db.order.count({ where }),
-  ]);
+  try {
+    const [orders, total] = await Promise.all([
+      db.order.findMany({
+        where,
+        include: {
+          items: { select: { id: true, name: true, quantity: true, price: true } },
+          payment: { select: { method: true, status: true, paidAt: true, amount: true } },
+          restaurant: { select: { id: true, name: true, slug: true, currency: true } },
+          user: { select: { id: true, name: true, email: true, imageUrl: true } },
+        },
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      db.order.count({ where }),
+    ]);
 
-  return NextResponse.json({
-    orders,
-    pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
-  });
+    return NextResponse.json({
+      orders,
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    });
+  } catch (err) {
+    console.error("[Admin Orders GET]", err);
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Failed to fetch orders" },
+      { status: 500 },
+    );
+  }
 }
 
 /**

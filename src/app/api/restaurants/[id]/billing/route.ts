@@ -38,6 +38,14 @@ export async function GET(
   const { searchParams } = new URL(req.url);
   const filter = searchParams.get("filter") || undefined;
 
-  const orders = await getOrdersForBilling(id, filter);
-  return NextResponse.json(orders);
+  try {
+    const orders = await getOrdersForBilling(id, filter);
+    return NextResponse.json(orders);
+  } catch (err) {
+    console.error("[Billing GET]", err);
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Failed to fetch billing orders" },
+      { status: 500 },
+    );
+  }
 }

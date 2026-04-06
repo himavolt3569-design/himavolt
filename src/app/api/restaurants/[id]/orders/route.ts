@@ -40,42 +40,52 @@ export async function GET(
   const liveMode = searchParams.get("live") === "1";
   if (liveMode) {
     const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
+    // When in live mode, override any status filter with the OR clause
+    delete where.status;
     where.OR = [
       { status: { in: ["PENDING", "ACCEPTED", "PREPARING", "READY"] } },
       { status: { in: ["DELIVERED", "CANCELLED", "REJECTED"] }, createdAt: { gte: twoHoursAgo } },
     ];
   }
 
-  const [orders, total] = await Promise.all([
-    db.order.findMany({
-      where,
-      include: {
-        items: true,
-        user: { select: { name: true, email: true } },
-        payment: {
-          select: { method: true, status: true, transactionId: true },
-        },
-        delivery: {
-          include: {
-            driver: {
-              select: {
-                name: true,
-                phone: true,
-                vehicleType: true,
-                vehicleNo: true,
+  try {
+    const [orders, total] = await Promise.all([
+      db.order.findMany({
+        where,
+        include: {
+          items: true,
+          user: { select: { name: true, email: true } },
+          payment: {
+            select: { method: true, status: true, transactionId: true },
+          },
+          delivery: {
+            include: {
+              driver: {
+                select: {
+                  name: true,
+                  phone: true,
+                  vehicleType: true,
+                  vehicleNo: true,
+                },
               },
             },
           },
         },
-      },
-      orderBy: { createdAt: "desc" },
-      take: limit,
-      skip: offset,
-    }),
-    db.order.count({ where }),
-  ]);
+        orderBy: { createdAt: "desc" },
+        take: limit,
+        skip: offset,
+      }),
+      db.order.count({ where }),
+    ]);
 
-  return NextResponse.json({ orders, total, limit, offset });
+    return NextResponse.json({ orders, total, limit, offset });
+  } catch (err) {
+    console.error("[Orders GET]", err);
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Failed to fetch orders" },
+      { status: 500 },
+    );
+  }
 }
 
 export const POST = safeHandler(

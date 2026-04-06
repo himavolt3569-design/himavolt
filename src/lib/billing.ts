@@ -173,7 +173,7 @@ export async function getOrdersForBilling(
 
   if (filter === "unpaid") {
     where.OR = [
-      { payment: null },
+      { payment: { is: null } },
       { payment: { status: { not: "COMPLETED" } } },
     ];
     where.status = { notIn: ["CANCELLED", "REJECTED"] };
