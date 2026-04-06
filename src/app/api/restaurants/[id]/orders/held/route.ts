@@ -25,19 +25,27 @@ export async function GET(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const orders = await db.order.findMany({
-    where: {
-      restaurantId: id,
-      isHeld: true,
-      status: { in: ["PENDING", "ACCEPTED"] },
-    },
-    include: {
-      items: true,
-    },
-    orderBy: { createdAt: "desc" },
-  });
-
-  return NextResponse.json(orders);
+  // Guard: isHeld column may not exist yet if migration hasn't run.
+  // Use raw query to check existence, fall back to empty array if missing.
+  try {
+    const orders = await (db.order.findMany as Function)({
+      where: {
+        restaurantId: id,
+        isHeld: true,
+        status: { in: ["PENDING", "ACCEPTED"] },
+      },
+      include: { items: true },
+      orderBy: { createdAt: "desc" },
+    });
+    return NextResponse.json(orders);
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    // Column not yet in DB — return empty list gracefully
+    if (msg.includes("does not exist") || msg.includes("column") || msg.includes("isHeld")) {
+      return NextResponse.json([]);
+    }
+    return NextResponse.json({ error: "Failed to fetch held orders" }, { status: 500 });
+  }
 }
 
 // PATCH /api/restaurants/[id]/orders/held — Toggle hold status
@@ -69,13 +77,23 @@ export async function PATCH(
     return NextResponse.json({ error: "Order not found" }, { status: 404 });
   }
 
-  const updated = await db.order.update({
-    where: { id: orderId },
-    data: {
-      isHeld,
-      heldAt: isHeld ? new Date() : null,
-    },
-  });
-
-  return NextResponse.json({ success: true, order: updated });
+  try {
+    const updated = await (db.order.update as Function)({
+      where: { id: orderId },
+      data: {
+        isHeld,
+        heldAt: isHeld ? new Date() : null,
+      },
+    });
+    return NextResponse.json({ success: true, order: updated });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (msg.includes("does not exist") || msg.includes("column") || msg.includes("isHeld")) {
+      return NextResponse.json(
+        { error: "Migration pending: run `npx prisma db push` with the direct DB URL to enable hold/recall." },
+        { status: 503 },
+      );
+    }
+    return NextResponse.json({ error: "Failed to update order" }, { status: 500 });
+  }
 }
