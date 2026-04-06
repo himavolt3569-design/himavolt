@@ -31,7 +31,33 @@ export async function GET(
 
   const order = await db.order.findFirst({
     where: { id: orderId, restaurantId: id },
-    include: {
+    select: {
+      id: true,
+      orderNo: true,
+      tableNo: true,
+      roomNo: true,
+      guestName: true,
+      status: true,
+      type: true,
+      subtotal: true,
+      tax: true,
+      total: true,
+      note: true,
+      estimatedTime: true,
+      deliveryAddress: true,
+      deliveryLat: true,
+      deliveryLng: true,
+      deliveryPhone: true,
+      deliveryNote: true,
+      deliveryFee: true,
+      acceptedAt: true,
+      preparingAt: true,
+      readyAt: true,
+      deliveredAt: true,
+      createdAt: true,
+      updatedAt: true,
+      userId: true,
+      restaurantId: true,
       items: { include: { menuItem: true } },
       user: { select: { name: true, email: true, phone: true } },
       payment: true,
@@ -111,7 +137,21 @@ export async function PATCH(
       ...timestamps,
       ...(estimatedTime !== undefined ? { estimatedTime } : {}),
     },
-    include: {
+    select: {
+      id: true,
+      orderNo: true,
+      tableNo: true,
+      status: true,
+      type: true,
+      subtotal: true,
+      tax: true,
+      total: true,
+      note: true,
+      estimatedTime: true,
+      deliveryFee: true,
+      createdAt: true,
+      userId: true,
+      restaurantId: true,
       items: true,
       payment: true,
       bill: true,
@@ -158,7 +198,7 @@ export async function PATCH(
   if (status === "CANCELLED" || status === "REJECTED") {
     const orderWithItems = await db.order.findUnique({
       where: { id: orderId },
-      include: { items: true },
+      select: { id: true, items: true },
     });
     if (orderWithItems) {
       for (const item of orderWithItems.items) {

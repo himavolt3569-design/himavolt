@@ -184,7 +184,19 @@ export async function updateOrderStatus(
   const order = await db.order.update({
     where: { id: orderId },
     data: { status, ...timestamps },
-    include: { items: true, payment: true },
+    select: {
+      id: true,
+      orderNo: true,
+      tableNo: true,
+      status: true,
+      type: true,
+      subtotal: true,
+      tax: true,
+      total: true,
+      createdAt: true,
+      items: true,
+      payment: true,
+    },
   });
 
   // NOTE: Payment completion is handled explicitly by the biller.
@@ -203,10 +215,36 @@ export async function getRestaurantOrders(
   const where: Record<string, unknown> = { restaurantId };
   if (options?.status) where.status = options.status;
 
+  const safeOrderSelect = {
+    id: true,
+    orderNo: true,
+    tableNo: true,
+    roomNo: true,
+    guestName: true,
+    status: true,
+    type: true,
+    subtotal: true,
+    tax: true,
+    total: true,
+    note: true,
+    estimatedTime: true,
+    deliveryAddress: true,
+    deliveryFee: true,
+    acceptedAt: true,
+    preparingAt: true,
+    readyAt: true,
+    deliveredAt: true,
+    createdAt: true,
+    updatedAt: true,
+    userId: true,
+    restaurantId: true,
+  };
+
   const [orders, total] = await Promise.all([
     db.order.findMany({
       where,
-      include: {
+      select: {
+        ...safeOrderSelect,
         items: true,
         user: { select: { name: true, email: true, phone: true } },
         delivery: {
@@ -231,7 +269,20 @@ export async function getMyOrders() {
 
   return db.order.findMany({
     where: { userId: user.id },
-    include: {
+    select: {
+      id: true,
+      orderNo: true,
+      tableNo: true,
+      status: true,
+      type: true,
+      subtotal: true,
+      tax: true,
+      total: true,
+      estimatedTime: true,
+      deliveryAddress: true,
+      deliveryFee: true,
+      createdAt: true,
+      updatedAt: true,
       items: true,
       restaurant: { select: { name: true, slug: true, imageUrl: true } },
       delivery: {

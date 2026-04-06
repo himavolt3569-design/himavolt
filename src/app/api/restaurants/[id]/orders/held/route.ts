@@ -34,7 +34,19 @@ export async function GET(
         isHeld: true,
         status: { in: ["PENDING", "ACCEPTED"] },
       },
-      include: { items: true },
+      select: {
+        id: true,
+        orderNo: true,
+        tableNo: true,
+        status: true,
+        type: true,
+        subtotal: true,
+        tax: true,
+        total: true,
+        note: true,
+        createdAt: true,
+        items: true,
+      },
       orderBy: { createdAt: "desc" },
     });
     return NextResponse.json(orders);
@@ -71,6 +83,7 @@ export async function PATCH(
   // Verify order belongs to this restaurant
   const order = await db.order.findFirst({
     where: { id: orderId, restaurantId: id },
+    select: { id: true },
   });
 
   if (!order) {

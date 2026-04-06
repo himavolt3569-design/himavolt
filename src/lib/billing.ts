@@ -26,7 +26,18 @@ export async function getTaxConfig(restaurantId: string) {
 export async function generateBill(orderId: string) {
   const order = await db.order.findUnique({
     where: { id: orderId },
-    include: { items: true, restaurant: true, bill: true },
+    select: {
+      id: true,
+      orderNo: true,
+      subtotal: true,
+      tax: true,
+      total: true,
+      deliveryFee: true,
+      restaurantId: true,
+      items: true,
+      restaurant: true,
+      bill: true,
+    },
   });
 
   if (!order) throw new Error("Order not found");
@@ -35,7 +46,9 @@ export async function generateBill(orderId: string) {
   const serviceCharge = config.serviceChargeEnabled
     ? Math.round(order.subtotal * (config.serviceChargeRate / 100) * 100) / 100
     : 0;
-  const couponDiscount = order.couponDiscount ?? 0;
+  // couponDiscount column may not exist yet (schema drift) — access safely
+  const orderAny = order as Record<string, unknown>;
+  const couponDiscount = typeof orderAny.couponDiscount === "number" ? orderAny.couponDiscount : 0;
   const total =
     Math.round(
       (order.subtotal + order.tax + serviceCharge + order.deliveryFee - couponDiscount) * 100,
@@ -123,7 +136,12 @@ export async function collectPayment(
 ) {
   const order = await db.order.findUnique({
     where: { id: orderId },
-    include: { payment: true, bill: true },
+    select: {
+      id: true,
+      total: true,
+      payment: true,
+      bill: true,
+    },
   });
 
   if (!order) throw new Error("Order not found");
@@ -160,6 +178,33 @@ export async function collectPayment(
   return payment;
 }
 
+// Explicit select for order fields to avoid pulling columns that may not exist
+// in the production database (e.g. isHeld, heldAt, couponId, couponDiscount,
+// isPrepaid, prepaidTokenId). Prevents "column does not exist" errors.
+const SAFE_ORDER_SELECT = {
+  id: true,
+  orderNo: true,
+  tableNo: true,
+  roomNo: true,
+  status: true,
+  type: true,
+  subtotal: true,
+  tax: true,
+  total: true,
+  note: true,
+  estimatedTime: true,
+  deliveryAddress: true,
+  deliveryFee: true,
+  acceptedAt: true,
+  preparingAt: true,
+  readyAt: true,
+  deliveredAt: true,
+  createdAt: true,
+  updatedAt: true,
+  userId: true,
+  restaurantId: true,
+} as const;
+
 export async function getOrdersForBilling(
   restaurantId: string,
   filter?: string,
@@ -188,7 +233,8 @@ export async function getOrdersForBilling(
 
   return db.order.findMany({
     where,
-    include: {
+    select: {
+      ...SAFE_ORDER_SELECT,
       items: true,
       user: { select: { name: true, email: true, phone: true } },
       payment: true,
@@ -209,7 +255,13 @@ export async function getDailySummary(restaurantId: string) {
       createdAt: { gte: startOfDay },
       status: { notIn: ["CANCELLED", "REJECTED"] },
     },
-    include: { payment: true, bill: true },
+    select: {
+      id: true,
+      status: true,
+      total: true,
+      payment: true,
+      bill: true,
+    },
   });
 
   const totalOrders = orders.length;

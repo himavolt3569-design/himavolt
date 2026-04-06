@@ -48,11 +48,43 @@ export async function GET(
     ];
   }
 
+  // Use explicit select to avoid pulling columns that may not exist in the
+  // production database yet (schema drift protection).
+  const orderSelect = {
+    id: true,
+    orderNo: true,
+    tableNo: true,
+    roomNo: true,
+    guestName: true,
+    status: true,
+    type: true,
+    subtotal: true,
+    tax: true,
+    total: true,
+    note: true,
+    estimatedTime: true,
+    deliveryAddress: true,
+    deliveryLat: true,
+    deliveryLng: true,
+    deliveryPhone: true,
+    deliveryNote: true,
+    deliveryFee: true,
+    acceptedAt: true,
+    preparingAt: true,
+    readyAt: true,
+    deliveredAt: true,
+    createdAt: true,
+    updatedAt: true,
+    userId: true,
+    restaurantId: true,
+  };
+
   try {
     const [orders, total] = await Promise.all([
       db.order.findMany({
         where,
-        include: {
+        select: {
+          ...orderSelect,
           items: true,
           user: { select: { name: true, email: true } },
           payment: {
@@ -371,48 +403,67 @@ export const POST = safeHandler(
       return Math.max(max, mins);
     }, 15);
 
-    const order = await db.order.create({
-      data: {
-        orderNo,
-        tableNo:
-          orderType === "DINE_IN" && tableNo && !isNaN(parseInt(String(tableNo), 10))
-            ? parseInt(String(tableNo), 10)
-            : null,
-        roomNo: roomNo ?? null,
-        guestName: guestName?.trim() ?? null,
-        subtotal,
-        tax,
-        total,
-        note: note ?? null,
-        type: orderType,
-        estimatedTime: totalPrepTime,
-        restaurantId: id,
-        userId: userId ?? null,
-        deliveryAddress:
-          orderType === "DELIVERY" ? (deliveryAddress ?? null) : null,
-        deliveryLat: orderType === "DELIVERY" ? (deliveryLat ?? null) : null,
-        deliveryLng: orderType === "DELIVERY" ? (deliveryLng ?? null) : null,
-        deliveryPhone:
-          orderType === "DELIVERY" ? (deliveryPhone ?? null) : null,
-        deliveryNote: orderType === "DELIVERY" ? (deliveryNote ?? null) : null,
-        deliveryFee,
-        ...(isPrepaid ? { isPrepaid: true } : {}),
-        ...(couponId ? { couponId } : {}),
-        ...(couponDiscount > 0 ? { couponDiscount } : {}),
-        items: {
-          createMany: {
-            data: items.map((item) => ({
-              name: item.name,
-              quantity: item.quantity,
-              price: item.price,
-              menuItemId: item.menuItemId ?? null,
-              addOns: item.addOns ?? null,
-            })),
-          },
+    // Build order data — conditionally include newer columns that may not exist
+    // in the production database yet.
+    const baseOrderData = {
+      orderNo,
+      tableNo:
+        orderType === "DINE_IN" && tableNo && !isNaN(parseInt(String(tableNo), 10))
+          ? parseInt(String(tableNo), 10)
+          : null,
+      roomNo: roomNo ?? null,
+      guestName: guestName?.trim() ?? null,
+      subtotal,
+      tax,
+      total,
+      note: note ?? null,
+      type: orderType,
+      estimatedTime: totalPrepTime,
+      restaurantId: id,
+      userId: userId ?? null,
+      deliveryAddress:
+        orderType === "DELIVERY" ? (deliveryAddress ?? null) : null,
+      deliveryLat: orderType === "DELIVERY" ? (deliveryLat ?? null) : null,
+      deliveryLng: orderType === "DELIVERY" ? (deliveryLng ?? null) : null,
+      deliveryPhone:
+        orderType === "DELIVERY" ? (deliveryPhone ?? null) : null,
+      deliveryNote: orderType === "DELIVERY" ? (deliveryNote ?? null) : null,
+      deliveryFee,
+      items: {
+        createMany: {
+          data: items.map((item) => ({
+            name: item.name,
+            quantity: item.quantity,
+            price: item.price,
+            menuItemId: item.menuItemId ?? null,
+            addOns: item.addOns ?? null,
+          })),
         },
       },
-      include: { items: true },
-    });
+    };
+
+    // Newer columns that may not exist in production DB yet
+    const extendedData = {
+      ...(isPrepaid ? { isPrepaid: true } : {}),
+      ...(couponId ? { couponId } : {}),
+      ...(couponDiscount > 0 ? { couponDiscount } : {}),
+    };
+
+    let order;
+    try {
+      // First attempt: include all fields including newer ones
+      order = await db.order.create({
+        data: { ...baseOrderData, ...extendedData },
+        include: { items: true },
+      });
+    } catch (createErr) {
+      // Retry without newer columns if they don't exist in the database
+      console.warn("[Orders POST] Retrying create without extended columns:", createErr);
+      order = await db.order.create({
+        data: baseOrderData,
+        include: { items: true },
+      });
+    }
 
     // Generate prepaid token if prepaid mode
     if (isPrepaid) {
@@ -487,15 +538,43 @@ export const POST = safeHandler(
       console.error("[Orders] Failed to send kitchen notification:", err);
     });
 
-    const fullOrder = await db.order.findUnique({
-      where: { id: order.id },
-      include: {
-        items: true,
-        payment: true,
-        bill: true,
-        delivery: true,
-      },
-    });
+    let fullOrder;
+    try {
+      fullOrder = await db.order.findUnique({
+        where: { id: order.id },
+        include: {
+          items: true,
+          payment: true,
+          bill: true,
+          delivery: true,
+        },
+      });
+    } catch {
+      // Fallback: use select to avoid missing columns
+      fullOrder = await db.order.findUnique({
+        where: { id: order.id },
+        select: {
+          id: true,
+          orderNo: true,
+          tableNo: true,
+          roomNo: true,
+          guestName: true,
+          status: true,
+          type: true,
+          subtotal: true,
+          tax: true,
+          total: true,
+          note: true,
+          estimatedTime: true,
+          deliveryFee: true,
+          createdAt: true,
+          items: true,
+          payment: true,
+          bill: true,
+          delivery: true,
+        },
+      });
+    }
 
     // Deduct stock for each ordered item
     for (const item of items) {

@@ -19,7 +19,22 @@ export async function GET(req: NextRequest) {
 
   const orders = await db.order.findMany({
     where,
-    include: {
+    select: {
+      id: true,
+      orderNo: true,
+      tableNo: true,
+      roomNo: true,
+      status: true,
+      type: true,
+      subtotal: true,
+      tax: true,
+      total: true,
+      note: true,
+      estimatedTime: true,
+      deliveryAddress: true,
+      deliveryFee: true,
+      createdAt: true,
+      updatedAt: true,
       items: true,
       payment: {
         select: { method: true, status: true, paidAt: true },
