@@ -369,7 +369,7 @@ export const POST = safeHandler(
       data: {
         orderNo,
         tableNo:
-          orderType === "DINE_IN" && tableNo
+          orderType === "DINE_IN" && tableNo && !isNaN(parseInt(String(tableNo), 10))
             ? parseInt(String(tableNo), 10)
             : null,
         roomNo: roomNo ?? null,
@@ -400,6 +400,7 @@ export const POST = safeHandler(
               quantity: item.quantity,
               price: item.price,
               menuItemId: item.menuItemId ?? null,
+              addOns: item.addOns ?? null,
             })),
           },
         },

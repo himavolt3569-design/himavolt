@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useToast } from "@/context/ToastContext";
 import { formatPrice } from "@/lib/currency";
 import POSMenuGrid from "./POSMenuGrid";
@@ -44,6 +44,12 @@ interface Props {
   currency: string;
   taxRate: number;
   taxEnabled: boolean;
+  /** Pre-select a table coming from the Tables view */
+  initialTableNo?: number | null;
+  onTableNoConsumed?: () => void;
+  /** Pre-load items from a recalled held order */
+  initialItems?: { id: string; name: string; price: number; quantity: number }[];
+  onInitialItemsConsumed?: () => void;
   onOrderCreated: () => void;
 }
 
@@ -61,11 +67,39 @@ async function staffFetch<T = unknown>(url: string, opts?: RequestInit): Promise
 }
 
 export default function POSRegister({
-  restaurantId, menuItems, categories, tables, currency, taxRate, taxEnabled, onOrderCreated,
+  restaurantId, menuItems, categories, tables, currency, taxRate, taxEnabled,
+  initialTableNo, onTableNoConsumed,
+  initialItems, onInitialItemsConsumed,
+  onOrderCreated,
 }: Props) {
   const { showToast } = useToast();
   const [orderItems, setOrderItems] = useState<OrderLineItem[]>([]);
   const [submitting, setSubmitting] = useState(false);
+
+  // Pre-select table when arriving from the Tables view
+  const [preselectedTable, setPreselectedTable] = useState<number | null>(null);
+  useEffect(() => {
+    if (initialTableNo) {
+      setPreselectedTable(initialTableNo);
+      onTableNoConsumed?.();
+    }
+  }, [initialTableNo]);
+
+  // Pre-load items recalled from a held order
+  useEffect(() => {
+    if (initialItems && initialItems.length > 0) {
+      setOrderItems(
+        initialItems.map((i) => ({
+          id: i.id,
+          menuItemId: i.id,
+          name: i.name,
+          price: i.price,
+          quantity: i.quantity,
+        }))
+      );
+      onInitialItemsConsumed?.();
+    }
+  }, [initialItems]);
 
   const addItem = useCallback((item: MenuItem) => {
     setOrderItems((prev) => {
@@ -178,6 +212,7 @@ export default function POSRegister({
           taxRate={taxRate}
           taxEnabled={taxEnabled}
           submitting={submitting}
+          initialTableNo={preselectedTable}
           onUpdateQty={updateQty}
           onVoidItem={voidItem}
           onClear={clearAll}

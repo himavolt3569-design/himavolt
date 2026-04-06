@@ -106,17 +106,8 @@ export default function KioskPage({ params }: { params: Promise<{ slug: string }
         setRestaurant(restData);
         setMenuItems(Array.isArray(menuData) ? menuData : []);
 
-        // Try loading tables (may need restaurant id)
-        try {
-          const tablesRes = await fetch(`/api/restaurants/${restData.id}/tables`);
-          if (tablesRes.ok) {
-            const tablesData = await tablesRes.json();
-            const raw = Array.isArray(tablesData) ? tablesData : tablesData.tables ?? [];
-            setTables(raw.map((t: { tableNo: number; label: string | null }) => ({ tableNo: t.tableNo, label: t.label })));
-          }
-        } catch {
-          // Tables are optional for kiosk
-        }
+        const rawTables = restData.tables && Array.isArray(restData.tables) ? restData.tables : [];
+        setTables(rawTables);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load");
       } finally {
@@ -226,7 +217,7 @@ export default function KioskPage({ params }: { params: Promise<{ slug: string }
         throw new Error(err.error || "Failed to place order");
       }
       const order = await res.json();
-      setConfirmedOrder({ orderNo: order.orderNo, total: order.total });
+      setConfirmedOrder({ orderNo: order.orderNo, total: order.bill?.total ?? order.total });
       setScreen("CONFIRMED");
     } catch (err) {
       alert(err instanceof Error ? err.message : "Failed to place order. Please try again.");

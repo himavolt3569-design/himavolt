@@ -90,10 +90,12 @@ function handleNavigationRequest(event) {
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        const clone = response.clone();
-        caches
-          .open(DYNAMIC_CACHE)
-          .then((cache) => cache.put(event.request, clone));
+        if (response.ok && response.status !== 206) {
+          const clone = response.clone();
+          caches
+            .open(DYNAMIC_CACHE)
+            .then((cache) => cache.put(event.request, clone));
+        }
         return response;
       })
       .catch(() =>
@@ -110,7 +112,7 @@ function handleStaticAsset(event) {
     caches.match(event.request).then((cached) => {
       if (cached) return cached;
       return fetch(event.request).then((response) => {
-        if (response.ok) {
+        if (response.ok && response.status !== 206) {
           const clone = response.clone();
           caches
             .open(STATIC_CACHE)
@@ -127,7 +129,7 @@ function handleNextInternal(event) {
   event.respondWith(
     caches.match(event.request).then((cached) => {
       const networkFetch = fetch(event.request).then((response) => {
-        if (response.ok) {
+        if (response.ok && response.status !== 206) {
           const clone = response.clone();
           caches
             .open(STATIC_CACHE)
@@ -148,7 +150,7 @@ function handleApiRequest(event) {
         if (response.redirected && !response.url.startsWith(self.location.origin)) {
           return response;
         }
-        if (response.ok) {
+        if (response.ok && response.status !== 206) {
           const clone = response.clone();
           caches
             .open(DYNAMIC_CACHE)
@@ -186,7 +188,7 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       fetch(event.request)
         .then((response) => {
-          if (response.ok) {
+          if (response.ok && response.status !== 206) {
             const clone = response.clone();
             caches
               .open(DYNAMIC_CACHE)

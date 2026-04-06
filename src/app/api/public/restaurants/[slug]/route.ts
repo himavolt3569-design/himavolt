@@ -20,6 +20,10 @@ export async function GET(
         orderBy: { sortOrder: "asc" },
         select: { id: true, label: true, imageUrl: true },
       },
+      tables: {
+        where: { isActive: true },
+        select: { tableNo: true, label: true },
+      },
     },
   });
 
@@ -58,6 +62,7 @@ export async function GET(
     deliveryEnabled: r.deliveryEnabled ?? false,
     categories: restaurant.categories,
     paymentQRs: restaurant.paymentQRs,
+    tables: restaurant.tables,
     // Theme fields
     primaryColor: r.primaryColor ?? null,
     secondaryColor: r.secondaryColor ?? null,

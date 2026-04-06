@@ -230,7 +230,10 @@ export default function BillingTab({
       const data = await staffFetch(
         `/api/restaurants/${restaurantId}/billing?filter=${filter}`,
       );
-      const fetched: BillOrder[] = data.orders || [];
+      // API returns an array directly; fall back to .orders wrapper for safety
+      const fetched: BillOrder[] = Array.isArray(data)
+        ? data
+        : data.orders || [];
 
       if (!isFirstLoad.current) {
         const newOnes = fetched.filter((o) => !knownOrderIds.current.has(o.id));

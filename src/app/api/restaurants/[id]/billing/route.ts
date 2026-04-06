@@ -39,5 +39,5 @@ export async function GET(
   const filter = searchParams.get("filter") || undefined;
 
   const orders = await getOrdersForBilling(id, filter);
-  return NextResponse.json({ orders });
+  return NextResponse.json(orders);
 }

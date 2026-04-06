@@ -84,6 +84,13 @@ export default function StaffPOSPage() {
   // Split bill modal
   const [splitOrder, setSplitOrder] = useState<BillOrder | null>(null);
 
+  // Table pre-selection from Tables view → Register
+  const [selectedTableNo, setSelectedTableNo] = useState<number | null>(null);
+
+  // Recalled held-order items → pre-load into Register
+  type RecalledItem = { id: string; name: string; price: number; quantity: number };
+  const [recalledItems, setRecalledItems] = useState<RecalledItem[] | null>(null);
+
   // Load staff session
   useEffect(() => {
     async function loadSession() {
@@ -163,6 +170,10 @@ export default function StaffPOSPage() {
             currency={session.currency}
             taxRate={session.taxRate}
             taxEnabled={session.taxEnabled}
+            initialTableNo={selectedTableNo}
+            onTableNoConsumed={() => setSelectedTableNo(null)}
+            initialItems={recalledItems ?? undefined}
+            onInitialItemsConsumed={() => setRecalledItems(null)}
             onOrderCreated={loadData}
           />
         )}
@@ -172,8 +183,8 @@ export default function StaffPOSPage() {
             restaurantId={session.restaurantId}
             currency={session.currency}
             onTableSelect={(tableNo) => {
+              setSelectedTableNo(tableNo);
               setActiveView("register");
-              // The register will handle table selection from its own state
             }}
           />
         )}
@@ -197,8 +208,10 @@ export default function StaffPOSPage() {
           <POSHeldOrders
             restaurantId={session.restaurantId}
             currency={session.currency}
-            onRecall={() => {
-              setActiveView("orders");
+            onRecall={(order) => {
+              // Pre-load the recalled order items into the Register
+              setRecalledItems(order.items);
+              setActiveView("register");
             }}
           />
         )}

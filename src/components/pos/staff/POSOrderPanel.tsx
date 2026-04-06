@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus, Minus, Trash2, Send, Loader2, PauseCircle, CreditCard,
@@ -28,6 +28,8 @@ interface Props {
   taxRate: number;
   taxEnabled: boolean;
   submitting: boolean;
+  /** Pre-select a table (e.g. when navigating from Table view) */
+  initialTableNo?: number | null;
   onUpdateQty: (id: string, delta: number) => void;
   onVoidItem: (id: string) => void;
   onClear: () => void;
@@ -37,7 +39,7 @@ interface Props {
 }
 
 export default function POSOrderPanel({
-  items, tables, currency, taxRate, taxEnabled, submitting,
+  items, tables, currency, taxRate, taxEnabled, submitting, initialTableNo,
   onUpdateQty, onVoidItem, onClear, onSendToKitchen, onHoldOrder, onSettle,
 }: Props) {
   const [orderType, setOrderType] = useState<"DINE_IN" | "TAKEAWAY">("DINE_IN");
@@ -45,6 +47,14 @@ export default function POSOrderPanel({
   const [guestName, setGuestName] = useState("");
   const [note, setNote] = useState("");
   const [showTablePicker, setShowTablePicker] = useState(false);
+
+  // Apply pre-selected table when arriving from Tables view
+  useEffect(() => {
+    if (initialTableNo) {
+      setSelectedTable(initialTableNo);
+      setOrderType("DINE_IN");
+    }
+  }, [initialTableNo]);
 
   const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
   const tax = taxEnabled ? subtotal * (taxRate / 100) : 0;
@@ -167,6 +177,13 @@ export default function POSOrderPanel({
             <UtensilsCrossed className="h-10 w-10 mb-2 opacity-40" />
             <p className="text-xs font-medium">No items yet</p>
             <p className="text-xs mt-0.5">Tap items from the menu</p>
+            <button
+              onClick={onSettle}
+              className="mt-4 flex items-center gap-1.5 rounded-lg border border-green-200 bg-green-50 px-4 py-2 text-xs font-bold text-green-700 hover:bg-green-100 transition-colors"
+            >
+              <CreditCard className="h-3.5 w-3.5" />
+              Settle Existing Order
+            </button>
           </div>
         ) : (
           <div className="divide-y divide-gray-50">
@@ -226,7 +243,7 @@ export default function POSOrderPanel({
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             <button
               onClick={() => onHoldOrder(guestName.trim(), note.trim())}
               disabled={submitting}
@@ -241,17 +258,17 @@ export default function POSOrderPanel({
               className="flex items-center justify-center gap-1 rounded-lg bg-amber-700 py-2.5 text-xs font-bold text-white hover:bg-amber-600 transition-colors disabled:opacity-50 shadow-sm"
             >
               {submitting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
-              Kitchen
-            </button>
-            <button
-              onClick={onSettle}
-              disabled={submitting}
-              className="flex items-center justify-center gap-1 rounded-lg bg-green-600 py-2.5 text-xs font-bold text-white hover:bg-green-500 transition-colors disabled:opacity-50 shadow-sm"
-            >
-              <CreditCard className="h-3.5 w-3.5" />
-              Settle
+              Send to Kitchen
             </button>
           </div>
+          {/* Billing shortcut — always reachable even when cart has items */}
+          <button
+            onClick={onSettle}
+            className="w-full flex items-center justify-center gap-1 rounded-lg border border-green-200 bg-green-50 py-2 text-xs font-bold text-green-700 hover:bg-green-100 transition-colors"
+          >
+            <CreditCard className="h-3.5 w-3.5" />
+            Go to Billing
+          </button>
         </div>
       )}
     </div>

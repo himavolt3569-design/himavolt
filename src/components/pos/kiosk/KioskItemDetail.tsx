@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { X, Plus, Minus, ShoppingCart, Leaf, Flame, Check } from "lucide-react";
+import { X, Plus, Minus, ShoppingCart, Leaf, Flame, Check, Utensils } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
 
 interface Size {
@@ -93,8 +93,8 @@ export default function KioskItemDetail({ item, currency, onClose, onAdd }: Prop
           {item.imageUrl ? (
             <img src={item.imageUrl} alt={item.name} className="h-full w-full object-cover" />
           ) : (
-            <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-amber-50 to-orange-50">
-              <span className="text-6xl">🍽️</span>
+            <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-amber-50 to-orange-50 text-amber-300">
+              <Utensils className="h-16 w-16" />
             </div>
           )}
         </div>

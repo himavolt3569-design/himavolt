@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Leaf, Flame, Plus } from "lucide-react";
+import { Leaf, Flame, Plus, Utensils } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
 
 interface MenuItem {
@@ -43,7 +43,9 @@ export default function KioskMenuGrid({ items, cart, currency, onItemTap, onQuic
   return (
     <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
       {items.map((item) => {
-        const inCart = cart.find((c) => c.menuItemId === item.id);
+        const cartEntries = cart.filter((c) => c.menuItemId.startsWith(item.id + "_") || c.menuItemId === item.id);
+        const inCartQty = cartEntries.reduce((sum, c) => sum + c.quantity, 0);
+        const inCart = inCartQty > 0;
         const hasSizes = item.sizes.length > 0;
         const discountedPrice = item.discount > 0 ? item.price * (1 - item.discount / 100) : item.price;
 
@@ -61,8 +63,8 @@ export default function KioskMenuGrid({ items, cart, currency, onItemTap, onQuic
               {item.imageUrl ? (
                 <img src={item.imageUrl} alt={item.name} className="h-full w-full object-cover" />
               ) : (
-                <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-amber-50 to-orange-50">
-                  <span className="text-4xl">🍽️</span>
+                <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-amber-50 to-orange-50 text-amber-300">
+                  <Utensils className="h-10 w-10" />
                 </div>
               )}
 
@@ -76,7 +78,7 @@ export default function KioskMenuGrid({ items, cart, currency, onItemTap, onQuic
               {/* Cart count badge */}
               {inCart && (
                 <div className="absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-amber-600 text-sm font-black text-white shadow-lg">
-                  {inCart.quantity}
+                  {inCartQty}
                 </div>
               )}
 

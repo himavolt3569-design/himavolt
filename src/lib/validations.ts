@@ -116,6 +116,7 @@ const orderItemSchema = z.object({
   price: z.number().positive(),
   menuItemId: z.string().optional(),
   prepTime: z.string().optional(),
+  addOns: z.string().optional(),
 });
 
 export const createOrderSchema = z.object({

@@ -21,6 +21,7 @@ import {
   Package,
   Trash2,
   CheckSquare,
+  AlertCircle,
 } from "lucide-react";
 import DeleteConfirmDialog from "@/components/admin/DeleteConfirmDialog";
 import { formatPrice } from "@/lib/currency";
@@ -101,6 +102,7 @@ export default function AllOrdersTab() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [typeFilter, setTypeFilter] = useState("All");
@@ -118,6 +120,7 @@ export default function AllOrdersTab() {
   const fetchOrders = useCallback(
     async (p = page) => {
       setLoading(true);
+      setError(null);
       try {
         const params = new URLSearchParams({ page: String(p), limit: "30" });
         if (search) params.set("search", search);
@@ -125,12 +128,16 @@ export default function AllOrdersTab() {
         if (typeFilter !== "All") params.set("type", typeFilter);
 
         const res = await fetch(`/api/admin/orders?${params}`);
-        if (!res.ok) throw new Error("Failed to load orders");
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.error || `Server error ${res.status}`);
+        }
         const data = await res.json();
-        setOrders(data.orders);
+        setOrders(data.orders ?? []);
         setPagination(data.pagination);
-      } catch {
-        // silent
+      } catch (err) {
+        setOrders([]);
+        setError(err instanceof Error ? err.message : "Failed to load orders");
       } finally {
         setLoading(false);
       }
@@ -339,6 +346,18 @@ export default function AllOrdersTab() {
         {loading && orders.length === 0 ? (
           <div className="flex items-center justify-center py-16">
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-brand-400 border-t-transparent" />
+          </div>
+        ) : error ? (
+          <div className="py-16 text-center">
+            <AlertCircle className="mx-auto mb-2 h-8 w-8 text-red-400" />
+            <p className="text-sm font-semibold text-red-500">Failed to load orders</p>
+            <p className="mt-1 text-xs text-gray-400">{error}</p>
+            <button
+              onClick={() => fetchOrders(page)}
+              className="mt-3 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50"
+            >
+              Retry
+            </button>
           </div>
         ) : orders.length === 0 ? (
           <div className="py-16 text-center">

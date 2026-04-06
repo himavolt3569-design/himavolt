@@ -83,6 +83,11 @@ export default function POSBilling({ restaurantId, currency, onSplitBill }: Prop
     return () => clearInterval(id);
   }, [fetchOrders]);
 
+  // Clear stale discount input whenever the operator switches to a different order
+  useEffect(() => {
+    setDiscountAmount("");
+  }, [selectedOrder?.id]);
+
   const filtered = orders.filter((o) => {
     if (!search) return true;
     return o.orderNo.toLowerCase().includes(search.toLowerCase()) ||

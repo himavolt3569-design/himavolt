@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   RefreshCw, CheckCircle2, Clock, ChefHat, Truck, XCircle,
@@ -56,17 +56,20 @@ export default function POSActiveOrders({ restaurantId, currency }: Props) {
   const [orders, setOrders] = useState<LiveOrder[]>([]);
   const [filter, setFilter] = useState("ALL");
   const [loading, setLoading] = useState(true);
-  const prevCountRef = useCallback(() => orders.filter((o) => o.status === "PENDING").length, [orders]);
+  // Track previous pending count with a ref so we can detect genuinely NEW orders
+  const prevPendingCount = useRef(0);
 
   const fetchOrders = useCallback(async () => {
     try {
-      const data = await staffFetch<LiveOrder[]>(`/api/restaurants/${restaurantId}/orders?live=1&limit=50`);
-      const arr = Array.isArray(data) ? data : [];
-      // Play sound for new PENDING orders
+      const data = await staffFetch<{ orders?: LiveOrder[] } | LiveOrder[]>(`/api/restaurants/${restaurantId}/orders?live=1&limit=50`);
+      // The orders API returns { orders, total } in live mode — unwrap it
+      const arr: LiveOrder[] = Array.isArray(data) ? data : ((data as { orders?: LiveOrder[] }).orders ?? []);
+      // Play sound only when genuinely new PENDING orders arrive
       const newPending = arr.filter((o) => o.status === "PENDING").length;
-      if (newPending > prevCountRef()) {
+      if (newPending > prevPendingCount.current) {
         playSound("newOrder");
       }
+      prevPendingCount.current = newPending;
       setOrders(arr);
     } catch {
       // silent
