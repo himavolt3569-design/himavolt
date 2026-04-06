@@ -69,7 +69,6 @@ export default function BuffetManagerTab() {
   const [wasteQty, setWasteQty] = useState("");
   const [costPerPlate, setCostPerPlate] = useState(0);
 
-  // Calculate cost per plate
   const totalCost = items.reduce((sum, i) => sum + i.quantityTotal * i.costPerKg, 0);
   const estimatedPlates = 80;
   const calculatedCostPerPlate = Math.round(totalCost / estimatedPlates);
@@ -133,7 +132,6 @@ export default function BuffetManagerTab() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-10">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
@@ -160,7 +158,6 @@ export default function BuffetManagerTab() {
         </div>
       </div>
 
-      {/* Meal selector */}
       <div className="flex gap-2">
         {(["breakfast", "lunch", "dinner"] as MealType[]).map((meal) => {
           const Icon = MEAL_ICONS[meal];
@@ -182,7 +179,6 @@ export default function BuffetManagerTab() {
         })}
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="rounded-xl bg-white ring-1 ring-gray-100 p-4 shadow-sm">
           <p className="text-[11px] font-medium text-gray-500 mb-1">Total Items</p>
@@ -202,7 +198,6 @@ export default function BuffetManagerTab() {
         </div>
       </div>
 
-      {/* Low stock alert */}
       {lowStockItems.length > 0 && (
         <div className="flex items-start gap-3 rounded-xl bg-amber-50 p-4 ring-1 ring-amber-100">
           <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
@@ -215,7 +210,6 @@ export default function BuffetManagerTab() {
         </div>
       )}
 
-      {/* Add Item Form */}
       <AnimatePresence>
         {showAddItem && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
@@ -255,7 +249,6 @@ export default function BuffetManagerTab() {
         )}
       </AnimatePresence>
 
-      {/* Waste Log Form */}
       <AnimatePresence>
         {showWaste && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
@@ -288,7 +281,6 @@ export default function BuffetManagerTab() {
         )}
       </AnimatePresence>
 
-      {/* Buffet Items by Category */}
       {Object.entries(grouped).map(([category, catItems]) => (
         <div key={category}>
           <h3 className="text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
@@ -348,7 +340,6 @@ export default function BuffetManagerTab() {
         </div>
       ))}
 
-      {/* Templates */}
       <div>
         <h3 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
           <Save className="h-3.5 w-3.5 text-gray-400" />
@@ -381,7 +372,6 @@ export default function BuffetManagerTab() {
         </div>
       </div>
 
-      {/* Waste Log */}
       {wasteLog.length > 0 && (
         <div>
           <h3 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">

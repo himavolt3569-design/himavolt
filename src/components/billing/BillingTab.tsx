@@ -265,7 +265,6 @@ export default function BillingTab({
     knownOrderIds.current = new Set();
     loadOrders();
     loadSummary();
-    // Fetch tax config
     staffFetch(`/api/restaurants/${restaurantId}/tax-config`)
       .then(
         (cfg: {
@@ -364,10 +363,8 @@ export default function BillingTab({
   const isPaid = (o: BillOrder) => o.payment?.status === "COMPLETED";
 
   const filtered = orders.filter((o) => {
-    // Pay type filter
     if (payType === "cash" && !isCashOrder(o)) return false;
     if (payType === "online" && !isOnlineOrder(o)) return false;
-    // Text search
     if (!search) return true;
     const q = search.toLowerCase();
     return (
@@ -390,7 +387,6 @@ export default function BillingTab({
 
   return (
     <div className="space-y-5">
-      {/* Daily Summary Cards */}
       {summary && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <SummaryCard
@@ -425,7 +421,6 @@ export default function BillingTab({
         </div>
       )}
 
-      {/* Stats Row */}
       {summary && (
         <div className="flex items-center gap-4 text-xs text-gray-500">
           <span className="flex items-center gap-1">
@@ -449,7 +444,6 @@ export default function BillingTab({
         </div>
       )}
 
-      {/* Cash vs Online Split Tabs */}
       <div className="flex rounded-2xl bg-gray-100/50 backdrop-blur-sm p-1 gap-1 border border-black/5 shadow-inner">
         {[
           {
@@ -522,7 +516,6 @@ export default function BillingTab({
         })}
       </div>
 
-      {/* Context hint for selected tab */}
       {payType === "cash" && (
         <div className="flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-100 px-4 py-2.5">
           <BillIcon className="h-4 w-4 text-emerald-600 shrink-0" />
@@ -589,7 +582,6 @@ export default function BillingTab({
         </div>
       </div>
 
-      {/* Orders List */}
       {filtered.length === 0 && (
         <div className="text-center py-16 text-gray-400">
           <Receipt className="mx-auto h-10 w-10 mb-3 opacity-40" />
@@ -615,7 +607,6 @@ export default function BillingTab({
                 : "bg-orange-50/50 border-orange-200/50 shadow-[0_4px_20px_-4px_rgba(249,115,22,0.05)]"
             }`}
           >
-            {/* Header row */}
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-sm font-extrabold text-[#3e1e0c]">
@@ -650,7 +641,6 @@ export default function BillingTab({
                 >
                   {order.status}
                 </span>
-                {/* Receipt type pill */}
                 {order.payment ? (
                   order.payment.method === "CASH" ? (
                     <span className="flex items-center gap-0.5 rounded-lg bg-emerald-50 border border-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
@@ -693,7 +683,6 @@ export default function BillingTab({
                 )}
               </div>
             </div>
-            {/* Online transaction ID */}
             {order.payment &&
               order.payment.method !== "CASH" &&
               order.payment.transactionId && (
@@ -708,7 +697,6 @@ export default function BillingTab({
                 </div>
               )}
 
-            {/* Items summary */}
             <div className="space-y-1 mb-3">
               {order.items.slice(0, 3).map((item) => (
                 <div key={item.id} className="flex justify-between text-xs">
@@ -727,7 +715,6 @@ export default function BillingTab({
               )}
             </div>
 
-            {/* Bill breakdown */}
             <div className="rounded-xl bg-gray-50 p-3 space-y-1 mb-3">
               <div className="flex justify-between text-xs">
                 <span className="text-gray-500">Subtotal</span>
@@ -769,7 +756,6 @@ export default function BillingTab({
               </div>
             </div>
 
-            {/* Footer */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-[10px] text-gray-400">
                 <Clock className="h-3 w-3" />
@@ -806,7 +792,6 @@ export default function BillingTab({
                     : "Bill"}
                 </a>
 
-                {/* Print */}
                 <a
                   href={`/bill/${order.id}`}
                   target="_blank"
@@ -874,7 +859,6 @@ export default function BillingTab({
         ))}
       </div>
 
-      {/* Collect Payment Modal */}
       <AnimatePresence>
         {showCollect && selectedOrder && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
@@ -904,7 +888,6 @@ export default function BillingTab({
                 </button>
               </div>
 
-              {/* Amount */}
               <div className="rounded-2xl bg-gray-50 p-4 mb-5 text-center">
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">
                   Amount Due
@@ -920,7 +903,6 @@ export default function BillingTab({
                   )}
               </div>
 
-              {/* Bill Breakdown */}
               <div className="rounded-xl bg-gray-50 p-3 space-y-1 mb-5">
                 <div className="flex justify-between text-xs">
                   <span className="text-gray-500">Subtotal</span>
@@ -952,7 +934,6 @@ export default function BillingTab({
                 )}
               </div>
 
-              {/* Payment Method Selection */}
               <div className="space-y-2 mb-5">
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">
                   Payment Method
@@ -1009,7 +990,6 @@ export default function BillingTab({
                 </div>
               )}
 
-              {/* Actions */}
               <div className="flex gap-2">
                 <button
                   onClick={() => {
@@ -1038,7 +1018,6 @@ export default function BillingTab({
         )}
       </AnimatePresence>
 
-      {/* Apply Discount Modal */}
       <AnimatePresence>
         {showDiscount && selectedOrder && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
@@ -1068,7 +1047,6 @@ export default function BillingTab({
                 </button>
               </div>
 
-              {/* Current total */}
               <div className="rounded-2xl bg-gray-50 p-4 mb-5">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Current Bill Total</span>
@@ -1087,7 +1065,6 @@ export default function BillingTab({
                   )}
               </div>
 
-              {/* Discount inputs */}
               <div className="space-y-3 mb-5">
                 <div>
                   <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5 block">
@@ -1114,7 +1091,6 @@ export default function BillingTab({
                   />
                 </div>
 
-                {/* Quick discount buttons */}
                 <div className="flex flex-wrap gap-1.5">
                   {[50, 100, 200, 500].map((amt) => (
                     <button
@@ -1125,7 +1101,6 @@ export default function BillingTab({
                       {formatPrice(amt, cur)}
                     </button>
                   ))}
-                  {/* Percentage buttons */}
                   {[5, 10, 15, 20].map((pct) => {
                     const base =
                       selectedOrder.bill?.subtotal ?? selectedOrder.subtotal;
@@ -1143,7 +1118,6 @@ export default function BillingTab({
                 </div>
               </div>
 
-              {/* Preview */}
               {discountAmount && parseFloat(discountAmount) > 0 && (
                 <div className="rounded-xl bg-pink-50 p-3 mb-5 border border-pink-100">
                   <div className="flex justify-between text-sm">
@@ -1164,7 +1138,6 @@ export default function BillingTab({
                 </div>
               )}
 
-              {/* Actions */}
               <div className="flex gap-2">
                 <button
                   onClick={() => {

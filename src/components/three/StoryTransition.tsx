@@ -41,7 +41,6 @@ export default function StoryTransition({
         },
       });
 
-      // Line grows from center
       tl.fromTo(
         lineRef.current,
         { scaleX: 0 },
@@ -49,7 +48,6 @@ export default function StoryTransition({
         0,
       );
 
-      // Title slides in
       tl.fromTo(
         titleRef.current,
         { opacity: 0, y: 40, filter: "blur(8px)" },
@@ -57,7 +55,6 @@ export default function StoryTransition({
         0.1,
       );
 
-      // Subtitle
       if (subtitleRef.current) {
         tl.fromTo(
           subtitleRef.current,
@@ -67,7 +64,6 @@ export default function StoryTransition({
         );
       }
 
-      // Fade out
       tl.to(
         [titleRef.current, subtitleRef.current, lineRef.current].filter(Boolean),
         { opacity: 0, y: -20, stagger: 0.05, duration: 0.25 },

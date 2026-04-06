@@ -99,7 +99,6 @@ export default function RushHourTab({ restaurantId }: { restaurantId?: string })
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-3">
           <div className={`p-2.5 rounded-xl ${isInRushNow ? "bg-red-100" : "bg-amber-100"}`}>
@@ -125,7 +124,6 @@ export default function RushHourTab({ restaurantId }: { restaurantId?: string })
 
       {config.isEnabled && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-          {/* Daily Timeline */}
           <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Daily Timeline</h3>
@@ -151,7 +149,6 @@ export default function RushHourTab({ restaurantId }: { restaurantId?: string })
 
           {/* Slots + Surge grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Rush Slots */}
             <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Rush Slots</h3>
@@ -228,7 +225,6 @@ export default function RushHourTab({ restaurantId }: { restaurantId?: string })
               </div>
             </div>
 
-            {/* Surge Pricing */}
             <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm space-y-5">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Surge Pricing</h3>

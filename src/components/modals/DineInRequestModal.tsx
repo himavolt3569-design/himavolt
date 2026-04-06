@@ -48,7 +48,6 @@ export default function DineInRequestModal({
     <AnimatePresence>
       {order && (
         <>
-          {/* Overlay */}
           <motion.div
             key="overlay"
             initial={{ opacity: 0 }}
@@ -67,7 +66,6 @@ export default function DineInRequestModal({
             transition={{ type: "spring" as const, damping: 30, stiffness: 280 }}
             className="fixed bottom-0 left-0 right-0 z-50 mx-auto max-w-lg rounded-t-3xl bg-white shadow-2xl md:bottom-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-2xl"
           >
-            {/* Header */}
             <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100">
               <div>
                 <div className="flex items-center gap-2 mb-0.5">
@@ -90,7 +88,6 @@ export default function DineInRequestModal({
               </button>
             </div>
 
-            {/* Info row */}
             <div className="flex items-center gap-4 px-6 py-4 border-b border-gray-100">
               <div className="flex items-center gap-2">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#3e1e0c]/10">
@@ -125,7 +122,6 @@ export default function DineInRequestModal({
               </div>
             </div>
 
-            {/* Items list */}
             <div className="px-6 py-4 max-h-[220px] overflow-y-auto">
               <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">
                 Order Items
@@ -156,7 +152,6 @@ export default function DineInRequestModal({
               </div>
             </div>
 
-            {/* Payment info */}
             {order.payment && (
               <div className="mx-6 mb-3 flex items-center gap-2 rounded-xl bg-gray-50 border border-gray-200 px-4 py-3">
                 {order.payment.method === "ESEWA" && <Wallet className="h-4 w-4 text-green-600" />}
@@ -179,7 +174,6 @@ export default function DineInRequestModal({
               </div>
             )}
 
-            {/* Note */}
             {order.note && (
               <div className="mx-6 mb-4 flex items-start gap-2 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3">
                 <MessageSquare className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
@@ -192,7 +186,6 @@ export default function DineInRequestModal({
               </div>
             )}
 
-            {/* Action buttons */}
             <div className="px-6 pb-6 pt-2 space-y-2">
               {order.status === "PENDING" ? (
                 <>

@@ -39,7 +39,6 @@ export async function POST(
     );
   }
 
-  // Cancel the order
   await db.order.update({
     where: { id: orderId },
     data: { status: "CANCELLED" },
@@ -49,7 +48,6 @@ export async function POST(
   for (const item of order.items) {
     if (!item.menuItemId) continue;
 
-    // Restore ingredient inventory
     const ingredients = await db.menuItemIngredient.findMany({
       where: { menuItemId: item.menuItemId },
     });
@@ -69,7 +67,6 @@ export async function POST(
       }
     }
 
-    // Restore drink stock
     const menuItem = await db.menuItem.findUnique({
       where: { id: item.menuItemId },
       select: { isDrink: true, stockEnabled: true },

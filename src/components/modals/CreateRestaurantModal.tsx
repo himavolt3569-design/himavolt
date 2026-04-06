@@ -52,7 +52,6 @@ const TYPE_ACCENTS: Record<string, { bg: string; ring: string; iconBg: string; t
   RESTAURANT: { bg: "bg-emerald-500", ring: "ring-emerald-400", iconBg: "bg-emerald-50", text: "text-emerald-600" },
 };
 
-/* ── Nominatim result type ──────────────────────────────────────────── */
 interface NominatimResult {
   place_id: number;
   display_name: string;
@@ -237,7 +236,6 @@ export default function CreateRestaurantModal({ open, onOpenChange }: Props) {
   );
 }
 
-/* ── Modal Body ────────────────────────────────────────────────────── */
 function ModalBody({
   name,
   setName,
@@ -385,11 +383,9 @@ function ModalBody({
 
   return (
     <div>
-      {/* Accent strip */}
       <div className="h-0.5 bg-linear-to-r from-amber-400 via-amber-500 to-amber-400" />
 
       <div className="p-6 sm:p-7">
-        {/* Header */}
         <div className="flex items-start justify-between mb-7">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-500">
@@ -564,7 +560,6 @@ function ModalBody({
                   className="w-full rounded-xl bg-gray-50 pl-10 pr-3.5 py-3 text-sm text-gray-800 placeholder-gray-400 outline-none ring-1 ring-gray-200/80 transition-all focus:bg-white focus:ring-amber-400"
                 />
 
-                {/* Search results dropdown */}
                 <AnimatePresence>
                   {showResults && locationResults.length > 0 && (
                     <motion.div
@@ -608,7 +603,6 @@ function ModalBody({
                 </AnimatePresence>
               </div>
 
-              {/* Locate me button */}
               <button
                 onClick={handleLocateMe}
                 disabled={locatingMe}
@@ -623,7 +617,6 @@ function ModalBody({
               </button>
             </div>
 
-            {/* Map preview */}
             <AnimatePresence>
               {selectedCoords && (
                 <motion.div
@@ -651,10 +644,8 @@ function ModalBody({
           </div>
         </div>
 
-        {/* Divider */}
         <div className="mt-7 mb-5 h-px bg-gray-100" />
 
-        {/* Actions */}
         <div className="flex items-center justify-end gap-2.5">
           <button
             onClick={onReset}

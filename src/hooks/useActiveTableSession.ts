@@ -50,7 +50,6 @@ export function useActiveTableSession() {
   }, []);
 
   useEffect(() => {
-    // Read on mount
     sync();
 
     // Listen for changes from other tabs

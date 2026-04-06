@@ -46,7 +46,6 @@ import { formatPrice, getCurrencySymbol } from "@/lib/currency";
 import ImagePicker from "@/components/shared/ImagePicker";
 import { SkeletonCard } from "@/components/shared/Skeleton";
 
-/* ─── Types ─────────────────────────────────────────────────────────── */
 
 interface MenuCategory {
   id: string;
@@ -98,7 +97,6 @@ interface MenuItem {
   allergens: string[];
 }
 
-/* ─── Constants ─────────────────────────────────────────────────────── */
 
 const DEFAULT_CATEGORIES: { name: string; icon: string; subs: string[] }[] = [
   { name: "Appetizers", icon: "🍢", subs: ["Fried", "Grilled", "Cold"] },
@@ -118,7 +116,6 @@ const ALLERGEN_OPTIONS = ["Gluten", "Dairy", "Nuts", "Soy", "Eggs", "Shellfish",
 const SPICE_LABELS = ["None", "Mild", "Medium", "Hot", "Extra Hot"];
 const SPICE_COLORS = ["text-gray-400", "text-green-500", "text-yellow-500", "text-orange-500", "text-red-500"];
 
-/* ─── Helpers ───────────────────────────────────────────────────────── */
 
 function PriceInput({ value, onChange, placeholder, currencySymbol = "Rs." }: { value: string; onChange: (v: string) => void; placeholder?: string; currencySymbol?: string }) {
   return (
@@ -158,7 +155,6 @@ function SpiceLevelPicker({ level, onChange }: { level: number; onChange: (l: nu
   );
 }
 
-/* ─── Stats Banner ──────────────────────────────────────────────────── */
 
 function MenuStats({ items, categories, currency }: { items: MenuItem[]; categories: MenuCategory[]; currency: string }) {
   const active = items.filter((i) => i.isAvailable).length;
@@ -198,7 +194,6 @@ function MenuStats({ items, categories, currency }: { items: MenuItem[]; categor
   );
 }
 
-/* ─── Category Tree Sidebar ─────────────────────────────────────────── */
 
 function CategoryTree({
   categories,
@@ -226,7 +221,6 @@ function CategoryTree({
 
   return (
     <div className="space-y-0.5">
-      {/* All items */}
       <button
         onClick={() => onSelect("All")}
         className={`flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition-all ${
@@ -320,7 +314,6 @@ function CategoryTree({
   );
 }
 
-/* ─── Menu Item Card ────────────────────────────────────────────────── */
 
 function MenuItemCard({
   item,
@@ -367,7 +360,6 @@ function MenuItemCard({
       {/* Mobile: image-left / text-right  |  sm+: image-top / content-below */}
       <div className="flex sm:block">
 
-        {/* Image */}
         <div className="relative w-28 shrink-0 sm:w-full sm:h-44 h-auto overflow-hidden bg-gradient-to-br from-amber-50 to-orange-50/20">
           {item.imageUrl ? (
             <img src={item.imageUrl} alt={item.name} className={`h-full w-full object-cover aspect-square sm:aspect-auto transition-transform duration-700 group-hover:scale-110 ${!item.isAvailable ? 'grayscale-[40%]' : ''}`} loading="lazy" />
@@ -386,7 +378,6 @@ function MenuItemCard({
             </span>
           </div>
 
-          {/* Discount badge */}
           {item.discount > 0 && (
             <div className="absolute top-2 left-2 z-10">
               <span className="rounded-full bg-gradient-to-r from-emerald-500 to-green-600 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-md">
@@ -395,7 +386,6 @@ function MenuItemCard({
             </div>
           )}
 
-          {/* Availability overlay */}
           {!item.isAvailable && (
             <div className="absolute inset-0 bg-rose-950/30 backdrop-blur-[2px] flex items-center justify-center z-10">
               <span className="rounded-full bg-rose-600 px-2 py-0.5 text-[9px] sm:text-[11px] font-bold uppercase text-white shadow-lg">Unavailable</span>
@@ -444,7 +434,6 @@ function MenuItemCard({
           </div>
         </div>
 
-      {/* Content */}
       <div className="flex-1 min-w-0 p-3 sm:p-4 bg-white/40 flex flex-col justify-between sm:block">
         <div className="flex items-start justify-between gap-3 mb-2">
           <h4 className="text-[14px] font-extrabold text-gray-900 leading-tight line-clamp-1">{item.name}</h4>
@@ -462,40 +451,33 @@ function MenuItemCard({
 
         <div className="h-px w-full bg-gradient-to-r from-transparent via-gray-100 to-transparent mb-3" />
 
-        {/* Meta row */}
         <div className="flex items-center gap-2 flex-wrap">
-          {/* Category */}
           <span className="rounded-md bg-indigo-50/60 border border-indigo-100/50 px-2 py-1 text-[10px] font-bold text-indigo-600">
             {item.category.name}
           </span>
 
-          {/* Prep time */}
           {item.prepTime && (
             <span className="flex items-center gap-0.5 text-[10px] text-gray-400">
               <Clock className="h-2.5 w-2.5" /> {item.prepTime}
             </span>
           )}
 
-          {/* Rating */}
           {item.rating > 0 && (
             <span className="flex items-center gap-0.5 text-[10px] text-amber-500 font-semibold">
               <Star className="h-2.5 w-2.5 fill-amber-400" /> {item.rating.toFixed(1)}
             </span>
           )}
 
-          {/* Spice level */}
           {item.spiceLevel > 0 && (
             <span className="text-[10px]">
               {"🌶️".repeat(item.spiceLevel)}
             </span>
           )}
 
-          {/* Calories */}
           {item.calories && (
             <span className="text-[10px] text-gray-400">{item.calories} kcal</span>
           )}
 
-          {/* Sizes count */}
           {item.sizes.length > 0 && (
             <span className="text-[10px] text-gray-400">{item.sizes.length} sizes</span>
           )}
@@ -506,7 +488,6 @@ function MenuItemCard({
           )}
         </div>
 
-        {/* Tags */}
         {item.tags.length > 0 && (
           <div className="flex gap-1 mt-2 flex-wrap">
             {item.tags.slice(0, 3).map((t) => (
@@ -520,7 +501,6 @@ function MenuItemCard({
           </div>
         )}
 
-        {/* Allergens */}
         {item.allergens.length > 0 && (
           <div className="flex items-center gap-1 mt-1.5">
             <ShieldAlert className="h-2.5 w-2.5 text-orange-400" />
@@ -807,7 +787,6 @@ function DishForm({
       exit={{ opacity: 0, y: -10 }}
       className="rounded-xl border border-gray-200 bg-white shadow-lg overflow-hidden w-full max-w-full"
     >
-      {/* Header */}
       <div className="flex items-center justify-between border-b border-gray-100 px-5 py-3">
         <span className="text-sm font-bold text-gray-900">{submitLabel === "Add to menu" ? "New Dish" : "Edit Dish"}</span>
         <button onClick={onCancel} className="rounded-md p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100">
@@ -815,7 +794,6 @@ function DishForm({
         </button>
       </div>
 
-      {/* Section tabs */}
       <div className="flex gap-1 px-4 pt-3 overflow-x-auto scrollbar-hide">
         {sections.map((s) => (
           <button
@@ -884,7 +862,6 @@ function DishForm({
               </div>
             </div>
 
-            {/* Category */}
             <div className="relative z-10">
               <CategorySelector
                 categories={categories}
@@ -893,7 +870,6 @@ function DishForm({
               />
             </div>
 
-            {/* Description */}
             <textarea
               value={form.description}
               onChange={(e) => update({ description: e.target.value })}
@@ -950,13 +926,11 @@ function DishForm({
               </div>
             </div>
 
-            {/* Spice level */}
             <div>
               <p className="text-[12px] font-semibold text-gray-600 mb-2.5">Spice Level</p>
               <SpiceLevelPicker level={form.spiceLevel} onChange={(l) => update({ spiceLevel: l })} />
             </div>
 
-            {/* Calories */}
             <div>
               <p className="text-[12px] font-semibold text-gray-600 mb-2.5">Calories (optional)</p>
               <div className="relative w-40">
@@ -972,7 +946,6 @@ function DishForm({
               </div>
             </div>
 
-            {/* Allergens */}
             <div>
               <p className="text-[12px] font-semibold text-gray-600 mb-2.5">Allergens</p>
               <div className="flex flex-wrap gap-2">
@@ -1053,7 +1026,6 @@ function DishForm({
         {/* ── SIZES & ADD-ONS ─────────────────────────────────── */}
         {activeSection === "sizes" && (
           <div className="space-y-5">
-            {/* Sizes */}
             <div>
               <div className="flex items-center justify-between mb-2.5">
                 <p className="text-[12px] font-semibold text-gray-600">Size Variants</p>
@@ -1173,7 +1145,6 @@ function DishForm({
         {/* ── TAGS & BADGES ──────────────────────────────────── */}
         {activeSection === "tags" && (
           <div className="space-y-5">
-            {/* Badge */}
             <div>
               <p className="text-[12px] font-semibold text-gray-600 mb-2.5">Badge</p>
               <div className="flex flex-wrap gap-2">
@@ -1194,7 +1165,6 @@ function DishForm({
               </div>
             </div>
 
-            {/* Tags */}
             <div>
               <p className="text-[12px] font-semibold text-gray-600 mb-2.5">Tags</p>
               <div className="flex gap-2 mb-2">
@@ -1227,7 +1197,6 @@ function DishForm({
           </div>
         )}
 
-        {/* Actions */}
         <div className="flex items-center gap-3 pt-2 border-t border-gray-100">
           <button
             onClick={handleSubmit}
@@ -1295,7 +1264,6 @@ function AddSubCategoryInline({
   );
 }
 
-/* ─── Main Component ────────────────────────────────────────────────── */
 
 export default function MenuManagementTab() {
   const { selectedRestaurant } = useRestaurant();
@@ -1324,12 +1292,10 @@ export default function MenuManagementTab() {
 
   const restaurantId = selectedRestaurant?.id;
 
-  // Restaurant status toggles
   const [isOpen, setIsOpen] = useState(true);
   const [deliveryEnabled, setDeliveryEnabled] = useState(false);
   const [statusSaving, setStatusSaving] = useState(false);
 
-  // Load current status
   useEffect(() => {
     if (!restaurantId) return;
     apiFetch<{ isOpen: boolean; deliveryEnabled: boolean }>(`/api/restaurants/${restaurantId}/status`)
@@ -1375,7 +1341,6 @@ export default function MenuManagementTab() {
     if (showNewCat && newCatInputRef.current) newCatInputRef.current.focus();
   }, [showNewCat]);
 
-  // Flatten categories for tree
   const flatCategories = useMemo(() => {
     const flat: MenuCategory[] = [];
     for (const cat of categories) {
@@ -1456,7 +1421,6 @@ export default function MenuManagementTab() {
     }
   };
 
-  // Filter items
   const filtered = useMemo(() => {
     return items.filter((item) => {
       const matchSearch = !search || item.name.toLowerCase().includes(search.toLowerCase()) || (item.description || "").toLowerCase().includes(search.toLowerCase());
@@ -1620,7 +1584,6 @@ export default function MenuManagementTab() {
 
   return (
     <div className="space-y-5">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
         <div>
           <h2 className="text-xl font-extrabold text-gray-900 tracking-tight">Menu Management</h2>
@@ -1650,9 +1613,7 @@ export default function MenuManagementTab() {
         </div>
       </div>
 
-      {/* Restaurant Status Toggles */}
       <div className="flex flex-col sm:flex-row gap-3">
-        {/* Visibility toggle */}
         <button
           onClick={() => handleStatusToggle("isOpen", !isOpen)}
           disabled={statusSaving}
@@ -1680,7 +1641,6 @@ export default function MenuManagementTab() {
           </div>
         </button>
 
-        {/* Delivery toggle */}
         <button
           onClick={() => handleStatusToggle("deliveryEnabled", !deliveryEnabled)}
           disabled={statusSaving}
@@ -1709,10 +1669,8 @@ export default function MenuManagementTab() {
         </button>
       </div>
 
-      {/* Stats */}
       <MenuStats items={items} categories={flatCategories} currency={cur} />
 
-      {/* Seed prompt */}
       {!loading && categories.length === 0 && !showNewCat && (
         <motion.div
           initial={{ opacity: 0, y: 8 }}
@@ -1737,7 +1695,6 @@ export default function MenuManagementTab() {
         </motion.div>
       )}
 
-      {/* Category creation */}
       <AnimatePresence>
         {showNewCat && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
@@ -1767,7 +1724,6 @@ export default function MenuManagementTab() {
         )}
       </AnimatePresence>
 
-      {/* Subcategory creation */}
       <AnimatePresence>
         {addSubParent && (
           <AddSubCategoryInline
@@ -1824,7 +1780,6 @@ export default function MenuManagementTab() {
 
       {/* Main layout: sidebar + grid */}
       <div className="flex gap-5">
-        {/* Category sidebar */}
         {flatCategories.length > 0 && (
           <div className="hidden lg:block w-52 shrink-0">
             <div className="sticky top-6 max-h-[calc(100vh-120px)] overflow-y-auto custom-scrollbar rounded-xl bg-white ring-1 ring-gray-100 p-3">
@@ -1840,7 +1795,6 @@ export default function MenuManagementTab() {
           </div>
         )}
 
-        {/* Items area */}
         <div className="flex-1 min-w-0">
           {/* Search & mobile category filter */}
           <div className="flex flex-col sm:flex-row gap-3 mb-6">
@@ -1853,7 +1807,6 @@ export default function MenuManagementTab() {
                 className="w-full rounded-xl border border-gray-200 bg-white/80 backdrop-blur-sm py-3 pl-10 pr-4 text-sm font-semibold text-gray-900 placeholder-gray-400 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-500/20 shadow-sm transition-all"
               />
             </div>
-            {/* Mobile category pills */}
             <div className="lg:hidden flex gap-2 overflow-x-auto scrollbar-hide items-center pb-1">
               {["All", ...flatCategories.filter((c) => !c.parentId).map((c) => c.name)].map((cat) => {
                 const catObj = flatCategories.find((c) => c.name === cat && !c.parentId);
@@ -1873,7 +1826,6 @@ export default function MenuManagementTab() {
             </div>
           </div>
 
-          {/* Items grid */}
           <motion.div 
             initial="hidden"
             animate="visible"
@@ -1924,7 +1876,6 @@ export default function MenuManagementTab() {
         </div>
       </div>
 
-      {/* Delete Category Confirmation Dialog */}
       <AnimatePresence>
         {deleteCatConfirm && (
           <motion.div

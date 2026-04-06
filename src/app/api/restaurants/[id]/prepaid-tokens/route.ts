@@ -116,7 +116,6 @@ export async function POST(
       );
     }
 
-    // Create the token
     const token = await db.prepaidToken.create({
       data: {
         amount,

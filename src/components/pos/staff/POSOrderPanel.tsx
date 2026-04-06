@@ -63,7 +63,6 @@ export default function POSOrderPanel({
 
   return (
     <div className="flex flex-col h-full bg-white border-l border-gray-200">
-      {/* Header */}
       <div className="shrink-0 px-4 py-3 border-b border-gray-100">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-sm font-bold text-gray-900">
@@ -79,7 +78,6 @@ export default function POSOrderPanel({
           )}
         </div>
 
-        {/* Order type toggle */}
         <div className="flex gap-2 mb-3">
           <button
             onClick={() => setOrderType("DINE_IN")}
@@ -170,7 +168,6 @@ export default function POSOrderPanel({
         </div>
       </div>
 
-      {/* Order items */}
       <div className="flex-1 overflow-y-auto">
         {items.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-gray-300">

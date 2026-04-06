@@ -25,7 +25,6 @@ import Link from "next/link";
 import { formatPrice } from "@/lib/currency";
 import QRCode from "react-qr-code";
 
-/* ── Types ──────────────────────────────────────────────────────── */
 
 interface BillItem {
   id: string;
@@ -79,7 +78,6 @@ interface BillData {
   };
 }
 
-/* ── Helpers ────────────────────────────────────────────────────── */
 
 function formatDate(date: string) {
   return new Date(date).toLocaleDateString("en-NP", {
@@ -157,7 +155,6 @@ async function handleDownload(
   pdf.save(`${billNo}.pdf`);
 }
 
-/* ── Main Component ─────────────────────────────────────────────── */
 
 export default function BillPage() {
   const params = useParams<{ orderId: string }>();
@@ -193,7 +190,6 @@ export default function BillPage() {
     }
   }, [bill]);
 
-  /* ── Loading ─────────────────────────────────────────── */
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-gray-50 to-white">
@@ -211,7 +207,6 @@ export default function BillPage() {
     );
   }
 
-  /* ── Error ────────────────────────────────────────────── */
   if (error || !bill) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-gray-50 to-white">
@@ -248,7 +243,6 @@ export default function BillPage() {
     : "Download Bill PDF";
   const printLabel = isOnlinePayment ? "Print Receipt" : "Print Bill";
 
-  /* ── Bill ──────────────────────────────────────────────── */
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-100 to-gray-50 print:bg-white print:from-white print:to-white">
       {/* Action bar — hidden on print */}
@@ -292,7 +286,6 @@ export default function BillPage() {
         </div>
       </div>
 
-      {/* Bill content */}
       <div className="mx-auto max-w-2xl px-4 py-8 print:py-0 print:px-0 print:max-w-none">
         <motion.div
           ref={billRef}
@@ -303,7 +296,6 @@ export default function BillPage() {
         >
           {/* ── Header ─────────────────────────────── */}
           <div className="relative px-6 pt-8 pb-6 sm:px-8 bg-gradient-to-br from-[#3e1e0c] to-[#5a3118] text-white print:bg-black print:from-black print:to-black">
-            {/* Decorative circles */}
             <div className="absolute top-0 right-0 h-32 w-32 rounded-full bg-white/5 -mr-10 -mt-10 print:hidden" />
             <div className="absolute bottom-0 left-0 h-20 w-20 rounded-full bg-white/5 -ml-5 -mb-5 print:hidden" />
 

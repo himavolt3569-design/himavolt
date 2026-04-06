@@ -90,7 +90,6 @@ export default function DailySpecialsTab() {
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("All");
 
-  // Form state
   const [form, setForm] = useState({
     name: "",
     category: "" as DailySpecial["category"] | "",
@@ -148,7 +147,6 @@ export default function DailySpecialsTab() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-gray-800">Daily Specials</h2>
@@ -181,7 +179,6 @@ export default function DailySpecialsTab() {
         </div>
       </div>
 
-      {/* Featured Special */}
       {specials.find((s) => s.featured) && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -252,7 +249,6 @@ export default function DailySpecialsTab() {
         </div>
       </div>
 
-      {/* Specials Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <AnimatePresence>
           {filteredSpecials.map((special, index) => (
@@ -324,7 +320,6 @@ export default function DailySpecialsTab() {
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  {/* Badge selector */}
                   <div className="flex gap-1">
                     {BADGES.map((badge) => (
                       <button
@@ -364,7 +359,6 @@ export default function DailySpecialsTab() {
         </div>
       )}
 
-      {/* Recurring Schedule */}
       <AnimatePresence>
         {showSchedule && (
           <motion.div
@@ -410,7 +404,6 @@ export default function DailySpecialsTab() {
         )}
       </AnimatePresence>
 
-      {/* History */}
       <AnimatePresence>
         {showHistory && (
           <motion.div
@@ -467,7 +460,6 @@ export default function DailySpecialsTab() {
         )}
       </AnimatePresence>
 
-      {/* Add Special Modal */}
       <AnimatePresence>
         {showForm && (
           <motion.div

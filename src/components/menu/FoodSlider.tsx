@@ -105,10 +105,8 @@ export default function FoodSlider({
           </motion.div>
         </AnimatePresence>
 
-        {/* Gradient overlay */}
         <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
 
-        {/* Text overlay */}
         <AnimatePresence mode="popLayout">
           <motion.div
             key={`text-${slide.id}`}
@@ -157,7 +155,6 @@ export default function FoodSlider({
           </>
         )}
 
-        {/* Dot indicators */}
         {slides.length > 1 && (
           <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5">
             {slides.map((_, idx) => (

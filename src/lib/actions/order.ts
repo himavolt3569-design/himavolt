@@ -41,7 +41,6 @@ export async function placeOrder(data: {
     ? Math.round(subtotal * (taxCfg.taxRate / 100) * 100) / 100
     : 0;
 
-  // Calculate delivery fee
   let deliveryFee = 0;
   if (orderType === "DELIVERY") {
     const zone = await db.deliveryZone.findFirst({

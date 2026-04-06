@@ -51,7 +51,6 @@ function FoodLighting({ scrollProgress }: { scrollProgress: number }) {
       <pointLight ref={pointRef} intensity={2} distance={25} color="#eaa94d" />
       <directionalLight position={[5, 5, 5]} intensity={0.5} color="#FFFFFF" />
       <directionalLight position={[-3, 3, 2]} intensity={0.3} color="#e58f2a" />
-      {/* Rim light from behind */}
       <pointLight position={[0, 0, -8]} intensity={0.8} distance={15} color="#f1c980" />
     </>
   );

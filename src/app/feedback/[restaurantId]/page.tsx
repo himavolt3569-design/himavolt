@@ -9,7 +9,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-/* ── Types ───────────────────────────────────────────────────────── */
 
 interface Restaurant {
   id: string;
@@ -21,7 +20,6 @@ interface Restaurant {
 const STAR_LABELS = ["", "Poor", "Fair", "Good", "Very Good", "Excellent"];
 const STAR_COLORS = ["", "text-red-400", "text-orange-400", "text-amber-400", "text-lime-500", "text-emerald-500"];
 
-/* ── Component ───────────────────────────────────────────────────── */
 
 export default function FeedbackPage() {
   const { restaurantId } = useParams<{ restaurantId: string }>();
@@ -39,7 +37,6 @@ export default function FeedbackPage() {
   const [comment,     setComment]     = useState("");
   const [submitting,  setSubmitting]  = useState(false);
 
-  // Load restaurant info
   useEffect(() => {
     fetch(`/api/public/restaurant/${restaurantId}`)
       .then((r) => r.json())
@@ -83,20 +80,17 @@ export default function FeedbackPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-amber-50/40 to-white flex flex-col items-center px-4 py-10">
 
-      {/* Back */}
       <div className="w-full max-w-md mb-6">
         <Link href={`/menu/${restaurant.slug}`} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-[#3e1e0c] transition-colors">
           <ChevronLeft className="h-4 w-4" /> Back to menu
         </Link>
       </div>
 
-      {/* Card */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md rounded-3xl bg-white shadow-2xl shadow-black/5 border border-gray-100 overflow-hidden"
       >
-        {/* Header */}
         <div className="bg-gradient-to-br from-[#3e1e0c] to-[#5a3118] px-6 py-8 text-white text-center">
           {restaurant.imageUrl && (
             <img src={restaurant.imageUrl} alt={restaurant.name} className="h-16 w-16 rounded-2xl object-cover mx-auto mb-3 ring-2 ring-white/20" />
@@ -119,7 +113,6 @@ export default function FeedbackPage() {
                   <p className="text-xs text-gray-400 mt-1">Optional — you can stay anonymous</p>
                 </div>
 
-                {/* Anonymous toggle */}
                 <button
                   onClick={() => setIsAnon(!isAnon)}
                   className={`w-full flex items-center justify-between rounded-2xl border-2 px-4 py-3 transition-all ${isAnon ? "border-gray-300 bg-gray-50" : "border-gray-100 bg-white hover:border-gray-200"}`}
@@ -181,7 +174,6 @@ export default function FeedbackPage() {
                   <h2 className="text-base font-extrabold text-[#3e1e0c] mt-1">How was your experience?</h2>
                 </div>
 
-                {/* Stars */}
                 <div className="flex justify-center gap-2">
                   {[1, 2, 3, 4, 5].map((s) => (
                     <button
@@ -204,7 +196,6 @@ export default function FeedbackPage() {
                   </motion.p>
                 )}
 
-                {/* Comment */}
                 <div className="relative">
                   <MessageSquare className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <textarea

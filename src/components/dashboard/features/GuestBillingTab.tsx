@@ -104,7 +104,6 @@ export default function GuestBillingTab() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-10">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
@@ -122,7 +121,6 @@ export default function GuestBillingTab() {
         </button>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: "Active Guests", value: String(activeGuests), icon: User, color: "#6366F1" },
@@ -140,7 +138,6 @@ export default function GuestBillingTab() {
         ))}
       </div>
 
-      {/* Limit toggle */}
       <div className="flex items-center gap-3 rounded-xl bg-amber-50 p-4 ring-1 ring-amber-100">
         <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />
         <div className="flex-1">
@@ -184,7 +181,6 @@ export default function GuestBillingTab() {
         </div>
       </div>
 
-      {/* Add Charge Modal */}
       <AnimatePresence>
         {showAddCharge && (
           <motion.div
@@ -264,7 +260,6 @@ export default function GuestBillingTab() {
         )}
       </AnimatePresence>
 
-      {/* Guest Rooms List */}
       <div className="space-y-3">
         {filtered.map((guest) => {
           const total = getRoomTotal(guest);
@@ -278,7 +273,6 @@ export default function GuestBillingTab() {
               layout
               className={`rounded-xl bg-white ring-1 ${guest.settled ? "ring-gray-100 opacity-60" : "ring-gray-200"} shadow-sm overflow-hidden`}
             >
-              {/* Room header */}
               <button
                 onClick={() => setExpandedRoom(isExpanded ? null : guest.id)}
                 className="flex items-center gap-4 w-full p-4 text-left hover:bg-gray-50/50 transition-colors"
@@ -326,7 +320,6 @@ export default function GuestBillingTab() {
                 )}
               </button>
 
-              {/* Expanded charges */}
               <AnimatePresence>
                 {isExpanded && (
                   <motion.div

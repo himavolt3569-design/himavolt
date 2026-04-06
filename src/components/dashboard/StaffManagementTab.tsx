@@ -92,7 +92,6 @@ interface AttendanceLog {
   staff: { role: string; user: { name: string } };
 }
 
-/* ── Initials avatar ──────────────────────────────────────────────── */
 function Avatar({ name, gradient, size = "md" }: { name: string; gradient: string; size?: "sm" | "md" | "lg" }) {
   const initials = name
     .split(" ")
@@ -108,7 +107,6 @@ function Avatar({ name, gradient, size = "md" }: { name: string; gradient: strin
   );
 }
 
-/* ── Role change dropdown ─────────────────────────────────────────── */
 function RoleDropdown({
   current,
   staffId,
@@ -192,7 +190,6 @@ function RoleDropdown({
   );
 }
 
-/* ── Staff Card ───────────────────────────────────────────────────── */
 function StaffCard({
   member,
   restaurant,
@@ -239,7 +236,6 @@ function StaffCard({
       exit={{ opacity: 0, scale: 0.95 }}
       className="group relative rounded-2xl bg-white border border-gray-100 shadow-[0_2px_16px_-4px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.1)] hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
     >
-      {/* Role color strip */}
       <div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r ${meta.gradient}`} />
 
       <div className="p-5">
@@ -266,7 +262,6 @@ function StaffCard({
             )}
           </div>
 
-          {/* Active toggle */}
           <button
             onClick={() => toggleStaffActive(restaurant.id, member.id)}
             title={member.isActive ? "Deactivate" : "Activate"}
@@ -284,7 +279,6 @@ function StaffCard({
           </button>
         </div>
 
-        {/* Role picker */}
         <div className="mt-3 flex items-center gap-2">
           <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Role:</span>
           <RoleDropdown
@@ -295,10 +289,8 @@ function StaffCard({
           />
         </div>
 
-        {/* Divider */}
         <div className="mt-3 border-t border-gray-50" />
 
-        {/* PIN row */}
         <div className="mt-3 flex items-center gap-2">
           <KeyRound className="h-3.5 w-3.5 text-gray-300 shrink-0" />
           {editingPin ? (
@@ -347,7 +339,6 @@ function StaffCard({
           )}
         </div>
 
-        {/* Delete */}
         <div className="mt-3 flex justify-end">
           <button
             onClick={() => removeStaff(restaurant.id, member.id)}
@@ -362,7 +353,6 @@ function StaffCard({
   );
 }
 
-/* ── Staff Directory ──────────────────────────────────────────────── */
 function StaffDirectoryView({
   restaurant,
   removeStaff,
@@ -414,7 +404,6 @@ function StaffDirectoryView({
 
   return (
     <div className="space-y-5">
-      {/* Stats */}
       <div className="grid grid-cols-4 gap-3">
         {stats.map((s) => (
           <div
@@ -463,7 +452,6 @@ function StaffDirectoryView({
         </div>
       </div>
 
-      {/* Staff grid */}
       {filtered.length === 0 ? (
         <motion.div
           initial={{ opacity: 0 }}
@@ -502,7 +490,6 @@ function StaffDirectoryView({
   );
 }
 
-/* ── Attendance Logs ──────────────────────────────────────────────── */
 function AttendanceLogsView({ restaurantId }: { restaurantId: string }) {
   const [logs, setLogs] = useState<AttendanceLog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -641,7 +628,6 @@ function AttendanceLogsView({ restaurantId }: { restaurantId: string }) {
   );
 }
 
-/* ── Add Staff Modal ──────────────────────────────────────────────── */
 function AddStaffModal({
   open,
   onClose,
@@ -722,7 +708,6 @@ function AddStaffModal({
             transition={{ type: "spring", damping: 28, stiffness: 340, mass: 0.7 }}
             className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl sm:p-8 max-h-[90dvh]"
           >
-            {/* Close */}
             <button
               onClick={() => { reset(); onClose(); }}
               className="absolute right-5 top-5 flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition-all"
@@ -731,7 +716,6 @@ function AddStaffModal({
             </button>
 
             {successData ? (
-              /* ── Success screen ─────────────────── */
               <div className="space-y-5">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50">
@@ -773,7 +757,6 @@ function AddStaffModal({
                 </button>
               </div>
             ) : (
-              /* ── Form ───────────────────────────── */
               <>
                 <div className="mb-6">
                   <h3 className="text-xl font-extrabold text-[#3e1e0c]">Add Staff Member</h3>
@@ -867,7 +850,6 @@ function AddStaffModal({
   );
 }
 
-/* ── Main Component ───────────────────────────────────────────────── */
 export default function StaffManagementTab() {
   const { selectedRestaurant, restaurants, addStaff, removeStaff, toggleStaffActive } =
     useRestaurant();

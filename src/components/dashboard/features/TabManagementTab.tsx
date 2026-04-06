@@ -178,7 +178,6 @@ export default function TabManagementTab() {
 
   return (
     <div className="space-y-6">
-      {/* Alerts */}
       <AnimatePresence>
         {alertTabs.length > 0 && (
           <motion.div
@@ -204,7 +203,6 @@ export default function TabManagementTab() {
         )}
       </AnimatePresence>
 
-      {/* Top Bar */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <h3 className="text-white font-semibold flex items-center gap-2">
@@ -239,7 +237,6 @@ export default function TabManagementTab() {
         </div>
       </div>
 
-      {/* New Tab Form */}
       <AnimatePresence>
         {showNewTabForm && (
           <motion.div
@@ -298,7 +295,6 @@ export default function TabManagementTab() {
         )}
       </AnimatePresence>
 
-      {/* Tabs List */}
       <div className="space-y-3">
         {openTabs.map((tab, index) => (
           <motion.div
@@ -355,7 +351,6 @@ export default function TabManagementTab() {
                 </div>
               </div>
 
-              {/* Items */}
               {tab.items.length > 0 && (
                 <div className="mb-3 space-y-1">
                   {tab.items.map((item, idx) => (
@@ -437,7 +432,6 @@ export default function TabManagementTab() {
               </div>
             </div>
 
-            {/* Quick Item Selector */}
             <AnimatePresence>
               {showItemSelector === tab.id && (
                 <motion.div
@@ -479,7 +473,6 @@ export default function TabManagementTab() {
         ))}
       </div>
 
-      {/* Split Bill Modal */}
       <AnimatePresence>
         {showSplitModal && selected && (
           <motion.div
@@ -550,7 +543,6 @@ export default function TabManagementTab() {
         )}
       </AnimatePresence>
 
-      {/* Tab History */}
       <AnimatePresence>
         {showHistory && (
           <motion.div

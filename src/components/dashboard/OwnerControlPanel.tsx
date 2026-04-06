@@ -111,7 +111,6 @@ function RoleBadge({ role, small }: { role: StaffRole; small?: boolean }) {
   );
 }
 
-/* ── Staff Card with role assignment ─────────────────────────────── */
 function StaffRoleCard({
   member,
   restaurantId,
@@ -150,19 +149,16 @@ function StaffRoleCard({
 
   return (
     <div className="rounded-2xl border border-gray-100 bg-white shadow-[0_2px_12px_-2px_rgba(0,0,0,0.04)] overflow-hidden">
-      {/* Card header */}
       <button
         onClick={() => setExpanded((e) => !e)}
         className="flex w-full items-center gap-3 p-4 text-left hover:bg-gray-50/60 transition-colors"
       >
-        {/* Avatar */}
         <div
           className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${info.bg}`}
         >
           <Icon className={`h-5 w-5 ${info.text}`} />
         </div>
 
-        {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-bold text-gray-900 text-sm truncate">
@@ -192,7 +188,6 @@ function StaffRoleCard({
         />
       </button>
 
-      {/* Expanded role picker */}
       <AnimatePresence>
         {expanded && (
           <motion.div
@@ -262,7 +257,6 @@ function StaffRoleCard({
   );
 }
 
-/* ── Role Group Section ──────────────────────────────────────────── */
 function RoleGroup({
   role,
   members,
@@ -336,7 +330,6 @@ function RoleGroup({
   );
 }
 
-/* ── Enable All Confirm Dialog ───────────────────────────────────── */
 function EnableAllDialog({
   open,
   onConfirm,
@@ -405,7 +398,6 @@ function EnableAllDialog({
   );
 }
 
-/* ── Main Component ──────────────────────────────────────────────── */
 export default function OwnerControlPanel() {
   const { selectedRestaurant, restaurants, fetchRestaurants } = useRestaurant();
   const restaurant = selectedRestaurant ?? restaurants[0];
@@ -545,7 +537,6 @@ export default function OwnerControlPanel() {
           </button>
         </div>
 
-        {/* Stats row */}
         {staff.length > 0 && (
           <div className="grid grid-cols-3 divide-x divide-gray-100 border-t border-gray-100">
             {[

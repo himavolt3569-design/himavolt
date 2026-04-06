@@ -47,7 +47,6 @@ export default function TrustMarquee() {
         </motion.p>
       </div>
 
-      {/* Marquee rows */}
       <div className="space-y-3">
         {/* Row 1 — scrolls left */}
         <div className="relative">

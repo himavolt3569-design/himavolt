@@ -193,7 +193,6 @@ export default function StoryManager({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-bold text-[#3e1e0c]">Stories</h2>
@@ -215,7 +214,6 @@ export default function StoryManager({
         </label>
       </div>
 
-      {/* Live Preview */}
       {activeStories.length > 0 && (
         <div className="rounded-xl border border-gray-200 bg-white p-4">
           <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
@@ -241,7 +239,6 @@ export default function StoryManager({
         </div>
       )}
 
-      {/* Active Stories Grid */}
       <div>
         <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
           Active Stories ({activeStories.length})
@@ -288,10 +285,8 @@ export default function StoryManager({
                     />
                   )}
 
-                  {/* Overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 opacity-0 group-hover:opacity-100 transition-opacity" />
 
-                  {/* Type badge */}
                   <div className="absolute top-2 left-2">
                     <span className="flex items-center gap-1 rounded-full bg-black/40 px-2 py-1 text-[10px] font-bold text-white">
                       {story.type === "video" ? (
@@ -303,7 +298,6 @@ export default function StoryManager({
                     </span>
                   </div>
 
-                  {/* Delete button */}
                   {deleteConfirmId === story.id ? (
                     <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-2 bg-black/60 backdrop-blur-sm rounded-xl">
                       <p className="text-xs font-semibold text-white">
@@ -338,7 +332,6 @@ export default function StoryManager({
                     </button>
                   )}
 
-                  {/* Bottom info */}
                   <div className="absolute bottom-0 left-0 right-0 p-2">
                     <div className="flex items-center justify-between text-[10px] text-white">
                       <span className="flex items-center gap-1">
@@ -358,7 +351,6 @@ export default function StoryManager({
                   </div>
                 </div>
 
-                {/* Posted by */}
                 <div className="px-2 py-1.5 border-t border-gray-100">
                   <p className="text-[10px] text-gray-400 truncate">
                     by {story.postedBy}
@@ -370,7 +362,6 @@ export default function StoryManager({
         )}
       </div>
 
-      {/* Expired Stories */}
       {expiredStories.length > 0 && (
         <div>
           <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
@@ -444,7 +435,6 @@ export default function StoryManager({
         </div>
       )}
 
-      {/* Add Story Modal */}
       <AnimatePresence>
         {showAddModal && (
           <>
@@ -474,7 +464,6 @@ export default function StoryManager({
               </div>
 
               <div className="p-5 space-y-4">
-                {/* Preview */}
                 {previewFile ? (
                   <div className="relative rounded-xl overflow-hidden bg-black aspect-[9/16] max-h-[300px] mx-auto">
                     {previewFile.type === "video" ? (
@@ -511,7 +500,6 @@ export default function StoryManager({
                   </label>
                 )}
 
-                {/* Caption */}
                 <div>
                   <label className="text-xs font-bold text-gray-500 block mb-1.5">
                     Caption (optional)
@@ -526,7 +514,6 @@ export default function StoryManager({
                   />
                 </div>
 
-                {/* Duration */}
                 <div>
                   <label className="text-xs font-bold text-gray-500 block mb-1.5">
                     Expires after
@@ -548,7 +535,6 @@ export default function StoryManager({
                   </div>
                 </div>
 
-                {/* Upload button */}
                 <button
                   onClick={handleUpload}
                   disabled={!previewFile || uploading}

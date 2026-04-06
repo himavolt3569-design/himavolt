@@ -175,7 +175,6 @@ export default function WaiterOrderTab({ restaurantId }: { restaurantId: string 
 
   const handleNewOrder = () => setCreatedOrder(null);
 
-  /* ── Success screen ─────────────────────────────────────────────── */
   if (createdOrder) {
     const isDirect = createdOrder.mode === "direct";
     return (
@@ -214,17 +213,14 @@ export default function WaiterOrderTab({ restaurantId }: { restaurantId: string 
     );
   }
 
-  /* ── Main UI ────────────────────────────────────────────────────── */
   return (
     <div className="flex flex-col lg:flex-row gap-6 min-h-[calc(100vh-200px)]">
-      {/* Left: Menu browser */}
       <div className="flex-1 space-y-4">
         <div>
           <h2 className="text-lg font-bold text-amber-950">New Order</h2>
           <p className="text-sm text-gray-400">Browse menu and build the order</p>
         </div>
 
-        {/* Search */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <input
@@ -235,7 +231,6 @@ export default function WaiterOrderTab({ restaurantId }: { restaurantId: string 
           />
         </div>
 
-        {/* Category filter */}
         <div className="flex gap-2 flex-wrap">
           <button
             onClick={() => setActiveCategory("ALL")}
@@ -258,7 +253,6 @@ export default function WaiterOrderTab({ restaurantId }: { restaurantId: string 
           ))}
         </div>
 
-        {/* Items grid */}
         {loading ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {Array.from({ length: 9 }).map((_, i) => (
@@ -302,7 +296,6 @@ export default function WaiterOrderTab({ restaurantId }: { restaurantId: string 
 
       {/* Right: Cart & order details */}
       <div className="lg:w-80 space-y-4">
-        {/* Table selector */}
         <div className="rounded-2xl border border-gray-200 bg-white p-4">
           <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-2">Table</label>
           <div className="relative">
@@ -372,7 +365,6 @@ export default function WaiterOrderTab({ restaurantId }: { restaurantId: string 
           </div>
         </div>
 
-        {/* Cart */}
         <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
             <h3 className="text-sm font-bold text-gray-700 flex items-center gap-2">
@@ -431,7 +423,6 @@ export default function WaiterOrderTab({ restaurantId }: { restaurantId: string 
           )}
         </div>
 
-        {/* Submit buttons */}
         <div className="space-y-2">
           <button
             onClick={() => handleSubmit("kitchen")}

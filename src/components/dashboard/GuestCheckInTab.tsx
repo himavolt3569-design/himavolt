@@ -265,7 +265,6 @@ export default function GuestCheckInTab() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-lg font-bold text-amber-950">Guest Check-In</h2>
@@ -291,7 +290,6 @@ export default function GuestCheckInTab() {
         </div>
       </div>
 
-      {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -317,7 +315,6 @@ export default function GuestCheckInTab() {
         </div>
       </div>
 
-      {/* Guest list */}
       {loading ? (
         <div className="flex items-center justify-center py-16">
           <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
@@ -437,7 +434,6 @@ export default function GuestCheckInTab() {
               </div>
 
               <div className="p-5 space-y-4">
-                {/* Room Number */}
                 <div>
                   <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1.5">
                     Room Number <span className="text-red-400">*</span>
@@ -450,7 +446,6 @@ export default function GuestCheckInTab() {
                   />
                 </div>
 
-                {/* Guest Name */}
                 <div>
                   <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1.5">
                     Guest Name <span className="text-red-400">*</span>
@@ -612,7 +607,6 @@ export default function GuestCheckInTab() {
                   )}
                 </div>
 
-                {/* Notes */}
                 <div>
                   <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1.5">Notes</label>
                   <textarea
@@ -638,7 +632,6 @@ export default function GuestCheckInTab() {
         )}
       </AnimatePresence>
 
-      {/* Room QR Modal */}
       <AnimatePresence>
         {qrRoom && (
           <>
@@ -680,7 +673,6 @@ export default function GuestCheckInTab() {
                         Generate
                       </button>
                     </div>
-                    {/* Quick buttons for occupied rooms */}
                     {occupiedRooms.length > 0 && (
                       <div className="mt-3">
                         <p className="text-xs text-gray-400 mb-2">Occupied rooms:</p>
@@ -725,7 +717,6 @@ export default function GuestCheckInTab() {
         )}
       </AnimatePresence>
 
-      {/* View Guest Modal */}
       <AnimatePresence>
         {viewGuest && (
           <>

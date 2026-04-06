@@ -63,7 +63,6 @@ export default function QuickCounterTab() {
   const [stations, setStations] = useState<CounterStation[]>([]);
   const [newStationName, setNewStationName] = useState("");
 
-  // New order form state
   const [showNewOrder, setShowNewOrder] = useState(false);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loadingMenu, setLoadingMenu] = useState(false);
@@ -189,7 +188,6 @@ export default function QuickCounterTab() {
       transition={{ duration: 0.4 }}
       className="space-y-6"
     >
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="p-2.5 bg-amber-100 rounded-xl">
@@ -226,7 +224,6 @@ export default function QuickCounterTab() {
 
       {quickCounterEnabled && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-          {/* Stats Row */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
               { label: "Pending", value: pendingOrders.length, icon: Package, color: "text-orange-600 bg-orange-50" },
@@ -252,9 +249,7 @@ export default function QuickCounterTab() {
             ))}
           </div>
 
-          {/* Settings Row */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Settings */}
             <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm space-y-5">
               <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Settings</h3>
               <div className="space-y-2">
@@ -289,7 +284,6 @@ export default function QuickCounterTab() {
               </div>
             </div>
 
-            {/* Counter Stations */}
             <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm space-y-4">
               <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Counter Stations</h3>
               <div className="flex gap-2">
@@ -344,7 +338,6 @@ export default function QuickCounterTab() {
             </div>
           </div>
 
-          {/* Live Counter Orders */}
           <div className="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
             <div className="flex items-center justify-between p-5 border-b border-gray-100">
               <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
@@ -396,7 +389,6 @@ export default function QuickCounterTab() {
                           </div>
                         </div>
 
-                        {/* Forwarding buttons */}
                         <div className="flex items-center gap-2 shrink-0">
                           {order.status === "PENDING" && (
                             <button
@@ -439,7 +431,6 @@ export default function QuickCounterTab() {
         </motion.div>
       )}
 
-      {/* New Order Modal */}
       <AnimatePresence>
         {showNewOrder && (
           <>
@@ -469,7 +460,6 @@ export default function QuickCounterTab() {
 
               <div className="overflow-y-auto flex-1">
                 <div className="p-5 space-y-4">
-                  {/* Guest name */}
                   <div>
                     <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1.5">Guest Name (optional)</label>
                     <input
@@ -480,7 +470,6 @@ export default function QuickCounterTab() {
                     />
                   </div>
 
-                  {/* Menu search */}
                   <div>
                     <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1.5">Add Items</label>
                     <div className="relative mb-2">
@@ -529,7 +518,6 @@ export default function QuickCounterTab() {
                     )}
                   </div>
 
-                  {/* Cart */}
                   {cart.length > 0 && (
                     <div>
                       <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1.5">Order Summary</label>
@@ -561,7 +549,6 @@ export default function QuickCounterTab() {
                 </div>
               </div>
 
-              {/* Footer */}
               <div className="px-5 pb-5 pt-2 border-t border-gray-100 shrink-0">
                 <button
                   onClick={handleCreateOrder}

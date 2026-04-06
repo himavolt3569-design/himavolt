@@ -26,7 +26,6 @@ export default function ComboMealsTab({ restaurantId }: { restaurantId?: string 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [itemSearch, setItemSearch] = useState("");
 
-  // Form state
   const [formName, setFormName] = useState("");
   const [formDesc, setFormDesc] = useState("");
   const [formImageUrl, setFormImageUrl] = useState("");
@@ -162,7 +161,6 @@ export default function ComboMealsTab({ restaurantId }: { restaurantId?: string 
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-3">
           <div className="p-2.5 bg-orange-100 rounded-xl">
@@ -218,7 +216,6 @@ export default function ComboMealsTab({ restaurantId }: { restaurantId?: string 
                 </div>
               </div>
 
-              {/* Image URL */}
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-gray-600 flex items-center gap-1.5"><ImageIcon className="w-3.5 h-3.5" /> Photo URL (optional)</label>
                 <input type="url" placeholder="https://..." value={formImageUrl}
@@ -233,7 +230,6 @@ export default function ComboMealsTab({ restaurantId }: { restaurantId?: string 
                 </div>
               )}
 
-              {/* Menu Item Picker */}
               <div className="space-y-3">
                 <label className="text-sm font-medium text-gray-600">Select Menu Items *</label>
                 <div className="relative">
@@ -305,7 +301,6 @@ export default function ComboMealsTab({ restaurantId }: { restaurantId?: string 
         )}
       </AnimatePresence>
 
-      {/* Combos Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <AnimatePresence>
           {combos.map((combo) => (

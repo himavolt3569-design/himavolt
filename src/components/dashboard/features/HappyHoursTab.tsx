@@ -135,7 +135,6 @@ export default function HappyHoursTab() {
 
   return (
     <div className="space-y-6">
-      {/* Status Banner */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -166,7 +165,6 @@ export default function HappyHoursTab() {
         </div>
       </motion.div>
 
-      {/* Performance Stats */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -214,7 +212,6 @@ export default function HappyHoursTab() {
         </AnimatePresence>
       </motion.div>
 
-      {/* Happy Hour Schedules */}
       <div>
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-white font-semibold flex items-center gap-2">
@@ -230,7 +227,6 @@ export default function HappyHoursTab() {
           </button>
         </div>
 
-        {/* Create Form */}
         <AnimatePresence>
           {showCreateForm && (
             <motion.div
@@ -353,7 +349,6 @@ export default function HappyHoursTab() {
           )}
         </AnimatePresence>
 
-        {/* Schedule List */}
         <div className="space-y-3">
           {happyHours.map((hh, index) => (
             <motion.div
@@ -423,7 +418,6 @@ export default function HappyHoursTab() {
         </div>
       </div>
 
-      {/* Current Happy Hour Items */}
       <div>
         <h3 className="text-white font-semibold flex items-center gap-2 mb-3">
           <Beer className="w-5 h-5 text-rose-400" />
@@ -462,7 +456,6 @@ export default function HappyHoursTab() {
         </div>
       </div>
 
-      {/* Special Happy Hour Menu */}
       <div>
         <button
           onClick={() => setExpandedSpecial(!expandedSpecial)}

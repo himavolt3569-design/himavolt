@@ -28,7 +28,6 @@ export async function POST(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Verify ownership
   const restaurant = await db.restaurant.findFirst({
     where: { id, ownerId: user.id },
   });

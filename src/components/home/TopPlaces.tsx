@@ -153,7 +153,6 @@ function DesktopCard({ restaurant }: { restaurant: Restaurant }) {
           >
             {getTypeLabel(restaurant.type)}
           </motion.div>
-          {/* Rating badge */}
           {restaurant.rating != null && (
             <motion.div
               className="absolute top-2.5 right-2.5 flex items-center gap-1 bg-white/90 backdrop-blur-sm px-2 py-0.5 rounded-md shadow-sm"

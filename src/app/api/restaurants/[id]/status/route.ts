@@ -7,7 +7,6 @@ async function assertAccess(req: NextRequest, restaurantId: string) {
   // Staff belonging to the restaurant can update status
   const staff = await getStaffSession(req);
   if (staff?.restaurantId === restaurantId) return true;
-  // Owner can also update
   const user = await getOrCreateUser();
   if (!user) return false;
   const r = await db.restaurant.findFirst({ where: { id: restaurantId, ownerId: user.id } });

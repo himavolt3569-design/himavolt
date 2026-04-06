@@ -103,7 +103,6 @@ export default function PaymentSettingsTab() {
       delete payload.directPayEnabled;
       delete payload.prepaidEnabled;
 
-      // Save payment config
       const updated = await apiFetch<PaymentConfigData>(
         `/api/restaurants/${restaurant.id}/payment-config`,
         { method: "PATCH", body: payload },
@@ -151,7 +150,6 @@ export default function PaymentSettingsTab() {
 
   return (
     <div className="space-y-6 max-w-2xl">
-      {/* Header */}
       <div>
         <h2 className="text-lg font-bold text-amber-950">Payment Settings</h2>
         <p className="text-sm text-gray-500 mt-1">
@@ -160,7 +158,6 @@ export default function PaymentSettingsTab() {
         </p>
       </div>
 
-      {/* Security note */}
       <div className="flex items-start gap-3 rounded-xl bg-blue-50 border border-blue-200 px-4 py-3">
         <ShieldCheck className="h-5 w-5 text-blue-500 mt-0.5 shrink-0" />
         <p className="text-xs text-blue-700">
@@ -302,7 +299,6 @@ export default function PaymentSettingsTab() {
         )}
       </PaymentSection>
 
-      {/* Save Button */}
       <div className="pt-2 pb-6">
         <button
           onClick={handleSave}

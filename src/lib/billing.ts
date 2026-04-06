@@ -131,7 +131,6 @@ export async function collectPayment(
   // Use bill total if available (includes service charge), otherwise order total
   const amount = order.bill?.total ?? order.total;
 
-  // Upsert payment record
   const payment = await db.payment.upsert({
     where: { orderId },
     update: {
@@ -151,7 +150,6 @@ export async function collectPayment(
     },
   });
 
-  // Update bill paidVia
   if (order.bill) {
     await db.bill.update({
       where: { orderId },

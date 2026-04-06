@@ -97,7 +97,6 @@ export default function CustomCakesTab() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<CakeStatus | "All">("All");
 
-  // Form state
   const [form, setForm] = useState({
     customerName: "",
     phone: "",
@@ -175,7 +174,6 @@ export default function CustomCakesTab() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-gray-800">Custom Cakes</h2>
@@ -201,7 +199,6 @@ export default function CustomCakesTab() {
         </div>
       </div>
 
-      {/* Price Calculator Quick Ref */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -224,7 +221,6 @@ export default function CustomCakesTab() {
         </p>
       </motion.div>
 
-      {/* Status Workflow */}
       <div className="bg-white rounded-xl border border-rose-100 shadow-sm p-4">
         <h3 className="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-wide">
           Order Workflow
@@ -269,7 +265,6 @@ export default function CustomCakesTab() {
         </select>
       </div>
 
-      {/* Orders List */}
       <div className="space-y-3">
         <AnimatePresence>
           {filteredOrders.length === 0 ? (
@@ -373,7 +368,6 @@ export default function CustomCakesTab() {
         </AnimatePresence>
       </div>
 
-      {/* Gallery */}
       <AnimatePresence>
         {showGallery && (
           <motion.div
@@ -408,7 +402,6 @@ export default function CustomCakesTab() {
         )}
       </AnimatePresence>
 
-      {/* New Cake Order Modal */}
       <AnimatePresence>
         {showForm && (
           <motion.div
@@ -600,7 +593,6 @@ export default function CustomCakesTab() {
                   </div>
                 </div>
 
-                {/* Price Preview */}
                 {form.cakeSize && (
                   <motion.div
                     initial={{ opacity: 0, y: 5 }}

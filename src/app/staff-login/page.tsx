@@ -25,7 +25,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-/* ── Animation variants ─────────────────────────────────────────── */
 
 const stagger: Variants = {
   hidden: { opacity: 0 },
@@ -62,7 +61,6 @@ const shake: Variants = {
   },
 };
 
-/* ── Floating food image component ──────────────────────────────── */
 
 function FloatingImage({
   src,
@@ -102,7 +100,6 @@ function FloatingImage({
   );
 }
 
-/* ── Animated orb ───────────────────────────────────────────────── */
 
 function Orb({
   color,
@@ -145,7 +142,6 @@ function Orb({
   );
 }
 
-/* ── Animated PIN digit ─────────────────────────────────────────── */
 
 function PinBox({
   digit,
@@ -173,7 +169,6 @@ function PinBox({
         ease: [0.16, 1, 0.3, 1],
       }}
     >
-      {/* Glow ring when focused */}
       <AnimatePresence>
         {focused && (
           <motion.div
@@ -186,7 +181,6 @@ function PinBox({
         )}
       </AnimatePresence>
 
-      {/* Filled indicator dot */}
       <AnimatePresence>
         {digit && (
           <motion.div
@@ -220,7 +214,6 @@ function PinBox({
   );
 }
 
-/* ── Main page ──────────────────────────────────────────────────── */
 
 export default function StaffLoginPage() {
   const router = useRouter();
@@ -248,7 +241,6 @@ export default function StaffLoginPage() {
     return () => clearTimeout(t);
   }, []);
 
-  // Track mouse for parallax
   const handleMouseMove = useCallback(
     (e: React.MouseEvent) => {
       const rect = e.currentTarget.getBoundingClientRect();
@@ -313,7 +305,6 @@ export default function StaffLoginPage() {
         throw new Error(data.error || "Login failed");
       }
 
-      // Success animation before redirect
       setSuccess(true);
       await new Promise((r) => setTimeout(r, 1200));
       router.push("/kitchen");
@@ -338,7 +329,6 @@ export default function StaffLoginPage() {
         className="hidden lg:flex lg:w-[45%] xl:w-[50%] relative overflow-hidden bg-brand-950"
         onMouseMove={handleMouseMove}
       >
-        {/* Parallax food background */}
         <motion.img
           src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1200&h=1600&fit=crop"
           alt=""
@@ -346,11 +336,9 @@ export default function StaffLoginPage() {
           style={{ x: imgX, y: imgY, scale: 1.1 }}
         />
 
-        {/* Gradient overlays */}
         <div className="absolute inset-0 bg-linear-to-t from-brand-950 via-brand-950/60 to-transparent" />
         <div className="absolute inset-0 bg-linear-to-r from-transparent to-brand-950/80" />
 
-        {/* Animated orbs */}
         <Orb
           color="rgba(234,169,77,0.18)"
           size={200}
@@ -373,7 +361,6 @@ export default function StaffLoginPage() {
           delay={6}
         />
 
-        {/* Floating food images */}
         <FloatingImage
           src="https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=200&h=200&fit=crop"
           className="top-[12%] right-[15%] h-24 w-24 xl:h-28 xl:w-28 rotate-6"
@@ -393,7 +380,6 @@ export default function StaffLoginPage() {
           duration={4.5}
         />
 
-        {/* Noise texture */}
         <div
           className="absolute inset-0 opacity-[0.04] pointer-events-none"
           style={{
@@ -402,7 +388,6 @@ export default function StaffLoginPage() {
           }}
         />
 
-        {/* Content */}
         <div className="relative z-10 flex flex-col justify-between p-12 xl:p-16 w-full">
           {/* Top — brand with animated entry */}
           <motion.div
@@ -472,7 +457,6 @@ export default function StaffLoginPage() {
               from one secure portal.
             </motion.p>
 
-            {/* Animated feature pills */}
             <motion.div variants={fadeUp} className="flex flex-wrap gap-2 mt-6">
               {["Live Orders", "Menu Editor", "POS", "Reports"].map(
                 (label, i) => (
@@ -498,7 +482,6 @@ export default function StaffLoginPage() {
 
       {/* ── Right panel — animated login form ── */}
       <div className="flex-1 flex flex-col bg-[#fefcf6] lg:bg-brand-50 relative overflow-hidden">
-        {/* Background animated orbs for right panel */}
         <Orb
           color="rgba(234,169,77,0.08)"
           size={300}
@@ -514,7 +497,6 @@ export default function StaffLoginPage() {
           delay={5}
         />
 
-        {/* Mobile header */}
         <motion.div
           className="lg:hidden flex items-center justify-between p-5"
           initial={{ opacity: 0, y: -10 }}
@@ -539,7 +521,6 @@ export default function StaffLoginPage() {
         <div className="flex-1 flex items-center justify-center px-5 py-12 sm:px-8 relative z-10">
           <AnimatePresence mode="wait">
             {success ? (
-              /* ── Success state ── */
               <motion.div
                 key="success"
                 className="flex flex-col items-center text-center"
@@ -561,7 +542,6 @@ export default function StaffLoginPage() {
                     delay: 0.1,
                   }}
                 >
-                  {/* Pulsing ring */}
                   <motion.div
                     className="absolute inset-0 rounded-full bg-[#34D399]/20"
                     animate={{ scale: [1, 1.8, 1], opacity: [0.5, 0, 0.5] }}
@@ -598,7 +578,6 @@ export default function StaffLoginPage() {
                   Redirecting to your portal...
                 </motion.p>
 
-                {/* Animated dots */}
                 <motion.div
                   className="flex gap-1.5 mt-4"
                   initial={{ opacity: 0 }}
@@ -620,7 +599,6 @@ export default function StaffLoginPage() {
                 </motion.div>
               </motion.div>
             ) : (
-              /* ── Login form ── */
               <motion.div
                 key="form"
                 variants={shake}
@@ -628,7 +606,6 @@ export default function StaffLoginPage() {
                 className="w-full max-w-sm bg-white/70 backdrop-blur-sm rounded-2xl p-8 shadow-xl shadow-brand-200/20 border border-brand-100"
               >
                 <motion.div variants={stagger} initial="hidden" animate="show">
-                  {/* Header */}
                   <motion.div variants={fadeUp} className="mb-9">
                     <motion.div
                       className="inline-flex items-center gap-1.5 rounded-full bg-brand-100/60 backdrop-blur-sm px-3.5 py-1.5 text-[11px] font-bold text-brand-700 uppercase tracking-wider border border-brand-200/60 mb-5"
@@ -658,7 +635,6 @@ export default function StaffLoginPage() {
                   </motion.div>
 
                   <form className="space-y-7" onSubmit={handleSubmit}>
-                    {/* Restaurant Code */}
                     <motion.div variants={fadeUp}>
                       <label
                         htmlFor="code"
@@ -684,7 +660,6 @@ export default function StaffLoginPage() {
                           className="block w-full pl-11 pr-4 py-3.5 bg-white border border-brand-200/60 rounded-xl text-brand-950 font-mono tracking-widest text-sm shadow-sm placeholder:tracking-normal placeholder:font-sans placeholder:text-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-400/40 focus:border-brand-400/50 transition-all"
                           placeholder="e.g. HH-1A2B"
                         />
-                        {/* Filled indicator */}
                         <AnimatePresence>
                           {code.length >= 4 && (
                             <motion.div
@@ -730,7 +705,6 @@ export default function StaffLoginPage() {
                         ))}
                       </div>
 
-                      {/* PIN progress bar */}
                       <div className="mt-3 h-1 rounded-full bg-brand-100 overflow-hidden">
                         <motion.div
                           className="h-full rounded-full bg-linear-to-r from-brand-400 to-brand-300"
@@ -746,7 +720,6 @@ export default function StaffLoginPage() {
                       </div>
                     </motion.div>
 
-                    {/* Error message */}
                     <AnimatePresence>
                       {errorMsg && (
                         <motion.div
@@ -806,7 +779,6 @@ export default function StaffLoginPage() {
                           damping: 20,
                         }}
                       >
-                        {/* Animated shine effect when ready */}
                         {isReady && (
                           <motion.div
                             className="absolute inset-0 bg-linear-to-r from-transparent via-white/10 to-transparent"
@@ -843,7 +815,6 @@ export default function StaffLoginPage() {
                     </motion.div>
                   </form>
 
-                  {/* Footer link */}
                   <motion.div
                     variants={fadeUp}
                     className="hidden lg:block mt-8 pt-6 border-t border-brand-200/40"

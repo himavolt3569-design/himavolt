@@ -103,7 +103,6 @@ export default function OnboardingPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50/50 p-6">
       <div className="w-full max-w-md">
-        {/* Logo */}
         <div className="mb-8 text-center">
           <Link href="/" className="inline-flex items-center gap-2">
             <Mountain className="h-8 w-8 text-[#eaa94d]" strokeWidth={2.5} />
@@ -114,7 +113,6 @@ export default function OnboardingPage() {
 
           {step !== 3 && (
             <div className="mt-6">
-              {/* Step indicator */}
               <div className="flex items-center justify-center gap-2">
                 {STEP_LABELS.slice(0, 2).map((label, i) => {
                   const stepNum = (i + 1) as Step;
@@ -177,7 +175,6 @@ export default function OnboardingPage() {
                 onSubmit={handleStep1}
                 className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm space-y-5"
               >
-                {/* Restaurant Name */}
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-700">
                     Restaurant Name <span className="text-[#eaa94d]">*</span>
@@ -195,7 +192,6 @@ export default function OnboardingPage() {
                   </div>
                 </div>
 
-                {/* Restaurant Type */}
                 <div>
                   <label className="mb-2 block text-sm font-medium text-gray-700">
                     Type <span className="text-[#eaa94d]">*</span>
@@ -258,7 +254,6 @@ export default function OnboardingPage() {
                   </div>
                 )}
 
-                {/* Phone */}
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-700">
                     Business Phone <span className="text-[#eaa94d]">*</span>
@@ -276,7 +271,6 @@ export default function OnboardingPage() {
                   </div>
                 </div>
 
-                {/* City */}
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-700">
                     City
@@ -293,7 +287,6 @@ export default function OnboardingPage() {
                   </div>
                 </div>
 
-                {/* Address */}
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-700">
                     Address{" "}

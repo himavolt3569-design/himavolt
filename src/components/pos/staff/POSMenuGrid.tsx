@@ -56,7 +56,6 @@ export default function POSMenuGrid({ items, categories, currency, onItemTap }: 
 
   return (
     <div className="flex flex-col h-full">
-      {/* Search */}
       <div className="shrink-0 px-4 pt-3 pb-2">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -74,7 +73,6 @@ export default function POSMenuGrid({ items, categories, currency, onItemTap }: 
         </div>
       </div>
 
-      {/* Category tabs */}
       <div className="shrink-0 flex gap-2 px-4 pb-2 overflow-x-auto scrollbar-hide">
         <button
           onClick={() => setActiveCategory("ALL")}
@@ -97,7 +95,6 @@ export default function POSMenuGrid({ items, categories, currency, onItemTap }: 
         ))}
       </div>
 
-      {/* Items grid */}
       <div className="flex-1 overflow-y-auto px-4 pb-4">
         {filtered.length === 0 ? (
           <div className="flex items-center justify-center h-40 text-gray-400 text-sm">No items found</div>

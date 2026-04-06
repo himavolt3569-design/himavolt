@@ -218,7 +218,6 @@ export default function PackageTrackingTab() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">
@@ -244,7 +243,6 @@ export default function PackageTrackingTab() {
         </button>
       </div>
 
-      {/* Pipeline Overview */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
         <h3 className="text-sm font-semibold text-gray-900 mb-4">
           Pipeline Overview
@@ -289,7 +287,6 @@ export default function PackageTrackingTab() {
         )}
       </div>
 
-      {/* Batch mode bar */}
       <AnimatePresence>
         {batchMode && (
           <motion.div
@@ -317,7 +314,6 @@ export default function PackageTrackingTab() {
         )}
       </AnimatePresence>
 
-      {/* Order Cards */}
       <div className="space-y-3">
         <AnimatePresence mode="popLayout">
           {filteredOrders.map((order) => (
@@ -338,7 +334,6 @@ export default function PackageTrackingTab() {
               }`}
             >
               <div className="flex items-center gap-4">
-                {/* Batch checkbox */}
                 {batchMode && order.stage !== "Dispatched" && (
                   <input
                     type="checkbox"
@@ -348,7 +343,6 @@ export default function PackageTrackingTab() {
                   />
                 )}
 
-                {/* Order info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-bold text-gray-900 text-sm">
@@ -389,7 +383,6 @@ export default function PackageTrackingTab() {
                   </div>
                 </div>
 
-                {/* Advance button */}
                 {order.stage !== "Dispatched" && (
                   <button
                     onClick={() => advanceStage(order.id)}
@@ -407,7 +400,6 @@ export default function PackageTrackingTab() {
 
       {/* Bottom Grid: Materials, Templates, QC, Dispatch Log */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Packaging Materials Inventory */}
         <motion.div
           layout
           className="bg-white rounded-xl shadow-sm border border-gray-100 p-5"
@@ -488,7 +480,6 @@ export default function PackageTrackingTab() {
           </div>
         </motion.div>
 
-        {/* Packaging Templates */}
         <motion.div
           layout
           className="bg-white rounded-xl shadow-sm border border-gray-100 p-5"
@@ -546,7 +537,6 @@ export default function PackageTrackingTab() {
           </div>
         </motion.div>
 
-        {/* Quality Check Checklist */}
         <motion.div
           layout
           className="bg-white rounded-xl shadow-sm border border-gray-100 p-5"
@@ -573,7 +563,6 @@ export default function PackageTrackingTab() {
             </button>
           </div>
 
-          {/* Progress bar */}
           <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden mb-4">
             <motion.div
               animate={{
@@ -635,7 +624,6 @@ export default function PackageTrackingTab() {
           )}
         </motion.div>
 
-        {/* Dispatch Log */}
         <motion.div
           layout
           className="bg-white rounded-xl shadow-sm border border-gray-100 p-5"

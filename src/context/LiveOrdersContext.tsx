@@ -96,7 +96,6 @@ export function LiveOrdersProvider({ children }: { children: ReactNode }) {
         }
       }
 
-      // Update known IDs
       knownOrderIdsRef.current = new Set(data.orders.map((o) => o.id));
       initialFetchDoneRef.current = true;
 

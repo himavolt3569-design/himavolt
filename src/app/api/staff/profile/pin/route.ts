@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getStaffSession } from "@/lib/staff-auth";
 
-// PATCH change PIN
 export async function PATCH(req: NextRequest) {
   const session = await getStaffSession(req);
   if (!session)

@@ -63,7 +63,6 @@ export async function GET(
     categories: restaurant.categories,
     paymentQRs: restaurant.paymentQRs,
     tables: restaurant.tables,
-    // Theme fields
     primaryColor: r.primaryColor ?? null,
     secondaryColor: r.secondaryColor ?? null,
     accentColor: r.accentColor ?? null,

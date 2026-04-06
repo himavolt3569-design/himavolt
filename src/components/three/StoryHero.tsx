@@ -157,7 +157,6 @@ export default function StoryHero() {
       style={{ opacity: heroOpacity, y: heroY }}
       className="relative flex w-full items-center justify-center overflow-hidden"
     >
-      {/* Warm gradient base */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#FFF8F0] via-[#FFF0E8] to-[#FFE8E0] pointer-events-none" />
 
       {/* Food pattern (sandwich/donut/cake SVG) */}
@@ -169,12 +168,10 @@ export default function StoryHero() {
         }}
       />
 
-      {/* Ambient glows */}
       <div className="absolute top-[10%] right-[10%] h-[350px] w-[350px] rounded-full bg-[#eaa94d]/[0.06] blur-[100px] pointer-events-none" />
       <div className="absolute bottom-[10%] left-[10%] h-[400px] w-[400px] rounded-full bg-[#eaa94d]/[0.08] blur-[100px] pointer-events-none" />
       <div className="absolute top-[40%] left-[40%] h-[300px] w-[300px] rounded-full bg-[#d67620]/[0.04] blur-[80px] pointer-events-none" />
 
-      {/* Floating food images */}
       <div ref={floatingRef} className="absolute inset-0 pointer-events-none overflow-hidden">
         {FLOAT_ITEMS.map((item, i) => (
           <motion.img
@@ -196,10 +193,8 @@ export default function StoryHero() {
         ))}
       </div>
 
-      {/* Content */}
       <div className="relative z-10 mx-auto max-w-[1440px] w-full px-4 md:px-8 lg:px-12 pt-20 pb-16 md:pt-28 md:pb-24">
         <div className="flex flex-col items-center text-center max-w-3xl mx-auto">
-          {/* Badge */}
           <motion.div
             initial={{ opacity: 0, scale: 0.8, y: -10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -217,7 +212,6 @@ export default function StoryHero() {
             </span>
           </motion.div>
 
-          {/* Heading with typewriter effect */}
           <motion.h1
             initial={{ opacity: 0, y: 24, filter: "blur(8px)" }}
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
@@ -238,7 +232,6 @@ export default function StoryHero() {
             </span>
           </motion.h1>
 
-          {/* Subtitle */}
           <motion.p
             initial={{ opacity: 0, y: 16, filter: "blur(6px)" }}
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
@@ -251,7 +244,6 @@ export default function StoryHero() {
         </div>
       </div>
 
-      {/* Bottom fade */}
       <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white to-transparent pointer-events-none" />
     </motion.section>
   );

@@ -41,7 +41,6 @@ export default function KioskSummary({
       <p className="text-gray-500 mb-8">Review your order before confirming</p>
 
       <div className="w-full max-w-lg space-y-4">
-        {/* Order type badge */}
         <div className="flex items-center justify-center gap-3 mb-4">
           <div className="flex items-center gap-2 rounded-full bg-amber-100 px-5 py-2.5">
             {orderType === "DINE_IN" ? (
@@ -60,7 +59,6 @@ export default function KioskSummary({
           )}
         </div>
 
-        {/* Items */}
         <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden">
           <div className="divide-y divide-gray-50">
             {items.map((item) => (
@@ -82,7 +80,6 @@ export default function KioskSummary({
             ))}
           </div>
 
-          {/* Totals */}
           <div className="border-t border-gray-200 bg-gray-50 px-5 py-4 space-y-2">
             <div className="flex items-center justify-between text-sm">
               <span className="text-gray-600">Subtotal</span>
@@ -109,7 +106,6 @@ export default function KioskSummary({
 
         <p className="text-center text-sm text-gray-400">Payment will be collected at the counter</p>
 
-        {/* Actions */}
         <div className="flex items-center gap-4 pt-4">
           <button
             onClick={onBack}

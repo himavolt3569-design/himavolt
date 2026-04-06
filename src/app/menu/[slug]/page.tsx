@@ -135,7 +135,6 @@ interface Restaurant {
   directPayEnabled: boolean;
   categories: RestaurantCategory[];
   paymentQRs: { id: string; label: string; imageUrl: string }[];
-  // Theme
   primaryColor: string | null;
   secondaryColor: string | null;
   accentColor: string | null;
@@ -468,7 +467,6 @@ function DishDetailModal({
     }
   }, [total]);
 
-  // Close on Escape
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -523,7 +521,6 @@ function DishDetailModal({
 
   return (
     <>
-      {/* Glassmorphism backdrop */}
       <motion.div
         key="glass-overlay"
         initial={{ opacity: 0 }}
@@ -534,7 +531,6 @@ function DishDetailModal({
         className="fixed inset-0 z-50 bg-black/40 backdrop-blur-md"
       />
 
-      {/* Modal */}
       <motion.div
         key="glass-modal"
         initial={{ opacity: 0, scale: 0.92, y: 30 }}
@@ -548,9 +544,7 @@ function DishDetailModal({
           WebkitBackdropFilter: "blur(24px) saturate(180%)",
         }}
       >
-        {/* Scrollable content */}
         <div ref={modalRef} className="flex-1 overflow-y-auto overscroll-contain">
-          {/* Hero image */}
           <motion.div
             className="relative w-full aspect-[16/9] sm:aspect-[2.2/1] overflow-hidden bg-gray-100"
             initial={{ opacity: 0, scale: 1.05 }}
@@ -565,7 +559,6 @@ function DishDetailModal({
             />
             <div className="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-black/10" />
 
-            {/* Close button */}
             <motion.button
               onClick={onClose}
               whileHover={{ scale: 1.1 }}
@@ -576,7 +569,6 @@ function DishDetailModal({
               <X className="h-4 w-4" />
             </motion.button>
 
-            {/* Badges on image */}
             <div className="absolute top-4 left-4 flex items-center gap-2">
               {dish.badge && (
                 <motion.span
@@ -607,7 +599,6 @@ function DishDetailModal({
               )}
             </div>
 
-            {/* Price overlay */}
             <div className="absolute bottom-4 left-5">
               <span className="text-2xl font-extrabold text-white drop-shadow-lg" ref={priceRef}>
                 {formatPrice(total, restaurantCurrency)}
@@ -615,7 +606,6 @@ function DishDetailModal({
             </div>
           </motion.div>
 
-          {/* Content */}
           <div className="px-5 sm:px-7 py-5 space-y-5">
             {/* Title & meta */}
             <motion.div
@@ -677,7 +667,6 @@ function DishDetailModal({
                 )}
               </div>
 
-              {/* Tags */}
               {dish.tags.length > 0 && (
                 <div className="mt-2.5 flex flex-wrap gap-1.5">
                   {dish.tags.map((tag) => (
@@ -689,7 +678,6 @@ function DishDetailModal({
               )}
             </motion.div>
 
-            {/* Divider */}
             <div className="h-px bg-gray-100" />
 
             {/* Quantity & Price */}
@@ -733,7 +721,6 @@ function DishDetailModal({
               </div>
             </motion.div>
 
-            {/* Size selector */}
             {dish.sizes.length > 0 && (
               <motion.div
                 initial={{ opacity: 0, y: 12 }}
@@ -816,7 +803,6 @@ function DishDetailModal({
               </motion.div>
             )}
 
-            {/* Recommended from this restaurant */}
             {allRecommended.length > 0 && (
               <motion.div
                 initial={{ opacity: 0, y: 12 }}
@@ -868,7 +854,6 @@ function DishDetailModal({
               </motion.div>
             )}
 
-            {/* Ad space */}
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
@@ -891,12 +876,10 @@ function DishDetailModal({
               </div>
             </motion.div>
 
-            {/* Bottom spacer for the fixed button */}
             <div className="h-20" />
           </div>
         </div>
 
-        {/* Fixed add to cart button at bottom */}
         <div className="shrink-0 border-t border-white/30 px-5 sm:px-7 py-4" style={{ background: "rgba(255,255,255,0.9)", backdropFilter: "blur(12px)" }}>
           <motion.button
             onClick={handleAdd}
@@ -907,7 +890,6 @@ function DishDetailModal({
             whileTap={{ scale: 0.97 }}
             className="relative w-full rounded-xl bg-[#eaa94d] py-3.5 text-base font-bold text-white overflow-hidden shadow-lg shadow-[#eaa94d]/20"
           >
-            {/* Shimmer */}
             <motion.div
               className="absolute inset-0 bg-linear-to-r from-transparent via-white/15 to-transparent"
               initial={{ x: "-100%" }}
@@ -1069,7 +1051,6 @@ function MenuItemCard({
         className="flex gap-4 p-3 cursor-pointer"
         onClick={() => onSelect(item)}
       >
-        {/* Image on the left */}
         <div className="relative h-24 w-24 sm:h-28 sm:w-28 shrink-0 overflow-hidden rounded-xl bg-gray-100">
           <img
             src={img(item.imageUrl)}
@@ -1100,7 +1081,6 @@ function MenuItemCard({
           )}
         </div>
 
-        {/* Text on the right */}
         <div className="flex flex-1 flex-col justify-between min-w-0 py-0.5">
           <div>
             <div className="flex items-center gap-1.5 mb-0.5">
@@ -1501,12 +1481,10 @@ function MenuPageContent() {
             .catch(() => {});
         }
 
-        // Load combo deals
         apiFetch<ComboMeal[]>(`/api/public/restaurants/${slug}/combo-meals`)
           .then((c) => { if (!cancelled) setComboMeals(c); })
           .catch(() => {});
 
-        // Load rush hour config
         apiFetch<RushHourData>(`/api/public/restaurants/${slug}/rush-hour`)
           .then((r) => { if (!cancelled) setRushHour(r); })
           .catch(() => {});
@@ -1675,17 +1653,13 @@ function MenuPageContent() {
 
   // Smart AI sorting: featured → bestsellers → highest rated → rest
   const smartSorted = [...filteredItems].sort((a, b) => {
-    // Featured items first
     if (a.isFeatured !== b.isFeatured) return a.isFeatured ? -1 : 1;
-    // Items with discounts next
     if (a.discount > 0 !== b.discount > 0) return a.discount > 0 ? -1 : 1;
-    // Bestsellers next
     const aBS = a.badge === "Bestseller" ? 1 : 0;
     const bBS = b.badge === "Bestseller" ? 1 : 0;
     if (aBS !== bBS) return bBS - aBS;
     // Then by rating (highest first)
     if (a.rating !== b.rating) return b.rating - a.rating;
-    // Then by sort order
     return a.sortOrder - b.sortOrder;
   });
 
@@ -1710,7 +1684,6 @@ function MenuPageContent() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.4 }}
         >
-          {/* Pulsing food icon */}
           <motion.div
             className="relative flex h-16 w-16 items-center justify-center"
             animate={{ scale: [1, 1.08, 1] }}
@@ -1783,7 +1756,6 @@ function MenuPageContent() {
   return (
     <div className="min-h-screen bg-[#F7F8FA] flex justify-center w-full" style={themeStyle}>
       <div className="w-full max-w-5xl bg-white min-h-screen shadow-[0_0_40px_rgba(0,0,0,0.03)] relative flex flex-col">
-        {/* Sleek Cover Banner */}
         {restaurant.coverUrl && (
           <div className="relative w-full h-[180px] sm:h-[240px] md:h-[280px] shrink-0">
             <img 
@@ -1791,12 +1763,9 @@ function MenuPageContent() {
                alt="Cover" 
                className="w-full h-full object-cover"
             />
-            {/* Elegant gradient overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
             
-            {/* Restaurant Info Overlay */}
             <div className="absolute bottom-6 left-6 right-6 flex items-end gap-3 sm:gap-4">
-               {/* Avatar or Logo */}
                <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl bg-white p-1 shadow-lg shrink-0 overflow-hidden">
                  <img src={restaurant.imageUrl || PLACEHOLDER_IMG} alt={restaurant.name} className="h-full w-full object-cover rounded-xl" />
                </div>
@@ -1819,7 +1788,6 @@ function MenuPageContent() {
           </div>
         )}
 
-        {/* Premium Header Container */}
         <motion.header
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -1904,7 +1872,6 @@ function MenuPageContent() {
 
       <div className="relative z-10 flex-1 px-4 md:px-6 pb-24">
         <div className="flex flex-col md:flex-row gap-6 py-4 lg:py-6 w-full">
-          {/* Main content */}
           <div className="flex-1 min-w-0 space-y-5">
             {/* Stories - with scroll reveal */}
             {restaurant.showStories && (
@@ -1916,7 +1883,6 @@ function MenuPageContent() {
             {/* Display Counter - live availability view */}
             <DisplayCounterView slug={slug} />
 
-            {/* Table session banner */}
             {hasSessionOrder && sessionOrder && (
               <TableSessionBanner
                 tableNo={tableNo ?? sessionOrder.tableNo ?? 0}
@@ -1951,7 +1917,6 @@ function MenuPageContent() {
               transition={{ duration: 0.4, delay: 0.15 }}
               className="space-y-2"
             >
-              {/* Main category pills */}
               <div className="flex items-center gap-2">
                 <div
                   ref={tabsRef}
@@ -2042,7 +2007,6 @@ function MenuPageContent() {
               </AnimatePresence>
             </motion.div>
 
-            {/* Filters */}
             <motion.div
               className="flex flex-wrap gap-2"
               initial={{ opacity: 0, y: 10 }}
@@ -2090,7 +2054,6 @@ function MenuPageContent() {
             </motion.div>
             </div>
 
-            {/* Hero slider */}
             {!searchQuery && (
               <FoodSlider
                 restaurantSlug={slug}
@@ -2101,7 +2064,6 @@ function MenuPageContent() {
               />
             )}
 
-            {/* Rush Hour banner */}
             {rushHour.isRushNow && rushHour.surgeEnabled && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
@@ -2119,7 +2081,6 @@ function MenuPageContent() {
               </motion.div>
             )}
 
-            {/* Combo Deals section */}
             {comboMeals.length > 0 && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
@@ -2367,7 +2328,6 @@ function MenuPageContent() {
                         </div>
                       );
                     })}
-                    {/* Items with categories not in the restaurant categories list */}
                     {smartSorted.filter(
                       (item) => !categories.some((c) => c.name === item.category.name),
                     ).length > 0 && (
@@ -2405,7 +2365,6 @@ function MenuPageContent() {
             </div>
           </div>
 
-          {/* Desktop cart sidebar */}
           <div className="hidden md:block w-[280px] lg:w-[320px] shrink-0">
             <div className="sticky top-[100px]">
               <DesktopCartPreview
@@ -2467,7 +2426,6 @@ function MenuPageContent() {
         )}
       </AnimatePresence>
 
-      {/* Dish detail glassmorphism modal */}
       <AnimatePresence>
         {selectedDish && (
           <DishDetailModal
@@ -2493,14 +2451,12 @@ function MenuPageContent() {
         />
       )}
 
-      {/* Cart sidebar */}
       <CartSidebar
         open={cartOpen}
         onClose={() => setCartOpen(false)}
         onProceed={handleProceedToCheckout}
       />
 
-      {/* Checkout sheet */}
       {restaurantId && (
         <CheckoutSheet
           open={checkoutOpen}
@@ -2539,7 +2495,6 @@ function MenuPageContent() {
         />
       )}
 
-      {/* Order History Sheet */}
       <OrderHistorySheet
         open={showHistory}
         onClose={() => setShowHistory(false)}
@@ -2547,7 +2502,6 @@ function MenuPageContent() {
         currency={restaurant?.currency ?? "NPR"}
       />
 
-      {/* Dynamic footer text */}
       {restaurant.footerText && (
         <div className="border-t border-gray-100 px-6 py-4 text-center">
           <p className="text-xs text-gray-400">{restaurant.footerText}</p>
@@ -2557,7 +2511,6 @@ function MenuPageContent() {
   );
 }
 
-/* ── Order History Sheet ──────────────────────────────── */
 interface HistoryOrder {
   id: string;
   orderNo: string;
@@ -2621,7 +2574,6 @@ function OrderHistorySheet({
             transition={{ type: "spring", damping: 28, stiffness: 280 }}
             className="fixed right-0 top-0 bottom-0 z-50 w-full max-w-sm bg-white shadow-2xl flex flex-col"
           >
-            {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 shrink-0">
               <div className="flex items-center gap-2">
                 <History className="h-5 w-5 text-[#eaa94d]" />
@@ -2632,7 +2584,6 @@ function OrderHistorySheet({
               </button>
             </div>
 
-            {/* Body */}
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
               {loading ? (
                 <div className="flex items-center justify-center py-16">

@@ -32,7 +32,6 @@ if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-/* ── Types ────────────────────────────────────────────────────────── */
 
 interface MenuItemData {
   id: string;
@@ -72,7 +71,6 @@ function img(url: string | null) {
   return url || PLACEHOLDER_IMG;
 }
 
-/* ── Suggestion Card ──────────────────────────────────────────────── */
 
 function SuggestionCard({
   item,
@@ -116,7 +114,6 @@ function SuggestionCard({
         className="group shrink-0 w-[260px] sm:w-[300px] cursor-pointer"
       >
         <div className="flex gap-3 rounded-2xl bg-white border border-gray-100 shadow-sm p-2.5 group-hover:shadow-xl transition-shadow duration-300">
-          {/* Image on the left */}
           <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-gray-100">
             <img
               src={img(item.imageUrl)}
@@ -131,7 +128,6 @@ function SuggestionCard({
             )}
           </div>
 
-          {/* Details on the right */}
           <div className="flex flex-1 flex-col justify-between min-w-0 py-0.5">
             <div>
               <h4 className="text-[13px] font-bold text-[#3e1e0c] truncate group-hover:text-[#eaa94d] transition-colors">
@@ -162,7 +158,6 @@ function SuggestionCard({
   );
 }
 
-/* ── Horizontal scroll section ────────────────────────────────────── */
 
 function ScrollSection({
   title,
@@ -232,7 +227,6 @@ function ScrollSection({
   );
 }
 
-/* ── Main Page ────────────────────────────────────────────────────── */
 
 export default function FoodDetailsPage() {
   const params = useParams<{ id: string }>();
@@ -276,7 +270,6 @@ export default function FoodDetailsPage() {
       .finally(() => setLoading(false));
   }, [foodId]);
 
-  // GSAP entrance animations
   useGSAP(
     () => {
       if (!food || !heroRef.current || !detailsRef.current) return;
@@ -335,7 +328,6 @@ export default function FoodDetailsPage() {
     { dependencies: [food] }
   );
 
-  // Handle Add to Cart
   const handleAddToCart = () => {
     if (!food) return;
     for (let i = 0; i < qty; i++) {
@@ -351,7 +343,6 @@ export default function FoodDetailsPage() {
         food.restaurant.currency ?? "NPR"
       );
     }
-    // Visual feedback
     if (ctaRef.current) {
       gsap.fromTo(
         ctaRef.current,
@@ -361,7 +352,6 @@ export default function FoodDetailsPage() {
     }
   };
 
-  // Loading State
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-[#fdf9ef] to-white">
@@ -419,7 +409,6 @@ export default function FoodDetailsPage() {
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-black/20" />
         <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent" />
 
-        {/* Nav buttons */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -444,7 +433,6 @@ export default function FoodDetailsPage() {
           </button>
         </motion.div>
 
-        {/* Bottom info on image */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -497,7 +485,6 @@ export default function FoodDetailsPage() {
         className="relative -mt-6 mx-auto max-w-3xl px-4 sm:px-6"
       >
         <div className="rounded-3xl bg-white shadow-2xl shadow-black/5 p-5 sm:p-8 space-y-5 border border-gray-100/50">
-          {/* Meta badges */}
           <div className="detail-anim flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1.5 rounded-xl bg-[#fdf9ef] px-3 py-1.5 text-[12px] font-bold text-[#eaa94d]">
               <Star className="h-3 w-3 fill-[#eaa94d]" />
@@ -519,7 +506,6 @@ export default function FoodDetailsPage() {
             )}
           </div>
 
-          {/* Tags */}
           <div className="detail-anim flex flex-wrap gap-1.5">
             {food.tags.map((tag) => (
               <span
@@ -534,14 +520,12 @@ export default function FoodDetailsPage() {
             </span>
           </div>
 
-          {/* Description */}
           <div className="detail-anim">
             <p className="text-[14px] sm:text-[15px] text-gray-600 leading-relaxed">
               {food.description}
             </p>
           </div>
 
-          {/* Rating Input */}
           <div className="detail-anim">
             <RatingInput
               menuItemId={food.id}
@@ -552,7 +536,6 @@ export default function FoodDetailsPage() {
             />
           </div>
 
-          {/* Restaurant info */}
           <div className="detail-anim flex items-center gap-3 p-3 rounded-2xl bg-gray-50/80 border border-gray-100">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#3e1e0c] text-white">
               <Utensils className="h-4 w-4" />
@@ -594,7 +577,6 @@ export default function FoodDetailsPage() {
               </div>
             </div>
 
-            {/* Quantity */}
             <div className="flex items-center gap-1 rounded-2xl bg-gray-50 border border-gray-200 px-1 py-1">
               <button
                 onClick={() => setQty(Math.max(1, qty - 1))}
@@ -619,7 +601,6 @@ export default function FoodDetailsPage() {
             </div>
           </div>
 
-          {/* CTA */}
           <motion.button
             ref={ctaRef}
             onClick={handleAddToCart}

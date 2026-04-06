@@ -182,7 +182,6 @@ export default function ThemeSettingsTab() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-lg font-bold text-amber-950">Theme Settings</h2>
@@ -211,7 +210,6 @@ export default function ThemeSettingsTab() {
         </div>
       </div>
 
-      {/* Live preview strip */}
       <div
         className="rounded-2xl p-5 text-white overflow-hidden relative"
         style={{ background: `linear-gradient(135deg, ${previewPrimary}, ${previewSecondary})` }}
@@ -233,14 +231,12 @@ export default function ThemeSettingsTab() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Colors section */}
         <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-5">
           <h3 className="text-sm font-bold text-gray-700 flex items-center gap-2">
             <Palette className="h-4 w-4 text-amber-600" />
             Brand Colors
           </h3>
 
-          {/* Color presets */}
           <div>
             <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Presets</p>
             <div className="flex flex-wrap gap-2">
@@ -263,7 +259,6 @@ export default function ThemeSettingsTab() {
             </div>
           </div>
 
-          {/* Manual color pickers */}
           <div className="space-y-3">
             {[
               { key: "primaryColor" as const, label: "Primary Color" },
@@ -307,7 +302,6 @@ export default function ThemeSettingsTab() {
 
         {/* Typography & Layout */}
         <div className="space-y-5">
-          {/* Font family */}
           <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-3">
             <h3 className="text-sm font-bold text-gray-700 flex items-center gap-2">
               <Type className="h-4 w-4 text-amber-600" />
@@ -341,7 +335,6 @@ export default function ThemeSettingsTab() {
             </div>
           </div>
 
-          {/* Menu layout */}
           <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-3">
             <h3 className="text-sm font-bold text-gray-700 flex items-center gap-2">
               <Layout className="h-4 w-4 text-amber-600" />
@@ -369,7 +362,6 @@ export default function ThemeSettingsTab() {
 
       {/* Feature toggles & footer */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Feature toggles */}
         <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-4">
           <h3 className="text-sm font-bold text-gray-700 flex items-center gap-2">
             <Eye className="h-4 w-4 text-amber-600" />
@@ -398,7 +390,6 @@ export default function ThemeSettingsTab() {
           ))}
         </div>
 
-        {/* Footer text */}
         <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-3">
           <h3 className="text-sm font-bold text-gray-700">Footer Text</h3>
           <p className="text-xs text-gray-400">Shown at the bottom of the public menu page.</p>
@@ -412,7 +403,6 @@ export default function ThemeSettingsTab() {
         </div>
       </div>
 
-      {/* Save bar */}
       {isDirty && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}

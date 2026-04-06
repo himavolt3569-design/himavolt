@@ -504,7 +504,6 @@ export default function TrackOrderPage() {
 
   return (
     <div className="min-h-screen bg-gray-50/50">
-      {/* Header */}
       <header className="sticky top-0 z-40 bg-white border-b border-gray-100 shadow-sm">
         <div className="mx-auto max-w-2xl px-4">
           <div className="flex h-14 items-center gap-3">
@@ -534,7 +533,6 @@ export default function TrackOrderPage() {
       </header>
 
       <div className="mx-auto max-w-2xl px-4 py-6 space-y-5">
-        {/* Payment status toast */}
         <AnimatePresence>
           {paymentStatus && (
             <motion.div
@@ -554,7 +552,6 @@ export default function TrackOrderPage() {
           )}
         </AnimatePresence>
 
-        {/* Order ID card */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -616,7 +613,6 @@ export default function TrackOrderPage() {
             </div>
           </div>
 
-          {/* Restaurant info */}
           <div className="flex items-center gap-3 mt-4 pt-4 border-t border-gray-100">
             <div className="h-10 w-10 rounded-xl bg-[#3e1e0c]/10 flex items-center justify-center shrink-0">
               <MapPin className="h-4 w-4 text-[#3e1e0c]" />
@@ -639,7 +635,6 @@ export default function TrackOrderPage() {
             )}
           </div>
 
-          {/* Payment badge */}
           {order.payment && (
             <div className="mt-4 pt-4 border-t border-gray-100">
               <PaymentBadge
@@ -781,7 +776,6 @@ export default function TrackOrderPage() {
             </motion.div>
           )}
 
-        {/* Countdown timer */}
         {showTimer && (
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -795,7 +789,6 @@ export default function TrackOrderPage() {
           </motion.div>
         )}
 
-        {/* Status section */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -875,7 +868,6 @@ export default function TrackOrderPage() {
             </div>
           )}
 
-          {/* Progress steps */}
           {!isCancelled && (
             <div className="space-y-0">
               {STEPS.map((step, i) => {
@@ -982,7 +974,6 @@ export default function TrackOrderPage() {
           )}
         </motion.div>
 
-        {/* Order items */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -1017,7 +1008,6 @@ export default function TrackOrderPage() {
           </div>
         </motion.div>
 
-        {/* Bill toggle */}
         <button
           onClick={() => setShowBill(!showBill)}
           className="w-full rounded-xl border border-gray-200 bg-white py-3.5 px-5 flex items-center justify-between shadow-sm hover:bg-gray-50 transition-colors"
@@ -1114,7 +1104,6 @@ export default function TrackOrderPage() {
             </div>
           )}
 
-        {/* Back to menu */}
         <Link
           href={`/menu/${order.restaurant.slug}${order.tableNo ? `?table=${order.tableNo}` : ""}`}
           className="block w-full rounded-xl bg-[#3e1e0c] py-4 text-center text-sm font-bold text-white hover:bg-[#2d1508] transition-colors shadow-lg cursor-pointer"

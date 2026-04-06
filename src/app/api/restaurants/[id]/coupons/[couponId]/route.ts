@@ -75,7 +75,6 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       }
     }
 
-    // Validate percentage cap
     const finalType = (updateData.type as string) ?? coupon.type;
     const finalValue = (updateData.value as number) ?? coupon.value;
     if (finalType === "PERCENTAGE" && finalValue > 100) {

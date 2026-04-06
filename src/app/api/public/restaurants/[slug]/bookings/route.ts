@@ -67,7 +67,6 @@ export async function POST(
     );
   }
 
-  // Check for overlapping bookings
   const overlap = await db.roomBooking.findFirst({
     where: {
       roomId,

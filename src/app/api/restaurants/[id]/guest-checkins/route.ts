@@ -6,10 +6,8 @@ import { getStaffSession } from "@/lib/staff-auth";
 type Params = { params: Promise<{ id: string }> };
 
 async function canAccess(req: NextRequest, restaurantId: string) {
-  // Allow staff session
   const staffSession = await getStaffSession(req);
   if (staffSession && staffSession.restaurantId === restaurantId) return true;
-  // Allow restaurant owner
   const user = await getOrCreateUser();
   if (!user) return false;
   const rest = await db.restaurant.findFirst({ where: { id: restaurantId, ownerId: user.id } });

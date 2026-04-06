@@ -56,7 +56,6 @@ export default function GuidePage() {
   return (
     <div className="min-h-screen bg-gray-50/50 py-8 px-4">
       <div className="mx-auto max-w-3xl space-y-8">
-        {/* Header */}
         <div>
           <Link
             href="/"
@@ -73,7 +72,6 @@ export default function GuidePage() {
           </p>
         </div>
 
-        {/* Order Statuses */}
         <Section title="Order Statuses" icon={<Clock className="h-4 w-4" />}>
           <div className="space-y-2">
             {ORDER_STATUSES.map((s) => (
@@ -87,7 +85,6 @@ export default function GuidePage() {
           </div>
         </Section>
 
-        {/* Staff Roles */}
         <Section title="Staff Roles" icon={<Shield className="h-4 w-4" />}>
           <div className="space-y-2">
             {STAFF_ROLES.map((r) => (
@@ -102,7 +99,6 @@ export default function GuidePage() {
           </div>
         </Section>
 
-        {/* Payment Methods */}
         <Section title="Payment Methods" icon={<CreditCard className="h-4 w-4" />}>
           <div className="space-y-2">
             {PAYMENT_METHODS.map((p) => (
@@ -116,7 +112,6 @@ export default function GuidePage() {
           </div>
         </Section>
 
-        {/* Menu Indicators */}
         <Section title="Menu Indicators" icon={<Leaf className="h-4 w-4" />}>
           <div className="space-y-3">
             <Indicator
@@ -165,7 +160,6 @@ export default function GuidePage() {
           </div>
         </Section>
 
-        {/* Stock Indicators */}
         <Section title="Stock & Inventory" icon={<Package className="h-4 w-4" />}>
           <div className="space-y-3">
             <Indicator
@@ -191,7 +185,6 @@ export default function GuidePage() {
           </div>
         </Section>
 
-        {/* Chat Senders */}
         <Section title="Chat Messages" icon={<MessageCircle className="h-4 w-4" />}>
           <div className="space-y-2">
             {CHAT_SENDERS.map((c) => (
@@ -208,7 +201,6 @@ export default function GuidePage() {
           </div>
         </Section>
 
-        {/* Live Indicators */}
         <Section title="Live Indicators" icon={<span className="relative flex h-4 w-4 items-center justify-center"><span className="animate-ping absolute h-3 w-3 rounded-full bg-green-400 opacity-75" /><span className="relative h-2 w-2 rounded-full bg-green-500" /></span>}>
           <div className="space-y-3">
             <div className="flex items-center gap-3">
@@ -228,7 +220,6 @@ export default function GuidePage() {
           </div>
         </Section>
 
-        {/* General Navigation */}
         <Section title="Quick Navigation" icon={<ArrowLeft className="h-4 w-4" />}>
           <div className="grid grid-cols-2 gap-2 text-sm">
             {[

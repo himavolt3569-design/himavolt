@@ -130,7 +130,6 @@ export default function MultiBrandTab() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">
@@ -149,7 +148,6 @@ export default function MultiBrandTab() {
         </button>
       </div>
 
-      {/* Summary Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-center">
           <Store className="w-5 h-5 text-violet-500 mx-auto mb-1" />
@@ -177,7 +175,6 @@ export default function MultiBrandTab() {
         </div>
       </div>
 
-      {/* Add Brand Form */}
       <AnimatePresence>
         {showAddForm && (
           <motion.div
@@ -293,7 +290,6 @@ export default function MultiBrandTab() {
         )}
       </AnimatePresence>
 
-      {/* Brand Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <AnimatePresence mode="popLayout">
           {brands.map((brand) => (
@@ -307,7 +303,6 @@ export default function MultiBrandTab() {
                 brand.active ? "border-gray-200" : "border-gray-100 opacity-70"
               }`}
             >
-              {/* Brand color accent bar */}
               <div
                 className="h-2"
                 style={{ backgroundColor: brand.brandColor }}
@@ -316,7 +311,6 @@ export default function MultiBrandTab() {
               <div className="p-5">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    {/* Logo placeholder */}
                     <div
                       className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-lg"
                       style={{ backgroundColor: brand.brandColor }}
@@ -378,7 +372,6 @@ export default function MultiBrandTab() {
                   </span>
                 </div>
 
-                {/* Action buttons */}
                 <div className="flex gap-2 mt-3">
                   <button
                     onClick={() =>
@@ -404,7 +397,6 @@ export default function MultiBrandTab() {
                   </button>
                 </div>
 
-                {/* Menu category manager */}
                 <AnimatePresence>
                   {showMenuManager === brand.id && (
                     <motion.div
@@ -453,7 +445,6 @@ export default function MultiBrandTab() {
         </AnimatePresence>
       </div>
 
-      {/* Performance Comparison */}
       <motion.div
         layout
         className="bg-white rounded-xl shadow-sm border border-gray-100 p-6"

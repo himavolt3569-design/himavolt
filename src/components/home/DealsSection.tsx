@@ -61,7 +61,6 @@ export default function DealsSection() {
         <div
           className="relative overflow-hidden rounded-3xl bg-linear-to-br from-[#eaa94d] via-[#e58f2a] to-[#d67620] p-8 md:p-12 lg:p-16 mb-10"
         >
-          {/* Floating food images with parallax */}
           <div className="absolute right-0 top-0 bottom-0 w-[45%] hidden md:block pointer-events-none">
             <motion.div
               style={{ y: img1Y }}
@@ -95,7 +94,6 @@ export default function DealsSection() {
             </motion.div>
           </div>
 
-          {/* Grain texture */}
           <div
             className="absolute inset-0 opacity-[0.05] pointer-events-none"
             style={{
@@ -104,7 +102,6 @@ export default function DealsSection() {
             }}
           />
 
-          {/* Decorative orb */}
           <div className="absolute -top-20 -right-20 h-75 w-75 rounded-full bg-white/8 blur-[60px] pointer-events-none" />
 
           <div className="relative z-10 max-w-lg">

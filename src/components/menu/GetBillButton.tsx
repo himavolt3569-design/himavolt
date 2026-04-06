@@ -42,7 +42,6 @@ export default function GetBillButton({
 
   return (
     <>
-      {/* Floating button */}
       <motion.button
         onClick={() => setShowModal(true)}
         initial={{ opacity: 0, y: 20 }}
@@ -55,7 +54,6 @@ export default function GetBillButton({
         Get Bill
       </motion.button>
 
-      {/* Bill summary modal */}
       <AnimatePresence>
         {showModal && (
           <>

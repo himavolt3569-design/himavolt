@@ -28,7 +28,6 @@ import {
 import { useRestaurant } from "@/context/RestaurantContext";
 import { formatPrice } from "@/lib/currency";
 
-/* ─── Types ─────────────────────────────────────────────────────── */
 interface Booking {
   id: string;
   guestName: string;
@@ -63,7 +62,6 @@ interface HotelConfig {
   currency: string;
 }
 
-/* ─── Status helpers ─────────────────────────────────────────────── */
 const STATUS_STYLES: Record<string, string> = {
   PENDING: "bg-amber-50 text-amber-700 ring-amber-200",
   CONFIRMED: "bg-emerald-50 text-emerald-700 ring-emerald-200",
@@ -78,7 +76,6 @@ const PAY_STATUS_STYLES: Record<string, string> = {
   FAILED: "bg-rose-50 text-rose-600",
 };
 
-/* ─── Booking row ───────────────────────────────────────────────── */
 function BookingRow({
   booking,
   currency,
@@ -118,12 +115,10 @@ function BookingRow({
       className="rounded-2xl bg-white ring-1 ring-gray-100 shadow-sm overflow-hidden"
     >
       <div className="flex items-center gap-3 p-4">
-        {/* Room badge */}
         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-50 ring-1 ring-amber-100">
           <BedDouble className="h-5 w-5 text-amber-500" />
         </div>
 
-        {/* Main info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <p className="text-[14px] font-bold text-gray-900 truncate">{booking.guestName}</p>
@@ -149,7 +144,6 @@ function BookingRow({
           </span>
         </div>
 
-        {/* Actions */}
         <div className="flex items-center gap-1.5 shrink-0">
           <button
             onClick={() => onView(booking)}
@@ -198,7 +192,6 @@ function BookingRow({
   );
 }
 
-/* ─── Detail Modal ─────────────────────────────────────────────── */
 function BookingDetailModal({
   booking,
   currency,
@@ -240,14 +233,12 @@ function BookingDetailModal({
         </div>
 
         <div className="px-5 py-5 space-y-4">
-          {/* Status */}
           <div className={`flex items-center gap-2 rounded-2xl p-3 ring-1 ${STATUS_STYLES[booking.status]}`}>
             <div className="h-2 w-2 rounded-full bg-current" />
             <span className="text-[13px] font-bold">{booking.status.replace("_", " ")}</span>
             <span className="ml-auto text-[11px] opacity-70">#{booking.id.slice(-8).toUpperCase()}</span>
           </div>
 
-          {/* Guest info */}
           <div className="space-y-2">
             <p className="text-[11px] font-bold uppercase tracking-wide text-gray-400">Guest</p>
             <p className="text-[15px] font-bold text-gray-900">{booking.guestName}</p>
@@ -292,7 +283,6 @@ function BookingDetailModal({
             </div>
           </div>
 
-          {/* Payment */}
           <div className="rounded-xl bg-amber-50 ring-1 ring-amber-100 p-3 space-y-1.5">
             <div className="flex justify-between text-[12px]">
               <span className="text-gray-600">Total stay</span>
@@ -332,7 +322,6 @@ function BookingDetailModal({
             </div>
           )}
 
-          {/* Status actions */}
           {["PENDING", "CONFIRMED", "CHECKED_IN"].includes(booking.status) && (
             <div className="space-y-2">
               <p className="text-[11px] font-bold uppercase tracking-wide text-gray-400">Update Status</p>
@@ -380,7 +369,6 @@ function BookingDetailModal({
   );
 }
 
-/* ─── Advance Config Modal ──────────────────────────────────────── */
 function AdvanceConfigModal({
   config,
   restaurantId,
@@ -487,7 +475,6 @@ function AdvanceConfigModal({
   );
 }
 
-/* ─── Main Tab ──────────────────────────────────────────────────── */
 const STATUSES = ["ALL", "PENDING", "CONFIRMED", "CHECKED_IN", "CHECKED_OUT", "CANCELLED"];
 
 export default function HotelBookingsTab() {
@@ -573,7 +560,6 @@ export default function HotelBookingsTab() {
 
   return (
     <div className="space-y-5">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-[20px] font-black text-gray-900">Hotel Bookings</h2>
@@ -600,7 +586,6 @@ export default function HotelBookingsTab() {
         </div>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
           { label: "Pending", value: stats.pending, color: "amber" },
@@ -615,7 +600,6 @@ export default function HotelBookingsTab() {
         ))}
       </div>
 
-      {/* Config banner */}
       {config && (
         <div className="flex items-center gap-3 rounded-2xl bg-amber-50 ring-1 ring-amber-100 px-4 py-3">
           <AlertCircle className="h-4 w-4 text-amber-600 shrink-0" />
@@ -636,7 +620,6 @@ export default function HotelBookingsTab() {
         </div>
       )}
 
-      {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
@@ -665,7 +648,6 @@ export default function HotelBookingsTab() {
         </div>
       </div>
 
-      {/* Booking list */}
       {filtered.length === 0 ? (
         <div className="py-16 text-center">
           <BedDouble className="mx-auto h-12 w-12 text-gray-200 mb-3" />
@@ -692,7 +674,6 @@ export default function HotelBookingsTab() {
         </div>
       )}
 
-      {/* Detail modal */}
       <AnimatePresence>
         {viewBooking && (
           <BookingDetailModal
@@ -704,7 +685,6 @@ export default function HotelBookingsTab() {
         )}
       </AnimatePresence>
 
-      {/* Config modal */}
       <AnimatePresence>
         {showConfig && config && restaurantId && (
           <AdvanceConfigModal

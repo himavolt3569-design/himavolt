@@ -173,7 +173,6 @@ export default function POSRegister({
           })),
         }),
       });
-      // Mark as held
       await staffFetch(`/api/restaurants/${restaurantId}/orders/held`, {
         method: "PATCH",
         body: JSON.stringify({ orderId: order.id, isHeld: true }),
@@ -193,7 +192,6 @@ export default function POSRegister({
 
   return (
     <div className="flex h-full">
-      {/* Left: Menu grid */}
       <div className="flex-1 bg-gray-50">
         <POSMenuGrid
           items={menuItems}
@@ -203,7 +201,6 @@ export default function POSRegister({
         />
       </div>
 
-      {/* Right: Order panel */}
       <div className="w-[340px] shrink-0">
         <POSOrderPanel
           items={orderItems}

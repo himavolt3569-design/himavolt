@@ -113,7 +113,6 @@ export default function POSDailySummary({ restaurantId, currency }: Props) {
         </div>
       </div>
 
-      {/* Order stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {stats.map((stat) => {
           const Icon = stat.icon;
@@ -129,7 +128,6 @@ export default function POSDailySummary({ restaurantId, currency }: Props) {
         })}
       </div>
 
-      {/* Financial summary */}
       <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
         <div className="px-5 py-4 border-b border-gray-100 bg-gray-50">
           <h3 className="text-sm font-bold text-gray-700 flex items-center gap-2">

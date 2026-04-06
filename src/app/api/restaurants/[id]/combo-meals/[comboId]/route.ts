@@ -24,7 +24,6 @@ export async function PATCH(
   const body = await req.json();
   const { name, description, imageUrl, comboPrice, originalPrice, isActive, items } = body;
 
-  // Replace items if provided
   const updated = await db.comboMeal.update({
     where: { id: comboId, restaurantId: id },
     data: {

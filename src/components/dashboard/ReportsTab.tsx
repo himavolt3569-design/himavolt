@@ -67,7 +67,6 @@ export default function ReportsTab() {
 
   return (
     <div className="max-w-5xl space-y-8 pb-12">
-      {/* Header */}
       <div>
         <h2 className="text-2xl font-extrabold tracking-tight text-gray-900">Financial Reports</h2>
         <p className="text-sm font-medium text-gray-500 mt-1.5">
@@ -144,7 +143,6 @@ export default function ReportsTab() {
         </motion.div>
       </div>
 
-      {/* Revenue breakdown */}
       <div>
         <h3 className="text-[13px] font-bold text-gray-400 uppercase tracking-wider mb-4">Revenue Breakdown</h3>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -179,7 +177,6 @@ export default function ReportsTab() {
         </div>
       </div>
 
-      {/* Note */}
       <p className="text-[12px] font-medium text-gray-400 leading-relaxed max-w-2xl bg-gray-100/50 backdrop-blur-sm p-4 rounded-xl border border-gray-200/50">
         <span className="font-bold text-gray-500">Note:</span> Profit is estimated by subtracting total inventory cost from lifetime revenue. This is a simplified overview for quick reference and does not account for operational expenses.
       </p>

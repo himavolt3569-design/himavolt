@@ -44,7 +44,6 @@ export default function CompleteProfilePage() {
   const debouncedUsername = useDebounce(username, 400);
   const checkedRef = useRef("");
 
-  // Load session data
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
     supabase.auth.getSession().then((result: Awaited<ReturnType<typeof supabase.auth.getSession>>) => {
@@ -63,7 +62,6 @@ export default function CompleteProfilePage() {
     });
   }, [router]);
 
-  // Username uniqueness check
   useEffect(() => {
     const u = debouncedUsername;
     if (!u || checkedRef.current === u) return;
@@ -96,7 +94,6 @@ export default function CompleteProfilePage() {
 
     const supabase = getSupabaseBrowserClient();
 
-    // Set password if requested
     if (wantPassword && password) {
       const { error: pwErr } = await supabase.auth.updateUser({ password });
       if (pwErr) {
@@ -157,7 +154,6 @@ export default function CompleteProfilePage() {
         transition={{ duration: 0.22 }}
         className="w-full max-w-sm"
       >
-        {/* Logo */}
         <div className="mb-6 text-center">
           <Link href="/" className="inline-flex items-center gap-2">
             <Mountain className="h-8 w-8 text-[#eaa94d]" strokeWidth={2.5} />
@@ -171,7 +167,6 @@ export default function CompleteProfilePage() {
         </div>
 
         <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-          {/* Role strip */}
           <div className={`px-5 py-3 ${isOwner ? "bg-[#3e1e0c]" : "bg-[#eaa94d]/5"}`}>
             <div className="flex items-center gap-2">
               {isOwner ? (
@@ -216,7 +211,6 @@ export default function CompleteProfilePage() {
                 />
               </div>
 
-              {/* Username */}
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">
                   Username <span className="text-[#eaa94d]">*</span>
@@ -255,7 +249,6 @@ export default function CompleteProfilePage() {
                 </p>
               </div>
 
-              {/* Password toggle */}
               <button
                 type="button"
                 onClick={() => setWantPassword((v) => !v)}

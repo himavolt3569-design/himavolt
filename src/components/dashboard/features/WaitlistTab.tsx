@@ -68,7 +68,6 @@ export default function WaitlistTab() {
   const [showHistory, setShowHistory] = useState(false);
   const [currentTime, setCurrentTime] = useState(Date.now());
 
-  // Form state
   const [formName, setFormName] = useState("");
   const [formPartySize, setFormPartySize] = useState(2);
   const [formPhone, setFormPhone] = useState("");
@@ -192,7 +191,6 @@ export default function WaitlistTab() {
     return `${n}${suffix}`;
   };
 
-  // Stats
   const avgWaitToday = (() => {
     const seatedHistory = history.filter(
       (h) => h.status === "Seated" && h.seatedAt
@@ -220,7 +218,6 @@ export default function WaitlistTab() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
@@ -239,7 +236,6 @@ export default function WaitlistTab() {
         </button>
       </div>
 
-      {/* Stats Row */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         {[
           {
@@ -294,7 +290,6 @@ export default function WaitlistTab() {
         ))}
       </div>
 
-      {/* Peak Wait Indicator */}
       {activeWaitlist.length > 0 && (
         <motion.div
           initial={{ opacity: 0 }}
@@ -340,7 +335,6 @@ export default function WaitlistTab() {
         </motion.div>
       )}
 
-      {/* Add to Waitlist Form */}
       <AnimatePresence>
         {showForm && (
           <motion.div
@@ -437,7 +431,6 @@ export default function WaitlistTab() {
         )}
       </AnimatePresence>
 
-      {/* Current Waitlist */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="p-5 border-b border-gray-100">
           <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
@@ -472,14 +465,12 @@ export default function WaitlistTab() {
                     }`}
                   >
                     <div className="flex items-center gap-4">
-                      {/* Position */}
                       <div className="flex-shrink-0 w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center">
                         <span className="text-sm font-bold text-emerald-700">
                           {getPositionLabel(index)}
                         </span>
                       </div>
 
-                      {/* Guest Info */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <p className="text-sm font-medium text-gray-900 truncate">
@@ -505,7 +496,6 @@ export default function WaitlistTab() {
                         </div>
                       </div>
 
-                      {/* Wait Time */}
                       <div className="text-right flex-shrink-0">
                         <p
                           className={`text-lg font-bold ${
@@ -524,7 +514,6 @@ export default function WaitlistTab() {
                         )}
                       </div>
 
-                      {/* Actions */}
                       <div className="flex items-center gap-1.5 flex-shrink-0">
                         {entry.status === "Waiting" && (
                           <button
@@ -573,7 +562,6 @@ export default function WaitlistTab() {
         )}
       </div>
 
-      {/* Table Availability Overview */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
         <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
           <Armchair className="w-4 h-4 text-emerald-600" />
@@ -604,7 +592,6 @@ export default function WaitlistTab() {
         </div>
       </div>
 
-      {/* History Toggle */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <button
           onClick={() => setShowHistory(!showHistory)}

@@ -61,7 +61,6 @@ export default function DisplayCounterView({ slug }: { slug: string }) {
       transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
       className="rounded-2xl bg-gradient-to-br from-amber-50/80 via-white to-pink-50/60 ring-1 ring-amber-100/60 shadow-sm overflow-hidden"
     >
-      {/* Header */}
       <div className="px-4 pt-4 pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -86,7 +85,6 @@ export default function DisplayCounterView({ slug }: { slug: string }) {
           )}
         </div>
 
-        {/* Category chips */}
         {categories.length > 1 && (
           <div className="flex gap-1.5 mt-3 overflow-x-auto scrollbar-hide pb-0.5">
             <button
@@ -116,7 +114,6 @@ export default function DisplayCounterView({ slug }: { slug: string }) {
         )}
       </div>
 
-      {/* Items Grid */}
       <div className="px-4 pb-4">
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           <AnimatePresence mode="popLayout">
@@ -141,7 +138,6 @@ export default function DisplayCounterView({ slug }: { slug: string }) {
                       : "ring-gray-100 hover:ring-gray-200 hover:shadow-md"
                   }`}
                 >
-                  {/* Status badge */}
                   {item.status !== "available" && (
                     <div className={`absolute -top-1.5 -right-1.5 flex items-center gap-0.5 ${sc.bg} ${sc.color} text-[8px] font-bold px-1.5 py-0.5 rounded-full ring-1 ${sc.ring} shadow-sm`}>
                       <Icon className="h-2.5 w-2.5" />
@@ -149,7 +145,6 @@ export default function DisplayCounterView({ slug }: { slug: string }) {
                     </div>
                   )}
 
-                  {/* Item content */}
                   <div className="text-center pt-1">
                     {item.imageUrl ? (
                       <div className="h-12 w-12 mx-auto rounded-lg overflow-hidden mb-2">

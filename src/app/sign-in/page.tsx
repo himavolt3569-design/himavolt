@@ -57,14 +57,12 @@ export default function SignInPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-[#fdf9ef] via-[#fefcf5] to-[#fdf9ef] p-6">
-      {/* Soft background blobs */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -top-32 -right-32 h-96 w-96 rounded-full bg-[#eaa94d]/15 blur-3xl" />
         <div className="absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-[#d67620]/10 blur-3xl" />
       </div>
 
       <div className="relative w-full max-w-sm">
-        {/* Logo */}
         <div className="mb-8 text-center">
           <Link href="/" className="inline-flex items-center gap-2">
             <Mountain className="h-8 w-8 text-[#eaa94d]" strokeWidth={2.5} />
@@ -75,7 +73,6 @@ export default function SignInPage() {
           <p className="mt-2 text-sm text-[#8e491e]/50">Welcome back — sign in to continue</p>
         </div>
 
-        {/* Card */}
         <div className="rounded-2xl border border-[#f4d69a]/40 bg-white/90 p-6 shadow-xl shadow-[#eaa94d]/8 backdrop-blur-sm">
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
@@ -84,7 +81,6 @@ export default function SignInPage() {
               </div>
             )}
 
-            {/* Email */}
             <div>
               <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-[#8e491e]/50">
                 Email
@@ -102,7 +98,6 @@ export default function SignInPage() {
               </div>
             </div>
 
-            {/* Password */}
             <div>
               <div className="mb-1.5 flex items-center justify-between">
                 <label className="text-xs font-semibold uppercase tracking-wide text-[#8e491e]/50">
@@ -148,7 +143,6 @@ export default function SignInPage() {
             </button>
           </form>
 
-          {/* Google */}
           <div className="mt-4 rounded-xl border border-dashed border-[#f4d69a]/40 bg-[#fdf9ef]/50 px-4 py-3 text-center">
             <p className="text-xs text-[#8e491e]/40 mb-2">Restaurant Owner?</p>
             <button

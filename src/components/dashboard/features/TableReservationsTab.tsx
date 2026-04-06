@@ -126,7 +126,6 @@ export default function TableReservationsTab() {
     smsReminders: true,
   });
 
-  // Form state
   const [formName, setFormName] = useState("");
   const [formPhone, setFormPhone] = useState("");
   const [formPartySize, setFormPartySize] = useState(2);
@@ -139,7 +138,6 @@ export default function TableReservationsTab() {
     const available = TABLES[preference];
     const suitable = available.filter((t) => TABLE_CAPACITY[t] >= partySize);
     if (suitable.length === 0) return available[0] || "TBD";
-    // Pick smallest suitable table
     suitable.sort((a, b) => TABLE_CAPACITY[a] - TABLE_CAPACITY[b]);
     return suitable[0];
   };
@@ -226,7 +224,6 @@ export default function TableReservationsTab() {
   const reservationsForDate = (date: string) =>
     reservations.filter((r) => r.date === date);
 
-  // Calendar helpers
   const getDaysInMonth = (year: number, month: number) =>
     new Date(year, month + 1, 0).getDate();
   const getFirstDayOfMonth = (year: number, month: number) =>
@@ -307,7 +304,6 @@ export default function TableReservationsTab() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
@@ -347,7 +343,6 @@ export default function TableReservationsTab() {
         </div>
       </div>
 
-      {/* Today Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         {[
           { label: "Today Total", value: stats.todayTotal, color: "text-gray-900" },
@@ -368,7 +363,6 @@ export default function TableReservationsTab() {
         ))}
       </div>
 
-      {/* Create Reservation Form Modal */}
       <AnimatePresence>
         {showForm && (
           <motion.div
@@ -542,7 +536,6 @@ export default function TableReservationsTab() {
         )}
       </AnimatePresence>
 
-      {/* Reservation Detail Modal */}
       <AnimatePresence>
         {selectedReservation && (
           <motion.div
@@ -705,7 +698,6 @@ export default function TableReservationsTab() {
         )}
       </AnimatePresence>
 
-      {/* Main Content */}
       {view === "list" && (
         <motion.div
           initial={{ opacity: 0 }}
@@ -753,7 +745,6 @@ export default function TableReservationsTab() {
             </div>
           )}
 
-          {/* Filters */}
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -790,7 +781,6 @@ export default function TableReservationsTab() {
             </select>
           </div>
 
-          {/* Reservations Table */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -934,7 +924,6 @@ export default function TableReservationsTab() {
             {renderCalendar()}
           </div>
 
-          {/* Selected date reservations */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
             <h3 className="text-sm font-semibold text-gray-900 mb-3">
               Reservations for {selectedDate}

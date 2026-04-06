@@ -121,7 +121,6 @@ export default function POSActiveOrders({ restaurantId, currency }: Props) {
 
   return (
     <div className="p-6 h-full flex flex-col">
-      {/* Header */}
       <div className="flex items-center justify-between mb-4 shrink-0">
         <h2 className="text-lg font-bold text-gray-900">Active Orders</h2>
         <button
@@ -133,7 +132,6 @@ export default function POSActiveOrders({ restaurantId, currency }: Props) {
         </button>
       </div>
 
-      {/* Filters */}
       <div className="flex gap-2 mb-4 shrink-0 overflow-x-auto scrollbar-hide">
         {FILTER_STATUSES.map((s) => {
           const count = s === "ALL" ? orders.length : orders.filter((o) => o.status === s).length;
@@ -156,7 +154,6 @@ export default function POSActiveOrders({ restaurantId, currency }: Props) {
         })}
       </div>
 
-      {/* Orders grid */}
       <div className="flex-1 overflow-y-auto">
         {loading ? (
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
@@ -184,7 +181,6 @@ export default function POSActiveOrders({ restaurantId, currency }: Props) {
                     exit={{ opacity: 0, scale: 0.95 }}
                     className="rounded-xl border border-gray-200 bg-white overflow-hidden shadow-sm"
                   >
-                    {/* Status header */}
                     <div className={`flex items-center justify-between px-3 py-2 border-b ${cfg.color}`}>
                       <div className="flex items-center gap-1.5">
                         <Icon className="h-3.5 w-3.5" />
@@ -194,7 +190,6 @@ export default function POSActiveOrders({ restaurantId, currency }: Props) {
                     </div>
 
                     <div className="p-3 space-y-2">
-                      {/* Order info */}
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-black text-gray-900">#{order.orderNo}</span>
                         <span className="text-xs font-bold text-amber-700">{formatPrice(order.total, currency)}</span>
@@ -207,7 +202,6 @@ export default function POSActiveOrders({ restaurantId, currency }: Props) {
                         </div>
                       )}
 
-                      {/* Items */}
                       <div className="space-y-0.5">
                         {order.items.slice(0, 4).map((item) => (
                           <p key={item.id} className="text-xs text-gray-600">
@@ -219,7 +213,6 @@ export default function POSActiveOrders({ restaurantId, currency }: Props) {
                         )}
                       </div>
 
-                      {/* Action buttons */}
                       {next && (
                         <div className="flex gap-2 pt-1">
                           {order.status === "PENDING" && (

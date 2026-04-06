@@ -35,7 +35,6 @@ function ScanPageContent() {
   const restaurantSlug = searchParams.get("restaurant");
   const { showToast } = useToast();
 
-  // Camera state
   const [cameraActive, setCameraActive] = useState(false);
   const [cameraError, setCameraError] = useState<CameraError>(null);
   const [scanSuccess, setScanSuccess] = useState(false);
@@ -43,12 +42,10 @@ function ScanPageContent() {
   const [torchSupported, setTorchSupported] = useState(false);
   const [starting, setStarting] = useState(false);
 
-  // Manual entry
   const [tableNum, setTableNum] = useState("");
   const [roomNum, setRoomNum] = useState("");
   const [inputMode, setInputMode] = useState<"table" | "room">("table");
 
-  // Refs
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -71,7 +68,6 @@ function ScanPageContent() {
     setFlashlightOn(false);
   }, []);
 
-  // Clean up on unmount
   useEffect(() => () => stopCamera(), [stopCamera]);
 
   const navigateToMenu = useCallback(
@@ -174,7 +170,6 @@ function ScanPageContent() {
         videoRef.current.srcObject = stream;
         await videoRef.current.play().catch(() => {});
       }
-      // Check torch support
       const track = stream.getVideoTracks()[0];
       const caps = track.getCapabilities() as MediaTrackCapabilities & { torch?: boolean };
       setTorchSupported(!!caps.torch);
@@ -270,7 +265,6 @@ function ScanPageContent() {
                 : "border-gray-200 bg-gray-50"
           }`}
         >
-          {/* Live camera video */}
           <video
             ref={videoRef}
             playsInline
@@ -280,7 +274,6 @@ function ScanPageContent() {
               cameraActive && !scanSuccess ? "opacity-100" : "opacity-0"
             }`}
           />
-          {/* Hidden canvas for frame capture */}
           <canvas ref={canvasRef} className="hidden" />
 
           {/* Flashlight toggle (only when camera active) */}
@@ -302,13 +295,11 @@ function ScanPageContent() {
             </button>
           )}
 
-          {/* Corner brackets */}
           <div className="absolute top-0 left-0 h-10 w-10 rounded-tl-3xl border-t-4 border-l-4 border-[#3e1e0c] z-10 pointer-events-none" />
           <div className="absolute top-0 right-0 h-10 w-10 rounded-tr-3xl border-t-4 border-r-4 border-[#3e1e0c] z-10 pointer-events-none" />
           <div className="absolute bottom-0 left-0 h-10 w-10 rounded-bl-3xl border-b-4 border-l-4 border-[#3e1e0c] z-10 pointer-events-none" />
           <div className="absolute bottom-0 right-0 h-10 w-10 rounded-br-3xl border-b-4 border-r-4 border-[#3e1e0c] z-10 pointer-events-none" />
 
-          {/* Overlay states */}
           <AnimatePresence mode="wait">
             {scanSuccess ? (
               <motion.div
@@ -422,7 +413,6 @@ function ScanPageContent() {
           <div className="flex-1 h-px bg-gray-200" />
         </div>
 
-        {/* Manual entry */}
         <div className="space-y-3">
           <div className="flex justify-center gap-2">
             <button

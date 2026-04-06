@@ -168,7 +168,6 @@ export default function AllBookingsTab() {
 
   return (
     <div className="space-y-5">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-[20px] font-black text-gray-900">All Hotel Bookings</h2>
@@ -184,7 +183,6 @@ export default function AllBookingsTab() {
         </button>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
           { label: "Total", value: stats.total, color: "gray" },
@@ -199,7 +197,6 @@ export default function AllBookingsTab() {
         ))}
       </div>
 
-      {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
@@ -241,7 +238,6 @@ export default function AllBookingsTab() {
         </div>
       )}
 
-      {/* Table */}
       {filtered.length === 0 ? (
         <div className="py-16 text-center">
           <BedDouble className="mx-auto h-12 w-12 text-gray-200 mb-3" />

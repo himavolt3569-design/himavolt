@@ -1,7 +1,6 @@
 import { db } from "./db";
 
 export type AuditAction =
-  // Orders
   | "ORDER_CREATED"
   | "ORDER_UPDATED"
   | "ORDER_ACCEPTED"
@@ -10,12 +9,10 @@ export type AuditAction =
   | "ORDER_DELIVERED"
   | "ORDER_CANCELLED"
   | "ORDER_REJECTED"
-  // Menu
   | "MENU_ITEM_CREATED"
   | "MENU_ITEM_UPDATED"
   | "MENU_ITEM_DELETED"
   | "CATEGORY_CREATED"
-  // Staff
   | "STAFF_ADDED"
   | "STAFF_REMOVED"
   | "STAFF_UPDATED"
@@ -30,20 +27,15 @@ export type AuditAction =
   | "BILL_CREATED"
   | "DISCOUNT_APPLIED"
   | "PAYMENT_COLLECTED"
-  // Restaurant
   | "RESTAURANT_CREATED"
   | "RESTAURANT_UPDATED"
   | "RESTAURANT_DELETED"
-  // Inventory
   | "INVENTORY_ADDED"
   | "INVENTORY_UPDATED"
   | "INVENTORY_DELETED"
-  // Table Sessions
   | "TABLE_CLEARED"
-  // Delivery
   | "DELIVERY_ASSIGNED"
   | "DELIVERY_STATUS_UPDATED"
-  // System
   | "USER_CREATED"
   | "USER_UPDATED"
   | "USER_DELETED";

@@ -90,7 +90,6 @@ export default function RatingInput({
         )}
       </div>
 
-      {/* Star selector */}
       <div className="flex items-center gap-1">
         {[1, 2, 3, 4, 5].map((star) => (
           <motion.button
@@ -161,7 +160,6 @@ export default function RatingInput({
               </motion.div>
             )}
 
-            {/* Submit button */}
             <motion.button
               type="button"
               onClick={handleSubmit}
@@ -188,7 +186,6 @@ export default function RatingInput({
               )}
             </motion.button>
 
-            {/* Error message */}
             <AnimatePresence>
               {error && (
                 <motion.div
@@ -205,7 +202,6 @@ export default function RatingInput({
               )}
             </AnimatePresence>
 
-            {/* Success message */}
             <AnimatePresence>
               {success && (
                 <motion.div

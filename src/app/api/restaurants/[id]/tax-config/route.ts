@@ -4,7 +4,6 @@ import { requireStaffForRestaurant } from "@/lib/staff-auth";
 import { getAuthUser } from "@/lib/auth";
 
 async function verifyAccess(req: NextRequest, restaurantId: string) {
-  // Try staff auth first
   const staff = await requireStaffForRestaurant(req, restaurantId);
   if (staff) return { type: "staff" as const, id: staff.staffId };
 

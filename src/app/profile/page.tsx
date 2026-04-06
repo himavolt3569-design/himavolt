@@ -49,7 +49,6 @@ export default function ProfilePage() {
     setSoundEnabled(getStoredSoundPref());
   }, []);
 
-  // Fetch DB role
   useEffect(() => {
     if (!isSignedIn) return;
     apiFetch<{ role: string | null }>("/api/me")
@@ -84,7 +83,6 @@ export default function ProfilePage() {
     }
   };
 
-  // Not loaded yet
   if (!isLoaded) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50/50">
@@ -93,7 +91,6 @@ export default function ProfilePage() {
     );
   }
 
-  // Not signed in
   if (!isSignedIn || !user) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50/50 p-6">
@@ -138,7 +135,6 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-gray-50/50">
-      {/* Header */}
       <header className="sticky top-0 z-40 bg-white border-b border-gray-100 shadow-sm">
         <div className="mx-auto max-w-2xl px-4">
           <div className="flex h-14 items-center gap-3">
@@ -151,7 +147,6 @@ export default function ProfilePage() {
       </header>
 
       <div className="mx-auto max-w-2xl px-4 py-5 pb-20 space-y-5">
-        {/* Profile Header Card */}
         <motion.div
           {...fadeUp}
           transition={{ duration: 0.3 }}
@@ -195,7 +190,6 @@ export default function ProfilePage() {
           </div>
         </motion.div>
 
-        {/* Quick Stats */}
         <motion.div
           {...fadeUp}
           transition={{ delay: 0.05, duration: 0.3 }}
@@ -229,7 +223,6 @@ export default function ProfilePage() {
           </div>
         </motion.div>
 
-        {/* Settings Section */}
         <motion.div
           {...fadeUp}
           transition={{ delay: 0.1, duration: 0.3 }}
@@ -241,7 +234,6 @@ export default function ProfilePage() {
             </h3>
           </div>
 
-          {/* Sound Notifications Toggle */}
           <button
             onClick={toggleSound}
             className="w-full flex items-center gap-3 px-5 py-4 hover:bg-gray-50 transition-colors"
@@ -283,7 +275,6 @@ export default function ProfilePage() {
           </button>
         </motion.div>
 
-        {/* Links Section */}
         <motion.div
           {...fadeUp}
           transition={{ delay: 0.15, duration: 0.3 }}
@@ -295,7 +286,6 @@ export default function ProfilePage() {
             </h3>
           </div>
 
-          {/* Order History */}
           <Link
             href="/orders"
             className="flex items-center gap-3 px-5 py-4 hover:bg-gray-50 transition-colors border-b border-gray-50"
@@ -333,7 +323,6 @@ export default function ProfilePage() {
             <ChevronRight className="h-4 w-4 text-gray-300" />
           </Link>
 
-          {/* Legal */}
           <Link
             href="/legal"
             className="flex items-center gap-3 px-5 py-4 hover:bg-gray-50 transition-colors"
@@ -353,7 +342,6 @@ export default function ProfilePage() {
           </Link>
         </motion.div>
 
-        {/* Sign Out */}
         <motion.div
           {...fadeUp}
           transition={{ delay: 0.2, duration: 0.3 }}
@@ -372,7 +360,6 @@ export default function ProfilePage() {
           </button>
         </motion.div>
 
-        {/* App version */}
         <motion.p
           {...fadeUp}
           transition={{ delay: 0.25, duration: 0.3 }}

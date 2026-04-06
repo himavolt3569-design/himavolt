@@ -56,7 +56,6 @@ export async function getOrCreateUser() {
       : "CUSTOMER";
 
   if (!dbUser && !userByEmail) {
-    // Brand new user
     dbUser = await db.user.create({
       data: { id: supabaseUser.id, email, name, imageUrl, phone, role: safeRole, username: username ?? null },
     });

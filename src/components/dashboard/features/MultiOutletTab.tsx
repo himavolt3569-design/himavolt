@@ -168,7 +168,6 @@ export default function MultiOutletTab() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-2xl font-bold text-stone-800">
@@ -187,7 +186,6 @@ export default function MultiOutletTab() {
         </button>
       </div>
 
-      {/* Summary Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
         {[
           {
@@ -240,7 +238,6 @@ export default function MultiOutletTab() {
         ))}
       </div>
 
-      {/* Outlet Cards */}
       <div className="space-y-4">
         {outlets.map((outlet) => (
           <motion.div
@@ -250,7 +247,6 @@ export default function MultiOutletTab() {
             animate={{ opacity: 1, y: 0 }}
             className="rounded-xl border border-stone-200 bg-white shadow-sm overflow-hidden"
           >
-            {/* Card Header */}
             <div className="p-5">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-4">
@@ -291,7 +287,6 @@ export default function MultiOutletTab() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  {/* Revenue Badge */}
                   <div className="rounded-lg bg-emerald-50 px-3 py-1.5 text-right">
                     <p className="text-xs text-stone-500">Revenue</p>
                     <p className="text-sm font-bold text-emerald-700">
@@ -348,7 +343,6 @@ export default function MultiOutletTab() {
               )}
             </div>
 
-            {/* Expanded Details */}
             <AnimatePresence>
               {expandedId === outlet.id && (
                 <motion.div
@@ -358,7 +352,6 @@ export default function MultiOutletTab() {
                   className="border-t border-stone-100 overflow-hidden"
                 >
                   <div className="p-5 space-y-5">
-                    {/* Menu Categories */}
                     <div>
                       <p className="mb-2 text-sm font-medium text-stone-700 flex items-center gap-2">
                         <UtensilsCrossed className="h-4 w-4 text-amber-600" />
@@ -391,7 +384,6 @@ export default function MultiOutletTab() {
                       </div>
                     </div>
 
-                    {/* Staff Assignment */}
                     <div>
                       <p className="mb-2 text-sm font-medium text-stone-700 flex items-center gap-2">
                         <Users className="h-4 w-4 text-blue-600" />
@@ -427,7 +419,6 @@ export default function MultiOutletTab() {
         ))}
       </div>
 
-      {/* Add Outlet Modal */}
       <AnimatePresence>
         {showAddForm && (
           <motion.div

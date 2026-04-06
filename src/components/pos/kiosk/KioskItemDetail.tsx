@@ -80,7 +80,6 @@ export default function KioskItemDetail({ item, currency, onClose, onAdd }: Prop
         onClick={(e) => e.stopPropagation()}
         className="relative w-full max-w-lg bg-white rounded-3xl overflow-hidden shadow-2xl max-h-[90vh] flex flex-col"
       >
-        {/* Close button */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-black/30 text-white hover:bg-black/50 transition-colors"
@@ -88,7 +87,6 @@ export default function KioskItemDetail({ item, currency, onClose, onAdd }: Prop
           <X className="h-5 w-5" />
         </button>
 
-        {/* Image */}
         <div className="h-56 bg-gray-100 shrink-0">
           {item.imageUrl ? (
             <img src={item.imageUrl} alt={item.name} className="h-full w-full object-cover" />
@@ -99,7 +97,6 @@ export default function KioskItemDetail({ item, currency, onClose, onAdd }: Prop
           )}
         </div>
 
-        {/* Scrollable content */}
         <div className="flex-1 overflow-y-auto p-6 space-y-5">
           {/* Name & description */}
           <div>
@@ -125,7 +122,6 @@ export default function KioskItemDetail({ item, currency, onClose, onAdd }: Prop
             </div>
           </div>
 
-          {/* Size selector */}
           {item.sizes.length > 0 && (
             <div>
               <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider mb-3">Choose Size</h3>
@@ -186,7 +182,6 @@ export default function KioskItemDetail({ item, currency, onClose, onAdd }: Prop
             </div>
           )}
 
-          {/* Quantity */}
           <div>
             <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider mb-3">Quantity</h3>
             <div className="flex items-center gap-4">
@@ -207,7 +202,6 @@ export default function KioskItemDetail({ item, currency, onClose, onAdd }: Prop
           </div>
         </div>
 
-        {/* Footer: Add to Cart */}
         <div className="shrink-0 p-4 border-t border-gray-100 bg-gray-50">
           <button
             onClick={() => {

@@ -86,7 +86,6 @@ export default function Testimonials() {
 
   return (
     <section ref={sectionRef} className="relative py-20 md:py-28 overflow-hidden">
-      {/* Parallax background */}
       <motion.div
         style={{ y: bgY }}
         className="absolute inset-0 bg-linear-to-b from-white via-[#fdf9ef]/50 to-white"
@@ -95,7 +94,6 @@ export default function Testimonials() {
       <div className="absolute bottom-20 -right-32 w-80 h-80 rounded-full bg-[#d67620]/[0.04] blur-[100px] pointer-events-none" />
 
       <div className="relative mx-auto max-w-7xl px-4 md:px-8 lg:px-12">
-        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -119,7 +117,6 @@ export default function Testimonials() {
           </h2>
         </motion.div>
 
-        {/* Cards grid */}
         <div
           ref={scrollContainerRef}
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6"
@@ -135,7 +132,6 @@ export default function Testimonials() {
               className="group relative rounded-2xl bg-white p-6 md:p-7 shadow-[0_1px_3px_rgba(62,30,12,0.04)] hover:shadow-[0_12px_40px_rgba(234,169,77,0.1)] border border-[#f4d69a]/20 hover:border-[#eaa94d]/25 transition-all duration-500"
               style={{ perspective: "800px" }}
             >
-              {/* Quote accent */}
               <div
                 className="absolute top-5 right-5 text-[48px] font-serif leading-none select-none transition-opacity duration-300 opacity-[0.04] group-hover:opacity-[0.08]"
                 style={{ color: review.color }}
@@ -143,15 +139,12 @@ export default function Testimonials() {
                 &ldquo;
               </div>
 
-              {/* Stars */}
               <StarRating count={review.rating} />
 
-              {/* Review text */}
               <p className="mt-4 text-sm leading-relaxed text-[#3e1e0c]/60 line-clamp-4">
                 {review.text}
               </p>
 
-              {/* Author */}
               <div className="mt-5 flex items-center gap-3 pt-4 border-t border-[#f4d69a]/15">
                 <div
                   className="flex h-10 w-10 items-center justify-center rounded-full text-xs font-bold text-white shrink-0 transition-transform duration-300 group-hover:scale-110"

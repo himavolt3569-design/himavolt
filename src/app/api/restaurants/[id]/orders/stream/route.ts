@@ -82,7 +82,6 @@ export async function GET(
             take: 50,
           });
 
-          // Detect if anything changed
           const latestUpdate = orders.reduce(
             (max, o) => (o.updatedAt > max ? o.updatedAt : max),
             new Date(0),
@@ -120,10 +119,8 @@ export async function GET(
         }
       };
 
-      // Send initial data immediately
       await fetchAndSend(true);
 
-      // Start polling
       if (!closed) {
         setTimeout(fetchAndSend, 3000);
       }

@@ -91,7 +91,6 @@ function LiveOrderFeed() {
                 {order.area} &middot; {order.time}
               </p>
             </div>
-            {/* Pulse indicator */}
             <span className="relative flex h-2 w-2 shrink-0">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#1e7b3e]/60" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-[#1e7b3e]" />
@@ -288,7 +287,6 @@ export default function LandingHero() {
       {/* Extra top/bottom darkening */}
       <div className="absolute inset-0 bg-linear-to-b from-black/20 via-transparent to-black/40" />
 
-      {/* Grain */}
       <div
         className="absolute inset-0 opacity-[0.04] pointer-events-none"
         style={{
@@ -307,7 +305,6 @@ export default function LandingHero() {
             animate="visible"
             className="text-center lg:text-left"
           >
-            {/* Badge */}
             <motion.div variants={fadeUp}>
               <span className="inline-flex items-center gap-1.5 rounded-full bg-[#eaa94d]/20 px-4 py-1.5 text-[11px] font-bold text-[#eaa94d] uppercase tracking-wider border border-[#eaa94d]/30">
                 <span className="relative flex h-1.5 w-1.5">
@@ -318,7 +315,6 @@ export default function LandingHero() {
               </span>
             </motion.div>
 
-            {/* Headline */}
             <motion.h1
               variants={fadeUp}
               className="mt-6 text-[2.5rem] leading-[1.05] sm:text-5xl md:text-6xl lg:text-[4.25rem] font-extrabold tracking-tight text-white"
@@ -330,7 +326,6 @@ export default function LandingHero() {
               </span>
             </motion.h1>
 
-            {/* Tagline */}
             <motion.p
               variants={fadeUp}
               className="mt-4 text-lg sm:text-xl md:text-2xl font-semibold text-white/70 tracking-tight"
@@ -338,7 +333,6 @@ export default function LandingHero() {
               Scan. Order. Stay.
             </motion.p>
 
-            {/* Description */}
             <motion.p
               variants={fadeUp}
               className="mt-3 text-sm sm:text-base text-white/55 max-w-md mx-auto lg:mx-0 leading-relaxed"
@@ -375,7 +369,6 @@ export default function LandingHero() {
                 🔥 Trending right now
               </p>
               <div className="relative overflow-hidden rounded-2xl">
-                {/* Fade masks */}
                 <div className="absolute left-0 top-0 bottom-0 w-8 bg-linear-to-r from-black/30 to-transparent z-10 pointer-events-none" />
                 <div className="absolute right-0 top-0 bottom-0 w-8 bg-linear-to-l from-black/30 to-transparent z-10 pointer-events-none" />
                 <motion.div
@@ -424,7 +417,6 @@ export default function LandingHero() {
               }}
               className="grid grid-cols-2 gap-3 max-w-md ml-auto"
             >
-              {/* Col 1 */}
               <div className="space-y-3">
                 <motion.div
                   custom={0}
@@ -488,7 +480,6 @@ export default function LandingHero() {
               </div>
             </motion.div>
 
-            {/* Floating glow behind grid that reacts to mouse */}
             <motion.div
               style={{
                 x: useSpring(useTransform(mouseX, [-0.5, 0.5], [-30, 30]), springConfig),
@@ -522,7 +513,6 @@ export default function LandingHero() {
         </motion.div>
       </motion.div>
 
-      {/* Bottom fade */}
       <div className="absolute bottom-0 left-0 right-0 h-20 bg-linear-to-t from-black/50 to-transparent pointer-events-none" />
     </motion.section>
   );

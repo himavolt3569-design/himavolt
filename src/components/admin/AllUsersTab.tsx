@@ -176,7 +176,6 @@ export default function AllUsersTab() {
 
   return (
     <div className="space-y-4">
-      {/* Controls */}
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative flex-1 sm:max-w-xs">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
@@ -258,7 +257,6 @@ export default function AllUsersTab() {
         )}
       </AnimatePresence>
 
-      {/* Users List */}
       <div className="overflow-hidden rounded-2xl border border-brand-100 bg-white shadow-sm">
         <div className="flex items-center gap-2 border-b border-brand-100 px-4 py-2.5">
           <input
@@ -370,7 +368,6 @@ export default function AllUsersTab() {
                             </div>
                           </div>
 
-                          {/* Role changer */}
                           <div className="flex flex-wrap items-center gap-2 pt-1">
                             <span className="text-xs font-medium text-gray-500">Change Role:</span>
                             {["CUSTOMER", "OWNER", "ADMIN"].map((role) => (

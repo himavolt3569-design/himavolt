@@ -95,7 +95,6 @@ export default function WifiSettingsTab({ restaurantId: propRestaurantId }: { re
         </p>
       </div>
 
-      {/* Preview card */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
@@ -118,7 +117,6 @@ export default function WifiSettingsTab({ restaurantId: propRestaurantId }: { re
         )}
       </motion.div>
 
-      {/* Form */}
       <div className="space-y-4 bg-white rounded-2xl border border-gray-200 p-5">
         <div>
           <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1.5">
@@ -179,7 +177,6 @@ export default function WifiSettingsTab({ restaurantId: propRestaurantId }: { re
         </button>
       </div>
 
-      {/* Clear option */}
       {hasWifi && (
         <button
           onClick={() => { setWifiName(""); setWifiPassword(""); }}

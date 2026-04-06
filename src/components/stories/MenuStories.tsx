@@ -108,7 +108,6 @@ export default function MenuStories({ slug }: { slug: string }) {
               avatar={group.avatar}
               timestamp={group.timestamp}
               onStoryView={(storyId) => {
-                // Increment view count
                 fetch(
                   `/api/public/restaurants/${slug}/stories/view?id=${storyId}`,
                   { method: "POST" },

@@ -137,7 +137,6 @@ export default function SeasonalMenuTab() {
       transition={{ duration: 0.4 }}
       className="space-y-6"
     >
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className={`p-2.5 rounded-xl ${seasonConfig[currentSeason].bg}`}>
@@ -161,7 +160,6 @@ export default function SeasonalMenuTab() {
         </div>
       </div>
 
-      {/* Stats Row */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         {[
           { label: "Active Items", value: activeItems.length, icon: Package, color: `${seasonConfig[currentSeason].color} ${seasonConfig[currentSeason].bg}` },
@@ -187,7 +185,6 @@ export default function SeasonalMenuTab() {
         ))}
       </div>
 
-      {/* Toggles Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -223,7 +220,6 @@ export default function SeasonalMenuTab() {
         </div>
       </div>
 
-      {/* View Tabs */}
       <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1 w-fit">
         {(["active", "upcoming", "past"] as const).map((tab) => (
           <button
@@ -238,7 +234,6 @@ export default function SeasonalMenuTab() {
         ))}
       </div>
 
-      {/* Active Seasonal Items */}
       {viewTab === "active" && (
         <div className="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
           <div className="flex items-center justify-between p-5 border-b border-gray-100">
@@ -254,7 +249,6 @@ export default function SeasonalMenuTab() {
             </button>
           </div>
 
-          {/* Add Form */}
           <AnimatePresence>
             {showAddForm && (
               <motion.div
@@ -370,7 +364,6 @@ export default function SeasonalMenuTab() {
             )}
           </AnimatePresence>
 
-          {/* Items List */}
           <div className="divide-y divide-gray-50">
             <AnimatePresence>
               {activeItems.map((item) => (
@@ -447,7 +440,6 @@ export default function SeasonalMenuTab() {
         </div>
       )}
 
-      {/* Upcoming Seasons */}
       {viewTab === "upcoming" && (
         <div className="space-y-4">
           {upcomingSeasons.map((season) => {
@@ -483,7 +475,6 @@ export default function SeasonalMenuTab() {
         </div>
       )}
 
-      {/* Past Performance */}
       {viewTab === "past" && (
         <div className="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
           <div className="p-5 border-b border-gray-100">

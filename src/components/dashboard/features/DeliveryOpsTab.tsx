@@ -104,7 +104,6 @@ export default function DeliveryOpsTab() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">
@@ -122,9 +121,7 @@ export default function DeliveryOpsTab() {
         </div>
       </div>
 
-      {/* Quick Toggles */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Delivery Only Mode */}
         <motion.div
           layout
           className="bg-white rounded-xl shadow-sm border border-gray-100 p-5"
@@ -156,7 +153,6 @@ export default function DeliveryOpsTab() {
           </div>
         </motion.div>
 
-        {/* Auto Accept */}
         <motion.div
           layout
           className="bg-white rounded-xl shadow-sm border border-gray-100 p-5"
@@ -188,7 +184,6 @@ export default function DeliveryOpsTab() {
           </div>
         </motion.div>
 
-        {/* Peak Throttling */}
         <motion.div
           layout
           className="bg-white rounded-xl shadow-sm border border-gray-100 p-5"
@@ -240,7 +235,6 @@ export default function DeliveryOpsTab() {
         </motion.div>
       </div>
 
-      {/* Stats Row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-center">
           <TrendingUp className="w-5 h-5 text-violet-500 mx-auto mb-1" />
@@ -268,7 +262,6 @@ export default function DeliveryOpsTab() {
         </div>
       </div>
 
-      {/* Kitchen Capacity */}
       <motion.div
         layout
         className="bg-white rounded-xl shadow-sm border border-gray-100 p-6"
@@ -300,7 +293,6 @@ export default function DeliveryOpsTab() {
           </span>
         </div>
 
-        {/* Progress bar */}
         <div className="w-full bg-gray-100 rounded-full h-4 overflow-hidden">
           <motion.div
             initial={{ width: 0 }}
@@ -380,7 +372,6 @@ export default function DeliveryOpsTab() {
                 }`}
               >
                 <div className="flex items-start gap-3">
-                  {/* Priority buttons */}
                   <div className="flex flex-col items-center gap-0.5 pt-1">
                     <button
                       onClick={() => movePriority(idx, "up")}
@@ -401,7 +392,6 @@ export default function DeliveryOpsTab() {
                     </button>
                   </div>
 
-                  {/* Order info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-bold text-gray-900 text-sm">
@@ -429,9 +419,7 @@ export default function DeliveryOpsTab() {
                     </div>
                   </div>
 
-                  {/* Controls */}
                   <div className="flex flex-col gap-2 shrink-0">
-                    {/* Status selector */}
                     <select
                       value={order.status}
                       onChange={(e) =>
@@ -447,7 +435,6 @@ export default function DeliveryOpsTab() {
                       <option value="Out for Delivery">Out for Delivery</option>
                       <option value="Delivered">Delivered</option>
                     </select>
-                    {/* Partner selector */}
                     <select
                       value={order.deliveryPartner}
                       onChange={(e) =>

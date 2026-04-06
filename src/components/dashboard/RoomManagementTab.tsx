@@ -18,9 +18,7 @@ import { useRestaurant } from "@/context/RestaurantContext";
 import { formatPrice } from "@/lib/currency";
 import { apiFetch } from "@/lib/api-client";
 
-/* ------------------------------------------------------------------ */
 /*  Types                                                              */
-/* ------------------------------------------------------------------ */
 
 type RoomType = "STANDARD" | "DELUXE" | "SUITE";
 type BookingStatus = "CONFIRMED" | "CHECKED_IN" | "CHECKED_OUT" | "CANCELLED";
@@ -56,9 +54,7 @@ interface Booking {
   room?: { roomNumber: string; name: string; type: RoomType };
 }
 
-/* ------------------------------------------------------------------ */
 /*  Constants                                                          */
-/* ------------------------------------------------------------------ */
 
 const ROOM_TYPES: RoomType[] = ["STANDARD", "DELUXE", "SUITE"];
 
@@ -109,9 +105,7 @@ const BLANK_BOOKING = {
   note: "",
 };
 
-/* ------------------------------------------------------------------ */
 /*  Main Component                                                     */
-/* ------------------------------------------------------------------ */
 
 export default function RoomManagementTab() {
   const { selectedRestaurant, restaurants } = useRestaurant();
@@ -122,7 +116,6 @@ export default function RoomManagementTab() {
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-12">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
@@ -137,7 +130,6 @@ export default function RoomManagementTab() {
         </div>
       </div>
 
-      {/* Tabs */}
       <div className="flex items-center gap-4 border-b border-gray-200/60 pb-px">
         <button
           onClick={() => setActiveTab("rooms")}
@@ -172,9 +164,7 @@ export default function RoomManagementTab() {
   );
 }
 
-/* ------------------------------------------------------------------ */
 /*  Rooms View                                                         */
-/* ------------------------------------------------------------------ */
 
 function RoomsView({ restaurantId, currency }: { restaurantId: string; currency: string }) {
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -306,7 +296,6 @@ function RoomsView({ restaurantId, currency }: { restaurantId: string; currency:
 
   return (
     <div className="space-y-5">
-      {/* Stats row */}
       <div className="grid grid-cols-3 gap-3">
         {[
           { label: "Total Rooms", value: totalRooms, color: "text-gray-900" },
@@ -323,7 +312,6 @@ function RoomsView({ restaurantId, currency }: { restaurantId: string; currency:
         ))}
       </div>
 
-      {/* Add Room button */}
       <div className="flex justify-end">
         <button
           onClick={openCreate}
@@ -334,7 +322,6 @@ function RoomsView({ restaurantId, currency }: { restaurantId: string; currency:
         </button>
       </div>
 
-      {/* Room cards */}
       {rooms.length === 0 ? (
         <div className="flex flex-col items-center py-16 text-center">
           <BedDouble className="h-10 w-10 text-gray-300 mb-3" />
@@ -358,14 +345,12 @@ function RoomsView({ restaurantId, currency }: { restaurantId: string; currency:
                   transition={{ delay: i * 0.03 }}
                   className="group flex items-center gap-4 rounded-2xl bg-white/90 backdrop-blur-xl border border-gray-100 p-4 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] transition-all hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.08)] hover:-translate-y-0.5"
                 >
-                  {/* Icon */}
                   <div
                     className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${typeColors.bg}`}
                   >
                     <BedDouble className={`h-5 w-5 ${typeColors.text}`} />
                   </div>
 
-                  {/* Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <h4 className="font-bold text-gray-900 truncate">
@@ -415,7 +400,6 @@ function RoomsView({ restaurantId, currency }: { restaurantId: string; currency:
                     )}
                   </div>
 
-                  {/* Actions */}
                   <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={() => openEdit(room)}
@@ -444,7 +428,6 @@ function RoomsView({ restaurantId, currency }: { restaurantId: string; currency:
         </div>
       )}
 
-      {/* Room Form Modal */}
       <RoomFormModal
         open={showForm}
         onClose={closeForm}
@@ -459,9 +442,7 @@ function RoomsView({ restaurantId, currency }: { restaurantId: string; currency:
   );
 }
 
-/* ------------------------------------------------------------------ */
 /*  Room Form Modal                                                    */
-/* ------------------------------------------------------------------ */
 
 function RoomFormModal({
   open,
@@ -541,7 +522,6 @@ function RoomFormModal({
                 </div>
               </div>
 
-              {/* Type */}
               <div>
                 <label className="block text-sm font-bold text-[#3e1e0c] mb-2">
                   Type <span className="text-[#eaa94d]">*</span>
@@ -606,7 +586,6 @@ function RoomFormModal({
                 </div>
               </div>
 
-              {/* Description */}
               <div>
                 <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">Description</label>
                 <textarea
@@ -618,7 +597,6 @@ function RoomFormModal({
                 />
               </div>
 
-              {/* Amenities */}
               <div>
                 <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">
                   Amenities{" "}
@@ -633,7 +611,6 @@ function RoomFormModal({
                 />
               </div>
 
-              {/* Availability toggle */}
               <div className="flex items-center gap-3">
                 <button
                   type="button"
@@ -691,9 +668,7 @@ function RoomFormModal({
   );
 }
 
-/* ------------------------------------------------------------------ */
 /*  Bookings View                                                      */
-/* ------------------------------------------------------------------ */
 
 function BookingsView({ restaurantId, currency }: { restaurantId: string; currency: string }) {
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -833,7 +808,6 @@ function BookingsView({ restaurantId, currency }: { restaurantId: string; curren
         </button>
       </div>
 
-      {/* Bookings list */}
       {filteredBookings.length === 0 ? (
         <div className="flex flex-col items-center py-16 text-center">
           <Calendar className="h-10 w-10 text-gray-300 mb-3" />
@@ -862,14 +836,11 @@ function BookingsView({ restaurantId, currency }: { restaurantId: string; curren
                   transition={{ delay: i * 0.03 }}
                   className="rounded-2xl bg-white/90 backdrop-blur-xl border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] transition-all hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.08)]"
                 >
-                  {/* Main row */}
                   <div className="flex items-center gap-4 p-4">
-                    {/* Guest avatar */}
                     <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-700 font-bold text-sm uppercase">
                       {booking.guestName.charAt(0)}
                     </div>
 
-                    {/* Info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <h4 className="font-bold text-gray-900 truncate">
@@ -916,7 +887,6 @@ function BookingsView({ restaurantId, currency }: { restaurantId: string; curren
                       </div>
                     </div>
 
-                    {/* Actions */}
                     <div className="flex items-center gap-1.5 shrink-0">
                       <button
                         onClick={() => setExpandedId(isExpanded ? null : booking.id)}
@@ -926,7 +896,6 @@ function BookingsView({ restaurantId, currency }: { restaurantId: string; curren
                         <Eye className="h-3.5 w-3.5" />
                       </button>
 
-                      {/* Quick status buttons */}
                       {booking.status === "CONFIRMED" && (
                         <button
                           onClick={() => handleStatusUpdate(booking.id, "CHECKED_IN")}
@@ -974,7 +943,6 @@ function BookingsView({ restaurantId, currency }: { restaurantId: string; curren
                     </div>
                   </div>
 
-                  {/* Expanded details */}
                   <AnimatePresence>
                     {isExpanded && (
                       <motion.div
@@ -1064,7 +1032,6 @@ function BookingsView({ restaurantId, currency }: { restaurantId: string; curren
         </div>
       )}
 
-      {/* Booking Form Modal */}
       <BookingFormModal
         open={showForm}
         onClose={closeForm}
@@ -1080,9 +1047,7 @@ function BookingsView({ restaurantId, currency }: { restaurantId: string; curren
   );
 }
 
-/* ------------------------------------------------------------------ */
 /*  Booking Form Modal                                                 */
-/* ------------------------------------------------------------------ */
 
 function BookingFormModal({
   open,
@@ -1136,7 +1101,6 @@ function BookingFormModal({
             </div>
 
             <div className="space-y-4">
-              {/* Room select */}
               <div>
                 <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">
                   Room <span className="text-[#eaa94d]">*</span>
@@ -1161,7 +1125,6 @@ function BookingFormModal({
                 )}
               </div>
 
-              {/* Guest Name */}
               <div>
                 <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">
                   Guest Name <span className="text-[#eaa94d]">*</span>
@@ -1227,7 +1190,6 @@ function BookingFormModal({
                 </div>
               </div>
 
-              {/* Guests */}
               <div>
                 <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">Guests</label>
                 <input
@@ -1240,7 +1202,6 @@ function BookingFormModal({
                 />
               </div>
 
-              {/* Amounts */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">
@@ -1276,7 +1237,6 @@ function BookingFormModal({
                 </div>
               </div>
 
-              {/* Note */}
               <div>
                 <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">Note</label>
                 <textarea

@@ -183,7 +183,6 @@ export default function EventCateringTab() {
     setShowNewEvent(false);
   };
 
-  // Calendar helpers
   const getDaysInMonth = (date: Date) => {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
   };
@@ -204,7 +203,6 @@ export default function EventCateringTab() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-2xl font-bold text-stone-800">
@@ -223,7 +221,6 @@ export default function EventCateringTab() {
         </button>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
         {[
           {
@@ -276,7 +273,6 @@ export default function EventCateringTab() {
         ))}
       </div>
 
-      {/* View Tabs */}
       <div className="flex gap-1 rounded-xl bg-stone-100 p-1">
         {(["events", "calendar", "packages"] as const).map((view) => (
           <button
@@ -294,7 +290,6 @@ export default function EventCateringTab() {
       </div>
 
       <AnimatePresence mode="wait">
-        {/* Events List */}
         {activeView === "events" && (
           <motion.div
             key="events"
@@ -303,7 +298,6 @@ export default function EventCateringTab() {
             exit={{ opacity: 0, y: -10 }}
             className="space-y-3"
           >
-            {/* Status workflow legend */}
             <div className="flex items-center gap-2 overflow-x-auto pb-2">
               {STATUS_FLOW.map((status, idx) => {
                 const cfg = STATUS_CONFIG[status];
@@ -405,7 +399,6 @@ export default function EventCateringTab() {
                     </div>
                   </div>
 
-                  {/* Expanded Detail */}
                   <AnimatePresence>
                     {selectedEvent === event.id && (
                       <motion.div
@@ -475,7 +468,6 @@ export default function EventCateringTab() {
           </motion.div>
         )}
 
-        {/* Calendar View */}
         {activeView === "calendar" && (
           <motion.div
             key="calendar"
@@ -566,7 +558,6 @@ export default function EventCateringTab() {
           </motion.div>
         )}
 
-        {/* Packages View */}
         {activeView === "packages" && (
           <motion.div
             key="packages"
@@ -625,7 +616,6 @@ export default function EventCateringTab() {
         )}
       </AnimatePresence>
 
-      {/* New Event Modal */}
       <AnimatePresence>
         {showNewEvent && (
           <motion.div

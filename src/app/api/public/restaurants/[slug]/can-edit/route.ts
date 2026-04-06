@@ -15,7 +15,6 @@ export async function GET(
   });
   if (!restaurant) return NextResponse.json({ canEdit: false });
 
-  // Staff session check
   const staffSession = await getStaffSession(req);
   if (staffSession) {
     const member = await db.staffMember.findFirst({
@@ -29,7 +28,6 @@ export async function GET(
     return NextResponse.json({ canEdit: !!member });
   }
 
-  // Supabase user check
   try {
     const user = await getOrCreateUser();
     if (user && (user.role === "ADMIN" || restaurant.ownerId === user.id)) {

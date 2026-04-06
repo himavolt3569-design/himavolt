@@ -187,7 +187,6 @@ export default function AllDeliveriesTab() {
 
   return (
     <div className="space-y-4">
-      {/* Status Filter */}
       <div className="flex flex-wrap items-center gap-2">
         <div className="flex flex-wrap gap-1.5">
           {DELIVERY_STATUSES.map((s) => (
@@ -229,7 +228,6 @@ export default function AllDeliveriesTab() {
         </div>
       )}
 
-      {/* Deliveries List */}
       <div className="overflow-hidden rounded-2xl border border-brand-100 bg-white shadow-sm">
         <div className="flex items-center justify-between border-b border-brand-100 px-4 py-2.5">
           <div className="flex items-center gap-2">

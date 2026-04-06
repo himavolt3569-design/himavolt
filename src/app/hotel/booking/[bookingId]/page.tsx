@@ -107,7 +107,6 @@ export default function BookingConfirmationPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans">
-      {/* Nav */}
       <nav className="sticky top-0 z-40 flex items-center justify-between border-b border-gray-200/50 bg-white/80 backdrop-blur-xl px-5 py-3.5 shadow-sm">
         <Link href={`/hotel/${booking.restaurant.slug}`} className="flex items-center gap-1.5 text-[13px] text-gray-600 hover:text-amber-600 transition-colors">
           <ArrowLeft className="h-3.5 w-3.5" />
@@ -124,7 +123,6 @@ export default function BookingConfirmationPage() {
       </nav>
 
       <main className="mx-auto max-w-lg px-4 py-8 space-y-4">
-        {/* Payment result banner */}
         {paymentResult === "success" && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
@@ -152,7 +150,6 @@ export default function BookingConfirmationPage() {
           </motion.div>
         )}
 
-        {/* Status card */}
         <div className={`rounded-3xl p-6 text-center bg-${statusCfg.color}-50 ring-1 ring-${statusCfg.color}-100`}>
           <div className={`mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-${statusCfg.color}-100`}>
             <StatusIcon className={`h-7 w-7 text-${statusCfg.color}-600`} />
@@ -161,7 +158,6 @@ export default function BookingConfirmationPage() {
           <p className="mt-1 text-[11px] text-gray-500">Booking #{bookingId.slice(-8).toUpperCase()}</p>
         </div>
 
-        {/* Details card */}
         <div className="rounded-2xl bg-white ring-1 ring-gray-100 overflow-hidden shadow-sm">
           {booking.room.imageUrls[0] && (
             <img src={booking.room.imageUrls[0]} alt="Room" className="h-44 w-full object-cover" />
@@ -193,7 +189,6 @@ export default function BookingConfirmationPage() {
               ))}
             </div>
 
-            {/* Pricing */}
             <div className="rounded-xl bg-amber-50 p-3 space-y-1.5">
               <div className="flex justify-between text-[12px] text-gray-600">
                 <span>{cur}{(booking.totalPrice / booking.nights).toLocaleString()} × {booking.nights} night{booking.nights > 1 ? "s" : ""}</span>
@@ -214,7 +209,6 @@ export default function BookingConfirmationPage() {
           </div>
         </div>
 
-        {/* Hotel info */}
         <div className="rounded-2xl bg-white ring-1 ring-gray-100 p-5 shadow-sm">
           <h4 className="text-[13px] font-bold text-gray-900 mb-3">{booking.restaurant.name}</h4>
           <div className="space-y-2">

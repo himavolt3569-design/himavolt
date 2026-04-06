@@ -161,7 +161,6 @@ export default function FooterSettingsTab() {
         })}
       </div>
 
-      {/* Status message */}
       {status === "success" && (
         <motion.div
           initial={{ opacity: 0, y: -4 }}
@@ -183,7 +182,6 @@ export default function FooterSettingsTab() {
         </motion.div>
       )}
 
-      {/* Actions */}
       <div className="mt-6 flex items-center gap-3">
         <button
           onClick={handleSave}

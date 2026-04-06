@@ -48,7 +48,6 @@ export async function PATCH(
   try {
     const { id } = await params;
 
-    // Verify restaurant exists
     const restaurant = await db.restaurant.findUnique({
       where: { id },
       select: { id: true },

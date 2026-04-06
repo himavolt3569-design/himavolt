@@ -116,7 +116,6 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
       <header className="sticky top-0 z-30 border-b border-gray-100 bg-white/80 backdrop-blur-2xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6 lg:px-10">
           <div className="flex items-center gap-3">
@@ -143,7 +142,6 @@ export default function ContactPage() {
         </div>
       </header>
 
-      {/* Hero section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-[#3e1e0c] via-[#0d3d30] to-[#3e1e0c] text-white">
         <div className="pointer-events-none absolute -top-32 -right-32 h-96 w-96 rounded-full bg-[#eaa94d]/8 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-white/5 blur-3xl" />
@@ -170,7 +168,6 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* Contact info cards */}
       <section className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-10 -mt-10 relative z-10">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {CONTACT_INFO.map((info, i) => (
@@ -204,7 +201,6 @@ export default function ContactPage() {
       {/* Form + Quick contacts */}
       <section className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-10 py-16 sm:py-24">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 lg:gap-16">
-          {/* Contact form */}
           <div className="lg:col-span-3">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -335,7 +331,6 @@ export default function ContactPage() {
             </motion.div>
           </div>
 
-          {/* Quick contact sidebar */}
           <div className="lg:col-span-2">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -368,7 +363,6 @@ export default function ContactPage() {
                 ))}
               </div>
 
-              {/* Map placeholder */}
               <div className="mt-8 overflow-hidden rounded-2xl border border-gray-200 bg-gray-100">
                 <div className="aspect-[4/3] relative">
                   <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-400">

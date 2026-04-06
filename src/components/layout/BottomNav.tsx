@@ -131,7 +131,6 @@ export default function BottomNav() {
     ];
   }, [activeSession, isSignedIn, avatarUrl, userInitials, userRole]);
 
-  /* ── Hide conditions ── */
   if (pathname === "/manage-restaurants") return null;
   if (pathname === "/scan" && !activeSession) return null;
   if (pathname === "/kitchen" || pathname === "/counter") return null;
@@ -154,7 +153,6 @@ export default function BottomNav() {
               href={item.href}
               className="relative flex flex-col items-center justify-center flex-1 h-full group"
             >
-              {/* Active pill background */}
               {isActive && (
                 <motion.div
                   layoutId="bottomNavActive"
@@ -202,7 +200,6 @@ export default function BottomNav() {
                 />
               )}
 
-              {/* Label */}
               <span
                 className={clsx(
                   "text-[10px] font-semibold transition-all z-10 leading-none",

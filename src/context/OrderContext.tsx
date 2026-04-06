@@ -70,7 +70,6 @@ export interface Order {
   createdAt: string;
   items: OrderItem[];
   restaurantId: string;
-  // Delivery fields
   deliveryAddress: string | null;
   deliveryPhone: string | null;
   deliveryFee: number;
@@ -223,7 +222,6 @@ export function OrderProvider({ children }: { children: ReactNode }) {
             paymentMethod: paymentMethod || "CASH",
             tableSessionId: tableSessionId || undefined,
             couponCode: couponCode || undefined,
-            // Delivery fields
             ...(orderType === "DELIVERY" && deliveryInfo
               ? {
                   deliveryAddress: deliveryInfo.address,

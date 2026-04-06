@@ -71,7 +71,6 @@ export default function POSHeader({ restaurantName, staffName, staffRole, active
         <div className="text-sm font-mono text-gray-400">{clock}</div>
       </div>
 
-      {/* Center: view tabs */}
       <div className="flex items-center gap-1 bg-gray-800 rounded-xl p-1">
         {VIEWS.map((v) => {
           const Icon = v.icon;
@@ -91,7 +90,6 @@ export default function POSHeader({ restaurantName, staffName, staffRole, active
         })}
       </div>
 
-      {/* Right: actions */}
       <div className="flex items-center gap-2">
         <button
           onClick={toggleSound}

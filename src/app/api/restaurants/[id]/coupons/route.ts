@@ -91,7 +91,6 @@ export async function POST(
     const body = await req.json();
     const { code, description, type, value, minOrder, maxDiscount, maxUses, startsAt, expiresAt } = body;
 
-    // Validation
     if (!code || typeof code !== "string" || code.trim().length === 0) {
       return NextResponse.json({ error: "Coupon code is required" }, { status: 400 });
     }

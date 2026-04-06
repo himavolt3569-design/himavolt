@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 import { formatPrice } from "@/lib/currency";
 
-/* ── Types ─────────────────────────────────────────────────────────── */
 
 interface FoodItem {
   id: string;
@@ -25,7 +24,6 @@ interface FoodItem {
 }
 
 
-/* ── API data transformer ──────────────────────────────────────────── */
 
 interface ApiMenuItem {
   id: string;
@@ -59,7 +57,6 @@ function apiToFoodItem(item: ApiMenuItem): FoodItem {
   };
 }
 
-/* ── Filter definitions ───────────────────────────────────────────── */
 
 const FILTERS = [
   { id: "under200", label: `Under ${formatPrice(200, "NPR")}` },
@@ -69,7 +66,6 @@ const FILTERS = [
   { id: "offers", label: "Offers" },
 ];
 
-/* ── Food Card ────────────────────────────────────────────────────── */
 
 function FoodCard({ item }: { item: FoodItem }) {
   const cardRef = useRef<HTMLDivElement>(null);
@@ -116,7 +112,6 @@ function FoodCard({ item }: { item: FoodItem }) {
           </div>
         </div>
 
-        {/* Right: text details */}
         <Link href={foodLink} className="flex-1 min-w-0">
           {/* Veg / Non-veg indicator */}
           <div className={`mb-1.5 flex h-[18px] w-[18px] items-center justify-center rounded-sm border-2 ${vegBorderColor} bg-white`}>
@@ -142,17 +137,14 @@ function FoodCard({ item }: { item: FoodItem }) {
             </div>
           </div>
 
-          {/* Restaurant name */}
           {item.restaurantName && (
             <p className="mt-0.5 text-[11px] text-gray-400 truncate">by {item.restaurantName}</p>
           )}
 
-          {/* Price */}
           <p className="mt-2 text-[17px] font-extrabold text-[#3e1e0c] tracking-tight">
             {formatPrice(item.price, "NPR")}
           </p>
 
-          {/* Offer badge */}
           {item.offer && (
             <div className="mt-1.5 inline-flex items-center gap-1 rounded-md bg-[#F0FAF4] border border-[#1E7B3E]/20 px-2 py-1">
               <Tag className="h-3 w-3 text-[#1E7B3E] shrink-0" />
@@ -164,7 +156,6 @@ function FoodCard({ item }: { item: FoodItem }) {
 
       {/* ── Desktop: vertical card ── */}
       <Link href={foodLink} className="hidden sm:block">
-        {/* Image */}
         <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-gray-100 shadow-sm">
           <img
             src={item.image}
@@ -174,7 +165,6 @@ function FoodCard({ item }: { item: FoodItem }) {
           />
           <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/60 to-transparent" />
 
-          {/* Offer badge */}
           {item.offer && (
             <div className="absolute bottom-2.5 left-2.5">
               <span className="inline-flex items-center gap-1 rounded-md bg-[#eaa94d] px-2 py-1 text-[11px] font-extrabold text-white leading-none shadow-lg">
@@ -184,7 +174,6 @@ function FoodCard({ item }: { item: FoodItem }) {
             </div>
           )}
 
-          {/* Rating badge */}
           <div className="absolute bottom-2.5 right-2.5">
             <span className={`inline-flex items-center gap-0.5 rounded-md px-1.5 py-1 text-[11px] font-bold text-white leading-none shadow-lg ${
               item.rating >= 4.0 ? "bg-[#1E7B3E]" : item.rating >= 3.0 ? "bg-[#DB7C10]" : "bg-[#E23744]"
@@ -194,13 +183,11 @@ function FoodCard({ item }: { item: FoodItem }) {
             </span>
           </div>
 
-          {/* Veg indicator */}
           <div className={`absolute top-2.5 left-2.5 flex h-5 w-5 items-center justify-center rounded-sm border-2 ${vegBorderColor} bg-white`}>
             <div className={`h-2 w-2 rounded-full ${vegDotColor}`} />
           </div>
         </div>
 
-        {/* Details */}
         <div className="mt-2.5 px-0.5">
           <h3 className="text-[15px] font-bold text-[#3e1e0c] truncate leading-snug group-hover:text-[#eaa94d] transition-colors">
             {item.name}
@@ -221,7 +208,6 @@ function FoodCard({ item }: { item: FoodItem }) {
   );
 }
 
-/* ── Main Section ─────────────────────────────────────────────────── */
 
 export default function PopularFoods({
   activeCategory = "All",
@@ -267,11 +253,9 @@ export default function PopularFoods({
     setShowAll(false);
   };
 
-  // Filter logic
   const filtered = useMemo(() => {
     let items = foods;
 
-    // Category filter from FoodCategories
     if (activeCategory !== "All") {
       items = items.filter((i) =>
         i.category.toLowerCase() === activeCategory.toLowerCase() ||
@@ -279,7 +263,6 @@ export default function PopularFoods({
       );
     }
 
-    // Pill filters
     if (activeFilters.has("under200")) items = items.filter((i) => i.price < 200);
     if (activeFilters.has("rating4")) items = items.filter((i) => i.rating >= 4.0);
     if (activeFilters.has("veg")) items = items.filter((i) => i.isVeg);
@@ -297,7 +280,6 @@ export default function PopularFoods({
   return (
     <section ref={sectionRef} className="bg-white">
       <div className="mx-auto max-w-[1440px] px-4 md:px-8 lg:px-12 py-8 md:py-12 space-y-6">
-        {/* Filter pills */}
         <div className="flex gap-2.5 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
           <button className="shrink-0 flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-4 py-2 text-[13px] font-semibold text-gray-600 hover:border-gray-300 transition-all">
             <SlidersHorizontal className="h-3.5 w-3.5" />
@@ -318,7 +300,6 @@ export default function PopularFoods({
           ))}
         </div>
 
-        {/* Section header */}
         <div ref={headerRef} className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#eaa94d]/10">
             <Flame className="h-4.5 w-4.5 text-[#eaa94d]" />
@@ -333,7 +314,6 @@ export default function PopularFoods({
           </div>
         </div>
 
-        {/* Loading skeleton */}
         {isLoading && (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-7 pb-4">
             {Array.from({ length: 8 }).map((_, i) => (
@@ -362,7 +342,6 @@ export default function PopularFoods({
           </div>
         )}
 
-        {/* Filtered empty state */}
         {!isLoading && foods.length > 0 && filtered.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 mb-4">
@@ -373,7 +352,6 @@ export default function PopularFoods({
           </div>
         )}
 
-        {/* Food grid */}
         {!isLoading && displayed.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-7 sm:gap-y-7 pb-4 sm:pb-0">
             {displayed.map((item, idx) => (
@@ -384,7 +362,6 @@ export default function PopularFoods({
           </div>
         )}
 
-        {/* Show more */}
         {filtered.length > VISIBLE && (
           <div className="flex justify-center pt-2">
             <button

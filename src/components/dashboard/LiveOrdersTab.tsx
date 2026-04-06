@@ -170,7 +170,6 @@ export default function LiveOrdersTab() {
 
   return (
     <div className="space-y-5">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
         <div>
           <h2 className="text-xl font-extrabold text-gray-900 tracking-tight">Live Orders</h2>
@@ -202,7 +201,6 @@ export default function LiveOrdersTab() {
         </div>
       </div>
 
-      {/* Filter pills */}
       <div className="flex gap-2.5 overflow-x-auto scrollbar-hide pb-2">
         {FILTER_OPTIONS.map((opt) => (
           <button
@@ -226,7 +224,6 @@ export default function LiveOrdersTab() {
 
       {/* Orders — desktop table + mobile cards */}
       <div>
-        {/* Desktop table */}
         <div className="hidden md:block overflow-x-auto overflow-y-hidden rounded-2xl border border-gray-200/60 bg-white/70 backdrop-blur-xl shadow-sm">
           <table className="w-full text-sm">
             <thead>
@@ -347,7 +344,6 @@ export default function LiveOrdersTab() {
           </table>
         </div>
 
-        {/* Mobile cards */}
         <div className="md:hidden space-y-3">
           <AnimatePresence>
             {filtered.map((order) => (

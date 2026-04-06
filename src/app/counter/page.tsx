@@ -42,7 +42,6 @@ import StockTab from "@/components/dashboard/StockTab";
 import { type FeatureTabId } from "@/lib/restaurant-types";
 import GlobalChatButton from "@/components/chat/GlobalChatButton";
 
-/* ── Feature tab imports for counter staff ──────────────────────── */
 import QuickCounterTab from "@/components/dashboard/features/QuickCounterTab";
 import ComboMealsTab from "@/components/dashboard/features/ComboMealsTab";
 import RushHourTab from "@/components/dashboard/features/RushHourTab";
@@ -115,7 +114,6 @@ const COUNTER_FEATURE_COMPONENTS: Record<FeatureTabId, React.ComponentType> = {
   "hotel-qr": HotelQRTab,
 };
 
-/* ── Types ────────────────────────────────────────────────────────── */
 
 interface StaffSession {
   userId: string;
@@ -207,7 +205,6 @@ interface SSEOrder {
   payment?: { method: string; status: string } | null;
 }
 
-/* ── Constants ────────────────────────────────────────────────────── */
 
 const STATUS_COLORS: Record<string, string> = {
   PENDING: "bg-orange-100 text-orange-700",
@@ -219,7 +216,6 @@ const STATUS_COLORS: Record<string, string> = {
   REJECTED: "bg-red-100 text-red-600",
 };
 
-/* ── Helpers ──────────────────────────────────────────────────────── */
 
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -308,7 +304,6 @@ function playNewOrderSound() {
 
 const isPaid = (o: BillOrder) => o.payment?.status === "COMPLETED";
 
-/* ── Token Display Board ─────────────────────────────────────────── */
 
 function TokenBoard({ orders }: { orders: SSEOrder[] }) {
   const readyOrders = orders.filter((o) => o.status === "READY");
@@ -316,7 +311,6 @@ function TokenBoard({ orders }: { orders: SSEOrder[] }) {
 
   return (
     <div className="space-y-4">
-      {/* Ready Orders */}
       <div className="rounded-2xl bg-linear-to-br from-emerald-500 to-emerald-600 p-5 shadow-lg shadow-emerald-200/50">
         <div className="flex items-center gap-2 mb-4">
           <Bell className="h-5 w-5 text-white" />
@@ -377,7 +371,6 @@ function TokenBoard({ orders }: { orders: SSEOrder[] }) {
         )}
       </div>
 
-      {/* Currently Preparing */}
       <div className="rounded-2xl bg-linear-to-br from-amber-400 to-amber-500 p-5 shadow-lg shadow-amber-200/50">
         <div className="flex items-center gap-2 mb-4">
           <Timer className="h-5 w-5 text-white" />
@@ -420,7 +413,6 @@ function TokenBoard({ orders }: { orders: SSEOrder[] }) {
   );
 }
 
-/* ── Summary Card ────────────────────────────────────────────────── */
 
 function SummaryCard({
   label,
@@ -481,13 +473,11 @@ function BillingPanel({
   const [payType, setPayType] = useState<"all" | "cash" | "online">("all");
   const [search, setSearch] = useState("");
 
-  // Collect payment modal
   const [selectedOrder, setSelectedOrder] = useState<BillOrder | null>(null);
   const [showCollect, setShowCollect] = useState(false);
   const [collectMethod, setCollectMethod] = useState<string>("CASH");
   const [collectTxn, setCollectTxn] = useState("");
 
-  // Discount modal
   const [showDiscount, setShowDiscount] = useState(false);
   const [discountAmount, setDiscountAmount] = useState("");
   const [discountReason, setDiscountReason] = useState("");
@@ -546,7 +536,6 @@ function BillingPanel({
     knownOrderIds.current = new Set();
     loadOrders();
     loadSummary();
-    // Fetch tax config
     staffFetch(`/api/restaurants/${restaurantId}/tax-config`)
       .then(
         (cfg: {
@@ -569,7 +558,6 @@ function BillingPanel({
     return () => clearInterval(iv);
   }, [loadOrders, loadSummary]);
 
-  /* ── Actions ──────────────────────────────────────────────────── */
 
   const handleCollectPayment = async () => {
     if (!selectedOrder) return;
@@ -742,7 +730,6 @@ function BillingPanel({
                 </button>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                {/* Tax */}
                 <div className="rounded-xl border border-gray-100 p-3 space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-[#3e1e0c]">
@@ -779,7 +766,6 @@ function BillingPanel({
                     </div>
                   )}
                 </div>
-                {/* Service Charge */}
                 <div className="rounded-xl border border-gray-100 p-3 space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-[#3e1e0c]">
@@ -930,7 +916,6 @@ function BillingPanel({
         })}
       </div>
 
-      {/* Context hint */}
       {payType === "cash" && (
         <div className="flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-100 px-4 py-2.5">
           <Banknote className="h-4 w-4 text-emerald-600 shrink-0" />
@@ -1023,7 +1008,6 @@ function BillingPanel({
                 : "border-orange-200 bg-orange-50/20"
             }`}
           >
-            {/* Header row */}
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-sm font-extrabold text-[#3e1e0c]">
@@ -1088,7 +1072,6 @@ function BillingPanel({
               </div>
             </div>
 
-            {/* Online txn ID */}
             {order.payment &&
               order.payment.method !== "CASH" &&
               order.payment.transactionId && (
@@ -1103,14 +1086,12 @@ function BillingPanel({
                 </div>
               )}
 
-            {/* Customer note */}
             {order.note && (
               <div className="mb-3 rounded-lg bg-amber-50 px-3 py-2 text-[11px] text-amber-700">
                 <strong>Note:</strong> {order.note}
               </div>
             )}
 
-            {/* Items */}
             <div className="space-y-1 mb-3">
               {order.items.slice(0, 4).map((item) => (
                 <div key={item.id} className="flex justify-between text-xs">
@@ -1171,7 +1152,6 @@ function BillingPanel({
               </div>
             </div>
 
-            {/* Footer */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-[10px] text-gray-400">
                 <Clock className="h-3 w-3" />
@@ -1185,7 +1165,6 @@ function BillingPanel({
               </div>
 
               <div className="flex items-center gap-1.5 flex-wrap">
-                {/* View Bill */}
                 <a
                   href={`/bill/${order.id}`}
                   target="_blank"
@@ -1196,7 +1175,6 @@ function BillingPanel({
                   Bill
                 </a>
 
-                {/* Print */}
                 <a
                   href={`/bill/${order.id}`}
                   target="_blank"
@@ -1207,7 +1185,6 @@ function BillingPanel({
                   <Printer className="h-3 w-3" />
                 </a>
 
-                {/* Discount */}
                 {canDiscount && !isPaid(order) && (
                   <button
                     onClick={() => {
@@ -1221,7 +1198,6 @@ function BillingPanel({
                   </button>
                 )}
 
-                {/* Collect Payment */}
                 {!isPaid(order) &&
                   order.status !== "CANCELLED" &&
                   order.status !== "REJECTED" && (
@@ -1278,7 +1254,6 @@ function BillingPanel({
                 </button>
               </div>
 
-              {/* Amount Due */}
               <div className="rounded-2xl bg-gray-50 p-4 mb-5 text-center">
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">
                   Amount Due
@@ -1294,7 +1269,6 @@ function BillingPanel({
                   )}
               </div>
 
-              {/* Bill breakdown in modal */}
               <div className="rounded-xl bg-gray-50 p-3 space-y-1 mb-5">
                 <div className="flex justify-between text-xs">
                   <span className="text-gray-500">Subtotal</span>
@@ -1326,7 +1300,6 @@ function BillingPanel({
                 )}
               </div>
 
-              {/* Payment Method */}
               <div className="space-y-2 mb-5">
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">
                   Payment Method
@@ -1376,7 +1349,6 @@ function BillingPanel({
                 </div>
               )}
 
-              {/* Actions */}
               <div className="flex gap-2">
                 <button
                   onClick={() => {
@@ -1437,7 +1409,6 @@ function BillingPanel({
                 </button>
               </div>
 
-              {/* Current total */}
               <div className="rounded-2xl bg-gray-50 p-4 mb-5">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Current Bill Total</span>
@@ -1456,7 +1427,6 @@ function BillingPanel({
                   )}
               </div>
 
-              {/* Discount inputs */}
               <div className="space-y-3 mb-5">
                 <div>
                   <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5 block">
@@ -1483,7 +1453,6 @@ function BillingPanel({
                   />
                 </div>
 
-                {/* Quick discount buttons */}
                 <div className="flex flex-wrap gap-1.5">
                   {[50, 100, 200, 500].map((amt) => (
                     <button
@@ -1511,7 +1480,6 @@ function BillingPanel({
                 </div>
               </div>
 
-              {/* Preview new total */}
               {discountAmount && parseFloat(discountAmount) > 0 && (
                 <div className="rounded-xl bg-pink-50 p-3 mb-5 border border-pink-100">
                   <div className="flex justify-between text-sm">
@@ -1532,7 +1500,6 @@ function BillingPanel({
                 </div>
               )}
 
-              {/* Actions */}
               <div className="flex gap-2">
                 <button
                   onClick={() => {
@@ -1568,7 +1535,6 @@ function BillingPanel({
   );
 }
 
-/* ── MAIN COUNTER PAGE ───────────────────────────────────────────── */
 
 type ViewMode = "billing" | "board" | "split" | "stock" | "media" | "tables" | "manual" | FeatureTabId;
 
@@ -1586,11 +1552,9 @@ export default function CounterPage() {
 
   const [viewMode, setViewMode] = useState<ViewMode>("split");
 
-  // Attendance
   const [isPunchedIn, setIsPunchedIn] = useState(false);
   const [attendanceLoading, setAttendanceLoading] = useState(false);
 
-  // Load staff session
   useEffect(() => {
     fetch("/api/staff-session")
       .then((res) => {
@@ -1722,7 +1686,6 @@ export default function CounterPage() {
 
   return (
     <div className="min-h-screen bg-brand-50/30">
-      {/* Header */}
       <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-2xl shadow-[0_1px_12px_rgba(0,0,0,0.06)] border-b border-brand-100">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="flex h-14 items-center justify-between">
@@ -1737,7 +1700,6 @@ export default function CounterPage() {
             </div>
 
             <div className="flex items-center gap-1.5 sm:gap-2">
-              {/* View Mode Toggle */}
               <div className="hidden sm:flex items-center gap-1 rounded-lg border border-brand-100 p-0.5 bg-white">
                 {(
                   [
@@ -1765,7 +1727,6 @@ export default function CounterPage() {
                 ))}
               </div>
 
-              {/* Sound */}
               <button
                 onClick={() => setSoundEnabled(!soundEnabled)}
                 className={`rounded-lg p-2 transition-all ${
@@ -1803,7 +1764,6 @@ export default function CounterPage() {
                 </span>
               </button>
 
-              {/* Kitchen link */}
               <a
                 href="/kitchen"
                 className="flex items-center gap-1 rounded-lg border border-gray-200 px-2 py-1.5 text-[10px] font-bold text-gray-500 hover:bg-gray-50 transition-all"
@@ -1812,13 +1772,11 @@ export default function CounterPage() {
                 <span className="hidden sm:inline">Kitchen</span>
               </a>
 
-              {/* Staff */}
               <div className="flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-[11px] font-bold text-gray-700">
                 <User className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">{session.name}</span>
               </div>
 
-              {/* Logout */}
               <button
                 onClick={handleLogout}
                 disabled={loggingOut}
@@ -1831,7 +1789,6 @@ export default function CounterPage() {
         </div>
       </header>
 
-      {/* Mobile View Toggle */}
       <div className="sm:hidden sticky top-14 z-40 bg-white/80 backdrop-blur-xl border-b border-brand-100/60 px-4 py-2">
         <div className="flex items-center gap-1 rounded-lg border border-brand-100 p-0.5 bg-white">
           {(
@@ -1860,7 +1817,6 @@ export default function CounterPage() {
         </div>
       </div>
 
-      {/* Main Content */}
       <main className="mx-auto max-w-7xl px-4 sm:px-6 py-5 space-y-5">
         {viewMode === "billing" && (
           <BillingPanel

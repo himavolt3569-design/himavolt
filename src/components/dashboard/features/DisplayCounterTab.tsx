@@ -80,7 +80,6 @@ export default function DisplayCounterTab() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [previewMode, setPreviewMode] = useState(false);
 
-  // Add form
   const [showAddForm, setShowAddForm] = useState(false);
   const [addMode, setAddMode] = useState<"manual" | "menu">("menu");
   const [menuSearch, setMenuSearch] = useState("");
@@ -255,7 +254,6 @@ export default function DisplayCounterTab() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-10">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
@@ -284,7 +282,6 @@ export default function DisplayCounterTab() {
         </div>
       </div>
 
-      {/* Display mode toggles */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex items-center gap-3 rounded-xl bg-white p-4 ring-1 ring-gray-100 shadow-sm flex-1">
           <Monitor className="h-5 w-5 text-pink-500" />
@@ -314,7 +311,6 @@ export default function DisplayCounterTab() {
         </div>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
         <div className="rounded-xl bg-white ring-1 ring-gray-100 p-4 shadow-sm text-center">
           <p className="text-2xl font-bold text-green-500">{availableCount}</p>
@@ -330,7 +326,6 @@ export default function DisplayCounterTab() {
         </div>
       </div>
 
-      {/* Add Item Panel */}
       <AnimatePresence>
         {showAddForm && (
           <motion.div
@@ -340,7 +335,6 @@ export default function DisplayCounterTab() {
             className="overflow-hidden"
           >
             <div className="rounded-xl bg-white ring-1 ring-gray-100 shadow-sm overflow-hidden">
-              {/* Mode tabs */}
               <div className="flex border-b border-gray-100">
                 <button
                   onClick={() => setAddMode("menu")}
@@ -372,7 +366,6 @@ export default function DisplayCounterTab() {
                 </button>
               </div>
 
-              {/* From Menu tab */}
               {addMode === "menu" && (
                 <div className="p-4 space-y-3">
                   {menuItems.length === 0 ? (
@@ -396,7 +389,6 @@ export default function DisplayCounterTab() {
                           />
                         </div>
                       </div>
-                      {/* Category pills */}
                       <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-1">
                         <button
                           onClick={() => setMenuCatFilter("all")}
@@ -418,7 +410,6 @@ export default function DisplayCounterTab() {
                           </button>
                         ))}
                       </div>
-                      {/* Items grid */}
                       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 max-h-72 overflow-y-auto pr-1">
                         {filteredMenuItems.map((mi) => {
                           const alreadyAdded = counterItemNames.has(mi.name.toLowerCase());
@@ -472,7 +463,6 @@ export default function DisplayCounterTab() {
                 </div>
               )}
 
-              {/* Manual Entry tab */}
               {addMode === "manual" && (
                 <div className="p-5 space-y-4">
                   <div className="flex gap-3">
@@ -562,7 +552,6 @@ export default function DisplayCounterTab() {
         ))}
       </div>
 
-      {/* Preview Mode */}
       <AnimatePresence>
         {previewMode && (
           <motion.div
@@ -599,7 +588,6 @@ export default function DisplayCounterTab() {
         )}
       </AnimatePresence>
 
-      {/* Item List */}
       <div className="space-y-2">
         {displayItems.map((item, idx) => {
           const sc = STATUS_CONFIG[item.status];
@@ -611,7 +599,6 @@ export default function DisplayCounterTab() {
                 item.status === "sold-out" ? "opacity-50" : ""
               }`}
             >
-              {/* Reorder */}
               <div className="flex flex-col gap-0.5 shrink-0">
                 <button onClick={() => handleMoveUp(item.id)} className="text-gray-300 hover:text-gray-500 transition-colors" disabled={idx === 0}>
                   <ChevronUp className="h-3.5 w-3.5" />
@@ -640,7 +627,6 @@ export default function DisplayCounterTab() {
                 </div>
               </button>
 
-              {/* Item info */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <p className="text-sm font-semibold text-gray-800">{item.name}</p>
@@ -649,7 +635,6 @@ export default function DisplayCounterTab() {
                 <p className="text-[11px] text-gray-400">{item.category} · {formatPrice(item.price, cur)}</p>
               </div>
 
-              {/* Status selector */}
               <select
                 value={item.status}
                 onChange={(e) => updateItem(item.id, { status: e.target.value as ItemStatus })}
@@ -661,7 +646,6 @@ export default function DisplayCounterTab() {
                 <option value="sold-out">Sold Out</option>
               </select>
 
-              {/* Price toggle */}
               <button
                 onClick={() => updateItem(item.id, { showPrice: !item.showPrice })}
                 className={`flex h-8 w-8 items-center justify-center rounded-lg transition-all ${
@@ -672,7 +656,6 @@ export default function DisplayCounterTab() {
                 {item.showPrice ? <Tag className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
               </button>
 
-              {/* Delete */}
               <button
                 onClick={() => deleteItem(item.id)}
                 className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-50 text-gray-300 hover:text-red-500 hover:bg-red-50 transition-all"
@@ -701,7 +684,6 @@ export default function DisplayCounterTab() {
         onClose={() => setShowAddImagePicker(false)}
       />
 
-      {/* Image picker for editing existing item */}
       <ImagePicker
         open={!!editImageFor}
         currentImage={items.find((i) => i.id === editImageFor)?.imageUrl ?? null}

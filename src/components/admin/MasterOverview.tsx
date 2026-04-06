@@ -139,7 +139,6 @@ export default function MasterOverview({
 
   return (
     <div className="space-y-6">
-      {/* Refresh indicator */}
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-bold text-gompa-slate">System Overview</h2>
         <button
@@ -151,7 +150,6 @@ export default function MasterOverview({
         </button>
       </div>
 
-      {/* KPI Grid */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
         <StatCard
           label="Total Users"
@@ -213,9 +211,7 @@ export default function MasterOverview({
         />
       </div>
 
-      {/* Bottom Grid */}
       <div className="grid gap-4 lg:grid-cols-3">
-        {/* Order Status Breakdown */}
         <div className="rounded-2xl border border-brand-100 bg-white p-5 shadow-sm">
           <div className="mb-4 flex items-center justify-between">
             <h3 className="text-sm font-bold text-gompa-slate">Orders by Status</h3>
@@ -257,7 +253,6 @@ export default function MasterOverview({
           </div>
         </div>
 
-        {/* Top Restaurants */}
         <div className="rounded-2xl border border-brand-100 bg-white p-5 shadow-sm">
           <h3 className="mb-4 text-sm font-bold text-gompa-slate">Top Restaurants</h3>
           <div className="space-y-2.5">
@@ -296,7 +291,6 @@ export default function MasterOverview({
           </div>
         </div>
 
-        {/* Quick Actions */}
         <div className="rounded-2xl border border-brand-100 bg-white p-5 shadow-sm">
           <h3 className="mb-4 text-sm font-bold text-gompa-slate">Quick Actions</h3>
           <div className="space-y-2">

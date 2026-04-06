@@ -5,7 +5,6 @@ import { v4 as uuid } from "uuid";
 import { getStaffSession } from "@/lib/staff-auth";
 
 async function getAnyAuthUser(req: NextRequest): Promise<boolean> {
-  // Check staff JWT first
   const session = await getStaffSession(req);
   if (session) return true;
 
@@ -14,7 +13,6 @@ async function getAnyAuthUser(req: NextRequest): Promise<boolean> {
     const authUser = await getOrCreateUser();
     if (authUser) return true;
   } catch {
-    // Not authenticated
   }
 
   return false;

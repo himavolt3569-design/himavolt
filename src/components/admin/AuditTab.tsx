@@ -287,7 +287,6 @@ export default function AuditTab() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
 
-  // SSE for live updates
   useEffect(() => {
     if (!liveEnabled) {
       eventSourceRef.current?.close();
@@ -341,7 +340,6 @@ export default function AuditTab() {
 
   return (
     <div className="space-y-4">
-      {/* Controls */}
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative flex-1 sm:max-w-xs">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
@@ -409,7 +407,6 @@ export default function AuditTab() {
         )}
       </AnimatePresence>
 
-      {/* Audit List */}
       <div className="overflow-hidden rounded-2xl border border-brand-100 bg-white shadow-sm">
         <div className="flex items-center justify-between border-b border-brand-100 px-4 py-2.5">
           <div className="flex items-center gap-2">

@@ -164,7 +164,6 @@ export default function AllRestaurantsTab() {
 
   return (
     <div className="space-y-4">
-      {/* Bulk Action Bar */}
       <AnimatePresence>
         {selectedIds.size > 0 && (
           <motion.div
@@ -189,7 +188,6 @@ export default function AllRestaurantsTab() {
         )}
       </AnimatePresence>
 
-      {/* Controls */}
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative flex-1 sm:max-w-xs">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
@@ -226,7 +224,6 @@ export default function AllRestaurantsTab() {
         {pagination && <span className="ml-auto text-xs text-gray-400">{pagination.total} restaurants</span>}
       </div>
 
-      {/* Filter Chips */}
       <AnimatePresence>
         {showFilters && (
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
@@ -258,7 +255,6 @@ export default function AllRestaurantsTab() {
         )}
       </AnimatePresence>
 
-      {/* Restaurants List */}
       <div className="overflow-hidden rounded-2xl border border-brand-100 bg-white shadow-sm">
         <div className="flex items-center gap-3 border-b border-brand-100 px-4 py-2.5">
           <input
@@ -384,7 +380,6 @@ export default function AllRestaurantsTab() {
         )}
       </div>
 
-      {/* Single delete */}
       <DeleteConfirmDialog
         open={!!deleteTarget}
         title={`Delete "${deleteTarget?.name}"?`}
@@ -394,7 +389,6 @@ export default function AllRestaurantsTab() {
         onCancel={() => setDeleteTarget(null)}
       />
 
-      {/* Bulk delete */}
       <DeleteConfirmDialog
         open={bulkDeleteOpen}
         title={`Delete ${selectedIds.size} restaurant${selectedIds.size > 1 ? "s" : ""}?`}

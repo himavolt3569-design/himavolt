@@ -130,7 +130,6 @@ export default function PrivateDiningTab() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-10">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
@@ -148,7 +147,6 @@ export default function PrivateDiningTab() {
         </button>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: "Total Rooms", value: String(rooms.length), icon: DoorOpen, color: "#10B981" },
@@ -166,7 +164,6 @@ export default function PrivateDiningTab() {
         ))}
       </div>
 
-      {/* View Toggle */}
       <div className="flex gap-1.5">
         {(["bookings", "rooms", "menus"] as const).map((v) => (
           <button
@@ -181,7 +178,6 @@ export default function PrivateDiningTab() {
         ))}
       </div>
 
-      {/* Create Booking Form */}
       <AnimatePresence>
         {showCreateBooking && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
@@ -247,7 +243,6 @@ export default function PrivateDiningTab() {
         )}
       </AnimatePresence>
 
-      {/* Bookings View */}
       {activeView === "bookings" && (
         <div className="space-y-3">
           {bookings.map((booking) => {
@@ -302,7 +297,6 @@ export default function PrivateDiningTab() {
         </div>
       )}
 
-      {/* Rooms View */}
       {activeView === "rooms" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {rooms.map((room) => {
@@ -356,7 +350,6 @@ export default function PrivateDiningTab() {
         </div>
       )}
 
-      {/* Set Menus View */}
       {activeView === "menus" && (
         <div className="space-y-4">
           {setMenus.map((menu) => (

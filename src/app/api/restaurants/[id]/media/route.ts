@@ -7,10 +7,8 @@ type Ctx = { params: Promise<{ id: string }> };
 
 async function getRestaurantId(req: NextRequest, ctx: Ctx): Promise<string | null> {
   const { id } = await ctx.params;
-  // Staff session
   const staffSession = await getStaffSession(req);
   if (staffSession && staffSession.restaurantId === id) return id;
-  // Owner session
   try {
     const owner = await requireOwner();
     const rest = await db.restaurant.findFirst({ where: { id, ownerId: owner.id } });

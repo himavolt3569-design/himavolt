@@ -43,7 +43,6 @@ import {
   type FeatureTabId,
 } from "@/lib/restaurant-types";
 
-/* ── Lazy feature tab imports for staff ─────────────────────────── */
 import QuickCounterTab from "@/components/dashboard/features/QuickCounterTab";
 import ComboMealsTab from "@/components/dashboard/features/ComboMealsTab";
 import RushHourTab from "@/components/dashboard/features/RushHourTab";
@@ -118,7 +117,6 @@ const STAFF_FEATURE_COMPONENTS: Record<FeatureTabId, React.ComponentType> = {
   "hotel-qr": HotelQRTab,
 };
 
-/* ── Types ────────────────────────────────────────────────────────── */
 
 interface StaffSession {
   userId: string;
@@ -317,7 +315,6 @@ const ROLE_CONFIG: Record<
   },
 };
 
-/* ── Helpers ──────────────────────────────────────────────────────── */
 
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -337,7 +334,6 @@ async function staffFetch(url: string, opts?: RequestInit) {
   return res.json();
 }
 
-/* ── ORDERS TAB ──────────────────────────────────────────────────── */
 
 function playAlertSound() {
   try {
@@ -415,13 +411,11 @@ function OrdersTab({ restaurantId, currency }: { restaurantId: string; currency:
         es.onerror = () => {
           es?.close();
           es = null;
-          // Fall back to polling
           if (!fallbackInterval) {
             fallbackInterval = setInterval(load, 8000);
           }
         };
       } catch {
-        // EventSource not supported
         load();
         fallbackInterval = setInterval(load, 8000);
       }
@@ -489,7 +483,6 @@ function OrdersTab({ restaurantId, currency }: { restaurantId: string; currency:
 
   return (
     <div className="space-y-4">
-      {/* Filter row */}
       <div className="flex items-center gap-2">
         {["active", "completed", "all"].map((f) => (
           <button
@@ -523,7 +516,6 @@ function OrdersTab({ restaurantId, currency }: { restaurantId: string; currency:
         </div>
       )}
 
-      {/* Order Cards */}
       <div className="grid gap-3 sm:grid-cols-2">
         {filtered.map((order) => (
           <motion.div
@@ -567,7 +559,6 @@ function OrdersTab({ restaurantId, currency }: { restaurantId: string; currency:
               </div>
             )}
 
-            {/* Items */}
             <div className="space-y-1 mb-3">
               {order.items.map((item) => (
                 <div key={item.id} className="flex justify-between text-xs">
@@ -615,7 +606,6 @@ function OrdersTab({ restaurantId, currency }: { restaurantId: string; currency:
               </div>
             )}
 
-            {/* Actions */}
             {order.status === "PENDING" && (
               <div className="mt-3 space-y-2">
                 <AnimatePresence>
@@ -756,7 +746,6 @@ function OrdersTab({ restaurantId, currency }: { restaurantId: string; currency:
   );
 }
 
-/* ── MENU TAB ────────────────────────────────────────────────────── */
 
 function MenuTab({ restaurantId, currency }: { restaurantId: string; currency: string }) {
   const [items, setItems] = useState<MenuItem[]>([]);
@@ -802,7 +791,6 @@ function MenuTab({ restaurantId, currency }: { restaurantId: string; currency: s
 
   return (
     <div className="space-y-4">
-      {/* Search */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
         <input
@@ -878,7 +866,6 @@ function MenuTab({ restaurantId, currency }: { restaurantId: string; currency: s
   );
 }
 
-/* ── CHAT TAB ────────────────────────────────────────────────────── */
 
 function ChatTab({
   restaurantId,
@@ -968,7 +955,6 @@ function ChatTab({
     sseRef.current = es;
   }, []);
 
-  // SSE for broadcast channel
   const connectBroadcastSSE = useCallback((roomId: string) => {
     broadcastSseRef.current?.close();
     const es = new EventSource(`/api/chat/${roomId}/stream`);
@@ -999,7 +985,6 @@ function ChatTab({
     broadcastSseRef.current = es;
   }, []);
 
-  // Load broadcast channel
   useEffect(() => {
     (async () => {
       try {
@@ -1182,7 +1167,6 @@ function ChatTab({
 
   return (
     <div className="space-y-4">
-      {/* Tab selector */}
       <div className="flex gap-2">
         <button
           onClick={() => setTab("customers")}
@@ -1318,7 +1302,6 @@ function ChatTab({
   );
 }
 
-/* ── INVENTORY TAB ───────────────────────────────────────────────── */
 
 function InventoryTab({ restaurantId, currency }: { restaurantId: string; currency: string }) {
   const [items, setItems] = useState<InventoryItem[]>([]);
@@ -1326,7 +1309,6 @@ function InventoryTab({ restaurantId, currency }: { restaurantId: string; curren
   const [showAdd, setShowAdd] = useState(false);
   const [search, setSearch] = useState("");
 
-  // Add form state
   const [newName, setNewName] = useState("");
   const [newUnit, setNewUnit] = useState("kg");
   const [newQty, setNewQty] = useState("0");
@@ -1415,7 +1397,6 @@ function InventoryTab({ restaurantId, currency }: { restaurantId: string; curren
 
   return (
     <div className="space-y-4">
-      {/* Low stock alert */}
       {lowStock.length > 0 && (
         <div className="rounded-2xl bg-red-50 border border-red-100 p-4 shadow-[0_2px_12px_rgba(239,68,68,0.08)]">
           <div className="flex items-center gap-2 mb-2">
@@ -1456,7 +1437,6 @@ function InventoryTab({ restaurantId, currency }: { restaurantId: string; curren
         </button>
       </div>
 
-      {/* Add form */}
       <AnimatePresence>
         {showAdd && (
           <motion.div
@@ -1583,7 +1563,6 @@ function InventoryTab({ restaurantId, currency }: { restaurantId: string; curren
         )}
       </AnimatePresence>
 
-      {/* Items grouped by category */}
       {categories.map((cat) => {
         const catItems = filtered.filter((i) => i.category === cat);
         if (catItems.length === 0) return null;
@@ -1664,7 +1643,6 @@ function InventoryTab({ restaurantId, currency }: { restaurantId: string; curren
   );
 }
 
-/* ── MAIN PAGE ───────────────────────────────────────────────────── */
 
 export default function KitchenPage() {
   const router = useRouter();
@@ -1690,7 +1668,6 @@ export default function KitchenPage() {
   const [isPunchedIn, setIsPunchedIn] = useState(false);
   const [attendanceLoading, setAttendanceLoading] = useState(false);
 
-  // PIN Change State
   const [currentPin, setCurrentPin] = useState("");
   const [newPin, setNewPin] = useState("");
   const [pinChangeStatus, setPinChangeStatus] = useState<
@@ -1797,7 +1774,6 @@ export default function KitchenPage() {
 
   return (
     <div className="min-h-screen bg-brand-50/30">
-      {/* Header */}
       <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-2xl shadow-[0_1px_12px_rgba(0,0,0,0.06)] border-b border-brand-100">
         <div className="mx-auto max-w-5xl px-4 sm:px-6">
           <div className="flex h-16 items-center justify-between">
@@ -1862,7 +1838,6 @@ export default function KitchenPage() {
         </div>
       </header>
 
-      {/* Staff Profile Modal */}
       <AnimatePresence>
         {showProfile && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
@@ -1953,7 +1928,6 @@ export default function KitchenPage() {
         )}
       </AnimatePresence>
 
-      {/* Tab Navigation */}
       <div className="sticky top-16 z-40 bg-white/80 backdrop-blur-xl border-b border-brand-100/60">
         <div className="mx-auto max-w-5xl px-4 sm:px-6">
           {/* FOH / BOH group headers — only shown for roles that have both */}
@@ -2043,7 +2017,6 @@ export default function KitchenPage() {
         </div>
       </div>
 
-      {/* Content */}
       <main className="mx-auto max-w-5xl px-4 sm:px-6 py-5">
         <AnimatePresence mode="wait">
           <motion.div

@@ -73,7 +73,6 @@ export default function OnboardingRolePage() {
         transition={{ duration: 0.22 }}
         className="w-full max-w-lg"
       >
-        {/* Logo */}
         <div className="mb-8 text-center">
           <Link href="/" className="inline-flex items-center gap-2">
             <Mountain className="h-8 w-8 text-[#eaa94d]" strokeWidth={2.5} />
@@ -89,9 +88,7 @@ export default function OnboardingRolePage() {
           </p>
         </div>
 
-        {/* Role Cards */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 mb-6">
-          {/* Customer */}
           <button
             onClick={() => setRole("CUSTOMER")}
             className={`relative rounded-2xl border-2 p-5 text-left transition-all duration-200 ${
@@ -128,7 +125,6 @@ export default function OnboardingRolePage() {
             </ul>
           </button>
 
-          {/* Owner */}
           <button
             onClick={() => setRole("OWNER")}
             className={`relative rounded-2xl border-2 p-5 text-left transition-all duration-200 ${

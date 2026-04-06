@@ -79,7 +79,6 @@ export async function POST(
   const billTotal = bill.total;
   const splitTotal = splits.reduce((sum: number, s: { amount: number }) => sum + s.amount, 0);
 
-  // Allow small rounding difference
   if (Math.abs(splitTotal - billTotal) > 1) {
     return NextResponse.json(
       { error: `Split amounts (${splitTotal}) do not match bill total (${billTotal})` },
@@ -130,7 +129,6 @@ export async function POST(
       });
     }
 
-    // Update bill paidVia
     await db.bill.update({
       where: { id: bill.id },
       data: { paidVia: `SPLIT: ${splitDescription}` },

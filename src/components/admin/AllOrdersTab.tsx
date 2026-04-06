@@ -161,7 +161,6 @@ export default function AllOrdersTab() {
     return () => clearInterval(interval);
   }, [fetchOrders, page]);
 
-  // Debounced search
   useEffect(() => {
     if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
     searchTimeoutRef.current = setTimeout(() => {
@@ -224,7 +223,6 @@ export default function AllOrdersTab() {
 
   return (
     <div className="space-y-4">
-      {/* Controls */}
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative flex-1 sm:max-w-xs">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
@@ -279,7 +277,6 @@ export default function AllOrdersTab() {
         </div>
       )}
 
-      {/* Filter Chips */}
       <AnimatePresence>
         {showFilters && (
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
@@ -321,7 +318,6 @@ export default function AllOrdersTab() {
         )}
       </AnimatePresence>
 
-      {/* Orders List */}
       <div className="overflow-hidden rounded-2xl border border-brand-100 bg-white shadow-sm">
         <div className="flex items-center justify-between border-b border-brand-100 px-4 py-2.5">
           <div className="flex items-center gap-2">
@@ -441,7 +437,6 @@ export default function AllOrdersTab() {
                         className="overflow-hidden"
                       >
                         <div className="border-t border-brand-100 bg-brand-50/30 px-4 py-3 space-y-3">
-                          {/* Order items */}
                           <div>
                             <p className="mb-1.5 text-[11px] font-medium text-gray-400 uppercase">Items</p>
                             <div className="space-y-1">
@@ -456,7 +451,6 @@ export default function AllOrdersTab() {
                             </div>
                           </div>
 
-                          {/* Details grid */}
                           <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-xs sm:grid-cols-4">
                             <div>
                               <span className="text-gray-400">Subtotal</span>
@@ -488,7 +482,6 @@ export default function AllOrdersTab() {
                             </div>
                           </div>
 
-                          {/* Status Actions */}
                           {nextStatus[order.status] && (
                             <div className="flex items-center gap-2 pt-1">
                               <button
@@ -519,7 +512,6 @@ export default function AllOrdersTab() {
           </div>
         )}
 
-        {/* Pagination */}
         {pagination && pagination.totalPages > 1 && (
           <div className="flex items-center justify-between border-t border-gray-100 px-4 py-2.5">
             <span className="text-xs text-gray-400">Page {pagination.page} of {pagination.totalPages}</span>

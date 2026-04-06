@@ -44,10 +44,8 @@ import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { formatPrice } from "@/lib/currency";
 
-/* ── Brand ──────────────────────────────────────────────── */
 const BRAND = "#eaa94d";
 
-/* ── Types ──────────────────────────────────────────────── */
 type Tab = "home" | "orders" | "reviews" | "saved" | "account";
 
 interface OrderItem {
@@ -156,7 +154,6 @@ interface HotelBooking {
   };
 }
 
-/* ── Status metadata ── */
 const STATUS_META: Record<string, { label: string; color: string; bg: string; icon: typeof Clock }> = {
   PENDING:   { label: "Pending",   color: "text-amber-700",   bg: "bg-amber-50",   icon: Clock },
   ACCEPTED:  { label: "Accepted",  color: "text-blue-700",    bg: "bg-blue-50",    icon: CheckCircle },
@@ -174,7 +171,6 @@ const TYPE_LABELS: Record<string, string> = {
   MO_MO_SHOP: "Momo Shop", TANDOORI: "Tandoori", GUEST_HOUSE: "Guest House",
 };
 
-/* ── Helpers ── */
 function timeAgo(date: string) {
   const diff = Date.now() - new Date(date).getTime();
   const mins = Math.floor(diff / 60000);
@@ -202,7 +198,6 @@ function useDebounce(value: string, delay: number) {
   return debounced;
 }
 
-/* ── Stars ── */
 function Stars({
   rating,
   size = 14,
@@ -242,7 +237,6 @@ export default function CustomerDashboard() {
   const { user, signOut } = useAuth();
   const [tab, setTab] = useState<Tab>("home");
 
-  /* ── Data ── */
   const [orders, setOrders]           = useState<Order[]>([]);
   const [stats, setStats]             = useState<Stats | null>(null);
   const [favourites, setFavourites]   = useState<Favourite[]>([]);
@@ -269,7 +263,6 @@ export default function CustomerDashboard() {
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
-  /* ── Derived ── */
   const displayName  = user?.user_metadata?.full_name || user?.user_metadata?.name || "there";
   const firstName    = displayName.split(" ")[0];
   const avatarUrl    = user?.user_metadata?.avatar_url;
@@ -424,7 +417,6 @@ export default function CustomerDashboard() {
   );
 }
 
-/* ── Shared Tab Animation ── */
 function TabPanel({ children }: { children: React.ReactNode }) {
   return (
     <motion.div
@@ -464,7 +456,6 @@ function HomeTab({
 
   return (
     <div className="space-y-5">
-      {/* Greeting */}
       <div className="flex items-center gap-3 pt-1">
         {avatarUrl ? (
           <img src={avatarUrl} alt="" className="h-12 w-12 rounded-full object-cover ring-2 ring-white shadow-md" />
@@ -485,10 +476,8 @@ function HomeTab({
         )}
       </div>
 
-      {/* Live Order Banner */}
       {activeOrder && <LiveOrderCard order={activeOrder} />}
 
-      {/* Stats Row */}
       {stats && (
         <div className="grid grid-cols-3 gap-2.5">
           <StatTile icon={ShoppingBag} label="Orders" value={stats.totalOrders} color="blue" />
@@ -503,7 +492,6 @@ function HomeTab({
         </div>
       )}
 
-      {/* Favourite Restaurant */}
       {stats?.favoriteRestaurant && (
         <div className="flex items-center gap-3 rounded-2xl border border-[#eaa94d]/12 bg-white p-3.5 shadow-sm">
           {stats.favoriteRestaurant.imageUrl ? (
@@ -521,7 +509,6 @@ function HomeTab({
         </div>
       )}
 
-      {/* Quick Actions */}
       <div className="grid grid-cols-4 gap-2">
         {[
           { icon: History, label: "Orders", action: onViewOrders, color: "bg-blue-50 text-blue-600" },
@@ -542,7 +529,6 @@ function HomeTab({
         ))}
       </div>
 
-      {/* Recent Orders */}
       {recentOrders.length > 0 && (
         <section>
           <SectionHeader title="Recent Orders" onAction={onViewOrders} actionLabel="See all" />
@@ -554,7 +540,6 @@ function HomeTab({
         </section>
       )}
 
-      {/* Delivery History Preview */}
       {deliveryOrders.length > 0 && (
         <section>
           <SectionHeader title="Delivery History" onAction={onViewDelivery} actionLabel="See all" />
@@ -566,7 +551,6 @@ function HomeTab({
         </section>
       )}
 
-      {/* Hotel Stays Preview */}
       {hotelBookings.length > 0 && (
         <section>
           <SectionHeader title="Hotel Stays" actionLabel="See all" />
@@ -578,7 +562,6 @@ function HomeTab({
         </section>
       )}
 
-      {/* Empty state */}
       {recentOrders.length === 0 && (
         <div className="rounded-2xl border-2 border-dashed border-[#eaa94d]/20 bg-[#fdf9ef]/50 p-8 text-center">
           <Utensils className="mx-auto h-9 w-9 text-[#eaa94d]/30 mb-3" />
@@ -646,7 +629,6 @@ function StatTile({
   );
 }
 
-/* ── Live Order Tracker ── */
 function LiveOrderCard({ order }: { order: Order }) {
   const meta = STATUS_META[order.status] || STATUS_META.PENDING;
   const StatusIcon = meta.icon;
@@ -787,13 +769,11 @@ function OrdersTab({
 
   return (
     <div className="space-y-4">
-      {/* Header */}
       <div>
         <h2 className="text-lg font-extrabold text-gray-900">Order History</h2>
         <p className="text-xs text-gray-400 mt-0.5">{orders.length} total orders</p>
       </div>
 
-      {/* Search */}
       {!showStays && (
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -807,7 +787,6 @@ function OrdersTab({
         </div>
       )}
 
-      {/* Filter Chips */}
       <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
         {FILTER_CHIPS.map(({ id, label, icon: Icon }) => (
           <button
@@ -825,7 +804,6 @@ function OrdersTab({
         ))}
       </div>
 
-      {/* Stays view */}
       {showStays ? (
         hotelBookings.length === 0 ? (
           <EmptyState icon={BedDouble} title="No hotel stays yet" desc="Book a room from any hotel's page." />
@@ -842,7 +820,6 @@ function OrdersTab({
         />
       ) : (
         <div className="space-y-3">
-          {/* Delivery section header */}
           {filter === "delivery" && (
             <div className="flex items-center gap-2 px-1">
               <Bike className="h-4 w-4 text-violet-500" />
@@ -873,7 +850,6 @@ function EmptyState({ icon: Icon, title, desc }: { icon: typeof Receipt; title: 
   );
 }
 
-/* ── Order Card ── */
 function OrderCard({
   order, expanded, onToggle,
 }: {
@@ -937,7 +913,6 @@ function OrderCard({
             className="overflow-hidden"
           >
             <div className="border-t border-gray-100 px-4 py-3 space-y-3">
-              {/* Items */}
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-2">Items</p>
                 {order.items.map((item) => (
@@ -953,7 +928,6 @@ function OrderCard({
                 ))}
               </div>
 
-              {/* Totals */}
               <div className="border-t border-dashed border-gray-200 pt-2 space-y-1">
                 <div className="flex justify-between text-xs text-gray-500">
                   <span>Subtotal</span><span>{formatPrice(order.subtotal, currency)}</span>
@@ -983,7 +957,6 @@ function OrderCard({
                 </div>
               </div>
 
-              {/* Meta chips */}
               <div className="flex flex-wrap gap-2">
                 <span className="inline-flex items-center gap-1 rounded-lg bg-gray-50 px-2 py-1 text-[10px] font-medium text-gray-500">
                   <Calendar className="h-3 w-3" />{formatDate(order.createdAt)}
@@ -1031,7 +1004,6 @@ function OrderCard({
   );
 }
 
-/* ── Hotel Stay Card ── */
 const BOOKING_STATUS_META: Record<string, { label: string; color: string; bg: string }> = {
   PENDING:    { label: "Awaiting Confirmation", color: "text-amber-700",   bg: "bg-amber-50" },
   CONFIRMED:  { label: "Confirmed",             color: "text-emerald-700", bg: "bg-emerald-50" },
@@ -1166,7 +1138,6 @@ function ReviewsTab({
                 layout
                 className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm"
               >
-                {/* Restaurant info */}
                 <div className="flex items-center gap-3 mb-3">
                   {review.restaurant.imageUrl ? (
                     <img src={review.restaurant.imageUrl} alt="" className="h-11 w-11 rounded-xl object-cover shrink-0" />
@@ -1393,7 +1364,6 @@ function AccountTab({
 }) {
   return (
     <div className="space-y-4">
-      {/* Profile Card */}
       <div className="rounded-2xl border border-[#eaa94d]/12 bg-white p-5 shadow-sm">
         <div className="flex items-center gap-4">
           {avatarUrl ? (
@@ -1418,10 +1388,8 @@ function AccountTab({
         </div>
       </div>
 
-      {/* Username Editor */}
       <UsernameEditor />
 
-      {/* Stats */}
       {stats && (
         <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
           <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-3">Your Activity</p>
@@ -1459,14 +1427,12 @@ function AccountTab({
         </div>
       )}
 
-      {/* Links */}
       <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden divide-y divide-gray-100">
         <AccountLink href="/" icon={UtensilsCrossed} label="Browse Restaurants" desc="Explore menus near you" />
         <AccountLink href="/contact" icon={MessageSquare} label="Help & Support" desc="Get help with your account or orders" />
         <AccountLink href="/legal" icon={Bookmark} label="Legal" desc="Privacy policy & terms of service" />
       </div>
 
-      {/* Sign Out */}
       <button
         onClick={signOut}
         className="w-full flex items-center justify-center gap-2 rounded-2xl border border-red-200 bg-white py-3.5 text-sm font-bold text-red-500 hover:bg-red-50 transition-colors shadow-sm"
@@ -1495,7 +1461,6 @@ function AccountLink({ href, icon: Icon, label, desc }: { href: string; icon: ty
   );
 }
 
-/* ── Username Editor ── */
 function UsernameEditor() {
   const [username, setUsername]         = useState("");
   const [currentUsername, setCurrent]   = useState<string | null>(null);

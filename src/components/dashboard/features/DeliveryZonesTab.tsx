@@ -129,7 +129,6 @@ export default function DeliveryZonesTab() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Delivery Zones</h2>
@@ -146,7 +145,6 @@ export default function DeliveryZonesTab() {
         </button>
       </div>
 
-      {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-center">
           <Target className="w-5 h-5 text-violet-500 mx-auto mb-1" />
@@ -174,7 +172,6 @@ export default function DeliveryZonesTab() {
         </div>
       </div>
 
-      {/* Add Zone Form */}
       <AnimatePresence>
         {showAddForm && (
           <motion.div
@@ -366,7 +363,6 @@ export default function DeliveryZonesTab() {
         )}
       </AnimatePresence>
 
-      {/* Zone List */}
       <div className="space-y-3">
         <AnimatePresence mode="popLayout">
           {zones.map((zone, idx) => (
@@ -382,7 +378,6 @@ export default function DeliveryZonesTab() {
             >
               <div className="p-5">
                 <div className="flex items-start gap-3">
-                  {/* Priority controls */}
                   <div className="flex flex-col items-center gap-0.5 pt-1">
                     <button
                       onClick={() => movePriority(idx, "up")}
@@ -403,12 +398,10 @@ export default function DeliveryZonesTab() {
                     </button>
                   </div>
 
-                  {/* Zone icon */}
                   <div className="p-2.5 bg-violet-100 rounded-xl shrink-0">
                     <MapPin className="w-5 h-5 text-violet-600" />
                   </div>
 
-                  {/* Zone info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <h3 className="text-sm font-bold text-gray-900">
@@ -428,7 +421,6 @@ export default function DeliveryZonesTab() {
                       {zone.areaDescription}
                     </p>
 
-                    {/* Zone metrics */}
                     <div className="flex flex-wrap items-center gap-3 mt-2">
                       <span className="inline-flex items-center gap-1 text-xs text-gray-600">
                         <Target className="w-3 h-3 text-violet-500" />
@@ -449,7 +441,6 @@ export default function DeliveryZonesTab() {
                     </div>
                   </div>
 
-                  {/* Actions */}
                   <div className="flex items-center gap-2 shrink-0">
                     <button
                       onClick={() =>
@@ -480,7 +471,6 @@ export default function DeliveryZonesTab() {
                   </div>
                 </div>
 
-                {/* Expanded details */}
                 <AnimatePresence>
                   {expandedZone === zone.id && (
                     <motion.div
@@ -532,7 +522,6 @@ export default function DeliveryZonesTab() {
         </AnimatePresence>
       </div>
 
-      {/* Restricted Zones */}
       <motion.div
         layout
         className="bg-white rounded-xl shadow-sm border border-gray-100 p-6"

@@ -86,7 +86,6 @@ export default function TaxChargesTab() {
         </p>
       </div>
 
-      {/* Currency */}
       <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-4">
         <div className="flex items-center gap-2">
           <Coins className="h-4 w-4 text-[#3e1e0c]" />
@@ -113,7 +112,6 @@ export default function TaxChargesTab() {
         </div>
       </div>
 
-      {/* Tax */}
       <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-4">
         <div className="flex items-center justify-between">
           <div>
@@ -178,7 +176,6 @@ export default function TaxChargesTab() {
         )}
       </div>
 
-      {/* Service Charge */}
       <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-4">
         <div className="flex items-center justify-between">
           <div>
@@ -248,7 +245,6 @@ export default function TaxChargesTab() {
         )}
       </div>
 
-      {/* Preview */}
       <div className="rounded-2xl border border-gray-200 bg-gray-50 p-5">
         <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
           Preview — {formatPrice(1000, cur)} order
@@ -292,7 +288,6 @@ export default function TaxChargesTab() {
         </div>
       </div>
 
-      {/* Save */}
       <button
         onClick={handleSave}
         disabled={saving}

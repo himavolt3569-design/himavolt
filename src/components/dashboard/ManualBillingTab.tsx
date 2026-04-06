@@ -22,7 +22,6 @@ async function staffFetch<T = unknown>(url: string, opts?: RequestInit): Promise
   return res.json();
 }
 
-/* ── Types ───────────────────────────────────────────────────────── */
 
 interface MenuItem {
   id: string;
@@ -49,7 +48,6 @@ interface TableOption {
   isOccupied: boolean;
 }
 
-/* ── Component ───────────────────────────────────────────────────── */
 
 export default function ManualBillingTab({
   restaurantId,
@@ -104,7 +102,6 @@ export default function ManualBillingTab({
 
   const availableTables = tables.filter((t) => !t.isOccupied);
 
-  // Menu helpers
   const filtered = menuItems.filter(
     (m) =>
       m.isAvailable &&
@@ -129,7 +126,6 @@ export default function ManualBillingTab({
   const removeItem = (menuItemId: string) =>
     setBillItems((prev) => prev.filter((b) => b.menuItemId !== menuItemId));
 
-  // Totals
   const subtotal = billItems.reduce((sum, b) => sum + b.price * b.quantity, 0);
   const taxRate   = taxRateProp;
   const taxEnabled = taxEnabledProp;
@@ -243,7 +239,6 @@ export default function ManualBillingTab({
   };
 
 
-  /* ── Success State ───────────────────────────────────────────── */
   if (success) {
     /* Direct Pay success — shows live paid/unpaid status */
     if (payMethod === "DIRECT") {
@@ -307,7 +302,6 @@ export default function ManualBillingTab({
             </div>
           )}
 
-          {/* Secondary actions */}
           <div className="flex gap-2 w-full">
             <button
               onClick={handlePrint}
@@ -379,7 +373,6 @@ export default function ManualBillingTab({
     );
   }
 
-  /* ── Main Layout ─────────────────────────────────────────────── */
   return (
     <div className="space-y-4 p-1">
 
@@ -413,7 +406,6 @@ export default function ManualBillingTab({
 
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
-      {/* Left: Menu items */}
       <div className="lg:col-span-2 space-y-3">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -455,7 +447,6 @@ export default function ManualBillingTab({
 
         {/* Customer & table info */}
         <div className="p-4 border-b border-gray-100 space-y-2.5">
-          {/* Table selector */}
           <div className="relative">
             <button
               type="button"
@@ -487,7 +478,6 @@ export default function ManualBillingTab({
                   >
                     None / No table
                   </button>
-                  {/* Also allow manual entry */}
                   <div className="px-3 py-2 border-t border-gray-100">
                     <input
                       type="number"
@@ -536,7 +526,6 @@ export default function ManualBillingTab({
             </AnimatePresence>
           </div>
 
-          {/* Guest name */}
           <div className="relative">
             <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input
@@ -548,7 +537,6 @@ export default function ManualBillingTab({
             />
           </div>
 
-          {/* Payment method toggle */}
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
@@ -579,7 +567,6 @@ export default function ManualBillingTab({
           </div>
         </div>
 
-        {/* Bill header */}
         <div className="flex items-center gap-2 px-4 pt-3 pb-1">
           <Receipt className="h-4 w-4 text-amber-500" />
           <h3 className="text-sm font-bold text-gray-800">
@@ -634,7 +621,6 @@ export default function ManualBillingTab({
               </AnimatePresence>
             </div>
 
-            {/* Totals */}
             <div className="border-t border-gray-200 pt-3 space-y-1.5">
               <div className="flex justify-between text-xs">
                 <span className="text-gray-500">Subtotal</span>
@@ -652,7 +638,6 @@ export default function ManualBillingTab({
               </div>
             </div>
 
-            {/* Actions */}
             <div className="flex gap-2 mt-3">
               {payMethod === "DIRECT" ? (
                 <button

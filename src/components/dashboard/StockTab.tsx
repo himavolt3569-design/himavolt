@@ -130,7 +130,6 @@ export default function StockTab() {
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-12">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <h2 className="text-2xl font-extrabold tracking-tight text-[#3e1e0c]">
@@ -153,7 +152,6 @@ export default function StockTab() {
         </button>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
           {
@@ -200,7 +198,6 @@ export default function StockTab() {
         ))}
       </div>
 
-      {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
@@ -255,7 +252,6 @@ export default function StockTab() {
         </select>
       </div>
 
-      {/* Items List */}
       {loading ? (
         <div className="flex items-center justify-center py-20">
           <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
@@ -289,7 +285,6 @@ export default function StockTab() {
                     isLow ? "border-red-200 bg-red-50/30" : "border-gray-100"
                   }`}
                 >
-                  {/* Icon */}
                   <div
                     className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${
                       isLow ? "bg-red-50" : "bg-emerald-50"
@@ -302,7 +297,6 @@ export default function StockTab() {
                     )}
                   </div>
 
-                  {/* Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <h4 className="font-bold text-[#3e1e0c] truncate">
@@ -364,7 +358,6 @@ export default function StockTab() {
                     )}
                   </div>
 
-                  {/* Quantity controls */}
                   <div className="flex items-center gap-2">
                     <QuickAdjust
                       item={item}
@@ -373,7 +366,6 @@ export default function StockTab() {
                     />
                   </div>
 
-                  {/* Actions */}
                   <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={() => {
@@ -421,7 +413,6 @@ export default function StockTab() {
   );
 }
 
-/* ─── Quick Adjust ─────────────────────────────────────────────────── */
 function QuickAdjust({
   item,
   restaurantId,
@@ -644,7 +635,6 @@ function AddEditModal({
             </div>
 
             <div className="space-y-4">
-              {/* Name */}
               <div>
                 <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">
                   Item Name <span className="text-[#eaa94d]">*</span>
@@ -724,7 +714,6 @@ function AddEditModal({
                 </div>
               </div>
 
-              {/* Cost per unit */}
               <div>
                 <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">
                   Cost per {unit}
@@ -739,7 +728,6 @@ function AddEditModal({
                 />
               </div>
 
-              {/* Notes */}
               <div>
                 <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">
                   Notes
@@ -753,11 +741,9 @@ function AddEditModal({
                 />
               </div>
 
-              {/* Divider */}
               <div className="border-t border-gray-100 pt-4">
                 <p className="text-sm font-bold text-[#3e1e0c] mb-3">Drink & Menu Settings</p>
 
-                {/* Is Drink toggle */}
                 <div className="flex items-center justify-between rounded-xl bg-purple-50/50 border border-purple-100 px-4 py-3 mb-3">
                   <div>
                     <p className="text-sm font-bold text-[#3e1e0c]">This is a drink</p>
@@ -772,7 +758,6 @@ function AddEditModal({
                   </button>
                 </div>
 
-                {/* Drink Category */}
                 {isDrink && (
                   <div className="mb-3">
                     <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">
@@ -791,7 +776,6 @@ function AddEditModal({
                   </div>
                 )}
 
-                {/* Show on Menu toggle */}
                 <div className="flex items-center justify-between rounded-xl bg-green-50/50 border border-green-100 px-4 py-3 mb-3">
                   <div>
                     <p className="text-sm font-bold text-[#3e1e0c]">Show on customer menu</p>

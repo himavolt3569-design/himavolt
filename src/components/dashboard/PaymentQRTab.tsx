@@ -39,7 +39,6 @@ export default function PaymentQRTab() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [previewQR, setPreviewQR] = useState<PaymentQR | null>(null);
 
-  // Add form state
   const [label, setLabel] = useState("");
   const [uploading, setUploading] = useState(false);
   const [uploadedUrl, setUploadedUrl] = useState("");
@@ -149,7 +148,6 @@ export default function PaymentQRTab() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-lg font-bold text-amber-950">Payment QR Codes</h2>
@@ -167,7 +165,6 @@ export default function PaymentQRTab() {
         </button>
       </div>
 
-      {/* Info banner */}
       <div className="flex items-start gap-3 rounded-xl bg-amber-50 border border-amber-200/40 px-4 py-3">
         <Check className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
         <p className="text-xs font-medium text-amber-950">
@@ -176,7 +173,6 @@ export default function PaymentQRTab() {
         </p>
       </div>
 
-      {/* Add form modal */}
       <AnimatePresence>
         {showAddForm && (
           <>
@@ -194,7 +190,6 @@ export default function PaymentQRTab() {
               transition={{ type: "spring", damping: 25 }}
               className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-100 w-[95%] max-w-md rounded-2xl bg-white shadow-2xl overflow-hidden"
             >
-              {/* Modal header */}
               <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                 <div className="flex items-center gap-2">
                   <QrCode className="h-5 w-5 text-[#eaa94d]" />
@@ -211,7 +206,6 @@ export default function PaymentQRTab() {
               </div>
 
               <div className="p-5 space-y-4">
-                {/* Label */}
                 <div>
                   <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 block">
                     Payment Provider
@@ -224,7 +218,6 @@ export default function PaymentQRTab() {
                   />
                 </div>
 
-                {/* Upload area */}
                 <div>
                   <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 block">
                     QR Code Image
@@ -291,7 +284,6 @@ export default function PaymentQRTab() {
                   )}
                 </div>
 
-                {/* Submit */}
                 <button
                   onClick={handleAdd}
                   disabled={!label.trim() || !uploadedUrl || submitting}
@@ -315,7 +307,6 @@ export default function PaymentQRTab() {
         )}
       </AnimatePresence>
 
-      {/* Preview modal */}
       <AnimatePresence>
         {previewQR && (
           <>
@@ -355,7 +346,6 @@ export default function PaymentQRTab() {
         )}
       </AnimatePresence>
 
-      {/* QR list */}
       {loading ? (
         <div className="flex items-center justify-center py-16">
           <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
@@ -386,7 +376,6 @@ export default function PaymentQRTab() {
                   : "border-gray-100 opacity-60"
               }`}
             >
-              {/* Status badge */}
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <GripVertical className="h-4 w-4 text-gray-300" />
@@ -405,7 +394,6 @@ export default function PaymentQRTab() {
                 </span>
               </div>
 
-              {/* QR image */}
               <button
                 onClick={() => setPreviewQR(qr)}
                 className="w-full rounded-xl overflow-hidden border border-gray-100 bg-gray-50 hover:border-[#eaa94d]/40 transition-colors cursor-pointer"
@@ -417,7 +405,6 @@ export default function PaymentQRTab() {
                 />
               </button>
 
-              {/* Actions */}
               <div className="flex gap-2 mt-3">
                 <button
                   onClick={() => handleToggle(qr)}

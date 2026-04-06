@@ -23,7 +23,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (!label || !startTime || !endTime)
     return NextResponse.json({ error: "label, startTime, endTime required" }, { status: 400 });
 
-  // Ensure config exists
   const config = await db.rushHourConfig.upsert({
     where: { restaurantId: id },
     create: { restaurantId: id },

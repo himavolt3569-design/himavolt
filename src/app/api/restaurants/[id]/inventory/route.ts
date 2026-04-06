@@ -10,11 +10,9 @@ import { createInventoryItemSchema } from "@/lib/validations";
  * Returns true if authorised for this restaurant.
  */
 async function authorise(req: NextRequest, restaurantId: string) {
-  // Staff path
   const staff = await requireStaffForRestaurant(req, restaurantId);
   if (staff) return true;
 
-  // Owner path
   const user = await getOrCreateUser();
   if (!user) return false;
   const owns = await db.restaurant.findFirst({

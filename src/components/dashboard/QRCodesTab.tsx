@@ -8,7 +8,6 @@ import { useToast } from "@/context/ToastContext";
 import { useRestaurant } from "@/context/RestaurantContext";
 import gsap from "gsap";
 
-// ─── Card style definitions ───────────────────────────────────────────────────
 
 export type CardStyle = "classic" | "modern" | "minimal";
 
@@ -68,7 +67,6 @@ const STYLES: Record<CardStyle, StyleConfig> = {
   },
 };
 
-// ─── buildQRCanvas ────────────────────────────────────────────────────────────
 // Produces a beautifully branded print card using only Canvas 2D API.
 // No html2canvas → no CSS color parsing → no lab() errors.
 
@@ -121,16 +119,13 @@ async function buildQRCanvas(
   });
   URL.revokeObjectURL(qrBlobUrl);
 
-  // Build canvas
   const canvas = document.createElement("canvas");
   canvas.width = cW;
   canvas.height = cH;
   const ctx = canvas.getContext("2d")!;
   ctx.scale(scale, scale);
 
-  // ── Background ──────────────────────────────
   if (style === "modern") {
-    // Dark gradient background
     const grad = ctx.createLinearGradient(0, 0, 0, H);
     grad.addColorStop(0, "#1a2537");
     grad.addColorStop(1, "#0d1117");
@@ -140,7 +135,6 @@ async function buildQRCanvas(
   }
   ctx.fillRect(0, 0, W, H);
 
-  // ── Outer border ────────────────────────────
   if (style === "classic" || style === "minimal") {
     ctx.strokeStyle = cfg.border;
     ctx.lineWidth = style === "classic" ? 2.5 : 1;
@@ -173,7 +167,6 @@ async function buildQRCanvas(
     }
   }
 
-  // ── Header block ────────────────────────────
   const headerH = 72;
   if (cfg.roundedHeader) {
     // Pill-style header for Modern
@@ -198,7 +191,6 @@ async function buildQRCanvas(
   }
   // Minimal has no header block — just text
 
-  // ── Restaurant name in header ────────────────
   ctx.textAlign = "center";
   ctx.fillStyle = style === "minimal" ? cfg.textSecondary : cfg.headerText;
   ctx.font = `bold ${style === "minimal" ? 11 : 12}px sans-serif`;
@@ -230,7 +222,6 @@ async function buildQRCanvas(
     ctx.fillText(initials, W / 2, badgeY + 10);
   }
 
-  // ── Separator line ───────────────────────────
   if (style === "classic") {
     ctx.strokeStyle = cfg.accent;
     ctx.lineWidth = 1.5;
@@ -249,12 +240,10 @@ async function buildQRCanvas(
   ctx.fillText("TABLE", W / 2, tableLabelY);
   ctx.letterSpacing = "0px";
 
-  // ── Big table number ─────────────────────────
   ctx.fillStyle = style === "modern" ? cfg.accent : cfg.textPrimary;
   ctx.font = `900 56px sans-serif`;
   ctx.fillText(String(tableNo), W / 2, tableLabelY + 60);
 
-  // ── QR code ──────────────────────────────────
   // Draw background behind QR for contrast
   if (style === "modern") {
     const bx = qrX - 10, by = qrY - 10, bw = qrSize + 20, bh = qrSize + 20, br = 12;
@@ -277,7 +266,6 @@ async function buildQRCanvas(
   }
   ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
 
-  // ── Scan to order text ───────────────────────
   ctx.fillStyle = style === "modern" ? cfg.accent : cfg.textPrimary;
   ctx.font = `bold 13px sans-serif`;
   ctx.textAlign = "center";
@@ -287,7 +275,6 @@ async function buildQRCanvas(
   ctx.font = `11px sans-serif`;
   ctx.fillText("No app needed — just scan & order!", W / 2, qrY + qrSize + 46);
 
-  // ── Powered by line at bottom ────────────────
   ctx.fillStyle = cfg.textSecondary;
   ctx.font = `9px sans-serif`;
   ctx.textAlign = "center";
@@ -305,7 +292,6 @@ async function buildQRCanvas(
   return canvas;
 }
 
-// ─── ConfettiBurst ────────────────────────────────────────────────────────────
 
 interface Particle {
   id: number;
@@ -350,7 +336,6 @@ function ConfettiBurst({ active, origin }: { active: boolean; origin: { x: numbe
   );
 }
 
-// ─── QRCard ───────────────────────────────────────────────────────────────────
 
 function QRCard({
   tableNo,
@@ -444,7 +429,6 @@ function QRCard({
         transition={{ duration: 0.3 }}
         className="group relative flex flex-col items-center rounded-3xl border border-gray-100/60 bg-white/80 backdrop-blur-md p-6 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.08)] transition-all hover:-translate-y-1"
       >
-        {/* Printable content captured by buildQRCanvas */}
         <div ref={qrRef} id={`qr-printable-${tableNo}`} className="w-full flex flex-col items-center bg-white pb-4 rounded-xl">
           <div className="mb-4 flex w-full items-center justify-between">
             <div className="flex items-center gap-2">
@@ -498,7 +482,6 @@ function QRCard({
   );
 }
 
-// ─── QRCodesTab ───────────────────────────────────────────────────────────────
 
 interface TableRecord {
   id: string;
@@ -589,7 +572,6 @@ export default function QRCodesTab() {
 
   return (
     <div className="space-y-8 pb-12">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5">
         <div>
           <h2 className="text-2xl font-extrabold tracking-tight text-gray-900">QR Codes</h2>
@@ -618,9 +600,7 @@ export default function QRCodesTab() {
         </button>
       </div>
 
-      {/* Controls row */}
       <div className="flex flex-col sm:flex-row gap-4">
-        {/* Info banner */}
         <div className="flex-1 flex items-start gap-3 rounded-2xl bg-amber-50/80 backdrop-blur-sm border border-amber-100/50 px-5 py-4 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.02)]">
           <Check className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
           <p className="text-sm font-medium text-amber-900/80 leading-relaxed">
@@ -628,7 +608,6 @@ export default function QRCodesTab() {
           </p>
         </div>
 
-        {/* Style picker */}
         <div className="flex items-center gap-3 rounded-2xl bg-white/70 backdrop-blur-md border border-gray-100/50 px-4 py-3 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] shrink-0">
           <Palette className="h-5 w-5 text-amber-500" />
           <span className="text-xs font-bold uppercase tracking-wide text-gray-500">Style</span>
@@ -649,7 +628,6 @@ export default function QRCodesTab() {
           </div>
         </div>
 
-        {/* Table count info */}
         <div className="flex items-center gap-2 rounded-xl bg-white border border-gray-200 px-3 py-2 shadow-sm shrink-0">
           <TableProperties className="h-4 w-4 text-[#eaa94d]" />
           <span className="text-xs font-bold text-gray-500">
@@ -659,7 +637,6 @@ export default function QRCodesTab() {
         </div>
       </div>
 
-      {/* Style preview hint */}
       <div className="flex items-center gap-2 text-xs text-gray-400">
         <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#3e1e0c]" />
         <span>
@@ -667,7 +644,6 @@ export default function QRCodesTab() {
         </span>
       </div>
 
-      {/* QR grid */}
       {loadingTables ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {Array.from({ length: 6 }).map((_, i) => (

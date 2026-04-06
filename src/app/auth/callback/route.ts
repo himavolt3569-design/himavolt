@@ -176,7 +176,6 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  // Determine final redirect URL
   let redirectTo = next;
 
   if (isNewUser || (isAccountLink && isGoogleUser)) {

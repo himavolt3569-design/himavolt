@@ -60,7 +60,6 @@ export default function TakeawayTab() {
   const [partners, setPartners] = useState<DeliveryPartner[]>([]);
   const [orders, setOrders] = useState<TakeawayOrder[]>([]);
 
-  // Add packaging form
   const [showAddPackaging, setShowAddPackaging] = useState(false);
   const [newPkgName, setNewPkgName] = useState("");
   const [newPkgCost, setNewPkgCost] = useState("");
@@ -145,7 +144,6 @@ export default function TakeawayTab() {
       transition={{ duration: 0.4 }}
       className="space-y-6"
     >
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="p-2.5 bg-amber-100 rounded-xl">
@@ -173,7 +171,6 @@ export default function TakeawayTab() {
 
       {takeawayEnabled && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-          {/* Stats */}
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             {[
               { label: "Active Orders", value: activeOrders.length, icon: Package, color: "text-amber-600 bg-amber-50" },
@@ -199,7 +196,6 @@ export default function TakeawayTab() {
             ))}
           </div>
 
-          {/* Settings Row */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Prep Time & Labels */}
             <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm space-y-4">
@@ -255,7 +251,6 @@ export default function TakeawayTab() {
               </div>
             </div>
 
-            {/* Packaging Options */}
             <div className="md:col-span-2 bg-white border border-gray-100 rounded-xl p-5 shadow-sm space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Packaging Options</h3>
@@ -363,7 +358,6 @@ export default function TakeawayTab() {
             </div>
           </div>
 
-          {/* Delivery Partners */}
           <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm space-y-4">
             <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Delivery Partners</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
@@ -409,7 +403,6 @@ export default function TakeawayTab() {
             </div>
           </div>
 
-          {/* Takeaway Order Queue */}
           <div className="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
             <div className="flex items-center justify-between p-5 border-b border-gray-100">
               <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Takeaway Order Queue</h3>

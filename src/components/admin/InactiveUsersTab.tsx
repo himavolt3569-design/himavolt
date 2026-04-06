@@ -182,7 +182,6 @@ export default function InactiveUsersTab() {
 
   return (
     <div className="space-y-4">
-      {/* Info Banner */}
       <div className="flex items-start gap-3 rounded-2xl border border-amber-100 bg-amber-50 px-4 py-3">
         <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-500" />
         <div className="text-xs text-amber-700">
@@ -191,7 +190,6 @@ export default function InactiveUsersTab() {
         </div>
       </div>
 
-      {/* Controls */}
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative flex-1 sm:max-w-xs">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
@@ -236,7 +234,6 @@ export default function InactiveUsersTab() {
         </div>
       )}
 
-      {/* Users List */}
       <div className="overflow-hidden rounded-2xl border border-brand-100 bg-white shadow-sm">
         <div className="flex items-center gap-2 border-b border-brand-100 px-4 py-2.5">
           <input
@@ -288,7 +285,6 @@ export default function InactiveUsersTab() {
                       onClick={(e) => e.stopPropagation()}
                       className="h-3.5 w-3.5 flex-shrink-0 rounded accent-gompa-slate"
                     />
-                    {/* Avatar */}
                     <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-amber-50 overflow-hidden">
                       {user.imageUrl ? (
                         <img src={user.imageUrl} alt={user.name} className="h-10 w-10 object-cover rounded-full" />
@@ -308,7 +304,6 @@ export default function InactiveUsersTab() {
                       <p className="text-xs text-gray-500 truncate">{user.email}</p>
                     </div>
 
-                    {/* Inactive badge */}
                     <div className="hidden flex-shrink-0 sm:flex items-center gap-1.5">
                       <span className="flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-semibold text-amber-700">
                         <Clock className="h-3 w-3" />
@@ -328,7 +323,6 @@ export default function InactiveUsersTab() {
                         className="overflow-hidden"
                       >
                         <div className="border-t border-brand-100 bg-amber-50/20 px-4 py-3 space-y-3">
-                          {/* Contact Info */}
                           <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-xs sm:grid-cols-3">
                             <div className="flex items-center gap-1.5">
                               <Mail className="h-3.5 w-3.5 flex-shrink-0 text-gray-400" />
@@ -386,7 +380,6 @@ export default function InactiveUsersTab() {
                             </div>
                           </div>
 
-                          {/* Actions */}
                           <div className="flex flex-wrap items-center gap-2 pt-1">
                             <button
                               onClick={() => handleReactivate(user.id)}

@@ -108,11 +108,9 @@ export async function middleware(req: NextRequest) {
   const masterAdminValid = await verifyMasterAdminJwt(req);
   if (masterAdminValid) return NextResponse.next();
 
-  // Check staff JWT
   const staffValid = await verifyStaffJwt(req);
   if (staffValid) return NextResponse.next();
 
-  // Check Supabase session
   let res = NextResponse.next();
 
   const supabase = createServerClient(

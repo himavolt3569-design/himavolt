@@ -45,7 +45,6 @@ export default function MenuStoryHero({
       ref={sectionRef}
       className="relative h-[50vh] sm:h-[55vh] md:h-[60vh] w-full overflow-hidden"
     >
-      {/* Cover image with parallax */}
       <motion.div className="absolute inset-0" style={{ y: imgY }}>
         <img
           src={coverSrc}
@@ -54,18 +53,15 @@ export default function MenuStoryHero({
         />
       </motion.div>
 
-      {/* Dark overlay */}
       <motion.div
         className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-black/20"
         style={{ opacity: overlayOpacity }}
       />
 
-      {/* Content */}
       <motion.div
         className="absolute inset-0 flex flex-col items-center justify-end pb-10 sm:pb-14 px-4 text-center"
         style={{ opacity: contentOpacity, y: contentY }}
       >
-        {/* Rating badge */}
         <motion.div
           initial={{ opacity: 0, scale: 0.7 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -78,7 +74,6 @@ export default function MenuStoryHero({
           </span>
         </motion.div>
 
-        {/* Restaurant name */}
         <motion.h1
           initial={{ opacity: 0, y: 20, filter: "blur(6px)" }}
           animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
@@ -88,7 +83,6 @@ export default function MenuStoryHero({
           {name}
         </motion.h1>
 
-        {/* Info row */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -107,7 +101,6 @@ export default function MenuStoryHero({
         </motion.div>
       </motion.div>
 
-      {/* Bottom fade into page bg */}
       <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-[#F7F8FA] to-transparent pointer-events-none" />
     </section>
   );

@@ -32,7 +32,6 @@ import {
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
-/* ─── Types ─────────────────────────────────────────────────────── */
 interface Room {
   id: string;
   roomNumber: string;
@@ -81,7 +80,6 @@ interface BookingForm {
   notes: string;
 }
 
-/* ─── Amenity icon map ─────────────────────────────────────────── */
 const AMENITY_ICONS: Record<string, typeof Wifi> = {
   WiFi: Wifi,
   TV: Tv,
@@ -111,7 +109,6 @@ const TYPE_COLORS: Record<string, string> = {
   DORMITORY: "bg-green-100 text-green-700",
 };
 
-/* ─── Image Carousel ───────────────────────────────────────────── */
 function ImageCarousel({ images, name }: { images: string[]; name: string }) {
   const [idx, setIdx] = useState(0);
   if (!images.length) {
@@ -156,7 +153,6 @@ function ImageCarousel({ images, name }: { images: string[]; name: string }) {
   );
 }
 
-/* ─── Booking Modal ────────────────────────────────────────────── */
 function BookingModal({
   room,
   hotel,
@@ -297,7 +293,6 @@ function BookingModal({
         className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-100 bg-white/95 backdrop-blur-sm px-6 py-4">
           <div>
             <h2 className="text-[16px] font-bold text-gray-900">Book Room</h2>
@@ -311,7 +306,6 @@ function BookingModal({
         </div>
 
         <div className="px-6 py-5 space-y-5">
-          {/* Dates */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-1.5">Check-in</label>
@@ -335,7 +329,6 @@ function BookingModal({
             </div>
           </div>
 
-          {/* Price preview */}
           <div className="rounded-2xl bg-amber-50 p-4 ring-1 ring-amber-100">
             <div className="flex justify-between text-[13px] mb-1">
               <span className="text-gray-600">{cur}{room.price.toLocaleString()} × {nights} night{nights > 1 ? "s" : ""}</span>
@@ -347,7 +340,6 @@ function BookingModal({
             </div>
           </div>
 
-          {/* Guest count */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-1.5">Adults</label>
@@ -373,7 +365,6 @@ function BookingModal({
             </div>
           </div>
 
-          {/* Guest info */}
           {[
             { field: "guestName" as const, label: "Full Name *", placeholder: "Your full name" },
             { field: "guestPhone" as const, label: "Phone *", placeholder: "+977 98XXXXXXXX" },
@@ -392,7 +383,6 @@ function BookingModal({
             </div>
           ))}
 
-          {/* Special requests */}
           <div>
             <label className="block text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-1.5">Special Requests</label>
             <textarea
@@ -404,7 +394,6 @@ function BookingModal({
             />
           </div>
 
-          {/* Payment method */}
           <div>
             <label className="block text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-2">Pay Advance via</label>
             <div className="grid grid-cols-3 gap-2">
@@ -448,7 +437,6 @@ function BookingModal({
           </button>
         </div>
 
-        {/* Hidden eSewa form */}
         {esewaData && (
           <form ref={esewaFormRef} method="POST" action="https://rc-epay.esewa.com.np/api/epay/main/v2/form" className="hidden">
             {Object.entries(esewaData).map(([k, v]) => (
@@ -461,7 +449,6 @@ function BookingModal({
   );
 }
 
-/* ─── Room Card ────────────────────────────────────────────────── */
 function RoomCard({
   room,
   currency,
@@ -478,7 +465,6 @@ function RoomCard({
       animate={{ opacity: 1, y: 0 }}
       className="overflow-hidden rounded-2xl bg-white ring-1 ring-gray-100 shadow-sm hover:shadow-md transition-all"
     >
-      {/* Image */}
       <div className="relative h-48 overflow-hidden bg-gray-50">
         <ImageCarousel images={room.imageUrls} name={room.name || `Room ${room.roomNumber}`} />
         {!room.isAvailable && (
@@ -498,7 +484,6 @@ function RoomCard({
         </div>
       </div>
 
-      {/* Content */}
       <div className="p-4">
         <div className="flex items-start justify-between mb-2">
           <div>
@@ -556,7 +541,6 @@ function RoomCard({
   );
 }
 
-/* ─── Main Page ────────────────────────────────────────────────── */
 export default function HotelPublicPage() {
   const { slug } = useParams<{ slug: string }>();
   const [hotel, setHotel] = useState<Hotel | null>(null);
@@ -625,7 +609,6 @@ export default function HotelPublicPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans">
-      {/* Nav */}
       <nav className="sticky top-0 z-40 flex items-center justify-between border-b border-gray-200/50 bg-white/80 backdrop-blur-xl px-5 py-3.5 shadow-sm">
         <Link href="/" className="flex items-center gap-2">
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500">
@@ -641,7 +624,6 @@ export default function HotelPublicPage() {
         </div>
       </nav>
 
-      {/* Hero */}
       <div className="relative h-64 sm:h-80 md:h-96 overflow-hidden bg-gradient-to-br from-amber-900 to-gray-900">
         {hotel.heroSlides.length > 0 ? (
           <img
@@ -681,7 +663,6 @@ export default function HotelPublicPage() {
         </div>
       </div>
 
-      {/* Info bar */}
       <div className="bg-white border-b border-gray-100 px-5 py-3 flex items-center gap-6 overflow-x-auto scrollbar-hide">
         <span className="flex items-center gap-1.5 text-[12px] text-gray-600 whitespace-nowrap">
           <Phone className="h-3.5 w-3.5 text-amber-500" />
@@ -703,7 +684,6 @@ export default function HotelPublicPage() {
         </span>
       </div>
 
-      {/* Room type filter */}
       <div className="sticky top-[57px] z-30 bg-white/90 backdrop-blur-sm border-b border-gray-100 px-5 py-3">
         <div className="flex gap-2 overflow-x-auto scrollbar-hide">
           {roomTypes.map((type) => (
@@ -722,7 +702,6 @@ export default function HotelPublicPage() {
         </div>
       </div>
 
-      {/* Rooms grid */}
       <main className="mx-auto max-w-6xl px-4 py-8">
         {displayedRooms.length === 0 ? (
           <div className="py-20 text-center">
@@ -749,7 +728,6 @@ export default function HotelPublicPage() {
         )}
       </main>
 
-      {/* Footer */}
       <footer className="border-t border-gray-100 bg-white px-5 py-6 text-center">
         <p className="text-[11px] text-gray-400">
           Powered by{" "}
@@ -757,7 +735,6 @@ export default function HotelPublicPage() {
         </p>
       </footer>
 
-      {/* Booking modal */}
       <AnimatePresence>
         {selectedRoom && hotel && (
           <BookingModal
@@ -772,7 +749,6 @@ export default function HotelPublicPage() {
         )}
       </AnimatePresence>
 
-      {/* Success toast */}
       <AnimatePresence>
         {bookedId && (
           <motion.div

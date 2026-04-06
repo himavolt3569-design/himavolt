@@ -204,7 +204,6 @@ export default function DrinksTab() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-lg font-bold text-amber-950">Drinks</h2>
@@ -221,7 +220,6 @@ export default function DrinksTab() {
         </button>
       </div>
 
-      {/* Section filter */}
       <div className="flex gap-2 flex-wrap">
         {(["ALL", "COLD", "HOT", "ALCOHOL"] as const).map((sec) => {
           const cfg = sec !== "ALL" ? DRINK_CAT_CONFIG[sec] : null;
@@ -244,7 +242,6 @@ export default function DrinksTab() {
         })}
       </div>
 
-      {/* Add form modal */}
       <AnimatePresence>
         {showForm && (
           <>
@@ -265,7 +262,6 @@ export default function DrinksTab() {
                 </button>
               </div>
               <div className="p-5 space-y-4">
-                {/* Drink category */}
                 <div>
                   <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-2">Category</label>
                   <div className="flex gap-2">
@@ -289,7 +285,6 @@ export default function DrinksTab() {
                   </div>
                 </div>
 
-                {/* Image */}
                 <div>
                   <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1.5">Photo (optional)</label>
                   <div className="flex items-center gap-3">
@@ -354,7 +349,6 @@ export default function DrinksTab() {
                   />
                 </div>
 
-                {/* Stock tracking */}
                 <div className="rounded-xl border border-gray-200 p-3">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -397,7 +391,6 @@ export default function DrinksTab() {
         )}
       </AnimatePresence>
 
-      {/* Drinks list */}
       {loading ? (
         <div className="space-y-3">
           {Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)}
@@ -449,7 +442,6 @@ export default function DrinksTab() {
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
-                  {/* Stock editor */}
                   {item.stockEnabled && (
                     <div className="flex items-center gap-1">
                       <input
@@ -484,7 +476,6 @@ export default function DrinksTab() {
         </div>
       )}
 
-      {/* Stock summary */}
       {drinks.some((d) => d.stockEnabled) && (
         <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
           <h4 className="text-xs font-bold text-amber-800 uppercase tracking-wider mb-3 flex items-center gap-1.5">

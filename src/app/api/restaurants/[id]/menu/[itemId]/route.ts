@@ -34,7 +34,6 @@ export async function PATCH(
     if (body[key] !== undefined) data[key] = body[key];
   }
 
-  // Handle sizes replacement
   if (body.sizes !== undefined) {
     await db.menuItemSize.deleteMany({ where: { menuItemId: itemId } });
     if (body.sizes?.length) {
@@ -49,7 +48,6 @@ export async function PATCH(
     }
   }
 
-  // Handle addOns replacement
   if (body.addOns !== undefined) {
     await db.menuItemAddOn.deleteMany({ where: { menuItemId: itemId } });
     if (body.addOns?.length) {

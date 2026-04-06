@@ -18,7 +18,6 @@ export default function KioskWelcome({ restaurantName, imageUrl, onStart }: Prop
       className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-b from-amber-950 via-amber-900 to-amber-950"
       onClick={onStart}
     >
-      {/* Background pattern */}
       <div className="absolute inset-0 opacity-5">
         <div className="absolute inset-0" style={{ backgroundImage: "radial-gradient(circle at 25px 25px, white 1px, transparent 0)", backgroundSize: "50px 50px" }} />
       </div>

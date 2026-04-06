@@ -104,7 +104,6 @@ export default function ImagePicker({
             transition={{ type: "spring", damping: 25 }}
             className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-100 w-[95%] max-w-2xl max-h-[85vh] rounded-2xl bg-white shadow-2xl flex flex-col overflow-hidden"
           >
-            {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 shrink-0">
               <div className="flex items-center gap-2">
                 <Camera className="h-5 w-5 text-[#eaa94d]" />
@@ -120,7 +119,6 @@ export default function ImagePicker({
               </button>
             </div>
 
-            {/* Current preview */}
             {currentImage && (
               <div className="px-5 pt-4">
                 <div className="flex items-center gap-3 rounded-xl bg-gray-50 p-3">
@@ -141,7 +139,6 @@ export default function ImagePicker({
               </div>
             )}
 
-            {/* Tabs */}
             <div className="flex gap-1 px-5 pt-4 shrink-0">
               {(
                 [
@@ -165,11 +162,9 @@ export default function ImagePicker({
               ))}
             </div>
 
-            {/* Content */}
             <div className="flex-1 overflow-y-auto px-5 py-4">
               {tab === "library" && (
                 <div className="space-y-3">
-                  {/* Search */}
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
                     <input
@@ -180,7 +175,6 @@ export default function ImagePicker({
                     />
                   </div>
 
-                  {/* Category pills */}
                   <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-1">
                     {FOOD_CATEGORIES.map((cat) => (
                       <button
@@ -197,7 +191,6 @@ export default function ImagePicker({
                     ))}
                   </div>
 
-                  {/* Image grid */}
                   <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                     {filteredImages.map((img) => (
                       <button
@@ -325,7 +318,6 @@ export default function ImagePicker({
               )}
             </div>
 
-            {/* Preview tooltip */}
             <AnimatePresence>
               {previewUrl && (
                 <motion.div

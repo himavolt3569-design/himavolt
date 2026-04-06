@@ -116,11 +116,9 @@ export default function FoodCategories({
 
   return (
     <section ref={containerRef} className="relative bg-white overflow-hidden">
-      {/* Subtle top accent */}
       <div className="h-px bg-linear-to-r from-transparent via-[#eaa94d]/10 to-transparent" />
 
       <div className="mx-auto max-w-[1440px] px-4 md:px-8 lg:px-12 pt-12 md:pt-16 pb-10 md:pb-14">
-        {/* Header row */}
         <div
           ref={headingRef}
           className="flex items-end justify-between mb-8 md:mb-10"
@@ -136,7 +134,6 @@ export default function FoodCategories({
             </h2>
           </div>
 
-          {/* Nav arrows */}
           <div className="hidden sm:flex items-center gap-2">
             <motion.button
               onClick={() => scroll("left")}
@@ -179,7 +176,6 @@ export default function FoodCategories({
                   transition={{ type: "spring", stiffness: 400, damping: 20 }}
                   className="cat-circle relative flex flex-col items-center shrink-0 cursor-pointer group"
                 >
-                  {/* Image container */}
                   <div className="relative">
                     <motion.div
                       className={`relative h-[76px] w-[76px] sm:h-[90px] sm:w-[90px] md:h-[100px] md:w-[100px] lg:h-[110px] lg:w-[110px] rounded-[28px] overflow-hidden transition-all duration-300 ${
@@ -204,7 +200,6 @@ export default function FoodCategories({
                             : "group-hover:scale-110"
                         }`}
                       />
-                      {/* Hover overlay gradient */}
                       <div
                         className={`absolute inset-0 transition-opacity duration-300 ${
                           isActive
@@ -214,7 +209,6 @@ export default function FoodCategories({
                       />
                     </motion.div>
 
-                    {/* Active glow ring */}
                     <AnimatePresence>
                       {isActive && (
                         <motion.div
@@ -227,7 +221,6 @@ export default function FoodCategories({
                     </AnimatePresence>
                   </div>
 
-                  {/* Label */}
                   <span
                     className={`mt-2.5 text-[11px] sm:text-xs md:text-[13px] font-bold text-center leading-tight transition-colors duration-200 ${
                       isActive
@@ -238,7 +231,6 @@ export default function FoodCategories({
                     {cat.name}
                   </span>
 
-                  {/* Active dot indicator */}
                   <AnimatePresence>
                     {isActive && (
                       <motion.div
@@ -260,7 +252,6 @@ export default function FoodCategories({
             })}
           </div>
 
-          {/* Fade masks */}
           {canScrollLeft && (
             <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-12 md:w-20 bg-linear-to-r from-white to-transparent z-10" />
           )}
@@ -270,7 +261,6 @@ export default function FoodCategories({
         </div>
       </div>
 
-      {/* Bottom divider */}
       <div className="mx-auto max-w-[1440px] px-4 md:px-8 lg:px-12">
         <div className="h-px bg-linear-to-r from-transparent via-[#eaa94d]/10 to-transparent" />
       </div>

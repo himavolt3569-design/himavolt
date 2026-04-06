@@ -158,7 +158,6 @@ type DashTab =
   | "owner-control"
   | FeatureTabId;
 
-/* ─── Navigation groups for sidebar ───────────────────────────────── */
 const NAV_MAIN: {
   id: DashTab;
   label: string;
@@ -197,7 +196,6 @@ const NAV_MORE: typeof NAV_MAIN = [
 
 const ALL_NAV = [...NAV_MAIN, ...NAV_MANAGE, ...NAV_MORE];
 
-/* ── Feature tab icon mapping ─────────────────────────────────────── */
 const FEATURE_ICONS: Record<FeatureTabId, typeof Zap> = {
   "quick-counter": Zap,
   "combo-meals": Layers,
@@ -271,7 +269,6 @@ const LIVE_FEATURES = new Set<FeatureTabId>([
   "hotel-qr",
 ]);
 
-/* ── Feature tab component mapping ────────────────────────────────── */
 const FEATURE_COMPONENTS: Record<FeatureTabId, React.ComponentType> = {
   "quick-counter": QuickCounterTab,
   "combo-meals": ComboMealsTab,
@@ -308,7 +305,6 @@ const FEATURE_COMPONENTS: Record<FeatureTabId, React.ComponentType> = {
   "hotel-qr": HotelQRTab,
 };
 
-/* ─── Animated number counter ─────────────────────────────────────── */
 function AnimatedNumber({
   value,
   duration = 800,
@@ -341,7 +337,6 @@ function AnimatedNumber({
   return <>{displayed.toLocaleString()}</>;
 }
 
-/* ─── Restaurant Switcher ──────────────────────────────────────────── */
 function RestaurantSwitcher({ onNavigate }: { onNavigate?: () => void }) {
   const router = useRouter();
   const { restaurants, selectedRestaurant, selectRestaurant } = useRestaurant();
@@ -400,7 +395,6 @@ function RestaurantSwitcher({ onNavigate }: { onNavigate?: () => void }) {
             transition={{ duration: 0.15 }}
             className="absolute left-0 right-0 top-full mt-1.5 z-50 rounded-xl bg-white ring-1 ring-gray-200 overflow-hidden shadow-xl"
           >
-            {/* Current */}
             <div className="p-3 border-b border-gray-100">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-50">
@@ -418,7 +412,6 @@ function RestaurantSwitcher({ onNavigate }: { onNavigate?: () => void }) {
               </div>
             </div>
 
-            {/* Quick links */}
             <div className="px-1.5 py-1.5 border-b border-gray-100">
               {[
                 { icon: UsersRound, label: "Manage Users" },
@@ -434,7 +427,6 @@ function RestaurantSwitcher({ onNavigate }: { onNavigate?: () => void }) {
               ))}
             </div>
 
-            {/* Other restaurants */}
             {otherRestaurants.length > 0 && (
               <div className="px-3 py-2.5 border-b border-gray-100">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">
@@ -467,7 +459,6 @@ function RestaurantSwitcher({ onNavigate }: { onNavigate?: () => void }) {
               </div>
             )}
 
-            {/* Bottom actions */}
             <div className="flex items-center p-2 gap-2">
               <Link
                 href="/manage-restaurants"
@@ -498,7 +489,6 @@ function RestaurantSwitcher({ onNavigate }: { onNavigate?: () => void }) {
   );
 }
 
-/* ─── Sidebar ──────────────────────────────────────────────────────── */
 /* Shortcut key lookup for sidebar hints */
 const SHORTCUT_KEYS: Partial<Record<DashTab, string>> = {
   overview: "1",
@@ -571,7 +561,6 @@ function NavSection({
               />
               <span className="flex-1 text-left tracking-wide">{item.label}</span>
 
-              {/* Keyboard shortcut hint */}
               {shortcut && !item.badge && (
                 <span className={`hidden lg:flex h-5 w-5 items-center justify-center rounded text-[9px] font-bold transition-all duration-300 ${isActive ? "bg-white/20 text-white" : "bg-gray-100 text-gray-400 opacity-0 group-hover:opacity-100"}`}>
                   {shortcut}
@@ -676,7 +665,6 @@ function Sidebar({
 
   return (
     <aside className="flex h-full w-full flex-col bg-white/60 backdrop-blur-3xl border-r border-gray-200/50 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
-      {/* Logo */}
       <div className="flex items-center justify-between px-5 pt-6 pb-5">
         <Link href="/" className="group flex items-center gap-2.5">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500 shadow-sm">
@@ -707,10 +695,8 @@ function Sidebar({
         </div>
       </div>
 
-      {/* Restaurant switcher */}
       <RestaurantSwitcher onNavigate={onClose} />
 
-      {/* Navigation sections */}
       <nav className="flex-1 overflow-y-auto px-3 pb-2 scrollbar-hide">
         <NavSection
           label="Main"
@@ -755,7 +741,6 @@ function Sidebar({
         />
       </nav>
 
-      {/* Bottom spacing */}
       <div className="pb-4" />
     </aside>
   );
@@ -789,7 +774,6 @@ function StatCard({
       transition={{ duration: 0.2 }}
       className="relative rounded-3xl bg-white/70 backdrop-blur-md border border-gray-100/50 p-6 cursor-default overflow-hidden group shadow-[0_4px_24px_-4px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.08)] transition-all"
     >
-      {/* Subtle gradient glow */}
       <div
         className="absolute -top-12 -right-12 h-32 w-32 rounded-full opacity-0 group-hover:opacity-20 transition-opacity duration-500 blur-3xl"
         style={{ background: accent }}
@@ -995,7 +979,6 @@ function OverviewTab({
           background: "linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)",
         }}
       >
-        {/* Decorative abstract shapes */}
         <div className="absolute top-0 right-0 -mt-12 -mr-12 h-64 w-64 rounded-full bg-white/10 blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 -mb-16 -ml-16 h-48 w-48 rounded-full bg-white/10 blur-2xl pointer-events-none" />
         
@@ -1097,7 +1080,6 @@ function OverviewTab({
             </span>
           </div>
 
-          {/* Status bar */}
           <div className="flex h-3 rounded-full overflow-hidden gap-0.5">
             {statusDistribution.map((s) => (
               <motion.div
@@ -1112,7 +1094,6 @@ function OverviewTab({
             ))}
           </div>
 
-          {/* Legend */}
           <div className="flex flex-wrap gap-x-5 gap-y-1.5 mt-3">
             {statusDistribution.map((s) => (
               <span
@@ -1155,7 +1136,6 @@ function OverviewTab({
             </span>
           </div>
 
-          {/* Bar chart */}
           <div className="flex items-end justify-between gap-2 h-40 mb-3">
             {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day, i) => {
               const heights = [40, 60, 45, 75, 65, 85, 30];
@@ -1225,7 +1205,6 @@ function OverviewTab({
                     transition={{ delay: 0.35 + i * 0.04 }}
                     className="flex items-start gap-3 group"
                   >
-                    {/* Timeline dot */}
                     <div className="flex flex-col items-center pt-1">
                       <div
                         className="h-2.5 w-2.5 rounded-full ring-2 ring-white"
@@ -1522,7 +1501,6 @@ export default function DashboardPage() {
 
       {/* ── Main area ─────────────────────────────────────────── */}
       <div className="relative flex flex-1 flex-col overflow-hidden">
-        {/* Topbar */}
         <header className="flex items-center justify-between border-b border-gray-200/50 bg-white/70 backdrop-blur-xl shadow-sm px-5 lg:px-8 py-3.5 shrink-0 z-30">
           <div className="flex items-center gap-3">
             <button
@@ -1532,7 +1510,6 @@ export default function DashboardPage() {
               <Menu className="h-5 w-5" />
             </button>
 
-            {/* Breadcrumb with icon */}
             <div className="hidden sm:flex items-center gap-1.5 text-[13px]">
               <span className="text-gray-400">Dashboard</span>
               <ChevronRight className="h-3 w-3 text-gray-300" />
@@ -1542,7 +1519,6 @@ export default function DashboardPage() {
               </span>
             </div>
 
-            {/* Search */}
             <div className="hidden md:flex items-center gap-2 ml-4 rounded-lg bg-gray-50 px-3.5 py-2 text-gray-400 ring-1 ring-gray-100 focus-within:ring-amber-300 focus-within:bg-white transition-all">
               <Search className="h-3.5 w-3.5 shrink-0" />
               <input
@@ -1554,7 +1530,6 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex items-center gap-2.5">
-            {/* Live clock */}
             <div className="hidden lg:flex items-center gap-1.5 text-[11px] text-gray-400">
               <Clock className="h-3 w-3" />
               <span className="font-medium tabular-nums">
@@ -1567,7 +1542,6 @@ export default function DashboardPage() {
 
             <div className="hidden lg:block h-4 w-px bg-gray-200" />
 
-            {/* Live pill */}
             <div className="hidden sm:flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
               <span className="text-[11px] font-semibold text-emerald-700">
@@ -1575,7 +1549,6 @@ export default function DashboardPage() {
               </span>
             </div>
 
-            {/* Bell */}
             <button className="relative rounded-lg p-2 text-gray-500 hover:bg-gray-100 transition-colors">
               <Bell className="h-4.5 w-4.5" />
               {newOrderCount > 0 && (
@@ -1587,7 +1560,6 @@ export default function DashboardPage() {
 
             <div className="hidden sm:block h-6 w-px bg-gray-200" />
 
-            {/* User */}
             <Link
               href="/profile"
               className="flex h-8 w-8 items-center justify-center rounded-full ring-2 ring-gray-100 hover:ring-amber-300 transition-all overflow-hidden bg-[#eaa94d]/10"
@@ -1605,7 +1577,6 @@ export default function DashboardPage() {
           </div>
         </header>
 
-        {/* Content */}
         <main className="flex-1 overflow-y-auto px-5 lg:px-8 pt-6 pb-8">
           <AnimatePresence mode="wait">
             <motion.div

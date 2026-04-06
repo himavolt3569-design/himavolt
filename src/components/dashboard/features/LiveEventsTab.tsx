@@ -115,7 +115,6 @@ export default function LiveEventsTab() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-10">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
@@ -157,7 +156,6 @@ export default function LiveEventsTab() {
         </motion.div>
       )}
 
-      {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: "Upcoming Events", value: String(totalUpcoming), icon: Calendar, color: "#3B82F6" },
@@ -175,7 +173,6 @@ export default function LiveEventsTab() {
         ))}
       </div>
 
-      {/* Filter */}
       <div className="flex gap-1.5 flex-wrap">
         {(["all", "upcoming", "ongoing", "completed", "cancelled"] as const).map((f) => (
           <button
@@ -190,7 +187,6 @@ export default function LiveEventsTab() {
         ))}
       </div>
 
-      {/* Create Event Form */}
       <AnimatePresence>
         {showCreate && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
@@ -254,7 +250,6 @@ export default function LiveEventsTab() {
         )}
       </AnimatePresence>
 
-      {/* Events List */}
       <div className="space-y-3">
         {filtered.map((event) => {
           const tc = EVENT_TYPE_CONFIG[event.type];

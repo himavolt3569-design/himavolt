@@ -10,7 +10,6 @@ import {
 import { formatPrice } from "@/lib/currency";
 import { SkeletonCard } from "@/components/shared/Skeleton";
 
-/* ── Types ───────────────────────────────────────────────────────── */
 
 interface TableData {
   id: string;
@@ -49,7 +48,6 @@ function elapsed(iso: string) {
   return `${Math.floor(mins / 60)}h ${mins % 60}m`;
 }
 
-/* ── Component ───────────────────────────────────────────────────── */
 
 export default function TablesTab({ restaurantId, currency = "NPR" }: { restaurantId: string; currency?: string }) {
   const rid  = restaurantId;
@@ -68,7 +66,6 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
   const [addCap,    setAddCap]    = useState("4");
   const [addSaving, setAddSaving] = useState(false);
 
-  // Bulk create form
   const [showBulk,    setShowBulk]    = useState(false);
   const [bulkFrom,    setBulkFrom]    = useState("1");
   const [bulkTo,      setBulkTo]      = useState("20");
@@ -204,7 +201,6 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
   return (
     <div className="space-y-5">
 
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-100">
@@ -241,7 +237,6 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
         </div>
       </div>
 
-      {/* Legend */}
       <div className="flex items-center gap-4 text-xs text-gray-500">
         <span className="flex items-center gap-1.5">
           <span className="h-3 w-3 rounded-full bg-emerald-400 inline-block" />Available
@@ -289,7 +284,6 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
                 onClick={() => setSelected(table)}
                 className={`group relative rounded-2xl border-2 p-4 text-left transition-all hover:-translate-y-0.5 hover:shadow-md ${bgClass}`}
               >
-                {/* Inline edit controls */}
                 {canManage && editId === table.id ? (
                   <div className="space-y-1.5" onClick={(e) => e.stopPropagation()}>
                     <input

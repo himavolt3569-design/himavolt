@@ -71,14 +71,12 @@ type Screen = "WELCOME" | "MENU" | "ORDER_TYPE" | "SUMMARY" | "CONFIRMED";
 export default function KioskPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
 
-  // Data
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [tables, setTables] = useState<{ tableNo: number; label: string | null }[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // UI state
   const [screen, setScreen] = useState<Screen>("WELCOME");
   const [activeCategory, setActiveCategory] = useState<string | "ALL">("ALL");
   const [search, setSearch] = useState("");
@@ -91,7 +89,6 @@ export default function KioskPage({ params }: { params: Promise<{ slug: string }
   const [confirmedOrder, setConfirmedOrder] = useState<{ orderNo: string; total: number } | null>(null);
   const [isIdle, setIsIdle] = useState(false);
 
-  // Load data
   useEffect(() => {
     async function load() {
       try {
@@ -117,7 +114,6 @@ export default function KioskPage({ params }: { params: Promise<{ slug: string }
     load();
   }, [slug]);
 
-  // Reset everything
   const resetAll = useCallback(() => {
     setScreen("WELCOME");
     setActiveCategory("ALL");
@@ -132,14 +128,12 @@ export default function KioskPage({ params }: { params: Promise<{ slug: string }
     setIsIdle(false);
   }, []);
 
-  // Idle detection (60s)
   useIdleDetection(60000, () => {
     if (screen !== "WELCOME" && screen !== "CONFIRMED") {
       setIsIdle(true);
     }
   });
 
-  // Filter menu items
   const categories = restaurant?.categories ?? [];
   const filteredItems = menuItems.filter((item) => {
     if (search && !item.name.toLowerCase().includes(search.toLowerCase())) return false;
@@ -148,7 +142,6 @@ export default function KioskPage({ params }: { params: Promise<{ slug: string }
     return item.category.id === activeCategory || childIds.includes(item.category.id);
   });
 
-  // Cart operations
   const addToCart = (item: MenuItem, qty: number, sizeId: string | null, addOnIds: string[]) => {
     const size = sizeId ? item.sizes.find((s) => s.id === sizeId) : null;
     const addOns = item.addOns.filter((a) => addOnIds.includes(a.id));
@@ -189,7 +182,6 @@ export default function KioskPage({ params }: { params: Promise<{ slug: string }
     setCart((prev) => prev.filter((c) => c.menuItemId !== menuItemId));
   };
 
-  // Place order
   const placeOrder = async () => {
     if (!restaurant || cart.length === 0) return;
     setSubmitting(true);
@@ -264,7 +256,6 @@ export default function KioskPage({ params }: { params: Promise<{ slug: string }
 
   return (
     <div className="min-h-screen bg-gray-50 select-none">
-      {/* Idle overlay */}
       <KioskIdleOverlay
         isIdle={isIdle}
         onIdle={() => setIsIdle(true)}
@@ -273,7 +264,6 @@ export default function KioskPage({ params }: { params: Promise<{ slug: string }
       />
 
       <AnimatePresence mode="wait">
-        {/* Welcome screen */}
         {screen === "WELCOME" && (
           <KioskWelcome
             restaurantName={restaurant.name}
@@ -282,7 +272,6 @@ export default function KioskPage({ params }: { params: Promise<{ slug: string }
           />
         )}
 
-        {/* Confirmation screen */}
         {screen === "CONFIRMED" && confirmedOrder && (
           <KioskConfirmation
             orderNo={confirmedOrder.orderNo}
@@ -293,12 +282,9 @@ export default function KioskPage({ params }: { params: Promise<{ slug: string }
         )}
       </AnimatePresence>
 
-      {/* Main menu screen */}
       {screen === "MENU" && (
         <div className="flex h-screen">
-          {/* Left: Menu area */}
           <div className="flex-1 flex flex-col overflow-hidden">
-            {/* Header */}
             <div className="shrink-0 bg-white border-b border-gray-200 px-6 py-4">
               <div className="flex items-center justify-between mb-4">
                 <div>
@@ -313,7 +299,6 @@ export default function KioskPage({ params }: { params: Promise<{ slug: string }
                 </button>
               </div>
 
-              {/* Search */}
               <div className="relative mb-4">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input
@@ -329,7 +314,6 @@ export default function KioskPage({ params }: { params: Promise<{ slug: string }
                 )}
               </div>
 
-              {/* Categories */}
               <KioskCategoryBar
                 categories={categories}
                 activeId={activeCategory}
@@ -349,7 +333,6 @@ export default function KioskPage({ params }: { params: Promise<{ slug: string }
             </div>
           </div>
 
-          {/* Right: Cart panel */}
           <div className="w-[380px] shrink-0">
             <KioskCart
               items={cart}
@@ -363,7 +346,6 @@ export default function KioskPage({ params }: { params: Promise<{ slug: string }
         </div>
       )}
 
-      {/* Order type screen */}
       {screen === "ORDER_TYPE" && (
         <div className="min-h-screen flex items-center justify-center">
           <KioskOrderType
@@ -379,7 +361,6 @@ export default function KioskPage({ params }: { params: Promise<{ slug: string }
         </div>
       )}
 
-      {/* Summary screen */}
       {screen === "SUMMARY" && (
         <div className="min-h-screen flex items-center justify-center">
           <KioskSummary
@@ -399,7 +380,6 @@ export default function KioskPage({ params }: { params: Promise<{ slug: string }
         </div>
       )}
 
-      {/* Item detail modal */}
       <AnimatePresence>
         {selectedItem && (
           <KioskItemDetail

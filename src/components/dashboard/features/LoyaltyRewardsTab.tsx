@@ -160,7 +160,6 @@ export default function LoyaltyRewardsTab() {
       transition={{ duration: 0.4 }}
       className="space-y-6"
     >
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="p-2.5 bg-amber-100 rounded-xl">
@@ -188,7 +187,6 @@ export default function LoyaltyRewardsTab() {
 
       {programEnabled && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-          {/* Stats Row */}
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             {[
               { label: "Active Members", value: stats.activeMembers, icon: Users, color: "text-amber-600 bg-amber-50" },
@@ -216,7 +214,6 @@ export default function LoyaltyRewardsTab() {
 
           {/* Points Config & Tiers */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Points Configuration */}
             <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm space-y-5">
               <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Points Configuration</h3>
 
@@ -250,7 +247,6 @@ export default function LoyaltyRewardsTab() {
                   </p>
                 </div>
 
-                {/* Points Stats */}
                 <div className="border-t border-gray-100 pt-4 space-y-2">
                   <h4 className="text-xs font-semibold text-gray-500 uppercase">Points Issued</h4>
                   <div className="grid grid-cols-3 gap-3">
@@ -267,7 +263,6 @@ export default function LoyaltyRewardsTab() {
                   </div>
                 </div>
 
-                {/* Redemption Stats */}
                 <div className="border-t border-gray-100 pt-4 space-y-2">
                   <h4 className="text-xs font-semibold text-gray-500 uppercase">Rewards Redeemed</h4>
                   <div className="grid grid-cols-3 gap-3">
@@ -286,7 +281,6 @@ export default function LoyaltyRewardsTab() {
               </div>
             </div>
 
-            {/* Reward Tiers */}
             <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm space-y-5">
               <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Reward Tiers</h3>
               <div className="space-y-3">
@@ -312,7 +306,6 @@ export default function LoyaltyRewardsTab() {
             </div>
           </div>
 
-          {/* Rewards Catalog */}
           <div className="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
             <div className="flex items-center justify-between p-5 border-b border-gray-100">
               <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Rewards Catalog</h3>
@@ -461,7 +454,6 @@ export default function LoyaltyRewardsTab() {
 
           {/* Bottom Row: Customer Leaderboard & Bonus Events */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Customer Leaderboard */}
             <div className="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
               <div className="p-5 border-b border-gray-100">
                 <div className="flex items-center gap-2">
@@ -496,7 +488,6 @@ export default function LoyaltyRewardsTab() {
               </div>
             </div>
 
-            {/* Bonus Events */}
             <div className="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
               <div className="p-5 border-b border-gray-100">
                 <div className="flex items-center gap-2">

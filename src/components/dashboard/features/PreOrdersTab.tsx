@@ -84,12 +84,10 @@ export default function PreOrdersTab() {
   const [statusFilter, setStatusFilter] = useState<PreOrderItem["status"] | "All">("All");
   const [acceptingPreOrders, setAcceptingPreOrders] = useState(true);
 
-  // Capacity settings
   const [maxOrdersPerDay, setMaxOrdersPerDay] = useState(20);
   const [maxOrdersPerSlot, setMaxOrdersPerSlot] = useState(5);
   const [notifyHoursBefore, setNotifyHoursBefore] = useState(2);
 
-  // Form state
   const [formData, setFormData] = useState({
     customerName: "",
     phone: "",
@@ -101,7 +99,6 @@ export default function PreOrdersTab() {
     totalAmount: 0,
   });
 
-  // Calendar state
   const [calendarMonth, setCalendarMonth] = useState(new Date(2026, 2)); // March 2026
 
   const filteredOrders = orders.filter((o) => {
@@ -159,7 +156,6 @@ export default function PreOrdersTab() {
     }));
   };
 
-  // Calendar helpers
   const getDaysInMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
   const getFirstDayOfMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth(), 1).getDay();
 
@@ -218,7 +214,6 @@ export default function PreOrdersTab() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-gray-800">Pre-Orders</h2>
@@ -254,7 +249,6 @@ export default function PreOrdersTab() {
         </div>
       </div>
 
-      {/* Settings Panel */}
       <AnimatePresence>
         {showSettings && (
           <motion.div
@@ -362,7 +356,6 @@ export default function PreOrdersTab() {
         )}
       </div>
 
-      {/* Calendar View */}
       {activeView === "calendar" && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -405,7 +398,6 @@ export default function PreOrdersTab() {
         </motion.div>
       )}
 
-      {/* Orders List */}
       {activeView === "list" && (
         <div className="space-y-3">
           <AnimatePresence>

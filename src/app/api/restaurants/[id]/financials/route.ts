@@ -13,7 +13,6 @@ export async function GET(
 
   const { id } = await params;
 
-  // Verify ownership
   const restaurant = await db.restaurant.findUnique({
     where: { id },
     select: { ownerId: true },

@@ -22,9 +22,7 @@ import { useRestaurant } from "@/context/RestaurantContext";
 import { useToast } from "@/context/ToastContext";
 import { apiFetch } from "@/lib/api-client";
 
-/* ------------------------------------------------------------------ */
 /*  Types                                                              */
-/* ------------------------------------------------------------------ */
 
 interface Coupon {
   id: string;
@@ -65,9 +63,7 @@ const EMPTY_FORM: CouponFormData = {
   isActive: true,
 };
 
-/* ------------------------------------------------------------------ */
 /*  Main Component                                                     */
-/* ------------------------------------------------------------------ */
 
 export default function CouponManagementTab() {
   const { selectedRestaurant, restaurants } = useRestaurant();
@@ -83,7 +79,6 @@ export default function CouponManagementTab() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  /* ── Fetch ─────────────────────────────────────────────────────── */
 
   const fetchCoupons = useCallback(async () => {
     if (!restaurant) return;
@@ -109,7 +104,6 @@ export default function CouponManagementTab() {
     fetchCoupons();
   }, [fetchCoupons]);
 
-  /* ── Helpers ───────────────────────────────────────────────────── */
 
   const openCreate = () => {
     setEditingCoupon(null);
@@ -180,7 +174,6 @@ export default function CouponManagementTab() {
 
     try {
       if (editingCoupon) {
-        // Update
         const updated = await apiFetch<Coupon>(
           `/api/restaurants/${restaurant.id}/coupons/${editingCoupon.id}`,
           { method: "PATCH", body: payload },
@@ -190,7 +183,6 @@ export default function CouponManagementTab() {
         );
         showToast("Coupon updated");
       } else {
-        // Create
         const created = await apiFetch<Coupon>(
           `/api/restaurants/${restaurant.id}/coupons`,
           { method: "POST", body: payload },
@@ -209,12 +201,10 @@ export default function CouponManagementTab() {
     }
   };
 
-  /* ── Delete ────────────────────────────────────────────────────── */
 
   const handleDelete = async (id: string) => {
     if (!restaurant) return;
     setDeletingId(id);
-    // Optimistic removal
     const prev = coupons;
     setCoupons((c) => c.filter((x) => x.id !== id));
     try {
@@ -230,7 +220,6 @@ export default function CouponManagementTab() {
     }
   };
 
-  /* ── Copy code ─────────────────────────────────────────────────── */
 
   const handleCopy = async (code: string, id: string) => {
     try {
@@ -242,7 +231,6 @@ export default function CouponManagementTab() {
     }
   };
 
-  /* ── Guard ─────────────────────────────────────────────────────── */
 
   if (!restaurant) {
     return (
@@ -255,11 +243,9 @@ export default function CouponManagementTab() {
     );
   }
 
-  /* ── Render ────────────────────────────────────────────────────── */
 
   return (
     <div className="max-w-4xl space-y-6">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-lg font-bold text-amber-950">Coupon Management</h2>
@@ -276,7 +262,6 @@ export default function CouponManagementTab() {
         </button>
       </div>
 
-      {/* Stats row */}
       {coupons.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
@@ -316,7 +301,6 @@ export default function CouponManagementTab() {
         </div>
       )}
 
-      {/* Coupon list */}
       {loading ? (
         <div className="flex items-center justify-center py-16">
           <Loader2 className="h-5 w-5 animate-spin text-amber-400" />
@@ -370,7 +354,6 @@ export default function CouponManagementTab() {
                     </button>
                   </div>
 
-                  {/* Discount info */}
                   <div className="flex items-center gap-3 flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
                       {coupon.type === "PERCENTAGE" ? (
@@ -398,7 +381,6 @@ export default function CouponManagementTab() {
                         </span>
                       )}
 
-                    {/* Usage */}
                     <div className="flex items-center gap-1 text-[10px] font-semibold text-amber-600/60">
                       <Users className="h-3 w-3" />
                       <span>
@@ -409,7 +391,6 @@ export default function CouponManagementTab() {
                       </span>
                     </div>
 
-                    {/* Status badge */}
                     <span
                       className={`shrink-0 rounded-md px-2 py-0.5 text-[10px] font-bold ${
                         coupon.isActive
@@ -421,7 +402,6 @@ export default function CouponManagementTab() {
                     </span>
                   </div>
 
-                  {/* Dates */}
                   <div className="hidden lg:flex items-center gap-3 text-[10px] text-amber-500 shrink-0">
                     {coupon.expiresAt && (
                       <span className="flex items-center gap-1">
@@ -436,7 +416,6 @@ export default function CouponManagementTab() {
                     )}
                   </div>
 
-                  {/* Actions */}
                   <div className="flex items-center gap-1.5 shrink-0 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={() => openEdit(coupon)}
@@ -483,7 +462,6 @@ export default function CouponManagementTab() {
               transition={{ type: "spring", damping: 25 }}
               className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-100 w-[95%] max-w-md rounded-2xl bg-white shadow-2xl overflow-hidden max-h-[90dvh] overflow-y-auto"
             >
-              {/* Modal header */}
               <div className="flex items-center justify-between px-5 py-4 border-b border-amber-100/60">
                 <div className="flex items-center gap-2">
                   <Tag className="h-5 w-5 text-amber-600" />
@@ -500,7 +478,6 @@ export default function CouponManagementTab() {
               </div>
 
               <div className="p-5 space-y-4">
-                {/* Code */}
                 <div>
                   <label className="text-xs font-bold text-amber-700/60 uppercase tracking-wider mb-1.5 block">
                     Coupon Code
@@ -516,7 +493,6 @@ export default function CouponManagementTab() {
                   />
                 </div>
 
-                {/* Type */}
                 <div>
                   <label className="text-xs font-bold text-amber-700/60 uppercase tracking-wider mb-1.5 block">
                     Discount Type
@@ -548,7 +524,6 @@ export default function CouponManagementTab() {
                   </div>
                 </div>
 
-                {/* Value */}
                 <div>
                   <label className="text-xs font-bold text-amber-700/60 uppercase tracking-wider mb-1.5 block">
                     {form.type === "PERCENTAGE"
@@ -570,7 +545,6 @@ export default function CouponManagementTab() {
                   />
                 </div>
 
-                {/* Min Order */}
                 <div>
                   <label className="text-xs font-bold text-amber-700/60 uppercase tracking-wider mb-1.5 block">
                     Minimum Order{" "}
@@ -610,7 +584,6 @@ export default function CouponManagementTab() {
                   </div>
                 )}
 
-                {/* Max Uses */}
                 <div>
                   <label className="text-xs font-bold text-amber-700/60 uppercase tracking-wider mb-1.5 block">
                     Max Uses{" "}
@@ -628,7 +601,6 @@ export default function CouponManagementTab() {
                   />
                 </div>
 
-                {/* Date range */}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="text-xs font-bold text-amber-700/60 uppercase tracking-wider mb-1.5 block">
@@ -654,7 +626,6 @@ export default function CouponManagementTab() {
                   </div>
                 </div>
 
-                {/* Active toggle */}
                 <div className="flex items-center justify-between rounded-xl bg-amber-50/40 px-4 py-3 ring-1 ring-amber-100/40">
                   <span className="text-sm font-bold text-amber-900">
                     Active
@@ -671,7 +642,6 @@ export default function CouponManagementTab() {
                   </button>
                 </div>
 
-                {/* Submit */}
                 <button
                   onClick={handleSubmit}
                   disabled={

@@ -45,7 +45,6 @@ export default function OffersTab() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
 
-  // Form state
   const [caption, setCaption] = useState("");
   const [uploading, setUploading] = useState(false);
   const [uploadedUrl, setUploadedUrl] = useState("");
@@ -144,7 +143,6 @@ export default function OffersTab() {
     }
   };
 
-  // ── Timed Offers on Menu Items ─────────────────────────────────
   const [menuItems, setMenuItems] = useState<{ id: string; name: string; imageUrl: string | null; discount: number; discountLabel: string | null; offerExpiresAt: string | null }[]>([]);
   const [menuLoading, setMenuLoading] = useState(false);
   const [showTimedOffer, setShowTimedOffer] = useState(false);
@@ -215,7 +213,6 @@ export default function OffersTab() {
 
   return (
     <div className="max-w-4xl space-y-6">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-lg font-bold text-amber-950">Offers & Promotions</h2>
@@ -253,7 +250,6 @@ export default function OffersTab() {
           </button>
         </div>
 
-        {/* Active timed offers */}
         {activeTimedOffers.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {activeTimedOffers.map((item) => {
@@ -292,7 +288,6 @@ export default function OffersTab() {
         )}
       </div>
 
-      {/* Set Timed Offer Modal */}
       <AnimatePresence>
         {showTimedOffer && (
           <>
@@ -349,7 +344,6 @@ export default function OffersTab() {
                   </div>
                 </div>
 
-                {/* Discount */}
                 <div>
                   <label className="text-xs font-bold text-amber-700/60 uppercase tracking-wider mb-1.5 block">Discount %</label>
                   <div className="flex items-center gap-2">
@@ -371,7 +365,6 @@ export default function OffersTab() {
                   </div>
                 </div>
 
-                {/* Duration */}
                 <div>
                   <label className="text-xs font-bold text-amber-700/60 uppercase tracking-wider mb-1.5 block">Duration</label>
                   <div className="flex gap-2">
@@ -452,7 +445,6 @@ export default function OffersTab() {
         </div>
       )}
 
-      {/* Create offer modal */}
       <AnimatePresence>
         {showForm && (
           <>
@@ -484,7 +476,6 @@ export default function OffersTab() {
               </div>
 
               <div className="p-5 space-y-4">
-                {/* Image upload */}
                 <input
                   ref={fileRef}
                   type="file"
@@ -529,7 +520,6 @@ export default function OffersTab() {
                   </div>
                 )}
 
-                {/* Caption */}
                 <div>
                   <label className="text-xs font-bold text-amber-700/60 uppercase tracking-wider mb-1.5 block">
                     Offer Text
@@ -543,7 +533,6 @@ export default function OffersTab() {
                   />
                 </div>
 
-                {/* Duration */}
                 <div>
                   <label className="text-xs font-bold text-amber-700/60 uppercase tracking-wider mb-1.5 block">
                     Duration
@@ -583,7 +572,6 @@ export default function OffersTab() {
         )}
       </AnimatePresence>
 
-      {/* All offers list */}
       {loading ? (
         <div className="flex items-center justify-center py-16">
           <Loader2 className="h-5 w-5 animate-spin text-amber-400" />
@@ -600,7 +588,6 @@ export default function OffersTab() {
         </div>
       ) : (
         <div className="space-y-6">
-          {/* Active */}
           {activeOffers.length > 0 && (
             <div>
               <h3 className="text-[13px] font-bold text-amber-700/50 uppercase tracking-wider mb-3">
@@ -614,7 +601,6 @@ export default function OffersTab() {
             </div>
           )}
 
-          {/* Expired */}
           {expiredOffers.length > 0 && (
             <div>
               <h3 className="text-[13px] font-bold text-amber-700/30 uppercase tracking-wider mb-3">

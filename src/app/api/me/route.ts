@@ -30,7 +30,6 @@ export async function PATCH(req: Request) {
     }
   }
 
-  // Username update
   if (username !== undefined) {
     if (!/^[a-z0-9_]{3,20}$/.test(username)) {
       return NextResponse.json({ error: "Username must be 3–20 lowercase letters, numbers, or underscores" }, { status: 400 });

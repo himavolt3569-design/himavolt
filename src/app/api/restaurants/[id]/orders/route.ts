@@ -115,7 +115,6 @@ export const POST = safeHandler(
 
     const orderType = type ?? "DINE_IN";
 
-    // ── Add items to existing cash order ─────────────────────────────
     if (addToOrderId) {
       const existing = await db.order.findFirst({
         where: {
@@ -257,7 +256,6 @@ export const POST = safeHandler(
       return NextResponse.json(updated, { status: 200 });
     }
 
-    // ── Create new order ─────────────────────────────────────────────
     if (orderType === "DELIVERY" && !deliveryAddress) {
       return NextResponse.json(
         { error: "Delivery address is required" },
@@ -288,7 +286,6 @@ export const POST = safeHandler(
       }
     }
 
-    // ── Coupon validation ────────────────────────────────────────────
     let couponDiscount = 0;
     let couponId: string | null = null;
     if (couponCode) {
@@ -338,7 +335,6 @@ export const POST = safeHandler(
       }
     }
 
-    // ── Prepaid check ─────────────────────────────────────────────────
     const r = restaurant as Record<string, unknown>;
     const isPrepaid = r.prepaidEnabled === true && paymentMethod !== "CASH";
 

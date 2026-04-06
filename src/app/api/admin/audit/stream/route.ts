@@ -29,7 +29,6 @@ export async function GET(_req: NextRequest) {
         }
       };
 
-      // Send initial heartbeat
       send(JSON.stringify({ type: "connected", timestamp: lastChecked.toISOString() }));
 
       const poll = async () => {

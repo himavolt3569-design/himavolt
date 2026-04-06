@@ -77,7 +77,6 @@ export default function ForgotPasswordPage() {
         transition={{ duration: 0.22 }}
         className="w-full max-w-sm"
       >
-        {/* Logo */}
         <div className="mb-8 text-center">
           <Link href="/" className="inline-flex items-center gap-2">
             <Mountain className="h-8 w-8 text-[#eaa94d]" strokeWidth={2.5} />

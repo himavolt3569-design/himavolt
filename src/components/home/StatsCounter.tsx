@@ -4,7 +4,6 @@ import { useRef, useState, useEffect } from "react";
 import { motion, useInView, useScroll, useTransform } from "framer-motion";
 import { TrendingUp, Users, MapPin, Clock } from "lucide-react";
 
-/* ── Animated counter ── */
 function useCounter(end: number, duration = 2200) {
   const [count, setCount] = useState(0);
   const ref = useRef<HTMLSpanElement>(null);
@@ -74,13 +73,11 @@ export default function StatsCounter() {
       ref={sectionRef}
       className="relative py-16 md:py-20 overflow-hidden"
     >
-      {/* Animated gradient background */}
       <motion.div
         style={{ x: bgX }}
         className="absolute inset-0 bg-linear-to-r from-[#3e1e0c] via-[#2a1408] to-[#3e1e0c]"
       />
 
-      {/* Subtle texture */}
       <div
         className="absolute inset-0 opacity-[0.03] pointer-events-none"
         style={{
@@ -89,7 +86,6 @@ export default function StatsCounter() {
         }}
       />
 
-      {/* Glow orbs */}
       <div className="absolute top-0 left-1/4 w-60 h-40 rounded-full bg-[#eaa94d]/[0.06] blur-[80px] pointer-events-none" />
       <div className="absolute bottom-0 right-1/4 w-60 h-40 rounded-full bg-[#d67620]/[0.06] blur-[80px] pointer-events-none" />
 
@@ -110,7 +106,6 @@ export default function StatsCounter() {
                 }}
                 className="group relative text-center"
               >
-                {/* Icon */}
                 <motion.div
                   whileHover={{ scale: 1.15, rotate: -6 }}
                   transition={{ type: "spring", stiffness: 300, damping: 15 }}
@@ -124,7 +119,6 @@ export default function StatsCounter() {
                   />
                 </motion.div>
 
-                {/* Number */}
                 <span
                   ref={counter.ref}
                   className="block text-3xl md:text-4xl font-extrabold text-white tabular-nums tracking-tight"
@@ -133,7 +127,6 @@ export default function StatsCounter() {
                   <span style={{ color: stat.color }}>{stat.suffix}</span>
                 </span>
 
-                {/* Label */}
                 <p className="mt-1.5 text-xs font-medium text-white/30 uppercase tracking-wider">
                   {stat.label}
                 </p>

@@ -13,7 +13,6 @@ import POSSplitBill from "@/components/pos/staff/POSSplitBill";
 import POSHeldOrders from "@/components/pos/staff/POSHeldOrders";
 import POSDailySummary from "@/components/pos/staff/POSDailySummary";
 
-/* ── Types ─────────────────────────────────────────────────────────── */
 
 interface StaffSession {
   userId: string;
@@ -68,7 +67,6 @@ interface BillOrder {
   bill?: { id: string; billNo: string; subtotal: number; tax: number; serviceCharge: number; discount: number; total: number; paidVia: string | null } | null;
 }
 
-/* ── Page ──────────────────────────────────────────────────────────── */
 
 export default function StaffPOSPage() {
   const router = useRouter();
@@ -76,12 +74,10 @@ export default function StaffPOSPage() {
   const [loading, setLoading] = useState(true);
   const [activeView, setActiveView] = useState<POSView>("register");
 
-  // Data for register view
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [tables, setTables] = useState<TableRecord[]>([]);
 
-  // Split bill modal
   const [splitOrder, setSplitOrder] = useState<BillOrder | null>(null);
 
   // Table pre-selection from Tables view → Register
@@ -91,7 +87,6 @@ export default function StaffPOSPage() {
   type RecalledItem = { id: string; name: string; price: number; quantity: number };
   const [recalledItems, setRecalledItems] = useState<RecalledItem[] | null>(null);
 
-  // Load staff session
   useEffect(() => {
     async function loadSession() {
       try {
@@ -224,7 +219,6 @@ export default function StaffPOSPage() {
         )}
       </div>
 
-      {/* Split bill modal */}
       <AnimatePresence>
         {splitOrder && (
           <POSSplitBill

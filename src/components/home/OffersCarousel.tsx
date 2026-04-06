@@ -37,7 +37,6 @@ export default function OffersCarousel() {
   return (
     <section className="bg-white">
       <div className="mx-auto max-w-[1440px] px-4 md:px-8 lg:px-12 py-10 md:py-16">
-        {/* Section header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#eaa94d]/10">
@@ -70,7 +69,6 @@ export default function OffersCarousel() {
           </div>
         </div>
 
-        {/* Main offer card */}
         <div className="relative w-full overflow-hidden rounded-3xl shadow-xl shadow-black/5 h-[240px] sm:h-[260px] md:h-[300px]">
           <AnimatePresence mode="popLayout">
             <motion.div
@@ -81,7 +79,6 @@ export default function OffersCarousel() {
               transition={{ duration: 0.5, ease: [0.32, 0.72, 0, 1] }}
               className={`absolute inset-0 bg-gradient-to-br ${offer.bgColor}`}
             >
-              {/* Food image with fade */}
               <div className="absolute right-0 top-0 bottom-0 w-[55%] sm:w-[50%]">
                 <img
                   src={offer.image}
@@ -91,7 +88,6 @@ export default function OffersCarousel() {
                 <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
               </div>
 
-              {/* Texture overlay */}
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_50%,rgba(255,255,255,0.06),transparent_60%)]" />
               <div
                 className="absolute inset-0 opacity-[0.03]"
@@ -101,9 +97,7 @@ export default function OffersCarousel() {
                 }}
               />
 
-              {/* Content */}
               <div className="relative z-10 flex h-full flex-col justify-center p-8 md:p-12 lg:p-16 max-w-[60%] sm:max-w-[55%]">
-                {/* Badge */}
                 <motion.div
                   initial={{ opacity: 0, x: -12 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -119,7 +113,6 @@ export default function OffersCarousel() {
                   </span>
                 </motion.div>
 
-                {/* Title */}
                 <motion.h3
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -133,7 +126,6 @@ export default function OffersCarousel() {
                   {offer.title}
                 </motion.h3>
 
-                {/* Subtitle */}
                 <motion.p
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -147,7 +139,6 @@ export default function OffersCarousel() {
                   {offer.subtitle}
                 </motion.p>
 
-                {/* CTA */}
                 <motion.div
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -167,7 +158,6 @@ export default function OffersCarousel() {
             </motion.div>
           </AnimatePresence>
 
-          {/* Dots */}
           <div className="absolute bottom-5 left-8 md:left-12 lg:left-16 z-20 flex items-center gap-1.5">
             {offers.map((_, idx) => (
               <button
@@ -184,7 +174,6 @@ export default function OffersCarousel() {
           </div>
         </div>
 
-        {/* Small offer cards grid */}
         <div className="mt-5 grid grid-cols-2 md:grid-cols-4 gap-3">
           {offers.map((o, idx) => (
             <button

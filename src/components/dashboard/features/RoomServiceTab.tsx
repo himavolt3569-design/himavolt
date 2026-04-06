@@ -187,7 +187,6 @@ export default function RoomServiceTab() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-2xl font-bold text-stone-800">Room Service</h2>
@@ -206,7 +205,6 @@ export default function RoomServiceTab() {
         </div>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
         {[
           {
@@ -259,7 +257,6 @@ export default function RoomServiceTab() {
         ))}
       </div>
 
-      {/* Navigation Tabs */}
       <div className="flex gap-1 rounded-xl bg-stone-100 p-1">
         {(["orders", "menu", "settings"] as const).map((view) => (
           <button
@@ -280,7 +277,6 @@ export default function RoomServiceTab() {
         ))}
       </div>
 
-      {/* Orders View */}
       <AnimatePresence mode="wait">
         {activeView === "orders" && (
           <motion.div
@@ -290,7 +286,6 @@ export default function RoomServiceTab() {
             exit={{ opacity: 0, y: -10 }}
             className="space-y-4"
           >
-            {/* Order Filter */}
             <div className="flex flex-wrap gap-2">
               {(["All", ...STATUS_FLOW] as const).map((status) => (
                 <button
@@ -312,7 +307,6 @@ export default function RoomServiceTab() {
               ))}
             </div>
 
-            {/* Orders List */}
             <div className="space-y-3">
               {filteredOrders.map((order) => {
                 const cfg = STATUS_CONFIG[order.status];
@@ -428,7 +422,6 @@ export default function RoomServiceTab() {
           </motion.div>
         )}
 
-        {/* Menu View */}
         {activeView === "menu" && (
           <motion.div
             key="menu"
@@ -487,7 +480,6 @@ export default function RoomServiceTab() {
           </motion.div>
         )}
 
-        {/* Settings View */}
         {activeView === "settings" && (
           <motion.div
             key="settings"
@@ -561,7 +553,6 @@ export default function RoomServiceTab() {
               )}
             </div>
 
-            {/* Surcharge Settings */}
             <div className="rounded-xl border border-stone-200 bg-white p-6 shadow-sm">
               <div className="flex items-center gap-3 mb-4">
                 <DollarSign className="h-5 w-5 text-amber-600" />
@@ -629,7 +620,6 @@ export default function RoomServiceTab() {
         )}
       </AnimatePresence>
 
-      {/* New Order Modal */}
       <AnimatePresence>
         {showNewOrder && (
           <motion.div

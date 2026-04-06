@@ -67,7 +67,6 @@ export async function POST(
     );
   }
 
-  // Check for conflicting bookings
   const conflict = await db.roomBooking.findFirst({
     where: {
       roomId,

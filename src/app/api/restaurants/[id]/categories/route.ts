@@ -63,14 +63,12 @@ export async function POST(
   }
 
   try {
-    // Build slug
     let slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
     if (parentId) {
       const parent = await db.menuCategory.findUnique({ where: { id: parentId } });
       if (parent) slug = `${parent.slug}--${slug}`;
     }
 
-    // Ensure unique slug
     const existing = await db.menuCategory.findUnique({
       where: { restaurantId_slug: { restaurantId: id, slug } },
     });

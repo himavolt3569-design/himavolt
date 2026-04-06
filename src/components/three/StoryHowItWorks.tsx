@@ -111,7 +111,6 @@ export default function StoryHowItWorks() {
       if (phoneBars[0]) {
         tl.set(phoneBars[0], { opacity: 1, y: 0 }, 0);
       }
-      // First dot active
       if (progressDots[0]) {
         tl.set(progressDots[0], {
           scale: 1.4,
@@ -126,7 +125,6 @@ export default function StoryHowItWorks() {
         const screen = phoneScreens[i];
         const bar = phoneBars[i];
 
-        // Card entrance
         tl.fromTo(
           card,
           { opacity: 0, y: 40, scale: 0.95 },
@@ -157,7 +155,6 @@ export default function StoryHowItWorks() {
           }
         }
 
-        // Status bar text
         if (bar && i > 0) {
           tl.fromTo(
             bar,
@@ -174,7 +171,6 @@ export default function StoryHowItWorks() {
           }
         }
 
-        // Activate progress dot
         if (dot && i > 0) {
           tl.to(
             dot,
@@ -198,14 +194,12 @@ export default function StoryHowItWorks() {
           }
         }
 
-        // Phone glow color shift
         tl.to(
           phoneGlowRef.current,
           { backgroundColor: steps[i].accentColor, duration: 0.12 },
           startAt,
         );
 
-        // Card exits (except last)
         if (i < cards.length - 1) {
           tl.to(
             card,
@@ -215,7 +209,6 @@ export default function StoryHowItWorks() {
         }
       });
 
-      // Final fade out
       tl.to(
         sectionRef.current,
         { opacity: 0, duration: 0.08 },
@@ -231,7 +224,6 @@ export default function StoryHowItWorks() {
       ref={sectionRef}
       className="relative min-h-screen overflow-hidden bg-[#0B0E14] text-white"
     >
-      {/* Smooth gradient transition from light content above */}
       <div className="absolute -top-32 left-0 right-0 h-32 bg-gradient-to-b from-transparent to-[#0B0E14] pointer-events-none z-10" />
 
       {/* Ambient glows — softer, fewer */}
@@ -260,7 +252,6 @@ export default function StoryHowItWorks() {
               </p>
             </div>
 
-            {/* Progress dots */}
             <div ref={progressRef} className="flex gap-3 mb-8">
               {steps.map((_, i) => (
                 <div
@@ -283,14 +274,12 @@ export default function StoryHowItWorks() {
                     {idx + 1}
                   </div>
 
-                  {/* Icon */}
                   <div
                     className={`flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${step.accent} mb-5`}
                   >
                     <step.Icon className="h-5 w-5 text-white" strokeWidth={2} />
                   </div>
 
-                  {/* Content */}
                   <h3 className="text-xl font-bold text-white mb-2 tracking-tight">
                     {step.title}
                   </h3>
@@ -302,9 +291,7 @@ export default function StoryHowItWorks() {
             </div>
           </div>
 
-          {/* Right column: phone mockup */}
           <div className="hidden md:flex flex-1 items-center justify-center relative">
-            {/* Glow behind phone */}
             <div
               ref={phoneGlowRef}
               className="absolute w-[280px] h-[280px] rounded-full opacity-0"
@@ -314,21 +301,17 @@ export default function StoryHowItWorks() {
               }}
             />
 
-            {/* Phone frame */}
             <div
               ref={phoneRef}
               className="relative w-[260px] sm:w-[280px] lg:w-[300px]"
               style={{ perspective: "1000px" }}
             >
-              {/* Phone body */}
               <div className="relative rounded-[36px] border-[5px] border-[#1E1E1E] bg-[#111] shadow-2xl shadow-black/50 overflow-hidden">
-                {/* Notch */}
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 z-30 w-[100px] h-[26px] bg-[#111] rounded-b-2xl flex items-center justify-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-[#222]" />
                   <div className="w-10 h-[3px] rounded-full bg-[#222]" />
                 </div>
 
-                {/* Screen area */}
                 <div className="relative w-full aspect-[9/18] overflow-hidden bg-[#0B0E14]">
                   {/* Phone screens — stacked, crossfade with scroll */}
                   {steps.map((step, i) => (
@@ -345,7 +328,6 @@ export default function StoryHowItWorks() {
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/40" />
 
-                      {/* Top bar */}
                       <div className="absolute top-8 left-5 right-5 flex items-center justify-between">
                         <span className="text-[10px] font-semibold text-white/50">
                           9:41
@@ -376,7 +358,6 @@ export default function StoryHowItWorks() {
                           {step.desc}
                         </p>
 
-                        {/* Mini UI per step */}
                         {i === 0 && (
                           <div className="space-y-1.5">
                             <div className="flex items-center gap-2 rounded-xl bg-white/8 p-2.5">
@@ -527,7 +508,6 @@ export default function StoryHowItWorks() {
                     </div>
                   ))}
 
-                  {/* Status bar labels that swap */}
                   <div className="absolute top-[44px] left-0 right-0 z-20">
                     {steps.map((step, i) => (
                       <div
@@ -548,11 +528,9 @@ export default function StoryHowItWorks() {
                   </div>
                 </div>
 
-                {/* Home indicator */}
                 <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-24 h-[3px] rounded-full bg-white/15" />
               </div>
 
-              {/* Phone reflection */}
               <div
                 className="absolute inset-0 rounded-[36px] pointer-events-none"
                 style={{

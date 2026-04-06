@@ -134,7 +134,6 @@ export default function POSBilling({ restaurantId, currency, onSplitBill }: Prop
 
   return (
     <div className="flex h-full">
-      {/* Left: Orders list */}
       <div className="flex-1 flex flex-col border-r border-gray-200">
         <div className="shrink-0 p-4 border-b border-gray-100 space-y-3">
           <div className="flex items-center justify-between">
@@ -230,7 +229,6 @@ export default function POSBilling({ restaurantId, currency, onSplitBill }: Prop
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {/* Items */}
               <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
                 <div className="divide-y divide-gray-50">
                   {selectedOrder.items.map((item) => (
@@ -270,7 +268,6 @@ export default function POSBilling({ restaurantId, currency, onSplitBill }: Prop
                 </div>
               </div>
 
-              {/* Discount */}
               {selectedOrder.payment?.status !== "COMPLETED" && (
                 <div className="rounded-xl border border-gray-200 bg-white p-3">
                   <label className="text-xs font-bold text-gray-600 mb-2 block flex items-center gap-1">
@@ -296,7 +293,6 @@ export default function POSBilling({ restaurantId, currency, onSplitBill }: Prop
                 </div>
               )}
 
-              {/* Payment methods */}
               {selectedOrder.payment?.status !== "COMPLETED" && (
                 <div className="space-y-2">
                   <h3 className="text-xs font-bold text-gray-600">Collect Payment</h3>
@@ -328,7 +324,6 @@ export default function POSBilling({ restaurantId, currency, onSplitBill }: Prop
                 </div>
               )}
 
-              {/* Already paid */}
               {selectedOrder.payment?.status === "COMPLETED" && (
                 <div className="flex items-center gap-2 rounded-xl bg-green-50 border border-green-200 p-4">
                   <CheckCircle2 className="h-5 w-5 text-green-600" />

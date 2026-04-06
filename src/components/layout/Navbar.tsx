@@ -75,7 +75,6 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
       >
         <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-12">
           <div className="flex h-14 items-center justify-between">
-            {/* Logo */}
             <Link href="/" className="flex shrink-0 items-center gap-1.5 group">
               <motion.div
                 whileHover={{ rotate: -12 }}
@@ -91,9 +90,7 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
               </span>
             </Link>
 
-            {/* Right actions */}
             <div className="flex items-center gap-0.5">
-              {/* Search icon */}
               <motion.button
                 whileHover={{ scale: 1.08 }}
                 whileTap={{ scale: 0.92 }}
@@ -103,7 +100,6 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
                 <Search className="h-[18px] w-[18px]" />
               </motion.button>
 
-              {/* Owner: My Restaurants */}
               {isLoaded && isSignedIn && isOwnerOrAdmin && (
                 <Link
                   href="/manage-restaurants"
@@ -114,7 +110,6 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
                 </Link>
               )}
 
-              {/* Staff Portal */}
               {isLoaded && !isSignedIn && (
                 <Link
                   href="/staff-login"
@@ -125,7 +120,6 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
                 </Link>
               )}
 
-              {/* Cart */}
               <motion.button
                 whileHover={{ scale: 1.08 }}
                 whileTap={{ scale: 0.92 }}
@@ -153,7 +147,6 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
                 </AnimatePresence>
               </motion.button>
 
-              {/* Auth */}
               {isLoaded && (
                 <>
                   {isSignedIn ? (
@@ -195,7 +188,6 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
                             transition={{ duration: 0.15 }}
                             className="absolute right-0 top-full mt-2 w-48 rounded-2xl bg-white shadow-xl shadow-[#3e1e0c]/8 ring-1 ring-brand-200/30 overflow-hidden z-70"
                           >
-                            {/* User info */}
                             <div className="px-4 py-3 border-b border-gray-100">
                               <p className="text-xs font-bold text-[#3e1e0c] truncate">
                                 {user?.user_metadata?.full_name || user?.user_metadata?.name || "Account"}

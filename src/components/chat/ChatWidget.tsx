@@ -327,7 +327,6 @@ export default function ChatWidget({
 
   return (
     <>
-      {/* Floating button */}
       <motion.button
         onClick={() => setIsOpen(true)}
         className="fixed bottom-20 right-4 z-80 flex h-14 w-14 items-center justify-center rounded-full bg-[#3e1e0c] text-white shadow-xl hover:bg-[#2d1508] transition-colors md:bottom-6"
@@ -345,7 +344,6 @@ export default function ChatWidget({
         )}
       </motion.button>
 
-      {/* Chat panel */}
       <AnimatePresence>
         {isOpen && (
           <>
@@ -363,7 +361,6 @@ export default function ChatWidget({
               transition={{ type: "spring", damping: 25 }}
               className="fixed bottom-0 left-0 right-0 z-90 flex flex-col bg-white rounded-t-2xl shadow-2xl max-h-[75vh] md:bottom-20 md:right-4 md:left-auto md:w-[380px] md:rounded-2xl md:max-h-[500px]"
             >
-              {/* Header */}
               <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 shrink-0">
                 <div className="flex items-center gap-2">
                   <MessageCircle className="h-4 w-4 text-[#3e1e0c]" />
@@ -390,7 +387,6 @@ export default function ChatWidget({
                 </button>
               </div>
 
-              {/* Order Items Card */}
               {orderSummary && (
                 <OrderItemsCard
                   summary={orderSummary}
@@ -399,7 +395,6 @@ export default function ChatWidget({
                 />
               )}
 
-              {/* Messages */}
               <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 min-h-50">
                 {loading ? (
                   <div className="flex items-center justify-center py-8">
@@ -427,7 +422,6 @@ export default function ChatWidget({
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Input */}
               <div className="border-t border-gray-100 px-4 py-3 shrink-0">
                 <div className="flex items-center gap-2">
                   <input
@@ -617,7 +611,6 @@ function CompactChat({
 }) {
   return (
     <div className="flex flex-col h-full">
-      {/* Order Items Card */}
       {orderSummary && (
         <OrderItemsCard
           summary={orderSummary}

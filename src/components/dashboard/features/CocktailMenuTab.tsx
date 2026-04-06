@@ -195,7 +195,6 @@ export default function CocktailMenuTab() {
 
   return (
     <div className="space-y-6">
-      {/* Ingredient Stock Warnings */}
       <AnimatePresence>
         {showStockWarnings && lowStockIngredients.length > 0 && (
           <motion.div
@@ -234,7 +233,6 @@ export default function CocktailMenuTab() {
         )}
       </AnimatePresence>
 
-      {/* Top Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="relative flex-1 md:w-64">
@@ -267,7 +265,6 @@ export default function CocktailMenuTab() {
         </div>
       </div>
 
-      {/* Category Filter */}
       <div className="flex gap-2 flex-wrap">
         {["All", ...CATEGORIES].map((cat) => (
           <button
@@ -289,7 +286,6 @@ export default function CocktailMenuTab() {
         ))}
       </div>
 
-      {/* Create Form */}
       <AnimatePresence>
         {showCreateForm && (
           <motion.div
@@ -350,7 +346,6 @@ export default function CocktailMenuTab() {
                 </div>
               </div>
 
-              {/* Ingredients */}
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="text-zinc-400 text-sm">Ingredients</label>
@@ -493,7 +488,6 @@ export default function CocktailMenuTab() {
         )}
       </AnimatePresence>
 
-      {/* Cocktail Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {filteredCocktails.map((cocktail, index) => (
           <motion.div
@@ -535,7 +529,6 @@ export default function CocktailMenuTab() {
                 </div>
               </div>
 
-              {/* Ingredients Preview */}
               <div className="flex flex-wrap gap-1 mb-3">
                 {cocktail.ingredients.map((ing, idx) => (
                   <span
@@ -567,7 +560,6 @@ export default function CocktailMenuTab() {
                 </div>
               </div>
 
-              {/* Actions */}
               <div className="flex items-center justify-between pt-3 border-t border-zinc-700/50">
                 <div className="flex items-center gap-2">
                   <button
@@ -609,7 +601,6 @@ export default function CocktailMenuTab() {
               </div>
             </div>
 
-            {/* Expanded Recipe */}
             <AnimatePresence>
               {expandedRecipe === cocktail.id && (
                 <motion.div
@@ -649,7 +640,6 @@ export default function CocktailMenuTab() {
         </div>
       )}
 
-      {/* Mocktail Section Highlight */}
       {selectedCategory === "All" && cocktails.some((c) => c.category === "Mocktail") && (
         <div>
           <div className="flex items-center gap-2 mb-3">

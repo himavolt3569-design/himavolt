@@ -190,7 +190,6 @@ export default function AllChatsTab() {
 
   return (
     <div className="space-y-4">
-      {/* Controls */}
       <div className="flex flex-wrap items-center gap-2">
         <div className="flex gap-1.5">
           {["", "true", "false"].map((v) => (
@@ -233,7 +232,6 @@ export default function AllChatsTab() {
       )}
 
       <div className="grid gap-4 lg:grid-cols-2">
-        {/* Chat Rooms List */}
         <div className="overflow-hidden rounded-2xl border border-brand-100 bg-white shadow-sm">
           <div className="flex items-center justify-between border-b border-brand-100 px-4 py-2.5">
             <div className="flex items-center gap-2">
@@ -354,7 +352,6 @@ export default function AllChatsTab() {
           )}
         </div>
 
-        {/* Message Viewer */}
         <div className="overflow-hidden rounded-2xl border border-brand-100 bg-white shadow-sm">
           <div className="flex items-center gap-2 border-b border-brand-100 px-4 py-2.5">
             <Send className="h-4 w-4 text-brand-400" />

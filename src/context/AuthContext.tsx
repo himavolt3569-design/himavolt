@@ -50,7 +50,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
 
-    // Get initial session
     const initSession = async () => {
       const {
         data: { session: initialSession },

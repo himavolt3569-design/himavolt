@@ -28,7 +28,6 @@ export default function KioskCart({ items, currency, onUpdateQty, onRemove, onCl
 
   return (
     <div className="flex flex-col h-full bg-white border-l border-gray-200">
-      {/* Header */}
       <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
         <div className="flex items-center gap-3">
           <ShoppingCart className="h-5 w-5 text-amber-700" />
@@ -46,7 +45,6 @@ export default function KioskCart({ items, currency, onUpdateQty, onRemove, onCl
         )}
       </div>
 
-      {/* Items */}
       <div className="flex-1 overflow-y-auto">
         {items.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-gray-300 px-6">
@@ -104,7 +102,6 @@ export default function KioskCart({ items, currency, onUpdateQty, onRemove, onCl
         )}
       </div>
 
-      {/* Footer */}
       {items.length > 0 && (
         <div className="shrink-0 border-t border-gray-200 p-5 space-y-4 bg-gray-50">
           <div className="flex items-center justify-between">

@@ -102,7 +102,6 @@ export default function WifiSeatingTab() {
       transition={{ duration: 0.4 }}
       className="space-y-6"
     >
-      {/* Header */}
       <div className="flex items-center gap-3">
         <div className="p-2.5 bg-amber-100 rounded-xl">
           <Wifi className="w-6 h-6 text-amber-600" />
@@ -113,7 +112,6 @@ export default function WifiSeatingTab() {
         </div>
       </div>
 
-      {/* Stats Row */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         {[
           { label: "Occupancy", value: `${occupiedSeats}/${totalSeats}`, icon: Users, color: "text-amber-600 bg-amber-50" },
@@ -139,7 +137,6 @@ export default function WifiSeatingTab() {
         ))}
       </div>
 
-      {/* Occupancy Bar */}
       <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium text-gray-700">Current Occupancy</span>
@@ -251,7 +248,6 @@ export default function WifiSeatingTab() {
           )}
         </div>
 
-        {/* WiFi QR Code */}
         <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm space-y-4">
           <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide flex items-center gap-2">
             <QrCode className="w-4 h-4 text-amber-500" />
@@ -289,7 +285,6 @@ export default function WifiSeatingTab() {
         </div>
       </div>
 
-      {/* Seating Map */}
       <div className="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
         <div className="flex items-center justify-between p-5 border-b border-gray-100">
           <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide flex items-center gap-2">

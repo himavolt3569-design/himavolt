@@ -64,7 +64,6 @@ export default function ManageRestaurantsPage() {
           </div>
 
           <div className="flex items-center gap-2.5">
-            {/* Search */}
             <div className="relative hidden sm:block">
               <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
               <input
@@ -76,7 +75,6 @@ export default function ManageRestaurantsPage() {
               />
             </div>
 
-            {/* Add button */}
             <button
               onClick={() => setCreateOpen(true)}
               className="flex items-center gap-1.5 rounded-lg bg-amber-500 px-3.5 py-2 text-[13px] font-semibold text-white transition-all hover:bg-amber-400 active:scale-[0.97] sm:px-4"
@@ -90,7 +88,6 @@ export default function ManageRestaurantsPage() {
 
       {/* ── Content ───────────────────────────────────────────── */}
       <main className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8">
-        {/* Count pill */}
         {!loading && filtered.length > 0 && (
           <p className="text-[12px] font-medium text-gray-400 mb-4">
             {filtered.length} restaurant{filtered.length !== 1 ? "s" : ""}
@@ -181,7 +178,6 @@ export default function ManageRestaurantsPage() {
                         </div>
                       </div>
 
-                      {/* Right: dashboard button */}
                       <button
                         onClick={() => handleDashboard(restaurant.id)}
                         className="flex items-center justify-center gap-2 rounded-lg bg-[#0F1219] px-4 py-2.5 text-[13px] font-semibold text-white transition-all hover:bg-[#1a2030] active:scale-[0.97] sm:shrink-0"

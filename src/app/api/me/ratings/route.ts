@@ -55,7 +55,6 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Upsert rating
   const existing = await db.menuItemRating.findFirst({
     where: { menuItemId, userId: user.id },
   });

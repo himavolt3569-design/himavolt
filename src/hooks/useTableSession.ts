@@ -65,7 +65,6 @@ export function useTableSession(restaurantId: string | null, tableNo: number | n
       setSession(data.session);
       setIsRestored(data.restored);
 
-      // Save session token
       if (typeof window !== "undefined" && data.session?.sessionToken) {
         localStorage.setItem(
           storageKey(restaurantId, tableNo),
@@ -112,7 +111,6 @@ export function useTableSession(restaurantId: string | null, tableNo: number | n
         }
       );
 
-      // Clear local storage
       if (typeof window !== "undefined") {
         localStorage.removeItem(storageKey(restaurantId, session.tableNo));
         localStorage.removeItem(`hh_cart_${restaurantId}`);

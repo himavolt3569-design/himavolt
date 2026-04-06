@@ -76,7 +76,6 @@ export default function Hero() {
         });
       }
 
-      // Floating food images
       if (floatingRef.current) {
         const floats = gsap.utils.toArray<HTMLElement>(".float-food");
         floats.forEach((el, i) => {
@@ -100,7 +99,6 @@ export default function Hero() {
       style={{ opacity: heroOpacity, y: heroY }}
       className="relative flex w-full items-center justify-center overflow-hidden"
     >
-      {/* Vibrant gradient background */}
       <div ref={bgRef} className="absolute inset-0 pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-br from-[#FFF5F5] via-[#FFE8E8] to-[#FFF0F5]" />
         <div className="absolute top-0 right-0 -mr-32 -mt-32 h-[600px] w-[600px] rounded-full bg-[#eaa94d]/[0.06] blur-3xl" />
@@ -108,7 +106,6 @@ export default function Hero() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[400px] w-[400px] rounded-full bg-[#1E7B3E]/[0.03] blur-3xl" />
       </div>
 
-      {/* Floating food images */}
       <div
         ref={floatingRef}
         className="absolute inset-0 pointer-events-none overflow-hidden"
@@ -137,7 +134,6 @@ export default function Hero() {
 
       <div className="relative z-10 mx-auto max-w-[1440px] w-full px-4 md:px-8 lg:px-12 pt-20 pb-16 md:pt-28 md:pb-24">
         <div className="flex flex-col items-center text-center max-w-3xl mx-auto">
-          {/* Subtle badge */}
           <motion.div
             initial={{ opacity: 0, scale: 0.8, y: -10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}

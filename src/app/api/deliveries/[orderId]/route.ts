@@ -67,7 +67,6 @@ export async function PATCH(
 
   const updateData: Record<string, unknown> = {};
 
-  // Assign driver
   if (driverId) {
     const driver = await db.deliveryDriver.findUnique({
       where: { id: driverId },
@@ -83,7 +82,6 @@ export async function PATCH(
     if (!status) updateData.status = "ASSIGNED";
   }
 
-  // Update status
   if (status) {
     const validStatuses = [
       "PENDING",

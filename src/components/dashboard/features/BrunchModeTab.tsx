@@ -80,7 +80,6 @@ export default function BrunchModeTab() {
   const [editingPrice, setEditingPrice] = useState<string | null>(null);
   const [editPriceValue, setEditPriceValue] = useState(0);
 
-  // Live stats
   const currentCovers = 42;
   const totalCapacity = 60;
   const availableSeats = totalCapacity - currentCovers;
@@ -174,7 +173,6 @@ export default function BrunchModeTab() {
       transition={{ duration: 0.4 }}
       className="space-y-6"
     >
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="p-2.5 bg-amber-100 rounded-xl">
@@ -202,7 +200,6 @@ export default function BrunchModeTab() {
 
       {brunchEnabled && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-          {/* Live Stats */}
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             {[
               { label: "Current Covers", value: currentCovers, icon: Users, color: "text-amber-600 bg-amber-50" },
@@ -230,7 +227,6 @@ export default function BrunchModeTab() {
 
           {/* Schedule & Live Status */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Schedule */}
             <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm space-y-5">
               <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-amber-500" />
@@ -292,7 +288,6 @@ export default function BrunchModeTab() {
               </div>
             </div>
 
-            {/* Reservation Slots */}
             <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide flex items-center gap-2">
@@ -329,7 +324,6 @@ export default function BrunchModeTab() {
             </div>
           </div>
 
-          {/* Brunch Packages */}
           <div className="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
             <div className="flex items-center justify-between p-5 border-b border-gray-100">
               <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide flex items-center gap-2">
@@ -437,7 +431,6 @@ export default function BrunchModeTab() {
             </div>
           </div>
 
-          {/* Brunch Menu */}
           <div className="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
             <div className="flex items-center justify-between p-5 border-b border-gray-100">
               <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide flex items-center gap-2">
@@ -595,7 +588,6 @@ export default function BrunchModeTab() {
             </div>
           </div>
 
-          {/* Brunch Performance */}
           <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm">
             <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide flex items-center gap-2 mb-4">
               <TrendingUp className="w-4 h-4 text-amber-500" />

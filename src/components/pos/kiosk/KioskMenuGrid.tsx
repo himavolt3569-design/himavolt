@@ -58,7 +58,6 @@ export default function KioskMenuGrid({ items, cart, currency, onItemTap, onQuic
               inCart ? "border-amber-400 ring-2 ring-amber-200" : "border-gray-100"
             }`}
           >
-            {/* Image */}
             <div className="relative h-36 bg-gray-100">
               {item.imageUrl ? (
                 <img src={item.imageUrl} alt={item.name} className="h-full w-full object-cover" />
@@ -68,14 +67,12 @@ export default function KioskMenuGrid({ items, cart, currency, onItemTap, onQuic
                 </div>
               )}
 
-              {/* Discount badge */}
               {item.discount > 0 && (
                 <div className="absolute top-2 left-2 rounded-lg bg-red-500 px-2 py-1 text-xs font-bold text-white">
                   {item.discount}% OFF
                 </div>
               )}
 
-              {/* Cart count badge */}
               {inCart && (
                 <div className="absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-amber-600 text-sm font-black text-white shadow-lg">
                   {inCartQty}
@@ -93,7 +90,6 @@ export default function KioskMenuGrid({ items, cart, currency, onItemTap, onQuic
               )}
             </div>
 
-            {/* Content */}
             <div className="p-3">
               <div className="flex items-center gap-1.5 mb-1">
                 {item.isVeg && <Leaf className="h-3.5 w-3.5 text-green-600" />}

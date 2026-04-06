@@ -178,7 +178,6 @@ export default function CheckoutSheet({
   // "gateway" = waiting for eSewa/Khalti window; "staff-confirm" = waiting for staff to mark paid
   const [waitingReason, setWaitingReason] = useState<"gateway" | "staff-confirm">("gateway");
 
-  // Payment QR images
   const [paymentQRs, setPaymentQRs] = useState<PaymentQRImage[]>([]);
   const [selectedQR, setSelectedQR] = useState<PaymentQRImage | null>(null);
 
@@ -203,7 +202,6 @@ export default function CheckoutSheet({
   const [deliveryPhone, setDeliveryPhone] = useState("");
   const [deliveryNote, setDeliveryNote] = useState("");
 
-  // Coupon
   const [couponCode, setCouponCode] = useState("");
   const [couponDiscount, setCouponDiscount] = useState(0);
   const [couponError, setCouponError] = useState("");
@@ -224,7 +222,6 @@ export default function CheckoutSheet({
 
   const isOnlinePayment = selectedPayment !== "CASH" && selectedPayment !== "COUNTER";
 
-  // Validate coupon code
   const handleApplyCoupon = async () => {
     if (!couponCode.trim() || !slug) return;
     setCouponLoading(true);
@@ -329,7 +326,6 @@ export default function CheckoutSheet({
     setCouponError("");
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Cleanup polling on unmount
   useEffect(() => {
     return () => {
       if (pollRef.current) clearInterval(pollRef.current);
@@ -588,7 +584,6 @@ export default function CheckoutSheet({
             transition={{ type: "spring", damping: 30, stiffness: 300 }}
             className="fixed bottom-0 left-0 right-0 z-95 max-h-[92vh] bg-white rounded-t-3xl shadow-2xl overflow-hidden flex flex-col md:bottom-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-2xl md:max-w-[520px] md:w-[90%] md:max-h-[85vh]"
           >
-            {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
               <div className="flex items-center gap-2">
                 <ShoppingBag className="h-5 w-5 text-[#eaa94d]" />
@@ -613,7 +608,6 @@ export default function CheckoutSheet({
             <div className="flex-1 overflow-y-auto">
               {step === "review" ? (
                 <div className="px-6 py-5 space-y-5">
-                  {/* Add to existing order banner */}
                   {canAddToExisting && activeOrder && (
                     <div className="flex items-start gap-3 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3">
                       <PlusCircle className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
@@ -628,7 +622,6 @@ export default function CheckoutSheet({
                     </div>
                   )}
 
-                  {/* Prepaid notice */}
                   {prepaidEnabled && (
                     <div className="flex items-start gap-3 rounded-xl bg-blue-50 border border-blue-200 px-4 py-3">
                       <Shield className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
@@ -643,7 +636,6 @@ export default function CheckoutSheet({
                     </div>
                   )}
 
-                  {/* Order Type Selector */}
                   <div>
                     <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
                       Order Type
@@ -690,7 +682,6 @@ export default function CheckoutSheet({
                     </div>
                   </div>
 
-                  {/* Delivery Address Form */}
                   <AnimatePresence>
                     {orderType === "DELIVERY" && (
                       <motion.div
@@ -733,7 +724,6 @@ export default function CheckoutSheet({
                     )}
                   </AnimatePresence>
 
-                  {/* Items */}
                   <div className="space-y-3">
                     <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
                       {totalItems} {totalItems === 1 ? "Item" : "Items"}
@@ -763,7 +753,6 @@ export default function CheckoutSheet({
                     ))}
                   </div>
 
-                  {/* Note */}
                   <div>
                     <label className="flex items-center gap-1.5 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
                       <StickyNote className="h-3 w-3" />
@@ -778,7 +767,6 @@ export default function CheckoutSheet({
                     />
                   </div>
 
-                  {/* Price breakdown */}
                   <div className="rounded-xl bg-gray-50 p-4 space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-500">Subtotal</span>
@@ -857,7 +845,6 @@ export default function CheckoutSheet({
                     </div>
                   )}
 
-                  {/* Coupon code input */}
                   <div className="rounded-xl border border-gray-200 p-3">
                     {couponApplied ? (
                       <div className="flex items-center justify-between">
@@ -1037,7 +1024,6 @@ export default function CheckoutSheet({
                     })}
                   </div>
 
-                  {/* Show QR hint if restaurant has payment QRs */}
                   {paymentQRs.length > 0 && selectedPayment !== "DIRECT" && (
                     <div className="flex items-start gap-2 rounded-xl bg-blue-50 border border-blue-200 px-4 py-3">
                       <QrCode className="h-4 w-4 text-blue-500 mt-0.5 shrink-0" />
@@ -1063,7 +1049,6 @@ export default function CheckoutSheet({
                         Transfer the exact amount to the account below, then place your order. Staff will verify your payment.
                       </p>
 
-                      {/* Bank details */}
                       {restaurantBankDetails && (
                         <div className="rounded-xl bg-white border border-teal-100 p-3 space-y-1.5">
                           {restaurantBankDetails.bankName && (
@@ -1189,7 +1174,6 @@ export default function CheckoutSheet({
               )}
             </div>
 
-            {/* Footer */}
             <div className="border-t border-gray-100 px-6 py-4 shrink-0 space-y-3">
               {step === "review" ? (
                 <button

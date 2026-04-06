@@ -183,7 +183,6 @@ function OrderCard({
         }`}
       >
         <div className="flex gap-3">
-          {/* Restaurant image */}
           <div className="relative h-14 w-14 shrink-0 rounded-xl overflow-hidden bg-gray-100">
             {order.restaurant.imageUrl ? (
               <Image
@@ -208,7 +207,6 @@ function OrderCard({
             )}
           </div>
 
-          {/* Order details */}
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
@@ -410,7 +408,6 @@ export default function OrdersPage() {
     }
   }, []);
 
-  // Initial fetch
   useEffect(() => {
     if (!isLoaded) return;
     if (!isSignedIn) {
@@ -481,7 +478,6 @@ export default function OrdersPage() {
     );
   }
 
-  // Loading state
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50/50">
@@ -495,7 +491,6 @@ export default function OrdersPage() {
     );
   }
 
-  // Error state
   if (error && orders.length === 0) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50/50 p-6">
@@ -528,7 +523,6 @@ export default function OrdersPage() {
 
   return (
     <div className="min-h-screen bg-gray-50/50">
-      {/* Header */}
       <header className="sticky top-0 z-40 bg-white border-b border-gray-100 shadow-sm">
         <div className="mx-auto max-w-2xl px-4">
           <div className="flex h-14 items-center gap-3">
@@ -561,7 +555,6 @@ export default function OrdersPage() {
       </header>
 
       <div className="mx-auto max-w-2xl px-4 py-5 pb-20 space-y-6">
-        {/* Empty state */}
         {orders.length === 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -588,7 +581,6 @@ export default function OrdersPage() {
           </motion.div>
         )}
 
-        {/* Active Orders */}
         <AnimatePresence>
           {activeOrders.length > 0 && (
             <motion.section
@@ -611,7 +603,6 @@ export default function OrdersPage() {
           )}
         </AnimatePresence>
 
-        {/* Past Orders */}
         {pastOrders.length > 0 && (
           <section className="space-y-3">
             <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider">

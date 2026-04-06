@@ -180,7 +180,6 @@ export default function OffersPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
       <div className="sticky top-0 z-40 bg-white border-b border-gray-100">
         <AnimatePresence mode="wait">
           {searchOpen ? (
@@ -247,10 +246,8 @@ export default function OffersPage() {
           )}
         </AnimatePresence>
 
-        {/* Filter bar */}
         <div className="relative">
           <div className="flex gap-2 overflow-x-auto px-4 pb-3 pt-0.5 scrollbar-hide">
-            {/* Filter chip */}
             <button
               onClick={clearAllFilters}
               className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[13px] font-semibold transition-all active:scale-95 ${
@@ -268,7 +265,6 @@ export default function OffersPage() {
               )}
             </button>
 
-            {/* Sort by */}
             <div className="relative shrink-0">
               <button
                 onClick={() => { setShowSortMenu(!showSortMenu); setShowVegMenu(false); }}
@@ -354,7 +350,6 @@ export default function OffersPage() {
               </AnimatePresence>
             </div>
 
-            {/* Rating filter */}
             <button
               onClick={() => setMinRating(minRating === 4 ? null : 4)}
               className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[13px] font-semibold transition-all active:scale-95 ${
@@ -367,17 +362,14 @@ export default function OffersPage() {
               Ratings 4.0+
             </button>
 
-            {/* New restaurant chip */}
             <button className="flex shrink-0 items-center gap-1.5 rounded-full border border-gray-300 bg-white px-3.5 py-1.5 text-[13px] font-semibold text-[#3e1e0c] transition-all active:scale-95">
               New Arrivals
             </button>
           </div>
-          {/* Fade gradient on right */}
           <div className="pointer-events-none absolute right-0 top-0 bottom-3 w-8 bg-gradient-to-l from-white to-transparent" />
         </div>
       </div>
 
-      {/* Overlay for closing dropdowns */}
       {(showSortMenu || showVegMenu) && (
         <div
           className="fixed inset-0 z-30"
@@ -385,7 +377,6 @@ export default function OffersPage() {
         />
       )}
 
-      {/* Content */}
       <div className="mx-auto max-w-2xl">
         {loading ? (
           <div className="flex items-center justify-center py-24">
@@ -409,14 +400,12 @@ export default function OffersPage() {
           </motion.div>
         ) : (
           <>
-            {/* Result count */}
             <div className="px-4 py-3">
               <p className="text-[13px] font-medium text-gray-400">
                 {filtered.length} restaurant{filtered.length !== 1 ? "s" : ""} with deals
               </p>
             </div>
 
-            {/* List */}
             <motion.div
               variants={containerVariants}
               initial="hidden"
@@ -444,7 +433,6 @@ export default function OffersPage() {
                       href={`/menu/${restaurant.slug}`}
                       className="flex gap-3.5 px-4 py-4 active:bg-gray-50 transition-colors"
                     >
-                      {/* Image with badges */}
                       <div className="relative h-[110px] w-[110px] shrink-0 rounded-2xl overflow-hidden">
                         <img
                           src={imageSrc}
@@ -452,10 +440,8 @@ export default function OffersPage() {
                           loading="lazy"
                           className="h-full w-full object-cover"
                         />
-                        {/* Dark gradient overlay at bottom */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
 
-                        {/* Heart button */}
                         <button
                           onClick={(e) => toggleWishlist(restaurant.id, e)}
                           className="absolute top-1.5 right-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm shadow-sm transition-transform active:scale-90"
@@ -467,7 +453,6 @@ export default function OffersPage() {
                           />
                         </button>
 
-                        {/* Offer badge */}
                         <div className={`absolute bottom-0 left-0 right-0 flex items-center justify-between px-2 py-1.5 ${badge.bgColor}`}>
                           <div className="flex flex-col">
                             <span className="text-[10px] font-extrabold text-white leading-tight">
@@ -487,7 +472,6 @@ export default function OffersPage() {
                         </div>
                       </div>
 
-                      {/* Info */}
                       <div className="flex min-w-0 flex-1 flex-col justify-between py-0.5">
                         <div className="flex items-start justify-between gap-2">
                           <h3 className="text-[15px] font-bold text-[#3e1e0c] leading-tight">
@@ -519,7 +503,6 @@ export default function OffersPage() {
                           </div>
                         </div>
 
-                        {/* Cuisine types */}
                         <p className="mt-1 text-[12px] text-gray-400 truncate font-medium">
                           {cuisines.join(", ")}
                         </p>
@@ -538,7 +521,6 @@ export default function OffersPage() {
               })}
             </motion.div>
 
-            {/* Bottom padding */}
             <div className="h-8" />
           </>
         )}

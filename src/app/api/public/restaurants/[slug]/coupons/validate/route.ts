@@ -50,7 +50,6 @@ export async function POST(
       return NextResponse.json({ error: "This coupon is no longer active" }, { status: 400 });
     }
 
-    // Check date validity
     const now = new Date();
     if (coupon.startsAt && now < coupon.startsAt) {
       return NextResponse.json({ error: "This coupon is not yet valid" }, { status: 400 });
@@ -59,12 +58,10 @@ export async function POST(
       return NextResponse.json({ error: "This coupon has expired" }, { status: 400 });
     }
 
-    // Check usage limit
     if (coupon.maxUses !== null && coupon.usedCount >= coupon.maxUses) {
       return NextResponse.json({ error: "This coupon has reached its usage limit" }, { status: 400 });
     }
 
-    // Check minimum order
     if (orderTotal < coupon.minOrder) {
       return NextResponse.json(
         { error: `Minimum order of ${coupon.minOrder} required for this coupon` },
@@ -72,7 +69,6 @@ export async function POST(
       );
     }
 
-    // Calculate discount
     let discount: number;
     if (coupon.type === "PERCENTAGE") {
       discount = Math.round((orderTotal * coupon.value) / 100 * 100) / 100;
@@ -81,7 +77,6 @@ export async function POST(
         discount = coupon.maxDiscount;
       }
     } else {
-      // FIXED
       discount = coupon.value;
     }
 

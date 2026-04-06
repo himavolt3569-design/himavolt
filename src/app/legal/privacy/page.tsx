@@ -73,7 +73,6 @@ const sections = [
 export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
       <header className="sticky top-0 z-30 border-b border-gray-100 bg-white/80 backdrop-blur-2xl">
         <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-4 sm:px-6 lg:px-10">
           <div className="flex items-center gap-3">
@@ -108,7 +107,6 @@ export default function PrivacyPage() {
         </div>
       </header>
 
-      {/* Hero */}
       <section className="bg-gradient-to-br from-[#3e1e0c] via-[#2a3838] to-[#3e1e0c] text-white">
         <div className="relative z-10 mx-auto max-w-4xl px-4 py-16 sm:px-6 sm:py-20 lg:px-10">
           <div>
@@ -127,7 +125,6 @@ export default function PrivacyPage() {
         </div>
       </section>
 
-      {/* Content */}
       <section className="mx-auto max-w-4xl px-4 py-12 sm:px-6 sm:py-16 lg:px-10">
         <div className="space-y-10">
           {sections.map((section, i) => (
@@ -156,7 +153,6 @@ export default function PrivacyPage() {
           ))}
         </div>
 
-        {/* Contact notice */}
         <div className="mt-16 rounded-2xl bg-gray-50 border border-gray-100 p-8 text-center">
           <p className="text-sm text-gray-500 mb-3">
             Have questions about how we handle your data?

@@ -16,7 +16,6 @@ export async function POST(req: NextRequest, { params }: Params) {
     );
   }
 
-  // Find the active session
   const where: Record<string, unknown> = { restaurantId, isActive: true };
   if (sessionToken) where.sessionToken = sessionToken;
   if (tableNo) where.tableNo = tableNo;
@@ -38,7 +37,6 @@ export async function POST(req: NextRequest, { params }: Params) {
     return NextResponse.json({ error: "No active session found" }, { status: 404 });
   }
 
-  // End the session
   await db.tableSession.update({
     where: { id: session.id },
     data: { isActive: false, endedAt: new Date() },

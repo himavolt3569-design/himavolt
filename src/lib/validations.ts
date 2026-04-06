@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-// ─── Restaurant ────────────────────────────────────────────────────────────────
 
 export const createRestaurantSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(100),
@@ -36,7 +35,6 @@ export const updateRestaurantSchema = z.object({
   description: z.string().max(500).optional(),
 });
 
-// ─── Menu Item ─────────────────────────────────────────────────────────────────
 
 export const createMenuItemSchema = z.object({
   name: z.string().trim().min(1).max(100),
@@ -62,7 +60,6 @@ export const createMenuItemSchema = z.object({
 });
 export type CreateMenuItemInput = z.infer<typeof createMenuItemSchema>;
 
-// ─── Staff ─────────────────────────────────────────────────────────────────────
 
 export const createStaffSchema = z.object({
   name: z.string().trim().min(1).max(60),
@@ -72,7 +69,6 @@ export const createStaffSchema = z.object({
 });
 export type CreateStaffInput = z.infer<typeof createStaffSchema>;
 
-// ─── Contact ───────────────────────────────────────────────────────────────────
 
 export const contactSchema = z.object({
   name: z.string().trim().min(1).max(60),
@@ -83,7 +79,6 @@ export const contactSchema = z.object({
 });
 export type ContactInput = z.infer<typeof contactSchema>;
 
-// ─── Payment ───────────────────────────────────────────────────────────────────
 
 export const initiatePaymentSchema = z.object({
   orderId: z.string().min(1, "Order ID is required"),
@@ -108,7 +103,6 @@ export type UpdatePaymentConfigInput = z.infer<
   typeof updatePaymentConfigSchema
 >;
 
-// ─── Order ─────────────────────────────────────────────────────────────────────
 
 const orderItemSchema = z.object({
   name: z.string().min(1),
@@ -144,7 +138,6 @@ export const createOrderSchema = z.object({
 });
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
 
-// ─── Inventory ─────────────────────────────────────────────────────────────────
 
 export const createInventoryItemSchema = z.object({
   name: z.string().trim().min(1).max(100),
@@ -177,7 +170,6 @@ export const updateInventoryItemSchema = z.object({
   showOnMenu: z.boolean().optional(),
 });
 
-// ─── Chat ──────────────────────────────────────────────────────────────────────
 
 export const createChatRoomSchema = z.object({
   orderId: z.string().min(1).optional(),
@@ -194,7 +186,6 @@ export const sendMessageSchema = z.object({
 });
 export type SendMessageInput = z.infer<typeof sendMessageSchema>;
 
-// ─── Payment QR ───────────────────────────────────────────────────────────────
 
 export const createPaymentQRSchema = z.object({
   label: z.string().trim().min(1, "Label is required").max(50),
@@ -211,7 +202,6 @@ export const updatePaymentQRSchema = z.object({
 });
 export type UpdatePaymentQRInput = z.infer<typeof updatePaymentQRSchema>;
 
-// ─── Staff Login ───────────────────────────────────────────────────────────────
 
 export const staffLoginSchema = z.object({
   restaurantCode: z.string().min(1, "Restaurant code is required"),

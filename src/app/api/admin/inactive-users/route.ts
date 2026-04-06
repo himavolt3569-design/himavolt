@@ -75,7 +75,6 @@ export async function GET(req: NextRequest) {
     db.user.count({ where }),
   ]);
 
-  // Flatten lastOrderAt
   const result = users.map(({ orders, ...u }) => ({
     ...u,
     lastOrderAt: orders[0]?.createdAt ?? null,

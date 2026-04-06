@@ -125,7 +125,6 @@ export async function DELETE(
 
   let inventoryItemId: string | null = null;
 
-  // Try query param first
   if (ingredientId) {
     // ingredientId is the MenuItemIngredient record ID
     const record = await db.menuItemIngredient.findFirst({
@@ -141,7 +140,6 @@ export async function DELETE(
     return NextResponse.json({ deleted: true });
   }
 
-  // Try body
   try {
     const body = await req.json();
     inventoryItemId = body.inventoryItemId ?? null;

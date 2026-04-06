@@ -108,7 +108,6 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-[#EFF6FF] via-[#F5F8FF] to-[#EDF2FF] p-4">
-      {/* Soft background blobs */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 h-96 w-96 rounded-full bg-blue-100/70 blur-3xl" />
         <div className="absolute -bottom-40 -left-40 h-96 w-96 rounded-full bg-indigo-100/60 blur-3xl" />
@@ -134,10 +133,8 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
           <p className="mt-1 text-sm text-slate-400">HimaVolt System Control Panel</p>
         </div>
 
-        {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="overflow-hidden rounded-2xl border border-blue-100 bg-white/90 shadow-xl shadow-blue-100/40 backdrop-blur-sm">
-            {/* Admin ID Field */}
             <div className="border-b border-slate-100 p-4">
               <label className="mb-1.5 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
                 <KeyRound className="h-3.5 w-3.5" />
@@ -155,7 +152,6 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
               />
             </div>
 
-            {/* Password Field */}
             <div className="p-4">
               <label className="mb-1.5 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
                 <Lock className="h-3.5 w-3.5" />
@@ -182,7 +178,6 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
             </div>
           </div>
 
-          {/* Error */}
           <AnimatePresence>
             {error && (
               <motion.div
@@ -197,7 +192,6 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
             )}
           </AnimatePresence>
 
-          {/* Submit */}
           <button
             type="submit"
             disabled={loading || !adminId || !password}
@@ -259,7 +253,6 @@ export default function MasterAdminPage() {
     setAuthenticated(false);
   };
 
-  // Loading state
   if (checking) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-[#EFF6FF] via-[#F5F8FF] to-[#EDF2FF]">
@@ -271,7 +264,6 @@ export default function MasterAdminPage() {
     );
   }
 
-  // Login gate
   if (!authenticated) {
     return <AdminLoginGate onSuccess={() => setAuthenticated(true)} />;
   }
@@ -293,7 +285,6 @@ export default function MasterAdminPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Mobile menu toggle */}
             <button
               onClick={() => setMobileMenuOpen((p) => !p)}
               className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 sm:hidden transition-colors"

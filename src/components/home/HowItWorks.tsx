@@ -39,11 +39,9 @@ const steps = [
 export default function HowItWorks() {
   return (
     <section className="relative overflow-hidden bg-[#0F1219] text-white py-20 md:py-28">
-      {/* Ambient glows */}
       <div className="absolute top-0 left-1/4 h-[500px] w-[500px] rounded-full bg-[#eaa94d]/[0.04] blur-[120px] pointer-events-none" />
       <div className="absolute bottom-0 right-1/4 h-[400px] w-[400px] rounded-full bg-[#eaa94d]/[0.04] blur-[100px] pointer-events-none" />
 
-      {/* Noise texture */}
       <div
         className="absolute inset-0 opacity-[0.03] pointer-events-none"
         style={{
@@ -81,7 +79,6 @@ export default function HowItWorks() {
           </motion.h2>
         </div>
 
-        {/* Steps grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-6">
           {steps.map((step, idx) => (
             <motion.div
@@ -101,14 +98,12 @@ export default function HowItWorks() {
                 {idx + 1}
               </div>
 
-              {/* Icon container */}
               <div
                 className={`flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${step.accent} shadow-lg mb-5 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3`}
               >
                 <step.Icon className="h-5 w-5 text-white" strokeWidth={2} />
               </div>
 
-              {/* Content */}
               <h3 className="text-base font-bold text-white mb-2 tracking-tight">
                 {step.title}
               </h3>
@@ -116,7 +111,6 @@ export default function HowItWorks() {
                 {step.desc}
               </p>
 
-              {/* Bottom accent line */}
               <div
                 className={`absolute bottom-0 left-7 right-7 h-px bg-gradient-to-r ${step.accent} opacity-0 group-hover:opacity-40 transition-opacity duration-300`}
               />

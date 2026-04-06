@@ -110,7 +110,6 @@ export default function ScrollHowItWorks() {
       <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white to-transparent pointer-events-none" />
 
       <div className="mx-auto max-w-6xl px-4 md:px-8 lg:px-12 py-20 md:py-28">
-        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -132,7 +131,6 @@ export default function ScrollHowItWorks() {
 
         {/* ── Desktop: horizontal timeline ── */}
         <div className="hidden md:block relative">
-          {/* Connecting line */}
           <div className="absolute top-[52px] left-[12.5%] right-[12.5%] h-px bg-[#eaa94d]/15">
             <div
               ref={lineRef}
@@ -152,19 +150,16 @@ export default function ScrollHowItWorks() {
                 viewport={{ once: true, margin: "-40px" }}
                 className="hiw-card relative flex flex-col items-center text-center group"
               >
-                {/* Step number ring */}
                 <div className="relative mb-5">
                   <motion.div
                     whileHover={{ scale: 1.1, rotate: -8 }}
                     transition={{ type: "spring", stiffness: 300, damping: 15 }}
                     className="relative flex h-[104px] w-[104px] items-center justify-center"
                   >
-                    {/* Outer ring */}
                     <div
                       className="absolute inset-0 rounded-full border-2 opacity-20 transition-opacity duration-300 group-hover:opacity-40"
                       style={{ borderColor: step.color }}
                     />
-                    {/* Inner circle */}
                     <div
                       className="flex h-16 w-16 items-center justify-center rounded-full shadow-lg transition-transform duration-300 group-hover:scale-105"
                       style={{ backgroundColor: step.color }}
@@ -172,7 +167,6 @@ export default function ScrollHowItWorks() {
                       <step.Icon className="h-6 w-6 text-white" strokeWidth={1.8} />
                     </div>
                   </motion.div>
-                  {/* Step number */}
                   <span
                     className="absolute -bottom-1 left-1/2 -translate-x-1/2 text-[10px] font-extrabold tracking-widest uppercase"
                     style={{ color: step.color }}
@@ -194,7 +188,6 @@ export default function ScrollHowItWorks() {
 
         {/* ── Mobile: vertical timeline ── */}
         <div className="md:hidden relative">
-          {/* Vertical connecting line */}
           <div className="absolute left-[27px] top-0 bottom-0 w-px bg-[#eaa94d]/15" />
 
           <div className="space-y-10">
@@ -211,7 +204,6 @@ export default function ScrollHowItWorks() {
                 }}
                 className="relative flex items-start gap-5 pl-1"
               >
-                {/* Icon circle */}
                 <div className="relative shrink-0">
                   <div
                     className="flex h-14 w-14 items-center justify-center rounded-full shadow-md z-10 relative"
@@ -221,7 +213,6 @@ export default function ScrollHowItWorks() {
                   </div>
                 </div>
 
-                {/* Content */}
                 <div className="pt-1">
                   <span
                     className="text-[10px] font-extrabold tracking-widest uppercase"

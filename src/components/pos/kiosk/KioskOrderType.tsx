@@ -27,7 +27,6 @@ export default function KioskOrderType({ tables, onConfirm, onBack }: Props) {
       <h2 className="text-3xl font-black text-gray-900 mb-2">How would you like your order?</h2>
       <p className="text-gray-500 mb-8">Select your order type</p>
 
-      {/* Order type cards */}
       <div className="grid grid-cols-2 gap-6 w-full max-w-xl mb-8">
         <motion.button
           whileTap={{ scale: 0.97 }}
@@ -115,7 +114,6 @@ export default function KioskOrderType({ tables, onConfirm, onBack }: Props) {
         </motion.div>
       )}
 
-      {/* Navigation */}
       <div className="flex items-center gap-4 w-full max-w-xl">
         <button
           onClick={onBack}

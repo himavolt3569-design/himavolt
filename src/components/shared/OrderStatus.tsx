@@ -136,7 +136,6 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
       <div className="sticky top-0 z-10 flex items-center justify-between bg-white border-b border-gray-100 px-5 py-4">
         <button
           onClick={onClose}
@@ -152,7 +151,6 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
       </div>
 
       <div className="mx-auto max-w-lg px-5 py-8 space-y-8">
-        {/* Main status */}
         <div className="text-center">
           {isCancelled ? (
             <motion.div
@@ -218,7 +216,6 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
           </p>
         </div>
 
-        {/* Countdown timer */}
         {!isCancelled && activeOrder.estimatedTime && (activeOrder.preparingAt || activeOrder.acceptedAt) && (
           <div className="flex justify-center">
             <CountdownTimer
@@ -228,7 +225,6 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
           </div>
         )}
 
-        {/* Steps timeline */}
         <div className="flex items-start justify-between gap-1">
           {STEPS.map((step, i) => {
             const Icon = step.icon;
@@ -271,7 +267,6 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
           })}
         </div>
 
-        {/* Progress bar */}
         <div className="relative h-1.5 rounded-full bg-gray-200 overflow-hidden">
           <motion.div
             initial={false}
@@ -281,7 +276,6 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
           />
         </div>
 
-        {/* Order items */}
         <div className="rounded-2xl border border-gray-200 bg-gray-50/50 p-5 space-y-3">
           <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
             Order Summary
@@ -307,7 +301,6 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
           </div>
         </div>
 
-        {/* Cancel button */}
         {!isCancelled && activeOrder.status !== "DELIVERED" && (
           <button
             onClick={() => setShowCancel(true)}
@@ -318,7 +311,6 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
         )}
       </div>
 
-      {/* Cancel confirmation modal */}
       <AnimatePresence>
         {showCancel && (
           <>

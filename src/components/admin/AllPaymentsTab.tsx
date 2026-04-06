@@ -190,7 +190,6 @@ export default function AllPaymentsTab() {
 
   return (
     <div className="space-y-4">
-      {/* Summary Cards */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <div className="rounded-2xl border border-brand-100 bg-white p-4 shadow-sm">
           <p className="text-xs text-gray-500">Total Amount</p>
@@ -208,7 +207,6 @@ export default function AllPaymentsTab() {
         )}
       </div>
 
-      {/* Controls */}
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative flex-1 sm:max-w-xs">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
@@ -300,7 +298,6 @@ export default function AllPaymentsTab() {
         </div>
       )}
 
-      {/* Payments List */}
       <div className="overflow-hidden rounded-2xl border border-brand-100 bg-white shadow-sm">
         <div className="flex items-center gap-2 border-b border-brand-100 px-4 py-2.5">
           <input

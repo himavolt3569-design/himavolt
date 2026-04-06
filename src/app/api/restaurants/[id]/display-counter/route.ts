@@ -62,7 +62,6 @@ export async function POST(
     return NextResponse.json({ error: "Name is required" }, { status: 400 });
   }
 
-  // Get max sort order
   const maxOrder = await db.displayCounterItem.findFirst({
     where: { restaurantId: id },
     orderBy: { sortOrder: "desc" },
@@ -98,7 +97,6 @@ export async function PATCH(
 
   const body = await req.json();
 
-  // Update config
   if (body.config) {
     const config = await db.displayCounterConfig.upsert({
       where: { restaurantId: id },
@@ -115,7 +113,6 @@ export async function PATCH(
     return NextResponse.json({ config });
   }
 
-  // Update a single item
   if (body.itemId) {
     const { itemId, ...data } = body;
     const item = await db.displayCounterItem.update({
@@ -125,7 +122,6 @@ export async function PATCH(
     return NextResponse.json(item);
   }
 
-  // Bulk reorder
   if (body.reorder && Array.isArray(body.reorder)) {
     await Promise.all(
       body.reorder.map((r: { id: string; sortOrder: number }) =>

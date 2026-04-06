@@ -8,7 +8,6 @@ export async function GET(
   const { id } = await params;
 
   try {
-    // Get average and count
     const aggregate = await db.menuItemRating.aggregate({
       where: { menuItemId: id },
       _avg: { rating: true },

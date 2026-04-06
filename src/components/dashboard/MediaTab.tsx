@@ -64,10 +64,8 @@ export default function MediaTab({ restaurantId: propRestaurantId }: { restauran
     let success = 0;
     for (const file of fileArr) {
       try {
-        // Upload to storage
         const url = await uploadFile(file, "media-library");
 
-        // Save to DB
         const isVideo = file.type.startsWith("video/");
         await fetch(`/api/restaurants/${restaurantId}/media`, {
           method: "POST",
@@ -108,7 +106,6 @@ export default function MediaTab({ restaurantId: propRestaurantId }: { restauran
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h2 className="text-xl font-extrabold text-gray-900 flex items-center gap-2">
@@ -135,7 +132,6 @@ export default function MediaTab({ restaurantId: propRestaurantId }: { restauran
         />
       </div>
 
-      {/* Filter tabs */}
       <div className="flex gap-2">
         {(["ALL", "IMAGE", "VIDEO"] as const).map((f) => (
           <button
@@ -156,7 +152,6 @@ export default function MediaTab({ restaurantId: propRestaurantId }: { restauran
         <span className="ml-auto text-xs text-gray-400 self-center">{media.length} files</span>
       </div>
 
-      {/* Drop zone */}
       <div
         onDragOver={(e) => e.preventDefault()}
         onDrop={(e) => { e.preventDefault(); handleFiles(e.dataTransfer.files); }}
@@ -170,7 +165,6 @@ export default function MediaTab({ restaurantId: propRestaurantId }: { restauran
         <p className="text-xs text-gray-400 mt-1">JPEG, PNG, WebP, GIF, MP4, WebM · Max 50 MB per file</p>
       </div>
 
-      {/* Grid */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="h-6 w-6 animate-spin text-amber-400" />
@@ -210,7 +204,6 @@ export default function MediaTab({ restaurantId: propRestaurantId }: { restauran
                 </div>
               )}
 
-              {/* Hover overlay */}
               <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2">
                 <div className="flex justify-end gap-1">
                   <a
@@ -245,7 +238,6 @@ export default function MediaTab({ restaurantId: propRestaurantId }: { restauran
                 </button>
               </div>
 
-              {/* Type badge */}
               <div className="absolute top-1.5 left-1.5">
                 <span className={`rounded-md px-1.5 py-0.5 text-[9px] font-bold text-white ${
                   item.type === "VIDEO" ? "bg-violet-500/80" : "bg-amber-500/80"
@@ -258,7 +250,6 @@ export default function MediaTab({ restaurantId: propRestaurantId }: { restauran
         </motion.div>
       )}
 
-      {/* Preview modal */}
       <AnimatePresence>
         {preview && (
           <motion.div

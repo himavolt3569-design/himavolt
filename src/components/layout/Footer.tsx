@@ -41,7 +41,6 @@ function FooterLink({
   );
 }
 
-/* ── Social icon button ── */
 function SocialIcon({ label, path }: { label: string; path: string }) {
   return (
     <motion.a
@@ -118,7 +117,6 @@ export default function Footer() {
           }}
           className="relative rounded-2xl bg-linear-to-br from-[#eaa94d]/10 via-brand-600/6 to-transparent border border-[#eaa94d]/10 p-8 md:p-10 lg:p-12 overflow-hidden"
         >
-          {/* CTA glow */}
           <div className="absolute top-0 right-0 w-60 h-60 bg-[#eaa94d]/6 rounded-full blur-[80px] pointer-events-none" />
 
           <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
@@ -158,7 +156,6 @@ export default function Footer() {
       {/* ── Main footer grid ── */}
       <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-12 pt-14 md:pt-16 pb-10">
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-12 gap-y-10 gap-x-6 lg:gap-x-8">
-          {/* Brand column */}
           <div className="col-span-2 md:col-span-4">
             <Link href="/" className="inline-flex items-center gap-2 group">
               <motion.div
@@ -178,7 +175,6 @@ export default function Footer() {
               {settings.description}
             </p>
 
-            {/* Contact info */}
             <div className="mt-6 space-y-3">
               <a
                 href={`tel:${settings.phone.replace(/\s+/g, "")}`}
@@ -207,7 +203,6 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Company */}
           <div className="col-span-1 md:col-span-2">
             <h4 className="text-[11px] font-bold text-[#eaa94d]/50 mb-5 uppercase tracking-[0.18em]">
               Company
@@ -220,7 +215,6 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Product */}
           <div className="col-span-1 md:col-span-2">
             <h4 className="text-[11px] font-bold text-[#eaa94d]/50 mb-5 uppercase tracking-[0.18em]">
               Product
@@ -233,7 +227,6 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Support */}
           <div className="col-span-1 md:col-span-2">
             <h4 className="text-[11px] font-bold text-[#eaa94d]/50 mb-5 uppercase tracking-[0.18em]">
               Support
@@ -279,7 +272,6 @@ export default function Footer() {
             </p>
           </div>
 
-          {/* Back to top */}
           <motion.button
             whileHover={{ scale: 1.1, y: -2 }}
             whileTap={{ scale: 0.9 }}

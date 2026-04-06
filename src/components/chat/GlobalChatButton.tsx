@@ -217,7 +217,6 @@ export default function GlobalChatButton({
 
   return (
     <>
-      {/* Floating button */}
       <button
         onClick={() => setOpen(true)}
         className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-amber-700 text-white shadow-xl shadow-amber-700/30 hover:bg-amber-600 transition-all active:scale-95"
@@ -249,7 +248,6 @@ export default function GlobalChatButton({
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
               className="fixed right-0 top-0 z-50 flex h-full w-full max-w-sm flex-col bg-white shadow-2xl"
             >
-              {/* Header */}
               <div className="flex items-center justify-between border-b border-gray-100 px-4 py-4">
                 <div className="flex items-center gap-2">
                   {activeRoom ? (
@@ -268,7 +266,6 @@ export default function GlobalChatButton({
                 </button>
               </div>
 
-              {/* Tab switcher */}
               {!activeRoom && (
                 <div className="flex border-b border-gray-100 px-4 pt-2 gap-4">
                   <button
@@ -301,9 +298,7 @@ export default function GlobalChatButton({
                 </div>
               )}
 
-              {/* Content */}
               <div className="flex-1 overflow-hidden flex flex-col">
-                {/* Broadcast */}
                 {!activeRoom && tab === "broadcast" && (
                   <div className="flex flex-1 flex-col overflow-hidden">
                     <div className="flex-1 overflow-y-auto p-4 space-y-3">
@@ -357,7 +352,6 @@ export default function GlobalChatButton({
                   </div>
                 )}
 
-                {/* Customer rooms list */}
                 {!activeRoom && tab === "customers" && (
                   <div className="flex-1 overflow-y-auto">
                     {rooms.length === 0 ? (
@@ -400,7 +394,6 @@ export default function GlobalChatButton({
                   </div>
                 )}
 
-                {/* Active room conversation */}
                 {activeRoom && (
                   <div className="flex flex-1 flex-col overflow-hidden">
                     <div className="flex-1 overflow-y-auto p-4 space-y-3">

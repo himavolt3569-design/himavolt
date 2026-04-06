@@ -47,7 +47,6 @@ export default function HeroSlidesManager() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
 
-  // Form state
   const [formTitle, setFormTitle] = useState("");
   const [formSubtitle, setFormSubtitle] = useState("");
   const [formLinkItemId, setFormLinkItemId] = useState("");
@@ -200,7 +199,6 @@ export default function HeroSlidesManager() {
 
   return (
     <div className="max-w-4xl space-y-6">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-lg font-bold text-amber-950">Hero Slides</h2>
@@ -217,7 +215,6 @@ export default function HeroSlidesManager() {
         </button>
       </div>
 
-      {/* Slides list */}
       {loading ? (
         <div className="flex items-center justify-center py-16">
           <Loader2 className="h-5 w-5 animate-spin text-amber-400" />
@@ -248,12 +245,10 @@ export default function HeroSlidesManager() {
                   : "ring-gray-100 opacity-60"
               }`}
             >
-              {/* Drag handle */}
               <div className="text-amber-300 hidden sm:block">
                 <GripVertical className="h-4 w-4" />
               </div>
 
-              {/* Thumbnail */}
               <div className="h-16 w-24 shrink-0 overflow-hidden rounded-xl bg-amber-50">
                 <img
                   src={slide.imageUrl}
@@ -262,7 +257,6 @@ export default function HeroSlidesManager() {
                 />
               </div>
 
-              {/* Info */}
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-amber-900 truncate">
                   {slide.title || "Untitled slide"}
@@ -285,9 +279,7 @@ export default function HeroSlidesManager() {
                 </div>
               </div>
 
-              {/* Actions */}
               <div className="flex items-center gap-1.5 shrink-0">
-                {/* Toggle active */}
                 <button
                   onClick={() => handleToggleActive(slide)}
                   className={`rounded-lg p-2 transition-colors cursor-pointer ${
@@ -304,7 +296,6 @@ export default function HeroSlidesManager() {
                   )}
                 </button>
 
-                {/* Delete */}
                 <button
                   onClick={() => handleDelete(slide.id)}
                   className="rounded-lg p-2 text-amber-300 hover:bg-red-50 hover:text-red-500 transition-colors cursor-pointer"
@@ -317,7 +308,6 @@ export default function HeroSlidesManager() {
         </div>
       )}
 
-      {/* Add Slide Modal */}
       <AnimatePresence>
         {showForm && (
           <>
@@ -351,7 +341,6 @@ export default function HeroSlidesManager() {
               </div>
 
               <div className="p-5 space-y-4">
-                {/* Image upload */}
                 <input
                   ref={fileRef}
                   type="file"
@@ -400,7 +389,6 @@ export default function HeroSlidesManager() {
                   </div>
                 )}
 
-                {/* Title */}
                 <div>
                   <label className="text-xs font-bold text-amber-700/60 uppercase tracking-wider mb-1.5 block">
                     Title (optional)
@@ -413,7 +401,6 @@ export default function HeroSlidesManager() {
                   />
                 </div>
 
-                {/* Subtitle */}
                 <div>
                   <label className="text-xs font-bold text-amber-700/60 uppercase tracking-wider mb-1.5 block">
                     Subtitle (optional)
@@ -426,7 +413,6 @@ export default function HeroSlidesManager() {
                   />
                 </div>
 
-                {/* Link to menu item */}
                 <div>
                   <label className="text-xs font-bold text-amber-700/60 uppercase tracking-wider mb-1.5 block">
                     Link to Menu Item (optional)

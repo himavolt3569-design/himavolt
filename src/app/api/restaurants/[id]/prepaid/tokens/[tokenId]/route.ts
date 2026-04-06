@@ -12,7 +12,6 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   try {
     const { id, tokenId } = await params;
 
-    // Verify restaurant exists
     const restaurant = await db.restaurant.findUnique({
       where: { id },
       select: { id: true },

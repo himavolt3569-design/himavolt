@@ -95,7 +95,6 @@ export default function POSSplitBill({ orderId, orderNo, total, restaurantId, cu
         onClick={(e) => e.stopPropagation()}
         className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden"
       >
-        {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
           <div>
             <h2 className="text-lg font-bold text-gray-900">Split Bill</h2>
@@ -106,7 +105,6 @@ export default function POSSplitBill({ orderId, orderNo, total, restaurantId, cu
           </button>
         </div>
 
-        {/* Splits */}
         <div className="p-5 space-y-3 max-h-[50vh] overflow-y-auto">
           {splits.map((split, idx) => (
             <div key={idx} className="flex items-center gap-3">
@@ -149,7 +147,6 @@ export default function POSSplitBill({ orderId, orderNo, total, restaurantId, cu
           </button>
         </div>
 
-        {/* Summary */}
         <div className="px-5 py-4 border-t border-gray-200 bg-gray-50 space-y-2">
           <div className="flex justify-between text-sm">
             <span className="text-gray-600">Split total</span>

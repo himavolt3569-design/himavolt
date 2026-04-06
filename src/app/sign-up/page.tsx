@@ -134,7 +134,6 @@ export default function SignUpPage() {
     });
   };
 
-  /* ─── Success Screen ─── */
   if (success) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-[#fdf9ef] via-[#fefcf5] to-[#fdf9ef] p-6">
@@ -164,7 +163,6 @@ export default function SignUpPage() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-linear-to-br from-[#fdf9ef] via-[#fefcf5] to-[#fdf9ef] p-6">
-      {/* Soft background blobs */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
         <div className="absolute -top-32 -right-32 h-96 w-96 rounded-full bg-[#eaa94d]/15 blur-3xl" />
         <div className="absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-[#d67620]/10 blur-3xl" />
@@ -181,7 +179,6 @@ export default function SignUpPage() {
             transition={{ duration: 0.22 }}
             className="relative w-full max-w-lg"
           >
-            {/* Logo */}
             <div className="mb-8 text-center">
               <Link href="/" className="inline-flex items-center gap-2">
                 <Mountain className="h-8 w-8 text-[#eaa94d]" strokeWidth={2.5} />
@@ -197,9 +194,7 @@ export default function SignUpPage() {
               </p>
             </div>
 
-            {/* Role Cards */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 mb-6">
-              {/* Customer Card */}
               <button
                 onClick={() => setRole("CUSTOMER")}
                 className={`relative rounded-2xl border-2 p-5 text-left transition-all duration-200 ${
@@ -237,7 +232,6 @@ export default function SignUpPage() {
                 </ul>
               </button>
 
-              {/* Owner Card */}
               <button
                 onClick={() => setRole("OWNER")}
                 className={`relative rounded-2xl border-2 p-5 text-left transition-all duration-200 ${
@@ -282,7 +276,6 @@ export default function SignUpPage() {
               </button>
             </div>
 
-            {/* Actions */}
             <button
               onClick={() => role && setStep("form")}
               disabled={!role}
@@ -324,7 +317,6 @@ export default function SignUpPage() {
             transition={{ duration: 0.22 }}
             className="relative w-full max-w-sm"
           >
-            {/* Header */}
             <div className="mb-6 flex items-center gap-3">
               <button
                 onClick={() => { setStep("role"); setError(""); }}
@@ -352,9 +344,7 @@ export default function SignUpPage() {
               </div>
             </div>
 
-            {/* Card */}
             <div className="overflow-hidden rounded-2xl border border-[#f4d69a]/30 bg-white/90 shadow-xl shadow-[#eaa94d]/8 backdrop-blur-sm">
-              {/* Role strip */}
               <div className={`px-5 py-3 ${
                 role === "OWNER"
                   ? "bg-linear-to-r from-[#3e1e0c] to-[#5a2c10]"
@@ -387,7 +377,6 @@ export default function SignUpPage() {
                     </div>
                   )}
 
-                  {/* Full Name */}
                   <div>
                     <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-[#8e491e]/50">
                       Full Name
@@ -405,7 +394,6 @@ export default function SignUpPage() {
                     </div>
                   </div>
 
-                  {/* Username */}
                   <div>
                     <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-[#8e491e]/50">
                       Username <span className="text-[#eaa94d]">*</span>
@@ -444,7 +432,6 @@ export default function SignUpPage() {
                     </p>
                   </div>
 
-                  {/* Email */}
                   <div>
                     <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-[#8e491e]/50">
                       Email
@@ -489,7 +476,6 @@ export default function SignUpPage() {
                     </motion.div>
                   )}
 
-                  {/* Password */}
                   <div>
                     <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-[#8e491e]/50">
                       Password
