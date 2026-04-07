@@ -73,11 +73,12 @@ export async function POST(
   try {
     const payment = await collectPayment(orderId, method, transactionId);
 
-    // Auto-clear the table session so the next customer gets a fresh start
-    await db.tableSession.updateMany({
-      where: { orderId, isActive: true },
-      data: { isActive: false, endedAt: new Date() },
-    });
+    // Auto-clear the table session so the next customer gets a fresh start.
+    // Run separately so a missing endedAt column (schema drift) doesn't
+    // abort the payment response — the session is still marked inactive.
+    db.tableSession
+      .updateMany({ where: { orderId, isActive: true }, data: { isActive: false } })
+      .catch(() => {});
 
     logAudit({
       action: "PAYMENT_COLLECTED",

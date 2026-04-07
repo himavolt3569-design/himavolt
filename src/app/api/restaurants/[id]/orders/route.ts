@@ -407,8 +407,8 @@ export const POST = safeHandler(
       return Math.max(max, mins);
     }, 15);
 
-    // Build order data — conditionally include newer columns that may not exist
-    // in the production database yet.
+    // Build order data. Only include columns that exist in all DB versions.
+    // Newer columns are moved to extendedData and dropped on retry.
     const baseOrderData = {
       orderNo,
       tableNo:
@@ -416,7 +416,6 @@ export const POST = safeHandler(
           ? parseInt(String(tableNo), 10)
           : null,
       roomNo: roomNo ?? null,
-      guestName: guestName?.trim() ?? null,
       subtotal,
       tax,
       total,
@@ -435,19 +434,22 @@ export const POST = safeHandler(
       deliveryFee,
       items: {
         createMany: {
+          // Only include addOns when it has a value — omitting the key entirely
+          // avoids a Prisma error if the column doesn't exist in production yet.
           data: items.map((item) => ({
             name: item.name,
             quantity: item.quantity,
             price: item.price,
             menuItemId: item.menuItemId ?? null,
-            addOns: item.addOns ?? null,
+            ...(item.addOns ? { addOns: item.addOns } : {}),
           })),
         },
       },
     };
 
-    // Newer columns that may not exist in production DB yet
+    // Newer columns that may not exist in production DB yet — dropped on retry.
     const extendedData = {
+      ...(guestName?.trim() ? { guestName: guestName.trim() } : {}),
       ...(isPrepaid ? { isPrepaid: true } : {}),
       ...(couponId ? { couponId } : {}),
       ...(couponDiscount > 0 ? { couponDiscount } : {}),
