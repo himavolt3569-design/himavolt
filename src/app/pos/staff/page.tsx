@@ -12,6 +12,7 @@ import POSBilling from "@/components/pos/staff/POSBilling";
 import POSSplitBill from "@/components/pos/staff/POSSplitBill";
 import POSHeldOrders from "@/components/pos/staff/POSHeldOrders";
 import POSDailySummary from "@/components/pos/staff/POSDailySummary";
+import { usePOSOrders } from "@/hooks/usePOSOrders";
 
 
 interface StaffSession {
@@ -51,20 +52,10 @@ interface TableRecord {
   label: string | null;
 }
 
-interface BillOrder {
+interface SplitOrderRef {
   id: string;
   orderNo: string;
-  tableNo: number | null;
-  guestName: string | null;
-  status: string;
-  subtotal: number;
-  tax: number;
   total: number;
-  type: string;
-  createdAt: string;
-  items: { id: string; name: string; quantity: number; price: number }[];
-  payment?: { method: string; status: string; amount: number } | null;
-  bill?: { id: string; billNo: string; subtotal: number; tax: number; serviceCharge: number; discount: number; total: number; paidVia: string | null } | null;
 }
 
 
@@ -78,7 +69,10 @@ export default function StaffPOSPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [tables, setTables] = useState<TableRecord[]>([]);
 
-  const [splitOrder, setSplitOrder] = useState<BillOrder | null>(null);
+  const [splitOrder, setSplitOrder] = useState<SplitOrderRef | null>(null);
+
+  // Shared SSE stream for all POS order views — single connection, no polling
+  const { orders: liveOrders, connectionStatus: streamStatus } = usePOSOrders(session?.restaurantId ?? null);
 
   // Table pre-selection from Tables view → Register
   const [selectedTableNo, setSelectedTableNo] = useState<number | null>(null);
@@ -188,6 +182,8 @@ export default function StaffPOSPage() {
           <POSActiveOrders
             restaurantId={session.restaurantId}
             currency={session.currency}
+            orders={liveOrders}
+            connectionStatus={streamStatus}
           />
         )}
 
@@ -195,7 +191,8 @@ export default function StaffPOSPage() {
           <POSBilling
             restaurantId={session.restaurantId}
             currency={session.currency}
-            onSplitBill={(order) => setSplitOrder(order)}
+            orders={liveOrders}
+            onSplitBill={(id, orderNo, total) => setSplitOrder({ id, orderNo, total })}
           />
         )}
 
@@ -203,6 +200,7 @@ export default function StaffPOSPage() {
           <POSHeldOrders
             restaurantId={session.restaurantId}
             currency={session.currency}
+            orders={liveOrders}
             onRecall={(order) => {
               // Pre-load the recalled order items into the Register
               setRecalledItems(order.items);
@@ -224,7 +222,7 @@ export default function StaffPOSPage() {
           <POSSplitBill
             orderId={splitOrder.id}
             orderNo={splitOrder.orderNo}
-            total={splitOrder.bill?.total ?? splitOrder.total}
+            total={splitOrder.total}
             restaurantId={session.restaurantId}
             currency={session.currency}
             onClose={() => setSplitOrder(null)}

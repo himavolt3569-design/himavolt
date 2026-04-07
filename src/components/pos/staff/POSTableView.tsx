@@ -76,7 +76,7 @@ export default function POSTableView({ restaurantId, currency, onTableSelect }: 
 
   useEffect(() => {
     fetchTables();
-    const id = setInterval(fetchTables, 10000);
+    const id = setInterval(fetchTables, 30000);
     return () => clearInterval(id);
   }, [fetchTables]);
 

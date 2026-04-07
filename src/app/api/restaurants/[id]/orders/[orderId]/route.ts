@@ -8,6 +8,7 @@ import {
 } from "@/lib/notifications";
 import { logAudit, getClientIp, type AuditAction } from "@/lib/audit";
 import { z } from "zod";
+import { restoreStock } from "@/lib/stock";
 
 const ORDER_STATUSES = [
   "ACCEPTED",
@@ -194,47 +195,16 @@ export async function PATCH(
     }
   }
 
-  // Restore stock when order is cancelled or rejected
+  // Restore stock when order is cancelled or rejected (non-fatal)
   if (status === "CANCELLED" || status === "REJECTED") {
     const orderWithItems = await db.order.findUnique({
       where: { id: orderId },
-      select: { id: true, items: true },
+      select: { id: true, items: { select: { menuItemId: true, quantity: true } } },
     });
     if (orderWithItems) {
-      for (const item of orderWithItems.items) {
-        if (!item.menuItemId) continue;
-        // Restore ingredient-based inventory stock
-        const ingredients = await db.menuItemIngredient.findMany({
-          where: { menuItemId: item.menuItemId },
-        });
-        for (const ing of ingredients) {
-          await db.inventoryItem.update({
-            where: { id: ing.inventoryItemId },
-            data: { quantity: { increment: ing.quantityUsed * item.quantity } },
-          });
-          // Re-enable menu items that were marked unavailable
-          const dependents = await db.menuItemIngredient.findMany({
-            where: { inventoryItemId: ing.inventoryItemId },
-          });
-          for (const dep of dependents) {
-            await db.menuItem.update({
-              where: { id: dep.menuItemId },
-              data: { isAvailable: true },
-            });
-          }
-        }
-        // Restore drink stock for items with stock tracking
-        const menuItem = await db.menuItem.findUnique({
-          where: { id: item.menuItemId },
-          select: { isDrink: true, stockEnabled: true },
-        });
-        if (menuItem?.isDrink && menuItem.stockEnabled) {
-          await db.menuItem.update({
-            where: { id: item.menuItemId },
-            data: { stockQuantity: { increment: item.quantity } },
-          });
-        }
-      }
+      restoreStock(orderWithItems.items).catch((err) =>
+        console.error("[Orders PATCH] Stock restore failed (non-fatal):", err),
+      );
     }
   }
 

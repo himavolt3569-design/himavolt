@@ -44,7 +44,7 @@ export async function GET(
   } catch (err) {
     console.error("[Billing GET]", err);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Failed to fetch billing orders" },
+      { error: "Failed to fetch billing orders" },
       { status: 500 },
     );
   }

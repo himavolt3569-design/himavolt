@@ -6,13 +6,13 @@ import {
   ChevronLeft,
   Search,
   Plus,
-  Store,
   MapPin,
   UsersRound,
   ArrowRight,
   Loader2,
   ChevronRight,
   Building2,
+  Monitor,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -178,13 +178,25 @@ export default function ManageRestaurantsPage() {
                         </div>
                       </div>
 
-                      <button
-                        onClick={() => handleDashboard(restaurant.id)}
-                        className="flex items-center justify-center gap-2 rounded-lg bg-[#0F1219] px-4 py-2.5 text-[13px] font-semibold text-white transition-all hover:bg-[#1a2030] active:scale-[0.97] sm:shrink-0"
-                      >
-                        Dashboard
-                        <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-                      </button>
+                      <div className="flex items-center gap-2 sm:shrink-0">
+                        <Link
+                          href={`/pos/${restaurant.slug}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-center gap-1.5 rounded-lg bg-amber-500 px-3.5 py-2.5 text-[13px] font-semibold text-white transition-all hover:bg-amber-400 active:scale-[0.97]"
+                          title="Open POS / Kiosk terminal"
+                        >
+                          <Monitor className="h-3.5 w-3.5" />
+                          POS
+                        </Link>
+                        <button
+                          onClick={() => handleDashboard(restaurant.id)}
+                          className="flex items-center justify-center gap-2 rounded-lg bg-[#0F1219] px-4 py-2.5 text-[13px] font-semibold text-white transition-all hover:bg-[#1a2030] active:scale-[0.97]"
+                        >
+                          Dashboard
+                          <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                        </button>
+                      </div>
                     </div>
                   </motion.div>
                 ))}

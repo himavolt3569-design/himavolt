@@ -1,42 +1,33 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import {
-  Search, RefreshCw, DollarSign, CreditCard, Wallet, Banknote,
+  Search, DollarSign, Wallet, Banknote,
   CheckCircle2, Receipt, Tag, Loader2, SplitSquareHorizontal,
 } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
 import { useToast } from "@/context/ToastContext";
+import type { POSOrder } from "@/hooks/usePOSOrders";
 
-interface OrderItem {
+interface BillDetails {
   id: string;
-  name: string;
-  quantity: number;
-  price: number;
-}
-
-interface BillOrder {
-  id: string;
-  orderNo: string;
-  tableNo: number | null;
-  guestName: string | null;
-  status: string;
+  billNo: string;
   subtotal: number;
   tax: number;
+  serviceCharge: number;
+  discount: number;
   total: number;
-  type: string;
-  createdAt: string;
-  items: OrderItem[];
-  payment?: { method: string; status: string; amount: number } | null;
-  bill?: { id: string; billNo: string; subtotal: number; tax: number; serviceCharge: number; discount: number; total: number; paidVia: string | null } | null;
+  paidVia: string | null;
 }
 
 interface Props {
   restaurantId: string;
   currency: string;
-  onSplitBill: (order: BillOrder) => void;
+  orders: POSOrder[];
+  onSplitBill: (orderId: string, orderNo: string, total: number) => void;
 }
+
+const BILLABLE_STATUSES = new Set(["PENDING", "ACCEPTED", "PREPARING", "READY", "DELIVERED"]);
 
 const PAYMENT_METHODS = [
   { id: "CASH", label: "Cash", icon: DollarSign, color: "bg-green-50 border-green-300 text-green-700 hover:bg-green-100" },
@@ -49,50 +40,53 @@ async function staffFetch<T = unknown>(url: string, opts?: RequestInit): Promise
   const res = await fetch(url, { ...opts, credentials: "include", headers: { "Content-Type": "application/json", ...(opts?.headers || {}) } });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: "Request failed" }));
-    throw new Error(err.error || `Request failed`);
+    throw new Error(err.error || "Request failed");
   }
   return res.json();
 }
 
-export default function POSBilling({ restaurantId, currency, onSplitBill }: Props) {
+export default function POSBilling({ restaurantId, currency, orders, onSplitBill }: Props) {
   const { showToast } = useToast();
-  const [orders, setOrders] = useState<BillOrder[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [selectedOrder, setSelectedOrder] = useState<BillOrder | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<POSOrder | null>(null);
+  const [billMap, setBillMap] = useState<Record<string, BillDetails>>({});
   const [discountAmount, setDiscountAmount] = useState("");
   const [collecting, setCollecting] = useState(false);
   const [applyingDiscount, setApplyingDiscount] = useState(false);
   const [filter, setFilter] = useState<"unpaid" | "paid" | "all">("unpaid");
 
-  const fetchOrders = useCallback(async () => {
+  // Load bill details once (and after mutations) — no polling, order list comes from SSE prop
+  const fetchBillMap = useCallback(async () => {
     try {
-      const data = await staffFetch<BillOrder[]>(`/api/restaurants/${restaurantId}/billing?filter=${filter}`);
-      setOrders(Array.isArray(data) ? data : []);
+      const data = await staffFetch<Array<{ id: string; bill: BillDetails | null }>>(
+        `/api/restaurants/${restaurantId}/billing?filter=all`,
+      );
+      if (Array.isArray(data)) {
+        const map: Record<string, BillDetails> = {};
+        data.forEach((o) => { if (o.bill) map[o.id] = o.bill; });
+        setBillMap(map);
+      }
     } catch {
       // silent
-    } finally {
-      setLoading(false);
     }
-  }, [restaurantId, filter]);
+  }, [restaurantId]);
 
-  useEffect(() => {
-    setLoading(true);
-    fetchOrders();
-    const id = setInterval(fetchOrders, 15000);
-    return () => clearInterval(id);
-  }, [fetchOrders]);
+  useEffect(() => { fetchBillMap(); }, [fetchBillMap]);
 
-  // Clear stale discount input whenever the operator switches to a different order
-  useEffect(() => {
-    setDiscountAmount("");
-  }, [selectedOrder?.id]);
+  // Clear stale discount input when switching orders
+  useEffect(() => { setDiscountAmount(""); }, [selectedOrder?.id]);
 
-  const filtered = orders.filter((o) => {
+  const billable = orders.filter((o) => BILLABLE_STATUSES.has(o.status));
+  const filtered = billable.filter((o) => {
+    const isPaid = o.payment?.status === "COMPLETED";
+    if (filter === "unpaid" && isPaid) return false;
+    if (filter === "paid" && !isPaid) return false;
     if (!search) return true;
-    return o.orderNo.toLowerCase().includes(search.toLowerCase()) ||
+    return (
+      o.orderNo.toLowerCase().includes(search.toLowerCase()) ||
       (o.guestName?.toLowerCase().includes(search.toLowerCase()) ?? false) ||
-      (o.tableNo?.toString() === search);
+      (o.tableNo?.toString() === search)
+    );
   });
 
   const applyDiscount = async () => {
@@ -105,8 +99,7 @@ export default function POSBilling({ restaurantId, currency, onSplitBill }: Prop
       });
       showToast("Discount applied", "success");
       setDiscountAmount("");
-      fetchOrders();
-      setSelectedOrder(null);
+      await fetchBillMap();
     } catch (err) {
       showToast(err instanceof Error ? err.message : "Failed to apply discount", "error");
     } finally {
@@ -123,8 +116,8 @@ export default function POSBilling({ restaurantId, currency, onSplitBill }: Prop
         body: JSON.stringify({ orderId: selectedOrder.id, method }),
       });
       showToast(`Payment collected via ${method}`, "success");
-      fetchOrders();
       setSelectedOrder(null);
+      await fetchBillMap();
     } catch (err) {
       showToast(err instanceof Error ? err.message : "Failed to collect", "error");
     } finally {
@@ -132,16 +125,14 @@ export default function POSBilling({ restaurantId, currency, onSplitBill }: Prop
     }
   };
 
+  const bill = selectedOrder ? billMap[selectedOrder.id] : null;
+  const isPaid = selectedOrder?.payment?.status === "COMPLETED";
+
   return (
     <div className="flex h-full">
       <div className="flex-1 flex flex-col border-r border-gray-200">
         <div className="shrink-0 p-4 border-b border-gray-100 space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-gray-900">Billing</h2>
-            <button onClick={fetchOrders} className="flex items-center gap-1 rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-200">
-              <RefreshCw className="h-3.5 w-3.5" /> Refresh
-            </button>
-          </div>
+          <h2 className="text-lg font-bold text-gray-900">Billing</h2>
 
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -169,14 +160,12 @@ export default function POSBilling({ restaurantId, currency, onSplitBill }: Prop
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          {loading ? (
-            <div className="flex items-center justify-center h-40"><Loader2 className="h-6 w-6 animate-spin text-gray-400" /></div>
-          ) : filtered.length === 0 ? (
+          {filtered.length === 0 ? (
             <div className="flex items-center justify-center h-40 text-gray-400 text-sm">No orders</div>
           ) : (
             <div className="divide-y divide-gray-50">
               {filtered.map((order) => {
-                const isPaid = order.payment?.status === "COMPLETED";
+                const orderIsPaid = order.payment?.status === "COMPLETED";
                 return (
                   <button
                     key={order.id}
@@ -187,15 +176,17 @@ export default function POSBilling({ restaurantId, currency, onSplitBill }: Prop
                   >
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-bold text-gray-900">#{order.orderNo}</span>
-                      <span className="text-sm font-bold text-amber-700">{formatPrice(order.total, currency)}</span>
+                      <span className="text-sm font-bold text-amber-700">
+                        {formatPrice(billMap[order.id]?.total ?? order.total, currency)}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
                       {order.tableNo && <span>Table {order.tableNo}</span>}
                       {order.guestName && <span>{order.guestName}</span>}
                       <span className={`ml-auto rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                        isPaid ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"
+                        orderIsPaid ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"
                       }`}>
-                        {isPaid ? "Paid" : "Unpaid"}
+                        {orderIsPaid ? "Paid" : "Unpaid"}
                       </span>
                     </div>
                   </button>
@@ -219,9 +210,9 @@ export default function POSBilling({ restaurantId, currency, onSplitBill }: Prop
               <div className="flex items-center justify-between mb-2">
                 <span className="text-lg font-black text-gray-900">#{selectedOrder.orderNo}</span>
                 <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${
-                  selectedOrder.payment?.status === "COMPLETED" ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"
+                  isPaid ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"
                 }`}>
-                  {selectedOrder.payment?.status === "COMPLETED" ? "Paid" : "Unpaid"}
+                  {isPaid ? "Paid" : "Unpaid"}
                 </span>
               </div>
               {selectedOrder.tableNo && <p className="text-xs text-gray-500">Table {selectedOrder.tableNo}</p>}
@@ -249,28 +240,34 @@ export default function POSBilling({ restaurantId, currency, onSplitBill }: Prop
                       <span>{formatPrice(selectedOrder.tax, currency)}</span>
                     </div>
                   )}
-                  {selectedOrder.bill?.serviceCharge ? (
+                  {selectedOrder.deliveryFee > 0 && (
+                    <div className="flex justify-between text-xs text-gray-500">
+                      <span>Delivery Fee</span>
+                      <span>{formatPrice(selectedOrder.deliveryFee, currency)}</span>
+                    </div>
+                  )}
+                  {bill?.serviceCharge ? (
                     <div className="flex justify-between text-xs text-gray-500">
                       <span>Service Charge</span>
-                      <span>{formatPrice(selectedOrder.bill.serviceCharge, currency)}</span>
+                      <span>{formatPrice(bill.serviceCharge, currency)}</span>
                     </div>
                   ) : null}
-                  {selectedOrder.bill?.discount ? (
+                  {bill?.discount ? (
                     <div className="flex justify-between text-xs text-green-600">
                       <span>Discount</span>
-                      <span>-{formatPrice(selectedOrder.bill.discount, currency)}</span>
+                      <span>-{formatPrice(bill.discount, currency)}</span>
                     </div>
                   ) : null}
                   <div className="flex justify-between text-sm font-bold text-gray-900 pt-1 border-t border-gray-200">
                     <span>Total</span>
-                    <span className="text-amber-700">{formatPrice(selectedOrder.bill?.total ?? selectedOrder.total, currency)}</span>
+                    <span className="text-amber-700">{formatPrice(bill?.total ?? selectedOrder.total, currency)}</span>
                   </div>
                 </div>
               </div>
 
-              {selectedOrder.payment?.status !== "COMPLETED" && (
+              {!isPaid && (
                 <div className="rounded-xl border border-gray-200 bg-white p-3">
-                  <label className="text-xs font-bold text-gray-600 mb-2 block flex items-center gap-1">
+                  <label className="text-xs font-bold text-gray-600 mb-2 flex items-center gap-1">
                     <Tag className="h-3 w-3" /> Apply Discount
                   </label>
                   <div className="flex gap-2">
@@ -293,7 +290,7 @@ export default function POSBilling({ restaurantId, currency, onSplitBill }: Prop
                 </div>
               )}
 
-              {selectedOrder.payment?.status !== "COMPLETED" && (
+              {!isPaid && (
                 <div className="space-y-2">
                   <h3 className="text-xs font-bold text-gray-600">Collect Payment</h3>
                   <div className="grid grid-cols-2 gap-2">
@@ -314,7 +311,7 @@ export default function POSBilling({ restaurantId, currency, onSplitBill }: Prop
                   </div>
 
                   <button
-                    onClick={() => onSplitBill(selectedOrder)}
+                    onClick={() => onSplitBill(selectedOrder.id, selectedOrder.orderNo, bill?.total ?? selectedOrder.total)}
                     disabled={collecting}
                     className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-gray-300 bg-white p-3 text-xs font-bold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
                   >
@@ -324,12 +321,12 @@ export default function POSBilling({ restaurantId, currency, onSplitBill }: Prop
                 </div>
               )}
 
-              {selectedOrder.payment?.status === "COMPLETED" && (
+              {isPaid && (
                 <div className="flex items-center gap-2 rounded-xl bg-green-50 border border-green-200 p-4">
                   <CheckCircle2 className="h-5 w-5 text-green-600" />
                   <div>
                     <p className="text-sm font-bold text-green-700">Payment Collected</p>
-                    <p className="text-xs text-green-600">via {selectedOrder.payment.method}{selectedOrder.bill?.paidVia ? ` (${selectedOrder.bill.paidVia})` : ""}</p>
+                    <p className="text-xs text-green-600">via {selectedOrder.payment?.method}{bill?.paidVia ? ` (${bill.paidVia})` : ""}</p>
                   </div>
                 </div>
               )}

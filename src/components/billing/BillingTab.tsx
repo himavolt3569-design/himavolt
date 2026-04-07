@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
+import { useSSE } from "@/hooks/useSSE";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Receipt,
@@ -231,7 +232,10 @@ export default function BillingTab({
   const [actionLoading, setActionLoading] = useState(false);
   const [clearingOrderId, setClearingOrderId] = useState<string | null>(null);
   const knownOrderIds = useRef<Set<string>>(new Set());
-  const isFirstLoad = useRef(true);
+  const isFirstSSE = useRef(true);
+  const { data: streamData } = useSSE<{ type: string; orders?: { id: string }[] }>(
+    restaurantId ? `/api/restaurants/${restaurantId}/orders/stream` : null,
+  );
 
   // Tax & service charge config
   const [taxRate, setTaxRate] = useState(13);
@@ -251,14 +255,6 @@ export default function BillingTab({
       const fetched: BillOrder[] = Array.isArray(data)
         ? data
         : data.orders || [];
-
-      if (!isFirstLoad.current) {
-        const newOnes = fetched.filter((o) => !knownOrderIds.current.has(o.id));
-        if (newOnes.length > 0) playBillingAlert();
-      }
-
-      knownOrderIds.current = new Set(fetched.map((o) => o.id));
-      isFirstLoad.current = false;
       setOrders(fetched);
     } catch {
       showToast("Failed to load billing orders", "error");
@@ -277,11 +273,18 @@ export default function BillingTab({
     }
   }, [restaurantId]);
 
+  // Reload orders when filter or restaurantId changes (loadOrders deps cover both)
   useEffect(() => {
-    isFirstLoad.current = true;
-    knownOrderIds.current = new Set();
+    setLoading(true);
     loadOrders();
+  }, [loadOrders]);
+
+  // Load summary + tax config once per restaurant
+  useEffect(() => {
+    if (!restaurantId) return;
     loadSummary();
+    isFirstSSE.current = true;
+    knownOrderIds.current = new Set();
     staffFetch(`/api/restaurants/${restaurantId}/tax-config`)
       .then(
         (cfg: {
@@ -297,12 +300,23 @@ export default function BillingTab({
         },
       )
       .catch(() => {});
-    const iv = setInterval(() => {
-      loadOrders();
-      loadSummary();
-    }, 8000);
-    return () => clearInterval(iv);
-  }, [loadOrders, loadSummary]);
+  }, [restaurantId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // SSE-triggered refresh: play alert and reload when new orders arrive
+  useEffect(() => {
+    if (!streamData || streamData.type !== "orders" || !streamData.orders) return;
+    const incoming = streamData.orders;
+    if (!isFirstSSE.current) {
+      const hasNew = incoming.some((o) => !knownOrderIds.current.has(o.id));
+      if (hasNew) {
+        playBillingAlert();
+        loadOrders();
+        loadSummary();
+      }
+    }
+    isFirstSSE.current = false;
+    knownOrderIds.current = new Set(incoming.map((o) => o.id));
+  }, [streamData, loadOrders, loadSummary]);
 
   const handleCollectPayment = async () => {
     if (!selectedOrder) return;

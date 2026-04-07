@@ -65,6 +65,7 @@ export async function GET(
               restaurantId: id,
               OR: [
                 { status: { in: ["PENDING", "ACCEPTED", "PREPARING", "READY"] } },
+              { isHeld: true },
                 {
                   status: { in: ["DELIVERED", "CANCELLED", "REJECTED"] },
                   updatedAt: { gte: cutoff },
@@ -85,6 +86,8 @@ export async function GET(
               note: true,
               estimatedTime: true,
               deliveryFee: true,
+              isHeld: true,
+              heldAt: true,
               acceptedAt: true,
               preparingAt: true,
               readyAt: true,

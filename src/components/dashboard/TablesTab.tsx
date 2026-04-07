@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Utensils, Plus, Trash2, Edit2, Check, X, Loader2,
@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
 import { SkeletonCard } from "@/components/shared/Skeleton";
+import { useToast } from "@/context/ToastContext";
 
 
 interface TableData {
@@ -50,9 +51,11 @@ function elapsed(iso: string) {
 
 
 export default function TablesTab({ restaurantId, currency = "NPR" }: { restaurantId: string; currency?: string }) {
+  const { showToast } = useToast();
   const rid  = restaurantId;
   const cur  = currency;
   const canManage = true; // staff portal — management allowed for all who have table tab access
+  const abortRef = useRef<AbortController | null>(null);
 
   const [tables,   setTables]   = useState<TableData[]>([]);
   const [loading,  setLoading]  = useState(true);
@@ -81,20 +84,31 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
 
   const load = useCallback(async () => {
     if (!rid) return;
+    abortRef.current?.abort();
+    abortRef.current = new AbortController();
     try {
-      const res = await fetch(`/api/restaurants/${rid}/tables`, { credentials: "include" });
+      const res = await fetch(`/api/restaurants/${rid}/tables`, {
+        credentials: "include",
+        signal: abortRef.current.signal,
+      });
       if (!res.ok) throw new Error();
       const data = await res.json();
       setTables(data.tables ?? []);
-    } catch { /* ignore */ }
+    } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") return;
+      // silent on poll failures — table data is non-critical background refresh
+    }
     setLoading(false);
   }, [rid]);
 
   useEffect(() => {
     setLoading(true);
     load();
-    const iv = setInterval(load, 10000);
-    return () => clearInterval(iv);
+    const iv = setInterval(load, 30000);
+    return () => {
+      clearInterval(iv);
+      abortRef.current?.abort();
+    };
   }, [load]);
 
   const handleAdd = async () => {
@@ -107,7 +121,11 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ tableNo: parseInt(addNo), label: addLabel || null, capacity: parseInt(addCap) || 4 }),
       });
-      if (!res.ok) { alert("Table number already exists"); return; }
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        alert(body.error ?? "Failed to create table");
+        return;
+      }
       setShowAdd(false); setAddNo(""); setAddLabel(""); setAddCap("4");
       load();
     } catch { /* ignore */ }
@@ -118,23 +136,39 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
     if (!rid) return;
     setEditSaving(true);
     try {
-      await fetch(`/api/restaurants/${rid}/tables/${id}`, {
+      const res = await fetch(`/api/restaurants/${rid}/tables/${id}`, {
         method: "PATCH",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ label: editLabel || null, capacity: parseInt(editCap) || 4 }),
       });
-      setEditId(null);
-      load();
-    } catch { /* ignore */ }
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        showToast(body.error ?? "Failed to update table", "error");
+      } else {
+        setEditId(null);
+        load();
+      }
+    } catch {
+      showToast("Failed to update table", "error");
+    }
     setEditSaving(false);
   };
 
   const handleDelete = async (id: string) => {
     if (!rid || !confirm("Delete this table?")) return;
-    await fetch(`/api/restaurants/${rid}/tables/${id}`, { method: "DELETE", credentials: "include" });
-    if (selected?.id === id) setSelected(null);
-    load();
+    try {
+      const res = await fetch(`/api/restaurants/${rid}/tables/${id}`, { method: "DELETE", credentials: "include" });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        showToast(body.error ?? "Failed to delete table", "error");
+        return;
+      }
+      if (selected?.id === id) setSelected(null);
+      load();
+    } catch {
+      showToast("Failed to delete table", "error");
+    }
   };
 
   const handleClearSession = async (orderId: string) => {
@@ -173,16 +207,23 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
     setBulkSaving(true);
     setBulkProgress(0);
     let created = 0;
+    let lastError = "";
     for (let n = from; n <= to; n++) {
       try {
-        await fetch(`/api/restaurants/${rid}/tables`, {
+        const res = await fetch(`/api/restaurants/${rid}/tables`, {
           method: "POST",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ tableNo: n, capacity: cap }),
         });
-        created++;
-      } catch { /* skip duplicates */ }
+        if (res.ok) {
+          created++;
+        } else if (res.status !== 409) {
+          // 409 = duplicate, skip silently; other errors capture message
+          const body = await res.json().catch(() => ({}));
+          lastError = body.error ?? `HTTP ${res.status}`;
+        }
+      } catch { /* network error, skip */ }
       setBulkProgress(Math.round(((n - from + 1) / (to - from + 1)) * 100));
     }
     setBulkSaving(false);
@@ -192,7 +233,11 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
     setBulkCap("4");
     setBulkProgress(0);
     await load();
-    if (created > 0) alert(`Created ${created} table(s) successfully.`);
+    if (created > 0) {
+      alert(`Created ${created} table(s) successfully.`);
+    } else if (lastError) {
+      alert(`Failed to create tables: ${lastError}`);
+    }
   };
 
   const occupied  = tables.filter((t) => t.isOccupied).length;

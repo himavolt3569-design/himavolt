@@ -26,11 +26,13 @@ export async function GET(
         .sort((a, b) => a.sortOrder - b.sortOrder),
     }));
 
-    return NextResponse.json(result);
+    return NextResponse.json(result, {
+      headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600" },
+    });
   } catch (err) {
     console.error("[Categories GET]", err);
     return NextResponse.json(
-      { error: "Failed to load categories", detail: String(err) },
+      { error: "Failed to load categories" },
       { status: 500 },
     );
   }

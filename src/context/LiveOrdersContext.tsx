@@ -11,6 +11,7 @@ import {
 } from "react";
 import { apiFetch } from "@/lib/api-client";
 import { playSound } from "@/lib/sounds";
+import { useSSE } from "@/hooks/useSSE";
 
 export type LiveOrderStatus =
   | "PENDING"
@@ -51,6 +52,12 @@ export interface LiveOrder {
   payment?: LiveOrderPayment | null;
 }
 
+interface StreamMessage {
+  type: "orders" | "heartbeat";
+  orders?: LiveOrder[];
+  newPendingCount?: number;
+}
+
 interface LiveOrdersContextType {
   orders: LiveOrder[];
   loading: boolean;
@@ -72,87 +79,60 @@ export function LiveOrdersProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(false);
   const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set());
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const knownOrderIdsRef = useRef<Set<string>>(new Set());
-  const initialFetchDoneRef = useRef(false);
-  const restIdRef = useRef(restaurantId);
-  restIdRef.current = restaurantId;
+  const isFirstMessage = useRef(true);
 
-  const fetchOrders = useCallback(async () => {
-    const rid = restIdRef.current;
+  const sseUrl = restaurantId ? `/api/restaurants/${restaurantId}/orders/stream` : null;
+  const { data: streamData } = useSSE<StreamMessage>(sseUrl);
+
+  // Process incoming SSE messages
+  useEffect(() => {
+    if (!streamData || streamData.type !== "orders" || !streamData.orders) return;
+    const incoming = streamData.orders;
+
+    if (!isFirstMessage.current && (streamData.newPendingCount ?? 0) > 0) {
+      playSound("newOrder");
+    }
+    isFirstMessage.current = false;
+    setOrders(incoming);
+
+    // Auto-reject PENDING orders older than 30 minutes
+    const now = Date.now();
+    const rid = restaurantId;
     if (!rid) return;
+    incoming
+      .filter((o) => o.status === "PENDING" && now - new Date(o.createdAt).getTime() >= 30 * 60 * 1000)
+      .forEach((stale) => {
+        apiFetch(`/api/restaurants/${rid}/orders/${stale.id}`, {
+          method: "PATCH",
+          body: { status: "REJECTED" },
+        }).catch(() => {});
+      });
+  }, [streamData]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Reset when restaurant changes
+  useEffect(() => {
+    isFirstMessage.current = true;
+    setOrders([]);
+  }, [restaurantId]);
+
+  // One-off fetch used after mutations (for immediate server-truth sync)
+  const fetchOrders = useCallback(async () => {
+    if (!restaurantId) return;
     try {
       const data = await apiFetch<{ orders: LiveOrder[] }>(
-        `/api/restaurants/${rid}/orders?limit=50&live=1`,
+        `/api/restaurants/${restaurantId}/orders?limit=50&live=1`,
       );
-
-      // Detect new orders (skip the very first fetch to avoid false positives)
-      if (initialFetchDoneRef.current) {
-        const newOrders = data.orders.filter(
-          (o) => !knownOrderIdsRef.current.has(o.id),
-        );
-        if (newOrders.length > 0) {
-          playSound("newOrder");
-        }
-      }
-
-      knownOrderIdsRef.current = new Set(data.orders.map((o) => o.id));
-      initialFetchDoneRef.current = true;
-
       setOrders(data.orders);
-
-      // Auto-reject PENDING orders older than 30 minutes
-      const now = Date.now();
-      const staleOrders = data.orders.filter(
-        (o) =>
-          o.status === "PENDING" &&
-          now - new Date(o.createdAt).getTime() >= 30 * 60 * 1000,
-      );
-      for (const stale of staleOrders) {
-        try {
-          await apiFetch(`/api/restaurants/${rid}/orders/${stale.id}`, {
-            method: "PATCH",
-            body: { status: "REJECTED" },
-          });
-        } catch {
-          /* ignore — will retry next poll */
-        }
-      }
-      if (staleOrders.length > 0) {
-        // Refetch to reflect auto-rejections
-        const refreshed = await apiFetch<{ orders: LiveOrder[] }>(
-          `/api/restaurants/${rid}/orders?limit=50&live=1`,
-        );
-        setOrders(refreshed.orders);
-      }
     } catch {
       /* ignore */
     }
-  }, []);
+  }, [restaurantId]);
 
   const refresh = useCallback(async () => {
     setLoading(true);
     await fetchOrders();
     setLoading(false);
   }, [fetchOrders]);
-
-  useEffect(() => {
-    if (pollRef.current) clearInterval(pollRef.current);
-    if (!restaurantId) {
-      setOrders([]);
-      knownOrderIdsRef.current = new Set();
-      initialFetchDoneRef.current = false;
-      return;
-    }
-    // Reset tracking when switching restaurants
-    knownOrderIdsRef.current = new Set();
-    initialFetchDoneRef.current = false;
-    refresh();
-    pollRef.current = setInterval(fetchOrders, 10000);
-    return () => {
-      if (pollRef.current) clearInterval(pollRef.current);
-    };
-  }, [restaurantId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const updateStatus = useCallback(
     async (orderId: string, status: string, extra?: Record<string, unknown>) => {
@@ -171,6 +151,7 @@ export function LiveOrdersProvider({ children }: { children: ReactNode }) {
           method: "PATCH",
           body: { status, ...extra },
         });
+        // SSE will push updated state within ~3s; one-off fetch ensures immediate consistency
         await fetchOrders();
       } catch {
         // Revert on failure — refetch real state

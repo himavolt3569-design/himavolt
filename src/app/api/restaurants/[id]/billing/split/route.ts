@@ -56,11 +56,15 @@ export async function POST(
     }
   }
 
-  // Verify the order belongs to this restaurant
-  const order = await db.order.findFirst({
-    where: { id: orderId, restaurantId: id },
-    include: { bill: true, payment: true },
-  });
+  // Fetch order and restaurant in parallel
+  const [order, restaurant] = await Promise.all([
+    db.order.findFirst({
+      where: { id: orderId, restaurantId: id },
+      include: { bill: true, payment: true },
+    }),
+    db.restaurant.findUnique({ where: { id }, select: { currency: true } }),
+  ]);
+  const currSym = getCurrencySymbol(restaurant?.currency ?? "NPR");
 
   if (!order) {
     return NextResponse.json({ error: "Order not found" }, { status: 404 });
@@ -85,12 +89,6 @@ export async function POST(
       { status: 400 },
     );
   }
-
-  const restaurant = await db.restaurant.findUnique({
-    where: { id },
-    select: { currency: true },
-  });
-  const currSym = getCurrencySymbol(restaurant?.currency ?? "NPR");
 
   // Create payment record with primary method and split details in metadata
   const primaryMethod = splits.reduce(
@@ -153,7 +151,7 @@ export async function POST(
     return NextResponse.json({ success: true, paidVia: splitDescription });
   } catch (err) {
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Failed to process split payment" },
+      { error: "Failed to process split payment" },
       { status: 500 },
     );
   }

@@ -11,6 +11,7 @@ import {
 } from "react";
 import { apiFetch } from "@/lib/api-client";
 import { playSound } from "@/lib/sounds";
+import { useSSE } from "@/hooks/useSSE";
 
 export type OrderStatus =
   | "PENDING"
@@ -89,6 +90,11 @@ export interface DeliveryInfo {
   note?: string;
 }
 
+interface TrackMessage {
+  type: "order" | "heartbeat" | "error";
+  order?: Order;
+}
+
 interface OrderContextType {
   activeOrder: Order | null;
   placeOrder: (
@@ -146,50 +152,32 @@ const OrderContext = createContext<OrderContextType | null>(null);
 
 export function OrderProvider({ children }: { children: ReactNode }) {
   const [activeOrder, setActiveOrder] = useState<Order | null>(null);
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [trackUrl, setTrackUrl] = useState<string | null>(null);
   const prevStatusRef = useRef<OrderStatus | null>(null);
 
-  const stopPolling = useCallback(() => {
-    if (pollRef.current) {
-      clearInterval(pollRef.current);
-      pollRef.current = null;
+  const { data: trackData } = useSSE<TrackMessage>(trackUrl);
+
+  // Process incoming SSE updates
+  useEffect(() => {
+    if (!trackData || trackData.type !== "order" || !trackData.order) return;
+    const order = trackData.order;
+
+    // Play sound when order transitions to READY
+    if (
+      order.status === "READY" &&
+      prevStatusRef.current !== null &&
+      prevStatusRef.current !== "READY"
+    ) {
+      playSound("orderReady");
     }
-  }, []);
+    prevStatusRef.current = order.status;
+    setActiveOrder(order);
 
-  const startPolling = useCallback(
-    (restaurantId: string, orderId: string) => {
-      stopPolling();
-      pollRef.current = setInterval(async () => {
-        try {
-          const order = await apiFetch<Order>(
-            `/api/restaurants/${restaurantId}/orders/${orderId}`,
-          );
-
-          // Play sound when order becomes READY
-          if (
-            order.status === "READY" &&
-            prevStatusRef.current !== null &&
-            prevStatusRef.current !== "READY"
-          ) {
-            playSound("orderReady");
-          }
-          prevStatusRef.current = order.status;
-
-          setActiveOrder(order);
-          if (
-            order.status === "DELIVERED" ||
-            order.status === "CANCELLED" ||
-            order.status === "REJECTED"
-          ) {
-            stopPolling();
-          }
-        } catch {
-          /* ignore poll errors */
-        }
-      }, 5000);
-    },
-    [stopPolling],
-  );
+    // Stop tracking on terminal status — server closes the stream too
+    if (["DELIVERED", "CANCELLED", "REJECTED"].includes(order.status)) {
+      setTrackUrl(null);
+    }
+  }, [trackData]);
 
   const placeOrder = useCallback(
     async (
@@ -236,10 +224,11 @@ export function OrderProvider({ children }: { children: ReactNode }) {
       );
       setActiveOrder(order);
       saveOrderToStorage(restaurantId, order.id, tableNo);
-      startPolling(restaurantId, order.id);
+      prevStatusRef.current = null;
+      setTrackUrl(`/api/track/stream?orderId=${order.id}`);
       return order;
     },
-    [startPolling],
+    [],
   );
 
   const addToOrder = useCallback(
@@ -268,19 +257,21 @@ export function OrderProvider({ children }: { children: ReactNode }) {
         },
       );
       setActiveOrder(order);
-      startPolling(restaurantId, order.id);
+      prevStatusRef.current = null;
+      setTrackUrl(`/api/track/stream?orderId=${order.id}`);
       return order;
     },
-    [startPolling],
+    [],
   );
 
   const cancelOrder = useCallback(() => {
-    stopPolling();
+    setTrackUrl(null);
     if (activeOrder) {
       clearOrderStorage(activeOrder.restaurantId, activeOrder.tableNo ?? undefined);
     }
+    prevStatusRef.current = null;
     setActiveOrder(null);
-  }, [stopPolling, activeOrder]);
+  }, [activeOrder]);
 
   const restoreOrder = useCallback(
     async (restaurantId: string, orderId: string) => {
@@ -291,22 +282,20 @@ export function OrderProvider({ children }: { children: ReactNode }) {
         );
         if (order) {
           if (["DELIVERED", "CANCELLED", "REJECTED"].includes(order.status)) {
-            // Show the final state briefly so customer can see the outcome, then clear storage
+            // Show final state so customer sees the outcome; don't track terminal orders
             clearOrderStorage(restaurantId, order.tableNo ?? undefined);
             setActiveOrder(order);
-            // Don't start polling — order is already in terminal state
           } else {
             setActiveOrder(order);
-            startPolling(restaurantId, order.id);
+            prevStatusRef.current = order.status as OrderStatus;
+            setTrackUrl(`/api/track/stream?orderId=${order.id}`);
           }
         }
       } catch {
-        // order not found or inaccessible — let restoreFromStorage handle cleanup
-        // (it knows the tableNo; don't clear here to avoid incorrect key)
         throw new Error("restore_failed");
       }
     },
-    [activeOrder?.id, startPolling],
+    [activeOrder?.id],
   );
 
   const restoreFromStorage = useCallback(
@@ -318,16 +307,12 @@ export function OrderProvider({ children }: { children: ReactNode }) {
         try {
           await restoreOrder(restaurantId, storedId);
         } catch {
-          // If restoreOrder throws (e.g. network error), clear the stale key
-          // so the tracking overlay doesn't stay stuck on "Loading your order..."
           clearOrderStorage(restaurantId, tableNo);
         }
       }
     },
     [activeOrder, restoreOrder],
   );
-
-  useEffect(() => () => stopPolling(), [stopPolling]);
 
   return (
     <OrderContext.Provider value={{ activeOrder, placeOrder, addToOrder, cancelOrder, restoreOrder, restoreFromStorage }}>

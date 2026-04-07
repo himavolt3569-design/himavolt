@@ -10,6 +10,9 @@ export const GET = safeHandler(async (_req, { params }) => {
   const user = await getOrCreateUser();
   if (!user) return unauthorized();
 
+  const restaurant = await db.restaurant.findFirst({ where: { id, ownerId: user.id } });
+  if (!restaurant) return forbidden();
+
   const staff = await db.staffMember.findMany({
     where: { restaurantId: id },
     include: {
@@ -18,6 +21,7 @@ export const GET = safeHandler(async (_req, { params }) => {
       },
     },
     orderBy: { createdAt: "desc" },
+    take: 200,
   });
 
   return NextResponse.json(staff);

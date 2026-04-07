@@ -42,7 +42,9 @@ export async function GET(
   if (!restaurant)
     return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  return NextResponse.json(restaurant);
+  return NextResponse.json(restaurant, {
+    headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600" },
+  });
 }
 
 // PUT /api/restaurants/[id]/tax-config

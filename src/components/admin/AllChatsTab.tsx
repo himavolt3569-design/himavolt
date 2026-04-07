@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useSSE } from "@/hooks/useSSE";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   MessageCircle,
@@ -81,6 +82,22 @@ export default function AllChatsTab() {
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Live messages via SSE — replaces the 5s polling interval
+  const { data: sseMessages } = useSSE<ChatMessage[]>(
+    selectedRoom ? `/api/chat/${selectedRoom}/stream` : null,
+  );
+
+  useEffect(() => {
+    if (!sseMessages || !Array.isArray(sseMessages)) return;
+    setMessages((prev) => {
+      const existingIds = new Set(prev.map((m) => m.id));
+      const additions = sseMessages.filter((m) => !existingIds.has(m.id));
+      if (additions.length === 0) return prev;
+      setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
+      return [...prev, ...additions];
+    });
+  }, [sseMessages]);
+
   const allSelected = rooms.length > 0 && selectedIds.size === rooms.length;
 
   const fetchRooms = useCallback(
@@ -114,9 +131,9 @@ export default function AllChatsTab() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, activeFilter]);
 
-  // Auto-refresh rooms every 10s
+  // Auto-refresh rooms every 30s (reduced from 10s — real-time messages handled by SSE above)
   useEffect(() => {
-    const interval = setInterval(() => fetchRooms(page), 10000);
+    const interval = setInterval(() => fetchRooms(page), 30000);
     return () => clearInterval(interval);
   }, [fetchRooms, page]);
 
@@ -180,13 +197,6 @@ export default function AllChatsTab() {
     }
   };
 
-  // Auto-refresh messages every 5s when a room is selected
-  useEffect(() => {
-    if (!selectedRoom) return;
-    const interval = setInterval(() => fetchMessages(selectedRoom), 5000);
-    return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedRoom]);
 
   return (
     <div className="space-y-4">

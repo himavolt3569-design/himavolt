@@ -1,33 +1,17 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { PauseCircle, Play, Trash2, RefreshCw, Clock, Loader2 } from "lucide-react";
+import { PauseCircle, Play, Trash2, Clock, Loader2 } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
 import { useToast } from "@/context/ToastContext";
-
-interface OrderItem {
-  id: string;
-  name: string;
-  quantity: number;
-  price: number;
-}
-
-interface HeldOrder {
-  id: string;
-  orderNo: string;
-  tableNo: number | null;
-  guestName: string | null;
-  total: number;
-  note: string | null;
-  createdAt: string;
-  items: OrderItem[];
-}
+import type { POSOrder } from "@/hooks/usePOSOrders";
 
 interface Props {
   restaurantId: string;
   currency: string;
-  onRecall: (order: HeldOrder) => void;
+  orders: POSOrder[];
+  onRecall: (order: POSOrder) => void;
 }
 
 async function staffFetch<T = unknown>(url: string, opts?: RequestInit): Promise<T> {
@@ -39,30 +23,13 @@ async function staffFetch<T = unknown>(url: string, opts?: RequestInit): Promise
   return res.json();
 }
 
-export default function POSHeldOrders({ restaurantId, currency, onRecall }: Props) {
+export default function POSHeldOrders({ restaurantId, currency, orders, onRecall }: Props) {
   const { showToast } = useToast();
-  const [orders, setOrders] = useState<HeldOrder[]>([]);
-  const [loading, setLoading] = useState(true);
   const [actionId, setActionId] = useState<string | null>(null);
 
-  const fetchHeld = useCallback(async () => {
-    try {
-      const data = await staffFetch<HeldOrder[]>(`/api/restaurants/${restaurantId}/orders/held`);
-      setOrders(Array.isArray(data) ? data : []);
-    } catch {
-      // silent
-    } finally {
-      setLoading(false);
-    }
-  }, [restaurantId]);
+  const heldOrders = orders.filter((o) => o.isHeld);
 
-  useEffect(() => {
-    fetchHeld();
-    const id = setInterval(fetchHeld, 15000);
-    return () => clearInterval(id);
-  }, [fetchHeld]);
-
-  const recallOrder = async (order: HeldOrder) => {
+  const recallOrder = async (order: POSOrder) => {
     setActionId(order.id);
     try {
       await staffFetch(`/api/restaurants/${restaurantId}/orders/held`, {
@@ -71,7 +38,6 @@ export default function POSHeldOrders({ restaurantId, currency, onRecall }: Prop
       });
       showToast(`Order #${order.orderNo} recalled`, "success");
       onRecall(order);
-      fetchHeld();
     } catch (err) {
       showToast(err instanceof Error ? err.message : "Failed to recall", "error");
     } finally {
@@ -79,7 +45,7 @@ export default function POSHeldOrders({ restaurantId, currency, onRecall }: Prop
     }
   };
 
-  const voidOrder = async (order: HeldOrder) => {
+  const voidOrder = async (order: POSOrder) => {
     if (!confirm(`Void held order #${order.orderNo}?`)) return;
     setActionId(order.id);
     try {
@@ -88,7 +54,6 @@ export default function POSHeldOrders({ restaurantId, currency, onRecall }: Prop
         body: JSON.stringify({ status: "CANCELLED" }),
       });
       showToast(`Order #${order.orderNo} cancelled`, "success");
-      fetchHeld();
     } catch (err) {
       showToast(err instanceof Error ? err.message : "Failed to void", "error");
     } finally {
@@ -105,28 +70,15 @@ export default function POSHeldOrders({ restaurantId, currency, onRecall }: Prop
 
   return (
     <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <PauseCircle className="h-5 w-5 text-amber-700" />
-          <div>
-            <h2 className="text-lg font-bold text-gray-900">Held Orders</h2>
-            <p className="text-xs text-gray-500">Parked orders waiting to be recalled</p>
-          </div>
+      <div className="flex items-center gap-3 mb-6">
+        <PauseCircle className="h-5 w-5 text-amber-700" />
+        <div>
+          <h2 className="text-lg font-bold text-gray-900">Held Orders</h2>
+          <p className="text-xs text-gray-500">Parked orders waiting to be recalled</p>
         </div>
-        <button
-          onClick={fetchHeld}
-          className="flex items-center gap-1.5 rounded-lg bg-gray-100 px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-200"
-        >
-          <RefreshCw className="h-3.5 w-3.5" />
-          Refresh
-        </button>
       </div>
 
-      {loading ? (
-        <div className="flex items-center justify-center h-40">
-          <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
-        </div>
-      ) : orders.length === 0 ? (
+      {heldOrders.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-40 text-gray-400">
           <PauseCircle className="h-10 w-10 mb-2 opacity-40" />
           <p className="text-sm font-medium">No held orders</p>
@@ -134,7 +86,7 @@ export default function POSHeldOrders({ restaurantId, currency, onRecall }: Prop
       ) : (
         <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           <AnimatePresence>
-            {orders.map((order) => (
+            {heldOrders.map((order) => (
               <motion.div
                 key={order.id}
                 layout

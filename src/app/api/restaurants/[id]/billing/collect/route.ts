@@ -100,7 +100,7 @@ export async function POST(
   } catch (err) {
     return NextResponse.json(
       {
-        error: err instanceof Error ? err.message : "Failed to collect payment",
+        error: "Failed to collect payment",
       },
       { status: 500 },
     );

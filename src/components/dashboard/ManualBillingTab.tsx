@@ -178,14 +178,14 @@ export default function ManualBillingTab({
   const handleMarkPaid = async () => {
     if (!rid || !orderId) return;
     setMarkingPaid(true);
+    setIsPaid(true); // optimistic — instant UI feedback
     try {
       await staffFetch(`/api/restaurants/${rid}/billing/collect`, {
         method: "POST",
         body: JSON.stringify({ orderId, method: "DIRECT" }),
       });
-      setIsPaid(true);
     } catch {
-      /* silent */
+      setIsPaid(false); // revert on failure
     } finally {
       setMarkingPaid(false);
     }

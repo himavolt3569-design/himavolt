@@ -8,6 +8,7 @@ import { safeHandler, unauthorized, notFound } from "@/lib/api-helpers";
 import { createOrderSchema } from "@/lib/validations";
 import { logAudit, getClientIp } from "@/lib/audit";
 import { getCurrencySymbol } from "@/lib/currency";
+import { deductStock } from "@/lib/stock";
 
 export async function GET(
   req: NextRequest,
@@ -114,7 +115,7 @@ export async function GET(
   } catch (err) {
     console.error("[Orders GET]", err);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Failed to fetch orders" },
+      { error: "Failed to fetch orders" },
       { status: 500 },
     );
   }
@@ -214,63 +215,7 @@ export const POST = safeHandler(
 
       // Deduct stock for each added item (non-fatal — order is already updated)
       try {
-        const addItemIds = items.filter((i) => i.menuItemId).map((i) => i.menuItemId as string);
-        const addMenuMeta = addItemIds.length
-          ? new Map(
-              (await db.menuItem.findMany({
-                where: { id: { in: addItemIds } },
-                select: { id: true, isDrink: true, stockEnabled: true, stockQuantity: true },
-              })).map((m) => [m.id, m])
-            )
-          : new Map();
-
-        for (const item of items) {
-          if (!item.menuItemId) continue;
-
-          // Deduct drink stock quantity directly
-          const addMeta = addMenuMeta.get(item.menuItemId);
-          if (addMeta?.isDrink && addMeta.stockEnabled) {
-            const newQty = Math.max(0, (addMeta.stockQuantity ?? 0) - item.quantity);
-            await db.menuItem.update({
-              where: { id: item.menuItemId },
-              data: {
-                stockQuantity: newQty,
-                ...(newQty <= 0 ? { isAvailable: false } : {}),
-              },
-            });
-            addMeta.stockQuantity = newQty;
-          }
-
-          const ingredients = await db.menuItemIngredient.findMany({
-            where: { menuItemId: item.menuItemId },
-            include: { inventoryItem: true },
-          });
-          for (const ing of ingredients) {
-            // Prevent inventory from going negative
-            const currentInv = await db.inventoryItem.findUnique({
-              where: { id: ing.inventoryItemId },
-              select: { quantity: true },
-            });
-            const deductAmount = ing.quantityUsed * item.quantity;
-            const newQty = Math.max(0, (currentInv?.quantity ?? 0) - deductAmount);
-            const updatedInv = await db.inventoryItem.update({
-              where: { id: ing.inventoryItemId },
-              data: { quantity: newQty },
-            });
-            // Auto-unavailable if stock depleted
-            if (updatedInv.quantity <= 0) {
-              const dependents = await db.menuItemIngredient.findMany({
-                where: { inventoryItemId: ing.inventoryItemId },
-              });
-              for (const dep of dependents) {
-                await db.menuItem.update({
-                  where: { id: dep.menuItemId },
-                  data: { isAvailable: false },
-                });
-              }
-            }
-          }
-        }
+        await deductStock(items);
       } catch (stockErr) {
         console.error("[Orders POST addToOrder] Stock deduction failed (non-fatal):", stockErr);
       }
@@ -584,50 +529,7 @@ export const POST = safeHandler(
 
     // Deduct stock for each ordered item (non-fatal — order is already created)
     try {
-      for (const item of items) {
-        if (!item.menuItemId) continue;
-
-        // Deduct drink stock quantity directly (drinks track their own stock)
-        const meta = menuItemMeta.get(item.menuItemId);
-        if (meta?.isDrink && meta.stockEnabled) {
-          const newQty = Math.max(0, (meta.stockQuantity ?? 0) - item.quantity);
-          await db.menuItem.update({
-            where: { id: item.menuItemId },
-            data: {
-              stockQuantity: newQty,
-              ...(newQty <= 0 ? { isAvailable: false } : {}),
-            },
-          });
-          // Update local meta so subsequent items use fresh value
-          meta.stockQuantity = newQty;
-        }
-
-        const ingredients = await db.menuItemIngredient.findMany({
-          where: { menuItemId: item.menuItemId },
-          include: { inventoryItem: true },
-        });
-        for (const ing of ingredients) {
-          // Prevent inventory from going negative
-          const deductAmount = ing.quantityUsed * item.quantity;
-          const newQty = Math.max(0, (ing.inventoryItem.quantity ?? 0) - deductAmount);
-          const updatedInv = await db.inventoryItem.update({
-            where: { id: ing.inventoryItemId },
-            data: { quantity: newQty },
-          });
-          // Auto-unavailable if stock depleted
-          if (updatedInv.quantity <= 0) {
-            const dependents = await db.menuItemIngredient.findMany({
-              where: { inventoryItemId: ing.inventoryItemId },
-            });
-            for (const dep of dependents) {
-              await db.menuItem.update({
-                where: { id: dep.menuItemId },
-                data: { isAvailable: false },
-              });
-            }
-          }
-        }
-      }
+      await deductStock(items);
     } catch (stockErr) {
       console.error("[Orders POST] Stock deduction failed (non-fatal):", stockErr);
     }

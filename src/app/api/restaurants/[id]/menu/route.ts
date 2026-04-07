@@ -26,9 +26,12 @@ export async function GET(
       category: true,
     },
     orderBy: { sortOrder: "asc" },
+    take: 500,
   });
 
-  return NextResponse.json(items);
+  return NextResponse.json(items, {
+    headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" },
+  });
 }
 
 export async function POST(

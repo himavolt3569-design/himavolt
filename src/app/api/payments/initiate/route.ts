@@ -21,7 +21,7 @@ export const POST = safeHandler(
 
     const restaurant = await db.restaurant.findUnique({
       where: { id: order.restaurantId },
-      select: { currency: true },
+      select: { currency: true, counterPayEnabled: true, directPayEnabled: true },
     });
     const currSym = getCurrencySymbol(restaurant?.currency ?? "NPR");
 
@@ -183,10 +183,7 @@ export const POST = safeHandler(
     }
 
     if (method === "COUNTER") {
-      const restaurantFull = await db.restaurant.findUnique({
-        where: { id: order.restaurantId },
-      });
-      if (!(restaurantFull as Record<string, unknown>)?.counterPayEnabled) {
+      if (!restaurant?.counterPayEnabled) {
         return NextResponse.json(
           { error: "Counter pay is not available for this restaurant" },
           { status: 400 },
@@ -212,10 +209,7 @@ export const POST = safeHandler(
     }
 
     if (method === "DIRECT") {
-      const restaurantFull = await db.restaurant.findUnique({
-        where: { id: order.restaurantId },
-      });
-      if (!(restaurantFull as Record<string, unknown>)?.directPayEnabled) {
+      if (!restaurant?.directPayEnabled) {
         return NextResponse.json(
           { error: "Direct pay is not available for this restaurant" },
           { status: 400 },

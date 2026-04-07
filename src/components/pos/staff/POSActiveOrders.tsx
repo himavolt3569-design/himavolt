@@ -1,38 +1,20 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  RefreshCw, CheckCircle2, Clock, ChefHat, Truck, XCircle,
-  Filter, Bell,
+  CheckCircle2, Clock, ChefHat, Truck, XCircle,
+  Filter, Bell, Wifi, WifiOff,
 } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
-import { playSound } from "@/lib/sounds";
-
-interface OrderItem {
-  id: string;
-  name: string;
-  quantity: number;
-  price: number;
-}
-
-interface LiveOrder {
-  id: string;
-  orderNo: string;
-  tableNo: number | null;
-  guestName: string | null;
-  status: string;
-  total: number;
-  type: string;
-  note: string | null;
-  createdAt: string;
-  items: OrderItem[];
-  payment?: { method: string; status: string } | null;
-}
+import type { SSEStatus } from "@/hooks/useSSE";
+import type { POSOrder } from "@/hooks/usePOSOrders";
 
 interface Props {
   restaurantId: string;
   currency: string;
+  orders: POSOrder[];
+  connectionStatus: SSEStatus;
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: typeof Clock }> = {
@@ -52,37 +34,8 @@ async function staffFetch<T = unknown>(url: string, opts?: RequestInit): Promise
   return res.json();
 }
 
-export default function POSActiveOrders({ restaurantId, currency }: Props) {
-  const [orders, setOrders] = useState<LiveOrder[]>([]);
+export default function POSActiveOrders({ restaurantId, currency, orders, connectionStatus }: Props) {
   const [filter, setFilter] = useState("ALL");
-  const [loading, setLoading] = useState(true);
-  // Track previous pending count with a ref so we can detect genuinely NEW orders
-  const prevPendingCount = useRef(0);
-
-  const fetchOrders = useCallback(async () => {
-    try {
-      const data = await staffFetch<{ orders?: LiveOrder[] } | LiveOrder[]>(`/api/restaurants/${restaurantId}/orders?live=1&limit=50`);
-      // The orders API returns { orders, total } in live mode — unwrap it
-      const arr: LiveOrder[] = Array.isArray(data) ? data : ((data as { orders?: LiveOrder[] }).orders ?? []);
-      // Play sound only when genuinely new PENDING orders arrive
-      const newPending = arr.filter((o) => o.status === "PENDING").length;
-      if (newPending > prevPendingCount.current) {
-        playSound("newOrder");
-      }
-      prevPendingCount.current = newPending;
-      setOrders(arr);
-    } catch {
-      // silent
-    } finally {
-      setLoading(false);
-    }
-  }, [restaurantId]);
-
-  useEffect(() => {
-    fetchOrders();
-    const id = setInterval(fetchOrders, 10000);
-    return () => clearInterval(id);
-  }, [fetchOrders]);
 
   const updateStatus = async (orderId: string, status: string) => {
     try {
@@ -90,7 +43,7 @@ export default function POSActiveOrders({ restaurantId, currency }: Props) {
         method: "PATCH",
         body: JSON.stringify({ status }),
       });
-      setOrders((prev) => prev.map((o) => o.id === orderId ? { ...o, status } : o));
+      // SSE stream will push the updated order automatically within ~3s
     } catch {
       // silent
     }
@@ -123,13 +76,14 @@ export default function POSActiveOrders({ restaurantId, currency }: Props) {
     <div className="p-6 h-full flex flex-col">
       <div className="flex items-center justify-between mb-4 shrink-0">
         <h2 className="text-lg font-bold text-gray-900">Active Orders</h2>
-        <button
-          onClick={fetchOrders}
-          className="flex items-center gap-1.5 rounded-lg bg-gray-100 px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-200"
-        >
-          <RefreshCw className="h-3.5 w-3.5" />
-          Refresh
-        </button>
+        <span className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold ${
+          connectionStatus === "connected" ? "bg-emerald-50 text-emerald-700" :
+          connectionStatus === "connecting" ? "bg-amber-50 text-amber-700" :
+          "bg-red-50 text-red-600"
+        }`}>
+          {connectionStatus === "connected" ? <Wifi className="h-3 w-3" /> : <WifiOff className="h-3 w-3" />}
+          {connectionStatus === "connected" ? "Live" : connectionStatus === "connecting" ? "Connecting…" : "Reconnecting…"}
+        </span>
       </div>
 
       <div className="flex gap-2 mb-4 shrink-0 overflow-x-auto scrollbar-hide">
@@ -155,7 +109,7 @@ export default function POSActiveOrders({ restaurantId, currency }: Props) {
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        {loading ? (
+        {connectionStatus === "connecting" && orders.length === 0 ? (
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="animate-pulse rounded-xl border border-gray-100 bg-gray-100 h-48" />
