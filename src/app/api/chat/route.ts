@@ -86,6 +86,7 @@ export const GET = safeHandler(async (req) => {
   const { searchParams } = new URL(req.url);
   const orderId = searchParams.get("orderId");
   const restaurantId = searchParams.get("restaurantId");
+  const type = searchParams.get("type");
 
   if (orderId) {
     // Customer can access by orderId — no login required
@@ -101,6 +102,19 @@ export const GET = safeHandler(async (req) => {
 
   if (restaurantId) {
     if (!isAuth) return unauthorized();
+
+    // Return or create the single broadcast room for this restaurant
+    if (type === "BROADCAST") {
+      let room = await db.chatRoom.findFirst({
+        where: { restaurantId, type: "BROADCAST" },
+      });
+      if (!room) {
+        room = await db.chatRoom.create({
+          data: { restaurantId, type: "BROADCAST" },
+        });
+      }
+      return NextResponse.json(room);
+    }
 
     // Staff/owner: list all active chat rooms (customer + table chats)
     const rooms = await db.chatRoom.findMany({

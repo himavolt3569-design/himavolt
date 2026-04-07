@@ -117,11 +117,14 @@ export default function GlobalChatButton({
     const es = new EventSource(`/api/chat/${roomId}/stream`, { withCredentials: true });
     es.onmessage = (ev) => {
       try {
-        const msg: ChatMessage = JSON.parse(ev.data);
+        const incoming: ChatMessage[] = JSON.parse(ev.data);
+        if (!Array.isArray(incoming) || incoming.length === 0) return;
         setBroadcastMsgs((prev) => {
-          if (prev.some((m) => m.id === msg.id)) return prev;
-          if (!open) setUnreadCount((c) => c + 1);
-          return [...prev, msg];
+          const existingIds = new Set(prev.map((m) => m.id));
+          const unique = incoming.filter((m) => !existingIds.has(m.id));
+          if (unique.length === 0) return prev;
+          if (!open) setUnreadCount((c) => c + unique.length);
+          return [...prev, ...unique];
         });
         setTimeout(() => broadcastEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
       } catch { /* ignore */ }
@@ -138,8 +141,14 @@ export default function GlobalChatButton({
     const es = new EventSource(`/api/chat/${roomId}/stream`, { withCredentials: true });
     es.onmessage = (ev) => {
       try {
-        const msg: ChatMessage = JSON.parse(ev.data);
-        setMessages((prev) => prev.some((m) => m.id === msg.id) ? prev : [...prev, msg]);
+        const incoming: ChatMessage[] = JSON.parse(ev.data);
+        if (!Array.isArray(incoming) || incoming.length === 0) return;
+        setMessages((prev) => {
+          const existingIds = new Set(prev.map((m) => m.id));
+          const unique = incoming.filter((m) => !existingIds.has(m.id));
+          if (unique.length === 0) return prev;
+          return [...prev, ...unique];
+        });
         setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
       } catch { /* ignore */ }
     };
