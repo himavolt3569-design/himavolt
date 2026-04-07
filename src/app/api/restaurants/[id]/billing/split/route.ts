@@ -134,11 +134,10 @@ export async function POST(
       data: { paidVia: `SPLIT: ${splitDescription}` },
     });
 
-    // Auto-clear table session
-    await db.tableSession.updateMany({
-      where: { orderId, isActive: true },
-      data: { isActive: false, endedAt: new Date() },
-    });
+    // Auto-clear table session — catch schema drift errors
+    db.tableSession
+      .updateMany({ where: { orderId, isActive: true }, data: { isActive: false } })
+      .catch(() => {});
 
     logAudit({
       action: "PAYMENT_COLLECTED",

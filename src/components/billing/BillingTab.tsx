@@ -46,6 +46,8 @@ interface BillOrder {
   total: number;
   note: string | null;
   type: string;
+  deliveryFee: number;
+  deliveryAddress: string | null;
   createdAt: string;
   deliveredAt: string | null;
   items: {
@@ -83,9 +85,12 @@ interface DailySummary {
   unpaidOrders: number;
   totalRevenue: number;
   cashRevenue: number;
+  digitalRevenue: number;
+  counterRevenue: number;
   onlineRevenue: number;
   pendingAmount: number;
   totalDiscount: number;
+  byMethod?: Record<string, number>;
 }
 
 interface BillingTabProps {
@@ -150,7 +155,14 @@ async function staffFetch(url: string, opts?: RequestInit) {
     headers: { "Content-Type": "application/json", ...(opts?.headers || {}) },
     credentials: "include",
   });
-  if (!res.ok) throw new Error("Request failed");
+  if (!res.ok) {
+    let msg = "Request failed";
+    try {
+      const body = await res.json();
+      if (body?.error) msg = body.error;
+    } catch { /* ignore */ }
+    throw new Error(msg);
+  }
   return res.json();
 }
 
@@ -211,6 +223,11 @@ export default function BillingTab({
   const [collectTxn, setCollectTxn] = useState("");
   const [discountAmount, setDiscountAmount] = useState("");
   const [discountReason, setDiscountReason] = useState("");
+  const [showSplit, setShowSplit] = useState(false);
+  const [splitEntries, setSplitEntries] = useState<{ method: string; amount: string }[]>([
+    { method: "CASH", amount: "" },
+    { method: "ESEWA", amount: "" },
+  ]);
   const [actionLoading, setActionLoading] = useState(false);
   const [clearingOrderId, setClearingOrderId] = useState<string | null>(null);
   const knownOrderIds = useRef<Set<string>>(new Set());
@@ -338,6 +355,43 @@ export default function BillingTab({
     setActionLoading(false);
   };
 
+  const handleSplitPayment = async () => {
+    if (!selectedOrder) return;
+    const billTotal = selectedOrder.bill?.total ?? selectedOrder.total;
+    const active = splitEntries.filter((e) => e.method && parseFloat(e.amount) > 0);
+    if (active.length < 2) {
+      showToast("Enter at least 2 payment methods with amounts", "error");
+      return;
+    }
+    const splitTotal = active.reduce((s, e) => s + parseFloat(e.amount), 0);
+    if (Math.abs(splitTotal - billTotal) > 1) {
+      showToast(
+        `Split total (${formatPrice(splitTotal, cur)}) must equal bill total (${formatPrice(billTotal, cur)})`,
+        "error",
+      );
+      return;
+    }
+    setActionLoading(true);
+    try {
+      await staffFetch(`/api/restaurants/${restaurantId}/billing/split`, {
+        method: "POST",
+        body: JSON.stringify({
+          orderId: selectedOrder.id,
+          splits: active.map((e) => ({ method: e.method, amount: parseFloat(e.amount) })),
+        }),
+      });
+      showToast(`Split payment collected for Order #${selectedOrder.orderNo}`, "success");
+      setShowSplit(false);
+      setSelectedOrder(null);
+      setSplitEntries([{ method: "CASH", amount: "" }, { method: "ESEWA", amount: "" }]);
+      loadOrders();
+      loadSummary();
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Failed to process split payment", "error");
+    }
+    setActionLoading(false);
+  };
+
   const handleClearTable = async (order: BillOrder) => {
     if (!order.tableNo) return;
     setClearingOrderId(order.id);
@@ -402,6 +456,7 @@ export default function BillingTab({
             icon={DollarSign}
             color="text-blue-600"
             bg="bg-blue-50"
+            sub={summary.counterRevenue > 0 ? `+${formatPrice(summary.counterRevenue, cur)} counter` : undefined}
           />
           <SummaryCard
             label="Pending"
@@ -435,10 +490,10 @@ export default function BillingTab({
             <AlertCircle className="h-3 w-3 text-orange-500" />
             {summary.unpaidOrders} unpaid
           </span>
-          {summary.onlineRevenue > 0 && (
+          {summary.digitalRevenue > 0 && (
             <span className="flex items-center gap-1">
               <Wallet className="h-3 w-3 text-purple-500" />
-              {formatPrice(summary.onlineRevenue, cur)} online
+              {formatPrice(summary.digitalRevenue, cur)} digital
             </span>
           )}
         </div>
@@ -740,6 +795,14 @@ export default function BillingTab({
                   </span>
                 </div>
               )}
+              {order.deliveryFee > 0 && (
+                <div className="flex justify-between text-xs">
+                  <span className="text-gray-500">Delivery Fee</span>
+                  <span className="font-medium">
+                    {formatPrice(order.deliveryFee, cur)}
+                  </span>
+                </div>
+              )}
               {order.bill && order.bill.discount > 0 && (
                 <div className="flex justify-between text-xs">
                   <span className="text-pink-600">Discount</span>
@@ -820,17 +883,36 @@ export default function BillingTab({
                 {!isPaid(order) &&
                   order.status !== "CANCELLED" &&
                   order.status !== "REJECTED" && (
-                    <button
-                      onClick={() => {
-                        setSelectedOrder(order);
-                        setCollectMethod(order.payment?.method || "CASH");
-                        setShowCollect(true);
-                      }}
-                      className="flex items-center gap-1 rounded-lg bg-emerald-500 px-3 py-1.5 text-[10px] font-bold text-white hover:bg-emerald-600 transition-all shadow-sm"
-                    >
-                      <CreditCard className="h-3 w-3" />
-                      Mark Paid
-                    </button>
+                    <>
+                      <button
+                        onClick={() => {
+                          setSelectedOrder(order);
+                          setCollectMethod(order.payment?.method || "CASH");
+                          setShowCollect(true);
+                        }}
+                        className="flex items-center gap-1 rounded-lg bg-emerald-500 px-3 py-1.5 text-[10px] font-bold text-white hover:bg-emerald-600 transition-all shadow-sm"
+                      >
+                        <CreditCard className="h-3 w-3" />
+                        Mark Paid
+                      </button>
+                      {canDiscount && (
+                        <button
+                          onClick={() => {
+                            setSelectedOrder(order);
+                            const billTotal = order.bill?.total ?? order.total;
+                            setSplitEntries([
+                              { method: "CASH", amount: (Math.round(billTotal / 2)).toString() },
+                              { method: "ESEWA", amount: (billTotal - Math.round(billTotal / 2)).toString() },
+                            ]);
+                            setShowSplit(true);
+                          }}
+                          className="flex items-center gap-1 rounded-lg bg-indigo-50 border border-indigo-100 px-2.5 py-1.5 text-[10px] font-bold text-indigo-700 hover:bg-indigo-100 transition-all"
+                        >
+                          <Wallet className="h-3 w-3" />
+                          Split
+                        </button>
+                      )}
+                    </>
                   )}
 
                 {/* Clear Table — for dine-in orders that are paid or delivered */}
@@ -924,6 +1006,12 @@ export default function BillingTab({
                     <span>
                       {formatPrice(selectedOrder.bill.serviceCharge, cur)}
                     </span>
+                  </div>
+                )}
+                {selectedOrder.deliveryFee > 0 && (
+                  <div className="flex justify-between text-xs">
+                    <span className="text-gray-500">Delivery Fee</span>
+                    <span>{formatPrice(selectedOrder.deliveryFee, cur)}</span>
                   </div>
                 )}
                 {selectedOrder.bill && selectedOrder.bill.discount > 0 && (
@@ -1127,10 +1215,10 @@ export default function BillingTab({
                     <span className="font-extrabold text-[#3e1e0c]">
                       {formatPrice(Math.max(
                         0,
-                        (selectedOrder.bill?.subtotal ??
-                          selectedOrder.subtotal) +
+                        (selectedOrder.bill?.subtotal ?? selectedOrder.subtotal) +
                           (selectedOrder.bill?.tax ?? selectedOrder.tax) +
-                          (selectedOrder.bill?.serviceCharge ?? 0) -
+                          (selectedOrder.bill?.serviceCharge ?? 0) +
+                          (selectedOrder.deliveryFee ?? 0) -
                           parseFloat(discountAmount),
                       ), cur)}
                     </span>
@@ -1169,6 +1257,129 @@ export default function BillingTab({
           </div>
         )}
       </AnimatePresence>
+
+      {/* Split Payment Modal */}
+      <AnimatePresence>
+        {showSplit && selectedOrder && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl"
+            >
+              <div className="flex items-center justify-between mb-5">
+                <div>
+                  <h2 className="text-lg font-extrabold text-[#3e1e0c]">Split Payment</h2>
+                  <p className="text-xs text-gray-400">Order #{selectedOrder.orderNo}</p>
+                </div>
+                <button
+                  onClick={() => { setShowSplit(false); setSelectedOrder(null); }}
+                  className="rounded-full bg-gray-100 p-2 text-gray-500 hover:bg-gray-200"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="rounded-2xl bg-gray-50 p-3 mb-4 flex justify-between text-sm">
+                <span className="text-gray-500 font-medium">Bill Total</span>
+                <span className="font-extrabold text-[#3e1e0c]">
+                  {formatPrice(selectedOrder.bill?.total ?? selectedOrder.total, cur)}
+                </span>
+              </div>
+
+              <div className="space-y-3 mb-4">
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                  Payment Splits
+                </p>
+                {splitEntries.map((entry, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <select
+                      value={entry.method}
+                      onChange={(e) => {
+                        const updated = [...splitEntries];
+                        updated[i] = { ...updated[i], method: e.target.value };
+                        setSplitEntries(updated);
+                      }}
+                      className="rounded-xl border border-gray-200 px-3 py-2.5 text-xs font-bold text-[#3e1e0c] outline-none focus:border-indigo-400 transition-all"
+                    >
+                      {(["CASH", "ESEWA", "KHALTI", "BANK", "COUNTER", "DIRECT"] as const).map((m) => (
+                        <option key={m} value={m}>{paymentMethodLabel(m)}</option>
+                      ))}
+                    </select>
+                    <input
+                      type="number"
+                      min="0"
+                      value={entry.amount}
+                      onChange={(e) => {
+                        const updated = [...splitEntries];
+                        updated[i] = { ...updated[i], amount: e.target.value };
+                        setSplitEntries(updated);
+                      }}
+                      placeholder="Amount"
+                      className="flex-1 rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
+                    />
+                    {splitEntries.length > 2 && (
+                      <button
+                        onClick={() => setSplitEntries(splitEntries.filter((_, idx) => idx !== i))}
+                        className="rounded-lg bg-red-50 p-2 text-red-500 hover:bg-red-100 transition-all"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+                {splitEntries.length < 4 && (
+                  <button
+                    onClick={() => setSplitEntries([...splitEntries, { method: "BANK", amount: "" }])}
+                    className="text-xs font-bold text-indigo-600 hover:text-indigo-800 transition-colors"
+                  >
+                    + Add another method
+                  </button>
+                )}
+              </div>
+
+              {/* Running total */}
+              {(() => {
+                const billTotal = selectedOrder.bill?.total ?? selectedOrder.total;
+                const entered = splitEntries.reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
+                const remaining = billTotal - entered;
+                return (
+                  <div className={`rounded-xl p-3 mb-5 border text-sm flex justify-between ${
+                    Math.abs(remaining) <= 1 ? "bg-emerald-50 border-emerald-100" : "bg-indigo-50 border-indigo-100"
+                  }`}>
+                    <span className={Math.abs(remaining) <= 1 ? "text-emerald-700 font-medium" : "text-indigo-700 font-medium"}>
+                      {Math.abs(remaining) <= 1 ? "Amounts balanced ✓" : `Remaining: ${formatPrice(Math.abs(remaining), cur)} ${remaining > 0 ? "unallocated" : "over"}`}
+                    </span>
+                    <span className="font-extrabold text-[#3e1e0c]">{formatPrice(entered, cur)}</span>
+                  </div>
+                );
+              })()}
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => { setShowSplit(false); setSelectedOrder(null); }}
+                  className="flex-1 rounded-xl border border-gray-200 py-3 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSplitPayment}
+                  disabled={actionLoading}
+                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-indigo-500 py-3 text-sm font-bold text-white hover:bg-indigo-600 disabled:bg-gray-300 transition-all shadow-sm"
+                >
+                  {actionLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Wallet className="h-4 w-4" />
+                  )}
+                  {actionLoading ? "Processing..." : "Confirm Split"}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -1182,6 +1393,7 @@ function SummaryCard({
   color,
   bg,
   highlight,
+  sub,
 }: {
   label: string;
   value: string;
@@ -1189,6 +1401,7 @@ function SummaryCard({
   color: string;
   bg: string;
   highlight?: boolean;
+  sub?: string;
 }) {
   return (
     <motion.div
@@ -1205,6 +1418,7 @@ function SummaryCard({
             {label}
           </span>
           <p className="text-xl font-black text-gray-900 tracking-tight">{value}</p>
+          {sub && <p className="text-[10px] text-gray-400 mt-0.5">{sub}</p>}
         </div>
         <div
           className={`flex h-9 w-9 items-center justify-center rounded-xl shadow-sm border border-black/5 ${bg}`}

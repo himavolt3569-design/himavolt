@@ -107,14 +107,19 @@ export async function applyDiscount(
   discountAmount: number,
   reason?: string,
 ) {
-  const bill = await db.bill.findUnique({ where: { orderId } });
+  const [bill, order] = await Promise.all([
+    db.bill.findUnique({ where: { orderId } }),
+    db.order.findUnique({ where: { id: orderId }, select: { deliveryFee: true } }),
+  ]);
   if (!bill) throw new Error("Bill not found");
 
+  const deliveryFee = order?.deliveryFee ?? 0;
+  // Discount only applies to food charges (subtotal + tax + service charge), not delivery fee
   const maxDiscount = bill.subtotal + bill.tax + bill.serviceCharge;
   const safeDiscount = Math.min(Math.max(0, discountAmount), maxDiscount);
   const newTotal =
     Math.round(
-      (bill.subtotal + bill.tax + bill.serviceCharge - safeDiscount) * 100,
+      (bill.subtotal + bill.tax + bill.serviceCharge + deliveryFee - safeDiscount) * 100,
     ) / 100;
 
   const updated = await db.bill.update({
@@ -145,6 +150,11 @@ export async function collectPayment(
   });
 
   if (!order) throw new Error("Order not found");
+
+  // Idempotency: if already paid, return the existing payment instead of creating a duplicate
+  if (order.payment?.status === "COMPLETED") {
+    return order.payment;
+  }
 
   // Use bill total if available (includes service charge), otherwise order total
   const amount = order.bill?.total ?? order.total;
@@ -277,17 +287,30 @@ export async function getDailySummary(restaurantId: string) {
     .filter((o) => o.payment?.status === "COMPLETED")
     .reduce((sum, o) => sum + (o.bill?.total ?? o.total), 0);
 
+  const CASH_METHODS = ["CASH"];
+  const DIGITAL_METHODS = ["ESEWA", "KHALTI"];
+  const COUNTER_METHODS = ["COUNTER", "DIRECT", "BANK"];
+
   const cashRevenue = orders
     .filter(
-      (o) => o.payment?.status === "COMPLETED" && o.payment.method === "CASH",
+      (o) => o.payment?.status === "COMPLETED" && CASH_METHODS.includes(o.payment.method),
     )
     .reduce((sum, o) => sum + (o.bill?.total ?? o.total), 0);
 
-  const onlineRevenue = orders
+  const digitalRevenue = orders
     .filter(
-      (o) => o.payment?.status === "COMPLETED" && o.payment.method !== "CASH",
+      (o) => o.payment?.status === "COMPLETED" && DIGITAL_METHODS.includes(o.payment.method),
     )
     .reduce((sum, o) => sum + (o.bill?.total ?? o.total), 0);
+
+  const counterRevenue = orders
+    .filter(
+      (o) => o.payment?.status === "COMPLETED" && COUNTER_METHODS.includes(o.payment.method),
+    )
+    .reduce((sum, o) => sum + (o.bill?.total ?? o.total), 0);
+
+  // onlineRevenue = digital (eSewa/Khalti) for backward compat
+  const onlineRevenue = digitalRevenue;
 
   const pendingAmount = orders
     .filter((o) => !o.payment || o.payment.status !== "COMPLETED")
@@ -298,6 +321,15 @@ export async function getDailySummary(restaurantId: string) {
     .filter((o) => o.bill)
     .reduce((sum, o) => sum + (o.bill?.discount ?? 0), 0);
 
+  // Per-method breakdown
+  const byMethod: Record<string, number> = {};
+  for (const o of orders) {
+    if (o.payment?.status === "COMPLETED") {
+      const m = o.payment.method;
+      byMethod[m] = (byMethod[m] ?? 0) + (o.bill?.total ?? o.total);
+    }
+  }
+
   return {
     totalOrders,
     completedOrders,
@@ -305,8 +337,13 @@ export async function getDailySummary(restaurantId: string) {
     unpaidOrders,
     totalRevenue: Math.round(totalRevenue * 100) / 100,
     cashRevenue: Math.round(cashRevenue * 100) / 100,
+    digitalRevenue: Math.round(digitalRevenue * 100) / 100,
+    counterRevenue: Math.round(counterRevenue * 100) / 100,
     onlineRevenue: Math.round(onlineRevenue * 100) / 100,
     pendingAmount: Math.round(pendingAmount * 100) / 100,
     totalDiscount: Math.round(totalDiscount * 100) / 100,
+    byMethod: Object.fromEntries(
+      Object.entries(byMethod).map(([k, v]) => [k, Math.round(v * 100) / 100])
+    ),
   };
 }

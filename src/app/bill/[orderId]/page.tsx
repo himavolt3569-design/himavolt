@@ -60,6 +60,8 @@ interface BillData {
     status: string;
     type: string;
     note: string | null;
+    deliveryFee: number;
+    deliveryAddress: string | null;
     createdAt: string;
     deliveredAt: string | null;
     items: BillItem[];
@@ -468,6 +470,14 @@ export default function BillPage() {
                 <span className="text-gray-500">Service Charge</span>
                 <span className="font-medium text-[#3e1e0c]">
                   {formatPrice(bill.serviceCharge, cur)}
+                </span>
+              </div>
+            )}
+            {order.deliveryFee > 0 && (
+              <div className="flex justify-between text-[13px]">
+                <span className="text-gray-500">Delivery Fee</span>
+                <span className="font-medium text-[#3e1e0c]">
+                  {formatPrice(order.deliveryFee, cur)}
                 </span>
               </div>
             )}
