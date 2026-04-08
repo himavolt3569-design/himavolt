@@ -73,6 +73,7 @@ import QRCodesTab from "@/components/dashboard/QRCodesTab";
 import MenuManagementTab from "@/components/dashboard/MenuManagementTab";
 import ReportsTab from "@/components/dashboard/ReportsTab";
 import StaffManagementTab from "@/components/dashboard/StaffManagementTab";
+import ShiftsTab from "@/components/dashboard/ShiftsTab";
 import ChatTab from "@/components/dashboard/ChatTab";
 import BillingTab from "@/components/billing/BillingTab";
 import StoryManager from "@/components/stories/StoryManager";
@@ -156,6 +157,7 @@ type DashTab =
   | "rooms"
   | "tables"
   | "owner-control"
+  | "shifts"
   | FeatureTabId;
 
 const NAV_MAIN: {
@@ -177,6 +179,7 @@ const NAV_MANAGE: typeof NAV_MAIN = [
   { id: "menu", label: "Menu", icon: UtensilsCrossed },
   { id: "drinks" as DashTab, label: "Drinks", icon: Package },
   { id: "staff", label: "Staff", icon: UsersRound },
+  { id: "shifts" as DashTab, label: "Shifts", icon: Clock },
   { id: "qr", label: "QR Codes", icon: QrCode },
   { id: "payment-qr", label: "Payment QR", icon: Wallet },
   { id: "payment-settings", label: "Payment Settings", icon: Settings },
@@ -1600,6 +1603,7 @@ export default function DashboardPage() {
               {activeTab === "menu" && <MenuManagementTab />}
               {activeTab === "drinks" && <DrinksTab />}
               {activeTab === "staff" && <StaffManagementTab />}
+              {activeTab === "shifts" && <ShiftsTab />}
               {activeTab === "qr" && <QRCodesTab />}
               {activeTab === "payment-qr" && <PaymentQRTab />}
               {activeTab === "payment-settings" && <PaymentSettingsTab />}

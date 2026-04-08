@@ -25,6 +25,8 @@ export async function PATCH(
   if (body.role !== undefined) data.role = body.role;
   if (body.pin !== undefined) data.pin = body.pin;
   if (body.isActive !== undefined) data.isActive = body.isActive;
+  // staffType is Owner-only — this route already enforces owner auth
+  if (body.staffType !== undefined) data.staffType = body.staffType;
 
   const member = await db.staffMember.update({
     where: { id: staffId },

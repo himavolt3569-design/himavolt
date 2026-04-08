@@ -210,6 +210,7 @@ function StaffCard({
   const [editingPin, setEditingPin] = useState(false);
   const [newPin, setNewPin] = useState("");
   const [savingPin, setSavingPin] = useState(false);
+  const [savingType, setSavingType] = useState(false);
   const { fetchRestaurants } = useRestaurant();
 
   const handleSavePin = async () => {
@@ -225,6 +226,21 @@ function StaffCard({
       setNewPin("");
     } finally {
       setSavingPin(false);
+    }
+  };
+
+  const handleSetStaffType = async (newType: "FULL_TIME" | "SHIFT_BASED") => {
+    if (newType === member.staffType) return;
+    setSavingType(true);
+    try {
+      await apiFetch(`/api/restaurants/${restaurant.id}/staff/${member.id}`, {
+        method: "PATCH",
+        body: { staffType: newType },
+      });
+      await fetchRestaurants();
+      onRoleUpdated();
+    } finally {
+      setSavingType(false);
     }
   };
 
@@ -287,6 +303,43 @@ function StaffCard({
             restaurantId={restaurant.id}
             onUpdated={onRoleUpdated}
           />
+        </div>
+
+        {/* Staff type classification — Owner-only */}
+        <div className="mt-2.5 flex items-center gap-2 flex-wrap">
+          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Type:</span>
+          <div className="flex items-center gap-1 rounded-lg bg-gray-100 p-0.5">
+            <button
+              onClick={() => handleSetStaffType("SHIFT_BASED")}
+              disabled={savingType}
+              title="Shift-Based: operates within defined time windows"
+              className={`rounded-md px-2.5 py-1 text-[10px] font-bold transition-all ${
+                (member.staffType ?? "SHIFT_BASED") === "SHIFT_BASED"
+                  ? "bg-white text-amber-700 shadow-sm"
+                  : "text-gray-400 hover:text-gray-600"
+              }`}
+            >
+              {savingType && (member.staffType ?? "SHIFT_BASED") !== "SHIFT_BASED" ? (
+                <Loader2 className="h-3 w-3 animate-spin inline" />
+              ) : null}{" "}
+              Shift-Based
+            </button>
+            <button
+              onClick={() => handleSetStaffType("FULL_TIME")}
+              disabled={savingType}
+              title="Full-Time: always active, attributed by who processed the order"
+              className={`rounded-md px-2.5 py-1 text-[10px] font-bold transition-all ${
+                member.staffType === "FULL_TIME"
+                  ? "bg-white text-indigo-700 shadow-sm"
+                  : "text-gray-400 hover:text-gray-600"
+              }`}
+            >
+              {savingType && member.staffType !== "FULL_TIME" ? (
+                <Loader2 className="h-3 w-3 animate-spin inline" />
+              ) : null}{" "}
+              Full-Time
+            </button>
+          </div>
         </div>
 
         <div className="mt-3 border-t border-gray-50" />

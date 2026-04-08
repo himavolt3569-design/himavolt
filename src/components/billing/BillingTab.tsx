@@ -122,6 +122,17 @@ function paymentMethodLabel(method: string) {
   return map[method] || method;
 }
 
+function buildPaymentToast(order: BillOrder): string {
+  const location = order.tableNo
+    ? `Table ${order.tableNo}`
+    : order.roomNo
+      ? `Room ${order.roomNo}`
+      : order.user?.name ?? "Guest";
+  const total = order.bill?.total ?? order.total;
+  const method = order.payment ? paymentMethodLabel(order.payment.method) : "Unknown";
+  return `Payment confirmed — Order #${order.orderNo} · ${location} · ${order.items.length} item${order.items.length !== 1 ? "s" : ""} · ${total.toFixed(2)} via ${method}`;
+}
+
 function paymentMethodDesc(method: string) {
   const map: Record<string, string> = {
     COUNTER: "Staff records cash payment",
@@ -232,8 +243,12 @@ export default function BillingTab({
   const [actionLoading, setActionLoading] = useState(false);
   const [clearingOrderId, setClearingOrderId] = useState<string | null>(null);
   const knownOrderIds = useRef<Set<string>>(new Set());
+  const knownPaymentStatuses = useRef<Map<string, string>>(new Map());
   const isFirstSSE = useRef(true);
-  const { data: streamData } = useSSE<{ type: string; orders?: { id: string }[] }>(
+  const { data: streamData } = useSSE<{
+    type: string;
+    orders?: { id: string; payment?: { method: string; status: string } | null }[];
+  }>(
     restaurantId ? `/api/restaurants/${restaurantId}/orders/stream` : null,
   );
 
@@ -285,6 +300,7 @@ export default function BillingTab({
     loadSummary();
     isFirstSSE.current = true;
     knownOrderIds.current = new Set();
+    knownPaymentStatuses.current = new Map();
     staffFetch(`/api/restaurants/${restaurantId}/tax-config`)
       .then(
         (cfg: {
@@ -302,21 +318,58 @@ export default function BillingTab({
       .catch(() => {});
   }, [restaurantId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // SSE-triggered refresh: play alert and reload when new orders arrive
+  // SSE-triggered refresh: alert on new orders AND payment confirmations
   useEffect(() => {
     if (!streamData || streamData.type !== "orders" || !streamData.orders) return;
     const incoming = streamData.orders;
-    if (!isFirstSSE.current) {
-      const hasNew = incoming.some((o) => !knownOrderIds.current.has(o.id));
-      if (hasNew) {
-        playBillingAlert();
-        loadOrders();
-        loadSummary();
-      }
+
+    if (isFirstSSE.current) {
+      // Seed known state on first snapshot — no alerts
+      knownOrderIds.current = new Set(incoming.map((o) => o.id));
+      incoming.forEach((o) => {
+        if (o.payment?.status) knownPaymentStatuses.current.set(o.id, o.payment.status);
+      });
+      isFirstSSE.current = false;
+      return;
     }
-    isFirstSSE.current = false;
+
+    let needsRefresh = false;
+
+    for (const o of incoming) {
+      // Detect new orders
+      if (!knownOrderIds.current.has(o.id)) {
+        needsRefresh = true;
+        playBillingAlert();
+      }
+
+      // Detect PENDING → COMPLETED payment transitions
+      const prev = knownPaymentStatuses.current.get(o.id);
+      const curr = o.payment?.status ?? null;
+      if (prev !== undefined && prev !== "COMPLETED" && curr === "COMPLETED") {
+        needsRefresh = true;
+        playBillingAlert();
+        // Look up full order details from local state for rich toast
+        setOrders((currentOrders) => {
+          const fullOrder = currentOrders.find((ord) => ord.id === o.id);
+          showToast(
+            fullOrder ? buildPaymentToast(fullOrder) : "Payment confirmed for a recent order",
+            "success",
+          );
+          return currentOrders; // no mutation
+        });
+      }
+
+      // Update known statuses
+      if (curr) knownPaymentStatuses.current.set(o.id, curr);
+    }
+
     knownOrderIds.current = new Set(incoming.map((o) => o.id));
-  }, [streamData, loadOrders, loadSummary]);
+
+    if (needsRefresh) {
+      loadOrders();
+      loadSummary();
+    }
+  }, [streamData, loadOrders, loadSummary, showToast]);
 
   const handleCollectPayment = async () => {
     if (!selectedOrder) return;

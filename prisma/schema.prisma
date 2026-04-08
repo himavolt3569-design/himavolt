@@ -127,6 +127,7 @@ model Restaurant {
   rushHourConfig       RushHourConfig?
   displayCounterItems  DisplayCounterItem[]
   displayCounterConfig DisplayCounterConfig?
+  shifts               Shift[]
 
   @@index([ownerId])
   @@index([slug])
@@ -237,6 +238,7 @@ model StaffMember {
   id        String    @id @default(cuid())
   pin       String
   role      StaffRole
+  staffType StaffType @default(SHIFT_BASED)
   isActive  Boolean   @default(true)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -246,9 +248,11 @@ model StaffMember {
   restaurantId String
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
 
-  attendance StaffAttendance[]
-  stories    Story[]
-  media      Media[]
+  attendance      StaffAttendance[]
+  stories         Story[]
+  media           Media[]
+  shifts          Shift[]
+  processedOrders Order[] @relation("ProcessedOrders")
 
   @@unique([userId, restaurantId])
   @@index([restaurantId])
@@ -270,12 +274,37 @@ model StaffAttendance {
   @@map("staff_attendance")
 }
 
+model Shift {
+  id            String    @id @default(cuid())
+  label         String?
+  date          DateTime  @db.Date
+  startTime     String    // "HH:mm" 24-hour format
+  endTime       String    // "HH:mm" 24-hour format
+  actualEndTime DateTime? // set when staff clocks out early
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  staffId      String
+  staff        StaffMember @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  restaurantId String
+  restaurant   Restaurant  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@index([restaurantId, date])
+  @@index([staffId])
+  @@map("shifts")
+}
+
 enum StaffRole {
   SUPER_ADMIN
   MANAGER
   CHEF
   WAITER
   CASHIER
+}
+
+enum StaffType {
+  FULL_TIME
+  SHIFT_BASED
 }
 
 // ─── Menu ──────────────────────────────────────────────────────────
@@ -412,9 +441,13 @@ model Order {
   deliveryFee     Float   @default(0)
 
   userId       String?
-  user         User?      @relation(fields: [userId], references: [id])
+  user         User?       @relation(fields: [userId], references: [id])
   restaurantId String
-  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  restaurant   Restaurant  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  // Staff who processed/created this order (set from JWT session)
+  processedByStaffId String?
+  processedByStaff   StaffMember? @relation("ProcessedOrders", fields: [processedByStaffId], references: [id], onDelete: SetNull)
 
   // Prepaid flow
   isPrepaid      Boolean  @default(false) // order requires payment before processing
@@ -441,6 +474,7 @@ model Order {
   @@index([userId])
   @@index([status])
   @@index([createdAt])
+  @@index([processedByStaffId])
   @@map("orders")
 }
 

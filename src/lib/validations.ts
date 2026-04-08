@@ -210,3 +210,20 @@ export const staffLoginSchema = z.object({
     .length(4, "PIN must be 4 digits")
     .regex(/^\d{4}$/, "PIN must be numeric"),
 });
+
+export const createShiftSchema = z.object({
+  staffId: z.string().min(1, "Staff member is required"),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be YYYY-MM-DD"),
+  startTime: z.string().regex(/^\d{2}:\d{2}$/, "Start time must be HH:mm"),
+  endTime: z.string().regex(/^\d{2}:\d{2}$/, "End time must be HH:mm"),
+  label: z.string().max(80).optional(),
+});
+export type CreateShiftInput = z.infer<typeof createShiftSchema>;
+
+export const updateShiftSchema = z.object({
+  startTime: z.string().regex(/^\d{2}:\d{2}$/, "Must be HH:mm").optional(),
+  endTime: z.string().regex(/^\d{2}:\d{2}$/, "Must be HH:mm").optional(),
+  label: z.string().max(80).optional(),
+  actualEndTime: z.string().datetime().optional(),
+});
+export type UpdateShiftInput = z.infer<typeof updateShiftSchema>;

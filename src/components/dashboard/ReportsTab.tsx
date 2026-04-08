@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   TrendingUp,
   ShoppingBag,
@@ -13,6 +13,11 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Loader2,
+  Clock,
+  ChevronDown,
+  ChevronRight,
+  Users,
+  Receipt,
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { useLiveOrders } from "@/context/LiveOrdersContext";
@@ -29,6 +34,168 @@ interface FinancialData {
   totalOrders: number;
 }
 
+interface ShiftOrderSummary {
+  id: string;
+  orderNo: string;
+  total: number;
+  createdAt: string;
+  payment: { method: string; status: string; amount: number } | null;
+  bill: { total: number } | null;
+  items: { name: string; quantity: number }[];
+}
+
+interface FullTimeResult {
+  staff: { id: string; staffType: string; user: { name: string } };
+  orderCount: number;
+  revenue: number;
+  orders: ShiftOrderSummary[];
+}
+
+interface ShiftResult {
+  shift: {
+    id: string;
+    label: string | null;
+    startTime: string;
+    endTime: string;
+    actualEndTime: string | null;
+  };
+  staff: { id: string; staffType: string; user: { name: string } };
+  orderCount: number;
+  revenue: number;
+  orders: ShiftOrderSummary[];
+}
+
+interface ShiftReportData {
+  date: string;
+  fullTimeStaff: FullTimeResult[];
+  shifts: ShiftResult[];
+  unassigned: { orderCount: number; revenue: number; orders: ShiftOrderSummary[] };
+  totalRevenue: number;
+  totalOrders: number;
+}
+
+const PAYMENT_METHOD_LABELS: Record<string, string> = {
+  ESEWA: "eSewa",
+  KHALTI: "Khalti",
+  BANK: "Bank Transfer",
+  CASH: "Cash",
+  COUNTER: "Manual Pay",
+  DIRECT: "Direct Pay",
+};
+
+function ShiftCard({
+  id,
+  label,
+  labelColor,
+  staffName,
+  timeRange,
+  orderCount,
+  revenue,
+  orders,
+  cur,
+  expanded,
+  onToggle,
+}: {
+  id: string;
+  label: string;
+  labelColor: string;
+  staffName: string;
+  timeRange: string;
+  orderCount: number;
+  revenue: number;
+  orders: ShiftOrderSummary[];
+  cur: string;
+  expanded: boolean;
+  onToggle: (id: string) => void;
+}) {
+  return (
+    <div className="rounded-2xl bg-white/70 backdrop-blur-md border border-gray-100/50 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] overflow-hidden">
+      <button
+        onClick={() => onToggle(id)}
+        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-gray-50/50 transition-colors"
+      >
+        <div className="flex items-center gap-3 flex-wrap">
+          <span className={`rounded-lg px-2 py-0.5 text-[10px] font-bold ${labelColor}`}>
+            {label}
+          </span>
+          <span className="text-sm font-extrabold text-gray-800">{staffName}</span>
+          <span className="flex items-center gap-1 text-xs text-gray-400 font-medium">
+            <Clock className="h-3 w-3" />
+            {timeRange}
+          </span>
+        </div>
+        <div className="flex items-center gap-4 shrink-0">
+          <div className="text-right">
+            <p className="text-xs text-gray-400 font-medium">{orderCount} order{orderCount !== 1 ? "s" : ""}</p>
+            <p className="text-sm font-black text-[#3e1e0c]">{formatPrice(revenue, cur)}</p>
+          </div>
+          {expanded ? (
+            <ChevronDown className="h-4 w-4 text-gray-400" />
+          ) : (
+            <ChevronRight className="h-4 w-4 text-gray-400" />
+          )}
+        </div>
+      </button>
+
+      <AnimatePresence>
+        {expanded && orders.length > 0 && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="overflow-hidden"
+          >
+            <div className="border-t border-gray-100 px-5 py-3 space-y-2">
+              {orders.map((o) => (
+                <div
+                  key={o.id}
+                  className="flex items-center justify-between text-xs py-1.5 border-b border-gray-50 last:border-0"
+                >
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-bold text-gray-700">#{o.orderNo}</span>
+                    <span className="text-gray-400">
+                      {new Date(o.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    </span>
+                    <span className="text-gray-400">{o.items.length} item{o.items.length !== 1 ? "s" : ""}</span>
+                    {o.payment && (
+                      <span className={`rounded px-1.5 py-0.5 font-bold ${
+                        o.payment.status === "COMPLETED"
+                          ? "bg-emerald-50 text-emerald-700"
+                          : "bg-orange-50 text-orange-600"
+                      }`}>
+                        {PAYMENT_METHOD_LABELS[o.payment.method] ?? o.payment.method}
+                        {" · "}
+                        {o.payment.status === "COMPLETED" ? "Paid" : "Unpaid"}
+                      </span>
+                    )}
+                  </div>
+                  <span className="font-extrabold text-gray-800 ml-2">
+                    {formatPrice(o.bill?.total ?? o.total, cur)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+        {expanded && orders.length === 0 && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="border-t border-gray-100 px-5 py-4 text-center">
+              <Receipt className="mx-auto h-5 w-5 text-gray-300 mb-1" />
+              <p className="text-xs text-gray-400">No orders during this period</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 export default function ReportsTab() {
   const { selectedRestaurant } = useRestaurant();
   const cur = selectedRestaurant?.currency ?? "NPR";
@@ -36,6 +203,10 @@ export default function ReportsTab() {
 
   const [data, setData] = useState<FinancialData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [shiftDate, setShiftDate] = useState<string>(new Date().toISOString().slice(0, 10));
+  const [shiftReport, setShiftReport] = useState<ShiftReportData | null>(null);
+  const [shiftLoading, setShiftLoading] = useState(false);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const loadFinancials = useCallback(async () => {
     if (!selectedRestaurant) return;
@@ -46,7 +217,20 @@ export default function ReportsTab() {
     setLoading(false);
   }, [selectedRestaurant]);
 
+  const loadShiftReport = useCallback(async () => {
+    if (!selectedRestaurant) return;
+    setShiftLoading(true);
+    try {
+      const res = await apiFetch(
+        `/api/restaurants/${selectedRestaurant.id}/shifts/report?date=${shiftDate}`,
+      );
+      setShiftReport(res as ShiftReportData);
+    } catch { /* ignore */ }
+    setShiftLoading(false);
+  }, [selectedRestaurant, shiftDate]);
+
   useEffect(() => { loadFinancials(); }, [loadFinancials]);
+  useEffect(() => { loadShiftReport(); }, [loadShiftReport]);
 
   if (loading) {
     return (
@@ -180,6 +364,110 @@ export default function ReportsTab() {
       <p className="text-[12px] font-medium text-gray-400 leading-relaxed max-w-2xl bg-gray-100/50 backdrop-blur-sm p-4 rounded-xl border border-gray-200/50">
         <span className="font-bold text-gray-500">Note:</span> Profit is estimated by subtracting total inventory cost from lifetime revenue. This is a simplified overview for quick reference and does not account for operational expenses.
       </p>
+
+      {/* ── Shift Report ───────────────────────────────────────────────── */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <h3 className="text-[13px] font-bold text-gray-400 uppercase tracking-wider">
+            Shift Report
+          </h3>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2">
+              <Calendar className="h-3.5 w-3.5 text-gray-400" />
+              <input
+                type="date"
+                value={shiftDate}
+                onChange={(e) => setShiftDate(e.target.value)}
+                className="text-sm font-medium text-[#3e1e0c] outline-none bg-transparent"
+              />
+            </div>
+            {shiftLoading && <Loader2 className="h-4 w-4 animate-spin text-amber-400" />}
+          </div>
+        </div>
+
+        {/* Full-time staff cards */}
+        {shiftReport && shiftReport.fullTimeStaff.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-[11px] font-bold text-indigo-500 uppercase tracking-wider flex items-center gap-1">
+              <Users className="h-3.5 w-3.5" /> Full-Time Staff
+            </p>
+            {shiftReport.fullTimeStaff.map((ft) => (
+              <ShiftCard
+                key={ft.staff.id}
+                id={`ft-${ft.staff.id}`}
+                label="Full-Time"
+                labelColor="bg-indigo-100 text-indigo-700"
+                staffName={ft.staff.user.name}
+                timeRange="All day"
+                orderCount={ft.orderCount}
+                revenue={ft.revenue}
+                orders={ft.orders}
+                cur={cur}
+                expanded={expandedId === `ft-${ft.staff.id}`}
+                onToggle={(id) => setExpandedId((prev) => (prev === id ? null : id))}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Shift-based cards */}
+        {shiftReport && shiftReport.shifts.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-[11px] font-bold text-amber-500 uppercase tracking-wider flex items-center gap-1">
+              <Clock className="h-3.5 w-3.5" /> Shift-Based Staff
+            </p>
+            {shiftReport.shifts.map((sr) => (
+              <ShiftCard
+                key={sr.shift.id}
+                id={sr.shift.id}
+                label={sr.shift.label ?? "Shift"}
+                labelColor="bg-amber-100 text-amber-700"
+                staffName={sr.staff.user.name}
+                timeRange={`${sr.shift.startTime} – ${sr.shift.actualEndTime
+                  ? new Date(sr.shift.actualEndTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                  : sr.shift.endTime}`}
+                orderCount={sr.orderCount}
+                revenue={sr.revenue}
+                orders={sr.orders}
+                cur={cur}
+                expanded={expandedId === sr.shift.id}
+                onToggle={(id) => setExpandedId((prev) => (prev === id ? null : id))}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Unassigned */}
+        {shiftReport && shiftReport.unassigned.orderCount > 0 && (
+          <ShiftCard
+            id="unassigned"
+            label="Unassigned"
+            labelColor="bg-gray-100 text-gray-600"
+            staffName="No Shift Assigned"
+            timeRange="Outside shift windows"
+            orderCount={shiftReport.unassigned.orderCount}
+            revenue={shiftReport.unassigned.revenue}
+            orders={shiftReport.unassigned.orders}
+            cur={cur}
+            expanded={expandedId === "unassigned"}
+            onToggle={(id) => setExpandedId((prev) => (prev === id ? null : id))}
+          />
+        )}
+
+        {/* Empty state */}
+        {shiftReport &&
+          shiftReport.fullTimeStaff.length === 0 &&
+          shiftReport.shifts.length === 0 &&
+          shiftReport.unassigned.orderCount === 0 && (
+            <div className="rounded-2xl bg-white/70 border border-gray-100 px-4 py-10 text-center">
+              <Clock className="mx-auto h-8 w-8 text-gray-300 mb-2" />
+              <p className="text-sm font-bold text-gray-400">No orders or shifts found for this date</p>
+              <p className="text-xs text-gray-400 mt-1">
+                Go to the Shifts tab to define shifts for your staff.
+              </p>
+            </div>
+          )}
+      </div>
     </div>
   );
 }

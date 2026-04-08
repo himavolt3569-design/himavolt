@@ -80,6 +80,17 @@ export async function POST(
       .updateMany({ where: { orderId, isActive: true }, data: { isActive: false } })
       .catch(() => {});
 
+    // Tag the order with the staff who collected payment (for shift attribution)
+    // Only set if not already attributed (customer-placed orders have null processedByStaffId)
+    if (staff?.staffId) {
+      db.order
+        .updateMany({
+          where: { id: orderId, processedByStaffId: null },
+          data: { processedByStaffId: staff.staffId },
+        })
+        .catch(() => {});
+    }
+
     logAudit({
       action: "PAYMENT_COLLECTED",
       entity: "Payment",

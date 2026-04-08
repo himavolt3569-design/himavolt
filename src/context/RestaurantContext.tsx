@@ -15,6 +15,7 @@ export interface StaffMember {
   id: string;
   pin: string;
   role: string;
+  staffType: string; // "FULL_TIME" | "SHIFT_BASED"
   isActive: boolean;
   createdAt: string;
   userId: string;

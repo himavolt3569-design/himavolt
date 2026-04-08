@@ -330,6 +330,17 @@ export const POST = safeHandler(
       // guest order — no user session
     }
 
+    // Capture which staff member created this order (for shift attribution)
+    let processedByStaffId: string | null = null;
+    try {
+      const staffSession = await getStaffSession(req);
+      if (staffSession?.restaurantId === id) {
+        processedByStaffId = staffSession.staffId;
+      }
+    } catch {
+      // no staff session — customer order
+    }
+
     // Batch-fetch menu item metadata (isDrink, stockEnabled, stockQuantity)
     // Used for: (1) skipping drinks in prep time, (2) drink stock deduction
     const menuItemIds = items
@@ -398,6 +409,7 @@ export const POST = safeHandler(
       ...(isPrepaid ? { isPrepaid: true } : {}),
       ...(couponId ? { couponId } : {}),
       ...(couponDiscount > 0 ? { couponDiscount } : {}),
+      ...(processedByStaffId ? { processedByStaffId } : {}),
     };
 
     let order;
