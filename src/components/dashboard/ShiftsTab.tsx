@@ -146,13 +146,13 @@ export default function ShiftsTab() {
     try {
       await apiFetch(`/api/restaurants/${restaurantId}/shifts`, {
         method: "POST",
-        body: JSON.stringify({
+        body: {
           staffId: addForm.staffId,
           date: selectedDate,
           startTime: addForm.startTime,
           endTime: addForm.endTime,
           label: addForm.label || undefined,
-        }),
+        },
       });
       showToast("Shift created", "success");
       setShowAddForm(false);
@@ -179,11 +179,11 @@ export default function ShiftsTab() {
     try {
       await apiFetch(`/api/restaurants/${restaurantId}/shifts/${shiftId}`, {
         method: "PATCH",
-        body: JSON.stringify({
+        body: {
           startTime: editForm.startTime,
           endTime: editForm.endTime,
           label: editForm.label || undefined,
-        }),
+        },
       });
       showToast("Shift updated", "success");
       setEditingShiftId(null);
