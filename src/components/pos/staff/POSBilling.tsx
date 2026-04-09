@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import {
   Search, DollarSign, Wallet, Banknote,
-  CheckCircle2, Receipt, Tag, Loader2, SplitSquareHorizontal,
+  CheckCircle2, Receipt, Tag, SplitSquareHorizontal,
 } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
 import { useToast } from "@/context/ToastContext";
@@ -25,6 +25,7 @@ interface Props {
   currency: string;
   orders: POSOrder[];
   onSplitBill: (orderId: string, orderNo: string, total: number) => void;
+  onOptimisticUpdate: (orderId: string, patch: Partial<POSOrder>) => void;
 }
 
 const BILLABLE_STATUSES = new Set(["PENDING", "ACCEPTED", "PREPARING", "READY", "DELIVERED"]);
@@ -45,14 +46,12 @@ async function staffFetch<T = unknown>(url: string, opts?: RequestInit): Promise
   return res.json();
 }
 
-export default function POSBilling({ restaurantId, currency, orders, onSplitBill }: Props) {
+export default function POSBilling({ restaurantId, currency, orders, onSplitBill, onOptimisticUpdate }: Props) {
   const { showToast } = useToast();
   const [search, setSearch] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<POSOrder | null>(null);
   const [billMap, setBillMap] = useState<Record<string, BillDetails>>({});
   const [discountAmount, setDiscountAmount] = useState("");
-  const [collecting, setCollecting] = useState(false);
-  const [applyingDiscount, setApplyingDiscount] = useState(false);
   const [filter, setFilter] = useState<"unpaid" | "paid" | "all">("unpaid");
 
   const fetchBillMap = useCallback(async () => {
@@ -86,40 +85,31 @@ export default function POSBilling({ restaurantId, currency, orders, onSplitBill
     );
   });
 
-  const applyDiscount = async () => {
+  const applyDiscount = () => {
     if (!selectedOrder || !discountAmount) return;
-    setApplyingDiscount(true);
-    try {
-      await staffFetch(`/api/restaurants/${restaurantId}/billing/discount`, {
-        method: "POST",
-        body: JSON.stringify({ orderId: selectedOrder.id, discount: parseFloat(discountAmount) }),
-      });
-      showToast("Discount applied", "success");
-      setDiscountAmount("");
-      await fetchBillMap();
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : "Failed to apply discount", "error");
-    } finally {
-      setApplyingDiscount(false);
-    }
+    const amount = parseFloat(discountAmount);
+    setDiscountAmount("");
+    // Fire and forget — billMap will refresh in background
+    staffFetch(`/api/restaurants/${restaurantId}/billing/discount`, {
+      method: "POST",
+      body: JSON.stringify({ orderId: selectedOrder.id, discount: amount }),
+    })
+      .then(() => fetchBillMap())
+      .catch(() => showToast("Failed to apply discount", "error"));
   };
 
-  const collectPayment = async (method: string) => {
+  const collectPayment = (method: string) => {
     if (!selectedOrder) return;
-    setCollecting(true);
-    try {
-      await staffFetch(`/api/restaurants/${restaurantId}/billing/collect`, {
-        method: "POST",
-        body: JSON.stringify({ orderId: selectedOrder.id, method }),
-      });
-      showToast(`Payment collected via ${method}`, "success");
-      setSelectedOrder(null);
-      await fetchBillMap();
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : "Failed to collect", "error");
-    } finally {
-      setCollecting(false);
-    }
+    const orderId = selectedOrder.id;
+    // Optimistic: mark as paid instantly and close detail panel
+    onOptimisticUpdate(orderId, { payment: { method, status: "COMPLETED" } });
+    setSelectedOrder(null);
+    staffFetch(`/api/restaurants/${restaurantId}/billing/collect`, {
+      method: "POST",
+      body: JSON.stringify({ orderId, method }),
+    })
+      .then(() => fetchBillMap())
+      .catch(() => showToast("Failed to collect payment", "error"));
   };
 
   const bill = selectedOrder ? billMap[selectedOrder.id] : null;
@@ -309,10 +299,10 @@ export default function POSBilling({ restaurantId, currency, orders, onSplitBill
                     />
                     <button
                       onClick={applyDiscount}
-                      disabled={applyingDiscount || !discountAmount}
-                      className="rounded-lg bg-amber-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-amber-500 disabled:opacity-50 transition-colors"
+                      disabled={!discountAmount}
+                      className="rounded-lg bg-amber-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-amber-500 disabled:opacity-50 active:scale-95 transition-all"
                     >
-                      {applyingDiscount ? <Loader2 className="h-4 w-4 animate-spin" /> : "Apply"}
+                      Apply
                     </button>
                   </div>
                 </div>
@@ -329,8 +319,7 @@ export default function POSBilling({ restaurantId, currency, orders, onSplitBill
                         <button
                           key={pm.id}
                           onClick={() => collectPayment(pm.id)}
-                          disabled={collecting}
-                          className={`flex items-center gap-2.5 rounded-xl border p-3.5 text-sm font-semibold transition-all disabled:opacity-50 ${pm.color}`}
+                          className={`flex items-center gap-2.5 rounded-xl border p-3.5 text-sm font-semibold active:scale-95 transition-all ${pm.color}`}
                         >
                           <Icon className="h-4 w-4 shrink-0" />
                           {pm.label}
@@ -340,8 +329,7 @@ export default function POSBilling({ restaurantId, currency, orders, onSplitBill
                   </div>
                   <button
                     onClick={() => onSplitBill(selectedOrder.id, selectedOrder.orderNo, bill?.total ?? selectedOrder.total)}
-                    disabled={collecting}
-                    className="w-full flex items-center justify-center gap-2.5 rounded-xl border border-gray-200 bg-white p-3.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                    className="w-full flex items-center justify-center gap-2.5 rounded-xl border border-gray-200 bg-white p-3.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 active:scale-95 transition-all"
                   >
                     <SplitSquareHorizontal className="h-4 w-4" />
                     Split Bill

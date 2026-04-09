@@ -28,6 +28,7 @@ interface StaffSession {
   restaurantPhone: string;
   taxRate: number;
   taxEnabled: boolean;
+  restaurantSlug: string;
 }
 
 interface Category {
@@ -72,7 +73,7 @@ export default function StaffPOSPage() {
   const [splitOrder, setSplitOrder] = useState<SplitOrderRef | null>(null);
 
   // Shared SSE stream for all POS order views — single connection, no polling
-  const { orders: liveOrders, connectionStatus: streamStatus } = usePOSOrders(session?.restaurantId ?? null);
+  const { orders: liveOrders, connectionStatus: streamStatus, optimisticUpdate } = usePOSOrders(session?.restaurantId ?? null);
 
   // Table pre-selection from Tables view → Register
   const [selectedTableNo, setSelectedTableNo] = useState<number | null>(null);
@@ -143,6 +144,7 @@ export default function StaffPOSPage() {
     <div className="flex flex-col h-screen bg-gray-100 select-none overflow-hidden">
       <POSHeader
         restaurantName={session.restaurantName}
+        restaurantSlug={session.restaurantSlug}
         staffName={session.name}
         staffRole={session.role}
         activeView={activeView}
@@ -184,6 +186,7 @@ export default function StaffPOSPage() {
             currency={session.currency}
             orders={liveOrders}
             connectionStatus={streamStatus}
+            onOptimisticUpdate={optimisticUpdate}
           />
         )}
 
@@ -193,6 +196,7 @@ export default function StaffPOSPage() {
             currency={session.currency}
             orders={liveOrders}
             onSplitBill={(id, orderNo, total) => setSplitOrder({ id, orderNo, total })}
+            onOptimisticUpdate={optimisticUpdate}
           />
         )}
 
@@ -201,8 +205,8 @@ export default function StaffPOSPage() {
             restaurantId={session.restaurantId}
             currency={session.currency}
             orders={liveOrders}
+            onOptimisticUpdate={optimisticUpdate}
             onRecall={(order) => {
-              // Pre-load the recalled order items into the Register
               setRecalledItems(order.items);
               setActiveView("register");
             }}

@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Leaf, Flame, Plus, Utensils } from "lucide-react";
+import { Plus, Utensils } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
 
 interface MenuItem {
@@ -34,8 +34,9 @@ interface Props {
 export default function KioskMenuGrid({ items, cart, currency, onItemTap, onQuickAdd }: Props) {
   if (items.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-gray-400">
-        <p className="text-lg font-medium">No items available</p>
+      <div className="flex flex-col items-center justify-center py-20 text-gray-300">
+        <Utensils className="h-12 w-12 mb-4" />
+        <p className="text-base font-medium text-gray-400">No items available</p>
       </div>
     );
   }
@@ -54,51 +55,56 @@ export default function KioskMenuGrid({ items, cart, currency, onItemTap, onQuic
             key={item.id}
             whileTap={{ scale: 0.97 }}
             onClick={() => onItemTap(item)}
-            className={`relative rounded-2xl border-2 bg-white overflow-hidden shadow-sm cursor-pointer transition-all hover:shadow-lg ${
-              inCart ? "border-amber-400 ring-2 ring-amber-200" : "border-gray-100"
+            className={`relative rounded-2xl border bg-white overflow-hidden shadow-sm cursor-pointer transition-all hover:shadow-md ${
+              inCart ? "border-amber-300 ring-2 ring-amber-100" : "border-gray-100"
             }`}
           >
-            <div className="relative h-36 bg-gray-100">
+            {/* Image */}
+            <div className="relative h-36 bg-gray-50">
               {item.imageUrl ? (
                 <img src={item.imageUrl} alt={item.name} className="h-full w-full object-cover" />
               ) : (
-                <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-amber-50 to-orange-50 text-amber-300">
-                  <Utensils className="h-10 w-10" />
+                <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-amber-50 to-orange-50">
+                  <Utensils className="h-10 w-10 text-amber-200" />
                 </div>
               )}
 
               {item.discount > 0 && (
-                <div className="absolute top-2 left-2 rounded-lg bg-red-500 px-2 py-1 text-xs font-bold text-white">
+                <div className="absolute top-2 left-2 rounded-lg bg-red-500 px-2 py-0.5 text-[11px] font-bold text-white">
                   {item.discount}% OFF
                 </div>
               )}
 
               {inCart && (
-                <div className="absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-amber-600 text-sm font-black text-white shadow-lg">
+                <div className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-full bg-amber-600 text-xs font-black text-white shadow-md">
                   {inCartQty}
                 </div>
               )}
 
-              {/* Quick add button (only for items without sizes) */}
               {!hasSizes && (
                 <button
                   onClick={(e) => { e.stopPropagation(); onQuickAdd(item); }}
-                  className="absolute bottom-2 right-2 flex h-10 w-10 items-center justify-center rounded-full bg-amber-600 text-white shadow-lg hover:bg-amber-700 transition-colors"
+                  className="absolute bottom-2 right-2 flex h-9 w-9 items-center justify-center rounded-full bg-amber-600 text-white shadow-md hover:bg-amber-500 transition-colors active:scale-95"
                 >
-                  <Plus className="h-5 w-5" />
+                  <Plus className="h-4 w-4" />
                 </button>
               )}
             </div>
 
+            {/* Info */}
             <div className="p-3">
-              <div className="flex items-center gap-1.5 mb-1">
-                {item.isVeg && <Leaf className="h-3.5 w-3.5 text-green-600" />}
-                {item.spiceLevel > 0 && <Flame className="h-3.5 w-3.5 text-red-500" />}
+              <div className="flex items-center gap-1.5 mb-1.5">
+                {item.isVeg && (
+                  <span className="h-2 w-2 rounded-full bg-green-500 shrink-0" />
+                )}
+                {item.spiceLevel > 0 && (
+                  <span className="h-2 w-2 rounded-full bg-red-400 shrink-0" />
+                )}
               </div>
               <h3 className="text-sm font-bold text-gray-900 line-clamp-2 leading-tight">{item.name}</h3>
 
               <div className="mt-2 flex items-baseline gap-2">
-                <span className="text-base font-black text-amber-700">
+                <span className="text-sm font-black text-amber-700">
                   {formatPrice(discountedPrice, currency)}
                 </span>
                 {item.discount > 0 && (
@@ -109,7 +115,7 @@ export default function KioskMenuGrid({ items, cart, currency, onItemTap, onQuic
               </div>
 
               {hasSizes && (
-                <p className="mt-1 text-xs text-amber-600 font-medium">
+                <p className="mt-1 text-[11px] text-amber-600 font-semibold">
                   {item.sizes.length} size{item.sizes.length > 1 ? "s" : ""} available
                 </p>
               )}

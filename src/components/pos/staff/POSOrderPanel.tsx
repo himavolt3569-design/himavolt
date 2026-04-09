@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Plus, Minus, Trash2, Send, Loader2, PauseCircle, CreditCard,
+  Plus, Minus, Trash2, Send, PauseCircle, CreditCard,
   UtensilsCrossed, ShoppingBag, ChevronDown, User, StickyNote, Hash,
 } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
@@ -27,7 +27,6 @@ interface Props {
   currency: string;
   taxRate: number;
   taxEnabled: boolean;
-  submitting: boolean;
   initialTableNo?: number | null;
   onUpdateQty: (id: string, delta: number) => void;
   onVoidItem: (id: string) => void;
@@ -38,7 +37,7 @@ interface Props {
 }
 
 export default function POSOrderPanel({
-  items, tables, currency, taxRate, taxEnabled, submitting, initialTableNo,
+  items, tables, currency, taxRate, taxEnabled, initialTableNo,
   onUpdateQty, onVoidItem, onClear, onSendToKitchen, onHoldOrder, onSettle,
 }: Props) {
   const [orderType, setOrderType] = useState<"DINE_IN" | "TAKEAWAY">("DINE_IN");
@@ -270,18 +269,16 @@ export default function POSOrderPanel({
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={() => onHoldOrder(guestName.trim(), note.trim())}
-              disabled={submitting}
-              className="flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white py-3 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50"
+              className="flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white py-3 text-sm font-semibold text-gray-600 hover:bg-gray-50 active:scale-95 transition-all"
             >
               <PauseCircle className="h-4 w-4" />
               Hold
             </button>
             <button
               onClick={() => onSendToKitchen(orderType, orderType === "DINE_IN" ? selectedTable : null, guestName.trim(), note.trim())}
-              disabled={submitting}
-              className="flex items-center justify-center gap-2 rounded-xl bg-amber-600 py-3 text-sm font-semibold text-white hover:bg-amber-500 transition-colors disabled:opacity-50 shadow-sm"
+              className="flex items-center justify-center gap-2 rounded-xl bg-amber-600 py-3 text-sm font-semibold text-white hover:bg-amber-500 active:scale-95 transition-all shadow-sm"
             >
-              {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+              <Send className="h-4 w-4" />
               Send to Kitchen
             </button>
           </div>

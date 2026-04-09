@@ -156,8 +156,9 @@ export async function POST(
   const templates = CATEGORIES_BY_TYPE[restaurant.type] ?? DEFAULT_CATEGORIES;
 
   try {
-    // Delete existing categories first (clean slate)
-    await db.menuCategory.deleteMany({ where: { restaurantId: id } });
+    // Delete subcategories first, then parents — self-referential FK requires this order
+    await db.menuCategory.deleteMany({ where: { restaurantId: id, parentId: { not: null } } });
+    await db.menuCategory.deleteMany({ where: { restaurantId: id, parentId: null } });
 
     let sortOrder = 1;
     const created: { name: string; subs: string[] }[] = [];

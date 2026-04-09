@@ -74,7 +74,6 @@ export default function POSRegister({
 }: Props) {
   const { showToast } = useToast();
   const [orderItems, setOrderItems] = useState<OrderLineItem[]>([]);
-  const [submitting, setSubmitting] = useState(false);
 
   // Pre-select table when arriving from the Tables view
   const [preselectedTable, setPreselectedTable] = useState<number | null>(null);
@@ -124,66 +123,68 @@ export default function POSRegister({
 
   const clearAll = () => setOrderItems([]);
 
-  const sendToKitchen = async (type: "DINE_IN" | "TAKEAWAY", tableNo: number | null, guestName: string, note: string) => {
+  const sendToKitchen = (type: "DINE_IN" | "TAKEAWAY", tableNo: number | null, guestName: string, note: string) => {
     if (orderItems.length === 0) return;
-    setSubmitting(true);
-    try {
-      await staffFetch(`/api/restaurants/${restaurantId}/orders`, {
-        method: "POST",
-        body: JSON.stringify({
-          type,
-          paymentMethod: "CASH",
-          tableNo: tableNo ?? undefined,
-          guestName: guestName || undefined,
-          note: note || undefined,
-          items: orderItems.map((i) => ({
-            menuItemId: i.menuItemId,
-            name: i.name,
-            price: i.price,
-            quantity: i.quantity,
-          })),
-        }),
+    const snapshot = orderItems;
+    // Clear cart instantly — feels immediate
+    setOrderItems([]);
+    staffFetch(`/api/restaurants/${restaurantId}/orders`, {
+      method: "POST",
+      body: JSON.stringify({
+        type,
+        paymentMethod: "CASH",
+        tableNo: tableNo ?? undefined,
+        guestName: guestName || undefined,
+        note: note || undefined,
+        items: snapshot.map((i) => ({
+          menuItemId: i.menuItemId,
+          name: i.name,
+          price: i.price,
+          quantity: i.quantity,
+        })),
+      }),
+    })
+      .then(() => {
+        showToast("Order sent to kitchen", "success");
+        onOrderCreated();
+      })
+      .catch((err) => {
+        // Restore items on failure
+        setOrderItems(snapshot);
+        showToast(err instanceof Error ? err.message : "Failed to create order", "error");
       });
-      showToast("Order sent to kitchen", "success");
-      setOrderItems([]);
-      onOrderCreated();
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : "Failed to create order", "error");
-    } finally {
-      setSubmitting(false);
-    }
   };
 
-  const holdOrder = async (guestName: string, note: string) => {
+  const holdOrder = (guestName: string, note: string) => {
     if (orderItems.length === 0) return;
-    setSubmitting(true);
-    try {
-      const order = await staffFetch<{ id: string; orderNo: string }>(`/api/restaurants/${restaurantId}/orders`, {
-        method: "POST",
-        body: JSON.stringify({
-          type: "DINE_IN",
-          paymentMethod: "CASH",
-          guestName: guestName || "Held Order",
-          note: note ? `[HELD] ${note}` : "[HELD]",
-          items: orderItems.map((i) => ({
-            menuItemId: i.menuItemId,
-            name: i.name,
-            price: i.price,
-            quantity: i.quantity,
-          })),
-        }),
+    const snapshot = orderItems;
+    // Clear cart instantly
+    setOrderItems([]);
+    staffFetch<{ id: string; orderNo: string }>(`/api/restaurants/${restaurantId}/orders`, {
+      method: "POST",
+      body: JSON.stringify({
+        type: "DINE_IN",
+        paymentMethod: "CASH",
+        guestName: guestName || "Held Order",
+        note: note ? `[HELD] ${note}` : "[HELD]",
+        items: snapshot.map((i) => ({
+          menuItemId: i.menuItemId,
+          name: i.name,
+          price: i.price,
+          quantity: i.quantity,
+        })),
+      }),
+    })
+      .then((order) =>
+        staffFetch(`/api/restaurants/${restaurantId}/orders/held`, {
+          method: "PATCH",
+          body: JSON.stringify({ orderId: order.id, isHeld: true }),
+        }).then(() => showToast(`Order #${order.orderNo} held`, "success"))
+      )
+      .catch((err) => {
+        setOrderItems(snapshot);
+        showToast(err instanceof Error ? err.message : "Failed to hold order", "error");
       });
-      await staffFetch(`/api/restaurants/${restaurantId}/orders/held`, {
-        method: "PATCH",
-        body: JSON.stringify({ orderId: order.id, isHeld: true }),
-      });
-      showToast(`Order #${order.orderNo} held`, "success");
-      setOrderItems([]);
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : "Failed to hold order", "error");
-    } finally {
-      setSubmitting(false);
-    }
   };
 
   const handleSettle = () => {
@@ -208,7 +209,6 @@ export default function POSRegister({
           currency={currency}
           taxRate={taxRate}
           taxEnabled={taxEnabled}
-          submitting={submitting}
           initialTableNo={preselectedTable}
           onUpdateQty={updateQty}
           onVoidItem={voidItem}

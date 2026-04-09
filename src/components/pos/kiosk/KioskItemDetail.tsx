@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { X, Plus, Minus, ShoppingCart, Leaf, Flame, Check, Utensils } from "lucide-react";
+import { X, Plus, Minus, ShoppingCart, Check, Utensils } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
 
 interface Size {
@@ -100,12 +100,14 @@ export default function KioskItemDetail({ item, currency, onClose, onAdd }: Prop
         <div className="flex-1 overflow-y-auto p-6 space-y-5">
           {/* Name & description */}
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              {item.isVeg && <Leaf className="h-4 w-4 text-green-600" />}
+            <div className="flex items-center gap-2 mb-1.5">
+              {item.isVeg && (
+                <span className="h-2 w-2 rounded-full bg-green-500 shrink-0" />
+              )}
               {item.spiceLevel > 0 && (
-                <div className="flex gap-0.5">
-                  {Array.from({ length: item.spiceLevel }).map((_, i) => (
-                    <Flame key={i} className="h-4 w-4 text-red-500" />
+                <div className="flex gap-1">
+                  {Array.from({ length: Math.min(item.spiceLevel, 3) }).map((_, i) => (
+                    <span key={i} className="h-2 w-2 rounded-full bg-red-400 shrink-0" />
                   ))}
                 </div>
               )}
@@ -208,10 +210,10 @@ export default function KioskItemDetail({ item, currency, onClose, onAdd }: Prop
               onAdd(item, quantity, selectedSize, Array.from(selectedAddOns));
               onClose();
             }}
-            className="w-full flex items-center justify-center gap-3 rounded-2xl bg-amber-700 py-4 text-lg font-bold text-white hover:bg-amber-600 transition-colors shadow-lg shadow-amber-700/20"
+            className="w-full flex items-center justify-center gap-2.5 rounded-xl bg-amber-600 py-4 text-base font-bold text-white hover:bg-amber-500 transition-colors shadow-lg shadow-amber-600/25 active:scale-[0.98]"
           >
-            <ShoppingCart className="h-5 w-5" />
-            Add to Cart - {formatPrice(totalPrice, currency)}
+            <ShoppingCart className="h-4 w-4" />
+            Add to Cart — {formatPrice(totalPrice, currency)}
           </button>
         </div>
       </motion.div>

@@ -246,9 +246,11 @@ export default function KioskPage({ params }: { params: Promise<{ slug: string }
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center">
-          <p className="text-4xl mb-4">🔒</p>
-          <p className="text-xl font-bold text-gray-900 mb-2">{restaurant.name}</p>
-          <p className="text-sm text-gray-500">Currently closed for orders</p>
+          <div className="h-16 w-16 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-5">
+            <X className="h-8 w-8 text-gray-400" />
+          </div>
+          <p className="text-xl font-bold text-gray-900 mb-1">{restaurant.name}</p>
+          <p className="text-sm text-gray-400">Currently closed for orders</p>
         </div>
       </div>
     );

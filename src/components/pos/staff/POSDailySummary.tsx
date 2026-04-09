@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import {
   BarChart3, DollarSign, ShoppingCart, CreditCard, TrendingUp,
-  RefreshCw, Loader2, Printer,
+  RefreshCw, Printer,
 } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
 
@@ -32,7 +32,6 @@ async function staffFetch<T = unknown>(url: string): Promise<T> {
 
 export default function POSDailySummary({ restaurantId, currency }: Props) {
   const [summary, setSummary] = useState<DailySummary | null>(null);
-  const [loading, setLoading] = useState(true);
 
   const fetchSummary = useCallback(async () => {
     try {
@@ -40,8 +39,6 @@ export default function POSDailySummary({ restaurantId, currency }: Props) {
       setSummary(data);
     } catch {
       // silent
-    } finally {
-      setLoading(false);
     }
   }, [restaurantId]);
 
@@ -53,44 +50,25 @@ export default function POSDailySummary({ restaurantId, currency }: Props) {
     window.print();
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-full bg-gray-50">
-        <Loader2 className="h-6 w-6 animate-spin text-amber-600" />
-      </div>
-    );
-  }
-
-  if (!summary) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full gap-3 text-gray-400 bg-gray-50">
-        <div className="rounded-full bg-gray-100 p-4">
-          <BarChart3 className="h-8 w-8 opacity-50" />
-        </div>
-        <p className="text-sm font-medium">Unable to load summary</p>
-        <button
-          onClick={fetchSummary}
-          className="text-xs font-semibold text-amber-600 hover:text-amber-500 transition-colors"
-        >
-          Retry
-        </button>
-      </div>
-    );
-  }
+  // Show zero-state while loading — no spinner
+  const s = summary ?? {
+    totalOrders: 0, completedOrders: 0, paidOrders: 0, unpaidOrders: 0,
+    totalRevenue: 0, cashRevenue: 0, onlineRevenue: 0, pendingAmount: 0, totalDiscount: 0,
+  };
 
   const stats = [
-    { label: "Total Orders",    value: summary.totalOrders,     icon: ShoppingCart, bg: "bg-blue-50",    text: "text-blue-700",    border: "border-blue-100" },
-    { label: "Completed",       value: summary.completedOrders, icon: TrendingUp,   bg: "bg-green-50",   text: "text-green-700",   border: "border-green-100" },
-    { label: "Paid",            value: summary.paidOrders,      icon: CreditCard,   bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-100" },
-    { label: "Unpaid",          value: summary.unpaidOrders,    icon: ShoppingCart, bg: "bg-orange-50",  text: "text-orange-700",  border: "border-orange-100" },
+    { label: "Total Orders",    value: s.totalOrders,     icon: ShoppingCart, bg: "bg-blue-50",    text: "text-blue-700",    border: "border-blue-100" },
+    { label: "Completed",       value: s.completedOrders, icon: TrendingUp,   bg: "bg-green-50",   text: "text-green-700",   border: "border-green-100" },
+    { label: "Paid",            value: s.paidOrders,      icon: CreditCard,   bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-100" },
+    { label: "Unpaid",          value: s.unpaidOrders,    icon: ShoppingCart, bg: "bg-orange-50",  text: "text-orange-700",  border: "border-orange-100" },
   ];
 
   const financials = [
-    { label: "Total Revenue",   value: summary.totalRevenue,   valueClass: "text-green-700" },
-    { label: "Cash Revenue",    value: summary.cashRevenue,    valueClass: "text-gray-800" },
-    { label: "Online Revenue",  value: summary.onlineRevenue,  valueClass: "text-blue-700" },
-    { label: "Pending Amount",  value: summary.pendingAmount,  valueClass: "text-orange-600" },
-    { label: "Total Discounts", value: summary.totalDiscount,  valueClass: "text-red-600" },
+    { label: "Total Revenue",   value: s.totalRevenue,   valueClass: "text-green-700" },
+    { label: "Cash Revenue",    value: s.cashRevenue,    valueClass: "text-gray-800" },
+    { label: "Online Revenue",  value: s.onlineRevenue,  valueClass: "text-blue-700" },
+    { label: "Pending Amount",  value: s.pendingAmount,  valueClass: "text-orange-600" },
+    { label: "Total Discounts", value: s.totalDiscount,  valueClass: "text-red-600" },
   ];
 
   return (

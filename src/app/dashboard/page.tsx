@@ -63,6 +63,8 @@ import {
   DoorOpen,
   User,
   Crown,
+  Copy,
+  Check,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -344,10 +346,18 @@ function RestaurantSwitcher({ onNavigate }: { onNavigate?: () => void }) {
   const router = useRouter();
   const { restaurants, selectedRestaurant, selectRestaurant } = useRestaurant();
   const [open, setOpen] = useState(false);
+  const [slugCopied, setSlugCopied] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
   const current = selectedRestaurant ?? restaurants[0];
   const otherRestaurants = restaurants.filter((r) => r.id !== current?.id);
+
+  const copySlug = () => {
+    if (!current?.slug) return;
+    navigator.clipboard.writeText(`${window.location.origin}/pos/${current.slug}`);
+    setSlugCopied(true);
+    setTimeout(() => setSlugCopied(false), 2000);
+  };
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -415,20 +425,26 @@ function RestaurantSwitcher({ onNavigate }: { onNavigate?: () => void }) {
               </div>
             </div>
 
-            <div className="px-1.5 py-1.5 border-b border-gray-100">
-              {[
-                { icon: UsersRound, label: "Manage Users" },
-                { icon: Settings, label: "Settings" },
-              ].map((item) => (
+            {current?.slug && (
+              <div className="px-3 py-2.5 border-b border-gray-100">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">
+                  Customer POS Link
+                </p>
                 <button
-                  key={item.label}
-                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-[12px] font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-all"
+                  onClick={copySlug}
+                  className="flex w-full items-center gap-2.5 rounded-lg bg-gray-50 px-3 py-2 hover:bg-amber-50 hover:text-amber-700 transition-all group"
                 >
-                  <item.icon className="h-3.5 w-3.5" />
-                  {item.label}
+                  <code className="flex-1 text-left text-[11px] font-mono text-gray-500 group-hover:text-amber-700 truncate">
+                    /pos/{current.slug}
+                  </code>
+                  {slugCopied ? (
+                    <Check className="h-3.5 w-3.5 text-green-500 shrink-0" />
+                  ) : (
+                    <Copy className="h-3.5 w-3.5 text-gray-400 group-hover:text-amber-500 shrink-0" />
+                  )}
                 </button>
-              ))}
-            </div>
+              </div>
+            )}
 
             {otherRestaurants.length > 0 && (
               <div className="px-3 py-2.5 border-b border-gray-100">
@@ -592,6 +608,37 @@ function NavSection({
   );
 }
 
+function SlugCopyStrip() {
+  const { selectedRestaurant } = useRestaurant();
+  const [copied, setCopied] = useState(false);
+  const slug = selectedRestaurant?.slug;
+  if (!slug) return null;
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(`${window.location.origin}/pos/${slug}`);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <button
+      onClick={handleCopy}
+      title="Copy customer POS link"
+      className="mx-3 mb-3 flex items-center gap-2 rounded-lg border border-dashed border-amber-200 bg-amber-50/60 px-3 py-2 text-left transition-all hover:bg-amber-100/60 group"
+    >
+      <div className="min-w-0 flex-1">
+        <p className="text-[9px] font-bold uppercase tracking-widest text-amber-500 mb-0.5">POS Link</p>
+        <p className="text-[11px] font-mono text-amber-700 truncate">/pos/{slug}</p>
+      </div>
+      {copied ? (
+        <Check className="h-3.5 w-3.5 text-green-500 shrink-0" />
+      ) : (
+        <Copy className="h-3.5 w-3.5 text-amber-400 group-hover:text-amber-600 shrink-0 transition-colors" />
+      )}
+    </button>
+  );
+}
+
 function Sidebar({
   active,
   setActive,
@@ -699,6 +746,7 @@ function Sidebar({
       </div>
 
       <RestaurantSwitcher onNavigate={onClose} />
+      <SlugCopyStrip />
 
       <nav className="flex-1 overflow-y-auto px-3 pb-2 scrollbar-hide">
         <NavSection

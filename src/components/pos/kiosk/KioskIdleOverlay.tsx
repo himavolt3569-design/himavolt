@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { HandMetal } from "lucide-react";
+import { TouchpadOff } from "lucide-react";
 
 interface Props {
   idleSeconds?: number;
@@ -41,19 +41,19 @@ export default function KioskIdleOverlay({ isIdle, onReset }: Props) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/80 backdrop-blur-md cursor-pointer"
+          className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-gray-950/90 backdrop-blur-md cursor-pointer"
           onClick={onReset}
         >
           <motion.div
-            animate={{ scale: [1, 1.05, 1] }}
-            transition={{ repeat: Infinity, duration: 2 }}
+            animate={{ scale: [1, 1.04, 1] }}
+            transition={{ repeat: Infinity, duration: 2.4, ease: "easeInOut" }}
             className="flex flex-col items-center"
           >
-            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-white/10 mb-8">
-              <HandMetal className="h-12 w-12 text-white" />
+            <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-white/10 border border-white/10 mb-8">
+              <TouchpadOff className="h-10 w-10 text-white/60" />
             </div>
-            <h2 className="text-3xl font-black text-white mb-3">Touch to Start</h2>
-            <p className="text-lg text-white/60">Your previous session has ended</p>
+            <h2 className="text-3xl font-black text-white mb-2">Session Paused</h2>
+            <p className="text-base text-white/40">Touch anywhere to continue</p>
           </motion.div>
         </motion.div>
       )}

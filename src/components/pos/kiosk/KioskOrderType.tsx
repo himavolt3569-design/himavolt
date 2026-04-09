@@ -19,116 +19,111 @@ export default function KioskOrderType({ tables, onConfirm, onBack }: Props) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
+      exit={{ opacity: 0, y: -16 }}
       className="flex flex-col items-center justify-center min-h-full py-10 px-6"
     >
-      <h2 className="text-3xl font-black text-gray-900 mb-2">How would you like your order?</h2>
-      <p className="text-gray-500 mb-8">Select your order type</p>
+      <h2 className="text-2xl font-black text-gray-900 mb-1.5">How would you like your order?</h2>
+      <p className="text-gray-400 text-sm mb-8">Select your preference to continue</p>
 
-      <div className="grid grid-cols-2 gap-6 w-full max-w-xl mb-8">
-        <motion.button
-          whileTap={{ scale: 0.97 }}
-          onClick={() => { setOrderType("DINE_IN"); setSelectedTable(null); }}
-          className={`flex flex-col items-center gap-4 rounded-3xl border-3 p-8 transition-all ${
-            orderType === "DINE_IN"
-              ? "border-amber-500 bg-amber-50 shadow-lg"
-              : "border-gray-200 bg-white hover:border-gray-300"
-          }`}
-        >
-          <div className={`flex h-20 w-20 items-center justify-center rounded-2xl ${
-            orderType === "DINE_IN" ? "bg-amber-600" : "bg-gray-100"
-          }`}>
-            <UtensilsCrossed className={`h-10 w-10 ${orderType === "DINE_IN" ? "text-white" : "text-gray-400"}`} />
-          </div>
-          <span className="text-xl font-bold text-gray-900">Dine In</span>
-          <span className="text-sm text-gray-500">Eat at the restaurant</span>
-        </motion.button>
-
-        <motion.button
-          whileTap={{ scale: 0.97 }}
-          onClick={() => setOrderType("TAKEAWAY")}
-          className={`flex flex-col items-center gap-4 rounded-3xl border-3 p-8 transition-all ${
-            orderType === "TAKEAWAY"
-              ? "border-amber-500 bg-amber-50 shadow-lg"
-              : "border-gray-200 bg-white hover:border-gray-300"
-          }`}
-        >
-          <div className={`flex h-20 w-20 items-center justify-center rounded-2xl ${
-            orderType === "TAKEAWAY" ? "bg-amber-600" : "bg-gray-100"
-          }`}>
-            <ShoppingBag className={`h-10 w-10 ${orderType === "TAKEAWAY" ? "text-white" : "text-gray-400"}`} />
-          </div>
-          <span className="text-xl font-bold text-gray-900">Takeaway</span>
-          <span className="text-sm text-gray-500">Pick up and go</span>
-        </motion.button>
+      {/* Order type cards */}
+      <div className="grid grid-cols-2 gap-4 w-full max-w-lg mb-8">
+        {[
+          { type: "DINE_IN" as const, label: "Dine In", sub: "Eat at the restaurant", icon: UtensilsCrossed },
+          { type: "TAKEAWAY" as const, label: "Takeaway", sub: "Pick up and go", icon: ShoppingBag },
+        ].map(({ type, label, sub, icon: Icon }) => {
+          const active = orderType === type;
+          return (
+            <motion.button
+              key={type}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => { setOrderType(type); setSelectedTable(null); }}
+              className={`flex flex-col items-center gap-4 rounded-2xl border-2 p-8 transition-all ${
+                active
+                  ? "border-amber-400 bg-amber-50 shadow-lg shadow-amber-100"
+                  : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50"
+              }`}
+            >
+              <div className={`flex h-16 w-16 items-center justify-center rounded-2xl ${
+                active ? "bg-amber-600" : "bg-gray-100"
+              }`}>
+                <Icon className={`h-8 w-8 ${active ? "text-white" : "text-gray-400"}`} />
+              </div>
+              <div className="text-center">
+                <p className={`text-lg font-bold ${active ? "text-amber-800" : "text-gray-900"}`}>{label}</p>
+                <p className="text-xs text-gray-400 mt-0.5">{sub}</p>
+              </div>
+            </motion.button>
+          );
+        })}
       </div>
 
-      {/* Table selector for dine-in */}
+      {/* Table selector */}
       {orderType === "DINE_IN" && tables.length > 0 && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}
-          className="w-full max-w-xl mb-6"
+          className="w-full max-w-lg mb-6"
         >
-          <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider mb-3">Select Your Table</h3>
-          <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 gap-3">
+          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Select Your Table</h3>
+          <div className="grid grid-cols-6 sm:grid-cols-8 gap-2.5">
             {tables.map((t) => (
               <motion.button
                 key={t.tableNo}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setSelectedTable(t.tableNo)}
-                className={`flex flex-col items-center justify-center rounded-2xl border-2 py-4 transition-all ${
+                className={`flex items-center justify-center rounded-xl border-2 py-3.5 transition-all ${
                   selectedTable === t.tableNo
-                    ? "border-amber-500 bg-amber-600 text-white"
-                    : "border-gray-200 bg-white text-gray-700 hover:border-amber-300"
+                    ? "border-amber-500 bg-amber-600 text-white shadow-md shadow-amber-200"
+                    : "border-gray-200 bg-white text-gray-700 hover:border-amber-300 hover:bg-amber-50"
                 }`}
               >
-                <span className="text-lg font-black">{t.tableNo}</span>
+                <span className="text-base font-black">{t.tableNo}</span>
               </motion.button>
             ))}
           </div>
         </motion.div>
       )}
 
-      {/* Guest name (optional) */}
+      {/* Guest name */}
       {orderType && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="w-full max-w-xl mb-8"
+          className="w-full max-w-lg mb-8"
         >
-          <label className="text-sm font-bold text-gray-700 uppercase tracking-wider block mb-2">
+          <label className="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">
             Your Name (optional)
           </label>
           <div className="relative">
-            <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input
               value={guestName}
               onChange={(e) => setGuestName(e.target.value)}
               placeholder="Enter your name for the order"
-              className="w-full rounded-2xl border-2 border-gray-200 bg-white pl-12 pr-4 py-4 text-base font-medium focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-200 transition-all"
+              className="w-full rounded-xl border-2 border-gray-200 bg-white pl-11 pr-4 py-3.5 text-sm font-medium focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100 transition-all"
             />
           </div>
         </motion.div>
       )}
 
-      <div className="flex items-center gap-4 w-full max-w-xl">
+      {/* Actions */}
+      <div className="flex items-center gap-3 w-full max-w-lg">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 rounded-2xl border-2 border-gray-200 bg-white px-8 py-4 text-base font-bold text-gray-700 hover:bg-gray-50 transition-colors"
+          className="flex items-center gap-2 rounded-xl border-2 border-gray-200 bg-white px-7 py-3.5 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors"
         >
-          <ArrowLeft className="h-5 w-5" />
+          <ArrowLeft className="h-4 w-4" />
           Back
         </button>
         <button
           onClick={() => canProceed && onConfirm(orderType!, selectedTable, guestName.trim())}
           disabled={!canProceed}
-          className="flex-1 flex items-center justify-center gap-3 rounded-2xl bg-amber-700 py-4 text-lg font-bold text-white hover:bg-amber-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-amber-700/20"
+          className="flex-1 flex items-center justify-center gap-2.5 rounded-xl bg-amber-600 py-3.5 text-sm font-bold text-white hover:bg-amber-500 transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-amber-600/25 active:scale-[0.98]"
         >
           Continue
-          <ArrowRight className="h-5 w-5" />
+          <ArrowRight className="h-4 w-4" />
         </button>
       </div>
     </motion.div>

@@ -15,6 +15,7 @@ interface Props {
   currency: string;
   orders: POSOrder[];
   connectionStatus: SSEStatus;
+  onOptimisticUpdate: (orderId: string, patch: Partial<POSOrder>) => void;
 }
 
 const STATUS_CONFIG: Record<string, { label: string; border: string; badge: string; icon: typeof Clock }> = {
@@ -34,18 +35,18 @@ async function staffFetch<T = unknown>(url: string, opts?: RequestInit): Promise
   return res.json();
 }
 
-export default function POSActiveOrders({ restaurantId, currency, orders, connectionStatus }: Props) {
+export default function POSActiveOrders({ restaurantId, currency, orders, connectionStatus, onOptimisticUpdate }: Props) {
   const [filter, setFilter] = useState("ALL");
 
-  const updateStatus = async (orderId: string, status: string) => {
-    try {
-      await staffFetch(`/api/restaurants/${restaurantId}/orders/${orderId}`, {
-        method: "PATCH",
-        body: JSON.stringify({ status }),
-      });
-    } catch {
-      // silent
-    }
+  const updateStatus = (orderId: string, status: string) => {
+    // Optimistic: update UI instantly, API confirms in background
+    onOptimisticUpdate(orderId, { status });
+    staffFetch(`/api/restaurants/${restaurantId}/orders/${orderId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    }).catch(() => {
+      // SSE stream will reconcile the true state on next push
+    });
   };
 
   const timeAgo = (dateStr: string) => {
@@ -124,13 +125,7 @@ export default function POSActiveOrders({ restaurantId, currency, orders, connec
 
       {/* Orders grid */}
       <div className="flex-1 overflow-y-auto p-6">
-        {connectionStatus === "connecting" && orders.length === 0 ? (
-          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="animate-pulse rounded-xl border border-gray-100 bg-white h-48 shadow-sm" />
-            ))}
-          </div>
-        ) : filtered.length === 0 ? (
+        {filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-40 gap-2 text-gray-400">
             <p className="text-sm">No orders{filter !== "ALL" ? ` with status ${STATUS_CONFIG[filter]?.label ?? filter}` : ""}</p>
           </div>

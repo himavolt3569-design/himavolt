@@ -17,7 +17,7 @@ export const GET = safeHandler(async (req) => {
     }),
     db.restaurant.findUnique({
       where: { id: session.restaurantId },
-      select: { type: true, currency: true, name: true, address: true, phone: true, taxRate: true, taxEnabled: true },
+      select: { type: true, currency: true, name: true, address: true, phone: true, taxRate: true, taxEnabled: true, slug: true },
     }),
   ]);
 
@@ -36,6 +36,7 @@ export const GET = safeHandler(async (req) => {
     restaurantPhone: restaurant?.phone ?? "",
     taxRate: restaurant?.taxRate ?? 13,
     taxEnabled: restaurant?.taxEnabled ?? true,
+    restaurantSlug: restaurant?.slug ?? "",
   });
 });
 

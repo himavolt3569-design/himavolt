@@ -12,12 +12,15 @@ import {
   BarChart3,
   Volume2,
   VolumeX,
+  Copy,
+  Check,
 } from "lucide-react";
 
 export type POSView = "register" | "tables" | "orders" | "billing" | "held" | "summary";
 
 interface Props {
   restaurantName: string;
+  restaurantSlug?: string;
   staffName: string;
   staffRole: string;
   activeView: POSView;
@@ -33,10 +36,18 @@ const VIEWS: { id: POSView; label: string; icon: typeof Monitor }[] = [
   { id: "summary", label: "Summary", icon: BarChart3 },
 ];
 
-export default function POSHeader({ restaurantName, staffName, staffRole, activeView, onViewChange }: Props) {
+export default function POSHeader({ restaurantName, restaurantSlug, staffName, staffRole, activeView, onViewChange }: Props) {
   const router = useRouter();
   const [clock, setClock] = useState("");
   const [soundOn, setSoundOn] = useState(true);
+  const [copied, setCopied] = useState(false);
+
+  const copySlug = () => {
+    if (!restaurantSlug) return;
+    navigator.clipboard.writeText(`${window.location.origin}/pos/${restaurantSlug}`);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   useEffect(() => {
     const tick = () => setClock(new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
@@ -95,6 +106,20 @@ export default function POSHeader({ restaurantName, staffName, staffRole, active
 
       {/* Right: controls */}
       <div className="flex items-center gap-1 w-56 justify-end">
+        {restaurantSlug && (
+          <button
+            onClick={copySlug}
+            title="Copy customer POS link"
+            className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-medium text-gray-500 hover:text-gray-200 hover:bg-gray-800 transition-colors"
+          >
+            {copied ? (
+              <Check className="h-3.5 w-3.5 text-green-400" />
+            ) : (
+              <Copy className="h-3.5 w-3.5" />
+            )}
+            <span className="hidden xl:inline">{copied ? "Copied!" : `pos/${restaurantSlug}`}</span>
+          </button>
+        )}
         <button
           onClick={toggleSound}
           title={soundOn ? "Mute" : "Unmute"}

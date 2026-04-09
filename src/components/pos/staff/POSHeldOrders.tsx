@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { PauseCircle, Play, Trash2, Clock, Loader2 } from "lucide-react";
+import { PauseCircle, Play, Trash2, Clock } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
 import { useToast } from "@/context/ToastContext";
 import type { POSOrder } from "@/hooks/usePOSOrders";
@@ -11,6 +10,7 @@ interface Props {
   restaurantId: string;
   currency: string;
   orders: POSOrder[];
+  onOptimisticUpdate: (orderId: string, patch: Partial<POSOrder>) => void;
   onRecall: (order: POSOrder) => void;
 }
 
@@ -23,42 +23,34 @@ async function staffFetch<T = unknown>(url: string, opts?: RequestInit): Promise
   return res.json();
 }
 
-export default function POSHeldOrders({ restaurantId, currency, orders, onRecall }: Props) {
+export default function POSHeldOrders({ restaurantId, currency, orders, onOptimisticUpdate, onRecall }: Props) {
   const { showToast } = useToast();
-  const [actionId, setActionId] = useState<string | null>(null);
 
   const heldOrders = orders.filter((o) => o.isHeld);
 
-  const recallOrder = async (order: POSOrder) => {
-    setActionId(order.id);
-    try {
-      await staffFetch(`/api/restaurants/${restaurantId}/orders/held`, {
-        method: "PATCH",
-        body: JSON.stringify({ orderId: order.id, isHeld: false }),
-      });
-      showToast(`Order #${order.orderNo} recalled`, "success");
-      onRecall(order);
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : "Failed to recall", "error");
-    } finally {
-      setActionId(null);
-    }
+  const recallOrder = (order: POSOrder) => {
+    // Optimistic: remove from held list instantly, navigate to register
+    onOptimisticUpdate(order.id, { isHeld: false });
+    onRecall(order);
+    // API call in background
+    staffFetch(`/api/restaurants/${restaurantId}/orders/held`, {
+      method: "PATCH",
+      body: JSON.stringify({ orderId: order.id, isHeld: false }),
+    }).catch(() => {
+      showToast(`Failed to recall order #${order.orderNo}`, "error");
+    });
   };
 
-  const voidOrder = async (order: POSOrder) => {
+  const voidOrder = (order: POSOrder) => {
     if (!confirm(`Void held order #${order.orderNo}?`)) return;
-    setActionId(order.id);
-    try {
-      await staffFetch(`/api/restaurants/${restaurantId}/orders/${order.id}`, {
-        method: "PATCH",
-        body: JSON.stringify({ status: "CANCELLED" }),
-      });
-      showToast(`Order #${order.orderNo} cancelled`, "success");
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : "Failed to void", "error");
-    } finally {
-      setActionId(null);
-    }
+    // Optimistic: remove from held list instantly
+    onOptimisticUpdate(order.id, { status: "CANCELLED", isHeld: false });
+    staffFetch(`/api/restaurants/${restaurantId}/orders/${order.id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ status: "CANCELLED" }),
+    }).catch(() => {
+      showToast(`Failed to void order #${order.orderNo}`, "error");
+    });
   };
 
   const timeSince = (dateStr: string) => {
@@ -138,18 +130,14 @@ export default function POSHeldOrders({ restaurantId, currency, orders, onRecall
                     <div className="flex gap-2">
                       <button
                         onClick={() => recallOrder(order)}
-                        disabled={actionId === order.id}
-                        className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-amber-600 py-2.5 text-xs font-semibold text-white hover:bg-amber-500 disabled:opacity-50 transition-colors"
+                        className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-amber-600 py-2.5 text-xs font-semibold text-white hover:bg-amber-500 active:scale-95 transition-all"
                       >
-                        {actionId === order.id
-                          ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                          : <Play className="h-3.5 w-3.5" />}
+                        <Play className="h-3.5 w-3.5" />
                         Recall
                       </button>
                       <button
                         onClick={() => voidOrder(order)}
-                        disabled={actionId === order.id}
-                        className="flex items-center justify-center rounded-lg border border-red-100 bg-red-50 px-3 py-2.5 text-xs text-red-500 hover:bg-red-100 disabled:opacity-50 transition-colors"
+                        className="flex items-center justify-center rounded-lg border border-red-100 bg-red-50 px-3 py-2.5 text-xs text-red-500 hover:bg-red-100 active:scale-95 transition-all"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>

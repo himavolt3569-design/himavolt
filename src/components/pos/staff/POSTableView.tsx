@@ -54,7 +54,6 @@ const STATUS_STYLES = {
 
 export default function POSTableView({ restaurantId, currency, onTableSelect }: Props) {
   const [tables, setTables] = useState<TableData[]>([]);
-  const [loading, setLoading] = useState(true);
 
   const fetchTables = useCallback(async () => {
     try {
@@ -63,8 +62,6 @@ export default function POSTableView({ restaurantId, currency, onTableSelect }: 
       setTables(raw);
     } catch {
       // silent
-    } finally {
-      setLoading(false);
     }
   }, [restaurantId]);
 
@@ -106,62 +103,47 @@ export default function POSTableView({ restaurantId, currency, onTableSelect }: 
           </button>
         </div>
 
-        {/* Table grid */}
-        {loading ? (
-          <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-3">
-            {Array.from({ length: 16 }).map((_, i) => (
-              <div key={i} className="animate-pulse rounded-xl border border-gray-100 bg-white h-28 shadow-sm" />
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-3">
-            {tables.map((table) => {
-              const status = getTableStatus(table);
-              const styles = STATUS_STYLES[status];
-              return (
-                <motion.button
-                  key={table.id}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => onTableSelect(table.tableNo)}
-                  className={`relative rounded-xl border-2 p-3 text-left transition-all shadow-sm ${styles.card}`}
-                >
-                  {/* Status dot */}
-                  <span className={`absolute top-2.5 right-2.5 h-2 w-2 rounded-full ${styles.dot}`} />
-
-                  {/* Table number */}
-                  <p className="text-2xl font-bold text-gray-900 leading-none mb-1">{table.tableNo}</p>
-                  {table.label && (
-                    <p className="text-[10px] text-gray-400 truncate mb-1.5">{table.label}</p>
-                  )}
-
-                  {/* Capacity */}
-                  <div className="flex items-center gap-1 text-[11px] text-gray-400">
-                    <Users className="h-3 w-3" />
-                    <span>{table.capacity}</span>
-                  </div>
-
-                  {/* Session info */}
-                  {table.session?.isActive && (
-                    <div className="mt-2 space-y-0.5">
-                      {table.session.order && (
-                        <>
-                          <p className="text-[11px] font-semibold text-gray-700">#{table.session.order.orderNo}</p>
-                          <p className="text-[11px] font-bold text-amber-700">
-                            {formatPrice(table.session.order.total, currency)}
-                          </p>
-                        </>
-                      )}
-                      <div className="flex items-center gap-1 text-[10px] text-gray-400">
-                        <Clock className="h-2.5 w-2.5" />
-                        <span>{timeSince(table.session.startedAt)}</span>
-                      </div>
+        {/* Table grid — renders immediately, populates as data arrives */}
+        <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-3">
+          {tables.map((table) => {
+            const status = getTableStatus(table);
+            const styles = STATUS_STYLES[status];
+            return (
+              <motion.button
+                key={table.id}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => onTableSelect(table.tableNo)}
+                className={`relative rounded-xl border-2 p-3 text-left transition-all shadow-sm ${styles.card}`}
+              >
+                <span className={`absolute top-2.5 right-2.5 h-2 w-2 rounded-full ${styles.dot}`} />
+                <p className="text-2xl font-bold text-gray-900 leading-none mb-1">{table.tableNo}</p>
+                {table.label && (
+                  <p className="text-[10px] text-gray-400 truncate mb-1.5">{table.label}</p>
+                )}
+                <div className="flex items-center gap-1 text-[11px] text-gray-400">
+                  <Users className="h-3 w-3" />
+                  <span>{table.capacity}</span>
+                </div>
+                {table.session?.isActive && (
+                  <div className="mt-2 space-y-0.5">
+                    {table.session.order && (
+                      <>
+                        <p className="text-[11px] font-semibold text-gray-700">#{table.session.order.orderNo}</p>
+                        <p className="text-[11px] font-bold text-amber-700">
+                          {formatPrice(table.session.order.total, currency)}
+                        </p>
+                      </>
+                    )}
+                    <div className="flex items-center gap-1 text-[10px] text-gray-400">
+                      <Clock className="h-2.5 w-2.5" />
+                      <span>{timeSince(table.session.startedAt)}</span>
                     </div>
-                  )}
-                </motion.button>
-              );
-            })}
-          </div>
-        )}
+                  </div>
+                )}
+              </motion.button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

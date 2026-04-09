@@ -23,47 +23,43 @@ export default function KioskConfirmation({ orderNo, total, currency, onReset }:
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-b from-green-50 to-white"
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white"
       onClick={onReset}
     >
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,#d1fae5_0%,transparent_60%)] pointer-events-none" />
+
       <motion.div
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.1 }}
-        className="flex h-28 w-28 items-center justify-center rounded-full bg-green-100 mb-8"
+        initial={{ scale: 0.5, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.1 }}
+        className="relative z-10 flex h-24 w-24 items-center justify-center rounded-full bg-green-50 ring-8 ring-green-100 mb-8"
       >
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: "spring", stiffness: 300, damping: 15, delay: 0.3 }}
-        >
-          <CheckCircle2 className="h-16 w-16 text-green-600" />
-        </motion.div>
+        <CheckCircle2 className="h-14 w-14 text-green-500" />
       </motion.div>
 
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-        className="text-center"
+        transition={{ delay: 0.3 }}
+        className="relative z-10 text-center"
       >
         <h1 className="text-4xl font-black text-gray-900 mb-2">Order Placed!</h1>
-        <p className="text-lg text-gray-500 mb-8">Your order has been sent to the kitchen</p>
+        <p className="text-base text-gray-400 mb-10">Your order has been sent to the kitchen</p>
 
-        <div className="rounded-3xl bg-white border-2 border-gray-100 shadow-xl px-12 py-8 mb-8">
-          <p className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2">Order Number</p>
-          <p className="text-5xl font-black text-amber-700 mb-4">#{orderNo}</p>
-          <div className="h-px bg-gray-200 my-4" />
-          <p className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-1">Total</p>
+        <div className="rounded-2xl bg-white border border-gray-100 shadow-xl px-12 py-8 mb-8 inline-block">
+          <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2">Order Number</p>
+          <p className="text-5xl font-black text-amber-600 mb-5">#{orderNo}</p>
+          <div className="h-px bg-gray-100 mb-4" />
+          <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">Total</p>
           <p className="text-2xl font-black text-gray-900">{formatPrice(total, currency)}</p>
         </div>
 
-        <p className="text-gray-400 text-sm">Please pay at the counter</p>
+        <p className="text-sm text-gray-400">Please pay at the counter</p>
 
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 2 }}
+          transition={{ delay: 2.5 }}
           className="mt-8 text-xs text-gray-300"
         >
           This screen will reset automatically...
