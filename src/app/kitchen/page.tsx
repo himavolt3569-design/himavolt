@@ -331,7 +331,14 @@ async function staffFetch(url: string, opts?: RequestInit) {
     headers: { "Content-Type": "application/json", ...(opts?.headers || {}) },
     credentials: "include",
   });
-  if (!res.ok) throw new Error("Request failed");
+  if (!res.ok) {
+    let msg = "Request failed";
+    try {
+      const body = await res.json();
+      if (body?.error) msg = body.error;
+    } catch { /* ignore */ }
+    throw new Error(msg);
+  }
   return res.json();
 }
 
@@ -436,16 +443,12 @@ function OrdersTab({ restaurantId, currency }: { restaurantId: string; currency:
     status: string,
     extra?: Record<string, unknown>,
   ) => {
-    try {
-      await staffFetch(`/api/restaurants/${restaurantId}/orders/${orderId}`, {
-        method: "PATCH",
-        body: JSON.stringify({ status, ...extra }),
-      });
-      // SSE will pick up the change; also do an immediate fetch
-      load();
-    } catch {
-      /* ignore */
-    }
+    await staffFetch(`/api/restaurants/${restaurantId}/orders/${orderId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ status, ...extra }),
+    });
+    // SSE will pick up the change; also do an immediate fetch
+    load();
   };
 
   const handleAccept = async (orderId: string) => {
@@ -454,15 +457,23 @@ function OrdersTab({ restaurantId, currency }: { restaurantId: string; currency:
       showToast("Please enter a valid estimated time", "error");
       return;
     }
-    await updateStatus(orderId, "ACCEPTED", { estimatedTime: mins });
-    setAcceptingId(null);
-    setEstTime("15");
-    showToast("Order accepted!", "success");
+    try {
+      await updateStatus(orderId, "ACCEPTED", { estimatedTime: mins });
+      setAcceptingId(null);
+      setEstTime("15");
+      showToast("Order accepted!", "success");
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Cannot accept order", "error");
+    }
   };
 
   const handleReject = async (orderId: string) => {
-    await updateStatus(orderId, "REJECTED");
-    showToast("Order rejected", "info");
+    try {
+      await updateStatus(orderId, "REJECTED");
+      showToast("Order rejected", "info");
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Failed to reject order", "error");
+    }
   };
 
   const filtered = orders.filter((o) => {
