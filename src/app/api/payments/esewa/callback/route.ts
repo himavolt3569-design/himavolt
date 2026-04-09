@@ -9,15 +9,33 @@ function getAppUrl(req: NextRequest): string {
   return process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
 }
 
+async function logWebhook(
+  event: string,
+  orderId: string | null,
+  rawPayload: string,
+  httpStatus: number,
+  idempotencyKey?: string,
+) {
+  try {
+    await db.webhookLog.create({
+      data: { gateway: "ESEWA", event, orderId, rawPayload, httpStatus, idempotencyKey },
+    });
+  } catch {
+    // Non-fatal: don't break payment processing if logging fails
+  }
+}
+
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const orderId = searchParams.get("orderId");
   const status = searchParams.get("status");
   const encodedData = searchParams.get("data");
+  const rawPayload = JSON.stringify(Object.fromEntries(searchParams.entries()));
 
   const APP_URL = getAppUrl(req);
 
   if (!orderId) {
+    await logWebhook("payment.error", null, rawPayload, 302);
     return NextResponse.redirect(`${APP_URL}?payment=error`);
   }
 
@@ -26,6 +44,7 @@ export async function GET(req: NextRequest) {
       where: { orderId, status: "PENDING" },
       data: { status: "FAILED" },
     });
+    await logWebhook("payment.failed", orderId, rawPayload, 302);
     return NextResponse.redirect(`${APP_URL}/track/${orderId}?payment=failed`);
   }
 
@@ -34,8 +53,21 @@ export async function GET(req: NextRequest) {
       const decoded = JSON.parse(
         Buffer.from(encodedData, "base64").toString("utf-8"),
       );
-      const transactionUuid = decoded.transaction_uuid;
+      const transactionUuid = decoded.transaction_uuid as string;
       const totalAmount = parseFloat(decoded.total_amount);
+
+      // Idempotency: check if this webhook was already processed
+      if (transactionUuid) {
+        const existing = await db.webhookLog.findUnique({
+          where: { idempotencyKey: transactionUuid },
+        });
+        if (existing) {
+          // Already processed — redirect without reprocessing
+          return NextResponse.redirect(
+            `${APP_URL}/track/${orderId}?payment=success`,
+          );
+        }
+      }
 
       // Get restaurant's eSewa merchant code
       const order = await db.order.findUnique({
@@ -66,6 +98,7 @@ export async function GET(req: NextRequest) {
             paidAt: new Date(),
           },
         });
+        await logWebhook("payment.success", orderId, rawPayload, 302, transactionUuid);
         return NextResponse.redirect(
           `${APP_URL}/track/${orderId}?payment=success`,
         );
@@ -79,6 +112,7 @@ export async function GET(req: NextRequest) {
     where: { orderId, status: "PENDING" },
     data: { status: "FAILED" },
   });
+  await logWebhook("payment.failed", orderId, rawPayload, 302);
 
   return NextResponse.redirect(`${APP_URL}/track/${orderId}?payment=failed`);
 }

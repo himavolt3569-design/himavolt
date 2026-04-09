@@ -3,23 +3,52 @@ import { db } from "@/lib/db";
 import { verifyKhaltiPayment } from "@/lib/payments/khalti";
 import { decryptIfPresent } from "@/lib/encryption";
 
+async function logWebhook(
+  event: string,
+  orderId: string | null,
+  rawPayload: string,
+  httpStatus: number,
+  idempotencyKey?: string,
+) {
+  try {
+    await db.webhookLog.create({
+      data: { gateway: "KHALTI", event, orderId, rawPayload, httpStatus, idempotencyKey },
+    });
+  } catch {
+    // Non-fatal: don't break payment processing if logging fails
+  }
+}
+
 export async function GET(req: NextRequest) {
   const APP_URL = process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
   const { searchParams } = new URL(req.url);
   const orderId = searchParams.get("orderId");
   const pidx = searchParams.get("pidx");
   const khaltiStatus = searchParams.get("status");
+  const rawPayload = JSON.stringify(Object.fromEntries(searchParams.entries()));
 
   if (!orderId) {
+    await logWebhook("payment.error", null, rawPayload, 302);
     return NextResponse.redirect(`${APP_URL}?payment=error`);
   }
 
   // User explicitly cancelled — redirect without marking FAILED so they can retry
   if (khaltiStatus === "User canceled") {
+    await logWebhook("payment.cancelled", orderId, rawPayload, 302);
     return NextResponse.redirect(`${APP_URL}/track/${orderId}?payment=cancelled`);
   }
 
   if (khaltiStatus === "Completed" && pidx) {
+    // Idempotency: check if this webhook was already processed
+    const existing = await db.webhookLog.findUnique({
+      where: { idempotencyKey: pidx },
+    });
+    if (existing) {
+      return NextResponse.redirect(
+        `${APP_URL}/track/${orderId}?payment=success`,
+      );
+    }
+
     // Get restaurant's Khalti secret key
     const order = await db.order.findUnique({
       where: { id: orderId },
@@ -44,6 +73,7 @@ export async function GET(req: NextRequest) {
           paidAt: new Date(),
         },
       });
+      await logWebhook("payment.success", orderId, rawPayload, 302, pidx);
       return NextResponse.redirect(
         `${APP_URL}/track/${orderId}?payment=success`,
       );
@@ -58,5 +88,6 @@ export async function GET(req: NextRequest) {
     });
   }
 
+  await logWebhook("payment.failed", orderId, rawPayload, 302);
   return NextResponse.redirect(`${APP_URL}/track/${orderId}?payment=failed`);
 }

@@ -52,6 +52,8 @@ interface TrackingOrder {
     method: string;
     status: string;
     paidAt: string | null;
+    transactionId?: string | null;
+    proofUrl?: string | null;
   } | null;
   bill: {
     billNo: string;
@@ -203,7 +205,17 @@ function PaymentBadge({ method, status }: { method: string; status: string }) {
     label: method,
     color: "bg-gray-100 text-gray-700",
   };
-  const isPaid = status === "COMPLETED";
+
+  const statusConfig: Record<string, { label: string; color: string; icon: typeof CheckCircle2 }> = {
+    COMPLETED: { label: "Paid", color: "bg-green-100 text-green-700", icon: CheckCircle2 },
+    PENDING: { label: "Pending", color: "bg-amber-100 text-amber-700", icon: Clock },
+    AWAITING_VERIFICATION: { label: "Verifying", color: "bg-blue-100 text-blue-700", icon: Clock },
+    FAILED: { label: "Failed", color: "bg-red-100 text-red-700", icon: XCircle },
+    EXPIRED: { label: "Expired", color: "bg-red-100 text-red-600", icon: XCircle },
+    REFUNDED: { label: "Refunded", color: "bg-gray-100 text-gray-700", icon: CheckCircle2 },
+  };
+  const s = statusConfig[status] || statusConfig.PENDING;
+  const StatusIcon = s.icon;
 
   return (
     <div className="flex items-center gap-2">
@@ -214,19 +226,9 @@ function PaymentBadge({ method, status }: { method: string; status: string }) {
         {m.label}
       </span>
       <span
-        className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold ${
-          isPaid ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
-        }`}
+        className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold ${s.color}`}
       >
-        {isPaid ? (
-          <>
-            <CheckCircle2 className="h-3 w-3" /> Paid
-          </>
-        ) : (
-          <>
-            <Clock className="h-3 w-3" /> Pending
-          </>
-        )}
+        <StatusIcon className="h-3 w-3" /> {s.label}
       </span>
     </div>
   );
@@ -773,6 +775,136 @@ export default function TrackOrderPage() {
                   </motion.div>
                 )}
               </AnimatePresence>
+            </motion.div>
+          )}
+
+        {/* Digital Payment Status & Actions */}
+        {order.payment &&
+          ["ESEWA", "KHALTI"].includes(order.payment.method) &&
+          (order.payment.status === "PENDING" || order.payment.status === "FAILED") && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="rounded-2xl border-2 border-amber-200 bg-amber-50/60 p-4 space-y-3"
+            >
+              <div className="flex items-center gap-2">
+                <CreditCard className="h-4 w-4 text-amber-700" />
+                <span className="text-sm font-bold text-amber-900">
+                  {order.payment.status === "FAILED"
+                    ? "Payment was not completed"
+                    : "Complete your payment"}
+                </span>
+              </div>
+              <p className="text-xs text-amber-700">
+                {order.payment.status === "FAILED"
+                  ? "Your payment attempt was unsuccessful. You can try again below."
+                  : `Complete your ${order.payment.method === "ESEWA" ? "eSewa" : "Khalti"} payment to get your order started.`}
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={async () => {
+                    try {
+                      if (order.payment!.method === "ESEWA") {
+                        const res = await apiFetch<{
+                          gateway: { url: string; formData: Record<string, string> };
+                        }>("/api/payments/initiate", {
+                          method: "POST",
+                          body: { orderId: order.id, method: "ESEWA" },
+                        });
+                        const form = document.createElement("form");
+                        form.method = "POST";
+                        form.action = res.gateway.url;
+                        form.target = "_blank";
+                        Object.entries(res.gateway.formData).forEach(([k, v]) => {
+                          const input = document.createElement("input");
+                          input.type = "hidden";
+                          input.name = k;
+                          input.value = v;
+                          form.appendChild(input);
+                        });
+                        document.body.appendChild(form);
+                        form.submit();
+                        document.body.removeChild(form);
+                      } else {
+                        const res = await apiFetch<{ paymentUrl: string }>(
+                          "/api/payments/initiate",
+                          { method: "POST", body: { orderId: order.id, method: "KHALTI" } },
+                        );
+                        window.open(res.paymentUrl, "_blank");
+                      }
+                    } catch { /* retry failed */ }
+                  }}
+                  className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-[#eaa94d] py-3 text-sm font-bold text-white hover:bg-[#d67620] transition-all shadow-sm"
+                >
+                  {order.payment.status === "FAILED" ? "Try Again" : "Complete Payment"}
+                </button>
+              </div>
+            </motion.div>
+          )}
+
+        {/* Bank Transfer — Upload Proof */}
+        {order.payment?.method === "BANK" &&
+          (order.payment.status === "PENDING" || order.payment.status === "AWAITING_VERIFICATION") && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="rounded-2xl border-2 border-blue-200 bg-blue-50/60 p-4 space-y-3"
+            >
+              <div className="flex items-center gap-2">
+                <CreditCard className="h-4 w-4 text-blue-700" />
+                <span className="text-sm font-bold text-blue-900">
+                  {order.payment.status === "AWAITING_VERIFICATION"
+                    ? "Payment proof submitted"
+                    : "Upload bank transfer proof"}
+                </span>
+              </div>
+              {order.payment.status === "AWAITING_VERIFICATION" ? (
+                <p className="text-xs text-blue-700">
+                  Your order is awaiting payment verification by our team. You&apos;ll be notified once confirmed.
+                </p>
+              ) : (
+                <>
+                  <p className="text-xs text-blue-700">
+                    Upload a screenshot of your bank transfer to speed up verification.
+                  </p>
+                  <input
+                    type="file"
+                    accept="image/*,.pdf"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      try {
+                        const { uploadFile } = await import("@/lib/upload");
+                        const proofUrl = await uploadFile(file, "bank-proofs");
+                        await apiFetch("/api/payments/bank-proof", {
+                          method: "POST",
+                          body: { orderId: order.id, proofUrl },
+                        });
+                        fetchOrder();
+                      } catch { /* upload failed */ }
+                    }}
+                    className="w-full rounded-xl border border-blue-200 bg-white px-4 py-3 text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-blue-100 file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-blue-700 hover:file:bg-blue-200"
+                  />
+                </>
+              )}
+            </motion.div>
+          )}
+
+        {/* Payment Failed/Expired */}
+        {order.payment &&
+          (order.payment.status === "EXPIRED") && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="rounded-2xl border-2 border-red-200 bg-red-50/60 p-4 space-y-2"
+            >
+              <div className="flex items-center gap-2">
+                <XCircle className="h-4 w-4 text-red-700" />
+                <span className="text-sm font-bold text-red-900">Payment Expired</span>
+              </div>
+              <p className="text-xs text-red-700">
+                This payment has expired. Please place a new order to try again.
+              </p>
             </motion.div>
           )}
 

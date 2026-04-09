@@ -7,6 +7,7 @@ import {
   notifyCounterOrderReady,
 } from "@/lib/notifications";
 import { logAudit, getClientIp, type AuditAction } from "@/lib/audit";
+import { canAcceptOrder } from "@/lib/payment-gate";
 import { z } from "zod";
 import { restoreStock } from "@/lib/stock";
 
@@ -124,6 +125,31 @@ export async function PATCH(
     );
   }
   const { status, estimatedTime } = parsed.data;
+
+  // ── Payment Gate: block ACCEPTED if digital payment not completed ──
+  if (status === "ACCEPTED") {
+    const gate = await canAcceptOrder(orderId);
+    if (!gate.allowed) {
+      logAudit({
+        action: "PAYMENT_GATE_BLOCKED",
+        entity: "Order",
+        entityId: orderId,
+        detail: gate.reason || "Payment not completed",
+        metadata: {
+          paymentMethod: gate.paymentMethod,
+          paymentStatus: gate.paymentStatus,
+          attemptedStatus: status,
+        },
+        userId: actorId,
+        restaurantId: id,
+        ipAddress: getClientIp(req.headers),
+      });
+      return NextResponse.json(
+        { error: gate.reason || "Payment must be completed before accepting this order" },
+        { status: 402 },
+      );
+    }
+  }
 
   const timestamps: Record<string, Date> = {};
   if (status === "ACCEPTED") timestamps.acceptedAt = new Date();

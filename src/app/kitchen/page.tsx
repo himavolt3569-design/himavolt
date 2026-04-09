@@ -593,129 +593,174 @@ function OrdersTab({ restaurantId, currency }: { restaurantId: string; currency:
               <div className="mt-2 flex items-center gap-1.5 text-[10px]">
                 <CreditCard className="h-3 w-3 text-gray-400" />
                 <span className="font-bold text-gray-500">
-                  {order.payment.method}
+                  {order.payment.method === "ESEWA" ? "eSewa" :
+                   order.payment.method === "KHALTI" ? "Khalti" :
+                   order.payment.method === "BANK" ? "Bank" :
+                   order.payment.method === "COUNTER" ? "Counter" :
+                   order.payment.method === "DIRECT" ? "Direct" : "Cash"}
                 </span>
                 <span
                   className={`rounded-full px-1.5 py-0.5 font-bold ${
                     order.payment.status === "COMPLETED"
                       ? "bg-green-50 text-green-600"
+                      : order.payment.status === "FAILED" || order.payment.status === "EXPIRED"
+                      ? "bg-red-50 text-red-600"
+                      : order.payment.status === "AWAITING_VERIFICATION"
+                      ? "bg-blue-50 text-blue-600"
                       : "bg-amber-50 text-amber-600"
                   }`}
                 >
-                  {order.payment.status === "COMPLETED" ? "Paid" : "Pending"}
+                  {order.payment.status === "COMPLETED" ? "Paid" :
+                   order.payment.status === "FAILED" ? "Failed" :
+                   order.payment.status === "EXPIRED" ? "Expired" :
+                   order.payment.status === "AWAITING_VERIFICATION" ? "Verifying" : "Pending"}
                 </span>
               </div>
             )}
 
-            {order.status === "PENDING" && (
-              <div className="mt-3 space-y-2">
-                <AnimatePresence>
-                  {acceptingId === order.id ? (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="rounded-xl bg-brand-50 p-3 space-y-2">
-                        <label className="text-[11px] font-bold text-brand-700">
-                          Estimated prep time (minutes)
-                        </label>
-                        <div className="flex items-center gap-2">
-                          <div className="flex items-center gap-1 flex-1">
-                            <button
-                              onClick={() =>
-                                setEstTime((v) =>
-                                  String(
-                                    Math.max(1, parseInt(v || "0", 10) - 5),
-                                  ),
-                                )
-                              }
-                              className="flex h-9 w-9 items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"
-                            >
-                              <Minus className="h-3.5 w-3.5" />
-                            </button>
-                            <div className="relative flex-1">
-                              <Clock className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-brand-400" />
-                              <input
-                                type="number"
-                                min="1"
-                                max="120"
-                                value={estTime}
-                                onChange={(e) => setEstTime(e.target.value)}
-                                className="w-full rounded-lg border border-gray-200 bg-white py-2 pl-8 pr-3 text-center text-sm font-bold text-[#3e1e0c] outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400/20"
-                              />
+            {order.status === "PENDING" && (() => {
+              const isDigitalUnpaid =
+                order.payment &&
+                ["ESEWA", "KHALTI", "BANK"].includes(order.payment.method) &&
+                order.payment.status !== "COMPLETED";
+              const methodLabel =
+                order.payment?.method === "ESEWA" ? "eSewa" :
+                order.payment?.method === "KHALTI" ? "Khalti" :
+                order.payment?.method === "BANK" ? "Bank Transfer" : "";
+
+              return isDigitalUnpaid ? (
+                <div className="mt-3 space-y-2">
+                  <div className="rounded-xl bg-amber-50 border border-amber-200 p-3">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className="relative flex h-2 w-2">
+                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
+                        <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500" />
+                      </span>
+                      <span className="text-[11px] font-bold text-amber-700">
+                        Awaiting {methodLabel} Payment
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-amber-600">
+                      Customer has not completed payment. Order will be available for acceptance once payment is confirmed.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => handleReject(order.id)}
+                    className="w-full flex items-center justify-center gap-1 rounded-xl bg-red-50 px-4 py-2.5 text-xs font-bold text-red-600 hover:bg-red-100 transition-all"
+                  >
+                    <X className="h-3.5 w-3.5" /> Reject Order
+                  </button>
+                </div>
+              ) : (
+                <div className="mt-3 space-y-2">
+                  <AnimatePresence>
+                    {acceptingId === order.id ? (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="rounded-xl bg-brand-50 p-3 space-y-2">
+                          <label className="text-[11px] font-bold text-brand-700">
+                            Estimated prep time (minutes)
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1 flex-1">
+                              <button
+                                onClick={() =>
+                                  setEstTime((v) =>
+                                    String(
+                                      Math.max(1, parseInt(v || "0", 10) - 5),
+                                    ),
+                                  )
+                                }
+                                className="flex h-9 w-9 items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"
+                              >
+                                <Minus className="h-3.5 w-3.5" />
+                              </button>
+                              <div className="relative flex-1">
+                                <Clock className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-brand-400" />
+                                <input
+                                  type="number"
+                                  min="1"
+                                  max="120"
+                                  value={estTime}
+                                  onChange={(e) => setEstTime(e.target.value)}
+                                  className="w-full rounded-lg border border-gray-200 bg-white py-2 pl-8 pr-3 text-center text-sm font-bold text-[#3e1e0c] outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400/20"
+                                />
+                              </div>
+                              <button
+                                onClick={() =>
+                                  setEstTime((v) =>
+                                    String(
+                                      Math.min(120, parseInt(v || "0", 10) + 5),
+                                    ),
+                                  )
+                                }
+                                className="flex h-9 w-9 items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"
+                              >
+                                <Plus className="h-3.5 w-3.5" />
+                              </button>
                             </div>
+                            <span className="text-xs font-bold text-gray-400">
+                              min
+                            </span>
+                          </div>
+                          <div className="flex gap-2 pt-1">
+                            {[10, 15, 20, 30, 45].map((t) => (
+                              <button
+                                key={t}
+                                onClick={() => setEstTime(String(t))}
+                                className={`flex-1 rounded-lg py-1.5 text-[10px] font-bold transition-all ${
+                                  estTime === String(t)
+                                    ? "bg-brand-400 text-white"
+                                    : "bg-white border border-gray-200 text-gray-500 hover:border-brand-400 hover:text-brand-400"
+                                }`}
+                              >
+                                {t}m
+                              </button>
+                            ))}
+                          </div>
+                          <div className="flex gap-2 pt-1">
                             <button
-                              onClick={() =>
-                                setEstTime((v) =>
-                                  String(
-                                    Math.min(120, parseInt(v || "0", 10) + 5),
-                                  ),
-                                )
-                              }
-                              className="flex h-9 w-9 items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"
+                              onClick={() => handleAccept(order.id)}
+                              className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-brand-400 py-2.5 text-xs font-bold text-white hover:bg-brand-500 transition-all shadow-sm shadow-brand-400/20"
                             >
-                              <Plus className="h-3.5 w-3.5" />
+                              <Check className="h-3.5 w-3.5" /> Confirm Accept
+                            </button>
+                            <button
+                              onClick={() => {
+                                setAcceptingId(null);
+                                setEstTime("15");
+                              }}
+                              className="rounded-xl bg-gray-100 px-3 py-2.5 text-xs font-bold text-gray-500 hover:bg-gray-200 transition-all"
+                            >
+                              Cancel
                             </button>
                           </div>
-                          <span className="text-xs font-bold text-gray-400">
-                            min
-                          </span>
                         </div>
-                        <div className="flex gap-2 pt-1">
-                          {[10, 15, 20, 30, 45].map((t) => (
-                            <button
-                              key={t}
-                              onClick={() => setEstTime(String(t))}
-                              className={`flex-1 rounded-lg py-1.5 text-[10px] font-bold transition-all ${
-                                estTime === String(t)
-                                  ? "bg-brand-400 text-white"
-                                  : "bg-white border border-gray-200 text-gray-500 hover:border-brand-400 hover:text-brand-400"
-                              }`}
-                            >
-                              {t}m
-                            </button>
-                          ))}
-                        </div>
-                        <div className="flex gap-2 pt-1">
-                          <button
-                            onClick={() => handleAccept(order.id)}
-                            className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-brand-400 py-2.5 text-xs font-bold text-white hover:bg-brand-500 transition-all shadow-sm shadow-brand-400/20"
-                          >
-                            <Check className="h-3.5 w-3.5" /> Confirm Accept
-                          </button>
-                          <button
-                            onClick={() => {
-                              setAcceptingId(null);
-                              setEstTime("15");
-                            }}
-                            className="rounded-xl bg-gray-100 px-3 py-2.5 text-xs font-bold text-gray-500 hover:bg-gray-200 transition-all"
-                          >
-                            Cancel
-                          </button>
-                        </div>
+                      </motion.div>
+                    ) : (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setAcceptingId(order.id)}
+                          className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-brand-400 py-2.5 text-xs font-bold text-white hover:bg-brand-500 transition-all shadow-sm shadow-brand-400/20"
+                        >
+                          <Check className="h-3.5 w-3.5" /> Accept
+                        </button>
+                        <button
+                          onClick={() => handleReject(order.id)}
+                          className="flex items-center justify-center gap-1 rounded-xl bg-red-50 px-4 py-2.5 text-xs font-bold text-red-600 hover:bg-red-100 transition-all"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
                       </div>
-                    </motion.div>
-                  ) : (
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => setAcceptingId(order.id)}
-                        className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-brand-400 py-2.5 text-xs font-bold text-white hover:bg-brand-500 transition-all shadow-sm shadow-brand-400/20"
-                      >
-                        <Check className="h-3.5 w-3.5" /> Accept
-                      </button>
-                      <button
-                        onClick={() => handleReject(order.id)}
-                        className="flex items-center justify-center gap-1 rounded-xl bg-red-50 px-4 py-2.5 text-xs font-bold text-red-600 hover:bg-red-100 transition-all"
-                      >
-                        <X className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  )}
-                </AnimatePresence>
-              </div>
-            )}
+                    )}
+                  </AnimatePresence>
+                </div>
+              );
+            })()}
             {order.status === "ACCEPTED" && (
               <button
                 onClick={() => updateStatus(order.id, "PREPARING")}

@@ -58,71 +58,71 @@ model Restaurant {
   closingTime    String         @default("23:00")
   rating         Float          @default(0)
   totalOrders    Int            @default(0)
-  roomCount      Int            @default(0)   // for GUEST_HOUSE, HOTEL, RESORT
+  roomCount      Int            @default(0) // for GUEST_HOUSE, HOTEL, RESORT
 
   // WiFi details (shown on menu page)
-  wifiName       String?
-  wifiPassword   String?
+  wifiName     String?
+  wifiPassword String?
 
   // Currency & Tax config
   currency             String  @default("NPR") // NPR, INR, USD
-  taxRate              Float   @default(13)   // percentage, e.g. 13 = 13%
+  taxRate              Float   @default(13) // percentage, e.g. 13 = 13%
   taxEnabled           Boolean @default(true)
-  serviceChargeRate    Float   @default(10)   // percentage, e.g. 10 = 10%
+  serviceChargeRate    Float   @default(10) // percentage, e.g. 10 = 10%
   serviceChargeEnabled Boolean @default(true)
 
   // Operational status (staff-controllable)
-  isOpen           Boolean @default(true)  // when false, hidden from landing page & ordering disabled
-  deliveryEnabled  Boolean @default(false) // when true, delivery option shown in checkout
+  isOpen          Boolean @default(true) // when false, hidden from landing page & ordering disabled
+  deliveryEnabled Boolean @default(false) // when true, delivery option shown in checkout
 
   // Prepaid mode
-  prepaidEnabled Boolean @default(false) // if true, customers must pay before food processing begins
+  prepaidEnabled    Boolean @default(false) // if true, customers must pay before food processing begins
   counterPayEnabled Boolean @default(true) // counter pay available for all types
   directPayEnabled  Boolean @default(false) // direct bank/wallet pay
 
   // Hotel / Resort / Guest House booking advance config
   hotelAdvanceType  String @default("PERCENTAGE") // "PERCENTAGE" or "FIXED"
-  hotelAdvanceValue Float  @default(30)            // 30 = 30% of total, or NPR fixed amount
+  hotelAdvanceValue Float  @default(30) // 30 = 30% of total, or NPR fixed amount
 
   // Dynamic theme (set by owner/admin via ThemeSettingsTab)
-  primaryColor    String?  // hex e.g. "#eaa94d"
-  secondaryColor  String?
-  accentColor     String?
-  fontFamily      String?  // "Inter" | "Poppins" | "Lato" | etc.
-  menuLayout      String   @default("grid") // "grid" | "list" | "compact"
-  footerText      String?
-  showStories     Boolean  @default(true)
-  showReviews     Boolean  @default(true)
+  primaryColor   String? // hex e.g. "#eaa94d"
+  secondaryColor String?
+  accentColor    String?
+  fontFamily     String? // "Inter" | "Poppins" | "Lato" | etc.
+  menuLayout     String  @default("grid") // "grid" | "list" | "compact"
+  footerText     String?
+  showStories    Boolean @default(true)
+  showReviews    Boolean @default(true)
 
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   ownerId String
   owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
-  staff          StaffMember[]
-  categories     MenuCategory[]
-  menuItems      MenuItem[]
-  orders         Order[]
-  reviews        Review[]
-  chatRooms      ChatRoom[]
-  inventory      InventoryItem[]
-  stories        Story[]
-  deliveryZones  DeliveryZone[]
-  auditLogs      AuditLog[]
-  paymentQRs     PaymentQR[]
-  paymentConfig  PaymentConfig?
-  heroSlides     HeroSlide[]
-  tableSessions  TableSession[]
-  tables         Table[]
-  favourites     Favourite[]
-  guestCheckIns  GuestCheckIn[]
-  media          Media[]
-  rooms          Room[]
-  roomBookings   RoomBooking[]
-  coupons        Coupon[]
-  prepaidTokens  PrepaidToken[]
-  feedbacks      Feedback[]
+  staff                StaffMember[]
+  categories           MenuCategory[]
+  menuItems            MenuItem[]
+  orders               Order[]
+  reviews              Review[]
+  chatRooms            ChatRoom[]
+  inventory            InventoryItem[]
+  stories              Story[]
+  deliveryZones        DeliveryZone[]
+  auditLogs            AuditLog[]
+  paymentQRs           PaymentQR[]
+  paymentConfig        PaymentConfig?
+  heroSlides           HeroSlide[]
+  tableSessions        TableSession[]
+  tables               Table[]
+  favourites           Favourite[]
+  guestCheckIns        GuestCheckIn[]
+  media                Media[]
+  rooms                Room[]
+  roomBookings         RoomBooking[]
+  coupons              Coupon[]
+  prepaidTokens        PrepaidToken[]
+  feedbacks            Feedback[]
   comboMeals           ComboMeal[]
   rushHourConfig       RushHourConfig?
   displayCounterItems  DisplayCounterItem[]
@@ -145,17 +145,17 @@ model InventoryItem {
   costPerUnit Float    @default(0)
   category    String   @default("General") // Vegetables, Spices, Meat, Drinks, etc.
   notes       String?
-  imageUrl    String?  // optional product photo
+  imageUrl    String? // optional product photo
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   // Drink-specific fields
   isDrink       Boolean @default(false)
   drinkCategory String? // "Soft Drinks", "Hard Drinks", "Alcohol"
-  sellingPrice  Float?  // price when sold as menu item
+  sellingPrice  Float? // price when sold as menu item
 
   // Stock-to-menu link: should this item appear on the customer menu?
-  showOnMenu    Boolean @default(false)
+  showOnMenu Boolean @default(false)
 
   restaurantId String
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
@@ -252,7 +252,7 @@ model StaffMember {
   stories         Story[]
   media           Media[]
   shifts          Shift[]
-  processedOrders Order[] @relation("ProcessedOrders")
+  processedOrders Order[]           @relation("ProcessedOrders")
 
   @@unique([userId, restaurantId])
   @@index([restaurantId])
@@ -278,8 +278,8 @@ model Shift {
   id            String    @id @default(cuid())
   label         String?
   date          DateTime  @db.Date
-  startTime     String    // "HH:mm" 24-hour format
-  endTime       String    // "HH:mm" 24-hour format
+  startTime     String // "HH:mm" 24-hour format
+  endTime       String // "HH:mm" 24-hour format
   actualEndTime DateTime? // set when staff clocks out early
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -313,7 +313,7 @@ model MenuCategory {
   id        String   @id @default(cuid())
   name      String
   slug      String
-  icon      String?  // emoji or icon name
+  icon      String? // emoji or icon name
   sortOrder Int      @default(0)
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
@@ -353,7 +353,7 @@ model MenuItem {
   discountLabel  String? // display text e.g. "FLAT Rs.100 OFF"
   isFeatured     Boolean  @default(false) // starred/highlighted by restaurant
   spiceLevel     Int      @default(0) // 0=none, 1=mild, 2=medium, 3=hot, 4=extra-hot
-  calories       Int?     // kcal per serving
+  calories       Int? // kcal per serving
   allergens      String[] @default([]) // e.g. ["gluten","dairy","nuts"]
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -364,10 +364,10 @@ model MenuItem {
   category     MenuCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
   // Drinks tracking
-  isDrink       Boolean  @default(false)
-  drinkCategory String?  // "COLD" | "HOT" | "ALCOHOL"
-  stockEnabled  Boolean  @default(false) // track stock for this item
-  stockQuantity Float    @default(0)     // current stock count
+  isDrink       Boolean @default(false)
+  drinkCategory String? // "COLD" | "HOT" | "ALCOHOL"
+  stockEnabled  Boolean @default(false) // track stock for this item
+  stockQuantity Float   @default(0) // current stock count
 
   offerExpiresAt DateTime?
   offerStartedAt DateTime?
@@ -417,7 +417,7 @@ model Order {
   orderNo       String      @unique
   tableNo       Int?
   roomNo        String? // guest house room number
-  guestName     String?     // for counter/manual orders without an account
+  guestName     String? // for counter/manual orders without an account
   status        OrderStatus @default(PENDING)
   subtotal      Float
   tax           Float       @default(0)
@@ -441,34 +441,34 @@ model Order {
   deliveryFee     Float   @default(0)
 
   userId       String?
-  user         User?       @relation(fields: [userId], references: [id])
+  user         User?      @relation(fields: [userId], references: [id])
   restaurantId String
-  restaurant   Restaurant  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
 
   // Staff who processed/created this order (set from JWT session)
   processedByStaffId String?
   processedByStaff   StaffMember? @relation("ProcessedOrders", fields: [processedByStaffId], references: [id], onDelete: SetNull)
 
   // Prepaid flow
-  isPrepaid      Boolean  @default(false) // order requires payment before processing
-  prepaidTokenId String?  @unique         // link to PrepaidToken once paid
+  isPrepaid      Boolean @default(false) // order requires payment before processing
+  prepaidTokenId String? @unique // link to PrepaidToken once paid
 
   // POS hold/recall
-  isHeld    Boolean   @default(false)
-  heldAt    DateTime?
+  isHeld Boolean   @default(false)
+  heldAt DateTime?
 
   // Coupon
   couponId       String?
-  couponDiscount Float    @default(0) // discount amount applied from coupon
+  couponDiscount Float   @default(0) // discount amount applied from coupon
 
-  items          OrderItem[]
-  payment        Payment?
-  bill           Bill?
-  chatRoom       ChatRoom?
-  delivery       Delivery?
-  tableSession   TableSession?
-  prepaidToken   PrepaidToken? @relation(fields: [prepaidTokenId], references: [id])
-  feedbacks      Feedback[]
+  items        OrderItem[]
+  payment      Payment?
+  bill         Bill?
+  chatRoom     ChatRoom?
+  delivery     Delivery?
+  tableSession TableSession?
+  prepaidToken PrepaidToken? @relation(fields: [prepaidTokenId], references: [id])
+  feedbacks    Feedback[]
 
   @@index([restaurantId])
   @@index([userId])
@@ -525,6 +525,13 @@ model Payment {
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
+  // Bank transfer verification
+  proofUrl        String? // bank transfer proof screenshot URL
+  proofUploadedAt DateTime?
+  verifiedBy      String? // staff member ID who verified
+  verifiedAt      DateTime?
+  rejectionNote   String? // reason if bank payment rejected
+
   orderId String @unique
   order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
@@ -544,9 +551,11 @@ enum PaymentMethod {
 
 enum PaymentStatus {
   PENDING
+  AWAITING_VERIFICATION // bank proof uploaded, awaiting biller review
   COMPLETED
   FAILED
   REFUNDED
+  EXPIRED // payment timed out
 }
 
 // ─── Bills / Invoices ───────────────────────────────────────────────
@@ -629,9 +638,9 @@ model ChatRoom {
 }
 
 enum ChatRoomType {
-  CUSTOMER    // per-order customer chat
-  BROADCAST   // admin-to-all-staff channel
-  TABLE_CHAT  // pre-order per-table chat
+  CUSTOMER // per-order customer chat
+  BROADCAST // admin-to-all-staff channel
+  TABLE_CHAT // pre-order per-table chat
 }
 
 model ChatMessage {
@@ -878,7 +887,7 @@ model TableSession {
 model Table {
   id        String   @id @default(cuid())
   tableNo   Int
-  label     String?  // e.g. "Window Seat", "VIP 1"
+  label     String? // e.g. "Window Seat", "VIP 1"
   capacity  Int      @default(4)
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
@@ -896,16 +905,16 @@ model Table {
 
 model Feedback {
   id          String   @id @default(cuid())
-  rating      Int?     // 1-5
+  rating      Int? // 1-5
   comment     String?
-  name        String?  // null when anonymous
+  name        String? // null when anonymous
   isAnonymous Boolean  @default(false)
   createdAt   DateTime @default(now())
 
   restaurantId String
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
   orderId      String?
-  order        Order?  @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  order        Order?     @relation(fields: [orderId], references: [id], onDelete: SetNull)
 
   @@index([restaurantId])
   @@map("feedbacks")
@@ -947,7 +956,7 @@ model Favourite {
 model CustomerCheckIn {
   id        String   @id @default(cuid())
   userId    String
-  date      String   // "YYYY-MM-DD" — one per user per day
+  date      String // "YYYY-MM-DD" — one per user per day
   createdAt DateTime @default(now())
 
   @@unique([userId, date])
@@ -962,11 +971,11 @@ model GuestCheckIn {
   guestName   String
   phone       String?
   email       String?
-  idType      String?   // CITIZENSHIP, PASSPORT, DRIVING_LICENSE, VOTER_ID
+  idType      String? // CITIZENSHIP, PASSPORT, DRIVING_LICENSE, VOTER_ID
   idNumber    String?
   idImageUrl  String?
   address     String?
-  dob         String?   // date of birth (from ID)
+  dob         String? // date of birth (from ID)
   nationality String?   @default("Nepali")
   roomNo      String
   adults      Int       @default(1)
@@ -1014,18 +1023,18 @@ model Media {
 
 model Room {
   id          String   @id @default(cuid())
-  roomNumber  String   // e.g. "101", "A-201"
-  name        String?  // optional display name e.g. "Deluxe Suite"
+  roomNumber  String // e.g. "101", "A-201"
+  name        String? // optional display name e.g. "Deluxe Suite"
   type        String   @default("STANDARD") // STANDARD, DELUXE, SUITE, DORMITORY
   floor       Int      @default(1)
-  price       Float    @default(0)  // per night rate
+  price       Float    @default(0) // per night rate
   maxGuests   Int      @default(2)
   description String?
-  bedType     String?              // "King", "Queen", "Twin", "Single", "Double", "Bunk Bed"
+  bedType     String? // "King", "Queen", "Twin", "Single", "Double", "Bunk Bed"
   bedCount    Int      @default(1) // number of beds in this room
   amenities   String[] @default([]) // ["WiFi","AC","TV","Balcony"]
   imageUrls   String[] @default([]) // multiple room images
-  videoUrl    String?               // optional room video
+  videoUrl    String? // optional room video
   isAvailable Boolean  @default(true)
   isActive    Boolean  @default(true) // soft delete
   sortOrder   Int      @default(0)
@@ -1046,32 +1055,32 @@ model Room {
 // ─── Room Bookings ──────────────────────────────────────────────────
 
 model RoomBooking {
-  id              String   @id @default(cuid())
-  guestName       String
-  guestPhone      String?
-  guestEmail      String?
-  guestAddress    String?
-  guestIdType     String?  // CITIZENSHIP, PASSPORT, etc.
-  guestIdNumber   String?
-  adults          Int      @default(1)
-  children        Int      @default(0)
-  checkIn         DateTime
-  checkOut        DateTime
-  nights          Int      @default(1)
-  totalPrice      Float    @default(0)
-  advanceAmount   Float    @default(0)  // advance payment required
-  advancePaid     Boolean  @default(false)
+  id            String    @id @default(cuid())
+  guestName     String
+  guestPhone    String?
+  guestEmail    String?
+  guestAddress  String?
+  guestIdType   String? // CITIZENSHIP, PASSPORT, etc.
+  guestIdNumber String?
+  adults        Int       @default(1)
+  children      Int       @default(0)
+  checkIn       DateTime
+  checkOut      DateTime
+  nights        Int       @default(1)
+  totalPrice    Float     @default(0)
+  advanceAmount Float     @default(0) // advance payment required
+  advancePaid   Boolean   @default(false)
   // Advance payment details
-  paymentMethod   String?  // "ESEWA", "KHALTI", "CASH"
-  paymentStatus   String   @default("UNPAID") // UNPAID, PAID, FAILED
-  transactionId   String?
-  pidx            String?  // Khalti payment idx
-  refId           String?  // eSewa reference id
-  paidAt          DateTime?
-  status          String   @default("PENDING") // PENDING, CONFIRMED, CHECKED_IN, CHECKED_OUT, CANCELLED
-  notes           String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  paymentMethod String? // "ESEWA", "KHALTI", "CASH"
+  paymentStatus String    @default("UNPAID") // UNPAID, PAID, FAILED
+  transactionId String?
+  pidx          String? // Khalti payment idx
+  refId         String? // eSewa reference id
+  paidAt        DateTime?
+  status        String    @default("PENDING") // PENDING, CONFIRMED, CHECKED_IN, CHECKED_OUT, CANCELLED
+  notes         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   roomId       String
   room         Room       @relation(fields: [roomId], references: [id], onDelete: Cascade)
@@ -1091,20 +1100,20 @@ model RoomBooking {
 // ─── Coupons ────────────────────────────────────────────────────────
 
 model Coupon {
-  id          String   @id @default(cuid())
-  code        String   // e.g. "WELCOME20"
+  id          String    @id @default(cuid())
+  code        String // e.g. "WELCOME20"
   description String?
-  type        String   @default("PERCENTAGE") // PERCENTAGE, FIXED
-  value       Float    @default(0)   // discount value (percentage or fixed amount)
-  minOrder    Float    @default(0)   // minimum order total to apply
-  maxDiscount Float?                 // cap on discount amount (for percentage type)
-  maxUses     Int?                   // total usage limit (null = unlimited)
-  usedCount   Int      @default(0)
-  isActive    Boolean  @default(true)
-  startsAt    DateTime @default(now())
+  type        String    @default("PERCENTAGE") // PERCENTAGE, FIXED
+  value       Float     @default(0) // discount value (percentage or fixed amount)
+  minOrder    Float     @default(0) // minimum order total to apply
+  maxDiscount Float? // cap on discount amount (for percentage type)
+  maxUses     Int? // total usage limit (null = unlimited)
+  usedCount   Int       @default(0)
+  isActive    Boolean   @default(true)
+  startsAt    DateTime  @default(now())
   expiresAt   DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   restaurantId String
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
@@ -1118,11 +1127,11 @@ model Coupon {
 // ─── Prepaid Tokens ─────────────────────────────────────────────────
 
 model PrepaidToken {
-  id        String   @id @default(cuid())
-  token     String   @unique @default(cuid()) // unique verification code
-  status    String   @default("ACTIVE") // ACTIVE, USED, EXPIRED
-  amount    Float    @default(0)
-  createdAt DateTime @default(now())
+  id        String    @id @default(cuid())
+  token     String    @unique @default(cuid()) // unique verification code
+  status    String    @default("ACTIVE") // ACTIVE, USED, EXPIRED
+  amount    Float     @default(0)
+  createdAt DateTime  @default(now())
   usedAt    DateTime?
 
   restaurantId String
@@ -1138,19 +1147,19 @@ model PrepaidToken {
 // ─── Combo Deals ─────────────────────────────────────────────────────
 
 model ComboMeal {
-  id            String          @id @default(cuid())
+  id            String   @id @default(cuid())
   name          String
   description   String?
   imageUrl      String?
   comboPrice    Float
   originalPrice Float
-  isActive      Boolean         @default(true)
-  sortOrder     Int             @default(0)
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  isActive      Boolean  @default(true)
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   restaurantId String
-  restaurant   Restaurant    @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  restaurant   Restaurant      @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
   items        ComboMealItem[]
 
   @@index([restaurantId])
@@ -1158,9 +1167,9 @@ model ComboMeal {
 }
 
 model ComboMealItem {
-  id         String    @id @default(cuid())
-  name       String
-  quantity   Int       @default(1)
+  id       String @id @default(cuid())
+  name     String
+  quantity Int    @default(1)
 
   comboId    String
   combo      ComboMeal @relation(fields: [comboId], references: [id], onDelete: Cascade)
@@ -1194,9 +1203,9 @@ model DisplayCounterItem {
 }
 
 model DisplayCounterConfig {
-  id               String  @id @default(cuid())
-  isEnabled        Boolean @default(false)
-  autoHideSoldOut  Boolean @default(false)
+  id              String  @id @default(cuid())
+  isEnabled       Boolean @default(false)
+  autoHideSoldOut Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1210,12 +1219,12 @@ model DisplayCounterConfig {
 // ─── Rush Hour ───────────────────────────────────────────────────────
 
 model RushHourConfig {
-  id           String         @id @default(cuid())
-  isEnabled    Boolean        @default(false)
-  surgeEnabled Boolean        @default(false)
-  surgePercent Float          @default(10)
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
+  id           String   @id @default(cuid())
+  isEnabled    Boolean  @default(false)
+  surgeEnabled Boolean  @default(false)
+  surgePercent Float    @default(10)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   restaurantId String         @unique
   restaurant   Restaurant     @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
@@ -1225,16 +1234,34 @@ model RushHourConfig {
 }
 
 model RushHourSlot {
-  id        String         @id @default(cuid())
+  id        String   @id @default(cuid())
   label     String
   startTime String
   endTime   String
-  days      String[]       @default([])
-  isActive  Boolean        @default(true)
+  days      String[] @default([])
+  isActive  Boolean  @default(true)
 
-  configId  String
-  config    RushHourConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
+  configId String
+  config   RushHourConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
 
   @@index([configId])
   @@map("rush_hour_slots")
+}
+
+// ─── Webhook Logs ──────────────────────────────────────────────────
+
+model WebhookLog {
+  id             String   @id @default(cuid())
+  gateway        String // "ESEWA" | "KHALTI"
+  event          String // "payment.success" | "payment.failed"
+  orderId        String?
+  rawPayload     String // full JSON payload from gateway
+  httpStatus     Int // response code sent back
+  processedAt    DateTime @default(now())
+  idempotencyKey String?  @unique // prevent double processing
+
+  @@index([gateway])
+  @@index([orderId])
+  @@index([processedAt])
+  @@map("webhook_logs")
 }

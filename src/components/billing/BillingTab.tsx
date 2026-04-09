@@ -66,6 +66,9 @@ interface BillOrder {
     amount: number;
     transactionId: string | null;
     paidAt: string | null;
+    proofUrl?: string | null;
+    proofUploadedAt?: string | null;
+    rejectionNote?: string | null;
   } | null;
   bill: {
     id: string;
@@ -395,6 +398,31 @@ export default function BillingTab({
     setActionLoading(false);
   };
 
+  const handleVerifyBank = async (order: BillOrder, action: "VERIFY" | "REJECT") => {
+    if (!order.payment) return;
+    setActionLoading(true);
+    try {
+      await staffFetch(`/api/restaurants/${restaurantId}/billing/verify-bank`, {
+        method: "POST",
+        body: JSON.stringify({
+          paymentId: order.payment.id,
+          action,
+        }),
+      });
+      showToast(
+        action === "VERIFY"
+          ? `Bank transfer verified for Order #${order.orderNo}`
+          : `Bank transfer rejected for Order #${order.orderNo}`,
+        action === "VERIFY" ? "success" : "info",
+      );
+      loadOrders();
+      loadSummary();
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Failed to process bank verification", "error");
+    }
+    setActionLoading(false);
+  };
+
   const handleApplyDiscount = async () => {
     if (!selectedOrder) return;
     const amount = parseFloat(discountAmount);
@@ -544,25 +572,60 @@ export default function BillingTab({
       )}
 
       {summary && (
-        <div className="flex items-center gap-4 text-xs text-gray-500">
-          <span className="flex items-center gap-1">
-            <Receipt className="h-3 w-3" />
-            {summary.totalOrders} orders today
-          </span>
-          <span className="flex items-center gap-1">
-            <CheckCircle2 className="h-3 w-3 text-emerald-500" />
-            {summary.paidOrders} paid
-          </span>
-          <span className="flex items-center gap-1">
-            <AlertCircle className="h-3 w-3 text-orange-500" />
-            {summary.unpaidOrders} unpaid
-          </span>
-          {summary.digitalRevenue > 0 && (
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4 text-xs text-gray-500">
             <span className="flex items-center gap-1">
-              <Wallet className="h-3 w-3 text-purple-500" />
-              {formatPrice(summary.digitalRevenue, cur)} digital
+              <Receipt className="h-3 w-3" />
+              {summary.totalOrders} orders today
             </span>
-          )}
+            <span className="flex items-center gap-1">
+              <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+              {summary.paidOrders} paid
+            </span>
+            <span className="flex items-center gap-1">
+              <AlertCircle className="h-3 w-3 text-orange-500" />
+              {summary.unpaidOrders} unpaid
+            </span>
+            {summary.digitalRevenue > 0 && (
+              <span className="flex items-center gap-1">
+                <Wallet className="h-3 w-3 text-purple-500" />
+                {formatPrice(summary.digitalRevenue, cur)} digital
+              </span>
+            )}
+          </div>
+          <button
+            onClick={async () => {
+              try {
+                const today = new Date().toISOString().split("T")[0];
+                const data = await staffFetch(
+                  `/api/restaurants/${restaurantId}/billing/reconciliation?date=${today}`,
+                );
+                const lines = [
+                  `Reconciliation Report — ${data.date}`,
+                  `Total: ${data.summary.totalOrders} orders | Paid: ${data.summary.paidOrders} | Unpaid: ${data.summary.unpaidOrders}`,
+                  `Revenue: ${formatPrice(data.summary.totalRevenue, cur)}`,
+                  "",
+                  "By Method:",
+                  ...Object.entries(data.byMethod as Record<string, { total: number; paid: number; pending: number; failed: number; expired: number; awaitingVerification: number; revenue: number }>)
+                    .filter(([, v]) => v.total > 0)
+                    .map(([m, v]) => `  ${m}: ${v.total} orders (${v.paid} paid, ${v.pending} pending, ${v.failed} failed${v.awaitingVerification > 0 ? `, ${v.awaitingVerification} verifying` : ""}${v.expired > 0 ? `, ${v.expired} expired` : ""}) — ${formatPrice(v.revenue, cur)}`),
+                ];
+                if ((data.discrepancies as unknown[]).length > 0) {
+                  lines.push("", "Discrepancies (delivered but unpaid):");
+                  for (const d of data.discrepancies as { orderNo: string; paymentMethod: string; paymentStatus: string }[]) {
+                    lines.push(`  Order #${d.orderNo} — ${d.paymentMethod} ${d.paymentStatus}`);
+                  }
+                }
+                showToast(lines.join("\n"), "info");
+              } catch {
+                showToast("Failed to load reconciliation report", "error");
+              }
+            }}
+            className="flex items-center gap-1 rounded-lg bg-indigo-50 border border-indigo-100 px-2.5 py-1.5 text-[10px] font-bold text-indigo-700 hover:bg-indigo-100 transition-all"
+          >
+            <TrendingUp className="h-3 w-3" />
+            Reconciliation
+          </button>
         </div>
       )}
 
@@ -946,10 +1009,45 @@ export default function BillingTab({
                   </button>
                 )}
 
-                {/* Mark Paid — for ALL unpaid non-cancelled orders */}
+                {/* Bank Transfer Verification — for BANK orders awaiting verification */}
+                {order.payment?.method === "BANK" &&
+                  order.payment.status === "AWAITING_VERIFICATION" && (
+                    <div className="flex items-center gap-1">
+                      {order.payment.proofUrl && (
+                        <a
+                          href={order.payment.proofUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 rounded-lg bg-blue-50 border border-blue-200 px-2.5 py-1.5 text-[10px] font-bold text-blue-700 hover:bg-blue-100 transition-all"
+                        >
+                          <Eye className="h-3 w-3" />
+                          View Proof
+                        </a>
+                      )}
+                      <button
+                        onClick={() => handleVerifyBank(order, "VERIFY")}
+                        disabled={actionLoading}
+                        className="flex items-center gap-1 rounded-lg bg-emerald-500 px-2.5 py-1.5 text-[10px] font-bold text-white hover:bg-emerald-600 disabled:bg-gray-300 transition-all shadow-sm"
+                      >
+                        <CheckCircle2 className="h-3 w-3" />
+                        Verify
+                      </button>
+                      <button
+                        onClick={() => handleVerifyBank(order, "REJECT")}
+                        disabled={actionLoading}
+                        className="flex items-center gap-1 rounded-lg bg-red-50 border border-red-200 px-2.5 py-1.5 text-[10px] font-bold text-red-600 hover:bg-red-100 disabled:bg-gray-200 transition-all"
+                      >
+                        <X className="h-3 w-3" />
+                        Reject
+                      </button>
+                    </div>
+                  )}
+
+                {/* Mark Paid — for ALL unpaid non-cancelled orders (except bank awaiting verification, handled above) */}
                 {!isPaid(order) &&
                   order.status !== "CANCELLED" &&
-                  order.status !== "REJECTED" && (
+                  order.status !== "REJECTED" &&
+                  !(order.payment?.method === "BANK" && order.payment.status === "AWAITING_VERIFICATION") && (
                     <>
                       <button
                         onClick={() => {
