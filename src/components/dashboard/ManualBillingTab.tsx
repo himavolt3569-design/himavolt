@@ -253,14 +253,14 @@ export default function ManualBillingTab({
       ${hasFood ? `<div class="sec">Food</div>
         ${foodItems.map((b) => `
           <div class="item-row">
-            ${b.imageUrl ? `<img class="item-img" src="${b.imageUrl}" alt="${b.name}" onerror="this.style.display='none'"/>` : `<div class="item-ph" style="background:#f3f4f6;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#9ca3af;font-weight:600">FOOD</div>`}
+            ${b.imageUrl ? `<img class="item-img" src="${b.imageUrl}" alt="${b.name}" onerror="this.style.display='none'"/>` : `<div class="item-ph" style="background:#f3f4f6;border-radius:4px;display:flex;align-items:center;justify-content:center"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg></div>`}
             <div class="item-info"><div class="item-name">${b.name}</div><div class="item-unit">${b.quantity} × ${formatPrice(b.price, currency)}</div></div>
             <div class="item-tot">${formatPrice(b.price * b.quantity, currency)}</div>
           </div>`).join("")}` : ""}
       ${hasDrinks ? `<div class="sec" style="color:#1d4ed8">Bar / Drinks</div>
         ${drinkItems.map((b) => `
           <div class="item-row">
-            ${b.imageUrl ? `<img class="item-img" src="${b.imageUrl}" alt="${b.name}" onerror="this.style.display='none'"/>` : `<div class="item-ph" style="background:#eff6ff;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#3b82f6;font-weight:600">BAR</div>`}
+            ${b.imageUrl ? `<img class="item-img" src="${b.imageUrl}" alt="${b.name}" onerror="this.style.display='none'"/>` : `<div class="item-ph" style="background:#eff6ff;border-radius:4px;display:flex;align-items:center;justify-content:center"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 22h8"/><path d="M7 10h10"/><path d="M12 15v7"/><path d="M12 15a5 5 0 0 0 5-5c0-2-.5-4-2-8H9c-1.5 4-2 6-2 8a5 5 0 0 0 5 5Z"/></svg></div>`}
             <div class="item-info"><div class="item-name">${b.name}</div><div class="item-unit">${b.quantity} × ${formatPrice(b.price, currency)}</div></div>
             <div class="item-tot">${formatPrice(b.price * b.quantity, currency)}</div>
           </div>`).join("")}` : ""}
@@ -364,7 +364,7 @@ export default function ManualBillingTab({
         <div class="cat-hdr">${catLabel[cat] || cat}</div>
         ${items.map((b) => `
           <div class="item">${b.quantity} × ${b.name}</div>
-          ${b.drinkCategory === "ALCOHOL" ? `<div class="item-sub" style="color:#dc2626;font-size:10px;padding-left:16px;">[!] Verify age before serving</div>` : ""}
+          ${b.drinkCategory === "ALCOHOL" ? `<div class="item-sub" style="color:#dc2626;font-size:10px;padding-left:16px;display:flex;align-items:center;gap:3px;"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg> Verify age before serving</div>` : ""}
         `).join("")}
         <div class="thin"></div>
       `).join("")}
