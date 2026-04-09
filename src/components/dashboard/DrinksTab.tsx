@@ -489,7 +489,7 @@ export default function DrinksTab() {
               const lowItems = catDrinks.filter((d) => d.stockQuantity <= 3).length;
               return (
                 <div key={cat} className="rounded-xl bg-white border border-amber-100 p-3 text-center">
-                  <span className="text-2xl">{cfg.emoji}</span>
+                  <div className="flex justify-center mb-1"><cfg.icon className="h-6 w-6 text-amber-600" /></div>
                   <p className="text-[11px] font-bold text-amber-800 mt-1">{cfg.label}</p>
                   <p className="text-lg font-black text-amber-950">{total}</p>
                   {lowItems > 0 && (

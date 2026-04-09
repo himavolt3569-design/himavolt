@@ -16,6 +16,7 @@ import {
   Banknote,
   DollarSign,
   ExternalLink,
+  AlertTriangle,
 } from "lucide-react";
 import { useLiveOrders, type LiveOrder, type LiveOrderStatus } from "@/context/LiveOrdersContext";
 import { useRestaurant } from "@/context/RestaurantContext";

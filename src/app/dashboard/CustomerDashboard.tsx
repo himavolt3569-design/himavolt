@@ -39,6 +39,8 @@ import {
   UtensilsCrossed,
   Bookmark,
   BadgeCheck,
+  Flame,
+  Zap,
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
@@ -431,6 +433,174 @@ function TabPanel({ children }: { children: React.ReactNode }) {
 }
 
 /* ════════════════════════════════════════════════════════════
+   ATTENDANCE BUTTON
+   ════════════════════════════════════════════════════════ */
+function AttendanceButton() {
+  const today = new Date().toISOString().slice(0, 10);
+  const lsKey = `checkin_${today}`;
+
+  const [checked, setChecked] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem(lsKey) === "1";
+  });
+  const [streak, setStreak] = useState(() => {
+    if (typeof window === "undefined") return 0;
+    return Number(localStorage.getItem("checkin_streak") || 0);
+  });
+  const [total, setTotal] = useState(() => {
+    if (typeof window === "undefined") return 0;
+    return Number(localStorage.getItem("checkin_total") || 0);
+  });
+  const [burst, setBurst] = useState(false);
+  const [dots, setDots] = useState<{ id: number; x: number; y: number; color: string }[]>([]);
+
+  // Sync from server on mount (silent, background)
+  useEffect(() => {
+    fetch("/api/me/check-in")
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        if (!data) return;
+        if (data.checkedInToday) {
+          setChecked(true);
+          localStorage.setItem(lsKey, "1");
+        }
+        setStreak(data.streak);
+        setTotal(data.total);
+        localStorage.setItem("checkin_streak", String(data.streak));
+        localStorage.setItem("checkin_total", String(data.total));
+      })
+      .catch(() => {});
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleCheckIn = () => {
+    if (checked) return;
+
+    // Instant optimistic update
+    setChecked(true);
+    const newStreak = streak + 1;
+    const newTotal = total + 1;
+    setStreak(newStreak);
+    setTotal(newTotal);
+    localStorage.setItem(lsKey, "1");
+    localStorage.setItem("checkin_streak", String(newStreak));
+    localStorage.setItem("checkin_total", String(newTotal));
+
+    // Burst animation
+    setBurst(true);
+    const colors = ["#eaa94d", "#f59e0b", "#fb923c", "#fbbf24", "#34d399"];
+    const newDots = Array.from({ length: 8 }, (_, i) => ({
+      id: Date.now() + i,
+      x: Math.cos((i / 8) * 2 * Math.PI) * 38 + 50,
+      y: Math.sin((i / 8) * 2 * Math.PI) * 38 + 50,
+      color: colors[i % colors.length],
+    }));
+    setDots(newDots);
+    setTimeout(() => { setBurst(false); setDots([]); }, 700);
+
+    // Background persist
+    fetch("/api/me/check-in", { method: "POST" })
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        if (!data) return;
+        setStreak(data.streak);
+        setTotal(data.total);
+        localStorage.setItem("checkin_streak", String(data.streak));
+        localStorage.setItem("checkin_total", String(data.total));
+      })
+      .catch(() => {});
+  };
+
+  const dayLabel = new Date().toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" });
+
+  return (
+    <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+      <div className="flex items-center gap-4 p-4">
+        {/* Button */}
+        <div className="relative flex-shrink-0" style={{ width: 72, height: 72 }}>
+          {/* Burst dots */}
+          {dots.map((dot) => (
+            <motion.div
+              key={dot.id}
+              initial={{ opacity: 1, scale: 1, x: "50%", y: "50%" }}
+              animate={{ opacity: 0, scale: 0, x: `${dot.x}%`, y: `${dot.y}%` }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
+              style={{ backgroundColor: dot.color }}
+              className="absolute w-2 h-2 rounded-full pointer-events-none"
+            />
+          ))}
+
+          <motion.button
+            onClick={handleCheckIn}
+            disabled={checked}
+            whileTap={!checked ? { scale: 0.88 } : {}}
+            animate={burst ? { scale: [1, 1.18, 0.95, 1.04, 1] } : {}}
+            transition={{ type: "spring", stiffness: 400, damping: 20 }}
+            className={`relative w-full h-full rounded-2xl flex flex-col items-center justify-center gap-0.5 transition-colors select-none ${
+              checked
+                ? "bg-emerald-50 border-2 border-emerald-200 cursor-default"
+                : "bg-[#eaa94d] active:bg-[#d4922a] shadow-md shadow-[#eaa94d]/30"
+            }`}
+          >
+            <motion.div
+              animate={burst ? { rotate: [0, -15, 15, -8, 0], scale: [1, 1.3, 1] } : {}}
+              transition={{ duration: 0.5 }}
+            >
+              {checked
+                ? <Check className="h-6 w-6 text-emerald-500" strokeWidth={2.5} />
+                : <Zap className="h-6 w-6 text-white" strokeWidth={2} fill="white" />
+              }
+            </motion.div>
+            <span className={`text-[10px] font-bold leading-none ${checked ? "text-emerald-500" : "text-white"}`}>
+              {checked ? "Done!" : "Check In"}
+            </span>
+          </motion.button>
+        </div>
+
+        {/* Stats */}
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-semibold text-gray-400 mb-2">{dayLabel}</p>
+          <div className="flex items-center gap-3">
+            <motion.div
+              key={streak}
+              initial={{ scale: 0.7, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 500, damping: 22 }}
+              className="flex items-center gap-1"
+            >
+              <Flame className={`h-4 w-4 ${streak > 0 ? "text-orange-400" : "text-gray-300"}`} fill={streak > 0 ? "#fb923c" : "none"} />
+              <span className="text-base font-extrabold text-gray-800">{streak}</span>
+              <span className="text-[10px] text-gray-400 font-medium">streak</span>
+            </motion.div>
+            <div className="w-px h-4 bg-gray-100" />
+            <div className="flex items-center gap-1">
+              <Calendar className="h-3.5 w-3.5 text-gray-300" />
+              <span className="text-sm font-bold text-gray-600">{total}</span>
+              <span className="text-[10px] text-gray-400 font-medium">total</span>
+            </div>
+          </div>
+
+          {/* Streak bar */}
+          <div className="mt-2.5 flex gap-1">
+            {[1, 2, 3, 4, 5, 6, 7].map((day) => (
+              <motion.div
+                key={day}
+                initial={false}
+                animate={{ scale: day <= streak ? 1 : 0.85, opacity: day <= streak ? 1 : 0.35 }}
+                transition={{ delay: day * 0.03, type: "spring", stiffness: 400, damping: 20 }}
+                className={`flex-1 h-1.5 rounded-full ${day <= streak ? "bg-orange-400" : "bg-gray-100"}`}
+              />
+            ))}
+          </div>
+          <p className="text-[9px] text-gray-300 mt-1">
+            {streak >= 7 ? "7-day streak! " : streak > 0 ? `${7 - streak} more for a week` : "Check in daily to build a streak"}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════
    HOME TAB
    ════════════════════════════════════════════════════════ */
 function HomeTab({
@@ -475,6 +645,8 @@ function HomeTab({
           </div>
         )}
       </div>
+
+      <AttendanceButton />
 
       {activeOrder && <LiveOrderCard order={activeOrder} />}
 

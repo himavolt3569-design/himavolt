@@ -1097,12 +1097,12 @@ function OverviewTab({
 
       {/* ── Stat cards ────────────────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((s, i) => (
+        {stats.map((s) => (
           <motion.div
             key={s.label}
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.06 }}
+            transition={{ duration: 0.15 }}
           >
             <StatCard {...s} />
           </motion.div>
@@ -1251,9 +1251,9 @@ function OverviewTab({
                 return (
                   <motion.div
                     key={order.id}
-                    initial={{ opacity: 0, x: 8 }}
+                    initial={{ opacity: 0, x: 6 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.35 + i * 0.04 }}
+                    transition={{ duration: 0.14 }}
                     className="flex items-start gap-3 group"
                   >
                     <div className="flex flex-col items-center pt-1">
@@ -1339,13 +1339,14 @@ function OverviewTab({
               accent: "#EC4899",
               badge: undefined,
             },
-          ].map((action, i) => (
+          ].map((action) => (
             <motion.button
               key={action.label}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.35 + i * 0.04 }}
-              whileHover={{ y: -4, scale: 1.02 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.15 }}
+              whileHover={{ y: -3, scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
               onClick={() => setTab(action.tab)}
               className="relative flex flex-col items-center gap-3 rounded-2xl bg-white/70 backdrop-blur-md border border-gray-100/50 p-4 hover:border-amber-200 transition-all active:scale-[0.97] group cursor-pointer shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_-4px_rgba(245,158,11,0.15)]"
             >
@@ -1386,8 +1387,12 @@ const SHORTCUTS: Record<string, DashTab> = {
 const DASHBOARD_TAB_KEY = "hh_dashboard_tab";
 
 export default function DashboardPage() {
-  const [isHydrated, setIsHydrated] = useState(false);
-  const [activeTab, setActiveTab] = useState<DashTab>("overview");
+  const [activeTab, setActiveTab] = useState<DashTab>(() => {
+    if (typeof window !== "undefined") {
+      return (localStorage.getItem(DASHBOARD_TAB_KEY) as DashTab) ?? "overview";
+    }
+    return "overview";
+  });
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -1434,7 +1439,6 @@ export default function DashboardPage() {
   useEffect(() => {
     const saved = localStorage.getItem(DASHBOARD_TAB_KEY) as DashTab | null;
     if (saved) setActiveTab(saved);
-    setIsHydrated(true);
   }, []);
 
   useEffect(() => {
@@ -1490,17 +1494,8 @@ export default function DashboardPage() {
     }
   }, [userRole, dashRouter, resLoading, restaurants.length]);
 
-  if (!isHydrated || !isLoaded || userRole === null) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-slate-50">
-        <span className="text-sm font-medium text-amber-700/70">
-          Loading dashboard...
-        </span>
-      </div>
-    );
-  }
-
-  if (userRole === "CUSTOMER") {
+  // Route customers away once auth resolves — no full-screen gate
+  if (isLoaded && userRole === "CUSTOMER") {
     return <CustomerDashboard />;
   }
 
@@ -1632,10 +1627,10 @@ export default function DashboardPage() {
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.18, ease: "easeOut" }}
+              transition={{ duration: 0.12, ease: "easeOut" }}
             >
               {activeTab === "overview" && (
                 <OverviewTab

@@ -942,6 +942,19 @@ model Favourite {
   @@map("favourites")
 }
 
+// ─── Customer Daily Check-In (Attendance) ───────────────────────────
+
+model CustomerCheckIn {
+  id        String   @id @default(cuid())
+  userId    String
+  date      String   // "YYYY-MM-DD" — one per user per day
+  createdAt DateTime @default(now())
+
+  @@unique([userId, date])
+  @@index([userId])
+  @@map("customer_check_ins")
+}
+
 // ─── Guest Check-In (for Guest House / Hotel / Resort) ───────────────
 
 model GuestCheckIn {
