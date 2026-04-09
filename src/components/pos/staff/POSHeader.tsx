@@ -61,17 +61,18 @@ export default function POSHeader({ restaurantName, staffName, staffRole, active
   };
 
   return (
-    <div className="flex items-center justify-between bg-gray-900 text-white px-4 py-2 shrink-0">
-      {/* Left: restaurant + staff */}
-      <div className="flex items-center gap-4">
-        <div>
-          <h1 className="text-sm font-bold leading-tight">{restaurantName}</h1>
-          <p className="text-xs text-gray-400">{staffName} &middot; {staffRole}</p>
+    <header className="flex items-center justify-between bg-gray-950 text-white px-5 h-14 shrink-0 border-b border-white/5">
+      {/* Left: restaurant + staff info */}
+      <div className="flex items-center gap-5 min-w-0 w-56">
+        <div className="min-w-0">
+          <h1 className="text-sm font-semibold leading-tight text-white truncate">{restaurantName}</h1>
+          <p className="text-[11px] text-gray-500 truncate mt-0.5">{staffName} &middot; {staffRole}</p>
         </div>
-        <div className="text-sm font-mono text-gray-400">{clock}</div>
+        <span className="text-sm font-mono text-gray-500 tabular-nums shrink-0">{clock}</span>
       </div>
 
-      <div className="flex items-center gap-1 bg-gray-800 rounded-xl p-1">
+      {/* Center: navigation */}
+      <nav className="flex items-center gap-0.5 bg-gray-900 rounded-xl p-1">
         {VIEWS.map((v) => {
           const Icon = v.icon;
           const active = activeView === v.id;
@@ -79,32 +80,36 @@ export default function POSHeader({ restaurantName, staffName, staffRole, active
             <button
               key={v.id}
               onClick={() => onViewChange(v.id)}
-              className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold transition-all ${
-                active ? "bg-amber-600 text-white" : "text-gray-400 hover:text-white hover:bg-gray-700"
+              className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-[13px] font-medium transition-all ${
+                active
+                  ? "bg-amber-600 text-white shadow-sm"
+                  : "text-gray-500 hover:text-gray-200 hover:bg-gray-800"
               }`}
             >
-              <Icon className="h-3.5 w-3.5" />
-              {v.label}
+              <Icon className="h-3.5 w-3.5 shrink-0" />
+              <span>{v.label}</span>
             </button>
           );
         })}
-      </div>
+      </nav>
 
-      <div className="flex items-center gap-2">
+      {/* Right: controls */}
+      <div className="flex items-center gap-1 w-56 justify-end">
         <button
           onClick={toggleSound}
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
+          title={soundOn ? "Mute" : "Unmute"}
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 hover:text-gray-200 hover:bg-gray-800 transition-colors"
         >
           {soundOn ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
         </button>
         <button
           onClick={logout}
-          className="flex items-center gap-1.5 rounded-lg bg-gray-800 px-3 py-2 text-xs font-medium text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
+          className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-[13px] font-medium text-gray-500 hover:text-white hover:bg-gray-800 transition-colors"
         >
           <LogOut className="h-3.5 w-3.5" />
           Logout
         </button>
       </div>
-    </div>
+    </header>
   );
 }

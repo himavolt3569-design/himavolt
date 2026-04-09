@@ -201,7 +201,7 @@ export default function POSRegister({
         />
       </div>
 
-      <div className="w-[340px] shrink-0">
+      <div className="w-95 shrink-0">
         <POSOrderPanel
           items={orderItems}
           tables={tables}

@@ -24,10 +24,10 @@ interface Props {
 }
 
 const METHODS = [
-  { id: "CASH", label: "Cash", icon: DollarSign },
-  { id: "ESEWA", label: "eSewa", icon: Wallet },
+  { id: "CASH",   label: "Cash",   icon: DollarSign },
+  { id: "ESEWA",  label: "eSewa",  icon: Wallet },
   { id: "KHALTI", label: "Khalti", icon: Wallet },
-  { id: "BANK", label: "Bank", icon: Banknote },
+  { id: "BANK",   label: "Bank",   icon: Banknote },
 ];
 
 export default function POSSplitBill({ orderId, orderNo, total, restaurantId, currency, onClose, onDone }: Props) {
@@ -85,52 +85,57 @@ export default function POSSplitBill({ orderId, orderNo, total, restaurantId, cu
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
       onClick={onClose}
     >
       <motion.div
-        initial={{ scale: 0.95, opacity: 0 }}
+        initial={{ scale: 0.96, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.95, opacity: 0 }}
+        exit={{ scale: 0.96, opacity: 0 }}
         onClick={(e) => e.stopPropagation()}
         className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden"
       >
+        {/* Modal header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
           <div>
-            <h2 className="text-lg font-bold text-gray-900">Split Bill</h2>
-            <p className="text-xs text-gray-500">Order #{orderNo} &middot; Total: {formatPrice(total, currency)}</p>
+            <h2 className="text-base font-semibold text-gray-900">Split Bill</h2>
+            <p className="text-xs text-gray-400 mt-0.5">
+              Order #{orderNo} &middot; Total: {formatPrice(total, currency)}
+            </p>
           </div>
-          <button onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100">
+          <button
+            onClick={onClose}
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+          >
             <X className="h-4 w-4" />
           </button>
         </div>
 
-        <div className="p-5 space-y-3 max-h-[50vh] overflow-y-auto">
+        {/* Split rows */}
+        <div className="p-5 space-y-3 max-h-72 overflow-y-auto">
           {splits.map((split, idx) => (
-            <div key={idx} className="flex items-center gap-3">
+            <div key={idx} className="flex items-center gap-2.5">
               <select
                 value={split.method}
                 onChange={(e) => updateSplit(idx, "method", e.target.value)}
-                className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-200"
+                className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent transition-all"
               >
                 {METHODS.map((m) => (
                   <option key={m.id} value={m.id}>{m.label}</option>
                 ))}
               </select>
-              <div className="relative flex-1">
-                <input
-                  type="number"
-                  min="0"
-                  value={split.amount}
-                  onChange={(e) => updateSplit(idx, "amount", e.target.value)}
-                  placeholder="Amount"
-                  className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-200"
-                />
-              </div>
+              <input
+                type="number"
+                min="0"
+                value={split.amount}
+                onChange={(e) => updateSplit(idx, "amount", e.target.value)}
+                placeholder="Amount"
+                className="flex-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent transition-all"
+              />
               {splits.length > 2 && (
                 <button
                   onClick={() => removeSplit(idx)}
-                  className="flex h-9 w-9 items-center justify-center rounded-lg text-red-400 hover:bg-red-50 hover:text-red-600"
+                  className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-300 hover:bg-red-50 hover:text-red-500 transition-colors"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -140,33 +145,36 @@ export default function POSSplitBill({ orderId, orderNo, total, restaurantId, cu
 
           <button
             onClick={addSplit}
-            className="flex items-center gap-1.5 text-xs font-bold text-amber-700 hover:text-amber-600"
+            className="flex items-center gap-1.5 text-xs font-semibold text-amber-600 hover:text-amber-500 transition-colors"
           >
             <Plus className="h-3.5 w-3.5" />
-            Add another payment
+            Add payment method
           </button>
         </div>
 
-        <div className="px-5 py-4 border-t border-gray-200 bg-gray-50 space-y-2">
+        {/* Footer */}
+        <div className="px-5 py-4 border-t border-gray-100 bg-gray-50 space-y-3">
           <div className="flex justify-between text-sm">
-            <span className="text-gray-600">Split total</span>
-            <span className={`font-bold ${Math.abs(remaining) < 0.01 ? "text-green-600" : "text-red-600"}`}>
+            <span className="text-gray-500">Split total</span>
+            <span className={`font-semibold ${Math.abs(remaining) < 0.01 ? "text-green-600" : "text-red-500"}`}>
               {formatPrice(splitTotal, currency)}
             </span>
           </div>
           {Math.abs(remaining) >= 0.01 && (
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Remaining</span>
-              <span className="font-bold text-red-600">{formatPrice(remaining, currency)}</span>
+              <span className="text-gray-500">Remaining</span>
+              <span className="font-semibold text-red-500">{formatPrice(remaining, currency)}</span>
             </div>
           )}
 
           <button
             onClick={submit}
             disabled={!isValid || submitting}
-            className="w-full flex items-center justify-center gap-2 rounded-xl bg-green-600 py-3 text-sm font-bold text-white hover:bg-green-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-3"
+            className="w-full flex items-center justify-center gap-2 rounded-xl bg-green-600 py-3 text-sm font-semibold text-white hover:bg-green-500 transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
           >
-            {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+            {submitting
+              ? <Loader2 className="h-4 w-4 animate-spin" />
+              : <CheckCircle2 className="h-4 w-4" />}
             {submitting ? "Processing..." : "Confirm Split Payment"}
           </button>
         </div>

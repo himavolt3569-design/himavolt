@@ -30,10 +30,10 @@ interface Props {
 const BILLABLE_STATUSES = new Set(["PENDING", "ACCEPTED", "PREPARING", "READY", "DELIVERED"]);
 
 const PAYMENT_METHODS = [
-  { id: "CASH", label: "Cash", icon: DollarSign, color: "bg-green-50 border-green-300 text-green-700 hover:bg-green-100" },
-  { id: "ESEWA", label: "eSewa", icon: Wallet, color: "bg-emerald-50 border-emerald-300 text-emerald-700 hover:bg-emerald-100" },
-  { id: "KHALTI", label: "Khalti", icon: Wallet, color: "bg-purple-50 border-purple-300 text-purple-700 hover:bg-purple-100" },
-  { id: "BANK", label: "Bank", icon: Banknote, color: "bg-blue-50 border-blue-300 text-blue-700 hover:bg-blue-100" },
+  { id: "CASH", label: "Cash", icon: DollarSign, color: "bg-green-50 border-green-200 text-green-700 hover:bg-green-100" },
+  { id: "ESEWA", label: "eSewa", icon: Wallet, color: "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100" },
+  { id: "KHALTI", label: "Khalti", icon: Wallet, color: "bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100" },
+  { id: "BANK", label: "Bank", icon: Banknote, color: "bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100" },
 ];
 
 async function staffFetch<T = unknown>(url: string, opts?: RequestInit): Promise<T> {
@@ -55,7 +55,6 @@ export default function POSBilling({ restaurantId, currency, orders, onSplitBill
   const [applyingDiscount, setApplyingDiscount] = useState(false);
   const [filter, setFilter] = useState<"unpaid" | "paid" | "all">("unpaid");
 
-  // Load bill details once (and after mutations) — no polling, order list comes from SSE prop
   const fetchBillMap = useCallback(async () => {
     try {
       const data = await staffFetch<Array<{ id: string; bill: BillDetails | null }>>(
@@ -72,8 +71,6 @@ export default function POSBilling({ restaurantId, currency, orders, onSplitBill
   }, [restaurantId]);
 
   useEffect(() => { fetchBillMap(); }, [fetchBillMap]);
-
-  // Clear stale discount input when switching orders
   useEffect(() => { setDiscountAmount(""); }, [selectedOrder?.id]);
 
   const billable = orders.filter((o) => BILLABLE_STATUSES.has(o.status));
@@ -130,27 +127,30 @@ export default function POSBilling({ restaurantId, currency, orders, onSplitBill
 
   return (
     <div className="flex h-full">
-      <div className="flex-1 flex flex-col border-r border-gray-200">
-        <div className="shrink-0 p-4 border-b border-gray-100 space-y-3">
-          <h2 className="text-lg font-bold text-gray-900">Billing</h2>
+      {/* Left panel — order list */}
+      <div className="flex flex-col w-80 shrink-0 border-r border-gray-200 bg-white">
+        <div className="shrink-0 px-4 pt-4 pb-3 border-b border-gray-100 space-y-3">
+          <h2 className="text-base font-semibold text-gray-900">Billing</h2>
 
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by order #, name, or table..."
-              className="w-full rounded-lg border border-gray-200 bg-gray-50 pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-200"
+              placeholder="Search orders..."
+              className="w-full rounded-xl border border-gray-200 bg-gray-50 pl-9 pr-4 py-2.5 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent transition-all"
             />
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-1.5">
             {(["unpaid", "paid", "all"] as const).map((f) => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
-                className={`rounded-lg px-3 py-1.5 text-xs font-bold capitalize transition-all ${
-                  filter === f ? "bg-amber-700 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                className={`rounded-full px-3.5 py-1.5 text-xs font-semibold capitalize transition-all border ${
+                  filter === f
+                    ? "bg-amber-600 text-white border-amber-600"
+                    : "bg-white text-gray-500 border-gray-200 hover:border-gray-300 hover:text-gray-700"
                 }`}
               >
                 {f}
@@ -161,30 +161,42 @@ export default function POSBilling({ restaurantId, currency, orders, onSplitBill
 
         <div className="flex-1 overflow-y-auto">
           {filtered.length === 0 ? (
-            <div className="flex items-center justify-center h-40 text-gray-400 text-sm">No orders</div>
+            <div className="flex flex-col items-center justify-center h-40 gap-2 text-gray-400">
+              <Receipt className="h-8 w-8 opacity-40" />
+              <p className="text-sm">No orders</p>
+            </div>
           ) : (
             <div className="divide-y divide-gray-50">
               {filtered.map((order) => {
                 const orderIsPaid = order.payment?.status === "COMPLETED";
+                const isSelected = selectedOrder?.id === order.id;
                 return (
                   <button
                     key={order.id}
                     onClick={() => setSelectedOrder(order)}
-                    className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors ${
-                      selectedOrder?.id === order.id ? "bg-amber-50 border-l-4 border-l-amber-500" : ""
+                    className={`w-full text-left px-4 py-3.5 transition-colors ${
+                      isSelected
+                        ? "bg-amber-50 border-l-2 border-l-amber-500"
+                        : "hover:bg-gray-50 border-l-2 border-l-transparent"
                     }`}
                   >
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-bold text-gray-900">#{order.orderNo}</span>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm font-semibold text-gray-900">#{order.orderNo}</span>
                       <span className="text-sm font-bold text-amber-700">
                         {formatPrice(billMap[order.id]?.total ?? order.total, currency)}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
-                      {order.tableNo && <span>Table {order.tableNo}</span>}
-                      {order.guestName && <span>{order.guestName}</span>}
-                      <span className={`ml-auto rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                        orderIsPaid ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"
+                    <div className="flex items-center gap-2">
+                      {order.tableNo && (
+                        <span className="text-xs text-gray-400">Table {order.tableNo}</span>
+                      )}
+                      {order.guestName && (
+                        <span className="text-xs text-gray-400 truncate">{order.guestName}</span>
+                      )}
+                      <span className={`ml-auto rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                        orderIsPaid
+                          ? "bg-green-100 text-green-700"
+                          : "bg-orange-100 text-orange-600"
                       }`}>
                         {orderIsPaid ? "Paid" : "Unpaid"}
                       </span>
@@ -197,78 +209,94 @@ export default function POSBilling({ restaurantId, currency, orders, onSplitBill
         </div>
       </div>
 
-      {/* Right: Bill detail & payment */}
-      <div className="w-[380px] shrink-0 flex flex-col bg-gray-50">
+      {/* Right panel — bill detail */}
+      <div className="flex-1 flex flex-col bg-gray-50 overflow-hidden">
         {!selectedOrder ? (
-          <div className="flex flex-col items-center justify-center h-full text-gray-400">
-            <Receipt className="h-12 w-12 mb-3 opacity-40" />
-            <p className="text-sm font-medium">Select an order to view bill</p>
+          <div className="flex flex-col items-center justify-center h-full gap-3 text-gray-400">
+            <div className="rounded-full bg-gray-100 p-5">
+              <Receipt className="h-8 w-8 opacity-50" />
+            </div>
+            <p className="text-sm font-medium">Select an order to view the bill</p>
           </div>
         ) : (
-          <>
-            <div className="p-4 border-b border-gray-200 bg-white">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-lg font-black text-gray-900">#{selectedOrder.orderNo}</span>
-                <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${
-                  isPaid ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"
+          <div className="flex flex-col h-full overflow-y-auto">
+            {/* Bill header */}
+            <div className="shrink-0 px-6 py-4 bg-white border-b border-gray-200">
+              <div className="flex items-start justify-between">
+                <div>
+                  <span className="text-lg font-bold text-gray-900">Order #{selectedOrder.orderNo}</span>
+                  <div className="flex items-center gap-3 mt-1 text-sm text-gray-500">
+                    {selectedOrder.tableNo && <span>Table {selectedOrder.tableNo}</span>}
+                    {selectedOrder.guestName && <span>{selectedOrder.guestName}</span>}
+                  </div>
+                </div>
+                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                  isPaid ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-600"
                 }`}>
                   {isPaid ? "Paid" : "Unpaid"}
                 </span>
               </div>
-              {selectedOrder.tableNo && <p className="text-xs text-gray-500">Table {selectedOrder.tableNo}</p>}
-              {selectedOrder.guestName && <p className="text-xs text-gray-500">{selectedOrder.guestName}</p>}
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+            <div className="flex-1 p-6 space-y-4 overflow-y-auto">
+              {/* Receipt breakdown */}
+              <div className="rounded-xl border border-gray-200 bg-white overflow-hidden shadow-sm">
                 <div className="divide-y divide-gray-50">
                   {selectedOrder.items.map((item) => (
-                    <div key={item.id} className="flex justify-between px-3 py-2 text-xs">
-                      <span className="text-gray-700">{item.quantity}x {item.name}</span>
-                      <span className="font-semibold text-gray-900">{formatPrice(item.price * item.quantity, currency)}</span>
+                    <div key={item.id} className="flex justify-between px-4 py-3">
+                      <span className="text-sm text-gray-700">
+                        <span className="font-semibold text-gray-900">{item.quantity}x</span> {item.name}
+                      </span>
+                      <span className="text-sm font-semibold text-gray-900">
+                        {formatPrice(item.price * item.quantity, currency)}
+                      </span>
                     </div>
                   ))}
                 </div>
-                <div className="border-t border-gray-200 bg-gray-50 px-3 py-2 space-y-1">
-                  <div className="flex justify-between text-xs text-gray-500">
+                <div className="border-t border-gray-100 bg-gray-50 px-4 py-3 space-y-2">
+                  <div className="flex justify-between text-sm text-gray-500">
                     <span>Subtotal</span>
-                    <span>{formatPrice(selectedOrder.subtotal, currency)}</span>
+                    <span className="font-medium">{formatPrice(selectedOrder.subtotal, currency)}</span>
                   </div>
                   {selectedOrder.tax > 0 && (
-                    <div className="flex justify-between text-xs text-gray-500">
+                    <div className="flex justify-between text-sm text-gray-500">
                       <span>Tax</span>
-                      <span>{formatPrice(selectedOrder.tax, currency)}</span>
+                      <span className="font-medium">{formatPrice(selectedOrder.tax, currency)}</span>
                     </div>
                   )}
                   {selectedOrder.deliveryFee > 0 && (
-                    <div className="flex justify-between text-xs text-gray-500">
+                    <div className="flex justify-between text-sm text-gray-500">
                       <span>Delivery Fee</span>
-                      <span>{formatPrice(selectedOrder.deliveryFee, currency)}</span>
+                      <span className="font-medium">{formatPrice(selectedOrder.deliveryFee, currency)}</span>
                     </div>
                   )}
                   {bill?.serviceCharge ? (
-                    <div className="flex justify-between text-xs text-gray-500">
+                    <div className="flex justify-between text-sm text-gray-500">
                       <span>Service Charge</span>
-                      <span>{formatPrice(bill.serviceCharge, currency)}</span>
+                      <span className="font-medium">{formatPrice(bill.serviceCharge, currency)}</span>
                     </div>
                   ) : null}
                   {bill?.discount ? (
-                    <div className="flex justify-between text-xs text-green-600">
+                    <div className="flex justify-between text-sm text-green-600">
                       <span>Discount</span>
-                      <span>-{formatPrice(bill.discount, currency)}</span>
+                      <span className="font-semibold">-{formatPrice(bill.discount, currency)}</span>
                     </div>
                   ) : null}
-                  <div className="flex justify-between text-sm font-bold text-gray-900 pt-1 border-t border-gray-200">
-                    <span>Total</span>
-                    <span className="text-amber-700">{formatPrice(bill?.total ?? selectedOrder.total, currency)}</span>
+                  <div className="flex justify-between items-center pt-2 border-t border-gray-200">
+                    <span className="text-base font-semibold text-gray-900">Total</span>
+                    <span className="text-base font-bold text-amber-700">
+                      {formatPrice(bill?.total ?? selectedOrder.total, currency)}
+                    </span>
                   </div>
                 </div>
               </div>
 
+              {/* Discount input */}
               {!isPaid && (
-                <div className="rounded-xl border border-gray-200 bg-white p-3">
-                  <label className="text-xs font-bold text-gray-600 mb-2 flex items-center gap-1">
-                    <Tag className="h-3 w-3" /> Apply Discount
+                <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+                  <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+                    <Tag className="h-3.5 w-3.5" />
+                    Apply Discount
                   </label>
                   <div className="flex gap-2">
                     <input
@@ -276,23 +304,24 @@ export default function POSBilling({ restaurantId, currency, orders, onSplitBill
                       onChange={(e) => setDiscountAmount(e.target.value)}
                       type="number"
                       min="0"
-                      placeholder="Amount"
-                      className="flex-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-200"
+                      placeholder="Enter amount"
+                      className="flex-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent transition-all"
                     />
                     <button
                       onClick={applyDiscount}
                       disabled={applyingDiscount || !discountAmount}
-                      className="rounded-lg bg-amber-600 px-4 py-2 text-xs font-bold text-white hover:bg-amber-500 disabled:opacity-50"
+                      className="rounded-lg bg-amber-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-amber-500 disabled:opacity-50 transition-colors"
                     >
-                      {applyingDiscount ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Apply"}
+                      {applyingDiscount ? <Loader2 className="h-4 w-4 animate-spin" /> : "Apply"}
                     </button>
                   </div>
                 </div>
               )}
 
+              {/* Payment collection */}
               {!isPaid && (
-                <div className="space-y-2">
-                  <h3 className="text-xs font-bold text-gray-600">Collect Payment</h3>
+                <div className="space-y-3">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Collect Payment</p>
                   <div className="grid grid-cols-2 gap-2">
                     {PAYMENT_METHODS.map((pm) => {
                       const Icon = pm.icon;
@@ -301,19 +330,18 @@ export default function POSBilling({ restaurantId, currency, orders, onSplitBill
                           key={pm.id}
                           onClick={() => collectPayment(pm.id)}
                           disabled={collecting}
-                          className={`flex items-center gap-2 rounded-xl border-2 p-3 text-xs font-bold transition-all disabled:opacity-50 ${pm.color}`}
+                          className={`flex items-center gap-2.5 rounded-xl border p-3.5 text-sm font-semibold transition-all disabled:opacity-50 ${pm.color}`}
                         >
-                          <Icon className="h-4 w-4" />
+                          <Icon className="h-4 w-4 shrink-0" />
                           {pm.label}
                         </button>
                       );
                     })}
                   </div>
-
                   <button
                     onClick={() => onSplitBill(selectedOrder.id, selectedOrder.orderNo, bill?.total ?? selectedOrder.total)}
                     disabled={collecting}
-                    className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-gray-300 bg-white p-3 text-xs font-bold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                    className="w-full flex items-center justify-center gap-2.5 rounded-xl border border-gray-200 bg-white p-3.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors"
                   >
                     <SplitSquareHorizontal className="h-4 w-4" />
                     Split Bill
@@ -321,17 +349,20 @@ export default function POSBilling({ restaurantId, currency, orders, onSplitBill
                 </div>
               )}
 
+              {/* Paid confirmation */}
               {isPaid && (
-                <div className="flex items-center gap-2 rounded-xl bg-green-50 border border-green-200 p-4">
-                  <CheckCircle2 className="h-5 w-5 text-green-600" />
+                <div className="flex items-center gap-3 rounded-xl bg-green-50 border border-green-200 p-4">
+                  <CheckCircle2 className="h-5 w-5 text-green-600 shrink-0" />
                   <div>
-                    <p className="text-sm font-bold text-green-700">Payment Collected</p>
-                    <p className="text-xs text-green-600">via {selectedOrder.payment?.method}{bill?.paidVia ? ` (${bill.paidVia})` : ""}</p>
+                    <p className="text-sm font-semibold text-green-700">Payment Collected</p>
+                    <p className="text-xs text-green-600 mt-0.5">
+                      via {selectedOrder.payment?.method}{bill?.paidVia ? ` (${bill.paidVia})` : ""}
+                    </p>
                   </div>
                 </div>
               )}
             </div>
-          </>
+          </div>
         )}
       </div>
     </div>
