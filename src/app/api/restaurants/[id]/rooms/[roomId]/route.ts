@@ -75,6 +75,8 @@ export async function PATCH(
     amenities,
     imageUrls,
     videoUrl,
+    bedType,
+    bedCount,
     isAvailable,
     sortOrder,
   } = body;
@@ -110,6 +112,8 @@ export async function PATCH(
       ...(amenities !== undefined && { amenities }),
       ...(imageUrls !== undefined && { imageUrls }),
       ...(videoUrl !== undefined && { videoUrl: videoUrl?.trim() || null }),
+      ...(bedType !== undefined && { bedType: bedType?.trim() || null }),
+      ...(bedCount !== undefined && { bedCount }),
       ...(isAvailable !== undefined && { isAvailable }),
       ...(sortOrder !== undefined && { sortOrder }),
     },

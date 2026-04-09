@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus,
@@ -13,10 +13,13 @@ import {
   Check,
   X,
   Eye,
+  ImageIcon,
+  Upload,
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { formatPrice } from "@/lib/currency";
 import { apiFetch } from "@/lib/api-client";
+import { uploadFile } from "@/lib/upload";
 
 /*  Types                                                              */
 
@@ -33,6 +36,9 @@ interface Room {
   maxGuests: number;
   description: string | null;
   amenities: string[];
+  imageUrls: string[];
+  bedType: string | null;
+  bedCount: number;
   isAvailable: boolean;
   createdAt: string;
 }
@@ -80,6 +86,8 @@ const BOOKING_STATUS_LABELS: Record<BookingStatus, string> = {
   CANCELLED: "Cancelled",
 };
 
+const BED_TYPES = ["King", "Queen", "Twin", "Single", "Double", "Bunk Bed"];
+
 const BLANK_ROOM = {
   roomNumber: "",
   name: "",
@@ -89,6 +97,9 @@ const BLANK_ROOM = {
   maxGuests: 2,
   description: "",
   amenities: "",
+  imageUrls: [] as string[],
+  bedType: "",
+  bedCount: 1,
   isAvailable: true,
 };
 
@@ -209,6 +220,9 @@ function RoomsView({ restaurantId, currency }: { restaurantId: string; currency:
       maxGuests: room.maxGuests,
       description: room.description ?? "",
       amenities: room.amenities.join(", "),
+      imageUrls: room.imageUrls ?? [],
+      bedType: room.bedType ?? "",
+      bedCount: room.bedCount ?? 1,
       isAvailable: room.isAvailable,
     });
     setErrorMsg("");
@@ -242,6 +256,9 @@ function RoomsView({ restaurantId, currency }: { restaurantId: string; currency:
         .split(",")
         .map((a) => a.trim())
         .filter(Boolean),
+      imageUrls: form.imageUrls,
+      bedType: form.bedType.trim() || null,
+      bedCount: form.bedCount,
       isAvailable: form.isAvailable,
     };
 
@@ -345,10 +362,18 @@ function RoomsView({ restaurantId, currency }: { restaurantId: string; currency:
                   transition={{ delay: i * 0.03 }}
                   className="group flex items-center gap-4 rounded-2xl bg-white/90 backdrop-blur-xl border border-gray-100 p-4 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] transition-all hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.08)] hover:-translate-y-0.5"
                 >
-                  <div
-                    className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${typeColors.bg}`}
-                  >
-                    <BedDouble className={`h-5 w-5 ${typeColors.text}`} />
+                  <div className={`h-12 w-12 shrink-0 rounded-2xl overflow-hidden ${typeColors.bg}`}>
+                    {room.imageUrls?.length > 0 ? (
+                      <img
+                        src={room.imageUrls[0]}
+                        alt={room.name}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center">
+                        <BedDouble className={`h-5 w-5 ${typeColors.text}`} />
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex-1 min-w-0">
@@ -380,6 +405,18 @@ function RoomsView({ restaurantId, currency }: { restaurantId: string; currency:
                         Max {room.maxGuests}
                       </span>
                       <span>Floor {room.floor}</span>
+                      {room.bedType && (
+                        <span className="flex items-center gap-1">
+                          <BedDouble className="h-3 w-3" />
+                          {room.bedCount > 1 ? `${room.bedCount}x ` : ""}{room.bedType}
+                        </span>
+                      )}
+                      {room.imageUrls?.length > 0 && (
+                        <span className="flex items-center gap-1 text-amber-600">
+                          <ImageIcon className="h-3 w-3" />
+                          {room.imageUrls.length}
+                        </span>
+                      )}
                     </div>
                     {room.amenities.length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-1.5">
@@ -463,6 +500,26 @@ function RoomFormModal({
   errorMsg: string;
   isEditing: boolean;
 }) {
+  const [uploadingImg, setUploadingImg] = useState(false);
+  const imgInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingImg(true);
+    try {
+      const url = await uploadFile(file, "rooms");
+      setForm((f) => ({ ...f, imageUrls: [...f.imageUrls, url] }));
+    } finally {
+      setUploadingImg(false);
+      if (imgInputRef.current) imgInputRef.current.value = "";
+    }
+  };
+
+  const removeImage = (idx: number) => {
+    setForm((f) => ({ ...f, imageUrls: f.imageUrls.filter((_, i) => i !== idx) }));
+  };
+
   return (
     <AnimatePresence>
       {open && (
@@ -586,6 +643,34 @@ function RoomFormModal({
                 </div>
               </div>
 
+              {/* Bed type & count */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">Bed Type</label>
+                  <select
+                    value={form.bedType}
+                    onChange={(e) => setForm((f) => ({ ...f, bedType: e.target.value }))}
+                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#3e1e0c] outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
+                  >
+                    <option value="">Select bed type</option>
+                    {BED_TYPES.map((bt) => (
+                      <option key={bt} value={bt}>{bt}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">Bed Count</label>
+                  <input
+                    type="number"
+                    value={form.bedCount}
+                    onChange={(e) => setForm((f) => ({ ...f, bedCount: parseInt(e.target.value) || 1 }))}
+                    min={1}
+                    max={10}
+                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#3e1e0c] outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
+                  />
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">Description</label>
                 <textarea
@@ -609,6 +694,51 @@ function RoomFormModal({
                   placeholder="e.g. WiFi, AC, TV, Mini Bar"
                   className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#3e1e0c] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
                 />
+              </div>
+
+              {/* Room Images */}
+              <div>
+                <label className="block text-sm font-bold text-[#3e1e0c] mb-2">Room Photos</label>
+                {form.imageUrls.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {form.imageUrls.map((url, idx) => (
+                      <div key={idx} className="relative group h-20 w-20 rounded-xl overflow-hidden border border-gray-200 shrink-0">
+                        <img src={url} alt={`Room ${idx + 1}`} className="h-full w-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(idx)}
+                          className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"
+                        >
+                          <X className="h-4 w-4 text-white" />
+                        </button>
+                        {idx === 0 && (
+                          <span className="absolute bottom-0 left-0 right-0 text-center text-[9px] font-bold bg-black/60 text-white py-0.5">
+                            Cover
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <input
+                  ref={imgInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleImageUpload}
+                />
+                <button
+                  type="button"
+                  onClick={() => imgInputRef.current?.click()}
+                  disabled={uploadingImg}
+                  className="flex items-center gap-2 rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-500 hover:border-amber-400 hover:bg-amber-50 hover:text-amber-700 transition-all disabled:opacity-50 w-full justify-center"
+                >
+                  {uploadingImg ? (
+                    <><Loader2 className="h-4 w-4 animate-spin" /> Uploading...</>
+                  ) : (
+                    <><Upload className="h-4 w-4" /> Add Photo</>
+                  )}
+                </button>
               </div>
 
               <div className="flex items-center gap-3">

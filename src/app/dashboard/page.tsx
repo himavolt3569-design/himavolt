@@ -134,6 +134,7 @@ import CouponManagementTab from "@/components/dashboard/CouponManagementTab";
 import RoomManagementTab from "@/components/dashboard/RoomManagementTab";
 import HotelBookingsTab from "@/components/dashboard/HotelBookingsTab";
 import HotelQRTab from "@/components/dashboard/HotelQRTab";
+import RoomQRTab from "@/components/dashboard/RoomQRTab";
 import OwnerControlPanel from "@/components/dashboard/OwnerControlPanel";
 
 type DashTab =
@@ -305,7 +306,7 @@ const FEATURE_COMPONENTS: Record<FeatureTabId, React.ComponentType> = {
   "private-dining": PrivateDiningTab,
   "wifi-settings": WifiSettingsTab,
   "guest-checkin": GuestCheckInTab,
-  "room-qr-codes": GuestCheckInTab, // Room QR tab uses same component (different section)
+  "room-qr-codes": RoomQRTab,
   "hotel-bookings": HotelBookingsTab,
   "hotel-qr": HotelQRTab,
 };

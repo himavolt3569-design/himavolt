@@ -62,6 +62,8 @@ export async function POST(req: NextRequest, { params }: Params) {
     amenities,
     imageUrls,
     videoUrl,
+    bedType,
+    bedCount,
     sortOrder,
   } = body;
 
@@ -95,6 +97,8 @@ export async function POST(req: NextRequest, { params }: Params) {
       amenities: amenities ?? [],
       imageUrls: imageUrls ?? [],
       videoUrl: videoUrl?.trim() || null,
+      bedType: bedType?.trim() || null,
+      bedCount: bedCount ?? 1,
       sortOrder: sortOrder ?? 0,
       restaurantId: id,
     },

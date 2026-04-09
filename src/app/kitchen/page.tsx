@@ -78,6 +78,7 @@ import TablesTab from "@/components/dashboard/TablesTab";
 import ManualBillingTab from "@/components/dashboard/ManualBillingTab";
 import HotelBookingsTab from "@/components/dashboard/HotelBookingsTab";
 import HotelQRTab from "@/components/dashboard/HotelQRTab";
+import RoomQRTab from "@/components/dashboard/RoomQRTab";
 import WaiterOrderTab from "@/components/dashboard/WaiterOrderTab";
 import GlobalChatButton from "@/components/chat/GlobalChatButton";
 
@@ -112,7 +113,7 @@ const STAFF_FEATURE_COMPONENTS: Record<FeatureTabId, React.ComponentType> = {
   "private-dining": PrivateDiningTab,
   "wifi-settings": WifiSettingsTab,
   "guest-checkin": GuestCheckInTab,
-  "room-qr-codes": GuestCheckInTab,
+  "room-qr-codes": RoomQRTab,
   "hotel-bookings": HotelBookingsTab,
   "hotel-qr": HotelQRTab,
 };
