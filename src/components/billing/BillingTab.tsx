@@ -255,7 +255,7 @@ export default function BillingTab({
     restaurantId ? `/api/restaurants/${restaurantId}/orders/stream` : null,
   );
 
-  // Tax & service charge config
+  // Tax & service charge configs
   const [taxRate, setTaxRate] = useState(13);
   const [taxEnabled, setTaxEnabled] = useState(true);
   const [scRate, setScRate] = useState(10);
