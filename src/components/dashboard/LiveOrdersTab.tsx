@@ -103,7 +103,7 @@ function PendingExpiryBadge({ createdAt }: { createdAt: string }) {
   const remaining = 30 - ageMins;
   return (
     <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-600 animate-pulse">
-      ⚠ {remaining <= 0 ? "Expiring..." : `${remaining}m left`}
+      <AlertTriangle className="h-3 w-3" /> {remaining <= 0 ? "Expiring..." : `${remaining}m left`}
     </span>
   );
 }

@@ -1,15 +1,15 @@
 export const RESTAURANT_TYPE_OPTIONS = [
-  { value: "FAST_FOOD", label: "Fast Food", emoji: "🍟" },
-  { value: "RESORT", label: "Resort", emoji: "🏖️" },
-  { value: "HOTEL", label: "Hotel", emoji: "🏨" },
-  { value: "BAKERY", label: "Bakery", emoji: "🧁" },
-  { value: "CLOUD_KITCHEN", label: "Cloud Kitchen", emoji: "☁️" },
-  { value: "BAR", label: "Bar", emoji: "🍸" },
-  { value: "CAFE", label: "Cafe", emoji: "☕" },
-  { value: "RESTAURANT", label: "Restaurant", emoji: "🍽️" },
-  { value: "MO_MO_SHOP", label: "Momo Shop", emoji: "🥟" },
-  { value: "TANDOORI", label: "Tandoori", emoji: "🔥" },
-  { value: "GUEST_HOUSE", label: "Guest House", emoji: "🏠" },
+  { value: "FAST_FOOD",    label: "Fast Food",     iconName: "Zap" },
+  { value: "RESORT",       label: "Resort",         iconName: "Sun" },
+  { value: "HOTEL",        label: "Hotel",          iconName: "Building2" },
+  { value: "BAKERY",       label: "Bakery",         iconName: "Cake" },
+  { value: "CLOUD_KITCHEN",label: "Cloud Kitchen",  iconName: "Cloud" },
+  { value: "BAR",          label: "Bar",            iconName: "Wine" },
+  { value: "CAFE",         label: "Cafe",           iconName: "Coffee" },
+  { value: "RESTAURANT",   label: "Restaurant",     iconName: "UtensilsCrossed" },
+  { value: "MO_MO_SHOP",   label: "Momo Shop",      iconName: "Utensils" },
+  { value: "TANDOORI",     label: "Tandoori",       iconName: "Flame" },
+  { value: "GUEST_HOUSE",  label: "Guest House",    iconName: "Home" },
 ] as const;
 
 const TYPE_MAP = Object.fromEntries(
@@ -20,8 +20,14 @@ export function getTypeLabel(value: string) {
   return TYPE_MAP[value]?.label ?? value;
 }
 
-export function getTypeEmoji(value: string) {
-  return TYPE_MAP[value]?.emoji ?? "🍽️";
+/** Returns the Lucide icon name string for a restaurant type. */
+export function getTypeIconName(value: string): string {
+  return TYPE_MAP[value]?.iconName ?? "UtensilsCrossed";
+}
+
+/** @deprecated Use getTypeIconName + RESTAURANT_TYPE_ICON_MAP instead */
+export function getTypeEmoji(value: string): string {
+  return getTypeIconName(value);
 }
 
 /* ── Type-specific feature highlights ──────────────────────────────── */

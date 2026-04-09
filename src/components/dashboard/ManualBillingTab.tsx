@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus, Minus, Trash2, Printer, Search, Receipt,
   Loader2, Check, X, User, Utensils, ChevronDown,
-  Banknote, CheckCircle2, Clock,
+  Banknote, CheckCircle2, Clock, Wine, Coffee, GlassWater,
 } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
 
@@ -31,6 +31,8 @@ interface MenuItem {
   category: { name: string };
   isAvailable: boolean;
   imageUrl?: string;
+  isDrink?: boolean;
+  drinkCategory?: string | null; // "COLD" | "HOT" | "ALCOHOL"
 }
 
 interface BillItem {
@@ -40,6 +42,8 @@ interface BillItem {
   price: number;
   originalPrice: number;
   imageUrl?: string;
+  isDrink?: boolean;
+  drinkCategory?: string | null;
 }
 
 interface TableOption {
@@ -115,7 +119,7 @@ export default function ManualBillingTab({
     setBillItems((prev) => {
       const existing = prev.find((b) => b.menuItemId === item.id);
       if (existing) return prev.map((b) => b.menuItemId === item.id ? { ...b, quantity: b.quantity + 1 } : b);
-      return [...prev, { menuItemId: item.id, name: item.name, quantity: 1, price: item.price, originalPrice: item.price, imageUrl: item.imageUrl }];
+      return [...prev, { menuItemId: item.id, name: item.name, quantity: 1, price: item.price, originalPrice: item.price, imageUrl: item.imageUrl, isDrink: item.isDrink, drinkCategory: item.drinkCategory }];
     });
   }, []);
 
@@ -200,119 +204,187 @@ export default function ManualBillingTab({
     }
   };
 
-  // Print bill — authentic tax invoice for DIRECT, KOT slip for COUNTER
-  const handlePrint = (orderNoOverride?: string) => {
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) return;
-    const displayOrderNo = orderNoOverride ?? orderNo;
-    const now = new Date();
+  // ── Helpers ─────────────────────────────────────────────────────────
+  const foodItems  = billItems.filter((b) => !b.isDrink);
+  const drinkItems = billItems.filter((b) => b.isDrink);
+  const hasDrinks  = drinkItems.length > 0;
+  const hasFood    = foodItems.length > 0;
 
-    if (payMethod === "DIRECT") {
-      // ── Authentic Tax Invoice (Direct Pay) ─────────────────────────
-      printWindow.document.write(`
-        <html><head><title>Tax Invoice</title>
-        <style>
-          * { box-sizing: border-box; }
-          body { font-family: Arial, sans-serif; max-width: 300px; margin: 0 auto; padding: 16px; color: #111; }
-          .center { text-align: center; }
-          .divider { border-top: 1px dashed #999; margin: 8px 0; }
-          .row { display: flex; justify-content: space-between; align-items: center; padding: 3px 0; font-size: 12px; }
-          h2 { margin: 0 0 2px; font-size: 17px; font-weight: bold; }
-          .invoice-label { font-size: 10px; font-weight: bold; letter-spacing: 1.5px; color: #555; text-transform: uppercase; background: #f3f4f6; border-radius: 3px; padding: 2px 8px; display: inline-block; margin: 4px 0; }
-          .section-label { font-size: 10px; font-weight: bold; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
-          .item-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px solid #f0f0f0; }
-          .item-img { width: 38px; height: 38px; object-fit: cover; border-radius: 4px; flex-shrink: 0; }
-          .item-img-placeholder { width: 38px; height: 38px; background: #f3f4f6; border-radius: 4px; flex-shrink: 0; }
-          .item-info { flex: 1; min-width: 0; }
-          .item-name { font-size: 12px; font-weight: 600; }
-          .item-unit { font-size: 10px; color: #888; }
-          .item-total { font-size: 12px; font-weight: bold; white-space: nowrap; }
-          .total-row { font-size: 14px; font-weight: bold; }
-          .payment-badge { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; border-radius: 4px; padding: 2px 8px; font-size: 11px; font-weight: bold; }
-          @media print { body { margin: 0; padding: 10px; } }
-        </style></head><body>
-        <div class="center">
-          <h2>${restaurantName || "Restaurant"}</h2>
-          ${restaurantAddress ? `<p style="font-size:11px;margin:2px 0;color:#555">${restaurantAddress}</p>` : ""}
-          ${restaurantPhone ? `<p style="font-size:11px;margin:2px 0;color:#555">${restaurantPhone}</p>` : ""}
-          <div><span class="invoice-label">Tax Invoice</span></div>
-        </div>
-        <div class="divider"></div>
-        <div class="row">
-          <span style="font-size:11px;color:#555">Date: ${now.toLocaleDateString()}</span>
-          <span style="font-size:11px;color:#555">Time: ${now.toLocaleTimeString()}</span>
-        </div>
-        ${displayOrderNo ? `<div class="row"><span style="font-size:11px">Bill No:</span><span style="font-size:11px;font-weight:bold">#${displayOrderNo}</span></div>` : ""}
-        <div class="row"><span style="font-size:11px">Table:</span><span style="font-size:11px;font-weight:600">${tableNo || "N/A"}</span></div>
-        ${guestName.trim() ? `<div class="row"><span style="font-size:11px">Guest:</span><span style="font-size:11px;font-weight:600">${guestName.trim()}</span></div>` : ""}
-        <div class="divider"></div>
-        <div class="section-label">Items</div>
-        ${billItems.map((b) => `
+  // Authentic Tax Invoice (Direct Pay) — all items, payment method shown
+  const handlePrintBill = (orderNoOverride?: string) => {
+    const pw = window.open("", "_blank");
+    if (!pw) return;
+    const displayNo = orderNoOverride ?? orderNo;
+    const now = new Date();
+    pw.document.write(`
+      <html><head><title>Tax Invoice</title>
+      <style>
+        * { box-sizing:border-box; }
+        body { font-family:Arial,sans-serif; max-width:300px; margin:0 auto; padding:16px; color:#111; }
+        .center { text-align:center; }
+        .divider { border-top:1px dashed #999; margin:8px 0; }
+        .row { display:flex; justify-content:space-between; align-items:center; padding:3px 0; font-size:12px; }
+        h2 { margin:0 0 2px; font-size:17px; font-weight:bold; }
+        .lbl { font-size:10px; font-weight:bold; letter-spacing:1.5px; color:#555; text-transform:uppercase; background:#f3f4f6; border-radius:3px; padding:2px 8px; display:inline-block; margin:4px 0; }
+        .sec { font-size:10px; font-weight:bold; color:#888; text-transform:uppercase; letter-spacing:1px; margin:6px 0 4px; }
+        .item-row { display:flex; align-items:center; gap:8px; padding:5px 0; border-bottom:1px solid #f0f0f0; }
+        .item-img { width:38px; height:38px; object-fit:cover; border-radius:4px; flex-shrink:0; }
+        .item-ph  { width:38px; height:38px; background:#f3f4f6; border-radius:4px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:18px; }
+        .item-info { flex:1; min-width:0; }
+        .item-name { font-size:12px; font-weight:600; }
+        .item-unit { font-size:10px; color:#888; }
+        .item-tot  { font-size:12px; font-weight:bold; white-space:nowrap; }
+        .tot-row   { font-size:14px; font-weight:bold; }
+        .pay-badge { background:#d1fae5; color:#065f46; border:1px solid #6ee7b7; border-radius:4px; padding:2px 8px; font-size:11px; font-weight:bold; }
+        @media print { body { margin:0; padding:10px; } }
+      </style></head><body>
+      <div class="center">
+        <h2>${restaurantName || "Restaurant"}</h2>
+        ${restaurantAddress ? `<p style="font-size:11px;margin:2px 0;color:#555">${restaurantAddress}</p>` : ""}
+        ${restaurantPhone ? `<p style="font-size:11px;margin:2px 0;color:#555">${restaurantPhone}</p>` : ""}
+        <div><span class="lbl">Tax Invoice</span></div>
+      </div>
+      <div class="divider"></div>
+      <div class="row"><span style="font-size:11px;color:#555">Date: ${now.toLocaleDateString()}</span><span style="font-size:11px;color:#555">Time: ${now.toLocaleTimeString()}</span></div>
+      ${displayNo ? `<div class="row"><span style="font-size:11px">Bill No:</span><span style="font-size:11px;font-weight:bold">#${displayNo}</span></div>` : ""}
+      <div class="row"><span style="font-size:11px">Table:</span><span style="font-size:11px;font-weight:600">${tableNo || "N/A"}</span></div>
+      ${guestName.trim() ? `<div class="row"><span style="font-size:11px">Guest:</span><span style="font-size:11px;font-weight:600">${guestName.trim()}</span></div>` : ""}
+      <div class="divider"></div>
+      ${hasFood ? `<div class="sec">Food</div>
+        ${foodItems.map((b) => `
           <div class="item-row">
-            ${b.imageUrl
-              ? `<img class="item-img" src="${b.imageUrl}" alt="${b.name}" onerror="this.style.display='none'" />`
-              : `<div class="item-img-placeholder"></div>`
-            }
-            <div class="item-info">
-              <div class="item-name">${b.name}</div>
-              <div class="item-unit">${b.quantity} × ${formatPrice(b.price, currency)}</div>
-            </div>
-            <div class="item-total">${formatPrice(b.price * b.quantity, currency)}</div>
-          </div>
+            ${b.imageUrl ? `<img class="item-img" src="${b.imageUrl}" alt="${b.name}" onerror="this.style.display='none'"/>` : `<div class="item-ph" style="background:#f3f4f6;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#9ca3af;font-weight:600">FOOD</div>`}
+            <div class="item-info"><div class="item-name">${b.name}</div><div class="item-unit">${b.quantity} × ${formatPrice(b.price, currency)}</div></div>
+            <div class="item-tot">${formatPrice(b.price * b.quantity, currency)}</div>
+          </div>`).join("")}` : ""}
+      ${hasDrinks ? `<div class="sec" style="color:#1d4ed8">Bar / Drinks</div>
+        ${drinkItems.map((b) => `
+          <div class="item-row">
+            ${b.imageUrl ? `<img class="item-img" src="${b.imageUrl}" alt="${b.name}" onerror="this.style.display='none'"/>` : `<div class="item-ph" style="background:#eff6ff;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#3b82f6;font-weight:600">BAR</div>`}
+            <div class="item-info"><div class="item-name">${b.name}</div><div class="item-unit">${b.quantity} × ${formatPrice(b.price, currency)}</div></div>
+            <div class="item-tot">${formatPrice(b.price * b.quantity, currency)}</div>
+          </div>`).join("")}` : ""}
+      <div class="divider"></div>
+      <div class="row"><span>Subtotal</span><span>${formatPrice(subtotal, currency)}</span></div>
+      ${taxEnabled ? `<div class="row"><span>Tax (${taxRate}%)</span><span>${formatPrice(tax, currency)}</span></div>` : ""}
+      <div class="divider"></div>
+      <div class="row tot-row"><span>TOTAL</span><span>${formatPrice(total, currency)}</span></div>
+      <div class="divider"></div>
+      <div class="row"><span style="font-size:11px">Payment</span><span class="pay-badge">Direct Pay</span></div>
+      <div class="center" style="margin-top:14px;font-size:10px;color:#777">Thank you for dining with us!</div>
+      <script>window.onload=function(){window.print();window.close();};<\/script>
+      </body></html>
+    `);
+    pw.document.close();
+  };
+
+  // KOT — kitchen-only slip, food items only
+  const handlePrintKOT = (orderNoOverride?: string) => {
+    const pw = window.open("", "_blank");
+    if (!pw) return;
+    const displayNo = orderNoOverride ?? orderNo;
+    const now = new Date();
+    const kotItems = foodItems.length > 0 ? foodItems : billItems; // fallback to all if no split
+    pw.document.write(`
+      <html><head><title>KOT</title>
+      <style>
+        body { font-family:'Courier New',monospace; max-width:300px; margin:0 auto; padding:16px; }
+        .center { text-align:center; }
+        .divider { border-top:1px dashed #333; margin:8px 0; }
+        .row { display:flex; justify-content:space-between; padding:2px 0; font-size:13px; }
+        .bold { font-weight:bold; }
+        h2 { margin:0 0 2px; font-size:14px; }
+        .kot-lbl { font-size:18px; font-weight:900; letter-spacing:3px; margin:4px 0 0; }
+        .item { padding:3px 0; font-size:14px; font-weight:bold; }
+        @media print { body { margin:0; padding:10px; } }
+      </style></head><body>
+      <div class="center">
+        <div class="kot-lbl">*** KOT ***</div>
+        <h2 style="margin-top:4px">${restaurantName || "Restaurant"}</h2>
+        <div style="font-size:10px;color:#555">Kitchen Order Ticket</div>
+      </div>
+      <div class="divider"></div>
+      <div class="row"><span>Table: <b>${tableNo || "N/A"}</b></span><span>${now.toLocaleTimeString()}</span></div>
+      ${displayNo ? `<div class="row"><span>Order: <b>#${displayNo}</b></span></div>` : ""}
+      ${guestName.trim() ? `<div class="row"><span>Guest: ${guestName.trim()}</span></div>` : ""}
+      <div class="divider"></div>
+      ${kotItems.map((b) => `
+        <div class="item">${b.quantity} × ${b.name}</div>
+      `).join("")}
+      <div class="divider"></div>
+      <div class="center" style="font-size:11px;margin-top:8px">— KITCHEN COPY —</div>
+      <script>window.onload=function(){window.print();window.close();};<\/script>
+      </body></html>
+    `);
+    pw.document.close();
+  };
+
+  // BOT — bar-only ticket, drink items only
+  const handlePrintBOT = (orderNoOverride?: string) => {
+    if (drinkItems.length === 0) return;
+    const pw = window.open("", "_blank");
+    if (!pw) return;
+    const displayNo = orderNoOverride ?? orderNo;
+    const now = new Date();
+    const grouped: Record<string, BillItem[]> = {};
+    drinkItems.forEach((b) => {
+      const cat = b.drinkCategory || "OTHER";
+      if (!grouped[cat]) grouped[cat] = [];
+      grouped[cat].push(b);
+    });
+    const catLabel: Record<string, string> = { COLD: "Cold Drinks", HOT: "Hot Drinks", ALCOHOL: "Alcohol / Cocktails", OTHER: "Beverages" };
+    pw.document.write(`
+      <html><head><title>BOT</title>
+      <style>
+        body { font-family:'Courier New',monospace; max-width:300px; margin:0 auto; padding:16px; background:#fff; }
+        .center { text-align:center; }
+        .divider { border-top:2px dashed #1e3a5f; margin:8px 0; }
+        .thin { border-top:1px dashed #93c5fd; margin:6px 0; }
+        .row { display:flex; justify-content:space-between; padding:2px 0; font-size:13px; }
+        h2 { margin:0 0 2px; font-size:13px; }
+        .bot-lbl { font-size:20px; font-weight:900; letter-spacing:4px; color:#1e3a5f; margin:4px 0 0; }
+        .cat-hdr { font-size:10px; font-weight:bold; text-transform:uppercase; letter-spacing:1.5px; color:#1d4ed8; margin:8px 0 4px; }
+        .item { padding:3px 0; font-size:15px; font-weight:bold; color:#1e3a5f; }
+        .item-sub { font-size:10px; color:#64748b; padding-left:16px; }
+        .meta { font-size:11px; color:#555; }
+        .badge { display:inline-block; background:#1e3a5f; color:#fff; font-size:10px; font-weight:bold; padding:1px 6px; border-radius:3px; letter-spacing:1px; }
+        @media print { body { margin:0; padding:10px; } }
+      </style></head><body>
+      <div class="center">
+        <div class="bot-lbl">*** BOT ***</div>
+        <h2 style="margin-top:4px">${restaurantName || "Restaurant"}</h2>
+        <span class="badge">Bar Order Ticket</span>
+      </div>
+      <div class="divider"></div>
+      <div class="row"><span class="meta">Table: <b>${tableNo || "N/A"}</b></span><span class="meta">${now.toLocaleTimeString()}</span></div>
+      ${displayNo ? `<div class="row"><span class="meta">Order: <b>#${displayNo}</b></span><span class="meta">${now.toLocaleDateString()}</span></div>` : ""}
+      ${guestName.trim() ? `<div class="row"><span class="meta">Guest: ${guestName.trim()}</span></div>` : ""}
+      <div class="divider"></div>
+      ${Object.entries(grouped).map(([cat, items]) => `
+        <div class="cat-hdr">${catLabel[cat] || cat}</div>
+        ${items.map((b) => `
+          <div class="item">${b.quantity} × ${b.name}</div>
+          ${b.drinkCategory === "ALCOHOL" ? `<div class="item-sub" style="color:#dc2626;font-size:10px;padding-left:16px;">[!] Verify age before serving</div>` : ""}
         `).join("")}
-        <div class="divider"></div>
-        <div class="row"><span>Subtotal</span><span>${formatPrice(subtotal, currency)}</span></div>
-        ${taxEnabled ? `<div class="row"><span>Tax (${taxRate}%)</span><span>${formatPrice(tax, currency)}</span></div>` : ""}
-        <div class="divider"></div>
-        <div class="row total-row"><span>TOTAL</span><span>${formatPrice(total, currency)}</span></div>
-        <div class="divider"></div>
-        <div class="row">
-          <span style="font-size:11px">Payment</span>
-          <span class="payment-badge">Direct Pay</span>
-        </div>
-        <div class="center" style="margin-top:14px;font-size:10px;color:#777">Thank you for dining with us!</div>
-        <script>window.onload=function(){window.print();window.close();};<\/script>
-        </body></html>
-      `);
+        <div class="thin"></div>
+      `).join("")}
+      <div class="center" style="font-size:11px;margin-top:8px;color:#1e3a5f;font-weight:bold">— BAR COPY —</div>
+      <script>window.onload=function(){window.print();window.close();};<\/script>
+      </body></html>
+    `);
+    pw.document.close();
+  };
+
+  // Smart print dispatcher — called from buttons
+  const handlePrint = (orderNoOverride?: string) => {
+    if (payMethod === "DIRECT") {
+      handlePrintBill(orderNoOverride);
+      if (hasDrinks) setTimeout(() => handlePrintBOT(orderNoOverride), 600);
     } else {
-      // ── KOT / Counter Slip (Manual Pay) ────────────────────────────
-      printWindow.document.write(`
-        <html><head><title>Order Slip</title>
-        <style>
-          body { font-family:'Courier New',monospace; max-width:300px; margin:0 auto; padding:20px; }
-          .center { text-align:center; }
-          .divider { border-top:1px dashed #333; margin:8px 0; }
-          .row { display:flex; justify-content:space-between; padding:2px 0; font-size:13px; }
-          .bold { font-weight:bold; }
-          .total { font-size:16px; font-weight:bold; margin-top:8px; }
-          h2 { margin:0 0 4px; font-size:16px; }
-          @media print { body { margin:0; padding:10px; } }
-        </style></head><body>
-        <div class="center">
-          <h2>${restaurantName || "Restaurant"}</h2>
-          <p style="font-size:11px;margin:4px 0">${restaurantAddress}</p>
-          <p style="font-size:11px;margin:4px 0">${restaurantPhone}</p>
-        </div>
-        <div class="divider"></div>
-        <div class="row">
-          <span>Table: ${tableNo || "N/A"}</span>
-          <span>${now.toLocaleString()}</span>
-        </div>
-        ${guestName.trim() ? `<div class="row"><span>Guest: ${guestName.trim()}</span></div>` : ""}
-        <div class="divider"></div>
-        ${billItems.map((b) => `<div class="row"><span>${b.quantity}x ${b.name}</span><span>${formatPrice(b.price * b.quantity, currency)}</span></div>`).join("")}
-        <div class="divider"></div>
-        <div class="row"><span>Subtotal</span><span>${formatPrice(subtotal, currency)}</span></div>
-        ${taxEnabled ? `<div class="row"><span>Tax (${taxRate}%)</span><span>${formatPrice(tax, currency)}</span></div>` : ""}
-        <div class="divider"></div>
-        <div class="row total"><span>TOTAL</span><span>${formatPrice(total, currency)}</span></div>
-        <div class="divider"></div>
-        <div class="center" style="font-size:11px;margin-top:12px">Please pay at the counter. Thank you!</div>
-        <script>window.onload=function(){window.print();window.close();};<\/script>
-        </body></html>
-      `);
+      // COUNTER: KOT for food, BOT for drinks (auto both if mixed order)
+      if (hasFood || !hasDrinks) handlePrintKOT(orderNoOverride);
+      if (hasDrinks) setTimeout(() => handlePrintBOT(orderNoOverride), 600);
     }
-    printWindow.document.close();
   };
 
   const handleReset = () => {
@@ -384,13 +456,29 @@ export default function ManualBillingTab({
             </div>
           )}
 
+          {/* Drink/bar indicator */}
+          {hasDrinks && (
+            <div className="w-full rounded-xl bg-blue-50 border border-blue-200 px-4 py-2.5 flex items-center gap-2 text-sm text-blue-700">
+              <Wine className="h-4 w-4 flex-shrink-0" />
+              <span className="font-semibold">Bar items in this order — BOT sent to bar</span>
+            </div>
+          )}
+
           <div className="flex gap-2 w-full">
             <button
-              onClick={handlePrint}
+              onClick={() => handlePrintBill()}
               className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
             >
-              <Printer className="h-4 w-4" /> Reprint
+              <Printer className="h-4 w-4" /> Reprint Bill
             </button>
+            {hasDrinks && (
+              <button
+                onClick={() => handlePrintBOT()}
+                className="flex items-center justify-center gap-2 rounded-xl border-2 border-blue-300 bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 hover:bg-blue-100 transition-colors"
+              >
+                <Wine className="h-4 w-4" /> BOT
+              </button>
+            )}
             {orderId && (
               <a
                 href={`/bill/${orderId}`}
@@ -418,22 +506,42 @@ export default function ManualBillingTab({
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
           <Check className="h-8 w-8 text-green-600" />
         </div>
-        <h3 className="text-lg font-bold text-gray-800">Order Sent to Kitchen</h3>
+        <h3 className="text-lg font-bold text-gray-800">
+          {hasDrinks && hasFood ? "Order Sent to Kitchen & Bar" : hasDrinks ? "Order Sent to Bar" : "Order Sent to Kitchen"}
+        </h3>
         <p className="text-sm text-gray-500">
           {tableNo ? `Table ${tableNo}` : "No table assigned"}
           {guestName.trim() && <> &middot; {guestName.trim()}</>}
           {" "}&middot; {formatPrice(total, currency)}
         </p>
-        <p className="text-xs text-amber-600 bg-amber-50 rounded-xl px-4 py-2 border border-amber-100">
-          Customer pays at the counter after food is served.
-        </p>
-        <div className="flex gap-3 mt-2">
-          <button
-            onClick={handlePrint}
-            className="flex items-center gap-2 rounded-xl bg-[#3e1e0c] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#3e1e0c]/90 transition-colors"
-          >
-            <Printer className="h-4 w-4" /> Print Slip
-          </button>
+        {hasDrinks && (
+          <div className="flex items-center gap-2 text-xs text-blue-700 bg-blue-50 rounded-xl px-4 py-2 border border-blue-100">
+            <Wine className="h-3.5 w-3.5" />
+            <span>{drinkItems.length} bar item{drinkItems.length > 1 ? "s" : ""} — BOT printed for bar</span>
+          </div>
+        )}
+        {hasFood && (
+          <p className="text-xs text-amber-600 bg-amber-50 rounded-xl px-4 py-2 border border-amber-100">
+            Customer pays at the counter after food is served.
+          </p>
+        )}
+        <div className="flex gap-3 mt-2 flex-wrap justify-center">
+          {hasFood && (
+            <button
+              onClick={() => handlePrintKOT()}
+              className="flex items-center gap-2 rounded-xl bg-[#3e1e0c] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#3e1e0c]/90 transition-colors"
+            >
+              <Printer className="h-4 w-4" /> Print KOT
+            </button>
+          )}
+          {hasDrinks && (
+            <button
+              onClick={() => handlePrintBOT()}
+              className="flex items-center gap-2 rounded-xl bg-blue-700 px-5 py-2.5 text-sm font-bold text-white hover:bg-blue-800 transition-colors"
+            >
+              <Wine className="h-4 w-4" /> Print BOT
+            </button>
+          )}
           {orderId && (
             <a
               href={`/bill/${orderId}`}
@@ -526,9 +634,21 @@ export default function ManualBillingTab({
                   </div>
                 )}
                 <div className="p-2.5 flex flex-col flex-1 w-full">
-                  <span className="text-[10px] text-gray-400 mb-0.5">{item.category?.name}</span>
-                  <span className="text-xs font-semibold text-gray-800 leading-tight line-clamp-2 group-hover:text-amber-700">{item.name}</span>
-                  <span className="text-xs font-bold text-amber-600 mt-auto pt-1">{formatPrice(item.price, currency)}</span>
+                  <div className="flex items-center gap-1 mb-0.5">
+                    <span className="text-[10px] text-gray-400">{item.category?.name}</span>
+                    {item.isDrink && (
+                      <span className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1 py-0.5 rounded bg-blue-100 text-blue-600 leading-none">
+                        {item.drinkCategory === "ALCOHOL"
+                          ? <Wine className="h-2.5 w-2.5" />
+                          : item.drinkCategory === "HOT"
+                          ? <Coffee className="h-2.5 w-2.5" />
+                          : <GlassWater className="h-2.5 w-2.5" />}
+                        BAR
+                      </span>
+                    )}
+                  </div>
+                  <span className={`text-xs font-semibold leading-tight line-clamp-2 ${item.isDrink ? "group-hover:text-blue-700" : "group-hover:text-amber-700"} text-gray-800`}>{item.name}</span>
+                  <span className={`text-xs font-bold mt-auto pt-1 ${item.isDrink ? "text-blue-600" : "text-amber-600"}`}>{formatPrice(item.price, currency)}</span>
                 </div>
               </button>
             ))}
@@ -685,7 +805,7 @@ export default function ManualBillingTab({
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="flex items-center gap-2 rounded-lg bg-gray-50 p-2"
+                    className={`flex items-center gap-2 rounded-lg p-2 ${item.isDrink ? "bg-blue-50 ring-1 ring-blue-100" : "bg-gray-50"}`}
                   >
                     {item.imageUrl ? (
                       <img
@@ -694,12 +814,20 @@ export default function ManualBillingTab({
                         className="h-9 w-9 rounded-md object-cover flex-shrink-0"
                       />
                     ) : (
-                      <div className="h-9 w-9 rounded-md bg-amber-50 flex items-center justify-center flex-shrink-0">
-                        <Utensils className="h-4 w-4 text-amber-300" />
+                      <div className={`h-9 w-9 rounded-md flex items-center justify-center flex-shrink-0 ${item.isDrink ? "bg-blue-100" : "bg-amber-50"}`}>
+                        {item.isDrink
+                          ? <Wine className="h-4 w-4 text-blue-400" />
+                          : <Utensils className="h-4 w-4 text-amber-300" />
+                        }
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold text-gray-800 truncate">{item.name}</p>
+                      <div className="flex items-center gap-1">
+                        <p className="text-xs font-semibold text-gray-800 truncate">{item.name}</p>
+                        {item.isDrink && (
+                          <span className="text-[9px] font-bold px-1 rounded bg-blue-200 text-blue-700 flex-shrink-0">BOT</span>
+                        )}
+                      </div>
                       <div className="flex items-center gap-1 mt-0.5">
                         <span className="text-[10px] text-gray-400">Price:</span>
                         <input
@@ -716,7 +844,7 @@ export default function ManualBillingTab({
                         <Minus className="h-3 w-3" />
                       </button>
                       <span className="w-6 text-center text-xs font-bold">{item.quantity}</span>
-                      <button onClick={() => updateQuantity(item.menuItemId, 1)} className="flex h-6 w-6 items-center justify-center rounded-md bg-amber-100 hover:bg-amber-200 text-amber-700 transition-colors">
+                      <button onClick={() => updateQuantity(item.menuItemId, 1)} className={`flex h-6 w-6 items-center justify-center rounded-md transition-colors ${item.isDrink ? "bg-blue-100 hover:bg-blue-200 text-blue-700" : "bg-amber-100 hover:bg-amber-200 text-amber-700"}`}>
                         <Plus className="h-3 w-3" />
                       </button>
                     </div>
@@ -774,13 +902,26 @@ export default function ManualBillingTab({
                   >
                     {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Check className="h-4 w-4" /> Send to Kitchen</>}
                   </button>
+                  {/* KOT print */}
                   <button
-                    onClick={handlePrint}
+                    onClick={() => handlePrintKOT()}
                     disabled={billItems.length === 0}
+                    title="Print KOT (Kitchen Order Ticket)"
                     className="flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-40 transition-colors"
                   >
                     <Printer className="h-4 w-4" />
                   </button>
+                  {/* BOT print — only shown when there are drink items */}
+                  {hasDrinks && (
+                    <button
+                      onClick={() => handlePrintBOT()}
+                      disabled={billItems.length === 0}
+                      title="Print BOT (Bar Order Ticket)"
+                      className="flex items-center gap-1.5 rounded-xl border-2 border-blue-300 bg-blue-50 px-3 py-2.5 text-sm font-semibold text-blue-700 hover:bg-blue-100 disabled:opacity-40 transition-colors"
+                    >
+                      <Wine className="h-4 w-4" />
+                    </button>
+                  )}
                 </>
               )}
             </div>

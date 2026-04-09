@@ -3,22 +3,21 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ChevronLeft,
-  Search,
-  Plus,
-  MapPin,
-  UsersRound,
-  ArrowRight,
-  Loader2,
-  ChevronRight,
-  Building2,
-  Monitor,
+  ChevronLeft, Search, Plus, MapPin, UsersRound, ArrowRight,
+  Loader2, ChevronRight, Building2, Monitor,
+  UtensilsCrossed, Coffee, Zap, Cake, Cloud, Wine, Utensils, Flame, Home, Sun,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRestaurant } from "@/context/RestaurantContext";
 import CreateRestaurantModal from "@/components/modals/CreateRestaurantModal";
-import { getTypeEmoji, getTypeLabel } from "@/lib/restaurant-types";
+import { getTypeLabel } from "@/lib/restaurant-types";
+
+const TYPE_ICON: Record<string, React.ComponentType<{ className?: string }>> = {
+  RESTAURANT: UtensilsCrossed, CAFE: Coffee, FAST_FOOD: Zap, BAKERY: Cake,
+  CLOUD_KITCHEN: Cloud, BAR: Wine, HOTEL: Building2, RESORT: Sun,
+  MO_MO_SHOP: Utensils, TANDOORI: Flame, GUEST_HOUSE: Home,
+};
 
 export default function ManageRestaurantsPage() {
   const router = useRouter();
@@ -146,9 +145,7 @@ export default function ManageRestaurantsPage() {
                       {/* Left: icon + info */}
                       <div className="flex items-center gap-4 flex-1 min-w-0">
                         <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gray-50 ring-1 ring-gray-100">
-                          <span className="text-xl">
-                            {getTypeEmoji(restaurant.type)}
-                          </span>
+                          {(() => { const Icon = TYPE_ICON[restaurant.type] ?? UtensilsCrossed; return <Icon className="h-5 w-5 text-gray-500" />; })()}
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">

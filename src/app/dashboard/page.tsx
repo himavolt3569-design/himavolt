@@ -935,11 +935,11 @@ function OverviewTab({
     },
     {
       label: "Rating",
-      value: current?.rating ? `${current.rating} ★` : "N/A",
+      value: current?.rating ? `${current.rating}` : "N/A",
       numericValue: current?.rating
         ? parseFloat(String(current.rating))
         : undefined,
-      suffix: current?.rating ? " ★" : "",
+      suffix: "",
       sub: current?.rating ? "From reviews" : "No reviews yet",
       accent: "#EF4444",
       icon: Star,

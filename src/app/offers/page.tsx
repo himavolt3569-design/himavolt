@@ -3,16 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ArrowLeft,
-  Search,
-  SlidersHorizontal,
-  ChevronDown,
-  Star,
-  Heart,
-  MoreVertical,
-  MapPin,
-  Clock,
-  X,
+  ArrowLeft, Search, SlidersHorizontal, ChevronDown,
+  Star, Heart, MoreVertical, MapPin, Clock, X, UtensilsCrossed,
 } from "lucide-react";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api-client";
@@ -388,7 +380,7 @@ export default function OffersPage() {
             animate={{ opacity: 1, y: 0 }}
             className="flex flex-col items-center justify-center py-24 px-8 text-center"
           >
-            <div className="mb-4 text-5xl">🍽️</div>
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 mx-auto"><UtensilsCrossed className="h-8 w-8 text-gray-400" /></div>
             <p className="text-base font-bold text-[#3e1e0c]">No restaurants found</p>
             <p className="mt-1 text-sm text-gray-400">Try adjusting your filters</p>
             <button

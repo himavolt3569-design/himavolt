@@ -1416,7 +1416,7 @@ export default function BillingTab({
                     Math.abs(remaining) <= 1 ? "bg-emerald-50 border-emerald-100" : "bg-indigo-50 border-indigo-100"
                   }`}>
                     <span className={Math.abs(remaining) <= 1 ? "text-emerald-700 font-medium" : "text-indigo-700 font-medium"}>
-                      {Math.abs(remaining) <= 1 ? "Amounts balanced ✓" : `Remaining: ${formatPrice(Math.abs(remaining), cur)} ${remaining > 0 ? "unallocated" : "over"}`}
+                      {Math.abs(remaining) <= 1 ? <span className="flex items-center gap-1"><Check className="h-3.5 w-3.5" /> Amounts balanced</span> : `Remaining: ${formatPrice(Math.abs(remaining), cur)} ${remaining > 0 ? "unallocated" : "over"}`}
                     </span>
                     <span className="font-extrabold text-[#3e1e0c]">{formatPrice(entered, cur)}</span>
                   </div>

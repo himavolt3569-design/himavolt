@@ -2,31 +2,25 @@
 
 import { useState } from "react";
 import {
-  Mountain,
-  Loader2,
-  Building2,
-  Phone,
-  MapPin,
-  ChevronRight,
-  Check,
-  Store,
+  Mountain, Loader2, Building2, Phone, MapPin, ChevronRight, Check, Store,
+  UtensilsCrossed, Coffee, Zap, Cake, Cloud, Wine, Utensils, Flame, Home, Sun,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 const RESTAURANT_TYPES = [
-  { value: "RESTAURANT", label: "Restaurant", emoji: "🍽️" },
-  { value: "CAFE", label: "Café", emoji: "☕" },
-  { value: "FAST_FOOD", label: "Fast Food", emoji: "🍔" },
-  { value: "BAKERY", label: "Bakery", emoji: "🥐" },
-  { value: "BAR", label: "Bar", emoji: "🍺" },
-  { value: "HOTEL", label: "Hotel", emoji: "🏨" },
-  { value: "RESORT", label: "Resort", emoji: "🏖️" },
-  { value: "CLOUD_KITCHEN", label: "Cloud Kitchen", emoji: "📦" },
-  { value: "MO_MO_SHOP", label: "Momo Shop", emoji: "🥟" },
-  { value: "TANDOORI", label: "Tandoori", emoji: "🔥" },
-  { value: "GUEST_HOUSE", label: "Guest House", emoji: "🏠" },
+  { value: "RESTAURANT",    label: "Restaurant",   Icon: UtensilsCrossed },
+  { value: "CAFE",          label: "Café",          Icon: Coffee },
+  { value: "FAST_FOOD",     label: "Fast Food",     Icon: Zap },
+  { value: "BAKERY",        label: "Bakery",        Icon: Cake },
+  { value: "BAR",           label: "Bar",           Icon: Wine },
+  { value: "HOTEL",         label: "Hotel",         Icon: Building2 },
+  { value: "RESORT",        label: "Resort",        Icon: Sun },
+  { value: "CLOUD_KITCHEN", label: "Cloud Kitchen", Icon: Cloud },
+  { value: "MO_MO_SHOP",    label: "Momo Shop",     Icon: Utensils },
+  { value: "TANDOORI",      label: "Tandoori",      Icon: Flame },
+  { value: "GUEST_HOUSE",   label: "Guest House",   Icon: Home },
 ] as const;
 
 type RestaurantType = (typeof RESTAURANT_TYPES)[number]["value"];
@@ -197,7 +191,7 @@ export default function OnboardingPage() {
                     Type <span className="text-[#eaa94d]">*</span>
                   </label>
                   <div className="grid grid-cols-4 gap-2">
-                    {RESTAURANT_TYPES.map(({ value, label, emoji }) => (
+                    {RESTAURANT_TYPES.map(({ value, label, Icon }) => (
                       <button
                         key={value}
                         type="button"
@@ -208,7 +202,7 @@ export default function OnboardingPage() {
                             : "border-gray-200 hover:border-gray-300"
                         }`}
                       >
-                        <span className="text-lg leading-none">{emoji}</span>
+                        <Icon className={`h-5 w-5 ${form.type === value ? "text-[#eaa94d]" : "text-gray-400"}`} />
                         <span
                           className={`text-[10px] font-semibold leading-tight ${
                             form.type === value

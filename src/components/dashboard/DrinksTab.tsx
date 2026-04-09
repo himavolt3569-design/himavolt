@@ -48,9 +48,9 @@ interface MenuCategory {
 }
 
 const DRINK_CAT_CONFIG = {
-  COLD: { label: "Cold Drinks", icon: GlassWater, color: "blue", emoji: "🥤" },
-  HOT: { label: "Hot Drinks", icon: Coffee, color: "amber", emoji: "☕" },
-  ALCOHOL: { label: "Alcohol", icon: Wine, color: "purple", emoji: "🍺" },
+  COLD:    { label: "Cold Drinks", icon: GlassWater, color: "blue" },
+  HOT:     { label: "Hot Drinks",  icon: Coffee,     color: "amber" },
+  ALCOHOL: { label: "Alcohol",     icon: Wine,       color: "purple" },
 } as const;
 
 const BLANK_FORM = {
@@ -234,7 +234,7 @@ export default function DrinksTab() {
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200"
               }`}
             >
-              {cfg ? <span>{cfg.emoji}</span> : <GlassWater className="h-3.5 w-3.5" />}
+              {cfg ? <cfg.icon className="h-3.5 w-3.5" /> : <GlassWater className="h-3.5 w-3.5" />}
               {cfg ? cfg.label : "All Drinks"}
               <span className="rounded-full bg-white/20 px-1.5 py-0.5 text-[10px] font-bold">{count}</span>
             </button>
@@ -277,7 +277,7 @@ export default function DrinksTab() {
                               : "border-gray-200 bg-gray-50 text-gray-500 hover:border-gray-300"
                           }`}
                         >
-                          <span className="text-xl">{cfg.emoji}</span>
+                          <cfg.icon className="h-5 w-5" />
                           {cfg.label}
                         </button>
                       );
@@ -292,9 +292,7 @@ export default function DrinksTab() {
                       {form.imageUrl ? (
                         <img src={form.imageUrl} alt="preview" className="h-full w-full object-cover" />
                       ) : (
-                        <span className="text-2xl">
-                          {DRINK_CAT_CONFIG[form.drinkCategory].emoji}
-                        </span>
+                        (() => { const I = DRINK_CAT_CONFIG[form.drinkCategory].icon; return <I className="h-7 w-7 text-gray-400" />; })()
                       )}
                     </div>
                     <div className="flex flex-col gap-1.5">
@@ -419,7 +417,7 @@ export default function DrinksTab() {
                     {item.imageUrl ? (
                       <img src={item.imageUrl} alt={item.name} className="h-full w-full object-cover" />
                     ) : (
-                      <span className="text-xl">{cfg.emoji}</span>
+                      <cfg.icon className="h-5 w-5 text-gray-400" />
                     )}
                   </div>
                   <div className="min-w-0">

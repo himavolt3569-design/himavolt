@@ -99,16 +99,16 @@ interface MenuItem {
 
 
 const DEFAULT_CATEGORIES: { name: string; icon: string; subs: string[] }[] = [
-  { name: "Appetizers", icon: "🍢", subs: ["Fried", "Grilled", "Cold"] },
-  { name: "Momo", icon: "🥟", subs: ["Steam", "Fried", "Jhol", "Chilli", "Kothey", "C.Momo", "Tandoori"] },
-  { name: "Curry", icon: "🍛", subs: ["Chicken", "Mutton", "Paneer", "Vegetable", "Fish", "Dal"] },
-  { name: "Rice & Noodles", icon: "🍜", subs: ["Fried Rice", "Biryani", "Chow Mein", "Thukpa", "Pulao"] },
-  { name: "Thali Sets", icon: "🍽️", subs: ["Veg Thali", "Non-Veg Thali", "Special Thali"] },
-  { name: "Tandoori", icon: "🔥", subs: ["Chicken", "Paneer", "Fish", "Kebab"] },
-  { name: "Breads", icon: "🫓", subs: ["Naan", "Roti", "Paratha", "Kulcha"] },
-  { name: "Soups & Salads", icon: "🥗", subs: ["Soups", "Salads"] },
-  { name: "Beverages", icon: "🥤", subs: ["Hot", "Cold", "Juices", "Lassi", "Mocktails"] },
-  { name: "Desserts", icon: "🍮", subs: ["Indian", "Western", "Ice Cream"] },
+  { name: "Appetizers",    icon: "", subs: ["Fried", "Grilled", "Cold"] },
+  { name: "Momo",          icon: "", subs: ["Steam", "Fried", "Jhol", "Chilli", "Kothey", "C.Momo", "Tandoori"] },
+  { name: "Curry",         icon: "", subs: ["Chicken", "Mutton", "Paneer", "Vegetable", "Fish", "Dal"] },
+  { name: "Rice & Noodles",icon: "", subs: ["Fried Rice", "Biryani", "Chow Mein", "Thukpa", "Pulao"] },
+  { name: "Thali Sets",    icon: "", subs: ["Veg Thali", "Non-Veg Thali", "Special Thali"] },
+  { name: "Tandoori",      icon: "", subs: ["Chicken", "Paneer", "Fish", "Kebab"] },
+  { name: "Breads",        icon: "", subs: ["Naan", "Roti", "Paratha", "Kulcha"] },
+  { name: "Soups & Salads",icon: "", subs: ["Soups", "Salads"] },
+  { name: "Beverages",     icon: "", subs: ["Hot", "Cold", "Juices", "Lassi", "Mocktails"] },
+  { name: "Desserts",      icon: "", subs: ["Indian", "Western", "Ice Cream"] },
 ];
 
 const BADGE_OPTIONS = ["Bestseller", "New", "Chef's Special", "Must Try", "Popular", "Seasonal"];
@@ -144,10 +144,10 @@ function SpiceLevelPicker({ level, onChange }: { level: number; onChange: (l: nu
           key={l}
           type="button"
           onClick={() => onChange(l)}
-          className={`text-sm transition-all ${l <= level && level > 0 ? "opacity-100" : "opacity-30"}`}
+          className={`transition-all ${l <= level && level > 0 ? "opacity-100" : "opacity-25"}`}
           title={SPICE_LABELS[l]}
         >
-          🌶️
+          <Flame className={`h-4 w-4 ${SPICE_COLORS[Math.max(l, 1)]}`} />
         </button>
       ))}
       <span className={`ml-1 text-[10px] font-semibold ${SPICE_COLORS[level]}`}>{SPICE_LABELS[level]}</span>
@@ -255,7 +255,7 @@ function CategoryTree({
                   selectedCatId === cat.id ? "bg-amber-100/80 text-amber-900 font-semibold" : "text-gray-600 hover:bg-gray-50"
                 }`}
               >
-                <span>{cat.icon || "📁"}</span>
+                {cat.icon ? <span className="text-sm leading-none">{cat.icon}</span> : <Tag className="h-3.5 w-3.5 text-gray-400" />}
                 <span className="flex-1 text-left truncate">{cat.name}</span>
                 <span className="text-[10px] text-gray-400 font-normal">{totalItems}</span>
               </button>
@@ -297,7 +297,7 @@ function CategoryTree({
                     </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); onDelete(sub.id); }}
-                      className="p-1 text-gray-200 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                      className="p-1 text-gray-300 hover:text-red-500 transition-colors"
                       title="Delete subcategory"
                     >
                       <Trash2 className="h-3 w-3" />
@@ -1811,16 +1811,38 @@ export default function MenuManagementTab() {
               {["All", ...flatCategories.filter((c) => !c.parentId).map((c) => c.name)].map((cat) => {
                 const catObj = flatCategories.find((c) => c.name === cat && !c.parentId);
                 const isActive = cat === "All" ? selectedCatId === "All" : selectedCatId === catObj?.id;
-                return (
+                return cat === "All" ? (
                   <button
-                    key={cat}
-                    onClick={() => setSelectedCatId(cat === "All" ? "All" : catObj?.id || "All")}
+                    key="All"
+                    onClick={() => setSelectedCatId("All")}
                     className={`shrink-0 rounded-full px-4 py-2 text-[12px] font-bold tracking-wide transition-all shadow-sm border ${
-                      isActive ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white border-transparent" : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 focus:ring-2 focus:ring-amber-500/20"
+                      isActive ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white border-transparent" : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
                     }`}
                   >
-                    {cat}
+                    All
                   </button>
+                ) : (
+                  <div key={cat} className="shrink-0 flex items-center gap-0.5">
+                    <button
+                      onClick={() => setSelectedCatId(catObj?.id || "All")}
+                      className={`rounded-l-full pl-4 pr-2 py-2 text-[12px] font-bold tracking-wide transition-all shadow-sm border-y border-l ${
+                        isActive ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white border-transparent" : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                      }`}
+                    >
+                      {cat}
+                    </button>
+                    {catObj && (
+                      <button
+                        onClick={() => initDeleteCategory(catObj.id)}
+                        className={`rounded-r-full pl-1.5 pr-3 py-2 transition-all shadow-sm border-y border-r ${
+                          isActive ? "bg-orange-500 text-white border-transparent" : "bg-white text-gray-300 border-gray-200 hover:text-red-500 hover:bg-red-50 hover:border-red-200"
+                        }`}
+                        title={`Delete "${cat}"`}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    )}
+                  </div>
                 );
               })}
             </div>

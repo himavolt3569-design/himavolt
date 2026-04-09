@@ -9,7 +9,7 @@ import {
   useSpring,
   AnimatePresence,
 } from "framer-motion";
-import { ArrowRight, QrCode, Truck, ChevronDown, MapPin } from "lucide-react";
+import { ArrowRight, QrCode, Truck, ChevronDown, MapPin, TrendingUp, Star, Flame, Heart, Trophy, Utensils } from "lucide-react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import Link from "next/link";
@@ -18,14 +18,14 @@ import Link from "next/link";
    CRAVING STRIP DATA — mouth-watering food showcase
    ═══════════════════════════════════════════════════════ */
 const cravingItems = [
-  { name: "Chicken Momo", tag: "🔥 Most Ordered", img: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=100&h=100&fit=crop", hot: true },
-  { name: "Thakali Set", tag: "⭐ Top Rated", img: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=100&h=100&fit=crop", hot: false },
-  { name: "Cheese Pizza", tag: "🍕 Trending", img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=100&h=100&fit=crop", hot: true },
-  { name: "Buff Sekuwa", tag: "🔥 Popular", img: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=100&h=100&fit=crop", hot: false },
-  { name: "Newari Khaja", tag: "🏆 Chef's Pick", img: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=100&h=100&fit=crop", hot: true },
-  { name: "Dal Bhat Power", tag: "❤️ Classic", img: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=100&h=100&fit=crop", hot: false },
-  { name: "Chatamari", tag: "🍛 Nepali Pizza", img: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=100&h=100&fit=crop", hot: false },
-  { name: "Buff Chhoila", tag: "🔥 Spicy Hit", img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=100&h=100&fit=crop", hot: true },
+  { name: "Chicken Momo",  tag: "Most Ordered", TagIcon: TrendingUp, img: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=100&h=100&fit=crop", hot: true },
+  { name: "Thakali Set",   tag: "Top Rated",    TagIcon: Star,       img: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=100&h=100&fit=crop", hot: false },
+  { name: "Cheese Pizza",  tag: "Trending",     TagIcon: TrendingUp, img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=100&h=100&fit=crop", hot: true },
+  { name: "Buff Sekuwa",   tag: "Popular",      TagIcon: Flame,      img: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=100&h=100&fit=crop", hot: false },
+  { name: "Newari Khaja",  tag: "Chef's Pick",  TagIcon: Trophy,     img: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=100&h=100&fit=crop", hot: true },
+  { name: "Dal Bhat Power",tag: "Classic",      TagIcon: Heart,      img: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=100&h=100&fit=crop", hot: false },
+  { name: "Chatamari",     tag: "Nepali Pizza", TagIcon: Utensils,   img: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=100&h=100&fit=crop", hot: false },
+  { name: "Buff Chhoila",  tag: "Spicy Hit",    TagIcon: Flame,      img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=100&h=100&fit=crop", hot: true },
 ];
 
 /* ═══════════════════════════════════════════════════════
@@ -366,7 +366,7 @@ export default function LandingHero() {
             {/* ── Craving Strip — auto-scrolling food showcase ── */}
             <motion.div variants={fadeUp} className="mt-8 w-full max-w-md mx-auto lg:mx-0 lg:max-w-lg">
               <p className="text-[10px] font-bold text-white/50 uppercase tracking-widest mb-2.5 text-center lg:text-left">
-                🔥 Trending right now
+                <span className="inline-flex items-center gap-1"><TrendingUp className="h-3 w-3" /> Trending right now</span>
               </p>
               <div className="relative overflow-hidden rounded-2xl">
                 <div className="absolute left-0 top-0 bottom-0 w-8 bg-linear-to-r from-black/30 to-transparent z-10 pointer-events-none" />
@@ -392,7 +392,7 @@ export default function LandingHero() {
                       </div>
                       <div className="min-w-0">
                         <p className="text-[12px] font-bold text-[#3e1e0c] truncate">{item.name}</p>
-                        <p className="text-[10px] text-[#b25c1c]/50 font-medium">{item.tag}</p>
+                        <p className="text-[10px] text-[#b25c1c]/50 font-medium flex items-center gap-0.5"><item.TagIcon className="h-2.5 w-2.5" />{item.tag}</p>
                       </div>
                     </div>
                   ))}
