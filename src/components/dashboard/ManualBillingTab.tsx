@@ -30,6 +30,7 @@ interface MenuItem {
   categoryId: string;
   category: { name: string };
   isAvailable: boolean;
+  imageUrl?: string;
 }
 
 interface BillItem {
@@ -38,6 +39,7 @@ interface BillItem {
   quantity: number;
   price: number;
   originalPrice: number;
+  imageUrl?: string;
 }
 
 interface TableOption {
@@ -113,7 +115,7 @@ export default function ManualBillingTab({
     setBillItems((prev) => {
       const existing = prev.find((b) => b.menuItemId === item.id);
       if (existing) return prev.map((b) => b.menuItemId === item.id ? { ...b, quantity: b.quantity + 1 } : b);
-      return [...prev, { menuItemId: item.id, name: item.name, quantity: 1, price: item.price, originalPrice: item.price }];
+      return [...prev, { menuItemId: item.id, name: item.name, quantity: 1, price: item.price, originalPrice: item.price, imageUrl: item.imageUrl }];
     });
   }, []);
 
@@ -133,8 +135,8 @@ export default function ManualBillingTab({
   const total     = subtotal + tax;
 
   // Submit — creates order in system
-  const handleSubmit = async () => {
-    if (!rid || billItems.length === 0) return;
+  const handleSubmit = async (): Promise<{ id: string; orderNo: string } | null> => {
+    if (!rid || billItems.length === 0) return null;
     setSubmitting(true);
     try {
       const order = await staffFetch<{ id: string; orderNo: string }>(
@@ -160,18 +162,25 @@ export default function ManualBillingTab({
       setOrderNo(order.orderNo);
       setIsPaid(false);
       setSuccess(true);
+      return order;
     } catch {
-      /* silent */
+      return null;
     } finally {
       setSubmitting(false);
     }
   };
 
-  // For Direct Pay: create order in system AND open the print dialog
+  // For Direct Pay: create order AND open the print dialog
   const handleDirectPay = async () => {
     if (!rid || billItems.length === 0) return;
+    const order = await handleSubmit();
+    handlePrint(order?.orderNo);
+  };
+
+  // For Direct Pay: create order WITHOUT printing
+  const handleDirectConfirmOnly = async () => {
+    if (!rid || billItems.length === 0) return;
     await handleSubmit();
-    handlePrint();
   };
 
   // Mark Direct Pay bill as paid via billing/collect
@@ -191,45 +200,118 @@ export default function ManualBillingTab({
     }
   };
 
-  // Thermal-style print
-  const handlePrint = () => {
+  // Print bill — authentic tax invoice for DIRECT, KOT slip for COUNTER
+  const handlePrint = (orderNoOverride?: string) => {
     const printWindow = window.open("", "_blank");
     if (!printWindow) return;
-    printWindow.document.write(`
-      <html><head><title>Bill</title>
-      <style>
-        body { font-family:'Courier New',monospace; max-width:300px; margin:0 auto; padding:20px; }
-        .center { text-align:center; }
-        .divider { border-top:1px dashed #333; margin:8px 0; }
-        .row { display:flex; justify-content:space-between; padding:2px 0; font-size:13px; }
-        .bold { font-weight:bold; }
-        .total { font-size:16px; font-weight:bold; margin-top:8px; }
-        h2 { margin:0 0 4px; font-size:16px; }
-        @media print { body { margin:0; padding:10px; } }
-      </style></head><body>
-      <div class="center">
-        <h2>${restaurantName || "Restaurant"}</h2>
-        <p style="font-size:11px;margin:4px 0">${restaurantAddress}</p>
-        <p style="font-size:11px;margin:4px 0">${restaurantPhone}</p>
-      </div>
-      <div class="divider"></div>
-      <div class="row">
-        <span>Table: ${tableNo || "N/A"}</span>
-        <span>${new Date().toLocaleString()}</span>
-      </div>
-      ${guestName.trim() ? `<div class="row"><span>Guest: ${guestName.trim()}</span></div>` : ""}
-      <div class="divider"></div>
-      ${billItems.map((b) => `<div class="row"><span>${b.quantity}x ${b.name}</span><span>${formatPrice(b.price * b.quantity, currency)}</span></div>`).join("")}
-      <div class="divider"></div>
-      <div class="row"><span>Subtotal</span><span>${formatPrice(subtotal, currency)}</span></div>
-      ${taxEnabled ? `<div class="row"><span>Tax (${taxRate}%)</span><span>${formatPrice(tax, currency)}</span></div>` : ""}
-      <div class="divider"></div>
-      <div class="row total"><span>TOTAL</span><span>${formatPrice(total, currency)}</span></div>
-      <div class="divider"></div>
-      <div class="center" style="font-size:11px;margin-top:12px">Please pay at the counter. Thank you!</div>
-      <script>window.print();window.close();<\/script>
-      </body></html>
-    `);
+    const displayOrderNo = orderNoOverride ?? orderNo;
+    const now = new Date();
+
+    if (payMethod === "DIRECT") {
+      // ── Authentic Tax Invoice (Direct Pay) ─────────────────────────
+      printWindow.document.write(`
+        <html><head><title>Tax Invoice</title>
+        <style>
+          * { box-sizing: border-box; }
+          body { font-family: Arial, sans-serif; max-width: 300px; margin: 0 auto; padding: 16px; color: #111; }
+          .center { text-align: center; }
+          .divider { border-top: 1px dashed #999; margin: 8px 0; }
+          .row { display: flex; justify-content: space-between; align-items: center; padding: 3px 0; font-size: 12px; }
+          h2 { margin: 0 0 2px; font-size: 17px; font-weight: bold; }
+          .invoice-label { font-size: 10px; font-weight: bold; letter-spacing: 1.5px; color: #555; text-transform: uppercase; background: #f3f4f6; border-radius: 3px; padding: 2px 8px; display: inline-block; margin: 4px 0; }
+          .section-label { font-size: 10px; font-weight: bold; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+          .item-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px solid #f0f0f0; }
+          .item-img { width: 38px; height: 38px; object-fit: cover; border-radius: 4px; flex-shrink: 0; }
+          .item-img-placeholder { width: 38px; height: 38px; background: #f3f4f6; border-radius: 4px; flex-shrink: 0; }
+          .item-info { flex: 1; min-width: 0; }
+          .item-name { font-size: 12px; font-weight: 600; }
+          .item-unit { font-size: 10px; color: #888; }
+          .item-total { font-size: 12px; font-weight: bold; white-space: nowrap; }
+          .total-row { font-size: 14px; font-weight: bold; }
+          .payment-badge { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; border-radius: 4px; padding: 2px 8px; font-size: 11px; font-weight: bold; }
+          @media print { body { margin: 0; padding: 10px; } }
+        </style></head><body>
+        <div class="center">
+          <h2>${restaurantName || "Restaurant"}</h2>
+          ${restaurantAddress ? `<p style="font-size:11px;margin:2px 0;color:#555">${restaurantAddress}</p>` : ""}
+          ${restaurantPhone ? `<p style="font-size:11px;margin:2px 0;color:#555">${restaurantPhone}</p>` : ""}
+          <div><span class="invoice-label">Tax Invoice</span></div>
+        </div>
+        <div class="divider"></div>
+        <div class="row">
+          <span style="font-size:11px;color:#555">Date: ${now.toLocaleDateString()}</span>
+          <span style="font-size:11px;color:#555">Time: ${now.toLocaleTimeString()}</span>
+        </div>
+        ${displayOrderNo ? `<div class="row"><span style="font-size:11px">Bill No:</span><span style="font-size:11px;font-weight:bold">#${displayOrderNo}</span></div>` : ""}
+        <div class="row"><span style="font-size:11px">Table:</span><span style="font-size:11px;font-weight:600">${tableNo || "N/A"}</span></div>
+        ${guestName.trim() ? `<div class="row"><span style="font-size:11px">Guest:</span><span style="font-size:11px;font-weight:600">${guestName.trim()}</span></div>` : ""}
+        <div class="divider"></div>
+        <div class="section-label">Items</div>
+        ${billItems.map((b) => `
+          <div class="item-row">
+            ${b.imageUrl
+              ? `<img class="item-img" src="${b.imageUrl}" alt="${b.name}" onerror="this.style.display='none'" />`
+              : `<div class="item-img-placeholder"></div>`
+            }
+            <div class="item-info">
+              <div class="item-name">${b.name}</div>
+              <div class="item-unit">${b.quantity} × ${formatPrice(b.price, currency)}</div>
+            </div>
+            <div class="item-total">${formatPrice(b.price * b.quantity, currency)}</div>
+          </div>
+        `).join("")}
+        <div class="divider"></div>
+        <div class="row"><span>Subtotal</span><span>${formatPrice(subtotal, currency)}</span></div>
+        ${taxEnabled ? `<div class="row"><span>Tax (${taxRate}%)</span><span>${formatPrice(tax, currency)}</span></div>` : ""}
+        <div class="divider"></div>
+        <div class="row total-row"><span>TOTAL</span><span>${formatPrice(total, currency)}</span></div>
+        <div class="divider"></div>
+        <div class="row">
+          <span style="font-size:11px">Payment</span>
+          <span class="payment-badge">Direct Pay</span>
+        </div>
+        <div class="center" style="margin-top:14px;font-size:10px;color:#777">Thank you for dining with us!</div>
+        <script>window.onload=function(){window.print();window.close();};<\/script>
+        </body></html>
+      `);
+    } else {
+      // ── KOT / Counter Slip (Manual Pay) ────────────────────────────
+      printWindow.document.write(`
+        <html><head><title>Order Slip</title>
+        <style>
+          body { font-family:'Courier New',monospace; max-width:300px; margin:0 auto; padding:20px; }
+          .center { text-align:center; }
+          .divider { border-top:1px dashed #333; margin:8px 0; }
+          .row { display:flex; justify-content:space-between; padding:2px 0; font-size:13px; }
+          .bold { font-weight:bold; }
+          .total { font-size:16px; font-weight:bold; margin-top:8px; }
+          h2 { margin:0 0 4px; font-size:16px; }
+          @media print { body { margin:0; padding:10px; } }
+        </style></head><body>
+        <div class="center">
+          <h2>${restaurantName || "Restaurant"}</h2>
+          <p style="font-size:11px;margin:4px 0">${restaurantAddress}</p>
+          <p style="font-size:11px;margin:4px 0">${restaurantPhone}</p>
+        </div>
+        <div class="divider"></div>
+        <div class="row">
+          <span>Table: ${tableNo || "N/A"}</span>
+          <span>${now.toLocaleString()}</span>
+        </div>
+        ${guestName.trim() ? `<div class="row"><span>Guest: ${guestName.trim()}</span></div>` : ""}
+        <div class="divider"></div>
+        ${billItems.map((b) => `<div class="row"><span>${b.quantity}x ${b.name}</span><span>${formatPrice(b.price * b.quantity, currency)}</span></div>`).join("")}
+        <div class="divider"></div>
+        <div class="row"><span>Subtotal</span><span>${formatPrice(subtotal, currency)}</span></div>
+        ${taxEnabled ? `<div class="row"><span>Tax (${taxRate}%)</span><span>${formatPrice(tax, currency)}</span></div>` : ""}
+        <div class="divider"></div>
+        <div class="row total"><span>TOTAL</span><span>${formatPrice(total, currency)}</span></div>
+        <div class="divider"></div>
+        <div class="center" style="font-size:11px;margin-top:12px">Please pay at the counter. Thank you!</div>
+        <script>window.onload=function(){window.print();window.close();};<\/script>
+        </body></html>
+      `);
+    }
     printWindow.document.close();
   };
 
@@ -428,11 +510,26 @@ export default function ManualBillingTab({
               <button
                 key={item.id}
                 onClick={() => addItem(item)}
-                className="flex flex-col items-start rounded-xl border border-gray-200 p-3 text-left hover:border-amber-300 hover:bg-amber-50/50 transition-all group"
+                className="flex flex-col items-start rounded-xl border border-gray-200 overflow-hidden text-left hover:border-amber-300 hover:shadow-md transition-all group"
               >
-                <span className="text-xs text-gray-400 mb-0.5">{item.category?.name}</span>
-                <span className="text-sm font-semibold text-gray-800 leading-tight line-clamp-2 group-hover:text-amber-700">{item.name}</span>
-                <span className="text-sm font-bold text-amber-600 mt-auto pt-1">{formatPrice(item.price, currency)}</span>
+                {item.imageUrl ? (
+                  <div className="w-full h-20 overflow-hidden bg-gray-100 flex-shrink-0">
+                    <img
+                      src={item.imageUrl}
+                      alt={item.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-full h-20 bg-gradient-to-br from-amber-50 to-orange-50 flex items-center justify-center flex-shrink-0">
+                    <Utensils className="h-7 w-7 text-amber-300" />
+                  </div>
+                )}
+                <div className="p-2.5 flex flex-col flex-1 w-full">
+                  <span className="text-[10px] text-gray-400 mb-0.5">{item.category?.name}</span>
+                  <span className="text-xs font-semibold text-gray-800 leading-tight line-clamp-2 group-hover:text-amber-700">{item.name}</span>
+                  <span className="text-xs font-bold text-amber-600 mt-auto pt-1">{formatPrice(item.price, currency)}</span>
+                </div>
               </button>
             ))}
             {filtered.length === 0 && (
@@ -590,6 +687,17 @@ export default function ManualBillingTab({
                     exit={{ opacity: 0, height: 0 }}
                     className="flex items-center gap-2 rounded-lg bg-gray-50 p-2"
                   >
+                    {item.imageUrl ? (
+                      <img
+                        src={item.imageUrl}
+                        alt={item.name}
+                        className="h-9 w-9 rounded-md object-cover flex-shrink-0"
+                      />
+                    ) : (
+                      <div className="h-9 w-9 rounded-md bg-amber-50 flex items-center justify-center flex-shrink-0">
+                        <Utensils className="h-4 w-4 text-amber-300" />
+                      </div>
+                    )}
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-semibold text-gray-800 truncate">{item.name}</p>
                       <div className="flex items-center gap-1 mt-0.5">
@@ -640,13 +748,23 @@ export default function ManualBillingTab({
 
             <div className="flex gap-2 mt-3">
               {payMethod === "DIRECT" ? (
-                <button
-                  onClick={handleDirectPay}
-                  disabled={submitting || billItems.length === 0}
-                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-teal-500 py-2.5 text-sm font-bold text-white hover:bg-teal-600 disabled:opacity-40 transition-colors"
-                >
-                  {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Printer className="h-4 w-4" /> Print &amp; Confirm</>}
-                </button>
+                <>
+                  <button
+                    onClick={handleDirectPay}
+                    disabled={submitting || billItems.length === 0}
+                    className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-teal-500 py-2.5 text-sm font-bold text-white hover:bg-teal-600 disabled:opacity-40 transition-colors"
+                  >
+                    {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Printer className="h-4 w-4" /> Print &amp; Confirm</>}
+                  </button>
+                  <button
+                    onClick={handleDirectConfirmOnly}
+                    disabled={submitting || billItems.length === 0}
+                    title="Confirm without printing"
+                    className="flex items-center justify-center gap-1.5 rounded-xl border-2 border-teal-300 px-3 py-2.5 text-sm font-semibold text-teal-700 hover:bg-teal-50 disabled:opacity-40 transition-colors"
+                  >
+                    <Check className="h-4 w-4" />
+                  </button>
+                </>
               ) : (
                 <>
                   <button
