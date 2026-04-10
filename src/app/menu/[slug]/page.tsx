@@ -1578,11 +1578,14 @@ function MenuPageContent() {
         // Order was already done before the page was refreshed — don't reopen overlay
         localStorage.removeItem(`hh_tracking_${slug}`);
         setShowOrder(false);
-      } else {
+      } else if (!checkoutOpen) {
+        // Don't hijack the UI while checkout is open — digital payment flows (Bank, eSewa,
+        // Khalti) place the order first then show payment steps inside the checkout sheet.
+        // onOrderPlaced() will set showOrder once payment is confirmed.
         setShowOrder(true);
       }
     }
-  }, [activeOrder?.id, slug]); // only fires when the ORDER IDENTITY changes, not on every status poll
+  }, [activeOrder?.id, slug, checkoutOpen]); // only fires when the ORDER IDENTITY changes, not on every status poll
 
   useEffect(() => {
     if (activeOrder?.status === "DELIVERED" || activeOrder?.status === "CANCELLED" || activeOrder?.status === "REJECTED") {
