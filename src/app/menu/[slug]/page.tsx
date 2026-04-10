@@ -1666,7 +1666,10 @@ function MenuPageContent() {
     return a.sortOrder - b.sortOrder;
   });
 
-  if (showOrder) {
+  // Don't hijack the page with order tracking while checkout is open —
+  // digital payment flows (Bank details, eSewa/Khalti gateway) run inside
+  // the CheckoutSheet which is rendered in the main JSX below.
+  if (showOrder && !checkoutOpen) {
     if (!activeOrder) {
       return (
         <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white">
