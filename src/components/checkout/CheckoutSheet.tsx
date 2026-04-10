@@ -179,6 +179,7 @@ export default function CheckoutSheet({
     note: string;
   } | null>(null);
   const [bankOrderId, setBankOrderId] = useState<string | null>(null);
+  const [bankTotal, setBankTotal] = useState(0);
   const [bankProofUploading, setBankProofUploading] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const totalRef = useRef<HTMLSpanElement>(null);
@@ -532,6 +533,7 @@ export default function CheckoutSheet({
           method: "POST",
           body: { orderId: order.id, method: "BANK" },
         });
+        setBankTotal(total);
         clearCart();
         setBankDetails(bankRes.bankDetails);
         setBankOrderId(order.id);
@@ -922,7 +924,7 @@ export default function CheckoutSheet({
                     <div className="rounded-xl bg-gray-50 p-4 space-y-3">
                       <div className="flex justify-between">
                         <span className="text-xs text-gray-500">Amount</span>
-                        <span className="text-lg font-extrabold text-[#eaa94d]">{formatPrice(total, currency)}</span>
+                        <span className="text-lg font-extrabold text-[#eaa94d]">{formatPrice(bankTotal, currency)}</span>
                       </div>
                       <div className="border-t border-gray-200 pt-3 space-y-2">
                         <div className="flex justify-between text-xs">

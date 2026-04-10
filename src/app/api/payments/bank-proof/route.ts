@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { logAudit, getClientIp } from "@/lib/audit";
+import { sendNotificationToRestaurantStaff } from "@/lib/notifications";
 
 /**
  * POST /api/payments/bank-proof
@@ -33,13 +34,6 @@ export async function POST(req: NextRequest) {
 
   if (!payment) {
     return NextResponse.json({ error: "Payment not found" }, { status: 404 });
-  }
-
-  if (payment.method !== "BANK") {
-    return NextResponse.json(
-      { error: "Proof upload is only available for bank transfer payments" },
-      { status: 400 },
-    );
   }
 
   if (payment.status === "COMPLETED") {
@@ -76,6 +70,18 @@ export async function POST(req: NextRequest) {
     restaurantId: payment.order.restaurantId,
     ipAddress: getClientIp(req.headers),
   });
+
+  // Notify all staff + owner that proof was uploaded and needs verification
+  sendNotificationToRestaurantStaff(payment.order.restaurantId, {
+    title: "Payment Proof Uploaded",
+    body: `Order #${payment.order.orderNo} — Customer uploaded payment proof. Please verify in Billing.`,
+    data: {
+      type: "PROOF_UPLOADED",
+      orderNo: payment.order.orderNo,
+      orderId,
+      restaurantId: payment.order.restaurantId,
+    },
+  }).catch(() => { /* non-fatal */ });
 
   return NextResponse.json({
     success: true,

@@ -31,22 +31,32 @@ const FILTER_STATUSES = ["ALL", "PENDING", "ACCEPTED", "PREPARING", "READY", "DE
 
 async function staffFetch<T = unknown>(url: string, opts?: RequestInit): Promise<T> {
   const res = await fetch(url, { ...opts, credentials: "include", headers: { "Content-Type": "application/json", ...(opts?.headers || {}) } });
-  if (!res.ok) throw new Error("Failed");
+  if (!res.ok) {
+    let msg = "Request failed";
+    try { const body = await res.json(); if (body?.error) msg = body.error; } catch { /* ignore */ }
+    throw new Error(msg);
+  }
   return res.json();
 }
 
 export default function POSActiveOrders({ restaurantId, currency, orders, connectionStatus, onOptimisticUpdate }: Props) {
   const [filter, setFilter] = useState("ALL");
 
-  const updateStatus = (orderId: string, status: string) => {
-    // Optimistic: update UI instantly, API confirms in background
+  const [toast, setToast] = useState<string | null>(null);
+
+  const updateStatus = async (orderId: string, status: string) => {
     onOptimisticUpdate(orderId, { status });
-    staffFetch(`/api/restaurants/${restaurantId}/orders/${orderId}`, {
-      method: "PATCH",
-      body: JSON.stringify({ status }),
-    }).catch(() => {
-      // SSE stream will reconcile the true state on next push
-    });
+    try {
+      await staffFetch(`/api/restaurants/${restaurantId}/orders/${orderId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ status }),
+      });
+    } catch (err) {
+      // Show error — SSE will reconcile the true state
+      const msg = err instanceof Error ? err.message : "Action failed";
+      setToast(msg);
+      setTimeout(() => setToast(null), 4000);
+    }
   };
 
   const timeAgo = (dateStr: string) => {
@@ -182,24 +192,43 @@ export default function POSActiveOrders({ restaurantId, currency, orders, connec
                         )}
                       </div>
 
-                      {next && (
-                        <div className="flex gap-2 pt-2">
-                          {order.status === "PENDING" && (
+                      {next && (() => {
+                        const isUnpaid = order.status === "PENDING" && order.payment && order.payment.status !== "COMPLETED";
+                        return isUnpaid ? (
+                          <div className="pt-2 space-y-2">
+                            <div className={`rounded-lg p-2 text-[10px] font-semibold ${
+                              order.payment?.status === "AWAITING_VERIFICATION"
+                                ? "bg-blue-50 text-blue-700 border border-blue-100"
+                                : "bg-amber-50 text-amber-700 border border-amber-100"
+                            }`}>
+                              {order.payment?.status === "AWAITING_VERIFICATION" ? "Verification Pending" : "Payment Pending"} — {order.payment?.method}
+                            </div>
                             <button
                               onClick={() => updateStatus(order.id, "REJECTED")}
-                              className="flex-1 rounded-lg bg-red-50 border border-red-100 py-2 text-xs font-semibold text-red-600 hover:bg-red-100 transition-colors"
+                              className="w-full rounded-lg bg-red-50 border border-red-100 py-2 text-xs font-semibold text-red-600 hover:bg-red-100 transition-colors"
                             >
                               Reject
                             </button>
-                          )}
-                          <button
-                            onClick={() => updateStatus(order.id, next)}
-                            className="flex-1 rounded-lg bg-amber-600 py-2 text-xs font-semibold text-white hover:bg-amber-500 transition-colors"
-                          >
-                            {actionLabels[order.status]}
-                          </button>
-                        </div>
-                      )}
+                          </div>
+                        ) : (
+                          <div className="flex gap-2 pt-2">
+                            {order.status === "PENDING" && (
+                              <button
+                                onClick={() => updateStatus(order.id, "REJECTED")}
+                                className="flex-1 rounded-lg bg-red-50 border border-red-100 py-2 text-xs font-semibold text-red-600 hover:bg-red-100 transition-colors"
+                              >
+                                Reject
+                              </button>
+                            )}
+                            <button
+                              onClick={() => updateStatus(order.id, next)}
+                              className="flex-1 rounded-lg bg-amber-600 py-2 text-xs font-semibold text-white hover:bg-amber-500 transition-colors"
+                            >
+                              {actionLabels[order.status]}
+                            </button>
+                          </div>
+                        );
+                      })()}
                     </div>
                   </motion.div>
                 );
@@ -208,6 +237,20 @@ export default function POSActiveOrders({ restaurantId, currency, orders, connec
           </div>
         )}
       </div>
+
+      {/* Error toast */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 rounded-xl bg-red-600 px-5 py-3 text-sm font-semibold text-white shadow-xl max-w-sm text-center"
+          >
+            {toast}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
