@@ -35,14 +35,15 @@ export async function GET(
     });
   }
 
+  // Digital methods first so they become the default selection in checkout
   const enabledMethods: string[] = [];
-  if (config.cashEnabled) enabledMethods.push("CASH");
   if (config.esewaEnabled && config.esewaMerchantCode && config.esewaSecretKey)
     enabledMethods.push("ESEWA");
   if (config.khaltiEnabled && config.khaltiSecretKey)
     enabledMethods.push("KHALTI");
   if (config.bankEnabled && config.bankAccountNumber)
     enabledMethods.push("BANK");
+  if (config.cashEnabled) enabledMethods.push("CASH");
   if (counterPayEnabled) enabledMethods.push("COUNTER");
   if (directPayEnabled) enabledMethods.push("DIRECT");
 

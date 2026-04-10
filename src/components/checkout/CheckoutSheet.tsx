@@ -180,6 +180,7 @@ export default function CheckoutSheet({
   } | null>(null);
   const [bankOrderId, setBankOrderId] = useState<string | null>(null);
   const [bankProofUploading, setBankProofUploading] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
   const totalRef = useRef<HTMLSpanElement>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const paymentWindowRef = useRef<Window | null>(null);
@@ -564,8 +565,9 @@ export default function CheckoutSheet({
       clearCart();
       onClose();
       onOrderPlaced(order.id);
-    } catch {
+    } catch (err) {
       setLoading(false);
+      setPaymentError(err instanceof Error ? err.message : "Payment failed. Please try another method.");
     }
   };
 
@@ -993,7 +995,7 @@ export default function CheckoutSheet({
                       return (
                         <button
                           key={method.id}
-                          onClick={() => setSelectedPayment(method.id)}
+                          onClick={() => { setSelectedPayment(method.id); setPaymentError(null); }}
                           className={`w-full flex items-center gap-4 rounded-xl border-2 px-4 py-4 text-left transition-all ${
                             isSelected
                               ? `${method.bg} shadow-sm`
@@ -1354,12 +1356,16 @@ export default function CheckoutSheet({
                 </div>
               ) : (
                 <div className="space-y-2">
+                  {paymentError && (
+                    <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-xs text-red-700 font-medium">
+                      {paymentError}
+                    </div>
+                  )}
                   <button
-                    onClick={
-                      paymentQRs.length > 0
-                        ? handleContinueToPayment
-                        : handlePlaceOrder
-                    }
+                    onClick={() => {
+                      setPaymentError(null);
+                      (paymentQRs.length > 0 ? handleContinueToPayment : handlePlaceOrder)();
+                    }}
                     disabled={loading}
                     className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#3e1e0c] py-4 text-base font-bold text-white transition-all hover:bg-[#2d1508] active:scale-[0.98] shadow-lg shadow-[#3e1e0c]/25 disabled:opacity-60"
                   >
