@@ -842,7 +842,7 @@ export default function TrackOrderPage() {
             </motion.div>
           )}
 
-        {/* Bank Transfer — Upload Proof */}
+        {/* Bank Transfer — Upload Proof or Verification Pending */}
         {order.payment?.method === "BANK" &&
           (order.payment.status === "PENDING" || order.payment.status === "AWAITING_VERIFICATION") && (
             <motion.div
@@ -851,21 +851,30 @@ export default function TrackOrderPage() {
               className="rounded-2xl border-2 border-blue-200 bg-blue-50/60 p-4 space-y-3"
             >
               <div className="flex items-center gap-2">
-                <CreditCard className="h-4 w-4 text-blue-700" />
-                <span className="text-sm font-bold text-blue-900">
-                  {order.payment.status === "AWAITING_VERIFICATION"
-                    ? "Payment proof submitted"
-                    : "Upload bank transfer proof"}
-                </span>
+                {order.payment.status === "AWAITING_VERIFICATION" ? (
+                  <>
+                    <Clock className="h-4 w-4 text-blue-700" />
+                    <span className="text-sm font-bold text-blue-900">
+                      Verification Pending
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <CreditCard className="h-4 w-4 text-blue-700" />
+                    <span className="text-sm font-bold text-blue-900">
+                      Upload Bank Transfer Proof
+                    </span>
+                  </>
+                )}
               </div>
               {order.payment.status === "AWAITING_VERIFICATION" ? (
                 <p className="text-xs text-blue-700">
-                  Your order is awaiting payment verification by our team. You&apos;ll be notified once confirmed.
+                  Your proof has been submitted. Staff will verify your payment — your order will be sent to the kitchen once confirmed.
                 </p>
               ) : (
                 <>
                   <p className="text-xs text-blue-700">
-                    Upload a screenshot of your bank transfer to speed up verification.
+                    Upload a screenshot of your bank transfer. Your order will be sent to the kitchen once staff verifies it.
                   </p>
                   <input
                     type="file"
@@ -1184,54 +1193,42 @@ export default function TrackOrderPage() {
           )}
         </AnimatePresence>
 
-        {/* Cash order actions — add more items or request bill */}
+        {/* Cash/Counter/Direct — payment pending, waiting for staff verification */}
         {["CASH", "COUNTER", "DIRECT"].includes(order.payment?.method ?? "") &&
           order.payment?.status !== "COMPLETED" &&
           !["DELIVERED", "CANCELLED", "REJECTED"].includes(order.status) && (
             <div className="rounded-2xl border-2 border-amber-200 bg-amber-50/60 p-4 space-y-3">
               <div className="flex items-center gap-2">
-                <Receipt className="h-4 w-4 text-amber-700" />
+                <Clock className="h-4 w-4 text-amber-700" />
                 <span className="text-sm font-bold text-amber-900">
-                  Running Tab · Pay at Counter
+                  Verification Pending
                 </span>
               </div>
               <p className="text-xs text-amber-700/80">
-                Your order is open. Add more items anytime — pay at the counter when you&apos;re done.
+                Please pay at the counter. Your order will be sent to the kitchen once staff confirms payment.
               </p>
-              <div className="flex gap-2">
-                <Link
-                  href={`/menu/${order.restaurant.slug}?table=${order.tableNo || ""}&addTo=${order.id}`}
-                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-white border border-amber-200 py-3 text-sm font-bold text-amber-800 hover:bg-amber-50 transition-colors cursor-pointer"
-                >
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                  </svg>
-                  Add More Items
-                </Link>
-                <button
-                  onClick={() => setShowBill(true)}
-                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-amber-700 py-3 text-sm font-bold text-white hover:bg-amber-600 transition-colors cursor-pointer"
-                >
-                  <CreditCard className="h-4 w-4" />
-                  Pay at Counter
-                </button>
-              </div>
+              <button
+                onClick={() => setShowBill(true)}
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-amber-700 py-3 text-sm font-bold text-white hover:bg-amber-600 transition-colors cursor-pointer"
+              >
+                <CreditCard className="h-4 w-4" />
+                View Bill
+              </button>
             </div>
           )}
 
-        {/* Delivered but unpaid — prompt customer to go pay */}
-        {order.status === "DELIVERED" &&
-          ["CASH", "COUNTER", "DIRECT"].includes(order.payment?.method ?? "") &&
-          order.payment?.status !== "COMPLETED" && (
-            <div className="rounded-2xl border-2 border-emerald-200 bg-emerald-50/70 p-4 space-y-2">
+        {/* Any payment method — COMPLETED confirmation */}
+        {order.payment?.status === "COMPLETED" &&
+          !["DELIVERED", "CANCELLED", "REJECTED"].includes(order.status) && (
+            <div className="rounded-2xl border-2 border-emerald-200 bg-emerald-50/60 p-4 space-y-2">
               <div className="flex items-center gap-2">
-                <CreditCard className="h-4 w-4 text-emerald-700" />
-                <span className="text-sm font-bold text-emerald-900">
-                  Your food has been delivered!
+                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                <span className="text-sm font-bold text-emerald-800">
+                  Payment Verified
                 </span>
               </div>
               <p className="text-xs text-emerald-700/80">
-                Please proceed to the counter to complete your payment. Your bill will be available to download once paid.
+                Your payment has been confirmed. Your order is being processed by the kitchen.
               </p>
             </div>
           )}

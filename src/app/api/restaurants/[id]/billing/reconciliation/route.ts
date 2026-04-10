@@ -115,11 +115,10 @@ export async function GET(
       unpaidOrders++;
     }
 
-    // Discrepancy: order delivered but payment not completed
+    // Discrepancy: order delivered/ready but payment not completed (any method)
     if (
-      ["DELIVERED", "READY"].includes(order.status) &&
-      p.status !== "COMPLETED" &&
-      ["ESEWA", "KHALTI", "BANK"].includes(p.method)
+      ["DELIVERED", "READY", "ACCEPTED", "PREPARING"].includes(order.status) &&
+      p.status !== "COMPLETED"
     ) {
       discrepancies.push({
         orderNo: order.orderNo,

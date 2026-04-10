@@ -1,30 +1,33 @@
 import { db } from "./db";
 
-/**
- * Digital payment methods that MUST be completed before an order
- * can be accepted into the kitchen. Cash/Counter/Direct follow the
- * "serve first, collect later" workflow and bypass this gate.
- */
-const DIGITAL_METHODS = ["ESEWA", "KHALTI", "BANK"] as const;
-
 /** Statuses that satisfy the payment gate for kitchen acceptance. */
 const PAID_STATUSES = ["COMPLETED"] as const;
 
-export function requiresPaymentBeforeKitchen(method: string): boolean {
-  return (DIGITAL_METHODS as readonly string[]).includes(method);
-}
+/** Human-readable labels for payment methods. */
+const METHOD_LABELS: Record<string, string> = {
+  ESEWA: "eSewa",
+  KHALTI: "Khalti",
+  BANK: "Bank Transfer",
+  CASH: "Cash",
+  COUNTER: "Counter",
+  DIRECT: "Direct",
+};
 
 /**
  * Server-side payment gate: determines whether an order can transition
  * to ACCEPTED status based on its payment state.
  *
- * Returns { allowed: true } for:
+ * ALL payment methods must be verified/collected (status = COMPLETED)
+ * before the kitchen can accept the order. This ensures:
+ *  - Digital (ESEWA, KHALTI, BANK): gateway callback or staff verification
+ *  - Cash/Counter/Direct: staff marks payment as collected via billing
+ *
+ * Returns { allowed: true } only for:
  *  - Orders with no payment record (legacy/manual)
- *  - CASH, COUNTER, DIRECT payment methods (serve-first model)
- *  - Digital methods (ESEWA, KHALTI, BANK) with COMPLETED payment
+ *  - Any method with COMPLETED payment status
  *
  * Returns { allowed: false, reason } for:
- *  - Digital methods with PENDING, FAILED, EXPIRED, or AWAITING_VERIFICATION payment
+ *  - Any method with non-COMPLETED status (PENDING, FAILED, EXPIRED, AWAITING_VERIFICATION)
  */
 export async function canAcceptOrder(orderId: string): Promise<{
   allowed: boolean;
@@ -57,22 +60,16 @@ export async function canAcceptOrder(orderId: string): Promise<{
 
   const { method, status } = order.payment;
 
-  // Non-digital methods bypass the gate
-  if (!requiresPaymentBeforeKitchen(method)) {
-    return { allowed: true };
-  }
-
-  // Digital method — require completed payment
+  // Payment completed — allow regardless of method
   if ((PAID_STATUSES as readonly string[]).includes(status)) {
     return { allowed: true };
   }
 
-  const methodLabel =
-    method === "ESEWA" ? "eSewa" : method === "KHALTI" ? "Khalti" : "Bank Transfer";
+  const methodLabel = METHOD_LABELS[method] || method;
 
   return {
     allowed: false,
-    reason: `Payment must be completed before accepting this order. ${methodLabel} payment is ${status.toLowerCase().replace("_", " ")}.`,
+    reason: `Payment must be verified before accepting this order. ${methodLabel} payment is ${status.toLowerCase().replace("_", " ")}.`,
     paymentMethod: method,
     paymentStatus: status,
   };

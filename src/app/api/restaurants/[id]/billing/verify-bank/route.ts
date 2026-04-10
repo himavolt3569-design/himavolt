@@ -74,13 +74,6 @@ export async function POST(
     return NextResponse.json({ error: "Payment not found" }, { status: 404 });
   }
 
-  if (payment.method !== "BANK") {
-    return NextResponse.json(
-      { error: "This action is only available for bank transfer payments" },
-      { status: 400 },
-    );
-  }
-
   if (payment.status === "COMPLETED") {
     return NextResponse.json(
       { error: "Payment is already verified and completed" },
@@ -99,18 +92,18 @@ export async function POST(
       },
     });
 
-    // Update bill paidVia
+    // Update bill paidVia with the actual payment method
     await db.bill.updateMany({
       where: { orderId: payment.orderId },
-      data: { paidVia: "BANK" },
+      data: { paidVia: payment.method },
     });
 
     logAudit({
       action: "BANK_PAYMENT_VERIFIED",
       entity: "Payment",
       entityId: paymentId,
-      detail: `Bank transfer verified for order ${payment.order.orderNo}`,
-      metadata: { orderId: payment.orderId, proofUrl: payment.proofUrl },
+      detail: `${payment.method} payment verified for order ${payment.order.orderNo}`,
+      metadata: { orderId: payment.orderId, method: payment.method, proofUrl: payment.proofUrl },
       userId: actorId,
       restaurantId: id,
       ipAddress: getClientIp(req.headers),
@@ -132,8 +125,8 @@ export async function POST(
     action: "BANK_PAYMENT_REJECTED",
     entity: "Payment",
     entityId: paymentId,
-    detail: `Bank transfer rejected for order ${payment.order.orderNo}: ${note || "No reason provided"}`,
-    metadata: { orderId: payment.orderId, reason: note },
+    detail: `${payment.method} payment rejected for order ${payment.order.orderNo}: ${note || "No reason provided"}`,
+    metadata: { orderId: payment.orderId, method: payment.method, reason: note },
     userId: actorId,
     restaurantId: id,
     ipAddress: getClientIp(req.headers),

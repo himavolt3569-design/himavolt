@@ -630,29 +630,56 @@ function OrdersTab({ restaurantId, currency }: { restaurantId: string; currency:
             )}
 
             {order.status === "PENDING" && (() => {
-              const isDigitalUnpaid =
+              const isUnpaid =
                 order.payment &&
-                ["ESEWA", "KHALTI", "BANK"].includes(order.payment.method) &&
                 order.payment.status !== "COMPLETED";
-              const methodLabel =
-                order.payment?.method === "ESEWA" ? "eSewa" :
-                order.payment?.method === "KHALTI" ? "Khalti" :
-                order.payment?.method === "BANK" ? "Bank Transfer" : "";
+              const methodLabels: Record<string, string> = {
+                ESEWA: "eSewa", KHALTI: "Khalti", BANK: "Bank Transfer",
+                CASH: "Cash", COUNTER: "Counter", DIRECT: "Direct",
+              };
+              const methodLabel = methodLabels[order.payment?.method ?? ""] ?? order.payment?.method ?? "";
+              const statusLabel =
+                order.payment?.status === "AWAITING_VERIFICATION" ? "Verification Pending" :
+                order.payment?.status === "FAILED" ? "Payment Failed" :
+                order.payment?.status === "EXPIRED" ? "Payment Expired" :
+                "Payment Pending";
 
-              return isDigitalUnpaid ? (
+              return isUnpaid ? (
                 <div className="mt-3 space-y-2">
-                  <div className="rounded-xl bg-amber-50 border border-amber-200 p-3">
+                  <div className={`rounded-xl p-3 ${
+                    order.payment?.status === "AWAITING_VERIFICATION"
+                      ? "bg-blue-50 border border-blue-200"
+                      : order.payment?.status === "FAILED" || order.payment?.status === "EXPIRED"
+                      ? "bg-red-50 border border-red-200"
+                      : "bg-amber-50 border border-amber-200"
+                  }`}>
                     <div className="flex items-center gap-2 mb-1.5">
                       <span className="relative flex h-2 w-2">
-                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
-                        <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500" />
+                        <span className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-75 ${
+                          order.payment?.status === "AWAITING_VERIFICATION" ? "bg-blue-400" :
+                          order.payment?.status === "FAILED" || order.payment?.status === "EXPIRED" ? "bg-red-400" : "bg-amber-400"
+                        }`} />
+                        <span className={`relative inline-flex h-2 w-2 rounded-full ${
+                          order.payment?.status === "AWAITING_VERIFICATION" ? "bg-blue-500" :
+                          order.payment?.status === "FAILED" || order.payment?.status === "EXPIRED" ? "bg-red-500" : "bg-amber-500"
+                        }`} />
                       </span>
-                      <span className="text-[11px] font-bold text-amber-700">
-                        Awaiting {methodLabel} Payment
+                      <span className={`text-[11px] font-bold ${
+                        order.payment?.status === "AWAITING_VERIFICATION" ? "text-blue-700" :
+                        order.payment?.status === "FAILED" || order.payment?.status === "EXPIRED" ? "text-red-700" : "text-amber-700"
+                      }`}>
+                        {statusLabel} — {methodLabel}
                       </span>
                     </div>
-                    <p className="text-[10px] text-amber-600">
-                      Customer has not completed payment. Order will be available for acceptance once payment is confirmed.
+                    <p className={`text-[10px] ${
+                      order.payment?.status === "AWAITING_VERIFICATION" ? "text-blue-600" :
+                      order.payment?.status === "FAILED" || order.payment?.status === "EXPIRED" ? "text-red-600" : "text-amber-600"
+                    }`}>
+                      {order.payment?.status === "AWAITING_VERIFICATION"
+                        ? "Customer uploaded proof. Biller must verify before kitchen can accept."
+                        : order.payment?.status === "FAILED" || order.payment?.status === "EXPIRED"
+                        ? "Payment was not successful. Order cannot be accepted."
+                        : "Payment not yet confirmed. Biller must mark as paid or customer must complete payment."}
                     </p>
                   </div>
                   <button

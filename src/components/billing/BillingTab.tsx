@@ -1009,8 +1009,8 @@ export default function BillingTab({
                   </button>
                 )}
 
-                {/* Bank Transfer Verification — for BANK orders awaiting verification */}
-                {order.payment?.method === "BANK" &&
+                {/* Payment Verification — for orders with proof uploaded or awaiting verification */}
+                {order.payment &&
                   order.payment.status === "AWAITING_VERIFICATION" && (
                     <div className="flex items-center gap-1">
                       {order.payment.proofUrl && (
@@ -1043,11 +1043,11 @@ export default function BillingTab({
                     </div>
                   )}
 
-                {/* Mark Paid — for ALL unpaid non-cancelled orders (except bank awaiting verification, handled above) */}
+                {/* Mark Paid — for ALL unpaid non-cancelled orders (except those awaiting verification, handled above) */}
                 {!isPaid(order) &&
                   order.status !== "CANCELLED" &&
                   order.status !== "REJECTED" &&
-                  !(order.payment?.method === "BANK" && order.payment.status === "AWAITING_VERIFICATION") && (
+                  order.payment?.status !== "AWAITING_VERIFICATION" && (
                     <>
                       <button
                         onClick={() => {
