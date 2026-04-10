@@ -907,6 +907,136 @@ export default function CheckoutSheet({
                     )}
                   </div>
                 </div>
+              ) : step === "bank-details" ? (
+                /* ── Bank Transfer Details step ── */
+                bankDetails ? (
+                  <div className="px-6 py-6 space-y-5">
+                    <div className="text-center">
+                      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 mb-3">
+                        <Banknote className="h-7 w-7 text-blue-600" />
+                      </div>
+                      <h3 className="text-lg font-bold text-[#3e1e0c]">Bank Transfer Details</h3>
+                      <p className="text-sm text-gray-500 mt-1">Transfer the amount below and upload proof</p>
+                    </div>
+
+                    <div className="rounded-xl bg-gray-50 p-4 space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-xs text-gray-500">Amount</span>
+                        <span className="text-lg font-extrabold text-[#eaa94d]">{formatPrice(total, currency)}</span>
+                      </div>
+                      <div className="border-t border-gray-200 pt-3 space-y-2">
+                        <div className="flex justify-between text-xs">
+                          <span className="text-gray-500">Bank</span>
+                          <span className="font-bold text-[#3e1e0c]">{bankDetails.bankName}</span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-gray-500">Account Name</span>
+                          <span className="font-bold text-[#3e1e0c]">{bankDetails.accountName}</span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-gray-500">Account No.</span>
+                          <span className="font-bold text-[#3e1e0c] font-mono">{bankDetails.accountNumber}</span>
+                        </div>
+                        {bankDetails.branch && (
+                          <div className="flex justify-between text-xs">
+                            <span className="text-gray-500">Branch</span>
+                            <span className="font-bold text-[#3e1e0c]">{bankDetails.branch}</span>
+                          </div>
+                        )}
+                      </div>
+                      {bankDetails.note && (
+                        <p className="text-[10px] text-amber-600 bg-amber-50 rounded-lg p-2 mt-2">{bankDetails.note}</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="block text-xs font-bold text-[#3e1e0c]">Upload Transfer Proof</label>
+                      <input
+                        type="file"
+                        accept="image/*,.pdf"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file || !bankOrderId) return;
+                          setBankProofUploading(true);
+                          try {
+                            const { uploadFile } = await import("@/lib/upload");
+                            const proofUrl = await uploadFile(file, "bank-proofs");
+                            await apiFetch("/api/payments/bank-proof", {
+                              method: "POST",
+                              body: { orderId: bankOrderId, proofUrl },
+                            });
+                            onOrderPlaced(bankOrderId);
+                            onClose();
+                          } catch {
+                            // Upload failed — user can retry
+                          }
+                          setBankProofUploading(false);
+                        }}
+                        disabled={bankProofUploading}
+                        className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-blue-50 file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-blue-700 hover:file:bg-blue-100"
+                      />
+                      {bankProofUploading && (
+                        <div className="flex items-center gap-2 text-xs text-blue-600">
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          Uploading proof...
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex items-start gap-2 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3">
+                      <Shield className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
+                      <p className="text-[10px] text-amber-700">
+                        Your order is awaiting payment verification by our team. Upload proof now or show it at the counter.
+                      </p>
+                    </div>
+                  </div>
+                ) : null
+              ) : step === "waiting" ? (
+                /* ── Waiting for payment step ── */
+                <div className="px-6 py-10 space-y-6 text-center">
+                  <div className="flex justify-center">
+                    <div className="relative">
+                      <div className="h-20 w-20 rounded-full bg-[#eaa94d]/10 flex items-center justify-center">
+                        <Loader2 className="h-10 w-10 animate-spin text-[#eaa94d]" />
+                      </div>
+                      <div className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-white shadow flex items-center justify-center">
+                        {selectedPayment === "ESEWA" ? (
+                          <Wallet className="h-4 w-4 text-green-600" />
+                        ) : selectedPayment === "KHALTI" ? (
+                          <Wallet className="h-4 w-4 text-purple-600" />
+                        ) : (
+                          <CreditCard className="h-4 w-4 text-blue-600" />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-[#3e1e0c]">
+                      {waitingReason === "staff-confirm"
+                        ? "Order Placed — Awaiting Payment"
+                        : "Waiting for Payment"}
+                    </h3>
+                    <p className="text-sm text-gray-500 mt-1">
+                      {waitingReason === "staff-confirm"
+                        ? "Your order has been placed. Show your payment to the staff. This screen will update once payment is confirmed."
+                        : `Complete your payment in the ${selectedPayment === "ESEWA" ? "eSewa" : "Khalti"} window. This page will update automatically.`}
+                    </p>
+                  </div>
+                  <div className="rounded-xl bg-gray-50 p-4">
+                    <div className="flex justify-between">
+                      <span className="text-sm font-bold text-[#3e1e0c]">Total</span>
+                      <span className="text-lg font-extrabold text-[#eaa94d]">{formatPrice(total, currency)}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-left">
+                    <Shield className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
+                    <p className="text-[11px] text-amber-700">
+                      {waitingReason === "staff-confirm"
+                        ? "Do not close this page. Staff will confirm your payment and your order will proceed automatically."
+                        : "Don't close this page. If the payment window was blocked, try allowing pop-ups for this site."}
+                    </p>
+                  </div>
+                </div>
               ) : step === "scan-qr" ? (
                 /* ── Scan & Pay step: show restaurant payment QR images ── */
                 <div className="px-6 py-5 space-y-4">
@@ -1142,141 +1272,6 @@ export default function CheckoutSheet({
                 </div>
               )}
 
-              {/* ── Bank Transfer Details step ── */}
-              {step === "bank-details" && bankDetails && (
-                <div className="px-6 py-6 space-y-5">
-                  <div className="text-center">
-                    <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 mb-3">
-                      <Banknote className="h-7 w-7 text-blue-600" />
-                    </div>
-                    <h3 className="text-lg font-bold text-[#3e1e0c]">Bank Transfer Details</h3>
-                    <p className="text-sm text-gray-500 mt-1">Transfer the amount below and upload proof</p>
-                  </div>
-
-                  <div className="rounded-xl bg-gray-50 p-4 space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-xs text-gray-500">Amount</span>
-                      <span className="text-lg font-extrabold text-[#eaa94d]">{formatPrice(total, currency)}</span>
-                    </div>
-                    <div className="border-t border-gray-200 pt-3 space-y-2">
-                      <div className="flex justify-between text-xs">
-                        <span className="text-gray-500">Bank</span>
-                        <span className="font-bold text-[#3e1e0c]">{bankDetails.bankName}</span>
-                      </div>
-                      <div className="flex justify-between text-xs">
-                        <span className="text-gray-500">Account Name</span>
-                        <span className="font-bold text-[#3e1e0c]">{bankDetails.accountName}</span>
-                      </div>
-                      <div className="flex justify-between text-xs">
-                        <span className="text-gray-500">Account No.</span>
-                        <span className="font-bold text-[#3e1e0c] font-mono">{bankDetails.accountNumber}</span>
-                      </div>
-                      {bankDetails.branch && (
-                        <div className="flex justify-between text-xs">
-                          <span className="text-gray-500">Branch</span>
-                          <span className="font-bold text-[#3e1e0c]">{bankDetails.branch}</span>
-                        </div>
-                      )}
-                    </div>
-                    {bankDetails.note && (
-                      <p className="text-[10px] text-amber-600 bg-amber-50 rounded-lg p-2 mt-2">{bankDetails.note}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="block text-xs font-bold text-[#3e1e0c]">Upload Transfer Proof</label>
-                    <input
-                      type="file"
-                      accept="image/*,.pdf"
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (!file || !bankOrderId) return;
-                        setBankProofUploading(true);
-                        try {
-                          const { uploadFile } = await import("@/lib/upload");
-                          const proofUrl = await uploadFile(file, "bank-proofs");
-                          await apiFetch("/api/payments/bank-proof", {
-                            method: "POST",
-                            body: { orderId: bankOrderId, proofUrl },
-                          });
-                          onOrderPlaced(bankOrderId);
-                          onClose();
-                        } catch {
-                          // Upload failed — user can retry
-                        }
-                        setBankProofUploading(false);
-                      }}
-                      disabled={bankProofUploading}
-                      className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-blue-50 file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-blue-700 hover:file:bg-blue-100"
-                    />
-                    {bankProofUploading && (
-                      <div className="flex items-center gap-2 text-xs text-blue-600">
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                        Uploading proof...
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex items-start gap-2 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3">
-                    <Shield className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
-                    <p className="text-[10px] text-amber-700">
-                      Your order is awaiting payment verification by our team. You&apos;ll be notified once confirmed. You can also skip proof upload and show it at the counter.
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* ── Waiting for payment step ── */}
-              {step === "waiting" && (
-                <div className="px-6 py-10 space-y-6 text-center">
-                  <div className="flex justify-center">
-                    <div className="relative">
-                      <div className="h-20 w-20 rounded-full bg-[#eaa94d]/10 flex items-center justify-center">
-                        <Loader2 className="h-10 w-10 animate-spin text-[#eaa94d]" />
-                      </div>
-                      <div className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-white shadow flex items-center justify-center">
-                        {selectedPayment === "ESEWA" ? (
-                          <Wallet className="h-4 w-4 text-green-600" />
-                        ) : selectedPayment === "KHALTI" ? (
-                          <Wallet className="h-4 w-4 text-purple-600" />
-                        ) : (
-                          <CreditCard className="h-4 w-4 text-blue-600" />
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-[#3e1e0c]">
-                      {waitingReason === "staff-confirm"
-                        ? "Order Placed — Awaiting Payment"
-                        : "Waiting for Payment"}
-                    </h3>
-                    <p className="text-sm text-gray-500 mt-1">
-                      {waitingReason === "staff-confirm"
-                        ? "Your order has been placed. Show your payment to the staff. This screen will update once payment is confirmed."
-                        : `Complete your payment in the ${selectedPayment === "ESEWA" ? "eSewa" : "Khalti"} window. This page will update automatically.`}
-                    </p>
-                  </div>
-                  <div className="rounded-xl bg-gray-50 p-4">
-                    <div className="flex justify-between">
-                      <span className="text-sm font-bold text-[#3e1e0c]">
-                        Amount
-                      </span>
-                      <span className="text-lg font-extrabold text-[#eaa94d]">
-                        {formatPrice(total, currency)}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-2 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-left">
-                    <Shield className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
-                    <p className="text-[11px] text-amber-700">
-                      {waitingReason === "staff-confirm"
-                        ? "Do not close this page. Staff will confirm your payment and your order will proceed automatically."
-                        : "Don't close this page. If the payment window was blocked, try allowing pop-ups for this site."}
-                    </p>
-                  </div>
-                </div>
-              )}
             </div>
 
             <div className="border-t border-gray-100 px-6 py-4 shrink-0 space-y-3">
