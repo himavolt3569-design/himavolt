@@ -5,6 +5,7 @@ import { requireStaffForRestaurant } from "@/lib/staff-auth";
 import { logAudit, getClientIp } from "@/lib/audit";
 import { getCurrencySymbol } from "@/lib/currency";
 import { getAuthUser } from "@/lib/auth";
+import { touchOrderUpdatedAt } from "@/lib/order-sync";
 
 async function verifyStaffAccess(req: NextRequest, restaurantId: string) {
   const staff = await requireStaffForRestaurant(req, restaurantId);
@@ -72,6 +73,9 @@ export async function POST(
 
   try {
     const payment = await collectPayment(orderId, method, transactionId);
+
+    // Touch order so SSE streams detect the payment change
+    await touchOrderUpdatedAt(orderId);
 
     // Auto-clear the table session so the next customer gets a fresh start.
     // Run separately so a missing endedAt column (schema drift) doesn't

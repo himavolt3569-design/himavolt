@@ -17,6 +17,7 @@ export async function GET(req: NextRequest) {
   let closed = false;
   let lastStatus = "";
   let lastEstimatedTime: number | null = null;
+  let lastPaymentStatus = "";
 
   const stream = new ReadableStream({
     async start(controller) {
@@ -60,15 +61,18 @@ export async function GET(req: NextRequest) {
             return;
           }
 
-          // Send update if status or estimatedTime changed, or on first fetch
+          // Send update if status, estimatedTime, or payment status changed
+          const currentPaymentStatus = order.payment?.status ?? "";
           const changed =
             force ||
             order.status !== lastStatus ||
-            order.estimatedTime !== lastEstimatedTime;
+            order.estimatedTime !== lastEstimatedTime ||
+            currentPaymentStatus !== lastPaymentStatus;
 
           if (changed) {
             lastStatus = order.status;
             lastEstimatedTime = order.estimatedTime;
+            lastPaymentStatus = currentPaymentStatus;
             send(JSON.stringify({ type: "order", order }));
           } else {
             send(

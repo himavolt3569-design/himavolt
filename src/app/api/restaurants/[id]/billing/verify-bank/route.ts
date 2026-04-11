@@ -3,6 +3,8 @@ import { db } from "@/lib/db";
 import { requireStaffForRestaurant } from "@/lib/staff-auth";
 import { logAudit, getClientIp } from "@/lib/audit";
 import { getAuthUser } from "@/lib/auth";
+import { touchOrderUpdatedAt } from "@/lib/order-sync";
+import { notifyCustomerOrderUpdate } from "@/lib/notifications";
 
 async function verifyStaffAccess(req: NextRequest, restaurantId: string) {
   const staff = await requireStaffForRestaurant(req, restaurantId);
@@ -66,7 +68,15 @@ export async function POST(
   const payment = await db.payment.findUnique({
     where: { id: paymentId },
     include: {
-      order: { select: { id: true, orderNo: true, restaurantId: true } },
+      order: {
+        select: {
+          id: true,
+          orderNo: true,
+          restaurantId: true,
+          userId: true,
+          restaurant: { select: { name: true } },
+        },
+      },
     },
   });
 
@@ -92,6 +102,9 @@ export async function POST(
       },
     });
 
+    // Touch order so SSE streams detect the payment change
+    await touchOrderUpdatedAt(payment.orderId);
+
     // Update bill paidVia with the actual payment method
     await db.bill.updateMany({
       where: { orderId: payment.orderId },
@@ -109,6 +122,16 @@ export async function POST(
       ipAddress: getClientIp(req.headers),
     });
 
+    // Notify customer that payment was verified
+    if (payment.order.userId) {
+      notifyCustomerOrderUpdate(
+        payment.order.userId,
+        payment.order.orderNo,
+        "PAYMENT_VERIFIED",
+        payment.order.restaurant.name,
+      ).catch(() => { /* non-fatal */ });
+    }
+
     return NextResponse.json({ success: true, payment: updated });
   }
 
@@ -121,6 +144,9 @@ export async function POST(
     },
   });
 
+  // Touch order so SSE streams detect the payment change
+  await touchOrderUpdatedAt(payment.orderId);
+
   logAudit({
     action: "BANK_PAYMENT_REJECTED",
     entity: "Payment",
@@ -131,6 +157,16 @@ export async function POST(
     restaurantId: id,
     ipAddress: getClientIp(req.headers),
   });
+
+  // Notify customer that payment was rejected
+  if (payment.order.userId) {
+    notifyCustomerOrderUpdate(
+      payment.order.userId,
+      payment.order.orderNo,
+      "PAYMENT_REJECTED",
+      payment.order.restaurant.name,
+    ).catch(() => { /* non-fatal */ });
+  }
 
   return NextResponse.json({ success: true, payment: updated });
 }

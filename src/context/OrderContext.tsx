@@ -282,9 +282,9 @@ export function OrderProvider({ children }: { children: ReactNode }) {
         );
         if (order) {
           if (["DELIVERED", "CANCELLED", "REJECTED"].includes(order.status)) {
-            // Show final state so customer sees the outcome; don't track terminal orders
+            // Terminal order — clear storage and don't restore as active
             clearOrderStorage(restaurantId, order.tableNo ?? undefined);
-            setActiveOrder(order);
+            return;
           } else {
             setActiveOrder(order);
             prevStatusRef.current = order.status as OrderStatus;

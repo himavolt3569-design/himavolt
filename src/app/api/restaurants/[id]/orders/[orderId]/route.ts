@@ -221,7 +221,7 @@ export async function PATCH(
     }
   }
 
-  // Restore stock when order is cancelled or rejected (non-fatal)
+  // Restore stock and clean up payments when order is cancelled or rejected (non-fatal)
   if (status === "CANCELLED" || status === "REJECTED") {
     const orderWithItems = await db.order.findUnique({
       where: { id: orderId },
@@ -232,6 +232,14 @@ export async function PATCH(
         console.error("[Orders PATCH] Stock restore failed (non-fatal):", err),
       );
     }
+
+    // Cancel pending payments
+    db.payment.updateMany({
+      where: { orderId, status: { in: ["PENDING", "AWAITING_VERIFICATION"] } },
+      data: { status: "FAILED", rejectionNote: `Order ${status.toLowerCase()} by staff` },
+    }).catch((err) =>
+      console.error("[Orders PATCH] Payment cleanup failed (non-fatal):", err),
+    );
   }
 
   logAudit({

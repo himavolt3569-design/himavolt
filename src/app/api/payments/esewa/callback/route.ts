@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { verifyEsewaPayment } from "@/lib/payments/esewa";
 import { decryptIfPresent } from "@/lib/encryption";
+import { touchOrderUpdatedAt } from "@/lib/order-sync";
+import { sendNotificationToRestaurantStaff } from "@/lib/notifications";
 
 // Derive the app origin from the incoming request so redirects always
 // point to the correct domain regardless of deployment environment.
@@ -44,6 +46,7 @@ export async function GET(req: NextRequest) {
       where: { orderId, status: "PENDING" },
       data: { status: "FAILED" },
     });
+    await touchOrderUpdatedAt(orderId);
     await logWebhook("payment.failed", orderId, rawPayload, 302);
     return NextResponse.redirect(`${APP_URL}/track/${orderId}?payment=failed`);
   }
@@ -72,7 +75,7 @@ export async function GET(req: NextRequest) {
       // Get restaurant's eSewa merchant code
       const order = await db.order.findUnique({
         where: { id: orderId },
-        select: { restaurantId: true },
+        select: { restaurantId: true, orderNo: true },
       });
       const paymentConfig = order
         ? await db.paymentConfig.findUnique({
@@ -98,7 +101,18 @@ export async function GET(req: NextRequest) {
             paidAt: new Date(),
           },
         });
+        await touchOrderUpdatedAt(orderId);
         await logWebhook("payment.success", orderId, rawPayload, 302, transactionUuid);
+
+        // Notify kitchen that payment is confirmed
+        if (order) {
+          sendNotificationToRestaurantStaff(order.restaurantId, {
+            title: "Payment Confirmed",
+            body: `Order #${order.orderNo} — eSewa payment verified`,
+            data: { type: "PAYMENT_CONFIRMED", orderId, restaurantId: order.restaurantId },
+          }).catch(() => { /* non-fatal */ });
+        }
+
         return NextResponse.redirect(
           `${APP_URL}/track/${orderId}?payment=success`,
         );

@@ -199,9 +199,15 @@ export default function POSActiveOrders({ restaurantId, currency, orders, connec
                             <div className={`rounded-lg p-2 text-[10px] font-semibold ${
                               order.payment?.status === "AWAITING_VERIFICATION"
                                 ? "bg-blue-50 text-blue-700 border border-blue-100"
+                                : order.payment?.status === "FAILED" || order.payment?.status === "EXPIRED" || order.payment?.status === "CANCELLED"
+                                ? "bg-red-50 text-red-700 border border-red-100"
                                 : "bg-amber-50 text-amber-700 border border-amber-100"
                             }`}>
-                              {order.payment?.status === "AWAITING_VERIFICATION" ? "Verification Pending" : "Payment Pending"} — {order.payment?.method}
+                              {order.payment?.status === "AWAITING_VERIFICATION" ? "Verification Pending"
+                                : order.payment?.status === "FAILED" ? "Payment Failed"
+                                : order.payment?.status === "EXPIRED" ? "Payment Expired"
+                                : order.payment?.status === "CANCELLED" ? "Payment Cancelled"
+                                : "Payment Pending"} — {order.payment?.method}
                             </div>
                             <button
                               onClick={() => updateStatus(order.id, "REJECTED")}

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { logAudit, getClientIp } from "@/lib/audit";
 import { sendNotificationToRestaurantStaff } from "@/lib/notifications";
+import { touchOrderUpdatedAt } from "@/lib/order-sync";
 
 /**
  * POST /api/payments/bank-proof
@@ -59,6 +60,9 @@ export async function POST(req: NextRequest) {
       status: "AWAITING_VERIFICATION",
     },
   });
+
+  // Touch order so SSE streams detect the payment change
+  await touchOrderUpdatedAt(orderId);
 
   logAudit({
     action: "BANK_PROOF_UPLOADED",

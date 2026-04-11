@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getOrCreateUser } from "@/lib/auth";
+import { logAudit, getClientIp } from "@/lib/audit";
+import { sendNotificationToRestaurantStaff } from "@/lib/notifications";
 
 export async function POST(
   req: NextRequest,
@@ -78,6 +80,35 @@ export async function POST(
       });
     }
   }
+
+  // Cancel any pending/awaiting-verification payments
+  await db.payment.updateMany({
+    where: { orderId, status: { in: ["PENDING", "AWAITING_VERIFICATION"] } },
+    data: { status: "CANCELLED" },
+  });
+
+  // Notify kitchen staff about the cancellation
+  sendNotificationToRestaurantStaff(order.restaurantId, {
+    title: "Order Cancelled",
+    body: `Order #${order.orderNo} cancelled by customer`,
+    data: {
+      type: "ORDER_CANCELLED",
+      orderId,
+      orderNo: order.orderNo,
+      restaurantId: order.restaurantId,
+    },
+  }).catch(() => { /* non-fatal */ });
+
+  // Audit log
+  logAudit({
+    action: "ORDER_CANCELLED",
+    entity: "Order",
+    entityId: orderId,
+    detail: `Order ${order.orderNo} cancelled by customer`,
+    userId,
+    restaurantId: order.restaurantId,
+    ipAddress: getClientIp(req.headers),
+  });
 
   return NextResponse.json({ success: true, orderId, status: "CANCELLED" });
 }

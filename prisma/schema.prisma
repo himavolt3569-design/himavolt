@@ -554,6 +554,7 @@ enum PaymentStatus {
   AWAITING_VERIFICATION // bank proof uploaded, awaiting biller review
   COMPLETED
   FAILED
+  CANCELLED // order cancelled by customer
   REFUNDED
   EXPIRED // payment timed out
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { logAudit } from "@/lib/audit";
+import { touchOrderUpdatedAt } from "@/lib/order-sync";
 
 const GATEWAY_TIMEOUT_MINUTES = 30;
 
@@ -48,6 +49,7 @@ export async function GET(req: NextRequest) {
       where: { id: payment.id },
       data: { status: "EXPIRED" },
     });
+    await touchOrderUpdatedAt(payment.orderId);
     expiredCount++;
 
     // Cancel the associated order if it's still PENDING

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { verifyKhaltiPayment } from "@/lib/payments/khalti";
 import { decryptIfPresent } from "@/lib/encryption";
+import { touchOrderUpdatedAt } from "@/lib/order-sync";
+import { sendNotificationToRestaurantStaff } from "@/lib/notifications";
 
 async function logWebhook(
   event: string,
@@ -52,7 +54,7 @@ export async function GET(req: NextRequest) {
     // Get restaurant's Khalti secret key
     const order = await db.order.findUnique({
       where: { id: orderId },
-      select: { restaurantId: true },
+      select: { restaurantId: true, orderNo: true },
     });
     const paymentConfig = order
       ? await db.paymentConfig.findUnique({
@@ -73,7 +75,18 @@ export async function GET(req: NextRequest) {
           paidAt: new Date(),
         },
       });
+      await touchOrderUpdatedAt(orderId);
       await logWebhook("payment.success", orderId, rawPayload, 302, pidx);
+
+      // Notify kitchen that payment is confirmed
+      if (order) {
+        sendNotificationToRestaurantStaff(order.restaurantId, {
+          title: "Payment Confirmed",
+          body: `Order #${order.orderNo} — Khalti payment verified`,
+          data: { type: "PAYMENT_CONFIRMED", orderId, restaurantId: order.restaurantId },
+        }).catch(() => { /* non-fatal */ });
+      }
+
       return NextResponse.redirect(
         `${APP_URL}/track/${orderId}?payment=success`,
       );
@@ -86,6 +99,7 @@ export async function GET(req: NextRequest) {
       where: { orderId, status: "PENDING" },
       data: { status: "FAILED" },
     });
+    await touchOrderUpdatedAt(orderId);
   }
 
   await logWebhook("payment.failed", orderId, rawPayload, 302);

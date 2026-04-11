@@ -150,6 +150,18 @@ export async function notifyCustomerOrderUpdate(
       title: "Order Cancelled",
       body: `Your order #${orderNo} has been cancelled`,
     },
+    PAYMENT_VERIFIED: {
+      title: "Payment Verified!",
+      body: `Your payment for order #${orderNo} has been verified by ${restaurantName}`,
+    },
+    PAYMENT_REJECTED: {
+      title: "Payment Rejected",
+      body: `Your payment for order #${orderNo} was rejected. Please contact ${restaurantName}`,
+    },
+    PAYMENT_CONFIRMED: {
+      title: "Payment Confirmed!",
+      body: `Payment received for order #${orderNo} at ${restaurantName}`,
+    },
   };
 
   const msg = statusMessages[status];

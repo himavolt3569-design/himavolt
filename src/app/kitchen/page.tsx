@@ -614,7 +614,7 @@ function OrdersTab({ restaurantId, currency }: { restaurantId: string; currency:
                   className={`rounded-full px-1.5 py-0.5 font-bold ${
                     order.payment.status === "COMPLETED"
                       ? "bg-green-50 text-green-600"
-                      : order.payment.status === "FAILED" || order.payment.status === "EXPIRED"
+                      : order.payment.status === "FAILED" || order.payment.status === "EXPIRED" || order.payment.status === "CANCELLED"
                       ? "bg-red-50 text-red-600"
                       : order.payment.status === "AWAITING_VERIFICATION"
                       ? "bg-blue-50 text-blue-600"
@@ -624,6 +624,7 @@ function OrdersTab({ restaurantId, currency }: { restaurantId: string; currency:
                   {order.payment.status === "COMPLETED" ? "Paid" :
                    order.payment.status === "FAILED" ? "Failed" :
                    order.payment.status === "EXPIRED" ? "Expired" :
+                   order.payment.status === "CANCELLED" ? "Cancelled" :
                    order.payment.status === "AWAITING_VERIFICATION" ? "Verifying" : "Pending"}
                 </span>
               </div>
@@ -642,6 +643,7 @@ function OrdersTab({ restaurantId, currency }: { restaurantId: string; currency:
                 order.payment?.status === "AWAITING_VERIFICATION" ? "Verification Pending" :
                 order.payment?.status === "FAILED" ? "Payment Failed" :
                 order.payment?.status === "EXPIRED" ? "Payment Expired" :
+                order.payment?.status === "CANCELLED" ? "Payment Cancelled" :
                 "Payment Pending";
 
               return isUnpaid ? (
@@ -649,7 +651,7 @@ function OrdersTab({ restaurantId, currency }: { restaurantId: string; currency:
                   <div className={`rounded-xl p-3 ${
                     order.payment?.status === "AWAITING_VERIFICATION"
                       ? "bg-blue-50 border border-blue-200"
-                      : order.payment?.status === "FAILED" || order.payment?.status === "EXPIRED"
+                      : order.payment?.status === "FAILED" || order.payment?.status === "EXPIRED" || order.payment?.status === "CANCELLED"
                       ? "bg-red-50 border border-red-200"
                       : "bg-amber-50 border border-amber-200"
                   }`}>
@@ -657,27 +659,27 @@ function OrdersTab({ restaurantId, currency }: { restaurantId: string; currency:
                       <span className="relative flex h-2 w-2">
                         <span className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-75 ${
                           order.payment?.status === "AWAITING_VERIFICATION" ? "bg-blue-400" :
-                          order.payment?.status === "FAILED" || order.payment?.status === "EXPIRED" ? "bg-red-400" : "bg-amber-400"
+                          order.payment?.status === "FAILED" || order.payment?.status === "EXPIRED" || order.payment?.status === "CANCELLED" ? "bg-red-400" : "bg-amber-400"
                         }`} />
                         <span className={`relative inline-flex h-2 w-2 rounded-full ${
                           order.payment?.status === "AWAITING_VERIFICATION" ? "bg-blue-500" :
-                          order.payment?.status === "FAILED" || order.payment?.status === "EXPIRED" ? "bg-red-500" : "bg-amber-500"
+                          order.payment?.status === "FAILED" || order.payment?.status === "EXPIRED" || order.payment?.status === "CANCELLED" ? "bg-red-500" : "bg-amber-500"
                         }`} />
                       </span>
                       <span className={`text-[11px] font-bold ${
                         order.payment?.status === "AWAITING_VERIFICATION" ? "text-blue-700" :
-                        order.payment?.status === "FAILED" || order.payment?.status === "EXPIRED" ? "text-red-700" : "text-amber-700"
+                        order.payment?.status === "FAILED" || order.payment?.status === "EXPIRED" || order.payment?.status === "CANCELLED" ? "text-red-700" : "text-amber-700"
                       }`}>
                         {statusLabel} — {methodLabel}
                       </span>
                     </div>
                     <p className={`text-[10px] ${
                       order.payment?.status === "AWAITING_VERIFICATION" ? "text-blue-600" :
-                      order.payment?.status === "FAILED" || order.payment?.status === "EXPIRED" ? "text-red-600" : "text-amber-600"
+                      order.payment?.status === "FAILED" || order.payment?.status === "EXPIRED" || order.payment?.status === "CANCELLED" ? "text-red-600" : "text-amber-600"
                     }`}>
                       {order.payment?.status === "AWAITING_VERIFICATION"
                         ? "Customer uploaded proof. Biller must verify before kitchen can accept."
-                        : order.payment?.status === "FAILED" || order.payment?.status === "EXPIRED"
+                        : order.payment?.status === "FAILED" || order.payment?.status === "EXPIRED" || order.payment?.status === "CANCELLED"
                         ? "Payment was not successful. Order cannot be accepted."
                         : "Payment not yet confirmed. Biller must mark as paid or customer must complete payment."}
                     </p>
