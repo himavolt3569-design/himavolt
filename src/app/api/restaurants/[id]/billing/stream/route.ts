@@ -4,10 +4,10 @@ import { getStaffSession } from "@/lib/staff-auth";
 import { getOrCreateUser } from "@/lib/auth";
 
 /**
- * GET /api/restaurants/[id]/orders/stream
- * SSE stream for real-time kitchen order updates.
- * Authenticated via staff JWT or Supabase session (owner).
- * Polls every 3 seconds and pushes new/changed orders.
+ * GET /api/restaurants/[id]/billing/stream
+ * SSE stream for the Billing tab — includes ALL pending orders regardless of payment status.
+ * Unlike the kitchen stream, this includes unverified/unpaid pending orders so billers
+ * can see and process them before they reach the kitchen.
  */
 export async function GET(
   req: NextRequest,
@@ -57,21 +57,19 @@ export async function GET(
         if (closed) return;
 
         try {
-          // Fetch active orders + recently completed (last 30 min)
-          // KITCHEN ONLY: PENDING orders only appear after payment is COMPLETED (biller verified)
           const cutoff = new Date(Date.now() - 30 * 60 * 1000);
 
+          // Billing stream: ALL pending orders (any payment status) + active + recent completed
           const orders = await db.order.findMany({
             where: {
               restaurantId: id,
               OR: [
-                // PENDING: only show if payment is verified (COMPLETED) or no payment record (legacy)
-                { status: "PENDING", payment: { status: "COMPLETED" } },
-                { status: "PENDING", payment: { is: null } },
-                // Active orders (already went through billing)
+                // ALL pending orders — unpaid ones go to biller first
+                { status: "PENDING" },
+                // Active kitchen orders (already accepted through billing)
                 { status: { in: ["ACCEPTED", "PREPARING", "READY"] } },
                 { isHeld: true },
-                // Recently completed
+                // Recent completed
                 {
                   status: { in: ["DELIVERED", "CANCELLED", "REJECTED"] },
                   updatedAt: { gte: cutoff },
@@ -94,20 +92,20 @@ export async function GET(
               deliveryFee: true,
               isHeld: true,
               heldAt: true,
-              acceptedAt: true,
-              preparingAt: true,
-              readyAt: true,
-              deliveredAt: true,
               createdAt: true,
               updatedAt: true,
-              items: true,
               user: { select: { name: true, email: true } },
               payment: {
-                select: { method: true, status: true },
+                select: {
+                  method: true,
+                  status: true,
+                  proofUrl: true,
+                  proofUploadedAt: true,
+                },
               },
             },
             orderBy: { createdAt: "desc" },
-            take: 50,
+            take: 100,
           });
 
           const latestUpdate = orders.reduce(
@@ -116,10 +114,14 @@ export async function GET(
           );
 
           if (force || latestUpdate > lastUpdatedAt) {
-            // Find new pending orders (for audio alert)
             const newPending = orders.filter(
+              (o) => o.status === "PENDING" && o.createdAt > lastUpdatedAt,
+            );
+            const newProofs = orders.filter(
               (o) =>
-                o.status === "PENDING" && o.createdAt > lastUpdatedAt,
+                o.payment?.status === "AWAITING_VERIFICATION" &&
+                o.payment.proofUploadedAt &&
+                new Date(o.payment.proofUploadedAt) > lastUpdatedAt,
             );
 
             lastUpdatedAt = latestUpdate;
@@ -128,6 +130,7 @@ export async function GET(
                 type: "orders",
                 orders,
                 newPendingCount: force ? 0 : newPending.length,
+                newProofCount: force ? 0 : newProofs.length,
               }),
             );
           } else {
@@ -139,7 +142,7 @@ export async function GET(
             );
           }
         } catch (err) {
-          console.error("[KitchenStream] Poll error:", err);
+          console.error("[BillingStream] Poll error:", err);
         }
 
         if (!closed) {

@@ -103,6 +103,26 @@ interface BillingTabProps {
   currency?: string;
 }
 
+interface StaffReportEntry {
+  staffId: string;
+  staffName: string;
+  staffEmail: string;
+  role: string;
+  staffType: string;
+  shift: { startTime: string; endTime: string; label: string | null } | null;
+  orderCount: number;
+  totalCollected: number;
+  byMethod: Record<string, { count: number; amount: number }>;
+  orders: { orderNo: string; amount: number; method: string; paidAt: string | null }[];
+}
+
+interface StaffReportData {
+  date: string;
+  grandTotal: number;
+  grandOrderCount: number;
+  staff: StaffReportEntry[];
+}
+
 /* Helpers */
 
 function timeAgo(dateStr: string) {
@@ -245,14 +265,22 @@ export default function BillingTab({
   ]);
   const [actionLoading, setActionLoading] = useState(false);
   const [clearingOrderId, setClearingOrderId] = useState<string | null>(null);
+  const [proofPreviewUrl, setProofPreviewUrl] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"orders" | "staff-report">("orders");
+  const [staffReport, setStaffReport] = useState<StaffReportData | null>(null);
+  const [staffReportLoading, setStaffReportLoading] = useState(false);
+  const [staffReportDate, setStaffReportDate] = useState(
+    new Date().toISOString().split("T")[0],
+  );
   const knownOrderIds = useRef<Set<string>>(new Set());
   const knownPaymentStatuses = useRef<Map<string, string>>(new Map());
   const isFirstSSE = useRef(true);
   const { data: streamData } = useSSE<{
     type: string;
-    orders?: { id: string; payment?: { method: string; status: string } | null }[];
+    orders?: { id: string; payment?: { method: string; status: string; proofUrl?: string | null } | null }[];
+    newProofCount?: number;
   }>(
-    restaurantId ? `/api/restaurants/${restaurantId}/orders/stream` : null,
+    restaurantId ? `/api/restaurants/${restaurantId}/billing/stream` : null,
   );
 
   // Tax & service charge configs
@@ -290,6 +318,19 @@ export default function BillingTab({
       /* ignore */
     }
   }, [restaurantId]);
+
+  const loadStaffReport = useCallback(async (date: string) => {
+    setStaffReportLoading(true);
+    try {
+      const data = await staffFetch(
+        `/api/restaurants/${restaurantId}/billing/staff-report?date=${date}`,
+      );
+      setStaffReport(data);
+    } catch {
+      showToast("Failed to load staff report", "error");
+    }
+    setStaffReportLoading(false);
+  }, [restaurantId, showToast]);
 
   // Reload orders when filter or restaurantId changes (loadOrders deps cover both)
   useEffect(() => {
@@ -345,20 +386,37 @@ export default function BillingTab({
         playBillingAlert();
       }
 
-      // Detect PENDING → COMPLETED payment transitions
+      // Detect payment status transitions
       const prev = knownPaymentStatuses.current.get(o.id);
       const curr = o.payment?.status ?? null;
+
+      // PENDING → AWAITING_VERIFICATION: customer uploaded proof — alert biller
+      if (prev === "PENDING" && curr === "AWAITING_VERIFICATION") {
+        needsRefresh = true;
+        playBillingAlert();
+        setOrders((currentOrders) => {
+          const fullOrder = currentOrders.find((ord) => ord.id === o.id);
+          showToast(
+            fullOrder
+              ? `Order #${fullOrder.orderNo} — Customer uploaded payment proof. Verify to send to kitchen.`
+              : "Customer uploaded payment proof — verification required",
+            "info",
+          );
+          return currentOrders;
+        });
+      }
+
+      // Any status → COMPLETED: payment confirmed
       if (prev !== undefined && prev !== "COMPLETED" && curr === "COMPLETED") {
         needsRefresh = true;
         playBillingAlert();
-        // Look up full order details from local state for rich toast
         setOrders((currentOrders) => {
           const fullOrder = currentOrders.find((ord) => ord.id === o.id);
           showToast(
             fullOrder ? buildPaymentToast(fullOrder) : "Payment confirmed for a recent order",
             "success",
           );
-          return currentOrders; // no mutation
+          return currentOrders;
         });
       }
 
@@ -536,6 +594,55 @@ export default function BillingTab({
 
   return (
     <div className="space-y-5">
+
+      {/* Proof Image Preview Modal */}
+      <AnimatePresence>
+        {proofPreviewUrl && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+            onClick={() => setProofPreviewUrl(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="relative max-w-2xl w-full bg-white rounded-2xl overflow-hidden shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between px-4 py-3 border-b">
+                <span className="text-sm font-bold text-gray-800">Payment Proof</span>
+                <div className="flex items-center gap-2">
+                  <a
+                    href={proofPreviewUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+                  >
+                    <ExternalLink className="h-3 w-3" />
+                    Open original
+                  </a>
+                  <button
+                    onClick={() => setProofPreviewUrl(null)}
+                    className="rounded-lg p-1.5 hover:bg-gray-100 transition-colors"
+                  >
+                    <X className="h-4 w-4 text-gray-500" />
+                  </button>
+                </div>
+              </div>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={proofPreviewUrl}
+                alt="Payment proof"
+                className="w-full max-h-[70vh] object-contain bg-gray-50"
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {summary && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <SummaryCard
@@ -720,7 +827,165 @@ export default function BillingTab({
         </div>
       )}
 
-      {/* Filter + Search */}
+      {/* Main tabs: Orders vs Staff Report */}
+      <div className="flex gap-2 border-b border-gray-100 pb-0">
+        <button
+          onClick={() => setActiveTab("orders")}
+          className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-all -mb-px ${
+            activeTab === "orders"
+              ? "border-[#3e1e0c] text-[#3e1e0c]"
+              : "border-transparent text-gray-500 hover:text-gray-700"
+          }`}
+        >
+          <div className="flex items-center gap-1.5">
+            <Receipt className="h-3.5 w-3.5" />
+            Orders
+          </div>
+        </button>
+        <button
+          onClick={() => {
+            setActiveTab("staff-report");
+            loadStaffReport(staffReportDate);
+          }}
+          className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-all -mb-px ${
+            activeTab === "staff-report"
+              ? "border-[#3e1e0c] text-[#3e1e0c]"
+              : "border-transparent text-gray-500 hover:text-gray-700"
+          }`}
+        >
+          <div className="flex items-center gap-1.5">
+            <UserIcon className="h-3.5 w-3.5" />
+            Staff Report
+          </div>
+        </button>
+      </div>
+
+      {/* Staff Report Panel */}
+      {activeTab === "staff-report" && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <input
+              type="date"
+              value={staffReportDate}
+              onChange={(e) => {
+                setStaffReportDate(e.target.value);
+                loadStaffReport(e.target.value);
+              }}
+              className="rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 outline-none focus:border-[#3e1e0c] focus:ring-1 focus:ring-[#3e1e0c]/20"
+            />
+            <button
+              onClick={() => loadStaffReport(staffReportDate)}
+              className="flex items-center gap-1.5 rounded-xl bg-[#3e1e0c] px-4 py-2 text-xs font-bold text-white hover:bg-[#5a2d12] transition-colors"
+            >
+              <TrendingUp className="h-3.5 w-3.5" />
+              Refresh
+            </button>
+          </div>
+
+          {staffReportLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+            </div>
+          ) : staffReport ? (
+            <div className="space-y-4">
+              {/* Grand total */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-2xl bg-emerald-50 border border-emerald-100 p-4">
+                  <p className="text-xs text-emerald-600 font-semibold">Total Collected</p>
+                  <p className="text-2xl font-black text-emerald-700 mt-1">
+                    {formatPrice(staffReport.grandTotal, cur)}
+                  </p>
+                </div>
+                <div className="rounded-2xl bg-blue-50 border border-blue-100 p-4">
+                  <p className="text-xs text-blue-600 font-semibold">Orders Processed</p>
+                  <p className="text-2xl font-black text-blue-700 mt-1">
+                    {staffReport.grandOrderCount}
+                  </p>
+                </div>
+              </div>
+
+              {/* Per-staff breakdown */}
+              {staffReport.staff.map((s) => (
+                <div key={s.staffId} className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm space-y-3">
+                  {/* Staff header */}
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <div className="h-8 w-8 rounded-full bg-[#3e1e0c] flex items-center justify-center text-white text-xs font-bold">
+                          {s.staffName.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-gray-800">{s.staffName}</p>
+                          <p className="text-[10px] text-gray-500">{s.staffEmail}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[9px] font-bold text-gray-600 uppercase tracking-wide">
+                          {s.role}
+                        </span>
+                        <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[9px] font-bold text-amber-700 uppercase tracking-wide">
+                          {s.staffType.replace("_", " ")}
+                        </span>
+                        {s.shift && (
+                          <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[9px] font-bold text-blue-700">
+                            Shift: {s.shift.startTime}–{s.shift.endTime}
+                            {s.shift.label ? ` (${s.shift.label})` : ""}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-lg font-black text-emerald-700">
+                        {formatPrice(s.totalCollected, cur)}
+                      </p>
+                      <p className="text-[10px] text-gray-500">{s.orderCount} orders</p>
+                    </div>
+                  </div>
+
+                  {/* Method breakdown */}
+                  {s.orderCount > 0 && (
+                    <div className="grid grid-cols-3 gap-2">
+                      {Object.entries(s.byMethod)
+                        .filter(([, v]) => v.count > 0)
+                        .map(([method, v]) => (
+                          <div key={method} className="rounded-xl bg-gray-50 px-3 py-2 text-center">
+                            <p className="text-[9px] font-bold text-gray-500 uppercase tracking-wide">
+                              {paymentMethodLabel(method)}
+                            </p>
+                            <p className="text-sm font-black text-gray-800 mt-0.5">
+                              {formatPrice(v.amount, cur)}
+                            </p>
+                            <p className="text-[9px] text-gray-400">{v.count} orders</p>
+                          </div>
+                        ))}
+                    </div>
+                  )}
+
+                  {s.orderCount === 0 && (
+                    <p className="text-xs text-gray-400 text-center py-2">
+                      No payments collected today
+                    </p>
+                  )}
+                </div>
+              ))}
+
+              {staffReport.staff.length === 0 && (
+                <div className="text-center py-8 text-gray-400">
+                  <UserIcon className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                  <p className="text-sm font-medium">No staff data for this date</p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-400">
+              <p className="text-sm">Select a date to view the staff report</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {activeTab === "orders" && (
+      <>{/* Filter + Search */}
       <div className="flex flex-col sm:flex-row gap-2">
         <div className="flex gap-1.5 flex-wrap">
           {[
@@ -1014,15 +1279,13 @@ export default function BillingTab({
                   order.payment.status === "AWAITING_VERIFICATION" && (
                     <div className="flex items-center gap-1">
                       {order.payment.proofUrl && (
-                        <a
-                          href={order.payment.proofUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-1 rounded-lg bg-blue-50 border border-blue-200 px-2.5 py-1.5 text-[10px] font-bold text-blue-700 hover:bg-blue-100 transition-all"
+                        <button
+                          onClick={() => setProofPreviewUrl(order.payment!.proofUrl!)}
+                          className="flex items-center gap-1 rounded-lg bg-blue-500 px-2.5 py-1.5 text-[10px] font-bold text-white hover:bg-blue-600 transition-all shadow-sm"
                         >
                           <Eye className="h-3 w-3" />
                           View Proof
-                        </a>
+                        </button>
                       )}
                       <button
                         onClick={() => handleVerifyBank(order, "VERIFY")}
@@ -1105,6 +1368,8 @@ export default function BillingTab({
           </motion.div>
         ))}
       </div>
+      </>
+      )}
 
       <AnimatePresence>
         {showCollect && selectedOrder && (

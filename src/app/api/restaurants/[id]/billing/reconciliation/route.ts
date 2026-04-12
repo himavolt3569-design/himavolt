@@ -1,5 +1,4 @@
- 
- import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireStaffForRestaurant } from "@/lib/staff-auth";
 import { getAuthUser } from "@/lib/auth";
@@ -65,25 +64,41 @@ export async function GET(
 
   // Method breakdown
   const methods = ["CASH", "ESEWA", "KHALTI", "BANK", "COUNTER", "DIRECT"];
-  const byMethod: Record<string, {
-    total: number;
-    paid: number;
-    pending: number;
-    failed: number;
-    expired: number;
-    awaitingVerification: number;
-    revenue: number;
-  }> = {};
+  const byMethod: Record<
+    string,
+    {
+      total: number;
+      paid: number;
+      pending: number;
+      failed: number;
+      expired: number;
+      awaitingVerification: number;
+      revenue: number;
+    }
+  > = {};
 
   for (const m of methods) {
-    byMethod[m] = { total: 0, paid: 0, pending: 0, failed: 0, expired: 0, awaitingVerification: 0, revenue: 0 };
+    byMethod[m] = {
+      total: 0,
+      paid: 0,
+      pending: 0,
+      failed: 0,
+      expired: 0,
+      awaitingVerification: 0,
+      revenue: 0,
+    };
   }
 
   let totalOrders = 0;
   let paidOrders = 0;
   let unpaidOrders = 0;
   let totalRevenue = 0;
-  let discrepancies: { orderNo: string; status: string; paymentMethod: string; paymentStatus: string }[] = [];
+  let discrepancies: {
+    orderNo: string;
+    status: string;
+    paymentMethod: string;
+    paymentStatus: string;
+  }[] = [];
 
   for (const order of orders) {
     totalOrders++;
@@ -94,7 +109,15 @@ export async function GET(
       continue;
     }
 
-    const bucket = byMethod[p.method] || { total: 0, paid: 0, pending: 0, failed: 0, expired: 0, awaitingVerification: 0, revenue: 0 };
+    const bucket = byMethod[p.method] || {
+      total: 0,
+      paid: 0,
+      pending: 0,
+      failed: 0,
+      expired: 0,
+      awaitingVerification: 0,
+      revenue: 0,
+    };
     bucket.total++;
 
     if (p.status === "COMPLETED") {
