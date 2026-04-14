@@ -6,6 +6,7 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { QrCode, UtensilsCrossed, Bell, CreditCard } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -42,193 +43,211 @@ const steps = [
   },
 ];
 
-const cardVariants = {
-  hidden: { opacity: 0, y: 40 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.6,
-      delay: i * 0.12,
-      ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
-    },
-  }),
-};
-
 export default function ScrollHowItWorks() {
   const sectionRef = useRef<HTMLDivElement>(null);
-  const lineRef = useRef<HTMLDivElement>(null);
+  const panelsRef = useRef<HTMLDivElement>(null);
+  const dotsRef = useRef<HTMLDivElement[]>([]);
 
-  /* GSAP: animate the connecting line on scroll */
+  /* Desktop: GSAP pinned horizontal scroll */
   useGSAP(
     () => {
-      if (!lineRef.current || !sectionRef.current) return;
+      if (window.matchMedia("(max-width: 1023px)").matches) return;
+      if (!sectionRef.current || !panelsRef.current) return;
 
-      gsap.fromTo(
-        lineRef.current,
-        { scaleX: 0 },
-        {
-          scaleX: 1,
-          ease: "none",
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: "top 70%",
-            end: "top 30%",
-            scrub: 0.5,
+      const panels = gsap.utils.toArray<HTMLElement>(
+        ".step-panel",
+        panelsRef.current,
+      );
+      if (panels.length === 0) return;
+
+      const totalScroll =
+        panelsRef.current.scrollWidth - panelsRef.current.offsetWidth;
+
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: "top top",
+          end: `+=${(panels.length - 1) * window.innerHeight}`,
+          pin: true,
+          scrub: 1,
+          anticipatePin: 1,
+          snap: {
+            snapTo: 1 / (panels.length - 1),
+            duration: { min: 0.3, max: 0.6 },
+            ease: "power1.inOut",
           },
         },
-      );
+      });
 
-      /* Stagger the step cards */
-      const cards = gsap.utils.toArray<HTMLElement>(".hiw-card");
-      cards.forEach((card, i) => {
-        gsap.fromTo(
-          card,
-          { opacity: 0, y: 40 },
-          {
-            opacity: 1,
-            y: 0,
-            duration: 0.6,
-            delay: i * 0.1,
-            ease: "power3.out",
-            scrollTrigger: {
-              trigger: card,
-              start: "top 85%",
-              toggleActions: "play none none none",
-            },
-          },
-        );
+      tl.to(panelsRef.current, {
+        x: -totalScroll,
+        ease: "none",
+        duration: panels.length - 1,
+      });
+
+      /* Animate dots in sync */
+      panels.forEach((_, i) => {
+        if (i > 0 && dotsRef.current[i]) {
+          tl.to(
+            dotsRef.current[i],
+            { backgroundColor: "#eaa94d", duration: 0.1 },
+            i,
+          );
+          tl.to(dotsRef.current[i - 1], { opacity: 0.3, duration: 0.1 }, i);
+        }
       });
     },
     { scope: sectionRef },
   );
 
   return (
-    <section ref={sectionRef} className="relative bg-[#fdf9ef] overflow-hidden">
-      {/* Subtle top/bottom gradients for smooth blend */}
-      <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-white to-transparent pointer-events-none" />
-      <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white to-transparent pointer-events-none" />
+    <section ref={sectionRef} className="relative bg-[#fdf9ef]">
+      {/* ── Desktop: pinned horizontal scroll ── */}
+      <div className="hidden lg:flex min-h-screen items-center">
+        <div className="mx-auto max-w-7xl w-full px-4 md:px-8 lg:px-12">
+          <div className="grid grid-cols-[340px_1fr] gap-16 items-center">
+            {/* Left: persistent panel */}
+            <div>
+              <Badge variant="saffron">How it works</Badge>
+              <h2 className="mt-4 text-4xl font-extrabold tracking-tight text-[#3e1e0c] leading-[1.1]">
+                From scan to savour
+                <br />
+                <span className="text-transparent bg-clip-text bg-linear-to-r from-[#eaa94d] to-[#d67620]">
+                  in four simple steps.
+                </span>
+              </h2>
+              {/* Step dots */}
+              <div className="flex items-center gap-3 mt-10">
+                {steps.map((_, i) => (
+                  <div
+                    key={i}
+                    ref={(el) => {
+                      if (el) dotsRef.current[i] = el;
+                    }}
+                    className="h-2.5 w-2.5 rounded-full transition-colors duration-300"
+                    style={{
+                      backgroundColor:
+                        i === 0 ? "#eaa94d" : "rgba(62,30,12,0.1)",
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
 
-      <div className="mx-auto max-w-6xl px-4 md:px-8 lg:px-12 py-20 md:py-28">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="text-center mb-16 md:mb-20"
-        >
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#eaa94d]/[0.1] px-3.5 py-1 text-[11px] font-bold text-[#b25c1c] uppercase tracking-wider border border-[#eaa94d]/15 mb-4">
-            How it works
-          </span>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight text-[#3e1e0c] leading-[1.1]">
-            From scan to savour
-            <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#eaa94d] to-[#d67620]">
-              in four simple steps.
-            </span>
-          </h2>
-        </motion.div>
-
-        {/* ── Desktop: horizontal timeline ── */}
-        <div className="hidden md:block relative">
-          <div className="absolute top-[52px] left-[12.5%] right-[12.5%] h-px bg-[#eaa94d]/15">
-            <div
-              ref={lineRef}
-              className="h-full bg-gradient-to-r from-[#eaa94d] to-[#b25c1c] origin-left"
-              style={{ transform: "scaleX(0)" }}
-            />
-          </div>
-
-          <div className="grid grid-cols-4 gap-6 lg:gap-8">
-            {steps.map((step, i) => (
-              <motion.div
-                key={step.num}
-                custom={i}
-                variants={cardVariants}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, margin: "-40px" }}
-                className="hiw-card relative flex flex-col items-center text-center group"
-              >
-                <div className="relative mb-5">
-                  <motion.div
-                    whileHover={{ scale: 1.1, rotate: -8 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 15 }}
-                    className="relative flex h-[104px] w-[104px] items-center justify-center"
+            {/* Right: scrolling panel strip */}
+            <div className="overflow-hidden">
+              <div ref={panelsRef} className="flex">
+                {steps.map((step) => (
+                  <div
+                    key={step.num}
+                    className="step-panel w-full shrink-0 px-3"
                   >
-                    <div
-                      className="absolute inset-0 rounded-full border-2 opacity-20 transition-opacity duration-300 group-hover:opacity-40"
-                      style={{ borderColor: step.color }}
-                    />
-                    <div
-                      className="flex h-16 w-16 items-center justify-center rounded-full shadow-lg transition-transform duration-300 group-hover:scale-105"
-                      style={{ backgroundColor: step.color }}
-                    >
-                      <step.Icon className="h-6 w-6 text-white" strokeWidth={1.8} />
+                    <div className="rounded-2xl border border-[#f4d69a]/25 bg-white p-10 relative overflow-hidden min-h-[320px]">
+                      <span className="absolute top-6 right-8 text-[80px] font-extrabold leading-none text-[#3e1e0c]/[0.03] select-none pointer-events-none">
+                        {step.num}
+                      </span>
+                      <div
+                        className="flex h-14 w-14 items-center justify-center rounded-xl mb-6"
+                        style={{
+                          backgroundColor: `${step.color}15`,
+                          border: `1px solid ${step.color}25`,
+                        }}
+                      >
+                        <step.Icon
+                          className="h-6 w-6"
+                          style={{ color: step.color }}
+                          strokeWidth={1.8}
+                        />
+                      </div>
+                      <span
+                        className="text-[11px] font-bold uppercase tracking-widest"
+                        style={{ color: step.color }}
+                      >
+                        Step {step.num}
+                      </span>
+                      <h3 className="mt-2 text-2xl font-extrabold text-[#3e1e0c] tracking-tight">
+                        {step.title}
+                      </h3>
+                      <p className="mt-3 text-base text-[#8e491e]/55 leading-relaxed max-w-sm">
+                        {step.desc}
+                      </p>
                     </div>
-                  </motion.div>
-                  <span
-                    className="absolute -bottom-1 left-1/2 -translate-x-1/2 text-[10px] font-extrabold tracking-widest uppercase"
-                    style={{ color: step.color }}
-                  >
-                    {step.num}
-                  </span>
-                </div>
-
-                <h3 className="text-base font-bold text-[#3e1e0c] tracking-tight mb-2">
-                  {step.title}
-                </h3>
-                <p className="text-sm text-[#8e491e]/50 leading-relaxed max-w-[200px]">
-                  {step.desc}
-                </p>
-              </motion.div>
-            ))}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
+      </div>
 
-        {/* ── Mobile: vertical timeline ── */}
-        <div className="md:hidden relative">
-          <div className="absolute left-[27px] top-0 bottom-0 w-px bg-[#eaa94d]/15" />
+      {/* ── Mobile/Tablet: vertical timeline ── */}
+      <div className="lg:hidden">
+        <div className="mx-auto max-w-6xl px-4 md:px-8 py-20 md:py-28">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            className="text-center mb-14"
+          >
+            <Badge variant="saffron" className="mb-4">
+              How it works
+            </Badge>
+            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-[#111111] leading-[1.1]">
+              From scan to savour
+              <br />
+              <span className="text-transparent bg-clip-text bg-linear-to-r from-[#eaa94d] to-[#d67620]">
+                in four simple steps.
+              </span>
+            </h2>
+          </motion.div>
 
-          <div className="space-y-10">
-            {steps.map((step, i) => (
-              <motion.div
-                key={step.num}
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true, margin: "-40px" }}
-                transition={{
-                  duration: 0.5,
-                  delay: i * 0.08,
-                  ease: [0.16, 1, 0.3, 1],
-                }}
-                className="relative flex items-start gap-5 pl-1"
-              >
-                <div className="relative shrink-0">
-                  <div
-                    className="flex h-14 w-14 items-center justify-center rounded-full shadow-md z-10 relative"
-                    style={{ backgroundColor: step.color }}
-                  >
-                    <step.Icon className="h-5 w-5 text-white" strokeWidth={1.8} />
+          <div className="relative">
+            <div className="absolute left-[27px] top-0 bottom-0 w-px bg-[#eaa94d]/15" />
+
+            <div className="space-y-10">
+              {steps.map((step, i) => (
+                <motion.div
+                  key={step.num}
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true, margin: "-40px" }}
+                  transition={{
+                    duration: 0.5,
+                    delay: i * 0.08,
+                    ease: [0.16, 1, 0.3, 1],
+                  }}
+                  className="relative flex items-start gap-5 pl-1"
+                >
+                  <div className="relative shrink-0">
+                    <div
+                      className="flex h-14 w-14 items-center justify-center rounded-full shadow-md z-10 relative"
+                      style={{ backgroundColor: step.color }}
+                    >
+                      <step.Icon
+                        className="h-5 w-5 text-white"
+                        strokeWidth={1.8}
+                      />
+                    </div>
                   </div>
-                </div>
 
-                <div className="pt-1">
-                  <span
-                    className="text-[10px] font-extrabold tracking-widest uppercase"
-                    style={{ color: step.color }}
-                  >
-                    Step {step.num}
-                  </span>
-                  <h3 className="text-base font-bold text-[#3e1e0c] tracking-tight mt-0.5">
-                    {step.title}
-                  </h3>
-                  <p className="text-sm text-[#8e491e]/50 leading-relaxed mt-1">
-                    {step.desc}
-                  </p>
-                </div>
-              </motion.div>
-            ))}
+                  <div className="pt-1">
+                    <span
+                      className="text-[10px] font-extrabold tracking-widest uppercase"
+                      style={{ color: step.color }}
+                    >
+                      Step {step.num}
+                    </span>
+                    <h3 className="text-base font-bold text-[#111111] tracking-tight mt-0.5">
+                      {step.title}
+                    </h3>
+                    <p className="text-sm text-[#8e491e]/50 leading-relaxed mt-1">
+                      {step.desc}
+                    </p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

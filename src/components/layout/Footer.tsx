@@ -1,6 +1,6 @@
 "use client";
 
-import { Mountain, Phone, Mail, MapPin, ArrowUp, Send } from "lucide-react";
+import { Mountain, Phone, Mail, MapPin, ArrowUp } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useState, useEffect } from "react";
@@ -17,10 +17,9 @@ const FOOTER_DEFAULTS: FooterSettings = {
   email: "hello@himavolt.com",
   address: "Thamel, Kathmandu",
   description:
-    "Nepal's smartest food platform. Scan QR, browse the menu, order instantly — or get it delivered to your door.",
+    "Nepal's smartest food platform. Scan QR, browse the menu, order instantly, or get it delivered to your door.",
 };
 
-/* ── Animated footer link with slide-in underline ── */
 function FooterLink({
   href,
   children,
@@ -47,11 +46,11 @@ function SocialIcon({ label, path }: { label: string; path: string }) {
       href="#"
       whileHover={{ scale: 1.15, y: -2 }}
       whileTap={{ scale: 0.9 }}
-      className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/4 text-white/30 hover:text-[#eaa94d] hover:bg-[#eaa94d]/10 border border-white/4 hover:border-[#eaa94d]/20 transition-colors duration-300"
+      className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/4 text-white/30 hover:text-[#eaa94d] hover:bg-[#eaa94d]/10 border border-white/4 hover:border-[#eaa94d]/20 transition-colors duration-300"
       aria-label={label}
     >
       <svg
-        className="h-4 w-4"
+        className="h-3.5 w-3.5"
         fill="currentColor"
         viewBox="0 0 24 24"
         aria-hidden="true"
@@ -82,7 +81,6 @@ const socials = [
 ];
 
 export default function Footer() {
-  const [email, setEmail] = useState("");
   const [settings, setSettings] = useState<FooterSettings>(FOOTER_DEFAULTS);
 
   useEffect(() => {
@@ -97,66 +95,15 @@ export default function Footer() {
   };
 
   return (
-    <footer className="relative bg-[#1a0d05] overflow-hidden">
-      {/* ── Decorative background elements ── */}
-      <div className="absolute top-0 right-0 w-125 h-125 rounded-full bg-[#eaa94d]/2 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-100 h-100 rounded-full bg-brand-600/2 blur-[100px] pointer-events-none" />
-
-      {/* ── Top accent line ── */}
+    <footer className="relative bg-[#111111]">
+      {/* Top accent line */}
       <div className="h-0.5 bg-linear-to-r from-transparent via-[#eaa94d]/30 to-transparent" />
 
-      {/* ── Newsletter CTA Banner ── */}
-      <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-12 pt-16 md:pt-20">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{
-            duration: 0.7,
-            ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
-          }}
-          className="relative rounded-2xl bg-linear-to-br from-[#eaa94d]/10 via-brand-600/6 to-transparent border border-[#eaa94d]/10 p-8 md:p-10 lg:p-12 overflow-hidden"
-        >
-          <div className="absolute top-0 right-0 w-60 h-60 bg-[#eaa94d]/6 rounded-full blur-[80px] pointer-events-none" />
-
-          <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-            <div className="max-w-md">
-              <h3 className="text-xl md:text-2xl font-extrabold text-white tracking-tight">
-                Get the best deals first.
-              </h3>
-              <p className="mt-2 text-sm text-white/35 leading-relaxed">
-                Weekly curated picks, exclusive restaurant offers, and early
-                access to new features. No spam.
-              </p>
-            </div>
-            <div className="flex w-full lg:w-auto gap-2">
-              <div className="relative flex-1 lg:w-72">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/20 pointer-events-none" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your@email.com"
-                  className="w-full rounded-xl bg-white/6 border border-white/8 pl-10 pr-4 py-3 text-sm text-white placeholder-white/25 focus:outline-none focus:border-[#eaa94d]/30 focus:bg-white/8 transition-all duration-300"
-                />
-              </div>
-              <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                className="flex items-center gap-2 rounded-xl bg-[#eaa94d] px-5 py-3 text-sm font-bold text-[#1a0d05] hover:bg-[#f0b85d] active:bg-[#d89a3d] transition-colors duration-200 shrink-0"
-              >
-                <Send className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Subscribe</span>
-              </motion.button>
-            </div>
-          </div>
-        </motion.div>
-      </div>
-
-      {/* ── Main footer grid ── */}
-      <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-12 pt-14 md:pt-16 pb-10">
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-12 gap-y-10 gap-x-6 lg:gap-x-8">
-          <div className="col-span-2 md:col-span-4">
+      {/* Main footer grid */}
+      <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-12 pt-16 md:pt-20 pb-10">
+        <div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr] gap-12 lg:gap-16">
+          {/* Left: Logo + description + contact */}
+          <div>
             <Link href="/" className="inline-flex items-center gap-2 group">
               <motion.div
                 whileHover={{ rotate: -12 }}
@@ -171,7 +118,7 @@ export default function Footer() {
                 Hima<span className="text-[#eaa94d]">Volt</span>
               </span>
             </Link>
-            <p className="mt-4 text-[13px] leading-relaxed text-white/30 max-w-70">
+            <p className="mt-4 text-[13px] leading-relaxed text-white/30 max-w-xs">
               {settings.description}
             </p>
 
@@ -203,65 +150,56 @@ export default function Footer() {
             </div>
           </div>
 
-          <div className="col-span-1 md:col-span-2">
-            <h4 className="text-[11px] font-bold text-[#eaa94d]/50 mb-5 uppercase tracking-[0.18em]">
-              Company
-            </h4>
-            <ul className="space-y-3">
-              <FooterLink href="#">About Us</FooterLink>
-              <FooterLink href="#">Careers</FooterLink>
-              <FooterLink href="/contact">Contact</FooterLink>
-              <FooterLink href="#">Blog</FooterLink>
-            </ul>
-          </div>
+          {/* Right: 3 link columns */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-8">
+            <div>
+              <h4 className="text-[11px] font-bold text-[#eaa94d]/50 mb-5 uppercase tracking-[0.18em]">
+                Company
+              </h4>
+              <ul className="space-y-3">
+                <FooterLink href="#">About Us</FooterLink>
+                <FooterLink href="#">Careers</FooterLink>
+                <FooterLink href="/contact">Contact</FooterLink>
+                <FooterLink href="#">Blog</FooterLink>
+              </ul>
+            </div>
 
-          <div className="col-span-1 md:col-span-2">
-            <h4 className="text-[11px] font-bold text-[#eaa94d]/50 mb-5 uppercase tracking-[0.18em]">
-              Product
-            </h4>
-            <ul className="space-y-3">
-              <FooterLink href="/menu">Browse Menu</FooterLink>
-              <FooterLink href="/scan">Scan QR</FooterLink>
-              <FooterLink href="/contact">Partner with Us</FooterLink>
-              <FooterLink href="/contact">For Restaurants</FooterLink>
-            </ul>
-          </div>
+            <div>
+              <h4 className="text-[11px] font-bold text-[#eaa94d]/50 mb-5 uppercase tracking-[0.18em]">
+                Product
+              </h4>
+              <ul className="space-y-3">
+                <FooterLink href="/menu">Browse Menu</FooterLink>
+                <FooterLink href="/scan">Scan QR</FooterLink>
+                <FooterLink href="/contact">Partner with Us</FooterLink>
+                <FooterLink href="/contact">For Restaurants</FooterLink>
+              </ul>
+            </div>
 
-          <div className="col-span-1 md:col-span-2">
-            <h4 className="text-[11px] font-bold text-[#eaa94d]/50 mb-5 uppercase tracking-[0.18em]">
-              Support
-            </h4>
-            <ul className="space-y-3">
-              <FooterLink href="/contact">Help Center</FooterLink>
-              <FooterLink href="/contact">Ride with Us</FooterLink>
-              <FooterLink href="/legal/terms">Terms</FooterLink>
-              <FooterLink href="/legal/privacy">Privacy</FooterLink>
-              <FooterLink href="/legal/refund">Refund Policy</FooterLink>
-            </ul>
-          </div>
-
-          {/* Social + Download */}
-          <div className="col-span-1 md:col-span-2">
-            <h4 className="text-[11px] font-bold text-[#eaa94d]/50 mb-5 uppercase tracking-[0.18em]">
-              Connect
-            </h4>
-            <div className="grid grid-cols-2 gap-2">
-              {socials.map((s) => (
-                <SocialIcon key={s.label} label={s.label} path={s.path} />
-              ))}
+            <div>
+              <h4 className="text-[11px] font-bold text-[#eaa94d]/50 mb-5 uppercase tracking-[0.18em]">
+                Legal
+              </h4>
+              <ul className="space-y-3">
+                <FooterLink href="/legal/terms">Terms</FooterLink>
+                <FooterLink href="/legal/privacy">Privacy</FooterLink>
+                <FooterLink href="/legal/refund">Refund Policy</FooterLink>
+                <FooterLink href="/contact">Help Center</FooterLink>
+              </ul>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ── Divider ── */}
+      {/* Divider */}
       <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-12">
         <div className="h-px bg-linear-to-r from-transparent via-white/6 to-transparent" />
       </div>
 
-      {/* ── Bottom bar ── */}
+      {/* Bottom bar */}
       <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-12 py-6">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          {/* Copyright */}
           <div className="flex items-center gap-3">
             <p className="text-xs text-white/25">
               &copy; {new Date().getFullYear()} HimaVolt
@@ -272,6 +210,14 @@ export default function Footer() {
             </p>
           </div>
 
+          {/* Social icons */}
+          <div className="flex items-center gap-2">
+            {socials.map((s) => (
+              <SocialIcon key={s.label} label={s.label} path={s.path} />
+            ))}
+          </div>
+
+          {/* Back to top */}
           <motion.button
             whileHover={{ scale: 1.1, y: -2 }}
             whileTap={{ scale: 0.9 }}

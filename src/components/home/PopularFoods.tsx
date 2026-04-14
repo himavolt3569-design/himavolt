@@ -5,6 +5,7 @@ import { Star, Clock, ChevronDown, SlidersHorizontal, Flame, Sparkles, Tag, Plus
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 import { formatPrice } from "@/lib/currency";
+import { useLocation } from "@/context/LocationContext";
 
 
 interface FoodItem {
@@ -186,6 +187,22 @@ function FoodCard({ item }: { item: FoodItem }) {
           <div className={`absolute top-2.5 left-2.5 flex h-5 w-5 items-center justify-center rounded-sm border-2 ${vegBorderColor} bg-white`}>
             <div className={`h-2 w-2 rounded-full ${vegDotColor}`} />
           </div>
+
+          {/* Desktop hover ADD button */}
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              addItem(
+                { id: item.id, name: item.name, price: item.price, image: item.image },
+                item.restaurantId,
+                item.restaurantSlug,
+              );
+            }}
+            className="absolute bottom-3 right-3 hidden sm:flex items-center gap-1 rounded-xl bg-white px-3 py-1.5 text-[13px] font-extrabold text-[#eaa94d] border-2 border-[#eaa94d] shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 active:scale-95"
+          >
+            <Plus className="h-3.5 w-3.5" /> ADD
+          </button>
         </div>
 
         <div className="mt-2.5 px-0.5">
@@ -214,6 +231,7 @@ export default function PopularFoods({
 }: {
   activeCategory?: string;
 }) {
+  const { location } = useLocation();
   const [foods, setFoods] = useState<FoodItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLive, setIsLive] = useState(false);
@@ -309,7 +327,7 @@ export default function PopularFoods({
               {activeCategory === "All" ? "Recommended for you" : activeCategory}
             </h2>
             <p className="text-[12px] text-gray-400">
-              {filtered.length} dishes {activeCategory !== "All" ? `in ${activeCategory}` : isLive ? "from nearby restaurants" : "from popular restaurants"}
+              {filtered.length} dishes {activeCategory !== "All" ? `in ${activeCategory}` : location.area !== "Kathmandu" ? `near ${location.area}` : "from nearby restaurants"}
             </p>
           </div>
         </div>
@@ -318,7 +336,7 @@ export default function PopularFoods({
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-7 pb-4">
             {Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="animate-pulse">
-                <div className="aspect-4/3 rounded-2xl bg-gray-100" />
+                <div className="aspect-[4/3] rounded-2xl bg-gray-100" />
                 <div className="mt-3 space-y-2 px-0.5">
                   <div className="h-4 w-3/4 rounded bg-gray-100" />
                   <div className="h-3 w-1/2 rounded bg-gray-100" />

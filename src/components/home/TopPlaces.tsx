@@ -6,6 +6,7 @@ import { Star, MapPin, ShoppingBag } from "lucide-react";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api-client";
 import { getTypeLabel } from "@/lib/restaurant-types";
+import { useLocation } from "@/context/LocationContext";
 
 type Restaurant = {
   id: string;
@@ -136,7 +137,7 @@ function DesktopCard({ restaurant }: { restaurant: Restaurant }) {
       }}
     >
       <Link href={`/menu/${restaurant.slug}`}>
-        <div className="relative w-full aspect-4/3 rounded-2xl overflow-hidden shadow-sm group-hover:shadow-xl group-hover:shadow-[#eaa94d]/8 transition-shadow duration-300">
+        <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-sm group-hover:shadow-xl group-hover:shadow-[#eaa94d]/[0.08] transition-shadow duration-300">
           <RestaurantImage restaurant={restaurant} />
           <div className="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-transparent" />
           <motion.div
@@ -204,6 +205,7 @@ function DesktopCard({ restaurant }: { restaurant: Restaurant }) {
 }
 
 export default function TopPlaces() {
+  const { location } = useLocation();
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -225,13 +227,18 @@ export default function TopPlaces() {
           viewport={{ once: true, margin: "-40px" }}
         >
           <h2 className="text-xl font-bold tracking-tight text-[#3e1e0c] md:text-2xl">
-            Popular Restaurants Near You
+            Popular Restaurants{" "}
+            <span className="text-[#eaa94d]">
+              {location.area !== "Kathmandu"
+                ? `near ${location.area}`
+                : "Near You"}
+            </span>
           </h2>
         </motion.div>
 
         {loading ? (
           <div className="flex items-center justify-center py-16">
-            <div className="h-8 w-8 animate-spin rounded-full border-3 border-gray-200 border-t-[#eaa94d]" />
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-[#eaa94d]" />
           </div>
         ) : restaurants.length === 0 ? (
           <p className="text-center text-gray-500 py-16">

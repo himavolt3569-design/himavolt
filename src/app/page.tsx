@@ -6,15 +6,17 @@ import Navbar from "@/components/layout/Navbar";
 import LandingHero from "@/components/home/LandingHero";
 import FoodCategories from "@/components/home/FoodCategories";
 import PopularFoods from "@/components/home/PopularFoods";
-import ScrollHowItWorks from "@/components/home/ScrollHowItWorks";
+import FeaturesSection from "@/components/home/FeaturesSection";
 import TopPlaces from "@/components/home/TopPlaces";
 import DealsSection from "@/components/home/DealsSection";
 import TrustMarquee from "@/components/home/TrustMarquee";
-import StatsCounter from "@/components/home/StatsCounter";
 import Testimonials from "@/components/home/Testimonials";
 import Footer from "@/components/layout/Footer";
 import CartSidebar from "@/components/cart/CartSidebar";
 import LoadingClock from "@/components/shared/LoadingClock";
+import FloatingCart from "@/components/shared/FloatingCart";
+import LocationBar from "@/components/home/LocationBar";
+import { LocationProvider } from "@/context/LocationContext";
 
 export default function Home() {
   const [loading, setLoading] = useState(true);
@@ -42,36 +44,40 @@ export default function Home() {
       </AnimatePresence>
 
       {!loading && (
-        <motion.main
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-          className="min-h-screen relative bg-white"
-        >
-          <Navbar onCartClick={() => setCartOpen(true)} />
+        <LocationProvider>
+          <motion.main
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="min-h-screen relative bg-white"
+          >
+            <Navbar onCartClick={() => setCartOpen(true)} />
 
-          <LandingHero />
+            <LocationBar />
 
-          <TrustMarquee />
+            <LandingHero />
 
-          <FoodCategories onCategoryChange={setActiveCategory} />
+            <TrustMarquee />
 
-          <PopularFoods activeCategory={activeCategory} />
+            <FoodCategories onCategoryChange={setActiveCategory} />
 
-          <ScrollHowItWorks />
+            <PopularFoods activeCategory={activeCategory} />
 
-          <StatsCounter />
+            <FeaturesSection />
 
-          <TopPlaces />
+            <TopPlaces />
 
-          <DealsSection />
+            <DealsSection />
 
-          <Testimonials />
+            <Testimonials />
 
-          <Footer />
+            <Footer />
 
-          <CartSidebar open={cartOpen} onClose={() => setCartOpen(false)} />
-        </motion.main>
+            <CartSidebar open={cartOpen} onClose={() => setCartOpen(false)} />
+
+            <FloatingCart onOpen={() => setCartOpen(true)} />
+          </motion.main>
+        </LocationProvider>
       )}
     </>
   );

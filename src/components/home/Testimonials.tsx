@@ -1,8 +1,8 @@
 "use client";
 
-import { useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
-import { Star, Quote } from "lucide-react";
+import { motion } from "framer-motion";
+import { Star } from "lucide-react";
+import { Avatar } from "@/components/ui/avatar";
 
 const reviews = [
   {
@@ -18,7 +18,7 @@ const reviews = [
     role: "Regular Customer",
     avatar: "PM",
     rating: 5,
-    text: "I order lunch through HimaVolt every single day. The live tracking is addictive — I know exactly when my dal bhat is arriving.",
+    text: "I order lunch through HimaVolt every single day. The live tracking is addictive. I know exactly when my dal bhat is arriving.",
     color: "#e58f2a",
   },
   {
@@ -55,111 +55,138 @@ const reviews = [
   },
 ];
 
-function StarRating({ count }: { count: number }) {
+/* Featured review (restaurant owner — strongest social proof) */
+const featured = reviews[2];
+
+/* Row 2 uses an offset starting order */
+const row2Reviews = [...reviews.slice(3), ...reviews.slice(0, 3)];
+
+function TestimonialCard({ review }: { review: (typeof reviews)[0] }) {
   return (
-    <div className="flex items-center gap-0.5">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <Star
-          key={i}
-          className={`h-3 w-3 ${
-            i < count
-              ? "fill-[#eaa94d] text-[#eaa94d]"
-              : "fill-none text-[#eaa94d]/20"
-          }`}
-          strokeWidth={1.5}
-        />
-      ))}
+    <div className="w-[280px] md:w-[320px] shrink-0 rounded-2xl bg-white/70 backdrop-blur-sm border border-[#f4d69a]/15 p-5 mx-2">
+      <div className="flex items-center gap-0.5 mb-3">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Star
+            key={i}
+            className={`h-3 w-3 ${
+              i < review.rating
+                ? "fill-[#eaa94d] text-[#eaa94d]"
+                : "fill-none text-[#eaa94d]/20"
+            }`}
+            strokeWidth={1.5}
+          />
+        ))}
+      </div>
+      <p className="text-sm text-[#3e1e0c]/60 leading-relaxed line-clamp-3">
+        {review.text}
+      </p>
+      <div className="mt-4 flex items-center gap-2.5">
+        <Avatar fallback={review.avatar} color={review.color} size="sm" />
+        <div>
+          <p className="text-xs font-bold text-[#3e1e0c]">{review.name}</p>
+          <p className="text-[10px] text-[#8e491e]/40">{review.role}</p>
+        </div>
+      </div>
     </div>
   );
 }
 
 export default function Testimonials() {
-  const sectionRef = useRef<HTMLDivElement>(null);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start end", "end start"],
-  });
-
-  const bgY = useTransform(scrollYProgress, [0, 1], ["-5%", "5%"]);
-
   return (
-    <section ref={sectionRef} className="relative py-20 md:py-28 overflow-hidden">
-      <motion.div
-        style={{ y: bgY }}
-        className="absolute inset-0 bg-linear-to-b from-white via-[#fdf9ef]/50 to-white"
-      />
-      <div className="absolute top-20 -left-32 w-80 h-80 rounded-full bg-[#eaa94d]/[0.04] blur-[100px] pointer-events-none" />
-      <div className="absolute bottom-20 -right-32 w-80 h-80 rounded-full bg-[#d67620]/[0.04] blur-[100px] pointer-events-none" />
-
+    <section className="relative bg-[#fdf9ef] py-24 md:py-32 overflow-hidden">
       <div className="relative mx-auto max-w-7xl px-4 md:px-8 lg:px-12">
+        {/* ── Aggregate rating row ── */}
         <motion.div
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4"
+        >
+          <div className="flex items-center gap-1">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="relative">
+                <Star
+                  className="h-6 w-6 fill-none text-[#eaa94d]/20"
+                  strokeWidth={1.5}
+                />
+                <motion.div
+                  className="absolute inset-0"
+                  initial={{ clipPath: "inset(0 100% 0 0)" }}
+                  whileInView={{ clipPath: "inset(0 0% 0 0)" }}
+                  viewport={{ once: true }}
+                  transition={{
+                    duration: 0.4,
+                    delay: 0.3 + i * 0.15,
+                    ease: "easeOut",
+                  }}
+                >
+                  <Star
+                    className="h-6 w-6 fill-[#eaa94d] text-[#eaa94d]"
+                    strokeWidth={1.5}
+                  />
+                </motion.div>
+              </div>
+            ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-2xl font-extrabold text-[#3e1e0c]">4.9</span>
+            <span className="text-sm text-[#8e491e]/40">/ 5</span>
+            <span className="hidden sm:block h-4 w-px bg-[#3e1e0c]/10 mx-1" />
+            <span className="text-sm text-[#8e491e]/40">
+              from 12,000+ customers
+            </span>
+          </div>
+        </motion.div>
+
+        {/* ── Featured quote card ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{
             duration: 0.7,
-            ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
+            delay: 0.15,
+            ease: [0.16, 1, 0.3, 1],
           }}
-          className="text-center mb-14 md:mb-16"
+          className="relative max-w-2xl mx-auto mt-12 mb-16 p-8 md:p-10 rounded-2xl border border-[#f4d69a]/20 bg-white shadow-sm"
         >
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#eaa94d]/[0.08] px-3.5 py-1 text-[11px] font-bold text-[#b25c1c] uppercase tracking-wider border border-[#eaa94d]/15 mb-4">
-            <Quote className="h-3 w-3" />
-            What people say
+          <span className="absolute top-4 left-6 text-[96px] font-serif leading-none text-[#3e1e0c] opacity-[0.08] select-none pointer-events-none">
+            &ldquo;
           </span>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight text-[#3e1e0c] leading-[1.1]">
-            Loved by thousands
-            <br />
-            <span className="text-transparent bg-clip-text bg-linear-to-r from-[#eaa94d] to-[#d67620]">
-              across Kathmandu.
-            </span>
-          </h2>
-        </motion.div>
-
-        <div
-          ref={scrollContainerRef}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6"
-        >
-          {reviews.map((review, i) => (
-            <motion.div
-              key={review.name}
-              initial={{ opacity: 0, y: 40, scale: 0.95 }}
-              whileInView={{ opacity: 1, y: 0, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] }}
-              whileHover={{ y: -6, transition: { type: "spring", stiffness: 300, damping: 20 } }}
-              className="group relative rounded-2xl bg-white p-6 md:p-7 shadow-[0_1px_3px_rgba(62,30,12,0.04)] hover:shadow-[0_12px_40px_rgba(234,169,77,0.1)] border border-[#f4d69a]/20 hover:border-[#eaa94d]/25 transition-all duration-500"
-              style={{ perspective: "800px" }}
-            >
-              <div
-                className="absolute top-5 right-5 text-[48px] font-serif leading-none select-none transition-opacity duration-300 opacity-[0.04] group-hover:opacity-[0.08]"
-                style={{ color: review.color }}
-              >
-                &ldquo;
-              </div>
-
-              <StarRating count={review.rating} />
-
-              <p className="mt-4 text-sm leading-relaxed text-[#3e1e0c]/60 line-clamp-4">
-                {review.text}
+          <p className="relative text-lg md:text-xl italic text-[#3e1e0c]/70 leading-relaxed mt-8">
+            {featured.text}
+          </p>
+          <div className="mt-6 flex items-center gap-3">
+            <Avatar fallback={featured.avatar} color={featured.color} />
+            <div>
+              <p className="text-sm font-bold text-[#3e1e0c]">
+                {featured.name}
               </p>
+              <p className="text-[11px] text-[#8e491e]/40">{featured.role}</p>
+            </div>
+          </div>
+        </motion.div>
+      </div>
 
-              <div className="mt-5 flex items-center gap-3 pt-4 border-t border-[#f4d69a]/15">
-                <div
-                  className="flex h-10 w-10 items-center justify-center rounded-full text-xs font-bold text-white shrink-0 transition-transform duration-300 group-hover:scale-110"
-                  style={{ backgroundColor: review.color }}
-                >
-                  {review.avatar}
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-[#3e1e0c] tracking-tight">
-                    {review.name}
-                  </p>
-                  <p className="text-[11px] text-[#8e491e]/40">{review.role}</p>
-                </div>
-              </div>
-            </motion.div>
+      {/* ── Marquee Row 1: scrolls left ── */}
+      <div className="relative mb-4">
+        <div className="absolute left-0 top-0 bottom-0 w-20 bg-linear-to-r from-[#fdf9ef] to-transparent z-10 pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-20 bg-linear-to-l from-[#fdf9ef] to-transparent z-10 pointer-events-none" />
+        <div className="flex animate-marquee-left w-max">
+          {[...reviews, ...reviews].map((review, i) => (
+            <TestimonialCard key={`r1-${i}`} review={review} />
+          ))}
+        </div>
+      </div>
+
+      {/* ── Marquee Row 2: scrolls right ── */}
+      <div className="relative">
+        <div className="absolute left-0 top-0 bottom-0 w-20 bg-linear-to-r from-[#fdf9ef] to-transparent z-10 pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-20 bg-linear-to-l from-[#fdf9ef] to-transparent z-10 pointer-events-none" />
+        <div className="flex animate-marquee-right w-max">
+          {[...row2Reviews, ...row2Reviews].map((review, i) => (
+            <TestimonialCard key={`r2-${i}`} review={review} />
           ))}
         </div>
       </div>
