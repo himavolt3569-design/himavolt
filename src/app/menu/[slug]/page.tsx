@@ -43,7 +43,6 @@ import {
   Egg,
   ChevronRight,
   Loader2,
-  Megaphone,
   Tag,
   Wifi,
   Copy,
@@ -188,6 +187,7 @@ interface MenuItem {
   drinkCategory: string | null;
   lowStock: boolean;
   outOfStock: boolean;
+  spiceLevel?: number;
 }
 
 interface ComboMealItem {
@@ -439,8 +439,8 @@ function DishDetailModal({
   const [qty, setQty] = useState(1);
   const [sizeIdx, setSizeIdx] = useState(0);
   const [selectedAddOns, setSelectedAddOns] = useState<Set<string>>(new Set());
-  const priceRef = useRef<HTMLParagraphElement>(null);
-  const modalRef = useRef<HTMLDivElement>(null);
+  const mobileScrollRef = useRef<HTMLDivElement>(null);
+  const desktopScrollRef = useRef<HTMLDivElement>(null);
 
   const sizeAdd = dish.sizes.length > 0 ? dish.sizes[sizeIdx].priceAdd : 0;
   const addOnTotal = dish.addOns
@@ -448,29 +448,20 @@ function DishDetailModal({
     .reduce((s, a) => s + a.price, 0);
   const unitPrice = Math.round((dish.price + sizeAdd + addOnTotal) * surgeMultiplier);
   const total = unitPrice * qty;
+  const baseDiscounted = dish.discount > 0
+    ? Math.round(dish.price * (1 - dish.discount / 100))
+    : null;
 
-  // Reset state when dish changes
   useEffect(() => {
     setQty(1);
     setSizeIdx(0);
     setSelectedAddOns(new Set());
-    modalRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+    mobileScrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+    desktopScrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
   }, [dish.id]);
 
   useEffect(() => {
-    if (priceRef.current) {
-      gsap.fromTo(
-        priceRef.current,
-        { scale: 1.3, color: "#eaa94d" },
-        { scale: 1, color: "#3e1e0c", duration: 0.35, ease: "back.out(2)" },
-      );
-    }
-  }, [total]);
-
-  useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
+    const handleKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, [onClose]);
@@ -487,15 +478,8 @@ function DishDetailModal({
   const handleAdd = () => {
     for (let i = 0; i < qty; i++) {
       addItem(
-        {
-          id: dish.id,
-          name: dish.name,
-          price: unitPrice,
-          image: img(dish.imageUrl),
-        },
-        restaurantId,
-        restaurantSlug,
-        restaurantCurrency,
+        { id: dish.id, name: dish.name, price: unitPrice, image: img(dish.imageUrl) },
+        restaurantId, restaurantSlug, restaurantCurrency,
       );
     }
     showToast(`${dish.name} added to cart!`);
@@ -503,408 +487,472 @@ function DishDetailModal({
 
   const cartQty = getItemQty(dish.id);
 
-  // Recommended items: same category, excluding current dish, top rated
-  const recommended = allItems
-    .filter((i) => i.id !== dish.id && i.categoryId === dish.categoryId && i.isAvailable)
-    .sort((a, b) => b.rating - a.rating)
-    .slice(0, 6);
+  // Suggested: prioritise same category, fill from others by rating
+  const suggested = allItems
+    .filter((i) => i.id !== dish.id && i.isAvailable)
+    .sort((a, b) => {
+      const aSame = a.categoryId === dish.categoryId ? 1 : 0;
+      const bSame = b.categoryId === dish.categoryId ? 1 : 0;
+      if (bSame !== aSame) return bSame - aSame;
+      return b.rating - a.rating;
+    })
+    .slice(0, 8);
 
-  // If not enough from same category, fill from other categories
-  const moreRecommended = recommended.length < 4
-    ? allItems
-        .filter((i) => i.id !== dish.id && i.categoryId !== dish.categoryId && i.isAvailable && !recommended.some((r) => r.id === i.id))
-        .sort((a, b) => b.rating - a.rating)
-        .slice(0, 4 - recommended.length)
-    : [];
+  const spiceLevel = dish.spiceLevel ?? 0;
+  const spiceLabel = ["", "Mild", "Medium", "Hot", "Extra Hot"][spiceLevel] ?? "";
+  const spiceColor = [
+    "",
+    "text-yellow-700 bg-yellow-50 border-yellow-100",
+    "text-orange-600 bg-orange-50 border-orange-100",
+    "text-red-600 bg-red-50 border-red-100",
+    "text-red-700 bg-red-100 border-red-200",
+  ][spiceLevel] ?? "";
 
-  const allRecommended = [...recommended, ...moreRecommended];
+  /* ─── shared inner content (used by both mobile and desktop right-col) ─── */
+  const renderBody = () => (
+      <div className="p-5 sm:p-6 space-y-5">
 
-  return (
-    <>
-      <motion.div
-        key="glass-overlay"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.25 }}
-        onClick={onClose}
-        className="fixed inset-0 z-50 bg-black/40 backdrop-blur-md"
-      />
-
-      <motion.div
-        key="glass-modal"
-        initial={{ opacity: 0, scale: 0.92, y: 30 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        transition={{ type: "spring", damping: 28, stiffness: 350, mass: 0.8 }}
-        className="fixed inset-4 sm:inset-6 md:inset-x-auto md:inset-y-6 md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-2xl lg:max-w-3xl z-50 flex flex-col rounded-3xl overflow-hidden border border-white/20 shadow-2xl shadow-black/20"
-        style={{
-          background: "rgba(255, 255, 255, 0.85)",
-          backdropFilter: "blur(24px) saturate(180%)",
-          WebkitBackdropFilter: "blur(24px) saturate(180%)",
-        }}
-      >
-        <div ref={modalRef} className="flex-1 overflow-y-auto overscroll-contain">
-          <motion.div
-            className="relative w-full aspect-[16/9] sm:aspect-[2.2/1] overflow-hidden bg-gray-100"
-            initial={{ opacity: 0, scale: 1.05 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <img
-              src={img(dish.imageUrl)}
-              alt={dish.name}
-              loading="lazy"
-              className="h-full w-full object-cover"
-            />
-            <div className="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-black/10" />
-
-            <motion.button
-              onClick={onClose}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              transition={{ type: "spring", stiffness: 400, damping: 17 }}
-              className="absolute top-4 right-4 flex h-9 w-9 items-center justify-center rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white hover:bg-white/40 transition-all"
-            >
-              <X className="h-4 w-4" />
-            </motion.button>
-
-            <div className="absolute top-4 left-4 flex items-center gap-2">
-              {dish.badge && (
-                <motion.span
-                  className={`rounded-full px-3 py-1 text-[11px] font-bold text-white shadow-md backdrop-blur-sm ${
-                    dish.badge === "Bestseller"
-                      ? "bg-[#eaa94d]/90"
-                      : dish.badge === "Most Liked"
-                        ? "bg-[#3e1e0c]/90"
-                        : "bg-purple-500/90"
-                  }`}
-                  initial={{ opacity: 0, scale: 0.6 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.2, type: "spring", stiffness: 500, damping: 15 }}
-                >
-                  {dish.badge === "Bestseller" ? "# Bestseller" : dish.badge}
-                </motion.span>
-              )}
-              {dish.discountLabel && (
-                <motion.span
-                  className="rounded-full bg-[#eaa94d]/90 backdrop-blur-sm px-3 py-1 text-[11px] font-extrabold text-white shadow-md flex items-center gap-1"
-                  initial={{ opacity: 0, scale: 0.6 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.25, type: "spring", stiffness: 500, damping: 15 }}
-                >
-                  <Tag className="h-3 w-3" />
-                  {dish.discountLabel}
-                </motion.span>
-              )}
-            </div>
-
-            <div className="absolute bottom-4 left-5">
-              <span className="text-2xl font-extrabold text-white drop-shadow-lg" ref={priceRef}>
-                {formatPrice(total, restaurantCurrency)}
+        {/* ── Name + dietary row ── */}
+        <div>
+          <div className="flex flex-wrap items-center gap-1.5 mb-2">
+            {dish.isVeg ? <VegIcon /> : <NonVegIcon />}
+            {dish.hasEgg && (
+              <span className="flex items-center gap-1 rounded-full bg-amber-50 border border-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">
+                <Egg className="h-3 w-3" /> Contains Egg
               </span>
+            )}
+            {!dish.hasOnionGarlic && (
+              <span className="flex items-center gap-1 rounded-full bg-green-50 border border-green-100 px-2 py-0.5 text-[10px] font-bold text-green-700">
+                <Leaf className="h-3 w-3" /> No Onion/Garlic
+              </span>
+            )}
+            {dish.isFeatured && (
+              <span className="flex items-center gap-0.5 rounded-full bg-[#eaa94d]/10 px-2 py-0.5 text-[10px] font-bold text-[#eaa94d]">
+                <Star className="h-3 w-3 fill-[#eaa94d]" /> Featured
+              </span>
+            )}
+            {cartQty > 0 && (
+              <span className="rounded-full bg-[#3e1e0c] px-2 py-0.5 text-[10px] font-bold text-white">
+                {cartQty} in cart
+              </span>
+            )}
+          </div>
+          <h2 className="text-xl font-extrabold text-[#111111] leading-tight">{dish.name}</h2>
+          <p className="text-[11px] text-gray-400 mt-0.5 font-medium">{dish.category?.name}</p>
+          <p className="mt-2 text-sm text-gray-500 leading-relaxed">{dish.description}</p>
+        </div>
+
+        {/* ── Stats chips ── */}
+        <div className="flex flex-wrap gap-2">
+          {dish.rating > 0 && (
+            <span className="flex items-center gap-1.5 rounded-full border border-amber-100 bg-amber-50 px-3 py-1.5 text-[11px] font-bold text-amber-700">
+              <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+              {dish.rating.toFixed(1)} rating
+            </span>
+          )}
+          <span className="flex items-center gap-1.5 rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5 text-[11px] font-bold text-gray-600">
+            <Clock className="h-3.5 w-3.5" />
+            {dish.prepTime}
+          </span>
+          {dish.calories != null && (
+            <span className="flex items-center gap-1.5 rounded-full border border-orange-100 bg-orange-50 px-3 py-1.5 text-[11px] font-bold text-orange-600">
+              <Flame className="h-3.5 w-3.5" />
+              {dish.calories} kcal
+            </span>
+          )}
+          {spiceLevel > 0 && (
+            <span className={`flex items-center gap-1 rounded-full border px-3 py-1.5 text-[11px] font-bold ${spiceColor}`}>
+              {"🌶️".repeat(spiceLevel)} {spiceLabel}
+            </span>
+          )}
+          {dish.isDrink && dish.drinkCategory && (
+            <span className="flex items-center gap-1.5 rounded-full border border-blue-100 bg-blue-50 px-3 py-1.5 text-[11px] font-bold text-blue-600">
+              <Wine className="h-3.5 w-3.5" />
+              {dish.drinkCategory}
+            </span>
+          )}
+          {dish.lowStock && !dish.outOfStock && (
+            <span className="flex items-center gap-1.5 rounded-full border border-red-100 bg-red-50 px-3 py-1.5 text-[11px] font-bold text-red-600">
+              Few left
+            </span>
+          )}
+        </div>
+
+        {/* ── Allergens ── */}
+        {dish.allergens.length > 0 && (
+          <div>
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Allergens</p>
+            <div className="flex flex-wrap gap-1.5">
+              {dish.allergens.map((a) => (
+                <span key={a} className="flex items-center gap-1 rounded-full bg-red-50 border border-red-100 px-2.5 py-1 text-[11px] font-bold text-red-600">
+                  ⚠ {a}
+                </span>
+              ))}
             </div>
-          </motion.div>
+          </div>
+        )}
 
-          <div className="px-5 sm:px-7 py-5 space-y-5">
-            {/* Title & meta */}
-            <motion.div
-              initial={{ opacity: 0, y: 16, filter: "blur(4px)" }}
-              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-              transition={{ duration: 0.4, delay: 0.1 }}
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1.5">
-                    {dish.isVeg ? <VegIcon /> : <NonVegIcon />}
-                    {dish.hasEgg && <Egg className="h-3.5 w-3.5 text-yellow-500" />}
-                    {dish.isFeatured && (
-                      <span className="flex items-center gap-0.5 rounded-full bg-[#eaa94d]/10 px-2 py-0.5 text-[10px] font-bold text-[#eaa94d]">
-                        <Star className="h-3 w-3 fill-[#eaa94d]" /> Featured
-                      </span>
-                    )}
-                  </div>
-                  <h2 className="text-xl sm:text-2xl font-bold text-[#3e1e0c]">{dish.name}</h2>
-                  <p className="mt-1.5 text-sm text-gray-500 leading-relaxed">
-                    {dish.description}
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-gray-400">
-                <span className="flex items-center gap-1 rounded-full bg-gray-50 px-2.5 py-1">
-                  <Star className="h-3.5 w-3.5 fill-[#eaa94d] text-[#eaa94d]" />
-                  <span className="font-bold text-[#3e1e0c]">
-                    {dish.rating.toFixed(1)}
-                  </span>
-                </span>
-                <span className="flex items-center gap-1 rounded-full bg-gray-50 px-2.5 py-1">
-                  <Clock className="h-3.5 w-3.5" />
-                  {dish.prepTime}
-                </span>
-                {dish.calories && (
-                  <span className="flex items-center gap-1 rounded-full bg-orange-50 text-orange-600 px-2.5 py-1">
-                    <Flame className="h-3.5 w-3.5" />
-                    {dish.calories} kcal
-                  </span>
-                )}
-                {dish.allergens && dish.allergens.length > 0 && (
-                  <span className="flex items-center gap-1 rounded-full bg-red-50 text-red-600 px-2.5 py-1 font-medium">
-                    <Leaf className="h-3.5 w-3.5" />
-                    Contains: {dish.allergens.join(", ")}
-                  </span>
-                )}
-                <OfferCountdown expiresAt={dish.offerExpiresAt} compact />
-                {cartQty > 0 && (
-                  <motion.span
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: "spring", stiffness: 500, damping: 15 }}
-                    className="rounded-full bg-[#3e1e0c] px-2.5 py-1 text-[10px] font-bold text-white"
-                  >
-                    {cartQty} in cart
-                  </motion.span>
-                )}
-              </div>
-
-              {dish.tags.length > 0 && (
-                <div className="mt-2.5 flex flex-wrap gap-1.5">
-                  {dish.tags.map((tag) => (
-                    <span key={tag} className="rounded-full bg-gray-100 px-2.5 py-1 text-[10px] font-medium text-gray-500">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
+        {/* ── Offer banner ── */}
+        {(dish.offerExpiresAt || dish.discount > 0) && (
+          <div className="flex items-center gap-3 rounded-xl bg-[#fef3dc] border border-[#eaa94d]/25 p-3.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#eaa94d]/20 shrink-0">
+              <Tag className="h-4 w-4 text-[#d67620]" />
+            </div>
+            <div className="min-w-0 flex-1">
+              {dish.discountLabel && (
+                <p className="text-sm font-extrabold text-[#b25c1c]">{dish.discountLabel}</p>
               )}
-            </motion.div>
+              {dish.discount > 0 && (
+                <p className="text-[11px] text-[#8e491e]/70 mt-0.5">{dish.discount}% off the base price</p>
+              )}
+              <OfferCountdown expiresAt={dish.offerExpiresAt} compact />
+            </div>
+          </div>
+        )}
 
-            <div className="h-px bg-gray-100" />
+        <div className="h-px bg-gray-100" />
 
-            {/* Quantity & Price */}
-            <motion.div
-              className="flex items-center justify-between"
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.2 }}
-            >
-              <div className="flex items-center gap-3">
-                <motion.button
-                  onClick={() => setQty((q) => Math.max(1, q - 1))}
-                  whileTap={{ scale: 0.85 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                  className="flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"
+        {/* ── Size selector ── */}
+        {dish.sizes.length > 0 && (
+          <div>
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">Choose Size</p>
+            <div className="grid grid-cols-3 gap-2">
+              {dish.sizes.map((s, i) => (
+                <button
+                  key={s.id}
+                  onClick={() => setSizeIdx(i)}
+                  className={`flex flex-col items-center gap-0.5 rounded-xl border-2 py-3 px-2 transition-all ${
+                    sizeIdx === i
+                      ? "border-[#eaa94d] bg-[#fef3dc]"
+                      : "border-gray-200 hover:border-gray-300 bg-white"
+                  }`}
                 >
-                  <Minus className="h-4 w-4" />
-                </motion.button>
-                <motion.span
-                  key={qty}
-                  initial={{ scale: 1.3 }}
-                  animate={{ scale: 1 }}
-                  className="w-8 text-center text-base font-bold text-[#3e1e0c]"
+                  <span className={`text-sm font-extrabold leading-tight ${sizeIdx === i ? "text-[#b25c1c]" : "text-[#111111]"}`}>
+                    {s.grams}
+                  </span>
+                  <span className="text-[10px] text-gray-400 font-medium">{s.label}</span>
+                  {s.priceAdd > 0 && (
+                    <span className={`text-[10px] font-bold mt-0.5 ${sizeIdx === i ? "text-[#d67620]" : "text-gray-400"}`}>
+                      +{formatPrice(s.priceAdd, restaurantCurrency)}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── Add-ons ── */}
+        {dish.addOns.length > 0 && (
+          <div>
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">Build Your Meal</p>
+            <div className="space-y-2">
+              {dish.addOns.map((a) => (
+                <label
+                  key={a.id}
+                  className={`flex items-center justify-between rounded-xl border px-4 py-3 cursor-pointer transition-all ${
+                    selectedAddOns.has(a.id)
+                      ? "border-[#eaa94d] bg-[#fef3dc]/50"
+                      : "border-gray-100 bg-gray-50/50 hover:border-gray-200"
+                  }`}
                 >
-                  {qty}
-                </motion.span>
-                <motion.button
-                  onClick={() => setQty((q) => q + 1)}
-                  whileTap={{ scale: 0.85 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#eaa94d] text-white hover:bg-[#d67620] transition-colors"
-                >
-                  <Plus className="h-4 w-4" />
-                </motion.button>
-              </div>
-              <div className="text-right">
-                <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Total</span>
-                <p className="text-xl font-extrabold text-[#3e1e0c]">
-                  {formatPrice(total, restaurantCurrency)}
-                </p>
-              </div>
-            </motion.div>
-
-            {dish.sizes.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.25 }}
-              >
-                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                  Choose Size
-                </h4>
-                <SizeSelector
-                  sizes={dish.sizes}
-                  selected={sizeIdx}
-                  onSelect={setSizeIdx}
-                />
-              </motion.div>
-            )}
-
-            {/* Add-ons */}
-            {dish.addOns.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.3 }}
-              >
-                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                  Build Your Meal
-                </h4>
-                <div className="space-y-2">
-                  {dish.addOns.map((a) => (
-                    <motion.label
-                      key={a.id}
-                      whileTap={{ scale: 0.98 }}
-                      className={`flex items-center justify-between rounded-xl px-4 py-3 cursor-pointer transition-all ${
-                        selectedAddOns.has(a.id)
-                          ? "bg-[#eaa94d]/10 border border-[#eaa94d]/30"
-                          : "bg-white/60 border border-gray-100 hover:bg-white/80"
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <motion.div
-                          className={`flex h-5 w-5 items-center justify-center rounded-md border-2 transition-colors ${
-                            selectedAddOns.has(a.id)
-                              ? "border-[#eaa94d] bg-[#eaa94d]"
-                              : "border-gray-300"
-                          }`}
-                          animate={
-                            selectedAddOns.has(a.id) ? { scale: [1, 1.2, 1] } : {}
-                          }
-                          transition={{ duration: 0.25 }}
-                        >
-                          <AnimatePresence>
-                            {selectedAddOns.has(a.id) && (
-                              <motion.div
-                                initial={{ scale: 0, rotate: -90 }}
-                                animate={{ scale: 1, rotate: 0 }}
-                                exit={{ scale: 0, rotate: 90 }}
-                                transition={{ type: "spring", stiffness: 500, damping: 15 }}
-                              >
-                                <Check className="h-3 w-3 text-white" />
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
-                        </motion.div>
-                        <span className="text-sm font-medium text-[#3e1e0c]">
-                          {a.name}
-                        </span>
-                      </div>
-                      <span className="text-sm font-bold text-gray-500">
-                        +{formatPrice(a.price, restaurantCurrency)}
-                      </span>
-                      <input
-                        type="checkbox"
-                        className="sr-only"
-                        checked={selectedAddOns.has(a.id)}
-                        onChange={() => toggleAddOn(a.id)}
-                      />
-                    </motion.label>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-
-            {allRecommended.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.35 }}
-              >
-                <div className="h-px bg-gray-100 mb-5" />
-                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                  <Flame className="h-3.5 w-3.5 text-[#eaa94d]" />
-                  You might also like
-                </h4>
-                <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: "none" }}>
-                  {allRecommended.map((rec) => (
-                    <motion.div
-                      key={rec.id}
-                      whileHover={{ y: -2 }}
-                      whileTap={{ scale: 0.97 }}
-                      onClick={() => onSelectDish(rec)}
-                      className="shrink-0 w-36 cursor-pointer group/rec"
-                    >
-                      <div className="relative h-24 w-full overflow-hidden rounded-xl bg-gray-100">
-                        <img
-                          src={img(rec.imageUrl)}
-                          alt={rec.name}
-                          loading="lazy"
-                          className="h-full w-full object-cover transition-transform duration-300 group-hover/rec:scale-110"
-                        />
-                        {rec.discountLabel && (
-                          <span className="absolute top-1.5 right-1.5 rounded-md bg-[#eaa94d] px-1.5 py-0.5 text-[8px] font-extrabold text-white">
-                            {rec.discountLabel}
-                          </span>
-                        )}
-                        <div className="absolute bottom-1.5 left-1.5">
-                          <span className={`inline-flex items-center gap-0.5 rounded px-1 py-0.5 text-[9px] font-bold text-white ${
-                            rec.rating >= 4.0 ? "bg-[#3e1e0c]/90" : "bg-[#eaa94d]/90"
-                          }`}>
-                            {rec.rating.toFixed(1)}
-                            <Star className="h-2 w-2 fill-white" />
-                          </span>
-                        </div>
-                      </div>
-                      <div className="mt-1.5 px-0.5">
-                        <p className="text-[12px] font-bold text-[#3e1e0c] truncate">{rec.name}</p>
-                        <p className="text-[11px] font-semibold text-gray-500">{formatPrice(rec.price, restaurantCurrency)}</p>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.4 }}
-            >
-              <div className="h-px bg-gray-100 mb-5" />
-              <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50/50 p-5 text-center">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#eaa94d]/10">
-                    <Megaphone className="h-4 w-4 text-[#eaa94d]" />
+                  <div className="flex items-center gap-3">
+                    <div className={`flex h-5 w-5 items-center justify-center rounded-md border-2 transition-colors shrink-0 ${
+                      selectedAddOns.has(a.id) ? "border-[#eaa94d] bg-[#eaa94d]" : "border-gray-300"
+                    }`}>
+                      {selectedAddOns.has(a.id) && <Check className="h-3 w-3 text-white" />}
+                    </div>
+                    <span className="text-sm font-medium text-[#111111]">{a.name}</span>
                   </div>
-                  <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Sponsored</span>
-                </div>
-                <p className="text-xs text-gray-400 leading-relaxed">
-                  Ad space available for promotions & offers
-                </p>
-                <p className="text-[10px] text-gray-300 mt-1">
-                  Restaurant owners can showcase specials here
-                </p>
-              </div>
-            </motion.div>
+                  <span className="text-sm font-bold text-[#eaa94d]">+{formatPrice(a.price, restaurantCurrency)}</span>
+                  <input type="checkbox" className="sr-only" checked={selectedAddOns.has(a.id)} onChange={() => toggleAddOn(a.id)} />
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
 
-            <div className="h-20" />
+        {/* ── Tags ── */}
+        {dish.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {dish.tags.map((tag) => (
+              <span key={tag} className="rounded-full bg-gray-100 px-2.5 py-1 text-[10px] font-medium text-gray-500">
+                #{tag}
+              </span>
+            ))}
+          </div>
+        )}
+
+        <div className="h-px bg-gray-100" />
+
+        {/* ── Quantity + total ── */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setQty((q) => Math.max(1, q - 1))}
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"
+            >
+              <Minus className="h-4 w-4" />
+            </button>
+            <motion.span
+              key={qty}
+              initial={{ scale: 1.25 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 500, damping: 20 }}
+              className="w-8 text-center text-base font-extrabold text-[#111111]"
+            >
+              {qty}
+            </motion.span>
+            <button
+              onClick={() => setQty((q) => q + 1)}
+              className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#eaa94d] text-white hover:bg-[#d67620] transition-colors"
+            >
+              <Plus className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="text-right">
+            <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Total</p>
+            <motion.p
+              key={total}
+              initial={{ scale: 1.15, color: "#eaa94d" }}
+              animate={{ scale: 1, color: "#111111" }}
+              transition={{ duration: 0.3, ease: "backOut" }}
+              className="text-xl font-extrabold"
+            >
+              {formatPrice(total, restaurantCurrency)}
+            </motion.p>
           </div>
         </div>
 
-        <div className="shrink-0 border-t border-white/30 px-5 sm:px-7 py-4" style={{ background: "rgba(255,255,255,0.9)", backdropFilter: "blur(12px)" }}>
+        {/* ── Suggested dishes ── */}
+        {suggested.length > 0 && (
+          <div>
+            <div className="h-px bg-gray-100 mb-5" />
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+              <Flame className="h-3.5 w-3.5 text-[#eaa94d]" />
+              You Might Also Like
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              {suggested.slice(0, 4).map((rec) => (
+                <button
+                  key={rec.id}
+                  onClick={() => onSelectDish(rec)}
+                  className="text-left group rounded-2xl overflow-hidden border border-gray-100 hover:border-[#eaa94d]/30 hover:shadow-md transition-all duration-300"
+                >
+                  <div className="relative aspect-video overflow-hidden bg-gray-100">
+                    <img
+                      src={img(rec.imageUrl)}
+                      alt={rec.name}
+                      loading="lazy"
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                    {rec.discountLabel && (
+                      <span className="absolute top-1.5 left-1.5 rounded-md bg-red-500 px-1.5 py-0.5 text-[8px] font-extrabold text-white">
+                        {rec.discountLabel}
+                      </span>
+                    )}
+                    {rec.badge && (
+                      <span className={`absolute top-1.5 right-1.5 rounded-md px-1.5 py-0.5 text-[8px] font-extrabold text-white ${
+                        rec.badge === "Bestseller" ? "bg-[#eaa94d]" : "bg-[#3e1e0c]"
+                      }`}>
+                        {rec.badge}
+                      </span>
+                    )}
+                    {rec.rating > 0 && (
+                      <span className="absolute bottom-1.5 right-1.5 flex items-center gap-0.5 rounded-md bg-black/55 px-1.5 py-0.5 text-[9px] font-bold text-white backdrop-blur-sm">
+                        <Star className="h-2.5 w-2.5 fill-[#eaa94d] text-[#eaa94d]" />
+                        {rec.rating.toFixed(1)}
+                      </span>
+                    )}
+                  </div>
+                  <div className="p-2.5">
+                    <div className="flex items-center gap-1 mb-0.5">
+                      {rec.isVeg
+                        ? <span className="flex h-3 w-3 items-center justify-center rounded-sm border border-green-600 shrink-0"><span className="h-1.5 w-1.5 rounded-full bg-green-600" /></span>
+                        : <span className="flex h-3 w-3 items-center justify-center rounded-sm border border-red-600 shrink-0"><span className="h-1.5 w-1.5 rounded-full bg-red-600" /></span>
+                      }
+                      <p className="text-[12px] font-bold text-[#111111] truncate">{rec.name}</p>
+                    </div>
+                    <div className="flex items-center justify-between gap-1">
+                      <p className="text-[11px] font-extrabold text-[#eaa94d]">{formatPrice(rec.price, restaurantCurrency)}</p>
+                      <span className="text-[10px] text-gray-400 flex items-center gap-0.5">
+                        <Clock className="h-2.5 w-2.5" />{rec.prepTime}
+                      </span>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Spacer for sticky footer on mobile */}
+        <div className="h-4" />
+      </div>
+  );
+
+  return (
+    <>
+      {/* Backdrop */}
+      <motion.div
+        key="modal-backdrop"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
+        onClick={onClose}
+        className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+      />
+
+      {/* Modal shell */}
+      <motion.div
+        key="modal-shell"
+        initial={{ opacity: 0, y: 48 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 32 }}
+        transition={{ type: "spring", damping: 32, stiffness: 380, mass: 0.75 }}
+        className="fixed inset-x-0 bottom-0 sm:inset-x-4 sm:bottom-4 md:inset-x-auto md:left-1/2 md:-translate-x-1/2 md:top-5 md:bottom-5 md:w-full md:max-w-3xl lg:max-w-4xl z-50 flex flex-col rounded-t-3xl sm:rounded-3xl bg-white shadow-2xl shadow-black/20 max-h-[95svh] md:max-h-none overflow-hidden"
+      >
+        {/* ═══════════════════════════════════════════════
+            DESKTOP: left image + right scrollable details
+            ═══════════════════════════════════════════════ */}
+        <div className="hidden md:flex flex-1 min-h-0">
+
+          {/* Left: sticky image */}
+          <div className="relative w-[300px] lg:w-[340px] shrink-0 overflow-hidden">
+            <img
+              src={img(dish.imageUrl)}
+              alt={dish.name}
+              className="h-full w-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
+
+            {/* Close */}
+            <button
+              onClick={onClose}
+              className="absolute top-3.5 right-3.5 flex h-8 w-8 items-center justify-center rounded-full bg-black/30 backdrop-blur-md text-white hover:bg-black/50 transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+
+            {/* Badges */}
+            <div className="absolute top-3.5 left-3.5 flex flex-col gap-1.5">
+              {dish.badge && (
+                <span className={`self-start rounded-full px-2.5 py-0.5 text-[10px] font-extrabold text-white ${
+                  dish.badge === "Bestseller" ? "bg-[#eaa94d]" : dish.badge === "Most Liked" ? "bg-[#3e1e0c]" : "bg-purple-500"
+                }`}>
+                  {dish.badge === "Bestseller" ? "# Bestseller" : dish.badge}
+                </span>
+              )}
+              {dish.discountLabel && (
+                <span className="self-start flex items-center gap-1 rounded-full bg-red-500 px-2.5 py-0.5 text-[10px] font-extrabold text-white">
+                  <Tag className="h-2.5 w-2.5" />{dish.discountLabel}
+                </span>
+              )}
+            </div>
+
+            {/* Price overlay */}
+            <div className="absolute bottom-0 left-0 right-0 p-5">
+              {baseDiscounted != null ? (
+                <>
+                  <span className="text-white/50 text-sm line-through block">{formatPrice(dish.price, restaurantCurrency)}</span>
+                  <p className="text-2xl font-extrabold text-white leading-tight">{formatPrice(baseDiscounted, restaurantCurrency)}</p>
+                </>
+              ) : (
+                <p className="text-2xl font-extrabold text-white">{formatPrice(dish.price, restaurantCurrency)}</p>
+              )}
+              <p className="text-white/45 text-[11px] mt-0.5">base price</p>
+            </div>
+          </div>
+
+          {/* Right: scrollable details + sticky Add to Cart */}
+          <div className="flex-1 flex flex-col min-h-0">
+            <div ref={desktopScrollRef} className="flex-1 overflow-y-auto overscroll-contain">
+              {renderBody()}
+            </div>
+
+            {/* Desktop sticky footer */}
+            <div className="shrink-0 border-t border-gray-100 bg-white px-6 py-4">
+              <motion.button
+                onClick={handleAdd}
+                whileHover={{ scale: 1.01, boxShadow: "0 10px 28px -6px rgba(234,169,77,0.35)" }}
+                whileTap={{ scale: 0.97 }}
+                className="relative w-full rounded-xl bg-[#eaa94d] py-3.5 text-sm font-bold text-white overflow-hidden shadow-md shadow-[#eaa94d]/20"
+              >
+                <motion.div
+                  className="absolute inset-0 bg-linear-to-r from-transparent via-white/15 to-transparent"
+                  initial={{ x: "-100%" }}
+                  animate={{ x: "200%" }}
+                  transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 4, ease: "easeInOut" }}
+                />
+                <span className="relative z-[1] flex items-center justify-center gap-2">
+                  <Plus className="h-4 w-4" strokeWidth={3} />
+                  Add to Cart — {formatPrice(total, restaurantCurrency)}
+                </span>
+              </motion.button>
+            </div>
+          </div>
+        </div>
+
+        {/* ═══════════════════════════════════════════════
+            MOBILE: stacked image + scrollable details
+            ═══════════════════════════════════════════════ */}
+        <div ref={mobileScrollRef} className="flex md:hidden flex-col flex-1 overflow-y-auto overscroll-contain">
+
+          {/* Image */}
+          <div className="relative aspect-[4/3] w-full overflow-hidden bg-gray-100 shrink-0">
+            <img src={img(dish.imageUrl)} alt={dish.name} className="h-full w-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
+
+            {/* Close */}
+            <button
+              onClick={onClose}
+              className="absolute top-3.5 right-3.5 flex h-8 w-8 items-center justify-center rounded-full bg-black/30 backdrop-blur-md text-white hover:bg-black/50 transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+
+            {/* Badges */}
+            <div className="absolute top-3.5 left-3.5 flex gap-1.5">
+              {dish.badge && (
+                <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-extrabold text-white ${
+                  dish.badge === "Bestseller" ? "bg-[#eaa94d]" : dish.badge === "Most Liked" ? "bg-[#3e1e0c]" : "bg-purple-500"
+                }`}>
+                  {dish.badge === "Bestseller" ? "# Bestseller" : dish.badge}
+                </span>
+              )}
+              {dish.discountLabel && (
+                <span className="flex items-center gap-1 rounded-full bg-red-500 px-2.5 py-0.5 text-[10px] font-extrabold text-white">
+                  <Tag className="h-2.5 w-2.5" />{dish.discountLabel}
+                </span>
+              )}
+            </div>
+
+            {/* Price */}
+            <div className="absolute bottom-3.5 left-4">
+              {baseDiscounted != null ? (
+                <>
+                  <span className="text-white/50 text-xs line-through block">{formatPrice(dish.price, restaurantCurrency)}</span>
+                  <p className="text-xl font-extrabold text-white">{formatPrice(baseDiscounted, restaurantCurrency)}</p>
+                </>
+              ) : (
+                <p className="text-xl font-extrabold text-white">{formatPrice(dish.price, restaurantCurrency)}</p>
+              )}
+            </div>
+          </div>
+
+          {renderBody()}
+        </div>
+
+        {/* Mobile sticky footer */}
+        <div className="md:hidden shrink-0 border-t border-gray-100 bg-white px-4 py-3">
           <motion.button
             onClick={handleAdd}
-            whileHover={{
-              scale: 1.01,
-              boxShadow: "0 12px 24px -6px rgba(255,153,51,0.35)",
-            }}
             whileTap={{ scale: 0.97 }}
-            className="relative w-full rounded-xl bg-[#eaa94d] py-3.5 text-base font-bold text-white overflow-hidden shadow-lg shadow-[#eaa94d]/20"
+            className="w-full rounded-xl bg-[#eaa94d] py-3.5 text-sm font-bold text-white shadow-md shadow-[#eaa94d]/20 flex items-center justify-center gap-2 hover:bg-[#d67620] active:scale-[0.98] transition-colors"
           >
-            <motion.div
-              className="absolute inset-0 bg-linear-to-r from-transparent via-white/15 to-transparent"
-              initial={{ x: "-100%" }}
-              animate={{ x: "200%" }}
-              transition={{
-                duration: 2.5,
-                repeat: Infinity,
-                repeatDelay: 4,
-                ease: "easeInOut",
-              }}
-            />
-            <span className="relative z-[1] flex items-center justify-center gap-2">
-              <Plus className="h-4 w-4" strokeWidth={3} />
-              Add to Cart — {formatPrice(total, restaurantCurrency)}
-            </span>
+            <Plus className="h-4 w-4" strokeWidth={3} />
+            Add to Cart — {formatPrice(total, restaurantCurrency)}
           </motion.button>
         </div>
       </motion.div>

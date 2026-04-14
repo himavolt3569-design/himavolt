@@ -43,7 +43,10 @@
       "Bash(grep -r \"\\\\.time\\\\|\\\\.time\\\\b\\\\|'time'\\\\|\\\\\\\\.time\" /d/Official_Projects/himalhub/src/app/api/restaurants --include=\"*.ts\")",
       "Bash(ls -la /d/Official_Projects/himalhub/src/lib/*.ts)",
       "Bash(cat)",
-      "Read(//tmp/**)"
+      "Read(//tmp/**)",
+      "Bash(awk -F: '$2>507 && $2<520 {print}')",
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(node:*)"
     ],
     "additionalDirectories": [
       "d:\\Official_Projects\\himalhub\\src\\app\\api\\public\\restaurants\\[slug]"
