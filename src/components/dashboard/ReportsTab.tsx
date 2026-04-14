@@ -13,11 +13,15 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Loader2,
-  Clock,
   ChevronDown,
   ChevronRight,
   Users,
   Receipt,
+  Phone,
+  Mail,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { useLiveOrders } from "@/context/LiveOrdersContext";
@@ -44,8 +48,20 @@ interface ShiftOrderSummary {
   items: { name: string; quantity: number }[];
 }
 
+interface StaffAttendanceSummary {
+  checkIn: string;
+  checkOut: string | null;
+  status: string;
+  durationMinutes: number | null;
+}
+
 interface FullTimeResult {
-  staff: { id: string; staffType: string; user: { name: string } };
+  staff: {
+    id: string;
+    staffType: string;
+    user: { name: string; email: string; phone: string | null };
+  };
+  attendance: StaffAttendanceSummary | null;
   orderCount: number;
   revenue: number;
   orders: ShiftOrderSummary[];
@@ -59,7 +75,12 @@ interface ShiftResult {
     endTime: string;
     actualEndTime: string | null;
   };
-  staff: { id: string; staffType: string; user: { name: string } };
+  staff: {
+    id: string;
+    staffType: string;
+    user: { name: string; email: string; phone: string | null };
+  };
+  attendance: StaffAttendanceSummary | null;
   orderCount: number;
   revenue: number;
   orders: ShiftOrderSummary[];
@@ -83,15 +104,69 @@ const PAYMENT_METHOD_LABELS: Record<string, string> = {
   DIRECT: "Direct Pay",
 };
 
+function formatDuration(mins: number): string {
+  if (mins < 60) return `${mins}m`;
+  return `${Math.floor(mins / 60)}h ${mins % 60}m`;
+}
+
+function AttendancePill({ attendance }: { attendance: StaffAttendanceSummary | null }) {
+  if (!attendance) {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-lg bg-gray-100 border border-gray-200 px-2.5 py-1 text-[10px] font-bold text-gray-400">
+        <AlertCircle className="h-3 w-3" />
+        No check-in
+      </span>
+    );
+  }
+
+  const checkInTime = new Date(attendance.checkIn).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  const checkOutTime = attendance.checkOut
+    ? new Date(attendance.checkOut).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : null;
+
+  return (
+    <div className="flex items-center gap-1.5 rounded-lg bg-gray-50 border border-gray-100 px-2.5 py-1">
+      <Clock className="h-3 w-3 text-gray-400 shrink-0" />
+      <span className="text-[11px] font-bold text-gray-700">{checkInTime}</span>
+      <span className="text-gray-300 text-[10px]">→</span>
+      {checkOutTime ? (
+        <>
+          <span className="text-[11px] font-bold text-gray-700">{checkOutTime}</span>
+          {attendance.durationMinutes != null && (
+            <span className="ml-0.5 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-100">
+              {formatDuration(attendance.durationMinutes)}
+            </span>
+          )}
+        </>
+      ) : (
+        <span className="flex items-center gap-1 text-[10px] font-bold text-amber-600">
+          <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
+          On shift
+        </span>
+      )}
+    </div>
+  );
+}
+
 function ShiftCard({
   id,
   label,
   labelColor,
+  labelGradient,
   staffName,
-  timeRange,
+  email,
+  phone,
+  shiftTime,
   orderCount,
   revenue,
   orders,
+  attendance,
   cur,
   expanded,
   onToggle,
@@ -99,41 +174,84 @@ function ShiftCard({
   id: string;
   label: string;
   labelColor: string;
+  labelGradient: string;
   staffName: string;
-  timeRange: string;
+  email: string;
+  phone: string | null;
+  shiftTime?: string;
   orderCount: number;
   revenue: number;
   orders: ShiftOrderSummary[];
+  attendance: StaffAttendanceSummary | null;
   cur: string;
   expanded: boolean;
   onToggle: (id: string) => void;
 }) {
+  const paidOrders = orders.filter((o) => o.payment?.status === "COMPLETED");
+  const unpaidOrders = orders.filter(
+    (o) => o.payment && o.payment.status !== "COMPLETED",
+  );
+  const paidRevenue = paidOrders.reduce(
+    (sum, o) => sum + (o.bill?.total ?? o.total),
+    0,
+  );
+
   return (
-    <div className="rounded-2xl bg-white/70 backdrop-blur-md border border-gray-100/50 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] overflow-hidden">
+    <div className="rounded-2xl bg-white border border-gray-100 shadow-[0_2px_16px_-4px_rgba(0,0,0,0.06)] overflow-hidden">
+      {/* Gradient accent bar */}
+      <div className={`h-0.5 w-full ${labelGradient}`} />
+
       <button
         onClick={() => onToggle(id)}
-        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-gray-50/50 transition-colors"
+        className="w-full text-left px-5 py-4 hover:bg-gray-50/40 transition-colors"
       >
-        <div className="flex items-center gap-3 flex-wrap">
-          <span className={`rounded-lg px-2 py-0.5 text-[10px] font-bold ${labelColor}`}>
-            {label}
-          </span>
-          <span className="text-sm font-extrabold text-gray-800">{staffName}</span>
-          <span className="flex items-center gap-1 text-xs text-gray-400 font-medium">
-            <Clock className="h-3 w-3" />
-            {timeRange}
-          </span>
-        </div>
-        <div className="flex items-center gap-4 shrink-0">
-          <div className="text-right">
-            <p className="text-xs text-gray-400 font-medium">{orderCount} order{orderCount !== 1 ? "s" : ""}</p>
-            <p className="text-sm font-black text-[#3e1e0c]">{formatPrice(revenue, cur)}</p>
+        <div className="flex items-start justify-between gap-4">
+          {/* Left: identity */}
+          <div className="flex-1 min-w-0 space-y-1.5">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className={`rounded-md px-2 py-0.5 text-[10px] font-bold ${labelColor}`}>
+                {label}
+              </span>
+              <span className="text-[15px] font-extrabold text-gray-900 leading-tight">
+                {staffName}
+              </span>
+            </div>
+            {shiftTime && (
+              <p className="text-[11px] font-semibold text-gray-400">{shiftTime}</p>
+            )}
+            <div className="flex items-center gap-3 flex-wrap">
+              {email && (
+                <span className="flex items-center gap-1 text-[11px] text-gray-400 font-medium">
+                  <Mail className="h-3 w-3 shrink-0" />
+                  {email}
+                </span>
+              )}
+              {phone && (
+                <span className="flex items-center gap-1 text-[11px] text-gray-400 font-medium">
+                  <Phone className="h-3 w-3 shrink-0" />
+                  {phone}
+                </span>
+              )}
+            </div>
           </div>
-          {expanded ? (
-            <ChevronDown className="h-4 w-4 text-gray-400" />
-          ) : (
-            <ChevronRight className="h-4 w-4 text-gray-400" />
-          )}
+
+          {/* Right: attendance + financials */}
+          <div className="flex flex-col items-end gap-2 shrink-0">
+            <AttendancePill attendance={attendance} />
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] text-gray-400 font-medium">
+                {orderCount} order{orderCount !== 1 ? "s" : ""}
+              </span>
+              <span className="text-[13px] font-black text-[#3e1e0c]">
+                {formatPrice(revenue, cur)}
+              </span>
+              {expanded ? (
+                <ChevronDown className="h-3.5 w-3.5 text-gray-400" />
+              ) : (
+                <ChevronRight className="h-3.5 w-3.5 text-gray-400" />
+              )}
+            </div>
+          </div>
         </div>
       </button>
 
@@ -146,38 +264,67 @@ function ShiftCard({
             transition={{ duration: 0.15 }}
             className="overflow-hidden"
           >
-            <div className="border-t border-gray-100 px-5 py-3 space-y-2">
-              {orders.map((o) => (
-                <div
-                  key={o.id}
-                  className="flex items-center justify-between text-xs py-1.5 border-b border-gray-50 last:border-0"
-                >
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-bold text-gray-700">#{o.orderNo}</span>
-                    <span className="text-gray-400">
-                      {new Date(o.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                    </span>
-                    <span className="text-gray-400">{o.items.length} item{o.items.length !== 1 ? "s" : ""}</span>
-                    {o.payment && (
-                      <span className={`rounded px-1.5 py-0.5 font-bold ${
-                        o.payment.status === "COMPLETED"
-                          ? "bg-emerald-50 text-emerald-700"
-                          : "bg-orange-50 text-orange-600"
-                      }`}>
-                        {PAYMENT_METHOD_LABELS[o.payment.method] ?? o.payment.method}
-                        {" · "}
-                        {o.payment.status === "COMPLETED" ? "Paid" : "Unpaid"}
-                      </span>
-                    )}
-                  </div>
-                  <span className="font-extrabold text-gray-800 ml-2">
-                    {formatPrice(o.bill?.total ?? o.total, cur)}
+            <div className="border-t border-gray-100">
+              {/* Paid / unpaid breakdown header */}
+              <div className="flex items-center gap-6 px-5 py-2.5 bg-gray-50/60 border-b border-gray-100">
+                <div className="flex items-center gap-1.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                  <span className="text-[11px] font-bold text-gray-500">
+                    Paid: {paidOrders.length} &middot; {formatPrice(paidRevenue, cur)}
                   </span>
                 </div>
-              ))}
+                {unpaidOrders.length > 0 && (
+                  <div className="flex items-center gap-1.5">
+                    <span className="h-1.5 w-1.5 rounded-full bg-orange-400" />
+                    <span className="text-[11px] font-bold text-gray-500">
+                      Unpaid: {unpaidOrders.length}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Order rows */}
+              <div className="px-5 py-3 space-y-2">
+                {orders.map((o) => (
+                  <div
+                    key={o.id}
+                    className="flex items-center justify-between text-xs py-1.5 border-b border-gray-50 last:border-0"
+                  >
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-bold text-gray-700">#{o.orderNo}</span>
+                      <span className="text-gray-400">
+                        {new Date(o.createdAt).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                      <span className="text-gray-400">
+                        {o.items.length} item{o.items.length !== 1 ? "s" : ""}
+                      </span>
+                      {o.payment && (
+                        <span
+                          className={`rounded px-1.5 py-0.5 font-bold ${
+                            o.payment.status === "COMPLETED"
+                              ? "bg-emerald-50 text-emerald-700"
+                              : "bg-orange-50 text-orange-600"
+                          }`}
+                        >
+                          {PAYMENT_METHOD_LABELS[o.payment.method] ?? o.payment.method}
+                          {" · "}
+                          {o.payment.status === "COMPLETED" ? "Paid" : "Unpaid"}
+                        </span>
+                      )}
+                    </div>
+                    <span className="font-extrabold text-gray-800 ml-2">
+                      {formatPrice(o.bill?.total ?? o.total, cur)}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
           </motion.div>
         )}
+
         {expanded && orders.length === 0 && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
@@ -203,7 +350,9 @@ export default function ReportsTab() {
 
   const [data, setData] = useState<FinancialData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [shiftDate, setShiftDate] = useState<string>(new Date().toISOString().slice(0, 10));
+  const [shiftDate, setShiftDate] = useState<string>(
+    new Date().toISOString().slice(0, 10),
+  );
   const [shiftReport, setShiftReport] = useState<ShiftReportData | null>(null);
   const [shiftLoading, setShiftLoading] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -246,13 +395,28 @@ export default function ReportsTab() {
   const monthRevenue = data?.monthRevenue ?? 0;
   const totalInventoryCost = data?.totalInventoryCost ?? 0;
   const estimatedProfit = data?.estimatedProfit ?? 0;
-  const liveCount = orders.filter(o => o.status !== "DELIVERED" && o.status !== "CANCELLED").length;
-  const profitMargin = totalRevenue > 0 ? ((estimatedProfit / totalRevenue) * 100).toFixed(1) : "0";
+  const liveCount = orders.filter(
+    (o) => o.status !== "DELIVERED" && o.status !== "CANCELLED",
+  ).length;
+  const profitMargin =
+    totalRevenue > 0 ? ((estimatedProfit / totalRevenue) * 100).toFixed(1) : "0";
+
+  // Shift report totals
+  const shiftTotalPaidOrders =
+    shiftReport
+      ? [
+          ...shiftReport.fullTimeStaff.flatMap((f) => f.orders),
+          ...shiftReport.shifts.flatMap((s) => s.orders),
+          ...shiftReport.unassigned.orders,
+        ].filter((o) => o.payment?.status === "COMPLETED").length
+      : 0;
 
   return (
     <div className="max-w-5xl space-y-8 pb-12">
       <div>
-        <h2 className="text-2xl font-extrabold tracking-tight text-gray-900">Financial Reports</h2>
+        <h2 className="text-2xl font-extrabold tracking-tight text-gray-900">
+          Financial Reports
+        </h2>
         <p className="text-sm font-medium text-gray-500 mt-1.5">
           Revenue, costs &amp; profit for{" "}
           <strong className="text-gray-900">{selectedRestaurant?.name}</strong>
@@ -270,7 +434,9 @@ export default function ReportsTab() {
             <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 shadow-sm border border-emerald-100/50">
               <TrendingUp className="h-5 w-5" />
             </span>
-            <span className="text-[13px] font-bold tracking-wide text-gray-500 uppercase">Total Revenue</span>
+            <span className="text-[13px] font-bold tracking-wide text-gray-500 uppercase">
+              Total Revenue
+            </span>
           </div>
           <p className="text-3xl font-black text-gray-900 leading-none tracking-tight">
             {formatPrice(totalRevenue, cur)}
@@ -291,7 +457,9 @@ export default function ReportsTab() {
             <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-orange-600 shadow-sm border border-orange-100/50">
               <Package className="h-5 w-5" />
             </span>
-            <span className="text-[13px] font-bold tracking-wide text-gray-500 uppercase">Inventory Cost</span>
+            <span className="text-[13px] font-bold tracking-wide text-gray-500 uppercase">
+              Inventory Cost
+            </span>
           </div>
           <p className="text-3xl font-black text-gray-900 leading-none tracking-tight">
             {formatPrice(totalInventoryCost, cur)}
@@ -310,12 +478,14 @@ export default function ReportsTab() {
         >
           <div className="absolute top-0 right-0 -mt-4 -mr-4 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
           <div className="absolute bottom-0 left-0 -mb-4 -ml-4 h-24 w-24 rounded-full bg-white/10 blur-xl" />
-          
+
           <div className="relative flex items-center gap-3 mb-5">
             <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 text-white shadow-sm backdrop-blur-md">
               <PiggyBank className="h-5 w-5" />
             </span>
-            <span className="text-[13px] font-bold tracking-wide text-amber-50 uppercase drop-shadow-sm">Estimated Profit</span>
+            <span className="text-[13px] font-bold tracking-wide text-amber-50 uppercase drop-shadow-sm">
+              Estimated Profit
+            </span>
           </div>
           <p className="relative text-3xl font-black leading-none drop-shadow-md tracking-tight">
             {formatPrice(estimatedProfit, cur)}
@@ -328,7 +498,9 @@ export default function ReportsTab() {
       </div>
 
       <div>
-        <h3 className="text-[13px] font-bold text-gray-400 uppercase tracking-wider mb-4">Revenue Breakdown</h3>
+        <h3 className="text-[13px] font-bold text-gray-400 uppercase tracking-wider mb-4">
+          Revenue Breakdown
+        </h3>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             { label: "Today", value: formatPrice(todayRevenue, cur), icon: DollarSign, accent: "#3b82f6" },
@@ -362,15 +534,27 @@ export default function ReportsTab() {
       </div>
 
       <p className="text-[12px] font-medium text-gray-400 leading-relaxed max-w-2xl bg-gray-100/50 backdrop-blur-sm p-4 rounded-xl border border-gray-200/50">
-        <span className="font-bold text-gray-500">Note:</span> Profit is estimated by subtracting total inventory cost from lifetime revenue. This is a simplified overview for quick reference and does not account for operational expenses.
+        <span className="font-bold text-gray-500">Note:</span> Profit is estimated by
+        subtracting total inventory cost from lifetime revenue. This is a simplified
+        overview for quick reference and does not account for operational expenses.
       </p>
 
-      {/* ── Shift Report ───────────────────────────────────────────────── */}
-      <div className="space-y-4">
+      {/* ── Shift Report ─────────────────────────────────────────────────── */}
+      <div className="space-y-5">
+        {/* Header + date picker */}
         <div className="flex items-center justify-between flex-wrap gap-3">
-          <h3 className="text-[13px] font-bold text-gray-400 uppercase tracking-wider">
-            Shift Report
-          </h3>
+          <div>
+            <h3 className="text-[13px] font-bold text-gray-400 uppercase tracking-wider">
+              Shift Report
+            </h3>
+            {shiftReport && (
+              <p className="text-[11px] text-gray-400 font-medium mt-0.5">
+                {shiftReport.totalOrders} orders &middot;{" "}
+                {formatPrice(shiftReport.totalRevenue, cur)} total &middot;{" "}
+                {shiftTotalPaidOrders} paid
+              </p>
+            )}
+          </div>
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2">
               <Calendar className="h-3.5 w-3.5 text-gray-400" />
@@ -387,21 +571,30 @@ export default function ReportsTab() {
 
         {/* Full-time staff cards */}
         {shiftReport && shiftReport.fullTimeStaff.length > 0 && (
-          <div className="space-y-2">
-            <p className="text-[11px] font-bold text-indigo-500 uppercase tracking-wider flex items-center gap-1">
-              <Users className="h-3.5 w-3.5" /> Full-Time Staff
-            </p>
+          <div className="space-y-2.5">
+            <div className="flex items-center gap-2">
+              <p className="text-[11px] font-bold text-indigo-500 uppercase tracking-wider flex items-center gap-1">
+                <Users className="h-3.5 w-3.5" /> Full-Time Staff
+              </p>
+              <span className="text-[10px] font-bold text-indigo-300 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">
+                {shiftReport.fullTimeStaff.length}
+              </span>
+            </div>
             {shiftReport.fullTimeStaff.map((ft) => (
               <ShiftCard
-                key={ft.staff.id}
+                key={`ft-${ft.staff.id}`}
                 id={`ft-${ft.staff.id}`}
                 label="Full-Time"
                 labelColor="bg-indigo-100 text-indigo-700"
+                labelGradient="bg-gradient-to-r from-indigo-400 to-violet-400"
                 staffName={ft.staff.user.name}
-                timeRange="All day"
+                email={ft.staff.user.email}
+                phone={ft.staff.user.phone}
+                shiftTime="All day"
                 orderCount={ft.orderCount}
                 revenue={ft.revenue}
                 orders={ft.orders}
+                attendance={ft.attendance}
                 cur={cur}
                 expanded={expandedId === `ft-${ft.staff.id}`}
                 onToggle={(id) => setExpandedId((prev) => (prev === id ? null : id))}
@@ -412,28 +605,43 @@ export default function ReportsTab() {
 
         {/* Shift-based cards */}
         {shiftReport && shiftReport.shifts.length > 0 && (
-          <div className="space-y-2">
-            <p className="text-[11px] font-bold text-amber-500 uppercase tracking-wider flex items-center gap-1">
-              <Clock className="h-3.5 w-3.5" /> Shift-Based Staff
-            </p>
-            {shiftReport.shifts.map((sr) => (
-              <ShiftCard
-                key={sr.shift.id}
-                id={sr.shift.id}
-                label={sr.shift.label ?? "Shift"}
-                labelColor="bg-amber-100 text-amber-700"
-                staffName={sr.staff.user.name}
-                timeRange={`${sr.shift.startTime} – ${sr.shift.actualEndTime
-                  ? new Date(sr.shift.actualEndTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-                  : sr.shift.endTime}`}
-                orderCount={sr.orderCount}
-                revenue={sr.revenue}
-                orders={sr.orders}
-                cur={cur}
-                expanded={expandedId === sr.shift.id}
-                onToggle={(id) => setExpandedId((prev) => (prev === id ? null : id))}
-              />
-            ))}
+          <div className="space-y-2.5">
+            <div className="flex items-center gap-2">
+              <p className="text-[11px] font-bold text-amber-500 uppercase tracking-wider flex items-center gap-1">
+                <Clock className="h-3.5 w-3.5" /> Shift-Based Staff
+              </p>
+              <span className="text-[10px] font-bold text-amber-500 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100">
+                {shiftReport.shifts.length}
+              </span>
+            </div>
+            {shiftReport.shifts.map((sr) => {
+              const shiftEnd = sr.shift.actualEndTime
+                ? new Date(sr.shift.actualEndTime).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+                : sr.shift.endTime;
+              return (
+                <ShiftCard
+                  key={sr.shift.id}
+                  id={sr.shift.id}
+                  label={sr.shift.label ?? "Shift"}
+                  labelColor="bg-amber-100 text-amber-700"
+                  labelGradient="bg-gradient-to-r from-amber-400 to-orange-400"
+                  staffName={sr.staff.user.name}
+                  email={sr.staff.user.email}
+                  phone={sr.staff.user.phone}
+                  shiftTime={`${sr.shift.startTime} – ${shiftEnd}`}
+                  orderCount={sr.orderCount}
+                  revenue={sr.revenue}
+                  orders={sr.orders}
+                  attendance={sr.attendance}
+                  cur={cur}
+                  expanded={expandedId === sr.shift.id}
+                  onToggle={(id) => setExpandedId((prev) => (prev === id ? null : id))}
+                />
+              );
+            })}
           </div>
         )}
 
@@ -443,11 +651,15 @@ export default function ReportsTab() {
             id="unassigned"
             label="Unassigned"
             labelColor="bg-gray-100 text-gray-600"
+            labelGradient="bg-gray-200"
             staffName="No Shift Assigned"
-            timeRange="Outside shift windows"
+            email=""
+            phone={null}
+            shiftTime="Outside shift windows"
             orderCount={shiftReport.unassigned.orderCount}
             revenue={shiftReport.unassigned.revenue}
             orders={shiftReport.unassigned.orders}
+            attendance={null}
             cur={cur}
             expanded={expandedId === "unassigned"}
             onToggle={(id) => setExpandedId((prev) => (prev === id ? null : id))}
@@ -460,13 +672,23 @@ export default function ReportsTab() {
           shiftReport.shifts.length === 0 &&
           shiftReport.unassigned.orderCount === 0 && (
             <div className="rounded-2xl bg-white/70 border border-gray-100 px-4 py-10 text-center">
-              <Clock className="mx-auto h-8 w-8 text-gray-300 mb-2" />
-              <p className="text-sm font-bold text-gray-400">No orders or shifts found for this date</p>
+              <CheckCircle2 className="mx-auto h-8 w-8 text-gray-300 mb-2" />
+              <p className="text-sm font-bold text-gray-400">
+                No orders or shifts found for this date
+              </p>
               <p className="text-xs text-gray-400 mt-1">
                 Go to the Shifts tab to define shifts for your staff.
               </p>
             </div>
           )}
+
+        {/* No report loaded yet */}
+        {!shiftReport && !shiftLoading && (
+          <div className="rounded-2xl bg-white/70 border border-gray-100 px-4 py-10 text-center">
+            <Calendar className="mx-auto h-8 w-8 text-gray-300 mb-2" />
+            <p className="text-sm font-bold text-gray-400">Select a date to load the shift report</p>
+          </div>
+        )}
       </div>
     </div>
   );

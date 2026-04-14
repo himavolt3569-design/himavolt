@@ -39,7 +39,9 @@
       "Bash(xargs ls:*)",
       "Bash(mkdir -p d:/Official_Projects/himalhub/src/app/api/restaurants/[id]/display-counter)",
       "Bash(mkdir -p d:/Official_Projects/himalhub/src/app/api/public/restaurants/[slug]/display-counter)",
-      "Bash(node -e \"require\\(''jsqr''\\); console.log\\(''jsqr ok''\\)\")"
+      "Bash(node -e \"require\\(''jsqr''\\); console.log\\(''jsqr ok''\\)\")",
+      "Bash(grep -r \"\\\\.time\\\\|\\\\.time\\\\b\\\\|'time'\\\\|\\\\\\\\.time\" /d/Official_Projects/himalhub/src/app/api/restaurants --include=\"*.ts\")",
+      "Bash(ls -la /d/Official_Projects/himalhub/src/lib/*.ts)"
     ],
     "additionalDirectories": [
       "d:\\Official_Projects\\himalhub\\src\\app\\api\\public\\restaurants\\[slug]"

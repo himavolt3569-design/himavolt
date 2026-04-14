@@ -89,6 +89,7 @@ interface AttendanceLog {
   date: string;
   checkIn: string;
   checkOut: string | null;
+  status: string;
   staff: { role: string; user: { name: string } };
 }
 
@@ -546,6 +547,7 @@ function StaffDirectoryView({
 function AttendanceLogsView({ restaurantId }: { restaurantId: string }) {
   const [logs, setLogs] = useState<AttendanceLog[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dateFilter, setDateFilter] = useState<string>("");
 
   const loadLogs = useCallback(async () => {
     try {
@@ -587,9 +589,29 @@ function AttendanceLogsView({ restaurantId }: { restaurantId: string }) {
     );
   }
 
+  function calcMins(checkIn: string, checkOut: string | null): number {
+    if (!checkOut) return 0;
+    return Math.round(
+      (new Date(checkOut).getTime() - new Date(checkIn).getTime()) / 60000,
+    );
+  }
+
+  function formatDur(mins: number): string {
+    if (mins <= 0) return "—";
+    if (mins < 60) return `${mins}m`;
+    return `${Math.floor(mins / 60)}h ${mins % 60}m`;
+  }
+
+  /* Filter by selected date */
+  const filtered = dateFilter
+    ? logs.filter(
+        (l) => new Date(l.date).toISOString().slice(0, 10) === dateFilter,
+      )
+    : logs;
+
   /* Group by date */
   const grouped: Record<string, AttendanceLog[]> = {};
-  logs.forEach((log) => {
+  filtered.forEach((log) => {
     const key = new Date(log.date).toLocaleDateString(undefined, {
       weekday: "long",
       month: "short",
@@ -599,84 +621,170 @@ function AttendanceLogsView({ restaurantId }: { restaurantId: string }) {
     grouped[key].push(log);
   });
 
-  function duration(checkIn: string, checkOut: string | null) {
-    if (!checkOut) return null;
-    const mins = Math.round(
-      (new Date(checkOut).getTime() - new Date(checkIn).getTime()) / 60000,
-    );
-    if (mins < 60) return `${mins}m`;
-    return `${Math.floor(mins / 60)}h ${mins % 60}m`;
-  }
+  const presentCount = filtered.filter((l) => !l.checkOut).length;
+  const completedCount = filtered.filter((l) => !!l.checkOut).length;
 
   return (
     <div className="space-y-5">
-      {Object.entries(grouped).map(([dateLabel, dayLogs]) => (
-        <div key={dateLabel}>
-          <div className="flex items-center gap-2 mb-2.5">
-            <div className="h-px flex-1 bg-gray-100" />
-            <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400 px-2">
-              {dateLabel}
-            </span>
-            <div className="h-px flex-1 bg-gray-100" />
+      {/* Filter + summary bar */}
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-4 flex-wrap">
+          <div className="flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-2">
+            <Calendar className="h-3.5 w-3.5 text-gray-400" />
+            <input
+              type="date"
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
+              className="text-sm font-medium text-[#3e1e0c] outline-none bg-transparent"
+            />
           </div>
+          {dateFilter && (
+            <button
+              onClick={() => setDateFilter("")}
+              className="text-[11px] font-bold text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors"
+            >
+              Clear filter
+            </button>
+          )}
+        </div>
+        {filtered.length > 0 && (
+          <div className="flex items-center gap-3">
+            {presentCount > 0 && (
+              <span className="flex items-center gap-1.5 rounded-lg bg-amber-50 border border-amber-100 px-2.5 py-1 text-[11px] font-bold text-amber-600">
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
+                {presentCount} on shift
+              </span>
+            )}
+            {completedCount > 0 && (
+              <span className="flex items-center gap-1.5 rounded-lg bg-emerald-50 border border-emerald-100 px-2.5 py-1 text-[11px] font-bold text-emerald-600">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                {completedCount} completed
+              </span>
+            )}
+          </div>
+        )}
+      </div>
 
-          <div className="rounded-2xl bg-white border border-gray-100 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.04)] overflow-hidden">
-            {dayLogs.map((log, idx) => {
-              const dur = duration(log.checkIn, log.checkOut);
-              const roleKey = log.staff.role as StaffRole;
-              const meta = ROLE_META[roleKey] ?? ROLE_META.WAITER;
-              return (
-                <div
-                  key={log.id}
-                  className={`flex items-center gap-4 px-5 py-4 ${idx < dayLogs.length - 1 ? "border-b border-gray-50" : ""} hover:bg-gray-50/50 transition-colors`}
-                >
-                  <Avatar name={log.staff.user.name} gradient={meta.gradient} size="sm" />
+      {filtered.length === 0 && (
+        <div className="rounded-2xl bg-white border border-gray-100 px-4 py-10 text-center">
+          <Calendar className="mx-auto h-8 w-8 text-gray-300 mb-2" />
+          <p className="text-sm font-bold text-gray-400">No records for this date</p>
+        </div>
+      )}
 
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-gray-900 truncate">
-                      {log.staff.user.name}
-                    </p>
-                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md border ${meta.badge}`}>
-                      {meta.label}
-                    </span>
-                  </div>
+      {Object.entries(grouped).map(([dateLabel, dayLogs]) => {
+        const totalMins = dayLogs.reduce(
+          (sum, l) => sum + calcMins(l.checkIn, l.checkOut),
+          0,
+        );
+        const activeCount = dayLogs.filter((l) => !l.checkOut).length;
 
-                  <div className="flex items-center gap-1.5 text-sm font-bold text-gray-700">
-                    <Clock className="h-3.5 w-3.5 text-gray-400" />
-                    {new Date(log.checkIn).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </div>
+        return (
+          <div key={dateLabel}>
+            {/* Date header */}
+            <div className="flex items-center gap-3 mb-3">
+              <div className="h-px flex-1 bg-gray-100" />
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
+                  {dateLabel}
+                </span>
+                <span className="text-[10px] font-semibold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+                  {dayLogs.length} staff
+                </span>
+                {activeCount > 0 && (
+                  <span className="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100">
+                    {activeCount} active
+                  </span>
+                )}
+              </div>
+              <div className="h-px flex-1 bg-gray-100" />
+            </div>
 
-                  <ArrowRight className="h-3.5 w-3.5 text-gray-300" />
+            <div className="rounded-2xl bg-white border border-gray-100 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.04)] overflow-hidden">
+              {dayLogs.map((log, idx) => {
+                const mins = calcMins(log.checkIn, log.checkOut);
+                const roleKey = log.staff.role as StaffRole;
+                const meta = ROLE_META[roleKey] ?? ROLE_META.WAITER;
+                const isLate = log.status !== "PRESENT";
 
-                  {log.checkOut ? (
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-gray-700">
-                        {new Date(log.checkOut).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </span>
-                      {dur && (
-                        <span className="rounded-lg bg-emerald-50 border border-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-600">
-                          {dur}
+                return (
+                  <div
+                    key={log.id}
+                    className={`flex items-center gap-4 px-5 py-3.5 ${
+                      idx < dayLogs.length - 1 ? "border-b border-gray-50" : ""
+                    } hover:bg-gray-50/50 transition-colors`}
+                  >
+                    <Avatar
+                      name={log.staff.user.name}
+                      gradient={meta.gradient}
+                      size="sm"
+                    />
+
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-gray-900 truncate">
+                        {log.staff.user.name}
+                      </p>
+                      <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                        <span
+                          className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md border ${meta.badge}`}
+                        >
+                          {meta.label}
+                        </span>
+                        {isLate && (
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-orange-50 border border-orange-100 text-orange-500">
+                            {log.status}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Times + duration */}
+                    <div className="flex items-center gap-2 shrink-0">
+                      <div className="flex items-center gap-1.5 rounded-lg bg-gray-50 border border-gray-100 px-2.5 py-1.5">
+                        <Clock className="h-3 w-3 text-gray-400" />
+                        <span className="text-[12px] font-bold text-gray-700">
+                          {new Date(log.checkIn).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>
+                        <ArrowRight className="h-3 w-3 text-gray-300" />
+                        {log.checkOut ? (
+                          <span className="text-[12px] font-bold text-gray-700">
+                            {new Date(log.checkOut).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-1 text-[11px] font-bold text-amber-600">
+                            <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
+                            On shift
+                          </span>
+                        )}
+                      </div>
+                      {mins > 0 && (
+                        <span className="rounded-lg bg-emerald-50 border border-emerald-100 px-2 py-1 text-[10px] font-bold text-emerald-600 shrink-0">
+                          {formatDur(mins)}
                         </span>
                       )}
                     </div>
-                  ) : (
-                    <span className="flex items-center gap-1.5 rounded-lg bg-amber-50 border border-amber-100 px-2.5 py-1 text-[11px] font-bold text-amber-600">
-                      <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
-                      On shift
-                    </span>
-                  )}
-                </div>
-              );
-            })}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Day total */}
+            <div className="mt-1.5 flex items-center justify-end gap-2 px-1">
+              {totalMins > 0 && (
+                <span className="text-[10px] font-semibold text-gray-400">
+                  Team total: {formatDur(totalMins)}
+                </span>
+              )}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

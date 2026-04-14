@@ -35,6 +35,12 @@ function buildDatetime(base: Date, hhmm: string): Date {
   return d;
 }
 
+/** Duration in minutes between checkIn and checkOut */
+function durationMinutes(checkIn: Date, checkOut: Date | null): number | null {
+  if (!checkOut) return null;
+  return Math.round((checkOut.getTime() - checkIn.getTime()) / 60000);
+}
+
 // GET /api/restaurants/[id]/shifts/report?date=YYYY-MM-DD
 export async function GET(
   req: NextRequest,
@@ -53,17 +59,21 @@ export async function GET(
   const rangeEnd = new Date(rangeStart.getTime() + 24 * 60 * 60 * 1000);
 
   // Fetch all data in parallel
-  const [shifts, fullTimeStaff, orders] = await Promise.all([
+  const [shifts, fullTimeStaff, orders, attendanceLogs] = await Promise.all([
     db.shift.findMany({
       where: { restaurantId: id, date: { gte: rangeStart, lt: rangeEnd } },
       include: {
-        staff: { include: { user: { select: { name: true, email: true } } } },
+        staff: {
+          include: {
+            user: { select: { name: true, email: true, phone: true } },
+          },
+        },
       },
       orderBy: { startTime: "asc" },
     }),
     db.staffMember.findMany({
       where: { restaurantId: id, staffType: "FULL_TIME", isActive: true },
-      include: { user: { select: { name: true, email: true } } },
+      include: { user: { select: { name: true, email: true, phone: true } } },
     }),
     db.order.findMany({
       where: {
@@ -87,7 +97,24 @@ export async function GET(
       },
       orderBy: { createdAt: "asc" },
     }),
+    db.staffAttendance.findMany({
+      where: {
+        staff: { restaurantId: id },
+        date: { gte: rangeStart, lt: rangeEnd },
+      },
+      select: {
+        staffId: true,
+        checkIn: true,
+        checkOut: true,
+        status: true,
+      },
+    }),
   ]);
+
+  // Build attendance lookup map
+  const attendanceByStaffId = new Map(
+    attendanceLogs.map((a) => [a.staffId, a]),
+  );
 
   const assignedOrderIds = new Set<string>();
 
@@ -103,12 +130,27 @@ export async function GET(
       }
       return sum;
     }, 0);
+
+    const att = attendanceByStaffId.get(ftStaff.id) ?? null;
+
     return {
       staff: {
         id: ftStaff.id,
         staffType: ftStaff.staffType,
-        user: ftStaff.user,
+        user: {
+          name: ftStaff.user.name,
+          email: ftStaff.user.email,
+          phone: ftStaff.user.phone ?? null,
+        },
       },
+      attendance: att
+        ? {
+            checkIn: att.checkIn.toISOString(),
+            checkOut: att.checkOut?.toISOString() ?? null,
+            status: att.status,
+            durationMinutes: durationMinutes(att.checkIn, att.checkOut),
+          }
+        : null,
       orderCount: staffOrders.length,
       revenue: Math.round(revenue * 100) / 100,
       orders: staffOrders,
@@ -146,6 +188,8 @@ export async function GET(
       return sum;
     }, 0);
 
+    const att = attendanceByStaffId.get(shift.staff.id) ?? null;
+
     return {
       shift: {
         id: shift.id,
@@ -157,8 +201,20 @@ export async function GET(
       staff: {
         id: shift.staff.id,
         staffType: shift.staff.staffType,
-        user: shift.staff.user,
+        user: {
+          name: shift.staff.user.name,
+          email: shift.staff.user.email,
+          phone: shift.staff.user.phone ?? null,
+        },
       },
+      attendance: att
+        ? {
+            checkIn: att.checkIn.toISOString(),
+            checkOut: att.checkOut?.toISOString() ?? null,
+            status: att.status,
+            durationMinutes: durationMinutes(att.checkIn, att.checkOut),
+          }
+        : null,
       orderCount: shiftOrders.length,
       revenue: Math.round(revenue * 100) / 100,
       orders: shiftOrders,

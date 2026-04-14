@@ -245,7 +245,7 @@ export default function ManualBillingTab({
         <div><span class="lbl">Tax Invoice</span></div>
       </div>
       <div class="divider"></div>
-      <div class="row"><span style="font-size:11px;color:#555">Date: ${now.toLocaleDateString()}</span><span style="font-size:11px;color:#555">Time: ${now.toLocaleTimeString()}</span></div>
+      <div class="row"><span style="font-size:11px;color:#555">Date: ${now.toLocaleDateString()}</span></div>
       ${displayNo ? `<div class="row"><span style="font-size:11px">Bill No:</span><span style="font-size:11px;font-weight:bold">#${displayNo}</span></div>` : ""}
       <div class="row"><span style="font-size:11px">Table:</span><span style="font-size:11px;font-weight:600">${tableNo || "N/A"}</span></div>
       ${guestName.trim() ? `<div class="row"><span style="font-size:11px">Guest:</span><span style="font-size:11px;font-weight:600">${guestName.trim()}</span></div>` : ""}
@@ -304,7 +304,7 @@ export default function ManualBillingTab({
         <div style="font-size:10px;color:#555">Kitchen Order Ticket</div>
       </div>
       <div class="divider"></div>
-      <div class="row"><span>Table: <b>${tableNo || "N/A"}</b></span><span>${now.toLocaleTimeString()}</span></div>
+      <div class="row"><span>Table: <b>${tableNo || "N/A"}</b></span></div>
       ${displayNo ? `<div class="row"><span>Order: <b>#${displayNo}</b></span></div>` : ""}
       ${guestName.trim() ? `<div class="row"><span>Guest: ${guestName.trim()}</span></div>` : ""}
       <div class="divider"></div>
@@ -356,7 +356,7 @@ export default function ManualBillingTab({
         <span class="badge">Bar Order Ticket</span>
       </div>
       <div class="divider"></div>
-      <div class="row"><span class="meta">Table: <b>${tableNo || "N/A"}</b></span><span class="meta">${now.toLocaleTimeString()}</span></div>
+      <div class="row"><span class="meta">Table: <b>${tableNo || "N/A"}</b></span></div>
       ${displayNo ? `<div class="row"><span class="meta">Order: <b>#${displayNo}</b></span><span class="meta">${now.toLocaleDateString()}</span></div>` : ""}
       ${guestName.trim() ? `<div class="row"><span class="meta">Guest: ${guestName.trim()}</span></div>` : ""}
       <div class="divider"></div>
