@@ -437,7 +437,7 @@ function QRCard({
               </span>
               <span className="text-sm font-bold text-[#3e1e0c]">Table {tableNo}</span>
             </div>
-            <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold text-green-600">Active</span>
+            <span className="rounded-full bg-[#fef3dc] px-2 py-0.5 text-[10px] font-bold text-[#b25c1c]">Active</span>
           </div>
 
           <div className="relative w-[180px] h-[180px] max-w-full flex items-center justify-center rounded-xl bg-white p-4 mb-4 border border-gray-100 shadow-sm">

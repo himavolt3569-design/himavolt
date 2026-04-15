@@ -2,10 +2,11 @@
 
 import { useState, useRef, useMemo, useEffect, useCallback } from "react";
 import { Star, Clock, ChevronDown, SlidersHorizontal, Flame, Sparkles, Tag, Plus } from "lucide-react";
-import Link from "next/link";
+import { AnimatePresence } from "framer-motion";
 import { useCart } from "@/context/CartContext";
 import { formatPrice } from "@/lib/currency";
 import { useLocation } from "@/context/LocationContext";
+import FoodDetailPopup from "@/components/food/FoodDetailPopup";
 
 
 interface FoodItem {
@@ -68,18 +69,12 @@ const FILTERS = [
 ];
 
 
-function FoodCard({ item }: { item: FoodItem }) {
+function FoodCard({ item, onOpenPopup }: { item: FoodItem; onOpenPopup: (id: string) => void }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const { addItem } = useCart();
 
-  /* Card entrance handled by CSS — no GSAP fromTo needed (avoids mobile invisible bug) */
-
-  const vegDotColor = item.isVeg ? "bg-[#1E7B3E]" : "bg-[#E23744]";
-  const vegBorderColor = item.isVeg ? "border-[#1E7B3E]" : "border-[#E23744]";
-
-  const foodLink = item.restaurantSlug !== "home"
-    ? `/food/${item.id}`
-    : `/food/${item.id}`;
+  const vegDotColor = item.isVeg ? "bg-[#eaa94d]" : "bg-[#E23744]";
+  const vegBorderColor = item.isVeg ? "border-[#eaa94d]" : "border-[#E23744]";
 
   return (
     <div ref={cardRef} className="group">
@@ -88,14 +83,14 @@ function FoodCard({ item }: { item: FoodItem }) {
       <div className="flex items-start gap-4 py-4 sm:hidden">
         {/* Left: image + ADD button */}
         <div className="relative shrink-0 w-27.5">
-          <Link href={foodLink}>
+          <button onClick={() => onOpenPopup(item.id)} className="block">
             <img
               src={item.image}
               alt={item.name}
               loading="lazy"
               className="h-27.5 w-27.5 rounded-2xl object-cover shadow-sm"
             />
-          </Link>
+          </button>
           <div className="absolute -bottom-3 left-1/2 -translate-x-1/2">
             <button
               onClick={() =>
@@ -113,7 +108,7 @@ function FoodCard({ item }: { item: FoodItem }) {
           </div>
         </div>
 
-        <Link href={foodLink} className="flex-1 min-w-0">
+        <button onClick={() => onOpenPopup(item.id)} className="flex-1 min-w-0 text-left">
           {/* Veg / Non-veg indicator */}
           <div className={`mb-1.5 flex h-[18px] w-[18px] items-center justify-center rounded-sm border-2 ${vegBorderColor} bg-white`}>
             <div className={`h-2 w-2 rounded-full ${vegDotColor}`} />
@@ -126,7 +121,7 @@ function FoodCard({ item }: { item: FoodItem }) {
           {/* Rating + prep time */}
           <div className="mt-1 flex items-center gap-2">
             <span className={`inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[11px] font-bold text-white leading-none ${
-              item.rating >= 4.0 ? "bg-[#1E7B3E]" : item.rating >= 3.0 ? "bg-[#DB7C10]" : "bg-[#E23744]"
+              item.rating >= 4.0 ? "bg-[#eaa94d]" : item.rating >= 3.0 ? "bg-[#DB7C10]" : "bg-[#E23744]"
             }`}>
               {item.rating.toFixed(1)}
               <Star className="h-2.5 w-2.5 fill-white ml-0.5" />
@@ -147,16 +142,16 @@ function FoodCard({ item }: { item: FoodItem }) {
           </p>
 
           {item.offer && (
-            <div className="mt-1.5 inline-flex items-center gap-1 rounded-md bg-[#F0FAF4] border border-[#1E7B3E]/20 px-2 py-1">
-              <Tag className="h-3 w-3 text-[#1E7B3E] shrink-0" />
-              <span className="text-[11px] font-bold text-[#1E7B3E] leading-none">{item.offer}</span>
+            <div className="mt-1.5 inline-flex items-center gap-1 rounded-md bg-[#F0FAF4] border border-[#eaa94d]/20 px-2 py-1">
+              <Tag className="h-3 w-3 text-[#eaa94d] shrink-0" />
+              <span className="text-[11px] font-bold text-[#eaa94d] leading-none">{item.offer}</span>
             </div>
           )}
-        </Link>
+        </button>
       </div>
 
       {/* ── Desktop: vertical card ── */}
-      <Link href={foodLink} className="hidden sm:block">
+      <button onClick={() => onOpenPopup(item.id)} className="hidden sm:block w-full text-left">
         <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-gray-100 shadow-sm">
           <img
             src={item.image}
@@ -177,7 +172,7 @@ function FoodCard({ item }: { item: FoodItem }) {
 
           <div className="absolute bottom-2.5 right-2.5">
             <span className={`inline-flex items-center gap-0.5 rounded-md px-1.5 py-1 text-[11px] font-bold text-white leading-none shadow-lg ${
-              item.rating >= 4.0 ? "bg-[#1E7B3E]" : item.rating >= 3.0 ? "bg-[#DB7C10]" : "bg-[#E23744]"
+              item.rating >= 4.0 ? "bg-[#eaa94d]" : item.rating >= 3.0 ? "bg-[#DB7C10]" : "bg-[#E23744]"
             }`}>
               {item.rating.toFixed(1)}
               <Star className="h-2.5 w-2.5 fill-white" />
@@ -219,7 +214,7 @@ function FoodCard({ item }: { item: FoodItem }) {
           )}
           <p className="text-[15px] font-bold text-[#3e1e0c] mt-1">{formatPrice(item.price, "NPR")}</p>
         </div>
-      </Link>
+      </button>
 
     </div>
   );
@@ -237,6 +232,7 @@ export default function PopularFoods({
   const [isLive, setIsLive] = useState(false);
   const [activeFilters, setActiveFilters] = useState<Set<string>>(new Set());
   const [showAll, setShowAll] = useState(false);
+  const [popupItemId, setPopupItemId] = useState<string | null>(null);
   const sectionRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
 
@@ -374,7 +370,7 @@ export default function PopularFoods({
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-7 sm:gap-y-7 pb-4 sm:pb-0">
             {displayed.map((item, idx) => (
               <div key={item.id} className={idx !== 0 ? "sm:border-t-0 border-t border-gray-100" : ""}>
-                <FoodCard item={item} />
+                <FoodCard item={item} onOpenPopup={setPopupItemId} />
               </div>
             ))}
           </div>
@@ -396,6 +392,18 @@ export default function PopularFoods({
       <div className="mx-auto max-w-[1440px] px-4 md:px-8 lg:px-12">
         <hr className="border-gray-100" />
       </div>
+
+      <AnimatePresence>
+        {popupItemId && (
+          <FoodDetailPopup
+            itemId={popupItemId}
+            context="landing"
+            updateUrl={true}
+            onClose={() => setPopupItemId(null)}
+            onSelectRelated={(rel) => setPopupItemId(rel.id)}
+          />
+        )}
+      </AnimatePresence>
     </section>
   );
 }

@@ -386,7 +386,7 @@ export default function PaymentQRTab() {
                 <span
                   className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
                     qr.isActive
-                      ? "bg-green-100 text-green-600"
+                      ? "bg-[#fef3dc] text-[#b25c1c]"
                       : "bg-gray-100 text-gray-400"
                   }`}
                 >
@@ -411,7 +411,7 @@ export default function PaymentQRTab() {
                   className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-bold transition-all ${
                     qr.isActive
                       ? "bg-amber-50 text-amber-600 hover:bg-amber-100"
-                      : "bg-green-50 text-green-600 hover:bg-green-100"
+                      : "bg-[#fef9ef] text-[#b25c1c] hover:bg-[#fef3dc]"
                   }`}
                 >
                   {qr.isActive ? (

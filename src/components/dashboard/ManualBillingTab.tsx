@@ -405,11 +405,11 @@ export default function ManualBillingTab({
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: "spring", damping: 14 }}
             className={`flex h-24 w-24 items-center justify-center rounded-full shadow-lg ${
-              isPaid ? "bg-green-100 ring-4 ring-green-200" : "bg-orange-100 ring-4 ring-orange-200"
+              isPaid ? "bg-[#fef3dc] ring-4 ring-green-200" : "bg-orange-100 ring-4 ring-orange-200"
             }`}
           >
             {isPaid
-              ? <CheckCircle2 className="h-12 w-12 text-green-600" />
+              ? <CheckCircle2 className="h-12 w-12 text-[#b25c1c]" />
               : <Clock className="h-12 w-12 text-orange-500" />
             }
           </motion.div>
@@ -421,7 +421,7 @@ export default function ManualBillingTab({
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -6 }}
-                className={`text-2xl font-black tracking-wide ${isPaid ? "text-green-700" : "text-orange-600"}`}
+                className={`text-2xl font-black tracking-wide ${isPaid ? "text-[#b25c1c]" : "text-orange-600"}`}
               >
                 {isPaid ? "PAID" : "UNPAID"}
               </motion.h3>
@@ -441,7 +441,7 @@ export default function ManualBillingTab({
             <button
               onClick={handleMarkPaid}
               disabled={markingPaid}
-              className="w-full flex items-center justify-center gap-2 rounded-2xl bg-green-500 py-4 text-base font-bold text-white hover:bg-green-600 disabled:opacity-60 transition-all shadow-lg shadow-green-200 active:scale-[0.98]"
+              className="w-full flex items-center justify-center gap-2 rounded-2xl bg-[#eaa94d] py-4 text-base font-bold text-white hover:bg-[#eaa94d] disabled:opacity-60 transition-all shadow-lg shadow-green-200 active:scale-[0.98]"
             >
               {markingPaid
                 ? <Loader2 className="h-5 w-5 animate-spin" />
@@ -451,7 +451,7 @@ export default function ManualBillingTab({
           )}
 
           {isPaid && (
-            <div className="w-full rounded-2xl bg-green-50 border border-green-200 py-3 px-4 text-sm font-semibold text-green-700 flex items-center justify-center gap-2">
+            <div className="w-full rounded-2xl bg-[#fef9ef] border border-[#eaa94d]/30 py-3 px-4 text-sm font-semibold text-[#b25c1c] flex items-center justify-center gap-2">
               <CheckCircle2 className="h-4 w-4" /> Payment recorded
             </div>
           )}
@@ -503,8 +503,8 @@ export default function ManualBillingTab({
     /* Manual Pay (COUNTER) success */
     return (
       <div className="flex flex-col items-center justify-center py-16 gap-4">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-          <Check className="h-8 w-8 text-green-600" />
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#fef3dc]">
+          <Check className="h-8 w-8 text-[#b25c1c]" />
         </div>
         <h3 className="text-lg font-bold text-gray-800">
           {hasDrinks && hasFood ? "Order Sent to Kitchen & Bar" : hasDrinks ? "Order Sent to Bar" : "Order Sent to Kitchen"}

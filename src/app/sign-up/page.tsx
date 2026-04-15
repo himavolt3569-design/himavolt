@@ -142,8 +142,8 @@ export default function SignUpPage() {
           animate={{ opacity: 1, scale: 1 }}
           className="max-w-sm text-center"
         >
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-            <Check className="h-8 w-8 text-green-500" />
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#fef3dc]">
+            <Check className="h-8 w-8 text-[#d67620]" />
           </div>
           <h2 className="text-lg font-bold text-[#3e1e0c] mb-2">Check your email</h2>
           <p className="text-sm text-[#8e491e]/50">
@@ -408,7 +408,7 @@ export default function SignUpPage() {
                         placeholder="your_username"
                         className={`w-full rounded-xl border py-2.5 pl-10 pr-9 text-sm focus:outline-none focus:ring-2 transition-all bg-[#fdf9ef]/50 focus:bg-white ${
                           usernameStatus === "available"
-                            ? "border-green-300 focus:border-green-300 focus:ring-green-100 text-[#3e1e0c]"
+                            ? "border-[#eaa94d] focus:border-[#eaa94d] focus:ring-[#eaa94d]/20 text-[#3e1e0c]"
                             : usernameStatus === "taken" || usernameStatus === "invalid"
                             ? "border-red-300 focus:border-red-300 focus:ring-red-100 text-[#3e1e0c]"
                             : "border-[#f4d69a]/40 focus:border-[#eaa94d]/50 focus:ring-[#eaa94d]/10 text-[#3e1e0c]"
@@ -416,11 +416,11 @@ export default function SignUpPage() {
                       />
                       <div className="absolute right-3 top-1/2 -translate-y-1/2">
                         {usernameStatus === "checking" && <Loader2 className="h-4 w-4 animate-spin text-[#b25c1c]/30" />}
-                        {usernameStatus === "available" && <Check className="h-4 w-4 text-green-500" />}
+                        {usernameStatus === "available" && <Check className="h-4 w-4 text-[#d67620]" />}
                       </div>
                     </div>
                     <p className={`mt-1 text-[11px] ${
-                      usernameStatus === "available" ? "text-green-500"
+                      usernameStatus === "available" ? "text-[#d67620]"
                       : usernameStatus === "taken" ? "text-red-400"
                       : usernameStatus === "invalid" ? "text-red-400"
                       : "text-[#b25c1c]/30"

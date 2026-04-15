@@ -179,7 +179,7 @@ export default function MasterOverview({
           value={formatCurrency(stats.revenue.today)}
           sub={`${formatCurrency(stats.revenue.total)} lifetime`}
           icon={TrendingUp}
-          color="text-green-600 bg-green-50"
+          color="text-[#b25c1c] bg-[#fef9ef]"
           onClick={() => onNavigate("payments")}
         />
         <StatCard
@@ -206,7 +206,7 @@ export default function MasterOverview({
           label="Completed Payments"
           value={stats.payments.completed.toLocaleString()}
           icon={CreditCard}
-          color="text-emerald-600 bg-emerald-50"
+          color="text-[#b25c1c] bg-[#fef9ef]"
           onClick={() => onNavigate("payments")}
         />
       </div>
@@ -223,7 +223,7 @@ export default function MasterOverview({
               const pct = Math.round((count / total) * 100);
               const barColor =
                 status === "DELIVERED"
-                  ? "bg-green-500"
+                  ? "bg-[#eaa94d]"
                   : status === "CANCELLED" || status === "REJECTED"
                     ? "bg-red-400"
                     : status === "PENDING"
@@ -299,7 +299,7 @@ export default function MasterOverview({
               { label: "Manage Restaurants", icon: Store, tab: "restaurants", color: "text-saffron-flame" },
               { label: "Manage Users", icon: Users, tab: "users", color: "text-indigo-600" },
               { label: "View Chats", icon: MessageCircle, tab: "chats", color: "text-purple-600" },
-              { label: "Payment History", icon: CreditCard, tab: "payments", color: "text-green-600" },
+              { label: "Payment History", icon: CreditCard, tab: "payments", color: "text-[#b25c1c]" },
               { label: "Active Deliveries", icon: Truck, tab: "deliveries", color: "text-teal-600" },
               { label: "Audit Events", icon: Zap, tab: "audit", color: "text-pink-600" },
             ].map((action) => (

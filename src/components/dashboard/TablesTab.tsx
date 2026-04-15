@@ -38,7 +38,7 @@ const STATUS_COLOR: Record<string, string> = {
   PENDING:   "bg-orange-100 text-orange-700",
   ACCEPTED:  "bg-blue-100 text-blue-700",
   PREPARING: "bg-amber-100 text-amber-700",
-  READY:     "bg-green-100 text-green-700",
+  READY:     "bg-[#fef3dc] text-[#b25c1c]",
   DELIVERED: "bg-gray-100 text-gray-600",
 };
 
@@ -254,7 +254,7 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
           <div>
             <h2 className="text-base font-extrabold text-[#3e1e0c]">Table Management</h2>
             <p className="text-xs text-gray-400">
-              {tables.length} tables · <span className="text-emerald-600 font-semibold">{available} free</span>
+              {tables.length} tables · <span className="text-[#b25c1c] font-semibold">{available} free</span>
               {occupied > 0 && <> · <span className="text-orange-500 font-semibold">{occupied} occupied</span></>}
             </p>
           </div>
@@ -284,13 +284,13 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
 
       <div className="flex items-center gap-4 text-xs text-gray-500">
         <span className="flex items-center gap-1.5">
-          <span className="h-3 w-3 rounded-full bg-emerald-400 inline-block" />Available
+          <span className="h-3 w-3 rounded-full bg-[#eaa94d] inline-block" />Available
         </span>
         <span className="flex items-center gap-1.5">
           <span className="h-3 w-3 rounded-full bg-orange-400 inline-block" />Occupied
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="h-3 w-3 rounded-full bg-green-400 inline-block" />Paid
+          <span className="h-3 w-3 rounded-full bg-[#eaa94d] inline-block" />Paid
         </span>
       </div>
 
@@ -316,11 +316,11 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
           {tables.map((table) => {
             const isPaid = table.session?.order?.payment?.status === "COMPLETED";
             const bgClass = !table.isOccupied
-              ? "bg-emerald-50 border-emerald-200 hover:border-emerald-400"
+              ? "bg-[#fef9ef] border-[#eaa94d]/30 hover:border-[#eaa94d]"
               : isPaid
-                ? "bg-green-50 border-green-300 hover:border-green-400"
+                ? "bg-[#fef9ef] border-[#eaa94d] hover:border-[#eaa94d]"
                 : "bg-orange-50 border-orange-200 hover:border-orange-400";
-            const dotClass = !table.isOccupied ? "bg-emerald-400" : isPaid ? "bg-green-500" : "bg-orange-400";
+            const dotClass = !table.isOccupied ? "bg-[#eaa94d]" : isPaid ? "bg-[#eaa94d]" : "bg-orange-400";
 
             return (
               <motion.button
@@ -351,7 +351,7 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
                       <button
                         onClick={() => handleEdit(table.id)}
                         disabled={editSaving}
-                        className="flex-1 flex items-center justify-center rounded-lg bg-emerald-500 py-1 text-[10px] font-bold text-white"
+                        className="flex-1 flex items-center justify-center rounded-lg bg-[#eaa94d] py-1 text-[10px] font-bold text-white"
                       >
                         {editSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
                       </button>
@@ -416,7 +416,7 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
                         </div>
                       </div>
                     ) : (
-                      <p className="text-xs font-semibold text-emerald-600">Available</p>
+                      <p className="text-xs font-semibold text-[#b25c1c]">Available</p>
                     )}
 
                     <ChevronRight className="absolute bottom-3 right-3 h-3 w-3 text-gray-300" />
@@ -457,10 +457,10 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
 
               {!selected.isOccupied ? (
                 <div className="flex flex-col items-center gap-3 py-6">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100">
-                    <Utensils className="h-7 w-7 text-emerald-600" />
+                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#fef3dc]">
+                    <Utensils className="h-7 w-7 text-[#b25c1c]" />
                   </div>
-                  <p className="text-sm font-bold text-emerald-700">Table is Available</p>
+                  <p className="text-sm font-bold text-[#b25c1c]">Table is Available</p>
                   <p className="text-xs text-gray-400 text-center">
                     Customer can scan the QR code or staff can create a manual order for this table.
                   </p>
@@ -494,7 +494,7 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
                         <div className="flex items-center gap-1.5 text-[10px]">
                           <CreditCard className="h-3 w-3 text-gray-400" />
                           <span className="text-gray-500">{order.payment.method}</span>
-                          <span className={`rounded-md px-1.5 py-0.5 font-bold ${isPaid ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>
+                          <span className={`rounded-md px-1.5 py-0.5 font-bold ${isPaid ? "bg-[#fef3dc] text-[#b25c1c]" : "bg-amber-100 text-amber-700"}`}>
                             {isPaid ? "PAID" : "PENDING"}
                           </span>
                         </div>

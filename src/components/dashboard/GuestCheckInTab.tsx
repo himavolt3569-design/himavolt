@@ -332,13 +332,13 @@ export default function GuestCheckInTab() {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               className={`rounded-2xl border bg-white p-4 shadow-sm hover:shadow-md transition-all ${
-                guest.status === "CHECKED_IN" ? "border-green-200" : "border-gray-200"
+                guest.status === "CHECKED_IN" ? "border-[#eaa94d]/30" : "border-gray-200"
               }`}
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <div className={`flex h-9 w-9 items-center justify-center rounded-xl text-sm font-bold ${
-                    guest.status === "CHECKED_IN" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"
+                    guest.status === "CHECKED_IN" ? "bg-[#fef3dc] text-[#b25c1c]" : "bg-gray-100 text-gray-500"
                   }`}>
                     {guest.roomNo}
                   </div>
@@ -351,7 +351,7 @@ export default function GuestCheckInTab() {
                   </div>
                 </div>
                 <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                  guest.status === "CHECKED_IN" ? "bg-green-100 text-green-600" : "bg-gray-100 text-gray-500"
+                  guest.status === "CHECKED_IN" ? "bg-[#fef3dc] text-[#b25c1c]" : "bg-gray-100 text-gray-500"
                 }`}>
                   {guest.status === "CHECKED_IN" ? "In" : "Out"}
                 </span>

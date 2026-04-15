@@ -286,7 +286,7 @@ export default function POSOrderPanel({
           {/* Billing shortcut */}
           <button
             onClick={onSettle}
-            className="w-full flex items-center justify-center gap-2 rounded-xl border border-green-200 bg-green-50 py-2.5 text-sm font-semibold text-green-700 hover:bg-green-100 transition-colors"
+            className="w-full flex items-center justify-center gap-2 rounded-xl border border-[#eaa94d]/30 bg-[#fef9ef] py-2.5 text-sm font-semibold text-[#b25c1c] hover:bg-[#fef3dc] transition-colors"
           >
             <CreditCard className="h-4 w-4" />
             Go to Billing

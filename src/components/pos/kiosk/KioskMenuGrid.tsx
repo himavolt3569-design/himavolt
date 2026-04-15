@@ -95,7 +95,7 @@ export default function KioskMenuGrid({ items, cart, currency, onItemTap, onQuic
             <div className="p-3">
               <div className="flex items-center gap-1.5 mb-1.5">
                 {item.isVeg && (
-                  <span className="h-2 w-2 rounded-full bg-green-500 shrink-0" />
+                  <span className="h-2 w-2 rounded-full bg-[#eaa94d] shrink-0" />
                 )}
                 {item.spiceLevel > 0 && (
                   <span className="h-2 w-2 rounded-full bg-red-400 shrink-0" />

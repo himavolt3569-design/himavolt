@@ -203,7 +203,7 @@ export default function BrunchModeTab() {
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             {[
               { label: "Current Covers", value: currentCovers, icon: Users, color: "text-amber-600 bg-amber-50" },
-              { label: "Available Seats", value: availableSeats, icon: UtensilsCrossed, color: "text-green-600 bg-green-50" },
+              { label: "Available Seats", value: availableSeats, icon: UtensilsCrossed, color: "text-[#b25c1c] bg-[#fef9ef]" },
               { label: "Waitlist", value: waitlistCount, icon: ClipboardList, color: "text-orange-600 bg-orange-50" },
               { label: "Avg Spend/Cover", value: formatPrice(avgSpendPerCover, cur), icon: TrendingUp, color: "text-purple-600 bg-purple-50" },
             ].map((stat) => (
@@ -314,7 +314,7 @@ export default function BrunchModeTab() {
                           initial={{ width: 0 }}
                           animate={{ width: `${pct}%` }}
                           transition={{ duration: 0.6, ease: "easeOut" }}
-                          className={`h-2 rounded-full ${isFull ? "bg-red-400" : pct > 70 ? "bg-amber-400" : "bg-green-400"}`}
+                          className={`h-2 rounded-full ${isFull ? "bg-red-400" : pct > 70 ? "bg-amber-400" : "bg-[#eaa94d]"}`}
                         />
                       </div>
                     </div>
@@ -545,7 +545,7 @@ export default function BrunchModeTab() {
                             onChange={(e) => setEditPriceValue(Number(e.target.value))}
                             className="w-20 border border-gray-200 rounded-lg px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 focus:ring-amber-300"
                           />
-                          <button onClick={() => savePriceEdit(item.id)} className="p-1 text-green-600 hover:bg-green-50 rounded">
+                          <button onClick={() => savePriceEdit(item.id)} className="p-1 text-[#b25c1c] hover:bg-[#fef9ef] rounded">
                             <Check className="w-4 h-4" />
                           </button>
                           <button onClick={() => setEditingPrice(null)} className="p-1 text-gray-400 hover:bg-gray-100 rounded">

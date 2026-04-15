@@ -67,7 +67,7 @@ const STATUS_CONFIG: Record<
 > = {
   Inquiry: { bg: "bg-orange-50", text: "text-orange-700", border: "border-orange-200" },
   "Quote Sent": { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-200" },
-  Confirmed: { bg: "bg-green-50", text: "text-green-700", border: "border-green-200" },
+  Confirmed: { bg: "bg-[#fef9ef]", text: "text-[#b25c1c]", border: "border-[#eaa94d]/30" },
   "In Progress": { bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-200" },
   Completed: { bg: "bg-stone-50", text: "text-stone-600", border: "border-stone-200" },
 };
@@ -234,8 +234,8 @@ export default function EventCateringTab() {
             label: "Confirmed",
             value: events.filter((e) => e.status === "Confirmed").length,
             icon: FileText,
-            color: "text-green-600",
-            bg: "bg-green-50",
+            color: "text-[#b25c1c]",
+            bg: "bg-[#fef9ef]",
           },
           {
             label: "Total Guests",
@@ -248,8 +248,8 @@ export default function EventCateringTab() {
             label: "Est. Revenue",
             value: `$${events.reduce((s, e) => s + e.budget, 0).toLocaleString()}`,
             icon: DollarSign,
-            color: "text-emerald-600",
-            bg: "bg-emerald-50",
+            color: "text-[#b25c1c]",
+            bg: "bg-[#fef9ef]",
           },
         ].map((stat) => (
           <motion.div
@@ -601,11 +601,11 @@ export default function EventCateringTab() {
                     ))}
                   </div>
 
-                  <div className="flex items-center justify-between rounded-lg bg-emerald-50 px-4 py-2">
+                  <div className="flex items-center justify-between rounded-lg bg-[#fef9ef] px-4 py-2">
                     <span className="text-sm text-stone-600">
                       Price per head
                     </span>
-                    <span className="text-lg font-bold text-emerald-700">
+                    <span className="text-lg font-bold text-[#b25c1c]">
                       ${pkg.pricePerHead}
                     </span>
                   </div>

@@ -57,7 +57,7 @@ const PAYMENT_METHODS = ["All", "ESEWA", "KHALTI", "BANK", "CASH", "COUNTER", "D
 
 const STATUS_COLORS: Record<string, string> = {
   PENDING: "bg-amber-100 text-amber-700",
-  COMPLETED: "bg-green-100 text-green-700",
+  COMPLETED: "bg-[#fef3dc] text-[#b25c1c]",
   FAILED: "bg-red-100 text-red-700",
   REFUNDED: "bg-purple-100 text-purple-700",
 };

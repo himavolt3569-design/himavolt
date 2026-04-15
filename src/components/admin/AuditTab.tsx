@@ -90,10 +90,10 @@ const ACTION_ICONS: Record<string, typeof Activity> = {
 
 const ACTION_COLORS: Record<string, string> = {
   ORDER_CREATED: "text-blue-600 bg-blue-50",
-  ORDER_ACCEPTED: "text-emerald-600 bg-emerald-50",
+  ORDER_ACCEPTED: "text-[#b25c1c] bg-[#fef9ef]",
   ORDER_PREPARING: "text-amber-600 bg-amber-50",
-  ORDER_READY: "text-green-600 bg-green-50",
-  ORDER_DELIVERED: "text-green-700 bg-green-50",
+  ORDER_READY: "text-[#b25c1c] bg-[#fef9ef]",
+  ORDER_DELIVERED: "text-[#b25c1c] bg-[#fef9ef]",
   ORDER_CANCELLED: "text-red-600 bg-red-50",
   ORDER_REJECTED: "text-red-600 bg-red-50",
   MENU_ITEM_CREATED: "text-purple-600 bg-purple-50",
@@ -103,7 +103,7 @@ const ACTION_COLORS: Record<string, string> = {
   STAFF_REMOVED: "text-red-500 bg-red-50",
   STAFF_LOGIN: "text-teal-600 bg-teal-50",
   STAFF_LOGOUT: "text-gray-500 bg-gray-100",
-  PAYMENT_COMPLETED: "text-green-600 bg-green-50",
+  PAYMENT_COMPLETED: "text-[#b25c1c] bg-[#fef9ef]",
   PAYMENT_FAILED: "text-red-600 bg-red-50",
   RESTAURANT_CREATED: "text-saffron-flame bg-orange-50",
   RESTAURANT_UPDATED: "text-saffron-flame bg-orange-50",
@@ -371,7 +371,7 @@ export default function AuditTab() {
           onClick={() => setLiveEnabled((p) => !p)}
           className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-medium transition-all ${
             liveEnabled
-              ? "border-green-300 bg-green-50 text-green-700"
+              ? "border-[#eaa94d] bg-[#fef9ef] text-[#b25c1c]"
               : "border-gray-200 text-gray-500 hover:bg-gray-50"
           }`}
         >
@@ -419,10 +419,10 @@ export default function AuditTab() {
             )}
           </div>
           {liveEnabled && (
-            <div className="flex items-center gap-1.5 text-[11px] text-green-600">
+            <div className="flex items-center gap-1.5 text-[11px] text-[#b25c1c]">
               <span className="relative flex h-1.5 w-1.5">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
-                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-green-500" />
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#eaa94d] opacity-75" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#eaa94d]" />
               </span>
               Streaming
             </div>

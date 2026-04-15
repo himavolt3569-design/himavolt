@@ -26,7 +26,7 @@ const steps = [
     Icon: Bell,
     title: "Live Tracking",
     desc: "Real-time updates while we prepare and deliver your food.",
-    accent: "from-[#1E7B3E] to-[#34D399]",
+    accent: "from-[#eaa94d] to-[#34D399]",
   },
   {
     Icon: CreditCard,

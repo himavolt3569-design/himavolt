@@ -21,9 +21,11 @@ import {
   Loader2,
   ChevronRight,
   MapPin,
+  Share2,
 } from "lucide-react";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
+import { useToast } from "@/context/ToastContext";
 import { formatPrice } from "@/lib/currency";
 import RatingInput from "@/components/menu/RatingInput";
 import OfferCountdown from "@/components/menu/OfferCountdown";
@@ -98,7 +100,7 @@ function VegDot({ isVeg }: { isVeg: boolean }) {
       }`}
     >
       <span
-        className={`h-2 w-2 rounded-full ${isVeg ? "bg-green-600" : "bg-red-600"}`}
+        className={`h-2 w-2 rounded-full ${isVeg ? "bg-[#eaa94d]" : "bg-red-600"}`}
       />
     </span>
   );
@@ -181,6 +183,7 @@ export default function FoodDetailsPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const { addItem } = useCart();
+  const { showToast } = useToast();
 
   const [food, setFood] = useState<MenuItemData | null>(null);
   const [suggested, setSuggested] = useState<MenuItemData[]>([]);
@@ -247,6 +250,18 @@ export default function FoodDetailsPage() {
       return next;
     });
   }, []);
+
+  const handleShare = useCallback(async () => {
+    const url = `${window.location.origin}/food/${params.id}`;
+    try {
+      if (typeof navigator !== "undefined" && navigator.share) {
+        await navigator.share({ title: food?.name ?? "Check this dish!", url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        showToast("Link copied to clipboard!", "success");
+      }
+    } catch { /* cancelled */ }
+  }, [params.id, food, showToast]);
 
   const handleAdd = useCallback(() => {
     if (!food) return;
@@ -324,16 +339,24 @@ export default function FoodDetailsPage() {
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <button
-            onClick={() => setLiked((v) => !v)}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-black/30 backdrop-blur-md text-white hover:bg-black/50 transition-colors active:scale-90"
-          >
-            <Heart
-              className={`h-5 w-5 transition-all duration-300 ${
-                liked ? "fill-red-400 text-red-400 scale-110" : ""
-              }`}
-            />
-          </button>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={handleShare}
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-black/30 backdrop-blur-md text-white hover:bg-black/50 transition-colors active:scale-90"
+            >
+              <Share2 className="h-5 w-5" />
+            </button>
+            <button
+              onClick={() => setLiked((v) => !v)}
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-black/30 backdrop-blur-md text-white hover:bg-black/50 transition-colors active:scale-90"
+            >
+              <Heart
+                className={`h-5 w-5 transition-all duration-300 ${
+                  liked ? "fill-red-400 text-red-400 scale-110" : ""
+                }`}
+              />
+            </button>
+          </div>
         </div>
 
         {/* Hero bottom text */}
@@ -419,7 +442,7 @@ export default function FoodDetailsPage() {
                   </span>
                 )}
                 {food.hasOnionGarlic === false && (
-                  <span className="flex items-center gap-1 rounded-full border border-green-100 bg-green-50 px-2 py-0.5 text-[10px] font-bold text-green-700">
+                  <span className="flex items-center gap-1 rounded-full border border-[#eaa94d]/30 bg-[#fef9ef] px-2 py-0.5 text-[10px] font-bold text-[#b25c1c]">
                     <Leaf className="h-3 w-3" /> No Onion/Garlic
                   </span>
                 )}

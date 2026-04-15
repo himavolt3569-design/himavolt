@@ -49,7 +49,7 @@ interface TableInfo {
 const statusColors: Record<WaitlistStatus, string> = {
   Waiting: "bg-yellow-100 text-yellow-800",
   Notified: "bg-blue-100 text-blue-800",
-  Seated: "bg-emerald-100 text-emerald-800",
+  Seated: "bg-[#fef3dc] text-[#3e1e0c]",
   Left: "bg-gray-200 text-gray-600",
 };
 
@@ -221,7 +221,7 @@ export default function WaitlistTab() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-            <ListOrdered className="w-6 h-6 text-emerald-600" />
+            <ListOrdered className="w-6 h-6 text-[#b25c1c]" />
             Waitlist Management
           </h2>
           <p className="text-sm text-gray-500 mt-1">
@@ -230,7 +230,7 @@ export default function WaitlistTab() {
         </div>
         <button
           onClick={() => setShowForm(true)}
-          className="flex items-center gap-1.5 bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors"
+          className="flex items-center gap-1.5 bg-[#eaa94d] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors"
         >
           <Plus className="w-4 h-4" /> Add to Waitlist
         </button>
@@ -243,7 +243,7 @@ export default function WaitlistTab() {
             value: activeWaitlist.length,
             sub: `${totalGuests} guests`,
             icon: Users,
-            color: "text-emerald-600",
+            color: "text-[#b25c1c]",
           },
           {
             label: "Free Tables",
@@ -299,7 +299,7 @@ export default function WaitlistTab() {
               ? "bg-red-50 border border-red-200"
               : activeWaitlist.length >= 3
               ? "bg-yellow-50 border border-yellow-200"
-              : "bg-emerald-50 border border-emerald-200"
+              : "bg-[#fef9ef] border border-[#eaa94d]/30"
           }`}
         >
           <AlertCircle
@@ -308,7 +308,7 @@ export default function WaitlistTab() {
                 ? "text-red-600"
                 : activeWaitlist.length >= 3
                 ? "text-yellow-600"
-                : "text-emerald-600"
+                : "text-[#b25c1c]"
             }`}
           />
           <div>
@@ -318,7 +318,7 @@ export default function WaitlistTab() {
                   ? "text-red-800"
                   : activeWaitlist.length >= 3
                   ? "text-yellow-800"
-                  : "text-emerald-800"
+                  : "text-[#3e1e0c]"
               }`}
             >
               {activeWaitlist.length >= 5
@@ -402,11 +402,11 @@ export default function WaitlistTab() {
                     />
                   </div>
                 </div>
-                <div className="bg-emerald-50 rounded-lg p-3">
-                  <p className="text-sm text-emerald-800 font-medium">
+                <div className="bg-[#fef9ef] rounded-lg p-3">
+                  <p className="text-sm text-[#3e1e0c] font-medium">
                     Estimated Wait: ~{estimateWaitTime(formPartySize)} minutes
                   </p>
-                  <p className="text-xs text-emerald-600 mt-0.5">
+                  <p className="text-xs text-[#b25c1c] mt-0.5">
                     Based on current table availability and queue
                   </p>
                 </div>
@@ -420,7 +420,7 @@ export default function WaitlistTab() {
                   <button
                     onClick={addToWaitlist}
                     disabled={!formName.trim() || !formPhone.trim()}
-                    className="px-6 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-6 py-2 bg-[#eaa94d] text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Add to Queue
                   </button>
@@ -434,7 +434,7 @@ export default function WaitlistTab() {
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="p-5 border-b border-gray-100">
           <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-            <ListOrdered className="w-4 h-4 text-emerald-600" />
+            <ListOrdered className="w-4 h-4 text-[#b25c1c]" />
             Current Queue ({activeWaitlist.length})
           </h3>
         </div>
@@ -465,8 +465,8 @@ export default function WaitlistTab() {
                     }`}
                   >
                     <div className="flex items-center gap-4">
-                      <div className="flex-shrink-0 w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center">
-                        <span className="text-sm font-bold text-emerald-700">
+                      <div className="flex-shrink-0 w-12 h-12 rounded-full bg-[#fef3dc] flex items-center justify-center">
+                        <span className="text-sm font-bold text-[#b25c1c]">
                           {getPositionLabel(index)}
                         </span>
                       </div>
@@ -526,7 +526,7 @@ export default function WaitlistTab() {
                         )}
                         <button
                           onClick={() => seatGuest(entry.id)}
-                          className="flex items-center gap-1 px-2.5 py-1.5 bg-emerald-100 text-emerald-700 rounded-lg text-xs font-medium hover:bg-emerald-200 transition-colors"
+                          className="flex items-center gap-1 px-2.5 py-1.5 bg-[#fef3dc] text-[#b25c1c] rounded-lg text-xs font-medium hover:bg-[#fde9ba] transition-colors"
                           title="Seat guest"
                         >
                           <Armchair className="w-3.5 h-3.5" /> Seat
@@ -564,7 +564,7 @@ export default function WaitlistTab() {
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
         <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-          <Armchair className="w-4 h-4 text-emerald-600" />
+          <Armchair className="w-4 h-4 text-[#b25c1c]" />
           Table Status
         </h3>
         <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
@@ -574,7 +574,7 @@ export default function WaitlistTab() {
               className={`rounded-lg p-2 text-center ${
                 t.occupied
                   ? "bg-red-50 border border-red-200"
-                  : "bg-emerald-50 border border-emerald-200"
+                  : "bg-[#fef9ef] border border-[#eaa94d]/30"
               }`}
             >
               <p className="text-xs font-bold text-gray-700">{t.id}</p>
@@ -585,7 +585,7 @@ export default function WaitlistTab() {
                 </p>
               )}
               {!t.occupied && (
-                <p className="text-[10px] text-emerald-600 font-medium">Free</p>
+                <p className="text-[10px] text-[#b25c1c] font-medium">Free</p>
               )}
             </div>
           ))}

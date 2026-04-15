@@ -211,7 +211,7 @@ const STATUS_COLORS: Record<string, string> = {
   PENDING: "bg-orange-100 text-orange-700",
   ACCEPTED: "bg-blue-100 text-blue-700",
   PREPARING: "bg-amber-100 text-amber-700",
-  READY: "bg-green-100 text-green-700",
+  READY: "bg-[#fef3dc] text-[#b25c1c]",
   DELIVERED: "bg-gray-100 text-gray-600",
   CANCELLED: "bg-red-100 text-red-600",
   REJECTED: "bg-red-100 text-red-600",
@@ -312,7 +312,7 @@ function TokenBoard({ orders }: { orders: SSEOrder[] }) {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl bg-linear-to-br from-emerald-500 to-emerald-600 p-5 shadow-lg shadow-emerald-200/50">
+      <div className="rounded-2xl bg-linear-to-br from-[#eaa94d] to-[#d67620] p-5 shadow-lg shadow-[#eaa94d]/20">
         <div className="flex items-center gap-2 mb-4">
           <Bell className="h-5 w-5 text-white" />
           <h2 className="text-lg font-extrabold text-white">
@@ -347,11 +347,11 @@ function TokenBoard({ orders }: { orders: SSEOrder[] }) {
                     animate={{ scale: [1, 1.05, 1] }}
                     transition={{ repeat: Infinity, duration: 2 }}
                   >
-                    <p className="text-xl font-black text-emerald-600 leading-tight break-all">
+                    <p className="text-xl font-black text-[#b25c1c] leading-tight break-all">
                       #{order.orderNo.split("-").pop()}
                     </p>
                   </motion.div>
-                  <p className="text-[10px] font-bold text-emerald-700 mt-1 truncate">
+                  <p className="text-[10px] font-bold text-[#b25c1c] mt-1 truncate">
                     {order.tableNo
                       ? `Table ${order.tableNo}`
                       : order.type === "DELIVERY"
@@ -650,8 +650,8 @@ function BillingPanel({
             label="Total Revenue"
             value={formatPrice(summary.totalRevenue, currency)}
             icon={TrendingUp}
-            color="text-emerald-600"
-            bg="bg-emerald-50"
+            color="text-[#b25c1c]"
+            bg="bg-[#fef9ef]"
           />
           <SummaryCard
             label="Cash Collected"
@@ -686,7 +686,7 @@ function BillingPanel({
             {summary.totalOrders} orders today
           </span>
           <span className="flex items-center gap-1">
-            <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+            <CheckCircle2 className="h-3 w-3 text-[#d67620]" />
             {summary.paidOrders} paid
           </span>
           <span className="flex items-center gap-1">
@@ -877,7 +877,7 @@ function BillingPanel({
               className={`flex-1 flex items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-xs font-bold transition-all ${
                 isActive
                   ? t.key === "cash"
-                    ? "bg-white text-emerald-700 shadow-sm"
+                    ? "bg-white text-[#b25c1c] shadow-sm"
                     : t.key === "online"
                       ? "bg-white text-purple-700 shadow-sm"
                       : "bg-white text-[#3e1e0c] shadow-sm"
@@ -888,7 +888,7 @@ function BillingPanel({
                 className={`h-3.5 w-3.5 ${
                   isActive
                     ? t.key === "cash"
-                      ? "text-emerald-500"
+                      ? "text-[#d67620]"
                       : t.key === "online"
                         ? "text-purple-500"
                         : "text-[#3e1e0c]"
@@ -902,7 +902,7 @@ function BillingPanel({
                   className={`inline-flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[9px] font-bold ${
                     isActive
                       ? t.key === "cash"
-                        ? "bg-emerald-100 text-emerald-700"
+                        ? "bg-[#fef3dc] text-[#b25c1c]"
                         : t.key === "online"
                           ? "bg-purple-100 text-purple-700"
                           : "bg-gray-100 text-gray-700"
@@ -918,9 +918,9 @@ function BillingPanel({
       </div>
 
       {payType === "cash" && (
-        <div className="flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-100 px-4 py-2.5">
-          <Banknote className="h-4 w-4 text-emerald-600 shrink-0" />
-          <p className="text-xs text-emerald-700 font-medium">
+        <div className="flex items-center gap-2 rounded-xl bg-[#fef9ef] border border-[#eaa94d]/30 px-4 py-2.5">
+          <Banknote className="h-4 w-4 text-[#b25c1c] shrink-0" />
+          <p className="text-xs text-[#b25c1c] font-medium">
             <span className="font-bold">Cash Bills</span> — Customer pays at
             counter. Collect cash and mark as paid.
           </p>
@@ -1037,14 +1037,14 @@ function BillingPanel({
                 )}
                 {order.payment ? (
                   order.payment.method === "CASH" ? (
-                    <span className="flex items-center gap-0.5 rounded-lg bg-emerald-50 border border-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
+                    <span className="flex items-center gap-0.5 rounded-lg bg-[#fef9ef] border border-[#eaa94d]/30 px-2 py-0.5 text-[10px] font-bold text-[#b25c1c]">
                       <Banknote className="h-2.5 w-2.5" />
                       Cash
                     </span>
                   ) : order.payment.method === "DIRECT" ? (
                     <span className={`flex items-center gap-0.5 rounded-lg border px-2 py-0.5 text-[10px] font-bold ${
                       order.payment.status === "COMPLETED"
-                        ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                        ? "bg-[#fef9ef] border-[#eaa94d]/30 text-[#b25c1c]"
                         : "bg-orange-50 border-orange-200 text-orange-700"
                     }`}>
                       <Receipt className="h-2.5 w-2.5" />
@@ -1060,7 +1060,7 @@ function BillingPanel({
               </div>
               <div className="flex items-center gap-1.5">
                 {isPaid(order) ? (
-                  <span className="flex items-center gap-1 rounded-lg bg-emerald-50 px-2 py-1 text-[10px] font-bold text-emerald-700">
+                  <span className="flex items-center gap-1 rounded-lg bg-[#fef9ef] px-2 py-1 text-[10px] font-bold text-[#b25c1c]">
                     <CheckCircle2 className="h-3 w-3" />
                     PAID
                   </span>
@@ -1208,7 +1208,7 @@ function BillingPanel({
                         setCollectMethod(order.payment?.method || "CASH");
                         setShowCollect(true);
                       }}
-                      className="flex items-center gap-1 rounded-lg bg-emerald-500 px-3 py-1.5 text-[10px] font-bold text-white hover:bg-emerald-600 transition-all shadow-sm"
+                      className="flex items-center gap-1 rounded-lg bg-[#eaa94d] px-3 py-1.5 text-[10px] font-bold text-white hover:bg-[#d67620] transition-all shadow-sm"
                     >
                       <CreditCard className="h-3 w-3" />
                       Mark Paid
@@ -1316,15 +1316,15 @@ function BillingPanel({
                           onClick={() => setCollectMethod(method)}
                           className={`flex items-center gap-2 rounded-xl border-2 px-3 py-3 text-left transition-all ${
                             isSelected
-                              ? "border-emerald-400 bg-emerald-50 shadow-sm"
+                              ? "border-[#eaa94d] bg-[#fef9ef] shadow-sm"
                               : "border-gray-100 bg-white hover:border-gray-200"
                           }`}
                         >
                           <Icon
-                            className={`h-4 w-4 ${isSelected ? "text-emerald-600" : "text-gray-400"}`}
+                            className={`h-4 w-4 ${isSelected ? "text-[#b25c1c]" : "text-gray-400"}`}
                           />
                           <span
-                            className={`text-xs font-bold ${isSelected ? "text-emerald-700" : "text-gray-600"}`}
+                            className={`text-xs font-bold ${isSelected ? "text-[#b25c1c]" : "text-gray-600"}`}
                           >
                             {paymentMethodLabel(method)}
                           </span>
@@ -1345,7 +1345,7 @@ function BillingPanel({
                     value={collectTxn}
                     onChange={(e) => setCollectTxn(e.target.value)}
                     placeholder="Enter transaction ID..."
-                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 transition-all"
+                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-[#eaa94d] focus:ring-2 focus:ring-[#eaa94d]/20 transition-all"
                   />
                 </div>
               )}
@@ -1363,7 +1363,7 @@ function BillingPanel({
                 <button
                   onClick={handleCollectPayment}
                   disabled={actionLoading}
-                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-emerald-500 py-3 text-sm font-bold text-white hover:bg-emerald-600 disabled:bg-gray-300 transition-all shadow-sm"
+                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[#eaa94d] py-3 text-sm font-bold text-white hover:bg-[#d67620] disabled:bg-gray-300 transition-all shadow-sm"
                 >
                   {actionLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -1732,7 +1732,7 @@ export default function CounterPage() {
                 onClick={() => setSoundEnabled(!soundEnabled)}
                 className={`rounded-lg p-2 transition-all ${
                   soundEnabled
-                    ? "bg-emerald-50 text-emerald-600"
+                    ? "bg-[#fef9ef] text-[#b25c1c]"
                     : "bg-gray-100 text-gray-400"
                 }`}
               >
@@ -1749,7 +1749,7 @@ export default function CounterPage() {
                 disabled={attendanceLoading}
                 className={`flex items-center gap-1 rounded-lg px-2 py-1.5 text-[10px] font-bold transition-all ${
                   isPunchedIn
-                    ? "bg-green-50 text-green-700 hover:bg-green-100"
+                    ? "bg-[#fef9ef] text-[#b25c1c] hover:bg-[#fef3dc]"
                     : "bg-orange-50 text-orange-700 hover:bg-orange-100"
                 }`}
               >

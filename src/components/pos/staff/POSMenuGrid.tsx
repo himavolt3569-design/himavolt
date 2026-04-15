@@ -109,7 +109,7 @@ export default function POSMenuGrid({ items, categories, currency, onItemTap }: 
                 className="relative flex flex-col rounded-xl border border-gray-200 bg-white p-3 text-left shadow-sm hover:shadow-md hover:border-amber-300 hover:bg-amber-50/60 transition-all group"
               >
                 {item.isVeg && (
-                  <span className="absolute top-2.5 right-2.5 h-2 w-2 rounded-full bg-green-500 ring-2 ring-white" />
+                  <span className="absolute top-2.5 right-2.5 h-2 w-2 rounded-full bg-[#eaa94d] ring-2 ring-white" />
                 )}
                 <p className="text-xs font-semibold text-gray-800 line-clamp-2 leading-snug mb-2.5 pr-3 group-hover:text-amber-900 transition-colors">
                   {item.name}

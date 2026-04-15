@@ -60,7 +60,7 @@ interface SetMenu {
 }
 
 const ROOM_STATUS_CONFIG: Record<RoomStatus, { label: string; color: string; bg: string }> = {
-  available: { label: "Available", color: "text-green-600", bg: "bg-green-50" },
+  available: { label: "Available", color: "text-[#b25c1c]", bg: "bg-[#fef9ef]" },
   occupied: { label: "Occupied", color: "text-blue-600", bg: "bg-blue-50" },
   reserved: { label: "Reserved", color: "text-amber-600", bg: "bg-amber-50" },
   maintenance: { label: "Maintenance", color: "text-red-600", bg: "bg-red-50" },
@@ -69,7 +69,7 @@ const ROOM_STATUS_CONFIG: Record<RoomStatus, { label: string; color: string; bg:
 const BOOKING_STATUS_CONFIG: Record<BookingStatus, { label: string; color: string; bg: string }> = {
   pending: { label: "Pending", color: "text-amber-600", bg: "bg-amber-50" },
   confirmed: { label: "Confirmed", color: "text-blue-600", bg: "bg-blue-50" },
-  active: { label: "Active", color: "text-green-600", bg: "bg-green-50" },
+  active: { label: "Active", color: "text-[#b25c1c]", bg: "bg-[#fef9ef]" },
   completed: { label: "Completed", color: "text-gray-500", bg: "bg-gray-50" },
 };
 
@@ -133,14 +133,14 @@ export default function PrivateDiningTab() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-            <DoorOpen className="h-5 w-5 text-emerald-500" />
+            <DoorOpen className="h-5 w-5 text-[#d67620]" />
             Private Dining
           </h2>
           <p className="text-sm text-gray-500 mt-1">Manage private rooms, bookings, and set menus</p>
         </div>
         <button
           onClick={() => setShowCreateBooking(true)}
-          className="flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-400 transition-all active:scale-[0.97]"
+          className="flex items-center gap-2 rounded-xl bg-[#eaa94d] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#eaa94d] transition-all active:scale-[0.97]"
         >
           <Plus className="h-4 w-4" />
           New Booking
@@ -170,7 +170,7 @@ export default function PrivateDiningTab() {
             key={v}
             onClick={() => setActiveView(v)}
             className={`rounded-lg px-4 py-2 text-xs font-semibold capitalize transition-all ${
-              activeView === v ? "bg-emerald-100 text-emerald-700" : "bg-gray-50 text-gray-500 hover:bg-gray-100"
+              activeView === v ? "bg-[#fef3dc] text-[#b25c1c]" : "bg-gray-50 text-gray-500 hover:bg-gray-100"
             }`}
           >
             {v === "menus" ? "Set Menus" : v}
@@ -189,40 +189,40 @@ export default function PrivateDiningTab() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 mb-1">Room</label>
-                  <select value={newBooking.roomId} onChange={(e) => setNewBooking({ ...newBooking, roomId: e.target.value })} className="w-full rounded-lg bg-gray-50 px-3 py-2.5 text-sm ring-1 ring-gray-200 outline-none focus:ring-emerald-400">
+                  <select value={newBooking.roomId} onChange={(e) => setNewBooking({ ...newBooking, roomId: e.target.value })} className="w-full rounded-lg bg-gray-50 px-3 py-2.5 text-sm ring-1 ring-gray-200 outline-none focus:ring-[#eaa94d]">
                     <option value="">Select room</option>
                     {rooms.map((r) => <option key={r.id} value={r.id}>{r.name} (up to {r.capacity})</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 mb-1">Guest Name</label>
-                  <input type="text" value={newBooking.guestName} onChange={(e) => setNewBooking({ ...newBooking, guestName: e.target.value })} placeholder="Name or company" className="w-full rounded-lg bg-gray-50 px-3 py-2.5 text-sm ring-1 ring-gray-200 outline-none focus:ring-emerald-400" />
+                  <input type="text" value={newBooking.guestName} onChange={(e) => setNewBooking({ ...newBooking, guestName: e.target.value })} placeholder="Name or company" className="w-full rounded-lg bg-gray-50 px-3 py-2.5 text-sm ring-1 ring-gray-200 outline-none focus:ring-[#eaa94d]" />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 mb-1">Party Size</label>
-                  <input type="number" value={newBooking.partySize} onChange={(e) => setNewBooking({ ...newBooking, partySize: e.target.value })} placeholder="10" className="w-full rounded-lg bg-gray-50 px-3 py-2.5 text-sm ring-1 ring-gray-200 outline-none focus:ring-emerald-400" />
+                  <input type="number" value={newBooking.partySize} onChange={(e) => setNewBooking({ ...newBooking, partySize: e.target.value })} placeholder="10" className="w-full rounded-lg bg-gray-50 px-3 py-2.5 text-sm ring-1 ring-gray-200 outline-none focus:ring-[#eaa94d]" />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 mb-1">Event Type</label>
-                  <select value={newBooking.eventType} onChange={(e) => setNewBooking({ ...newBooking, eventType: e.target.value })} className="w-full rounded-lg bg-gray-50 px-3 py-2.5 text-sm ring-1 ring-gray-200 outline-none focus:ring-emerald-400">
+                  <select value={newBooking.eventType} onChange={(e) => setNewBooking({ ...newBooking, eventType: e.target.value })} className="w-full rounded-lg bg-gray-50 px-3 py-2.5 text-sm ring-1 ring-gray-200 outline-none focus:ring-[#eaa94d]">
                     {["Birthday", "Corporate", "Anniversary", "Wedding", "Other"].map((t) => <option key={t} value={t}>{t}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 mb-1">Date</label>
-                  <input type="date" value={newBooking.date} onChange={(e) => setNewBooking({ ...newBooking, date: e.target.value })} className="w-full rounded-lg bg-gray-50 px-3 py-2.5 text-sm ring-1 ring-gray-200 outline-none focus:ring-emerald-400" />
+                  <input type="date" value={newBooking.date} onChange={(e) => setNewBooking({ ...newBooking, date: e.target.value })} className="w-full rounded-lg bg-gray-50 px-3 py-2.5 text-sm ring-1 ring-gray-200 outline-none focus:ring-[#eaa94d]" />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 mb-1">Start Time</label>
-                  <input type="time" value={newBooking.startTime} onChange={(e) => setNewBooking({ ...newBooking, startTime: e.target.value })} className="w-full rounded-lg bg-gray-50 px-3 py-2.5 text-sm ring-1 ring-gray-200 outline-none focus:ring-emerald-400" />
+                  <input type="time" value={newBooking.startTime} onChange={(e) => setNewBooking({ ...newBooking, startTime: e.target.value })} className="w-full rounded-lg bg-gray-50 px-3 py-2.5 text-sm ring-1 ring-gray-200 outline-none focus:ring-[#eaa94d]" />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 mb-1">Duration (hours)</label>
-                  <input type="number" value={newBooking.duration} onChange={(e) => setNewBooking({ ...newBooking, duration: e.target.value })} className="w-full rounded-lg bg-gray-50 px-3 py-2.5 text-sm ring-1 ring-gray-200 outline-none focus:ring-emerald-400" />
+                  <input type="number" value={newBooking.duration} onChange={(e) => setNewBooking({ ...newBooking, duration: e.target.value })} className="w-full rounded-lg bg-gray-50 px-3 py-2.5 text-sm ring-1 ring-gray-200 outline-none focus:ring-[#eaa94d]" />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 mb-1">Set Menu</label>
-                  <select value={newBooking.menuType} onChange={(e) => setNewBooking({ ...newBooking, menuType: e.target.value })} className="w-full rounded-lg bg-gray-50 px-3 py-2.5 text-sm ring-1 ring-gray-200 outline-none focus:ring-emerald-400">
+                  <select value={newBooking.menuType} onChange={(e) => setNewBooking({ ...newBooking, menuType: e.target.value })} className="w-full rounded-lg bg-gray-50 px-3 py-2.5 text-sm ring-1 ring-gray-200 outline-none focus:ring-[#eaa94d]">
                     <option value="">A la carte</option>
                     {setMenus.map((m) => <option key={m.id} value={m.name}>{m.name} ({formatPrice(m.pricePerPerson, cur)}/person)</option>)}
                   </select>
@@ -230,10 +230,10 @@ export default function PrivateDiningTab() {
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1">Special Requests</label>
-                <textarea value={newBooking.specialRequests} onChange={(e) => setNewBooking({ ...newBooking, specialRequests: e.target.value })} rows={2} placeholder="Decorations, setup requirements..." className="w-full rounded-lg bg-gray-50 px-3 py-2.5 text-sm ring-1 ring-gray-200 outline-none focus:ring-emerald-400 resize-none" />
+                <textarea value={newBooking.specialRequests} onChange={(e) => setNewBooking({ ...newBooking, specialRequests: e.target.value })} rows={2} placeholder="Decorations, setup requirements..." className="w-full rounded-lg bg-gray-50 px-3 py-2.5 text-sm ring-1 ring-gray-200 outline-none focus:ring-[#eaa94d] resize-none" />
               </div>
               <div className="flex justify-end">
-                <button onClick={handleCreateBooking} disabled={!newBooking.roomId || !newBooking.guestName || !newBooking.date} className="flex items-center gap-2 rounded-lg bg-emerald-500 px-5 py-2 text-sm font-semibold text-white hover:bg-emerald-400 disabled:bg-gray-200 disabled:text-gray-400 transition-all">
+                <button onClick={handleCreateBooking} disabled={!newBooking.roomId || !newBooking.guestName || !newBooking.date} className="flex items-center gap-2 rounded-lg bg-[#eaa94d] px-5 py-2 text-sm font-semibold text-white hover:bg-[#eaa94d] disabled:bg-gray-200 disabled:text-gray-400 transition-all">
                   <Plus className="h-3.5 w-3.5" />
                   Create Booking
                 </button>
@@ -251,8 +251,8 @@ export default function PrivateDiningTab() {
             return (
               <motion.div key={booking.id} layout className="rounded-xl bg-white ring-1 ring-gray-100 p-4 shadow-sm">
                 <div className="flex items-start gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50 shrink-0">
-                    <DoorOpen className="h-5 w-5 text-emerald-500" />
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#fef9ef] shrink-0">
+                    <DoorOpen className="h-5 w-5 text-[#d67620]" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
@@ -281,14 +281,14 @@ export default function PrivateDiningTab() {
                       <button onClick={() => handleBookingStatus(booking.id, "confirmed")} className="text-xs font-semibold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition-all">Confirm</button>
                     )}
                     {booking.status === "confirmed" && (
-                      <button onClick={() => handleBookingStatus(booking.id, "active")} className="text-xs font-semibold text-green-600 bg-green-50 px-3 py-1.5 rounded-lg hover:bg-green-100 transition-all">Check In</button>
+                      <button onClick={() => handleBookingStatus(booking.id, "active")} className="text-xs font-semibold text-[#b25c1c] bg-[#fef9ef] px-3 py-1.5 rounded-lg hover:bg-[#fef3dc] transition-all">Check In</button>
                     )}
                     <button onClick={() => handleBookingStatus(booking.id, "completed")} className="text-xs font-semibold text-gray-500 bg-gray-50 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-all">Complete</button>
                   </div>
                 )}
                 {booking.status === "active" && (
                   <div className="flex gap-2 mt-3 pt-3 border-t border-gray-50">
-                    <button onClick={() => handleBookingStatus(booking.id, "completed")} className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-all">Complete & Settle</button>
+                    <button onClick={() => handleBookingStatus(booking.id, "completed")} className="text-xs font-semibold text-[#b25c1c] bg-[#fef9ef] px-3 py-1.5 rounded-lg hover:bg-[#fef3dc] transition-all">Complete & Settle</button>
                   </div>
                 )}
               </motion.div>
@@ -333,7 +333,7 @@ export default function PrivateDiningTab() {
                         <select
                           value={room.status}
                           onChange={(e) => handleRoomStatus(room.id, e.target.value as RoomStatus)}
-                          className="w-full rounded-lg bg-gray-50 px-3 py-2 text-xs ring-1 ring-gray-200 outline-none focus:ring-emerald-400"
+                          className="w-full rounded-lg bg-gray-50 px-3 py-2 text-xs ring-1 ring-gray-200 outline-none focus:ring-[#eaa94d]"
                         >
                           <option value="available">Available</option>
                           <option value="occupied">Occupied</option>
@@ -362,11 +362,11 @@ export default function PrivateDiningTab() {
                   </h3>
                   <p className="text-xs text-gray-500 mt-0.5">{menu.description}</p>
                 </div>
-                <span className="text-sm font-bold text-emerald-600">{formatPrice(menu.pricePerPerson, cur)}/person</span>
+                <span className="text-sm font-bold text-[#b25c1c]">{formatPrice(menu.pricePerPerson, cur)}/person</span>
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {menu.items.map((item) => (
-                  <span key={item} className="text-[11px] bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-lg ring-1 ring-emerald-100">
+                  <span key={item} className="text-[11px] bg-[#fef9ef] text-[#b25c1c] px-2.5 py-1 rounded-lg ring-1 ring-emerald-100">
                     {item}
                   </span>
                 ))}

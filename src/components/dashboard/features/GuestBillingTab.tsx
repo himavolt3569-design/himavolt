@@ -284,7 +284,7 @@ export default function GuestBillingTab() {
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-bold text-gray-900">Room {guest.roomNumber}</span>
                     {guest.settled && (
-                      <span className="text-[10px] font-bold bg-green-100 text-green-600 px-1.5 py-0.5 rounded">SETTLED</span>
+                      <span className="text-[10px] font-bold bg-[#fef3dc] text-[#b25c1c] px-1.5 py-0.5 rounded">SETTLED</span>
                     )}
                     {!guest.settled && nearLimit && (
                       <span className="text-[10px] font-bold bg-amber-100 text-amber-600 px-1.5 py-0.5 rounded">NEAR LIMIT</span>
@@ -349,7 +349,7 @@ export default function GuestBillingTab() {
                         <div className="flex gap-2 pt-2">
                           <button
                             onClick={() => handleSettleRoom(guest.id)}
-                            className="flex items-center gap-1.5 rounded-lg bg-green-500 px-4 py-2 text-xs font-semibold text-white hover:bg-green-400 transition-all"
+                            className="flex items-center gap-1.5 rounded-lg bg-[#eaa94d] px-4 py-2 text-xs font-semibold text-white hover:bg-[#eaa94d] transition-all"
                           >
                             <Check className="h-3 w-3" />
                             Settle & Checkout

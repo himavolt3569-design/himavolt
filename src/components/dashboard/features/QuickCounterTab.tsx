@@ -176,7 +176,7 @@ export default function QuickCounterTab() {
       case "PENDING": return "bg-orange-100 text-orange-700";
       case "ACCEPTED": return "bg-blue-100 text-blue-700";
       case "PREPARING": return "bg-amber-100 text-amber-700";
-      case "READY": return "bg-green-100 text-green-700";
+      case "READY": return "bg-[#fef3dc] text-[#b25c1c]";
       default: return "bg-gray-100 text-gray-500";
     }
   };
@@ -227,7 +227,7 @@ export default function QuickCounterTab() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
               { label: "Pending", value: pendingOrders.length, icon: Package, color: "text-orange-600 bg-orange-50" },
-              { label: "Ready for Pickup", value: readyOrders.length, icon: Bell, color: "text-green-600 bg-green-50" },
+              { label: "Ready for Pickup", value: readyOrders.length, icon: Bell, color: "text-[#b25c1c] bg-[#fef9ef]" },
               { label: "Est. Wait", value: `${estimatedWait} min`, icon: Timer, color: "text-orange-600 bg-orange-50" },
               { label: "Active Counters", value: stations.filter((s) => s.active).length, icon: Users, color: "text-blue-600 bg-blue-50" },
             ].map((stat) => (
@@ -404,7 +404,7 @@ export default function QuickCounterTab() {
                             <button
                               onClick={() => handleForwardBilling(order)}
                               disabled={busy}
-                              className="flex items-center gap-1.5 rounded-lg bg-green-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-green-700 disabled:opacity-50 transition-colors"
+                              className="flex items-center gap-1.5 rounded-lg bg-[#eaa94d] px-3 py-1.5 text-xs font-bold text-white hover:bg-green-700 disabled:opacity-50 transition-colors"
                             >
                               {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Receipt className="h-3 w-3" />}
                               Billing

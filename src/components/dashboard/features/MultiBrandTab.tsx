@@ -160,7 +160,7 @@ export default function MultiBrandTab() {
           <p className="text-xs text-gray-500">Orders Today</p>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-center">
-          <DollarSign className="w-5 h-5 text-emerald-500 mx-auto mb-1" />
+          <DollarSign className="w-5 h-5 text-[#d67620] mx-auto mb-1" />
           <p className="text-2xl font-bold text-gray-900">
             {formatPrice(totalRevenue, cur)}
           </p>
@@ -364,7 +364,7 @@ export default function MultiBrandTab() {
                   <span
                     className={`px-2 py-1 rounded-full text-[10px] font-semibold ${
                       brand.active
-                        ? "bg-emerald-100 text-emerald-700"
+                        ? "bg-[#fef3dc] text-[#b25c1c]"
                         : "bg-gray-100 text-gray-500"
                     }`}
                   >

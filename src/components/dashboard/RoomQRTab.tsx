@@ -39,7 +39,7 @@ const TYPE_COLORS: Record<string, string> = {
   STANDARD: "bg-slate-100 text-slate-700",
   DELUXE: "bg-amber-100 text-amber-700",
   SUITE: "bg-purple-100 text-purple-700",
-  DORMITORY: "bg-green-100 text-green-700",
+  DORMITORY: "bg-[#fef3dc] text-[#b25c1c]",
 };
 
 function roundRect(
@@ -183,7 +183,7 @@ function RoomQRCard({
           <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${TYPE_COLORS[room.type] || "bg-gray-100 text-gray-600"}`}>
             {room.type}
           </span>
-          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${room.isAvailable ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>
+          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${room.isAvailable ? "bg-[#fef3dc] text-[#b25c1c]" : "bg-red-100 text-red-700"}`}>
             {room.isAvailable ? "Available" : "Occupied"}
           </span>
         </div>

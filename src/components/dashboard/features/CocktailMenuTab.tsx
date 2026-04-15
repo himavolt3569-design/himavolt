@@ -185,7 +185,7 @@ export default function CocktailMenuTab() {
       case "Signature":
         return "text-purple-400 bg-purple-500/10";
       case "Mocktail":
-        return "text-emerald-400 bg-emerald-500/10";
+        return "text-emerald-400 bg-[#eaa94d]/10";
       case "Shot":
         return "text-red-400 bg-red-500/10";
       default:
@@ -512,7 +512,7 @@ export default function CocktailMenuTab() {
                         <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
                       )}
                       {cocktail.isSeasonal && (
-                        <span className="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 text-[10px] rounded-full font-medium">
+                        <span className="px-1.5 py-0.5 bg-[#eaa94d]/20 text-emerald-400 text-[10px] rounded-full font-medium">
                           Seasonal
                         </span>
                       )}
@@ -645,11 +645,11 @@ export default function CocktailMenuTab() {
           <div className="flex items-center gap-2 mb-3">
             <Leaf className="w-5 h-5 text-emerald-400" />
             <h3 className="text-white font-semibold">Mocktail Corner</h3>
-            <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 text-xs rounded-full">
+            <span className="px-2 py-0.5 bg-[#eaa94d]/20 text-emerald-400 text-xs rounded-full">
               Non-Alcoholic
             </span>
           </div>
-          <div className="bg-gradient-to-r from-emerald-500/5 to-transparent rounded-xl p-4 border border-emerald-500/20">
+          <div className="bg-gradient-to-r from-[#eaa94d]/5 to-transparent rounded-xl p-4 border border-emerald-500/20">
             <div className="flex gap-3 overflow-x-auto">
               {cocktails
                 .filter((c) => c.category === "Mocktail")

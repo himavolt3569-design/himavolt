@@ -190,7 +190,7 @@ export default function LoyaltyRewardsTab() {
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             {[
               { label: "Active Members", value: stats.activeMembers, icon: Users, color: "text-amber-600 bg-amber-50" },
-              { label: "Engagement Rate", value: `${stats.engagementRate}%`, icon: TrendingUp, color: "text-green-600 bg-green-50" },
+              { label: "Engagement Rate", value: `${stats.engagementRate}%`, icon: TrendingUp, color: "text-[#b25c1c] bg-[#fef9ef]" },
               { label: "Points Issued Today", value: stats.pointsToday.toLocaleString(), icon: Star, color: "text-orange-600 bg-orange-50" },
               { label: "Redeemed Today", value: stats.rewardsRedeemedToday, icon: Award, color: "text-purple-600 bg-purple-50" },
             ].map((stat) => (
@@ -271,9 +271,9 @@ export default function LoyaltyRewardsTab() {
                       { label: "This Week", value: stats.rewardsRedeemedWeek },
                       { label: "This Month", value: stats.rewardsRedeemedMonth },
                     ].map((s) => (
-                      <div key={s.label} className="bg-green-50 rounded-lg p-2.5 text-center">
-                        <p className="text-xs text-green-600">{s.label}</p>
-                        <p className="text-sm font-bold text-green-800">{s.value}</p>
+                      <div key={s.label} className="bg-[#fef9ef] rounded-lg p-2.5 text-center">
+                        <p className="text-xs text-[#b25c1c]">{s.label}</p>
+                        <p className="text-sm font-bold text-[#3e1e0c]">{s.value}</p>
                       </div>
                     ))}
                   </div>
@@ -401,7 +401,7 @@ export default function LoyaltyRewardsTab() {
                           onChange={(e) => setEditDesc(e.target.value)}
                           className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm flex-1 focus:outline-none focus:ring-2 focus:ring-amber-300"
                         />
-                        <button onClick={() => saveEdit(reward.id)} className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg">
+                        <button onClick={() => saveEdit(reward.id)} className="p-1.5 text-[#b25c1c] hover:bg-[#fef9ef] rounded-lg">
                           <Check className="w-4 h-4" />
                         </button>
                         <button onClick={() => setEditingReward(null)} className="p-1.5 text-gray-400 hover:bg-gray-100 rounded-lg">

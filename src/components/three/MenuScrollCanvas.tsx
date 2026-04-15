@@ -19,7 +19,7 @@ function GlowOrbs({ scrollProgress }: { scrollProgress: number }) {
         scale: 0.15 + Math.random() * 0.35,
         speed: 0.15 + Math.random() * 0.4,
         offset: Math.random() * Math.PI * 2,
-        color: ["#eaa94d", "#eaa94d", "#1E7B3E", "#6366F1", "#e58f2a"][i % 5],
+        color: ["#eaa94d", "#eaa94d", "#eaa94d", "#6366F1", "#e58f2a"][i % 5],
       })),
     [],
   );

@@ -139,7 +139,7 @@ function AttendancePill({ attendance }: { attendance: StaffAttendanceSummary | n
         <>
           <span className="text-[11px] font-bold text-gray-700">{checkOutTime}</span>
           {attendance.durationMinutes != null && (
-            <span className="ml-0.5 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-100">
+            <span className="ml-0.5 text-[10px] font-bold text-[#b25c1c] bg-[#fef9ef] px-1.5 py-0.5 rounded-md border border-[#eaa94d]/30">
               {formatDuration(attendance.durationMinutes)}
             </span>
           )}
@@ -268,7 +268,7 @@ function ShiftCard({
               {/* Paid / unpaid breakdown header */}
               <div className="flex items-center gap-6 px-5 py-2.5 bg-gray-50/60 border-b border-gray-100">
                 <div className="flex items-center gap-1.5">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#eaa94d]" />
                   <span className="text-[11px] font-bold text-gray-500">
                     Paid: {paidOrders.length} &middot; {formatPrice(paidRevenue, cur)}
                   </span>
@@ -305,7 +305,7 @@ function ShiftCard({
                         <span
                           className={`rounded px-1.5 py-0.5 font-bold ${
                             o.payment.status === "COMPLETED"
-                              ? "bg-emerald-50 text-emerald-700"
+                              ? "bg-[#fef9ef] text-[#b25c1c]"
                               : "bg-orange-50 text-orange-600"
                           }`}
                         >
@@ -431,7 +431,7 @@ export default function ReportsTab() {
           className="relative overflow-hidden rounded-3xl bg-white/70 backdrop-blur-md border border-gray-100/50 p-6 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.03)]"
         >
           <div className="flex items-center gap-3 mb-5">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 shadow-sm border border-emerald-100/50">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#fef9ef] text-[#b25c1c] shadow-sm border border-[#eaa94d]/30/50">
               <TrendingUp className="h-5 w-5" />
             </span>
             <span className="text-[13px] font-bold tracking-wide text-gray-500 uppercase">
@@ -441,7 +441,7 @@ export default function ReportsTab() {
           <p className="text-3xl font-black text-gray-900 leading-none tracking-tight">
             {formatPrice(totalRevenue, cur)}
           </p>
-          <div className="mt-4 flex items-center gap-1.5 text-xs font-bold text-emerald-600 bg-emerald-50/50 w-fit px-2 py-1 rounded-md">
+          <div className="mt-4 flex items-center gap-1.5 text-xs font-bold text-[#b25c1c] bg-[#fef9ef]/50 w-fit px-2 py-1 rounded-md">
             <ArrowUpRight className="h-3.5 w-3.5" />
             Lifetime earnings
           </div>

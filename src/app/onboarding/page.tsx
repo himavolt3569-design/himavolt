@@ -118,7 +118,7 @@ export default function OnboardingPage() {
                         <div
                           className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold transition-colors ${
                             isDone
-                              ? "bg-green-500 text-white"
+                              ? "bg-[#eaa94d] text-white"
                               : isActive
                               ? "bg-[#eaa94d] text-white"
                               : "bg-gray-200 text-gray-400"
@@ -331,8 +331,8 @@ export default function OnboardingPage() {
               transition={{ duration: 0.28 }}
               className="text-center"
             >
-              <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
-                <Building2 className="h-10 w-10 text-green-600" />
+              <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-[#fef3dc]">
+                <Building2 className="h-10 w-10 text-[#b25c1c]" />
               </div>
               <h2 className="text-xl font-bold text-[#3e1e0c] mb-2">
                 {restaurantName} is live!

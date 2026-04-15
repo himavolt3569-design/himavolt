@@ -460,7 +460,7 @@ export default function ShiftsTab() {
                     <button
                       onClick={() => handleSaveEdit(shift.id)}
                       disabled={editLoading}
-                      className="flex items-center gap-1 rounded-xl bg-emerald-500 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-600 disabled:opacity-50"
+                      className="flex items-center gap-1 rounded-xl bg-[#eaa94d] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#d67620] disabled:opacity-50"
                     >
                       {editLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
                       Save

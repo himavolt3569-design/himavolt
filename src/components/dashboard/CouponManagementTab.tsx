@@ -273,7 +273,7 @@ export default function CouponManagementTab() {
             {
               label: "Active",
               value: coupons.filter((c) => c.isActive).length,
-              color: "text-emerald-600",
+              color: "text-[#b25c1c]",
             },
             {
               label: "Inactive",
@@ -347,7 +347,7 @@ export default function CouponManagementTab() {
                       title="Copy code"
                     >
                       {copiedId === coupon.id ? (
-                        <Check className="h-3.5 w-3.5 text-emerald-500" />
+                        <Check className="h-3.5 w-3.5 text-[#d67620]" />
                       ) : (
                         <Copy className="h-3.5 w-3.5" />
                       )}
@@ -394,7 +394,7 @@ export default function CouponManagementTab() {
                     <span
                       className={`shrink-0 rounded-md px-2 py-0.5 text-[10px] font-bold ${
                         coupon.isActive
-                          ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100"
+                          ? "bg-[#fef9ef] text-[#b25c1c] ring-1 ring-emerald-100"
                           : "bg-gray-50 text-gray-500 ring-1 ring-gray-100"
                       }`}
                     >
@@ -635,7 +635,7 @@ export default function CouponManagementTab() {
                     className="cursor-pointer"
                   >
                     {form.isActive ? (
-                      <ToggleRight className="h-7 w-7 text-emerald-500" />
+                      <ToggleRight className="h-7 w-7 text-[#d67620]" />
                     ) : (
                       <ToggleLeft className="h-7 w-7 text-gray-400" />
                     )}

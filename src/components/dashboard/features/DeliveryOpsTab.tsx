@@ -42,7 +42,7 @@ const STATUS_COLORS: Record<DeliveryStatus, string> = {
   Preparing: "bg-amber-100 text-amber-700",
   "Ready for Pickup": "bg-blue-100 text-blue-700",
   "Out for Delivery": "bg-violet-100 text-violet-700",
-  Delivered: "bg-emerald-100 text-emerald-700",
+  Delivered: "bg-[#fef3dc] text-[#b25c1c]",
 };
 
 const STATUS_ICONS: Record<DeliveryStatus, React.ReactNode> = {
@@ -159,8 +159,8 @@ export default function DeliveryOpsTab() {
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-emerald-100 rounded-lg">
-                <Zap className="w-5 h-5 text-emerald-600" />
+              <div className="p-2 bg-[#fef3dc] rounded-lg">
+                <Zap className="w-5 h-5 text-[#b25c1c]" />
               </div>
               <div>
                 <p className="text-sm font-semibold text-gray-900">
@@ -176,7 +176,7 @@ export default function DeliveryOpsTab() {
               className="focus:outline-none"
             >
               {autoAccept ? (
-                <ToggleRight className="w-10 h-10 text-emerald-600" />
+                <ToggleRight className="w-10 h-10 text-[#b25c1c]" />
               ) : (
                 <ToggleLeft className="w-10 h-10 text-gray-300" />
               )}
@@ -249,7 +249,7 @@ export default function DeliveryOpsTab() {
           <p className="text-xs text-gray-500">In Progress</p>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-center">
-          <CheckCircle2 className="w-5 h-5 text-emerald-500 mx-auto mb-1" />
+          <CheckCircle2 className="w-5 h-5 text-[#d67620] mx-auto mb-1" />
           <p className="text-2xl font-bold text-gray-900">{deliveredCount}</p>
           <p className="text-xs text-gray-500">Delivered Today</p>
         </div>
@@ -286,7 +286,7 @@ export default function DeliveryOpsTab() {
                 ? "text-red-600"
                 : loadPercent > 50
                 ? "text-amber-600"
-                : "text-emerald-600"
+                : "text-[#b25c1c]"
             }`}
           >
             {loadPercent}%

@@ -64,7 +64,7 @@ interface HotelConfig {
 
 const STATUS_STYLES: Record<string, string> = {
   PENDING: "bg-amber-50 text-amber-700 ring-amber-200",
-  CONFIRMED: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+  CONFIRMED: "bg-[#fef9ef] text-[#b25c1c] ring-emerald-200",
   CHECKED_IN: "bg-blue-50 text-blue-700 ring-blue-200",
   CHECKED_OUT: "bg-gray-100 text-gray-600 ring-gray-200",
   CANCELLED: "bg-rose-50 text-rose-600 ring-rose-200",
@@ -72,7 +72,7 @@ const STATUS_STYLES: Record<string, string> = {
 
 const PAY_STATUS_STYLES: Record<string, string> = {
   UNPAID: "bg-orange-50 text-orange-600",
-  PAID: "bg-emerald-50 text-emerald-600",
+  PAID: "bg-[#fef9ef] text-[#b25c1c]",
   FAILED: "bg-rose-50 text-rose-600",
 };
 
@@ -302,13 +302,13 @@ function BookingDetailModal({
               {!booking.advancePaid && booking.status !== "CANCELLED" && (
                 <button
                   onClick={() => onStatusChange(booking.id, booking.status, true)}
-                  className="rounded-lg bg-emerald-100 px-2.5 py-1 text-[11px] font-bold text-emerald-700 hover:bg-emerald-200 transition-colors"
+                  className="rounded-lg bg-[#fef3dc] px-2.5 py-1 text-[11px] font-bold text-[#b25c1c] hover:bg-[#fde9ba] transition-colors"
                 >
                   Mark Paid
                 </button>
               )}
               {booking.advancePaid && (
-                <span className="flex items-center gap-1 text-[11px] text-emerald-600 font-semibold">
+                <span className="flex items-center gap-1 text-[11px] text-[#b25c1c] font-semibold">
                   <CheckCircle className="h-3 w-3" /> Paid
                 </span>
               )}
@@ -330,7 +330,7 @@ function BookingDetailModal({
                   <>
                     <button
                       onClick={() => { onStatusChange(booking.id, "CONFIRMED"); onClose(); }}
-                      className="rounded-xl bg-emerald-500 py-2.5 text-[12px] font-bold text-white hover:bg-emerald-400 transition-colors flex items-center justify-center gap-1.5"
+                      className="rounded-xl bg-[#eaa94d] py-2.5 text-[12px] font-bold text-white hover:bg-[#eaa94d] transition-colors flex items-center justify-center gap-1.5"
                     >
                       <Check className="h-3.5 w-3.5" /> Confirm
                     </button>

@@ -52,7 +52,7 @@ interface AdminBooking {
 
 const STATUS_COLORS: Record<string, string> = {
   PENDING:     "bg-amber-100 text-amber-700",
-  CONFIRMED:   "bg-emerald-100 text-emerald-700",
+  CONFIRMED:   "bg-[#fef3dc] text-[#b25c1c]",
   CHECKED_IN:  "bg-blue-100 text-blue-700",
   CHECKED_OUT: "bg-gray-100 text-gray-600",
   CANCELLED:   "bg-rose-100 text-rose-600",
@@ -315,8 +315,8 @@ export default function AllBookingsTab() {
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1">
-                          <CreditCard className={`h-3 w-3 ${b.advancePaid ? "text-emerald-500" : "text-orange-400"}`} />
-                          <span className={b.advancePaid ? "text-emerald-600 font-semibold" : "text-orange-600"}>
+                          <CreditCard className={`h-3 w-3 ${b.advancePaid ? "text-[#d67620]" : "text-orange-400"}`} />
+                          <span className={b.advancePaid ? "text-[#b25c1c] font-semibold" : "text-orange-600"}>
                             {b.advancePaid ? "Paid" : "Unpaid"}
                           </span>
                         </div>

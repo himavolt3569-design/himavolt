@@ -270,7 +270,7 @@ const STATUS_COLORS: Record<string, string> = {
   PENDING: "bg-orange-50 text-orange-700 border-orange-200",
   ACCEPTED: "bg-blue-50 text-blue-700 border-blue-200",
   PREPARING: "bg-amber-50 text-amber-700 border-amber-200",
-  READY: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  READY: "bg-[#fef9ef] text-[#b25c1c] border-[#eaa94d]/30",
   DELIVERED: "bg-gray-50 text-gray-500 border-gray-200",
   CANCELLED: "bg-red-50 text-red-600 border-red-200",
   REJECTED: "bg-red-50 text-red-600 border-red-200",
@@ -299,8 +299,8 @@ const ROLE_CONFIG: Record<
   WAITER: {
     label: "Waiter",
     icon: Utensils,
-    color: "text-emerald-600",
-    bg: "bg-emerald-50",
+    color: "text-[#b25c1c]",
+    bg: "bg-[#fef9ef]",
   },
   CASHIER: {
     label: "Cashier",
@@ -613,7 +613,7 @@ function OrdersTab({ restaurantId, currency }: { restaurantId: string; currency:
                 <span
                   className={`rounded-full px-1.5 py-0.5 font-bold ${
                     order.payment.status === "COMPLETED"
-                      ? "bg-green-50 text-green-600"
+                      ? "bg-[#fef9ef] text-[#b25c1c]"
                       : order.payment.status === "FAILED" || order.payment.status === "EXPIRED" || order.payment.status === "CANCELLED"
                       ? "bg-red-50 text-red-600"
                       : order.payment.status === "AWAITING_VERIFICATION"
@@ -812,7 +812,7 @@ function OrdersTab({ restaurantId, currency }: { restaurantId: string; currency:
             {order.status === "PREPARING" && (
               <button
                 onClick={() => updateStatus(order.id, "READY")}
-                className="mt-3 w-full flex items-center justify-center gap-1.5 rounded-xl bg-green-50 py-2.5 text-xs font-bold text-green-700 hover:bg-green-100 transition-all"
+                className="mt-3 w-full flex items-center justify-center gap-1.5 rounded-xl bg-[#fef9ef] py-2.5 text-xs font-bold text-[#b25c1c] hover:bg-[#fef3dc] transition-all"
               >
                 <Bell className="h-3.5 w-3.5" /> Mark Ready
               </button>
@@ -915,7 +915,7 @@ function MenuTab({ restaurantId, currency }: { restaurantId: string; currency: s
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5">
                 <span
-                  className={`inline-block h-2.5 w-2.5 rounded-full shrink-0 ${item.isVeg ? "bg-green-500" : "bg-red-500"}`}
+                  className={`inline-block h-2.5 w-2.5 rounded-full shrink-0 ${item.isVeg ? "bg-[#eaa94d]" : "bg-red-500"}`}
                 />
                 <h4 className="text-sm font-bold text-[#3e1e0c] truncate">
                   {item.name}
@@ -934,7 +934,7 @@ function MenuTab({ restaurantId, currency }: { restaurantId: string; currency: s
               onClick={() => toggleAvailability(item.id, item.isAvailable)}
               className={`flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[10px] font-bold transition-all ${
                 item.isAvailable
-                  ? "bg-green-50 text-green-700 hover:bg-green-100"
+                  ? "bg-[#fef9ef] text-[#b25c1c] hover:bg-[#fef3dc]"
                   : "bg-red-50 text-red-600 hover:bg-red-100"
               }`}
             >
@@ -1187,10 +1187,10 @@ function ChatTab({
           </span>
           <span className="ml-auto flex items-center gap-1">
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400" />
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#eaa94d] opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#eaa94d]" />
             </span>
-            <span className="text-[10px] text-green-600 font-bold">Live</span>
+            <span className="text-[10px] text-[#b25c1c] font-bold">Live</span>
           </span>
         </div>
         <div
@@ -1880,7 +1880,7 @@ export default function KitchenPage() {
                 disabled={attendanceLoading}
                 className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-bold transition-all ${
                   isPunchedIn
-                    ? "bg-green-50 text-green-700 hover:bg-green-100"
+                    ? "bg-[#fef9ef] text-[#b25c1c] hover:bg-[#fef3dc]"
                     : "bg-orange-50 text-orange-700 hover:bg-orange-100"
                 }`}
               >
@@ -1987,7 +1987,7 @@ export default function KitchenPage() {
                     </p>
                   )}
                   {pinChangeStatus === "success" && (
-                    <p className="text-xs text-green-600 font-medium flex items-center gap-1">
+                    <p className="text-xs text-[#b25c1c] font-medium flex items-center gap-1">
                       <Check className="h-3 w-3" /> PIN updated successfully
                     </p>
                   )}
@@ -2025,8 +2025,8 @@ export default function KitchenPage() {
             if (!hasFOH || !hasBOH) return null;
             return (
               <div className="flex gap-4 pt-2 text-[10px] font-black uppercase tracking-widest">
-                <span className="flex items-center gap-1 text-emerald-600">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 inline-block" />
+                <span className="flex items-center gap-1 text-[#b25c1c]">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#eaa94d] inline-block" />
                   Front of House
                 </span>
                 <span className="text-gray-300">·</span>
@@ -2073,7 +2073,7 @@ export default function KitchenPage() {
                       isActive
                         ? "text-white"
                         : showGroups && group === "foh"
-                          ? "text-emerald-600 hover:bg-emerald-50"
+                          ? "text-[#b25c1c] hover:bg-[#fef9ef]"
                           : showGroups && group === "boh"
                             ? "text-orange-600 hover:bg-orange-50"
                             : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
@@ -2084,7 +2084,7 @@ export default function KitchenPage() {
                         layoutId="kitchen-tab-pill"
                         className={`absolute inset-0 rounded-xl shadow-md ${
                           showGroups && group === "foh"
-                            ? "bg-emerald-600 shadow-emerald-600/20"
+                            ? "bg-[#eaa94d] shadow-emerald-600/20"
                             : showGroups && group === "boh"
                               ? "bg-orange-600 shadow-orange-600/20"
                               : "bg-brand-400 shadow-brand-400/20"

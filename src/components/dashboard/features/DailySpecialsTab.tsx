@@ -75,7 +75,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 const BADGE_STYLES: Record<string, string> = {
-  Fresh: "bg-green-100 text-green-700",
+  Fresh: "bg-[#fef3dc] text-[#b25c1c]",
   Limited: "bg-amber-100 text-amber-700",
   New: "bg-blue-100 text-blue-700",
   Popular: "bg-purple-100 text-purple-700",
@@ -339,7 +339,7 @@ export default function DailySpecialsTab() {
                     onClick={() => toggleSoldOut(special.id)}
                     className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-colors ${
                       special.soldOut
-                        ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+                        ? "bg-[#fef3dc] text-[#b25c1c] hover:bg-[#fde9ba]"
                         : "bg-red-100 text-red-700 hover:bg-red-200"
                     }`}
                   >
@@ -440,7 +440,7 @@ export default function DailySpecialsTab() {
                           <span
                             className={`text-xs font-medium ${
                               (h.quantitySold / h.quantityBaked) * 100 >= 90
-                                ? "text-emerald-600"
+                                ? "text-[#b25c1c]"
                                 : "text-amber-600"
                             }`}
                           >

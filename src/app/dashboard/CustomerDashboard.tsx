@@ -160,8 +160,8 @@ const STATUS_META: Record<string, { label: string; color: string; bg: string; ic
   PENDING:   { label: "Pending",   color: "text-amber-700",   bg: "bg-amber-50",   icon: Clock },
   ACCEPTED:  { label: "Accepted",  color: "text-blue-700",    bg: "bg-blue-50",    icon: CheckCircle },
   PREPARING: { label: "Preparing", color: "text-violet-700",  bg: "bg-violet-50",  icon: ChefHat },
-  READY:     { label: "Ready",     color: "text-emerald-700", bg: "bg-emerald-50", icon: Package },
-  DELIVERED: { label: "Delivered", color: "text-green-700",   bg: "bg-green-50",   icon: Truck },
+  READY:     { label: "Ready",     color: "text-[#b25c1c]", bg: "bg-[#fef9ef]", icon: Package },
+  DELIVERED: { label: "Delivered", color: "text-[#b25c1c]",   bg: "bg-[#fef9ef]",   icon: Truck },
   CANCELLED: { label: "Cancelled", color: "text-red-700",     bg: "bg-red-50",     icon: XCircle },
   REJECTED:  { label: "Rejected",  color: "text-red-700",     bg: "bg-red-50",     icon: XCircle },
 };
@@ -537,7 +537,7 @@ function AttendanceButton() {
             transition={{ type: "spring", stiffness: 400, damping: 20 }}
             className={`relative w-full h-full rounded-2xl flex flex-col items-center justify-center gap-0.5 transition-colors select-none ${
               checked
-                ? "bg-emerald-50 border-2 border-emerald-200 cursor-default"
+                ? "bg-[#fef9ef] border-2 border-[#eaa94d]/30 cursor-default"
                 : "bg-[#eaa94d] active:bg-[#d4922a] shadow-md shadow-[#eaa94d]/30"
             }`}
           >
@@ -546,11 +546,11 @@ function AttendanceButton() {
               transition={{ duration: 0.5 }}
             >
               {checked
-                ? <Check className="h-6 w-6 text-emerald-500" strokeWidth={2.5} />
+                ? <Check className="h-6 w-6 text-[#d67620]" strokeWidth={2.5} />
                 : <Zap className="h-6 w-6 text-white" strokeWidth={2} fill="white" />
               }
             </motion.div>
-            <span className={`text-[10px] font-bold leading-none ${checked ? "text-emerald-500" : "text-white"}`}>
+            <span className={`text-[10px] font-bold leading-none ${checked ? "text-[#d67620]" : "text-white"}`}>
               {checked ? "Done!" : "Check In"}
             </span>
           </motion.button>
@@ -786,7 +786,7 @@ function StatTile({
 }) {
   const colors = {
     blue:    { bg: "bg-blue-50",    text: "text-blue-600"    },
-    emerald: { bg: "bg-emerald-50", text: "text-emerald-600" },
+    emerald: { bg: "bg-[#fef9ef]", text: "text-[#b25c1c]" },
     amber:   { bg: "bg-[#eaa94d]/8", text: "text-[#eaa94d]" },
   }[color];
 
@@ -1120,7 +1120,7 @@ function OrderCard({
                   </div>
                 ) : null}
                 {order.bill?.discount ? (
-                  <div className="flex justify-between text-xs text-green-600">
+                  <div className="flex justify-between text-xs text-[#b25c1c]">
                     <span>Discount</span><span>-{formatPrice(order.bill.discount, currency)}</span>
                   </div>
                 ) : null}
@@ -1138,7 +1138,7 @@ function OrderCard({
                   {order.type.replace("_", " ")}
                 </span>
                 {order.payment && (
-                  <span className={`inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] font-medium ${order.payment.status === "COMPLETED" ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>
+                  <span className={`inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] font-medium ${order.payment.status === "COMPLETED" ? "bg-[#fef9ef] text-[#b25c1c]" : "bg-amber-50 text-amber-700"}`}>
                     <CreditCard className="h-3 w-3" />{order.payment.method}
                   </span>
                 )}
@@ -1178,7 +1178,7 @@ function OrderCard({
 
 const BOOKING_STATUS_META: Record<string, { label: string; color: string; bg: string }> = {
   PENDING:    { label: "Awaiting Confirmation", color: "text-amber-700",   bg: "bg-amber-50" },
-  CONFIRMED:  { label: "Confirmed",             color: "text-emerald-700", bg: "bg-emerald-50" },
+  CONFIRMED:  { label: "Confirmed",             color: "text-[#b25c1c]", bg: "bg-[#fef9ef]" },
   CHECKED_IN: { label: "Checked In",            color: "text-blue-700",    bg: "bg-blue-50" },
   CHECKED_OUT:{ label: "Checked Out",           color: "text-gray-600",    bg: "bg-gray-100" },
   CANCELLED:  { label: "Cancelled",             color: "text-red-700",     bg: "bg-red-50" },
@@ -1216,7 +1216,7 @@ function HotelStayCard({ booking }: { booking: HotelBooking }) {
           <span className="text-sm font-bold text-[#eaa94d]">Rs.{booking.totalPrice.toLocaleString()}</span>
         </div>
         <div className="flex items-center justify-between text-[11px]">
-          <span className={`flex items-center gap-1 font-medium ${booking.advancePaid ? "text-emerald-600" : "text-orange-500"}`}>
+          <span className={`flex items-center gap-1 font-medium ${booking.advancePaid ? "text-[#b25c1c]" : "text-orange-500"}`}>
             <CreditCard className="h-3 w-3" />
             Advance {booking.advancePaid ? "Paid" : `Due · Rs.${booking.advanceAmount.toLocaleString()}`}
           </span>
@@ -1570,11 +1570,11 @@ function AccountTab({
               <p className="text-lg font-extrabold text-blue-700">{stats.totalOrders}</p>
               <p className="text-[10px] text-blue-500 font-medium">Total Orders</p>
             </div>
-            <div className="rounded-xl bg-emerald-50 p-3">
-              <p className="text-lg font-extrabold text-emerald-700">
+            <div className="rounded-xl bg-[#fef9ef] p-3">
+              <p className="text-lg font-extrabold text-[#b25c1c]">
                 Rs.{Math.round(stats.totalSpent).toLocaleString("en-IN")}
               </p>
-              <p className="text-[10px] text-emerald-500 font-medium">Total Spent</p>
+              <p className="text-[10px] text-[#d67620] font-medium">Total Spent</p>
             </div>
             <div className="rounded-xl bg-[#eaa94d]/8 p-3">
               <p className="text-lg font-extrabold text-[#eaa94d]">{stats.ratingsGiven}</p>
@@ -1694,7 +1694,7 @@ function UsernameEditor() {
             onChange={(e) => handleChange(e.target.value)}
             placeholder="your_username"
             className={`w-full rounded-xl border py-2.5 pl-9 pr-3 text-sm focus:outline-none focus:ring-1 transition-colors ${
-              status === "available" ? "border-green-400 focus:ring-green-200"
+              status === "available" ? "border-[#eaa94d] focus:ring-[#eaa94d]/20"
               : status === "taken" || status === "invalid" ? "border-red-400 focus:ring-red-200"
               : "border-gray-200 focus:border-[#eaa94d]/30 focus:ring-[#eaa94d]/30"
             }`}
@@ -1703,7 +1703,7 @@ function UsernameEditor() {
             <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-gray-400" />
           )}
           {status === "available" && (
-            <Check className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-green-500" />
+            <Check className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#d67620]" />
           )}
         </div>
         {username !== currentUsername && (status === "available" || status === "saving") && (
@@ -1717,13 +1717,13 @@ function UsernameEditor() {
           </button>
         )}
         {status === "saved" && (
-          <div className="shrink-0 flex items-center gap-1 rounded-xl bg-green-50 px-3 py-2 text-xs font-bold text-green-600">
+          <div className="shrink-0 flex items-center gap-1 rounded-xl bg-[#fef9ef] px-3 py-2 text-xs font-bold text-[#b25c1c]">
             <BadgeCheck className="h-3.5 w-3.5" /> Saved
           </div>
         )}
       </div>
       <p className={`mt-1.5 text-[11px] ${
-        status === "available" ? "text-green-600"
+        status === "available" ? "text-[#b25c1c]"
         : status === "taken" ? "text-red-500"
         : status === "invalid" ? "text-red-500"
         : "text-gray-400"

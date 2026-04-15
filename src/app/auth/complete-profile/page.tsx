@@ -225,7 +225,7 @@ export default function CompleteProfilePage() {
                     placeholder="your_username"
                     className={`w-full rounded-xl border px-4 py-2.5 pl-9 text-sm focus:outline-none focus:ring-1 transition-colors ${
                       usernameStatus === "available"
-                        ? "border-green-400 focus:border-green-400 focus:ring-green-200"
+                        ? "border-[#eaa94d] focus:border-[#eaa94d] focus:ring-[#eaa94d]/20"
                         : usernameStatus === "taken" || usernameStatus === "invalid"
                         ? "border-red-400 focus:border-red-400 focus:ring-red-200"
                         : "border-gray-200 focus:border-[#eaa94d]/30 focus:ring-[#eaa94d]/30"
@@ -233,11 +233,11 @@ export default function CompleteProfilePage() {
                   />
                   <div className="absolute right-3 top-1/2 -translate-y-1/2">
                     {usernameStatus === "checking" && <Loader2 className="h-4 w-4 animate-spin text-gray-400" />}
-                    {usernameStatus === "available" && <Check className="h-4 w-4 text-green-500" />}
+                    {usernameStatus === "available" && <Check className="h-4 w-4 text-[#d67620]" />}
                   </div>
                 </div>
                 <p className={`mt-1 text-[11px] ${
-                  usernameStatus === "available" ? "text-green-600"
+                  usernameStatus === "available" ? "text-[#b25c1c]"
                   : usernameStatus === "taken" ? "text-red-500"
                   : usernameStatus === "invalid" ? "text-red-500"
                   : "text-gray-400"

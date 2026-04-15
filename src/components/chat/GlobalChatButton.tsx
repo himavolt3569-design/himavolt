@@ -391,7 +391,7 @@ export default function GlobalChatButton({
                             </div>
                             <span className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-bold ${
                               room.order.status === "PREPARING" ? "bg-amber-100 text-amber-700" :
-                              room.order.status === "READY" ? "bg-green-100 text-green-700" :
+                              room.order.status === "READY" ? "bg-[#fef3dc] text-[#b25c1c]" :
                               "bg-gray-100 text-gray-500"
                             }`}>
                               {room.order.status}

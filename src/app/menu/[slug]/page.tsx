@@ -65,6 +65,7 @@ import { useOrder } from "@/context/OrderContext";
 import { apiFetch } from "@/lib/api-client";
 import gsap from "gsap";
 import Link from "next/link";
+import FoodDetailPopup, { type PopupMenuItem } from "@/components/food/FoodDetailPopup";
 import OrderStatus from "@/components/shared/OrderStatus";
 import CartSidebar from "@/components/cart/CartSidebar";
 import CheckoutSheet from "@/components/checkout/CheckoutSheet";
@@ -269,7 +270,7 @@ function WifiBadge({ name, password }: { name: string; password: string | null }
                       onClick={copy}
                       className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
                     >
-                      {copied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
+                      {copied ? <Check className="h-3.5 w-3.5 text-[#d67620]" /> : <Copy className="h-3.5 w-3.5" />}
                     </button>
                   </div>
                 </div>
@@ -364,7 +365,7 @@ function PaymentQRBadge({ paymentQRs }: { paymentQRs?: { id: string; label: stri
 function VegIcon() {
   return (
     <span className="flex h-4 w-4 items-center justify-center rounded-sm border border-green-600">
-      <span className="h-2 w-2 rounded-full bg-green-600" />
+      <span className="h-2 w-2 rounded-full bg-[#eaa94d]" />
     </span>
   );
 }
@@ -377,588 +378,47 @@ function NonVegIcon() {
   );
 }
 
-function SizeSelector({
-  sizes,
-  selected,
-  onSelect,
-}: {
-  sizes: MenuItemSize[];
-  selected: number;
-  onSelect: (i: number) => void;
-}) {
-  return (
-    <div className="flex gap-2">
-      {sizes.map((s, i) => (
-        <motion.button
-          key={s.id}
-          onClick={() => onSelect(i)}
-          whileTap={{ scale: 0.92 }}
-          animate={selected === i ? { scale: 1 } : { scale: 1 }}
-          transition={{ type: "spring", stiffness: 400, damping: 15 }}
-          className={`relative rounded-full px-4 py-2 text-xs font-bold transition-colors ${
-            selected === i
-              ? "bg-[#eaa94d] text-white shadow-lg shadow-[#eaa94d]/25"
-              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-          }`}
-        >
-          {selected === i && (
-            <motion.div
-              layoutId="size-pill"
-              className="absolute inset-0 rounded-full bg-[#eaa94d]"
-              transition={{ type: "spring", stiffness: 500, damping: 28 }}
-            />
-          )}
-          <span className="relative z-[1]">{s.grams}</span>
-        </motion.button>
-      ))}
-    </div>
-  );
+function dishToPopupItem(dish: MenuItem, restaurant: Restaurant): PopupMenuItem {
+  return {
+    id: dish.id,
+    name: dish.name,
+    description: dish.description,
+    price: dish.price,
+    imageUrl: dish.imageUrl,
+    rating: dish.rating,
+    prepTime: dish.prepTime,
+    isVeg: dish.isVeg,
+    hasEgg: dish.hasEgg,
+    hasOnionGarlic: dish.hasOnionGarlic,
+    isAvailable: dish.isAvailable,
+    badge: dish.badge,
+    tags: dish.tags,
+    discount: dish.discount,
+    discountLabel: dish.discountLabel,
+    isFeatured: dish.isFeatured,
+    offerExpiresAt: dish.offerExpiresAt,
+    offerStartedAt: dish.offerStartedAt,
+    calories: dish.calories,
+    allergens: dish.allergens,
+    spiceLevel: dish.spiceLevel,
+    isDrink: dish.isDrink,
+    drinkCategory: dish.drinkCategory,
+    restaurantId: restaurant.id,
+    restaurant: {
+      id: restaurant.id,
+      name: restaurant.name,
+      slug: restaurant.slug,
+      phone: restaurant.phone,
+      address: restaurant.address,
+      imageUrl: restaurant.imageUrl,
+      currency: restaurant.currency,
+    },
+    category: dish.category ?? { name: "", slug: "" },
+    sizes: dish.sizes,
+    addOns: dish.addOns,
+  };
 }
 
-function DishDetailModal({
-  dish,
-  restaurantId,
-  restaurantSlug,
-  restaurantCurrency,
-  allItems,
-  onClose,
-  onSelectDish,
-  surgeMultiplier = 1,
-}: {
-  dish: MenuItem;
-  restaurantId: string;
-  restaurantSlug: string;
-  restaurantCurrency: string;
-  allItems: MenuItem[];
-  onClose: () => void;
-  onSelectDish: (item: MenuItem) => void;
-  surgeMultiplier?: number;
-}) {
-  const { addItem, getItemQty } = useCart();
-  const { showToast } = useToast();
-  const [qty, setQty] = useState(1);
-  const [sizeIdx, setSizeIdx] = useState(0);
-  const [selectedAddOns, setSelectedAddOns] = useState<Set<string>>(new Set());
-  const mobileScrollRef = useRef<HTMLDivElement>(null);
-  const desktopScrollRef = useRef<HTMLDivElement>(null);
-
-  const sizeAdd = dish.sizes.length > 0 ? dish.sizes[sizeIdx].priceAdd : 0;
-  const addOnTotal = dish.addOns
-    .filter((a) => selectedAddOns.has(a.id))
-    .reduce((s, a) => s + a.price, 0);
-  const unitPrice = Math.round((dish.price + sizeAdd + addOnTotal) * surgeMultiplier);
-  const total = unitPrice * qty;
-  const baseDiscounted = dish.discount > 0
-    ? Math.round(dish.price * (1 - dish.discount / 100))
-    : null;
-
-  useEffect(() => {
-    setQty(1);
-    setSizeIdx(0);
-    setSelectedAddOns(new Set());
-    mobileScrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
-    desktopScrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
-  }, [dish.id]);
-
-  useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, [onClose]);
-
-  const toggleAddOn = (id: string) => {
-    setSelectedAddOns((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
-
-  const handleAdd = () => {
-    for (let i = 0; i < qty; i++) {
-      addItem(
-        { id: dish.id, name: dish.name, price: unitPrice, image: img(dish.imageUrl) },
-        restaurantId, restaurantSlug, restaurantCurrency,
-      );
-    }
-    showToast(`${dish.name} added to cart!`);
-  };
-
-  const cartQty = getItemQty(dish.id);
-
-  // Suggested: prioritise same category, fill from others by rating
-  const suggested = allItems
-    .filter((i) => i.id !== dish.id && i.isAvailable)
-    .sort((a, b) => {
-      const aSame = a.categoryId === dish.categoryId ? 1 : 0;
-      const bSame = b.categoryId === dish.categoryId ? 1 : 0;
-      if (bSame !== aSame) return bSame - aSame;
-      return b.rating - a.rating;
-    })
-    .slice(0, 8);
-
-  const spiceLevel = dish.spiceLevel ?? 0;
-  const spiceLabel = ["", "Mild", "Medium", "Hot", "Extra Hot"][spiceLevel] ?? "";
-  const spiceColor = [
-    "",
-    "text-yellow-700 bg-yellow-50 border-yellow-100",
-    "text-orange-600 bg-orange-50 border-orange-100",
-    "text-red-600 bg-red-50 border-red-100",
-    "text-red-700 bg-red-100 border-red-200",
-  ][spiceLevel] ?? "";
-
-  /* ─── shared inner content (used by both mobile and desktop right-col) ─── */
-  const renderBody = () => (
-      <div className="p-5 sm:p-6 space-y-5">
-
-        {/* ── Name + dietary row ── */}
-        <div>
-          <div className="flex flex-wrap items-center gap-1.5 mb-2">
-            {dish.isVeg ? <VegIcon /> : <NonVegIcon />}
-            {dish.hasEgg && (
-              <span className="flex items-center gap-1 rounded-full bg-amber-50 border border-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">
-                <Egg className="h-3 w-3" /> Contains Egg
-              </span>
-            )}
-            {!dish.hasOnionGarlic && (
-              <span className="flex items-center gap-1 rounded-full bg-green-50 border border-green-100 px-2 py-0.5 text-[10px] font-bold text-green-700">
-                <Leaf className="h-3 w-3" /> No Onion/Garlic
-              </span>
-            )}
-            {dish.isFeatured && (
-              <span className="flex items-center gap-0.5 rounded-full bg-[#eaa94d]/10 px-2 py-0.5 text-[10px] font-bold text-[#eaa94d]">
-                <Star className="h-3 w-3 fill-[#eaa94d]" /> Featured
-              </span>
-            )}
-            {cartQty > 0 && (
-              <span className="rounded-full bg-[#3e1e0c] px-2 py-0.5 text-[10px] font-bold text-white">
-                {cartQty} in cart
-              </span>
-            )}
-          </div>
-          <h2 className="text-xl font-extrabold text-[#111111] leading-tight">{dish.name}</h2>
-          <p className="text-[11px] text-gray-400 mt-0.5 font-medium">{dish.category?.name}</p>
-          <p className="mt-2 text-sm text-gray-500 leading-relaxed">{dish.description}</p>
-        </div>
-
-        {/* ── Stats chips ── */}
-        <div className="flex flex-wrap gap-2">
-          {dish.rating > 0 && (
-            <span className="flex items-center gap-1.5 rounded-full border border-amber-100 bg-amber-50 px-3 py-1.5 text-[11px] font-bold text-amber-700">
-              <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-              {dish.rating.toFixed(1)} rating
-            </span>
-          )}
-          <span className="flex items-center gap-1.5 rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5 text-[11px] font-bold text-gray-600">
-            <Clock className="h-3.5 w-3.5" />
-            {dish.prepTime}
-          </span>
-          {dish.calories != null && (
-            <span className="flex items-center gap-1.5 rounded-full border border-orange-100 bg-orange-50 px-3 py-1.5 text-[11px] font-bold text-orange-600">
-              <Flame className="h-3.5 w-3.5" />
-              {dish.calories} kcal
-            </span>
-          )}
-          {spiceLevel > 0 && (
-            <span className={`flex items-center gap-1 rounded-full border px-3 py-1.5 text-[11px] font-bold ${spiceColor}`}>
-              {"🌶️".repeat(spiceLevel)} {spiceLabel}
-            </span>
-          )}
-          {dish.isDrink && dish.drinkCategory && (
-            <span className="flex items-center gap-1.5 rounded-full border border-blue-100 bg-blue-50 px-3 py-1.5 text-[11px] font-bold text-blue-600">
-              <Wine className="h-3.5 w-3.5" />
-              {dish.drinkCategory}
-            </span>
-          )}
-          {dish.lowStock && !dish.outOfStock && (
-            <span className="flex items-center gap-1.5 rounded-full border border-red-100 bg-red-50 px-3 py-1.5 text-[11px] font-bold text-red-600">
-              Few left
-            </span>
-          )}
-        </div>
-
-        {/* ── Allergens ── */}
-        {dish.allergens.length > 0 && (
-          <div>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Allergens</p>
-            <div className="flex flex-wrap gap-1.5">
-              {dish.allergens.map((a) => (
-                <span key={a} className="flex items-center gap-1 rounded-full bg-red-50 border border-red-100 px-2.5 py-1 text-[11px] font-bold text-red-600">
-                  ⚠ {a}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ── Offer banner ── */}
-        {(dish.offerExpiresAt || dish.discount > 0) && (
-          <div className="flex items-center gap-3 rounded-xl bg-[#fef3dc] border border-[#eaa94d]/25 p-3.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#eaa94d]/20 shrink-0">
-              <Tag className="h-4 w-4 text-[#d67620]" />
-            </div>
-            <div className="min-w-0 flex-1">
-              {dish.discountLabel && (
-                <p className="text-sm font-extrabold text-[#b25c1c]">{dish.discountLabel}</p>
-              )}
-              {dish.discount > 0 && (
-                <p className="text-[11px] text-[#8e491e]/70 mt-0.5">{dish.discount}% off the base price</p>
-              )}
-              <OfferCountdown expiresAt={dish.offerExpiresAt} compact />
-            </div>
-          </div>
-        )}
-
-        <div className="h-px bg-gray-100" />
-
-        {/* ── Size selector ── */}
-        {dish.sizes.length > 0 && (
-          <div>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">Choose Size</p>
-            <div className="grid grid-cols-3 gap-2">
-              {dish.sizes.map((s, i) => (
-                <button
-                  key={s.id}
-                  onClick={() => setSizeIdx(i)}
-                  className={`flex flex-col items-center gap-0.5 rounded-xl border-2 py-3 px-2 transition-all ${
-                    sizeIdx === i
-                      ? "border-[#eaa94d] bg-[#fef3dc]"
-                      : "border-gray-200 hover:border-gray-300 bg-white"
-                  }`}
-                >
-                  <span className={`text-sm font-extrabold leading-tight ${sizeIdx === i ? "text-[#b25c1c]" : "text-[#111111]"}`}>
-                    {s.grams}
-                  </span>
-                  <span className="text-[10px] text-gray-400 font-medium">{s.label}</span>
-                  {s.priceAdd > 0 && (
-                    <span className={`text-[10px] font-bold mt-0.5 ${sizeIdx === i ? "text-[#d67620]" : "text-gray-400"}`}>
-                      +{formatPrice(s.priceAdd, restaurantCurrency)}
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ── Add-ons ── */}
-        {dish.addOns.length > 0 && (
-          <div>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">Build Your Meal</p>
-            <div className="space-y-2">
-              {dish.addOns.map((a) => (
-                <label
-                  key={a.id}
-                  className={`flex items-center justify-between rounded-xl border px-4 py-3 cursor-pointer transition-all ${
-                    selectedAddOns.has(a.id)
-                      ? "border-[#eaa94d] bg-[#fef3dc]/50"
-                      : "border-gray-100 bg-gray-50/50 hover:border-gray-200"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`flex h-5 w-5 items-center justify-center rounded-md border-2 transition-colors shrink-0 ${
-                      selectedAddOns.has(a.id) ? "border-[#eaa94d] bg-[#eaa94d]" : "border-gray-300"
-                    }`}>
-                      {selectedAddOns.has(a.id) && <Check className="h-3 w-3 text-white" />}
-                    </div>
-                    <span className="text-sm font-medium text-[#111111]">{a.name}</span>
-                  </div>
-                  <span className="text-sm font-bold text-[#eaa94d]">+{formatPrice(a.price, restaurantCurrency)}</span>
-                  <input type="checkbox" className="sr-only" checked={selectedAddOns.has(a.id)} onChange={() => toggleAddOn(a.id)} />
-                </label>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ── Tags ── */}
-        {dish.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
-            {dish.tags.map((tag) => (
-              <span key={tag} className="rounded-full bg-gray-100 px-2.5 py-1 text-[10px] font-medium text-gray-500">
-                #{tag}
-              </span>
-            ))}
-          </div>
-        )}
-
-        <div className="h-px bg-gray-100" />
-
-        {/* ── Quantity + total ── */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setQty((q) => Math.max(1, q - 1))}
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"
-            >
-              <Minus className="h-4 w-4" />
-            </button>
-            <motion.span
-              key={qty}
-              initial={{ scale: 1.25 }}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", stiffness: 500, damping: 20 }}
-              className="w-8 text-center text-base font-extrabold text-[#111111]"
-            >
-              {qty}
-            </motion.span>
-            <button
-              onClick={() => setQty((q) => q + 1)}
-              className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#eaa94d] text-white hover:bg-[#d67620] transition-colors"
-            >
-              <Plus className="h-4 w-4" />
-            </button>
-          </div>
-          <div className="text-right">
-            <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Total</p>
-            <motion.p
-              key={total}
-              initial={{ scale: 1.15, color: "#eaa94d" }}
-              animate={{ scale: 1, color: "#111111" }}
-              transition={{ duration: 0.3, ease: "backOut" }}
-              className="text-xl font-extrabold"
-            >
-              {formatPrice(total, restaurantCurrency)}
-            </motion.p>
-          </div>
-        </div>
-
-        {/* ── Suggested dishes ── */}
-        {suggested.length > 0 && (
-          <div>
-            <div className="h-px bg-gray-100 mb-5" />
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-              <Flame className="h-3.5 w-3.5 text-[#eaa94d]" />
-              You Might Also Like
-            </p>
-            <div className="grid grid-cols-2 gap-3">
-              {suggested.slice(0, 4).map((rec) => (
-                <button
-                  key={rec.id}
-                  onClick={() => onSelectDish(rec)}
-                  className="text-left group rounded-2xl overflow-hidden border border-gray-100 hover:border-[#eaa94d]/30 hover:shadow-md transition-all duration-300"
-                >
-                  <div className="relative aspect-video overflow-hidden bg-gray-100">
-                    <img
-                      src={img(rec.imageUrl)}
-                      alt={rec.name}
-                      loading="lazy"
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                    {rec.discountLabel && (
-                      <span className="absolute top-1.5 left-1.5 rounded-md bg-red-500 px-1.5 py-0.5 text-[8px] font-extrabold text-white">
-                        {rec.discountLabel}
-                      </span>
-                    )}
-                    {rec.badge && (
-                      <span className={`absolute top-1.5 right-1.5 rounded-md px-1.5 py-0.5 text-[8px] font-extrabold text-white ${
-                        rec.badge === "Bestseller" ? "bg-[#eaa94d]" : "bg-[#3e1e0c]"
-                      }`}>
-                        {rec.badge}
-                      </span>
-                    )}
-                    {rec.rating > 0 && (
-                      <span className="absolute bottom-1.5 right-1.5 flex items-center gap-0.5 rounded-md bg-black/55 px-1.5 py-0.5 text-[9px] font-bold text-white backdrop-blur-sm">
-                        <Star className="h-2.5 w-2.5 fill-[#eaa94d] text-[#eaa94d]" />
-                        {rec.rating.toFixed(1)}
-                      </span>
-                    )}
-                  </div>
-                  <div className="p-2.5">
-                    <div className="flex items-center gap-1 mb-0.5">
-                      {rec.isVeg
-                        ? <span className="flex h-3 w-3 items-center justify-center rounded-sm border border-green-600 shrink-0"><span className="h-1.5 w-1.5 rounded-full bg-green-600" /></span>
-                        : <span className="flex h-3 w-3 items-center justify-center rounded-sm border border-red-600 shrink-0"><span className="h-1.5 w-1.5 rounded-full bg-red-600" /></span>
-                      }
-                      <p className="text-[12px] font-bold text-[#111111] truncate">{rec.name}</p>
-                    </div>
-                    <div className="flex items-center justify-between gap-1">
-                      <p className="text-[11px] font-extrabold text-[#eaa94d]">{formatPrice(rec.price, restaurantCurrency)}</p>
-                      <span className="text-[10px] text-gray-400 flex items-center gap-0.5">
-                        <Clock className="h-2.5 w-2.5" />{rec.prepTime}
-                      </span>
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Spacer for sticky footer on mobile */}
-        <div className="h-4" />
-      </div>
-  );
-
-  return (
-    <>
-      {/* Backdrop */}
-      <motion.div
-        key="modal-backdrop"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.2 }}
-        onClick={onClose}
-        className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
-      />
-
-      {/* Modal shell */}
-      <motion.div
-        key="modal-shell"
-        initial={{ opacity: 0, y: 48 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 32 }}
-        transition={{ type: "spring", damping: 32, stiffness: 380, mass: 0.75 }}
-        className="fixed inset-x-0 bottom-0 sm:inset-x-4 sm:bottom-4 md:inset-x-auto md:left-1/2 md:-translate-x-1/2 md:top-5 md:bottom-5 md:w-full md:max-w-3xl lg:max-w-4xl z-50 flex flex-col rounded-t-3xl sm:rounded-3xl bg-white shadow-2xl shadow-black/20 max-h-[95svh] md:max-h-none overflow-hidden"
-      >
-        {/* ═══════════════════════════════════════════════
-            DESKTOP: left image + right scrollable details
-            ═══════════════════════════════════════════════ */}
-        <div className="hidden md:flex flex-1 min-h-0">
-
-          {/* Left: sticky image */}
-          <div className="relative w-[300px] lg:w-[340px] shrink-0 overflow-hidden">
-            <img
-              src={img(dish.imageUrl)}
-              alt={dish.name}
-              className="h-full w-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
-
-            {/* Close */}
-            <button
-              onClick={onClose}
-              className="absolute top-3.5 right-3.5 flex h-8 w-8 items-center justify-center rounded-full bg-black/30 backdrop-blur-md text-white hover:bg-black/50 transition-colors"
-            >
-              <X className="h-4 w-4" />
-            </button>
-
-            {/* Badges */}
-            <div className="absolute top-3.5 left-3.5 flex flex-col gap-1.5">
-              {dish.badge && (
-                <span className={`self-start rounded-full px-2.5 py-0.5 text-[10px] font-extrabold text-white ${
-                  dish.badge === "Bestseller" ? "bg-[#eaa94d]" : dish.badge === "Most Liked" ? "bg-[#3e1e0c]" : "bg-purple-500"
-                }`}>
-                  {dish.badge === "Bestseller" ? "# Bestseller" : dish.badge}
-                </span>
-              )}
-              {dish.discountLabel && (
-                <span className="self-start flex items-center gap-1 rounded-full bg-red-500 px-2.5 py-0.5 text-[10px] font-extrabold text-white">
-                  <Tag className="h-2.5 w-2.5" />{dish.discountLabel}
-                </span>
-              )}
-            </div>
-
-            {/* Price overlay */}
-            <div className="absolute bottom-0 left-0 right-0 p-5">
-              {baseDiscounted != null ? (
-                <>
-                  <span className="text-white/50 text-sm line-through block">{formatPrice(dish.price, restaurantCurrency)}</span>
-                  <p className="text-2xl font-extrabold text-white leading-tight">{formatPrice(baseDiscounted, restaurantCurrency)}</p>
-                </>
-              ) : (
-                <p className="text-2xl font-extrabold text-white">{formatPrice(dish.price, restaurantCurrency)}</p>
-              )}
-              <p className="text-white/45 text-[11px] mt-0.5">base price</p>
-            </div>
-          </div>
-
-          {/* Right: scrollable details + sticky Add to Cart */}
-          <div className="flex-1 flex flex-col min-h-0">
-            <div ref={desktopScrollRef} className="flex-1 overflow-y-auto overscroll-contain">
-              {renderBody()}
-            </div>
-
-            {/* Desktop sticky footer */}
-            <div className="shrink-0 border-t border-gray-100 bg-white px-6 py-4">
-              <motion.button
-                onClick={handleAdd}
-                whileHover={{ scale: 1.01, boxShadow: "0 10px 28px -6px rgba(234,169,77,0.35)" }}
-                whileTap={{ scale: 0.97 }}
-                className="relative w-full rounded-xl bg-[#eaa94d] py-3.5 text-sm font-bold text-white overflow-hidden shadow-md shadow-[#eaa94d]/20"
-              >
-                <motion.div
-                  className="absolute inset-0 bg-linear-to-r from-transparent via-white/15 to-transparent"
-                  initial={{ x: "-100%" }}
-                  animate={{ x: "200%" }}
-                  transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 4, ease: "easeInOut" }}
-                />
-                <span className="relative z-[1] flex items-center justify-center gap-2">
-                  <Plus className="h-4 w-4" strokeWidth={3} />
-                  Add to Cart — {formatPrice(total, restaurantCurrency)}
-                </span>
-              </motion.button>
-            </div>
-          </div>
-        </div>
-
-        {/* ═══════════════════════════════════════════════
-            MOBILE: stacked image + scrollable details
-            ═══════════════════════════════════════════════ */}
-        <div ref={mobileScrollRef} className="flex md:hidden flex-col flex-1 overflow-y-auto overscroll-contain">
-
-          {/* Image */}
-          <div className="relative aspect-[4/3] w-full overflow-hidden bg-gray-100 shrink-0">
-            <img src={img(dish.imageUrl)} alt={dish.name} className="h-full w-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
-
-            {/* Close */}
-            <button
-              onClick={onClose}
-              className="absolute top-3.5 right-3.5 flex h-8 w-8 items-center justify-center rounded-full bg-black/30 backdrop-blur-md text-white hover:bg-black/50 transition-colors"
-            >
-              <X className="h-4 w-4" />
-            </button>
-
-            {/* Badges */}
-            <div className="absolute top-3.5 left-3.5 flex gap-1.5">
-              {dish.badge && (
-                <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-extrabold text-white ${
-                  dish.badge === "Bestseller" ? "bg-[#eaa94d]" : dish.badge === "Most Liked" ? "bg-[#3e1e0c]" : "bg-purple-500"
-                }`}>
-                  {dish.badge === "Bestseller" ? "# Bestseller" : dish.badge}
-                </span>
-              )}
-              {dish.discountLabel && (
-                <span className="flex items-center gap-1 rounded-full bg-red-500 px-2.5 py-0.5 text-[10px] font-extrabold text-white">
-                  <Tag className="h-2.5 w-2.5" />{dish.discountLabel}
-                </span>
-              )}
-            </div>
-
-            {/* Price */}
-            <div className="absolute bottom-3.5 left-4">
-              {baseDiscounted != null ? (
-                <>
-                  <span className="text-white/50 text-xs line-through block">{formatPrice(dish.price, restaurantCurrency)}</span>
-                  <p className="text-xl font-extrabold text-white">{formatPrice(baseDiscounted, restaurantCurrency)}</p>
-                </>
-              ) : (
-                <p className="text-xl font-extrabold text-white">{formatPrice(dish.price, restaurantCurrency)}</p>
-              )}
-            </div>
-          </div>
-
-          {renderBody()}
-        </div>
-
-        {/* Mobile sticky footer */}
-        <div className="md:hidden shrink-0 border-t border-gray-100 bg-white px-4 py-3">
-          <motion.button
-            onClick={handleAdd}
-            whileTap={{ scale: 0.97 }}
-            className="w-full rounded-xl bg-[#eaa94d] py-3.5 text-sm font-bold text-white shadow-md shadow-[#eaa94d]/20 flex items-center justify-center gap-2 hover:bg-[#d67620] active:scale-[0.98] transition-colors"
-          >
-            <Plus className="h-4 w-4" strokeWidth={3} />
-            Add to Cart — {formatPrice(total, restaurantCurrency)}
-          </motion.button>
-        </div>
-      </motion.div>
-    </>
-  );
-}
 
 function ComboDealCard({
   combo,
@@ -1009,7 +469,7 @@ function ComboDealCard({
         <div className="flex items-start justify-between gap-2">
           <h3 className="text-sm font-bold text-[#3e1e0c] leading-tight">{combo.name}</h3>
           {savings > 0 && (
-            <span className="flex-shrink-0 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold text-green-700">
+            <span className="flex-shrink-0 rounded-full bg-[#fef3dc] px-2 py-0.5 text-[10px] font-bold text-[#b25c1c]">
               Save {formatPrice(savings, currency)}
             </span>
           )}
@@ -1266,8 +726,8 @@ function HeroDish({
         <div className="absolute bottom-4 left-5 right-5">
           <div className="flex items-center gap-2 mb-1">
             {dish.isVeg ? (
-              <span className="flex h-4 w-4 items-center justify-center rounded-sm border border-green-400">
-                <span className="h-2 w-2 rounded-full bg-green-400" />
+              <span className="flex h-4 w-4 items-center justify-center rounded-sm border border-[#eaa94d]">
+                <span className="h-2 w-2 rounded-full bg-[#eaa94d]" />
               </span>
             ) : (
               <span className="flex h-4 w-4 items-center justify-center rounded-sm border border-red-400">
@@ -2169,14 +1629,14 @@ function MenuPageContent() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.25 }}
-                className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200/60 px-4 py-3"
+                className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-green-50 to-emerald-50 border border-[#eaa94d]/30/60 px-4 py-3"
               >
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-green-100 shrink-0">
-                  <Tag className="h-4 w-4 text-green-600" />
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#fef3dc] shrink-0">
+                  <Tag className="h-4 w-4 text-[#b25c1c]" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-green-800">Coupons Available!</p>
-                  <p className="text-[11px] text-green-600">Apply a coupon code at checkout to get a discount</p>
+                  <p className="text-xs font-bold text-[#3e1e0c]">Coupons Available!</p>
+                  <p className="text-[11px] text-[#b25c1c]">Apply a coupon code at checkout to get a discount</p>
                 </div>
               </motion.div>
             )}
@@ -2482,15 +1942,18 @@ function MenuPageContent() {
 
       <AnimatePresence>
         {selectedDish && (
-          <DishDetailModal
-            dish={selectedDish}
-            restaurantId={restaurant.id}
-            restaurantSlug={restaurant.slug}
-            restaurantCurrency={cur}
-            allItems={menuItems}
-            onClose={() => setSelectedDish(null)}
-            onSelectDish={(d) => setSelectedDish(d)}
+          <FoodDetailPopup
+            itemId={selectedDish.id}
+            initialItem={dishToPopupItem(selectedDish, restaurant)}
+            context="menu"
+            allMenuItems={menuItems.map((m) => dishToPopupItem(m, restaurant))}
             surgeMultiplier={surgeMultiplier}
+            updateUrl={false}
+            onClose={() => setSelectedDish(null)}
+            onSelectRelated={(rel) => {
+              const found = menuItems.find((m) => m.id === rel.id);
+              if (found) setSelectedDish(found);
+            }}
           />
         )}
       </AnimatePresence>
@@ -2579,8 +2042,8 @@ const H_STATUS: Record<string, { label: string; color: string; bg: string }> = {
   PENDING:   { label: "Pending",   color: "text-amber-700",  bg: "bg-amber-50" },
   ACCEPTED:  { label: "Accepted",  color: "text-blue-700",   bg: "bg-blue-50" },
   PREPARING: { label: "Preparing", color: "text-purple-700", bg: "bg-purple-50" },
-  READY:     { label: "Ready",     color: "text-emerald-700",bg: "bg-emerald-50" },
-  DELIVERED: { label: "Delivered", color: "text-green-700",  bg: "bg-green-50" },
+  READY:     { label: "Ready",     color: "text-[#b25c1c]",bg: "bg-[#fef9ef]" },
+  DELIVERED: { label: "Delivered", color: "text-[#b25c1c]",  bg: "bg-[#fef9ef]" },
   CANCELLED: { label: "Cancelled", color: "text-red-700",    bg: "bg-red-50" },
   REJECTED:  { label: "Rejected",  color: "text-red-700",    bg: "bg-red-50" },
 };

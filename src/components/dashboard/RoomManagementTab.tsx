@@ -74,7 +74,7 @@ const BOOKING_STATUSES: BookingStatus[] = ["CONFIRMED", "CHECKED_IN", "CHECKED_O
 
 const BOOKING_STATUS_COLORS: Record<BookingStatus, { bg: string; text: string; border: string }> = {
   CONFIRMED: { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-200" },
-  CHECKED_IN: { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200" },
+  CHECKED_IN: { bg: "bg-[#fef9ef]", text: "text-[#b25c1c]", border: "border-[#eaa94d]/30" },
   CHECKED_OUT: { bg: "bg-gray-50", text: "text-gray-600", border: "border-gray-200" },
   CANCELLED: { bg: "bg-red-50", text: "text-red-700", border: "border-red-200" },
 };
@@ -316,7 +316,7 @@ function RoomsView({ restaurantId, currency }: { restaurantId: string; currency:
       <div className="grid grid-cols-3 gap-3">
         {[
           { label: "Total Rooms", value: totalRooms, color: "text-gray-900" },
-          { label: "Available", value: availableRooms, color: "text-emerald-600" },
+          { label: "Available", value: availableRooms, color: "text-[#b25c1c]" },
           { label: "Occupied", value: occupiedRooms, color: "text-amber-600" },
         ].map((stat) => (
           <div
@@ -389,7 +389,7 @@ function RoomsView({ restaurantId, currency }: { restaurantId: string; currency:
                       <span
                         className={`shrink-0 rounded-md border px-2 py-0.5 text-[10px] font-bold ${
                           room.isAvailable
-                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                            ? "bg-[#fef9ef] text-[#b25c1c] border-[#eaa94d]/30"
                             : "bg-red-50 text-red-600 border-red-200"
                         }`}
                       >
@@ -746,7 +746,7 @@ function RoomFormModal({
                   type="button"
                   onClick={() => setForm((f) => ({ ...f, isAvailable: !f.isAvailable }))}
                   className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
-                    form.isAvailable ? "bg-emerald-500" : "bg-gray-300"
+                    form.isAvailable ? "bg-[#eaa94d]" : "bg-gray-300"
                   }`}
                 >
                   <span
@@ -1010,7 +1010,7 @@ function BookingsView({ restaurantId, currency }: { restaurantId: string; curren
                           {formatPrice(booking.totalAmount, currency)}
                         </span>
                         {booking.advanceAmount > 0 && (
-                          <span className="text-emerald-600 font-semibold">
+                          <span className="text-[#b25c1c] font-semibold">
                             Adv: {formatPrice(booking.advanceAmount, currency)}
                           </span>
                         )}
@@ -1030,7 +1030,7 @@ function BookingsView({ restaurantId, currency }: { restaurantId: string; curren
                         <button
                           onClick={() => handleStatusUpdate(booking.id, "CHECKED_IN")}
                           disabled={updatingId === booking.id}
-                          className="flex h-8 items-center gap-1 rounded-lg bg-emerald-50 px-2 text-emerald-700 hover:bg-emerald-100 transition-all text-xs font-bold disabled:opacity-40"
+                          className="flex h-8 items-center gap-1 rounded-lg bg-[#fef9ef] px-2 text-[#b25c1c] hover:bg-[#fef3dc] transition-all text-xs font-bold disabled:opacity-40"
                           title="Check In"
                         >
                           {updatingId === booking.id ? (

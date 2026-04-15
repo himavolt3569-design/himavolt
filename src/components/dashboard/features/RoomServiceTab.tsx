@@ -58,8 +58,8 @@ const STATUS_CONFIG: Record<
   Preparing: { bg: "bg-amber-100", text: "text-amber-700", icon: ChefHat },
   "On the Way": { bg: "bg-blue-100", text: "text-blue-700", icon: Truck },
   Delivered: {
-    bg: "bg-green-100",
-    text: "text-green-700",
+    bg: "bg-[#fef3dc]",
+    text: "text-[#b25c1c]",
     icon: CheckCircle2,
   },
 };
@@ -218,8 +218,8 @@ export default function RoomServiceTab() {
             label: "Today's Revenue",
             value: `$${totalRevenue.toFixed(2)}`,
             icon: DollarSign,
-            color: "text-green-600",
-            bg: "bg-green-50",
+            color: "text-[#b25c1c]",
+            bg: "bg-[#fef9ef]",
           },
           {
             label: "24/7 Service",

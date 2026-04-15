@@ -44,7 +44,7 @@ const STAGE_COLORS: Record<PipelineStage, string> = {
   Preparing: "bg-amber-100 text-amber-700 border-amber-200",
   Packaging: "bg-violet-100 text-violet-700 border-violet-200",
   "Quality Check": "bg-orange-100 text-orange-700 border-orange-200",
-  "Ready for Dispatch": "bg-emerald-100 text-emerald-700 border-emerald-200",
+  "Ready for Dispatch": "bg-[#fef3dc] text-[#b25c1c] border-[#eaa94d]/30",
   Dispatched: "bg-gray-100 text-gray-600 border-gray-200",
 };
 
@@ -543,8 +543,8 @@ export default function PackageTrackingTab() {
         >
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-emerald-100 rounded-lg">
-                <ClipboardCheck className="w-5 h-5 text-emerald-600" />
+              <div className="p-2 bg-[#fef3dc] rounded-lg">
+                <ClipboardCheck className="w-5 h-5 text-[#b25c1c]" />
               </div>
               <div>
                 <h3 className="text-sm font-semibold text-gray-900">
@@ -570,7 +570,7 @@ export default function PackageTrackingTab() {
               }}
               transition={{ duration: 0.3 }}
               className={`h-full rounded-full ${
-                qcProgress === qcTotal ? "bg-emerald-500" : "bg-violet-500"
+                qcProgress === qcTotal ? "bg-[#eaa94d]" : "bg-violet-500"
               }`}
             />
           </div>
@@ -582,14 +582,14 @@ export default function PackageTrackingTab() {
                 onClick={() => toggleQcItem(item.id)}
                 className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-colors text-left ${
                   item.checked
-                    ? "bg-emerald-50 border-emerald-200"
+                    ? "bg-[#fef9ef] border-[#eaa94d]/30"
                     : "bg-gray-50 border-gray-100 hover:bg-gray-100"
                 }`}
               >
                 <div
                   className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${
                     item.checked
-                      ? "bg-emerald-500 border-emerald-500"
+                      ? "bg-[#eaa94d] border-emerald-500"
                       : "border-gray-300"
                   }`}
                 >
@@ -600,7 +600,7 @@ export default function PackageTrackingTab() {
                 <span
                   className={`text-sm ${
                     item.checked
-                      ? "text-emerald-700 line-through"
+                      ? "text-[#b25c1c] line-through"
                       : "text-gray-700"
                   }`}
                 >
@@ -614,10 +614,10 @@ export default function PackageTrackingTab() {
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="mt-4 p-3 bg-emerald-100 rounded-lg text-center"
+              className="mt-4 p-3 bg-[#fef3dc] rounded-lg text-center"
             >
-              <CheckCircle2 className="w-6 h-6 text-emerald-600 mx-auto mb-1" />
-              <p className="text-sm font-semibold text-emerald-700">
+              <CheckCircle2 className="w-6 h-6 text-[#b25c1c] mx-auto mb-1" />
+              <p className="text-sm font-semibold text-[#b25c1c]">
                 Quality check passed!
               </p>
             </motion.div>
@@ -653,8 +653,8 @@ export default function PackageTrackingTab() {
                   className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="p-1.5 bg-emerald-100 rounded-lg">
-                      <Truck className="w-4 h-4 text-emerald-600" />
+                    <div className="p-1.5 bg-[#fef3dc] rounded-lg">
+                      <Truck className="w-4 h-4 text-[#b25c1c]" />
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-900">

@@ -46,7 +46,13 @@
       "Read(//tmp/**)",
       "Bash(awk -F: '$2>507 && $2<520 {print}')",
       "Bash(echo \"EXIT:$?\")",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(grep -n \"bg-linear-to\" /d/Official_Projects/himalhub/src/app/menu/[slug]/page.tsx)",
+      "Bash(grep:*)",
+      "Bash(python3:*)",
+      "Bash(cmd /c \"node_modules\\\\.bin\\\\tsc --noEmit 2>&1\")",
+      "Bash(powershell -Command \"cd 'D:/Official_Projects/himalhub'; npx tsc --noEmit 2>&1 | Select-Object -First 80\")",
+      "Bash(/d/Official_Projects/himalhub/node_modules/.bin/tsc --noEmit)"
     ],
     "additionalDirectories": [
       "d:\\Official_Projects\\himalhub\\src\\app\\api\\public\\restaurants\\[slug]"

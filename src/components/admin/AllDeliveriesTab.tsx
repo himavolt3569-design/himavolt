@@ -69,7 +69,7 @@ const STATUS_COLORS: Record<string, string> = {
   ASSIGNED: "bg-blue-100 text-blue-700",
   PICKED_UP: "bg-indigo-100 text-indigo-700",
   IN_TRANSIT: "bg-purple-100 text-purple-700",
-  DELIVERED: "bg-green-100 text-green-700",
+  DELIVERED: "bg-[#fef3dc] text-[#b25c1c]",
   CANCELLED: "bg-red-100 text-red-700",
 };
 
@@ -240,10 +240,10 @@ export default function AllDeliveriesTab() {
             <Truck className="h-4 w-4 text-brand-400" />
             <span className="text-xs font-semibold text-gray-500">Deliveries</span>
           </div>
-          <div className="flex items-center gap-1.5 text-[11px] text-green-600">
+          <div className="flex items-center gap-1.5 text-[11px] text-[#b25c1c]">
             <span className="relative flex h-1.5 w-1.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
-              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-green-500" />
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#eaa94d] opacity-75" />
+              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#eaa94d]" />
             </span>
             Auto-refresh
           </div>
@@ -303,7 +303,7 @@ export default function AllDeliveriesTab() {
                           <span className="flex items-center gap-1">
                             <User className="h-3 w-3" />
                             {delivery.driver.name}
-                            <span className={`ml-0.5 inline-flex h-1.5 w-1.5 rounded-full ${delivery.driver.isOnline ? "bg-green-500" : "bg-gray-400"}`} />
+                            <span className={`ml-0.5 inline-flex h-1.5 w-1.5 rounded-full ${delivery.driver.isOnline ? "bg-[#eaa94d]" : "bg-gray-400"}`} />
                           </span>
                         )}
                         {delivery.distanceKm && (
@@ -351,7 +351,7 @@ export default function AllDeliveriesTab() {
                                 </div>
                                 <div>
                                   <span className="text-gray-400">Driver Status</span>
-                                  <p className={`font-medium ${delivery.driver.isOnline ? "text-green-600" : "text-gray-400"}`}>
+                                  <p className={`font-medium ${delivery.driver.isOnline ? "text-[#b25c1c]" : "text-gray-400"}`}>
                                     {delivery.driver.isOnline ? "Online" : "Offline"}
                                   </p>
                                 </div>

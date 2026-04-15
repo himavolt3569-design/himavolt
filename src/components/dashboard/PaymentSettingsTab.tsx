@@ -342,7 +342,7 @@ function PaymentSection({
   children?: React.ReactNode;
 }) {
   const colorMap: Record<string, string> = {
-    green: "bg-green-50 border-green-200 text-green-600",
+    green: "bg-[#fef9ef] border-[#eaa94d]/30 text-[#b25c1c]",
     purple: "bg-purple-50 border-purple-200 text-purple-600",
     blue: "bg-blue-50 border-blue-200 text-blue-600",
     gray: "bg-gray-50 border-gray-200 text-gray-600",

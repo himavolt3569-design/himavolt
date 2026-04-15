@@ -42,7 +42,7 @@ const STATUS_COLORS: Record<string, string> = {
   PENDING: "bg-orange-100 text-orange-700",
   ACCEPTED: "bg-blue-100 text-blue-700",
   PREPARING: "bg-amber-100 text-amber-700",
-  READY: "bg-green-100 text-green-700",
+  READY: "bg-[#fef3dc] text-[#b25c1c]",
   DELIVERED: "bg-gray-100 text-gray-600",
 };
 

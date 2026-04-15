@@ -25,8 +25,8 @@ const ORDER_STATUSES = [
   { label: "Pending", color: "bg-orange-100 text-orange-700 border-orange-200", desc: "Order placed, waiting for restaurant to accept" },
   { label: "Accepted", color: "bg-blue-100 text-blue-700 border-blue-200", desc: "Restaurant has acknowledged the order" },
   { label: "Preparing", color: "bg-amber-100 text-amber-700 border-amber-200", desc: "Your food is being cooked" },
-  { label: "Ready", color: "bg-green-100 text-green-700 border-green-200", desc: "Food is ready for pickup or serving" },
-  { label: "Delivered", color: "bg-emerald-100 text-emerald-700 border-emerald-200", desc: "Order has been served or delivered" },
+  { label: "Ready", color: "bg-[#fef3dc] text-[#b25c1c] border-[#eaa94d]/30", desc: "Food is ready for pickup or serving" },
+  { label: "Delivered", color: "bg-[#fef3dc] text-[#b25c1c] border-[#eaa94d]/30", desc: "Order has been served or delivered" },
   { label: "Cancelled", color: "bg-red-100 text-red-700 border-red-200", desc: "Order was cancelled" },
   { label: "Rejected", color: "bg-rose-100 text-rose-700 border-rose-200", desc: "Restaurant could not fulfill the order" },
 ];
@@ -35,13 +35,13 @@ const STAFF_ROLES = [
   { label: "Super Admin", color: "bg-purple-100 text-purple-700 border-purple-200", icon: Shield, desc: "Full access to all features and settings" },
   { label: "Manager", color: "bg-blue-100 text-blue-700 border-blue-200", icon: Shield, desc: "Management functions, staff oversight, reports" },
   { label: "Chef", color: "bg-orange-100 text-orange-700 border-orange-200", icon: ChefHat, desc: "Kitchen operations, order preparation, menu availability" },
-  { label: "Waiter", color: "bg-emerald-100 text-emerald-700 border-emerald-200", icon: User, desc: "Take orders, serve tables, customer interaction" },
+  { label: "Waiter", color: "bg-[#fef3dc] text-[#b25c1c] border-[#eaa94d]/30", icon: User, desc: "Take orders, serve tables, customer interaction" },
   { label: "Cashier", color: "bg-amber-100 text-amber-700 border-amber-200", icon: CreditCard, desc: "Billing, payments, and cash management" },
 ];
 
 const PAYMENT_METHODS = [
   { label: "Cash", color: "bg-gray-100 text-gray-700", desc: "Pay at counter" },
-  { label: "eSewa", color: "bg-green-100 text-green-700", desc: "Digital wallet payment" },
+  { label: "eSewa", color: "bg-[#fef3dc] text-[#b25c1c]", desc: "Digital wallet payment" },
   { label: "Khalti", color: "bg-purple-100 text-purple-700", desc: "Digital wallet payment" },
   { label: "Bank Transfer", color: "bg-blue-100 text-blue-700", desc: "Direct bank transfer via QR" },
 ];
@@ -115,7 +115,7 @@ export default function GuidePage() {
         <Section title="Menu Indicators" icon={<Leaf className="h-4 w-4" />}>
           <div className="space-y-3">
             <Indicator
-              badge={<span className="flex h-4 w-4 items-center justify-center rounded-full bg-green-500"><Leaf className="h-2.5 w-2.5 text-white" /></span>}
+              badge={<span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#eaa94d]"><Leaf className="h-2.5 w-2.5 text-white" /></span>}
               label="Vegetarian item"
             />
             <Indicator
@@ -145,8 +145,8 @@ export default function GuidePage() {
             />
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1.5">
-                <Eye className="h-4 w-4 text-green-600" />
-                <span className="text-xs font-bold text-green-600">Available</span>
+                <Eye className="h-4 w-4 text-[#b25c1c]" />
+                <span className="text-xs font-bold text-[#b25c1c]">Available</span>
               </div>
               <span className="text-sm text-gray-600">Item is visible and can be ordered</span>
             </div>
@@ -167,12 +167,12 @@ export default function GuidePage() {
               label="Low stock - quantity below minimum threshold"
             />
             <Indicator
-              badge={<span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold text-green-700">OK</span>}
+              badge={<span className="rounded-full bg-[#fef3dc] px-2 py-0.5 text-[10px] font-bold text-[#b25c1c]">OK</span>}
               label="Stock level is healthy (above minimum threshold)"
             />
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1.5">
-                <ToggleRight className="h-5 w-5 text-green-600" />
+                <ToggleRight className="h-5 w-5 text-[#b25c1c]" />
               </div>
               <span className="text-sm text-gray-600">Item is shown in customer menu</span>
             </div>
@@ -201,19 +201,19 @@ export default function GuidePage() {
           </div>
         </Section>
 
-        <Section title="Live Indicators" icon={<span className="relative flex h-4 w-4 items-center justify-center"><span className="animate-ping absolute h-3 w-3 rounded-full bg-green-400 opacity-75" /><span className="relative h-2 w-2 rounded-full bg-green-500" /></span>}>
+        <Section title="Live Indicators" icon={<span className="relative flex h-4 w-4 items-center justify-center"><span className="animate-ping absolute h-3 w-3 rounded-full bg-[#eaa94d] opacity-75" /><span className="relative h-2 w-2 rounded-full bg-[#eaa94d]" /></span>}>
           <div className="space-y-3">
             <div className="flex items-center gap-3">
-              <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-[11px] font-semibold text-emerald-700">Live</span>
+              <span className="flex items-center gap-1.5 rounded-full bg-[#fef9ef] px-2.5 py-1">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#eaa94d] animate-pulse" />
+                <span className="text-[11px] font-semibold text-[#b25c1c]">Live</span>
               </span>
               <span className="text-sm text-gray-600">Real-time connection active - orders update automatically</span>
             </div>
             <div className="flex items-center gap-3">
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400" />
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#eaa94d] opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#eaa94d]" />
               </span>
               <span className="text-sm text-gray-600">Chat connection active</span>
             </div>

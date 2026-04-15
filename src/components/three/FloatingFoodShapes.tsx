@@ -59,7 +59,7 @@ function Donut({
         >
           <sphereGeometry args={[1, 6, 6]} />
           <meshStandardMaterial
-            color={["#eaa94d", "#eaa94d", "#1E7B3E", "#6366F1", "#f1c980"][i]}
+            color={["#eaa94d", "#eaa94d", "#eaa94d", "#6366F1", "#f1c980"][i]}
           />
         </mesh>
       ))}

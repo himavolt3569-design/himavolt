@@ -103,7 +103,7 @@ export default function Hero() {
         <div className="absolute inset-0 bg-gradient-to-br from-[#FFF5F5] via-[#FFE8E8] to-[#FFF0F5]" />
         <div className="absolute top-0 right-0 -mr-32 -mt-32 h-[600px] w-[600px] rounded-full bg-[#eaa94d]/[0.06] blur-3xl" />
         <div className="absolute bottom-0 left-0 -ml-32 -mb-32 h-[600px] w-[600px] rounded-full bg-[#e58f2a]/[0.08] blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[400px] w-[400px] rounded-full bg-[#1E7B3E]/[0.03] blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[400px] w-[400px] rounded-full bg-[#eaa94d]/[0.03] blur-3xl" />
       </div>
 
       <div

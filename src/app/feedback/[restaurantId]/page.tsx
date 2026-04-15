@@ -18,7 +18,7 @@ interface Restaurant {
 }
 
 const STAR_LABELS = ["", "Poor", "Fair", "Good", "Very Good", "Excellent"];
-const STAR_COLORS = ["", "text-red-400", "text-orange-400", "text-amber-400", "text-lime-500", "text-emerald-500"];
+const STAR_COLORS = ["", "text-red-400", "text-orange-400", "text-amber-400", "text-lime-500", "text-[#d67620]"];
 
 
 export default function FeedbackPage() {
@@ -226,8 +226,8 @@ export default function FeedbackPage() {
             {/* ── Step 3: Done ────────────────────────────────────── */}
             {step === "done" && (
               <motion.div key="done" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center gap-4 py-6 text-center">
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
-                  <Check className="h-8 w-8 text-emerald-600" />
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#fef3dc]">
+                  <Check className="h-8 w-8 text-[#b25c1c]" />
                 </div>
                 <h2 className="text-lg font-extrabold text-[#3e1e0c]">Thank you!</h2>
                 <p className="text-sm text-gray-500 max-w-xs">

@@ -384,10 +384,10 @@ export default function InactiveUsersTab() {
                             <button
                               onClick={() => handleReactivate(user.id)}
                               disabled={isReactivating}
-                              className="flex items-center gap-1.5 rounded-lg bg-green-50 px-3 py-1.5 text-xs font-medium text-green-600 hover:bg-green-100 transition-all disabled:opacity-50"
+                              className="flex items-center gap-1.5 rounded-lg bg-[#fef9ef] px-3 py-1.5 text-xs font-medium text-[#b25c1c] hover:bg-[#fef3dc] transition-all disabled:opacity-50"
                             >
                               {isReactivating ? (
-                                <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-green-400/30 border-t-green-500" />
+                                <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#eaa94d]/30 border-t-green-500" />
                               ) : (
                                 <UserCheck className="h-3.5 w-3.5" />
                               )}

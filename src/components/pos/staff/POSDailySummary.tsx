@@ -58,13 +58,13 @@ export default function POSDailySummary({ restaurantId, currency }: Props) {
 
   const stats = [
     { label: "Total Orders",    value: s.totalOrders,     icon: ShoppingCart, bg: "bg-blue-50",    text: "text-blue-700",    border: "border-blue-100" },
-    { label: "Completed",       value: s.completedOrders, icon: TrendingUp,   bg: "bg-green-50",   text: "text-green-700",   border: "border-green-100" },
-    { label: "Paid",            value: s.paidOrders,      icon: CreditCard,   bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-100" },
+    { label: "Completed",       value: s.completedOrders, icon: TrendingUp,   bg: "bg-[#fef9ef]",   text: "text-[#b25c1c]",   border: "border-[#eaa94d]/30" },
+    { label: "Paid",            value: s.paidOrders,      icon: CreditCard,   bg: "bg-[#fef9ef]", text: "text-[#b25c1c]", border: "border-[#eaa94d]/30" },
     { label: "Unpaid",          value: s.unpaidOrders,    icon: ShoppingCart, bg: "bg-orange-50",  text: "text-orange-700",  border: "border-orange-100" },
   ];
 
   const financials = [
-    { label: "Total Revenue",   value: s.totalRevenue,   valueClass: "text-green-700" },
+    { label: "Total Revenue",   value: s.totalRevenue,   valueClass: "text-[#b25c1c]" },
     { label: "Cash Revenue",    value: s.cashRevenue,    valueClass: "text-gray-800" },
     { label: "Online Revenue",  value: s.onlineRevenue,  valueClass: "text-blue-700" },
     { label: "Pending Amount",  value: s.pendingAmount,  valueClass: "text-orange-600" },

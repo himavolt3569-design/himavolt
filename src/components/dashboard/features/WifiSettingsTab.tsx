@@ -98,20 +98,20 @@ export default function WifiSettingsTab({ restaurantId: propRestaurantId }: { re
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        className={`rounded-2xl border p-4 ${hasWifi ? "bg-green-50 border-green-200" : "bg-gray-50 border-gray-200"}`}
+        className={`rounded-2xl border p-4 ${hasWifi ? "bg-[#fef9ef] border-[#eaa94d]/30" : "bg-gray-50 border-gray-200"}`}
       >
         <div className="flex items-center gap-2 mb-1">
           {hasWifi ? (
-            <Wifi className="h-4 w-4 text-green-600" />
+            <Wifi className="h-4 w-4 text-[#b25c1c]" />
           ) : (
             <WifiOff className="h-4 w-4 text-gray-400" />
           )}
-          <span className={`text-xs font-bold ${hasWifi ? "text-green-700" : "text-gray-500"}`}>
+          <span className={`text-xs font-bold ${hasWifi ? "text-[#b25c1c]" : "text-gray-500"}`}>
             {hasWifi ? "WiFi Visible to Customers" : "No WiFi Configured"}
           </span>
         </div>
         {hasWifi && (
-          <p className="text-xs text-green-600 mt-1">
+          <p className="text-xs text-[#b25c1c] mt-1">
             Customers will see <strong>{wifiName}</strong> on the menu page.
           </p>
         )}
@@ -150,7 +150,7 @@ export default function WifiSettingsTab({ restaurantId: propRestaurantId }: { re
                   className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 hover:text-amber-700 hover:bg-amber-50 transition-colors"
                   title="Copy password"
                 >
-                  {copied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
+                  {copied ? <Check className="h-3.5 w-3.5 text-[#d67620]" /> : <Copy className="h-3.5 w-3.5" />}
                 </button>
               )}
               <button

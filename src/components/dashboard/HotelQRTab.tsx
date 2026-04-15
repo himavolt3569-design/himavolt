@@ -174,8 +174,8 @@ export default function HotelQRTab() {
               "Instant booking confirmation page",
             ].map((item) => (
               <div key={item} className="flex items-start gap-2">
-                <div className="mt-0.5 h-4 w-4 shrink-0 rounded-full bg-emerald-100 flex items-center justify-center">
-                  <Check className="h-2.5 w-2.5 text-emerald-600" />
+                <div className="mt-0.5 h-4 w-4 shrink-0 rounded-full bg-[#fef3dc] flex items-center justify-center">
+                  <Check className="h-2.5 w-2.5 text-[#b25c1c]" />
                 </div>
                 <p className="text-[12px] text-gray-600">{item}</p>
               </div>
@@ -201,7 +201,7 @@ export default function HotelQRTab() {
               className="flex w-full items-center justify-center gap-2 rounded-2xl bg-white ring-1 ring-gray-200 py-3.5 text-[13px] font-bold text-gray-700 hover:bg-gray-50 active:scale-[0.98] transition-all disabled:opacity-50"
             >
               {copied ? (
-                <><Check className="h-4 w-4 text-emerald-500" /> Link Copied!</>
+                <><Check className="h-4 w-4 text-[#d67620]" /> Link Copied!</>
               ) : (
                 <><Copy className="h-4 w-4" /> Copy Hotel Link</>
               )}

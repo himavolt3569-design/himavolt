@@ -24,7 +24,7 @@ interface DisplayCounterData {
 }
 
 const STATUS_CONFIG: Record<ItemStatus, { label: string; icon: typeof Sparkles; color: string; bg: string; ring: string }> = {
-  available: { label: "Available", icon: Sparkles, color: "text-green-600", bg: "bg-green-50", ring: "ring-green-100" },
+  available: { label: "Available", icon: Sparkles, color: "text-[#b25c1c]", bg: "bg-[#fef9ef]", ring: "ring-green-100" },
   "just-baked": { label: "Fresh Now", icon: Flame, color: "text-amber-600", bg: "bg-amber-50", ring: "ring-amber-100" },
   "last-few": { label: "Last Few!", icon: Clock, color: "text-orange-600", bg: "bg-orange-50", ring: "ring-orange-100" },
   "sold-out": { label: "Sold Out", icon: X, color: "text-red-400", bg: "bg-red-50", ring: "ring-red-100" },

@@ -58,8 +58,8 @@ function LiveOrderFeed() {
               </p>
             </div>
             <span className="relative flex h-1.5 w-1.5 shrink-0">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#1e7b3e]/60" />
-              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#1e7b3e]" />
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#eaa94d]/60" />
+              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#eaa94d]" />
             </span>
           </motion.div>
         )}
@@ -139,8 +139,8 @@ export default function LandingHero() {
           >
             <span className="inline-flex items-center gap-1.5 rounded-full bg-[#fef3dc] border border-[#eaa94d]/25 px-3.5 py-1 text-[11px] font-bold text-[#b25c1c] uppercase tracking-wider">
               <span className="relative flex h-1.5 w-1.5">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#1e7b3e]/60" />
-                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#1e7b3e]" />
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#eaa94d]/60" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#eaa94d]" />
               </span>
               Now live in Kathmandu
             </span>

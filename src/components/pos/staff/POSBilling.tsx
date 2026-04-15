@@ -31,8 +31,8 @@ interface Props {
 const BILLABLE_STATUSES = new Set(["PENDING", "ACCEPTED", "PREPARING", "READY", "DELIVERED"]);
 
 const PAYMENT_METHODS = [
-  { id: "CASH", label: "Cash", icon: DollarSign, color: "bg-green-50 border-green-200 text-green-700 hover:bg-green-100" },
-  { id: "ESEWA", label: "eSewa", icon: Wallet, color: "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100" },
+  { id: "CASH", label: "Cash", icon: DollarSign, color: "bg-[#fef9ef] border-[#eaa94d]/30 text-[#b25c1c] hover:bg-[#fef3dc]" },
+  { id: "ESEWA", label: "eSewa", icon: Wallet, color: "bg-[#fef9ef] border-[#eaa94d]/30 text-[#b25c1c] hover:bg-[#fef3dc]" },
   { id: "KHALTI", label: "Khalti", icon: Wallet, color: "bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100" },
   { id: "BANK", label: "Bank", icon: Banknote, color: "bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100" },
 ];
@@ -185,7 +185,7 @@ export default function POSBilling({ restaurantId, currency, orders, onSplitBill
                       )}
                       <span className={`ml-auto rounded-full px-2 py-0.5 text-[11px] font-semibold ${
                         orderIsPaid
-                          ? "bg-green-100 text-green-700"
+                          ? "bg-[#fef3dc] text-[#b25c1c]"
                           : "bg-orange-100 text-orange-600"
                       }`}>
                         {orderIsPaid ? "Paid" : "Unpaid"}
@@ -221,7 +221,7 @@ export default function POSBilling({ restaurantId, currency, orders, onSplitBill
                   </div>
                 </div>
                 <span className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                  isPaid ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-600"
+                  isPaid ? "bg-[#fef3dc] text-[#b25c1c]" : "bg-orange-100 text-orange-600"
                 }`}>
                   {isPaid ? "Paid" : "Unpaid"}
                 </span>
@@ -267,7 +267,7 @@ export default function POSBilling({ restaurantId, currency, orders, onSplitBill
                     </div>
                   ) : null}
                   {bill?.discount ? (
-                    <div className="flex justify-between text-sm text-green-600">
+                    <div className="flex justify-between text-sm text-[#b25c1c]">
                       <span>Discount</span>
                       <span className="font-semibold">-{formatPrice(bill.discount, currency)}</span>
                     </div>
@@ -339,11 +339,11 @@ export default function POSBilling({ restaurantId, currency, orders, onSplitBill
 
               {/* Paid confirmation */}
               {isPaid && (
-                <div className="flex items-center gap-3 rounded-xl bg-green-50 border border-green-200 p-4">
-                  <CheckCircle2 className="h-5 w-5 text-green-600 shrink-0" />
+                <div className="flex items-center gap-3 rounded-xl bg-[#fef9ef] border border-[#eaa94d]/30 p-4">
+                  <CheckCircle2 className="h-5 w-5 text-[#b25c1c] shrink-0" />
                   <div>
-                    <p className="text-sm font-semibold text-green-700">Payment Collected</p>
-                    <p className="text-xs text-green-600 mt-0.5">
+                    <p className="text-sm font-semibold text-[#b25c1c]">Payment Collected</p>
+                    <p className="text-xs text-[#b25c1c] mt-0.5">
                       via {selectedOrder.payment?.method}{bill?.paidVia ? ` (${bill.paidVia})` : ""}
                     </p>
                   </div>

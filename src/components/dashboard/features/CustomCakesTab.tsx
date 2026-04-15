@@ -68,7 +68,7 @@ const STATUS_COLORS: Record<CakeStatus, string> = {
   "Design Approved": "bg-purple-100 text-purple-700 border-purple-200",
   Baking: "bg-orange-100 text-orange-700 border-orange-200",
   Decorating: "bg-pink-100 text-pink-700 border-pink-200",
-  Ready: "bg-emerald-100 text-emerald-700 border-emerald-200",
+  Ready: "bg-[#fef3dc] text-[#b25c1c] border-[#eaa94d]/30",
   Delivered: "bg-gray-100 text-gray-500 border-gray-200",
 };
 
@@ -300,7 +300,7 @@ export default function CustomCakesTab() {
                       {order.dietaryNeeds.map((d) => (
                         <span
                           key={d}
-                          className="text-[10px] px-2 py-0.5 rounded-full bg-green-50 text-green-600 border border-green-200 font-medium"
+                          className="text-[10px] px-2 py-0.5 rounded-full bg-[#fef9ef] text-[#b25c1c] border border-[#eaa94d]/30 font-medium"
                         >
                           {d}
                         </span>
@@ -580,8 +580,8 @@ export default function CustomCakesTab() {
                         onClick={() => toggleDietary(opt)}
                         className={`flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg border transition-colors ${
                           form.dietaryNeeds.includes(opt)
-                            ? "bg-green-500 text-white border-green-500"
-                            : "bg-white text-gray-600 border-gray-200 hover:border-green-300"
+                            ? "bg-[#eaa94d] text-white border-green-500"
+                            : "bg-white text-gray-600 border-gray-200 hover:border-[#eaa94d]"
                         }`}
                       >
                         {opt === "Eggless" && <EggOff className="w-3 h-3" />}

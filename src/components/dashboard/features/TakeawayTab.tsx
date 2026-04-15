@@ -118,7 +118,7 @@ export default function TakeawayTab() {
       case "Packing":
         return "bg-amber-100 text-amber-700";
       case "Packed":
-        return "bg-green-100 text-green-700";
+        return "bg-[#fef3dc] text-[#b25c1c]";
       case "Picked Up":
         return "bg-blue-100 text-blue-600";
     }
@@ -176,7 +176,7 @@ export default function TakeawayTab() {
               { label: "Active Orders", value: activeOrders.length, icon: Package, color: "text-amber-600 bg-amber-50" },
               { label: "Avg Prep Time", value: `${avgPrepTime} min`, icon: Timer, color: "text-orange-600 bg-orange-50" },
               { label: "Pickup Counter", value: pickupCounter, icon: MapPin, color: "text-blue-600 bg-blue-50" },
-              { label: "Print Labels", value: printLabelEnabled ? "On" : "Off", icon: Printer, color: "text-green-600 bg-green-50" },
+              { label: "Print Labels", value: printLabelEnabled ? "On" : "Off", icon: Printer, color: "text-[#b25c1c] bg-[#fef9ef]" },
             ].map((stat) => (
               <motion.div
                 key={stat.label}
@@ -295,7 +295,7 @@ export default function TakeawayTab() {
                             onChange={(e) => setNewPkgEco(e.target.checked)}
                             className="accent-green-500"
                           />
-                          <Leaf className="w-3.5 h-3.5 text-green-500" />
+                          <Leaf className="w-3.5 h-3.5 text-[#d67620]" />
                           Eco-Friendly
                         </label>
                         <button
@@ -330,7 +330,7 @@ export default function TakeawayTab() {
                           <div className="flex items-center gap-1.5">
                             <span className="text-sm font-medium text-gray-800">{pkg.name}</span>
                             {pkg.ecoFriendly && (
-                              <Leaf className="w-3 h-3 text-green-500" />
+                              <Leaf className="w-3 h-3 text-[#d67620]" />
                             )}
                           </div>
                           <span className="text-xs text-gray-400">Rs {pkg.costPerUnit}/unit</span>
@@ -383,7 +383,7 @@ export default function TakeawayTab() {
                   <p className="text-sm font-semibold text-gray-800">{partner.name}</p>
                   <p
                     className={`text-xs mt-1 ${
-                      partner.connected ? "text-green-600" : "text-gray-400"
+                      partner.connected ? "text-[#b25c1c]" : "text-gray-400"
                     }`}
                   >
                     {partner.statusLabel}

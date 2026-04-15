@@ -156,7 +156,7 @@ export default function POSSplitBill({ orderId, orderNo, total, restaurantId, cu
         <div className="px-5 py-4 border-t border-gray-100 bg-gray-50 space-y-3">
           <div className="flex justify-between text-sm">
             <span className="text-gray-500">Split total</span>
-            <span className={`font-semibold ${Math.abs(remaining) < 0.01 ? "text-green-600" : "text-red-500"}`}>
+            <span className={`font-semibold ${Math.abs(remaining) < 0.01 ? "text-[#b25c1c]" : "text-red-500"}`}>
               {formatPrice(splitTotal, currency)}
             </span>
           </div>
@@ -170,7 +170,7 @@ export default function POSSplitBill({ orderId, orderNo, total, restaurantId, cu
           <button
             onClick={submit}
             disabled={!isValid || submitting}
-            className="w-full flex items-center justify-center gap-2 rounded-xl bg-green-600 py-3 text-sm font-semibold text-white hover:bg-green-500 transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+            className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#eaa94d] py-3 text-sm font-semibold text-white hover:bg-[#fef9ef]0 transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
           >
             {submitting
               ? <Loader2 className="h-4 w-4 animate-spin" />

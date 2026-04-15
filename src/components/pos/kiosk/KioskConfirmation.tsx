@@ -32,9 +32,9 @@ export default function KioskConfirmation({ orderNo, total, currency, onReset }:
         initial={{ scale: 0.5, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.1 }}
-        className="relative z-10 flex h-24 w-24 items-center justify-center rounded-full bg-green-50 ring-8 ring-green-100 mb-8"
+        className="relative z-10 flex h-24 w-24 items-center justify-center rounded-full bg-[#fef9ef] ring-8 ring-green-100 mb-8"
       >
-        <CheckCircle2 className="h-14 w-14 text-green-500" />
+        <CheckCircle2 className="h-14 w-14 text-[#d67620]" />
       </motion.div>
 
       <motion.div

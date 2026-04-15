@@ -164,9 +164,9 @@ export default function StockTab() {
           {
             label: "Low Stock",
             value: lowStockCount,
-            color: lowStockCount > 0 ? "text-red-600" : "text-emerald-600",
+            color: lowStockCount > 0 ? "text-red-600" : "text-[#b25c1c]",
             icon: AlertTriangle,
-            iconColor: lowStockCount > 0 ? "text-red-500" : "text-emerald-500",
+            iconColor: lowStockCount > 0 ? "text-red-500" : "text-[#d67620]",
           },
           {
             label: "Categories",
@@ -287,13 +287,13 @@ export default function StockTab() {
                 >
                   <div
                     className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${
-                      isLow ? "bg-red-50" : "bg-emerald-50"
+                      isLow ? "bg-red-50" : "bg-[#fef9ef]"
                     }`}
                   >
                     {isLow ? (
                       <AlertTriangle className="h-5 w-5 text-red-500" />
                     ) : (
-                      <Package className="h-5 w-5 text-emerald-600" />
+                      <Package className="h-5 w-5 text-[#b25c1c]" />
                     )}
                   </div>
 
@@ -311,7 +311,7 @@ export default function StockTab() {
                         </span>
                       )}
                       {item.showOnMenu && (
-                        <span className="shrink-0 rounded-md bg-green-50 border border-green-200 px-2 py-0.5 text-[10px] font-bold text-green-600">
+                        <span className="shrink-0 rounded-md bg-[#fef9ef] border border-[#eaa94d]/30 px-2 py-0.5 text-[10px] font-bold text-[#b25c1c]">
                           On Menu
                         </span>
                       )}
@@ -458,7 +458,7 @@ function QuickAdjust({
         <button
           onClick={() => save(Number(val) || item.quantity)}
           disabled={saving}
-          className="flex h-6 w-6 items-center justify-center rounded-md bg-emerald-50 text-emerald-600 hover:bg-emerald-100 disabled:opacity-40 transition-all"
+          className="flex h-6 w-6 items-center justify-center rounded-md bg-[#fef9ef] text-[#b25c1c] hover:bg-[#fef3dc] disabled:opacity-40 transition-all"
         >
           {saving ? (
             <Loader2 className="h-3 w-3 animate-spin" />
@@ -776,7 +776,7 @@ function AddEditModal({
                   </div>
                 )}
 
-                <div className="flex items-center justify-between rounded-xl bg-green-50/50 border border-green-100 px-4 py-3 mb-3">
+                <div className="flex items-center justify-between rounded-xl bg-[#fef9ef]/50 border border-[#eaa94d]/30 px-4 py-3 mb-3">
                   <div>
                     <p className="text-sm font-bold text-[#3e1e0c]">Show on customer menu</p>
                     <p className="text-xs text-gray-500">Display as purchasable item for customers</p>
@@ -784,7 +784,7 @@ function AddEditModal({
                   <button
                     type="button"
                     onClick={() => setShowOnMenu(!showOnMenu)}
-                    className={`relative h-6 w-11 rounded-full transition-colors ${showOnMenu ? "bg-green-500" : "bg-gray-300"}`}
+                    className={`relative h-6 w-11 rounded-full transition-colors ${showOnMenu ? "bg-[#eaa94d]" : "bg-gray-300"}`}
                   >
                     <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${showOnMenu ? "left-[calc(100%-1.375rem)]" : "left-0.5"}`} />
                   </button>

@@ -47,7 +47,7 @@ function getTableStatus(table: TableData): "available" | "occupied" | "needs_bil
 }
 
 const STATUS_STYLES = {
-  available:     { card: "border-gray-200 bg-white hover:border-green-300 hover:bg-green-50/50",  dot: "bg-green-500", label: "Available" },
+  available:     { card: "border-gray-200 bg-white hover:border-[#eaa94d] hover:bg-[#fef9ef]/50",  dot: "bg-[#eaa94d]", label: "Available" },
   occupied:      { card: "border-amber-200 bg-amber-50/60 hover:border-amber-300",                dot: "bg-amber-500", label: "Occupied" },
   needs_billing: { card: "border-red-200 bg-red-50/60 hover:border-red-300",                      dot: "bg-red-500",   label: "Needs Billing" },
 };

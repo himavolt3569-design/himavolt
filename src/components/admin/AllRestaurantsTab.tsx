@@ -306,7 +306,7 @@ export default function AllRestaurantsTab() {
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-bold text-gompa-slate truncate">{r.name}</span>
-                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${r.isActive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${r.isActive ? "bg-[#fef3dc] text-[#b25c1c]" : "bg-red-100 text-red-700"}`}>
                             {r.isActive ? "Active" : "Inactive"}
                           </span>
                           <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-500">
@@ -346,7 +346,7 @@ export default function AllRestaurantsTab() {
                           </div>
                           <div className="flex items-center gap-2 pt-1">
                             <button onClick={() => toggleActive(r.id, r.isActive)} disabled={toggling === r.id}
-                              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all disabled:opacity-50 ${r.isActive ? "bg-red-100 text-red-600 hover:bg-red-200" : "bg-green-100 text-green-600 hover:bg-green-200"}`}>
+                              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all disabled:opacity-50 ${r.isActive ? "bg-red-100 text-red-600 hover:bg-red-200" : "bg-[#fef3dc] text-[#b25c1c] hover:bg-green-200"}`}>
                               {r.isActive ? <ToggleRight className="h-3.5 w-3.5" /> : <ToggleLeft className="h-3.5 w-3.5" />}
                               {toggling === r.id ? "Updating..." : r.isActive ? "Deactivate" : "Activate"}
                             </button>

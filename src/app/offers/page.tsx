@@ -328,7 +328,7 @@ export default function OffersPage() {
                         <span
                           className={`h-3 w-3 rounded-sm border-2 ${
                             opt === "veg"
-                              ? "border-green-600 bg-green-500"
+                              ? "border-green-600 bg-[#eaa94d]"
                               : opt === "non-veg"
                               ? "border-red-600 bg-red-500"
                               : "border-gray-400 bg-gray-200"

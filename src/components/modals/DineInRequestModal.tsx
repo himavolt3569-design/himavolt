@@ -112,8 +112,8 @@ export default function DineInRequestModal({
               </div>
               <div className="h-8 w-px bg-gray-200" />
               <div className="flex items-center gap-2">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-100">
-                  <ChefHat className="h-4.5 w-4.5 text-green-600" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#fef3dc]">
+                  <ChefHat className="h-4.5 w-4.5 text-[#b25c1c]" />
                 </div>
                 <div>
                   <p className="text-[10px] text-gray-400 font-medium">Total</p>
@@ -154,7 +154,7 @@ export default function DineInRequestModal({
 
             {order.payment && (
               <div className="mx-6 mb-3 flex items-center gap-2 rounded-xl bg-gray-50 border border-gray-200 px-4 py-3">
-                {order.payment.method === "ESEWA" && <Wallet className="h-4 w-4 text-green-600" />}
+                {order.payment.method === "ESEWA" && <Wallet className="h-4 w-4 text-[#b25c1c]" />}
                 {order.payment.method === "KHALTI" && <Wallet className="h-4 w-4 text-purple-600" />}
                 {order.payment.method === "BANK" && <Banknote className="h-4 w-4 text-blue-600" />}
                 {order.payment.method === "CASH" && <DollarSign className="h-4 w-4 text-gray-600" />}
@@ -165,7 +165,7 @@ export default function DineInRequestModal({
                 <span
                   className={`ml-auto rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
                     order.payment.status === "COMPLETED"
-                      ? "bg-green-100 text-green-700"
+                      ? "bg-[#fef3dc] text-[#b25c1c]"
                       : "bg-amber-100 text-amber-700"
                   }`}
                 >

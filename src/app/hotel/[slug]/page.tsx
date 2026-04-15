@@ -106,7 +106,7 @@ const TYPE_COLORS: Record<string, string> = {
   STANDARD: "bg-slate-100 text-slate-700",
   DELUXE: "bg-amber-100 text-amber-700",
   SUITE: "bg-purple-100 text-purple-700",
-  DORMITORY: "bg-green-100 text-green-700",
+  DORMITORY: "bg-[#fef3dc] text-[#b25c1c]",
 };
 
 function ImageCarousel({ images, name }: { images: string[]; name: string }) {
@@ -678,7 +678,7 @@ export default function HotelPublicPage() {
             ? `${hotel.hotelAdvanceValue}% advance`
             : `${cur}${hotel.hotelAdvanceValue} advance`}
         </span>
-        <span className="flex items-center gap-1 text-[12px] text-emerald-600 font-medium whitespace-nowrap">
+        <span className="flex items-center gap-1 text-[12px] text-[#b25c1c] font-medium whitespace-nowrap">
           <CheckCircle className="h-3.5 w-3.5" />
           {rooms.filter((r) => r.isAvailable).length} rooms available
         </span>
@@ -755,7 +755,7 @@ export default function HotelPublicPage() {
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 40 }}
-            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 rounded-2xl bg-emerald-600 px-6 py-4 text-white shadow-2xl"
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 rounded-2xl bg-[#eaa94d] px-6 py-4 text-white shadow-2xl"
           >
             <CheckCircle className="h-5 w-5 shrink-0" />
             <div>

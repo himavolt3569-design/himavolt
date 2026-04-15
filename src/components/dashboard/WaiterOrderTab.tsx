@@ -183,10 +183,10 @@ export default function WaiterOrderTab({ restaurantId }: { restaurantId: string 
         animate={{ opacity: 1, scale: 1 }}
         className="flex flex-col items-center justify-center py-20 text-center"
       >
-        <div className={`mb-5 flex h-16 w-16 items-center justify-center rounded-full ${isDirect ? "bg-blue-100" : "bg-green-100"}`}>
+        <div className={`mb-5 flex h-16 w-16 items-center justify-center rounded-full ${isDirect ? "bg-blue-100" : "bg-[#fef3dc]"}`}>
           {isDirect
             ? <PersonStanding className="h-8 w-8 text-blue-600" />
-            : <CheckCircle2 className="h-8 w-8 text-green-600" />
+            : <CheckCircle2 className="h-8 w-8 text-[#b25c1c]" />
           }
         </div>
         <h2 className="text-xl font-black text-gray-900">

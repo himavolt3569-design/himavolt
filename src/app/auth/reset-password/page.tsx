@@ -100,8 +100,8 @@ function ResetPasswordForm() {
           animate={{ opacity: 1, scale: 1 }}
           className="max-w-sm text-center"
         >
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-            <Check className="h-8 w-8 text-green-600" />
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#fef3dc]">
+            <Check className="h-8 w-8 text-[#b25c1c]" />
           </div>
           <h2 className="text-lg font-bold text-[#3e1e0c] mb-2">Password updated!</h2>
           <p className="text-sm text-gray-500">Redirecting you to sign in…</p>
@@ -169,7 +169,7 @@ function ResetPasswordForm() {
                   confirm && confirm !== password
                     ? "border-red-400 focus:border-red-400 focus:ring-red-200"
                     : confirm && confirm === password
-                    ? "border-green-400 focus:border-green-400 focus:ring-green-200"
+                    ? "border-[#eaa94d] focus:border-[#eaa94d] focus:ring-[#eaa94d]/20"
                     : "border-gray-200 focus:border-[#eaa94d]/30 focus:ring-[#eaa94d]/30"
                 }`}
                 placeholder="Repeat password"

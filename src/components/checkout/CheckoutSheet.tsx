@@ -63,8 +63,8 @@ const ALL_PAYMENT_METHODS: {
     label: "eSewa",
     sublabel: "Pay online via eSewa wallet",
     icon: Wallet,
-    color: "text-green-600",
-    bg: "bg-green-50 border-green-200",
+    color: "text-[#b25c1c]",
+    bg: "bg-[#fef9ef] border-[#eaa94d]/30",
   },
   {
     id: "KHALTI",
@@ -825,8 +825,8 @@ export default function CheckoutSheet({
                     )}
                     {couponDiscount > 0 && (
                       <div className="flex justify-between text-sm">
-                        <span className="text-green-600 font-medium">Coupon Discount</span>
-                        <span className="font-semibold text-green-600">
+                        <span className="text-[#b25c1c] font-medium">Coupon Discount</span>
+                        <span className="font-semibold text-[#b25c1c]">
                           -{formatPrice(couponDiscount, currency)}
                         </span>
                       </div>
@@ -872,8 +872,8 @@ export default function CheckoutSheet({
                     {couponApplied ? (
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <Tag className="h-4 w-4 text-green-600" />
-                          <span className="text-sm font-semibold text-green-600">
+                          <Tag className="h-4 w-4 text-[#b25c1c]" />
+                          <span className="text-sm font-semibold text-[#b25c1c]">
                             {couponCode.toUpperCase()} applied
                           </span>
                         </div>
@@ -1003,7 +1003,7 @@ export default function CheckoutSheet({
                       </div>
                       <div className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-white shadow flex items-center justify-center">
                         {selectedPayment === "ESEWA" ? (
-                          <Wallet className="h-4 w-4 text-green-600" />
+                          <Wallet className="h-4 w-4 text-[#b25c1c]" />
                         ) : selectedPayment === "KHALTI" ? (
                           <Wallet className="h-4 w-4 text-purple-600" />
                         ) : (

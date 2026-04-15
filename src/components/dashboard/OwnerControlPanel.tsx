@@ -65,10 +65,10 @@ const ROLE_INFO: Record<
     label: "Waiter",
     desc: "Order taking and table service",
     icon: UserCheck,
-    bg: "bg-emerald-50",
-    text: "text-emerald-700",
-    border: "border-emerald-200",
-    ring: "ring-emerald-400",
+    bg: "bg-[#fef9ef]",
+    text: "text-[#b25c1c]",
+    border: "border-[#eaa94d]/30",
+    ring: "ring-[#eaa94d]",
   },
   CASHIER: {
     label: "Cashier",
@@ -165,7 +165,7 @@ function StaffRoleCard({
               {member.user.name}
             </span>
             {saved ? (
-              <span className="flex items-center gap-1 rounded-md bg-emerald-50 border border-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-600">
+              <span className="flex items-center gap-1 rounded-md bg-[#fef9ef] border border-[#eaa94d]/30 px-2 py-0.5 text-[10px] font-bold text-[#b25c1c]">
                 <Check className="h-2.5 w-2.5" />
                 Updated
               </span>
@@ -553,7 +553,7 @@ export default function OwnerControlPanel() {
               {
                 label: "Active",
                 value: staff.filter((s) => s.isActive).length,
-                color: "text-emerald-600",
+                color: "text-[#b25c1c]",
               },
             ].map((stat) => (
               <div key={stat.label} className="py-3 px-4 text-center">
@@ -655,10 +655,10 @@ export default function OwnerControlPanel() {
                   )}
                   {role === "WAITER" && (
                     <>
-                      <span className="rounded-md bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700">
+                      <span className="rounded-md bg-[#fef3dc] px-1.5 py-0.5 text-[10px] font-bold text-[#b25c1c]">
                         Orders
                       </span>
-                      <span className="rounded-md bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700">
+                      <span className="rounded-md bg-[#fef3dc] px-1.5 py-0.5 text-[10px] font-bold text-[#b25c1c]">
                         Tables
                       </span>
                     </>

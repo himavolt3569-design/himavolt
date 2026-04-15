@@ -85,8 +85,8 @@ const STEPS = [
     key: "ACCEPTED",
     label: "Accepted",
     icon: CheckCircle2,
-    color: "text-emerald-500",
-    bg: "bg-emerald-500",
+    color: "text-[#d67620]",
+    bg: "bg-[#eaa94d]",
   },
   {
     key: "PREPARING",
@@ -99,8 +99,8 @@ const STEPS = [
     key: "READY",
     label: "Ready",
     icon: PackageCheck,
-    color: "text-green-500",
-    bg: "bg-green-500",
+    color: "text-[#d67620]",
+    bg: "bg-[#eaa94d]",
   },
   {
     key: "DELIVERED",
@@ -194,7 +194,7 @@ function CountdownTimer({
 
 function PaymentBadge({ method, status }: { method: string; status: string }) {
   const methods: Record<string, { label: string; color: string }> = {
-    ESEWA: { label: "eSewa", color: "bg-green-100 text-green-700" },
+    ESEWA: { label: "eSewa", color: "bg-[#fef3dc] text-[#b25c1c]" },
     KHALTI: { label: "Khalti", color: "bg-purple-100 text-purple-700" },
     BANK: { label: "Bank Transfer", color: "bg-blue-100 text-blue-700" },
     CASH: { label: "Cash", color: "bg-gray-100 text-gray-700" },
@@ -207,7 +207,7 @@ function PaymentBadge({ method, status }: { method: string; status: string }) {
   };
 
   const statusConfig: Record<string, { label: string; color: string; icon: typeof CheckCircle2 }> = {
-    COMPLETED: { label: "Paid", color: "bg-green-100 text-green-700", icon: CheckCircle2 },
+    COMPLETED: { label: "Paid", color: "bg-[#fef3dc] text-[#b25c1c]", icon: CheckCircle2 },
     PENDING: { label: "Pending", color: "bg-amber-100 text-amber-700", icon: Clock },
     AWAITING_VERIFICATION: { label: "Verifying", color: "bg-blue-100 text-blue-700", icon: Clock },
     FAILED: { label: "Failed", color: "bg-red-100 text-red-700", icon: XCircle },
@@ -290,7 +290,7 @@ function BillSection({
             </div>
           )}
           {bill.discount > 0 && (
-            <div className="flex justify-between text-xs text-green-600">
+            <div className="flex justify-between text-xs text-[#b25c1c]">
               <span>Discount</span>
               <span>-{formatPrice(bill.discount, currency)}</span>
             </div>
@@ -522,10 +522,10 @@ export default function TrackOrderPage() {
             {isActive && (
               <div className="flex items-center gap-1.5">
                 <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400" />
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#eaa94d] opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#eaa94d]" />
                 </span>
-                <span className="text-[11px] font-bold text-green-600">
+                <span className="text-[11px] font-bold text-[#b25c1c]">
                   Live
                 </span>
               </div>
@@ -543,7 +543,7 @@ export default function TrackOrderPage() {
               exit={{ opacity: 0, y: -10 }}
               className={`rounded-xl px-4 py-3 text-sm font-bold ${
                 paymentStatus === "success"
-                  ? "bg-green-100 text-green-700"
+                  ? "bg-[#fef3dc] text-[#b25c1c]"
                   : "bg-red-100 text-red-700"
               }`}
             >
@@ -573,7 +573,7 @@ export default function TrackOrderPage() {
                   className="flex h-7 w-7 items-center justify-center rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
                 >
                   {copied ? (
-                    <Check className="h-3.5 w-3.5 text-green-500" />
+                    <Check className="h-3.5 w-3.5 text-[#d67620]" />
                   ) : (
                     <Copy className="h-3.5 w-3.5" />
                   )}
@@ -1220,14 +1220,14 @@ export default function TrackOrderPage() {
         {/* Any payment method — COMPLETED confirmation */}
         {order.payment?.status === "COMPLETED" &&
           !["DELIVERED", "CANCELLED", "REJECTED"].includes(order.status) && (
-            <div className="rounded-2xl border-2 border-emerald-200 bg-emerald-50/60 p-4 space-y-2">
+            <div className="rounded-2xl border-2 border-[#eaa94d]/30 bg-[#fef9ef]/60 p-4 space-y-2">
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                <span className="text-sm font-bold text-emerald-800">
+                <CheckCircle2 className="h-4 w-4 text-[#b25c1c]" />
+                <span className="text-sm font-bold text-[#3e1e0c]">
                   Payment Verified
                 </span>
               </div>
-              <p className="text-xs text-emerald-700/80">
+              <p className="text-xs text-[#b25c1c]/80">
                 Your payment has been confirmed. Your order is being processed by the kitchen.
               </p>
             </div>

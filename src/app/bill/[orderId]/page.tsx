@@ -114,7 +114,7 @@ function paymentLabel(method: string) {
 
 function statusColor(status: string) {
   if (status === "DELIVERED")
-    return "bg-emerald-50 text-emerald-700 border-emerald-200";
+    return "bg-[#fef9ef] text-[#b25c1c] border-[#eaa94d]/30";
   if (status === "CANCELLED" || status === "REJECTED")
     return "bg-red-50 text-red-700 border-red-200";
   return "bg-amber-50 text-amber-700 border-amber-200";
@@ -317,7 +317,7 @@ export default function BillPage() {
                 <div
                   className={`rounded-xl px-3 py-1.5 text-[11px] font-bold border ${
                     isPaid
-                      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                      ? "bg-[#eaa94d]/10 text-emerald-400 border-emerald-500/20"
                       : "bg-amber-500/10 text-amber-400 border-amber-500/20"
                   }`}
                 >
@@ -506,11 +506,11 @@ export default function BillPage() {
               <div className="flex items-center gap-3">
                 <div
                   className={`flex h-10 w-10 items-center justify-center rounded-xl ${
-                    isPaid ? "bg-emerald-50" : "bg-amber-50"
+                    isPaid ? "bg-[#fef9ef]" : "bg-amber-50"
                   }`}
                 >
                   <CreditCard
-                    className={`h-5 w-5 ${isPaid ? "text-emerald-600" : "text-amber-600"}`}
+                    className={`h-5 w-5 ${isPaid ? "text-[#b25c1c]" : "text-amber-600"}`}
                   />
                 </div>
                 <div className="flex-1">
@@ -526,7 +526,7 @@ export default function BillPage() {
                 <span
                   className={`rounded-lg px-2.5 py-1 text-[11px] font-bold ${
                     isPaid
-                      ? "bg-emerald-50 text-emerald-700"
+                      ? "bg-[#fef9ef] text-[#b25c1c]"
                       : "bg-amber-50 text-amber-700"
                   }`}
                 >

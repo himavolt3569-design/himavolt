@@ -51,7 +51,7 @@ interface Pagination {
 const SENDER_COLORS: Record<string, string> = {
   CUSTOMER: "bg-blue-100 text-blue-700",
   KITCHEN: "bg-amber-100 text-amber-700",
-  BILLING: "bg-green-100 text-green-700",
+  BILLING: "bg-[#fef3dc] text-[#b25c1c]",
   ADMIN: "bg-red-100 text-red-700",
   MANAGER: "bg-purple-100 text-purple-700",
 };
@@ -254,10 +254,10 @@ export default function AllChatsTab() {
               <MessageCircle className="h-4 w-4 text-brand-400" />
               <span className="text-xs font-semibold text-gray-500">Chat Rooms</span>
             </div>
-            <div className="flex items-center gap-1.5 text-[11px] text-green-600">
+            <div className="flex items-center gap-1.5 text-[11px] text-[#b25c1c]">
               <span className="relative flex h-1.5 w-1.5">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
-                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-green-500" />
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#eaa94d] opacity-75" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#eaa94d]" />
               </span>
               Live
             </div>
@@ -300,7 +300,7 @@ export default function AllChatsTab() {
                     onClick={() => fetchMessages(room.id)}
                     className="flex flex-1 items-start gap-3 text-left"
                   >
-                    <div className={`mt-0.5 flex-shrink-0 rounded-lg p-2 ${room.isActive ? "bg-green-100 text-green-600" : "bg-gray-100 text-gray-400"}`}>
+                    <div className={`mt-0.5 flex-shrink-0 rounded-lg p-2 ${room.isActive ? "bg-[#fef3dc] text-[#b25c1c]" : "bg-gray-100 text-gray-400"}`}>
                       <MessageCircle className="h-4 w-4" />
                     </div>
                     <div className="min-w-0 flex-1">
@@ -308,7 +308,7 @@ export default function AllChatsTab() {
                         <span className="text-sm font-semibold text-gompa-slate">
                           {room.restaurant?.name || "Unknown"}
                         </span>
-                        <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${room.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+                        <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${room.isActive ? "bg-[#fef3dc] text-[#b25c1c]" : "bg-gray-100 text-gray-500"}`}>
                           {room.isActive ? "Active" : "Closed"}
                         </span>
                         <span className="rounded-full bg-gray-100 px-1.5 py-0.5 text-[10px] text-gray-500">

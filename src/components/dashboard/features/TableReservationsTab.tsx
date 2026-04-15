@@ -103,7 +103,7 @@ const today = "2026-03-15";
 
 const statusColors: Record<ReservationStatus, string> = {
   Pending: "bg-yellow-100 text-yellow-800",
-  Confirmed: "bg-emerald-100 text-emerald-800",
+  Confirmed: "bg-[#fef3dc] text-[#3e1e0c]",
   Seated: "bg-blue-100 text-blue-800",
   Completed: "bg-gray-100 text-gray-700",
   "No Show": "bg-red-100 text-red-800",
@@ -261,9 +261,9 @@ export default function TableReservationsTab() {
               onClick={() => setSelectedDate(dateStr)}
               className={`h-16 rounded-lg text-sm flex flex-col items-center justify-center gap-0.5 transition-colors ${
                 isSelected
-                  ? "bg-emerald-600 text-white"
+                  ? "bg-[#eaa94d] text-white"
                   : isToday
-                  ? "bg-emerald-50 border-2 border-emerald-400 text-emerald-800"
+                  ? "bg-[#fef9ef] border-2 border-[#eaa94d] text-[#3e1e0c]"
                   : "hover:bg-gray-100 text-gray-700"
               }`}
             >
@@ -273,7 +273,7 @@ export default function TableReservationsTab() {
                   className={`text-[10px] px-1.5 rounded-full ${
                     isSelected
                       ? "bg-white/30 text-white"
-                      : "bg-emerald-100 text-emerald-700"
+                      : "bg-[#fef3dc] text-[#b25c1c]"
                   }`}
                 >
                   {count}
@@ -307,7 +307,7 @@ export default function TableReservationsTab() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-            <CalendarDays className="w-6 h-6 text-emerald-600" />
+            <CalendarDays className="w-6 h-6 text-[#b25c1c]" />
             Table Reservations
           </h2>
           <p className="text-sm text-gray-500 mt-1">
@@ -321,7 +321,7 @@ export default function TableReservationsTab() {
               onClick={() => setView(v)}
               className={`px-3 py-1.5 text-sm rounded-lg font-medium transition-colors ${
                 view === v
-                  ? "bg-emerald-600 text-white"
+                  ? "bg-[#eaa94d] text-white"
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200"
               }`}
             >
@@ -336,7 +336,7 @@ export default function TableReservationsTab() {
           ))}
           <button
             onClick={() => setShowForm(true)}
-            className="flex items-center gap-1.5 bg-emerald-600 text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors"
+            className="flex items-center gap-1.5 bg-[#eaa94d] text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors"
           >
             <Plus className="w-4 h-4" /> New Reservation
           </button>
@@ -346,7 +346,7 @@ export default function TableReservationsTab() {
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         {[
           { label: "Today Total", value: stats.todayTotal, color: "text-gray-900" },
-          { label: "Confirmed", value: stats.todayConfirmed, color: "text-emerald-600" },
+          { label: "Confirmed", value: stats.todayConfirmed, color: "text-[#b25c1c]" },
           { label: "Seated", value: stats.todaySeated, color: "text-blue-600" },
           { label: "Pending", value: stats.todayPending, color: "text-yellow-600" },
           { label: "No Shows (All)", value: stats.noShows, color: "text-red-600" },
@@ -479,7 +479,7 @@ export default function TableReservationsTab() {
                           onClick={() => setFormPreference(pref)}
                           className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                             formPreference === pref
-                              ? "bg-emerald-600 text-white"
+                              ? "bg-[#eaa94d] text-white"
                               : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                           }`}
                         >
@@ -525,7 +525,7 @@ export default function TableReservationsTab() {
                   <button
                     onClick={createReservation}
                     disabled={!formName.trim() || !formPhone.trim()}
-                    className="px-6 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-6 py-2 bg-[#eaa94d] text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Create Reservation
                   </button>
@@ -622,7 +622,7 @@ export default function TableReservationsTab() {
                           status: "Confirmed",
                         });
                       }}
-                      className="flex items-center gap-1 px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-lg text-sm font-medium hover:bg-emerald-200"
+                      className="flex items-center gap-1 px-3 py-1.5 bg-[#fef3dc] text-[#b25c1c] rounded-lg text-sm font-medium hover:bg-[#fde9ba]"
                     >
                       <CheckCircle2 className="w-3.5 h-3.5" /> Confirm
                     </button>
@@ -706,8 +706,8 @@ export default function TableReservationsTab() {
         >
           {/* Today's Highlighted */}
           {todayReservations.length > 0 && (
-            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
-              <h3 className="text-sm font-semibold text-emerald-800 mb-2 flex items-center gap-1.5">
+            <div className="bg-[#fef9ef] border border-[#eaa94d]/30 rounded-xl p-4">
+              <h3 className="text-sm font-semibold text-[#3e1e0c] mb-2 flex items-center gap-1.5">
                 <Clock className="w-4 h-4" /> Today&apos;s Reservations ({todayReservations.length})
               </h3>
               <div className="flex flex-wrap gap-2">
@@ -721,7 +721,7 @@ export default function TableReservationsTab() {
                     <button
                       key={r.id}
                       onClick={() => setSelectedReservation(r)}
-                      className="bg-white rounded-lg px-3 py-2 text-sm shadow-sm border border-emerald-100 hover:shadow-md transition-shadow text-left"
+                      className="bg-white rounded-lg px-3 py-2 text-sm shadow-sm border border-[#eaa94d]/30 hover:shadow-md transition-shadow text-left"
                     >
                       <span className="font-medium text-gray-900">
                         {r.guestName}
@@ -815,7 +815,7 @@ export default function TableReservationsTab() {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         className={`border-b border-gray-50 hover:bg-gray-50 cursor-pointer ${
-                          r.date === today ? "bg-emerald-50/30" : ""
+                          r.date === today ? "bg-[#fef9ef]/30" : ""
                         }`}
                         onClick={() => setSelectedReservation(r)}
                       >
@@ -928,7 +928,7 @@ export default function TableReservationsTab() {
             <h3 className="text-sm font-semibold text-gray-900 mb-3">
               Reservations for {selectedDate}
               {selectedDate === today && (
-                <span className="ml-2 text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">
+                <span className="ml-2 text-xs bg-[#fef3dc] text-[#b25c1c] px-2 py-0.5 rounded-full">
                   Today
                 </span>
               )}
@@ -952,7 +952,7 @@ export default function TableReservationsTab() {
                       className="w-full flex items-center justify-between bg-gray-50 rounded-lg px-4 py-3 hover:bg-gray-100 transition-colors text-left"
                     >
                       <div className="flex items-center gap-3">
-                        <span className="text-sm font-medium text-emerald-700 w-20">
+                        <span className="text-sm font-medium text-[#b25c1c] w-20">
                           {r.timeSlot}
                         </span>
                         <span className="text-sm font-medium text-gray-900">
@@ -1011,7 +1011,7 @@ export default function TableReservationsTab() {
                   </div>
                   <button
                     onClick={() => removeFromBlacklist(b.id)}
-                    className="text-xs text-emerald-600 hover:text-emerald-700 font-medium"
+                    className="text-xs text-[#b25c1c] hover:text-[#b25c1c] font-medium"
                   >
                     Remove
                   </button>
@@ -1092,7 +1092,7 @@ export default function TableReservationsTab() {
                   smsReminders: !prev.smsReminders,
                 }))
               }
-              className="text-emerald-600"
+              className="text-[#b25c1c]"
             >
               {capacitySettings.smsReminders ? (
                 <ToggleRight className="w-8 h-8" />

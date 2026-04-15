@@ -46,8 +46,8 @@ const steps = [
     Icon: Bell,
     title: "Live Tracking",
     desc: "Real-time updates while we prepare and deliver your food.",
-    accent: "from-[#1E7B3E] to-[#34D399]",
-    accentColor: "#1E7B3E",
+    accent: "from-[#eaa94d] to-[#34D399]",
+    accentColor: "#eaa94d",
     image:
       "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=700&fit=crop",
     phoneLabel: "Preparing your order",
@@ -432,7 +432,7 @@ export default function StoryHowItWorks() {
                                 </span>
                               </div>
                               <div className="h-1 rounded-full bg-white/10 overflow-hidden">
-                                <div className="h-full w-[65%] rounded-full bg-gradient-to-r from-[#1E7B3E] to-[#34D399]" />
+                                <div className="h-full w-[65%] rounded-full bg-gradient-to-r from-[#eaa94d] to-[#34D399]" />
                               </div>
                               <div className="flex items-center justify-between mt-2">
                                 <div className="flex items-center gap-1">
@@ -454,7 +454,7 @@ export default function StoryHowItWorks() {
                                 (s, j) => (
                                   <div key={j} className="flex-1 text-center">
                                     <div
-                                      className={`mx-auto h-5 w-5 rounded-full flex items-center justify-center mb-1 ${j < 2 ? "bg-[#1E7B3E]" : "bg-white/8"}`}
+                                      className={`mx-auto h-5 w-5 rounded-full flex items-center justify-center mb-1 ${j < 2 ? "bg-[#eaa94d]" : "bg-white/8"}`}
                                     >
                                       {j < 2 ? (
                                         <Check className="h-2.5 w-2.5 text-white" />

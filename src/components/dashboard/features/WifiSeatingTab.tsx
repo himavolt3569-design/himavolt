@@ -55,7 +55,7 @@ export default function WifiSeatingTab() {
 
   const statusColor = (status: Table["status"]) => {
     switch (status) {
-      case "Available": return "bg-green-100 text-green-700";
+      case "Available": return "bg-[#fef3dc] text-[#b25c1c]";
       case "Occupied": return "bg-amber-100 text-amber-700";
       case "Reserved": return "bg-blue-100 text-blue-700";
     }
@@ -115,7 +115,7 @@ export default function WifiSeatingTab() {
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         {[
           { label: "Occupancy", value: `${occupiedSeats}/${totalSeats}`, icon: Users, color: "text-amber-600 bg-amber-50" },
-          { label: "Occupancy Rate", value: `${occupancyPct}%`, icon: BarChart3, color: "text-green-600 bg-green-50" },
+          { label: "Occupancy Rate", value: `${occupancyPct}%`, icon: BarChart3, color: "text-[#b25c1c] bg-[#fef9ef]" },
           { label: "Avg Session", value: `${avgSession} min`, icon: Clock, color: "text-blue-600 bg-blue-50" },
           { label: "Turnover Rate", value: `${turnoverRate}x/day`, icon: RefreshCw, color: "text-purple-600 bg-purple-50" },
         ].map((stat) => (
@@ -147,7 +147,7 @@ export default function WifiSeatingTab() {
             initial={{ width: 0 }}
             animate={{ width: `${occupancyPct}%` }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className={`h-3 rounded-full ${occupancyPct > 80 ? "bg-red-400" : occupancyPct > 50 ? "bg-amber-400" : "bg-green-400"}`}
+            className={`h-3 rounded-full ${occupancyPct > 80 ? "bg-red-400" : occupancyPct > 50 ? "bg-amber-400" : "bg-[#eaa94d]"}`}
           />
         </div>
         <div className="flex items-center justify-between mt-2">
@@ -209,7 +209,7 @@ export default function WifiSeatingTab() {
                     onClick={copyPassword}
                     className="px-3 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors"
                   >
-                    {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                    {copied ? <Check className="w-4 h-4 text-[#d67620]" /> : <Copy className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
@@ -338,7 +338,7 @@ export default function WifiSeatingTab() {
                   onClick={() => togglePower(table.id)}
                   className={`flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-lg transition-colors ${
                     table.hasPowerOutlet
-                      ? "bg-green-50 text-green-600"
+                      ? "bg-[#fef9ef] text-[#b25c1c]"
                       : "bg-gray-100 text-gray-400"
                   }`}
                 >

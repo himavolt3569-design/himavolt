@@ -23,7 +23,7 @@ export default function TableSessionBanner({
     status === "PREPARING"
       ? "bg-orange-500"
       : status === "READY"
-        ? "bg-green-500"
+        ? "bg-[#eaa94d]"
         : status === "ACCEPTED"
           ? "bg-blue-500"
           : "bg-amber-500";

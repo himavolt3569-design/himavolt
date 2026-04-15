@@ -205,7 +205,7 @@ const STATUS_COLORS: Record<string, string> = {
   PENDING: "bg-orange-100 text-orange-700",
   ACCEPTED: "bg-blue-100 text-blue-700",
   PREPARING: "bg-amber-100 text-amber-700",
-  READY: "bg-green-100 text-green-700",
+  READY: "bg-[#fef3dc] text-[#b25c1c]",
   DELIVERED: "bg-gray-100 text-gray-600",
   CANCELLED: "bg-red-100 text-red-600",
   REJECTED: "bg-red-100 text-red-600",
@@ -649,8 +649,8 @@ export default function BillingTab({
             label="Total Revenue"
             value={formatPrice(summary.totalRevenue, cur)}
             icon={TrendingUp}
-            color="text-emerald-600"
-            bg="bg-emerald-50"
+            color="text-[#b25c1c]"
+            bg="bg-[#fef9ef]"
           />
           <SummaryCard
             label="Cash Collected"
@@ -686,7 +686,7 @@ export default function BillingTab({
               {summary.totalOrders} orders today
             </span>
             <span className="flex items-center gap-1">
-              <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+              <CheckCircle2 className="h-3 w-3 text-[#d67620]" />
               {summary.paidOrders} paid
             </span>
             <span className="flex items-center gap-1">
@@ -766,7 +766,7 @@ export default function BillingTab({
               className={`flex-1 flex items-center justify-center gap-1.5 rounded-xl px-3 py-3 text-xs font-bold transition-all ${
                 isActive
                   ? t.key === "cash"
-                    ? "bg-white text-emerald-700 shadow-[0_4px_12px_-4px_rgba(16,185,129,0.3)] ring-1 ring-emerald-100"
+                    ? "bg-white text-[#b25c1c] shadow-[0_4px_12px_-4px_rgba(16,185,129,0.3)] ring-1 ring-emerald-100"
                     : t.key === "online"
                       ? "bg-white text-purple-700 shadow-[0_4px_12px_-4px_rgba(168,85,247,0.3)] ring-1 ring-purple-100"
                       : "bg-white text-gray-900 shadow-[0_4px_12px_-4px_rgba(0,0,0,0.1)] ring-1 ring-gray-200"
@@ -777,7 +777,7 @@ export default function BillingTab({
                 className={`h-4 w-4 ${
                   isActive
                     ? t.key === "cash"
-                      ? "text-emerald-500"
+                      ? "text-[#d67620]"
                       : t.key === "online"
                         ? "text-purple-500"
                         : "text-gray-800"
@@ -793,7 +793,7 @@ export default function BillingTab({
                   className={`inline-flex h-4 min-w-[16px] items-center justify-center rounded-full px-1.5 text-[10px] font-black ${
                     isActive
                       ? t.key === "cash"
-                        ? "bg-emerald-100/80 text-emerald-700"
+                        ? "bg-[#fef3dc]/80 text-[#b25c1c]"
                         : t.key === "online"
                           ? "bg-purple-100/80 text-purple-700"
                           : "bg-gray-100 text-gray-800"
@@ -809,9 +809,9 @@ export default function BillingTab({
       </div>
 
       {payType === "cash" && (
-        <div className="flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-100 px-4 py-2.5">
-          <BillIcon className="h-4 w-4 text-emerald-600 shrink-0" />
-          <p className="text-xs text-emerald-700 font-medium">
+        <div className="flex items-center gap-2 rounded-xl bg-[#fef9ef] border border-[#eaa94d]/30 px-4 py-2.5">
+          <BillIcon className="h-4 w-4 text-[#b25c1c] shrink-0" />
+          <p className="text-xs text-[#b25c1c] font-medium">
             <span className="font-bold">Cash Bills</span> — Customer pays at the
             counter. Collect cash and mark as paid.
           </p>
@@ -890,9 +890,9 @@ export default function BillingTab({
             <div className="space-y-4">
               {/* Grand total */}
               <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-2xl bg-emerald-50 border border-emerald-100 p-4">
-                  <p className="text-xs text-emerald-600 font-semibold">Total Collected</p>
-                  <p className="text-2xl font-black text-emerald-700 mt-1">
+                <div className="rounded-2xl bg-[#fef9ef] border border-[#eaa94d]/30 p-4">
+                  <p className="text-xs text-[#b25c1c] font-semibold">Total Collected</p>
+                  <p className="text-2xl font-black text-[#b25c1c] mt-1">
                     {formatPrice(staffReport.grandTotal, cur)}
                   </p>
                 </div>
@@ -935,7 +935,7 @@ export default function BillingTab({
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-lg font-black text-emerald-700">
+                      <p className="text-lg font-black text-[#b25c1c]">
                         {formatPrice(s.totalCollected, cur)}
                       </p>
                       <p className="text-[10px] text-gray-500">{s.orderCount} orders</p>
@@ -1093,14 +1093,14 @@ export default function BillingTab({
                 </span>
                 {order.payment ? (
                   order.payment.method === "CASH" ? (
-                    <span className="flex items-center gap-0.5 rounded-lg bg-emerald-50 border border-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
+                    <span className="flex items-center gap-0.5 rounded-lg bg-[#fef9ef] border border-[#eaa94d]/30 px-2 py-0.5 text-[10px] font-bold text-[#b25c1c]">
                       <BillIcon className="h-2.5 w-2.5" />
                       Cash Bill
                     </span>
                   ) : order.payment.method === "DIRECT" ? (
                     <span className={`flex items-center gap-0.5 rounded-lg border px-2 py-0.5 text-[10px] font-bold ${
                       order.payment.status === "COMPLETED"
-                        ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                        ? "bg-[#fef9ef] border-[#eaa94d]/30 text-[#b25c1c]"
                         : "bg-orange-50 border-orange-200 text-orange-700"
                     }`}>
                       <Receipt className="h-2.5 w-2.5" />
@@ -1121,7 +1121,7 @@ export default function BillingTab({
               </div>
               <div className="flex items-center gap-1.5">
                 {isPaid(order) ? (
-                  <span className="flex items-center gap-1 rounded-lg bg-emerald-50 px-2 py-1 text-[10px] font-bold text-emerald-700">
+                  <span className="flex items-center gap-1 rounded-lg bg-[#fef9ef] px-2 py-1 text-[10px] font-bold text-[#b25c1c]">
                     <CheckCircle2 className="h-3 w-3" />
                     PAID
                   </span>
@@ -1290,7 +1290,7 @@ export default function BillingTab({
                       <button
                         onClick={() => handleVerifyBank(order, "VERIFY")}
                         disabled={actionLoading}
-                        className="flex items-center gap-1 rounded-lg bg-emerald-500 px-2.5 py-1.5 text-[10px] font-bold text-white hover:bg-emerald-600 disabled:bg-gray-300 transition-all shadow-sm"
+                        className="flex items-center gap-1 rounded-lg bg-[#eaa94d] px-2.5 py-1.5 text-[10px] font-bold text-white hover:bg-[#d67620] disabled:bg-gray-300 transition-all shadow-sm"
                       >
                         <CheckCircle2 className="h-3 w-3" />
                         Verify
@@ -1318,7 +1318,7 @@ export default function BillingTab({
                           setCollectMethod(order.payment?.method || "CASH");
                           setShowCollect(true);
                         }}
-                        className="flex items-center gap-1 rounded-lg bg-emerald-500 px-3 py-1.5 text-[10px] font-bold text-white hover:bg-emerald-600 transition-all shadow-sm"
+                        className="flex items-center gap-1 rounded-lg bg-[#eaa94d] px-3 py-1.5 text-[10px] font-bold text-white hover:bg-[#d67620] transition-all shadow-sm"
                       >
                         <CreditCard className="h-3 w-3" />
                         Mark Paid
@@ -1467,16 +1467,16 @@ export default function BillingTab({
                           onClick={() => setCollectMethod(method)}
                           className={`flex items-center gap-2 rounded-xl border-2 px-3 py-3 text-left transition-all ${
                             isSelected
-                              ? "border-emerald-400 bg-emerald-50 shadow-sm"
+                              ? "border-[#eaa94d] bg-[#fef9ef] shadow-sm"
                               : "border-gray-100 bg-white hover:border-gray-200"
                           }`}
                         >
                           <Icon
-                            className={`h-4 w-4 shrink-0 ${isSelected ? "text-emerald-600" : "text-gray-400"}`}
+                            className={`h-4 w-4 shrink-0 ${isSelected ? "text-[#b25c1c]" : "text-gray-400"}`}
                           />
                           <div>
                             <span
-                              className={`text-xs font-bold block ${isSelected ? "text-emerald-700" : "text-gray-600"}`}
+                              className={`text-xs font-bold block ${isSelected ? "text-[#b25c1c]" : "text-gray-600"}`}
                             >
                               {paymentMethodLabel(method)}
                             </span>
@@ -1503,7 +1503,7 @@ export default function BillingTab({
                     value={collectTxn}
                     onChange={(e) => setCollectTxn(e.target.value)}
                     placeholder="Enter transaction ID..."
-                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 transition-all"
+                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-[#eaa94d] focus:ring-2 focus:ring-[#eaa94d]/20 transition-all"
                   />
                 </div>
               )}
@@ -1521,7 +1521,7 @@ export default function BillingTab({
                 <button
                   onClick={handleCollectPayment}
                   disabled={actionLoading}
-                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-emerald-500 py-3 text-sm font-bold text-white hover:bg-emerald-600 disabled:bg-gray-300 transition-all shadow-sm"
+                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[#eaa94d] py-3 text-sm font-bold text-white hover:bg-[#d67620] disabled:bg-gray-300 transition-all shadow-sm"
                 >
                   {actionLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -1776,9 +1776,9 @@ export default function BillingTab({
                 const remaining = billTotal - entered;
                 return (
                   <div className={`rounded-xl p-3 mb-5 border text-sm flex justify-between ${
-                    Math.abs(remaining) <= 1 ? "bg-emerald-50 border-emerald-100" : "bg-indigo-50 border-indigo-100"
+                    Math.abs(remaining) <= 1 ? "bg-[#fef9ef] border-[#eaa94d]/30" : "bg-indigo-50 border-indigo-100"
                   }`}>
-                    <span className={Math.abs(remaining) <= 1 ? "text-emerald-700 font-medium" : "text-indigo-700 font-medium"}>
+                    <span className={Math.abs(remaining) <= 1 ? "text-[#b25c1c] font-medium" : "text-indigo-700 font-medium"}>
                       {Math.abs(remaining) <= 1 ? <span className="flex items-center gap-1"><Check className="h-3.5 w-3.5" /> Amounts balanced</span> : `Remaining: ${formatPrice(Math.abs(remaining), cur)} ${remaining > 0 ? "unallocated" : "over"}`}
                     </span>
                     <span className="font-extrabold text-[#3e1e0c]">{formatPrice(entered, cur)}</span>

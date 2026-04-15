@@ -152,7 +152,7 @@ export default function DeliveryZonesTab() {
           <p className="text-xs text-gray-500">Total Zones</p>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-center">
-          <Navigation className="w-5 h-5 text-emerald-500 mx-auto mb-1" />
+          <Navigation className="w-5 h-5 text-[#d67620] mx-auto mb-1" />
           <p className="text-2xl font-bold text-gray-900">{totalActiveZones}</p>
           <p className="text-xs text-gray-500">Active Zones</p>
         </div>
@@ -410,7 +410,7 @@ export default function DeliveryZonesTab() {
                       <span
                         className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
                           zone.active
-                            ? "bg-emerald-100 text-emerald-700"
+                            ? "bg-[#fef3dc] text-[#b25c1c]"
                             : "bg-gray-100 text-gray-500"
                         }`}
                       >
@@ -427,7 +427,7 @@ export default function DeliveryZonesTab() {
                         {zone.radiusKm} km
                       </span>
                       <span className="inline-flex items-center gap-1 text-xs text-gray-600">
-                        <DollarSign className="w-3 h-3 text-emerald-500" />
+                        <DollarSign className="w-3 h-3 text-[#d67620]" />
                         {formatPrice(zone.deliveryFee, cur)}
                       </span>
                       <span className="inline-flex items-center gap-1 text-xs text-gray-600">
@@ -488,8 +488,8 @@ export default function DeliveryZonesTab() {
                             {formatPrice(zone.minOrderAmount, cur)}
                           </p>
                         </div>
-                        <div className="bg-emerald-50 rounded-lg p-3">
-                          <p className="text-[10px] font-medium text-emerald-600 uppercase tracking-wide">
+                        <div className="bg-[#fef9ef] rounded-lg p-3">
+                          <p className="text-[10px] font-medium text-[#b25c1c] uppercase tracking-wide">
                             Free Delivery
                           </p>
                           <p className="text-sm font-bold text-gray-900 mt-0.5">

@@ -391,7 +391,7 @@ function RestaurantSwitcher({ onNavigate }: { onNavigate?: () => void }) {
             {current.name}
           </p>
           <div className="flex items-center gap-1.5 mt-0.5">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="h-1.5 w-1.5 rounded-full bg-[#eaa94d] animate-pulse" />
             <p className="text-[10px] text-gray-400">Active</p>
           </div>
         </div>
@@ -439,7 +439,7 @@ function RestaurantSwitcher({ onNavigate }: { onNavigate?: () => void }) {
                     /pos/{current.slug}
                   </code>
                   {slugCopied ? (
-                    <Check className="h-3.5 w-3.5 text-green-500 shrink-0" />
+                    <Check className="h-3.5 w-3.5 text-[#d67620] shrink-0" />
                   ) : (
                     <Copy className="h-3.5 w-3.5 text-gray-400 group-hover:text-amber-500 shrink-0" />
                   )}
@@ -594,8 +594,8 @@ function NavSection({
               )}
               {item.badge === "live" && newOrderCount === 0 && (
                 <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-50" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#eaa94d] opacity-50" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-[#eaa94d]" />
                 </span>
               )}
             </button>
@@ -632,7 +632,7 @@ function SlugCopyStrip() {
         <p className="text-[11px] font-mono text-amber-700 truncate">/pos/{slug}</p>
       </div>
       {copied ? (
-        <Check className="h-3.5 w-3.5 text-green-500 shrink-0" />
+        <Check className="h-3.5 w-3.5 text-[#d67620] shrink-0" />
       ) : (
         <Copy className="h-3.5 w-3.5 text-amber-400 group-hover:text-amber-600 shrink-0 transition-colors" />
       )}
@@ -1182,7 +1182,7 @@ function OverviewTab({
                 This week&apos;s performance
               </p>
             </div>
-            <span className="flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-1.5 text-[12px] font-bold text-emerald-600">
+            <span className="flex items-center gap-1.5 rounded-lg bg-[#fef9ef] px-3 py-1.5 text-[12px] font-bold text-[#b25c1c]">
               <TrendingUp className="h-3 w-3" />
               {formatPrice(todayRevenue, cur)}
             </span>
@@ -1589,9 +1589,9 @@ export default function DashboardPage() {
 
             <div className="hidden lg:block h-4 w-px bg-gray-200" />
 
-            <div className="hidden sm:flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[11px] font-semibold text-emerald-700">
+            <div className="hidden sm:flex items-center gap-1.5 rounded-full bg-[#fef9ef] px-2.5 py-1">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#eaa94d] animate-pulse" />
+              <span className="text-[11px] font-semibold text-[#b25c1c]">
                 Live
               </span>
             </div>

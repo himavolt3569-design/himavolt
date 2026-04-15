@@ -32,7 +32,7 @@ const STATUS_CONFIG: Record<
   PENDING: { label: "New", bg: "bg-orange-100", text: "text-orange-700", icon: Clock },
   ACCEPTED: { label: "Accepted", bg: "bg-blue-100", text: "text-blue-700", icon: CheckCircle2 },
   PREPARING: { label: "Preparing", bg: "bg-amber-100", text: "text-amber-700", icon: ChefHat },
-  READY: { label: "Ready", bg: "bg-green-100", text: "text-green-700", icon: PackageCheck },
+  READY: { label: "Ready", bg: "bg-[#fef3dc]", text: "text-[#b25c1c]", icon: PackageCheck },
   DELIVERED: { label: "Delivered", bg: "bg-gray-100", text: "text-gray-600", icon: Truck },
   CANCELLED: { label: "Cancelled", bg: "bg-red-100", text: "text-red-600", icon: XCircle },
   REJECTED: { label: "Rejected", bg: "bg-red-100", text: "text-red-600", icon: XCircle },
@@ -135,7 +135,7 @@ function PaymentBadge({ method, status }: { method: string; status: string }) {
     <span
       className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${
         isPaid
-          ? "bg-green-100 text-green-700"
+          ? "bg-[#fef3dc] text-[#b25c1c]"
           : isDirectPay
           ? "bg-teal-100 text-teal-700"
           : "bg-amber-100 text-amber-700"
@@ -189,12 +189,12 @@ export default function LiveOrdersTab() {
           </p>
         </div>
         <div className="flex items-center gap-2.5">
-          <div className="flex items-center gap-2 bg-emerald-50/80 border border-emerald-100/50 px-3 py-1.5 rounded-full shadow-sm backdrop-blur-sm">
+          <div className="flex items-center gap-2 bg-[#fef9ef]/80 border border-[#eaa94d]/30/50 px-3 py-1.5 rounded-full shadow-sm backdrop-blur-sm">
             <div className="flex h-2 w-2 items-center justify-center">
-              <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+              <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-[#eaa94d] opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-[#eaa94d]" />
             </div>
-            <span className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">Live Sync</span>
+            <span className="text-[11px] font-bold text-[#b25c1c] uppercase tracking-wider">Live Sync</span>
           </div>
           <button onClick={() => refresh()} className="rounded-full bg-white/80 p-2 shadow-sm border border-gray-100 hover:bg-white hover:shadow-md transition-all active:scale-95">
             <RefreshCw className={`h-4 w-4 text-gray-500 ${loading ? "animate-spin text-amber-500" : ""}`} style={{ animationDuration: "1s" }} />
@@ -537,7 +537,7 @@ function OrderActions({
         busy={busy}
         icon={PackageCheck}
         label="Mark Ready"
-        className="bg-green-500 text-white hover:bg-green-600"
+        className="bg-[#eaa94d] text-white hover:bg-[#eaa94d]"
       />
     );
   }

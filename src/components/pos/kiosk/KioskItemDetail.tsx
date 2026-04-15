@@ -102,7 +102,7 @@ export default function KioskItemDetail({ item, currency, onClose, onAdd }: Prop
           <div>
             <div className="flex items-center gap-2 mb-1.5">
               {item.isVeg && (
-                <span className="h-2 w-2 rounded-full bg-green-500 shrink-0" />
+                <span className="h-2 w-2 rounded-full bg-[#eaa94d] shrink-0" />
               )}
               {item.spiceLevel > 0 && (
                 <div className="flex gap-1">

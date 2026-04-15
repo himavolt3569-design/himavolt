@@ -114,7 +114,7 @@ const DEFAULT_CATEGORIES: { name: string; icon: string; subs: string[] }[] = [
 const BADGE_OPTIONS = ["Bestseller", "New", "Chef's Special", "Must Try", "Popular", "Seasonal"];
 const ALLERGEN_OPTIONS = ["Gluten", "Dairy", "Nuts", "Soy", "Eggs", "Shellfish", "Sesame", "Mustard"];
 const SPICE_LABELS = ["None", "Mild", "Medium", "Hot", "Extra Hot"];
-const SPICE_COLORS = ["text-gray-400", "text-green-500", "text-yellow-500", "text-orange-500", "text-red-500"];
+const SPICE_COLORS = ["text-gray-400", "text-[#d67620]", "text-yellow-500", "text-orange-500", "text-red-500"];
 
 
 function PriceInput({ value, onChange, placeholder, currencySymbol = "Rs." }: { value: string; onChange: (v: string) => void; placeholder?: string; currencySymbol?: string }) {
@@ -166,10 +166,10 @@ function MenuStats({ items, categories, currency }: { items: MenuItem[]; categor
 
   const stats = [
     { label: "Total Items", value: items.length, icon: UtensilsCrossed, color: "text-amber-500", bg: "bg-gradient-to-br from-amber-400/20 to-orange-500/10", border: "border-amber-100/50" },
-    { label: "Active", value: `${active}/${items.length}`, icon: Eye, color: "text-emerald-500", bg: "bg-gradient-to-br from-emerald-400/20 to-green-500/10", border: "border-emerald-100/50" },
+    { label: "Active", value: `${active}/${items.length}`, icon: Eye, color: "text-[#d67620]", bg: "bg-gradient-to-br from-emerald-400/20 to-green-500/10", border: "border-[#eaa94d]/30/50" },
     { label: "Categories", value: `${topCats.length} + ${totalSubs} sub`, icon: Layers, color: "text-indigo-500", bg: "bg-gradient-to-br from-indigo-400/20 to-purple-500/10", border: "border-indigo-100/50" },
     { label: "Avg Price", value: formatPrice(avgPrice, currency), icon: TrendingUp, color: "text-blue-500", bg: "bg-gradient-to-br from-blue-400/20 to-cyan-500/10", border: "border-blue-100/50" },
-    { label: "Veg / Non-Veg", value: `${vegCount}/${items.length - vegCount}`, icon: Leaf, color: "text-emerald-600", bg: "bg-gradient-to-br from-emerald-400/20 to-teal-500/10", border: "border-emerald-100/50" },
+    { label: "Veg / Non-Veg", value: `${vegCount}/${items.length - vegCount}`, icon: Leaf, color: "text-[#b25c1c]", bg: "bg-gradient-to-br from-emerald-400/20 to-teal-500/10", border: "border-[#eaa94d]/30/50" },
     { label: "Featured", value: featuredCount, icon: Star, color: "text-amber-500", bg: "bg-gradient-to-br from-amber-400/20 to-yellow-500/10", border: "border-amber-100/50" },
   ];
 
@@ -374,13 +374,13 @@ function MenuItemCard({
             <span className={`flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center rounded-md border-2 shadow-sm bg-white/90 ${
               item.isVeg ? "border-emerald-500" : "border-rose-500"
             }`}>
-              <span className={`h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full ${item.isVeg ? "bg-emerald-500" : "bg-rose-500"}`} />
+              <span className={`h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full ${item.isVeg ? "bg-[#eaa94d]" : "bg-rose-500"}`} />
             </span>
           </div>
 
           {item.discount > 0 && (
             <div className="absolute top-2 left-2 z-10">
-              <span className="rounded-full bg-gradient-to-r from-emerald-500 to-green-600 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-md">
+              <span className="rounded-full bg-gradient-to-r from-[#eaa94d] to-[#d67620] px-1.5 py-0.5 text-[9px] font-bold text-white shadow-md">
                 {item.discountLabel || `${item.discount}% OFF`}
               </span>
             </div>
@@ -397,7 +397,7 @@ function MenuItemCard({
             <button
               onClick={onToggle}
               className={`rounded-full p-2 shadow-lg backdrop-blur-md transition-all hover:scale-105 active:scale-95 ${
-                item.isAvailable ? "bg-emerald-500/90 text-white" : "bg-gray-800/90 text-white"
+                item.isAvailable ? "bg-[#eaa94d]/90 text-white" : "bg-gray-800/90 text-white"
               }`}
               title={item.isAvailable ? "Mark unavailable" : "Mark available"}
             >
@@ -513,7 +513,7 @@ function MenuItemCard({
           <button
             onClick={onToggle}
             className={`rounded-full p-2 shadow-sm transition-all active:scale-95 ${
-              item.isAvailable ? "bg-emerald-50 text-emerald-600" : "bg-gray-100 text-gray-500"
+              item.isAvailable ? "bg-[#fef9ef] text-[#b25c1c]" : "bg-gray-100 text-gray-500"
             }`}
             title={item.isAvailable ? "Mark unavailable" : "Mark available"}
           >
@@ -891,7 +891,7 @@ function DishForm({
                   type="button"
                   onClick={() => update({ isVeg: true })}
                   className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-[12px] font-semibold border transition-all ${
-                    form.isVeg ? "border-green-300 bg-green-50 text-green-700 ring-1 ring-green-200" : "border-gray-200 text-gray-400"
+                    form.isVeg ? "border-[#eaa94d] bg-[#fef9ef] text-[#b25c1c] ring-1 ring-green-200" : "border-gray-200 text-gray-400"
                   }`}
                 >
                   <Leaf className="h-3.5 w-3.5" /> Vegetarian
@@ -998,7 +998,7 @@ function DishForm({
                 />
               </div>
               {Number(form.discount) > 0 && Number(form.price) > 0 && (
-                <p className="text-[11px] text-green-600 mt-1.5">
+                <p className="text-[11px] text-[#b25c1c] mt-1.5">
                   Customer pays: {formatPrice(Math.round(Number(form.price) * (1 - Number(form.discount) / 100)), currency)}
                   {" "}(was {formatPrice(Number(form.price), currency)})
                 </p>
@@ -1619,24 +1619,24 @@ export default function MenuManagementTab() {
           disabled={statusSaving}
           className={`flex flex-1 items-center justify-between gap-3 rounded-2xl border px-4 py-3 transition-all ${
             isOpen
-              ? "border-green-200 bg-green-50 hover:bg-green-100"
+              ? "border-[#eaa94d]/30 bg-[#fef9ef] hover:bg-[#fef3dc]"
               : "border-red-200 bg-red-50 hover:bg-red-100"
           }`}
         >
           <div className="flex items-center gap-3">
-            <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${isOpen ? "bg-green-100" : "bg-red-100"}`}>
-              {isOpen ? <Eye className="h-4 w-4 text-green-600" /> : <EyeOff className="h-4 w-4 text-red-500" />}
+            <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${isOpen ? "bg-[#fef3dc]" : "bg-red-100"}`}>
+              {isOpen ? <Eye className="h-4 w-4 text-[#b25c1c]" /> : <EyeOff className="h-4 w-4 text-red-500" />}
             </div>
             <div className="text-left">
-              <p className={`text-xs font-bold ${isOpen ? "text-green-800" : "text-red-700"}`}>
+              <p className={`text-xs font-bold ${isOpen ? "text-[#3e1e0c]" : "text-red-700"}`}>
                 {isOpen ? "Restaurant Visible" : "Restaurant Hidden"}
               </p>
-              <p className={`text-[11px] ${isOpen ? "text-green-600" : "text-red-500"}`}>
+              <p className={`text-[11px] ${isOpen ? "text-[#b25c1c]" : "text-red-500"}`}>
                 {isOpen ? "Showing on landing page" : "Hidden from landing page"}
               </p>
             </div>
           </div>
-          <div className={`relative h-6 w-11 rounded-full transition-colors ${isOpen ? "bg-green-500" : "bg-gray-300"}`}>
+          <div className={`relative h-6 w-11 rounded-full transition-colors ${isOpen ? "bg-[#eaa94d]" : "bg-gray-300"}`}>
             <div className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${isOpen ? "translate-x-5" : "translate-x-0.5"}`} />
           </div>
         </button>

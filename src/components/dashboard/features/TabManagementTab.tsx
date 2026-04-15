@@ -336,7 +336,7 @@ export default function TabManagementTab() {
                   <span
                     className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                       tab.status === "Open"
-                        ? "bg-emerald-500/20 text-emerald-400"
+                        ? "bg-[#eaa94d]/20 text-emerald-400"
                         : tab.status === "Settling"
                         ? "bg-amber-500/20 text-amber-400"
                         : "bg-zinc-600/20 text-zinc-400"
@@ -420,7 +420,7 @@ export default function TabManagementTab() {
                         <button
                           key={label}
                           onClick={() => closeTab(tab.id)}
-                          className="p-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm transition-colors"
+                          className="p-2 bg-[#eaa94d] hover:bg-emerald-700 text-white rounded-lg text-sm transition-colors"
                           title={label}
                         >
                           <Icon className="w-4 h-4" />

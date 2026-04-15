@@ -252,7 +252,7 @@ export default function ThemeSettingsTab() {
                   />
                   {preset.label}
                   {theme.primaryColor === preset.primary && (
-                    <Check className="h-3 w-3 text-green-500" />
+                    <Check className="h-3 w-3 text-[#d67620]" />
                   )}
                 </button>
               ))}

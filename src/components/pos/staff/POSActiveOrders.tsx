@@ -22,7 +22,7 @@ const STATUS_CONFIG: Record<string, { label: string; border: string; badge: stri
   PENDING:   { label: "New",       border: "border-l-orange-400",  badge: "bg-orange-100 text-orange-700",  icon: Bell },
   ACCEPTED:  { label: "Accepted",  border: "border-l-blue-400",    badge: "bg-blue-100 text-blue-700",      icon: CheckCircle2 },
   PREPARING: { label: "Preparing", border: "border-l-amber-400",   badge: "bg-amber-100 text-amber-700",    icon: ChefHat },
-  READY:     { label: "Ready",     border: "border-l-green-400",   badge: "bg-green-100 text-green-700",    icon: CheckCircle2 },
+  READY:     { label: "Ready",     border: "border-l-green-400",   badge: "bg-[#fef3dc] text-[#b25c1c]",    icon: CheckCircle2 },
   DELIVERED: { label: "Delivered", border: "border-l-gray-300",    badge: "bg-gray-100 text-gray-500",      icon: Truck },
   CANCELLED: { label: "Cancelled", border: "border-l-red-300",     badge: "bg-red-100 text-red-600",        icon: XCircle },
 };
@@ -90,7 +90,7 @@ export default function POSActiveOrders({ restaurantId, currency, orders, connec
           <h2 className="text-base font-semibold text-gray-900">Active Orders</h2>
           <span className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
             connectionStatus === "connected"
-              ? "bg-green-50 text-green-700"
+              ? "bg-[#fef9ef] text-[#b25c1c]"
               : connectionStatus === "connecting"
               ? "bg-amber-50 text-amber-700"
               : "bg-red-50 text-red-600"

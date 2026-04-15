@@ -64,8 +64,8 @@ const ROLE_META: Record<
     label: "Waiter",
     icon: UserCheck,
     gradient: "from-emerald-400 to-teal-500",
-    text: "text-emerald-700",
-    badge: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    text: "text-[#b25c1c]",
+    badge: "bg-[#fef9ef] text-[#b25c1c] border-[#eaa94d]/30",
   },
   CASHIER: {
     label: "Cashier",
@@ -284,12 +284,12 @@ function StaffCard({
             title={member.isActive ? "Deactivate" : "Activate"}
             className={`shrink-0 flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-bold transition-all ${
               member.isActive
-                ? "bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-100"
+                ? "bg-[#fef9ef] text-[#b25c1c] hover:bg-[#fef3dc] border border-[#eaa94d]/30"
                 : "bg-gray-100 text-gray-500 hover:bg-gray-200 border border-gray-200"
             }`}
           >
             {member.isActive ? (
-              <><span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />Active</>
+              <><span className="h-1.5 w-1.5 rounded-full bg-[#eaa94d] animate-pulse" />Active</>
             ) : (
               <><span className="h-1.5 w-1.5 rounded-full bg-gray-400" />Off</>
             )}
@@ -360,7 +360,7 @@ function StaffCard({
               <button
                 onClick={handleSavePin}
                 disabled={!/^\d{4}$/.test(newPin) || savingPin}
-                className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 disabled:opacity-40 transition-all"
+                className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#fef9ef] text-[#b25c1c] hover:bg-[#fef3dc] disabled:opacity-40 transition-all"
               >
                 {savingPin ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
               </button>
@@ -439,8 +439,8 @@ function StaffDirectoryView({
     {
       label: "Active",
       value: restaurant.staff.filter((s: StaffMember) => s.isActive).length,
-      color: "text-emerald-600",
-      bg: "bg-emerald-50",
+      color: "text-[#b25c1c]",
+      bg: "bg-[#fef9ef]",
     },
     {
       label: "Inactive",
@@ -656,8 +656,8 @@ function AttendanceLogsView({ restaurantId }: { restaurantId: string }) {
               </span>
             )}
             {completedCount > 0 && (
-              <span className="flex items-center gap-1.5 rounded-lg bg-emerald-50 border border-emerald-100 px-2.5 py-1 text-[11px] font-bold text-emerald-600">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+              <span className="flex items-center gap-1.5 rounded-lg bg-[#fef9ef] border border-[#eaa94d]/30 px-2.5 py-1 text-[11px] font-bold text-[#b25c1c]">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#eaa94d]" />
                 {completedCount} completed
               </span>
             )}
@@ -764,7 +764,7 @@ function AttendanceLogsView({ restaurantId }: { restaurantId: string }) {
                         )}
                       </div>
                       {mins > 0 && (
-                        <span className="rounded-lg bg-emerald-50 border border-emerald-100 px-2 py-1 text-[10px] font-bold text-emerald-600 shrink-0">
+                        <span className="rounded-lg bg-[#fef9ef] border border-[#eaa94d]/30 px-2 py-1 text-[10px] font-bold text-[#b25c1c] shrink-0">
                           {formatDur(mins)}
                         </span>
                       )}
@@ -879,8 +879,8 @@ function AddStaffModal({
             {successData ? (
               <div className="space-y-5">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50">
-                    <Check className="h-5 w-5 text-emerald-500" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#fef9ef]">
+                    <Check className="h-5 w-5 text-[#d67620]" />
                   </div>
                   <div>
                     <h3 className="text-lg font-extrabold text-gray-900">Staff Added!</h3>
@@ -1035,9 +1035,9 @@ export default function StaffManagementTab() {
               Staff Management
             </h2>
             {restaurant.restaurantCode && (
-              <div className="flex items-center gap-1.5 rounded-lg bg-emerald-50 border border-emerald-100 px-3 py-1 shadow-sm">
-                <Building2 className="h-3.5 w-3.5 text-emerald-600" />
-                <span className="text-xs font-bold text-emerald-800">
+              <div className="flex items-center gap-1.5 rounded-lg bg-[#fef9ef] border border-[#eaa94d]/30 px-3 py-1 shadow-sm">
+                <Building2 className="h-3.5 w-3.5 text-[#b25c1c]" />
+                <span className="text-xs font-bold text-[#3e1e0c]">
                   Code:{" "}
                   <span className="font-mono tracking-widest">
                     {restaurant.restaurantCode}
