@@ -1326,14 +1326,14 @@ export default function MenuManagementTab() {
         apiFetch<MenuItem[]>(`/api/restaurants/${restaurantId}/menu`),
         apiFetch<MenuCategory[]>(`/api/restaurants/${restaurantId}/categories`),
       ]);
-      setItems(menuRes);
-      setCategories(catRes);
-    } catch {
-      /* silent */
+      setItems(Array.isArray(menuRes) ? menuRes : []);
+      setCategories(Array.isArray(catRes) ? catRes : []);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Failed to load menu data");
     } finally {
       setLoading(false);
     }
-  }, [restaurantId]);
+  }, [restaurantId, showToast]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
