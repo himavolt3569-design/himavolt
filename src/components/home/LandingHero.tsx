@@ -157,9 +157,13 @@ const stats = [
 
 export default function LandingHero() {
   const [wordIdx, setWordIdx] = useState(0);
+  // mounted defers the AnimatePresence until after hydration so SSR and
+  // the first client render produce identical HTML (no React #418 error).
+  const [mounted, setMounted] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
+    setMounted(true);
     timerRef.current = setInterval(() => {
       setWordIdx((i) => (i + 1) % ANIMATED_WORDS.length);
     }, 2200);
@@ -205,18 +209,24 @@ export default function LandingHero() {
             Scan. Order.
             <br />
             <span className="inline-block min-w-[1ch]">
-              <AnimatePresence mode="wait">
-                <motion.span
-                  key={ANIMATED_WORDS[wordIdx]}
-                  initial={{ y: 36, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: -28, opacity: 0 }}
-                  transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
-                  className="inline-block text-[var(--accent)]"
-                >
-                  {ANIMATED_WORDS[wordIdx]}.
-                </motion.span>
-              </AnimatePresence>
+              {mounted ? (
+                <AnimatePresence mode="wait">
+                  <motion.span
+                    key={ANIMATED_WORDS[wordIdx]}
+                    initial={{ y: 36, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: -28, opacity: 0 }}
+                    transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
+                    className="inline-block text-[var(--accent)]"
+                  >
+                    {ANIMATED_WORDS[wordIdx]}.
+                  </motion.span>
+                </AnimatePresence>
+              ) : (
+                <span className="inline-block text-[var(--accent)]">
+                  {ANIMATED_WORDS[0]}.
+                </span>
+              )}
             </span>
           </motion.h1>
           {/* Subheadline */}
