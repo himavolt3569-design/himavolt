@@ -83,17 +83,11 @@ export default function ProfilePage() {
     }
   };
 
-  if (!isLoaded) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50/50">
-        <Loader2 className="h-8 w-8 animate-spin text-saffron-flame" />
-      </div>
-    );
-  }
+  if (!isLoaded) return null;
 
   if (!isSignedIn || !user) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50/50 p-6">
+      <div className="flex min-h-screen items-center justify-center bg-[var(--canvas-sub)] p-6">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -105,7 +99,7 @@ export default function ProfilePage() {
           <h2 className="text-xl font-bold text-gompa-slate mb-2">
             Sign in to your account
           </h2>
-          <p className="text-sm text-gray-500 mb-6">
+          <p className="text-sm text-[var(--text-2)] mb-6">
             Sign in to view your profile, manage preferences, and see order
             history.
           </p>
@@ -134,8 +128,8 @@ export default function ProfilePage() {
     : "N/A";
 
   return (
-    <div className="min-h-screen bg-gray-50/50">
-      <header className="sticky top-0 z-40 bg-white border-b border-gray-100 shadow-sm">
+    <div className="min-h-screen bg-[var(--canvas-sub)]">
+      <header className="sticky top-0 z-40 bg-[var(--canvas)] border-b border-[var(--border-soft)] shadow-sm">
         <div className="mx-auto max-w-2xl px-4">
           <div className="flex h-14 items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-saffron-flame/10">
@@ -150,7 +144,7 @@ export default function ProfilePage() {
         <motion.div
           {...fadeUp}
           transition={{ duration: 0.3 }}
-          className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm"
+          className="rounded-2xl border border-[var(--border)] bg-[var(--canvas)] p-5 shadow-sm"
         >
           <div className="flex items-center gap-4">
             <div className="relative h-16 w-16 shrink-0 rounded-full overflow-hidden ring-2 ring-saffron-flame/20 ring-offset-2">
@@ -172,13 +166,13 @@ export default function ProfilePage() {
               <h2 className="text-lg font-bold text-gompa-slate truncate">
                 {displayName}
               </h2>
-              <p className="text-sm text-gray-500 truncate">
+              <p className="text-sm text-[var(--text-2)] truncate">
                 {user.email || ""}
               </p>
               {dbRole && (
                 <span className={`mt-1.5 inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
                   dbRole === "OWNER"
-                    ? "bg-amber-100 text-amber-700"
+                    ? "bg-[var(--accent-muted)] text-[var(--accent-text)]"
                     : dbRole === "ADMIN"
                     ? "bg-purple-100 text-purple-700"
                     : "bg-saffron-flame/10 text-saffron-flame"
@@ -195,7 +189,7 @@ export default function ProfilePage() {
           transition={{ delay: 0.05, duration: 0.3 }}
           className="grid grid-cols-2 gap-3"
         >
-          <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--canvas)] p-4 shadow-sm">
             <div className="flex items-center gap-2 mb-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-saffron-flame/10">
                 <ShoppingBag className="h-4 w-4 text-saffron-flame" />
@@ -204,11 +198,11 @@ export default function ProfilePage() {
             <p className="text-2xl font-extrabold text-gompa-slate">
               {stats.totalOrders}
             </p>
-            <p className="text-xs text-gray-400 font-medium mt-0.5">
+            <p className="text-xs text-[var(--text-3)] font-medium mt-0.5">
               Total Orders
             </p>
           </div>
-          <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--canvas)] p-4 shadow-sm">
             <div className="flex items-center gap-2 mb-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-saffron-flame/10">
                 <CalendarDays className="h-4 w-4 text-saffron-flame" />
@@ -217,7 +211,7 @@ export default function ProfilePage() {
             <p className="text-sm font-extrabold text-gompa-slate">
               {memberSince}
             </p>
-            <p className="text-xs text-gray-400 font-medium mt-0.5">
+            <p className="text-xs text-[var(--text-3)] font-medium mt-0.5">
               Member Since
             </p>
           </div>
@@ -226,36 +220,36 @@ export default function ProfilePage() {
         <motion.div
           {...fadeUp}
           transition={{ delay: 0.1, duration: 0.3 }}
-          className="rounded-2xl border border-gray-200 bg-white overflow-hidden shadow-sm"
+          className="rounded-2xl border border-[var(--border)] bg-[var(--canvas)] overflow-hidden shadow-sm"
         >
-          <div className="px-5 py-3 border-b border-gray-100">
-            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+          <div className="px-5 py-3 border-b border-[var(--border-soft)]">
+            <h3 className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider">
               Settings
             </h3>
           </div>
 
           <button
             onClick={toggleSound}
-            className="w-full flex items-center gap-3 px-5 py-4 hover:bg-gray-50 transition-colors"
+            className="w-full flex items-center gap-3 px-5 py-4 hover:bg-[var(--canvas-sub)] transition-colors"
           >
             <div
               className={`flex h-9 w-9 items-center justify-center rounded-xl ${
                 soundEnabled
                   ? "bg-saffron-flame/10"
-                  : "bg-gray-100"
+                  : "bg-[var(--surface)]"
               }`}
             >
               {soundEnabled ? (
                 <Volume2 className="h-4 w-4 text-saffron-flame" />
               ) : (
-                <VolumeX className="h-4 w-4 text-gray-400" />
+                <VolumeX className="h-4 w-4 text-[var(--text-3)]" />
               )}
             </div>
             <div className="flex-1 text-left">
               <p className="text-sm font-semibold text-gompa-slate">
                 Sound Notifications
               </p>
-              <p className="text-[11px] text-gray-400">
+              <p className="text-[11px] text-[var(--text-3)]">
                 {soundEnabled
                   ? "Play sounds for order updates"
                   : "Notifications are muted"}
@@ -263,13 +257,13 @@ export default function ProfilePage() {
             </div>
             <div
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                soundEnabled ? "bg-saffron-flame" : "bg-gray-200"
+                soundEnabled ? "bg-saffron-flame" : "bg-[var(--surface-alt)]"
               }`}
             >
               <motion.div
                 animate={{ x: soundEnabled ? 20 : 2 }}
                 transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                className="h-5 w-5 rounded-full bg-white shadow-sm"
+                className="h-5 w-5 rounded-full bg-[var(--canvas)] shadow-sm"
               />
             </div>
           </button>
@@ -278,17 +272,17 @@ export default function ProfilePage() {
         <motion.div
           {...fadeUp}
           transition={{ delay: 0.15, duration: 0.3 }}
-          className="rounded-2xl border border-gray-200 bg-white overflow-hidden shadow-sm"
+          className="rounded-2xl border border-[var(--border)] bg-[var(--canvas)] overflow-hidden shadow-sm"
         >
-          <div className="px-5 py-3 border-b border-gray-100">
-            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+          <div className="px-5 py-3 border-b border-[var(--border-soft)]">
+            <h3 className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider">
               Links
             </h3>
           </div>
 
           <Link
             href="/orders"
-            className="flex items-center gap-3 px-5 py-4 hover:bg-gray-50 transition-colors border-b border-gray-50"
+            className="flex items-center gap-3 px-5 py-4 hover:bg-[var(--canvas-sub)] transition-colors border-b border-[var(--border-soft)]"
           >
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-saffron-flame/10">
               <Receipt className="h-4 w-4 text-saffron-flame" />
@@ -297,17 +291,17 @@ export default function ProfilePage() {
               <p className="text-sm font-semibold text-gompa-slate">
                 Order History
               </p>
-              <p className="text-[11px] text-gray-400">
+              <p className="text-[11px] text-[var(--text-3)]">
                 View all your past orders
               </p>
             </div>
-            <ChevronRight className="h-4 w-4 text-gray-300" />
+            <ChevronRight className="h-4 w-4 text-[var(--text-3)]" />
           </Link>
 
           {/* Help & Support */}
           <Link
             href="/contact"
-            className="flex items-center gap-3 px-5 py-4 hover:bg-gray-50 transition-colors border-b border-gray-50"
+            className="flex items-center gap-3 px-5 py-4 hover:bg-[var(--canvas-sub)] transition-colors border-b border-[var(--border-soft)]"
           >
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50">
               <HelpCircle className="h-4 w-4 text-blue-500" />
@@ -316,29 +310,29 @@ export default function ProfilePage() {
               <p className="text-sm font-semibold text-gompa-slate">
                 Help & Support
               </p>
-              <p className="text-[11px] text-gray-400">
+              <p className="text-[11px] text-[var(--text-3)]">
                 Get help with your account or orders
               </p>
             </div>
-            <ChevronRight className="h-4 w-4 text-gray-300" />
+            <ChevronRight className="h-4 w-4 text-[var(--text-3)]" />
           </Link>
 
           <Link
             href="/legal"
-            className="flex items-center gap-3 px-5 py-4 hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-3 px-5 py-4 hover:bg-[var(--canvas-sub)] transition-colors"
           >
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100">
-              <Shield className="h-4 w-4 text-gray-500" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--surface)]">
+              <Shield className="h-4 w-4 text-[var(--text-2)]" />
             </div>
             <div className="flex-1">
               <p className="text-sm font-semibold text-gompa-slate">
                 Legal
               </p>
-              <p className="text-[11px] text-gray-400">
+              <p className="text-[11px] text-[var(--text-3)]">
                 Privacy policy & terms of service
               </p>
             </div>
-            <ChevronRight className="h-4 w-4 text-gray-300" />
+            <ChevronRight className="h-4 w-4 text-[var(--text-3)]" />
           </Link>
         </motion.div>
 
@@ -349,7 +343,7 @@ export default function ProfilePage() {
           <button
             onClick={handleSignOut}
             disabled={signingOut}
-            className="w-full flex items-center justify-center gap-2 rounded-2xl border border-red-200 bg-white py-4 text-sm font-bold text-red-600 hover:bg-red-50 transition-colors shadow-sm disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-2 rounded-2xl border border-red-200 bg-[var(--canvas)] py-4 text-sm font-bold text-red-600 hover:bg-red-50 transition-colors shadow-sm disabled:opacity-50"
           >
             {signingOut ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -363,7 +357,7 @@ export default function ProfilePage() {
         <motion.p
           {...fadeUp}
           transition={{ delay: 0.25, duration: 0.3 }}
-          className="text-center text-[11px] text-gray-300 py-2"
+          className="text-center text-[11px] text-[var(--text-3)] py-2"
         >
           HimaVolt v1.0
         </motion.p>

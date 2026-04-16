@@ -64,7 +64,7 @@ const ALL_PAYMENT_METHODS: {
     sublabel: "Pay online via eSewa wallet",
     icon: Wallet,
     color: "text-[#b25c1c]",
-    bg: "bg-[#fef9ef] border-[#eaa94d]/30",
+    bg: "bg-[var(--accent-muted)] border-[var(--accent-border)]",
   },
   {
     id: "KHALTI",
@@ -85,18 +85,18 @@ const ALL_PAYMENT_METHODS: {
   {
     id: "CASH",
     label: "Cash",
-    sublabel: "Pay cash — staff will collect",
+    sublabel: "Pay cash, staff will collect",
     icon: DollarSign,
-    color: "text-gray-600",
-    bg: "bg-gray-50 border-gray-200",
+    color: "text-[var(--text-2)]",
+    bg: "bg-[var(--canvas-sub)] border-[var(--border)]",
   },
   {
     id: "COUNTER",
     label: "Counter",
     sublabel: "Pay cash at the counter before food is prepared",
     icon: CreditCard,
-    color: "text-amber-600",
-    bg: "bg-amber-50 border-amber-200",
+    color: "text-[var(--accent-text)]",
+    bg: "bg-[var(--accent-muted)] border-[var(--accent-border)]",
   },
   {
     id: "DIRECT",
@@ -603,12 +603,12 @@ export default function CheckoutSheet({
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", damping: 30, stiffness: 300 }}
-            className="fixed bottom-0 left-0 right-0 z-95 max-h-[92vh] bg-white rounded-t-3xl shadow-2xl overflow-hidden flex flex-col md:bottom-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-2xl md:max-w-[520px] md:w-[90%] md:max-h-[85vh]"
+            className="fixed bottom-0 left-0 right-0 z-95 max-h-[92vh] bg-[var(--canvas)] rounded-t-3xl shadow-2xl overflow-hidden flex flex-col md:bottom-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-2xl md:max-w-[520px] md:w-[90%] md:max-h-[85vh]"
           >
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border-soft)] shrink-0">
               <div className="flex items-center gap-2">
                 <ShoppingBag className="h-5 w-5 text-[#eaa94d]" />
-                <h2 className="text-lg font-bold text-[#3e1e0c]">
+                <h2 className="text-lg font-bold text-[var(--text-1)]">
                   {step === "review"
                     ? "Review Order"
                     : step === "scan-qr"
@@ -622,7 +622,7 @@ export default function CheckoutSheet({
               </div>
               <button
                 onClick={onClose}
-                className="rounded-full p-2 text-gray-400 hover:bg-gray-100 transition-colors"
+                className="rounded-full p-2 text-[var(--text-3)] hover:bg-[var(--surface)] transition-colors"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -632,13 +632,13 @@ export default function CheckoutSheet({
               {step === "review" ? (
                 <div className="px-6 py-5 space-y-5">
                   {canAddToExisting && activeOrder && (
-                    <div className="flex items-start gap-3 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3">
-                      <PlusCircle className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
+                    <div className="flex items-start gap-3 rounded-xl bg-[var(--accent-muted)] border border-[var(--accent-border)] px-4 py-3">
+                      <PlusCircle className="h-5 w-5 text-[var(--accent-text)] mt-0.5 shrink-0" />
                       <div>
-                        <p className="text-xs font-bold text-amber-800">
+                        <p className="text-xs font-bold text-[var(--accent-text)]">
                           Adding to order #{activeOrder.orderNo}
                         </p>
-                        <p className="text-[11px] text-amber-600 mt-0.5">
+                        <p className="text-[11px] text-[var(--accent-text)] mt-0.5">
                           These items will be added to your active cash order
                         </p>
                       </div>
@@ -660,7 +660,7 @@ export default function CheckoutSheet({
                   )}
 
                   <div>
-                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
+                    <h3 className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider mb-3">
                       Order Type
                     </h3>
                     <div className="grid grid-cols-3 gap-2">
@@ -675,20 +675,20 @@ export default function CheckoutSheet({
                             disabled={isDisabled}
                             className={`relative flex flex-col items-center gap-1.5 rounded-xl border-2 px-2 py-3 text-center transition-all ${
                               isDisabled
-                                ? "opacity-40 cursor-not-allowed border-gray-100"
+                                ? "opacity-40 cursor-not-allowed border-[var(--border-soft)]"
                                 : isActive
                                   ? "border-[#eaa94d] bg-[#eaa94d]/5 shadow-sm"
-                                  : "border-gray-100 hover:border-gray-200"
+                                  : "border-[var(--border-soft)] hover:border-[var(--border)]"
                             }`}
                           >
                             <Icon
                               className={`h-5 w-5 ${
-                                isActive ? "text-[#eaa94d]" : "text-gray-400"
+                                isActive ? "text-[#eaa94d]" : "text-[var(--text-3)]"
                               }`}
                             />
                             <span
                               className={`text-xs font-bold ${
-                                isActive ? "text-[#eaa94d]" : "text-gray-600"
+                                isActive ? "text-[#eaa94d]" : "text-[var(--text-2)]"
                               }`}
                             >
                               {ot.label}
@@ -713,27 +713,27 @@ export default function CheckoutSheet({
                         exit={{ opacity: 0, height: 0 }}
                         className="space-y-3 overflow-hidden"
                       >
-                        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                        <h3 className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider">
                           Delivery Details
                         </h3>
                         <div className="relative">
-                          <MapPin className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
+                          <MapPin className="absolute left-3 top-3.5 h-4 w-4 text-[var(--text-3)]" />
                           <input
                             type="text"
                             value={deliveryAddress}
                             onChange={(e) => setDeliveryAddress(e.target.value)}
                             placeholder="Delivery address (e.g. Thamel, Kathmandu)"
-                            className="w-full rounded-xl border border-gray-200 py-3 pl-10 pr-4 text-sm text-[#3e1e0c] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#eaa94d]/30 focus:border-[#eaa94d]/30"
+                            className="w-full rounded-xl border border-[var(--border)] py-3 pl-10 pr-4 text-sm text-[var(--text-1)] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] focus:border-[var(--accent-border)]"
                           />
                         </div>
                         <div className="relative">
-                          <Phone className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
+                          <Phone className="absolute left-3 top-3.5 h-4 w-4 text-[var(--text-3)]" />
                           <input
                             type="tel"
                             value={deliveryPhone}
                             onChange={(e) => setDeliveryPhone(e.target.value)}
                             placeholder="Phone number (e.g. 9800000000)"
-                            className="w-full rounded-xl border border-gray-200 py-3 pl-10 pr-4 text-sm text-[#3e1e0c] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#eaa94d]/30 focus:border-[#eaa94d]/30"
+                            className="w-full rounded-xl border border-[var(--border)] py-3 pl-10 pr-4 text-sm text-[var(--text-1)] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] focus:border-[var(--accent-border)]"
                           />
                         </div>
                         <textarea
@@ -741,19 +741,19 @@ export default function CheckoutSheet({
                           onChange={(e) => setDeliveryNote(e.target.value)}
                           placeholder="Delivery instructions (optional)"
                           rows={2}
-                          className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-[#3e1e0c] placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-[#eaa94d]/30 focus:border-[#eaa94d]/30"
+                          className="w-full rounded-xl border border-[var(--border)] px-4 py-3 text-sm text-[var(--text-1)] placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] focus:border-[var(--accent-border)]"
                         />
                       </motion.div>
                     )}
                   </AnimatePresence>
 
                   <div className="space-y-3">
-                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                    <h3 className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider">
                       {totalItems} {totalItems === 1 ? "Item" : "Items"}
                     </h3>
                     {items.map((item) => (
                       <div key={item.id} className="flex items-center gap-3">
-                        <div className="h-12 w-12 rounded-xl overflow-hidden shrink-0 bg-gray-100">
+                        <div className="h-12 w-12 rounded-xl overflow-hidden shrink-0 bg-[var(--surface)]">
                           <img
                             src={item.image}
                             alt={item.name}
@@ -762,14 +762,14 @@ export default function CheckoutSheet({
                           />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold text-[#3e1e0c] truncate">
+                          <p className="text-sm font-bold text-[var(--text-1)] truncate">
                             {item.name}
                           </p>
-                          <p className="text-xs text-gray-400">
+                          <p className="text-xs text-[var(--text-3)]">
                             {item.quantity} x {formatPrice(item.price, currency)}
                           </p>
                         </div>
-                        <span className="text-sm font-bold text-[#3e1e0c]">
+                        <span className="text-sm font-bold text-[var(--text-1)]">
                           {formatPrice(item.price * item.quantity, currency)}
                         </span>
                       </div>
@@ -777,7 +777,7 @@ export default function CheckoutSheet({
                   </div>
 
                   <div>
-                    <label className="flex items-center gap-1.5 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                    <label className="flex items-center gap-1.5 text-xs font-bold text-[var(--text-3)] uppercase tracking-wider mb-2">
                       <StickyNote className="h-3 w-3" />
                       Special Instructions
                     </label>
@@ -786,39 +786,39 @@ export default function CheckoutSheet({
                       onChange={(e) => setNote(e.target.value)}
                       placeholder="e.g., No spice, extra cheese..."
                       rows={2}
-                      className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-[#3e1e0c] placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-[#eaa94d]/30 focus:border-[#eaa94d]/30"
+                      className="w-full rounded-xl border border-[var(--border)] px-4 py-3 text-sm text-[var(--text-1)] placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] focus:border-[var(--accent-border)]"
                     />
                   </div>
 
-                  <div className="rounded-xl bg-gray-50 p-4 space-y-2">
+                  <div className="rounded-xl bg-[var(--canvas-sub)] p-4 space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">Subtotal</span>
-                      <span className="font-semibold text-[#3e1e0c]">
+                      <span className="text-[var(--text-2)]">Subtotal</span>
+                      <span className="font-semibold text-[var(--text-1)]">
                         {formatPrice(subtotal, currency)}
                       </span>
                     </div>
                     {taxEnabled && (
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-500">Tax ({taxRate}%)</span>
-                        <span className="font-semibold text-[#3e1e0c]">
+                        <span className="text-[var(--text-2)]">Tax ({taxRate}%)</span>
+                        <span className="font-semibold text-[var(--text-1)]">
                           {formatPrice(tax, currency)}
                         </span>
                       </div>
                     )}
                     {serviceChargeEnabled && serviceCharge > 0 && (
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-500">Service Charge ({serviceChargeRate}%)</span>
-                        <span className="font-semibold text-[#3e1e0c]">
+                        <span className="text-[var(--text-2)]">Service Charge ({serviceChargeRate}%)</span>
+                        <span className="font-semibold text-[var(--text-1)]">
                           {formatPrice(serviceCharge, currency)}
                         </span>
                       </div>
                     )}
                     {orderType === "DELIVERY" && (
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-500 flex items-center gap-1">
+                        <span className="text-[var(--text-2)] flex items-center gap-1">
                           <Truck className="h-3 w-3" /> Delivery Fee
                         </span>
-                        <span className="font-semibold text-[#3e1e0c]">
+                        <span className="font-semibold text-[var(--text-1)]">
                           {deliveryFee > 0 ? formatPrice(deliveryFee, currency) : "FREE"}
                         </span>
                       </div>
@@ -831,8 +831,8 @@ export default function CheckoutSheet({
                         </span>
                       </div>
                     )}
-                    <div className="border-t border-gray-200 pt-2 flex justify-between">
-                      <span className="text-base font-bold text-[#3e1e0c]">
+                    <div className="border-t border-[var(--border)] pt-2 flex justify-between">
+                      <span className="text-base font-bold text-[var(--text-1)]">
                         Total
                       </span>
                       <span
@@ -849,18 +849,18 @@ export default function CheckoutSheet({
                     <div className="flex items-center gap-2 rounded-xl bg-[#3e1e0c]/5 px-4 py-3">
                       {tableNo && (
                         <>
-                          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#3e1e0c]/10 text-sm font-bold text-[#3e1e0c]">
+                          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#3e1e0c]/10 text-sm font-bold text-[var(--text-1)]">
                             {tableNo}
                           </span>
-                          <span className="text-sm font-medium text-[#3e1e0c]">
+                          <span className="text-sm font-medium text-[var(--text-1)]">
                             Table {tableNo}
                           </span>
                         </>
                       )}
                       {roomNo && (
                         <>
-                          <BedDouble className="h-4 w-4 text-[#3e1e0c] ml-1" />
-                          <span className="text-sm font-medium text-[#3e1e0c]">
+                          <BedDouble className="h-4 w-4 text-[var(--text-1)] ml-1" />
+                          <span className="text-sm font-medium text-[var(--text-1)]">
                             Room {roomNo}
                           </span>
                         </>
@@ -868,7 +868,7 @@ export default function CheckoutSheet({
                     </div>
                   )}
 
-                  <div className="rounded-xl border border-gray-200 p-3">
+                  <div className="rounded-xl border border-[var(--border)] p-3">
                     {couponApplied ? (
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -892,7 +892,7 @@ export default function CheckoutSheet({
                             placeholder="Coupon code"
                             value={couponCode}
                             onChange={(e) => { setCouponCode(e.target.value); setCouponError(""); }}
-                            className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#eaa94d]/30"
+                            className="flex-1 rounded-lg border border-[var(--border)] px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--accent-border)]"
                           />
                           <button
                             onClick={handleApplyCoupon}
@@ -917,42 +917,42 @@ export default function CheckoutSheet({
                       <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 mb-3">
                         <Banknote className="h-7 w-7 text-blue-600" />
                       </div>
-                      <h3 className="text-lg font-bold text-[#3e1e0c]">Bank Transfer Details</h3>
-                      <p className="text-sm text-gray-500 mt-1">Transfer the amount below and upload proof</p>
+                      <h3 className="text-lg font-bold text-[var(--text-1)]">Bank Transfer Details</h3>
+                      <p className="text-sm text-[var(--text-2)] mt-1">Transfer the amount below and upload proof</p>
                     </div>
 
-                    <div className="rounded-xl bg-gray-50 p-4 space-y-3">
+                    <div className="rounded-xl bg-[var(--canvas-sub)] p-4 space-y-3">
                       <div className="flex justify-between">
-                        <span className="text-xs text-gray-500">Amount</span>
+                        <span className="text-xs text-[var(--text-2)]">Amount</span>
                         <span className="text-lg font-extrabold text-[#eaa94d]">{formatPrice(bankTotal, currency)}</span>
                       </div>
-                      <div className="border-t border-gray-200 pt-3 space-y-2">
+                      <div className="border-t border-[var(--border)] pt-3 space-y-2">
                         <div className="flex justify-between text-xs">
-                          <span className="text-gray-500">Bank</span>
-                          <span className="font-bold text-[#3e1e0c]">{bankDetails.bankName}</span>
+                          <span className="text-[var(--text-2)]">Bank</span>
+                          <span className="font-bold text-[var(--text-1)]">{bankDetails.bankName}</span>
                         </div>
                         <div className="flex justify-between text-xs">
-                          <span className="text-gray-500">Account Name</span>
-                          <span className="font-bold text-[#3e1e0c]">{bankDetails.accountName}</span>
+                          <span className="text-[var(--text-2)]">Account Name</span>
+                          <span className="font-bold text-[var(--text-1)]">{bankDetails.accountName}</span>
                         </div>
                         <div className="flex justify-between text-xs">
-                          <span className="text-gray-500">Account No.</span>
-                          <span className="font-bold text-[#3e1e0c] font-mono">{bankDetails.accountNumber}</span>
+                          <span className="text-[var(--text-2)]">Account No.</span>
+                          <span className="font-bold text-[var(--text-1)] font-mono">{bankDetails.accountNumber}</span>
                         </div>
                         {bankDetails.branch && (
                           <div className="flex justify-between text-xs">
-                            <span className="text-gray-500">Branch</span>
-                            <span className="font-bold text-[#3e1e0c]">{bankDetails.branch}</span>
+                            <span className="text-[var(--text-2)]">Branch</span>
+                            <span className="font-bold text-[var(--text-1)]">{bankDetails.branch}</span>
                           </div>
                         )}
                       </div>
                       {bankDetails.note && (
-                        <p className="text-[10px] text-amber-600 bg-amber-50 rounded-lg p-2 mt-2">{bankDetails.note}</p>
+                        <p className="text-[10px] text-[var(--accent-text)] bg-[var(--accent-muted)] rounded-lg p-2 mt-2">{bankDetails.note}</p>
                       )}
                     </div>
 
                     <div className="space-y-2">
-                      <label className="block text-xs font-bold text-[#3e1e0c]">Upload Transfer Proof</label>
+                      <label className="block text-xs font-bold text-[var(--text-1)]">Upload Transfer Proof</label>
                       <input
                         type="file"
                         accept="image/*,.pdf"
@@ -975,7 +975,7 @@ export default function CheckoutSheet({
                           setBankProofUploading(false);
                         }}
                         disabled={bankProofUploading}
-                        className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-blue-50 file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-blue-700 hover:file:bg-blue-100"
+                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm text-[var(--text-2)] file:mr-3 file:rounded-lg file:border-0 file:bg-blue-50 file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-blue-700 hover:file:bg-blue-100"
                       />
                       {bankProofUploading && (
                         <div className="flex items-center gap-2 text-xs text-blue-600">
@@ -985,9 +985,9 @@ export default function CheckoutSheet({
                       )}
                     </div>
 
-                    <div className="flex items-start gap-2 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3">
-                      <Shield className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
-                      <p className="text-[10px] text-amber-700">
+                    <div className="flex items-start gap-2 rounded-xl bg-[var(--accent-muted)] border border-[var(--accent-border)] px-4 py-3">
+                      <Shield className="h-4 w-4 text-[var(--accent)] mt-0.5 shrink-0" />
+                      <p className="text-[10px] text-[var(--accent-text)]">
                         Your order is awaiting payment verification by our team. Upload proof now or show it at the counter.
                       </p>
                     </div>
@@ -998,10 +998,10 @@ export default function CheckoutSheet({
                 <div className="px-6 py-10 space-y-6 text-center">
                   <div className="flex justify-center">
                     <div className="relative">
-                      <div className="h-20 w-20 rounded-full bg-[#eaa94d]/10 flex items-center justify-center">
+                      <div className="h-20 w-20 rounded-full bg-[var(--accent-muted)] flex items-center justify-center">
                         <Loader2 className="h-10 w-10 animate-spin text-[#eaa94d]" />
                       </div>
-                      <div className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-white shadow flex items-center justify-center">
+                      <div className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-[var(--canvas)] shadow flex items-center justify-center">
                         {selectedPayment === "ESEWA" ? (
                           <Wallet className="h-4 w-4 text-[#b25c1c]" />
                         ) : selectedPayment === "KHALTI" ? (
@@ -1013,26 +1013,26 @@ export default function CheckoutSheet({
                     </div>
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-[#3e1e0c]">
+                    <h3 className="text-lg font-bold text-[var(--text-1)]">
                       {waitingReason === "staff-confirm"
-                        ? "Order Placed — Awaiting Payment"
+                        ? "Order Placed: Awaiting Payment"
                         : "Waiting for Payment"}
                     </h3>
-                    <p className="text-sm text-gray-500 mt-1">
+                    <p className="text-sm text-[var(--text-2)] mt-1">
                       {waitingReason === "staff-confirm"
                         ? "Your order has been placed. Show your payment to the staff. This screen will update once payment is confirmed."
                         : `Complete your payment in the ${selectedPayment === "ESEWA" ? "eSewa" : "Khalti"} window. This page will update automatically.`}
                     </p>
                   </div>
-                  <div className="rounded-xl bg-gray-50 p-4">
+                  <div className="rounded-xl bg-[var(--canvas-sub)] p-4">
                     <div className="flex justify-between">
-                      <span className="text-sm font-bold text-[#3e1e0c]">Total</span>
+                      <span className="text-sm font-bold text-[var(--text-1)]">Total</span>
                       <span className="text-lg font-extrabold text-[#eaa94d]">{formatPrice(total, currency)}</span>
                     </div>
                   </div>
-                  <div className="flex items-start gap-2 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-left">
-                    <Shield className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
-                    <p className="text-[11px] text-amber-700">
+                  <div className="flex items-start gap-2 rounded-xl bg-[var(--accent-muted)] border border-[var(--accent-border)] px-4 py-3 text-left">
+                    <Shield className="h-4 w-4 text-[var(--accent)] mt-0.5 shrink-0" />
+                    <p className="text-[11px] text-[var(--accent-text)]">
                       {waitingReason === "staff-confirm"
                         ? "Do not close this page. Staff will confirm your payment and your order will proceed automatically."
                         : "Don't close this page. If the payment window was blocked, try allowing pop-ups for this site."}
@@ -1042,15 +1042,15 @@ export default function CheckoutSheet({
               ) : step === "scan-qr" ? (
                 /* ── Scan & Pay step: show restaurant payment QR images ── */
                 <div className="px-6 py-5 space-y-4">
-                  <div className="flex items-start gap-3 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3">
-                    <QrCode className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
+                  <div className="flex items-start gap-3 rounded-xl bg-[var(--accent-muted)] border border-[var(--accent-border)] px-4 py-3">
+                    <QrCode className="h-5 w-5 text-[var(--accent-text)] mt-0.5 shrink-0" />
                     <div>
-                      <p className="text-xs font-bold text-amber-800">
+                      <p className="text-xs font-bold text-[var(--accent-text)]">
                         {selectedPayment === "CASH"
                           ? "Optional: Pay via QR before ordering"
                           : "Pay first, then your order will be placed"}
                       </p>
-                      <p className="text-[11px] text-amber-600 mt-0.5">
+                      <p className="text-[11px] text-[var(--accent-text)] mt-0.5">
                         Scan one of the QR codes below to pay {formatPrice(total, currency)}. After
                         payment, tap &ldquo;I&apos;ve Paid&rdquo; to confirm
                         your order.
@@ -1068,18 +1068,18 @@ export default function CheckoutSheet({
                         className={`w-full rounded-xl border-2 p-3 text-left transition-all ${
                           selectedQR?.id === qr.id
                             ? "border-[#eaa94d] bg-[#eaa94d]/5 shadow-sm"
-                            : "border-gray-100 hover:border-gray-200"
+                            : "border-[var(--border-soft)] hover:border-[var(--border)]"
                         }`}
                       >
                         <div className="flex items-center gap-3">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100">
-                            <QrCode className="h-5 w-5 text-gray-500" />
+                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--surface)]">
+                            <QrCode className="h-5 w-5 text-[var(--text-2)]" />
                           </div>
-                          <span className="text-sm font-bold text-[#3e1e0c]">
+                          <span className="text-sm font-bold text-[var(--text-1)]">
                             {qr.label}
                           </span>
                           <ChevronRight
-                            className={`ml-auto h-4 w-4 text-gray-400 transition-transform ${
+                            className={`ml-auto h-4 w-4 text-[var(--text-3)] transition-transform ${
                               selectedQR?.id === qr.id ? "rotate-90" : ""
                             }`}
                           />
@@ -1095,7 +1095,7 @@ export default function CheckoutSheet({
                               <img
                                 src={qr.imageUrl}
                                 alt={qr.label}
-                                className="w-full max-h-72 object-contain rounded-xl bg-white border border-gray-100 p-2"
+                                className="w-full max-h-72 object-contain rounded-xl bg-[var(--canvas)] border border-[var(--border-soft)] p-2"
                               />
                             </motion.div>
                           )}
@@ -1104,9 +1104,9 @@ export default function CheckoutSheet({
                     ))}
                   </div>
 
-                  <div className="rounded-xl bg-gray-50 p-4">
+                  <div className="rounded-xl bg-[var(--canvas-sub)] p-4">
                     <div className="flex justify-between">
-                      <span className="text-sm font-bold text-[#3e1e0c]">
+                      <span className="text-sm font-bold text-[var(--text-1)]">
                         Amount to Pay
                       </span>
                       <span className="text-lg font-extrabold text-[#eaa94d]">
@@ -1117,7 +1117,7 @@ export default function CheckoutSheet({
                 </div>
               ) : (
                 <div className="px-6 py-5 space-y-4">
-                  <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                  <h3 className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider">
                     Choose Payment Method
                   </h3>
                   <div className="space-y-3">
@@ -1131,29 +1131,29 @@ export default function CheckoutSheet({
                           className={`w-full flex items-center gap-4 rounded-xl border-2 px-4 py-4 text-left transition-all ${
                             isSelected
                               ? `${method.bg} shadow-sm`
-                              : "border-gray-100 bg-white hover:border-gray-200"
+                              : "border-[var(--border-soft)] bg-[var(--canvas)] hover:border-[var(--border)]"
                           }`}
                         >
                           <div
                             className={`flex h-11 w-11 items-center justify-center rounded-xl ${
-                              isSelected ? method.bg : "bg-gray-100"
+                              isSelected ? method.bg : "bg-[var(--surface)]"
                             }`}
                           >
                             <Icon
                               className={`h-5 w-5 ${
-                                isSelected ? method.color : "text-gray-400"
+                                isSelected ? method.color : "text-[var(--text-3)]"
                               }`}
                             />
                           </div>
                           <div className="flex-1">
                             <p
                               className={`text-sm font-bold ${
-                                isSelected ? "text-[#3e1e0c]" : "text-gray-600"
+                                isSelected ? "text-[var(--text-1)]" : "text-[var(--text-2)]"
                               }`}
                             >
                               {method.label}
                             </p>
-                            <p className="text-[11px] text-gray-400">
+                            <p className="text-[11px] text-[var(--text-3)]">
                               {method.sublabel}
                             </p>
                           </div>
@@ -1161,14 +1161,14 @@ export default function CheckoutSheet({
                             className={`flex h-5 w-5 items-center justify-center rounded-full border-2 ${
                               isSelected
                                 ? "border-[#eaa94d] bg-[#eaa94d]"
-                                : "border-gray-300"
+                                : "border-[var(--border)]"
                             }`}
                           >
                             {isSelected && (
                               <motion.div
                                 initial={{ scale: 0 }}
                                 animate={{ scale: 1 }}
-                                className="h-2 w-2 rounded-full bg-white"
+                                className="h-2 w-2 rounded-full bg-[var(--canvas)]"
                               />
                             )}
                           </div>
@@ -1203,29 +1203,29 @@ export default function CheckoutSheet({
                       </p>
 
                       {restaurantBankDetails && (
-                        <div className="rounded-xl bg-white border border-teal-100 p-3 space-y-1.5">
+                        <div className="rounded-xl bg-[var(--canvas)] border border-teal-100 p-3 space-y-1.5">
                           {restaurantBankDetails.bankName && (
                             <div className="flex justify-between text-xs">
-                              <span className="text-gray-400">Bank</span>
-                              <span className="font-bold text-gray-700">{restaurantBankDetails.bankName}</span>
+                              <span className="text-[var(--text-3)]">Bank</span>
+                              <span className="font-bold text-[var(--text-2)]">{restaurantBankDetails.bankName}</span>
                             </div>
                           )}
                           {restaurantBankDetails.accountName && (
                             <div className="flex justify-between text-xs">
-                              <span className="text-gray-400">Account Name</span>
-                              <span className="font-bold text-gray-700">{restaurantBankDetails.accountName}</span>
+                              <span className="text-[var(--text-3)]">Account Name</span>
+                              <span className="font-bold text-[var(--text-2)]">{restaurantBankDetails.accountName}</span>
                             </div>
                           )}
                           {restaurantBankDetails.accountNumber && (
                             <div className="flex justify-between text-xs">
-                              <span className="text-gray-400">Account No.</span>
+                              <span className="text-[var(--text-3)]">Account No.</span>
                               <span className="font-bold font-mono text-teal-700 select-all">{restaurantBankDetails.accountNumber}</span>
                             </div>
                           )}
                           {restaurantBankDetails.branch && (
                             <div className="flex justify-between text-xs">
-                              <span className="text-gray-400">Branch</span>
-                              <span className="font-bold text-gray-700">{restaurantBankDetails.branch}</span>
+                              <span className="text-[var(--text-3)]">Branch</span>
+                              <span className="font-bold text-[var(--text-2)]">{restaurantBankDetails.branch}</span>
                             </div>
                           )}
                         </div>
@@ -1240,17 +1240,17 @@ export default function CheckoutSheet({
                               <button
                                 key={qr.id}
                                 onClick={() => setSelectedQR(selectedQR?.id === qr.id ? null : qr)}
-                                className={`flex flex-col items-center gap-1 rounded-xl border-2 p-2 transition-all ${selectedQR?.id === qr.id ? "border-teal-400 bg-teal-50" : "border-gray-100 bg-white hover:border-teal-200"}`}
+                                className={`flex flex-col items-center gap-1 rounded-xl border-2 p-2 transition-all ${selectedQR?.id === qr.id ? "border-teal-400 bg-teal-50" : "border-[var(--border-soft)] bg-[var(--canvas)] hover:border-teal-200"}`}
                               >
                                 <QrCode className="h-4 w-4 text-teal-600" />
-                                <span className="text-[9px] font-bold text-gray-600">{qr.label}</span>
+                                <span className="text-[9px] font-bold text-[var(--text-2)]">{qr.label}</span>
                               </button>
                             ))}
                           </div>
                           {selectedQR && (
                             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-center">
-                              <div className="rounded-xl bg-white border border-teal-100 p-3 shadow-sm">
-                                <p className="text-[10px] font-bold text-center text-gray-500 mb-2">{selectedQR.label}</p>
+                              <div className="rounded-xl bg-[var(--canvas)] border border-teal-100 p-3 shadow-sm">
+                                <p className="text-[10px] font-bold text-center text-[var(--text-2)] mb-2">{selectedQR.label}</p>
                                 <img src={selectedQR.imageUrl} alt={selectedQR.label} className="w-36 h-36 object-contain" />
                               </div>
                             </motion.div>
@@ -1258,16 +1258,16 @@ export default function CheckoutSheet({
                         </div>
                       )}
 
-                      <div className="flex items-center gap-2 rounded-xl bg-amber-50 border border-amber-100 px-3 py-2">
-                        <Shield className="h-3.5 w-3.5 text-amber-500 shrink-0" />
-                        <p className="text-[10px] text-amber-700">After placing your order, show your payment screenshot to the staff at the counter.</p>
+                      <div className="flex items-center gap-2 rounded-xl bg-[var(--accent-muted)] border border-[var(--accent-border)] px-3 py-2">
+                        <Shield className="h-3.5 w-3.5 text-[var(--accent)] shrink-0" />
+                        <p className="text-[10px] text-[var(--accent-text)]">After placing your order, show your payment screenshot to the staff at the counter.</p>
                       </div>
                     </motion.div>
                   )}
 
-                  <div className="flex items-center gap-2 rounded-xl bg-gray-50 px-4 py-3">
-                    <Shield className="h-4 w-4 text-gray-400" />
-                    <p className="text-[11px] text-gray-500">
+                  <div className="flex items-center gap-2 rounded-xl bg-[var(--canvas-sub)] px-4 py-3">
+                    <Shield className="h-4 w-4 text-[var(--text-3)]" />
+                    <p className="text-[11px] text-[var(--text-2)]">
                       Your payment info is secure and encrypted
                     </p>
                   </div>
@@ -1276,12 +1276,12 @@ export default function CheckoutSheet({
 
             </div>
 
-            <div className="border-t border-gray-100 px-6 py-4 shrink-0 space-y-3">
+            <div className="border-t border-[var(--border-soft)] px-6 py-4 shrink-0 space-y-3">
               {step === "review" ? (
                 <button
                   onClick={() => setStep("payment")}
                   disabled={items.length === 0 || !canProceed}
-                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#eaa94d] py-4 text-base font-bold text-white transition-all hover:bg-[#d67620] active:scale-[0.98] shadow-lg shadow-[#eaa94d]/25 disabled:opacity-50"
+                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#eaa94d] py-4 text-base font-bold text-white transition-all hover:bg-[#d67620] active:scale-[0.98] shadow-lg shadow-[var(--accent)]/25 disabled:opacity-50"
                 >
                   Continue to Payment
                   <ChevronRight className="h-4 w-4" />
@@ -1304,7 +1304,7 @@ export default function CheckoutSheet({
                   </button>
                   <button
                     onClick={() => setStep("payment")}
-                    className="w-full rounded-xl border border-gray-200 py-3 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors"
+                    className="w-full rounded-xl border border-[var(--border)] py-3 text-sm font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors"
                   >
                     Back to Payment Methods
                   </button>
@@ -1316,7 +1316,7 @@ export default function CheckoutSheet({
                       if (bankOrderId) onOrderPlaced(bankOrderId);
                       onClose();
                     }}
-                    className="w-full rounded-xl border border-gray-200 py-3 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors"
+                    className="w-full rounded-xl border border-[var(--border)] py-3 text-sm font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors"
                   >
                     Skip &amp; Show Proof at Counter
                   </button>
@@ -1332,7 +1332,7 @@ export default function CheckoutSheet({
                         if (waitingOrderId) onOrderPlaced(waitingOrderId);
                         onClose();
                       }}
-                      className="w-full rounded-xl border border-gray-200 py-3 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors"
+                      className="w-full rounded-xl border border-[var(--border)] py-3 text-sm font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors"
                     >
                       Close &amp; Track Order
                     </button>
@@ -1345,7 +1345,7 @@ export default function CheckoutSheet({
                         setWaitingOrderId(null);
                         setLoading(false);
                       }}
-                      className="w-full rounded-xl border border-gray-200 py-3 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors"
+                      className="w-full rounded-xl border border-[var(--border)] py-3 text-sm font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors"
                     >
                       Cancel &amp; Choose Another Method
                     </button>
@@ -1387,7 +1387,7 @@ export default function CheckoutSheet({
                   </button>
                   <button
                     onClick={() => setStep("review")}
-                    className="w-full rounded-xl border border-gray-200 py-3 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors"
+                    className="w-full rounded-xl border border-[var(--border)] py-3 text-sm font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors"
                   >
                     Back to Review
                   </button>

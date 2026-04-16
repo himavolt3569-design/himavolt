@@ -61,7 +61,7 @@ export default function POSHeldOrders({ restaurantId, currency, orders, onOptimi
   };
 
   return (
-    <div className="h-full bg-gray-50 overflow-y-auto">
+    <div className="h-full bg-[var(--canvas-sub)] overflow-y-auto">
       <div className="px-6 py-5">
         {/* Header */}
         <div className="flex items-center gap-3 mb-5">
@@ -69,14 +69,14 @@ export default function POSHeldOrders({ restaurantId, currency, orders, onOptimi
             <PauseCircle className="h-5 w-5 text-amber-700" />
           </div>
           <div>
-            <h2 className="text-base font-semibold text-gray-900">Held Orders</h2>
-            <p className="text-xs text-gray-400 mt-0.5">Parked orders waiting to be recalled</p>
+            <h2 className="text-base font-semibold text-[var(--text-1)]">Held Orders</h2>
+            <p className="text-xs text-[var(--text-3)] mt-0.5">Parked orders waiting to be recalled</p>
           </div>
         </div>
 
         {heldOrders.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-48 gap-3 text-gray-400">
-            <div className="rounded-full bg-gray-100 p-4">
+          <div className="flex flex-col items-center justify-center h-48 gap-3 text-[var(--text-3)]">
+            <div className="rounded-full bg-[var(--surface)] p-4">
               <PauseCircle className="h-8 w-8 opacity-50" />
             </div>
             <p className="text-sm font-medium">No held orders</p>
@@ -91,19 +91,19 @@ export default function POSHeldOrders({ restaurantId, currency, orders, onOptimi
                   initial={{ opacity: 0, scale: 0.97 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.97 }}
-                  className="rounded-xl border border-amber-200 bg-white overflow-hidden shadow-sm"
+                  className="rounded-xl border border-amber-200 bg-[var(--canvas)] overflow-hidden shadow-sm"
                 >
                   {/* Card header */}
                   <div className="px-4 py-3.5 border-b border-amber-100 bg-amber-50/60">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-bold text-gray-900">#{order.orderNo}</span>
+                      <span className="text-sm font-bold text-[var(--text-1)]">#{order.orderNo}</span>
                       <div className="flex items-center gap-1.5 text-xs text-amber-600">
                         <Clock className="h-3 w-3" />
                         <span>{timeSince(order.createdAt)}</span>
                       </div>
                     </div>
                     {(order.guestName || order.tableNo) && (
-                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <div className="flex items-center gap-2 text-xs text-[var(--text-2)]">
                         {order.guestName && <span>{order.guestName}</span>}
                         {order.tableNo && <span>Table {order.tableNo}</span>}
                       </div>
@@ -114,16 +114,16 @@ export default function POSHeldOrders({ restaurantId, currency, orders, onOptimi
                   <div className="p-4 space-y-3">
                     <div className="space-y-1">
                       {order.items.slice(0, 5).map((item) => (
-                        <p key={item.id} className="text-xs text-gray-600 leading-snug">
+                        <p key={item.id} className="text-xs text-[var(--text-2)] leading-snug">
                           <span className="font-semibold text-gray-800">{item.quantity}x</span> {item.name}
                         </p>
                       ))}
                       {order.items.length > 5 && (
-                        <p className="text-xs text-gray-400">+{order.items.length - 5} more items</p>
+                        <p className="text-xs text-[var(--text-3)]">+{order.items.length - 5} more items</p>
                       )}
                     </div>
 
-                    <div className="pt-2 border-t border-gray-100">
+                    <div className="pt-2 border-t border-[var(--border-soft)]">
                       <p className="text-base font-bold text-amber-700">{formatPrice(order.total, currency)}</p>
                     </div>
 

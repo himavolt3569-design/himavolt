@@ -2,13 +2,7 @@
 
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import {
-  ArrowRight,
-  Percent,
-  Timer,
-  Gift,
-  Sparkles,
-} from "lucide-react";
+import { ArrowRight, Percent, Timer, Gift, Sparkles } from "lucide-react";
 import Link from "next/link";
 
 const deals = [
@@ -18,8 +12,6 @@ const deals = [
     subtitle: "Use code NAMASTE50 at checkout",
     Icon: Percent,
     gradient: "from-[#eaa94d] to-[#d67620]",
-    bg: "bg-[#eaa94d]/6",
-    border: "border-[#eaa94d]/12",
   },
   {
     id: 2,
@@ -27,8 +19,6 @@ const deals = [
     subtitle: "Every Saturday & Sunday, no minimum order",
     Icon: Timer,
     gradient: "from-[#e58f2a] to-[#b25c1c]",
-    bg: "bg-[#e58f2a]/6",
-    border: "border-[#e58f2a]/12",
   },
   {
     id: 3,
@@ -36,8 +26,6 @@ const deals = [
     subtitle: "Earn points on every meal you scan & order",
     Icon: Gift,
     gradient: "from-[#d67620] to-[#8e491e]",
-    bg: "bg-[#d67620]/6",
-    border: "border-[#d67620]/12",
   },
 ];
 
@@ -49,18 +37,15 @@ export default function DealsSection() {
     offset: ["start end", "end start"],
   });
 
-  /* Parallax on the floating food images */
   const img1Y = useTransform(scrollYProgress, [0, 1], [40, -40]);
   const img2Y = useTransform(scrollYProgress, [0, 1], [20, -60]);
   const img3Y = useTransform(scrollYProgress, [0, 1], [60, -20]);
 
   return (
-    <section ref={sectionRef} className="bg-white">
+    <section ref={sectionRef} className="bg-[var(--canvas)]">
       <div className="mx-auto max-w-[1440px] px-4 md:px-8 lg:px-12 py-16 md:py-24">
-        {/* ── Banner ── */}
-        <div
-          className="relative overflow-hidden rounded-3xl bg-linear-to-br from-[#eaa94d] via-[#e58f2a] to-[#d67620] p-8 md:p-12 lg:p-16 mb-10"
-        >
+        {/* Hero banner */}
+        <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-[#eaa94d] via-[#e58f2a] to-[#d67620] p-8 md:p-12 lg:p-16 mb-10">
           <div className="absolute right-0 top-0 bottom-0 w-[45%] hidden md:block pointer-events-none">
             <motion.div
               style={{ y: img1Y }}
@@ -102,15 +87,13 @@ export default function DealsSection() {
             }}
           />
 
-          <div className="absolute -top-20 -right-20 h-75 w-75 rounded-full bg-white/8 blur-[60px] pointer-events-none" />
-
           <div className="relative z-10 max-w-lg">
             <motion.div
               initial={{ opacity: 0, y: 20, filter: "blur(4px)" }}
               whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
               viewport={{ once: true }}
-              transition={{ duration: 0.7, delay: 0, ease: [0.16, 1, 0.3, 1] }}
-              className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-sm px-4 py-2 text-[11px] font-bold text-white/90 uppercase tracking-wider border border-white/10 mb-5"
+              transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+              className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-sm px-4 py-2 text-[10px] font-bold text-white/90 uppercase tracking-wider border border-white/10 mb-5"
             >
               <Sparkles className="h-3.5 w-3.5" />
               Limited time offers
@@ -120,7 +103,7 @@ export default function DealsSection() {
               whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
-              className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white tracking-tight leading-[1.1] mb-3"
+              className="text-2xl sm:text-3xl md:text-4xl font-bold text-white tracking-tight leading-[1.1] mb-3"
             >
               Deals that make
               <br />
@@ -131,7 +114,7 @@ export default function DealsSection() {
               whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: 0.16, ease: [0.16, 1, 0.3, 1] }}
-              className="text-sm text-white/50 font-medium mb-6 max-w-md"
+              className="text-sm text-white/60 font-medium mb-6 max-w-md"
             >
               Save big on your favourite meals. New deals every week across 100+
               restaurants in Kathmandu.
@@ -144,7 +127,7 @@ export default function DealsSection() {
             >
               <Link
                 href="/offers"
-                className="group inline-flex items-center gap-2.5 rounded-full bg-white px-6 py-3 text-sm font-bold text-[#3e1e0c] shadow-lg shadow-black/20 transition-all hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0"
+                className="group inline-flex items-center gap-2.5 rounded-xl bg-white px-6 py-3 text-sm font-bold text-[#3e1e0c] shadow-lg shadow-black/20 transition-all hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0"
               >
                 View All Offers
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
@@ -153,7 +136,7 @@ export default function DealsSection() {
           </div>
         </div>
 
-        {/* ── Deal cards grid ── */}
+        {/* Deal cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {deals.map((deal, i) => (
             <motion.div
@@ -162,11 +145,8 @@ export default function DealsSection() {
               whileInView={{ opacity: 1, y: 0, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: i * 0.1, ease: [0.16, 1, 0.3, 1] }}
-              whileHover={{
-                y: -6,
-                transition: { type: "spring", stiffness: 300, damping: 18 },
-              }}
-              className={`group relative rounded-2xl border ${deal.border} ${deal.bg} p-6 transition-all duration-300 hover:shadow-lg hover:shadow-[#eaa94d]/8 cursor-pointer`}
+              whileHover={{ y: -6, transition: { type: "spring", stiffness: 300, damping: 18 } }}
+              className="group relative rounded-2xl border border-[var(--border)] bg-[var(--canvas)] p-6 hover:border-[var(--accent-border)] transition-colors duration-300 cursor-pointer"
             >
               <motion.div
                 whileHover={{ scale: 1.1, rotate: -6 }}
@@ -175,10 +155,10 @@ export default function DealsSection() {
               >
                 <deal.Icon className="h-5 w-5 text-white" strokeWidth={2} />
               </motion.div>
-              <h4 className="text-base font-bold text-[#3e1e0c] mb-1 tracking-tight">
+              <h4 className="text-[15px] font-semibold text-[var(--text-1)] mb-1 tracking-tight">
                 {deal.title}
               </h4>
-              <p className="text-sm text-[#8e491e]/60 leading-relaxed">
+              <p className="text-sm text-[var(--text-2)] leading-relaxed">
                 {deal.subtitle}
               </p>
             </motion.div>

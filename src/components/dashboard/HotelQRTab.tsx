@@ -118,8 +118,8 @@ export default function HotelQRTab() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-[20px] font-black text-gray-900">Hotel QR Code</h2>
-        <p className="text-[12px] text-gray-500 mt-0.5">
+        <h2 className="text-[20px] font-black text-[var(--text-1)]">Hotel QR Code</h2>
+        <p className="text-[12px] text-[var(--text-2)] mt-0.5">
           Share this QR so guests can browse all rooms and book online
         </p>
       </div>
@@ -128,43 +128,43 @@ export default function HotelQRTab() {
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          className="overflow-hidden rounded-3xl bg-gradient-to-br from-amber-50 to-orange-50 ring-1 ring-amber-100 shadow-sm"
+          className="overflow-hidden rounded-3xl bg-gradient-to-br from-[var(--accent)] to-[var(--accent-hover)] ring-1 ring-[var(--accent-border)] shadow-sm"
         >
-          <div className="bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-4 text-center">
+          <div className="bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] px-6 py-4 text-center">
             <p className="text-[18px] font-black text-white">{hotelName}</p>
-            <p className="text-[11px] text-amber-100 mt-0.5">Scan to browse rooms &amp; book</p>
+            <p className="text-[11px] text-[var(--accent)] mt-0.5">Scan to browse rooms &amp; book</p>
           </div>
 
           <div className="flex flex-col items-center py-8 px-6">
-            <div ref={qrRef} className="rounded-2xl bg-white p-5 shadow-md ring-1 ring-amber-100">
+            <div ref={qrRef} className="rounded-2xl bg-[var(--canvas)] p-5 shadow-md ring-1 ring-[var(--accent-border)]">
               {slug ? (
                 <QRCode value={hotelUrl} size={200} level="M" />
               ) : (
                 <div className="flex h-[200px] w-[200px] items-center justify-center">
-                  <QrCode className="h-16 w-16 text-gray-300" />
+                  <QrCode className="h-16 w-16 text-[var(--text-3)]" />
                 </div>
               )}
             </div>
 
-            <div className="mt-4 flex items-center gap-2 rounded-full bg-white ring-1 ring-amber-200 px-4 py-2 max-w-full overflow-hidden">
-              <span className="truncate text-[11px] font-medium text-amber-700">{hotelUrl.replace(/^https?:\/\//, "")}</span>
+            <div className="mt-4 flex items-center gap-2 rounded-full bg-[var(--canvas)] ring-1 ring-[var(--accent-border)] px-4 py-2 max-w-full overflow-hidden">
+              <span className="truncate text-[11px] font-medium text-[var(--accent-text)]">{hotelUrl.replace(/^https?:\/\//, "")}</span>
             </div>
 
             <div className="mt-4 flex gap-2">
               {[0, 1, 2].map((i) => (
-                <div key={i} className="h-2 w-2 rounded-full bg-amber-200" />
+                <div key={i} className="h-2 w-2 rounded-full bg-[var(--accent-muted)]" />
               ))}
             </div>
-            <p className="mt-2 text-[10px] text-amber-600 font-semibold">Powered by HimaVolt</p>
+            <p className="mt-2 text-[10px] text-[var(--accent-text)] font-semibold">Powered by HimaVolt</p>
           </div>
         </motion.div>
 
         {/* Actions & info */}
         <div className="space-y-4">
-          <div className="rounded-2xl bg-white ring-1 ring-gray-100 p-5 shadow-sm space-y-3">
+          <div className="rounded-2xl bg-[var(--canvas)] ring-1 ring-[var(--border)] p-5 shadow-sm space-y-3">
             <div className="flex items-center gap-2 mb-1">
-              <Sparkles className="h-4 w-4 text-amber-500" />
-              <h3 className="text-[14px] font-bold text-gray-900">What guests see</h3>
+              <Sparkles className="h-4 w-4 text-[var(--accent)]" />
+              <h3 className="text-[14px] font-bold text-[var(--text-1)]">What guests see</h3>
             </div>
             {[
               "All rooms with photos, bed types, amenities",
@@ -174,10 +174,10 @@ export default function HotelQRTab() {
               "Instant booking confirmation page",
             ].map((item) => (
               <div key={item} className="flex items-start gap-2">
-                <div className="mt-0.5 h-4 w-4 shrink-0 rounded-full bg-[#fef3dc] flex items-center justify-center">
+                <div className="mt-0.5 h-4 w-4 shrink-0 rounded-full bg-[var(--accent-muted)] flex items-center justify-center">
                   <Check className="h-2.5 w-2.5 text-[#b25c1c]" />
                 </div>
-                <p className="text-[12px] text-gray-600">{item}</p>
+                <p className="text-[12px] text-[var(--text-2)]">{item}</p>
               </div>
             ))}
           </div>
@@ -186,7 +186,7 @@ export default function HotelQRTab() {
             <button
               onClick={handleDownload}
               disabled={!slug}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 py-3.5 text-[13px] font-bold text-white shadow-sm hover:from-amber-400 hover:to-orange-400 active:scale-[0.98] transition-all disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] py-3.5 text-[13px] font-bold text-white shadow-sm hover:from-[var(--accent)] hover:to-[var(--accent-hover)] active:scale-[0.98] transition-all disabled:opacity-50"
             >
               {downloaded ? (
                 <><Check className="h-4 w-4" /> Downloaded!</>
@@ -198,7 +198,7 @@ export default function HotelQRTab() {
             <button
               onClick={handleCopy}
               disabled={!slug}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-white ring-1 ring-gray-200 py-3.5 text-[13px] font-bold text-gray-700 hover:bg-gray-50 active:scale-[0.98] transition-all disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[var(--canvas)] ring-1 ring-[var(--border)] py-3.5 text-[13px] font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] active:scale-[0.98] transition-all disabled:opacity-50"
             >
               {copied ? (
                 <><Check className="h-4 w-4 text-[#d67620]" /> Link Copied!</>
@@ -218,13 +218,13 @@ export default function HotelQRTab() {
             </a>
           </div>
 
-          <div className="rounded-2xl bg-gray-50 ring-1 ring-gray-100 p-4">
-            <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400 mb-1.5">Direct Link</p>
+          <div className="rounded-2xl bg-[var(--canvas-sub)] ring-1 ring-[var(--border)] p-4">
+            <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--text-3)] mb-1.5">Direct Link</p>
             <div className="flex items-center gap-2">
-              <Building2 className="h-3.5 w-3.5 text-gray-400 shrink-0" />
-              <p className="text-[12px] font-medium text-gray-700 break-all">{hotelUrl}</p>
+              <Building2 className="h-3.5 w-3.5 text-[var(--text-3)] shrink-0" />
+              <p className="text-[12px] font-medium text-[var(--text-2)] break-all">{hotelUrl}</p>
             </div>
-            <p className="mt-2 text-[11px] text-gray-400">
+            <p className="mt-2 text-[11px] text-[var(--text-3)]">
               Share this link via WhatsApp, SMS, or print the QR card for your front desk.
             </p>
           </div>

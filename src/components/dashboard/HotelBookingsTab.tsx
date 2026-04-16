@@ -63,16 +63,16 @@ interface HotelConfig {
 }
 
 const STATUS_STYLES: Record<string, string> = {
-  PENDING: "bg-amber-50 text-amber-700 ring-amber-200",
-  CONFIRMED: "bg-[#fef9ef] text-[#b25c1c] ring-emerald-200",
+  PENDING: "bg-[var(--accent-muted)] text-[var(--accent-text)] ring-[var(--accent-border)]",
+  CONFIRMED: "bg-[var(--accent-muted)] text-[#b25c1c] ring-[#eaa94d]/30",
   CHECKED_IN: "bg-blue-50 text-blue-700 ring-blue-200",
-  CHECKED_OUT: "bg-gray-100 text-gray-600 ring-gray-200",
+  CHECKED_OUT: "bg-[var(--surface)] text-[var(--text-2)] ring-[var(--border)]",
   CANCELLED: "bg-rose-50 text-rose-600 ring-rose-200",
 };
 
 const PAY_STATUS_STYLES: Record<string, string> = {
-  UNPAID: "bg-orange-50 text-orange-600",
-  PAID: "bg-[#fef9ef] text-[#b25c1c]",
+  UNPAID: "bg-[var(--accent)] text-[var(--accent)]",
+  PAID: "bg-[var(--accent-muted)] text-[#b25c1c]",
   FAILED: "bg-rose-50 text-rose-600",
 };
 
@@ -112,25 +112,25 @@ function BookingRow({
   return (
     <motion.div
       layout
-      className="rounded-2xl bg-white ring-1 ring-gray-100 shadow-sm overflow-hidden"
+      className="rounded-2xl bg-[var(--canvas)] ring-1 ring-[var(--border)] shadow-sm overflow-hidden"
     >
       <div className="flex items-center gap-3 p-4">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-50 ring-1 ring-amber-100">
-          <BedDouble className="h-5 w-5 text-amber-500" />
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[var(--accent-muted)] ring-1 ring-[var(--accent-border)]">
+          <BedDouble className="h-5 w-5 text-[var(--accent)]" />
         </div>
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <p className="text-[14px] font-bold text-gray-900 truncate">{booking.guestName}</p>
+            <p className="text-[14px] font-bold text-[var(--text-1)] truncate">{booking.guestName}</p>
             <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ring-1 ${STATUS_STYLES[booking.status]}`}>
               {booking.status.replace("_", " ")}
             </span>
           </div>
           <div className="flex items-center gap-3 mt-0.5">
-            <span className="text-[11px] text-gray-500">
+            <span className="text-[11px] text-[var(--text-2)]">
               Room {booking.room.roomNumber} · {booking.room.type}
             </span>
-            <span className="text-[11px] text-gray-400">
+            <span className="text-[11px] text-[var(--text-3)]">
               {fmtDate(booking.checkIn)} → {fmtDate(booking.checkOut)} ({booking.nights}N)
             </span>
           </div>
@@ -138,7 +138,7 @@ function BookingRow({
 
         {/* Price & pay status */}
         <div className="text-right shrink-0">
-          <p className="text-[13px] font-bold text-gray-800">{formatPrice(booking.totalPrice, currency)}</p>
+          <p className="text-[13px] font-bold text-[var(--text-1)]">{formatPrice(booking.totalPrice, currency)}</p>
           <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${PAY_STATUS_STYLES[booking.paymentStatus]}`}>
             Adv: {booking.paymentStatus === "PAID" ? "Paid" : booking.paymentStatus === "FAILED" ? "Failed" : "Unpaid"}
           </span>
@@ -147,16 +147,16 @@ function BookingRow({
         <div className="flex items-center gap-1.5 shrink-0">
           <button
             onClick={() => onView(booking)}
-            className="rounded-lg p-1.5 hover:bg-gray-100 transition-colors"
+            className="rounded-lg p-1.5 hover:bg-[var(--surface)] transition-colors"
             title="View details"
           >
-            <Eye className="h-3.5 w-3.5 text-gray-400" />
+            <Eye className="h-3.5 w-3.5 text-[var(--text-3)]" />
           </button>
           {actions.length > 0 && (
             <div className="relative">
               <button
                 onClick={() => setOpen((o) => !o)}
-                className="flex items-center gap-1 rounded-lg bg-gray-50 px-2.5 py-1.5 text-[11px] font-semibold text-gray-600 hover:bg-gray-100 transition-colors"
+                className="flex items-center gap-1 rounded-lg bg-[var(--canvas-sub)] px-2.5 py-1.5 text-[11px] font-semibold text-[var(--text-2)] hover:bg-[var(--surface)] transition-colors"
               >
                 Actions <ChevronDown className={`h-3 w-3 transition-transform ${open ? "rotate-180" : ""}`} />
               </button>
@@ -166,7 +166,7 @@ function BookingRow({
                     initial={{ opacity: 0, y: -4 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -4 }}
-                    className="absolute right-0 top-full mt-1 z-10 min-w-[120px] rounded-xl bg-white ring-1 ring-gray-200 shadow-lg overflow-hidden"
+                    className="absolute right-0 top-full mt-1 z-10 min-w-[120px] rounded-xl bg-[var(--canvas)] ring-1 ring-[var(--border)] shadow-lg overflow-hidden"
                   >
                     {actions.map((a) => {
                       const Icon = a.icon;
@@ -222,13 +222,13 @@ function BookingDetailModal({
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
-        className="relative w-full max-w-md max-h-[90vh] overflow-y-auto rounded-3xl bg-white shadow-2xl"
+        className="relative w-full max-w-md max-h-[90vh] overflow-y-auto rounded-3xl bg-[var(--canvas)] shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-100 bg-white/95 px-5 py-4">
-          <h3 className="text-[15px] font-bold text-gray-900">Booking Details</h3>
-          <button onClick={onClose} className="rounded-full p-1.5 hover:bg-gray-100 transition-colors">
-            <X className="h-4 w-4 text-gray-500" />
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[var(--border-soft)] bg-[var(--canvas)]/95 px-5 py-4">
+          <h3 className="text-[15px] font-bold text-[var(--text-1)]">Booking Details</h3>
+          <button onClick={onClose} className="rounded-full p-1.5 hover:bg-[var(--surface)] transition-colors">
+            <X className="h-4 w-4 text-[var(--text-2)]" />
           </button>
         </div>
 
@@ -240,69 +240,69 @@ function BookingDetailModal({
           </div>
 
           <div className="space-y-2">
-            <p className="text-[11px] font-bold uppercase tracking-wide text-gray-400">Guest</p>
-            <p className="text-[15px] font-bold text-gray-900">{booking.guestName}</p>
+            <p className="text-[11px] font-bold uppercase tracking-wide text-[var(--text-3)]">Guest</p>
+            <p className="text-[15px] font-bold text-[var(--text-1)]">{booking.guestName}</p>
             {booking.guestPhone && (
-              <a href={`tel:${booking.guestPhone}`} className="flex items-center gap-2 text-[12px] text-gray-600 hover:text-amber-600 transition-colors">
-                <Phone className="h-3.5 w-3.5 text-amber-500" />
+              <a href={`tel:${booking.guestPhone}`} className="flex items-center gap-2 text-[12px] text-[var(--text-2)] hover:text-[var(--accent-text)] transition-colors">
+                <Phone className="h-3.5 w-3.5 text-[var(--accent)]" />
                 {booking.guestPhone}
               </a>
             )}
             {booking.guestEmail && (
-              <div className="flex items-center gap-2 text-[12px] text-gray-600">
-                <Mail className="h-3.5 w-3.5 text-amber-500" />
+              <div className="flex items-center gap-2 text-[12px] text-[var(--text-2)]">
+                <Mail className="h-3.5 w-3.5 text-[var(--accent)]" />
                 {booking.guestEmail}
               </div>
             )}
-            <div className="flex items-center gap-2 text-[12px] text-gray-600">
-              <Users className="h-3.5 w-3.5 text-amber-500" />
+            <div className="flex items-center gap-2 text-[12px] text-[var(--text-2)]">
+              <Users className="h-3.5 w-3.5 text-[var(--accent)]" />
               {booking.adults} adults{booking.children > 0 ? `, ${booking.children} children` : ""}
             </div>
           </div>
 
           {/* Room & dates */}
-          <div className="rounded-xl bg-gray-50 p-3 space-y-2">
+          <div className="rounded-xl bg-[var(--canvas-sub)] p-3 space-y-2">
             <div className="flex items-center gap-2">
-              <BedDouble className="h-4 w-4 text-amber-500" />
-              <span className="text-[13px] font-semibold text-gray-800">
+              <BedDouble className="h-4 w-4 text-[var(--accent)]" />
+              <span className="text-[13px] font-semibold text-[var(--text-1)]">
                 {booking.room.name || `Room ${booking.room.roomNumber}`}
               </span>
-              <span className="ml-auto text-[11px] text-gray-500">{booking.room.type}</span>
+              <span className="ml-auto text-[11px] text-[var(--text-2)]">{booking.room.type}</span>
             </div>
             {booking.room.bedType && (
-              <p className="text-[11px] text-gray-500 pl-6">
+              <p className="text-[11px] text-[var(--text-2)] pl-6">
                 {booking.room.bedCount}x {booking.room.bedType} · Floor {booking.room.floor}
               </p>
             )}
             <div className="flex items-center gap-2 pl-6">
-              <Calendar className="h-3.5 w-3.5 text-gray-400" />
-              <span className="text-[12px] text-gray-600">
+              <Calendar className="h-3.5 w-3.5 text-[var(--text-3)]" />
+              <span className="text-[12px] text-[var(--text-2)]">
                 {fmtDate(booking.checkIn)} → {fmtDate(booking.checkOut)}
-                <span className="ml-1 text-gray-400">({booking.nights} night{booking.nights > 1 ? "s" : ""})</span>
+                <span className="ml-1 text-[var(--text-3)]">({booking.nights} night{booking.nights > 1 ? "s" : ""})</span>
               </span>
             </div>
           </div>
 
-          <div className="rounded-xl bg-amber-50 ring-1 ring-amber-100 p-3 space-y-1.5">
+          <div className="rounded-xl bg-[var(--accent-muted)] ring-1 ring-[var(--accent-border)] p-3 space-y-1.5">
             <div className="flex justify-between text-[12px]">
-              <span className="text-gray-600">Total stay</span>
-              <span className="font-bold text-gray-800">{formatPrice(booking.totalPrice, currency)}</span>
+              <span className="text-[var(--text-2)]">Total stay</span>
+              <span className="font-bold text-[var(--text-1)]">{formatPrice(booking.totalPrice, currency)}</span>
             </div>
-            <div className="flex justify-between text-[12px] border-t border-amber-100 pt-1.5">
-              <span className="text-amber-700 font-semibold">Advance required</span>
-              <span className="font-bold text-amber-700">{formatPrice(booking.advanceAmount, currency)}</span>
+            <div className="flex justify-between text-[12px] border-t border-[var(--accent-border)] pt-1.5">
+              <span className="text-[var(--accent-text)] font-semibold">Advance required</span>
+              <span className="font-bold text-[var(--accent-text)]">{formatPrice(booking.advanceAmount, currency)}</span>
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5 text-[11px]">
-                <CreditCard className="h-3 w-3 text-gray-400" />
-                <span className="text-gray-500">
+                <CreditCard className="h-3 w-3 text-[var(--text-3)]" />
+                <span className="text-[var(--text-2)]">
                   {booking.paymentMethod || "Not set"} · {booking.paymentStatus}
                 </span>
               </div>
               {!booking.advancePaid && booking.status !== "CANCELLED" && (
                 <button
                   onClick={() => onStatusChange(booking.id, booking.status, true)}
-                  className="rounded-lg bg-[#fef3dc] px-2.5 py-1 text-[11px] font-bold text-[#b25c1c] hover:bg-[#fde9ba] transition-colors"
+                  className="rounded-lg bg-[var(--accent-muted)] px-2.5 py-1 text-[11px] font-bold text-[#b25c1c] hover:bg-[#fde9ba] transition-colors"
                 >
                   Mark Paid
                 </button>
@@ -324,7 +324,7 @@ function BookingDetailModal({
 
           {["PENDING", "CONFIRMED", "CHECKED_IN"].includes(booking.status) && (
             <div className="space-y-2">
-              <p className="text-[11px] font-bold uppercase tracking-wide text-gray-400">Update Status</p>
+              <p className="text-[11px] font-bold uppercase tracking-wide text-[var(--text-3)]">Update Status</p>
               <div className="grid grid-cols-2 gap-2">
                 {booking.status === "PENDING" && (
                   <>
@@ -355,7 +355,7 @@ function BookingDetailModal({
                 {booking.status === "CHECKED_IN" && (
                   <button
                     onClick={() => { onStatusChange(booking.id, "CHECKED_OUT"); onClose(); }}
-                    className="rounded-xl bg-gray-200 py-2.5 text-[12px] font-bold text-gray-700 hover:bg-gray-300 transition-colors flex items-center justify-center gap-1.5 col-span-2"
+                    className="rounded-xl bg-[var(--surface-alt)] py-2.5 text-[12px] font-bold text-[var(--text-2)] hover:bg-[var(--border)] transition-colors flex items-center justify-center gap-1.5 col-span-2"
                   >
                     <LogOut className="h-3.5 w-3.5" /> Check Out Guest
                   </button>
@@ -415,26 +415,26 @@ function AdvanceConfigModal({
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="w-full max-w-sm rounded-3xl bg-white shadow-2xl p-6"
+        className="w-full max-w-sm rounded-3xl bg-[var(--canvas)] shadow-2xl p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-5">
-          <h3 className="text-[15px] font-bold text-gray-900">Advance Booking Config</h3>
-          <button onClick={onClose} className="rounded-full p-1.5 hover:bg-gray-100 transition-colors">
-            <X className="h-4 w-4 text-gray-500" />
+          <h3 className="text-[15px] font-bold text-[var(--text-1)]">Advance Booking Config</h3>
+          <button onClick={onClose} className="rounded-full p-1.5 hover:bg-[var(--surface)] transition-colors">
+            <X className="h-4 w-4 text-[var(--text-2)]" />
           </button>
         </div>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-2">Type</label>
+            <label className="block text-[11px] font-semibold uppercase tracking-wide text-[var(--text-2)] mb-2">Type</label>
             <div className="grid grid-cols-2 gap-2">
               {(["PERCENTAGE", "FIXED"] as const).map((t) => (
                 <button
                   key={t}
                   onClick={() => setType(t)}
                   className={`rounded-xl border-2 py-2.5 text-[12px] font-bold transition-all ${
-                    type === t ? "border-amber-500 bg-amber-50 text-amber-700" : "border-gray-200 text-gray-500"
+                    type === t ? "border-[var(--accent)] bg-[var(--accent-muted)] text-[var(--accent-text)]" : "border-[var(--border)] text-[var(--text-2)]"
                   }`}
                 >
                   {t === "PERCENTAGE" ? "Percentage %" : "Fixed Amount"}
@@ -443,7 +443,7 @@ function AdvanceConfigModal({
             </div>
           </div>
           <div>
-            <label className="block text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-1.5">
+            <label className="block text-[11px] font-semibold uppercase tracking-wide text-[var(--text-2)] mb-1.5">
               {type === "PERCENTAGE" ? "Percentage (0–100)" : `Fixed Amount (${config.currency})`}
             </label>
             <input
@@ -452,9 +452,9 @@ function AdvanceConfigModal({
               min="0"
               max={type === "PERCENTAGE" ? "100" : undefined}
               onChange={(e) => setValue(e.target.value)}
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-[14px] font-semibold text-gray-800 focus:border-amber-400 focus:outline-none focus:bg-white transition-all"
+              className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-3 py-2.5 text-[14px] font-semibold text-[var(--text-1)] focus:border-[var(--accent)] focus:outline-none focus:bg-[var(--canvas)] transition-all"
             />
-            <p className="mt-1.5 text-[11px] text-gray-400">
+            <p className="mt-1.5 text-[11px] text-[var(--text-3)]">
               {type === "PERCENTAGE"
                 ? `Customer pays ${value}% of total room cost as advance`
                 : `Customer pays ${config.currency} ${value} fixed advance`}
@@ -464,7 +464,7 @@ function AdvanceConfigModal({
           <button
             onClick={handleSave}
             disabled={saving}
-            className="w-full rounded-xl bg-amber-500 py-3 text-[13px] font-bold text-white hover:bg-amber-400 transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
+            className="w-full rounded-xl bg-[var(--accent)] py-3 text-[13px] font-bold text-white hover:bg-[var(--accent)] transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
           >
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
             Save Config
@@ -550,26 +550,20 @@ export default function HotelBookingsTab() {
     total: bookings.length,
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="h-6 w-6 animate-spin text-amber-500" />
-      </div>
-    );
-  }
+  if (loading) return null;
 
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-[20px] font-black text-gray-900">Hotel Bookings</h2>
-          <p className="text-[12px] text-gray-500 mt-0.5">Manage room reservations and guest check-ins</p>
+          <h2 className="text-[20px] font-black text-[var(--text-1)]">Hotel Bookings</h2>
+          <p className="text-[12px] text-[var(--text-2)] mt-0.5">Manage room reservations and guest check-ins</p>
         </div>
         <div className="flex items-center gap-2">
           {config && (
             <button
               onClick={() => setShowConfig(true)}
-              className="flex items-center gap-1.5 rounded-xl bg-gray-100 px-3 py-2 text-[12px] font-semibold text-gray-600 hover:bg-gray-200 transition-colors"
+              className="flex items-center gap-1.5 rounded-xl bg-[var(--surface)] px-3 py-2 text-[12px] font-semibold text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-colors"
             >
               <Settings className="h-3.5 w-3.5" />
               Config
@@ -578,7 +572,7 @@ export default function HotelBookingsTab() {
           <button
             onClick={() => fetchBookings(true)}
             disabled={refreshing}
-            className="flex items-center gap-1.5 rounded-xl bg-amber-50 px-3 py-2 text-[12px] font-semibold text-amber-700 hover:bg-amber-100 transition-colors"
+            className="flex items-center gap-1.5 rounded-xl bg-[var(--accent-muted)] px-3 py-2 text-[12px] font-semibold text-[var(--accent-text)] hover:bg-[var(--accent-muted)] transition-colors"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
             Refresh
@@ -601,9 +595,9 @@ export default function HotelBookingsTab() {
       </div>
 
       {config && (
-        <div className="flex items-center gap-3 rounded-2xl bg-amber-50 ring-1 ring-amber-100 px-4 py-3">
-          <AlertCircle className="h-4 w-4 text-amber-600 shrink-0" />
-          <p className="text-[12px] text-amber-700">
+        <div className="flex items-center gap-3 rounded-2xl bg-[var(--accent-muted)] ring-1 ring-[var(--accent-border)] px-4 py-3">
+          <AlertCircle className="h-4 w-4 text-[var(--accent-text)] shrink-0" />
+          <p className="text-[12px] text-[var(--accent-text)]">
             Advance required:{" "}
             <strong>
               {config.hotelAdvanceType === "PERCENTAGE"
@@ -613,7 +607,7 @@ export default function HotelBookingsTab() {
           </p>
           <button
             onClick={() => setShowConfig(true)}
-            className="ml-auto text-[11px] font-bold text-amber-600 hover:text-amber-500 transition-colors"
+            className="ml-auto text-[11px] font-bold text-[var(--accent-text)] hover:text-[var(--accent)] transition-colors"
           >
             Change
           </button>
@@ -622,13 +616,13 @@ export default function HotelBookingsTab() {
 
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--text-3)]" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search guest, room..."
-            className="w-full rounded-xl border border-gray-200 bg-gray-50 pl-9 pr-4 py-2.5 text-[13px] text-gray-800 placeholder:text-gray-400 focus:border-amber-400 focus:outline-none focus:bg-white transition-all"
+            className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] pl-9 pr-4 py-2.5 text-[13px] text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:border-[var(--accent)] focus:outline-none focus:bg-[var(--canvas)] transition-all"
           />
         </div>
         <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-0.5">
@@ -638,8 +632,8 @@ export default function HotelBookingsTab() {
               onClick={() => setStatusFilter(s)}
               className={`whitespace-nowrap rounded-full px-3 py-1.5 text-[11px] font-bold transition-all ${
                 statusFilter === s
-                  ? "bg-amber-500 text-white"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  ? "bg-[var(--accent)] text-white"
+                  : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
               }`}
             >
               {s}
@@ -650,10 +644,10 @@ export default function HotelBookingsTab() {
 
       {filtered.length === 0 ? (
         <div className="py-16 text-center">
-          <BedDouble className="mx-auto h-12 w-12 text-gray-200 mb-3" />
-          <p className="text-[14px] font-medium text-gray-400">No bookings found</p>
+          <BedDouble className="mx-auto h-12 w-12 text-[var(--text-3)] mb-3" />
+          <p className="text-[14px] font-medium text-[var(--text-3)]">No bookings found</p>
           {statusFilter !== "ALL" && (
-            <button onClick={() => setStatusFilter("ALL")} className="mt-2 text-[12px] text-amber-600 hover:underline">
+            <button onClick={() => setStatusFilter("ALL")} className="mt-2 text-[12px] text-[var(--accent-text)] hover:underline">
               Clear filter
             </button>
           )}

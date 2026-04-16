@@ -27,7 +27,7 @@ export default function OfferCountdown({
         className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-bold text-white shadow ${
           isUrgent
             ? "bg-gradient-to-r from-red-500 to-red-600"
-            : "bg-gradient-to-r from-orange-500 to-amber-500"
+            : "bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)]"
         } ${className}`}
       >
         <Clock className="h-2.5 w-2.5" />
@@ -41,7 +41,7 @@ export default function OfferCountdown({
       className={`absolute top-2 left-2 z-10 flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-bold text-white shadow-lg backdrop-blur-sm ${
         isUrgent
           ? "bg-red-500/90"
-          : "bg-gradient-to-r from-orange-500/90 to-amber-500/90"
+          : "bg-gradient-to-r from-[var(--accent)]/90 to-[var(--accent-hover)]0/90"
       } ${className}`}
     >
       <Clock className="h-3 w-3" />

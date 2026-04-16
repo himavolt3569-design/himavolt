@@ -157,11 +157,11 @@ interface HotelBooking {
 }
 
 const STATUS_META: Record<string, { label: string; color: string; bg: string; icon: typeof Clock }> = {
-  PENDING:   { label: "Pending",   color: "text-amber-700",   bg: "bg-amber-50",   icon: Clock },
+  PENDING:   { label: "Pending",   color: "text-[var(--accent-text)]",   bg: "bg-[var(--accent-muted)]",   icon: Clock },
   ACCEPTED:  { label: "Accepted",  color: "text-blue-700",    bg: "bg-blue-50",    icon: CheckCircle },
   PREPARING: { label: "Preparing", color: "text-violet-700",  bg: "bg-violet-50",  icon: ChefHat },
-  READY:     { label: "Ready",     color: "text-[#b25c1c]", bg: "bg-[#fef9ef]", icon: Package },
-  DELIVERED: { label: "Delivered", color: "text-[#b25c1c]",   bg: "bg-[#fef9ef]",   icon: Truck },
+  READY:     { label: "Ready",     color: "text-[#b25c1c]", bg: "bg-[var(--accent-muted)]", icon: Package },
+  DELIVERED: { label: "Delivered", color: "text-[#b25c1c]",   bg: "bg-[var(--accent-muted)]",   icon: Truck },
   CANCELLED: { label: "Cancelled", color: "text-red-700",     bg: "bg-red-50",     icon: XCircle },
   REJECTED:  { label: "Rejected",  color: "text-red-700",     bg: "bg-red-50",     icon: XCircle },
 };
@@ -222,8 +222,8 @@ function Stars({
           onMouseLeave={() => interactive && setHover(0)}
           className={`transition-colors ${interactive ? "cursor-pointer" : ""} ${
             s <= (interactive ? hover || rating : rating)
-              ? "text-amber-400 fill-amber-400"
-              : "text-gray-200"
+              ? "text-[var(--accent)] fill-[var(--accent)]"
+              : "text-[var(--text-3)]"
           }`}
           style={{ width: size, height: size }}
         />
@@ -286,8 +286,8 @@ export default function CustomerDashboard() {
     return (
       <div className="flex h-screen items-center justify-center bg-[#fdf9f3]">
         <div className="text-center">
-          <div className="mx-auto h-8 w-8 rounded-full border-2 border-[#eaa94d]/30 border-t-[#eaa94d] animate-spin" />
-          <p className="mt-3 text-sm text-gray-400">Loading your dashboard…</p>
+          <div className="mx-auto h-8 w-8 rounded-full border-2 border-[var(--accent-border)] border-t-[#eaa94d] animate-spin" />
+          <p className="mt-3 text-sm text-[var(--text-3)]">Loading your dashboard…</p>
         </div>
       </div>
     );
@@ -296,26 +296,26 @@ export default function CustomerDashboard() {
   return (
     <div className="flex min-h-screen flex-col bg-[#fdf9f3]">
       {/* ── Header ── */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-xl border-b border-[#eaa94d]/10 shadow-[0_1px_6px_rgba(234,169,77,0.06)]">
+      <header className="sticky top-0 z-40 bg-[var(--canvas)]/95 backdrop-blur-xl border-b border-[#eaa94d]/10 shadow-[0_1px_6px_rgba(234,169,77,0.06)]">
         <div className="mx-auto flex h-14 max-w-lg items-center justify-between px-4">
           <Link href="/" className="flex items-center gap-2">
             <Mountain className="h-5 w-5 text-[#eaa94d]" strokeWidth={2.5} />
-            <span className="text-base font-extrabold tracking-tight text-[#3e1e0c]">
+            <span className="text-base font-extrabold tracking-tight text-[var(--text-1)]">
               Hima<span className="text-[#eaa94d]">Volt</span>
             </span>
           </Link>
           <div className="flex items-center gap-2">
             <Link
               href="/"
-              className="flex items-center gap-1.5 rounded-full bg-[#fdf9ef] border border-[#eaa94d]/15 px-3 py-1.5 text-xs font-semibold text-[#3e1e0c]/60 hover:text-[#3e1e0c] transition-colors"
+              className="flex items-center gap-1.5 rounded-full bg-[var(--accent-muted)] border border-[var(--accent-border)] px-3 py-1.5 text-xs font-semibold text-[var(--text-1)]/60 hover:text-[var(--text-1)] transition-colors"
             >
               <Search className="h-3.5 w-3.5" />
               Explore
             </Link>
             {avatarUrl ? (
-              <img src={avatarUrl} alt="" className="h-7 w-7 rounded-full object-cover ring-2 ring-[#eaa94d]/20" />
+              <img src={avatarUrl} alt="" className="h-7 w-7 rounded-full object-cover ring-2 ring-[var(--accent-border)]" />
             ) : (
-              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#eaa94d]/10 text-[11px] font-bold text-[#eaa94d]">
+              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--accent-muted)] text-[11px] font-bold text-[#eaa94d]">
                 {firstName[0]?.toUpperCase()}
               </div>
             )}
@@ -378,7 +378,7 @@ export default function CustomerDashboard() {
       </main>
 
       {/* ── Bottom Nav ── */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-200/60 bg-white/96 backdrop-blur-xl pb-safe">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-[var(--border)]/60 bg-[var(--canvas)]/96 backdrop-blur-xl pb-safe">
         <div className="mx-auto flex max-w-lg items-center justify-around h-15">
           {TABS.map(({ id, label, icon: Icon, badge }) => {
             const active = tab === id;
@@ -391,13 +391,13 @@ export default function CustomerDashboard() {
                 {active && (
                   <motion.div
                     layoutId="customerNavPill"
-                    className="absolute inset-x-1.5 top-1.5 bottom-1.5 rounded-2xl bg-[#eaa94d]/8"
+                    className="absolute inset-x-1.5 top-1.5 bottom-1.5 rounded-2xl bg-[var(--accent-muted)]"
                     transition={{ type: "spring", bounce: 0.18, duration: 0.45 }}
                   />
                 )}
                 <div className="relative z-10">
                   <Icon
-                    className={`h-5 w-5 transition-all ${active ? "text-[#eaa94d]" : "text-gray-400 group-hover:text-gray-600"}`}
+                    className={`h-5 w-5 transition-all ${active ? "text-[#eaa94d]" : "text-[var(--text-3)] group-hover:text-[var(--text-2)]"}`}
                     strokeWidth={active ? 2.2 : 1.8}
                     fill={active && id === "saved" ? "#eaa94d" : "none"}
                   />
@@ -407,7 +407,7 @@ export default function CustomerDashboard() {
                     </span>
                   ) : null}
                 </div>
-                <span className={`text-[10px] font-semibold z-10 transition-all ${active ? "text-[#eaa94d]" : "text-gray-400"}`}>
+                <span className={`text-[10px] font-semibold z-10 transition-all ${active ? "text-[#eaa94d]" : "text-[var(--text-3)]"}`}>
                   {label}
                 </span>
               </button>
@@ -513,7 +513,7 @@ function AttendanceButton() {
   const dayLabel = new Date().toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" });
 
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+    <div className="rounded-2xl border border-[var(--border-soft)] bg-[var(--canvas)] shadow-sm overflow-hidden">
       <div className="flex items-center gap-4 p-4">
         {/* Button */}
         <div className="relative flex-shrink-0" style={{ width: 72, height: 72 }}>
@@ -537,8 +537,8 @@ function AttendanceButton() {
             transition={{ type: "spring", stiffness: 400, damping: 20 }}
             className={`relative w-full h-full rounded-2xl flex flex-col items-center justify-center gap-0.5 transition-colors select-none ${
               checked
-                ? "bg-[#fef9ef] border-2 border-[#eaa94d]/30 cursor-default"
-                : "bg-[#eaa94d] active:bg-[#d4922a] shadow-md shadow-[#eaa94d]/30"
+                ? "bg-[var(--accent-muted)] border-2 border-[var(--accent-border)] cursor-default"
+                : "bg-[#eaa94d] active:bg-[#d4922a] shadow-md shadow-[var(--accent)]/30"
             }`}
           >
             <motion.div
@@ -558,7 +558,7 @@ function AttendanceButton() {
 
         {/* Stats */}
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-semibold text-gray-400 mb-2">{dayLabel}</p>
+          <p className="text-xs font-semibold text-[var(--text-3)] mb-2">{dayLabel}</p>
           <div className="flex items-center gap-3">
             <motion.div
               key={streak}
@@ -567,15 +567,15 @@ function AttendanceButton() {
               transition={{ type: "spring", stiffness: 500, damping: 22 }}
               className="flex items-center gap-1"
             >
-              <Flame className={`h-4 w-4 ${streak > 0 ? "text-orange-400" : "text-gray-300"}`} fill={streak > 0 ? "#fb923c" : "none"} />
-              <span className="text-base font-extrabold text-gray-800">{streak}</span>
-              <span className="text-[10px] text-gray-400 font-medium">streak</span>
+              <Flame className={`h-4 w-4 ${streak > 0 ? "text-[var(--accent)]" : "text-[var(--text-3)]"}`} fill={streak > 0 ? "#fb923c" : "none"} />
+              <span className="text-base font-extrabold text-[var(--text-1)]">{streak}</span>
+              <span className="text-[10px] text-[var(--text-3)] font-medium">streak</span>
             </motion.div>
-            <div className="w-px h-4 bg-gray-100" />
+            <div className="w-px h-4 bg-[var(--surface)]" />
             <div className="flex items-center gap-1">
-              <Calendar className="h-3.5 w-3.5 text-gray-300" />
-              <span className="text-sm font-bold text-gray-600">{total}</span>
-              <span className="text-[10px] text-gray-400 font-medium">total</span>
+              <Calendar className="h-3.5 w-3.5 text-[var(--text-3)]" />
+              <span className="text-sm font-bold text-[var(--text-2)]">{total}</span>
+              <span className="text-[10px] text-[var(--text-3)] font-medium">total</span>
             </div>
           </div>
 
@@ -587,11 +587,11 @@ function AttendanceButton() {
                 initial={false}
                 animate={{ scale: day <= streak ? 1 : 0.85, opacity: day <= streak ? 1 : 0.35 }}
                 transition={{ delay: day * 0.03, type: "spring", stiffness: 400, damping: 20 }}
-                className={`flex-1 h-1.5 rounded-full ${day <= streak ? "bg-orange-400" : "bg-gray-100"}`}
+                className={`flex-1 h-1.5 rounded-full ${day <= streak ? "bg-[var(--accent)]" : "bg-[var(--surface)]"}`}
               />
             ))}
           </div>
-          <p className="text-[9px] text-gray-300 mt-1">
+          <p className="text-[9px] text-[var(--text-3)] mt-1">
             {streak >= 7 ? "7-day streak! " : streak > 0 ? `${7 - streak} more for a week` : "Check in daily to build a streak"}
           </p>
         </div>
@@ -635,11 +635,11 @@ function HomeTab({
           </div>
         )}
         <div>
-          <p className="text-xs text-gray-400 font-medium">{greeting},</p>
-          <h1 className="text-lg font-extrabold text-[#3e1e0c] leading-tight">{firstName}!</h1>
+          <p className="text-xs text-[var(--text-3)] font-medium">{greeting},</p>
+          <h1 className="text-lg font-extrabold text-[var(--text-1)] leading-tight">{firstName}!</h1>
         </div>
         {memberSince && (
-          <div className="ml-auto flex items-center gap-1 rounded-full bg-[#eaa94d]/8 px-2.5 py-1 border border-[#eaa94d]/15">
+          <div className="ml-auto flex items-center gap-1 rounded-full bg-[var(--accent-muted)] px-2.5 py-1 border border-[var(--accent-border)]">
             <BadgeCheck className="h-3 w-3 text-[#eaa94d]" />
             <span className="text-[9px] font-bold text-[#eaa94d]">Food Lover</span>
           </div>
@@ -665,17 +665,17 @@ function HomeTab({
       )}
 
       {stats?.favoriteRestaurant && (
-        <div className="flex items-center gap-3 rounded-2xl border border-[#eaa94d]/12 bg-white p-3.5 shadow-sm">
+        <div className="flex items-center gap-3 rounded-2xl border border-[#eaa94d]/12 bg-[var(--canvas)] p-3.5 shadow-sm">
           {stats.favoriteRestaurant.imageUrl ? (
             <img src={stats.favoriteRestaurant.imageUrl} alt="" className="h-10 w-10 rounded-xl object-cover shrink-0" />
           ) : (
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#eaa94d]/10">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--accent-muted)]">
               <Building2 className="h-5 w-5 text-[#eaa94d]" />
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Most Ordered From</p>
-            <p className="text-sm font-bold text-gray-800 truncate">{stats.favoriteRestaurant.name}</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-3)]">Most Ordered From</p>
+            <p className="text-sm font-bold text-[var(--text-1)] truncate">{stats.favoriteRestaurant.name}</p>
           </div>
           <TrendingUp className="h-4 w-4 text-[#eaa94d] shrink-0" />
         </div>
@@ -685,18 +685,18 @@ function HomeTab({
         {[
           { icon: History, label: "Orders", action: onViewOrders, color: "bg-blue-50 text-blue-600" },
           { icon: Bike, label: "Delivery", action: onViewDelivery, color: "bg-violet-50 text-violet-600" },
-          { icon: Star, label: "Reviews", action: onViewReviews, color: "bg-amber-50 text-amber-600" },
+          { icon: Star, label: "Reviews", action: onViewReviews, color: "bg-[var(--accent-muted)] text-[var(--accent-text)]" },
           { icon: Heart, label: "Saved", action: onViewSaved, color: "bg-rose-50 text-rose-500" },
         ].map(({ icon: Icon, label, action, color }) => (
           <button
             key={label}
             onClick={action}
-            className="flex flex-col items-center gap-1.5 rounded-2xl bg-white border border-gray-100 py-3.5 shadow-sm hover:border-[#eaa94d]/20 transition-all active:scale-95"
+            className="flex flex-col items-center gap-1.5 rounded-2xl bg-[var(--canvas)] border border-[var(--border-soft)] py-3.5 shadow-sm hover:border-[#eaa94d]/20 transition-all active:scale-95"
           >
             <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${color}`}>
               <Icon className="h-4.5 w-4.5" strokeWidth={1.8} />
             </div>
-            <span className="text-[10px] font-semibold text-gray-500">{label}</span>
+            <span className="text-[10px] font-semibold text-[var(--text-2)]">{label}</span>
           </button>
         ))}
       </div>
@@ -737,8 +737,8 @@ function HomeTab({
       {recentOrders.length === 0 && (
         <div className="rounded-2xl border-2 border-dashed border-[#eaa94d]/20 bg-[#fdf9ef]/50 p-8 text-center">
           <Utensils className="mx-auto h-9 w-9 text-[#eaa94d]/30 mb-3" />
-          <p className="text-sm font-bold text-gray-600 mb-1">No orders yet</p>
-          <p className="text-xs text-gray-400 mb-4">Explore restaurants and place your first order!</p>
+          <p className="text-sm font-bold text-[var(--text-2)] mb-1">No orders yet</p>
+          <p className="text-xs text-[var(--text-3)] mb-4">Explore restaurants and place your first order!</p>
           <Link
             href="/"
             className="inline-block rounded-xl bg-[#eaa94d] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#d4922a] transition-colors"
@@ -749,7 +749,7 @@ function HomeTab({
       )}
 
       {memberSince && (
-        <p className="text-center text-[10px] text-gray-300 pb-2">Member since {memberSince}</p>
+        <p className="text-center text-[10px] text-[var(--text-3)] pb-2">Member since {memberSince}</p>
       )}
     </div>
   );
@@ -762,7 +762,7 @@ function SectionHeader({
 }) {
   return (
     <div className="flex items-center justify-between mb-3">
-      <h2 className="text-sm font-bold text-gray-800">{title}</h2>
+      <h2 className="text-sm font-bold text-[var(--text-1)]">{title}</h2>
       {onAction && actionLabel && (
         <button
           onClick={onAction}
@@ -786,17 +786,17 @@ function StatTile({
 }) {
   const colors = {
     blue:    { bg: "bg-blue-50",    text: "text-blue-600"    },
-    emerald: { bg: "bg-[#fef9ef]", text: "text-[#b25c1c]" },
-    amber:   { bg: "bg-[#eaa94d]/8", text: "text-[#eaa94d]" },
+    emerald: { bg: "bg-[var(--accent-muted)]", text: "text-[#b25c1c]" },
+    amber:   { bg: "bg-[var(--accent-muted)]", text: "text-[#eaa94d]" },
   }[color];
 
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white p-3 shadow-sm">
+    <div className="rounded-2xl border border-[var(--border-soft)] bg-[var(--canvas)] p-3 shadow-sm">
       <div className={`mb-2 flex h-8 w-8 items-center justify-center rounded-xl ${colors.bg}`}>
         <Icon className={`h-4 w-4 ${colors.text}`} strokeWidth={1.8} />
       </div>
-      <p className="text-base font-extrabold text-gray-900 leading-tight" title={fullValue}>{value}</p>
-      <p className="text-[10px] text-gray-400 mt-0.5">{label}</p>
+      <p className="text-base font-extrabold text-[var(--text-1)] leading-tight" title={fullValue}>{value}</p>
+      <p className="text-[10px] text-[var(--text-3)] mt-0.5">{label}</p>
     </div>
   );
 }
@@ -815,11 +815,11 @@ function LiveOrderCard({ order }: { order: Order }) {
             <StatusIcon className={`h-4 w-4 ${meta.color}`} />
           </div>
           <div>
-            <p className="text-xs font-bold text-gray-800">Live · #{order.orderNo}</p>
+            <p className="text-xs font-bold text-[var(--text-1)]">Live · #{order.orderNo}</p>
             <p className={`text-[11px] font-semibold ${meta.color}`}>{meta.label}</p>
           </div>
         </div>
-        <span className="rounded-full bg-[#eaa94d]/10 px-2 py-0.5 text-[9px] font-bold text-[#eaa94d]">
+        <span className="rounded-full bg-[var(--accent-muted)] px-2 py-0.5 text-[9px] font-bold text-[#eaa94d]">
           {timeAgo(order.createdAt)}
         </span>
       </div>
@@ -827,15 +827,15 @@ function LiveOrderCard({ order }: { order: Order }) {
         {steps.map((s, i) => (
           <div
             key={s}
-            className={`h-1.5 flex-1 rounded-full transition-all ${i <= currentStep ? "bg-[#eaa94d]" : "bg-gray-200"}`}
+            className={`h-1.5 flex-1 rounded-full transition-all ${i <= currentStep ? "bg-[#eaa94d]" : "bg-[var(--surface-alt)]"}`}
           />
         ))}
       </div>
       <div className="flex items-center justify-between">
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-[var(--text-2)]">
           {order.restaurant.name} · {order.items.length} item{order.items.length !== 1 ? "s" : ""}
         </p>
-        <p className="text-xs font-bold text-gray-800">{formatPrice(order.total, order.restaurant.currency)}</p>
+        <p className="text-xs font-bold text-[var(--text-1)]">{formatPrice(order.total, order.restaurant.currency)}</p>
       </div>
     </div>
   );
@@ -845,28 +845,28 @@ function MiniOrderCard({ order, showAddress }: { order: Order; showAddress?: boo
   const meta = STATUS_META[order.status] || STATUS_META.PENDING;
   const StatusIcon = meta.icon;
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-gray-100 bg-white p-3 shadow-sm">
+    <div className="flex items-center gap-3 rounded-xl border border-[var(--border-soft)] bg-[var(--canvas)] p-3 shadow-sm">
       {order.restaurant.imageUrl ? (
         <img src={order.restaurant.imageUrl} alt="" className="h-10 w-10 rounded-xl object-cover shrink-0" />
       ) : (
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gray-100">
-          <Utensils className="h-4.5 w-4.5 text-gray-400" />
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--surface)]">
+          <Utensils className="h-4.5 w-4.5 text-[var(--text-3)]" />
         </div>
       )}
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-gray-800 truncate">{order.restaurant.name}</p>
+        <p className="text-sm font-semibold text-[var(--text-1)] truncate">{order.restaurant.name}</p>
         {showAddress && order.deliveryAddress ? (
-          <p className="text-[11px] text-gray-400 truncate flex items-center gap-0.5">
+          <p className="text-[11px] text-[var(--text-3)] truncate flex items-center gap-0.5">
             <MapPin className="h-3 w-3 shrink-0" />{order.deliveryAddress}
           </p>
         ) : (
-          <p className="text-[11px] text-gray-400">
+          <p className="text-[11px] text-[var(--text-3)]">
             #{order.orderNo} · {timeAgo(order.createdAt)}
           </p>
         )}
       </div>
       <div className="shrink-0 text-right">
-        <p className="text-xs font-bold text-gray-800">{formatPrice(order.total, order.restaurant.currency)}</p>
+        <p className="text-xs font-bold text-[var(--text-1)]">{formatPrice(order.total, order.restaurant.currency)}</p>
         <span className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-bold ${meta.bg} ${meta.color}`}>
           <StatusIcon className="h-2.5 w-2.5" />
           {meta.label}
@@ -880,19 +880,19 @@ function MiniStayCard({ booking }: { booking: HotelBooking }) {
   const fmtDate = (d: string) =>
     new Date(d).toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-gray-100 bg-white p-3 shadow-sm">
+    <div className="flex items-center gap-3 rounded-xl border border-[var(--border-soft)] bg-[var(--canvas)] p-3 shadow-sm">
       {booking.room.imageUrls[0] ? (
         <img src={booking.room.imageUrls[0]} alt="" className="h-10 w-10 rounded-xl object-cover shrink-0" />
       ) : (
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gray-100">
-          <BedDouble className="h-4 w-4 text-gray-400" />
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--surface)]">
+          <BedDouble className="h-4 w-4 text-[var(--text-3)]" />
         </div>
       )}
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-gray-800 truncate">{booking.restaurant.name}</p>
-        <p className="text-[11px] text-gray-400">{fmtDate(booking.checkIn)} → {fmtDate(booking.checkOut)} · {booking.nights}N</p>
+        <p className="text-sm font-semibold text-[var(--text-1)] truncate">{booking.restaurant.name}</p>
+        <p className="text-[11px] text-[var(--text-3)]">{fmtDate(booking.checkIn)} → {fmtDate(booking.checkOut)} · {booking.nights}N</p>
       </div>
-      <p className="text-xs font-bold text-gray-800 shrink-0">
+      <p className="text-xs font-bold text-[var(--text-1)] shrink-0">
         Rs.{booking.totalPrice.toLocaleString()}
       </p>
     </div>
@@ -942,19 +942,19 @@ function OrdersTab({
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-extrabold text-gray-900">Order History</h2>
-        <p className="text-xs text-gray-400 mt-0.5">{orders.length} total orders</p>
+        <h2 className="text-lg font-extrabold text-[var(--text-1)]">Order History</h2>
+        <p className="text-xs text-[var(--text-3)] mt-0.5">{orders.length} total orders</p>
       </div>
 
       {!showStays && (
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-3)]" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by restaurant or item…"
-            className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm focus:border-[#eaa94d]/30 focus:outline-none focus:ring-1 focus:ring-[#eaa94d]/30"
+            className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] py-2.5 pl-10 pr-4 text-sm focus:border-[var(--accent-border)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-border)]"
           />
         </div>
       )}
@@ -966,8 +966,8 @@ function OrdersTab({
             onClick={() => setFilter(id)}
             className={`shrink-0 inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all ${
               filter === id
-                ? "bg-[#eaa94d] text-white shadow-sm shadow-[#eaa94d]/30"
-                : "bg-white text-gray-500 border border-gray-200 hover:border-gray-300"
+                ? "bg-[#eaa94d] text-white shadow-sm shadow-[var(--accent)]/30"
+                : "bg-[var(--canvas)] text-[var(--text-2)] border border-[var(--border)] hover:border-[var(--border)]"
             }`}
           >
             <Icon className="h-3 w-3" strokeWidth={2} />
@@ -995,7 +995,7 @@ function OrdersTab({
           {filter === "delivery" && (
             <div className="flex items-center gap-2 px-1">
               <Bike className="h-4 w-4 text-violet-500" />
-              <span className="text-xs font-bold text-gray-600">{filteredOrders.length} Delivery Order{filteredOrders.length !== 1 ? "s" : ""}</span>
+              <span className="text-xs font-bold text-[var(--text-2)]">{filteredOrders.length} Delivery Order{filteredOrders.length !== 1 ? "s" : ""}</span>
             </div>
           )}
           {filteredOrders.map((order) => (
@@ -1014,10 +1014,10 @@ function OrdersTab({
 
 function EmptyState({ icon: Icon, title, desc }: { icon: typeof Receipt; title: string; desc?: string }) {
   return (
-    <div className="rounded-2xl border-2 border-dashed border-gray-200 py-12 text-center">
-      <Icon className="mx-auto h-9 w-9 text-gray-300 mb-3" />
-      <p className="text-sm font-semibold text-gray-500">{title}</p>
-      {desc && <p className="text-xs text-gray-400 mt-1">{desc}</p>}
+    <div className="rounded-2xl border-2 border-dashed border-[var(--border)] py-12 text-center">
+      <Icon className="mx-auto h-9 w-9 text-[var(--text-3)] mb-3" />
+      <p className="text-sm font-semibold text-[var(--text-2)]">{title}</p>
+      {desc && <p className="text-xs text-[var(--text-3)] mt-1">{desc}</p>}
     </div>
   );
 }
@@ -1034,21 +1034,21 @@ function OrderCard({
   const currency = order.restaurant.currency;
 
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+    <div className="rounded-2xl border border-[var(--border-soft)] bg-[var(--canvas)] shadow-sm overflow-hidden">
       <button onClick={onToggle} className="w-full p-4 text-left">
         <div className="flex items-start gap-3">
           {order.restaurant.imageUrl ? (
             <img src={order.restaurant.imageUrl} alt="" className="h-11 w-11 rounded-xl object-cover shrink-0" />
           ) : (
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gray-100">
-              <Utensils className="h-5 w-5 text-gray-400" />
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[var(--surface)]">
+              <Utensils className="h-5 w-5 text-[var(--text-3)]" />
             </div>
           )}
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <p className="text-sm font-bold text-gray-800 truncate">{order.restaurant.name}</p>
-                <p className="text-[11px] text-gray-400 mt-0.5">
+                <p className="text-sm font-bold text-[var(--text-1)] truncate">{order.restaurant.name}</p>
+                <p className="text-[11px] text-[var(--text-3)] mt-0.5">
                   #{order.orderNo} · {order.items.length} item{order.items.length !== 1 ? "s" : ""} · {timeAgo(order.createdAt)}
                 </p>
               </div>
@@ -1057,18 +1057,18 @@ function OrderCard({
                 {meta.label}
               </span>
             </div>
-            <p className="mt-1.5 text-xs text-gray-500 truncate">
+            <p className="mt-1.5 text-xs text-[var(--text-2)] truncate">
               {order.items.map((i) => `${i.quantity}× ${i.name}`).join(", ")}
             </p>
             <div className="mt-2 flex items-center justify-between">
-              <p className="text-sm font-bold text-gray-900">{formatPrice(order.total, currency)}</p>
+              <p className="text-sm font-bold text-[var(--text-1)]">{formatPrice(order.total, currency)}</p>
               <div className="flex items-center gap-1">
                 {order.type === "DELIVERY" && (
                   <span className="inline-flex items-center gap-0.5 rounded-full bg-violet-50 px-2 py-0.5 text-[9px] font-semibold text-violet-600">
                     <Bike className="h-2.5 w-2.5" /> Delivery
                   </span>
                 )}
-                <ChevronRight className={`h-4 w-4 text-gray-300 transition-transform ${expanded ? "rotate-90" : ""}`} />
+                <ChevronRight className={`h-4 w-4 text-[var(--text-3)] transition-transform ${expanded ? "rotate-90" : ""}`} />
               </div>
             </div>
           </div>
@@ -1084,38 +1084,38 @@ function OrderCard({
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="border-t border-gray-100 px-4 py-3 space-y-3">
+            <div className="border-t border-[var(--border-soft)] px-4 py-3 space-y-3">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-2">Items</p>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-3)] mb-2">Items</p>
                 {order.items.map((item) => (
                   <div key={item.id} className="flex items-center justify-between py-1">
-                    <span className="text-xs text-gray-600">
+                    <span className="text-xs text-[var(--text-2)]">
                       {item.quantity}× {item.name}
-                      {item.addOns && <span className="text-gray-400"> +{item.addOns}</span>}
+                      {item.addOns && <span className="text-[var(--text-3)]"> +{item.addOns}</span>}
                     </span>
-                    <span className="text-xs font-medium text-gray-700">
+                    <span className="text-xs font-medium text-[var(--text-2)]">
                       {formatPrice(item.price * item.quantity, currency)}
                     </span>
                   </div>
                 ))}
               </div>
 
-              <div className="border-t border-dashed border-gray-200 pt-2 space-y-1">
-                <div className="flex justify-between text-xs text-gray-500">
+              <div className="border-t border-dashed border-[var(--border)] pt-2 space-y-1">
+                <div className="flex justify-between text-xs text-[var(--text-2)]">
                   <span>Subtotal</span><span>{formatPrice(order.subtotal, currency)}</span>
                 </div>
                 {order.tax > 0 && (
-                  <div className="flex justify-between text-xs text-gray-500">
+                  <div className="flex justify-between text-xs text-[var(--text-2)]">
                     <span>Tax</span><span>{formatPrice(order.tax, currency)}</span>
                   </div>
                 )}
                 {order.deliveryFee > 0 && (
-                  <div className="flex justify-between text-xs text-gray-500">
+                  <div className="flex justify-between text-xs text-[var(--text-2)]">
                     <span>Delivery Fee</span><span>{formatPrice(order.deliveryFee, currency)}</span>
                   </div>
                 )}
                 {order.bill?.serviceCharge ? (
-                  <div className="flex justify-between text-xs text-gray-500">
+                  <div className="flex justify-between text-xs text-[var(--text-2)]">
                     <span>Service Charge</span><span>{formatPrice(order.bill.serviceCharge, currency)}</span>
                   </div>
                 ) : null}
@@ -1124,26 +1124,26 @@ function OrderCard({
                     <span>Discount</span><span>-{formatPrice(order.bill.discount, currency)}</span>
                   </div>
                 ) : null}
-                <div className="flex justify-between text-sm font-bold text-gray-900 pt-1">
+                <div className="flex justify-between text-sm font-bold text-[var(--text-1)] pt-1">
                   <span>Total</span><span>{formatPrice(order.total, currency)}</span>
                 </div>
               </div>
 
               <div className="flex flex-wrap gap-2">
-                <span className="inline-flex items-center gap-1 rounded-lg bg-gray-50 px-2 py-1 text-[10px] font-medium text-gray-500">
+                <span className="inline-flex items-center gap-1 rounded-lg bg-[var(--canvas-sub)] px-2 py-1 text-[10px] font-medium text-[var(--text-2)]">
                   <Calendar className="h-3 w-3" />{formatDate(order.createdAt)}
                 </span>
-                <span className="inline-flex items-center gap-1 rounded-lg bg-gray-50 px-2 py-1 text-[10px] font-medium text-gray-500">
+                <span className="inline-flex items-center gap-1 rounded-lg bg-[var(--canvas-sub)] px-2 py-1 text-[10px] font-medium text-[var(--text-2)]">
                   {order.type === "DELIVERY" ? <Truck className="h-3 w-3" /> : <Utensils className="h-3 w-3" />}
                   {order.type.replace("_", " ")}
                 </span>
                 {order.payment && (
-                  <span className={`inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] font-medium ${order.payment.status === "COMPLETED" ? "bg-[#fef9ef] text-[#b25c1c]" : "bg-amber-50 text-amber-700"}`}>
+                  <span className={`inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] font-medium ${order.payment.status === "COMPLETED" ? "bg-[var(--accent-muted)] text-[#b25c1c]" : "bg-[var(--accent-muted)] text-[var(--accent-text)]"}`}>
                     <CreditCard className="h-3 w-3" />{order.payment.method}
                   </span>
                 )}
                 {order.tableNo && (
-                  <span className="inline-flex items-center gap-1 rounded-lg bg-gray-50 px-2 py-1 text-[10px] font-medium text-gray-500">
+                  <span className="inline-flex items-center gap-1 rounded-lg bg-[var(--canvas-sub)] px-2 py-1 text-[10px] font-medium text-[var(--text-2)]">
                     Table {order.tableNo}
                   </span>
                 )}
@@ -1157,13 +1157,13 @@ function OrderCard({
               )}
 
               {order.note && (
-                <p className="text-xs text-gray-400 italic">"{order.note}"</p>
+                <p className="text-xs text-[var(--text-3)] italic">"{order.note}"</p>
               )}
 
               {order.status === "DELIVERED" && (
                 <Link
                   href={`/menu/${order.restaurant.slug}`}
-                  className="flex items-center justify-center gap-1.5 rounded-xl bg-[#eaa94d]/8 py-2.5 text-xs font-semibold text-[#eaa94d] hover:bg-[#eaa94d]/15 transition-colors"
+                  className="flex items-center justify-center gap-1.5 rounded-xl bg-[var(--accent-muted)] py-2.5 text-xs font-semibold text-[#eaa94d] hover:bg-[#eaa94d]/15 transition-colors"
                 >
                   <RefreshCw className="h-3.5 w-3.5" /> Order Again
                 </Link>
@@ -1177,10 +1177,10 @@ function OrderCard({
 }
 
 const BOOKING_STATUS_META: Record<string, { label: string; color: string; bg: string }> = {
-  PENDING:    { label: "Awaiting Confirmation", color: "text-amber-700",   bg: "bg-amber-50" },
-  CONFIRMED:  { label: "Confirmed",             color: "text-[#b25c1c]", bg: "bg-[#fef9ef]" },
+  PENDING:    { label: "Awaiting Confirmation", color: "text-[var(--accent-text)]",   bg: "bg-[var(--accent-muted)]" },
+  CONFIRMED:  { label: "Confirmed",             color: "text-[#b25c1c]", bg: "bg-[var(--accent-muted)]" },
   CHECKED_IN: { label: "Checked In",            color: "text-blue-700",    bg: "bg-blue-50" },
-  CHECKED_OUT:{ label: "Checked Out",           color: "text-gray-600",    bg: "bg-gray-100" },
+  CHECKED_OUT:{ label: "Checked Out",           color: "text-[var(--text-2)]",    bg: "bg-[var(--surface)]" },
   CANCELLED:  { label: "Cancelled",             color: "text-red-700",     bg: "bg-red-50" },
 };
 
@@ -1190,15 +1190,15 @@ function HotelStayCard({ booking }: { booking: HotelBooking }) {
     new Date(d).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 
   return (
-    <div className="overflow-hidden rounded-2xl bg-white border border-gray-100 shadow-sm">
+    <div className="overflow-hidden rounded-2xl bg-[var(--canvas)] border border-[var(--border-soft)] shadow-sm">
       {booking.room.imageUrls[0] && (
         <img src={booking.room.imageUrls[0]} alt="Room" className="h-28 w-full object-cover" />
       )}
       <div className="p-4 space-y-3">
         <div className="flex items-start justify-between gap-2">
           <div>
-            <p className="text-sm font-bold text-gray-900">{booking.restaurant.name}</p>
-            <p className="text-[11px] text-gray-500">
+            <p className="text-sm font-bold text-[var(--text-1)]">{booking.restaurant.name}</p>
+            <p className="text-[11px] text-[var(--text-2)]">
               {booking.room.name || `Room ${booking.room.roomNumber}`} · {booking.room.type}
             </p>
           </div>
@@ -1206,17 +1206,17 @@ function HotelStayCard({ booking }: { booking: HotelBooking }) {
             {meta.label}
           </span>
         </div>
-        <div className="flex items-center gap-1.5 text-xs text-gray-600">
+        <div className="flex items-center gap-1.5 text-xs text-[var(--text-2)]">
           <Calendar className="h-3.5 w-3.5 text-[#eaa94d]" />
           {fmtDate(booking.checkIn)} → {fmtDate(booking.checkOut)}
-          <span className="text-gray-400">({booking.nights}N)</span>
+          <span className="text-[var(--text-3)]">({booking.nights}N)</span>
         </div>
-        <div className="flex items-center justify-between rounded-xl bg-[#eaa94d]/8 px-3 py-2">
-          <span className="text-xs text-gray-600">Total</span>
+        <div className="flex items-center justify-between rounded-xl bg-[var(--accent-muted)] px-3 py-2">
+          <span className="text-xs text-[var(--text-2)]">Total</span>
           <span className="text-sm font-bold text-[#eaa94d]">Rs.{booking.totalPrice.toLocaleString()}</span>
         </div>
         <div className="flex items-center justify-between text-[11px]">
-          <span className={`flex items-center gap-1 font-medium ${booking.advancePaid ? "text-[#b25c1c]" : "text-orange-500"}`}>
+          <span className={`flex items-center gap-1 font-medium ${booking.advancePaid ? "text-[#b25c1c]" : "text-[var(--accent)]"}`}>
             <CreditCard className="h-3 w-3" />
             Advance {booking.advancePaid ? "Paid" : `Due · Rs.${booking.advanceAmount.toLocaleString()}`}
           </span>
@@ -1284,15 +1284,15 @@ function ReviewsTab({
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-extrabold text-gray-900">My Reviews</h2>
-        <p className="text-xs text-gray-400 mt-0.5">{reviews.length} restaurant{reviews.length !== 1 ? "s" : ""} reviewed</p>
+        <h2 className="text-lg font-extrabold text-[var(--text-1)]">My Reviews</h2>
+        <p className="text-xs text-[var(--text-3)] mt-0.5">{reviews.length} restaurant{reviews.length !== 1 ? "s" : ""} reviewed</p>
       </div>
 
       {reviews.length === 0 ? (
-        <div className="rounded-2xl border-2 border-dashed border-gray-200 py-14 text-center">
-          <MessageSquare className="mx-auto h-9 w-9 text-gray-300 mb-3" />
-          <p className="text-sm font-bold text-gray-500 mb-1">No reviews yet</p>
-          <p className="text-xs text-gray-400 mb-4">Order from a restaurant and share your experience!</p>
+        <div className="rounded-2xl border-2 border-dashed border-[var(--border)] py-14 text-center">
+          <MessageSquare className="mx-auto h-9 w-9 text-[var(--text-3)] mb-3" />
+          <p className="text-sm font-bold text-[var(--text-2)] mb-1">No reviews yet</p>
+          <p className="text-xs text-[var(--text-3)] mb-4">Order from a restaurant and share your experience!</p>
           <Link
             href="/"
             className="inline-block rounded-xl bg-[#eaa94d] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#d4922a] transition-colors"
@@ -1308,31 +1308,31 @@ function ReviewsTab({
               <motion.div
                 key={review.id}
                 layout
-                className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm"
+                className="rounded-2xl border border-[var(--border-soft)] bg-[var(--canvas)] p-4 shadow-sm"
               >
                 <div className="flex items-center gap-3 mb-3">
                   {review.restaurant.imageUrl ? (
                     <img src={review.restaurant.imageUrl} alt="" className="h-11 w-11 rounded-xl object-cover shrink-0" />
                   ) : (
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gray-100">
-                      <Building2 className="h-5 w-5 text-gray-400" />
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[var(--surface)]">
+                      <Building2 className="h-5 w-5 text-[var(--text-3)]" />
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
                     <Link
                       href={`/menu/${review.restaurant.slug}`}
-                      className="text-sm font-bold text-gray-800 hover:text-[#eaa94d] transition-colors"
+                      className="text-sm font-bold text-[var(--text-1)] hover:text-[#eaa94d] transition-colors"
                     >
                       {review.restaurant.name}
                     </Link>
-                    <p className="text-[11px] text-gray-400">
+                    <p className="text-[11px] text-[var(--text-3)]">
                       {TYPE_LABELS[review.restaurant.type] || review.restaurant.type}
                     </p>
                   </div>
                   {!isEditing && (
                     <button
                       onClick={() => startEdit(review)}
-                      className="shrink-0 flex h-8 w-8 items-center justify-center rounded-full bg-gray-50 text-gray-400 hover:bg-[#eaa94d]/10 hover:text-[#eaa94d] transition-colors"
+                      className="shrink-0 flex h-8 w-8 items-center justify-center rounded-full bg-[var(--canvas-sub)] text-[var(--text-3)] hover:bg-[var(--accent-muted)] hover:text-[#eaa94d] transition-colors"
                     >
                       <Pencil className="h-3.5 w-3.5" />
                     </button>
@@ -1343,17 +1343,17 @@ function ReviewsTab({
                   /* Edit mode */
                   <div className="space-y-3">
                     <div>
-                      <p className="text-xs font-semibold text-gray-600 mb-1.5">Your Rating</p>
+                      <p className="text-xs font-semibold text-[var(--text-2)] mb-1.5">Your Rating</p>
                       <Stars rating={editRating} size={24} interactive onRate={setEditRating} />
                     </div>
                     <div>
-                      <p className="text-xs font-semibold text-gray-600 mb-1.5">Comment (optional)</p>
+                      <p className="text-xs font-semibold text-[var(--text-2)] mb-1.5">Comment (optional)</p>
                       <textarea
                         value={editComment}
                         onChange={(e) => setEditComment(e.target.value)}
                         rows={3}
                         placeholder="What did you think?"
-                        className="w-full resize-none rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:border-[#eaa94d]/30 focus:outline-none focus:ring-1 focus:ring-[#eaa94d]/30"
+                        className="w-full resize-none rounded-xl border border-[var(--border)] px-3 py-2.5 text-sm focus:border-[var(--accent-border)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-border)]"
                       />
                     </div>
                     {saveError && (
@@ -1362,7 +1362,7 @@ function ReviewsTab({
                     <div className="flex gap-2">
                       <button
                         onClick={cancelEdit}
-                        className="flex-1 rounded-xl border border-gray-200 py-2 text-xs font-semibold text-gray-500 hover:bg-gray-50 transition-colors"
+                        className="flex-1 rounded-xl border border-[var(--border)] py-2 text-xs font-semibold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors"
                       >
                         Cancel
                       </button>
@@ -1381,12 +1381,12 @@ function ReviewsTab({
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <Stars rating={review.rating} size={16} />
-                      <span className="text-[10px] text-gray-400">{formatDate(review.createdAt)}</span>
+                      <span className="text-[10px] text-[var(--text-3)]">{formatDate(review.createdAt)}</span>
                     </div>
                     {review.comment ? (
-                      <p className="text-sm text-gray-600 leading-relaxed">{review.comment}</p>
+                      <p className="text-sm text-[var(--text-2)] leading-relaxed">{review.comment}</p>
                     ) : (
-                      <p className="text-xs text-gray-400 italic">No comment added</p>
+                      <p className="text-xs text-[var(--text-3)] italic">No comment added</p>
                     )}
                     <Link
                       href={`/menu/${review.restaurant.slug}`}
@@ -1433,28 +1433,28 @@ function SavedTab({
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-extrabold text-gray-900">Saved Restaurants</h2>
-        <p className="text-xs text-gray-400 mt-0.5">{favourites.length} saved</p>
+        <h2 className="text-lg font-extrabold text-[var(--text-1)]">Saved Restaurants</h2>
+        <p className="text-xs text-[var(--text-3)] mt-0.5">{favourites.length} saved</p>
       </div>
 
       {favourites.length > 0 && (
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-3)]" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search saved restaurants…"
-            className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm focus:border-[#eaa94d]/30 focus:outline-none focus:ring-1 focus:ring-[#eaa94d]/30"
+            className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] py-2.5 pl-10 pr-4 text-sm focus:border-[var(--accent-border)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-border)]"
           />
         </div>
       )}
 
       {filtered.length === 0 && favourites.length === 0 ? (
-        <div className="rounded-2xl border-2 border-dashed border-gray-200 py-14 text-center">
-          <Heart className="mx-auto h-9 w-9 text-gray-200 mb-3" />
-          <p className="text-sm font-bold text-gray-500 mb-1">No saved restaurants</p>
-          <p className="text-xs text-gray-400 mb-4">Tap the heart on any restaurant to save it here</p>
+        <div className="rounded-2xl border-2 border-dashed border-[var(--border)] py-14 text-center">
+          <Heart className="mx-auto h-9 w-9 text-[var(--text-3)] mb-3" />
+          <p className="text-sm font-bold text-[var(--text-2)] mb-1">No saved restaurants</p>
+          <p className="text-xs text-[var(--text-3)] mb-4">Tap the heart on any restaurant to save it here</p>
           <Link
             href="/"
             className="inline-block rounded-xl bg-[#eaa94d] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#d4922a] transition-colors"
@@ -1474,29 +1474,29 @@ function SavedTab({
                   key={fav.id}
                   layout
                   exit={{ opacity: 0, x: -60 }}
-                  className="flex items-center gap-3 rounded-2xl border border-gray-100 bg-white p-3.5 shadow-sm"
+                  className="flex items-center gap-3 rounded-2xl border border-[var(--border-soft)] bg-[var(--canvas)] p-3.5 shadow-sm"
                 >
                   {r.imageUrl ? (
                     <img src={r.imageUrl} alt="" className="h-14 w-14 rounded-xl object-cover shrink-0" />
                   ) : (
-                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gray-100">
-                      <Building2 className="h-6 w-6 text-gray-400" />
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-[var(--surface)]">
+                      <Building2 className="h-6 w-6 text-[var(--text-3)]" />
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
                     <Link
                       href={`/menu/${r.slug}`}
-                      className="text-sm font-bold text-gray-800 hover:text-[#eaa94d] transition-colors"
+                      className="text-sm font-bold text-[var(--text-1)] hover:text-[#eaa94d] transition-colors"
                     >
                       {r.name}
                     </Link>
-                    <p className="text-[11px] text-gray-400 mt-0.5">
+                    <p className="text-[11px] text-[var(--text-3)] mt-0.5">
                       {TYPE_LABELS[r.type] || r.type} · {r.city}
                     </p>
                     {r.rating > 0 && (
                       <div className="flex items-center gap-1 mt-1">
-                        <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                        <span className="text-xs font-semibold text-amber-600">{r.rating.toFixed(1)}</span>
+                        <Star className="h-3 w-3 fill-[var(--accent)] text-[var(--accent)]" />
+                        <span className="text-xs font-semibold text-[var(--accent-text)]">{r.rating.toFixed(1)}</span>
                       </div>
                     )}
                   </div>
@@ -1536,7 +1536,7 @@ function AccountTab({
 }) {
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl border border-[#eaa94d]/12 bg-white p-5 shadow-sm">
+      <div className="rounded-2xl border border-[#eaa94d]/12 bg-[var(--canvas)] p-5 shadow-sm">
         <div className="flex items-center gap-4">
           {avatarUrl ? (
             <img src={avatarUrl} alt="" className="h-16 w-16 rounded-full object-cover ring-4 ring-white shadow-lg shrink-0" />
@@ -1546,14 +1546,14 @@ function AccountTab({
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <h3 className="text-base font-extrabold text-gray-900 truncate">{displayName}</h3>
-            <p className="text-xs text-gray-400 truncate">{user?.email}</p>
+            <h3 className="text-base font-extrabold text-[var(--text-1)] truncate">{displayName}</h3>
+            <p className="text-xs text-[var(--text-3)] truncate">{user?.email}</p>
             <div className="mt-1.5 flex items-center gap-1.5">
-              <span className="inline-flex items-center gap-1 rounded-full bg-[#eaa94d]/10 px-2.5 py-0.5 text-[10px] font-bold text-[#eaa94d]">
+              <span className="inline-flex items-center gap-1 rounded-full bg-[var(--accent-muted)] px-2.5 py-0.5 text-[10px] font-bold text-[#eaa94d]">
                 <BadgeCheck className="h-3 w-3" /> Food Lover
               </span>
               {memberSince && (
-                <span className="text-[10px] text-gray-400">since {memberSince}</span>
+                <span className="text-[10px] text-[var(--text-3)]">since {memberSince}</span>
               )}
             </div>
           </div>
@@ -1563,20 +1563,20 @@ function AccountTab({
       <UsernameEditor />
 
       {stats && (
-        <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-3">Your Activity</p>
+        <div className="rounded-2xl border border-[var(--border-soft)] bg-[var(--canvas)] p-4 shadow-sm">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-3)] mb-3">Your Activity</p>
           <div className="grid grid-cols-2 gap-2.5">
             <div className="rounded-xl bg-blue-50 p-3">
               <p className="text-lg font-extrabold text-blue-700">{stats.totalOrders}</p>
               <p className="text-[10px] text-blue-500 font-medium">Total Orders</p>
             </div>
-            <div className="rounded-xl bg-[#fef9ef] p-3">
+            <div className="rounded-xl bg-[var(--accent-muted)] p-3">
               <p className="text-lg font-extrabold text-[#b25c1c]">
                 Rs.{Math.round(stats.totalSpent).toLocaleString("en-IN")}
               </p>
               <p className="text-[10px] text-[#d67620] font-medium">Total Spent</p>
             </div>
-            <div className="rounded-xl bg-[#eaa94d]/8 p-3">
+            <div className="rounded-xl bg-[var(--accent-muted)] p-3">
               <p className="text-lg font-extrabold text-[#eaa94d]">{stats.ratingsGiven}</p>
               <p className="text-[10px] text-[#eaa94d]/70 font-medium">Reviews Given</p>
             </div>
@@ -1599,7 +1599,7 @@ function AccountTab({
         </div>
       )}
 
-      <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden divide-y divide-gray-100">
+      <div className="rounded-2xl border border-[var(--border-soft)] bg-[var(--canvas)] shadow-sm overflow-hidden divide-y divide-[var(--border)]">
         <AccountLink href="/" icon={UtensilsCrossed} label="Browse Restaurants" desc="Explore menus near you" />
         <AccountLink href="/contact" icon={MessageSquare} label="Help & Support" desc="Get help with your account or orders" />
         <AccountLink href="/legal" icon={Bookmark} label="Legal" desc="Privacy policy & terms of service" />
@@ -1607,28 +1607,28 @@ function AccountTab({
 
       <button
         onClick={signOut}
-        className="w-full flex items-center justify-center gap-2 rounded-2xl border border-red-200 bg-white py-3.5 text-sm font-bold text-red-500 hover:bg-red-50 transition-colors shadow-sm"
+        className="w-full flex items-center justify-center gap-2 rounded-2xl border border-red-200 bg-[var(--canvas)] py-3.5 text-sm font-bold text-red-500 hover:bg-red-50 transition-colors shadow-sm"
       >
         <LogOut className="h-4 w-4" />
         Sign Out
       </button>
 
-      <p className="text-center text-[10px] text-gray-300 pb-4">HimaVolt · Food Lover Dashboard</p>
+      <p className="text-center text-[10px] text-[var(--text-3)] pb-4">HimaVolt · Food Lover Dashboard</p>
     </div>
   );
 }
 
 function AccountLink({ href, icon: Icon, label, desc }: { href: string; icon: typeof Bookmark; label: string; desc: string }) {
   return (
-    <Link href={href} className="flex items-center gap-3 p-4 hover:bg-gray-50 transition-colors">
-      <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gray-100 shrink-0">
-        <Icon className="h-4 w-4 text-gray-500" strokeWidth={1.8} />
+    <Link href={href} className="flex items-center gap-3 p-4 hover:bg-[var(--canvas-sub)] transition-colors">
+      <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--surface)] shrink-0">
+        <Icon className="h-4 w-4 text-[var(--text-2)]" strokeWidth={1.8} />
       </div>
       <div className="flex-1">
-        <p className="text-sm font-semibold text-gray-800">{label}</p>
-        <p className="text-[11px] text-gray-400">{desc}</p>
+        <p className="text-sm font-semibold text-[var(--text-1)]">{label}</p>
+        <p className="text-[11px] text-[var(--text-3)]">{desc}</p>
       </div>
-      <ChevronRight className="h-4 w-4 text-gray-300 shrink-0" />
+      <ChevronRight className="h-4 w-4 text-[var(--text-3)] shrink-0" />
     </Link>
   );
 }
@@ -1683,24 +1683,24 @@ function UsernameEditor() {
   };
 
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-      <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-2">Username</p>
+    <div className="rounded-2xl border border-[var(--border-soft)] bg-[var(--canvas)] p-4 shadow-sm">
+      <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-3)] mb-2">Username</p>
       <div className="flex gap-2">
         <div className="relative flex-1">
-          <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-3)]" />
           <input
             type="text"
             value={username}
             onChange={(e) => handleChange(e.target.value)}
             placeholder="your_username"
             className={`w-full rounded-xl border py-2.5 pl-9 pr-3 text-sm focus:outline-none focus:ring-1 transition-colors ${
-              status === "available" ? "border-[#eaa94d] focus:ring-[#eaa94d]/20"
+              status === "available" ? "border-[#eaa94d] focus:ring-[var(--accent-border)]"
               : status === "taken" || status === "invalid" ? "border-red-400 focus:ring-red-200"
-              : "border-gray-200 focus:border-[#eaa94d]/30 focus:ring-[#eaa94d]/30"
+              : "border-[var(--border)] focus:border-[var(--accent-border)] focus:ring-[var(--accent-border)]"
             }`}
           />
           {status === "checking" && (
-            <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-gray-400" />
+            <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-[var(--text-3)]" />
           )}
           {status === "available" && (
             <Check className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#d67620]" />
@@ -1717,7 +1717,7 @@ function UsernameEditor() {
           </button>
         )}
         {status === "saved" && (
-          <div className="shrink-0 flex items-center gap-1 rounded-xl bg-[#fef9ef] px-3 py-2 text-xs font-bold text-[#b25c1c]">
+          <div className="shrink-0 flex items-center gap-1 rounded-xl bg-[var(--accent-muted)] px-3 py-2 text-xs font-bold text-[#b25c1c]">
             <BadgeCheck className="h-3.5 w-3.5" /> Saved
           </div>
         )}
@@ -1726,7 +1726,7 @@ function UsernameEditor() {
         status === "available" ? "text-[#b25c1c]"
         : status === "taken" ? "text-red-500"
         : status === "invalid" ? "text-red-500"
-        : "text-gray-400"
+        : "text-[var(--text-3)]"
       }`}>
         {status === "available" ? "Username is available!" : ""}
         {status === "taken" ? "Username is already taken" : ""}

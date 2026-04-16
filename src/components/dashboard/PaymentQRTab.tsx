@@ -139,7 +139,7 @@ export default function PaymentQRTab() {
 
   if (!restaurant) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+      <div className="flex flex-col items-center justify-center py-20 text-[var(--text-3)]">
         <QrCode className="h-10 w-10 mb-3" />
         <p className="text-sm font-medium">Select a restaurant first</p>
       </div>
@@ -150,24 +150,24 @@ export default function PaymentQRTab() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-lg font-bold text-amber-950">Payment QR Codes</h2>
-          <p className="text-sm text-gray-400">
+          <h2 className="text-lg font-bold text-[var(--text-1)]">Payment QR Codes</h2>
+          <p className="text-sm text-[var(--text-3)]">
             Upload QR images for eSewa, Khalti, Fonepay, bank, etc. Customers see
             these when ordering online.
           </p>
         </div>
         <button
           onClick={() => setShowAddForm(true)}
-          className="flex items-center gap-2 rounded-xl bg-amber-700 px-5 py-2.5 text-sm font-bold text-white hover:bg-amber-600 shadow-md shadow-amber-700/20 transition-all active:scale-[0.97]"
+          className="flex items-center gap-2 rounded-xl bg-[var(--accent-hover)] px-5 py-2.5 text-sm font-bold text-white hover:bg-[var(--accent-hover)] shadow-md shadow-[var(--accent)]/20/20 transition-all active:scale-[0.97]"
         >
           <Plus className="h-4 w-4" />
           Add Payment QR
         </button>
       </div>
 
-      <div className="flex items-start gap-3 rounded-xl bg-amber-50 border border-amber-200/40 px-4 py-3">
-        <Check className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
-        <p className="text-xs font-medium text-amber-950">
+      <div className="flex items-start gap-3 rounded-xl bg-[var(--accent-muted)] border border-[var(--accent-border)]/40 px-4 py-3">
+        <Check className="h-4 w-4 text-[var(--accent-text)] mt-0.5 shrink-0" />
+        <p className="text-xs font-medium text-[var(--text-1)]">
           Add multiple payment QR codes — one for each payment provider. Customers
           will see these options when placing an online order.
         </p>
@@ -188,18 +188,18 @@ export default function PaymentQRTab() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ type: "spring", damping: 25 }}
-              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-100 w-[95%] max-w-md rounded-2xl bg-white shadow-2xl overflow-hidden"
+              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-100 w-[95%] max-w-md rounded-2xl bg-[var(--canvas)] shadow-2xl overflow-hidden"
             >
-              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-soft)]">
                 <div className="flex items-center gap-2">
                   <QrCode className="h-5 w-5 text-[#eaa94d]" />
-                  <h3 className="text-base font-bold text-amber-950">
+                  <h3 className="text-base font-bold text-[var(--text-1)]">
                     Add Payment QR
                   </h3>
                 </div>
                 <button
                   onClick={() => setShowAddForm(false)}
-                  className="rounded-full p-2 text-gray-400 hover:bg-gray-100 transition-colors"
+                  className="rounded-full p-2 text-[var(--text-3)] hover:bg-[var(--surface)] transition-colors"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -207,19 +207,19 @@ export default function PaymentQRTab() {
 
               <div className="p-5 space-y-4">
                 <div>
-                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 block">
+                  <label className="text-xs font-bold text-[var(--text-2)] uppercase tracking-wider mb-1.5 block">
                     Payment Provider
                   </label>
                   <input
                     value={label}
                     onChange={(e) => setLabel(e.target.value)}
                     placeholder="e.g. eSewa, Khalti, Fonepay, Bank QR"
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-amber-950 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#eaa94d]/30 focus:bg-white transition-all"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-2.5 text-sm text-[var(--text-1)] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] focus:bg-[var(--canvas)] transition-all"
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 block">
+                  <label className="text-xs font-bold text-[var(--text-2)] uppercase tracking-wider mb-1.5 block">
                     QR Code Image
                   </label>
                   <input
@@ -234,15 +234,15 @@ export default function PaymentQRTab() {
                   />
 
                   {uploadedUrl ? (
-                    <div className="relative rounded-xl border border-gray-200 overflow-hidden">
+                    <div className="relative rounded-xl border border-[var(--border)] overflow-hidden">
                       <img
                         src={uploadedUrl}
                         alt="Payment QR preview"
-                        className="w-full h-48 object-contain bg-gray-50 p-2"
+                        className="w-full h-48 object-contain bg-[var(--canvas-sub)] p-2"
                       />
                       <button
                         onClick={() => setUploadedUrl("")}
-                        className="absolute top-2 right-2 rounded-full bg-white/90 p-1.5 text-gray-500 hover:bg-red-50 hover:text-red-500 transition-colors shadow-sm"
+                        className="absolute top-2 right-2 rounded-full bg-[var(--canvas)]/90 p-1.5 text-[var(--text-2)] hover:bg-red-50 hover:text-red-500 transition-colors shadow-sm"
                       >
                         <X className="h-3.5 w-3.5" />
                       </button>
@@ -256,25 +256,25 @@ export default function PaymentQRTab() {
                         const file = e.dataTransfer.files[0];
                         if (file) handleFileUpload(file);
                       }}
-                      className="flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 py-10 cursor-pointer hover:border-[#eaa94d] hover:bg-[#eaa94d]/5 transition-all"
+                      className="flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-[var(--border)] bg-[var(--canvas-sub)] py-10 cursor-pointer hover:border-[#eaa94d] hover:bg-[#eaa94d]/5 transition-all"
                     >
                       {uploading ? (
                         <>
                           <Loader2 className="h-7 w-7 animate-spin text-[#eaa94d]" />
-                          <p className="text-sm font-bold text-gray-500">
+                          <p className="text-sm font-bold text-[var(--text-2)]">
                             Uploading...
                           </p>
                         </>
                       ) : (
                         <>
-                          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#eaa94d]/10">
+                          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--accent-muted)]">
                             <Upload className="h-5 w-5 text-[#eaa94d]" />
                           </div>
                           <div className="text-center">
-                            <p className="text-sm font-bold text-amber-950">
+                            <p className="text-sm font-bold text-[var(--text-1)]">
                               Upload QR image
                             </p>
-                            <p className="text-xs text-gray-400 mt-0.5">
+                            <p className="text-xs text-[var(--text-3)] mt-0.5">
                               JPEG, PNG, WebP (max 5MB)
                             </p>
                           </div>
@@ -287,7 +287,7 @@ export default function PaymentQRTab() {
                 <button
                   onClick={handleAdd}
                   disabled={!label.trim() || !uploadedUrl || submitting}
-                  className="w-full rounded-xl bg-amber-700 py-3 text-sm font-bold text-white hover:bg-amber-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full rounded-xl bg-[var(--accent-hover)] py-3 text-sm font-bold text-white hover:bg-[var(--accent-hover)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {submitting ? (
                     <>
@@ -321,15 +321,15 @@ export default function PaymentQRTab() {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-100 w-[90%] max-w-sm rounded-2xl bg-white shadow-2xl overflow-hidden"
+              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-100 w-[90%] max-w-sm rounded-2xl bg-[var(--canvas)] shadow-2xl overflow-hidden"
             >
-              <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
-                <h3 className="text-sm font-bold text-amber-950">
+              <div className="flex items-center justify-between px-5 py-3 border-b border-[var(--border-soft)]">
+                <h3 className="text-sm font-bold text-[var(--text-1)]">
                   {previewQR.label}
                 </h3>
                 <button
                   onClick={() => setPreviewQR(null)}
-                  className="rounded-full p-1.5 text-gray-400 hover:bg-gray-100 transition-colors"
+                  className="rounded-full p-1.5 text-[var(--text-3)] hover:bg-[var(--surface)] transition-colors"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -338,7 +338,7 @@ export default function PaymentQRTab() {
                 <img
                   src={previewQR.imageUrl}
                   alt={previewQR.label}
-                  className="w-full rounded-xl object-contain bg-gray-50"
+                  className="w-full rounded-xl object-contain bg-[var(--canvas-sub)]"
                 />
               </div>
             </motion.div>
@@ -348,17 +348,17 @@ export default function PaymentQRTab() {
 
       {loading ? (
         <div className="flex items-center justify-center py-16">
-          <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+          <Loader2 className="h-6 w-6 animate-spin text-[var(--text-3)]" />
         </div>
       ) : qrs.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-gray-400">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100 mb-4">
+        <div className="flex flex-col items-center justify-center py-16 text-[var(--text-3)]">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--surface)] mb-4">
             <ImageIcon className="h-7 w-7" />
           </div>
-          <p className="text-sm font-semibold text-gray-500">
+          <p className="text-sm font-semibold text-[var(--text-2)]">
             No payment QR codes yet
           </p>
-          <p className="text-xs text-gray-400 mt-1">
+          <p className="text-xs text-[var(--text-3)] mt-1">
             Add your first payment QR to let customers pay via scanning
           </p>
         </div>
@@ -370,24 +370,24 @@ export default function PaymentQRTab() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
-              className={`group relative rounded-2xl border bg-white p-4 shadow-sm transition-all hover:shadow-md ${
+              className={`group relative rounded-2xl border bg-[var(--canvas)] p-4 shadow-sm transition-all hover:shadow-md ${
                 qr.isActive
-                  ? "border-gray-200"
-                  : "border-gray-100 opacity-60"
+                  ? "border-[var(--border)]"
+                  : "border-[var(--border-soft)] opacity-60"
               }`}
             >
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <GripVertical className="h-4 w-4 text-gray-300" />
-                  <h3 className="text-sm font-bold text-amber-950">
+                  <GripVertical className="h-4 w-4 text-[var(--text-3)]" />
+                  <h3 className="text-sm font-bold text-[var(--text-1)]">
                     {qr.label}
                   </h3>
                 </div>
                 <span
                   className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
                     qr.isActive
-                      ? "bg-[#fef3dc] text-[#b25c1c]"
-                      : "bg-gray-100 text-gray-400"
+                      ? "bg-[var(--accent-muted)] text-[#b25c1c]"
+                      : "bg-[var(--surface)] text-[var(--text-3)]"
                   }`}
                 >
                   {qr.isActive ? "Active" : "Disabled"}
@@ -396,7 +396,7 @@ export default function PaymentQRTab() {
 
               <button
                 onClick={() => setPreviewQR(qr)}
-                className="w-full rounded-xl overflow-hidden border border-gray-100 bg-gray-50 hover:border-[#eaa94d]/40 transition-colors cursor-pointer"
+                className="w-full rounded-xl overflow-hidden border border-[var(--border-soft)] bg-[var(--canvas-sub)] hover:border-[#eaa94d]/40 transition-colors cursor-pointer"
               >
                 <img
                   src={qr.imageUrl}
@@ -410,8 +410,8 @@ export default function PaymentQRTab() {
                   onClick={() => handleToggle(qr)}
                   className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-bold transition-all ${
                     qr.isActive
-                      ? "bg-amber-50 text-amber-600 hover:bg-amber-100"
-                      : "bg-[#fef9ef] text-[#b25c1c] hover:bg-[#fef3dc]"
+                      ? "bg-[var(--accent-muted)] text-[var(--accent-text)] hover:bg-[var(--accent-muted)]"
+                      : "bg-[var(--accent-muted)] text-[#b25c1c] hover:bg-[var(--accent-muted)]"
                   }`}
                 >
                   {qr.isActive ? (
@@ -428,7 +428,7 @@ export default function PaymentQRTab() {
                 </button>
                 <button
                   onClick={() => setPreviewQR(qr)}
-                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
+                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-colors"
                   title="Preview"
                 >
                   <Eye className="h-3.5 w-3.5" />

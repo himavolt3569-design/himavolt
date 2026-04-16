@@ -37,9 +37,9 @@ interface Room {
 
 const TYPE_COLORS: Record<string, string> = {
   STANDARD: "bg-slate-100 text-slate-700",
-  DELUXE: "bg-amber-100 text-amber-700",
+  DELUXE: "bg-[var(--accent-muted)] text-[var(--accent-text)]",
   SUITE: "bg-purple-100 text-purple-700",
-  DORMITORY: "bg-[#fef3dc] text-[#b25c1c]",
+  DORMITORY: "bg-[var(--accent-muted)] text-[#b25c1c]",
 };
 
 function roundRect(
@@ -167,23 +167,23 @@ function RoomQRCard({
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      className="overflow-hidden rounded-2xl bg-white ring-1 ring-gray-100 shadow-sm hover:shadow-md transition-all"
+      className="overflow-hidden rounded-2xl bg-[var(--canvas)] ring-1 ring-[var(--border)] shadow-sm hover:shadow-md transition-all"
     >
       {/* Room image or placeholder */}
-      <div className="relative h-28 overflow-hidden bg-gradient-to-br from-amber-50 to-orange-50">
+      <div className="relative h-28 overflow-hidden bg-gradient-to-br from-[var(--accent)] to-[var(--accent-hover)]">
         {room.imageUrls?.length > 0 ? (
           <img src={room.imageUrls[0]} alt={roomLabel} className="h-full w-full object-cover" />
         ) : (
           <div className="flex h-full items-center justify-center">
-            <BedDouble className="h-10 w-10 text-amber-200" />
+            <BedDouble className="h-10 w-10 text-[var(--accent)]" />
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
         <div className="absolute bottom-2 left-3 flex gap-1.5">
-          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${TYPE_COLORS[room.type] || "bg-gray-100 text-gray-600"}`}>
+          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${TYPE_COLORS[room.type] || "bg-[var(--surface)] text-[var(--text-2)]"}`}>
             {room.type}
           </span>
-          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${room.isAvailable ? "bg-[#fef3dc] text-[#b25c1c]" : "bg-red-100 text-red-700"}`}>
+          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${room.isAvailable ? "bg-[var(--accent-muted)] text-[#b25c1c]" : "bg-red-100 text-red-700"}`}>
             {room.isAvailable ? "Available" : "Occupied"}
           </span>
         </div>
@@ -192,22 +192,22 @@ function RoomQRCard({
       <div className="p-3">
         <div className="flex items-start justify-between mb-2">
           <div>
-            <p className="text-[13px] font-bold text-gray-900">{roomLabel}</p>
-            <p className="text-[10px] text-gray-400">#{room.roomNumber} · Floor {room.floor}</p>
+            <p className="text-[13px] font-bold text-[var(--text-1)]">{roomLabel}</p>
+            <p className="text-[10px] text-[var(--text-3)]">#{room.roomNumber} · Floor {room.floor}</p>
           </div>
-          <p className="text-[13px] font-black text-amber-600">{formatPrice(room.price, currency)}<span className="text-[9px] font-normal text-gray-400">/night</span></p>
+          <p className="text-[13px] font-black text-[var(--accent-text)]">{formatPrice(room.price, currency)}<span className="text-[9px] font-normal text-[var(--text-3)]">/night</span></p>
         </div>
 
         {/* QR Code */}
         <div ref={qrRef} className="flex justify-center py-2">
-          <div className="rounded-xl bg-amber-50 p-2 ring-1 ring-amber-100">
+          <div className="rounded-xl bg-[var(--accent-muted)] p-2 ring-1 ring-[var(--accent-border)]">
             <QRCode value={roomUrl} size={110} level="M" />
           </div>
         </div>
 
         <button
           onClick={handleDownload}
-          className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 py-2 text-[12px] font-bold text-white hover:from-amber-400 hover:to-orange-400 active:scale-[0.97] transition-all"
+          className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] py-2 text-[12px] font-bold text-white hover:from-[var(--accent)] hover:to-[var(--accent-hover)] active:scale-[0.97] transition-all"
         >
           {downloaded ? (
             <><Check className="h-3.5 w-3.5" /> Downloaded!</>
@@ -254,22 +254,22 @@ export default function RoomQRTab() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-[20px] font-black text-gray-900">Room QR Codes</h2>
-        <p className="text-[12px] text-gray-500 mt-0.5">
+        <h2 className="text-[20px] font-black text-[var(--text-1)]">Room QR Codes</h2>
+        <p className="text-[12px] text-[var(--text-2)] mt-0.5">
           Each QR links directly to that room on the hotel booking page. Print and place in rooms.
         </p>
       </div>
 
       {loading ? (
         <div className="flex flex-col items-center py-20">
-          <Loader2 className="h-6 w-6 animate-spin text-amber-500 mb-3" />
-          <p className="text-sm text-gray-400">Loading rooms...</p>
+          <Loader2 className="h-6 w-6 animate-spin text-[var(--accent)] mb-3" />
+          <p className="text-sm text-[var(--text-3)]">Loading rooms...</p>
         </div>
       ) : rooms.length === 0 ? (
         <div className="flex flex-col items-center py-20 text-center">
-          <BedDouble className="h-12 w-12 text-gray-200 mb-3" />
-          <p className="text-[14px] font-semibold text-gray-500">No rooms added yet</p>
-          <p className="text-[12px] text-gray-400 mt-1">
+          <BedDouble className="h-12 w-12 text-[var(--text-3)] mb-3" />
+          <p className="text-[14px] font-semibold text-[var(--text-2)]">No rooms added yet</p>
+          <p className="text-[12px] text-[var(--text-3)] mt-1">
             Add rooms in the Room Bookings tab to generate QR codes.
           </p>
         </div>
@@ -294,17 +294,17 @@ export default function RoomQRTab() {
               <button
                 onClick={() => setPage((p) => Math.max(0, p - 1))}
                 disabled={page === 0}
-                className="flex h-9 w-9 items-center justify-center rounded-xl bg-white ring-1 ring-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-40 transition-all"
+                className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--canvas)] ring-1 ring-[var(--border)] text-[var(--text-2)] hover:bg-[var(--canvas-sub)] disabled:opacity-40 transition-all"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
-              <span className="text-[13px] font-semibold text-gray-600">
+              <span className="text-[13px] font-semibold text-[var(--text-2)]">
                 {page + 1} / {totalPages}
               </span>
               <button
                 onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
                 disabled={page === totalPages - 1}
-                className="flex h-9 w-9 items-center justify-center rounded-xl bg-white ring-1 ring-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-40 transition-all"
+                className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--canvas)] ring-1 ring-[var(--border)] text-[var(--text-2)] hover:bg-[var(--canvas-sub)] disabled:opacity-40 transition-all"
               >
                 <ChevronRight className="h-4 w-4" />
               </button>

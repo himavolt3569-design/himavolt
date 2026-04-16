@@ -179,7 +179,7 @@ export default function MultiOutletTab() {
         </div>
         <button
           onClick={() => setShowAddForm(true)}
-          className="flex items-center gap-2 rounded-xl bg-amber-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-amber-700"
+          className="flex items-center gap-2 rounded-xl bg-[var(--accent-hover)] px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-[var(--accent-hover)]"
         >
           <Plus className="h-4 w-4" />
           Add Outlet
@@ -192,22 +192,22 @@ export default function MultiOutletTab() {
             label: "Total Outlets",
             value: outlets.length,
             icon: Store,
-            color: "text-amber-600",
-            bg: "bg-amber-50",
+            color: "text-[var(--accent-text)]",
+            bg: "bg-[var(--accent-muted)]",
           },
           {
             label: "Active Now",
             value: activeCount,
             icon: MapPin,
             color: "text-[#b25c1c]",
-            bg: "bg-[#fef9ef]",
+            bg: "bg-[var(--accent-muted)]",
           },
           {
             label: "Today's Revenue",
             value: `$${totalRevenue.toLocaleString()}`,
             icon: DollarSign,
             color: "text-[#b25c1c]",
-            bg: "bg-[#fef9ef]",
+            bg: "bg-[var(--accent-muted)]",
           },
           {
             label: "Total Orders",
@@ -245,16 +245,16 @@ export default function MultiOutletTab() {
             layout
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="rounded-xl border border-stone-200 bg-white shadow-sm overflow-hidden"
+            className="rounded-xl border border-stone-200 bg-[var(--canvas)] shadow-sm overflow-hidden"
           >
             <div className="p-5">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-4">
                   <div
-                    className={`flex h-12 w-12 items-center justify-center rounded-xl ${outlet.isActive ? "bg-amber-100" : "bg-stone-100"}`}
+                    className={`flex h-12 w-12 items-center justify-center rounded-xl ${outlet.isActive ? "bg-[var(--accent-muted)]" : "bg-stone-100"}`}
                   >
                     <Store
-                      className={`h-6 w-6 ${outlet.isActive ? "text-amber-700" : "text-stone-400"}`}
+                      className={`h-6 w-6 ${outlet.isActive ? "text-[var(--accent-text)]" : "text-stone-400"}`}
                     />
                   </div>
                   <div>
@@ -265,7 +265,7 @@ export default function MultiOutletTab() {
                       <span
                         className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                           outlet.isActive
-                            ? "bg-[#fef3dc] text-[#b25c1c]"
+                            ? "bg-[var(--accent-muted)] text-[#b25c1c]"
                             : "bg-stone-100 text-stone-500"
                         }`}
                       >
@@ -287,7 +287,7 @@ export default function MultiOutletTab() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <div className="rounded-lg bg-[#fef9ef] px-3 py-1.5 text-right">
+                  <div className="rounded-lg bg-[var(--accent-muted)] px-3 py-1.5 text-right">
                     <p className="text-xs text-stone-500">Revenue</p>
                     <p className="text-sm font-bold text-[#b25c1c]">
                       ${outlet.todayRevenue.toLocaleString()}
@@ -354,7 +354,7 @@ export default function MultiOutletTab() {
                   <div className="p-5 space-y-5">
                     <div>
                       <p className="mb-2 text-sm font-medium text-stone-700 flex items-center gap-2">
-                        <UtensilsCrossed className="h-4 w-4 text-amber-600" />
+                        <UtensilsCrossed className="h-4 w-4 text-[var(--accent-text)]" />
                         Menu Categories
                       </p>
                       <div className="flex flex-wrap gap-2">
@@ -368,7 +368,7 @@ export default function MultiOutletTab() {
                               }
                               className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition ${
                                 active
-                                  ? "bg-amber-100 text-amber-700"
+                                  ? "bg-[var(--accent-muted)] text-[var(--accent-text)]"
                                   : "bg-stone-100 text-stone-400"
                               }`}
                             >
@@ -433,7 +433,7 @@ export default function MultiOutletTab() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-xl"
+              className="w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl bg-[var(--canvas)] p-6 shadow-xl"
             >
               <div className="mb-6 flex items-center justify-between">
                 <h3 className="text-lg font-bold text-stone-800">
@@ -459,7 +459,7 @@ export default function MultiOutletTab() {
                       setNewOutlet((o) => ({ ...o, name: e.target.value }))
                     }
                     placeholder="e.g., Rooftop Lounge"
-                    className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 placeholder:text-stone-400 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100"
+                    className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 placeholder:text-stone-400 focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                   />
                 </div>
 
@@ -474,7 +474,7 @@ export default function MultiOutletTab() {
                       setNewOutlet((o) => ({ ...o, location: e.target.value }))
                     }
                     placeholder="e.g., Main Building, 5th Floor"
-                    className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 placeholder:text-stone-400 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100"
+                    className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 placeholder:text-stone-400 focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                   />
                 </div>
 
@@ -492,7 +492,7 @@ export default function MultiOutletTab() {
                     }
                     placeholder="Brief description of this outlet..."
                     rows={2}
-                    className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 placeholder:text-stone-400 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100 resize-none"
+                    className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 placeholder:text-stone-400 focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] resize-none"
                   />
                 </div>
 
@@ -510,7 +510,7 @@ export default function MultiOutletTab() {
                           openTime: e.target.value,
                         }))
                       }
-                      className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 focus:border-amber-400 focus:outline-none"
+                      className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 focus:border-[var(--accent)] focus:outline-none"
                     />
                   </div>
                   <div>
@@ -526,7 +526,7 @@ export default function MultiOutletTab() {
                           closeTime: e.target.value,
                         }))
                       }
-                      className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 focus:border-amber-400 focus:outline-none"
+                      className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 focus:border-[var(--accent)] focus:outline-none"
                     />
                   </div>
                 </div>
@@ -544,7 +544,7 @@ export default function MultiOutletTab() {
                           onClick={() => toggleCategory(cat)}
                           className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
                             selected
-                              ? "bg-amber-100 text-amber-700"
+                              ? "bg-[var(--accent-muted)] text-[var(--accent-text)]"
                               : "bg-stone-100 text-stone-500 hover:bg-stone-200"
                           }`}
                         >
@@ -582,7 +582,7 @@ export default function MultiOutletTab() {
                 <button
                   onClick={submitNewOutlet}
                   disabled={!newOutlet.name || !newOutlet.location}
-                  className="w-full rounded-xl bg-amber-600 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="w-full rounded-xl bg-[var(--accent-hover)] py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-[var(--accent-hover)] disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Add Outlet
                 </button>

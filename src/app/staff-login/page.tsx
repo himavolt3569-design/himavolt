@@ -207,7 +207,7 @@ function PinBox({
             : { scale: 1, borderColor: "rgba(62,30,12,0.10)" }
         }
         transition={{ duration: 0.2 }}
-        className="relative z-[1] h-14 w-full text-center text-xl font-bold bg-white border border-brand-200/60 rounded-xl text-brand-950 shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-400/40 focus:border-brand-400/50 transition-colors font-mono"
+        className="relative z-[1] h-14 w-full text-center text-xl font-bold bg-[var(--canvas)] border border-brand-200/60 rounded-xl text-brand-950 shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-400/40 focus:border-brand-400/50 transition-colors font-mono"
         aria-label={`PIN digit ${index + 1}`}
       />
     </motion.div>
@@ -603,7 +603,7 @@ export default function StaffLoginPage() {
                 key="form"
                 variants={shake}
                 animate={formShake ? "error" : "idle"}
-                className="w-full max-w-sm bg-white/70 backdrop-blur-sm rounded-2xl p-8 shadow-xl shadow-brand-200/20 border border-brand-100"
+                className="w-full max-w-sm bg-[var(--canvas)]/70 backdrop-blur-sm rounded-2xl p-8 shadow-xl shadow-brand-200/20 border border-brand-100"
               >
                 <motion.div variants={stagger} initial="hidden" animate="show">
                   <motion.div variants={fadeUp} className="mb-9">
@@ -657,7 +657,7 @@ export default function StaffLoginPage() {
                           }}
                           whileFocus={{ scale: 1.01 }}
                           transition={{ duration: 0.15 }}
-                          className="block w-full pl-11 pr-4 py-3.5 bg-white border border-brand-200/60 rounded-xl text-brand-950 font-mono tracking-widest text-sm shadow-sm placeholder:tracking-normal placeholder:font-sans placeholder:text-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-400/40 focus:border-brand-400/50 transition-all"
+                          className="block w-full pl-11 pr-4 py-3.5 bg-[var(--canvas)] border border-brand-200/60 rounded-xl text-brand-950 font-mono tracking-widest text-sm shadow-sm placeholder:tracking-normal placeholder:font-sans placeholder:text-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-400/40 focus:border-brand-400/50 transition-all"
                           placeholder="e.g. HH-1A2B"
                         />
                         <AnimatePresence>
@@ -742,7 +742,7 @@ export default function StaffLoginPage() {
                             filter: "blur(8px)",
                           }}
                           transition={{ duration: 0.3 }}
-                          className="flex items-center gap-2.5 p-3.5 rounded-xl bg-[#eaa94d]/10 border border-[#eaa94d]/20 text-[#e58f2a]"
+                          className="flex items-center gap-2.5 p-3.5 rounded-xl bg-[var(--accent-muted)] border border-[#eaa94d]/20 text-[#e58f2a]"
                         >
                           <motion.div
                             animate={{ rotate: [0, -10, 10, -5, 5, 0] }}
@@ -762,7 +762,7 @@ export default function StaffLoginPage() {
                       <motion.button
                         type="submit"
                         disabled={loading || !code || pin.length !== 4}
-                        className="relative w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl text-sm font-bold transition-colors cursor-pointer disabled:cursor-not-allowed bg-linear-to-br from-brand-400 to-brand-600 text-white shadow-lg shadow-brand-400/25 disabled:from-gray-300 disabled:to-gray-300 disabled:text-gray-500 disabled:shadow-none overflow-hidden"
+                        className="relative w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl text-sm font-bold transition-colors cursor-pointer disabled:cursor-not-allowed bg-linear-to-br from-brand-400 to-brand-600 text-white shadow-lg shadow-brand-400/25 disabled:from-gray-300 disabled:to-gray-300 disabled:text-[var(--text-2)] disabled:shadow-none overflow-hidden"
                         whileHover={
                           isReady
                             ? {

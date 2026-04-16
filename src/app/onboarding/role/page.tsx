@@ -66,7 +66,7 @@ export default function OnboardingRolePage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50/50 p-6">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-[var(--canvas-sub)] p-6">
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -83,7 +83,7 @@ export default function OnboardingRolePage() {
           <p className="mt-3 text-lg font-bold text-[#3e1e0c]">
             Welcome! How will you use HimaVolt?
           </p>
-          <p className="mt-1 text-sm text-gray-400">
+          <p className="mt-1 text-sm text-[var(--text-3)]">
             Pick your account type — you can always reach out to change it later
           </p>
         </div>
@@ -94,7 +94,7 @@ export default function OnboardingRolePage() {
             className={`relative rounded-2xl border-2 p-5 text-left transition-all duration-200 ${
               role === "CUSTOMER"
                 ? "border-[#eaa94d] bg-[#eaa94d]/5 shadow-lg shadow-[#eaa94d]/10"
-                : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm"
+                : "border-[var(--border)] bg-[var(--canvas)] hover:border-[var(--border)] hover:shadow-sm"
             }`}
           >
             {role === "CUSTOMER" && (
@@ -112,12 +112,12 @@ export default function OnboardingRolePage() {
             <h3 className="text-base font-bold text-[#3e1e0c] mb-1">
               Food Lover
             </h3>
-            <p className="text-xs text-gray-500 mb-4 leading-relaxed">
+            <p className="text-xs text-[var(--text-2)] mb-4 leading-relaxed">
               Discover restaurants &amp; order your favourite meals
             </p>
             <ul className="space-y-2">
               {CUSTOMER_FEATURES.map(({ icon: Icon, text }) => (
-                <li key={text} className="flex items-center gap-2 text-xs text-gray-500">
+                <li key={text} className="flex items-center gap-2 text-xs text-[var(--text-2)]">
                   <Icon className="h-3.5 w-3.5 shrink-0 text-[#eaa94d]" />
                   {text}
                 </li>
@@ -130,30 +130,30 @@ export default function OnboardingRolePage() {
             className={`relative rounded-2xl border-2 p-5 text-left transition-all duration-200 ${
               role === "OWNER"
                 ? "border-[#3e1e0c] bg-[#3e1e0c] shadow-lg shadow-[#3e1e0c]/20"
-                : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm"
+                : "border-[var(--border)] bg-[var(--canvas)] hover:border-[var(--border)] hover:shadow-sm"
             }`}
           >
             {role === "OWNER" ? (
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                className="absolute right-4 top-4 flex h-6 w-6 items-center justify-center rounded-full bg-amber-400"
+                className="absolute right-4 top-4 flex h-6 w-6 items-center justify-center rounded-full bg-[var(--accent)]"
               >
                 <Check className="h-3.5 w-3.5 text-[#3e1e0c]" />
               </motion.div>
             ) : (
-              <span className="absolute right-4 top-4 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-700">
+              <span className="absolute right-4 top-4 rounded-full bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[var(--accent-text)]">
                 Business
               </span>
             )}
             <div
               className={`mb-4 flex h-12 w-12 items-center justify-center rounded-xl ${
-                role === "OWNER" ? "bg-white/10" : "bg-gray-100"
+                role === "OWNER" ? "bg-[var(--canvas)]/80" : "bg-[var(--surface)]"
               }`}
             >
               <Building2
                 className={`h-6 w-6 ${
-                  role === "OWNER" ? "text-amber-400" : "text-gray-600"
+                  role === "OWNER" ? "text-[var(--accent)]" : "text-[var(--text-2)]"
                 }`}
               />
             </div>
@@ -166,7 +166,7 @@ export default function OnboardingRolePage() {
             </h3>
             <p
               className={`text-xs mb-4 leading-relaxed ${
-                role === "OWNER" ? "text-white/60" : "text-gray-500"
+                role === "OWNER" ? "text-white/60" : "text-[var(--text-2)]"
               }`}
             >
               Manage your restaurant, staff &amp; grow your business
@@ -176,12 +176,12 @@ export default function OnboardingRolePage() {
                 <li
                   key={text}
                   className={`flex items-center gap-2 text-xs ${
-                    role === "OWNER" ? "text-white/70" : "text-gray-500"
+                    role === "OWNER" ? "text-white/70" : "text-[var(--text-2)]"
                   }`}
                 >
                   <Icon
                     className={`h-3.5 w-3.5 shrink-0 ${
-                      role === "OWNER" ? "text-amber-400" : "text-gray-500"
+                      role === "OWNER" ? "text-[var(--accent)]" : "text-[var(--text-2)]"
                     }`}
                   />
                   {text}

@@ -188,9 +188,9 @@ export default function HeroSlidesManager() {
 
   if (!restaurant) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-amber-400">
+      <div className="flex flex-col items-center justify-center py-20 text-[var(--accent)]">
         <ImageIcon className="h-10 w-10 mb-3" />
-        <p className="text-sm font-medium text-amber-600">
+        <p className="text-sm font-medium text-[var(--accent-text)]">
           Select a restaurant first
         </p>
       </div>
@@ -201,33 +201,29 @@ export default function HeroSlidesManager() {
     <div className="max-w-4xl space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-lg font-bold text-amber-950">Hero Slides</h2>
-          <p className="text-sm text-amber-700/50">
+          <h2 className="text-lg font-bold text-[var(--text-1)]">Hero Slides</h2>
+          <p className="text-sm text-[var(--accent-text)]/50">
             Manage the hero carousel displayed on your menu page.
           </p>
         </div>
         <button
           onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 rounded-xl bg-amber-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-amber-500 transition-colors cursor-pointer"
+          className="flex items-center gap-2 rounded-xl bg-[var(--accent-hover)] px-5 py-2.5 text-sm font-bold text-white hover:bg-[var(--accent)] transition-colors cursor-pointer"
         >
           <Plus className="h-4 w-4" />
           Add Slide
         </button>
       </div>
 
-      {loading ? (
-        <div className="flex items-center justify-center py-16">
-          <Loader2 className="h-5 w-5 animate-spin text-amber-400" />
-        </div>
-      ) : slides.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-amber-400">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-50 mb-4">
+      {!loading && slides.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 text-[var(--accent)]">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--accent-muted)] mb-4">
             <ImageIcon className="h-7 w-7" />
           </div>
-          <p className="text-sm font-semibold text-amber-700">
+          <p className="text-sm font-semibold text-[var(--accent-text)]">
             No hero slides yet
           </p>
-          <p className="text-xs text-amber-500 mt-1">
+          <p className="text-xs text-[var(--accent)] mt-1">
             Add slides to create a hero carousel on your menu page
           </p>
         </div>
@@ -239,17 +235,17 @@ export default function HeroSlidesManager() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.04 }}
-              className={`flex items-center gap-4 rounded-2xl ring-1 bg-white p-3 ${
+              className={`flex items-center gap-4 rounded-2xl ring-1 bg-[var(--canvas)] p-3 ${
                 slide.isActive
-                  ? "ring-amber-100/60"
-                  : "ring-gray-100 opacity-60"
+                  ? "ring-[var(--accent-border)]/60"
+                  : "ring-[var(--border)] opacity-60"
               }`}
             >
-              <div className="text-amber-300 hidden sm:block">
+              <div className="text-[var(--accent)] hidden sm:block">
                 <GripVertical className="h-4 w-4" />
               </div>
 
-              <div className="h-16 w-24 shrink-0 overflow-hidden rounded-xl bg-amber-50">
+              <div className="h-16 w-24 shrink-0 overflow-hidden rounded-xl bg-[var(--accent-muted)]">
                 <img
                   src={slide.imageUrl}
                   alt={slide.title || "Slide"}
@@ -258,20 +254,20 @@ export default function HeroSlidesManager() {
               </div>
 
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-amber-900 truncate">
+                <p className="text-sm font-semibold text-[var(--accent-text)] truncate">
                   {slide.title || "Untitled slide"}
                 </p>
                 {slide.subtitle && (
-                  <p className="text-xs text-amber-600/60 truncate mt-0.5">
+                  <p className="text-xs text-[var(--accent-text)]/60 truncate mt-0.5">
                     {slide.subtitle}
                   </p>
                 )}
                 <div className="flex items-center gap-3 mt-1">
-                  <span className="text-[10px] text-amber-500 font-medium">
+                  <span className="text-[10px] text-[var(--accent)] font-medium">
                     Order: {slide.sortOrder}
                   </span>
                   {slide.linkItem && (
-                    <span className="flex items-center gap-1 text-[10px] text-amber-500">
+                    <span className="flex items-center gap-1 text-[10px] text-[var(--accent)]">
                       <LinkIcon className="h-2.5 w-2.5" />
                       {slide.linkItem.name}
                     </span>
@@ -284,8 +280,8 @@ export default function HeroSlidesManager() {
                   onClick={() => handleToggleActive(slide)}
                   className={`rounded-lg p-2 transition-colors cursor-pointer ${
                     slide.isActive
-                      ? "text-amber-600 hover:bg-amber-50"
-                      : "text-gray-400 hover:bg-gray-50"
+                      ? "text-[var(--accent-text)] hover:bg-[var(--accent-muted)]"
+                      : "text-[var(--text-3)] hover:bg-[var(--canvas-sub)]"
                   }`}
                   title={slide.isActive ? "Deactivate" : "Activate"}
                 >
@@ -298,7 +294,7 @@ export default function HeroSlidesManager() {
 
                 <button
                   onClick={() => handleDelete(slide.id)}
-                  className="rounded-lg p-2 text-amber-300 hover:bg-red-50 hover:text-red-500 transition-colors cursor-pointer"
+                  className="rounded-lg p-2 text-[var(--accent)] hover:bg-red-50 hover:text-red-500 transition-colors cursor-pointer"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -316,25 +312,25 @@ export default function HeroSlidesManager() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={resetForm}
-              className="fixed inset-0 z-100 bg-amber-950/30 backdrop-blur-[2px]"
+              className="fixed inset-0 z-100 bg-[var(--text-1)]/20 backdrop-blur-[2px]"
             />
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ type: "spring", damping: 25 }}
-              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-100 w-[95%] max-w-md rounded-2xl bg-white shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
+              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-100 w-[95%] max-w-md rounded-2xl bg-[var(--canvas)] shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
             >
-              <div className="flex items-center justify-between px-5 py-4 border-b border-amber-100/60">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--accent-border)]/60">
                 <div className="flex items-center gap-2">
-                  <ImageIcon className="h-5 w-5 text-amber-600" />
-                  <h3 className="text-base font-bold text-amber-950">
+                  <ImageIcon className="h-5 w-5 text-[var(--accent-text)]" />
+                  <h3 className="text-base font-bold text-[var(--text-1)]">
                     Add Hero Slide
                   </h3>
                 </div>
                 <button
                   onClick={resetForm}
-                  className="rounded-full p-2 text-amber-400 hover:bg-amber-50 transition-colors cursor-pointer"
+                  className="rounded-full p-2 text-[var(--accent)] hover:bg-[var(--accent-muted)] transition-colors cursor-pointer"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -353,7 +349,7 @@ export default function HeroSlidesManager() {
                 />
 
                 {uploadedUrl ? (
-                  <div className="relative rounded-xl overflow-hidden border border-amber-100">
+                  <div className="relative rounded-xl overflow-hidden border border-[var(--accent-border)]">
                     <img
                       src={uploadedUrl}
                       alt="Slide preview"
@@ -361,7 +357,7 @@ export default function HeroSlidesManager() {
                     />
                     <button
                       onClick={() => setUploadedUrl("")}
-                      className="absolute top-2 right-2 rounded-full bg-white/90 p-1.5 text-amber-600 hover:bg-red-50 hover:text-red-500 transition-colors cursor-pointer"
+                      className="absolute top-2 right-2 rounded-full bg-[var(--canvas)]/90 p-1.5 text-[var(--accent-text)] hover:bg-red-50 hover:text-red-500 transition-colors cursor-pointer"
                     >
                       <X className="h-3.5 w-3.5" />
                     </button>
@@ -369,19 +365,19 @@ export default function HeroSlidesManager() {
                 ) : (
                   <div
                     onClick={() => fileRef.current?.click()}
-                    className="flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-amber-200 bg-amber-50/50 py-10 cursor-pointer hover:border-amber-400 transition-colors"
+                    className="flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-[var(--accent-border)] bg-[var(--accent-muted)] py-10 cursor-pointer hover:border-[var(--accent)] transition-colors"
                   >
                     {uploading ? (
-                      <Loader2 className="h-7 w-7 animate-spin text-amber-500" />
+                      <Loader2 className="h-7 w-7 animate-spin text-[var(--accent)]" />
                     ) : (
                       <>
-                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-100">
-                          <Upload className="h-5 w-5 text-amber-600" />
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--accent-muted)]">
+                          <Upload className="h-5 w-5 text-[var(--accent-text)]" />
                         </div>
-                        <p className="text-sm font-bold text-amber-800">
+                        <p className="text-sm font-bold text-[var(--accent-text)]">
                           Upload slide image
                         </p>
-                        <p className="text-xs text-amber-500">
+                        <p className="text-xs text-[var(--accent)]">
                           JPEG, PNG, WebP (max 5MB)
                         </p>
                       </>
@@ -390,52 +386,52 @@ export default function HeroSlidesManager() {
                 )}
 
                 <div>
-                  <label className="text-xs font-bold text-amber-700/60 uppercase tracking-wider mb-1.5 block">
+                  <label className="text-xs font-bold text-[var(--accent-text)]/60 uppercase tracking-wider mb-1.5 block">
                     Title (optional)
                   </label>
                   <input
                     value={formTitle}
                     onChange={(e) => setFormTitle(e.target.value)}
                     placeholder="e.g. Chicken Momo Special"
-                    className="w-full rounded-xl border border-amber-200/60 bg-amber-50/30 px-4 py-2.5 text-sm text-amber-950 placeholder-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-300/40"
+                    className="w-full rounded-xl border border-[var(--accent-border)]/60 bg-[var(--accent-muted)] px-4 py-2.5 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]/40"
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-amber-700/60 uppercase tracking-wider mb-1.5 block">
+                  <label className="text-xs font-bold text-[var(--accent-text)]/60 uppercase tracking-wider mb-1.5 block">
                     Subtitle (optional)
                   </label>
                   <input
                     value={formSubtitle}
                     onChange={(e) => setFormSubtitle(e.target.value)}
                     placeholder="e.g. Freshly steamed, served with special achar"
-                    className="w-full rounded-xl border border-amber-200/60 bg-amber-50/30 px-4 py-2.5 text-sm text-amber-950 placeholder-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-300/40"
+                    className="w-full rounded-xl border border-[var(--accent-border)]/60 bg-[var(--accent-muted)] px-4 py-2.5 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]/40"
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-amber-700/60 uppercase tracking-wider mb-1.5 block">
+                  <label className="text-xs font-bold text-[var(--accent-text)]/60 uppercase tracking-wider mb-1.5 block">
                     Link to Menu Item (optional)
                   </label>
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-amber-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--accent)]" />
                     <input
                       value={itemSearch}
                       onChange={(e) => setItemSearch(e.target.value)}
                       placeholder="Search menu items..."
-                      className="w-full rounded-xl border border-amber-200/60 bg-amber-50/30 pl-9 pr-4 py-2.5 text-sm text-amber-950 placeholder-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-300/40"
+                      className="w-full rounded-xl border border-[var(--accent-border)]/60 bg-[var(--accent-muted)] pl-9 pr-4 py-2.5 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]/40"
                     />
                   </div>
                   {formLinkItemId && (
                     <div className="mt-1.5 flex items-center gap-2">
-                      <span className="text-xs text-amber-700 font-medium">
+                      <span className="text-xs text-[var(--accent-text)] font-medium">
                         Linked:{" "}
                         {menuItems.find((m) => m.id === formLinkItemId)?.name ||
                           formLinkItemId}
                       </span>
                       <button
                         onClick={() => setFormLinkItemId("")}
-                        className="text-amber-400 hover:text-red-500 cursor-pointer"
+                        className="text-[var(--accent)] hover:text-red-500 cursor-pointer"
                       >
                         <X className="h-3 w-3" />
                       </button>
@@ -443,10 +439,10 @@ export default function HeroSlidesManager() {
                   )}
                   {menuLoading ? (
                     <div className="flex justify-center py-3">
-                      <Loader2 className="h-4 w-4 animate-spin text-amber-400" />
+                      <Loader2 className="h-4 w-4 animate-spin text-[var(--accent)]" />
                     </div>
                   ) : (
-                    <div className="mt-2 max-h-32 overflow-y-auto rounded-xl border border-amber-100/60 divide-y divide-amber-50">
+                    <div className="mt-2 max-h-32 overflow-y-auto rounded-xl border border-[var(--accent-border)]/60 divide-y divide-[var(--border)]">
                       {filteredMenuItems.slice(0, 8).map((item) => (
                         <button
                           key={item.id}
@@ -456,8 +452,8 @@ export default function HeroSlidesManager() {
                           }}
                           className={`w-full flex items-center gap-2 px-3 py-2 text-left text-sm transition-colors cursor-pointer ${
                             formLinkItemId === item.id
-                              ? "bg-amber-50 text-amber-900 font-semibold"
-                              : "text-amber-700 hover:bg-amber-50/50"
+                              ? "bg-[var(--accent-muted)] text-[var(--accent-text)] font-semibold"
+                              : "text-[var(--accent-text)] hover:bg-[var(--accent-muted)]"
                           }`}
                         >
                           {item.imageUrl && (
@@ -471,7 +467,7 @@ export default function HeroSlidesManager() {
                         </button>
                       ))}
                       {filteredMenuItems.length === 0 && (
-                        <p className="px-3 py-2 text-xs text-amber-400">
+                        <p className="px-3 py-2 text-xs text-[var(--accent)]">
                           No items found
                         </p>
                       )}
@@ -482,7 +478,7 @@ export default function HeroSlidesManager() {
                 <button
                   onClick={handleSubmit}
                   disabled={!uploadedUrl || submitting}
-                  className="w-full rounded-xl bg-amber-600 py-3 text-sm font-bold text-white hover:bg-amber-500 transition-colors disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full rounded-xl bg-[var(--accent-hover)] py-3 text-sm font-bold text-white hover:bg-[var(--accent)] transition-colors disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
                 >
                   {submitting ? (
                     <Loader2 className="h-4 w-4 animate-spin" />

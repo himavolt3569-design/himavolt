@@ -18,7 +18,7 @@ interface Restaurant {
 }
 
 const STAR_LABELS = ["", "Poor", "Fair", "Good", "Very Good", "Excellent"];
-const STAR_COLORS = ["", "text-red-400", "text-orange-400", "text-amber-400", "text-lime-500", "text-[#d67620]"];
+const STAR_COLORS = ["", "text-red-400", "text-[var(--accent)]", "text-[var(--accent)]", "text-lime-500", "text-[#d67620]"];
 
 
 export default function FeedbackPage() {
@@ -65,23 +65,19 @@ export default function FeedbackPage() {
     setSubmitting(false);
   }, [rating, comment, isAnon, name, restaurantId, orderId]);
 
-  if (loadingR) return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-white">
-      <Loader2 className="h-7 w-7 animate-spin text-[#eaa94d]" />
-    </div>
-  );
+  if (loadingR) return null;
 
   if (!restaurant) return (
-    <div className="min-h-screen flex items-center justify-center text-gray-400 text-sm">Restaurant not found.</div>
+    <div className="min-h-screen flex items-center justify-center text-[var(--text-3)] text-sm">Restaurant not found.</div>
   );
 
   const displayStar = hovered || rating;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-amber-50/40 to-white flex flex-col items-center px-4 py-10">
+    <div className="min-h-screen bg-gradient-to-b from-[var(--accent)]0/40 to-white flex flex-col items-center px-4 py-10">
 
       <div className="w-full max-w-md mb-6">
-        <Link href={`/menu/${restaurant.slug}`} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-[#3e1e0c] transition-colors">
+        <Link href={`/menu/${restaurant.slug}`} className="flex items-center gap-1.5 text-sm text-[var(--text-3)] hover:text-[var(--text-1)] transition-colors">
           <ChevronLeft className="h-4 w-4" /> Back to menu
         </Link>
       </div>
@@ -89,14 +85,14 @@ export default function FeedbackPage() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md rounded-3xl bg-white shadow-2xl shadow-black/5 border border-gray-100 overflow-hidden"
+        className="w-full max-w-md rounded-3xl bg-[var(--canvas)] shadow-2xl shadow-black/5 border border-[var(--border-soft)] overflow-hidden"
       >
         <div className="bg-gradient-to-br from-[#3e1e0c] to-[#5a3118] px-6 py-8 text-white text-center">
           {restaurant.imageUrl && (
             <img src={restaurant.imageUrl} alt={restaurant.name} className="h-16 w-16 rounded-2xl object-cover mx-auto mb-3 ring-2 ring-white/20" />
           )}
           <h1 className="text-xl font-extrabold">{restaurant.name}</h1>
-          <p className="text-sm text-amber-200/80 mt-1">Share your experience</p>
+          <p className="text-sm text-[var(--accent)]/80 mt-1">Share your experience</p>
         </div>
 
         <div className="p-6">
@@ -106,26 +102,26 @@ export default function FeedbackPage() {
             {step === "name" && (
               <motion.div key="name" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4">
                 <div className="text-center">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 mx-auto mb-3">
-                    <User className="h-6 w-6 text-amber-600" />
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--accent-muted)] mx-auto mb-3">
+                    <User className="h-6 w-6 text-[var(--accent-text)]" />
                   </div>
-                  <h2 className="text-base font-extrabold text-[#3e1e0c]">Who are you?</h2>
-                  <p className="text-xs text-gray-400 mt-1">Optional — you can stay anonymous</p>
+                  <h2 className="text-base font-extrabold text-[var(--text-1)]">Who are you?</h2>
+                  <p className="text-xs text-[var(--text-3)] mt-1">Optional — you can stay anonymous</p>
                 </div>
 
                 <button
                   onClick={() => setIsAnon(!isAnon)}
-                  className={`w-full flex items-center justify-between rounded-2xl border-2 px-4 py-3 transition-all ${isAnon ? "border-gray-300 bg-gray-50" : "border-gray-100 bg-white hover:border-gray-200"}`}
+                  className={`w-full flex items-center justify-between rounded-2xl border-2 px-4 py-3 transition-all ${isAnon ? "border-[var(--border)] bg-[var(--canvas-sub)]" : "border-[var(--border-soft)] bg-[var(--canvas)] hover:border-[var(--border)]"}`}
                 >
                   <div className="flex items-center gap-2.5">
-                    {isAnon ? <EyeOff className="h-4 w-4 text-gray-500" /> : <Eye className="h-4 w-4 text-gray-400" />}
+                    {isAnon ? <EyeOff className="h-4 w-4 text-[var(--text-2)]" /> : <Eye className="h-4 w-4 text-[var(--text-3)]" />}
                     <div className="text-left">
-                      <p className="text-sm font-bold text-gray-700">Submit Anonymously</p>
-                      <p className="text-[11px] text-gray-400">{isAnon ? "Your name won't be stored" : "Your name will be shown to staff"}</p>
+                      <p className="text-sm font-bold text-[var(--text-2)]">Submit Anonymously</p>
+                      <p className="text-[11px] text-[var(--text-3)]">{isAnon ? "Your name won't be stored" : "Your name will be shown to staff"}</p>
                     </div>
                   </div>
-                  <div className={`h-5 w-9 rounded-full transition-colors ${isAnon ? "bg-gray-400" : "bg-gray-200"} relative`}>
-                    <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${isAnon ? "translate-x-4" : "translate-x-0.5"}`} />
+                  <div className={`h-5 w-9 rounded-full transition-colors ${isAnon ? "bg-[var(--text-3)]" : "bg-[var(--surface-alt)]"} relative`}>
+                    <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-[var(--canvas)] shadow transition-transform ${isAnon ? "translate-x-4" : "translate-x-0.5"}`} />
                   </div>
                 </button>
 
@@ -135,7 +131,7 @@ export default function FeedbackPage() {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder="Your name..."
-                      className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+                      className="w-full rounded-xl border border-[var(--border)] px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                     />
                   </motion.div>
                 )}
@@ -143,7 +139,7 @@ export default function FeedbackPage() {
                 <div className="flex gap-2 pt-1">
                   <button
                     onClick={() => setStep("review")}
-                    className="flex-1 rounded-xl border border-gray-200 py-3 text-sm font-bold text-gray-500 hover:bg-gray-50 transition-colors"
+                    className="flex-1 rounded-xl border border-[var(--border)] py-3 text-sm font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors"
                   >
                     Skip
                   </button>
@@ -161,17 +157,17 @@ export default function FeedbackPage() {
             {step === "review" && (
               <motion.div key="review" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-5">
                 <div className="text-center">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 mx-auto mb-3">
-                    <Star className="h-6 w-6 text-amber-600" />
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--accent-muted)] mx-auto mb-3">
+                    <Star className="h-6 w-6 text-[var(--accent-text)]" />
                   </div>
                   {isAnon ? (
-                    <p className="text-xs text-gray-400">Submitting anonymously</p>
+                    <p className="text-xs text-[var(--text-3)]">Submitting anonymously</p>
                   ) : name.trim() ? (
-                    <p className="text-xs text-gray-400">Hi, <span className="font-bold text-gray-600">{name.trim()}</span>!</p>
+                    <p className="text-xs text-[var(--text-3)]">Hi, <span className="font-bold text-[var(--text-2)]">{name.trim()}</span>!</p>
                   ) : (
-                    <p className="text-xs text-gray-400">Reviewing as Guest</p>
+                    <p className="text-xs text-[var(--text-3)]">Reviewing as Guest</p>
                   )}
-                  <h2 className="text-base font-extrabold text-[#3e1e0c] mt-1">How was your experience?</h2>
+                  <h2 className="text-base font-extrabold text-[var(--text-1)] mt-1">How was your experience?</h2>
                 </div>
 
                 <div className="flex justify-center gap-2">
@@ -184,7 +180,7 @@ export default function FeedbackPage() {
                       className="transition-transform hover:scale-110"
                     >
                       <Star
-                        className={`h-9 w-9 transition-colors ${s <= displayStar ? `${STAR_COLORS[displayStar]} fill-current` : "text-gray-200 fill-current"}`}
+                        className={`h-9 w-9 transition-colors ${s <= displayStar ? `${STAR_COLORS[displayStar]} fill-current` : "text-[var(--text-3)] fill-current"}`}
                       />
                     </button>
                   ))}
@@ -197,18 +193,18 @@ export default function FeedbackPage() {
                 )}
 
                 <div className="relative">
-                  <MessageSquare className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <MessageSquare className="absolute left-3 top-3 h-4 w-4 text-[var(--text-3)]" />
                   <textarea
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
                     placeholder="Tell us about your experience... (optional)"
                     rows={3}
-                    className="w-full rounded-xl border border-gray-200 pl-9 pr-4 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-amber-300"
+                    className="w-full rounded-xl border border-[var(--border)] pl-9 pr-4 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                   />
                 </div>
 
                 <div className="flex gap-2">
-                  <button onClick={() => setStep("name")} className="rounded-xl border border-gray-200 px-4 py-3 text-sm font-bold text-gray-500 hover:bg-gray-50 transition-colors">
+                  <button onClick={() => setStep("name")} className="rounded-xl border border-[var(--border)] px-4 py-3 text-sm font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors">
                     Back
                   </button>
                   <button
@@ -226,11 +222,11 @@ export default function FeedbackPage() {
             {/* ── Step 3: Done ────────────────────────────────────── */}
             {step === "done" && (
               <motion.div key="done" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center gap-4 py-6 text-center">
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#fef3dc]">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--accent-muted)]">
                   <Check className="h-8 w-8 text-[#b25c1c]" />
                 </div>
-                <h2 className="text-lg font-extrabold text-[#3e1e0c]">Thank you!</h2>
-                <p className="text-sm text-gray-500 max-w-xs">
+                <h2 className="text-lg font-extrabold text-[var(--text-1)]">Thank you!</h2>
+                <p className="text-sm text-[var(--text-2)] max-w-xs">
                   Your feedback helps us improve. We appreciate you taking the time.
                 </p>
                 <Link
@@ -246,7 +242,7 @@ export default function FeedbackPage() {
         </div>
       </motion.div>
 
-      <p className="mt-6 text-xs text-gray-400">Powered by HimaVolt</p>
+      <p className="mt-6 text-xs text-[var(--text-3)]">Powered by HimaVolt</p>
     </div>
   );
 }

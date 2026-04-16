@@ -48,10 +48,7 @@ export default function CompleteProfilePage() {
     const supabase = getSupabaseBrowserClient();
     supabase.auth.getSession().then((result: Awaited<ReturnType<typeof supabase.auth.getSession>>) => {
       const session = result.data.session;
-      if (!session) {
-        router.replace("/sign-in");
-        return;
-      }
+      if (!session) { router.replace("/sign-in"); return; }
       setDisplayName(
         session.user.user_metadata?.full_name ??
         session.user.user_metadata?.name ??
@@ -65,12 +62,10 @@ export default function CompleteProfilePage() {
   useEffect(() => {
     const u = debouncedUsername;
     if (!u || checkedRef.current === u) return;
-
     if (!/^[a-z0-9_]{3,20}$/.test(u)) {
       setUsernameStatus(u.length < 3 ? "idle" : "invalid");
       return;
     }
-
     checkedRef.current = u;
     setUsernameStatus("checking");
     fetch(`/api/me/username-check?username=${encodeURIComponent(u)}`)
@@ -96,14 +91,9 @@ export default function CompleteProfilePage() {
 
     if (wantPassword && password) {
       const { error: pwErr } = await supabase.auth.updateUser({ password });
-      if (pwErr) {
-        setError(pwErr.message);
-        setLoading(false);
-        return;
-      }
+      if (pwErr) { setError(pwErr.message); setLoading(false); return; }
     }
 
-    // Save username (and role if needed) via API
     const patchBody: Record<string, string> = { username };
     if (roleParam) patchBody.role = roleParam;
     const res = await fetch("/api/me", {
@@ -120,17 +110,12 @@ export default function CompleteProfilePage() {
     }
 
     const { role } = await res.json();
-
     if (role === "OWNER") {
-      // Check if owner already has restaurants → dashboard, else → onboarding
       try {
         const restRes = await fetch("/api/restaurants");
         const restData = await restRes.json().catch(() => []);
-        const hasRestaurants = Array.isArray(restData) && restData.length > 0;
-        router.push(hasRestaurants ? "/dashboard" : "/onboarding");
-      } catch {
-        router.push("/onboarding");
-      }
+        router.push(Array.isArray(restData) && restData.length > 0 ? "/dashboard" : "/onboarding");
+      } catch { router.push("/onboarding"); }
     } else {
       router.push("/");
     }
@@ -138,16 +123,18 @@ export default function CompleteProfilePage() {
 
   if (!sessionReady) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50/50">
-        <Loader2 className="h-8 w-8 animate-spin text-[#eaa94d]" />
+      <div className="flex min-h-screen items-center justify-center bg-[var(--canvas-sub)]">
+        <Loader2 className="h-8 w-8 animate-spin text-[var(--accent)]" />
       </div>
     );
   }
 
   const isOwner = roleParam === "OWNER";
+  const inputClass = "w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-2.5 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] transition-colors";
+  const labelClass = "mb-1.5 block text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--text-3)]";
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50/50 p-6">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-[var(--canvas-sub)] p-6">
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -156,28 +143,28 @@ export default function CompleteProfilePage() {
       >
         <div className="mb-6 text-center">
           <Link href="/" className="inline-flex items-center gap-2">
-            <Mountain className="h-8 w-8 text-[#eaa94d]" strokeWidth={2.5} />
-            <span className="text-2xl font-extrabold tracking-tight text-[#3e1e0c]">
-              Hima<span className="text-[#eaa94d]">Volt</span>
+            <Mountain className="h-8 w-8 text-[var(--accent)]" strokeWidth={2.5} />
+            <span className="text-2xl font-black tracking-tight text-[var(--text-1)]">
+              Hima<span className="text-[var(--accent)]">Volt</span>
             </span>
           </Link>
-          <p className="mt-2 text-sm font-semibold text-gray-500">
-            One last step — set up your profile
+          <p className="mt-2 text-sm text-[var(--text-2)]">
+            One last step. Set up your profile.
           </p>
         </div>
 
-        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-          <div className={`px-5 py-3 ${isOwner ? "bg-[#3e1e0c]" : "bg-[#eaa94d]/5"}`}>
+        <div className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--canvas)] shadow-sm">
+          <div className={`px-5 py-3 ${isOwner ? "bg-[var(--text-1)]" : "bg-[var(--accent-muted)] border-b border-[var(--accent-border)]"}`}>
             <div className="flex items-center gap-2">
               {isOwner ? (
                 <>
-                  <Building2 className="h-4 w-4 text-amber-400" />
+                  <Building2 className="h-4 w-4 text-[var(--accent)]" />
                   <span className="text-xs font-bold text-white/80">Restaurant Owner account</span>
                 </>
               ) : (
                 <>
-                  <UtensilsCrossed className="h-4 w-4 text-[#eaa94d]" />
-                  <span className="text-xs font-bold text-[#eaa94d]">Food Lover account</span>
+                  <UtensilsCrossed className="h-4 w-4 text-[var(--accent)]" />
+                  <span className="text-xs font-bold text-[var(--accent-text)]">Food Lover account</span>
                 </>
               )}
             </div>
@@ -186,80 +173,77 @@ export default function CompleteProfilePage() {
           <div className="p-6">
             <form onSubmit={handleSubmit} className="space-y-4">
               {error && (
-                <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600">{error}</div>
+                <div className="rounded-xl border border-[var(--status-error-text)]/20 bg-[var(--status-error-bg)] px-4 py-3 text-sm text-[var(--status-error-text)]">{error}</div>
               )}
 
-              {/* Name — read-only from Google */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">Full Name</label>
+                <label className={labelClass}>Full Name</label>
                 <input
                   type="text"
                   value={displayName}
                   readOnly
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-500 cursor-not-allowed"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-2.5 text-sm text-[var(--text-3)] cursor-not-allowed"
                 />
               </div>
 
-              {/* Email — read-only */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">Email</label>
+                <label className={labelClass}>Email</label>
                 <input
                   type="email"
                   value={email}
                   readOnly
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-500 cursor-not-allowed"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-2.5 text-sm text-[var(--text-3)] cursor-not-allowed"
                 />
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  Username <span className="text-[#eaa94d]">*</span>
+                <label className={labelClass}>
+                  Username <span className="text-[var(--accent)]">*</span>
                 </label>
                 <div className="relative">
-                  <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-3)]" />
                   <input
                     type="text"
                     value={username}
                     onChange={(e) => handleUsernameChange(e.target.value)}
                     required
                     placeholder="your_username"
-                    className={`w-full rounded-xl border px-4 py-2.5 pl-9 text-sm focus:outline-none focus:ring-1 transition-colors ${
+                    className={`w-full rounded-xl border px-4 py-2.5 pl-9 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] bg-[var(--canvas)] focus:outline-none focus:ring-2 transition-colors ${
                       usernameStatus === "available"
-                        ? "border-[#eaa94d] focus:border-[#eaa94d] focus:ring-[#eaa94d]/20"
+                        ? "border-[var(--accent)] focus:border-[var(--accent)] focus:ring-[var(--accent-border)]"
                         : usernameStatus === "taken" || usernameStatus === "invalid"
-                        ? "border-red-400 focus:border-red-400 focus:ring-red-200"
-                        : "border-gray-200 focus:border-[#eaa94d]/30 focus:ring-[#eaa94d]/30"
+                        ? "border-red-400 focus:border-red-400 focus:ring-red-100"
+                        : "border-[var(--border)] focus:border-[var(--accent)] focus:ring-[var(--accent-border)]"
                     }`}
                   />
                   <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                    {usernameStatus === "checking" && <Loader2 className="h-4 w-4 animate-spin text-gray-400" />}
-                    {usernameStatus === "available" && <Check className="h-4 w-4 text-[#d67620]" />}
+                    {usernameStatus === "checking" && <Loader2 className="h-4 w-4 animate-spin text-[var(--text-3)]" />}
+                    {usernameStatus === "available" && <Check className="h-4 w-4 text-[var(--accent)]" />}
                   </div>
                 </div>
                 <p className={`mt-1 text-[11px] ${
-                  usernameStatus === "available" ? "text-[#b25c1c]"
-                  : usernameStatus === "taken" ? "text-red-500"
-                  : usernameStatus === "invalid" ? "text-red-500"
-                  : "text-gray-400"
+                  usernameStatus === "available" ? "text-[var(--accent)]"
+                  : usernameStatus === "taken" || usernameStatus === "invalid" ? "text-red-400"
+                  : "text-[var(--text-3)]"
                 }`}>
                   {usernameStatus === "available" && "Username is available!"}
                   {usernameStatus === "taken" && "Username is already taken"}
-                  {usernameStatus === "invalid" && "3–20 lowercase letters, numbers, or underscores"}
-                  {(usernameStatus === "idle" || usernameStatus === "checking") && "3–20 chars: a–z, 0–9, underscores"}
+                  {usernameStatus === "invalid" && "3-20 lowercase letters, numbers, or underscores"}
+                  {(usernameStatus === "idle" || usernameStatus === "checking") && "3-20 chars: a-z, 0-9, underscores"}
                 </p>
               </div>
 
               <button
                 type="button"
                 onClick={() => setWantPassword((v) => !v)}
-                className="flex w-full items-center justify-between rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+                className="flex w-full items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-2.5 text-sm text-[var(--text-2)] hover:bg-[var(--surface)] transition-colors"
               >
                 <div className="flex items-center gap-2">
-                  <Lock className="h-4 w-4 text-gray-400" />
+                  <Lock className="h-4 w-4 text-[var(--text-3)]" />
                   <span>Want to sign in with a password too?</span>
                 </div>
                 <motion.div animate={{ rotate: wantPassword ? 180 : 0 }} transition={{ duration: 0.18 }}>
-                  <ChevronDown className="h-4 w-4 text-gray-400" />
+                  <ChevronDown className="h-4 w-4 text-[var(--text-3)]" />
                 </motion.div>
               </button>
 
@@ -271,7 +255,7 @@ export default function CompleteProfilePage() {
                     exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.18 }}
                   >
-                    <label className="mb-1 block text-sm font-medium text-gray-700">Password</label>
+                    <label className={labelClass}>Password</label>
                     <input
                       type="password"
                       value={password}
@@ -279,7 +263,7 @@ export default function CompleteProfilePage() {
                       required={wantPassword}
                       minLength={8}
                       placeholder="Min 8 characters"
-                      className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-[#eaa94d]/30 focus:outline-none focus:ring-1 focus:ring-[#eaa94d]/30"
+                      className={inputClass}
                     />
                   </motion.div>
                 )}
@@ -288,13 +272,9 @@ export default function CompleteProfilePage() {
               <button
                 type="submit"
                 disabled={loading || usernameStatus !== "available"}
-                className="w-full rounded-xl bg-[#eaa94d] py-3 text-sm font-bold text-white transition-all hover:bg-[#d67620] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed shadow-sm shadow-[#eaa94d]/20"
+                className="w-full rounded-xl bg-[var(--accent)] py-3 text-sm font-bold text-white hover:bg-[var(--accent-hover)] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed shadow-sm shadow-[var(--accent)]/20 transition-colors"
               >
-                {loading ? (
-                  <Loader2 className="mx-auto h-4 w-4 animate-spin" />
-                ) : (
-                  "Save & Continue"
-                )}
+                {loading ? <Loader2 className="mx-auto h-4 w-4 animate-spin" /> : "Save & Continue"}
               </button>
             </form>
           </div>

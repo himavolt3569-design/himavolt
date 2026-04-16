@@ -129,7 +129,7 @@ export default function FooterSettingsTab() {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.04 }}
-              className="overflow-hidden rounded-2xl border border-blue-100 bg-white shadow-sm"
+              className="overflow-hidden rounded-2xl border border-blue-100 bg-[var(--canvas)] shadow-sm"
             >
               <label className="flex items-center gap-2 border-b border-slate-100 px-4 py-2.5">
                 <Icon className="h-3.5 w-3.5 text-blue-400" />
@@ -165,7 +165,7 @@ export default function FooterSettingsTab() {
         <motion.div
           initial={{ opacity: 0, y: -4 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mt-4 flex items-center gap-2 rounded-xl border border-[#eaa94d]/30 bg-[#fef9ef] px-4 py-2.5 text-sm text-[#b25c1c]"
+          className="mt-4 flex items-center gap-2 rounded-xl border border-[var(--accent-border)] bg-[var(--accent-muted)] px-4 py-2.5 text-sm text-[#b25c1c]"
         >
           <CheckCircle className="h-4 w-4 shrink-0" />
           Footer settings saved successfully.

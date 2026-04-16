@@ -77,9 +77,9 @@ export default function POSHeader({ restaurantName, restaurantSlug, staffName, s
       <div className="flex items-center gap-5 min-w-0 w-56">
         <div className="min-w-0">
           <h1 className="text-sm font-semibold leading-tight text-white truncate">{restaurantName}</h1>
-          <p className="text-[11px] text-gray-500 truncate mt-0.5">{staffName} &middot; {staffRole}</p>
+          <p className="text-[11px] text-[var(--text-2)] truncate mt-0.5">{staffName} &middot; {staffRole}</p>
         </div>
-        <span className="text-sm font-mono text-gray-500 tabular-nums shrink-0">{clock}</span>
+        <span className="text-sm font-mono text-[var(--text-2)] tabular-nums shrink-0">{clock}</span>
       </div>
 
       {/* Center: navigation */}
@@ -94,7 +94,7 @@ export default function POSHeader({ restaurantName, restaurantSlug, staffName, s
               className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-[13px] font-medium transition-all ${
                 active
                   ? "bg-amber-600 text-white shadow-sm"
-                  : "text-gray-500 hover:text-gray-200 hover:bg-gray-800"
+                  : "text-[var(--text-2)] hover:text-gray-200 hover:bg-gray-800"
               }`}
             >
               <Icon className="h-3.5 w-3.5 shrink-0" />
@@ -110,10 +110,10 @@ export default function POSHeader({ restaurantName, restaurantSlug, staffName, s
           <button
             onClick={copySlug}
             title="Copy customer POS link"
-            className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-medium text-gray-500 hover:text-gray-200 hover:bg-gray-800 transition-colors"
+            className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-medium text-[var(--text-2)] hover:text-gray-200 hover:bg-gray-800 transition-colors"
           >
             {copied ? (
-              <Check className="h-3.5 w-3.5 text-green-400" />
+              <Check className="h-3.5 w-3.5 text-[#d67620]" />
             ) : (
               <Copy className="h-3.5 w-3.5" />
             )}
@@ -123,13 +123,13 @@ export default function POSHeader({ restaurantName, restaurantSlug, staffName, s
         <button
           onClick={toggleSound}
           title={soundOn ? "Mute" : "Unmute"}
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 hover:text-gray-200 hover:bg-gray-800 transition-colors"
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-2)] hover:text-gray-200 hover:bg-gray-800 transition-colors"
         >
           {soundOn ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
         </button>
         <button
           onClick={logout}
-          className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-[13px] font-medium text-gray-500 hover:text-white hover:bg-gray-800 transition-colors"
+          className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-[13px] font-medium text-[var(--text-2)] hover:text-white hover:bg-gray-800 transition-colors"
         >
           <LogOut className="h-3.5 w-3.5" />
           Logout

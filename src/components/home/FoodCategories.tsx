@@ -43,12 +43,10 @@ export default function FoodCategories({
     };
   }, [checkScroll]);
 
-  /* GSAP: heading reveal + staggered category bounce-in */
   useGSAP(
     () => {
       if (!containerRef.current) return;
 
-      /* Heading */
       if (headingRef.current) {
         const els = headingRef.current.querySelectorAll(".heading-el");
         gsap.fromTo(
@@ -70,7 +68,6 @@ export default function FoodCategories({
         );
       }
 
-      /* Category circles — stagger from center outward */
       const items = gsap.utils.toArray<HTMLElement>(".cat-circle");
       const mid = Math.floor(items.length / 2);
       const sorted = [...items].sort(
@@ -115,8 +112,8 @@ export default function FoodCategories({
   };
 
   return (
-    <section ref={containerRef} className="relative bg-white overflow-hidden">
-      <div className="h-px bg-linear-to-r from-transparent via-[#eaa94d]/10 to-transparent" />
+    <section ref={containerRef} className="relative bg-[var(--canvas)] overflow-hidden">
+      <div className="h-px bg-linear-to-r from-transparent via-[var(--accent-border)] to-transparent" />
 
       <div className="mx-auto max-w-[1440px] px-4 md:px-8 lg:px-12 pt-12 md:pt-16 pb-10 md:pb-14">
         <div
@@ -124,41 +121,34 @@ export default function FoodCategories({
           className="flex items-end justify-between mb-8 md:mb-10"
         >
           <div>
-            <span className="heading-el inline-flex items-center gap-1.5 rounded-full bg-[#eaa94d]/8 px-3 py-1 text-[10px] font-bold text-[#b25c1c] uppercase tracking-wider border border-[#eaa94d]/15 mb-3">
+            <span className="heading-el inline-flex items-center gap-1.5 rounded-full bg-[var(--accent-muted)] px-3 py-1 text-[10px] font-bold text-[var(--accent-text)] uppercase tracking-wider border border-[var(--accent-border)] mb-3">
               <Sparkles className="h-2.5 w-2.5" />
               Explore cuisines
             </span>
-            <h2 className="heading-el text-2xl md:text-3xl font-extrabold tracking-tight text-[#3e1e0c] leading-tight">
+            <h2 className="heading-el text-2xl md:text-3xl font-bold tracking-tight text-[var(--text-1)] leading-tight">
               What&apos;s on your mind
-              <span className="text-[#eaa94d]">?</span>
+              <span className="text-[var(--accent)]">?</span>
             </h2>
           </div>
 
           <div className="hidden sm:flex items-center gap-2">
-            <motion.button
+            <button
               onClick={() => scroll("left")}
               disabled={!canScrollLeft}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              transition={{ type: "spring", stiffness: 400, damping: 17 }}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-[#eaa94d]/15 bg-white text-[#3e1e0c]/60 hover:text-[#3e1e0c] hover:border-[#eaa94d]/30 hover:shadow-md transition-all disabled:opacity-20 disabled:cursor-not-allowed"
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--canvas)] text-[var(--text-2)] hover:text-[var(--text-1)] hover:border-[var(--accent-border)] transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
             >
               <ChevronLeft className="h-4 w-4" strokeWidth={2.5} />
-            </motion.button>
-            <motion.button
+            </button>
+            <button
               onClick={() => scroll("right")}
               disabled={!canScrollRight}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              transition={{ type: "spring", stiffness: 400, damping: 17 }}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-[#eaa94d]/15 bg-white text-[#3e1e0c]/60 hover:text-[#3e1e0c] hover:border-[#eaa94d]/30 hover:shadow-md transition-all disabled:opacity-20 disabled:cursor-not-allowed"
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--canvas)] text-[var(--text-2)] hover:text-[var(--text-1)] hover:border-[var(--accent-border)] transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
             >
               <ChevronRight className="h-4 w-4" strokeWidth={2.5} />
-            </motion.button>
+            </button>
           </div>
         </div>
 
-        {/* ── Scrollable category carousel ── */}
         <div className="relative -mx-4 md:-mx-6 lg:-mx-10">
           <div
             ref={scrollRef}
@@ -180,30 +170,24 @@ export default function FoodCategories({
                     <motion.div
                       className={`relative h-[76px] w-[76px] sm:h-[90px] sm:w-[90px] md:h-[100px] md:w-[100px] lg:h-[110px] lg:w-[110px] rounded-[28px] overflow-hidden transition-all duration-300 ${
                         isActive
-                          ? "shadow-xl shadow-[#eaa94d]/20 ring-[2.5px] ring-[#eaa94d]"
-                          : "shadow-sm ring-1 ring-black/[0.04] group-hover:shadow-lg group-hover:ring-[#eaa94d]/20"
+                          ? "shadow-xl shadow-[var(--accent)]/20 ring-[2.5px] ring-[var(--accent)]"
+                          : "shadow-sm ring-1 ring-black/[0.04] group-hover:shadow-lg group-hover:ring-[var(--accent-border)]"
                       }`}
                       animate={isActive ? { scale: 1.05 } : { scale: 1 }}
-                      transition={{
-                        type: "spring",
-                        stiffness: 400,
-                        damping: 15,
-                      }}
+                      transition={{ type: "spring", stiffness: 400, damping: 15 }}
                     >
                       <img
                         src={cat.image}
                         alt={cat.name}
                         loading="lazy"
                         className={`h-full w-full object-cover transition-transform duration-500 ${
-                          isActive
-                            ? "scale-110"
-                            : "group-hover:scale-110"
+                          isActive ? "scale-110" : "group-hover:scale-110"
                         }`}
                       />
                       <div
                         className={`absolute inset-0 transition-opacity duration-300 ${
                           isActive
-                            ? "bg-linear-to-t from-[#eaa94d]/20 to-transparent opacity-100"
+                            ? "bg-linear-to-t from-[var(--accent)]/20 to-transparent opacity-100"
                             : "bg-linear-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100"
                         }`}
                       />
@@ -215,7 +199,7 @@ export default function FoodCategories({
                           initial={{ opacity: 0, scale: 0.8 }}
                           animate={{ opacity: 1, scale: 1 }}
                           exit={{ opacity: 0, scale: 0.8 }}
-                          className="absolute -inset-1.5 rounded-[32px] bg-[#eaa94d]/8 -z-10"
+                          className="absolute -inset-1.5 rounded-[32px] bg-[var(--accent-muted)] -z-10"
                         />
                       )}
                     </AnimatePresence>
@@ -224,8 +208,8 @@ export default function FoodCategories({
                   <span
                     className={`mt-2.5 text-[11px] sm:text-xs md:text-[13px] font-bold text-center leading-tight transition-colors duration-200 ${
                       isActive
-                        ? "text-[#eaa94d]"
-                        : "text-[#3e1e0c]/70 group-hover:text-[#3e1e0c]"
+                        ? "text-[var(--accent)]"
+                        : "text-[var(--text-2)] group-hover:text-[var(--text-1)]"
                     }`}
                   >
                     {cat.name}
@@ -235,15 +219,11 @@ export default function FoodCategories({
                     {isActive && (
                       <motion.div
                         layoutId="cat-dot"
-                        className="mt-1.5 h-1 w-1 rounded-full bg-[#eaa94d]"
+                        className="mt-1.5 h-1 w-1 rounded-full bg-[var(--accent)]"
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         exit={{ scale: 0 }}
-                        transition={{
-                          type: "spring",
-                          stiffness: 500,
-                          damping: 25,
-                        }}
+                        transition={{ type: "spring", stiffness: 500, damping: 25 }}
                       />
                     )}
                   </AnimatePresence>
@@ -253,16 +233,16 @@ export default function FoodCategories({
           </div>
 
           {canScrollLeft && (
-            <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-12 md:w-20 bg-linear-to-r from-white to-transparent z-10" />
+            <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-12 md:w-20 bg-linear-to-r from-[var(--canvas)] to-transparent z-10" />
           )}
           {canScrollRight && (
-            <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-12 md:w-20 bg-linear-to-l from-white to-transparent z-10" />
+            <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-12 md:w-20 bg-linear-to-l from-[var(--canvas)] to-transparent z-10" />
           )}
         </div>
       </div>
 
       <div className="mx-auto max-w-[1440px] px-4 md:px-8 lg:px-12">
-        <div className="h-px bg-linear-to-r from-transparent via-[#eaa94d]/10 to-transparent" />
+        <div className="h-px bg-linear-to-r from-transparent via-[var(--accent-border)] to-transparent" />
       </div>
     </section>
   );

@@ -49,7 +49,7 @@ export default function KioskIdleOverlay({ isIdle, onReset }: Props) {
             transition={{ repeat: Infinity, duration: 2.4, ease: "easeInOut" }}
             className="flex flex-col items-center"
           >
-            <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-white/10 border border-white/10 mb-8">
+            <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-[var(--canvas)]/10 border border-white/10 mb-8">
               <TouchpadOff className="h-10 w-10 text-white/60" />
             </div>
             <h2 className="text-3xl font-black text-white mb-2">Session Paused</h2>

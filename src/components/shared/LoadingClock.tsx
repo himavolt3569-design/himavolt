@@ -62,7 +62,7 @@ export default function LoadingClock({
         />
         <circle cx="24" cy="24" r="4" fill="currentColor" />
       </svg>
-      <p className="text-sm font-bold text-gray-400 animate-pulse">
+      <p className="text-sm font-bold text-[var(--text-3)]">
         Loading HimaVolt...
       </p>
     </div>

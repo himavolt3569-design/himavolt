@@ -56,9 +56,9 @@ interface PastItem {
 }
 
 const seasonConfig: Record<Season, { icon: typeof Sun; color: string; bg: string }> = {
-  Spring: { icon: Leaf, color: "text-[#b25c1c]", bg: "bg-[#fef9ef]" },
-  Summer: { icon: Sun, color: "text-orange-600", bg: "bg-orange-50" },
-  Autumn: { icon: CloudRain, color: "text-amber-600", bg: "bg-amber-50" },
+  Spring: { icon: Leaf, color: "text-[#b25c1c]", bg: "bg-[var(--accent-muted)]" },
+  Summer: { icon: Sun, color: "text-[var(--accent)]", bg: "bg-[var(--accent)]" },
+  Autumn: { icon: CloudRain, color: "text-[var(--accent-text)]", bg: "bg-[var(--accent-muted)]" },
   Winter: { icon: Snowflake, color: "text-blue-600", bg: "bg-blue-50" },
 };
 
@@ -143,15 +143,15 @@ export default function SeasonalMenuTab() {
             <SeasonIcon className={`w-6 h-6 ${seasonConfig[currentSeason].color}`} />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-gray-900">Seasonal Menu</h2>
-            <p className="text-sm text-gray-500">Rotating seasonal specials & limited-time items</p>
+            <h2 className="text-xl font-bold text-[var(--text-1)]">Seasonal Menu</h2>
+            <p className="text-sm text-[var(--text-2)]">Rotating seasonal specials & limited-time items</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <select
             value={currentSeason}
             onChange={(e) => setCurrentSeason(e.target.value as Season)}
-            className="border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-300"
+            className="border border-[var(--border)] rounded-lg px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
           >
             {(["Spring", "Summer", "Autumn", "Winter"] as Season[]).map((s) => (
               <option key={s} value={s}>{s}</option>
@@ -165,20 +165,20 @@ export default function SeasonalMenuTab() {
           { label: "Active Items", value: activeItems.length, icon: Package, color: `${seasonConfig[currentSeason].color} ${seasonConfig[currentSeason].bg}` },
           { label: "Featured Items", value: activeItems.filter((i) => i.featured).length, icon: Star, color: "text-yellow-600 bg-yellow-50" },
           { label: "Limited Items", value: items.filter((i) => i.limitedQuantity).length, icon: Clock, color: "text-red-600 bg-red-50" },
-          { label: "Total Sold (Season)", value: activeItems.reduce((s, i) => s + (i.soldCount || 0), 0), icon: TrendingUp, color: "text-[#b25c1c] bg-[#fef9ef]" },
+          { label: "Total Sold (Season)", value: activeItems.reduce((s, i) => s + (i.soldCount || 0), 0), icon: TrendingUp, color: "text-[#b25c1c] bg-[var(--accent-muted)]" },
         ].map((stat) => (
           <motion.div
             key={stat.label}
             whileHover={{ scale: 1.02 }}
-            className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm"
+            className="bg-[var(--canvas)] border border-[var(--border-soft)] rounded-xl p-4 shadow-sm"
           >
             <div className="flex items-center gap-3">
               <div className={`p-2 rounded-lg ${stat.color}`}>
                 <stat.icon className="w-4 h-4" />
               </div>
               <div>
-                <p className="text-xs text-gray-500">{stat.label}</p>
-                <p className="text-lg font-bold text-gray-900">{stat.value}</p>
+                <p className="text-xs text-[var(--text-2)]">{stat.label}</p>
+                <p className="text-lg font-bold text-[var(--text-1)]">{stat.value}</p>
               </div>
             </div>
           </motion.div>
@@ -186,47 +186,47 @@ export default function SeasonalMenuTab() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm flex items-center justify-between">
+        <div className="bg-[var(--canvas)] border border-[var(--border-soft)] rounded-xl p-4 shadow-sm flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <RotateCcw className="w-4 h-4 text-amber-500" />
+            <RotateCcw className="w-4 h-4 text-[var(--accent)]" />
             <div>
-              <p className="text-sm font-medium text-gray-700">Auto-Rotate Menu</p>
-              <p className="text-xs text-gray-400">Automatically switch based on date ranges</p>
+              <p className="text-sm font-medium text-[var(--text-2)]">Auto-Rotate Menu</p>
+              <p className="text-xs text-[var(--text-3)]">Automatically switch based on date ranges</p>
             </div>
           </div>
           <button onClick={() => setAutoRotate(!autoRotate)}>
             {autoRotate ? (
-              <ToggleRight className="w-7 h-7 text-amber-500" />
+              <ToggleRight className="w-7 h-7 text-[var(--accent)]" />
             ) : (
-              <ToggleLeft className="w-7 h-7 text-gray-400" />
+              <ToggleLeft className="w-7 h-7 text-[var(--text-3)]" />
             )}
           </button>
         </div>
-        <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm flex items-center justify-between">
+        <div className="bg-[var(--canvas)] border border-[var(--border-soft)] rounded-xl p-4 shadow-sm flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Palette className="w-4 h-4 text-amber-500" />
+            <Palette className="w-4 h-4 text-[var(--accent)]" />
             <div>
-              <p className="text-sm font-medium text-gray-700">Seasonal Theme</p>
-              <p className="text-xs text-gray-400">Apply seasonal decorations to customer menu</p>
+              <p className="text-sm font-medium text-[var(--text-2)]">Seasonal Theme</p>
+              <p className="text-xs text-[var(--text-3)]">Apply seasonal decorations to customer menu</p>
             </div>
           </div>
           <button onClick={() => setSeasonalTheme(!seasonalTheme)}>
             {seasonalTheme ? (
-              <ToggleRight className="w-7 h-7 text-amber-500" />
+              <ToggleRight className="w-7 h-7 text-[var(--accent)]" />
             ) : (
-              <ToggleLeft className="w-7 h-7 text-gray-400" />
+              <ToggleLeft className="w-7 h-7 text-[var(--text-3)]" />
             )}
           </button>
         </div>
       </div>
 
-      <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1 w-fit">
+      <div className="flex items-center gap-1 bg-[var(--surface)] rounded-lg p-1 w-fit">
         {(["active", "upcoming", "past"] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setViewTab(tab)}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              viewTab === tab ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+              viewTab === tab ? "bg-[var(--canvas)] text-[var(--text-1)] shadow-sm" : "text-[var(--text-2)] hover:text-[var(--text-2)]"
             }`}
           >
             {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -235,14 +235,14 @@ export default function SeasonalMenuTab() {
       </div>
 
       {viewTab === "active" && (
-        <div className="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
-          <div className="flex items-center justify-between p-5 border-b border-gray-100">
-            <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+        <div className="bg-[var(--canvas)] border border-[var(--border-soft)] rounded-xl shadow-sm overflow-hidden">
+          <div className="flex items-center justify-between p-5 border-b border-[var(--border-soft)]">
+            <h3 className="text-sm font-semibold text-[var(--text-2)] uppercase tracking-wide">
               {currentSeason} Menu Items
             </h3>
             <button
               onClick={() => setShowAddForm(!showAddForm)}
-              className="flex items-center gap-2 px-3 py-2 bg-amber-500 text-white rounded-lg text-sm font-semibold hover:bg-amber-600 transition-colors"
+              className="flex items-center gap-2 px-3 py-2 bg-[var(--accent)] text-white rounded-lg text-sm font-semibold hover:bg-[var(--accent-hover)] transition-colors"
             >
               <Plus className="w-4 h-4" />
               Add Item
@@ -255,7 +255,7 @@ export default function SeasonalMenuTab() {
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
-                className="border-b border-gray-100 bg-amber-50/50"
+                className="border-b border-[var(--border-soft)] bg-[var(--accent-muted)]"
               >
                 <div className="p-5 space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -264,21 +264,21 @@ export default function SeasonalMenuTab() {
                       placeholder="Item name"
                       value={newItem.name}
                       onChange={(e) => setNewItem((p) => ({ ...p, name: e.target.value }))}
-                      className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+                      className="border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                     />
                     <input
                       type="text"
                       placeholder="Description"
                       value={newItem.description}
                       onChange={(e) => setNewItem((p) => ({ ...p, description: e.target.value }))}
-                      className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+                      className="border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                     />
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                     <select
                       value={newItem.category}
                       onChange={(e) => setNewItem((p) => ({ ...p, category: e.target.value }))}
-                      className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+                      className="border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                     >
                       <option>Beverages</option>
                       <option>Pastry</option>
@@ -292,26 +292,26 @@ export default function SeasonalMenuTab() {
                       min={0}
                       value={newItem.price || ""}
                       onChange={(e) => setNewItem((p) => ({ ...p, price: Number(e.target.value) }))}
-                      className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+                      className="border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                     />
                     <input
                       type="date"
                       value={newItem.startDate}
                       onChange={(e) => setNewItem((p) => ({ ...p, startDate: e.target.value }))}
-                      className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+                      className="border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                     />
                     <input
                       type="date"
                       value={newItem.endDate}
                       onChange={(e) => setNewItem((p) => ({ ...p, endDate: e.target.value }))}
-                      className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+                      className="border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                     />
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <select
                       value={newItem.season}
                       onChange={(e) => setNewItem((p) => ({ ...p, season: e.target.value as Season }))}
-                      className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+                      className="border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                     >
                       {(["Spring", "Summer", "Autumn", "Winter"] as Season[]).map((s) => (
                         <option key={s} value={s}>{s}</option>
@@ -322,25 +322,25 @@ export default function SeasonalMenuTab() {
                       placeholder="Ingredient sourcing notes"
                       value={newItem.sourcingNotes}
                       onChange={(e) => setNewItem((p) => ({ ...p, sourcingNotes: e.target.value }))}
-                      className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+                      className="border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                     />
                   </div>
                   <div className="flex items-center gap-6">
-                    <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                    <label className="flex items-center gap-2 text-sm text-[var(--text-2)] cursor-pointer">
                       <input
                         type="checkbox"
                         checked={newItem.limitedQuantity}
                         onChange={(e) => setNewItem((p) => ({ ...p, limitedQuantity: e.target.checked }))}
-                        className="rounded accent-amber-500"
+                        className="rounded accent-[var(--accent)]"
                       />
                       Limited Quantity
                     </label>
-                    <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                    <label className="flex items-center gap-2 text-sm text-[var(--text-2)] cursor-pointer">
                       <input
                         type="checkbox"
                         checked={newItem.featured}
                         onChange={(e) => setNewItem((p) => ({ ...p, featured: e.target.checked }))}
-                        className="rounded accent-amber-500"
+                        className="rounded accent-[var(--accent)]"
                       />
                       Featured
                     </label>
@@ -348,13 +348,13 @@ export default function SeasonalMenuTab() {
                   <div className="flex gap-2">
                     <button
                       onClick={addItem}
-                      className="px-4 py-2 bg-amber-500 text-white rounded-lg text-sm font-semibold hover:bg-amber-600 transition-colors"
+                      className="px-4 py-2 bg-[var(--accent)] text-white rounded-lg text-sm font-semibold hover:bg-[var(--accent-hover)] transition-colors"
                     >
                       Add Item
                     </button>
                     <button
                       onClick={() => setShowAddForm(false)}
-                      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-300 transition-colors"
+                      className="px-4 py-2 bg-[var(--surface-alt)] text-[var(--text-2)] rounded-lg text-sm font-medium hover:bg-[var(--border)] transition-colors"
                     >
                       Cancel
                     </button>
@@ -364,7 +364,7 @@ export default function SeasonalMenuTab() {
             )}
           </AnimatePresence>
 
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-[var(--border)]">
             <AnimatePresence>
               {activeItems.map((item) => (
                 <motion.div
@@ -373,7 +373,7 @@ export default function SeasonalMenuTab() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0, x: 40 }}
-                  className="px-5 py-4 hover:bg-gray-50/50 transition-colors"
+                  className="px-5 py-4 hover:bg-[var(--surface)]/50 transition-colors"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
@@ -382,7 +382,7 @@ export default function SeasonalMenuTab() {
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <p className="text-sm font-medium text-gray-800">{item.name}</p>
+                          <p className="text-sm font-medium text-[var(--text-1)]">{item.name}</p>
                           {item.featured && (
                             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-700">
                               <Star className="w-3 h-3" /> Featured
@@ -394,15 +394,15 @@ export default function SeasonalMenuTab() {
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-gray-400 mt-0.5">{item.description}</p>
+                        <p className="text-xs text-[var(--text-3)] mt-0.5">{item.description}</p>
                         <div className="flex items-center gap-3 mt-1">
-                          <span className="text-xs text-gray-400">{item.category}</span>
-                          <span className="text-xs text-gray-300">|</span>
-                          <span className="text-xs text-gray-400">{item.startDate} to {item.endDate}</span>
+                          <span className="text-xs text-[var(--text-3)]">{item.category}</span>
+                          <span className="text-xs text-[var(--text-3)]">|</span>
+                          <span className="text-xs text-[var(--text-3)]">{item.startDate} to {item.endDate}</span>
                           {item.sourcingNotes && (
                             <>
-                              <span className="text-xs text-gray-300">|</span>
-                              <span className="text-xs text-amber-500 flex items-center gap-1">
+                              <span className="text-xs text-[var(--text-3)]">|</span>
+                              <span className="text-xs text-[var(--accent)] flex items-center gap-1">
                                 <StickyNote className="w-3 h-3" /> {item.sourcingNotes}
                               </span>
                             </>
@@ -411,11 +411,11 @@ export default function SeasonalMenuTab() {
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-sm font-bold text-amber-600">{formatPrice(item.price, cur)}</span>
+                      <span className="text-sm font-bold text-[var(--accent-text)]">{formatPrice(item.price, cur)}</span>
                       <button
                         onClick={() => toggleFeatured(item.id)}
                         className={`p-1.5 rounded-lg transition-colors ${
-                          item.featured ? "text-yellow-500 bg-yellow-50" : "text-gray-300 hover:text-yellow-500 hover:bg-yellow-50"
+                          item.featured ? "text-yellow-500 bg-yellow-50" : "text-[var(--text-3)] hover:text-yellow-500 hover:bg-yellow-50"
                         }`}
                       >
                         <Star className="w-4 h-4" />
@@ -432,7 +432,7 @@ export default function SeasonalMenuTab() {
               ))}
             </AnimatePresence>
             {activeItems.length === 0 && (
-              <div className="p-8 text-center text-gray-400 text-sm">
+              <div className="p-8 text-center text-[var(--text-3)] text-sm">
                 No items for {currentSeason}. Add seasonal items to get started.
               </div>
             )}
@@ -446,28 +446,28 @@ export default function SeasonalMenuTab() {
             const seasonItems = items.filter((i) => i.season === season);
             const SI = seasonConfig[season].icon;
             return (
-              <div key={season} className="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
-                <div className="flex items-center gap-3 p-5 border-b border-gray-100">
+              <div key={season} className="bg-[var(--canvas)] border border-[var(--border-soft)] rounded-xl shadow-sm overflow-hidden">
+                <div className="flex items-center gap-3 p-5 border-b border-[var(--border-soft)]">
                   <div className={`p-2 rounded-lg ${seasonConfig[season].bg}`}>
                     <SI className={`w-4 h-4 ${seasonConfig[season].color}`} />
                   </div>
-                  <h3 className="text-sm font-semibold text-gray-700">{season}</h3>
-                  <span className="text-xs text-gray-400">{seasonItems.length} items planned</span>
+                  <h3 className="text-sm font-semibold text-[var(--text-2)]">{season}</h3>
+                  <span className="text-xs text-[var(--text-3)]">{seasonItems.length} items planned</span>
                 </div>
                 {seasonItems.length > 0 ? (
-                  <div className="divide-y divide-gray-50">
+                  <div className="divide-y divide-[var(--border)]">
                     {seasonItems.map((item) => (
                       <div key={item.id} className="flex items-center justify-between px-5 py-3">
                         <div>
-                          <p className="text-sm font-medium text-gray-800">{item.name}</p>
-                          <p className="text-xs text-gray-400">{item.category} - {formatPrice(item.price, cur)}</p>
+                          <p className="text-sm font-medium text-[var(--text-1)]">{item.name}</p>
+                          <p className="text-xs text-[var(--text-3)]">{item.category} - {formatPrice(item.price, cur)}</p>
                         </div>
-                        <span className="text-xs text-gray-400">{item.startDate} to {item.endDate}</span>
+                        <span className="text-xs text-[var(--text-3)]">{item.startDate} to {item.endDate}</span>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="p-5 text-center text-sm text-gray-400">No items planned yet</div>
+                  <div className="p-5 text-center text-sm text-[var(--text-3)]">No items planned yet</div>
                 )}
               </div>
             );
@@ -476,14 +476,14 @@ export default function SeasonalMenuTab() {
       )}
 
       {viewTab === "past" && (
-        <div className="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
-          <div className="p-5 border-b border-gray-100">
-            <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-amber-500" />
+        <div className="bg-[var(--canvas)] border border-[var(--border-soft)] rounded-xl shadow-sm overflow-hidden">
+          <div className="p-5 border-b border-[var(--border-soft)]">
+            <h3 className="text-sm font-semibold text-[var(--text-2)] uppercase tracking-wide flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-[var(--accent)]" />
               Past Seasonal Performance
             </h3>
           </div>
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-[var(--border)]">
             {([] as PastItem[]).map((item, i) => {
               const SI = seasonConfig[item.season].icon;
               return (
@@ -493,23 +493,23 @@ export default function SeasonalMenuTab() {
                   className="flex items-center justify-between px-5 py-3.5"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="w-6 text-center text-sm font-bold text-gray-400">#{i + 1}</span>
+                    <span className="w-6 text-center text-sm font-bold text-[var(--text-3)]">#{i + 1}</span>
                     <div className={`p-1.5 rounded-lg ${seasonConfig[item.season].bg}`}>
                       <SI className={`w-3.5 h-3.5 ${seasonConfig[item.season].color}`} />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-800">{item.name}</p>
-                      <p className="text-xs text-gray-400">{item.season}</p>
+                      <p className="text-sm font-medium text-[var(--text-1)]">{item.name}</p>
+                      <p className="text-xs text-[var(--text-3)]">{item.season}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="text-right">
-                      <p className="text-sm font-bold text-gray-800">{item.totalSold} sold</p>
-                      <p className="text-xs text-gray-400">{formatPrice(item.revenue, cur)}</p>
+                      <p className="text-sm font-bold text-[var(--text-1)]">{item.totalSold} sold</p>
+                      <p className="text-xs text-[var(--text-3)]">{formatPrice(item.revenue, cur)}</p>
                     </div>
-                    <div className="flex items-center gap-1 px-2 py-0.5 bg-amber-50 rounded-full">
-                      <Star className="w-3 h-3 text-amber-500" />
-                      <span className="text-xs font-semibold text-amber-700">{item.rating}</span>
+                    <div className="flex items-center gap-1 px-2 py-0.5 bg-[var(--accent-muted)] rounded-full">
+                      <Star className="w-3 h-3 text-[var(--accent)]" />
+                      <span className="text-xs font-semibold text-[var(--accent-text)]">{item.rating}</span>
                     </div>
                   </div>
                 </motion.div>

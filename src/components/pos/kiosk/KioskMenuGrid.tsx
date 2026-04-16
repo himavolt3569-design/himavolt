@@ -34,9 +34,9 @@ interface Props {
 export default function KioskMenuGrid({ items, cart, currency, onItemTap, onQuickAdd }: Props) {
   if (items.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-gray-300">
+      <div className="flex flex-col items-center justify-center py-20 text-[var(--text-3)]">
         <Utensils className="h-12 w-12 mb-4" />
-        <p className="text-base font-medium text-gray-400">No items available</p>
+        <p className="text-base font-medium text-[var(--text-3)]">No items available</p>
       </div>
     );
   }
@@ -55,17 +55,17 @@ export default function KioskMenuGrid({ items, cart, currency, onItemTap, onQuic
             key={item.id}
             whileTap={{ scale: 0.97 }}
             onClick={() => onItemTap(item)}
-            className={`relative rounded-2xl border bg-white overflow-hidden shadow-sm cursor-pointer transition-all hover:shadow-md ${
-              inCart ? "border-amber-300 ring-2 ring-amber-100" : "border-gray-100"
+            className={`relative rounded-2xl border bg-[var(--canvas)] overflow-hidden shadow-sm cursor-pointer transition-all hover:shadow-md ${
+              inCart ? "border-[var(--accent-border)] ring-2 ring-[var(--accent-border)]" : "border-[var(--border-soft)]"
             }`}
           >
             {/* Image */}
-            <div className="relative h-36 bg-gray-50">
+            <div className="relative h-36 bg-[var(--canvas-sub)]">
               {item.imageUrl ? (
                 <img src={item.imageUrl} alt={item.name} className="h-full w-full object-cover" />
               ) : (
-                <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-amber-50 to-orange-50">
-                  <Utensils className="h-10 w-10 text-amber-200" />
+                <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-[var(--accent)] to-[var(--accent-hover)]">
+                  <Utensils className="h-10 w-10 text-[var(--accent)]" />
                 </div>
               )}
 
@@ -76,7 +76,7 @@ export default function KioskMenuGrid({ items, cart, currency, onItemTap, onQuic
               )}
 
               {inCart && (
-                <div className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-full bg-amber-600 text-xs font-black text-white shadow-md">
+                <div className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-full bg-[var(--accent-hover)] text-xs font-black text-white shadow-md">
                   {inCartQty}
                 </div>
               )}
@@ -84,7 +84,7 @@ export default function KioskMenuGrid({ items, cart, currency, onItemTap, onQuic
               {!hasSizes && (
                 <button
                   onClick={(e) => { e.stopPropagation(); onQuickAdd(item); }}
-                  className="absolute bottom-2 right-2 flex h-9 w-9 items-center justify-center rounded-full bg-amber-600 text-white shadow-md hover:bg-amber-500 transition-colors active:scale-95"
+                  className="absolute bottom-2 right-2 flex h-9 w-9 items-center justify-center rounded-full bg-[var(--accent-hover)] text-white shadow-md hover:bg-[var(--accent)] transition-colors active:scale-95"
                 >
                   <Plus className="h-4 w-4" />
                 </button>
@@ -101,21 +101,21 @@ export default function KioskMenuGrid({ items, cart, currency, onItemTap, onQuic
                   <span className="h-2 w-2 rounded-full bg-red-400 shrink-0" />
                 )}
               </div>
-              <h3 className="text-sm font-bold text-gray-900 line-clamp-2 leading-tight">{item.name}</h3>
+              <h3 className="text-sm font-bold text-[var(--text-1)] line-clamp-2 leading-tight">{item.name}</h3>
 
               <div className="mt-2 flex items-baseline gap-2">
-                <span className="text-sm font-black text-amber-700">
+                <span className="text-sm font-black text-[var(--accent-text)]">
                   {formatPrice(discountedPrice, currency)}
                 </span>
                 {item.discount > 0 && (
-                  <span className="text-xs text-gray-400 line-through">
+                  <span className="text-xs text-[var(--text-3)] line-through">
                     {formatPrice(item.price, currency)}
                   </span>
                 )}
               </div>
 
               {hasSizes && (
-                <p className="mt-1 text-[11px] text-amber-600 font-semibold">
+                <p className="mt-1 text-[11px] text-[var(--accent-text)] font-semibold">
                   {item.sizes.length} size{item.sizes.length > 1 ? "s" : ""} available
                 </p>
               )}

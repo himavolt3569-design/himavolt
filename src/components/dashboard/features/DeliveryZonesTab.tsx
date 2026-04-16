@@ -131,8 +131,8 @@ export default function DeliveryZonesTab() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Delivery Zones</h2>
-          <p className="text-sm text-gray-500 mt-1">
+          <h2 className="text-2xl font-bold text-[var(--text-1)]">Delivery Zones</h2>
+          <p className="text-sm text-[var(--text-2)] mt-1">
             Configure delivery area coverage and pricing
           </p>
         </div>
@@ -146,29 +146,29 @@ export default function DeliveryZonesTab() {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-center">
+        <div className="bg-[var(--canvas)] rounded-xl shadow-sm border border-[var(--border-soft)] p-4 text-center">
           <Target className="w-5 h-5 text-violet-500 mx-auto mb-1" />
-          <p className="text-2xl font-bold text-gray-900">{zones.length}</p>
-          <p className="text-xs text-gray-500">Total Zones</p>
+          <p className="text-2xl font-bold text-[var(--text-1)]">{zones.length}</p>
+          <p className="text-xs text-[var(--text-2)]">Total Zones</p>
         </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-center">
+        <div className="bg-[var(--canvas)] rounded-xl shadow-sm border border-[var(--border-soft)] p-4 text-center">
           <Navigation className="w-5 h-5 text-[#d67620] mx-auto mb-1" />
-          <p className="text-2xl font-bold text-gray-900">{totalActiveZones}</p>
-          <p className="text-xs text-gray-500">Active Zones</p>
+          <p className="text-2xl font-bold text-[var(--text-1)]">{totalActiveZones}</p>
+          <p className="text-xs text-[var(--text-2)]">Active Zones</p>
         </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-center">
+        <div className="bg-[var(--canvas)] rounded-xl shadow-sm border border-[var(--border-soft)] p-4 text-center">
           <MapPin className="w-5 h-5 text-blue-500 mx-auto mb-1" />
-          <p className="text-2xl font-bold text-gray-900">
+          <p className="text-2xl font-bold text-[var(--text-1)]">
             {Math.max(...zones.map((z) => z.radiusKm), 0)} km
           </p>
-          <p className="text-xs text-gray-500">Max Radius</p>
+          <p className="text-xs text-[var(--text-2)]">Max Radius</p>
         </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-center">
+        <div className="bg-[var(--canvas)] rounded-xl shadow-sm border border-[var(--border-soft)] p-4 text-center">
           <Ban className="w-5 h-5 text-red-500 mx-auto mb-1" />
-          <p className="text-2xl font-bold text-gray-900">
+          <p className="text-2xl font-bold text-[var(--text-1)]">
             {restrictedZones.length}
           </p>
-          <p className="text-xs text-gray-500">Restricted Areas</p>
+          <p className="text-xs text-[var(--text-2)]">Restricted Areas</p>
         </div>
       </div>
 
@@ -180,9 +180,9 @@ export default function DeliveryZonesTab() {
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            <div className="bg-white rounded-xl shadow-sm border border-violet-200 p-6">
+            <div className="bg-[var(--canvas)] rounded-xl shadow-sm border border-violet-200 p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-[var(--text-1)] flex items-center gap-2">
                   <Plus className="w-4 h-4 text-violet-600" />
                   Add New Delivery Zone
                 </h3>
@@ -191,14 +191,14 @@ export default function DeliveryZonesTab() {
                     setShowAddForm(false);
                     setForm(emptyZoneForm);
                   }}
-                  className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-1 hover:bg-[var(--surface)] rounded-lg transition-colors"
                 >
-                  <X className="w-4 h-4 text-gray-400" />
+                  <X className="w-4 h-4 text-[var(--text-3)]" />
                 </button>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
-                  <label className="text-xs font-medium text-gray-600">
+                  <label className="text-xs font-medium text-[var(--text-2)]">
                     Zone Name *
                   </label>
                   <input
@@ -208,11 +208,11 @@ export default function DeliveryZonesTab() {
                       setForm({ ...form, name: e.target.value })
                     }
                     placeholder="e.g., Zone D - Outer Ring"
-                    className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none"
+                    className="mt-1 w-full px-3 py-2 border border-[var(--border)] rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none"
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="text-xs font-medium text-gray-600">
+                  <label className="text-xs font-medium text-[var(--text-2)]">
                     Coverage Area Description *
                   </label>
                   <input
@@ -222,11 +222,11 @@ export default function DeliveryZonesTab() {
                       setForm({ ...form, areaDescription: e.target.value })
                     }
                     placeholder="e.g., Kirtipur, Thankot, Kalanki areas"
-                    className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none"
+                    className="mt-1 w-full px-3 py-2 border border-[var(--border)] rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-gray-600">
+                  <label className="text-xs font-medium text-[var(--text-2)]">
                     Radius (km)
                   </label>
                   <input
@@ -238,11 +238,11 @@ export default function DeliveryZonesTab() {
                         radiusKm: Number(e.target.value) || 1,
                       })
                     }
-                    className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none"
+                    className="mt-1 w-full px-3 py-2 border border-[var(--border)] rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-gray-600">
+                  <label className="text-xs font-medium text-[var(--text-2)]">
                     {`Delivery Charge (${getCurrencySymbol(cur)})`}
                   </label>
                   <input
@@ -254,11 +254,11 @@ export default function DeliveryZonesTab() {
                         deliveryFee: Number(e.target.value) || 0,
                       })
                     }
-                    className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none"
+                    className="mt-1 w-full px-3 py-2 border border-[var(--border)] rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-gray-600">
+                  <label className="text-xs font-medium text-[var(--text-2)]">
                     {`Min Order Amount (${getCurrencySymbol(cur)})`}
                   </label>
                   <input
@@ -270,11 +270,11 @@ export default function DeliveryZonesTab() {
                         minOrderAmount: Number(e.target.value) || 0,
                       })
                     }
-                    className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none"
+                    className="mt-1 w-full px-3 py-2 border border-[var(--border)] rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-gray-600">
+                  <label className="text-xs font-medium text-[var(--text-2)]">
                     Estimated Time (min)
                   </label>
                   <input
@@ -286,11 +286,11 @@ export default function DeliveryZonesTab() {
                         estimatedTimeMin: Number(e.target.value) || 10,
                       })
                     }
-                    className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none"
+                    className="mt-1 w-full px-3 py-2 border border-[var(--border)] rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-gray-600">
+                  <label className="text-xs font-medium text-[var(--text-2)]">
                     {`Free Delivery Threshold (${getCurrencySymbol(cur)})`}
                   </label>
                   <input
@@ -302,11 +302,11 @@ export default function DeliveryZonesTab() {
                         freeDeliveryThreshold: Number(e.target.value) || 0,
                       })
                     }
-                    className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none"
+                    className="mt-1 w-full px-3 py-2 border border-[var(--border)] rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-gray-600">
+                  <label className="text-xs font-medium text-[var(--text-2)]">
                     Delivery Hours Start
                   </label>
                   <input
@@ -318,11 +318,11 @@ export default function DeliveryZonesTab() {
                         deliveryHoursStart: e.target.value,
                       })
                     }
-                    className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none"
+                    className="mt-1 w-full px-3 py-2 border border-[var(--border)] rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-gray-600">
+                  <label className="text-xs font-medium text-[var(--text-2)]">
                     Delivery Hours End
                   </label>
                   <input
@@ -334,7 +334,7 @@ export default function DeliveryZonesTab() {
                         deliveryHoursEnd: e.target.value,
                       })
                     }
-                    className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none"
+                    className="mt-1 w-full px-3 py-2 border border-[var(--border)] rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none"
                   />
                 </div>
               </div>
@@ -344,7 +344,7 @@ export default function DeliveryZonesTab() {
                     setShowAddForm(false);
                     setForm(emptyZoneForm);
                   }}
-                  className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="px-4 py-2 text-sm text-[var(--text-2)] hover:bg-[var(--surface)] rounded-lg transition-colors"
                 >
                   Cancel
                 </button>
@@ -372,8 +372,8 @@ export default function DeliveryZonesTab() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, x: -100 }}
-              className={`bg-white rounded-xl shadow-sm border overflow-hidden ${
-                zone.active ? "border-gray-200" : "border-gray-100 opacity-60"
+              className={`bg-[var(--canvas)] rounded-xl shadow-sm border overflow-hidden ${
+                zone.active ? "border-[var(--border)]" : "border-[var(--border-soft)] opacity-60"
               }`}
             >
               <div className="p-5">
@@ -382,7 +382,7 @@ export default function DeliveryZonesTab() {
                     <button
                       onClick={() => movePriority(idx, "up")}
                       disabled={idx === 0}
-                      className="p-0.5 rounded hover:bg-violet-100 disabled:opacity-20 disabled:cursor-not-allowed text-gray-400 hover:text-violet-600 transition-colors"
+                      className="p-0.5 rounded hover:bg-violet-100 disabled:opacity-20 disabled:cursor-not-allowed text-[var(--text-3)] hover:text-violet-600 transition-colors"
                     >
                       <ChevronUp className="w-4 h-4" />
                     </button>
@@ -392,7 +392,7 @@ export default function DeliveryZonesTab() {
                     <button
                       onClick={() => movePriority(idx, "down")}
                       disabled={idx === zones.length - 1}
-                      className="p-0.5 rounded hover:bg-violet-100 disabled:opacity-20 disabled:cursor-not-allowed text-gray-400 hover:text-violet-600 transition-colors"
+                      className="p-0.5 rounded hover:bg-violet-100 disabled:opacity-20 disabled:cursor-not-allowed text-[var(--text-3)] hover:text-violet-600 transition-colors"
                     >
                       <ChevronDown className="w-4 h-4" />
                     </button>
@@ -404,38 +404,38 @@ export default function DeliveryZonesTab() {
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <h3 className="text-sm font-bold text-gray-900">
+                      <h3 className="text-sm font-bold text-[var(--text-1)]">
                         {zone.name}
                       </h3>
                       <span
                         className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
                           zone.active
-                            ? "bg-[#fef3dc] text-[#b25c1c]"
-                            : "bg-gray-100 text-gray-500"
+                            ? "bg-[var(--accent-muted)] text-[#b25c1c]"
+                            : "bg-[var(--surface)] text-[var(--text-2)]"
                         }`}
                       >
                         {zone.active ? "Active" : "Inactive"}
                       </span>
                     </div>
-                    <p className="text-xs text-gray-500 mt-0.5">
+                    <p className="text-xs text-[var(--text-2)] mt-0.5">
                       {zone.areaDescription}
                     </p>
 
                     <div className="flex flex-wrap items-center gap-3 mt-2">
-                      <span className="inline-flex items-center gap-1 text-xs text-gray-600">
+                      <span className="inline-flex items-center gap-1 text-xs text-[var(--text-2)]">
                         <Target className="w-3 h-3 text-violet-500" />
                         {zone.radiusKm} km
                       </span>
-                      <span className="inline-flex items-center gap-1 text-xs text-gray-600">
+                      <span className="inline-flex items-center gap-1 text-xs text-[var(--text-2)]">
                         <DollarSign className="w-3 h-3 text-[#d67620]" />
                         {formatPrice(zone.deliveryFee, cur)}
                       </span>
-                      <span className="inline-flex items-center gap-1 text-xs text-gray-600">
+                      <span className="inline-flex items-center gap-1 text-xs text-[var(--text-2)]">
                         <Clock className="w-3 h-3 text-blue-500" />
                         ~{zone.estimatedTimeMin} min
                       </span>
-                      <span className="inline-flex items-center gap-1 text-xs text-gray-600">
-                        <Truck className="w-3 h-3 text-amber-500" />
+                      <span className="inline-flex items-center gap-1 text-xs text-[var(--text-2)]">
+                        <Truck className="w-3 h-3 text-[var(--accent)]" />
                         {zone.ordersThisWeek} orders/wk
                       </span>
                     </div>
@@ -448,9 +448,9 @@ export default function DeliveryZonesTab() {
                           expandedZone === zone.id ? null : zone.id
                         )
                       }
-                      className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+                      className="p-1.5 hover:bg-[var(--surface)] rounded-lg transition-colors"
                     >
-                      <Edit2 className="w-4 h-4 text-gray-400" />
+                      <Edit2 className="w-4 h-4 text-[var(--text-3)]" />
                     </button>
                     <button
                       onClick={() => toggleZone(zone.id)}
@@ -459,7 +459,7 @@ export default function DeliveryZonesTab() {
                       {zone.active ? (
                         <ToggleRight className="w-8 h-8 text-violet-600" />
                       ) : (
-                        <ToggleLeft className="w-8 h-8 text-gray-300" />
+                        <ToggleLeft className="w-8 h-8 text-[var(--text-3)]" />
                       )}
                     </button>
                     <button
@@ -479,20 +479,20 @@ export default function DeliveryZonesTab() {
                       exit={{ opacity: 0, height: 0 }}
                       className="overflow-hidden"
                     >
-                      <div className="mt-4 pt-4 border-t border-gray-100 grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="mt-4 pt-4 border-t border-[var(--border-soft)] grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div className="bg-violet-50 rounded-lg p-3">
                           <p className="text-[10px] font-medium text-violet-600 uppercase tracking-wide">
                             Min Order
                           </p>
-                          <p className="text-sm font-bold text-gray-900 mt-0.5">
+                          <p className="text-sm font-bold text-[var(--text-1)] mt-0.5">
                             {formatPrice(zone.minOrderAmount, cur)}
                           </p>
                         </div>
-                        <div className="bg-[#fef9ef] rounded-lg p-3">
+                        <div className="bg-[var(--accent-muted)] rounded-lg p-3">
                           <p className="text-[10px] font-medium text-[#b25c1c] uppercase tracking-wide">
                             Free Delivery
                           </p>
-                          <p className="text-sm font-bold text-gray-900 mt-0.5">
+                          <p className="text-sm font-bold text-[var(--text-1)] mt-0.5">
                             {formatPrice(zone.freeDeliveryThreshold, cur)}+
                           </p>
                         </div>
@@ -500,15 +500,15 @@ export default function DeliveryZonesTab() {
                           <p className="text-[10px] font-medium text-blue-600 uppercase tracking-wide">
                             Hours Start
                           </p>
-                          <p className="text-sm font-bold text-gray-900 mt-0.5">
+                          <p className="text-sm font-bold text-[var(--text-1)] mt-0.5">
                             {zone.deliveryHoursStart}
                           </p>
                         </div>
-                        <div className="bg-amber-50 rounded-lg p-3">
-                          <p className="text-[10px] font-medium text-amber-600 uppercase tracking-wide">
+                        <div className="bg-[var(--accent-muted)] rounded-lg p-3">
+                          <p className="text-[10px] font-medium text-[var(--accent-text)] uppercase tracking-wide">
                             Hours End
                           </p>
-                          <p className="text-sm font-bold text-gray-900 mt-0.5">
+                          <p className="text-sm font-bold text-[var(--text-1)] mt-0.5">
                             {zone.deliveryHoursEnd}
                           </p>
                         </div>
@@ -524,7 +524,7 @@ export default function DeliveryZonesTab() {
 
       <motion.div
         layout
-        className="bg-white rounded-xl shadow-sm border border-gray-100 p-6"
+        className="bg-[var(--canvas)] rounded-xl shadow-sm border border-[var(--border-soft)] p-6"
       >
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
@@ -532,10 +532,10 @@ export default function DeliveryZonesTab() {
               <Shield className="w-5 h-5 text-red-600" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-gray-900">
+              <h3 className="text-sm font-semibold text-[var(--text-1)]">
                 Restricted Zones
               </h3>
-              <p className="text-xs text-gray-500">Areas not served</p>
+              <p className="text-xs text-[var(--text-2)]">Areas not served</p>
             </div>
           </div>
           <button
@@ -557,7 +557,7 @@ export default function DeliveryZonesTab() {
             >
               <div className="flex items-end gap-3 p-3 bg-red-50 rounded-lg">
                 <div className="flex-1">
-                  <label className="text-xs font-medium text-gray-600">
+                  <label className="text-xs font-medium text-[var(--text-2)]">
                     Area Name
                   </label>
                   <input
@@ -570,11 +570,11 @@ export default function DeliveryZonesTab() {
                       })
                     }
                     placeholder="e.g., Chandragiri"
-                    className="mt-1 w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-red-400 focus:border-transparent outline-none bg-white"
+                    className="mt-1 w-full px-3 py-1.5 border border-[var(--border)] rounded-lg text-sm focus:ring-2 focus:ring-red-400 focus:border-transparent outline-none bg-[var(--canvas)]"
                   />
                 </div>
                 <div className="flex-1">
-                  <label className="text-xs font-medium text-gray-600">
+                  <label className="text-xs font-medium text-[var(--text-2)]">
                     Reason
                   </label>
                   <input
@@ -587,7 +587,7 @@ export default function DeliveryZonesTab() {
                       })
                     }
                     placeholder="Why not served"
-                    className="mt-1 w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-red-400 focus:border-transparent outline-none bg-white"
+                    className="mt-1 w-full px-3 py-1.5 border border-[var(--border)] rounded-lg text-sm focus:ring-2 focus:ring-red-400 focus:border-transparent outline-none bg-[var(--canvas)]"
                   />
                 </div>
                 <button
@@ -620,11 +620,11 @@ export default function DeliveryZonesTab() {
               <div className="flex items-center gap-2">
                 <Ban className="w-4 h-4 text-red-400" />
                 <div>
-                  <p className="text-sm font-medium text-gray-900">
+                  <p className="text-sm font-medium text-[var(--text-1)]">
                     {rz.name}
                   </p>
                   {rz.reason && (
-                    <p className="text-xs text-gray-500">{rz.reason}</p>
+                    <p className="text-xs text-[var(--text-2)]">{rz.reason}</p>
                   )}
                 </div>
               </div>
@@ -637,7 +637,7 @@ export default function DeliveryZonesTab() {
             </div>
           ))}
           {restrictedZones.length === 0 && (
-            <p className="text-sm text-gray-400 text-center py-4">
+            <p className="text-sm text-[var(--text-3)] text-center py-4">
               No restricted zones configured
             </p>
           )}

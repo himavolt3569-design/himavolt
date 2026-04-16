@@ -77,7 +77,7 @@ export default function WifiSettingsTab({ restaurantId: propRestaurantId }: { re
 
   if (!effectiveId) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+      <div className="flex flex-col items-center justify-center py-20 text-[var(--text-3)]">
         <Wifi className="h-10 w-10 mb-3" />
         <p className="text-sm font-medium">No restaurant found</p>
       </div>
@@ -89,8 +89,8 @@ export default function WifiSettingsTab({ restaurantId: propRestaurantId }: { re
   return (
     <div className="max-w-lg space-y-6">
       <div>
-        <h2 className="text-lg font-bold text-amber-950">WiFi Settings</h2>
-        <p className="text-sm text-gray-400 mt-1">
+        <h2 className="text-lg font-bold text-[var(--text-1)]">WiFi Settings</h2>
+        <p className="text-sm text-[var(--text-3)] mt-1">
           Share your WiFi credentials with customers on the menu page.
         </p>
       </div>
@@ -98,15 +98,15 @@ export default function WifiSettingsTab({ restaurantId: propRestaurantId }: { re
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        className={`rounded-2xl border p-4 ${hasWifi ? "bg-[#fef9ef] border-[#eaa94d]/30" : "bg-gray-50 border-gray-200"}`}
+        className={`rounded-2xl border p-4 ${hasWifi ? "bg-[var(--accent-muted)] border-[var(--accent-border)]" : "bg-[var(--canvas-sub)] border-[var(--border)]"}`}
       >
         <div className="flex items-center gap-2 mb-1">
           {hasWifi ? (
             <Wifi className="h-4 w-4 text-[#b25c1c]" />
           ) : (
-            <WifiOff className="h-4 w-4 text-gray-400" />
+            <WifiOff className="h-4 w-4 text-[var(--text-3)]" />
           )}
-          <span className={`text-xs font-bold ${hasWifi ? "text-[#b25c1c]" : "text-gray-500"}`}>
+          <span className={`text-xs font-bold ${hasWifi ? "text-[#b25c1c]" : "text-[var(--text-2)]"}`}>
             {hasWifi ? "WiFi Visible to Customers" : "No WiFi Configured"}
           </span>
         </div>
@@ -117,21 +117,21 @@ export default function WifiSettingsTab({ restaurantId: propRestaurantId }: { re
         )}
       </motion.div>
 
-      <div className="space-y-4 bg-white rounded-2xl border border-gray-200 p-5">
+      <div className="space-y-4 bg-[var(--canvas)] rounded-2xl border border-[var(--border)] p-5">
         <div>
-          <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1.5">
+          <label className="text-xs font-bold text-[var(--text-2)] uppercase tracking-wider block mb-1.5">
             Network Name (SSID)
           </label>
           <input
             value={wifiName}
             onChange={(e) => setWifiName(e.target.value)}
             placeholder="e.g. HimaVolt_Guest"
-            className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-amber-950 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#eaa94d]/30 focus:bg-white transition-all"
+            className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-2.5 text-sm text-[var(--text-1)] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] focus:bg-[var(--canvas)] transition-all"
           />
         </div>
 
         <div>
-          <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1.5">
+          <label className="text-xs font-bold text-[var(--text-2)] uppercase tracking-wider block mb-1.5">
             Password
           </label>
           <div className="relative">
@@ -140,14 +140,14 @@ export default function WifiSettingsTab({ restaurantId: propRestaurantId }: { re
               value={wifiPassword}
               onChange={(e) => setWifiPassword(e.target.value)}
               placeholder="WiFi password (leave blank if open)"
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 pr-20 text-sm text-amber-950 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#eaa94d]/30 focus:bg-white transition-all"
+              className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-2.5 pr-20 text-sm text-[var(--text-1)] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] focus:bg-[var(--canvas)] transition-all"
             />
             <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
               {wifiPassword && (
                 <button
                   type="button"
                   onClick={handleCopyPassword}
-                  className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 hover:text-amber-700 hover:bg-amber-50 transition-colors"
+                  className="flex h-7 w-7 items-center justify-center rounded-lg text-[var(--text-3)] hover:text-[var(--accent-text)] hover:bg-[var(--accent-muted)] transition-colors"
                   title="Copy password"
                 >
                   {copied ? <Check className="h-3.5 w-3.5 text-[#d67620]" /> : <Copy className="h-3.5 w-3.5" />}
@@ -156,13 +156,13 @@ export default function WifiSettingsTab({ restaurantId: propRestaurantId }: { re
               <button
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
-                className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 hover:text-amber-700 hover:bg-amber-50 transition-colors"
+                className="flex h-7 w-7 items-center justify-center rounded-lg text-[var(--text-3)] hover:text-[var(--accent-text)] hover:bg-[var(--accent-muted)] transition-colors"
               >
                 {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
               </button>
             </div>
           </div>
-          <p className="text-[11px] text-gray-400 mt-1">
+          <p className="text-[11px] text-[var(--text-3)] mt-1">
             Leave blank if your network has no password.
           </p>
         </div>
@@ -170,7 +170,7 @@ export default function WifiSettingsTab({ restaurantId: propRestaurantId }: { re
         <button
           onClick={handleSave}
           disabled={saving}
-          className="flex items-center gap-2 rounded-xl bg-amber-700 px-5 py-2.5 text-sm font-bold text-white hover:bg-amber-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 rounded-xl bg-[var(--accent-hover)] px-5 py-2.5 text-sm font-bold text-white hover:bg-[var(--accent-hover)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
           {saving ? "Saving..." : "Save WiFi Details"}

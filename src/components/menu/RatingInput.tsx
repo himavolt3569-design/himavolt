@@ -76,14 +76,14 @@ export default function RatingInput({
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
-        <span className="text-[13px] font-bold text-[#3e1e0c]">
+        <span className="text-[13px] font-bold text-[var(--text-1)]">
           Rate this dish
         </span>
         {selectedRating > 0 && (
           <motion.span
             initial={{ opacity: 0, x: -8 }}
             animate={{ opacity: 1, x: 0 }}
-            className="text-[11px] font-semibold text-amber-600"
+            className="text-[11px] font-semibold text-[var(--accent-text)]"
           >
             {ratingLabels[selectedRating]}
           </motion.span>
@@ -116,8 +116,8 @@ export default function RatingInput({
               <Star
                 className={`h-7 w-7 transition-all duration-200 ${
                   star <= displayRating
-                    ? "fill-amber-400 text-amber-400 drop-shadow-sm"
-                    : "text-gray-300 hover:text-amber-200"
+                    ? "fill-[var(--accent)] text-[var(--accent)] drop-shadow-sm"
+                    : "text-[var(--text-3)] hover:text-[var(--accent)]"
                 }`}
               />
             </motion.div>
@@ -138,7 +138,7 @@ export default function RatingInput({
               <button
                 type="button"
                 onClick={() => setShowComment(true)}
-                className="flex items-center gap-1.5 text-[12px] font-semibold text-gray-400 hover:text-amber-600 transition-colors"
+                className="flex items-center gap-1.5 text-[12px] font-semibold text-[var(--text-3)] hover:text-[var(--accent-text)] transition-colors"
               >
                 <MessageSquare className="h-3.5 w-3.5" />
                 Add a comment (optional)
@@ -154,7 +154,7 @@ export default function RatingInput({
                   placeholder="What did you think of this dish?"
                   rows={2}
                   maxLength={500}
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-3 py-2.5 text-[13px] text-gray-700 placeholder:text-gray-400 focus:border-amber-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-100 transition-all resize-none"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-3 py-2.5 text-[13px] text-[var(--text-2)] placeholder:text-[var(--text-3)] focus:border-[var(--accent-border)] focus:bg-[var(--canvas)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] transition-all resize-none"
                   disabled={loading}
                 />
               </motion.div>
@@ -166,7 +166,7 @@ export default function RatingInput({
               disabled={loading || selectedRating === 0}
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.98 }}
-              className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-5 py-2.5 text-[13px] font-bold text-white shadow-md shadow-amber-200/50 hover:shadow-lg hover:shadow-amber-300/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] px-5 py-2.5 text-[13px] font-bold text-white shadow-md shadow-[var(--accent)]/20/50 hover:shadow-lg hover:shadow-[var(--accent)]/20/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <>
@@ -208,7 +208,7 @@ export default function RatingInput({
                   initial={{ opacity: 0, y: -4 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -4 }}
-                  className="flex items-center gap-2 rounded-lg bg-[#fef9ef] border border-[#eaa94d]/30 px-3 py-2"
+                  className="flex items-center gap-2 rounded-lg bg-[var(--accent-muted)] border border-[var(--accent-border)] px-3 py-2"
                 >
                   <Check className="h-4 w-4 text-[#d67620] shrink-0" />
                   <span className="text-[12px] font-medium text-[#b25c1c]">

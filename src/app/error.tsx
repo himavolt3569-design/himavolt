@@ -30,16 +30,16 @@ export default function GlobalError({
           />
         </svg>
       </div>
-      <h2 className="text-xl font-bold text-gray-900 mb-2">
+      <h2 className="text-xl font-bold text-[var(--text-1)] mb-2">
         Something went wrong
       </h2>
-      <p className="text-sm text-gray-500 mb-6 max-w-sm">
+      <p className="text-sm text-[var(--text-2)] mb-6 max-w-sm">
         An unexpected error occurred. Please try again or contact support if the
         problem persists.
       </p>
       <button
         onClick={reset}
-        className="rounded-xl bg-amber-500 px-6 py-2.5 text-sm font-semibold text-white transition-all hover:bg-amber-400 active:scale-95"
+        className="rounded-xl bg-[var(--accent)] px-6 py-2.5 text-sm font-semibold text-white transition-all hover:bg-[var(--accent)] active:scale-95"
       >
         Try Again
       </button>

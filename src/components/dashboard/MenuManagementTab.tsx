@@ -114,13 +114,13 @@ const DEFAULT_CATEGORIES: { name: string; icon: string; subs: string[] }[] = [
 const BADGE_OPTIONS = ["Bestseller", "New", "Chef's Special", "Must Try", "Popular", "Seasonal"];
 const ALLERGEN_OPTIONS = ["Gluten", "Dairy", "Nuts", "Soy", "Eggs", "Shellfish", "Sesame", "Mustard"];
 const SPICE_LABELS = ["None", "Mild", "Medium", "Hot", "Extra Hot"];
-const SPICE_COLORS = ["text-gray-400", "text-[#d67620]", "text-yellow-500", "text-orange-500", "text-red-500"];
+const SPICE_COLORS = ["text-[var(--text-3)]", "text-[#d67620]", "text-yellow-500", "text-[var(--accent)]", "text-red-500"];
 
 
 function PriceInput({ value, onChange, placeholder, currencySymbol = "Rs." }: { value: string; onChange: (v: string) => void; placeholder?: string; currencySymbol?: string }) {
   return (
     <div className="relative">
-      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[11px] font-semibold text-gray-400 select-none">{currencySymbol}</span>
+      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[11px] font-semibold text-[var(--text-3)] select-none">{currencySymbol}</span>
       <input
         type="text"
         inputMode="decimal"
@@ -130,7 +130,7 @@ function PriceInput({ value, onChange, placeholder, currencySymbol = "Rs." }: { 
           if (v.split(".").length <= 2) onChange(v);
         }}
         placeholder={placeholder ?? "0"}
-        className="w-full rounded-lg border border-gray-200 bg-white py-2 pl-9 pr-3 text-sm font-semibold text-gray-900 placeholder-gray-300 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-100 transition-all"
+        className="w-full rounded-lg border border-[var(--border)] bg-[var(--canvas)] py-2 pl-9 pr-3 text-sm font-semibold text-[var(--text-1)] placeholder-gray-300 focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent-border)] transition-all"
       />
     </div>
   );
@@ -165,12 +165,12 @@ function MenuStats({ items, categories, currency }: { items: MenuItem[]; categor
   const totalSubs = categories.filter((c) => c.parentId).length;
 
   const stats = [
-    { label: "Total Items", value: items.length, icon: UtensilsCrossed, color: "text-amber-500", bg: "bg-gradient-to-br from-amber-400/20 to-orange-500/10", border: "border-amber-100/50" },
-    { label: "Active", value: `${active}/${items.length}`, icon: Eye, color: "text-[#d67620]", bg: "bg-gradient-to-br from-emerald-400/20 to-green-500/10", border: "border-[#eaa94d]/30/50" },
+    { label: "Total Items", value: items.length, icon: UtensilsCrossed, color: "text-[var(--accent)]", bg: "bg-gradient-to-br from-[var(--accent)]0/20 to-[var(--accent-hover)]/10", border: "border-[var(--accent-border)]/50" },
+    { label: "Active", value: `${active}/${items.length}`, icon: Eye, color: "text-[#d67620]", bg: "bg-gradient-to-br from-[#eaa94d]/20 to-[#fef9ef]", border: "border-[var(--accent-border)]/50" },
     { label: "Categories", value: `${topCats.length} + ${totalSubs} sub`, icon: Layers, color: "text-indigo-500", bg: "bg-gradient-to-br from-indigo-400/20 to-purple-500/10", border: "border-indigo-100/50" },
     { label: "Avg Price", value: formatPrice(avgPrice, currency), icon: TrendingUp, color: "text-blue-500", bg: "bg-gradient-to-br from-blue-400/20 to-cyan-500/10", border: "border-blue-100/50" },
-    { label: "Veg / Non-Veg", value: `${vegCount}/${items.length - vegCount}`, icon: Leaf, color: "text-[#b25c1c]", bg: "bg-gradient-to-br from-emerald-400/20 to-teal-500/10", border: "border-[#eaa94d]/30/50" },
-    { label: "Featured", value: featuredCount, icon: Star, color: "text-amber-500", bg: "bg-gradient-to-br from-amber-400/20 to-yellow-500/10", border: "border-amber-100/50" },
+    { label: "Veg / Non-Veg", value: `${vegCount}/${items.length - vegCount}`, icon: Leaf, color: "text-[#b25c1c]", bg: "bg-gradient-to-br from-[#eaa94d]/20 to-[#fef3dc]", border: "border-[var(--accent-border)]/50" },
+    { label: "Featured", value: featuredCount, icon: Star, color: "text-[var(--accent)]", bg: "bg-gradient-to-br from-[var(--accent)]0/20 to-yellow-500/10", border: "border-[var(--accent-border)]/50" },
   ];
 
   return (
@@ -179,14 +179,14 @@ function MenuStats({ items, categories, currency }: { items: MenuItem[]; categor
         <motion.div 
           key={s.label} 
           whileHover={{ y: -2 }}
-          className={`rounded-2xl bg-white/70 backdrop-blur-md border ${s.border} p-4 flex items-center gap-3.5 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.08)] transition-all`}
+          className={`rounded-2xl bg-[var(--canvas)]/70 backdrop-blur-md border ${s.border} p-4 flex items-center gap-3.5 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.08)] transition-all`}
         >
           <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${s.bg} border border-white/40 shadow-sm backdrop-blur-md`}>
             <s.icon className={`h-4.5 w-4.5 ${s.color} drop-shadow-sm`} />
           </div>
           <div>
-            <p className="text-[11px] text-gray-500 font-bold tracking-wide uppercase">{s.label}</p>
-            <p className="text-lg font-extrabold text-gray-900 leading-none mt-1">{String(s.value)}</p>
+            <p className="text-[11px] text-[var(--text-2)] font-bold tracking-wide uppercase">{s.label}</p>
+            <p className="text-lg font-extrabold text-[var(--text-1)] leading-none mt-1">{String(s.value)}</p>
           </div>
         </motion.div>
       ))}
@@ -224,7 +224,7 @@ function CategoryTree({
       <button
         onClick={() => onSelect("All")}
         className={`flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition-all ${
-          selectedCatId === "All" ? "bg-amber-100/80 text-amber-900 font-semibold" : "text-gray-600 hover:bg-gray-50"
+          selectedCatId === "All" ? "bg-[var(--accent-muted)] text-[var(--accent-text)] font-semibold" : "text-[var(--text-2)] hover:bg-[var(--canvas-sub)]"
         }`}
       >
         <Package className="h-3.5 w-3.5" />
@@ -241,7 +241,7 @@ function CategoryTree({
             <div className="flex items-center">
               <button
                 onClick={() => subs.length > 0 ? toggle(cat.id) : onSelect(cat.id)}
-                className="p-1 text-gray-400 hover:text-gray-600"
+                className="p-1 text-[var(--text-3)] hover:text-[var(--text-2)]"
               >
                 {subs.length > 0 ? (
                   <ChevronRight className={`h-3 w-3 transition-transform ${isExpanded ? "rotate-90" : ""}`} />
@@ -252,23 +252,23 @@ function CategoryTree({
               <button
                 onClick={() => onSelect(cat.id)}
                 className={`flex flex-1 items-center gap-2 rounded-lg px-2 py-2 text-[13px] font-medium transition-all ${
-                  selectedCatId === cat.id ? "bg-amber-100/80 text-amber-900 font-semibold" : "text-gray-600 hover:bg-gray-50"
+                  selectedCatId === cat.id ? "bg-[var(--accent-muted)] text-[var(--accent-text)] font-semibold" : "text-[var(--text-2)] hover:bg-[var(--canvas-sub)]"
                 }`}
               >
-                {cat.icon ? <span className="text-sm leading-none">{cat.icon}</span> : <Tag className="h-3.5 w-3.5 text-gray-400" />}
+                {cat.icon ? <span className="text-sm leading-none">{cat.icon}</span> : <Tag className="h-3.5 w-3.5 text-[var(--text-3)]" />}
                 <span className="flex-1 text-left truncate">{cat.name}</span>
-                <span className="text-[10px] text-gray-400 font-normal">{totalItems}</span>
+                <span className="text-[10px] text-[var(--text-3)] font-normal">{totalItems}</span>
               </button>
               <button
                 onClick={() => onAddSub(cat.id)}
-                className="p-1 text-gray-300 hover:text-amber-500 transition-colors"
+                className="p-1 text-[var(--text-3)] hover:text-[var(--accent)] transition-colors"
                 title="Add subcategory"
               >
                 <PlusCircle className="h-3 w-3" />
               </button>
               <button
                 onClick={(e) => { e.stopPropagation(); onDelete(cat.id); }}
-                className="p-1 text-gray-300 hover:text-red-500 transition-colors"
+                className="p-1 text-[var(--text-3)] hover:text-red-500 transition-colors"
                 title="Delete category"
               >
                 <Trash2 className="h-3 w-3" />
@@ -289,15 +289,15 @@ function CategoryTree({
                     <button
                       onClick={() => onSelect(sub.id)}
                       className={`flex flex-1 items-center gap-2 rounded-md px-2.5 py-1.5 text-[12px] transition-all ${
-                        selectedCatId === sub.id ? "bg-amber-50 text-amber-800 font-semibold" : "text-gray-500 hover:bg-gray-50"
+                        selectedCatId === sub.id ? "bg-[var(--accent-muted)] text-[var(--accent-text)] font-semibold" : "text-[var(--text-2)] hover:bg-[var(--canvas-sub)]"
                       }`}
                     >
                       <span className="flex-1 text-left truncate">{sub.name}</span>
-                      <span className="text-[10px] text-gray-400">{sub._count.items}</span>
+                      <span className="text-[10px] text-[var(--text-3)]">{sub._count.items}</span>
                     </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); onDelete(sub.id); }}
-                      className="p-1 text-gray-300 hover:text-red-500 transition-colors"
+                      className="p-1 text-[var(--text-3)] hover:text-red-500 transition-colors"
                       title="Delete subcategory"
                     >
                       <Trash2 className="h-3 w-3" />
@@ -353,26 +353,26 @@ function MenuItemCard({
       exit={{ opacity: 0, scale: 0.95 }}
       whileHover={{ y: -2 }}
       transition={{ type: "spring", stiffness: 400, damping: 25 }}
-      className={`group relative rounded-2xl bg-white/90 backdrop-blur-xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border overflow-hidden transition-all hover:shadow-[0_8px_30px_-4px_rgba(245,158,11,0.15)] ${
-        item.isAvailable ? "border-amber-100/60" : "border-gray-200 opacity-80"
+      className={`group relative rounded-2xl bg-[var(--canvas)]/90 backdrop-blur-xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border overflow-hidden transition-all hover:shadow-[0_8px_30px_-4px_rgba(245,158,11,0.15)] ${
+        item.isAvailable ? "border-[var(--accent-border)]/60" : "border-[var(--border)] opacity-80"
       }`}
     >
       {/* Mobile: image-left / text-right  |  sm+: image-top / content-below */}
       <div className="flex sm:block">
 
-        <div className="relative w-28 shrink-0 sm:w-full sm:h-44 h-auto overflow-hidden bg-gradient-to-br from-amber-50 to-orange-50/20">
+        <div className="relative w-28 shrink-0 sm:w-full sm:h-44 h-auto overflow-hidden bg-gradient-to-br from-[var(--accent)] to-[var(--accent-hover)]/20">
           {item.imageUrl ? (
             <img src={item.imageUrl} alt={item.name} className={`h-full w-full object-cover aspect-square sm:aspect-auto transition-transform duration-700 group-hover:scale-110 ${!item.isAvailable ? 'grayscale-[40%]' : ''}`} loading="lazy" />
           ) : (
             <div className="h-full w-full flex items-center justify-center min-h-[7rem]">
-              <UtensilsCrossed className="h-8 w-8 sm:h-10 sm:w-10 text-amber-200/50" />
+              <UtensilsCrossed className="h-8 w-8 sm:h-10 sm:w-10 text-[var(--accent)]/50" />
             </div>
           )}
 
           {/* Veg indicator — always visible */}
           <div className="absolute top-2 right-2 z-10">
-            <span className={`flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center rounded-md border-2 shadow-sm bg-white/90 ${
-              item.isVeg ? "border-emerald-500" : "border-rose-500"
+            <span className={`flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center rounded-md border-2 shadow-sm bg-[var(--canvas)]/90 ${
+              item.isVeg ? "border-[#eaa94d]" : "border-rose-500"
             }`}>
               <span className={`h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full ${item.isVeg ? "bg-[#eaa94d]" : "bg-rose-500"}`} />
             </span>
@@ -397,31 +397,31 @@ function MenuItemCard({
             <button
               onClick={onToggle}
               className={`rounded-full p-2 shadow-lg backdrop-blur-md transition-all hover:scale-105 active:scale-95 ${
-                item.isAvailable ? "bg-[#eaa94d]/90 text-white" : "bg-gray-800/90 text-white"
+                item.isAvailable ? "bg-[#eaa94d]/90 text-white" : "bg-[var(--text-2)]/90 text-white"
               }`}
               title={item.isAvailable ? "Mark unavailable" : "Mark available"}
             >
               {item.isAvailable ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
             </button>
-            <button onClick={onEdit} className="rounded-full bg-white/95 backdrop-blur-md p-2 text-indigo-600 shadow-lg hover:bg-white transition-all hover:scale-105 active:scale-95">
+            <button onClick={onEdit} className="rounded-full bg-[var(--canvas)]/95 backdrop-blur-md p-2 text-indigo-600 shadow-lg hover:bg-[var(--canvas)] transition-all hover:scale-105 active:scale-95">
               <Pencil className="h-4 w-4" />
             </button>
             <div className="relative" ref={menuRef}>
               <button
                 onClick={() => setShowMenu(!showMenu)}
-                className="rounded-full bg-white/95 backdrop-blur-md p-2 text-gray-700 shadow-lg hover:bg-white transition-all hover:scale-105 active:scale-95"
+                className="rounded-full bg-[var(--canvas)]/95 backdrop-blur-md p-2 text-[var(--text-2)] shadow-lg hover:bg-[var(--canvas)] transition-all hover:scale-105 active:scale-95"
               >
                 <MoreVertical className="h-4 w-4" />
               </button>
               {showMenu && (
-                <div className="absolute right-0 top-full mt-2 w-40 rounded-xl bg-white/95 backdrop-blur-xl shadow-2xl ring-1 ring-gray-200/50 z-30 py-1.5 overflow-hidden origin-bottom-right">
+                <div className="absolute right-0 top-full mt-2 w-40 rounded-xl bg-[var(--canvas)]/95 backdrop-blur-xl shadow-2xl ring-1 ring-[var(--border)]/50 z-30 py-1.5 overflow-hidden origin-bottom-right">
                   <button
                     onClick={() => { onDuplicate(); setShowMenu(false); }}
-                    className="flex w-full items-center gap-2.5 px-3.5 py-2 text-[13px] font-semibold text-gray-700 hover:bg-amber-50 hover:text-amber-700 transition-colors"
+                    className="flex w-full items-center gap-2.5 px-3.5 py-2 text-[13px] font-semibold text-[var(--text-2)] hover:bg-[var(--accent-muted)] hover:text-[var(--accent-text)] transition-colors"
                   >
                     <Copy className="h-3.5 w-3.5" /> Duplicate
                   </button>
-                  <div className="h-px bg-gray-100 my-1 mx-2"></div>
+                  <div className="h-px bg-[var(--surface)] my-1 mx-2"></div>
                   <button
                     onClick={() => { onDelete(); setShowMenu(false); }}
                     className="flex w-full items-center gap-2.5 px-3.5 py-2 text-[13px] font-semibold text-rose-600 hover:bg-rose-50 transition-colors"
@@ -434,19 +434,19 @@ function MenuItemCard({
           </div>
         </div>
 
-      <div className="flex-1 min-w-0 p-3 sm:p-4 bg-white/40 flex flex-col justify-between sm:block">
+      <div className="flex-1 min-w-0 p-3 sm:p-4 bg-[var(--canvas)]/40 flex flex-col justify-between sm:block">
         <div className="flex items-start justify-between gap-3 mb-2">
-          <h4 className="text-[14px] font-extrabold text-gray-900 leading-tight line-clamp-1">{item.name}</h4>
-          <div className="flex items-baseline gap-1.5 shrink-0 bg-amber-50/50 px-2 py-0.5 rounded-md border border-amber-100/50">
+          <h4 className="text-[14px] font-extrabold text-[var(--text-1)] leading-tight line-clamp-1">{item.name}</h4>
+          <div className="flex items-baseline gap-1.5 shrink-0 bg-[var(--accent-muted)] px-2 py-0.5 rounded-md border border-[var(--accent-border)]/50">
             {item.discount > 0 && (
-              <span className="text-[11px] font-medium text-gray-400 line-through">{formatPrice(item.price, currency)}</span>
+              <span className="text-[11px] font-medium text-[var(--text-3)] line-through">{formatPrice(item.price, currency)}</span>
             )}
-            <span className="text-[14px] font-extrabold text-amber-600">{formatPrice(discountedPrice, currency)}</span>
+            <span className="text-[14px] font-extrabold text-[var(--accent-text)]">{formatPrice(discountedPrice, currency)}</span>
           </div>
         </div>
 
         {item.description && (
-          <p className="text-[12px] text-gray-500 line-clamp-2 mb-3 leading-relaxed">{item.description}</p>
+          <p className="text-[12px] text-[var(--text-2)] line-clamp-2 mb-3 leading-relaxed">{item.description}</p>
         )}
 
         <div className="h-px w-full bg-gradient-to-r from-transparent via-gray-100 to-transparent mb-3" />
@@ -457,14 +457,14 @@ function MenuItemCard({
           </span>
 
           {item.prepTime && (
-            <span className="flex items-center gap-0.5 text-[10px] text-gray-400">
+            <span className="flex items-center gap-0.5 text-[10px] text-[var(--text-3)]">
               <Clock className="h-2.5 w-2.5" /> {item.prepTime}
             </span>
           )}
 
           {item.rating > 0 && (
-            <span className="flex items-center gap-0.5 text-[10px] text-amber-500 font-semibold">
-              <Star className="h-2.5 w-2.5 fill-amber-400" /> {item.rating.toFixed(1)}
+            <span className="flex items-center gap-0.5 text-[10px] text-[var(--accent)] font-semibold">
+              <Star className="h-2.5 w-2.5 fill-[var(--accent)]" /> {item.rating.toFixed(1)}
             </span>
           )}
 
@@ -475,45 +475,45 @@ function MenuItemCard({
           )}
 
           {item.calories && (
-            <span className="text-[10px] text-gray-400">{item.calories} kcal</span>
+            <span className="text-[10px] text-[var(--text-3)]">{item.calories} kcal</span>
           )}
 
           {item.sizes.length > 0 && (
-            <span className="text-[10px] text-gray-400">{item.sizes.length} sizes</span>
+            <span className="text-[10px] text-[var(--text-3)]">{item.sizes.length} sizes</span>
           )}
 
           {/* Add-ons count */}
           {item.addOns.length > 0 && (
-            <span className="text-[10px] text-gray-400">{item.addOns.length} add-ons</span>
+            <span className="text-[10px] text-[var(--text-3)]">{item.addOns.length} add-ons</span>
           )}
         </div>
 
         {item.tags.length > 0 && (
           <div className="flex gap-1 mt-2 flex-wrap">
             {item.tags.slice(0, 3).map((t) => (
-              <span key={t} className="rounded bg-amber-50 px-1.5 py-0.5 text-[9px] font-medium text-amber-600">
+              <span key={t} className="rounded bg-[var(--accent-muted)] px-1.5 py-0.5 text-[9px] font-medium text-[var(--accent-text)]">
                 {t}
               </span>
             ))}
             {item.tags.length > 3 && (
-              <span className="text-[9px] text-gray-400">+{item.tags.length - 3}</span>
+              <span className="text-[9px] text-[var(--text-3)]">+{item.tags.length - 3}</span>
             )}
           </div>
         )}
 
         {item.allergens.length > 0 && (
           <div className="flex items-center gap-1 mt-1.5">
-            <ShieldAlert className="h-2.5 w-2.5 text-orange-400" />
-            <span className="text-[9px] text-orange-500">{item.allergens.join(", ")}</span>
+            <ShieldAlert className="h-2.5 w-2.5 text-[var(--accent)]" />
+            <span className="text-[9px] text-[var(--accent)]">{item.allergens.join(", ")}</span>
           </div>
         )}
 
         {/* Mobile action buttons — touch-friendly, hidden on sm+ (desktop uses hover) */}
-        <div className="flex sm:hidden items-center justify-end gap-2 mt-3 pt-2.5 border-t border-gray-100">
+        <div className="flex sm:hidden items-center justify-end gap-2 mt-3 pt-2.5 border-t border-[var(--border-soft)]">
           <button
             onClick={onToggle}
             className={`rounded-full p-2 shadow-sm transition-all active:scale-95 ${
-              item.isAvailable ? "bg-[#fef9ef] text-[#b25c1c]" : "bg-gray-100 text-gray-500"
+              item.isAvailable ? "bg-[var(--accent-muted)] text-[#b25c1c]" : "bg-[var(--surface)] text-[var(--text-2)]"
             }`}
             title={item.isAvailable ? "Mark unavailable" : "Mark available"}
           >
@@ -587,12 +587,12 @@ function CategorySelector({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full flex items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm font-medium focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-100 ${
-           value ? "text-gray-900" : "text-gray-400"
+        className={`w-full flex items-center justify-between rounded-lg border border-[var(--border)] bg-[var(--canvas)] px-3 py-2.5 text-sm font-medium focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent-border)] ${
+           value ? "text-[var(--text-1)]" : "text-[var(--text-3)]"
         }`}
       >
         <span className="truncate">{selectedCat ? selectedCat.name : "Select category / subcategory *"}</span>
-        <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+        <ChevronDown className={`h-4 w-4 text-[var(--text-3)] transition-transform ${isOpen ? "rotate-180" : ""}`} />
       </button>
 
       <AnimatePresence>
@@ -602,23 +602,23 @@ function CategorySelector({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.15 }}
-            className="absolute z-50 mt-1 w-full rounded-xl border border-gray-200 bg-white shadow-xl overflow-hidden text-left"
+            className="absolute z-50 mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] shadow-xl overflow-hidden text-left"
           >
-            <div className="p-2 border-b border-gray-100">
+            <div className="p-2 border-b border-[var(--border-soft)]">
               <div className="relative">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--text-3)]" />
                 <input
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search categories..."
-                  className="w-full rounded-md border border-gray-100 bg-gray-50 py-1.5 pl-8 pr-3 text-xs focus:bg-white focus:border-amber-400 focus:ring-1 focus:ring-amber-200 outline-none transition-all"
+                  className="w-full rounded-md border border-[var(--border-soft)] bg-[var(--canvas-sub)] py-1.5 pl-8 pr-3 text-xs focus:bg-[var(--canvas)] focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent-border)] outline-none transition-all"
                 />
               </div>
             </div>
             <div className="max-h-60 overflow-y-auto p-1.5 custom-scrollbar">
               {filteredCats.length === 0 ? (
-                <div className="p-3 text-center text-xs text-gray-500">No categories found</div>
+                <div className="p-3 text-center text-xs text-[var(--text-2)]">No categories found</div>
               ) : (
                 filteredCats.map(cat => {
                   const subs = categories.filter(c => c.parentId === cat.id);
@@ -629,7 +629,7 @@ function CategorySelector({
                   return (
                     <div key={cat.id} className="mb-0.5">
                       <div
-                        className={`group flex items-center justify-between rounded-md px-2.5 py-2 text-[13px] transition-colors cursor-pointer ${value === cat.id ? "bg-amber-100 text-amber-900 font-bold" : "text-gray-700 font-semibold hover:bg-gray-50"}`}
+                        className={`group flex items-center justify-between rounded-md px-2.5 py-2 text-[13px] transition-colors cursor-pointer ${value === cat.id ? "bg-[var(--accent-muted)] text-[var(--accent-text)] font-bold" : "text-[var(--text-2)] font-semibold hover:bg-[var(--canvas-sub)]"}`}
                         onClick={() => { onChange(cat.id); setIsOpen(false); }}
                       >
                         <span className="truncate">{cat.name}</span>
@@ -637,7 +637,7 @@ function CategorySelector({
                           <button
                             type="button"
                             onClick={(e) => toggleExpand(e, cat.id)}
-                            className="p-1 rounded-md hover:bg-gray-200 text-gray-400 hover:text-gray-600 transition-colors"
+                            className="p-1 rounded-md hover:bg-[var(--surface-alt)] text-[var(--text-3)] hover:text-[var(--text-2)] transition-colors"
                           >
                             <ChevronDown className={`h-3.5 w-3.5 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
                           </button>
@@ -652,11 +652,11 @@ function CategorySelector({
                             exit={{ height: 0, opacity: 0 }}
                             className="overflow-hidden"
                           >
-                            <div className="ml-3 mt-1 mb-1 space-y-0.5 border-l-2 border-gray-100 pl-2">
+                            <div className="ml-3 mt-1 mb-1 space-y-0.5 border-l-2 border-[var(--border-soft)] pl-2">
                               {filteredSubs.map(sub => (
                                 <div
                                   key={sub.id}
-                                  className={`flex items-center rounded-md px-2.5 py-1.5 text-xs transition-colors cursor-pointer ${value === sub.id ? "bg-amber-100 text-amber-900 font-bold" : "text-gray-600 hover:bg-gray-50 font-medium"}`}
+                                  className={`flex items-center rounded-md px-2.5 py-1.5 text-xs transition-colors cursor-pointer ${value === sub.id ? "bg-[var(--accent-muted)] text-[var(--accent-text)] font-bold" : "text-[var(--text-2)] hover:bg-[var(--canvas-sub)] font-medium"}`}
                                   onClick={() => { onChange(sub.id); setIsOpen(false); }}
                                 >
                                   <span className="truncate">{sub.name}</span>
@@ -785,11 +785,11 @@ function DishForm({
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
-      className="rounded-xl border border-gray-200 bg-white shadow-lg overflow-hidden w-full max-w-full"
+      className="rounded-xl border border-[var(--border)] bg-[var(--canvas)] shadow-lg overflow-hidden w-full max-w-full"
     >
-      <div className="flex items-center justify-between border-b border-gray-100 px-5 py-3">
-        <span className="text-sm font-bold text-gray-900">{submitLabel === "Add to menu" ? "New Dish" : "Edit Dish"}</span>
-        <button onClick={onCancel} className="rounded-md p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100">
+      <div className="flex items-center justify-between border-b border-[var(--border-soft)] px-5 py-3">
+        <span className="text-sm font-bold text-[var(--text-1)]">{submitLabel === "Add to menu" ? "New Dish" : "Edit Dish"}</span>
+        <button onClick={onCancel} className="rounded-md p-1 text-[var(--text-3)] hover:text-[var(--text-2)] hover:bg-[var(--surface)]">
           <X className="h-4 w-4" />
         </button>
       </div>
@@ -801,8 +801,8 @@ function DishForm({
             onClick={() => setActiveSection(s.id)}
             className={`flex items-center gap-1.5 shrink-0 rounded-lg px-3 py-1.5 text-[11px] font-semibold transition-all ${
               activeSection === s.id
-                ? "bg-amber-100 text-amber-800"
-                : "text-gray-400 hover:bg-gray-50 hover:text-gray-600"
+                ? "bg-[var(--accent-muted)] text-[var(--accent-text)]"
+                : "text-[var(--text-3)] hover:bg-[var(--canvas-sub)] hover:text-[var(--text-2)]"
             }`}
           >
             <s.icon className="h-3 w-3" />
@@ -820,7 +820,7 @@ function DishForm({
               <button
                 type="button"
                 onClick={() => setShowImagePicker(true)}
-                className="shrink-0 group relative h-24 w-full sm:w-24 rounded-xl overflow-hidden bg-gray-50 border border-gray-200 hover:border-amber-300 transition-colors"
+                className="shrink-0 group relative h-24 w-full sm:w-24 rounded-xl overflow-hidden bg-[var(--canvas-sub)] border border-[var(--border)] hover:border-[var(--accent-border)] transition-colors"
               >
                 {form.imageUrl ? (
                   <>
@@ -831,8 +831,8 @@ function DishForm({
                   </>
                 ) : (
                   <div className="h-full w-full flex flex-col items-center justify-center gap-1">
-                    <Camera className="h-5 w-5 text-gray-300" />
-                    <span className="text-[9px] font-medium text-gray-300">Add Photo</span>
+                    <Camera className="h-5 w-5 text-[var(--text-3)]" />
+                    <span className="text-[9px] font-medium text-[var(--text-3)]">Add Photo</span>
                   </div>
                 )}
               </button>
@@ -848,7 +848,7 @@ function DishForm({
                   value={form.name}
                   onChange={(e) => update({ name: e.target.value })}
                   placeholder="Dish name *"
-                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 placeholder-gray-300 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-100"
+                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--canvas)] px-3 py-2.5 text-sm font-semibold text-[var(--text-1)] placeholder-gray-300 focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent-border)]"
                 />
                 <div className="grid grid-cols-2 gap-3">
                   <PriceInput value={form.price} onChange={(v) => update({ price: v })} placeholder="Price *" currencySymbol={getCurrencySymbol(currency)} />
@@ -856,7 +856,7 @@ function DishForm({
                     value={form.prepTime}
                     onChange={(e) => update({ prepTime: e.target.value })}
                     placeholder="e.g. 15-20 min"
-                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 placeholder-gray-300 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-100"
+                    className="w-full rounded-lg border border-[var(--border)] bg-[var(--canvas)] px-3 py-2 text-sm text-[var(--text-2)] placeholder-gray-300 focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent-border)]"
                   />
                 </div>
               </div>
@@ -873,9 +873,9 @@ function DishForm({
             <textarea
               value={form.description}
               onChange={(e) => update({ description: e.target.value })}
-              placeholder="Short description — helps customers decide"
+              placeholder="Short description, helps customers decide"
               rows={2}
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 placeholder-gray-300 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-100 resize-none"
+              className="w-full rounded-lg border border-[var(--border)] bg-[var(--canvas)] px-3 py-2.5 text-sm text-[var(--text-2)] placeholder-gray-300 focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent-border)] resize-none"
             />
           </div>
         )}
@@ -885,13 +885,13 @@ function DishForm({
           <div className="space-y-5">
             {/* Veg / Non-Veg / Egg / Onion-Garlic */}
             <div>
-              <p className="text-[12px] font-semibold text-gray-600 mb-2.5">Dietary Classification</p>
+              <p className="text-[12px] font-semibold text-[var(--text-2)] mb-2.5">Dietary Classification</p>
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
                   onClick={() => update({ isVeg: true })}
                   className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-[12px] font-semibold border transition-all ${
-                    form.isVeg ? "border-[#eaa94d] bg-[#fef9ef] text-[#b25c1c] ring-1 ring-green-200" : "border-gray-200 text-gray-400"
+                    form.isVeg ? "border-[#eaa94d] bg-[var(--accent-muted)] text-[#b25c1c] ring-1 ring-[var(--accent-border)]" : "border-[var(--border)] text-[var(--text-3)]"
                   }`}
                 >
                   <Leaf className="h-3.5 w-3.5" /> Vegetarian
@@ -900,7 +900,7 @@ function DishForm({
                   type="button"
                   onClick={() => update({ isVeg: false })}
                   className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-[12px] font-semibold border transition-all ${
-                    !form.isVeg ? "border-red-300 bg-red-50 text-red-600 ring-1 ring-red-200" : "border-gray-200 text-gray-400"
+                    !form.isVeg ? "border-red-300 bg-red-50 text-red-600 ring-1 ring-red-200" : "border-[var(--border)] text-[var(--text-3)]"
                   }`}
                 >
                   <Flame className="h-3.5 w-3.5" /> Non-Vegetarian
@@ -909,7 +909,7 @@ function DishForm({
                   type="button"
                   onClick={() => update({ hasEgg: !form.hasEgg })}
                   className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-[12px] font-semibold border transition-all ${
-                    form.hasEgg ? "border-yellow-300 bg-yellow-50 text-yellow-700 ring-1 ring-yellow-200" : "border-gray-200 text-gray-400"
+                    form.hasEgg ? "border-yellow-300 bg-yellow-50 text-yellow-700 ring-1 ring-yellow-200" : "border-[var(--border)] text-[var(--text-3)]"
                   }`}
                 >
                   🥚 Contains Egg
@@ -918,7 +918,7 @@ function DishForm({
                   type="button"
                   onClick={() => update({ hasOnionGarlic: !form.hasOnionGarlic })}
                   className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-[12px] font-semibold border transition-all ${
-                    !form.hasOnionGarlic ? "border-purple-300 bg-purple-50 text-purple-700 ring-1 ring-purple-200" : "border-gray-200 text-gray-400"
+                    !form.hasOnionGarlic ? "border-purple-300 bg-purple-50 text-purple-700 ring-1 ring-purple-200" : "border-[var(--border)] text-[var(--text-3)]"
                   }`}
                 >
                   🧄 No Onion/Garlic
@@ -927,12 +927,12 @@ function DishForm({
             </div>
 
             <div>
-              <p className="text-[12px] font-semibold text-gray-600 mb-2.5">Spice Level</p>
+              <p className="text-[12px] font-semibold text-[var(--text-2)] mb-2.5">Spice Level</p>
               <SpiceLevelPicker level={form.spiceLevel} onChange={(l) => update({ spiceLevel: l })} />
             </div>
 
             <div>
-              <p className="text-[12px] font-semibold text-gray-600 mb-2.5">Calories (optional)</p>
+              <p className="text-[12px] font-semibold text-[var(--text-2)] mb-2.5">Calories (optional)</p>
               <div className="relative w-40">
                 <input
                   type="text"
@@ -940,14 +940,14 @@ function DishForm({
                   value={form.calories}
                   onChange={(e) => update({ calories: e.target.value.replace(/\D/g, "") })}
                   placeholder="e.g. 450"
-                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 pr-12 text-sm text-gray-700 placeholder-gray-300 focus:outline-none focus:border-amber-400"
+                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--canvas)] px-3 py-2 pr-12 text-sm text-[var(--text-2)] placeholder-gray-300 focus:outline-none focus:border-[var(--accent)]"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-gray-400">kcal</span>
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-[var(--text-3)]">kcal</span>
               </div>
             </div>
 
             <div>
-              <p className="text-[12px] font-semibold text-gray-600 mb-2.5">Allergens</p>
+              <p className="text-[12px] font-semibold text-[var(--text-2)] mb-2.5">Allergens</p>
               <div className="flex flex-wrap gap-2">
                 {ALLERGEN_OPTIONS.map((a) => (
                   <button
@@ -961,8 +961,8 @@ function DishForm({
                     }}
                     className={`rounded-lg px-3 py-1.5 text-[11px] font-semibold border transition-all ${
                       form.allergens.includes(a)
-                        ? "border-orange-300 bg-orange-50 text-orange-700"
-                        : "border-gray-200 text-gray-400 hover:border-gray-300"
+                        ? "border-[var(--accent-border)] bg-[var(--accent)] text-[var(--accent)]"
+                        : "border-[var(--border)] text-[var(--text-3)] hover:border-[var(--border)]"
                     }`}
                   >
                     {a}
@@ -977,7 +977,7 @@ function DishForm({
         {activeSection === "pricing" && (
           <div className="space-y-5">
             <div>
-              <p className="text-[12px] font-semibold text-gray-600 mb-2.5">Discount</p>
+              <p className="text-[12px] font-semibold text-[var(--text-2)] mb-2.5">Discount</p>
               <div className="flex gap-3">
                 <div className="relative w-28">
                   <input
@@ -986,15 +986,15 @@ function DishForm({
                     value={form.discount}
                     onChange={(e) => update({ discount: e.target.value.replace(/\D/g, "") })}
                     placeholder="0"
-                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 pr-8 text-sm font-semibold text-gray-900 placeholder-gray-300 focus:outline-none focus:border-amber-400"
+                    className="w-full rounded-lg border border-[var(--border)] bg-[var(--canvas)] px-3 py-2 pr-8 text-sm font-semibold text-[var(--text-1)] placeholder-gray-300 focus:outline-none focus:border-[var(--accent)]"
                   />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-gray-400">%</span>
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-[var(--text-3)]">%</span>
                 </div>
                 <input
                   value={form.discountLabel}
                   onChange={(e) => update({ discountLabel: e.target.value })}
                   placeholder={`Label e.g. 'FLAT ${getCurrencySymbol(currency)}50 OFF'`}
-                  className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 placeholder-gray-300 focus:outline-none focus:border-amber-400"
+                  className="flex-1 rounded-lg border border-[var(--border)] bg-[var(--canvas)] px-3 py-2 text-sm text-[var(--text-2)] placeholder-gray-300 focus:outline-none focus:border-[var(--accent)]"
                 />
               </div>
               {Number(form.discount) > 0 && Number(form.price) > 0 && (
@@ -1010,13 +1010,13 @@ function DishForm({
                 <button
                   type="button"
                   onClick={() => update({ isFeatured: !form.isFeatured })}
-                  className={`relative h-5 w-9 rounded-full transition-colors ${form.isFeatured ? "bg-amber-500" : "bg-gray-200"}`}
+                  className={`relative h-5 w-9 rounded-full transition-colors ${form.isFeatured ? "bg-[var(--accent)]" : "bg-[var(--surface-alt)]"}`}
                 >
-                  <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${form.isFeatured ? "translate-x-4" : "translate-x-0.5"}`} />
+                  <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-[var(--canvas)] shadow transition-transform ${form.isFeatured ? "translate-x-4" : "translate-x-0.5"}`} />
                 </button>
                 <div>
-                  <p className="text-[12px] font-semibold text-gray-700">Featured Item</p>
-                  <p className="text-[10px] text-gray-400">Highlight this dish on your menu page</p>
+                  <p className="text-[12px] font-semibold text-[var(--text-2)]">Featured Item</p>
+                  <p className="text-[10px] text-[var(--text-3)]">Highlight this dish on your menu page</p>
                 </div>
               </label>
             </div>
@@ -1028,17 +1028,17 @@ function DishForm({
           <div className="space-y-5">
             <div>
               <div className="flex items-center justify-between mb-2.5">
-                <p className="text-[12px] font-semibold text-gray-600">Size Variants</p>
+                <p className="text-[12px] font-semibold text-[var(--text-2)]">Size Variants</p>
                 <button
                   type="button"
                   onClick={() => update({ sizes: [...form.sizes, { label: "", grams: "", priceAdd: "" }] })}
-                  className="flex items-center gap-1 text-[11px] font-semibold text-amber-600 hover:text-amber-700"
+                  className="flex items-center gap-1 text-[11px] font-semibold text-[var(--accent-text)] hover:text-[var(--accent-text)]"
                 >
                   <Plus className="h-3 w-3" /> Add Size
                 </button>
               </div>
               {form.sizes.length === 0 ? (
-                <p className="text-[11px] text-gray-400 italic">No sizes — item has a single price</p>
+                <p className="text-[11px] text-[var(--text-3)] italic">No sizes: item has a single price</p>
               ) : (
                 <div className="space-y-2">
                   {form.sizes.map((size, i) => (
@@ -1051,7 +1051,7 @@ function DishForm({
                           update({ sizes: next });
                         }}
                         placeholder="e.g. Regular"
-                        className="flex-1 rounded-lg border border-gray-200 px-3 py-1.5 text-[12px] focus:outline-none focus:border-amber-400"
+                        className="flex-1 rounded-lg border border-[var(--border)] px-3 py-1.5 text-[12px] focus:outline-none focus:border-[var(--accent)]"
                       />
                       <input
                         value={size.grams}
@@ -1061,10 +1061,10 @@ function DishForm({
                           update({ sizes: next });
                         }}
                         placeholder="e.g. 250g"
-                        className="w-20 rounded-lg border border-gray-200 px-3 py-1.5 text-[12px] focus:outline-none focus:border-amber-400"
+                        className="w-20 rounded-lg border border-[var(--border)] px-3 py-1.5 text-[12px] focus:outline-none focus:border-[var(--accent)]"
                       />
                       <div className="relative w-24">
-                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-400">+{getCurrencySymbol(currency)}</span>
+                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-[var(--text-3)]">+{getCurrencySymbol(currency)}</span>
                         <input
                           value={size.priceAdd}
                           onChange={(e) => {
@@ -1073,12 +1073,12 @@ function DishForm({
                             update({ sizes: next });
                           }}
                           placeholder="0"
-                          className="w-full rounded-lg border border-gray-200 py-1.5 pl-9 pr-2 text-[12px] focus:outline-none focus:border-amber-400"
+                          className="w-full rounded-lg border border-[var(--border)] py-1.5 pl-9 pr-2 text-[12px] focus:outline-none focus:border-[var(--accent)]"
                         />
                       </div>
                       <button
                         onClick={() => update({ sizes: form.sizes.filter((_, j) => j !== i) })}
-                        className="p-1 text-gray-300 hover:text-red-500"
+                        className="p-1 text-[var(--text-3)] hover:text-red-500"
                       >
                         <X className="h-3 w-3" />
                       </button>
@@ -1091,17 +1091,17 @@ function DishForm({
             {/* Add-ons */}
             <div>
               <div className="flex items-center justify-between mb-2.5">
-                <p className="text-[12px] font-semibold text-gray-600">Add-ons</p>
+                <p className="text-[12px] font-semibold text-[var(--text-2)]">Add-ons</p>
                 <button
                   type="button"
                   onClick={() => update({ addOns: [...form.addOns, { name: "", price: "" }] })}
-                  className="flex items-center gap-1 text-[11px] font-semibold text-amber-600 hover:text-amber-700"
+                  className="flex items-center gap-1 text-[11px] font-semibold text-[var(--accent-text)] hover:text-[var(--accent-text)]"
                 >
                   <Plus className="h-3 w-3" /> Add-on
                 </button>
               </div>
               {form.addOns.length === 0 ? (
-                <p className="text-[11px] text-gray-400 italic">No add-ons configured</p>
+                <p className="text-[11px] text-[var(--text-3)] italic">No add-ons configured</p>
               ) : (
                 <div className="space-y-2">
                   {form.addOns.map((addon, i) => (
@@ -1114,7 +1114,7 @@ function DishForm({
                           update({ addOns: next });
                         }}
                         placeholder="e.g. Extra Cheese"
-                        className="flex-1 rounded-lg border border-gray-200 px-3 py-1.5 text-[12px] focus:outline-none focus:border-amber-400"
+                        className="flex-1 rounded-lg border border-[var(--border)] px-3 py-1.5 text-[12px] focus:outline-none focus:border-[var(--accent)]"
                       />
                       <div className="w-28">
                         <PriceInput
@@ -1130,7 +1130,7 @@ function DishForm({
                       </div>
                       <button
                         onClick={() => update({ addOns: form.addOns.filter((_, j) => j !== i) })}
-                        className="p-1 text-gray-300 hover:text-red-500"
+                        className="p-1 text-[var(--text-3)] hover:text-red-500"
                       >
                         <X className="h-3 w-3" />
                       </button>
@@ -1146,7 +1146,7 @@ function DishForm({
         {activeSection === "tags" && (
           <div className="space-y-5">
             <div>
-              <p className="text-[12px] font-semibold text-gray-600 mb-2.5">Badge</p>
+              <p className="text-[12px] font-semibold text-[var(--text-2)] mb-2.5">Badge</p>
               <div className="flex flex-wrap gap-2">
                 {BADGE_OPTIONS.map((b) => (
                   <button
@@ -1155,8 +1155,8 @@ function DishForm({
                     onClick={() => update({ badge: form.badge === b ? "" : b })}
                     className={`rounded-lg px-3 py-1.5 text-[11px] font-semibold border transition-all ${
                       form.badge === b
-                        ? "border-amber-300 bg-amber-50 text-amber-700 ring-1 ring-amber-200"
-                        : "border-gray-200 text-gray-400 hover:border-gray-300"
+                        ? "border-[var(--accent-border)] bg-[var(--accent-muted)] text-[var(--accent-text)] ring-1 ring-[var(--accent-border)]"
+                        : "border-[var(--border)] text-[var(--text-3)] hover:border-[var(--border)]"
                     }`}
                   >
                     {b}
@@ -1166,28 +1166,28 @@ function DishForm({
             </div>
 
             <div>
-              <p className="text-[12px] font-semibold text-gray-600 mb-2.5">Tags</p>
+              <p className="text-[12px] font-semibold text-[var(--text-2)] mb-2.5">Tags</p>
               <div className="flex gap-2 mb-2">
                 <input
                   value={tagInput}
                   onChange={(e) => setTagInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addTag(); } }}
                   placeholder="Type a tag and press Enter"
-                  className="flex-1 rounded-lg border border-gray-200 px-3 py-1.5 text-[12px] text-gray-700 placeholder-gray-300 focus:outline-none focus:border-amber-400"
+                  className="flex-1 rounded-lg border border-[var(--border)] px-3 py-1.5 text-[12px] text-[var(--text-2)] placeholder-gray-300 focus:outline-none focus:border-[var(--accent)]"
                 />
                 <button
                   type="button"
                   onClick={addTag}
-                  className="rounded-lg bg-gray-100 px-3 py-1.5 text-[11px] font-semibold text-gray-600 hover:bg-gray-200"
+                  className="rounded-lg bg-[var(--surface)] px-3 py-1.5 text-[11px] font-semibold text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
                 >
                   Add
                 </button>
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {form.tags.map((t) => (
-                  <span key={t} className="inline-flex items-center gap-1 rounded-md bg-gray-100 px-2 py-1 text-[11px] font-medium text-gray-600">
+                  <span key={t} className="inline-flex items-center gap-1 rounded-md bg-[var(--surface)] px-2 py-1 text-[11px] font-medium text-[var(--text-2)]">
                     {t}
-                    <button onClick={() => update({ tags: form.tags.filter((x) => x !== t) })} className="text-gray-400 hover:text-red-500">
+                    <button onClick={() => update({ tags: form.tags.filter((x) => x !== t) })} className="text-[var(--text-3)] hover:text-red-500">
                       <X className="h-2.5 w-2.5" />
                     </button>
                   </span>
@@ -1197,14 +1197,14 @@ function DishForm({
           </div>
         )}
 
-        <div className="flex items-center gap-3 pt-2 border-t border-gray-100">
+        <div className="flex items-center gap-3 pt-2 border-t border-[var(--border-soft)]">
           <button
             onClick={handleSubmit}
-            className="rounded-lg bg-amber-500 px-6 py-2.5 text-[13px] font-bold text-white hover:bg-amber-600 active:scale-[0.98] transition-all"
+            className="rounded-lg bg-[var(--accent)] px-6 py-2.5 text-[13px] font-bold text-white hover:bg-[var(--accent-hover)] active:scale-[0.98] transition-all"
           >
             {submitLabel}
           </button>
-          <button onClick={onCancel} className="text-[13px] font-medium text-gray-400 hover:text-gray-600">
+          <button onClick={onCancel} className="text-[13px] font-medium text-[var(--text-3)] hover:text-[var(--text-2)]">
             Cancel
           </button>
         </div>
@@ -1235,9 +1235,9 @@ function AddSubCategoryInline({
       exit={{ opacity: 0, height: 0 }}
       className="overflow-hidden"
     >
-      <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50/50 p-3">
-        <FolderPlus className="h-4 w-4 text-amber-500 shrink-0" />
-        <span className="text-[12px] text-gray-500 shrink-0">Sub of <strong>{parentName}</strong>:</span>
+      <div className="flex items-center gap-2 rounded-lg border border-[var(--accent-border)] bg-[var(--accent-muted)] p-3">
+        <FolderPlus className="h-4 w-4 text-[var(--accent)] shrink-0" />
+        <span className="text-[12px] text-[var(--text-2)] shrink-0">Sub of <strong>{parentName}</strong>:</span>
         <input
           ref={inputRef}
           value={name}
@@ -1247,16 +1247,16 @@ function AddSubCategoryInline({
             if (e.key === "Escape") onCancel();
           }}
           placeholder="e.g. Chicken, Steam, Jhol…"
-          className="flex-1 min-w-0 bg-transparent text-sm font-medium text-gray-800 outline-none placeholder-gray-400"
+          className="flex-1 min-w-0 bg-transparent text-sm font-medium text-[var(--text-1)] outline-none placeholder-gray-400"
         />
         <button
           onClick={() => name.trim() && onCreate(name.trim())}
           disabled={!name.trim()}
-          className="rounded-md bg-amber-500 px-3 py-1 text-[11px] font-bold text-white hover:bg-amber-600 disabled:opacity-40 transition-all"
+          className="rounded-md bg-[var(--accent)] px-3 py-1 text-[11px] font-bold text-white hover:bg-[var(--accent-hover)] disabled:opacity-40 transition-all"
         >
           Add
         </button>
-        <button onClick={onCancel} className="p-1 text-gray-400 hover:text-gray-600">
+        <button onClick={onCancel} className="p-1 text-[var(--text-3)] hover:text-[var(--text-2)]">
           <X className="h-3.5 w-3.5" />
         </button>
       </div>
@@ -1565,29 +1565,14 @@ export default function MenuManagementTab() {
 
   const addSubParent = addSubParentId ? flatCategories.find((c) => c.id === addSubParentId) : null;
 
-  if (loading && items.length === 0) {
-    return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 p-4">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="rounded-2xl border border-gray-200 bg-white overflow-hidden shadow-sm">
-            <div className="animate-pulse bg-gray-100 h-40 w-full" />
-            <div className="p-4 space-y-2">
-              <div className="animate-pulse bg-gray-100 h-4 w-3/4 rounded-lg" />
-              <div className="animate-pulse bg-gray-100 h-3 w-1/2 rounded-lg" />
-              <div className="animate-pulse bg-gray-100 h-8 w-full rounded-xl mt-3" />
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  }
+  if (loading && items.length === 0) return null;
 
   return (
     <div className="space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
         <div>
-          <h2 className="text-xl font-extrabold text-gray-900 tracking-tight">Menu Management</h2>
-          <p className="text-sm text-gray-500 mt-1 font-medium">
+          <h2 className="text-xl font-extrabold text-[var(--text-1)] tracking-tight">Menu Management</h2>
+          <p className="text-sm text-[var(--text-2)] mt-1 font-medium">
             Manage your dishes, categories, pricing, and more
           </p>
         </div>
@@ -1596,14 +1581,14 @@ export default function MenuManagementTab() {
             <>
               <button
                 onClick={() => setShowNewCat(true)}
-                className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white shadow-sm px-4 py-2 text-[13px] font-bold text-gray-700 hover:bg-gray-50 hover:text-amber-600 transition-all active:scale-[0.97]"
+                className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--canvas)] shadow-sm px-4 py-2 text-[13px] font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] hover:text-[var(--accent-text)] transition-all active:scale-[0.97]"
               >
                 <FolderPlus className="h-4 w-4" />
                 Category
               </button>
               <button
                 onClick={() => setShowAddForm(true)}
-                className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 shadow-[0_4px_14px_0_rgba(245,158,11,0.39)] px-5 py-2 text-[13px] font-bold text-white hover:shadow-[0_6px_20px_rgba(245,158,11,0.23)] hover:-translate-y-0.5 active:scale-[0.97] transition-all"
+                className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] shadow-[0_4px_14px_0_rgba(245,158,11,0.39)] px-5 py-2 text-[13px] font-bold text-white hover:shadow-[0_6px_20px_rgba(245,158,11,0.23)] hover:-translate-y-0.5 active:scale-[0.97] transition-all"
               >
                 <Plus className="h-4 w-4" strokeWidth={2.5} />
                 Add Dish
@@ -1619,16 +1604,16 @@ export default function MenuManagementTab() {
           disabled={statusSaving}
           className={`flex flex-1 items-center justify-between gap-3 rounded-2xl border px-4 py-3 transition-all ${
             isOpen
-              ? "border-[#eaa94d]/30 bg-[#fef9ef] hover:bg-[#fef3dc]"
+              ? "border-[var(--accent-border)] bg-[var(--accent-muted)] hover:bg-[var(--accent-muted)]"
               : "border-red-200 bg-red-50 hover:bg-red-100"
           }`}
         >
           <div className="flex items-center gap-3">
-            <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${isOpen ? "bg-[#fef3dc]" : "bg-red-100"}`}>
+            <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${isOpen ? "bg-[var(--accent-muted)]" : "bg-red-100"}`}>
               {isOpen ? <Eye className="h-4 w-4 text-[#b25c1c]" /> : <EyeOff className="h-4 w-4 text-red-500" />}
             </div>
             <div className="text-left">
-              <p className={`text-xs font-bold ${isOpen ? "text-[#3e1e0c]" : "text-red-700"}`}>
+              <p className={`text-xs font-bold ${isOpen ? "text-[var(--text-1)]" : "text-red-700"}`}>
                 {isOpen ? "Restaurant Visible" : "Restaurant Hidden"}
               </p>
               <p className={`text-[11px] ${isOpen ? "text-[#b25c1c]" : "text-red-500"}`}>
@@ -1636,8 +1621,8 @@ export default function MenuManagementTab() {
               </p>
             </div>
           </div>
-          <div className={`relative h-6 w-11 rounded-full transition-colors ${isOpen ? "bg-[#eaa94d]" : "bg-gray-300"}`}>
-            <div className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${isOpen ? "translate-x-5" : "translate-x-0.5"}`} />
+          <div className={`relative h-6 w-11 rounded-full transition-colors ${isOpen ? "bg-[#eaa94d]" : "bg-[var(--border)]"}`}>
+            <div className={`absolute top-0.5 h-5 w-5 rounded-full bg-[var(--canvas)] shadow transition-transform ${isOpen ? "translate-x-5" : "translate-x-0.5"}`} />
           </div>
         </button>
 
@@ -1647,24 +1632,24 @@ export default function MenuManagementTab() {
           className={`flex flex-1 items-center justify-between gap-3 rounded-2xl border px-4 py-3 transition-all ${
             deliveryEnabled
               ? "border-blue-200 bg-blue-50 hover:bg-blue-100"
-              : "border-gray-200 bg-gray-50 hover:bg-gray-100"
+              : "border-[var(--border)] bg-[var(--canvas-sub)] hover:bg-[var(--surface)]"
           }`}
         >
           <div className="flex items-center gap-3">
-            <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${deliveryEnabled ? "bg-blue-100" : "bg-gray-100"}`}>
-              <Package className={`h-4 w-4 ${deliveryEnabled ? "text-blue-600" : "text-gray-400"}`} />
+            <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${deliveryEnabled ? "bg-blue-100" : "bg-[var(--surface)]"}`}>
+              <Package className={`h-4 w-4 ${deliveryEnabled ? "text-blue-600" : "text-[var(--text-3)]"}`} />
             </div>
             <div className="text-left">
-              <p className={`text-xs font-bold ${deliveryEnabled ? "text-blue-800" : "text-gray-600"}`}>
+              <p className={`text-xs font-bold ${deliveryEnabled ? "text-blue-800" : "text-[var(--text-2)]"}`}>
                 {deliveryEnabled ? "Delivery Enabled" : "Delivery Disabled"}
               </p>
-              <p className={`text-[11px] ${deliveryEnabled ? "text-blue-600" : "text-gray-400"}`}>
+              <p className={`text-[11px] ${deliveryEnabled ? "text-blue-600" : "text-[var(--text-3)]"}`}>
                 {deliveryEnabled ? "Customers can order delivery" : "No delivery available"}
               </p>
             </div>
           </div>
-          <div className={`relative h-6 w-11 rounded-full transition-colors ${deliveryEnabled ? "bg-blue-500" : "bg-gray-300"}`}>
-            <div className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${deliveryEnabled ? "translate-x-5" : "translate-x-0.5"}`} />
+          <div className={`relative h-6 w-11 rounded-full transition-colors ${deliveryEnabled ? "bg-blue-500" : "bg-[var(--border)]"}`}>
+            <div className={`absolute top-0.5 h-5 w-5 rounded-full bg-[var(--canvas)] shadow transition-transform ${deliveryEnabled ? "translate-x-5" : "translate-x-0.5"}`} />
           </div>
         </button>
       </div>
@@ -1675,19 +1660,19 @@ export default function MenuManagementTab() {
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col sm:flex-row items-center gap-4 rounded-xl border-2 border-dashed border-amber-200 bg-amber-50/30 px-6 py-5"
+          className="flex flex-col sm:flex-row items-center gap-4 rounded-xl border-2 border-dashed border-[var(--accent-border)] bg-[var(--accent-muted)] px-6 py-5"
         >
           <div className="flex items-center gap-3">
-            <Sparkles className="h-5 w-5 text-amber-500" />
+            <Sparkles className="h-5 w-5 text-[var(--accent)]" />
             <div>
-              <p className="text-sm font-semibold text-gray-700">Quick Start</p>
-              <p className="text-[12px] text-gray-500">Add 10 popular food categories with subcategories in one click</p>
+              <p className="text-sm font-semibold text-[var(--text-2)]">Quick Start</p>
+              <p className="text-[12px] text-[var(--text-2)]">Add 10 popular food categories with subcategories in one click</p>
             </div>
           </div>
           <button
             onClick={seedDefaults}
             disabled={seedingCats}
-            className="flex items-center gap-1.5 rounded-lg bg-amber-500 px-5 py-2.5 text-[13px] font-bold text-white hover:bg-amber-600 disabled:opacity-50 transition-all shrink-0"
+            className="flex items-center gap-1.5 rounded-lg bg-[var(--accent)] px-5 py-2.5 text-[13px] font-bold text-white hover:bg-[var(--accent-hover)] disabled:opacity-50 transition-all shrink-0"
           >
             {seedingCats ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5" />}
             Generate Categories for My Place
@@ -1698,25 +1683,25 @@ export default function MenuManagementTab() {
       <AnimatePresence>
         {showNewCat && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
-            <div className="flex items-center gap-2.5 rounded-lg border border-gray-200 bg-white p-3 shadow-sm">
-              <Tag className="h-4 w-4 text-gray-400 shrink-0" />
+            <div className="flex items-center gap-2.5 rounded-lg border border-[var(--border)] bg-[var(--canvas)] p-3 shadow-sm">
+              <Tag className="h-4 w-4 text-[var(--text-3)] shrink-0" />
               <input
                 ref={newCatInputRef}
                 value={newCatName}
                 onChange={(e) => setNewCatName(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") createCategory(); if (e.key === "Escape") { setShowNewCat(false); setNewCatName(""); } }}
                 placeholder="New top-level category name"
-                className="flex-1 min-w-0 text-sm font-medium text-gray-800 outline-none placeholder-gray-400"
+                className="flex-1 min-w-0 text-sm font-medium text-[var(--text-1)] outline-none placeholder-gray-400"
               />
               <button
                 onClick={() => createCategory()}
                 disabled={!newCatName.trim() || creatingCat}
-                className="flex items-center gap-1 rounded-md bg-amber-500 px-3 py-1.5 text-[12px] font-bold text-white hover:bg-amber-600 disabled:opacity-40 transition-all"
+                className="flex items-center gap-1 rounded-md bg-[var(--accent)] px-3 py-1.5 text-[12px] font-bold text-white hover:bg-[var(--accent-hover)] disabled:opacity-40 transition-all"
               >
                 {creatingCat ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
                 Create
               </button>
-              <button onClick={() => { setShowNewCat(false); setNewCatName(""); }} className="p-1 text-gray-400 hover:text-gray-600">
+              <button onClick={() => { setShowNewCat(false); setNewCatName(""); }} className="p-1 text-[var(--text-3)] hover:text-[var(--text-2)]">
                 <X className="h-3.5 w-3.5" />
               </button>
             </div>
@@ -1782,8 +1767,8 @@ export default function MenuManagementTab() {
       <div className="flex gap-5">
         {flatCategories.length > 0 && (
           <div className="hidden lg:block w-52 shrink-0">
-            <div className="sticky top-6 max-h-[calc(100vh-120px)] overflow-y-auto custom-scrollbar rounded-xl bg-white ring-1 ring-gray-100 p-3">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-2 px-2">Categories</p>
+            <div className="sticky top-6 max-h-[calc(100vh-120px)] overflow-y-auto custom-scrollbar rounded-xl bg-[var(--canvas)] ring-1 ring-[var(--border)] p-3">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-3)] mb-2 px-2">Categories</p>
               <CategoryTree
                 categories={flatCategories}
                 selectedCatId={selectedCatId}
@@ -1799,12 +1784,12 @@ export default function MenuManagementTab() {
           {/* Search & mobile category filter */}
           <div className="flex flex-col sm:flex-row gap-3 mb-6">
             <div className="relative flex-1 group">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-amber-500 transition-colors" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-3)] group-focus-within:text-[var(--accent)] transition-colors" />
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search dishes…"
-                className="w-full rounded-xl border border-gray-200 bg-white/80 backdrop-blur-sm py-3 pl-10 pr-4 text-sm font-semibold text-gray-900 placeholder-gray-400 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-500/20 shadow-sm transition-all"
+                className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)]/80 backdrop-blur-sm py-3 pl-10 pr-4 text-sm font-semibold text-[var(--text-1)] placeholder-gray-400 focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 shadow-sm transition-all"
               />
             </div>
             <div className="lg:hidden flex gap-2 overflow-x-auto scrollbar-hide items-center pb-1">
@@ -1816,7 +1801,7 @@ export default function MenuManagementTab() {
                     key="All"
                     onClick={() => setSelectedCatId("All")}
                     className={`shrink-0 rounded-full px-4 py-2 text-[12px] font-bold tracking-wide transition-all shadow-sm border ${
-                      isActive ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white border-transparent" : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                      isActive ? "bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] text-white border-transparent" : "bg-[var(--canvas)] text-[var(--text-2)] border-[var(--border)] hover:bg-[var(--canvas-sub)]"
                     }`}
                   >
                     All
@@ -1826,7 +1811,7 @@ export default function MenuManagementTab() {
                     <button
                       onClick={() => setSelectedCatId(catObj?.id || "All")}
                       className={`rounded-l-full pl-4 pr-2 py-2 text-[12px] font-bold tracking-wide transition-all shadow-sm border-y border-l ${
-                        isActive ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white border-transparent" : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                        isActive ? "bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] text-white border-transparent" : "bg-[var(--canvas)] text-[var(--text-2)] border-[var(--border)] hover:bg-[var(--canvas-sub)]"
                       }`}
                     >
                       {cat}
@@ -1835,7 +1820,7 @@ export default function MenuManagementTab() {
                       <button
                         onClick={() => initDeleteCategory(catObj.id)}
                         className={`rounded-r-full pl-1.5 pr-3 py-2 transition-all shadow-sm border-y border-r ${
-                          isActive ? "bg-orange-500 text-white border-transparent" : "bg-white text-gray-300 border-gray-200 hover:text-red-500 hover:bg-red-50 hover:border-red-200"
+                          isActive ? "bg-[var(--accent)] text-white border-transparent" : "bg-[var(--canvas)] text-[var(--text-3)] border-[var(--border)] hover:text-red-500 hover:bg-red-50 hover:border-red-200"
                         }`}
                         title={`Delete "${cat}"`}
                       >
@@ -1865,16 +1850,16 @@ export default function MenuManagementTab() {
                   animate={{ opacity: 1 }}
                   className="col-span-full flex flex-col items-center justify-center py-20 gap-3"
                 >
-                  <div className="h-14 w-14 rounded-full bg-gray-50 flex items-center justify-center">
-                    {items.length === 0 ? <UtensilsCrossed className="h-6 w-6 text-gray-200" /> : <Search className="h-5 w-5 text-gray-300" />}
+                  <div className="h-14 w-14 rounded-full bg-[var(--canvas-sub)] flex items-center justify-center">
+                    {items.length === 0 ? <UtensilsCrossed className="h-6 w-6 text-[var(--text-3)]" /> : <Search className="h-5 w-5 text-[var(--text-3)]" />}
                   </div>
-                  <p className="text-sm text-gray-400">
+                  <p className="text-sm text-[var(--text-3)]">
                     {items.length === 0 ? "Add your first dish to get started" : "No dishes match your search"}
                   </p>
                   {items.length === 0 && !showAddForm && (
                     <button
                       onClick={() => setShowAddForm(true)}
-                      className="flex items-center gap-1.5 rounded-lg bg-amber-500 px-4 py-2 text-[13px] font-bold text-white hover:bg-amber-600 mt-2"
+                      className="flex items-center gap-1.5 rounded-lg bg-[var(--accent)] px-4 py-2 text-[13px] font-bold text-white hover:bg-[var(--accent-hover)] mt-2"
                     >
                       <Plus className="h-3.5 w-3.5" /> Add First Dish
                     </button>
@@ -1910,29 +1895,29 @@ export default function MenuManagementTab() {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full"
+              className="bg-[var(--canvas)] rounded-2xl shadow-2xl p-6 max-w-sm w-full"
             >
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
                   <Trash2 className="h-5 w-5 text-red-600" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-gray-900">Delete Category</h3>
-                  <p className="text-sm text-gray-500">This cannot be undone</p>
+                  <h3 className="font-bold text-[var(--text-1)]">Delete Category</h3>
+                  <p className="text-sm text-[var(--text-2)]">This cannot be undone</p>
                 </div>
               </div>
-              <p className="text-sm text-gray-700 mb-1">
+              <p className="text-sm text-[var(--text-2)] mb-1">
                 Deleting <span className="font-semibold">&ldquo;{deleteCatConfirm.name}&rdquo;</span> will also delete:
               </p>
               <ul className="text-sm text-red-600 mb-5 list-disc pl-5 space-y-0.5">
                 {deleteCatConfirm.items > 0 && <li>{deleteCatConfirm.items} menu item{deleteCatConfirm.items !== 1 ? "s" : ""}</li>}
                 {deleteCatConfirm.subcategories > 0 && <li>{deleteCatConfirm.subcategories} subcategor{deleteCatConfirm.subcategories !== 1 ? "ies" : "y"}</li>}
-                {deleteCatConfirm.items === 0 && deleteCatConfirm.subcategories === 0 && <li className="text-gray-500">No items or subcategories</li>}
+                {deleteCatConfirm.items === 0 && deleteCatConfirm.subcategories === 0 && <li className="text-[var(--text-2)]">No items or subcategories</li>}
               </ul>
               <div className="flex gap-3">
                 <button
                   onClick={() => setDeleteCatConfirm(null)}
-                  className="flex-1 rounded-xl border border-gray-200 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="flex-1 rounded-xl border border-[var(--border)] py-2.5 text-sm font-semibold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors"
                 >
                   Cancel
                 </button>

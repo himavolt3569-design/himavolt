@@ -47,6 +47,11 @@ const OWNER_FEATURES = [
   { icon: Users, text: "Staff & inventory control" },
 ];
 
+const inputClass =
+  "w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] py-2.5 pl-10 pr-4 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] transition-colors";
+
+const labelClass = "mb-1.5 block text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--text-3)]";
+
 export default function SignUpPage() {
   const [step, setStep] = useState<Step>("role");
   const [role, setRole] = useState<Role | null>(null);
@@ -66,12 +71,10 @@ export default function SignUpPage() {
   useEffect(() => {
     const u = debouncedUsername;
     if (!u || checkedRef.current === u) return;
-
     if (!/^[a-z0-9_]{3,20}$/.test(u)) {
       setUsernameStatus(u.length < 3 ? "idle" : "invalid");
       return;
     }
-
     checkedRef.current = u;
     setUsernameStatus("checking");
     fetch(`/api/me/username-check?username=${encodeURIComponent(u)}`)
@@ -128,31 +131,29 @@ export default function SignUpPage() {
     const supabase = getSupabaseBrowserClient();
     await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback?role=${role}`,
-      },
+      options: { redirectTo: `${window.location.origin}/auth/callback?role=${role}` },
     });
   };
 
   if (success) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-[#fdf9ef] via-[#fefcf5] to-[#fdf9ef] p-6">
+      <div className="flex min-h-screen items-center justify-center bg-[var(--canvas-sub)] p-6">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           className="max-w-sm text-center"
         >
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#fef3dc]">
-            <Check className="h-8 w-8 text-[#d67620]" />
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--accent-muted)]">
+            <Check className="h-8 w-8 text-[var(--accent)]" />
           </div>
-          <h2 className="text-lg font-bold text-[#3e1e0c] mb-2">Check your email</h2>
-          <p className="text-sm text-[#8e491e]/50">
+          <h2 className="text-lg font-bold text-[var(--text-1)] mb-2">Check your email</h2>
+          <p className="text-sm text-[var(--text-2)]">
             We&apos;ve sent a confirmation link to{" "}
-            <strong className="text-[#3e1e0c]">{email}</strong>. Click it to activate your account.
+            <strong className="text-[var(--text-1)]">{email}</strong>. Click it to activate your account.
           </p>
           <Link
             href="/sign-in"
-            className="mt-6 inline-block text-sm font-bold text-[#eaa94d] hover:text-[#d67620] transition-colors"
+            className="mt-6 inline-block text-sm font-bold text-[var(--accent)] hover:text-[var(--accent-hover)] transition-colors"
           >
             Back to Sign In
           </Link>
@@ -162,15 +163,14 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-linear-to-br from-[#fdf9ef] via-[#fefcf5] to-[#fdf9ef] p-6">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-[var(--canvas-sub)] p-6">
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -top-32 -right-32 h-96 w-96 rounded-full bg-[#eaa94d]/15 blur-3xl" />
-        <div className="absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-[#d67620]/10 blur-3xl" />
+        <div className="absolute -top-32 -right-32 h-96 w-96 rounded-full bg-[var(--accent)]/10 blur-3xl" />
+        <div className="absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-[var(--accent-hover)]/8 blur-3xl" />
       </div>
 
       <AnimatePresence mode="wait">
         {step === "role" ? (
-          /* ─── Step 1: Role Selection ─── */
           <motion.div
             key="role-step"
             initial={{ opacity: 0, y: 16 }}
@@ -181,94 +181,94 @@ export default function SignUpPage() {
           >
             <div className="mb-8 text-center">
               <Link href="/" className="inline-flex items-center gap-2">
-                <Mountain className="h-8 w-8 text-[#eaa94d]" strokeWidth={2.5} />
-                <span className="text-2xl font-extrabold tracking-tight text-[#3e1e0c]">
-                  Hima<span className="text-[#eaa94d]">Volt</span>
+                <Mountain className="h-8 w-8 text-[var(--accent)]" strokeWidth={2.5} />
+                <span className="text-2xl font-black tracking-tight text-[var(--text-1)]">
+                  Hima<span className="text-[var(--accent)]">Volt</span>
                 </span>
               </Link>
-              <p className="mt-3 text-lg font-bold text-[#3e1e0c]">
+              <p className="mt-3 text-lg font-bold text-[var(--text-1)]">
                 How will you use HimaVolt?
               </p>
-              <p className="mt-1 text-sm text-[#8e491e]/50">
+              <p className="mt-1 text-sm text-[var(--text-2)]">
                 Choose your account type to get started
               </p>
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 mb-6">
+              {/* Customer card */}
               <button
                 onClick={() => setRole("CUSTOMER")}
-                className={`relative rounded-2xl border-2 p-5 text-left transition-all duration-200 ${
+                className={`relative rounded-2xl border-2 p-5 text-left transition-colors duration-200 ${
                   role === "CUSTOMER"
-                    ? "border-[#eaa94d] bg-[#fdf9ef] shadow-lg shadow-[#eaa94d]/15"
-                    : "border-[#f4d69a]/40 bg-white hover:border-[#eaa94d]/40 hover:shadow-sm"
+                    ? "border-[var(--accent)] bg-[var(--accent-muted)]"
+                    : "border-[var(--border)] bg-[var(--canvas)] hover:border-[var(--accent-border)]"
                 }`}
               >
                 {role === "CUSTOMER" && (
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    className="absolute right-4 top-4 flex h-6 w-6 items-center justify-center rounded-full bg-[#eaa94d]"
+                    className="absolute right-4 top-4 flex h-6 w-6 items-center justify-center rounded-full bg-[var(--accent)]"
                   >
                     <Check className="h-3.5 w-3.5 text-white" />
                   </motion.div>
                 )}
-
                 <div className={`mb-4 flex h-12 w-12 items-center justify-center rounded-xl ${
-                  role === "CUSTOMER" ? "bg-[#eaa94d]/15" : "bg-slate-100"
+                  role === "CUSTOMER" ? "bg-[var(--accent-muted)] border border-[var(--accent-border)]" : "bg-[var(--surface)]"
                 }`}>
-                  <UtensilsCrossed className={`h-6 w-6 ${role === "CUSTOMER" ? "text-[#eaa94d]" : "text-slate-400"}`} />
+                  <UtensilsCrossed className={`h-6 w-6 ${role === "CUSTOMER" ? "text-[var(--accent)]" : "text-[var(--text-3)]"}`} />
                 </div>
-                <h3 className="text-base font-bold text-[#3e1e0c] mb-1">Food Lover</h3>
-                <p className="text-xs text-[#8e491e]/40 mb-4 leading-relaxed">
+                <h3 className="text-base font-bold text-[var(--text-1)] mb-1">Food Lover</h3>
+                <p className="text-xs text-[var(--text-3)] mb-4 leading-relaxed">
                   Discover restaurants &amp; order your favourite meals
                 </p>
                 <ul className="space-y-2">
                   {CUSTOMER_FEATURES.map(({ icon: Icon, text }) => (
-                    <li key={text} className="flex items-center gap-2 text-xs text-[#8e491e]/50">
-                      <Icon className={`h-3.5 w-3.5 shrink-0 ${role === "CUSTOMER" ? "text-[#eaa94d]" : "text-slate-300"}`} />
+                    <li key={text} className="flex items-center gap-2 text-xs text-[var(--text-2)]">
+                      <Icon className={`h-3.5 w-3.5 shrink-0 ${role === "CUSTOMER" ? "text-[var(--accent)]" : "text-[var(--text-3)]"}`} />
                       {text}
                     </li>
                   ))}
                 </ul>
               </button>
 
+              {/* Owner card */}
               <button
                 onClick={() => setRole("OWNER")}
-                className={`relative rounded-2xl border-2 p-5 text-left transition-all duration-200 ${
+                className={`relative rounded-2xl border-2 p-5 text-left transition-colors duration-200 ${
                   role === "OWNER"
-                    ? "border-[#3e1e0c] bg-linear-to-br from-[#3e1e0c] to-[#5a2c10] shadow-lg shadow-[#3e1e0c]/20"
-                    : "border-[#f4d69a]/40 bg-white hover:border-[#eaa94d]/40 hover:shadow-sm"
+                    ? "border-[var(--text-1)] bg-[var(--text-1)]"
+                    : "border-[var(--border)] bg-[var(--canvas)] hover:border-[var(--accent-border)]"
                 }`}
               >
                 {role === "OWNER" ? (
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    className="absolute right-4 top-4 flex h-6 w-6 items-center justify-center rounded-full bg-white/20"
+                    className="absolute right-4 top-4 flex h-6 w-6 items-center justify-center rounded-full bg-[var(--canvas)]/80"
                   >
                     <Check className="h-3.5 w-3.5 text-white" />
                   </motion.div>
                 ) : (
-                  <span className="absolute right-4 top-4 rounded-full bg-[#eaa94d]/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#eaa94d]">
+                  <span className="absolute right-4 top-4 rounded-full bg-[var(--accent-muted)] border border-[var(--accent-border)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[var(--accent-text)]">
                     Business
                   </span>
                 )}
-
                 <div className={`mb-4 flex h-12 w-12 items-center justify-center rounded-xl ${
-                  role === "OWNER" ? "bg-white/15" : "bg-slate-100"
+                  role === "OWNER" ? "bg-[var(--canvas)]/80" : "bg-[var(--surface)]"
                 }`}>
-                  <Building2 className={`h-6 w-6 ${role === "OWNER" ? "text-white" : "text-slate-400"}`} />
+                  <Building2 className={`h-6 w-6 ${role === "OWNER" ? "text-white" : "text-[var(--text-3)]"}`} />
                 </div>
-                <h3 className={`text-base font-bold mb-1 ${role === "OWNER" ? "text-white" : "text-[#3e1e0c]"}`}>
+                <h3 className={`text-base font-bold mb-1 ${role === "OWNER" ? "text-white" : "text-[var(--text-1)]"}`}>
                   Restaurant Owner
                 </h3>
-                <p className={`text-xs mb-4 leading-relaxed ${role === "OWNER" ? "text-white/65" : "text-[#8e491e]/40"}`}>
+                <p className={`text-xs mb-4 leading-relaxed ${role === "OWNER" ? "text-white/65" : "text-[var(--text-3)]"}`}>
                   Manage your restaurant, staff &amp; grow your business
                 </p>
                 <ul className="space-y-2">
                   {OWNER_FEATURES.map(({ icon: Icon, text }) => (
-                    <li key={text} className={`flex items-center gap-2 text-xs ${role === "OWNER" ? "text-white/70" : "text-[#8e491e]/50"}`}>
-                      <Icon className={`h-3.5 w-3.5 shrink-0 ${role === "OWNER" ? "text-[#f4d69a]" : "text-slate-300"}`} />
+                    <li key={text} className={`flex items-center gap-2 text-xs ${role === "OWNER" ? "text-white/70" : "text-[var(--text-2)]"}`}>
+                      <Icon className={`h-3.5 w-3.5 shrink-0 ${role === "OWNER" ? "text-[var(--accent)]" : "text-[var(--text-3)]"}`} />
                       {text}
                     </li>
                   ))}
@@ -279,14 +279,15 @@ export default function SignUpPage() {
             <button
               onClick={() => role && setStep("form")}
               disabled={!role}
-              className="w-full rounded-xl bg-[#3e1e0c] py-3 text-sm font-bold text-white shadow-md shadow-[#3e1e0c]/20 transition-all hover:bg-[#2a1408] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed mb-3"
+              className="w-full rounded-xl bg-[var(--accent)] py-3 text-sm font-bold text-white shadow-md shadow-[var(--accent)]/20 hover:bg-[var(--accent-hover)] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed mb-3 transition-colors"
             >
               Continue
             </button>
+
             {role === "OWNER" && (
               <button
                 onClick={handleGoogleSignUp}
-                className="w-full rounded-xl border border-[#f4d69a]/40 bg-white py-3 text-sm font-semibold text-[#3e1e0c] transition-all hover:bg-[#fdf9ef] hover:border-[#eaa94d]/30"
+                className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] py-3 text-sm font-semibold text-[var(--text-1)] hover:bg-[var(--surface)] transition-colors"
               >
                 <span className="flex items-center justify-center gap-2">
                   <svg className="h-4 w-4" viewBox="0 0 24 24">
@@ -300,15 +301,15 @@ export default function SignUpPage() {
               </button>
             )}
 
-            <p className="mt-5 text-center text-sm text-[#8e491e]/40">
+            <p className="mt-5 text-center text-sm text-[var(--text-3)]">
               Already have an account?{" "}
-              <Link href="/sign-in" className="font-bold text-[#eaa94d] hover:text-[#d67620] transition-colors">
+              <Link href="/sign-in" className="font-bold text-[var(--accent)] hover:text-[var(--accent-hover)] transition-colors">
                 Sign In
               </Link>
             </p>
           </motion.div>
         ) : (
-          /* ─── Step 2: Registration Form ─── */
+          /* Registration Form */
           <motion.div
             key="form-step"
             initial={{ opacity: 0, x: 24 }}
@@ -320,50 +321,46 @@ export default function SignUpPage() {
             <div className="mb-6 flex items-center gap-3">
               <button
                 onClick={() => { setStep("role"); setError(""); }}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#f4d69a]/40 bg-white hover:bg-[#fdf9ef] transition-colors shadow-sm"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--canvas)] hover:bg-[var(--surface)] transition-colors"
               >
-                <ArrowLeft className="h-4 w-4 text-[#8e491e]/50" />
+                <ArrowLeft className="h-4 w-4 text-[var(--text-2)]" />
               </button>
               <div>
                 <Link href="/" className="flex items-center gap-1.5">
-                  <Mountain className="h-5 w-5 text-[#eaa94d]" strokeWidth={2.5} />
-                  <span className="text-base font-extrabold tracking-tight text-[#3e1e0c]">
-                    Hima<span className="text-[#eaa94d]">Volt</span>
+                  <Mountain className="h-5 w-5 text-[var(--accent)]" strokeWidth={2.5} />
+                  <span className="text-base font-black tracking-tight text-[var(--text-1)]">
+                    Hima<span className="text-[var(--accent)]">Volt</span>
                   </span>
                 </Link>
                 <div className="mt-0.5 flex items-center gap-1.5">
                   {role === "OWNER" ? (
-                    <Building2 className="h-3.5 w-3.5 text-[#eaa94d]" />
+                    <Building2 className="h-3.5 w-3.5 text-[var(--accent)]" />
                   ) : (
-                    <UtensilsCrossed className="h-3.5 w-3.5 text-[#eaa94d]" />
+                    <UtensilsCrossed className="h-3.5 w-3.5 text-[var(--accent)]" />
                   )}
-                  <span className="text-xs font-semibold text-[#8e491e]/50">
+                  <span className="text-xs font-semibold text-[var(--text-3)]">
                     {role === "OWNER" ? "Restaurant Owner Account" : "Food Lover Account"}
                   </span>
                 </div>
               </div>
             </div>
 
-            <div className="overflow-hidden rounded-2xl border border-[#f4d69a]/30 bg-white/90 shadow-xl shadow-[#eaa94d]/8 backdrop-blur-sm">
+            <div className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--canvas)] shadow-xl shadow-black/[0.04]">
               <div className={`px-5 py-3 ${
                 role === "OWNER"
-                  ? "bg-linear-to-r from-[#3e1e0c] to-[#5a2c10]"
-                  : "bg-linear-to-r from-[#fdf9ef] to-[#fef6e8]"
+                  ? "bg-[var(--text-1)]"
+                  : "bg-[var(--accent-muted)] border-b border-[var(--accent-border)]"
               }`}>
                 <div className="flex items-center gap-2">
                   {role === "OWNER" ? (
                     <>
                       <Building2 className="h-4 w-4 text-white/80" />
-                      <span className="text-xs font-bold text-white/90">
-                        Setting up Restaurant Owner account
-                      </span>
+                      <span className="text-xs font-bold text-white/90">Setting up Restaurant Owner account</span>
                     </>
                   ) : (
                     <>
-                      <UtensilsCrossed className="h-4 w-4 text-[#eaa94d]" />
-                      <span className="text-xs font-bold text-[#eaa94d]">
-                        Setting up Food Lover account
-                      </span>
+                      <UtensilsCrossed className="h-4 w-4 text-[var(--accent)]" />
+                      <span className="text-xs font-bold text-[var(--accent-text)]">Setting up Food Lover account</span>
                     </>
                   )}
                 </div>
@@ -372,123 +369,115 @@ export default function SignUpPage() {
               <div className="p-6">
                 <form onSubmit={handleSubmit} className="space-y-4">
                   {error && (
-                    <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+                    <div className="rounded-xl border border-[var(--status-error-text)]/20 bg-[var(--status-error-bg)] px-4 py-3 text-sm text-[var(--status-error-text)]">
                       {error}
                     </div>
                   )}
 
                   <div>
-                    <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-[#8e491e]/50">
-                      Full Name
-                    </label>
+                    <label className={labelClass}>Full Name</label>
                     <div className="relative">
-                      <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#b25c1c]/30" />
+                      <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-3)]" />
                       <input
                         type="text"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         required
-                        className="w-full rounded-xl border border-[#f4d69a]/40 bg-[#fdf9ef]/50 py-2.5 pl-10 pr-4 text-sm text-[#3e1e0c] placeholder:text-[#b25c1c]/30 focus:border-[#eaa94d]/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#eaa94d]/10 transition-all"
+                        className={inputClass}
                         placeholder="Your full name"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-[#8e491e]/50">
-                      Username <span className="text-[#eaa94d]">*</span>
+                    <label className={labelClass}>
+                      Username <span className="text-[var(--accent)]">*</span>
                     </label>
                     <div className="relative">
-                      <AtSign className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#b25c1c]/30" />
+                      <AtSign className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-3)]" />
                       <input
                         type="text"
                         value={username}
                         onChange={(e) => handleUsernameChange(e.target.value)}
                         required
                         placeholder="your_username"
-                        className={`w-full rounded-xl border py-2.5 pl-10 pr-9 text-sm focus:outline-none focus:ring-2 transition-all bg-[#fdf9ef]/50 focus:bg-white ${
+                        className={`w-full rounded-xl border py-2.5 pl-10 pr-9 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:outline-none focus:ring-2 transition-colors bg-[var(--canvas)] ${
                           usernameStatus === "available"
-                            ? "border-[#eaa94d] focus:border-[#eaa94d] focus:ring-[#eaa94d]/20 text-[#3e1e0c]"
+                            ? "border-[var(--accent)] focus:border-[var(--accent)] focus:ring-[var(--accent-border)]"
                             : usernameStatus === "taken" || usernameStatus === "invalid"
-                            ? "border-red-300 focus:border-red-300 focus:ring-red-100 text-[#3e1e0c]"
-                            : "border-[#f4d69a]/40 focus:border-[#eaa94d]/50 focus:ring-[#eaa94d]/10 text-[#3e1e0c]"
+                            ? "border-red-400 focus:border-red-400 focus:ring-red-100"
+                            : "border-[var(--border)] focus:border-[var(--accent)] focus:ring-[var(--accent-border)]"
                         }`}
                       />
                       <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                        {usernameStatus === "checking" && <Loader2 className="h-4 w-4 animate-spin text-[#b25c1c]/30" />}
-                        {usernameStatus === "available" && <Check className="h-4 w-4 text-[#d67620]" />}
+                        {usernameStatus === "checking" && <Loader2 className="h-4 w-4 animate-spin text-[var(--text-3)]" />}
+                        {usernameStatus === "available" && <Check className="h-4 w-4 text-[var(--accent)]" />}
                       </div>
                     </div>
                     <p className={`mt-1 text-[11px] ${
-                      usernameStatus === "available" ? "text-[#d67620]"
-                      : usernameStatus === "taken" ? "text-red-400"
-                      : usernameStatus === "invalid" ? "text-red-400"
-                      : "text-[#b25c1c]/30"
+                      usernameStatus === "available" ? "text-[var(--accent)]"
+                      : usernameStatus === "taken" || usernameStatus === "invalid" ? "text-red-400"
+                      : "text-[var(--text-3)]"
                     }`}>
                       {usernameStatus === "available" && "Username is available!"}
                       {usernameStatus === "taken" && "Username is already taken"}
-                      {usernameStatus === "invalid" && "3–20 chars: lowercase, numbers, underscores"}
-                      {(usernameStatus === "idle" || usernameStatus === "checking") && "3–20 chars: a–z, 0–9, underscores only"}
+                      {usernameStatus === "invalid" && "3-20 chars: lowercase, numbers, underscores"}
+                      {(usernameStatus === "idle" || usernameStatus === "checking") && "3-20 chars: a-z, 0-9, underscores only"}
                     </p>
                   </div>
 
                   <div>
-                    <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-[#8e491e]/50">
-                      Email
-                    </label>
+                    <label className={labelClass}>Email</label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#b25c1c]/30" />
+                      <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-3)]" />
                       <input
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
-                        className="w-full rounded-xl border border-[#f4d69a]/40 bg-[#fdf9ef]/50 py-2.5 pl-10 pr-4 text-sm text-[#3e1e0c] placeholder:text-[#b25c1c]/30 focus:border-[#eaa94d]/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#eaa94d]/10 transition-all"
+                        className={inputClass}
                         placeholder="you@example.com"
                       />
                     </div>
                   </div>
 
-                  {/* Phone (Owner only) */}
                   {role === "OWNER" && (
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}
                       transition={{ duration: 0.18 }}
                     >
-                      <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-[#8e491e]/50">
-                        Phone Number <span className="text-[#eaa94d]">*</span>
+                      <label className={labelClass}>
+                        Phone Number <span className="text-[var(--accent)]">*</span>
                       </label>
                       <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#b25c1c]/30" />
+                        <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-3)]" />
                         <input
                           type="tel"
                           value={phone}
                           onChange={(e) => setPhone(e.target.value)}
                           required
-                          className="w-full rounded-xl border border-[#f4d69a]/40 bg-[#fdf9ef]/50 py-2.5 pl-10 pr-4 text-sm text-[#3e1e0c] placeholder:text-[#b25c1c]/30 focus:border-[#eaa94d]/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#eaa94d]/10 transition-all"
+                          className={inputClass}
                           placeholder="+977 98XXXXXXXX"
                         />
                       </div>
-                      <p className="mt-1 text-[11px] text-[#b25c1c]/30">
+                      <p className="mt-1 text-[11px] text-[var(--text-3)]">
                         Required for restaurant verification
                       </p>
                     </motion.div>
                   )}
 
                   <div>
-                    <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-[#8e491e]/50">
-                      Password
-                    </label>
+                    <label className={labelClass}>Password</label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#b25c1c]/30" />
+                      <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-3)]" />
                       <input
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
                         minLength={6}
-                        className="w-full rounded-xl border border-[#f4d69a]/40 bg-[#fdf9ef]/50 py-2.5 pl-10 pr-4 text-sm text-[#3e1e0c] placeholder:text-[#b25c1c]/30 focus:border-[#eaa94d]/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#eaa94d]/10 transition-all"
+                        className={inputClass}
                         placeholder="Min 6 characters"
                       />
                     </div>
@@ -497,13 +486,9 @@ export default function SignUpPage() {
                   <button
                     type="submit"
                     disabled={loading || usernameStatus !== "available"}
-                    className="w-full rounded-xl bg-[#3e1e0c] py-3 text-sm font-bold text-white shadow-md shadow-[#3e1e0c]/20 transition-all hover:bg-[#2a1408] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full rounded-xl bg-[var(--accent)] py-3 text-sm font-bold text-white shadow-md shadow-[var(--accent)]/20 hover:bg-[var(--accent-hover)] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    {loading ? (
-                      <Loader2 className="mx-auto h-4 w-4 animate-spin" />
-                    ) : (
-                      "Create Account"
-                    )}
+                    {loading ? <Loader2 className="mx-auto h-4 w-4 animate-spin" /> : "Create Account"}
                   </button>
                 </form>
 
@@ -511,16 +496,16 @@ export default function SignUpPage() {
                   <>
                     <div className="relative my-5">
                       <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-[#f4d69a]/30" />
+                        <div className="w-full border-t border-[var(--border)]" />
                       </div>
                       <div className="relative flex justify-center text-xs">
-                        <span className="bg-white px-3 text-[#b25c1c]/30">or</span>
+                        <span className="bg-[var(--canvas)] px-3 text-[var(--text-3)]">or</span>
                       </div>
                     </div>
 
                     <button
                       onClick={handleGoogleSignUp}
-                      className="w-full rounded-xl border border-[#f4d69a]/40 bg-white py-3 text-sm font-semibold text-[#3e1e0c] transition-all hover:bg-[#fdf9ef] hover:border-[#eaa94d]/30"
+                      className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] py-3 text-sm font-semibold text-[var(--text-1)] hover:bg-[var(--surface)] transition-colors"
                     >
                       <span className="flex items-center justify-center gap-2">
                         <svg className="h-4 w-4" viewBox="0 0 24 24">
@@ -537,9 +522,9 @@ export default function SignUpPage() {
               </div>
             </div>
 
-            <p className="mt-5 text-center text-sm text-[#8e491e]/40">
+            <p className="mt-5 text-center text-sm text-[var(--text-3)]">
               Already have an account?{" "}
-              <Link href="/sign-in" className="font-bold text-[#eaa94d] hover:text-[#d67620] transition-colors">
+              <Link href="/sign-in" className="font-bold text-[var(--accent)] hover:text-[var(--accent-hover)] transition-colors">
                 Sign In
               </Link>
             </p>

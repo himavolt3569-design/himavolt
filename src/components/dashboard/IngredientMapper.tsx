@@ -213,25 +213,25 @@ export default function IngredientMapper({
           stiffness: 340,
           mass: 0.7,
         }}
-        className="fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-3xl bg-white shadow-2xl max-h-[90dvh] flex flex-col"
+        className="fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-3xl bg-[var(--canvas)] shadow-2xl max-h-[90dvh] flex flex-col"
       >
-        <div className="flex items-center justify-between px-6 py-5 border-b border-amber-100/60">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-[var(--accent-border)]/60">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-50">
-              <Link2 className="h-4.5 w-4.5 text-amber-600" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent-muted)]">
+              <Link2 className="h-4.5 w-4.5 text-[var(--accent-text)]" />
             </div>
             <div>
-              <h3 className="text-lg font-extrabold text-[#3e1e0c]">
+              <h3 className="text-lg font-extrabold text-[var(--text-1)]">
                 Map Ingredients
               </h3>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-[var(--text-2)]">
                 Link inventory items to this menu item for auto stock deduction
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition-all"
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-[var(--border)] text-[var(--text-3)] hover:bg-[var(--canvas-sub)] hover:text-[var(--text-2)] transition-all"
           >
             <X className="h-4 w-4" />
           </button>
@@ -240,26 +240,26 @@ export default function IngredientMapper({
         <div className="flex-1 overflow-y-auto px-6 py-4">
           {loading ? (
             <div className="flex items-center justify-center py-16">
-              <Loader2 className="h-6 w-6 animate-spin text-amber-500" />
+              <Loader2 className="h-6 w-6 animate-spin text-[var(--accent)]" />
             </div>
           ) : inventory.length === 0 ? (
             <div className="flex flex-col items-center py-12 text-center">
-              <Package className="h-10 w-10 text-gray-300 mb-3" />
-              <p className="font-bold text-gray-500">No inventory items</p>
-              <p className="text-sm text-gray-400 mt-1">
+              <Package className="h-10 w-10 text-[var(--text-3)] mb-3" />
+              <p className="font-bold text-[var(--text-2)]">No inventory items</p>
+              <p className="text-sm text-[var(--text-3)] mt-1">
                 Add items to your inventory first, then map them here
               </p>
             </div>
           ) : (
             <div className="space-y-3">
               <div className="relative">
-                <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-3)]" />
                 <input
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search inventory items..."
-                  className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm font-medium text-[#3e1e0c] placeholder-gray-400 outline-none transition-all focus:border-[#eaa94d] focus:ring-2 focus:ring-[#eaa94d]/15"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] py-2.5 pl-10 pr-4 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#eaa94d] focus:ring-2 focus:ring-[#eaa94d]/15"
                 />
               </div>
 
@@ -277,16 +277,16 @@ export default function IngredientMapper({
                       key={item.id}
                       className={`flex items-center gap-3 rounded-xl border p-3 transition-all ${
                         isChecked
-                          ? "border-amber-300 bg-amber-50/40"
-                          : "border-gray-100 bg-white hover:bg-gray-50/50"
+                          ? "border-[var(--accent-border)] bg-[var(--accent-muted)]"
+                          : "border-[var(--border-soft)] bg-[var(--canvas)] hover:bg-[var(--surface)]/50"
                       }`}
                     >
                       <button
                         onClick={() => toggleItem(item.id)}
                         className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border-2 transition-all ${
                           isChecked
-                            ? "border-amber-500 bg-amber-500 text-white"
-                            : "border-gray-300 bg-white hover:border-amber-400"
+                            ? "border-[var(--accent)] bg-[var(--accent)] text-white"
+                            : "border-[var(--border)] bg-[var(--canvas)] hover:border-[var(--accent)]"
                         }`}
                       >
                         {isChecked && <Check className="h-3.5 w-3.5" />}
@@ -294,10 +294,10 @@ export default function IngredientMapper({
 
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className="text-sm font-bold text-[#3e1e0c] truncate">
+                          <p className="text-sm font-bold text-[var(--text-1)] truncate">
                             {item.name}
                           </p>
-                          <span className="shrink-0 text-[10px] font-semibold text-gray-400">
+                          <span className="shrink-0 text-[10px] font-semibold text-[var(--text-3)]">
                             {item.quantity} {item.unit} in stock
                           </span>
                         </div>
@@ -314,9 +314,9 @@ export default function IngredientMapper({
                             onChange={(e) =>
                               setQuantity(item.id, parseFloat(e.target.value) || 0.01)
                             }
-                            className="w-20 rounded-lg border border-amber-300 bg-amber-50/50 px-2 py-1.5 text-xs font-bold text-[#3e1e0c] text-center outline-none focus:ring-2 focus:ring-amber-200"
+                            className="w-20 rounded-lg border border-[var(--accent-border)] bg-[var(--accent-muted)] px-2 py-1.5 text-xs font-bold text-[var(--text-1)] text-center outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                           />
-                          <span className="text-[10px] font-semibold text-amber-600 w-6">
+                          <span className="text-[10px] font-semibold text-[var(--accent-text)] w-6">
                             {item.unit}
                           </span>
                           {existingMapping && (
@@ -335,7 +335,7 @@ export default function IngredientMapper({
                 })}
 
                 {filteredInventory.length === 0 && (
-                  <p className="text-center text-sm text-gray-400 py-6">
+                  <p className="text-center text-sm text-[var(--text-3)] py-6">
                     No items match your search
                   </p>
                 )}
@@ -344,15 +344,15 @@ export default function IngredientMapper({
           )}
         </div>
 
-        <div className="border-t border-gray-100 px-6 py-4 flex items-center justify-between bg-gray-50/50">
-          <p className="text-xs text-gray-400">
+        <div className="border-t border-[var(--border-soft)] px-6 py-4 flex items-center justify-between bg-[var(--canvas-sub)]">
+          <p className="text-xs text-[var(--text-3)]">
             {Object.values(selected).filter((s) => s.checked).length} ingredients
             selected
           </p>
           <div className="flex items-center gap-3">
             <button
               onClick={onClose}
-              className="rounded-xl px-5 py-2.5 text-sm font-bold text-gray-500 hover:text-[#3e1e0c] hover:bg-gray-100 transition-all"
+              className="rounded-xl px-5 py-2.5 text-sm font-bold text-[var(--text-2)] hover:text-[var(--text-1)] hover:bg-[var(--surface)] transition-all"
             >
               Cancel
             </button>
@@ -361,8 +361,8 @@ export default function IngredientMapper({
               disabled={saving}
               className={`flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-bold text-white shadow-lg transition-all active:scale-[0.97] ${
                 !saving
-                  ? "bg-amber-600 shadow-amber-600/20 hover:bg-amber-500"
-                  : "bg-gray-300 shadow-none cursor-not-allowed"
+                  ? "bg-[var(--accent-hover)] shadow-[var(--accent)]/20/20 hover:bg-[var(--accent)]"
+                  : "bg-[var(--border)] shadow-none cursor-not-allowed"
               }`}
             >
               {saving ? (

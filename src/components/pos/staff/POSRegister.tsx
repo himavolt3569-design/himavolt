@@ -193,7 +193,7 @@ export default function POSRegister({
 
   return (
     <div className="flex h-full">
-      <div className="flex-1 bg-gray-50">
+      <div className="flex-1 bg-[var(--canvas-sub)]">
         <POSMenuGrid
           items={menuItems}
           categories={categories}

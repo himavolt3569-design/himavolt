@@ -181,11 +181,11 @@ export default function CocktailMenuTab() {
   const getCategoryColor = (category: string) => {
     switch (category) {
       case "Classic":
-        return "text-amber-400 bg-amber-500/10";
+        return "text-[var(--accent)] bg-[var(--accent-border)]";
       case "Signature":
         return "text-purple-400 bg-purple-500/10";
       case "Mocktail":
-        return "text-emerald-400 bg-[#eaa94d]/10";
+        return "text-[#d67620] bg-[var(--accent-muted)]";
       case "Shot":
         return "text-red-400 bg-red-500/10";
       default:
@@ -201,16 +201,16 @@ export default function CocktailMenuTab() {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4"
+            className="bg-[var(--accent-border)] border border-[var(--accent)]/30 rounded-xl p-4"
           >
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <AlertTriangle className="w-5 h-5 text-amber-400" />
-                <h4 className="text-amber-400 font-medium">Low Stock Ingredients</h4>
+                <AlertTriangle className="w-5 h-5 text-[var(--accent)]" />
+                <h4 className="text-[var(--accent)] font-medium">Low Stock Ingredients</h4>
               </div>
               <button
                 onClick={() => setShowStockWarnings(false)}
-                className="text-amber-400/60 hover:text-amber-400"
+                className="text-[var(--accent)]/60 hover:text-[var(--accent)]"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -222,7 +222,7 @@ export default function CocktailMenuTab() {
                   className={`px-2.5 py-1 rounded-lg text-xs font-medium ${
                     ing.stock === "Out"
                       ? "bg-red-500/20 text-red-400"
-                      : "bg-amber-500/20 text-amber-300"
+                      : "bg-[var(--accent-border)] text-[var(--accent)]"
                   }`}
                 >
                   {ing.name} ({ing.stock}) - used in {ing.usedIn} recipes
@@ -466,7 +466,7 @@ export default function CocktailMenuTab() {
               {newCocktail.cost && newCocktail.price && (
                 <div className="bg-zinc-900 rounded-lg p-3 flex items-center justify-between">
                   <span className="text-zinc-400 text-sm">Profit Margin</span>
-                  <span className="text-emerald-400 font-semibold">
+                  <span className="text-[#d67620] font-semibold">
                     {Math.round(
                       ((parseFloat(newCocktail.price) - parseFloat(newCocktail.cost)) /
                         parseFloat(newCocktail.price)) *
@@ -509,10 +509,10 @@ export default function CocktailMenuTab() {
                     <div className="flex items-center gap-2">
                       <h4 className="text-white font-medium">{cocktail.name}</h4>
                       {cocktail.isFeatured && (
-                        <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                        <Star className="w-3.5 h-3.5 text-[var(--accent)] fill-[var(--accent)]" />
                       )}
                       {cocktail.isSeasonal && (
-                        <span className="px-1.5 py-0.5 bg-[#eaa94d]/20 text-emerald-400 text-[10px] rounded-full font-medium">
+                        <span className="px-1.5 py-0.5 bg-[#eaa94d]/20 text-[#d67620] text-[10px] rounded-full font-medium">
                           Seasonal
                         </span>
                       )}
@@ -524,7 +524,7 @@ export default function CocktailMenuTab() {
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
+                  <Star className="w-3 h-3 text-[var(--accent)] fill-[var(--accent)]" />
                   <span className="text-zinc-300 text-sm">{cocktail.rating || "-"}</span>
                 </div>
               </div>
@@ -552,7 +552,7 @@ export default function CocktailMenuTab() {
                     <p className="text-zinc-500 text-xs">Cost</p>
                   </div>
                   <div>
-                    <p className="text-emerald-400 text-sm font-medium">
+                    <p className="text-[#d67620] text-sm font-medium">
                       {Math.round(((cocktail.price - cocktail.cost) / cocktail.price) * 100)}%
                     </p>
                     <p className="text-zinc-500 text-xs">Margin</p>
@@ -574,7 +574,7 @@ export default function CocktailMenuTab() {
                   <button
                     onClick={() => toggleFeatured(cocktail.id)}
                     className={`flex items-center gap-1 text-sm transition-colors ${
-                      cocktail.isFeatured ? "text-amber-400" : "text-zinc-400 hover:text-amber-400"
+                      cocktail.isFeatured ? "text-[var(--accent)]" : "text-zinc-400 hover:text-[var(--accent)]"
                     }`}
                   >
                     <Star className="w-3.5 h-3.5" />
@@ -584,8 +584,8 @@ export default function CocktailMenuTab() {
                     onClick={() => toggleSeasonal(cocktail.id)}
                     className={`flex items-center gap-1 text-sm transition-colors ${
                       cocktail.isSeasonal
-                        ? "text-emerald-400"
-                        : "text-zinc-400 hover:text-emerald-400"
+                        ? "text-[#d67620]"
+                        : "text-zinc-400 hover:text-[#d67620]"
                     }`}
                   >
                     <Sparkles className="w-3.5 h-3.5" />
@@ -643,13 +643,13 @@ export default function CocktailMenuTab() {
       {selectedCategory === "All" && cocktails.some((c) => c.category === "Mocktail") && (
         <div>
           <div className="flex items-center gap-2 mb-3">
-            <Leaf className="w-5 h-5 text-emerald-400" />
+            <Leaf className="w-5 h-5 text-[#d67620]" />
             <h3 className="text-white font-semibold">Mocktail Corner</h3>
-            <span className="px-2 py-0.5 bg-[#eaa94d]/20 text-emerald-400 text-xs rounded-full">
+            <span className="px-2 py-0.5 bg-[#eaa94d]/20 text-[#d67620] text-xs rounded-full">
               Non-Alcoholic
             </span>
           </div>
-          <div className="bg-gradient-to-r from-[#eaa94d]/5 to-transparent rounded-xl p-4 border border-emerald-500/20">
+          <div className="bg-gradient-to-r from-[#eaa94d]/5 to-transparent rounded-xl p-4 border border-[#eaa94d]/20">
             <div className="flex gap-3 overflow-x-auto">
               {cocktails
                 .filter((c) => c.category === "Mocktail")
@@ -662,7 +662,7 @@ export default function CocktailMenuTab() {
                     <p className="text-zinc-400 text-xs mt-0.5">
                       {mocktail.ingredients.length} ingredients
                     </p>
-                    <p className="text-emerald-400 font-semibold text-sm mt-2">
+                    <p className="text-[#d67620] font-semibold text-sm mt-2">
                       Rs {mocktail.price}
                     </p>
                   </div>

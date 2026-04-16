@@ -93,19 +93,19 @@ export default function POSSplitBill({ orderId, orderNo, total, restaurantId, cu
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.96, opacity: 0 }}
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden"
+        className="w-full max-w-md bg-[var(--canvas)] rounded-2xl shadow-2xl overflow-hidden"
       >
         {/* Modal header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-soft)]">
           <div>
-            <h2 className="text-base font-semibold text-gray-900">Split Bill</h2>
-            <p className="text-xs text-gray-400 mt-0.5">
+            <h2 className="text-base font-semibold text-[var(--text-1)]">Split Bill</h2>
+            <p className="text-xs text-[var(--text-3)] mt-0.5">
               Order #{orderNo} &middot; Total: {formatPrice(total, currency)}
             </p>
           </div>
           <button
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-3)] hover:bg-[var(--surface)] hover:text-[var(--text-2)] transition-colors"
           >
             <X className="h-4 w-4" />
           </button>
@@ -118,7 +118,7 @@ export default function POSSplitBill({ orderId, orderNo, total, restaurantId, cu
               <select
                 value={split.method}
                 onChange={(e) => updateSplit(idx, "method", e.target.value)}
-                className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent transition-all"
+                className="rounded-lg border border-[var(--border)] bg-[var(--canvas-sub)] px-3 py-2.5 text-sm font-medium text-[var(--text-2)] focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent transition-all"
               >
                 {METHODS.map((m) => (
                   <option key={m.id} value={m.id}>{m.label}</option>
@@ -130,7 +130,7 @@ export default function POSSplitBill({ orderId, orderNo, total, restaurantId, cu
                 value={split.amount}
                 onChange={(e) => updateSplit(idx, "amount", e.target.value)}
                 placeholder="Amount"
-                className="flex-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent transition-all"
+                className="flex-1 rounded-lg border border-[var(--border)] bg-[var(--canvas-sub)] px-3 py-2.5 text-sm font-medium text-[var(--text-2)] focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent transition-all"
               />
               {splits.length > 2 && (
                 <button
@@ -153,16 +153,16 @@ export default function POSSplitBill({ orderId, orderNo, total, restaurantId, cu
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-4 border-t border-gray-100 bg-gray-50 space-y-3">
+        <div className="px-5 py-4 border-t border-[var(--border-soft)] bg-[var(--canvas-sub)] space-y-3">
           <div className="flex justify-between text-sm">
-            <span className="text-gray-500">Split total</span>
+            <span className="text-[var(--text-2)]">Split total</span>
             <span className={`font-semibold ${Math.abs(remaining) < 0.01 ? "text-[#b25c1c]" : "text-red-500"}`}>
               {formatPrice(splitTotal, currency)}
             </span>
           </div>
           {Math.abs(remaining) >= 0.01 && (
             <div className="flex justify-between text-sm">
-              <span className="text-gray-500">Remaining</span>
+              <span className="text-[var(--text-2)]">Remaining</span>
               <span className="font-semibold text-red-500">{formatPrice(remaining, currency)}</span>
             </div>
           )}
@@ -170,7 +170,7 @@ export default function POSSplitBill({ orderId, orderNo, total, restaurantId, cu
           <button
             onClick={submit}
             disabled={!isValid || submitting}
-            className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#eaa94d] py-3 text-sm font-semibold text-white hover:bg-[#fef9ef]0 transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+            className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#eaa94d] py-3 text-sm font-semibold text-white hover:bg-[var(--accent-muted)]0 transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
           >
             {submitting
               ? <Loader2 className="h-4 w-4 animate-spin" />

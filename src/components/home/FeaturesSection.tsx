@@ -2,7 +2,6 @@
 
 import { motion } from "framer-motion";
 import { QrCode, Truck, Gift } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 
 const features = [
   {
@@ -13,7 +12,7 @@ const features = [
       "Walk in, scan the QR code at your table, and start browsing the full digital menu. No waiting, no waving down staff. Customize every dish and order when you are ready.",
     badge: "Dine-In",
     Icon: QrCode,
-    accent: "#eaa94d",
+    accent: "var(--accent)",
   },
   {
     num: "02",
@@ -23,7 +22,7 @@ const features = [
       "Place your order from anywhere and watch it move in real time. Live tracking from prep to pickup to your doorstep, so you always know exactly where your food is.",
     badge: "Delivery",
     Icon: Truck,
-    accent: "#d67620",
+    accent: "var(--accent-hover)",
   },
   {
     num: "03",
@@ -33,7 +32,7 @@ const features = [
       "Collect loyalty points on every order, unlock exclusive deals, and get rewarded just for eating the food you love. Points never expire.",
     badge: "Rewards",
     Icon: Gift,
-    accent: "#b25c1c",
+    accent: "var(--accent-text)",
   },
 ];
 
@@ -55,7 +54,7 @@ const cardVariants = {
 
 export default function FeaturesSection() {
   return (
-    <section className="bg-[#fdf9ef] py-16 md:py-24">
+    <section className="bg-[var(--canvas-sub)] py-16 md:py-24">
       <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-12">
         {/* Header */}
         <motion.div
@@ -65,13 +64,13 @@ export default function FeaturesSection() {
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           className="text-center mb-12 md:mb-16"
         >
-          <Badge variant="saffron" className="mb-4">
+          <span className="inline-flex items-center rounded-full bg-[var(--accent-muted)] border border-[var(--accent-border)] px-3 py-1 text-[10px] font-bold text-[var(--accent-text)] uppercase tracking-wider mb-4">
             Why HimaVolt
-          </Badge>
-          <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-[#3e1e0c] leading-[1.1]">
+          </span>
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-[var(--text-1)] leading-[1.1]">
             Built for Nepal.
             <br />
-            <span className="text-[#8e491e]/50">Designed for now.</span>
+            <span className="text-[var(--text-3)]">Designed for now.</span>
           </h2>
         </motion.div>
 
@@ -87,37 +86,33 @@ export default function FeaturesSection() {
             <motion.div
               key={f.num}
               variants={cardVariants}
-              className="relative rounded-2xl border border-[#f4d69a]/25 bg-white p-7 md:p-8 overflow-hidden group hover:shadow-[0_8px_40px_rgba(234,169,77,0.08)] transition-shadow duration-500"
+              className="relative rounded-2xl border border-[var(--border)] bg-[var(--canvas)] p-7 md:p-8 overflow-hidden group hover:border-[var(--accent-border)] transition-colors duration-300"
             >
-              {/* Large background number */}
-              <span className="absolute top-4 right-6 text-[72px] font-extrabold leading-none text-[#3e1e0c]/[0.035] select-none pointer-events-none">
+              <span className="absolute top-4 right-6 text-[72px] font-black leading-none text-[var(--text-1)]/[0.03] select-none pointer-events-none">
                 {f.num}
               </span>
 
               <div className="flex items-center gap-3 mb-6">
                 <div
-                  className="flex h-11 w-11 items-center justify-center rounded-xl border"
-                  style={{
-                    backgroundColor: `${f.accent}12`,
-                    borderColor: `${f.accent}20`,
-                  }}
+                  className="flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--accent-border)] bg-[var(--accent-muted)]"
                 >
                   <f.Icon
-                    className="h-5 w-5"
-                    style={{ color: f.accent }}
+                    className="h-5 w-5 text-[var(--accent)]"
                     strokeWidth={1.8}
                   />
                 </div>
-                <Badge variant="saffron">{f.badge}</Badge>
+                <span className="inline-flex items-center rounded-md bg-[var(--accent-muted)] border border-[var(--accent-border)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[var(--accent-text)]">
+                  {f.badge}
+                </span>
               </div>
 
-              <h3 className="text-base font-extrabold text-[#3e1e0c] tracking-tight mb-1.5">
+              <h3 className="text-[15px] font-semibold text-[var(--text-1)] tracking-tight mb-1.5">
                 {f.title}
               </h3>
-              <p className="text-sm font-semibold text-[#3e1e0c]/70 mb-3">
+              <p className="text-sm font-semibold text-[var(--text-2)] mb-3">
                 {f.headline}
               </p>
-              <p className="text-sm leading-relaxed text-[#8e491e]/55">
+              <p className="text-sm leading-relaxed text-[var(--text-2)]">
                 {f.description}
               </p>
             </motion.div>

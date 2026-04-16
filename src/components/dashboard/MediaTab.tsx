@@ -108,16 +108,16 @@ export default function MediaTab({ restaurantId: propRestaurantId }: { restauran
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h2 className="text-xl font-extrabold text-gray-900 flex items-center gap-2">
-            <GalleryHorizontalEnd className="h-5 w-5 text-amber-500" />
+          <h2 className="text-xl font-extrabold text-[var(--text-1)] flex items-center gap-2">
+            <GalleryHorizontalEnd className="h-5 w-5 text-[var(--accent)]" />
             Media Library
           </h2>
-          <p className="text-sm text-gray-500 mt-0.5">Upload and manage photos & videos</p>
+          <p className="text-sm text-[var(--text-2)] mt-0.5">Upload and manage photos & videos</p>
         </div>
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
-          className="flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-amber-600 active:scale-[0.98] disabled:opacity-50 transition-all"
+          className="flex items-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-[var(--accent-hover)] active:scale-[0.98] disabled:opacity-50 transition-all"
         >
           {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
           Upload
@@ -139,8 +139,8 @@ export default function MediaTab({ restaurantId: propRestaurantId }: { restauran
             onClick={() => setFilter(f)}
             className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
               filter === f
-                ? "bg-amber-500 text-white shadow-sm"
-                : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                ? "bg-[var(--accent)] text-white shadow-sm"
+                : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
             }`}
           >
             {f === "IMAGE" && <ImageIcon className="h-3.5 w-3.5" />}
@@ -149,31 +149,31 @@ export default function MediaTab({ restaurantId: propRestaurantId }: { restauran
             {f === "ALL" ? "All" : f === "IMAGE" ? "Photos" : "Videos"}
           </button>
         ))}
-        <span className="ml-auto text-xs text-gray-400 self-center">{media.length} files</span>
+        <span className="ml-auto text-xs text-[var(--text-3)] self-center">{media.length} files</span>
       </div>
 
       <div
         onDragOver={(e) => e.preventDefault()}
         onDrop={(e) => { e.preventDefault(); handleFiles(e.dataTransfer.files); }}
         onClick={() => fileInputRef.current?.click()}
-        className="group cursor-pointer rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50/50 p-8 text-center hover:border-amber-300 hover:bg-amber-50/30 transition-all"
+        className="group cursor-pointer rounded-2xl border-2 border-dashed border-[var(--border)] bg-[var(--canvas-sub)] p-8 text-center hover:border-[var(--accent-border)] hover:bg-[var(--accent-muted)] transition-all"
       >
-        <Upload className="mx-auto h-8 w-8 text-gray-300 group-hover:text-amber-400 transition-colors mb-2" />
-        <p className="text-sm font-semibold text-gray-400 group-hover:text-amber-600">
+        <Upload className="mx-auto h-8 w-8 text-[var(--text-3)] group-hover:text-[var(--accent)] transition-colors mb-2" />
+        <p className="text-sm font-semibold text-[var(--text-3)] group-hover:text-[var(--accent-text)]">
           Drop files here or click to browse
         </p>
-        <p className="text-xs text-gray-400 mt-1">JPEG, PNG, WebP, GIF, MP4, WebM · Max 50 MB per file</p>
+        <p className="text-xs text-[var(--text-3)] mt-1">JPEG, PNG, WebP, GIF, MP4, WebM · Max 50 MB per file</p>
       </div>
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-6 w-6 animate-spin text-amber-400" />
+          <Loader2 className="h-6 w-6 animate-spin text-[var(--accent)]" />
         </div>
       ) : media.length === 0 ? (
-        <div className="rounded-2xl bg-gray-50 py-16 text-center">
-          <Film className="mx-auto h-10 w-10 text-gray-200 mb-3" />
-          <p className="text-sm font-semibold text-gray-400">No media yet</p>
-          <p className="text-xs text-gray-300 mt-1">Upload photos or videos to get started</p>
+        <div className="rounded-2xl bg-[var(--canvas-sub)] py-16 text-center">
+          <Film className="mx-auto h-10 w-10 text-[var(--text-3)] mb-3" />
+          <p className="text-sm font-semibold text-[var(--text-3)]">No media yet</p>
+          <p className="text-xs text-[var(--text-3)] mt-1">Upload photos or videos to get started</p>
         </div>
       ) : (
         <motion.div
@@ -186,7 +186,7 @@ export default function MediaTab({ restaurantId: propRestaurantId }: { restauran
             <motion.div
               key={item.id}
               variants={{ hidden: { opacity: 0, scale: 0.95 }, visible: { opacity: 1, scale: 1 } }}
-              className="group relative aspect-square rounded-xl overflow-hidden bg-gray-100 shadow-sm"
+              className="group relative aspect-square rounded-xl overflow-hidden bg-[var(--surface)] shadow-sm"
             >
               {item.type === "IMAGE" ? (
                 <img
@@ -196,7 +196,7 @@ export default function MediaTab({ restaurantId: propRestaurantId }: { restauran
                   loading="lazy"
                 />
               ) : (
-                <div className="h-full w-full flex items-center justify-center bg-gray-900">
+                <div className="h-full w-full flex items-center justify-center bg-[var(--text-1)]">
                   <video src={item.url} className="h-full w-full object-cover" muted />
                   <div className="absolute inset-0 flex items-center justify-center">
                     <Play className="h-8 w-8 text-white/80" />
@@ -211,7 +211,7 @@ export default function MediaTab({ restaurantId: propRestaurantId }: { restauran
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={(e) => e.stopPropagation()}
-                    className="rounded-full bg-white/20 backdrop-blur-sm p-1.5 text-white hover:bg-white/30"
+                    className="rounded-full bg-[var(--canvas)]/20 backdrop-blur-sm p-1.5 text-white hover:bg-[var(--canvas)]/30"
                     title="Download"
                   >
                     <Download className="h-3.5 w-3.5" />
@@ -240,7 +240,7 @@ export default function MediaTab({ restaurantId: propRestaurantId }: { restauran
 
               <div className="absolute top-1.5 left-1.5">
                 <span className={`rounded-md px-1.5 py-0.5 text-[9px] font-bold text-white ${
-                  item.type === "VIDEO" ? "bg-violet-500/80" : "bg-amber-500/80"
+                  item.type === "VIDEO" ? "bg-violet-500/80" : "bg-[var(--accent-border)]"
                 }`}>
                   {item.type === "VIDEO" ? "VID" : "IMG"}
                 </span>
@@ -268,7 +268,7 @@ export default function MediaTab({ restaurantId: propRestaurantId }: { restauran
             >
               <button
                 onClick={() => setPreview(null)}
-                className="absolute -top-10 right-0 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"
+                className="absolute -top-10 right-0 rounded-full bg-[var(--canvas)]/10 p-2 text-white hover:bg-[var(--canvas)]/20"
               >
                 <X className="h-5 w-5" />
               </button>

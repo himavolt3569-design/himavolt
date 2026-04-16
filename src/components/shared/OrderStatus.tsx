@@ -58,10 +58,10 @@ function CountdownTimer({
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <Timer className="h-3.5 w-3.5 text-[#eaa94d] mb-0.5" />
-          <span className="text-xl font-black text-[#3e1e0c] tabular-nums">
+          <span className="text-xl font-black text-[var(--text-1)] tabular-nums">
             {mins}:{secs.toString().padStart(2, "0")}
           </span>
-          <span className="text-[10px] font-medium text-gray-400">remaining</span>
+          <span className="text-[10px] font-medium text-[var(--text-3)]">remaining</span>
         </div>
       </div>
       {remaining === 0 && (
@@ -122,7 +122,7 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
 
   if (!activeOrder) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-white">
+      <div className="flex min-h-screen items-center justify-center bg-[var(--canvas)]">
         <Loader2 className="h-8 w-8 animate-spin text-[#eaa94d]" />
       </div>
     );
@@ -135,17 +135,17 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
   };
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="sticky top-0 z-10 flex items-center justify-between bg-white border-b border-gray-100 px-5 py-4">
+    <div className="min-h-screen bg-[var(--canvas)]">
+      <div className="sticky top-0 z-10 flex items-center justify-between bg-[var(--canvas)] border-b border-[var(--border-soft)] px-5 py-4">
         <button
           onClick={onClose}
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
         </button>
         <div className="text-center">
-          <h2 className="text-sm font-bold text-[#3e1e0c]">Order #{activeOrder.orderNo}</h2>
-          <p className="text-[11px] text-gray-400">Live tracking</p>
+          <h2 className="text-sm font-bold text-[var(--text-1)]">Order #{activeOrder.orderNo}</h2>
+          <p className="text-[11px] text-[var(--text-3)]">Live tracking</p>
         </div>
         <div className="w-9" />
       </div>
@@ -164,7 +164,7 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
           ) : activeOrder.status === "PREPARING" ? (
             <div
               ref={clockRef}
-              className="mx-auto relative flex h-20 w-20 items-center justify-center rounded-full border-[3px] border-[#eaa94d] bg-white shadow-xl mb-4"
+              className="mx-auto relative flex h-20 w-20 items-center justify-center rounded-full border-[3px] border-[#eaa94d] bg-[var(--canvas)] shadow-xl mb-4"
             >
               <div className="absolute top-1/2 left-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#eaa94d] z-10" />
               <div
@@ -182,7 +182,7 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
               <CheckCircle2 className="h-10 w-10 text-white" />
             </motion.div>
           ) : (
-            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#eaa94d]/10 mb-4">
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[var(--accent-muted)] mb-4">
               {(() => {
                 const Icon = STEPS[currentIdx]?.icon ?? Clock;
                 return <Icon className="h-10 w-10 text-[#eaa94d]" />;
@@ -190,7 +190,7 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
             </div>
           )}
 
-          <h2 className="text-xl font-bold text-[#3e1e0c]">
+          <h2 className="text-xl font-bold text-[var(--text-1)]">
             {isCancelled
               ? activeOrder.status === "REJECTED"
                 ? "Order Rejected"
@@ -205,7 +205,7 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
                       ? "Ready for Pickup"
                       : "Delivered"}
           </h2>
-          <p className="mt-1 text-sm text-gray-400">
+          <p className="mt-1 text-sm text-[var(--text-3)]">
             {activeOrder.status === "PENDING"   && "Waiting for the restaurant to confirm…"}
             {activeOrder.status === "ACCEPTED"  && "Your order has been confirmed!"}
             {activeOrder.status === "PREPARING" && "The chef is working on your food"}
@@ -244,7 +244,7 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
                     className="flex h-9 w-9 items-center justify-center rounded-full"
                   >
                     <Icon
-                      className={`h-4 w-4 ${isActive ? "text-white" : "text-gray-400"}`}
+                      className={`h-4 w-4 ${isActive ? "text-white" : "text-[var(--text-3)]"}`}
                     />
                   </motion.div>
                   {isCurrent && (
@@ -257,7 +257,7 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
                 </div>
                 <span
                   className={`text-[9px] font-bold text-center leading-tight ${
-                    isActive ? "text-[#3e1e0c]" : "text-gray-400"
+                    isActive ? "text-[var(--text-1)]" : "text-[var(--text-3)]"
                   }`}
                 >
                   {step.label}
@@ -267,7 +267,7 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
           })}
         </div>
 
-        <div className="relative h-1.5 rounded-full bg-gray-200 overflow-hidden">
+        <div className="relative h-1.5 rounded-full bg-[var(--surface-alt)] overflow-hidden">
           <motion.div
             initial={false}
             animate={{ width: `${((currentIdx + 1) / STEPS.length) * 100}%` }}
@@ -276,25 +276,25 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
           />
         </div>
 
-        <div className="rounded-2xl border border-gray-200 bg-gray-50/50 p-5 space-y-3">
-          <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--canvas-sub)] p-5 space-y-3">
+          <h3 className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider">
             Order Summary
           </h3>
           {activeOrder.items.map((item) => (
             <div key={item.id} className="flex items-center justify-between py-1.5">
               <div className="flex items-center gap-2">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#eaa94d]/10 text-[10px] font-bold text-[#eaa94d]">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--accent-muted)] text-[10px] font-bold text-[#eaa94d]">
                   {item.quantity}
                 </span>
-                <span className="text-sm font-medium text-[#3e1e0c]">{item.name}</span>
+                <span className="text-sm font-medium text-[var(--text-1)]">{item.name}</span>
               </div>
-              <span className="text-sm font-bold text-gray-500">
+              <span className="text-sm font-bold text-[var(--text-2)]">
                 {formatPrice(item.price * item.quantity, currency)}
               </span>
             </div>
           ))}
-          <div className="border-t border-gray-200 pt-3 flex items-center justify-between">
-            <span className="text-sm font-bold text-[#3e1e0c]">Total</span>
+          <div className="border-t border-[var(--border)] pt-3 flex items-center justify-between">
+            <span className="text-sm font-bold text-[var(--text-1)]">Total</span>
             <span className="text-base font-extrabold text-[#eaa94d]">
               {formatPrice(activeOrder.total, currency)}
             </span>
@@ -326,20 +326,20 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
               transition={{ type: "spring" as const, damping: 25 }}
-              className="fixed left-1/2 top-1/2 z-50 w-[90%] max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-white p-6 shadow-2xl"
+              className="fixed left-1/2 top-1/2 z-50 w-[90%] max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-[var(--canvas)] p-6 shadow-2xl"
             >
               <div className="flex flex-col items-center text-center space-y-4">
                 <div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-100">
                   <AlertTriangle className="h-7 w-7 text-red-500" />
                 </div>
-                <h3 className="text-lg font-bold text-[#3e1e0c]">Cancel Order?</h3>
-                <p className="text-sm text-gray-500">
+                <h3 className="text-lg font-bold text-[var(--text-1)]">Cancel Order?</h3>
+                <p className="text-sm text-[var(--text-2)]">
                   This action cannot be undone. Your order will be cancelled immediately.
                 </p>
                 <div className="flex w-full gap-3">
                   <button
                     onClick={() => setShowCancel(false)}
-                    className="flex-1 rounded-xl border border-gray-200 py-3 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors"
+                    className="flex-1 rounded-xl border border-[var(--border)] py-3 text-sm font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors"
                   >
                     Keep Order
                   </button>

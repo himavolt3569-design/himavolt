@@ -29,11 +29,11 @@ const STATUS_CONFIG: Record<
   LiveOrderStatus,
   { label: string; bg: string; text: string; icon: typeof Clock }
 > = {
-  PENDING: { label: "New", bg: "bg-orange-100", text: "text-orange-700", icon: Clock },
+  PENDING: { label: "New", bg: "bg-[var(--accent)]", text: "text-[var(--accent)]", icon: Clock },
   ACCEPTED: { label: "Accepted", bg: "bg-blue-100", text: "text-blue-700", icon: CheckCircle2 },
-  PREPARING: { label: "Preparing", bg: "bg-amber-100", text: "text-amber-700", icon: ChefHat },
-  READY: { label: "Ready", bg: "bg-[#fef3dc]", text: "text-[#b25c1c]", icon: PackageCheck },
-  DELIVERED: { label: "Delivered", bg: "bg-gray-100", text: "text-gray-600", icon: Truck },
+  PREPARING: { label: "Preparing", bg: "bg-[var(--accent-muted)]", text: "text-[var(--accent-text)]", icon: ChefHat },
+  READY: { label: "Ready", bg: "bg-[var(--accent-muted)]", text: "text-[#b25c1c]", icon: PackageCheck },
+  DELIVERED: { label: "Delivered", bg: "bg-[var(--surface)]", text: "text-[var(--text-2)]", icon: Truck },
   CANCELLED: { label: "Cancelled", bg: "bg-red-100", text: "text-red-600", icon: XCircle },
   REJECTED: { label: "Rejected", bg: "bg-red-100", text: "text-red-600", icon: XCircle },
 };
@@ -67,12 +67,12 @@ function PreparingClock() {
   return (
     <div
       ref={clockRef}
-      className="relative flex h-5 w-5 items-center justify-center rounded-full border-2 border-amber-500 bg-amber-50"
+      className="relative flex h-5 w-5 items-center justify-center rounded-full border-2 border-[var(--accent)] bg-[var(--accent-muted)]"
     >
-      <div className="absolute top-1/2 left-1/2 h-0.5 w-0.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-600" />
+      <div className="absolute top-1/2 left-1/2 h-0.5 w-0.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--accent-hover)]" />
       <div
         ref={handRef}
-        className="absolute bottom-1/2 left-1/2 h-1.5 w-px -translate-x-1/2 rounded-full bg-amber-600 origin-bottom"
+        className="absolute bottom-1/2 left-1/2 h-1.5 w-px -translate-x-1/2 rounded-full bg-[var(--accent-hover)] origin-bottom"
       />
     </div>
   );
@@ -91,10 +91,10 @@ function StatusBadge({ status }: { status: LiveOrderStatus }) {
 
 function TimeAgo({ ts }: { ts: string }) {
   const secs = Math.floor((Date.now() - new Date(ts).getTime()) / 1000);
-  if (secs < 60) return <span className="text-[11px] text-gray-400">{secs}s ago</span>;
+  if (secs < 60) return <span className="text-[11px] text-[var(--text-3)]">{secs}s ago</span>;
   const mins = Math.floor(secs / 60);
-  if (mins < 60) return <span className="text-[11px] text-gray-400">{mins}m ago</span>;
-  return <span className="text-[11px] text-gray-400">{Math.floor(mins / 60)}h ago</span>;
+  if (mins < 60) return <span className="text-[11px] text-[var(--text-3)]">{mins}m ago</span>;
+  return <span className="text-[11px] text-[var(--text-3)]">{Math.floor(mins / 60)}h ago</span>;
 }
 
 function PendingExpiryBadge({ createdAt }: { createdAt: string }) {
@@ -135,10 +135,10 @@ function PaymentBadge({ method, status }: { method: string; status: string }) {
     <span
       className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${
         isPaid
-          ? "bg-[#fef3dc] text-[#b25c1c]"
+          ? "bg-[var(--accent-muted)] text-[#b25c1c]"
           : isDirectPay
           ? "bg-teal-100 text-teal-700"
-          : "bg-amber-100 text-amber-700"
+          : "bg-[var(--accent-muted)] text-[var(--accent-text)]"
       }`}
     >
       <Icon className="h-2.5 w-2.5" />
@@ -173,13 +173,13 @@ export default function LiveOrdersTab() {
     <div className="space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
         <div>
-          <h2 className="text-xl font-extrabold text-gray-900 tracking-tight">Live Orders</h2>
-          <p className="text-sm text-gray-500 mt-1 font-medium">
+          <h2 className="text-xl font-extrabold text-[var(--text-1)] tracking-tight">Live Orders</h2>
+          <p className="text-sm text-[var(--text-2)] mt-1 font-medium">
             {newCount > 0 ? (
-              <span className="font-bold text-amber-500 flex items-center gap-1.5">
+              <span className="font-bold text-[var(--accent)] flex items-center gap-1.5">
                 <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--accent)] opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--accent)]"></span>
                 </span>
                 {newCount} new order{newCount > 1 ? "s" : ""} waiting
               </span>
@@ -189,15 +189,15 @@ export default function LiveOrdersTab() {
           </p>
         </div>
         <div className="flex items-center gap-2.5">
-          <div className="flex items-center gap-2 bg-[#fef9ef]/80 border border-[#eaa94d]/30/50 px-3 py-1.5 rounded-full shadow-sm backdrop-blur-sm">
+          <div className="flex items-center gap-2 bg-[#fef9ef]/80 border border-[var(--accent-border)]/50 px-3 py-1.5 rounded-full shadow-sm backdrop-blur-sm">
             <div className="flex h-2 w-2 items-center justify-center">
               <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-[#eaa94d] opacity-75" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-[#eaa94d]" />
             </div>
             <span className="text-[11px] font-bold text-[#b25c1c] uppercase tracking-wider">Live Sync</span>
           </div>
-          <button onClick={() => refresh()} className="rounded-full bg-white/80 p-2 shadow-sm border border-gray-100 hover:bg-white hover:shadow-md transition-all active:scale-95">
-            <RefreshCw className={`h-4 w-4 text-gray-500 ${loading ? "animate-spin text-amber-500" : ""}`} style={{ animationDuration: "1s" }} />
+          <button onClick={() => refresh()} className="rounded-full bg-[var(--canvas)]/80 p-2 shadow-sm border border-[var(--border-soft)] hover:bg-[var(--canvas)] hover:shadow-md transition-all active:scale-95">
+            <RefreshCw className={`h-4 w-4 text-[var(--text-2)] ${loading ? "animate-spin text-[var(--accent)]" : ""}`} style={{ animationDuration: "1s" }} />
           </button>
         </div>
       </div>
@@ -209,13 +209,13 @@ export default function LiveOrdersTab() {
             onClick={() => setFilterStatus(opt.value)}
             className={`shrink-0 rounded-full px-4 py-2 text-[12px] font-bold tracking-wide transition-all shadow-sm border ${
               filterStatus === opt.value
-                ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white border-transparent"
-                : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 focus:ring-2 focus:ring-amber-500/20"
+                ? "bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] text-white border-transparent"
+                : "bg-[var(--canvas)] text-[var(--text-2)] border-[var(--border)] hover:bg-[var(--canvas-sub)] focus:ring-2 focus:ring-[var(--accent)]/20"
             }`}
           >
             {opt.label}
             {opt.value === "PENDING" && newCount > 0 && (
-              <span className={`ml-2 rounded-full px-2 py-0.5 text-[10px] shadow-sm ${filterStatus === opt.value ? "bg-white/20 text-white" : "bg-rose-500 text-white"}`}>
+              <span className={`ml-2 rounded-full px-2 py-0.5 text-[10px] shadow-sm ${filterStatus === opt.value ? "bg-[var(--canvas)]/20 text-white" : "bg-rose-500 text-white"}`}>
                 {newCount}
               </span>
             )}
@@ -225,32 +225,32 @@ export default function LiveOrdersTab() {
 
       {/* Orders — desktop table + mobile cards */}
       <div>
-        <div className="hidden md:block overflow-x-auto overflow-y-hidden rounded-2xl border border-gray-200/60 bg-white/70 backdrop-blur-xl shadow-sm">
+        <div className="hidden md:block overflow-x-auto overflow-y-hidden rounded-2xl border border-[var(--border)]/60 bg-[var(--canvas)]/70 backdrop-blur-xl shadow-sm">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-100 bg-white/50">
-                <th className="px-5 py-3.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+              <tr className="border-b border-[var(--border-soft)] bg-[var(--canvas)]/50">
+                <th className="px-5 py-3.5 text-left text-[11px] font-bold text-[var(--text-2)] uppercase tracking-wider">
                   Order
                 </th>
-                <th className="px-4 py-3.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3.5 text-left text-[11px] font-bold text-[var(--text-2)] uppercase tracking-wider">
                   Table
                 </th>
-                <th className="px-4 py-3.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3.5 text-left text-[11px] font-bold text-[var(--text-2)] uppercase tracking-wider">
                   Items
                 </th>
-                <th className="px-4 py-3.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3.5 text-left text-[11px] font-bold text-[var(--text-2)] uppercase tracking-wider">
                   Total
                 </th>
-                <th className="px-4 py-3.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3.5 text-left text-[11px] font-bold text-[var(--text-2)] uppercase tracking-wider">
                   Payment
                 </th>
-                <th className="px-4 py-3.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3.5 text-left text-[11px] font-bold text-[var(--text-2)] uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-4 py-3.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3.5 text-left text-[11px] font-bold text-[var(--text-2)] uppercase tracking-wider">
                   Time
                 </th>
-                <th className="px-5 py-3.5 text-right text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+                <th className="px-5 py-3.5 text-right text-[11px] font-bold text-[var(--text-2)] uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
@@ -259,10 +259,10 @@ export default function LiveOrdersTab() {
               <AnimatePresence>
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="py-20 text-center text-sm font-medium text-gray-400">
+                    <td colSpan={8} className="py-20 text-center text-sm font-medium text-[var(--text-3)]">
                       <div className="flex flex-col items-center justify-center gap-3">
-                        <div className="h-12 w-12 rounded-full bg-gray-50 flex items-center justify-center border border-gray-100">
-                          <PackageCheck className="h-5 w-5 text-gray-300" />
+                        <div className="h-12 w-12 rounded-full bg-[var(--canvas-sub)] flex items-center justify-center border border-[var(--border-soft)]">
+                          <PackageCheck className="h-5 w-5 text-[var(--text-3)]" />
                         </div>
                         No orders matching this status
                       </div>
@@ -278,43 +278,43 @@ export default function LiveOrdersTab() {
                       exit={{ opacity: 0, scale: 0.98 }}
                       transition={{ duration: 0.2 }}
                       onClick={() => setSelectedOrder(order)}
-                      className={`border-b border-gray-50 transition-all hover:bg-white/80 last:border-b-0 cursor-pointer ${
-                        order.status === "PENDING" ? "bg-amber-50/40" : ""
+                      className={`border-b border-[var(--border-soft)] transition-all hover:bg-[var(--canvas)]/80 last:border-b-0 cursor-pointer ${
+                        order.status === "PENDING" ? "bg-[var(--accent-muted)]" : ""
                       }`}
                     >
                       <td className="px-5 py-4">
-                        <span className="font-extrabold text-gray-900">{order.orderNo}</span>
+                        <span className="font-extrabold text-[var(--text-1)]">{order.orderNo}</span>
                         {order.note && (
-                          <p className="text-[10px] text-gray-400 mt-0.5 italic">
+                          <p className="text-[10px] text-[var(--text-3)] mt-0.5 italic">
                             &ldquo;{order.note}&rdquo;
                           </p>
                         )}
                       </td>
                       <td className="px-4 py-4">
-                        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-lg font-black text-amber-800 ring-2 ring-amber-200/60">
+                        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--accent-muted)] text-lg font-black text-[var(--accent-text)] ring-2 ring-[var(--accent-border)]/60">
                           {order.tableNo ?? "–"}
                         </span>
                       </td>
                       <td className="px-4 py-4">
-                        <div className="text-xs text-gray-600 space-y-0.5">
+                        <div className="text-xs text-[var(--text-2)] space-y-0.5">
                           {order.items.slice(0, 2).map((item, i) => (
                             <div key={i}>
                               <span className="font-semibold">{item.quantity}×</span> {item.name}
                             </div>
                           ))}
                           {order.items.length > 2 && (
-                            <span className="text-gray-400">+{order.items.length - 2} more</span>
+                            <span className="text-[var(--text-3)]">+{order.items.length - 2} more</span>
                           )}
                         </div>
                       </td>
-                      <td className="px-4 py-4 font-bold text-gray-900">
+                      <td className="px-4 py-4 font-bold text-[var(--text-1)]">
                         {formatPrice(order.total, cur)}
                       </td>
                       <td className="px-4 py-4">
                         {order.payment ? (
                           <PaymentBadge method={order.payment.method} status={order.payment.status} />
                         ) : (
-                          <span className="text-[10px] text-gray-400">—</span>
+                          <span className="text-[10px] text-[var(--text-3)]">—</span>
                         )}
                       </td>
                       <td className="px-4 py-4">
@@ -355,35 +355,35 @@ export default function LiveOrdersTab() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 onClick={() => setSelectedOrder(order)}
-                className={`rounded-2xl border bg-white p-4 shadow-sm ${
+                className={`rounded-2xl border bg-[var(--canvas)] p-4 shadow-sm ${
                   order.status === "PENDING"
-                    ? "border-orange-200 bg-orange-50/30"
-                    : "border-gray-200"
+                    ? "border-[var(--accent-border)] bg-[var(--accent)]0/30"
+                    : "border-[var(--border)]"
                 }`}
               >
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-extrabold text-gray-900">{order.orderNo}</span>
+                      <span className="text-sm font-extrabold text-[var(--text-1)]">{order.orderNo}</span>
                       <StatusBadge status={order.status} />
                     </div>
                     <div className="flex items-center gap-2 mt-1.5">
-                      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100 text-sm font-black text-amber-800 ring-2 ring-amber-200/60">
+                      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent-muted)] text-sm font-black text-[var(--accent-text)] ring-2 ring-[var(--accent-border)]/60">
                         {order.tableNo ?? "–"}
                       </span>
-                      <span className="text-xs font-bold text-amber-700">Table {order.tableNo ?? "–"}</span>
+                      <span className="text-xs font-bold text-[var(--accent-text)]">Table {order.tableNo ?? "–"}</span>
                       <TimeAgo ts={order.createdAt} />
                       {order.status === "PENDING" && <PendingExpiryBadge createdAt={order.createdAt} />}
                     </div>
                   </div>
-                  <span className="text-sm font-extrabold text-gray-900">{formatPrice(order.total, cur)}</span>
+                  <span className="text-sm font-extrabold text-[var(--text-1)]">{formatPrice(order.total, cur)}</span>
                 </div>
                 {order.payment && (
                   <div className="mb-2">
                     <PaymentBadge method={order.payment.method} status={order.payment.status} />
                   </div>
                 )}
-                <div className="text-xs text-gray-500 mb-3 space-y-0.5">
+                <div className="text-xs text-[var(--text-2)] mb-3 space-y-0.5">
                   {order.items.map((item, i) => (
                     <div key={i}>
                       {item.quantity}× {item.name}
@@ -474,8 +474,8 @@ function OrderActions({
     if (showTimeInput) {
       return (
         <div className="flex items-center gap-2 flex-wrap" onClick={(e) => e.stopPropagation()}>
-          <div className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-2 py-1">
-            <Clock className="h-3 w-3 text-gray-400" />
+          <div className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] px-2 py-1">
+            <Clock className="h-3 w-3 text-[var(--text-3)]" />
             <input
               type="number"
               min={5}
@@ -485,14 +485,14 @@ function OrderActions({
               disabled={busy}
               className="w-10 text-center text-[11px] font-bold border-none outline-none bg-transparent"
             />
-            <span className="text-[10px] text-gray-400">min</span>
+            <span className="text-[10px] text-[var(--text-3)]">min</span>
           </div>
           <ActionButton
             onClick={(e) => stop(e, () => onAccept(estTime))}
             busy={busy}
             icon={CheckCircle2}
             label="Confirm"
-            className="bg-gray-900 text-white hover:bg-gray-800"
+            className="bg-[var(--text-1)] text-white hover:bg-[var(--text-2)]"
           />
         </div>
       );
@@ -505,7 +505,7 @@ function OrderActions({
           disabled={busy}
           icon={CheckCircle2}
           label="Accept"
-          className="bg-gray-900 text-white hover:bg-gray-800"
+          className="bg-[var(--text-1)] text-white hover:bg-[var(--text-2)]"
         />
         <ActionButton
           onClick={(e) => stop(e, onReject)}
@@ -525,7 +525,7 @@ function OrderActions({
         busy={busy}
         icon={ChefHat}
         label="Start Cooking"
-        className="bg-amber-500 text-white hover:bg-amber-600"
+        className="bg-[var(--accent)] text-white hover:bg-[var(--accent-hover)]"
       />
     );
   }
@@ -549,14 +549,14 @@ function OrderActions({
         busy={busy}
         icon={Truck}
         label="Delivered"
-        className="bg-gray-900 text-white hover:bg-gray-800"
+        className="bg-[var(--text-1)] text-white hover:bg-[var(--text-2)]"
       />
     );
   }
 
   return (
     <span className="flex items-center gap-2 text-xs">
-      <span className="text-gray-400 italic">
+      <span className="text-[var(--text-3)] italic">
         {order.status === "DELIVERED" ? "Completed" : "Cancelled"}
       </span>
       {order.status === "DELIVERED" && (
@@ -565,7 +565,7 @@ function OrderActions({
           target="_blank"
           rel="noopener noreferrer"
           onClick={(e) => e.stopPropagation()}
-          className="inline-flex items-center gap-1 rounded-lg bg-gray-100 px-2 py-1 text-[10px] font-bold text-gray-600 hover:bg-gray-200 hover:text-amber-500 transition-all"
+          className="inline-flex items-center gap-1 rounded-lg bg-[var(--surface)] px-2 py-1 text-[10px] font-bold text-[var(--text-2)] hover:bg-[var(--surface-alt)] hover:text-[var(--accent)] transition-all"
         >
           <ExternalLink className="h-2.5 w-2.5" />
           View Bill

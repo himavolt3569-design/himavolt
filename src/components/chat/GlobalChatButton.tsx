@@ -228,7 +228,7 @@ export default function GlobalChatButton({
     <>
       <button
         onClick={() => setOpen(true)}
-        className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-amber-700 text-white shadow-xl shadow-amber-700/30 hover:bg-amber-600 transition-all active:scale-95"
+        className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--accent-hover)] text-white shadow-xl shadow-[var(--accent)]/20/30 hover:bg-[var(--accent-hover)] transition-all active:scale-95"
         aria-label="Open staff chat"
       >
         <MessageCircle className="h-6 w-6" />
@@ -255,34 +255,34 @@ export default function GlobalChatButton({
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="fixed right-0 top-0 z-50 flex h-full w-full max-w-sm flex-col bg-white shadow-2xl"
+              className="fixed right-0 top-0 z-50 flex h-full w-full max-w-sm flex-col bg-[var(--canvas)] shadow-2xl"
             >
-              <div className="flex items-center justify-between border-b border-gray-100 px-4 py-4">
+              <div className="flex items-center justify-between border-b border-[var(--border-soft)] px-4 py-4">
                 <div className="flex items-center gap-2">
                   {activeRoom ? (
-                    <button onClick={closeRoom} className="mr-1 rounded-lg p-1.5 hover:bg-gray-100 transition-colors">
-                      <ArrowLeft className="h-4 w-4 text-gray-600" />
+                    <button onClick={closeRoom} className="mr-1 rounded-lg p-1.5 hover:bg-[var(--surface)] transition-colors">
+                      <ArrowLeft className="h-4 w-4 text-[var(--text-2)]" />
                     </button>
                   ) : null}
-                  <MessageCircle className="h-5 w-5 text-amber-700" />
-                  <h2 className="text-base font-bold text-gray-900">Staff Chat</h2>
+                  <MessageCircle className="h-5 w-5 text-[var(--accent-text)]" />
+                  <h2 className="text-base font-bold text-[var(--text-1)]">Staff Chat</h2>
                 </div>
                 <button
                   onClick={() => { setOpen(false); closeRoom(); }}
-                  className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 transition-colors"
+                  className="rounded-lg p-1.5 text-[var(--text-3)] hover:bg-[var(--surface)] transition-colors"
                 >
                   <X className="h-4 w-4" />
                 </button>
               </div>
 
               {!activeRoom && (
-                <div className="flex border-b border-gray-100 px-4 pt-2 gap-4">
+                <div className="flex border-b border-[var(--border-soft)] px-4 pt-2 gap-4">
                   <button
                     onClick={() => setTab("broadcast")}
                     className={`flex items-center gap-1.5 pb-2.5 text-xs font-bold transition-all border-b-2 ${
                       tab === "broadcast"
-                        ? "border-amber-600 text-amber-700"
-                        : "border-transparent text-gray-400 hover:text-gray-600"
+                        ? "border-[var(--accent)] text-[var(--accent-text)]"
+                        : "border-transparent text-[var(--text-3)] hover:text-[var(--text-2)]"
                     }`}
                   >
                     <Megaphone className="h-3.5 w-3.5" />
@@ -292,14 +292,14 @@ export default function GlobalChatButton({
                     onClick={() => setTab("customers")}
                     className={`flex items-center gap-1.5 pb-2.5 text-xs font-bold transition-all border-b-2 ${
                       tab === "customers"
-                        ? "border-amber-600 text-amber-700"
-                        : "border-transparent text-gray-400 hover:text-gray-600"
+                        ? "border-[var(--accent)] text-[var(--accent-text)]"
+                        : "border-transparent text-[var(--text-3)] hover:text-[var(--text-2)]"
                     }`}
                   >
                     <User className="h-3.5 w-3.5" />
                     Customers
                     {rooms.length > 0 && (
-                      <span className="flex h-4 w-4 items-center justify-center rounded-full bg-amber-100 text-[9px] font-bold text-amber-700">
+                      <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[var(--accent-muted)] text-[9px] font-bold text-[var(--accent-text)]">
                         {rooms.length}
                       </span>
                     )}
@@ -312,7 +312,7 @@ export default function GlobalChatButton({
                   <div className="flex flex-1 flex-col overflow-hidden">
                     <div className="flex-1 overflow-y-auto p-4 space-y-3">
                       {broadcastMsgs.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center h-full text-gray-300">
+                        <div className="flex flex-col items-center justify-center h-full text-[var(--text-3)]">
                           <Megaphone className="h-10 w-10 mb-2" />
                           <p className="text-xs font-medium">No broadcast messages yet</p>
                         </div>
@@ -322,17 +322,17 @@ export default function GlobalChatButton({
                           const isMe = m.senderName === staffName;
                           return (
                             <div key={m.id} className={`flex gap-2 ${isMe ? "flex-row-reverse" : ""}`}>
-                              <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${isMe ? "bg-amber-100" : "bg-gray-100"}`}>
-                                <Icon className={`h-3.5 w-3.5 ${isMe ? "text-amber-700" : "text-gray-500"}`} />
+                              <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${isMe ? "bg-[var(--accent-muted)]" : "bg-[var(--surface)]"}`}>
+                                <Icon className={`h-3.5 w-3.5 ${isMe ? "text-[var(--accent-text)]" : "text-[var(--text-2)]"}`} />
                               </div>
                               <div className={`max-w-[75%] ${isMe ? "items-end" : "items-start"} flex flex-col`}>
-                                <p className={`text-[10px] font-semibold mb-0.5 ${isMe ? "text-right text-amber-700" : "text-gray-500"}`}>
+                                <p className={`text-[10px] font-semibold mb-0.5 ${isMe ? "text-right text-[var(--accent-text)]" : "text-[var(--text-2)]"}`}>
                                   {m.senderName ?? m.sender}
                                 </p>
-                                <div className={`rounded-xl px-3 py-2 text-xs ${isMe ? "bg-amber-700 text-white rounded-tr-sm" : "bg-gray-100 text-gray-800 rounded-tl-sm"}`}>
+                                <div className={`rounded-xl px-3 py-2 text-xs ${isMe ? "bg-[var(--accent-hover)] text-white rounded-tr-sm" : "bg-[var(--surface)] text-[var(--text-1)] rounded-tl-sm"}`}>
                                   {m.content}
                                 </div>
-                                <p className="text-[9px] text-gray-400 mt-0.5">{formatTime(m.createdAt)}</p>
+                                <p className="text-[9px] text-[var(--text-3)] mt-0.5">{formatTime(m.createdAt)}</p>
                               </div>
                             </div>
                           );
@@ -341,18 +341,18 @@ export default function GlobalChatButton({
                       <div ref={broadcastEndRef} />
                     </div>
                     {canBroadcast && (
-                      <div className="border-t border-gray-100 p-4 flex gap-2">
+                      <div className="border-t border-[var(--border-soft)] p-4 flex gap-2">
                         <input
                           value={broadcastMsg}
                           onChange={(e) => setBroadcastMsg(e.target.value)}
                           onKeyDown={(e) => e.key === "Enter" && sendBroadcast()}
                           placeholder="Broadcast to all staff..."
-                          className="flex-1 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-amber-300/50 transition-all"
+                          className="flex-1 rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]/50 transition-all"
                         />
                         <button
                           onClick={sendBroadcast}
                           disabled={!broadcastMsg.trim()}
-                          className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-700 text-white hover:bg-amber-600 disabled:opacity-40 transition-colors"
+                          className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent-hover)] text-white hover:bg-[var(--accent-hover)] disabled:opacity-40 transition-colors"
                         >
                           <Send className="h-3.5 w-3.5" />
                         </button>
@@ -364,7 +364,7 @@ export default function GlobalChatButton({
                 {!activeRoom && tab === "customers" && (
                   <div className="flex-1 overflow-y-auto">
                     {rooms.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center h-full text-gray-300 py-16">
+                      <div className="flex flex-col items-center justify-center h-full text-[var(--text-3)] py-16">
                         <User className="h-10 w-10 mb-2" />
                         <p className="text-xs font-medium">No active customer chats</p>
                       </div>
@@ -375,24 +375,24 @@ export default function GlobalChatButton({
                           <button
                             key={room.id}
                             onClick={() => openRoom(room.id)}
-                            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-amber-50 border-b border-gray-50 transition-colors text-left"
+                            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[var(--accent-muted)] border-b border-[var(--border-soft)] transition-colors text-left"
                           >
-                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-100">
-                              <ShoppingBag className="h-4 w-4 text-amber-700" />
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--accent-muted)]">
+                              <ShoppingBag className="h-4 w-4 text-[var(--accent-text)]" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-xs font-bold text-gray-800">
+                              <p className="text-xs font-bold text-[var(--text-1)]">
                                 Order #{room.order.orderNo}
                                 {room.order.tableNo && ` · Table ${room.order.tableNo}`}
                               </p>
                               {last && (
-                                <p className="text-[11px] text-gray-400 truncate">{last.content}</p>
+                                <p className="text-[11px] text-[var(--text-3)] truncate">{last.content}</p>
                               )}
                             </div>
                             <span className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-bold ${
-                              room.order.status === "PREPARING" ? "bg-amber-100 text-amber-700" :
-                              room.order.status === "READY" ? "bg-[#fef3dc] text-[#b25c1c]" :
-                              "bg-gray-100 text-gray-500"
+                              room.order.status === "PREPARING" ? "bg-[var(--accent-muted)] text-[var(--accent-text)]" :
+                              room.order.status === "READY" ? "bg-[var(--accent-muted)] text-[#b25c1c]" :
+                              "bg-[var(--surface)] text-[var(--text-2)]"
                             }`}>
                               {room.order.status}
                             </span>
@@ -408,10 +408,10 @@ export default function GlobalChatButton({
                     <div className="flex-1 overflow-y-auto p-4 space-y-3">
                       {loading ? (
                         <div className="flex justify-center py-8">
-                          <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+                          <Loader2 className="h-5 w-5 animate-spin text-[var(--text-3)]" />
                         </div>
                       ) : messages.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center h-full text-gray-300 py-12">
+                        <div className="flex flex-col items-center justify-center h-full text-[var(--text-3)] py-12">
                           <MessageCircle className="h-10 w-10 mb-2" />
                           <p className="text-xs font-medium">No messages yet</p>
                         </div>
@@ -421,17 +421,17 @@ export default function GlobalChatButton({
                           const isMe = m.sender === senderLabel;
                           return (
                             <div key={m.id} className={`flex gap-2 ${isMe ? "flex-row-reverse" : ""}`}>
-                              <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${isMe ? "bg-amber-100" : "bg-gray-100"}`}>
-                                <Icon className={`h-3.5 w-3.5 ${isMe ? "text-amber-700" : "text-gray-500"}`} />
+                              <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${isMe ? "bg-[var(--accent-muted)]" : "bg-[var(--surface)]"}`}>
+                                <Icon className={`h-3.5 w-3.5 ${isMe ? "text-[var(--accent-text)]" : "text-[var(--text-2)]"}`} />
                               </div>
                               <div className={`max-w-[75%] ${isMe ? "items-end" : "items-start"} flex flex-col`}>
-                                <p className={`text-[10px] font-semibold mb-0.5 ${isMe ? "text-right text-amber-700" : "text-gray-500"}`}>
+                                <p className={`text-[10px] font-semibold mb-0.5 ${isMe ? "text-right text-[var(--accent-text)]" : "text-[var(--text-2)]"}`}>
                                   {m.senderName ?? m.sender}
                                 </p>
-                                <div className={`rounded-xl px-3 py-2 text-xs ${isMe ? "bg-amber-700 text-white rounded-tr-sm" : "bg-gray-100 text-gray-800 rounded-tl-sm"}`}>
+                                <div className={`rounded-xl px-3 py-2 text-xs ${isMe ? "bg-[var(--accent-hover)] text-white rounded-tr-sm" : "bg-[var(--surface)] text-[var(--text-1)] rounded-tl-sm"}`}>
                                   {m.content}
                                 </div>
-                                <p className="text-[9px] text-gray-400 mt-0.5">{formatTime(m.createdAt)}</p>
+                                <p className="text-[9px] text-[var(--text-3)] mt-0.5">{formatTime(m.createdAt)}</p>
                               </div>
                             </div>
                           );
@@ -439,18 +439,18 @@ export default function GlobalChatButton({
                       )}
                       <div ref={messagesEndRef} />
                     </div>
-                    <div className="border-t border-gray-100 p-4 flex gap-2">
+                    <div className="border-t border-[var(--border-soft)] p-4 flex gap-2">
                       <input
                         value={msg}
                         onChange={(e) => setMsg(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && sendMessage()}
                         placeholder="Type a message..."
-                        className="flex-1 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-amber-300/50 transition-all"
+                        className="flex-1 rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]/50 transition-all"
                       />
                       <button
                         onClick={sendMessage}
                         disabled={!msg.trim()}
-                        className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-700 text-white hover:bg-amber-600 disabled:opacity-40 transition-colors"
+                        className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent-hover)] text-white hover:bg-[var(--accent-hover)] disabled:opacity-40 transition-colors"
                       >
                         <Send className="h-3.5 w-3.5" />
                       </button>

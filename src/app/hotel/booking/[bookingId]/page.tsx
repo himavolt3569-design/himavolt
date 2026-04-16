@@ -85,7 +85,7 @@ export default function BookingConfirmationPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50">
-        <Loader2 className="h-6 w-6 animate-spin text-amber-500" />
+        <Loader2 className="h-6 w-6 animate-spin text-[var(--accent)]" />
       </div>
     );
   }
@@ -94,8 +94,8 @@ export default function BookingConfirmationPage() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50">
         <div className="text-center">
-          <XCircle className="mx-auto h-12 w-12 text-gray-300 mb-3" />
-          <p className="text-gray-600">Booking not found</p>
+          <XCircle className="mx-auto h-12 w-12 text-[var(--text-3)] mb-3" />
+          <p className="text-[var(--text-2)]">Booking not found</p>
         </div>
       </div>
     );
@@ -107,17 +107,17 @@ export default function BookingConfirmationPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans">
-      <nav className="sticky top-0 z-40 flex items-center justify-between border-b border-gray-200/50 bg-white/80 backdrop-blur-xl px-5 py-3.5 shadow-sm">
-        <Link href={`/hotel/${booking.restaurant.slug}`} className="flex items-center gap-1.5 text-[13px] text-gray-600 hover:text-amber-600 transition-colors">
+      <nav className="sticky top-0 z-40 flex items-center justify-between border-b border-[var(--border)]/50 bg-[var(--canvas)]/80 backdrop-blur-xl px-5 py-3.5 shadow-sm">
+        <Link href={`/hotel/${booking.restaurant.slug}`} className="flex items-center gap-1.5 text-[13px] text-[var(--text-2)] hover:text-[var(--accent-text)] transition-colors">
           <ArrowLeft className="h-3.5 w-3.5" />
           Back to {booking.restaurant.name}
         </Link>
         <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--accent)]">
             <Mountain className="h-3.5 w-3.5 text-white" strokeWidth={2.5} />
           </div>
-          <span className="text-[15px] font-bold text-gray-900">
-            Hima<span className="text-amber-500">Volt</span>
+          <span className="text-[15px] font-bold text-[var(--text-1)]">
+            Hima<span className="text-[var(--accent)]">Volt</span>
           </span>
         </div>
       </nav>
@@ -127,7 +127,7 @@ export default function BookingConfirmationPage() {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-3 rounded-2xl bg-[#fef9ef] p-4 ring-1 ring-emerald-200"
+            className="flex items-center gap-3 rounded-2xl bg-[var(--accent-muted)] p-4 ring-1 ring-[#eaa94d]/30"
           >
             <CheckCircle className="h-5 w-5 text-[#b25c1c] shrink-0" />
             <div>
@@ -155,19 +155,19 @@ export default function BookingConfirmationPage() {
             <StatusIcon className={`h-7 w-7 text-${statusCfg.color}-600`} />
           </div>
           <p className={`text-[16px] font-bold text-${statusCfg.color}-700`}>{statusCfg.label}</p>
-          <p className="mt-1 text-[11px] text-gray-500">Booking #{bookingId.slice(-8).toUpperCase()}</p>
+          <p className="mt-1 text-[11px] text-[var(--text-2)]">Booking #{bookingId.slice(-8).toUpperCase()}</p>
         </div>
 
-        <div className="rounded-2xl bg-white ring-1 ring-gray-100 overflow-hidden shadow-sm">
+        <div className="rounded-2xl bg-[var(--canvas)] ring-1 ring-[var(--border)] overflow-hidden shadow-sm">
           {booking.room.imageUrls[0] && (
             <img src={booking.room.imageUrls[0]} alt="Room" className="h-44 w-full object-cover" />
           )}
           <div className="p-5 space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-[16px] font-bold text-gray-900">
+              <h3 className="text-[16px] font-bold text-[var(--text-1)]">
                 {booking.room.name || `Room ${booking.room.roomNumber}`}
               </h3>
-              <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-700">
+              <span className="rounded-full bg-[var(--accent-muted)] px-2.5 py-1 text-[11px] font-semibold text-[var(--accent-text)]">
                 {booking.room.type}
               </span>
             </div>
@@ -179,27 +179,27 @@ export default function BookingConfirmationPage() {
                 { icon: BedDouble, label: "Bed", value: booking.room.bedType ? `${booking.room.bedCount}x ${booking.room.bedType}` : `Floor ${booking.room.floor}` },
                 { icon: Users, label: "Guests", value: `${booking.adults} adults${booking.children > 0 ? `, ${booking.children} children` : ""}` },
               ].map(({ icon: Icon, label, value }) => (
-                <div key={label} className="rounded-xl bg-gray-50 p-3">
+                <div key={label} className="rounded-xl bg-[var(--canvas-sub)] p-3">
                   <div className="flex items-center gap-1.5 mb-0.5">
-                    <Icon className="h-3 w-3 text-amber-500" />
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">{label}</p>
+                    <Icon className="h-3 w-3 text-[var(--accent)]" />
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--text-3)]">{label}</p>
                   </div>
-                  <p className="text-[13px] font-semibold text-gray-800">{value}</p>
+                  <p className="text-[13px] font-semibold text-[var(--text-1)]">{value}</p>
                 </div>
               ))}
             </div>
 
-            <div className="rounded-xl bg-amber-50 p-3 space-y-1.5">
-              <div className="flex justify-between text-[12px] text-gray-600">
+            <div className="rounded-xl bg-[var(--accent-muted)] p-3 space-y-1.5">
+              <div className="flex justify-between text-[12px] text-[var(--text-2)]">
                 <span>{cur}{(booking.totalPrice / booking.nights).toLocaleString()} × {booking.nights} night{booking.nights > 1 ? "s" : ""}</span>
                 <span className="font-semibold">{cur}{booking.totalPrice.toLocaleString()}</span>
               </div>
-              <div className="flex justify-between text-[13px] font-bold text-amber-700 border-t border-amber-100 pt-1.5">
+              <div className="flex justify-between text-[13px] font-bold text-[var(--accent-text)] border-t border-[var(--accent-border)] pt-1.5">
                 <span>Advance {booking.advancePaid ? "Paid" : "Due"}</span>
                 <span>{cur}{booking.advanceAmount.toLocaleString()}</span>
               </div>
               {booking.paymentMethod && (
-                <div className="flex items-center gap-1 text-[11px] text-gray-500">
+                <div className="flex items-center gap-1 text-[11px] text-[var(--text-2)]">
                   <CreditCard className="h-3 w-3" />
                   via {booking.paymentMethod}
                   {booking.advancePaid && <CheckCircle className="h-3 w-3 text-[#d67620] ml-1" />}
@@ -209,15 +209,15 @@ export default function BookingConfirmationPage() {
           </div>
         </div>
 
-        <div className="rounded-2xl bg-white ring-1 ring-gray-100 p-5 shadow-sm">
-          <h4 className="text-[13px] font-bold text-gray-900 mb-3">{booking.restaurant.name}</h4>
+        <div className="rounded-2xl bg-[var(--canvas)] ring-1 ring-[var(--border)] p-5 shadow-sm">
+          <h4 className="text-[13px] font-bold text-[var(--text-1)] mb-3">{booking.restaurant.name}</h4>
           <div className="space-y-2">
-            <div className="flex items-center gap-2 text-[12px] text-gray-600">
-              <MapPin className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+            <div className="flex items-center gap-2 text-[12px] text-[var(--text-2)]">
+              <MapPin className="h-3.5 w-3.5 text-[var(--accent)] shrink-0" />
               {booking.restaurant.address}, {booking.restaurant.city}
             </div>
-            <div className="flex items-center gap-2 text-[12px] text-gray-600">
-              <Phone className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+            <div className="flex items-center gap-2 text-[12px] text-[var(--text-2)]">
+              <Phone className="h-3.5 w-3.5 text-[var(--accent)] shrink-0" />
               {booking.restaurant.phone}
             </div>
           </div>

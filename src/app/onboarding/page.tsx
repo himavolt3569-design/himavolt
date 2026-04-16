@@ -95,12 +95,12 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50/50 p-6">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-[var(--canvas-sub)] p-6">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
           <Link href="/" className="inline-flex items-center gap-2">
             <Mountain className="h-8 w-8 text-[#eaa94d]" strokeWidth={2.5} />
-            <span className="text-2xl font-extrabold tracking-tight text-[#3e1e0c]">
+            <span className="text-2xl font-extrabold tracking-tight text-[var(--text-1)]">
               Hima<span className="text-[#eaa94d]">Volt</span>
             </span>
           </Link>
@@ -121,7 +121,7 @@ export default function OnboardingPage() {
                               ? "bg-[#eaa94d] text-white"
                               : isActive
                               ? "bg-[#eaa94d] text-white"
-                              : "bg-gray-200 text-gray-400"
+                              : "bg-[var(--surface-alt)] text-[var(--text-3)]"
                           }`}
                         >
                           {isDone ? (
@@ -132,21 +132,21 @@ export default function OnboardingPage() {
                         </div>
                         <span
                           className={`text-xs font-medium ${
-                            isActive ? "text-[#3e1e0c]" : "text-gray-400"
+                            isActive ? "text-[var(--text-1)]" : "text-[var(--text-3)]"
                           }`}
                         >
                           {label}
                         </span>
                       </div>
                       {i < 1 && (
-                        <div className="h-px w-8 bg-gray-200" />
+                        <div className="h-px w-8 bg-[var(--surface-alt)]" />
                       )}
                     </div>
                   );
                 })}
               </div>
 
-              <p className="mt-3 text-sm font-semibold text-[#3e1e0c]">
+              <p className="mt-3 text-sm font-semibold text-[var(--text-1)]">
                 {step === 1
                   ? "Tell us about your restaurant"
                   : "Where can customers find you?"}
@@ -167,27 +167,27 @@ export default function OnboardingPage() {
             >
               <form
                 onSubmit={handleStep1}
-                className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm space-y-5"
+                className="rounded-2xl border border-[var(--border)] bg-[var(--canvas)] p-6 shadow-sm space-y-5"
               >
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                  <label className="mb-1 block text-sm font-medium text-[var(--text-2)]">
                     Restaurant Name <span className="text-[#eaa94d]">*</span>
                   </label>
                   <div className="relative">
-                    <Store className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                    <Store className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-3)]" />
                     <input
                       type="text"
                       value={form.name}
                       onChange={(e) => update("name", e.target.value)}
                       required
-                      className="w-full rounded-xl border border-gray-200 py-2.5 pl-9 pr-4 text-sm focus:border-[#eaa94d]/30 focus:outline-none focus:ring-1 focus:ring-[#eaa94d]/30"
+                      className="w-full rounded-xl border border-[var(--border)] py-2.5 pl-9 pr-4 text-sm focus:border-[var(--accent-border)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-border)]"
                       placeholder="e.g. The Himalayan Kitchen"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700">
+                  <label className="mb-2 block text-sm font-medium text-[var(--text-2)]">
                     Type <span className="text-[#eaa94d]">*</span>
                   </label>
                   <div className="grid grid-cols-4 gap-2">
@@ -199,15 +199,15 @@ export default function OnboardingPage() {
                         className={`flex flex-col items-center gap-1 rounded-xl border-2 py-2.5 px-1 text-center transition-all ${
                           form.type === value
                             ? "border-[#eaa94d] bg-[#eaa94d]/5"
-                            : "border-gray-200 hover:border-gray-300"
+                            : "border-[var(--border)] hover:border-[var(--border)]"
                         }`}
                       >
-                        <Icon className={`h-5 w-5 ${form.type === value ? "text-[#eaa94d]" : "text-gray-400"}`} />
+                        <Icon className={`h-5 w-5 ${form.type === value ? "text-[#eaa94d]" : "text-[var(--text-3)]"}`} />
                         <span
                           className={`text-[10px] font-semibold leading-tight ${
                             form.type === value
                               ? "text-[#eaa94d]"
-                              : "text-gray-500"
+                              : "text-[var(--text-2)]"
                           }`}
                         >
                           {label}
@@ -220,7 +220,7 @@ export default function OnboardingPage() {
                 <button
                   type="submit"
                   disabled={!form.name.trim() || !form.type}
-                  className="w-full rounded-xl bg-[#eaa94d] py-3 text-sm font-bold text-white transition-all hover:bg-[#d67620] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed shadow-sm shadow-[#eaa94d]/20 flex items-center justify-center gap-2"
+                  className="w-full rounded-xl bg-[#eaa94d] py-3 text-sm font-bold text-white transition-all hover:bg-[#d67620] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed shadow-sm shadow-[var(--accent)]/20 flex items-center justify-center gap-2"
                 >
                   Next
                   <ChevronRight className="h-4 w-4" />
@@ -240,7 +240,7 @@ export default function OnboardingPage() {
             >
               <form
                 onSubmit={handleStep2}
-                className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm space-y-5"
+                className="rounded-2xl border border-[var(--border)] bg-[var(--canvas)] p-6 shadow-sm space-y-5"
               >
                 {error && (
                   <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600">
@@ -249,48 +249,48 @@ export default function OnboardingPage() {
                 )}
 
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                  <label className="mb-1 block text-sm font-medium text-[var(--text-2)]">
                     Business Phone <span className="text-[#eaa94d]">*</span>
                   </label>
                   <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                    <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-3)]" />
                     <input
                       type="tel"
                       value={form.phone}
                       onChange={(e) => update("phone", e.target.value)}
                       required
-                      className="w-full rounded-xl border border-gray-200 py-2.5 pl-9 pr-4 text-sm focus:border-[#eaa94d]/30 focus:outline-none focus:ring-1 focus:ring-[#eaa94d]/30"
+                      className="w-full rounded-xl border border-[var(--border)] py-2.5 pl-9 pr-4 text-sm focus:border-[var(--accent-border)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-border)]"
                       placeholder="+977 01-XXXXXXX or 98XXXXXXXX"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                  <label className="mb-1 block text-sm font-medium text-[var(--text-2)]">
                     City
                   </label>
                   <div className="relative">
-                    <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                    <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-3)]" />
                     <input
                       type="text"
                       value={form.city}
                       onChange={(e) => update("city", e.target.value)}
-                      className="w-full rounded-xl border border-gray-200 py-2.5 pl-9 pr-4 text-sm focus:border-[#eaa94d]/30 focus:outline-none focus:ring-1 focus:ring-[#eaa94d]/30"
+                      className="w-full rounded-xl border border-[var(--border)] py-2.5 pl-9 pr-4 text-sm focus:border-[var(--accent-border)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-border)]"
                       placeholder="Kathmandu"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                  <label className="mb-1 block text-sm font-medium text-[var(--text-2)]">
                     Address{" "}
-                    <span className="text-gray-400 font-normal">(optional)</span>
+                    <span className="text-[var(--text-3)] font-normal">(optional)</span>
                   </label>
                   <textarea
                     value={form.address}
                     onChange={(e) => update("address", e.target.value)}
                     rows={2}
-                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-[#eaa94d]/30 focus:outline-none focus:ring-1 focus:ring-[#eaa94d]/30 resize-none"
+                    className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm focus:border-[var(--accent-border)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-border)] resize-none"
                     placeholder="Street, Tole, Landmark..."
                   />
                 </div>
@@ -299,14 +299,14 @@ export default function OnboardingPage() {
                   <button
                     type="button"
                     onClick={() => { setStep(1); setError(""); }}
-                    className="flex-1 rounded-xl border border-gray-200 py-3 text-sm font-semibold text-gray-600 transition-all hover:bg-gray-50"
+                    className="flex-1 rounded-xl border border-[var(--border)] py-3 text-sm font-semibold text-[var(--text-2)] transition-all hover:bg-[var(--canvas-sub)]"
                   >
                     Back
                   </button>
                   <button
                     type="submit"
                     disabled={!form.phone.trim() || loading}
-                    className="flex-[2] rounded-xl bg-[#eaa94d] py-3 text-sm font-bold text-white transition-all hover:bg-[#d67620] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed shadow-sm shadow-[#eaa94d]/20 flex items-center justify-center gap-2"
+                    className="flex-[2] rounded-xl bg-[#eaa94d] py-3 text-sm font-bold text-white transition-all hover:bg-[#d67620] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed shadow-sm shadow-[var(--accent)]/20 flex items-center justify-center gap-2"
                   >
                     {loading ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -331,13 +331,13 @@ export default function OnboardingPage() {
               transition={{ duration: 0.28 }}
               className="text-center"
             >
-              <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-[#fef3dc]">
+              <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-[var(--accent-muted)]">
                 <Building2 className="h-10 w-10 text-[#b25c1c]" />
               </div>
-              <h2 className="text-xl font-bold text-[#3e1e0c] mb-2">
+              <h2 className="text-xl font-bold text-[var(--text-1)] mb-2">
                 {restaurantName} is live!
               </h2>
-              <p className="text-sm text-gray-500 mb-8 leading-relaxed">
+              <p className="text-sm text-[var(--text-2)] mb-8 leading-relaxed">
                 Your restaurant has been created. Head to the dashboard to set
                 up your menu, invite staff, and start taking orders.
               </p>
@@ -345,19 +345,19 @@ export default function OnboardingPage() {
               <div className="space-y-3">
                 <button
                   onClick={() => router.push("/dashboard")}
-                  className="w-full rounded-xl bg-[#eaa94d] py-3 text-sm font-bold text-white transition-all hover:bg-[#d67620] shadow-sm shadow-[#eaa94d]/20"
+                  className="w-full rounded-xl bg-[#eaa94d] py-3 text-sm font-bold text-white transition-all hover:bg-[#d67620] shadow-sm shadow-[var(--accent)]/20"
                 >
                   Go to Dashboard
                 </button>
                 <button
                   onClick={() => router.push("/")}
-                  className="w-full rounded-xl border border-gray-200 py-3 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all"
+                  className="w-full rounded-xl border border-[var(--border)] py-3 text-sm font-semibold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-all"
                 >
                   Explore the app first
                 </button>
               </div>
 
-              <p className="mt-6 text-[11px] text-gray-300">
+              <p className="mt-6 text-[11px] text-[var(--text-3)]">
                 You can add more restaurants from the dashboard anytime.
               </p>
             </motion.div>

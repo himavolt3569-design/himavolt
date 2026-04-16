@@ -64,9 +64,9 @@ export default function DineInRequestModal({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: "100%" }}
             transition={{ type: "spring" as const, damping: 30, stiffness: 280 }}
-            className="fixed bottom-0 left-0 right-0 z-50 mx-auto max-w-lg rounded-t-3xl bg-white shadow-2xl md:bottom-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-2xl"
+            className="fixed bottom-0 left-0 right-0 z-50 mx-auto max-w-lg rounded-t-3xl bg-[var(--canvas)] shadow-2xl md:bottom-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-2xl"
           >
-            <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100">
+            <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-[var(--border-soft)]">
               <div>
                 <div className="flex items-center gap-2 mb-0.5">
                   <span
@@ -74,71 +74,71 @@ export default function DineInRequestModal({
                       order.status === "PENDING" ? "bg-[#eaa94d] animate-pulse" : "bg-[#3e1e0c]"
                     }`}
                   />
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-3)]">
                     {order.status === "PENDING" ? "New Dine-In Request" : `Order ${order.status}`}
                   </span>
                 </div>
-                <h2 className="text-lg font-bold text-[#3e1e0c]">{order.orderNo}</h2>
+                <h2 className="text-lg font-bold text-[var(--text-1)]">{order.orderNo}</h2>
               </div>
               <button
                 onClick={onClose}
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-colors"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            <div className="flex items-center gap-4 px-6 py-4 border-b border-gray-100">
+            <div className="flex items-center gap-4 px-6 py-4 border-b border-[var(--border-soft)]">
               <div className="flex items-center gap-2">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#3e1e0c]/10">
-                  <MapPin className="h-4.5 w-4.5 text-[#3e1e0c]" />
+                  <MapPin className="h-4.5 w-4.5 text-[var(--text-1)]" />
                 </div>
                 <div>
-                  <p className="text-[10px] text-gray-400 font-medium">Table</p>
-                  <p className="text-base font-extrabold text-[#3e1e0c]">#{order.tableNo}</p>
+                  <p className="text-[10px] text-[var(--text-3)] font-medium">Table</p>
+                  <p className="text-base font-extrabold text-[var(--text-1)]">#{order.tableNo}</p>
                 </div>
               </div>
-              <div className="h-8 w-px bg-gray-200" />
+              <div className="h-8 w-px bg-[var(--surface-alt)]" />
               <div className="flex items-center gap-2">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#eaa94d]/10">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--accent-muted)]">
                   <Clock className="h-4.5 w-4.5 text-[#eaa94d]" />
                 </div>
                 <div>
-                  <p className="text-[10px] text-gray-400 font-medium">Placed</p>
-                  <p className="text-sm font-bold text-[#3e1e0c]">
+                  <p className="text-[10px] text-[var(--text-3)] font-medium">Placed</p>
+                  <p className="text-sm font-bold text-[var(--text-1)]">
                     {Math.floor((Date.now() - new Date(order.createdAt).getTime()) / 60000)}m ago
                   </p>
                 </div>
               </div>
-              <div className="h-8 w-px bg-gray-200" />
+              <div className="h-8 w-px bg-[var(--surface-alt)]" />
               <div className="flex items-center gap-2">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#fef3dc]">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--accent-muted)]">
                   <ChefHat className="h-4.5 w-4.5 text-[#b25c1c]" />
                 </div>
                 <div>
-                  <p className="text-[10px] text-gray-400 font-medium">Total</p>
-                  <p className="text-sm font-extrabold text-[#3e1e0c]">{formatPrice(order.total, currency)}</p>
+                  <p className="text-[10px] text-[var(--text-3)] font-medium">Total</p>
+                  <p className="text-sm font-extrabold text-[var(--text-1)]">{formatPrice(order.total, currency)}</p>
                 </div>
               </div>
             </div>
 
             <div className="px-6 py-4 max-h-[220px] overflow-y-auto">
-              <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">
+              <h3 className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider mb-3">
                 Order Items
               </h3>
               <div className="space-y-2">
                 {order.items.map((item, i) => (
                   <div
                     key={i}
-                    className="flex items-center justify-between rounded-xl bg-gray-50 px-4 py-3"
+                    className="flex items-center justify-between rounded-xl bg-[var(--canvas-sub)] px-4 py-3"
                   >
                     <div className="flex items-center gap-3">
-                      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#eaa94d]/10 text-[11px] font-black text-[#eaa94d]">
+                      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--accent-muted)] text-[11px] font-black text-[#eaa94d]">
                         {item.quantity}
                       </span>
-                      <span className="text-sm font-semibold text-[#3e1e0c]">{item.name}</span>
+                      <span className="text-sm font-semibold text-[var(--text-1)]">{item.name}</span>
                     </div>
-                    <span className="text-sm font-bold text-gray-500">
+                    <span className="text-sm font-bold text-[var(--text-2)]">
                       {formatPrice(item.price * item.quantity, currency)}
                     </span>
                   </div>
@@ -146,27 +146,27 @@ export default function DineInRequestModal({
               </div>
 
               {/* Sub-total */}
-              <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
-                <span className="text-sm font-bold text-[#3e1e0c]">Total</span>
+              <div className="flex items-center justify-between mt-4 pt-4 border-t border-[var(--border)]">
+                <span className="text-sm font-bold text-[var(--text-1)]">Total</span>
                 <span className="text-lg font-extrabold text-[#eaa94d]">{formatPrice(order.total, currency)}</span>
               </div>
             </div>
 
             {order.payment && (
-              <div className="mx-6 mb-3 flex items-center gap-2 rounded-xl bg-gray-50 border border-gray-200 px-4 py-3">
+              <div className="mx-6 mb-3 flex items-center gap-2 rounded-xl bg-[var(--canvas-sub)] border border-[var(--border)] px-4 py-3">
                 {order.payment.method === "ESEWA" && <Wallet className="h-4 w-4 text-[#b25c1c]" />}
                 {order.payment.method === "KHALTI" && <Wallet className="h-4 w-4 text-purple-600" />}
                 {order.payment.method === "BANK" && <Banknote className="h-4 w-4 text-blue-600" />}
-                {order.payment.method === "CASH" && <DollarSign className="h-4 w-4 text-gray-600" />}
-                {!["ESEWA", "KHALTI", "BANK", "CASH"].includes(order.payment.method) && <CreditCard className="h-4 w-4 text-gray-600" />}
-                <span className="text-sm font-bold text-[#3e1e0c]">
+                {order.payment.method === "CASH" && <DollarSign className="h-4 w-4 text-[var(--text-2)]" />}
+                {!["ESEWA", "KHALTI", "BANK", "CASH"].includes(order.payment.method) && <CreditCard className="h-4 w-4 text-[var(--text-2)]" />}
+                <span className="text-sm font-bold text-[var(--text-1)]">
                   {order.payment.method === "ESEWA" ? "eSewa" : order.payment.method === "KHALTI" ? "Khalti" : order.payment.method === "BANK" ? "Bank Transfer" : "Cash"}
                 </span>
                 <span
                   className={`ml-auto rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
                     order.payment.status === "COMPLETED"
-                      ? "bg-[#fef3dc] text-[#b25c1c]"
-                      : "bg-amber-100 text-amber-700"
+                      ? "bg-[var(--accent-muted)] text-[#b25c1c]"
+                      : "bg-[var(--accent-muted)] text-[var(--accent-text)]"
                   }`}
                 >
                   {order.payment.status === "COMPLETED" ? "Paid" : "Pending"}
@@ -175,13 +175,13 @@ export default function DineInRequestModal({
             )}
 
             {order.note && (
-              <div className="mx-6 mb-4 flex items-start gap-2 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3">
-                <MessageSquare className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+              <div className="mx-6 mb-4 flex items-start gap-2 rounded-xl bg-[var(--accent-muted)] border border-[var(--accent-border)] px-4 py-3">
+                <MessageSquare className="h-4 w-4 text-[var(--accent-text)] shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-[10px] font-bold text-amber-700 uppercase tracking-wider mb-0.5">
+                  <p className="text-[10px] font-bold text-[var(--accent-text)] uppercase tracking-wider mb-0.5">
                     Customer Note
                   </p>
-                  <p className="text-xs text-amber-800 italic">&ldquo;{order.note}&rdquo;</p>
+                  <p className="text-xs text-[var(--accent-text)] italic">&ldquo;{order.note}&rdquo;</p>
                 </div>
               </div>
             )}
@@ -217,7 +217,7 @@ export default function DineInRequestModal({
                 <div className="flex gap-2">
                   <button
                     onClick={handlePrint}
-                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-gray-100 py-3.5 text-sm font-bold text-gray-600 hover:bg-gray-200 transition-all"
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[var(--surface)] py-3.5 text-sm font-bold text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-all"
                   >
                     <Printer className="h-4 w-4" />
                     Print Receipt

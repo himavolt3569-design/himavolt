@@ -117,7 +117,7 @@ function statusColor(status: string) {
     return "bg-[#fef9ef] text-[#b25c1c] border-[#eaa94d]/30";
   if (status === "CANCELLED" || status === "REJECTED")
     return "bg-red-50 text-red-700 border-red-200";
-  return "bg-amber-50 text-amber-700 border-amber-200";
+  return "bg-[var(--accent-muted)] text-[var(--accent-text)] border-[var(--accent-border)]";
 }
 
 /* ── Print & Download ───────────────────────────────────────────── */
@@ -192,23 +192,6 @@ export default function BillPage() {
     }
   }, [bill]);
 
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-gray-50 to-white">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="flex flex-col items-center gap-3"
-        >
-          <Loader2 className="h-8 w-8 animate-spin text-[#eaa94d]" />
-          <p className="text-sm font-medium text-gray-400">
-            Generating your bill…
-          </p>
-        </motion.div>
-      </div>
-    );
-  }
-
   if (error || !bill) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-gray-50 to-white">
@@ -221,7 +204,7 @@ export default function BillPage() {
             <AlertCircle className="h-7 w-7 text-[#eaa94d]" />
           </div>
           <p className="text-lg font-bold text-[#3e1e0c]">Bill not found</p>
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-[var(--text-3)]">
             This order may not have a bill yet
           </p>
           <Link
@@ -246,21 +229,21 @@ export default function BillPage() {
   const printLabel = isOnlinePayment ? "Print Receipt" : "Print Bill";
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-100 to-gray-50 print:bg-white print:from-white print:to-white">
+    <div className="min-h-screen bg-gradient-to-b from-gray-100 to-gray-50 print:bg-[var(--canvas)] print:from-white print:to-white">
       {/* Action bar — hidden on print */}
-      <div className="sticky top-0 z-30 bg-white/90 backdrop-blur-xl border-b border-gray-100 print:hidden">
+      <div className="sticky top-0 z-30 bg-[var(--canvas)]/80 backdrop-blur-xl border-b border-[var(--border-soft)] print:hidden">
         <div className="mx-auto max-w-2xl flex items-center justify-between px-4 py-3">
           <Link
             href={`/track/${order.id}`}
-            className="flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-[#3e1e0c] transition-colors"
+            className="flex items-center gap-2 text-sm font-bold text-[var(--text-2)] hover:text-[#3e1e0c] transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Order
           </Link>
           <div className="flex items-center gap-2">
             {!isPaid && (
-              <span className="flex items-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs font-bold text-amber-700">
-                <span className="h-1.5 w-1.5 rounded-full bg-amber-500 inline-block" />
+              <span className="flex items-center gap-1.5 rounded-xl border border-[var(--accent-border)] bg-[var(--accent-muted)] px-4 py-2.5 text-xs font-bold text-[var(--accent-text)]">
+                <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] inline-block" />
                 Payment Pending — Pay at Counter
               </span>
             )}
@@ -268,7 +251,7 @@ export default function BillPage() {
               onClick={onDownload}
               disabled={downloading || !isPaid}
               title={!isPaid ? "Bill can only be downloaded after payment is collected" : undefined}
-              className="flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5 text-xs font-bold text-gray-600 hover:bg-gray-50 hover:border-[#eaa94d]/20 hover:text-[#eaa94d] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 rounded-xl border border-[var(--border)] px-4 py-2.5 text-xs font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] hover:border-[#eaa94d]/20 hover:text-[#eaa94d] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {downloading ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -294,19 +277,19 @@ export default function BillPage() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="bg-white rounded-3xl shadow-2xl shadow-black/5 border border-gray-100/50 overflow-hidden print:shadow-none print:border-none print:rounded-none"
+          className="bg-[var(--canvas)] rounded-3xl shadow-2xl shadow-black/5 border border-[var(--border-soft)]/50 overflow-hidden print:shadow-none print:border-none print:rounded-none"
         >
           {/* ── Header ─────────────────────────────── */}
           <div className="relative px-6 pt-8 pb-6 sm:px-8 bg-gradient-to-br from-[#3e1e0c] to-[#5a3118] text-white print:bg-black print:from-black print:to-black">
-            <div className="absolute top-0 right-0 h-32 w-32 rounded-full bg-white/5 -mr-10 -mt-10 print:hidden" />
-            <div className="absolute bottom-0 left-0 h-20 w-20 rounded-full bg-white/5 -ml-5 -mb-5 print:hidden" />
+            <div className="absolute top-0 right-0 h-32 w-32 rounded-full bg-[var(--canvas)]/80 -mr-10 -mt-10 print:hidden" />
+            <div className="absolute bottom-0 left-0 h-20 w-20 rounded-full bg-[var(--canvas)]/80 -ml-5 -mb-5 print:hidden" />
 
             <div className="relative z-10">
               <div className="flex items-start justify-between">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <Receipt className="h-5 w-5 text-[#e58f2a]" />
-                    <span className="text-[11px] font-bold uppercase tracking-widest text-gray-400">
+                    <span className="text-[11px] font-bold uppercase tracking-widest text-[var(--text-3)]">
                       {docLabel}
                     </span>
                   </div>
@@ -317,15 +300,15 @@ export default function BillPage() {
                 <div
                   className={`rounded-xl px-3 py-1.5 text-[11px] font-bold border ${
                     isPaid
-                      ? "bg-[#eaa94d]/10 text-emerald-400 border-emerald-500/20"
-                      : "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                      ? "bg-[#eaa94d]/10 text-[#d67620] border-[#eaa94d]/20"
+                      : "bg-[var(--accent-border)] text-[var(--accent)] border-[var(--accent)]/20"
                   }`}
                 >
                   {isPaid ? "PAID" : "UNPAID"}
                 </div>
               </div>
 
-              <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-[12px] text-gray-400">
+              <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-[12px] text-[var(--text-3)]">
                 <span className="flex items-center gap-1.5">
                   <Calendar className="h-3 w-3" />
                   {formatDateTime(bill.createdAt)}
@@ -345,37 +328,37 @@ export default function BillPage() {
           </div>
 
           {/* ── Restaurant & Customer info ──────────── */}
-          <div className="px-6 sm:px-8 py-5 border-b border-gray-100 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="px-6 sm:px-8 py-5 border-b border-[var(--border-soft)] grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-3)]">
                 From
               </p>
               <p className="text-sm font-bold text-[#3e1e0c]">
                 {order.restaurant.name}
               </p>
-              <p className="text-[12px] text-gray-500 flex items-center gap-1">
+              <p className="text-[12px] text-[var(--text-2)] flex items-center gap-1">
                 <MapPin className="h-3 w-3 shrink-0" />{" "}
                 {order.restaurant.address}
               </p>
-              <p className="text-[12px] text-gray-500 flex items-center gap-1">
+              <p className="text-[12px] text-[var(--text-2)] flex items-center gap-1">
                 <Phone className="h-3 w-3 shrink-0" /> {order.restaurant.phone}
               </p>
             </div>
             {order.user && (
               <div className="space-y-1.5 sm:text-right">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-3)]">
                   Bill to
                 </p>
                 <p className="text-sm font-bold text-[#3e1e0c]">
                   {order.user.name || "Guest"}
                 </p>
                 {order.user.email && (
-                  <p className="text-[12px] text-gray-500">
+                  <p className="text-[12px] text-[var(--text-2)]">
                     {order.user.email}
                   </p>
                 )}
                 {order.user.phone && (
-                  <p className="text-[12px] text-gray-500 flex items-center gap-1 sm:justify-end">
+                  <p className="text-[12px] text-[var(--text-2)] flex items-center gap-1 sm:justify-end">
                     <Phone className="h-3 w-3 shrink-0" /> {order.user.phone}
                   </p>
                 )}
@@ -393,7 +376,7 @@ export default function BillPage() {
               )}
               {order.status}
             </span>
-            <span className="inline-flex items-center gap-1 rounded-lg bg-gray-50 px-2.5 py-1 text-[11px] font-bold text-gray-500 border border-gray-100">
+            <span className="inline-flex items-center gap-1 rounded-lg bg-[var(--canvas-sub)] px-2.5 py-1 text-[11px] font-bold text-[var(--text-2)] border border-[var(--border-soft)]">
               <Clock className="h-3 w-3" />
               {order.type.replace("_", " ")}
             </span>
@@ -403,17 +386,17 @@ export default function BillPage() {
           <div className="px-6 sm:px-8 py-5">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b-2 border-gray-100">
-                  <th className="pb-3 text-left text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                <tr className="border-b-2 border-[var(--border-soft)]">
+                  <th className="pb-3 text-left text-[10px] font-bold uppercase tracking-widest text-[var(--text-3)]">
                     Item
                   </th>
-                  <th className="pb-3 text-center text-[10px] font-bold uppercase tracking-widest text-gray-400 w-16">
+                  <th className="pb-3 text-center text-[10px] font-bold uppercase tracking-widest text-[var(--text-3)] w-16">
                     Qty
                   </th>
-                  <th className="pb-3 text-right text-[10px] font-bold uppercase tracking-widest text-gray-400 w-20">
+                  <th className="pb-3 text-right text-[10px] font-bold uppercase tracking-widest text-[var(--text-3)] w-20">
                     Price
                   </th>
-                  <th className="pb-3 text-right text-[10px] font-bold uppercase tracking-widest text-gray-400 w-24">
+                  <th className="pb-3 text-right text-[10px] font-bold uppercase tracking-widest text-[var(--text-3)] w-24">
                     Total
                   </th>
                 </tr>
@@ -422,22 +405,22 @@ export default function BillPage() {
                 {order.items.map((item, i) => (
                   <tr
                     key={item.id}
-                    className={`${i < order.items.length - 1 ? "border-b border-gray-50" : ""}`}
+                    className={`${i < order.items.length - 1 ? "border-b border-[var(--border-soft)]" : ""}`}
                   >
                     <td className="py-3">
                       <p className="font-bold text-[#3e1e0c] text-[13px]">
                         {item.name}
                       </p>
                       {item.addOns && (
-                        <p className="text-[11px] text-gray-400 mt-0.5">
+                        <p className="text-[11px] text-[var(--text-3)] mt-0.5">
                           + {item.addOns}
                         </p>
                       )}
                     </td>
-                    <td className="py-3 text-center text-gray-500 font-medium">
+                    <td className="py-3 text-center text-[var(--text-2)] font-medium">
                       {item.quantity}
                     </td>
-                    <td className="py-3 text-right text-gray-500 font-medium">
+                    <td className="py-3 text-right text-[var(--text-2)] font-medium">
                       {formatPrice(item.price, cur)}
                     </td>
                     <td className="py-3 text-right font-bold text-[#3e1e0c]">
@@ -450,16 +433,16 @@ export default function BillPage() {
           </div>
 
           {/* ── Totals ─────────────────────────────── */}
-          <div className="px-6 sm:px-8 py-5 bg-gray-50/50 border-t border-gray-100 space-y-2.5 print:bg-gray-50">
+          <div className="px-6 sm:px-8 py-5 bg-[var(--canvas-sub)] border-t border-[var(--border-soft)] space-y-2.5 print:bg-[var(--canvas-sub)]">
             <div className="flex justify-between text-[13px]">
-              <span className="text-gray-500">Subtotal</span>
+              <span className="text-[var(--text-2)]">Subtotal</span>
               <span className="font-medium text-[#3e1e0c]">
                 {formatPrice(bill.subtotal, cur)}
               </span>
             </div>
             {bill.tax > 0 && (
               <div className="flex justify-between text-[13px]">
-                <span className="text-gray-500">Tax</span>
+                <span className="text-[var(--text-2)]">Tax</span>
                 <span className="font-medium text-[#3e1e0c]">
                   {formatPrice(bill.tax, cur)}
                 </span>
@@ -467,7 +450,7 @@ export default function BillPage() {
             )}
             {bill.serviceCharge > 0 && (
               <div className="flex justify-between text-[13px]">
-                <span className="text-gray-500">Service Charge</span>
+                <span className="text-[var(--text-2)]">Service Charge</span>
                 <span className="font-medium text-[#3e1e0c]">
                   {formatPrice(bill.serviceCharge, cur)}
                 </span>
@@ -475,7 +458,7 @@ export default function BillPage() {
             )}
             {order.deliveryFee > 0 && (
               <div className="flex justify-between text-[13px]">
-                <span className="text-gray-500">Delivery Fee</span>
+                <span className="text-[var(--text-2)]">Delivery Fee</span>
                 <span className="font-medium text-[#3e1e0c]">
                   {formatPrice(order.deliveryFee, cur)}
                 </span>
@@ -490,7 +473,7 @@ export default function BillPage() {
               </div>
             )}
 
-            <div className="border-t-2 border-dashed border-gray-200 mt-3 pt-3 flex justify-between items-baseline">
+            <div className="border-t-2 border-dashed border-[var(--border)] mt-3 pt-3 flex justify-between items-baseline">
               <span className="text-base font-extrabold text-[#3e1e0c]">
                 Grand Total
               </span>
@@ -502,22 +485,22 @@ export default function BillPage() {
 
           {/* ── Payment info ───────────────────────── */}
           {order.payment && (
-            <div className="px-6 sm:px-8 py-4 border-t border-gray-100">
+            <div className="px-6 sm:px-8 py-4 border-t border-[var(--border-soft)]">
               <div className="flex items-center gap-3">
                 <div
                   className={`flex h-10 w-10 items-center justify-center rounded-xl ${
-                    isPaid ? "bg-[#fef9ef]" : "bg-amber-50"
+                    isPaid ? "bg-[#fef9ef]" : "bg-[var(--accent-muted)]"
                   }`}
                 >
                   <CreditCard
-                    className={`h-5 w-5 ${isPaid ? "text-[#b25c1c]" : "text-amber-600"}`}
+                    className={`h-5 w-5 ${isPaid ? "text-[#b25c1c]" : "text-[var(--accent-text)]"}`}
                   />
                 </div>
                 <div className="flex-1">
                   <p className="text-[13px] font-bold text-[#3e1e0c]">
                     {paymentLabel(order.payment.method)}
                   </p>
-                  <p className="text-[11px] text-gray-400">
+                  <p className="text-[11px] text-[var(--text-3)]">
                     {isPaid
                       ? `Paid on ${formatDateTime(order.payment.paidAt!)}`
                       : "Payment pending"}
@@ -527,14 +510,14 @@ export default function BillPage() {
                   className={`rounded-lg px-2.5 py-1 text-[11px] font-bold ${
                     isPaid
                       ? "bg-[#fef9ef] text-[#b25c1c]"
-                      : "bg-amber-50 text-amber-700"
+                      : "bg-[var(--accent-muted)] text-[var(--accent-text)]"
                   }`}
                 >
                   {order.payment.status}
                 </span>
               </div>
               {order.payment.transactionId && (
-                <p className="mt-2 text-[11px] text-gray-400 pl-[52px]">
+                <p className="mt-2 text-[11px] text-[var(--text-3)] pl-[52px]">
                   <span className="font-medium">Txn ID:</span>{" "}
                   {order.payment.transactionId}
                 </p>
@@ -544,26 +527,26 @@ export default function BillPage() {
 
           {/* ── Note ───────────────────────────────── */}
           {order.note && (
-            <div className="px-6 sm:px-8 py-4 border-t border-gray-100">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">
+            <div className="px-6 sm:px-8 py-4 border-t border-[var(--border-soft)]">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-3)] mb-1">
                 Order Note
               </p>
-              <p className="text-[13px] text-gray-600 italic">"{order.note}"</p>
+              <p className="text-[13px] text-[var(--text-2)] italic">"{order.note}"</p>
             </div>
           )}
 
           {/* ── Footer ─────────────────────────────── */}
-          <div className="px-6 sm:px-8 py-6 border-t border-gray-100 text-center space-y-2">
+          <div className="px-6 sm:px-8 py-6 border-t border-[var(--border-soft)] text-center space-y-2">
             <p className="text-[12px] font-bold text-[#eaa94d]">
               Thank you for dining with us!
             </p>
-            <p className="text-[11px] text-gray-400">
+            <p className="text-[11px] text-[var(--text-3)]">
               This is a computer-generated invoice and does not require a
               signature.
             </p>
-            <p className="text-[10px] text-gray-300 mt-2 print:hidden">
+            <p className="text-[10px] text-[var(--text-3)] mt-2 print:hidden">
               Powered by{" "}
-              <span className="font-bold text-gray-400">HimaVolt</span>
+              <span className="font-bold text-[var(--text-3)]">HimaVolt</span>
             </p>
           </div>
         </motion.div>
@@ -579,7 +562,7 @@ export default function BillPage() {
             onClick={onDownload}
             disabled={downloading || !isPaid}
             title={!isPaid ? "Bill can only be downloaded after payment is collected" : undefined}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-2xl border-2 border-gray-200 px-6 py-3.5 text-sm font-bold text-gray-600 hover:border-[#eaa94d]/30 hover:text-[#eaa94d] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-2xl border-2 border-[var(--border)] px-6 py-3.5 text-sm font-bold text-[var(--text-2)] hover:border-[#eaa94d]/30 hover:text-[#eaa94d] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {downloading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -603,17 +586,17 @@ export default function BillPage() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className="mt-6 rounded-2xl border border-amber-100 bg-amber-50/60 p-5 text-center print:hidden"
+            className="mt-6 rounded-2xl border border-[var(--accent-border)] bg-[var(--accent-muted)] p-5 text-center print:hidden"
           >
             <div className="flex items-center justify-center gap-2 mb-2">
-              <Star className="h-4 w-4 text-amber-500" />
+              <Star className="h-4 w-4 text-[var(--accent)]" />
               <span className="text-sm font-bold text-[#3e1e0c]">Share your feedback</span>
             </div>
-            <p className="text-xs text-gray-500 mb-4">
+            <p className="text-xs text-[var(--text-2)] mb-4">
               Scan the QR below or tap the link to rate your experience
             </p>
             <div className="flex justify-center mb-3">
-              <div className="rounded-xl bg-white p-3 border border-amber-100 shadow-sm inline-block">
+              <div className="rounded-xl bg-[var(--canvas)] p-3 border border-[var(--accent-border)] shadow-sm inline-block">
                 <QRCode
                   value={`${typeof window !== "undefined" ? window.location.origin : ""}/feedback/${order.restaurantId}?order=${order.id}`}
                   size={100}
@@ -623,7 +606,7 @@ export default function BillPage() {
             </div>
             <Link
               href={`/feedback/${order.restaurantId}?order=${order.id}`}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-amber-500 px-4 py-2 text-xs font-bold text-white hover:bg-amber-600 transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-[var(--accent)] px-4 py-2 text-xs font-bold text-white hover:bg-[var(--accent-hover)] transition-colors"
             >
               <Star className="h-3.5 w-3.5" /> Leave a Review
             </Link>
@@ -643,7 +626,7 @@ export default function BillPage() {
           .print\\:hidden {
             display: none !important;
           }
-          .print\\:bg-white {
+          .print\\:bg-[var(--canvas)] {
             background: white !important;
           }
           .print\\:from-white {
@@ -681,7 +664,7 @@ export default function BillPage() {
           .print\\:max-w-none {
             max-width: none !important;
           }
-          .print\\:bg-gray-50 {
+          .print\\:bg-[var(--canvas-sub)] {
             background: #f9fafb !important;
           }
         }

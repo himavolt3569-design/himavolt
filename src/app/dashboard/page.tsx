@@ -381,22 +381,22 @@ function RestaurantSwitcher({ onNavigate }: { onNavigate?: () => void }) {
     <div className="relative mx-3 mb-4" ref={panelRef}>
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center gap-3 rounded-xl bg-amber-50/60 p-3 transition-all duration-150 hover:bg-amber-100/50 ring-1 ring-amber-200/40 cursor-pointer"
+        className="flex w-full items-center gap-3 rounded-xl bg-[var(--accent-muted)] p-3 transition-colors hover:bg-[var(--surface)] ring-1 ring-[var(--accent-border)] cursor-pointer"
       >
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-50">
-          <Store className="h-4 w-4 text-amber-500" />
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--surface)]">
+          <Store className="h-4 w-4 text-[var(--accent)]" />
         </div>
         <div className="min-w-0 flex-1 text-left">
-          <p className="truncate text-[13px] font-semibold text-gray-800">
+          <p className="truncate text-[13px] font-semibold text-[var(--text-1)]">
             {current.name}
           </p>
           <div className="flex items-center gap-1.5 mt-0.5">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#eaa94d] animate-pulse" />
-            <p className="text-[10px] text-gray-400">Active</p>
+            <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] animate-pulse" />
+            <p className="text-[10px] text-[var(--text-3)]">Active</p>
           </div>
         </div>
         <ChevronDown
-          className={`h-3.5 w-3.5 text-gray-400 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          className={`h-3.5 w-3.5 text-[var(--text-3)] transition-transform duration-200 ${open ? "rotate-180" : ""}`}
         />
       </button>
 
@@ -407,49 +407,49 @@ function RestaurantSwitcher({ onNavigate }: { onNavigate?: () => void }) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.15 }}
-            className="absolute left-0 right-0 top-full mt-1.5 z-50 rounded-xl bg-white ring-1 ring-gray-200 overflow-hidden shadow-xl"
+            className="absolute left-0 right-0 top-full mt-1.5 z-50 rounded-xl bg-[var(--canvas)] ring-1 ring-[var(--border)] overflow-hidden shadow-xl"
           >
-            <div className="p-3 border-b border-gray-100">
+            <div className="p-3 border-b border-[var(--border-soft)]">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-50">
-                  <Store className="h-4.5 w-4.5 text-amber-500" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--surface)]">
+                  <Store className="h-4.5 w-4.5 text-[var(--accent)]" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[13px] font-bold text-gray-800">
+                  <p className="truncate text-[13px] font-bold text-[var(--text-1)]">
                     {current.name}
                   </p>
-                  <span className="text-[10px] text-gray-400">
+                  <span className="text-[10px] text-[var(--text-3)]">
                     {getTypeLabel(current.type)}
                   </span>
                 </div>
-                <span className="h-2 w-2 rounded-full bg-amber-400" />
+                <span className="h-2 w-2 rounded-full bg-[var(--accent)]" />
               </div>
             </div>
 
             {current?.slug && (
-              <div className="px-3 py-2.5 border-b border-gray-100">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">
+              <div className="px-3 py-2.5 border-b border-[var(--border-soft)]">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-3)] mb-2">
                   Customer POS Link
                 </p>
                 <button
                   onClick={copySlug}
-                  className="flex w-full items-center gap-2.5 rounded-lg bg-gray-50 px-3 py-2 hover:bg-amber-50 hover:text-amber-700 transition-all group"
+                  className="flex w-full items-center gap-2.5 rounded-lg bg-[var(--canvas-sub)] px-3 py-2 hover:bg-[var(--accent-muted)] hover:text-[var(--accent-text)] transition-colors group"
                 >
-                  <code className="flex-1 text-left text-[11px] font-mono text-gray-500 group-hover:text-amber-700 truncate">
+                  <code className="flex-1 text-left text-[11px] font-mono text-[var(--text-2)] group-hover:text-[var(--accent-text)] truncate">
                     /pos/{current.slug}
                   </code>
                   {slugCopied ? (
-                    <Check className="h-3.5 w-3.5 text-[#d67620] shrink-0" />
+                    <Check className="h-3.5 w-3.5 text-[var(--accent)] shrink-0" />
                   ) : (
-                    <Copy className="h-3.5 w-3.5 text-gray-400 group-hover:text-amber-500 shrink-0" />
+                    <Copy className="h-3.5 w-3.5 text-[var(--text-3)] group-hover:text-[var(--accent)] shrink-0" />
                   )}
                 </button>
               </div>
             )}
 
             {otherRestaurants.length > 0 && (
-              <div className="px-3 py-2.5 border-b border-gray-100">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">
+              <div className="px-3 py-2.5 border-b border-[var(--border-soft)]">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-3)] mb-2">
                   Switch to
                 </p>
                 <div className="space-y-1">
@@ -457,17 +457,17 @@ function RestaurantSwitcher({ onNavigate }: { onNavigate?: () => void }) {
                     <button
                       key={r.id}
                       onClick={() => handleSwitch(r.id)}
-                      className="flex w-full items-center gap-3 rounded-lg p-2 hover:bg-gray-50 transition-all"
+                      className="flex w-full items-center gap-3 rounded-lg p-2 hover:bg-[var(--canvas-sub)] transition-colors"
                     >
-                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100">
-                        <Store className="h-3.5 w-3.5 text-gray-500" />
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--surface)]">
+                        <Store className="h-3.5 w-3.5 text-[var(--text-2)]" />
                       </div>
                       <div className="min-w-0 flex-1 text-left">
-                        <p className="truncate text-[12px] font-semibold text-gray-700">
+                        <p className="truncate text-[12px] font-semibold text-[var(--text-2)]">
                           {r.name}
                         </p>
                         {r.address && (
-                          <span className="flex items-center gap-0.5 text-[10px] text-gray-400 truncate">
+                          <span className="flex items-center gap-0.5 text-[10px] text-[var(--text-3)] truncate">
                             <MapPin className="h-2.5 w-2.5 shrink-0" />
                             {r.address}
                           </span>
@@ -486,7 +486,7 @@ function RestaurantSwitcher({ onNavigate }: { onNavigate?: () => void }) {
                   setOpen(false);
                   onNavigate?.();
                 }}
-                className="flex-1 text-center text-[12px] font-semibold text-amber-600 hover:text-amber-500 transition-colors py-2 rounded-lg hover:bg-amber-50"
+                className="flex-1 text-center text-[12px] font-semibold text-[var(--accent-text)] hover:text-[var(--accent)] transition-colors py-2 rounded-lg hover:bg-[var(--accent-muted)]"
               >
                 Manage All
               </Link>
@@ -496,7 +496,7 @@ function RestaurantSwitcher({ onNavigate }: { onNavigate?: () => void }) {
                   onNavigate?.();
                   router.push("/manage-restaurants");
                 }}
-                className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-amber-500 py-2 text-[12px] font-bold text-white hover:bg-amber-400 transition-all active:scale-[0.97]"
+                className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-[var(--accent)] py-2 text-[12px] font-bold text-white hover:bg-[var(--accent-hover)] transition-colors active:scale-[0.97]"
               >
                 <Plus className="h-3 w-3" />
                 New
@@ -542,12 +542,12 @@ function NavSection({
     <div className="mb-2">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center justify-between px-3 mb-1 py-1 rounded-lg hover:bg-gray-50 transition-colors group"
+        className="flex w-full items-center justify-between px-3 mb-1 py-1 rounded-lg hover:bg-[var(--canvas-sub)] transition-colors group"
       >
-        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-gray-500 group-hover:text-gray-700">
+        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--text-2)] group-hover:text-[var(--text-2)]">
           {label}
         </p>
-        <ChevronDown className={`h-3 w-3 text-gray-400 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+        <ChevronDown className={`h-3 w-3 text-[var(--text-3)] transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
       </button>
       <AnimatePresence initial={false}>
         {open && (
@@ -570,19 +570,19 @@ function NavSection({
                 setActive(item.id);
                 onClose?.();
               }}
-              className={`group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-semibold transition-all duration-300 cursor-pointer overflow-hidden ${
+              className={`group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-semibold transition-colors cursor-pointer ${
                 isActive
-                  ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-[0_4px_14px_0_rgba(245,158,11,0.39)] ring-1 ring-amber-400/50"
-                  : "text-gray-600 hover:bg-gray-100/80 hover:text-gray-900"
+                  ? "bg-[var(--accent-muted)] text-[var(--accent-text)] border-l-2 border-[var(--accent)]"
+                  : "text-[var(--text-2)] hover:bg-[var(--surface)] hover:text-[var(--text-1)]"
               }`}
             >
               <Icon
-                className={`h-4 w-4 shrink-0 transition-colors ${isActive ? "text-white" : "text-gray-400 group-hover:text-amber-500"}`}
+                className={`h-4 w-4 shrink-0 transition-colors ${isActive ? "text-[var(--accent)]" : "text-[var(--text-3)] group-hover:text-[var(--accent)]"}`}
               />
               <span className="flex-1 text-left tracking-wide">{item.label}</span>
 
               {shortcut && !item.badge && (
-                <span className={`hidden lg:flex h-5 w-5 items-center justify-center rounded text-[9px] font-bold transition-all duration-300 ${isActive ? "bg-white/20 text-white" : "bg-gray-100 text-gray-400 opacity-0 group-hover:opacity-100"}`}>
+                <span className={`hidden lg:flex h-5 w-5 items-center justify-center rounded text-[9px] font-bold transition-colors ${isActive ? "bg-[var(--accent-border)] text-[var(--accent-text)]" : "bg-[var(--surface)] text-[var(--text-3)] opacity-0 group-hover:opacity-100"}`}>
                   {shortcut}
                 </span>
               )}
@@ -625,16 +625,16 @@ function SlugCopyStrip() {
     <button
       onClick={handleCopy}
       title="Copy customer POS link"
-      className="mx-3 mb-3 flex items-center gap-2 rounded-lg border border-dashed border-amber-200 bg-amber-50/60 px-3 py-2 text-left transition-all hover:bg-amber-100/60 group"
+      className="mx-3 mb-3 flex items-center gap-2 rounded-lg border border-dashed border-[var(--accent-border)] bg-[var(--accent-muted)] px-3 py-2 text-left transition-colors hover:bg-[var(--surface)] group"
     >
       <div className="min-w-0 flex-1">
-        <p className="text-[9px] font-bold uppercase tracking-widest text-amber-500 mb-0.5">POS Link</p>
-        <p className="text-[11px] font-mono text-amber-700 truncate">/pos/{slug}</p>
+        <p className="text-[9px] font-bold uppercase tracking-widest text-[var(--accent)] mb-0.5">POS Link</p>
+        <p className="text-[11px] font-mono text-[var(--accent-text)] truncate">/pos/{slug}</p>
       </div>
       {copied ? (
-        <Check className="h-3.5 w-3.5 text-[#d67620] shrink-0" />
+        <Check className="h-3.5 w-3.5 text-[var(--accent)] shrink-0" />
       ) : (
-        <Copy className="h-3.5 w-3.5 text-amber-400 group-hover:text-amber-600 shrink-0 transition-colors" />
+        <Copy className="h-3.5 w-3.5 text-[var(--text-3)] group-hover:text-[var(--accent)] shrink-0 transition-colors" />
       )}
     </button>
   );
@@ -672,14 +672,14 @@ function Sidebar({
 
   if (isCollapsed) {
     return (
-      <aside className="flex h-full w-full flex-col items-center bg-white/60 backdrop-blur-3xl border-r border-gray-200/50 shadow-[4px_0_24px_rgba(0,0,0,0.02)] py-4 gap-2">
-        <Link href="/" className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500 shadow-sm mb-2">
+      <aside className="flex h-full w-full flex-col items-center bg-[var(--canvas)]/60 backdrop-blur-3xl border-r border-[var(--border)]/50 shadow-[4px_0_24px_rgba(0,0,0,0.02)] py-4 gap-2">
+        <Link href="/" className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent)] shadow-sm mb-2">
           <Mountain className="h-4 w-4 text-white" strokeWidth={2.5} />
         </Link>
         {onToggleCollapse && (
           <button
             onClick={onToggleCollapse}
-            className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-gray-100 transition-colors text-gray-500"
+            className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-[var(--surface)] transition-colors text-[var(--text-2)]"
             title="Expand sidebar"
           >
             <ChevronRight className="h-4 w-4" />
@@ -694,10 +694,10 @@ function Sidebar({
                 key={item.id}
                 onClick={() => setActive(item.id)}
                 title={item.label}
-                className={`relative flex h-9 w-9 items-center justify-center rounded-xl transition-all ${
+                className={`relative flex h-9 w-9 items-center justify-center rounded-xl transition-colors ${
                   isActive
-                    ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-[0_4px_14px_0_rgba(245,158,11,0.39)]"
-                    : "text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+                    ? "bg-[var(--accent-muted)] text-[var(--accent)] border border-[var(--accent-border)]"
+                    : "text-[var(--text-3)] hover:bg-[var(--surface)] hover:text-[var(--text-2)]"
                 }`}
               >
                 <Icon className="h-4 w-4" />
@@ -715,21 +715,21 @@ function Sidebar({
   }
 
   return (
-    <aside className="flex h-full w-full flex-col bg-white/60 backdrop-blur-3xl border-r border-gray-200/50 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+    <aside className="flex h-full w-full flex-col bg-[var(--canvas)]/60 backdrop-blur-3xl border-r border-[var(--border)]/50 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
       <div className="flex items-center justify-between px-5 pt-6 pb-5">
         <Link href="/" className="group flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500 shadow-sm">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent)] shadow-sm">
             <Mountain className="h-4 w-4 text-white" strokeWidth={2.5} />
           </div>
-          <span className="text-[17px] font-bold tracking-tight text-gray-900">
-            Hima<span className="text-amber-500">Volt</span>
+          <span className="text-[17px] font-bold tracking-tight text-[var(--text-1)]">
+            Hima<span className="text-[var(--accent)]">Volt</span>
           </span>
         </Link>
         <div className="flex items-center gap-1">
           {onToggleCollapse && (
             <button
               onClick={onToggleCollapse}
-              className="rounded-lg p-1.5 hover:bg-gray-100 transition-colors hidden lg:flex text-gray-400 hover:text-gray-600"
+              className="rounded-lg p-1.5 hover:bg-[var(--surface)] transition-colors hidden lg:flex text-[var(--text-3)] hover:text-[var(--text-2)]"
               title="Collapse sidebar"
             >
               <ChevronDown className="h-4 w-4 -rotate-90" />
@@ -738,7 +738,7 @@ function Sidebar({
           {onClose && (
             <button
               onClick={onClose}
-              className="rounded-lg p-1.5 hover:bg-gray-100 transition-colors lg:hidden text-gray-500"
+              className="rounded-lg p-1.5 hover:bg-[var(--surface)] transition-colors lg:hidden text-[var(--text-2)]"
             >
               <X className="h-4 w-4" />
             </button>
@@ -824,7 +824,7 @@ function StatCard({
     <motion.div
       whileHover={{ y: -4, scale: 1.02 }}
       transition={{ duration: 0.2 }}
-      className="relative rounded-3xl bg-white/70 backdrop-blur-md border border-gray-100/50 p-6 cursor-default overflow-hidden group shadow-[0_4px_24px_-4px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.08)] transition-all"
+      className="relative rounded-3xl bg-[var(--canvas)]/70 backdrop-blur-md border border-[var(--border-soft)]/50 p-6 cursor-default overflow-hidden group shadow-[0_4px_24px_-4px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.08)] transition-all"
     >
       <div
         className="absolute -top-12 -right-12 h-32 w-32 rounded-full opacity-0 group-hover:opacity-20 transition-opacity duration-500 blur-3xl"
@@ -832,10 +832,10 @@ function StatCard({
       />
       <div className="relative flex items-start justify-between">
         <div>
-          <p className="text-[12px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">
+          <p className="text-[12px] font-bold text-[var(--text-2)] mb-1.5 uppercase tracking-wide">
             {label}
           </p>
-          <p className="text-3xl font-black text-gray-900 tracking-tight leading-none mt-2">
+          <p className="text-3xl font-black text-[var(--text-1)] tracking-tight leading-none mt-2">
             {numericValue !== undefined ? (
               <>
                 {prefix}
@@ -846,7 +846,7 @@ function StatCard({
               value
             )}
           </p>
-          <p className="text-[11px] font-bold text-gray-400 mt-2.5 bg-gray-50/80 w-fit px-2 py-1 rounded-md">{sub}</p>
+          <p className="text-[11px] font-bold text-[var(--text-3)] mt-2.5 bg-[var(--surface)] w-fit px-2 py-1 rounded-md">{sub}</p>
         </div>
         <div
           className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl transition-all duration-300 group-hover:scale-110 shadow-sm border border-black/5"
@@ -1031,12 +1031,12 @@ function OverviewTab({
           background: "linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)",
         }}
       >
-        <div className="absolute top-0 right-0 -mt-12 -mr-12 h-64 w-64 rounded-full bg-white/10 blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 -mb-16 -ml-16 h-48 w-48 rounded-full bg-white/10 blur-2xl pointer-events-none" />
+        <div className="absolute top-0 right-0 -mt-12 -mr-12 h-64 w-64 rounded-full bg-[var(--canvas)]/10 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 -mb-16 -ml-16 h-48 w-48 rounded-full bg-[var(--canvas)]/10 blur-2xl pointer-events-none" />
         
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div>
-            <div className="flex items-center gap-2 mb-3 bg-white/20 w-fit px-3 py-1.5 rounded-full backdrop-blur-md shadow-sm border border-white/10">
+            <div className="flex items-center gap-2 mb-3 bg-[var(--canvas)]/20 w-fit px-3 py-1.5 rounded-full backdrop-blur-md shadow-sm border border-white/10">
               <Sparkles className="h-3.5 w-3.5 text-white" />
               <span className="text-[10px] font-extrabold text-white uppercase tracking-widest drop-shadow-sm">
                 {dateStr}
@@ -1046,21 +1046,21 @@ function OverviewTab({
               {getGreeting()}
               {userName ? `, ${userName}` : ""}!
             </h1>
-            <p className="text-sm font-medium text-amber-50 drop-shadow-sm">
+            <p className="text-sm font-medium text-white drop-shadow-sm">
               Here&apos;s how <strong className="font-extrabold text-white">{restaurantName}</strong> is performing today.
             </p>
           </div>
           <div className="flex gap-3">
             <button
               onClick={() => setTab("orders")}
-              className="flex items-center gap-2 rounded-xl bg-white/20 backdrop-blur-md px-5 py-3 text-[13px] font-bold text-white hover:bg-white/30 transition-all active:scale-95 border border-white/20 shadow-sm"
+              className="flex items-center gap-2 rounded-xl bg-[var(--canvas)]/20 backdrop-blur-md px-5 py-3 text-[13px] font-bold text-white hover:bg-[var(--canvas)]/30 transition-colors active:scale-95 border border-white/20 shadow-sm"
             >
               <Eye className="h-4 w-4" />
               View Orders
             </button>
             <button
               onClick={() => setTab("menu")}
-              className="flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-[13px] font-bold text-amber-600 hover:bg-gray-50 transition-all active:scale-95 shadow-md hover:shadow-lg"
+              className="flex items-center gap-2 rounded-xl bg-[var(--canvas)] px-5 py-3 text-[13px] font-bold text-[var(--accent-text)] hover:bg-[var(--canvas-sub)] transition-colors active:scale-95 shadow-md hover:shadow-lg"
             >
               <UtensilsCrossed className="h-4 w-4" />
               Manage Menu
@@ -1077,7 +1077,7 @@ function OverviewTab({
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             onClick={() => setTab("orders")}
-            className="flex items-center gap-3 w-full rounded-xl bg-rose-50 border border-rose-100 p-4 text-left hover:bg-rose-100/60 transition-all group cursor-pointer"
+            className="flex items-center gap-3 w-full rounded-xl bg-rose-50 border border-rose-100 p-4 text-left hover:bg-rose-100/60 transition-colors group cursor-pointer"
           >
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-rose-100">
               <AlertTriangle className="h-5 w-5 text-rose-500" />
@@ -1116,18 +1116,18 @@ function OverviewTab({
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="rounded-2xl bg-white/90 ring-1 ring-gray-100/80 p-5 shadow-sm"
+          className="rounded-2xl bg-[var(--canvas)]/90 ring-1 ring-[var(--border)] p-5 shadow-sm"
         >
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-[14px] font-bold text-gray-900">
+              <h3 className="text-[14px] font-bold text-[var(--text-1)]">
                 Order Pipeline
               </h3>
-              <p className="text-[11px] text-gray-400 mt-0.5">
+              <p className="text-[11px] text-[var(--text-3)] mt-0.5">
                 Today&apos;s order status breakdown
               </p>
             </div>
-            <span className="text-[12px] font-semibold text-gray-500">
+            <span className="text-[12px] font-semibold text-[var(--text-2)]">
               {todayOrders.length} total
             </span>
           </div>
@@ -1150,14 +1150,14 @@ function OverviewTab({
             {statusDistribution.map((s) => (
               <span
                 key={s.status}
-                className="flex items-center gap-1.5 text-[11px] font-medium text-gray-500"
+                className="flex items-center gap-1.5 text-[11px] font-medium text-[var(--text-2)]"
               >
                 <span
                   className="h-2 w-2 rounded-full shrink-0"
                   style={{ background: s.color }}
                 />
                 {s.label}:{" "}
-                <span className="font-bold text-gray-700">{s.count}</span>
+                <span className="font-bold text-[var(--text-2)]">{s.count}</span>
               </span>
             ))}
           </div>
@@ -1171,18 +1171,18 @@ function OverviewTab({
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25 }}
-          className="lg:col-span-3 rounded-2xl bg-white/90 ring-1 ring-gray-100/80 p-6 shadow-sm"
+          className="lg:col-span-3 rounded-2xl bg-[var(--canvas)]/90 ring-1 ring-[var(--border)] p-6 shadow-sm"
         >
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-[15px] font-bold text-black">
+              <h3 className="text-[15px] font-bold text-[var(--text-1)]">
                 Revenue Trend
               </h3>
-              <p className="text-[11px] text-gray-500 mt-0.5">
+              <p className="text-[11px] text-[var(--text-2)] mt-0.5">
                 This week&apos;s performance
               </p>
             </div>
-            <span className="flex items-center gap-1.5 rounded-lg bg-[#fef9ef] px-3 py-1.5 text-[12px] font-bold text-[#b25c1c]">
+            <span className="flex items-center gap-1.5 rounded-lg bg-[var(--accent-muted)] px-3 py-1.5 text-[12px] font-bold text-[#b25c1c]">
               <TrendingUp className="h-3 w-3" />
               {formatPrice(todayRevenue, cur)}
             </span>
@@ -1206,11 +1206,11 @@ function OverviewTab({
                       ease: "easeOut",
                     }}
                     className={`w-full rounded-md transition-colors ${
-                      isToday ? "bg-amber-400" : "bg-gray-100 hover:bg-gray-200"
+                      isToday ? "bg-[var(--accent)]" : "bg-[var(--surface)] hover:bg-[var(--surface-alt)]"
                     }`}
                   />
                   <span
-                    className={`text-[10px] font-semibold ${isToday ? "text-amber-500" : "text-gray-400"}`}
+                    className={`text-[10px] font-semibold ${isToday ? "text-[var(--accent)]" : "text-[var(--text-3)]"}`}
                   >
                     {day}
                   </span>
@@ -1218,7 +1218,7 @@ function OverviewTab({
               );
             })}
           </div>
-          <p className="text-[10px] text-gray-300 text-center">
+          <p className="text-[10px] text-[var(--text-3)] text-center">
             Estimated weekly pattern · Real analytics coming soon
           </p>
         </motion.div>
@@ -1228,20 +1228,20 @@ function OverviewTab({
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="lg:col-span-2 rounded-2xl bg-white/90 ring-1 ring-gray-100/80 p-6 shadow-sm"
+          className="lg:col-span-2 rounded-2xl bg-[var(--canvas)]/90 ring-1 ring-[var(--border)] p-6 shadow-sm"
         >
           <div className="flex items-center justify-between mb-5">
-            <h3 className="text-[15px] font-bold text-black">Activity</h3>
+            <h3 className="text-[15px] font-bold text-[var(--text-1)]">Activity</h3>
             <button
               onClick={() => setTab("orders")}
-              className="text-[12px] font-semibold text-amber-500 hover:text-amber-600 transition-colors"
+              className="text-[12px] font-semibold text-[var(--accent)] hover:text-[var(--accent-hover)] transition-colors"
             >
               View all
             </button>
           </div>
 
           {recentOrders.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-10 text-gray-300">
+            <div className="flex flex-col items-center justify-center py-10 text-[var(--text-3)]">
               <Activity className="h-8 w-8 mb-2" />
               <p className="text-sm">No orders yet</p>
             </div>
@@ -1259,26 +1259,26 @@ function OverviewTab({
                   >
                     <div className="flex flex-col items-center pt-1">
                       <div
-                        className="h-2.5 w-2.5 rounded-full ring-2 ring-white"
+                        className="h-2.5 w-2.5 rounded-full ring-2 ring-[var(--canvas)]"
                         style={{ background: color }}
                       />
                       {i < recentOrders.length - 1 && (
-                        <div className="w-px flex-1 bg-gray-100 mt-1" />
+                        <div className="w-px flex-1 bg-[var(--surface)] mt-1" />
                       )}
                     </div>
 
                     <div className="flex-1 min-w-0 pb-3">
                       <div className="flex items-start justify-between gap-2">
-                        <p className="text-[13px] font-semibold text-black group-hover:text-amber-600 transition-colors truncate">
+                        <p className="text-[13px] font-semibold text-[var(--text-1)] group-hover:text-[var(--accent-text)] transition-colors truncate">
                           #{order.orderNo} ·{" "}
                           {order.status.charAt(0) +
                             order.status.slice(1).toLowerCase()}
                         </p>
-                        <span className="shrink-0 text-[10px] text-gray-400">
+                        <span className="shrink-0 text-[10px] text-[var(--text-3)]">
                           {timeAgo(order.createdAt)}
                         </span>
                       </div>
-                      <p className="text-[11px] text-gray-400 mt-0.5 truncate">
+                      <p className="text-[11px] text-[var(--text-3)] mt-0.5 truncate">
                         {order.tableNo ? `Table ${order.tableNo} · ` : ""}{formatPrice(order.total ?? 0, cur)} ·{" "}
                         {order.items?.length ?? 0} items
                       </p>
@@ -1293,7 +1293,7 @@ function OverviewTab({
 
       {/* ── Quick Actions ─────────────────────────────────────── */}
       <div>
-        <h3 className="text-[14px] font-bold text-gray-900 mb-3">
+        <h3 className="text-[14px] font-bold text-[var(--text-1)] mb-3">
           Quick Actions
         </h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -1349,7 +1349,7 @@ function OverviewTab({
               whileHover={{ y: -3, scale: 1.02 }}
               whileTap={{ scale: 0.97 }}
               onClick={() => setTab(action.tab)}
-              className="relative flex flex-col items-center gap-3 rounded-2xl bg-white/70 backdrop-blur-md border border-gray-100/50 p-4 hover:border-amber-200 transition-all active:scale-[0.97] group cursor-pointer shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_-4px_rgba(245,158,11,0.15)]"
+              className="relative flex flex-col items-center gap-3 rounded-2xl bg-[var(--canvas)] border border-[var(--border)] p-4 hover:border-[var(--accent-border)] transition-colors active:scale-[0.97] group cursor-pointer"
             >
               <div
                 className="flex h-12 w-12 items-center justify-center rounded-2xl transition-all duration-300 group-hover:scale-110 shadow-sm border border-black/5"
@@ -1360,7 +1360,7 @@ function OverviewTab({
                   style={{ color: action.accent }}
                 />
               </div>
-              <span className="text-[12px] font-bold text-gray-500 group-hover:text-gray-900 transition-colors">
+              <span className="text-[12px] font-bold text-[var(--text-2)] group-hover:text-[var(--text-1)] transition-colors">
                 {action.label}
               </span>
               {action.badge && (
@@ -1501,7 +1501,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50 font-sans">
+    <div className="flex h-screen overflow-hidden bg-[var(--canvas-sub)] font-sans">
       {/* ── Desktop sidebar ───────────────────────────────────── */}
       <div className={`hidden lg:block shrink-0 h-full transition-all duration-300 ${sidebarCollapsed ? "w-14" : "w-56"}`}>
         <Sidebar
@@ -1548,36 +1548,36 @@ export default function DashboardPage() {
 
       {/* ── Main area ─────────────────────────────────────────── */}
       <div className="relative flex flex-1 flex-col overflow-hidden">
-        <header className="flex items-center justify-between border-b border-gray-200/50 bg-white/70 backdrop-blur-xl shadow-sm px-5 lg:px-8 py-3.5 shrink-0 z-30">
+        <header className="flex items-center justify-between border-b border-[var(--border)]/50 bg-[var(--canvas)]/70 backdrop-blur-xl shadow-sm px-5 lg:px-8 py-3.5 shrink-0 z-30">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setMobileSidebarOpen(true)}
-              className="rounded-lg p-2 text-gray-600 hover:bg-gray-100 transition-colors lg:hidden"
+              className="rounded-lg p-2 text-[var(--text-2)] hover:bg-[var(--surface)] transition-colors lg:hidden"
             >
               <Menu className="h-5 w-5" />
             </button>
 
             <div className="hidden sm:flex items-center gap-1.5 text-[13px]">
-              <span className="text-gray-400">Dashboard</span>
-              <ChevronRight className="h-3 w-3 text-gray-300" />
-              <span className="flex items-center gap-1.5 font-semibold text-gray-800">
-                <ActiveIcon className="h-3.5 w-3.5 text-amber-500" />
+              <span className="text-[var(--text-3)]">Dashboard</span>
+              <ChevronRight className="h-3 w-3 text-[var(--text-3)]" />
+              <span className="flex items-center gap-1.5 font-semibold text-[var(--text-1)]">
+                <ActiveIcon className="h-3.5 w-3.5 text-[var(--accent)]" />
                 {activeLabel}
               </span>
             </div>
 
-            <div className="hidden md:flex items-center gap-2 ml-4 rounded-lg bg-gray-50 px-3.5 py-2 text-gray-400 ring-1 ring-gray-100 focus-within:ring-amber-300 focus-within:bg-white transition-all">
+            <div className="hidden md:flex items-center gap-2 ml-4 rounded-lg bg-[var(--canvas-sub)] px-3.5 py-2 text-[var(--text-3)] ring-1 ring-[var(--border)] focus-within:ring-[var(--accent)] focus-within:bg-[var(--canvas)] transition-colors">
               <Search className="h-3.5 w-3.5 shrink-0" />
               <input
                 type="text"
                 placeholder="Search..."
-                className="w-36 bg-transparent text-[13px] outline-none placeholder:text-gray-400 text-gray-800"
+                className="w-36 bg-transparent text-[13px] outline-none placeholder:text-[var(--text-3)] text-[var(--text-1)]"
               />
             </div>
           </div>
 
           <div className="flex items-center gap-2.5">
-            <div className="hidden lg:flex items-center gap-1.5 text-[11px] text-gray-400">
+            <div className="hidden lg:flex items-center gap-1.5 text-[11px] text-[var(--text-3)]">
               <Clock className="h-3 w-3" />
               <span className="font-medium tabular-nums">
                 {currentTime.toLocaleTimeString("en-US", {
@@ -1587,16 +1587,16 @@ export default function DashboardPage() {
               </span>
             </div>
 
-            <div className="hidden lg:block h-4 w-px bg-gray-200" />
+            <div className="hidden lg:block h-4 w-px bg-[var(--border)]" />
 
-            <div className="hidden sm:flex items-center gap-1.5 rounded-full bg-[#fef9ef] px-2.5 py-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#eaa94d] animate-pulse" />
+            <div className="hidden sm:flex items-center gap-1.5 rounded-full bg-[var(--accent-muted)] px-2.5 py-1">
+              <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] animate-pulse" />
               <span className="text-[11px] font-semibold text-[#b25c1c]">
                 Live
               </span>
             </div>
 
-            <button className="relative rounded-lg p-2 text-gray-500 hover:bg-gray-100 transition-colors">
+            <button className="relative rounded-lg p-2 text-[var(--text-2)] hover:bg-[var(--surface)] transition-colors">
               <Bell className="h-4.5 w-4.5" />
               {newOrderCount > 0 && (
                 <span className="absolute right-1.5 top-1.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-rose-500 text-[8px] font-bold text-white">
@@ -1605,11 +1605,11 @@ export default function DashboardPage() {
               )}
             </button>
 
-            <div className="hidden sm:block h-6 w-px bg-gray-200" />
+            <div className="hidden sm:block h-6 w-px bg-[var(--border)]" />
 
             <Link
               href="/profile"
-              className="flex h-8 w-8 items-center justify-center rounded-full ring-2 ring-gray-100 hover:ring-amber-300 transition-all overflow-hidden bg-[#eaa94d]/10"
+              className="flex h-8 w-8 items-center justify-center rounded-full ring-2 ring-[var(--border)] hover:ring-[var(--accent)] transition-colors overflow-hidden bg-[var(--accent-muted)]"
             >
               {user?.user_metadata?.avatar_url ? (
                 <img
@@ -1618,7 +1618,7 @@ export default function DashboardPage() {
                   className="h-8 w-8 object-cover"
                 />
               ) : (
-                <User className="h-4 w-4 text-[#eaa94d]" />
+                <User className="h-4 w-4 text-[var(--accent)]" />
               )}
             </Link>
           </div>
@@ -1692,16 +1692,16 @@ export default function DashboardPage() {
                   const Icon = FEATURE_ICONS[featureId] ?? Sparkles;
                   return (
                     <div className="flex flex-col items-center justify-center py-24 text-center gap-4">
-                      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100">
-                        <Icon className="h-8 w-8 text-gray-400" />
+                      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--surface)]">
+                        <Icon className="h-8 w-8 text-[var(--text-3)]" />
                       </div>
                       <div>
-                        <p className="text-lg font-bold text-gray-700">Coming Soon</p>
-                        <p className="mt-1 text-sm text-gray-400 max-w-xs">
+                        <p className="text-lg font-bold text-[var(--text-2)]">Coming Soon</p>
+                        <p className="mt-1 text-sm text-[var(--text-3)] max-w-xs">
                           This feature is under development and will be available soon.
                         </p>
                       </div>
-                      <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-700">In Development</span>
+                      <span className="rounded-full bg-[var(--accent-muted)] px-3 py-1 text-xs font-bold text-[var(--accent-text)]">In Development</span>
                     </div>
                   );
                 }

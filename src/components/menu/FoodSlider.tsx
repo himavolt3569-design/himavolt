@@ -79,7 +79,7 @@ export default function FoodSlider({
 
   return (
     <div
-      className="relative overflow-hidden rounded-2xl bg-white border border-gray-100 cursor-pointer group shadow-[0_2px_12px_rgba(0,0,0,0.04)]"
+      className="relative overflow-hidden rounded-2xl bg-[var(--canvas)] border border-[var(--border-soft)] cursor-pointer group shadow-[0_2px_12px_rgba(0,0,0,0.04)]"
       onClick={() => {
         if (slide.linkItemId && onSlideClick) {
           onSlideClick(slide.linkItemId);
@@ -166,8 +166,8 @@ export default function FoodSlider({
                 }}
                 className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
                   currentIndex === idx
-                    ? "w-6 bg-white"
-                    : "w-1.5 bg-white/40 hover:bg-white/60"
+                    ? "w-6 bg-[var(--canvas)]"
+                    : "w-1.5 bg-[var(--canvas)]/40 hover:bg-[var(--canvas)]/60"
                 }`}
                 aria-label={`Go to slide ${idx + 1}`}
               />

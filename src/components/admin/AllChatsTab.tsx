@@ -50,8 +50,8 @@ interface Pagination {
 
 const SENDER_COLORS: Record<string, string> = {
   CUSTOMER: "bg-blue-100 text-blue-700",
-  KITCHEN: "bg-amber-100 text-amber-700",
-  BILLING: "bg-[#fef3dc] text-[#b25c1c]",
+  KITCHEN: "bg-[var(--accent-muted)] text-[var(--accent-text)]",
+  BILLING: "bg-[var(--accent-muted)] text-[#b25c1c]",
   ADMIN: "bg-red-100 text-red-700",
   MANAGER: "bg-purple-100 text-purple-700",
 };
@@ -207,7 +207,7 @@ export default function AllChatsTab() {
               key={v}
               onClick={() => { setActiveFilter(v); setPage(1); }}
               className={`rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all ${
-                activeFilter === v ? "bg-gompa-slate text-white" : "bg-gray-100 text-gray-600 hover:bg-brand-50"
+                activeFilter === v ? "bg-gompa-slate text-white" : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-brand-50"
               }`}
             >
               {v === "" ? "All Chats" : v === "true" ? "Active" : "Closed"}
@@ -216,13 +216,13 @@ export default function AllChatsTab() {
         </div>
         <button
           onClick={() => fetchRooms(page)}
-          className="flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-2 text-xs font-medium text-gray-600 hover:bg-brand-50"
+          className="flex items-center gap-1.5 rounded-xl border border-[var(--border)] px-3 py-2 text-xs font-medium text-[var(--text-2)] hover:bg-brand-50"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
           Refresh
         </button>
         {pagination && (
-          <span className="ml-auto text-xs text-gray-400">{pagination.total} chat rooms</span>
+          <span className="ml-auto text-xs text-[var(--text-3)]">{pagination.total} chat rooms</span>
         )}
       </div>
 
@@ -242,7 +242,7 @@ export default function AllChatsTab() {
       )}
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <div className="overflow-hidden rounded-2xl border border-brand-100 bg-white shadow-sm">
+        <div className="overflow-hidden rounded-2xl border border-brand-100 bg-[var(--canvas)] shadow-sm">
           <div className="flex items-center justify-between border-b border-brand-100 px-4 py-2.5">
             <div className="flex items-center gap-2">
               <input
@@ -252,7 +252,7 @@ export default function AllChatsTab() {
                 className="h-3.5 w-3.5 rounded accent-gompa-slate"
               />
               <MessageCircle className="h-4 w-4 text-brand-400" />
-              <span className="text-xs font-semibold text-gray-500">Chat Rooms</span>
+              <span className="text-xs font-semibold text-[var(--text-2)]">Chat Rooms</span>
             </div>
             <div className="flex items-center gap-1.5 text-[11px] text-[#b25c1c]">
               <span className="relative flex h-1.5 w-1.5">
@@ -269,11 +269,11 @@ export default function AllChatsTab() {
             </div>
           ) : rooms.length === 0 ? (
             <div className="py-16 text-center">
-              <MessageCircle className="mx-auto mb-2 h-8 w-8 text-gray-300" />
-              <p className="text-sm text-gray-400">No chat rooms found</p>
+              <MessageCircle className="mx-auto mb-2 h-8 w-8 text-[var(--text-3)]" />
+              <p className="text-sm text-[var(--text-3)]">No chat rooms found</p>
             </div>
           ) : (
-            <div className="max-h-[600px] divide-y divide-gray-50 overflow-y-auto">
+            <div className="max-h-[600px] divide-y divide-[var(--border)] overflow-y-auto">
               {rooms.map((room) => {
                 const lastMsg = room.messages[0];
                 const isSelected = selectedRoom === room.id;
@@ -300,7 +300,7 @@ export default function AllChatsTab() {
                     onClick={() => fetchMessages(room.id)}
                     className="flex flex-1 items-start gap-3 text-left"
                   >
-                    <div className={`mt-0.5 flex-shrink-0 rounded-lg p-2 ${room.isActive ? "bg-[#fef3dc] text-[#b25c1c]" : "bg-gray-100 text-gray-400"}`}>
+                    <div className={`mt-0.5 flex-shrink-0 rounded-lg p-2 ${room.isActive ? "bg-[var(--accent-muted)] text-[#b25c1c]" : "bg-[var(--surface)] text-[var(--text-3)]"}`}>
                       <MessageCircle className="h-4 w-4" />
                     </div>
                     <div className="min-w-0 flex-1">
@@ -308,25 +308,25 @@ export default function AllChatsTab() {
                         <span className="text-sm font-semibold text-gompa-slate">
                           {room.restaurant?.name || "Unknown"}
                         </span>
-                        <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${room.isActive ? "bg-[#fef3dc] text-[#b25c1c]" : "bg-gray-100 text-gray-500"}`}>
+                        <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${room.isActive ? "bg-[var(--accent-muted)] text-[#b25c1c]" : "bg-[var(--surface)] text-[var(--text-2)]"}`}>
                           {room.isActive ? "Active" : "Closed"}
                         </span>
-                        <span className="rounded-full bg-gray-100 px-1.5 py-0.5 text-[10px] text-gray-500">
+                        <span className="rounded-full bg-[var(--surface)] px-1.5 py-0.5 text-[10px] text-[var(--text-2)]">
                           {room.type}
                         </span>
                       </div>
                       {room.tableNo && (
-                        <p className="text-[11px] text-gray-400">Table {room.tableNo}</p>
+                        <p className="text-[11px] text-[var(--text-3)]">Table {room.tableNo}</p>
                       )}
                       {lastMsg && (
-                        <p className="mt-0.5 truncate text-xs text-gray-500">
+                        <p className="mt-0.5 truncate text-xs text-[var(--text-2)]">
                           <span className="font-medium">{lastMsg.senderName || lastMsg.sender}:</span>{" "}
                           {lastMsg.content}
                         </p>
                       )}
                     </div>
                     <div className="flex-shrink-0 text-right">
-                      <p className="text-[11px] text-gray-400 tabular-nums">
+                      <p className="text-[11px] text-[var(--text-3)] tabular-nums">
                         {timeAgo(room.updatedAt)}
                       </p>
                       <p className="mt-0.5 rounded-full bg-brand-100 px-1.5 py-0.5 text-[10px] font-medium text-brand-600">
@@ -336,7 +336,7 @@ export default function AllChatsTab() {
                   </button>
                   <button
                     onClick={(e) => { e.stopPropagation(); setDeleteTarget(room); }}
-                    className="mt-1 flex-shrink-0 rounded-lg p-1.5 text-gray-300 hover:bg-red-50 hover:text-red-400 transition-colors"
+                    className="mt-1 flex-shrink-0 rounded-lg p-1.5 text-[var(--text-3)] hover:bg-red-50 hover:text-red-400 transition-colors"
                     title="Delete chat room"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
@@ -348,13 +348,13 @@ export default function AllChatsTab() {
           )}
 
           {pagination && pagination.totalPages > 1 && (
-            <div className="flex items-center justify-between border-t border-gray-100 px-4 py-2.5">
-              <span className="text-xs text-gray-400">Page {pagination.page} of {pagination.totalPages}</span>
+            <div className="flex items-center justify-between border-t border-[var(--border-soft)] px-4 py-2.5">
+              <span className="text-xs text-[var(--text-3)]">Page {pagination.page} of {pagination.totalPages}</span>
               <div className="flex gap-1.5">
-                <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="rounded-lg border border-gray-200 p-1.5 text-gray-500 hover:bg-brand-50 disabled:opacity-40">
+                <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-2)] hover:bg-brand-50 disabled:opacity-40">
                   <ChevronLeft className="h-3.5 w-3.5" />
                 </button>
-                <button disabled={page >= pagination.totalPages} onClick={() => setPage((p) => p + 1)} className="rounded-lg border border-gray-200 p-1.5 text-gray-500 hover:bg-brand-50 disabled:opacity-40">
+                <button disabled={page >= pagination.totalPages} onClick={() => setPage((p) => p + 1)} className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-2)] hover:bg-brand-50 disabled:opacity-40">
                   <ChevronRight className="h-3.5 w-3.5" />
                 </button>
               </div>
@@ -362,16 +362,16 @@ export default function AllChatsTab() {
           )}
         </div>
 
-        <div className="overflow-hidden rounded-2xl border border-brand-100 bg-white shadow-sm">
+        <div className="overflow-hidden rounded-2xl border border-brand-100 bg-[var(--canvas)] shadow-sm">
           <div className="flex items-center gap-2 border-b border-brand-100 px-4 py-2.5">
             <Send className="h-4 w-4 text-brand-400" />
-            <span className="text-xs font-semibold text-gray-500">
+            <span className="text-xs font-semibold text-[var(--text-2)]">
               {selectedRoom ? "Messages" : "Select a chat room"}
             </span>
             {selectedRoom && (
               <button
                 onClick={() => { setSelectedRoom(null); setMessages([]); }}
-                className="ml-auto text-gray-400 hover:text-brand-500"
+                className="ml-auto text-[var(--text-3)] hover:text-brand-500"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
@@ -381,8 +381,8 @@ export default function AllChatsTab() {
           {!selectedRoom ? (
             <div className="flex items-center justify-center py-20">
               <div className="text-center">
-                <MessageCircle className="mx-auto mb-2 h-10 w-10 text-gray-200" />
-                <p className="text-sm text-gray-400">Select a chat room to view messages</p>
+                <MessageCircle className="mx-auto mb-2 h-10 w-10 text-[var(--text-3)]" />
+                <p className="text-sm text-[var(--text-3)]">Select a chat room to view messages</p>
               </div>
             </div>
           ) : messagesLoading && messages.length === 0 ? (
@@ -391,7 +391,7 @@ export default function AllChatsTab() {
             </div>
           ) : messages.length === 0 ? (
             <div className="flex items-center justify-center py-20">
-              <p className="text-sm text-gray-400">No messages in this room</p>
+              <p className="text-sm text-[var(--text-3)]">No messages in this room</p>
             </div>
           ) : (
             <div className="max-h-[550px] overflow-y-auto p-4 space-y-3">
@@ -399,17 +399,17 @@ export default function AllChatsTab() {
                 const isAdmin = msg.sender === "ADMIN" || msg.sender === "MANAGER" || msg.sender === "BILLING" || msg.sender === "KITCHEN";
                 return (
                   <div key={msg.id} className={`flex ${isAdmin ? "justify-end" : "justify-start"}`}>
-                    <div className={`max-w-[80%] rounded-2xl px-3 py-2 ${isAdmin ? "bg-brand-100 text-gompa-slate" : "bg-gray-100 text-gompa-slate"}`}>
+                    <div className={`max-w-[80%] rounded-2xl px-3 py-2 ${isAdmin ? "bg-brand-100 text-gompa-slate" : "bg-[var(--surface)] text-gompa-slate"}`}>
                       <div className="flex items-center gap-2 mb-0.5">
-                        <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${SENDER_COLORS[msg.sender] || "bg-gray-200 text-gray-600"}`}>
+                        <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${SENDER_COLORS[msg.sender] || "bg-[var(--surface-alt)] text-[var(--text-2)]"}`}>
                           {msg.sender}
                         </span>
                         {msg.senderName && (
-                          <span className="text-[11px] text-gray-500">{msg.senderName}</span>
+                          <span className="text-[11px] text-[var(--text-2)]">{msg.senderName}</span>
                         )}
                       </div>
                       <p className="text-sm">{msg.content}</p>
-                      <p className="mt-0.5 text-[10px] text-gray-400">{timeAgo(msg.createdAt)}</p>
+                      <p className="mt-0.5 text-[10px] text-[var(--text-3)]">{timeAgo(msg.createdAt)}</p>
                     </div>
                   </div>
                 );

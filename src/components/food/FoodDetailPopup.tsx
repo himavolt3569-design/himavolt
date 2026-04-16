@@ -113,7 +113,7 @@ const spiceLabels = ["", "Mild", "Medium", "Hot", "Extra Hot"];
 const spiceClasses = [
   "",
   "text-yellow-700 bg-yellow-50 border-yellow-100",
-  "text-orange-600 bg-orange-50 border-orange-100",
+  "text-[var(--accent)] bg-[var(--accent)] border-[var(--accent-border)]",
   "text-red-600 bg-red-50 border-red-100",
   "text-red-700 bg-red-100 border-red-200",
 ];
@@ -126,7 +126,7 @@ function imgSrc(url: string | null | undefined) {
 
 function getAccent(item: PopupMenuItem): string {
   if (item.isDrink) return "#3b82f6";
-  if (item.isVeg) return "#VEGDOT_GREEN";
+  if (item.isVeg) return "#16a34a";
   if ((item.spiceLevel ?? 0) >= 3) return "#ef4444";
   return "#eaa94d";
 }
@@ -217,8 +217,8 @@ function SimilarCard({
 }) {
   return (
     <button onClick={onSelect} className="text-left group block w-full">
-      <div className="rounded-xl overflow-hidden border border-gray-100 bg-white hover:border-[#eaa94d]/40 hover:shadow-md transition-all duration-200">
-        <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
+      <div className="rounded-xl overflow-hidden border border-[var(--border-soft)] bg-[var(--canvas)] hover:border-[#eaa94d]/40 hover:shadow-md transition-all duration-200">
+        <div className="relative aspect-[4/3] overflow-hidden bg-[var(--surface)]">
           <img
             src={imgSrc(item.imageUrl)}
             alt={item.name}
@@ -248,7 +248,7 @@ function SimilarCard({
             <p className="text-[11px] font-extrabold text-[#eaa94d]">
               {formatPrice(item.price, currency)}
             </p>
-            <span className="text-[10px] text-gray-400 flex items-center gap-0.5 shrink-0">
+            <span className="text-[10px] text-[var(--text-3)] flex items-center gap-0.5 shrink-0">
               <Clock className="h-2.5 w-2.5" />
               {item.prepTime}
             </span>
@@ -256,40 +256,6 @@ function SimilarCard({
         </div>
       </div>
     </button>
-  );
-}
-
-/* ── Loading skeleton ─────────────────────────────────────────────────────── */
-
-function DetailsSkeleton() {
-  return (
-    <div className="p-5 space-y-4 animate-pulse">
-      <div className="flex gap-2">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="h-6 w-20 bg-gray-100 rounded-full" />
-        ))}
-      </div>
-      <div>
-        <div className="h-3 w-24 bg-gray-100 rounded mb-2" />
-        <div className="h-7 w-3/4 bg-gray-200 rounded-xl mb-3" />
-        <div className="space-y-2">
-          <div className="h-4 w-full bg-gray-100 rounded" />
-          <div className="h-4 w-5/6 bg-gray-100 rounded" />
-          <div className="h-4 w-4/6 bg-gray-100 rounded" />
-        </div>
-      </div>
-      <div className="flex gap-2">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="h-9 w-28 bg-gray-100 rounded-full" />
-        ))}
-      </div>
-      <div className="h-px bg-gray-100" />
-      <div className="flex items-center justify-between">
-        <div className="h-10 w-24 bg-gray-100 rounded-xl" />
-        <div className="h-11 w-32 bg-gray-100 rounded-2xl" />
-      </div>
-      <div className="h-13 w-full bg-gray-200 rounded-2xl" />
-    </div>
   );
 }
 
@@ -617,12 +583,12 @@ export default function FoodDetailPopup({
 
   /* The full details body — used for mobile scrollable area */
   function renderDetailsBody() {
-    if (fetchState === "loading") return <DetailsSkeleton />;
+    if (fetchState === "loading") return null;
     if (fetchState === "error")
       return (
         <div className="flex flex-col items-center justify-center py-16 text-center px-5">
           <AlertCircle className="h-8 w-8 text-red-400 mb-3" />
-          <p className="text-sm font-semibold text-gray-500">
+          <p className="text-sm font-semibold text-[var(--text-2)]">
             Failed to load item details.
           </p>
         </div>
@@ -636,21 +602,21 @@ export default function FoodDetailPopup({
         {/* Dietary */}
         <div className="flex flex-wrap items-center gap-1.5">
           <VegDot isVeg={item.isVeg} />
-          <span className="text-[11px] font-semibold text-gray-400">
+          <span className="text-[11px] font-semibold text-[var(--text-3)]">
             {item.isVeg ? "Pure Veg" : "Non-Veg"}
           </span>
           {item.hasEgg && (
-            <span className="flex items-center gap-1 rounded-full border border-amber-100 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">
+            <span className="flex items-center gap-1 rounded-full border border-[var(--accent-border)] bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-bold text-[var(--accent-text)]">
               <Egg className="h-3 w-3" /> Contains Egg
             </span>
           )}
           {item.hasOnionGarlic === false && (
-            <span className="flex items-center gap-1 rounded-full border border-[#eaa94d]/30 bg-[#fef9ef] px-2 py-0.5 text-[10px] font-bold text-[#b25c1c]">
+            <span className="flex items-center gap-1 rounded-full border border-[var(--accent-border)] bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-bold text-[#b25c1c]">
               <Leaf className="h-3 w-3" /> No Onion/Garlic
             </span>
           )}
           {item.isFeatured && (
-            <span className="flex items-center gap-0.5 rounded-full bg-[#eaa94d]/10 px-2 py-0.5 text-[10px] font-bold text-[#eaa94d]">
+            <span className="flex items-center gap-0.5 rounded-full bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-bold text-[#eaa94d]">
               <Star className="h-3 w-3 fill-[#eaa94d]" /> Featured
             </span>
           )}
@@ -658,14 +624,14 @@ export default function FoodDetailPopup({
 
         {/* Category + Name + Description */}
         <div>
-          <p className="text-[11px] font-medium text-gray-400 mb-1">
+          <p className="text-[11px] font-medium text-[var(--text-3)] mb-1">
             {item.category.name}
           </p>
           <h2 className="text-xl font-extrabold text-[#111] leading-tight">
             {item.name}
           </h2>
           {item.description && (
-            <p className="mt-2 text-sm text-gray-500 leading-relaxed">
+            <p className="mt-2 text-sm text-[var(--text-2)] leading-relaxed">
               {item.description}
             </p>
           )}
@@ -674,17 +640,17 @@ export default function FoodDetailPopup({
         {/* Stats chips */}
         <div className="flex flex-wrap gap-2">
           {item.rating > 0 && (
-            <span className="flex items-center gap-1.5 rounded-full border border-amber-100 bg-amber-50 px-3 py-1.5 text-[11px] font-bold text-amber-700">
-              <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+            <span className="flex items-center gap-1.5 rounded-full border border-[var(--accent-border)] bg-[var(--accent-muted)] px-3 py-1.5 text-[11px] font-bold text-[var(--accent-text)]">
+              <Star className="h-3.5 w-3.5 fill-[var(--accent)] text-[var(--accent)]" />
               {item.rating.toFixed(1)} rating
             </span>
           )}
-          <span className="flex items-center gap-1.5 rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5 text-[11px] font-bold text-gray-600">
+          <span className="flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--canvas-sub)] px-3 py-1.5 text-[11px] font-bold text-[var(--text-2)]">
             <Clock className="h-3.5 w-3.5" />
             {item.prepTime}
           </span>
           {item.calories != null && (
-            <span className="flex items-center gap-1.5 rounded-full border border-orange-100 bg-orange-50 px-3 py-1.5 text-[11px] font-bold text-orange-600">
+            <span className="flex items-center gap-1.5 rounded-full border border-[var(--accent-border)] bg-[var(--accent)] px-3 py-1.5 text-[11px] font-bold text-[var(--accent)]">
               <Flame className="h-3.5 w-3.5" />
               {item.calories} kcal
             </span>
@@ -707,7 +673,7 @@ export default function FoodDetailPopup({
         {/* Allergens */}
         {item.allergens && item.allergens.length > 0 && (
           <div>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+            <p className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider mb-2">
               Allergens
             </p>
             <div className="flex flex-wrap gap-1.5">
@@ -729,7 +695,7 @@ export default function FoodDetailPopup({
             {item.tags.map((tag) => (
               <span
                 key={tag}
-                className="rounded-full bg-gray-100 px-2.5 py-1 text-[10px] font-medium text-gray-500"
+                className="rounded-full bg-[var(--surface)] px-2.5 py-1 text-[10px] font-medium text-[var(--text-2)]"
               >
                 #{tag}
               </span>
@@ -739,7 +705,7 @@ export default function FoodDetailPopup({
 
         {/* Offer banner */}
         {(item.offerExpiresAt || item.discount > 0) && (
-          <div className="flex items-center gap-3 rounded-2xl bg-[#fef3dc] border border-[#eaa94d]/25 p-3.5">
+          <div className="flex items-center gap-3 rounded-2xl bg-[#fef3dc] border border-[var(--accent-border)] p-3.5">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#eaa94d]/20 shrink-0">
               <Tag className="h-4 w-4 text-[#d67620]" />
             </div>
@@ -762,7 +728,7 @@ export default function FoodDetailPopup({
         {/* Size selector */}
         {item.sizes.length > 0 && (
           <div>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">
+            <p className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider mb-3">
               Choose Size
             </p>
             <div className="grid grid-cols-3 gap-2">
@@ -773,7 +739,7 @@ export default function FoodDetailPopup({
                   className={`flex flex-col items-center gap-0.5 rounded-xl border-2 py-3 px-2 transition-all ${
                     sizeIdx === i
                       ? "border-[#eaa94d] bg-[#fef3dc]"
-                      : "border-gray-200 hover:border-gray-300 bg-white"
+                      : "border-[var(--border)] hover:border-[var(--border)] bg-[var(--canvas)]"
                   }`}
                 >
                   <span
@@ -783,13 +749,13 @@ export default function FoodDetailPopup({
                   >
                     {s.grams}
                   </span>
-                  <span className="text-[10px] text-gray-400 font-medium">
+                  <span className="text-[10px] text-[var(--text-3)] font-medium">
                     {s.label}
                   </span>
                   {s.priceAdd > 0 && (
                     <span
                       className={`text-[10px] font-bold mt-0.5 ${
-                        sizeIdx === i ? "text-[#d67620]" : "text-gray-400"
+                        sizeIdx === i ? "text-[#d67620]" : "text-[var(--text-3)]"
                       }`}
                     >
                       +{formatPrice(s.priceAdd, cur)}
@@ -804,7 +770,7 @@ export default function FoodDetailPopup({
         {/* Add-ons */}
         {item.addOns.length > 0 && (
           <div>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">
+            <p className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider mb-3">
               Build Your Meal
             </p>
             <div className="space-y-2">
@@ -814,7 +780,7 @@ export default function FoodDetailPopup({
                   className={`flex items-center justify-between rounded-xl border px-4 py-3 cursor-pointer transition-all ${
                     selectedAddOns.has(a.id)
                       ? "border-[#eaa94d] bg-[#fef3dc]/50"
-                      : "border-gray-100 bg-gray-50/50 hover:border-gray-200"
+                      : "border-[var(--border-soft)] bg-[var(--canvas-sub)] hover:border-[var(--border)]"
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -822,7 +788,7 @@ export default function FoodDetailPopup({
                       className={`flex h-5 w-5 items-center justify-center rounded-md border-2 transition-colors shrink-0 ${
                         selectedAddOns.has(a.id)
                           ? "border-[#eaa94d] bg-[#eaa94d]"
-                          : "border-gray-300"
+                          : "border-[var(--border)]"
                       }`}
                     >
                       {selectedAddOns.has(a.id) && (
@@ -848,17 +814,17 @@ export default function FoodDetailPopup({
           </div>
         )}
 
-        <div className="h-px bg-gray-100" />
+        <div className="h-px bg-[var(--surface)]" />
 
         {/* Price + Qty */}
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+            <p className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider">
               Total
             </p>
             <div className="flex items-baseline gap-1.5 mt-0.5">
               {item.discount > 0 && (
-                <span className="text-sm text-gray-400 line-through">
+                <span className="text-sm text-[var(--text-3)] line-through">
                   {formatPrice(item.price * qty, cur)}
                 </span>
               )}
@@ -873,15 +839,15 @@ export default function FoodDetailPopup({
               </motion.span>
             </div>
             {qty > 1 && (
-              <p className="text-[11px] text-gray-400 mt-0.5">
+              <p className="text-[11px] text-[var(--text-3)] mt-0.5">
                 {qty} × {formatPrice(unitPrice, cur)}
               </p>
             )}
           </div>
-          <div className="flex items-center gap-2 rounded-2xl border border-gray-200 bg-gray-50 px-1 py-1">
+          <div className="flex items-center gap-2 rounded-2xl border border-[var(--border)] bg-[var(--canvas-sub)] px-1 py-1">
             <button
               onClick={() => setQty((q) => Math.max(1, q - 1))}
-              className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-gray-600 hover:bg-gray-100 transition-colors shadow-sm active:scale-90"
+              className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--canvas)] text-[var(--text-2)] hover:bg-[var(--surface)] transition-colors shadow-sm active:scale-90"
             >
               <Minus className="h-4 w-4" strokeWidth={2.5} />
             </button>
@@ -907,7 +873,7 @@ export default function FoodDetailPopup({
         {/* Order Now */}
         {renderOrderButton()}
 
-        <div className="h-px bg-gray-100" />
+        <div className="h-px bg-[var(--surface)]" />
 
         {/* Rating */}
         <RatingInput
@@ -919,7 +885,7 @@ export default function FoodDetailPopup({
         />
 
         {/* Restaurant card */}
-        <div className="flex items-center gap-3 rounded-2xl bg-gray-50 border border-gray-100 p-3.5">
+        <div className="flex items-center gap-3 rounded-2xl bg-[var(--canvas-sub)] border border-[var(--border-soft)] p-3.5">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#3e1e0c]">
             <Utensils className="h-5 w-5 text-white" />
           </div>
@@ -928,7 +894,7 @@ export default function FoodDetailPopup({
               {item.restaurant.name}
             </p>
             {item.restaurant.address && (
-              <p className="text-[11px] text-gray-400 mt-0.5 flex items-center gap-1 truncate">
+              <p className="text-[11px] text-[var(--text-3)] mt-0.5 flex items-center gap-1 truncate">
                 <MapPin className="h-3 w-3 shrink-0" />
                 {item.restaurant.address}
               </p>
@@ -950,7 +916,7 @@ export default function FoodDetailPopup({
               <h3 className="text-sm font-extrabold text-[#111]">
                 {context === "landing" ? "Similar dishes" : "You might also like"}
               </h3>
-              <span className="text-[11px] text-gray-400">
+              <span className="text-[11px] text-[var(--text-3)]">
                 {related.length} dishes
               </span>
             </div>
@@ -974,12 +940,12 @@ export default function FoodDetailPopup({
 
   /* Desktop details body (without category/name since those are in the sticky header) */
   function renderDetailsBodyDesktop() {
-    if (fetchState === "loading") return <DetailsSkeleton />;
+    if (fetchState === "loading") return null;
     if (fetchState === "error")
       return (
         <div className="flex flex-col items-center justify-center py-12 text-center px-5">
           <AlertCircle className="h-8 w-8 text-red-400 mb-3" />
-          <p className="text-sm font-semibold text-gray-500">
+          <p className="text-sm font-semibold text-[var(--text-2)]">
             Failed to load details.
           </p>
         </div>
@@ -992,7 +958,7 @@ export default function FoodDetailPopup({
       <div className="space-y-5 p-5">
         {/* Description */}
         {item.description && (
-          <p className="text-sm text-gray-500 leading-relaxed">
+          <p className="text-sm text-[var(--text-2)] leading-relaxed">
             {item.description}
           </p>
         )}
@@ -1000,21 +966,21 @@ export default function FoodDetailPopup({
         {/* Dietary */}
         <div className="flex flex-wrap items-center gap-1.5">
           <VegDot isVeg={item.isVeg} />
-          <span className="text-[11px] font-semibold text-gray-400">
+          <span className="text-[11px] font-semibold text-[var(--text-3)]">
             {item.isVeg ? "Pure Veg" : "Non-Veg"}
           </span>
           {item.hasEgg && (
-            <span className="flex items-center gap-1 rounded-full border border-amber-100 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">
+            <span className="flex items-center gap-1 rounded-full border border-[var(--accent-border)] bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-bold text-[var(--accent-text)]">
               <Egg className="h-3 w-3" /> Contains Egg
             </span>
           )}
           {item.hasOnionGarlic === false && (
-            <span className="flex items-center gap-1 rounded-full border border-[#eaa94d]/30 bg-[#fef9ef] px-2 py-0.5 text-[10px] font-bold text-[#b25c1c]">
+            <span className="flex items-center gap-1 rounded-full border border-[var(--accent-border)] bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-bold text-[#b25c1c]">
               <Leaf className="h-3 w-3" /> No Onion/Garlic
             </span>
           )}
           {item.isFeatured && (
-            <span className="flex items-center gap-0.5 rounded-full bg-[#eaa94d]/10 px-2 py-0.5 text-[10px] font-bold text-[#eaa94d]">
+            <span className="flex items-center gap-0.5 rounded-full bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-bold text-[#eaa94d]">
               <Star className="h-3 w-3 fill-[#eaa94d]" /> Featured
             </span>
           )}
@@ -1023,17 +989,17 @@ export default function FoodDetailPopup({
         {/* Stats chips */}
         <div className="flex flex-wrap gap-2">
           {item.rating > 0 && (
-            <span className="flex items-center gap-1.5 rounded-full border border-amber-100 bg-amber-50 px-3 py-1.5 text-[11px] font-bold text-amber-700">
-              <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+            <span className="flex items-center gap-1.5 rounded-full border border-[var(--accent-border)] bg-[var(--accent-muted)] px-3 py-1.5 text-[11px] font-bold text-[var(--accent-text)]">
+              <Star className="h-3.5 w-3.5 fill-[var(--accent)] text-[var(--accent)]" />
               {item.rating.toFixed(1)} rating
             </span>
           )}
-          <span className="flex items-center gap-1.5 rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5 text-[11px] font-bold text-gray-600">
+          <span className="flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--canvas-sub)] px-3 py-1.5 text-[11px] font-bold text-[var(--text-2)]">
             <Clock className="h-3.5 w-3.5" />
             {item.prepTime}
           </span>
           {item.calories != null && (
-            <span className="flex items-center gap-1.5 rounded-full border border-orange-100 bg-orange-50 px-3 py-1.5 text-[11px] font-bold text-orange-600">
+            <span className="flex items-center gap-1.5 rounded-full border border-[var(--accent-border)] bg-[var(--accent)] px-3 py-1.5 text-[11px] font-bold text-[var(--accent)]">
               <Flame className="h-3.5 w-3.5" />
               {item.calories} kcal
             </span>
@@ -1056,7 +1022,7 @@ export default function FoodDetailPopup({
         {/* Allergens */}
         {item.allergens && item.allergens.length > 0 && (
           <div>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+            <p className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider mb-2">
               Allergens
             </p>
             <div className="flex flex-wrap gap-1.5">
@@ -1078,7 +1044,7 @@ export default function FoodDetailPopup({
             {item.tags.map((tag) => (
               <span
                 key={tag}
-                className="rounded-full bg-gray-100 px-2.5 py-1 text-[10px] font-medium text-gray-500"
+                className="rounded-full bg-[var(--surface)] px-2.5 py-1 text-[10px] font-medium text-[var(--text-2)]"
               >
                 #{tag}
               </span>
@@ -1088,7 +1054,7 @@ export default function FoodDetailPopup({
 
         {/* Offer banner */}
         {(item.offerExpiresAt || item.discount > 0) && (
-          <div className="flex items-center gap-3 rounded-2xl bg-[#fef3dc] border border-[#eaa94d]/25 p-3.5">
+          <div className="flex items-center gap-3 rounded-2xl bg-[#fef3dc] border border-[var(--accent-border)] p-3.5">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#eaa94d]/20 shrink-0">
               <Tag className="h-4 w-4 text-[#d67620]" />
             </div>
@@ -1111,7 +1077,7 @@ export default function FoodDetailPopup({
         {/* Size selector */}
         {item.sizes.length > 0 && (
           <div>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">
+            <p className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider mb-3">
               Choose Size
             </p>
             <div className="grid grid-cols-3 gap-2">
@@ -1122,7 +1088,7 @@ export default function FoodDetailPopup({
                   className={`flex flex-col items-center gap-0.5 rounded-xl border-2 py-3 px-2 transition-all ${
                     sizeIdx === i
                       ? "border-[#eaa94d] bg-[#fef3dc]"
-                      : "border-gray-200 hover:border-gray-300 bg-white"
+                      : "border-[var(--border)] hover:border-[var(--border)] bg-[var(--canvas)]"
                   }`}
                 >
                   <span
@@ -1132,13 +1098,13 @@ export default function FoodDetailPopup({
                   >
                     {s.grams}
                   </span>
-                  <span className="text-[10px] text-gray-400 font-medium">
+                  <span className="text-[10px] text-[var(--text-3)] font-medium">
                     {s.label}
                   </span>
                   {s.priceAdd > 0 && (
                     <span
                       className={`text-[10px] font-bold mt-0.5 ${
-                        sizeIdx === i ? "text-[#d67620]" : "text-gray-400"
+                        sizeIdx === i ? "text-[#d67620]" : "text-[var(--text-3)]"
                       }`}
                     >
                       +{formatPrice(s.priceAdd, cur)}
@@ -1153,7 +1119,7 @@ export default function FoodDetailPopup({
         {/* Add-ons */}
         {item.addOns.length > 0 && (
           <div>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">
+            <p className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider mb-3">
               Build Your Meal
             </p>
             <div className="space-y-2">
@@ -1163,7 +1129,7 @@ export default function FoodDetailPopup({
                   className={`flex items-center justify-between rounded-xl border px-4 py-3 cursor-pointer transition-all ${
                     selectedAddOns.has(a.id)
                       ? "border-[#eaa94d] bg-[#fef3dc]/50"
-                      : "border-gray-100 bg-gray-50/50 hover:border-gray-200"
+                      : "border-[var(--border-soft)] bg-[var(--canvas-sub)] hover:border-[var(--border)]"
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -1171,7 +1137,7 @@ export default function FoodDetailPopup({
                       className={`flex h-5 w-5 items-center justify-center rounded-md border-2 transition-colors shrink-0 ${
                         selectedAddOns.has(a.id)
                           ? "border-[#eaa94d] bg-[#eaa94d]"
-                          : "border-gray-300"
+                          : "border-[var(--border)]"
                       }`}
                     >
                       {selectedAddOns.has(a.id) && (
@@ -1197,17 +1163,17 @@ export default function FoodDetailPopup({
           </div>
         )}
 
-        <div className="h-px bg-gray-100" />
+        <div className="h-px bg-[var(--surface)]" />
 
         {/* Price + Qty */}
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+            <p className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider">
               Total
             </p>
             <div className="flex items-baseline gap-1.5 mt-0.5">
               {item.discount > 0 && (
-                <span className="text-sm text-gray-400 line-through">
+                <span className="text-sm text-[var(--text-3)] line-through">
                   {formatPrice(item.price * qty, cur)}
                 </span>
               )}
@@ -1222,15 +1188,15 @@ export default function FoodDetailPopup({
               </motion.span>
             </div>
             {qty > 1 && (
-              <p className="text-[11px] text-gray-400 mt-0.5">
+              <p className="text-[11px] text-[var(--text-3)] mt-0.5">
                 {qty} × {formatPrice(unitPrice, cur)}
               </p>
             )}
           </div>
-          <div className="flex items-center gap-2 rounded-2xl border border-gray-200 bg-gray-50 px-1 py-1">
+          <div className="flex items-center gap-2 rounded-2xl border border-[var(--border)] bg-[var(--canvas-sub)] px-1 py-1">
             <button
               onClick={() => setQty((q) => Math.max(1, q - 1))}
-              className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-gray-600 hover:bg-gray-100 transition-colors shadow-sm active:scale-90"
+              className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--canvas)] text-[var(--text-2)] hover:bg-[var(--surface)] transition-colors shadow-sm active:scale-90"
             >
               <Minus className="h-4 w-4" strokeWidth={2.5} />
             </button>
@@ -1256,7 +1222,7 @@ export default function FoodDetailPopup({
         {/* Order Now */}
         {renderOrderButton()}
 
-        <div className="h-px bg-gray-100" />
+        <div className="h-px bg-[var(--surface)]" />
 
         {/* Rating */}
         <RatingInput
@@ -1274,7 +1240,7 @@ export default function FoodDetailPopup({
               <h3 className="text-sm font-extrabold text-[#111]">
                 {context === "landing" ? "Similar dishes" : "You might also like"}
               </h3>
-              <span className="text-[11px] text-gray-400">
+              <span className="text-[11px] text-[var(--text-3)]">
                 {related.length} dishes
               </span>
             </div>
@@ -1327,8 +1293,8 @@ export default function FoodDetailPopup({
             <GrainSVG uid={uid} suffix="mob" />
 
             {/* Image header */}
-            <div className="relative aspect-[4/3] w-full shrink-0 overflow-hidden bg-gray-200">
-              {item ? (
+            <div className="relative aspect-[4/3] w-full shrink-0 overflow-hidden bg-[var(--surface)]">
+              {item && (
                 <motion.img
                   key={currentItemId}
                   src={imgSrc(item.imageUrl)}
@@ -1338,8 +1304,6 @@ export default function FoodDetailPopup({
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ duration: 0.45 }}
                 />
-              ) : (
-                <div className="h-full w-full animate-pulse bg-gray-200" />
               )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-black/30" />
 
@@ -1418,7 +1382,7 @@ export default function FoodDetailPopup({
                         animate={{ scale: 1 }}
                         exit={{ scale: 0 }}
                       >
-                        <Check className="h-4 w-4 text-green-400" />
+                        <Check className="h-4 w-4 text-[#16a34a]" />
                       </motion.div>
                     ) : (
                       <motion.div
@@ -1467,8 +1431,8 @@ export default function FoodDetailPopup({
               <GrainSVG uid={uid} suffix="dsk" />
 
               {/* Left: sticky image column */}
-              <div className="relative w-[340px] shrink-0 self-stretch overflow-hidden">
-                {item ? (
+              <div className="relative w-[340px] shrink-0 self-stretch overflow-hidden bg-[var(--surface)]">
+                {item && (
                   <motion.img
                     key={currentItemId}
                     src={imgSrc(item.imageUrl)}
@@ -1478,8 +1442,6 @@ export default function FoodDetailPopup({
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ duration: 0.45 }}
                   />
-                ) : (
-                  <div className="h-full w-full animate-pulse bg-gray-200" />
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
 
@@ -1539,7 +1501,7 @@ export default function FoodDetailPopup({
                 {/* Restaurant info (glass card at bottom) */}
                 {item && (
                   <div className="absolute bottom-0 left-0 right-0 p-3 z-10">
-                    <div className="flex items-center gap-2.5 rounded-xl bg-white/90 backdrop-blur-md border border-white/60 p-2.5 shadow-sm">
+                    <div className="flex items-center gap-2.5 rounded-xl bg-[var(--canvas)]/90 backdrop-blur-md border border-white/60 p-2.5 shadow-sm">
                       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#3e1e0c]">
                         <Utensils className="h-4 w-4 text-white" />
                       </div>
@@ -1548,7 +1510,7 @@ export default function FoodDetailPopup({
                           {item.restaurant.name}
                         </p>
                         {item.restaurant.address && (
-                          <p className="text-[10px] text-gray-500 truncate">
+                          <p className="text-[10px] text-[var(--text-2)] truncate">
                             {item.restaurant.address}
                           </p>
                         )}
@@ -1568,28 +1530,23 @@ export default function FoodDetailPopup({
               {/* Right: scrollable details */}
               <div className="flex flex-col flex-1 overflow-hidden">
                 {/* Sticky header */}
-                <div className="shrink-0 flex items-start justify-between gap-3 px-5 pt-4 pb-3 bg-[#fdfcf9]/95 backdrop-blur-sm border-b border-gray-100 z-10">
+                <div className="shrink-0 flex items-start justify-between gap-3 px-5 pt-4 pb-3 bg-[#fdfcf9]/95 backdrop-blur-sm border-b border-[var(--border-soft)] z-10">
                   <div className="min-w-0 flex-1">
                     {item ? (
                       <>
-                        <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-0.5">
+                        <p className="text-[10px] font-medium text-[var(--text-3)] uppercase tracking-wider mb-0.5">
                           {item.category.name}
                         </p>
                         <h2 className="text-lg font-extrabold text-[#111] leading-tight line-clamp-2">
                           {item.name}
                         </h2>
                       </>
-                    ) : (
-                      <div className="space-y-1.5">
-                        <div className="h-3 w-16 bg-gray-100 rounded animate-pulse" />
-                        <div className="h-6 w-48 bg-gray-200 rounded-lg animate-pulse" />
-                      </div>
-                    )}
+                    ) : null}
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
                     <button
                       onClick={handleShare}
-                      className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 hover:border-[#eaa94d]/50 hover:text-[#eaa94d] transition-colors"
+                      className="flex h-8 w-8 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--canvas)] text-[var(--text-2)] hover:border-[#eaa94d]/50 hover:text-[#eaa94d] transition-colors"
                     >
                       <AnimatePresence mode="wait">
                         {shareState === "copied" ? (
@@ -1614,7 +1571,7 @@ export default function FoodDetailPopup({
                     </button>
                     <button
                       onClick={() => setLiked((v) => !v)}
-                      className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 hover:border-red-200 hover:text-red-400 transition-colors"
+                      className="flex h-8 w-8 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--canvas)] text-[var(--text-2)] hover:border-red-200 hover:text-red-400 transition-colors"
                     >
                       <Heart
                         className={`h-3.5 w-3.5 transition-all ${
@@ -1624,7 +1581,7 @@ export default function FoodDetailPopup({
                     </button>
                     <button
                       onClick={handleClose}
-                      className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 hover:bg-gray-50 transition-colors"
+                      className="flex h-8 w-8 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--canvas)] text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors"
                     >
                       <X className="h-3.5 w-3.5" />
                     </button>

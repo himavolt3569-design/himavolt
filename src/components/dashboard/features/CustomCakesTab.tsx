@@ -66,10 +66,10 @@ const STATUS_FLOW: CakeStatus[] = [
 const STATUS_COLORS: Record<CakeStatus, string> = {
   "Order Received": "bg-blue-100 text-blue-700 border-blue-200",
   "Design Approved": "bg-purple-100 text-purple-700 border-purple-200",
-  Baking: "bg-orange-100 text-orange-700 border-orange-200",
+  Baking: "bg-[var(--accent)] text-[var(--accent)] border-[var(--accent-border)]",
   Decorating: "bg-pink-100 text-pink-700 border-pink-200",
-  Ready: "bg-[#fef3dc] text-[#b25c1c] border-[#eaa94d]/30",
-  Delivered: "bg-gray-100 text-gray-500 border-gray-200",
+  Ready: "bg-[var(--accent-muted)] text-[#b25c1c] border-[var(--accent-border)]",
+  Delivered: "bg-[var(--surface)] text-[var(--text-2)] border-[var(--border)]",
 };
 
 const SIZE_PRICES: Record<string, number> = {
@@ -176,8 +176,8 @@ export default function CustomCakesTab() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-gray-800">Custom Cakes</h2>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <h2 className="text-xl font-bold text-[var(--text-1)]">Custom Cakes</h2>
+          <p className="text-sm text-[var(--text-2)] mt-0.5">
             Manage custom cake orders with detailed specifications
           </p>
         </div>
@@ -204,25 +204,25 @@ export default function CustomCakesTab() {
         animate={{ opacity: 1, y: 0 }}
         className="bg-gradient-to-r from-rose-50 to-pink-50 rounded-xl border border-rose-100 p-4"
       >
-        <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+        <h3 className="text-sm font-semibold text-[var(--text-2)] mb-3 flex items-center gap-2">
           <Calculator className="w-4 h-4 text-rose-500" />
           Quick Price Reference
         </h3>
         <div className="grid grid-cols-5 gap-2">
           {CAKE_SIZES.map((size) => (
-            <div key={size} className="text-center bg-white rounded-lg p-2 border border-rose-100">
-              <p className="text-sm font-bold text-gray-800">{size}</p>
-              <p className="text-xs text-gray-500">from ${SIZE_PRICES[size]}</p>
+            <div key={size} className="text-center bg-[var(--canvas)] rounded-lg p-2 border border-rose-100">
+              <p className="text-sm font-bold text-[var(--text-1)]">{size}</p>
+              <p className="text-xs text-[var(--text-2)]">from ${SIZE_PRICES[size]}</p>
             </div>
           ))}
         </div>
-        <p className="text-[11px] text-gray-400 mt-2">
+        <p className="text-[11px] text-[var(--text-3)] mt-2">
           * Layer multipliers: 2 layers = 1.5x, 3 layers = 2x, 4 layers = 2.5x, 5 layers = 3x
         </p>
       </motion.div>
 
-      <div className="bg-white rounded-xl border border-rose-100 shadow-sm p-4">
-        <h3 className="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-wide">
+      <div className="bg-[var(--canvas)] rounded-xl border border-rose-100 shadow-sm p-4">
+        <h3 className="text-xs font-semibold text-[var(--text-2)] mb-3 uppercase tracking-wide">
           Order Workflow
         </h3>
         <div className="flex items-center gap-1 overflow-x-auto pb-1">
@@ -234,7 +234,7 @@ export default function CustomCakesTab() {
                 {status}
               </span>
               {i < STATUS_FLOW.length - 1 && (
-                <ChevronRight className="w-4 h-4 text-gray-300 mx-0.5 flex-shrink-0" />
+                <ChevronRight className="w-4 h-4 text-[var(--text-3)] mx-0.5 flex-shrink-0" />
               )}
             </div>
           ))}
@@ -244,19 +244,19 @@ export default function CustomCakesTab() {
       {/* Search & Filter */}
       <div className="flex items-center gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
           <input
             type="text"
             placeholder="Search cake orders..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
+            className="w-full pl-9 pr-3 py-2 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
           />
         </div>
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as CakeStatus | "All")}
-          className="px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 bg-white"
+          className="px-3 py-2 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 bg-[var(--canvas)]"
         >
           <option value="All">All Status</option>
           {STATUS_FLOW.map((s) => (
@@ -271,10 +271,10 @@ export default function CustomCakesTab() {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="text-center py-12 bg-white rounded-xl border border-rose-100"
+              className="text-center py-12 bg-[var(--canvas)] rounded-xl border border-rose-100"
             >
-              <Cake className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-400 text-sm">No cake orders found</p>
+              <Cake className="w-12 h-12 text-[var(--text-3)] mx-auto mb-3" />
+              <p className="text-[var(--text-3)] text-sm">No cake orders found</p>
             </motion.div>
           ) : (
             filteredOrders.map((order, index) => (
@@ -284,12 +284,12 @@ export default function CustomCakesTab() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ delay: index * 0.05 }}
-                className="bg-white rounded-xl border border-rose-100 shadow-sm p-5 hover:shadow-md transition-shadow"
+                className="bg-[var(--canvas)] rounded-xl border border-rose-100 shadow-sm p-5 hover:shadow-md transition-shadow"
               >
                 <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <span className="text-xs font-mono text-gray-400">{order.id}</span>
+                      <span className="text-xs font-mono text-[var(--text-3)]">{order.id}</span>
                       <span
                         className={`text-xs px-2.5 py-0.5 rounded-full border font-medium ${
                           STATUS_COLORS[order.status]
@@ -300,17 +300,17 @@ export default function CustomCakesTab() {
                       {order.dietaryNeeds.map((d) => (
                         <span
                           key={d}
-                          className="text-[10px] px-2 py-0.5 rounded-full bg-[#fef9ef] text-[#b25c1c] border border-[#eaa94d]/30 font-medium"
+                          className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--accent-muted)] text-[#b25c1c] border border-[var(--accent-border)] font-medium"
                         >
                           {d}
                         </span>
                       ))}
                     </div>
 
-                    <h4 className="font-semibold text-gray-800 flex items-center gap-2">
+                    <h4 className="font-semibold text-[var(--text-1)] flex items-center gap-2">
                       <User className="w-4 h-4 text-rose-400" />
                       {order.customerName}
-                      <span className="text-xs text-gray-400 font-normal flex items-center gap-1">
+                      <span className="text-xs text-[var(--text-3)] font-normal flex items-center gap-1">
                         <Phone className="w-3 h-3" />
                         {order.phone}
                       </span>
@@ -318,37 +318,37 @@ export default function CustomCakesTab() {
 
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
                       <div className="bg-rose-50 rounded-lg p-2">
-                        <p className="text-[10px] text-gray-400 uppercase tracking-wide">Size</p>
-                        <p className="text-sm font-semibold text-gray-700">{order.cakeSize}</p>
+                        <p className="text-[10px] text-[var(--text-3)] uppercase tracking-wide">Size</p>
+                        <p className="text-sm font-semibold text-[var(--text-2)]">{order.cakeSize}</p>
                       </div>
                       <div className="bg-rose-50 rounded-lg p-2">
-                        <p className="text-[10px] text-gray-400 uppercase tracking-wide">Layers</p>
-                        <p className="text-sm font-semibold text-gray-700">{order.layers}</p>
+                        <p className="text-[10px] text-[var(--text-3)] uppercase tracking-wide">Layers</p>
+                        <p className="text-sm font-semibold text-[var(--text-2)]">{order.layers}</p>
                       </div>
                       <div className="bg-rose-50 rounded-lg p-2">
-                        <p className="text-[10px] text-gray-400 uppercase tracking-wide">Flavor</p>
-                        <p className="text-sm font-semibold text-gray-700">{order.flavor}</p>
+                        <p className="text-[10px] text-[var(--text-3)] uppercase tracking-wide">Flavor</p>
+                        <p className="text-sm font-semibold text-[var(--text-2)]">{order.flavor}</p>
                       </div>
                       <div className="bg-rose-50 rounded-lg p-2">
-                        <p className="text-[10px] text-gray-400 uppercase tracking-wide">
+                        <p className="text-[10px] text-[var(--text-3)] uppercase tracking-wide">
                           Frosting
                         </p>
-                        <p className="text-sm font-semibold text-gray-700">{order.frostingType}</p>
+                        <p className="text-sm font-semibold text-[var(--text-2)]">{order.frostingType}</p>
                       </div>
                     </div>
 
-                    <p className="text-xs text-gray-500 mt-3 flex items-start gap-1.5">
+                    <p className="text-xs text-[var(--text-2)] mt-3 flex items-start gap-1.5">
                       <Palette className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-pink-400" />
                       {order.decorationNotes}
                     </p>
                   </div>
 
                   <div className="flex flex-col items-end gap-2 min-w-[130px]">
-                    <p className="text-xs text-gray-400 flex items-center gap-1">
+                    <p className="text-xs text-[var(--text-3)] flex items-center gap-1">
                       <Calendar className="w-3 h-3" />
                       {order.deliveryDate}
                     </p>
-                    <p className="text-2xl font-bold text-gray-800">
+                    <p className="text-2xl font-bold text-[var(--text-1)]">
                       ${order.price.toFixed(2)}
                     </p>
                     {order.status !== "Delivered" && (
@@ -376,8 +376,8 @@ export default function CustomCakesTab() {
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            <div className="bg-white rounded-xl border border-rose-100 shadow-sm p-5">
-              <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
+            <div className="bg-[var(--canvas)] rounded-xl border border-rose-100 shadow-sm p-5">
+              <h3 className="text-sm font-semibold text-[var(--text-2)] mb-4 flex items-center gap-2">
                 <Image className="w-4 h-4 text-rose-500" />
                 Past Custom Cakes Gallery
               </h3>
@@ -388,10 +388,10 @@ export default function CustomCakesTab() {
                     className="aspect-square bg-gradient-to-br from-rose-100 to-pink-100 rounded-xl flex flex-col items-center justify-center border border-rose-200 hover:shadow-md transition-shadow cursor-pointer"
                   >
                     <Cake className="w-10 h-10 text-rose-300 mb-2" />
-                    <p className="text-xs font-medium text-gray-700 text-center px-2">
+                    <p className="text-xs font-medium text-[var(--text-2)] text-center px-2">
                       {cake.name}
                     </p>
-                    <p className="text-[10px] text-gray-400 mt-1">
+                    <p className="text-[10px] text-[var(--text-3)] mt-1">
                       {cake.size} / {cake.layers} layers
                     </p>
                   </div>
@@ -416,44 +416,44 @@ export default function CustomCakesTab() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
+              className="bg-[var(--canvas)] rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
             >
-              <div className="flex items-center justify-between p-5 border-b border-gray-100">
-                <h3 className="text-lg font-bold text-gray-800">New Custom Cake Order</h3>
+              <div className="flex items-center justify-between p-5 border-b border-[var(--border-soft)]">
+                <h3 className="text-lg font-bold text-[var(--text-1)]">New Custom Cake Order</h3>
                 <button
                   onClick={() => setShowForm(false)}
-                  className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                  className="p-1.5 rounded-lg hover:bg-[var(--surface)] transition-colors"
                 >
-                  <X className="w-5 h-5 text-gray-400" />
+                  <X className="w-5 h-5 text-[var(--text-3)]" />
                 </button>
               </div>
 
               <div className="p-5 space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1">
+                    <label className="block text-xs font-medium text-[var(--text-2)] mb-1">
                       Customer Name *
                     </label>
                     <input
                       type="text"
                       value={form.customerName}
                       onChange={(e) => setForm({ ...form, customerName: e.target.value })}
-                      className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
+                      className="w-full px-3 py-2 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1">Phone</label>
+                    <label className="block text-xs font-medium text-[var(--text-2)] mb-1">Phone</label>
                     <input
                       type="text"
                       value={form.phone}
                       onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                      className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
+                      className="w-full px-3 py-2 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-2">
+                  <label className="block text-xs font-medium text-[var(--text-2)] mb-2">
                     Cake Size *
                   </label>
                   <div className="flex gap-2">
@@ -464,7 +464,7 @@ export default function CustomCakesTab() {
                         className={`flex-1 py-2 rounded-lg border text-sm font-medium transition-colors ${
                           form.cakeSize === size
                             ? "bg-rose-500 text-white border-rose-500"
-                            : "bg-white text-gray-600 border-gray-200 hover:border-rose-300"
+                            : "bg-[var(--canvas)] text-[var(--text-2)] border-[var(--border)] hover:border-rose-300"
                         }`}
                       >
                         {size}
@@ -474,7 +474,7 @@ export default function CustomCakesTab() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-2">
+                  <label className="block text-xs font-medium text-[var(--text-2)] mb-2">
                     Layers: {form.layers}
                   </label>
                   <input
@@ -485,7 +485,7 @@ export default function CustomCakesTab() {
                     onChange={(e) => setForm({ ...form, layers: Number(e.target.value) })}
                     className="w-full accent-rose-500"
                   />
-                  <div className="flex justify-between text-[10px] text-gray-400 mt-1">
+                  <div className="flex justify-between text-[10px] text-[var(--text-3)] mt-1">
                     <span>1</span>
                     <span>2</span>
                     <span>3</span>
@@ -495,7 +495,7 @@ export default function CustomCakesTab() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-2">Flavor *</label>
+                  <label className="block text-xs font-medium text-[var(--text-2)] mb-2">Flavor *</label>
                   <div className="flex flex-wrap gap-2">
                     {FLAVORS.map((f) => (
                       <button
@@ -504,7 +504,7 @@ export default function CustomCakesTab() {
                         className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
                           form.flavor === f
                             ? "bg-rose-500 text-white border-rose-500"
-                            : "bg-white text-gray-600 border-gray-200 hover:border-rose-300"
+                            : "bg-[var(--canvas)] text-[var(--text-2)] border-[var(--border)] hover:border-rose-300"
                         }`}
                       >
                         {f}
@@ -514,7 +514,7 @@ export default function CustomCakesTab() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-2">
+                  <label className="block text-xs font-medium text-[var(--text-2)] mb-2">
                     Frosting Type
                   </label>
                   <div className="flex flex-wrap gap-2">
@@ -525,7 +525,7 @@ export default function CustomCakesTab() {
                         className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
                           form.frostingType === f
                             ? "bg-rose-500 text-white border-rose-500"
-                            : "bg-white text-gray-600 border-gray-200 hover:border-rose-300"
+                            : "bg-[var(--canvas)] text-[var(--text-2)] border-[var(--border)] hover:border-rose-300"
                         }`}
                       >
                         {f}
@@ -535,42 +535,42 @@ export default function CustomCakesTab() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">
+                  <label className="block text-xs font-medium text-[var(--text-2)] mb-1">
                     Decoration Description
                   </label>
                   <textarea
                     value={form.decorationNotes}
                     onChange={(e) => setForm({ ...form, decorationNotes: e.target.value })}
                     rows={3}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 resize-none"
+                    className="w-full px-3 py-2 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 resize-none"
                     placeholder="Describe the decoration, theme, colors..."
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">
+                  <label className="block text-xs font-medium text-[var(--text-2)] mb-1">
                     Reference Image
                   </label>
-                  <div className="border-2 border-dashed border-gray-200 rounded-lg p-6 text-center hover:border-rose-300 transition-colors cursor-pointer">
-                    <Image className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                    <p className="text-xs text-gray-400">Click to upload reference image</p>
+                  <div className="border-2 border-dashed border-[var(--border)] rounded-lg p-6 text-center hover:border-rose-300 transition-colors cursor-pointer">
+                    <Image className="w-8 h-8 text-[var(--text-3)] mx-auto mb-2" />
+                    <p className="text-xs text-[var(--text-3)]">Click to upload reference image</p>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">
+                  <label className="block text-xs font-medium text-[var(--text-2)] mb-1">
                     Delivery/Pickup Date *
                   </label>
                   <input
                     type="date"
                     value={form.deliveryDate}
                     onChange={(e) => setForm({ ...form, deliveryDate: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
+                    className="w-full px-3 py-2 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-2">
+                  <label className="block text-xs font-medium text-[var(--text-2)] mb-2">
                     Dietary Needs
                   </label>
                   <div className="flex gap-3">
@@ -580,8 +580,8 @@ export default function CustomCakesTab() {
                         onClick={() => toggleDietary(opt)}
                         className={`flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg border transition-colors ${
                           form.dietaryNeeds.includes(opt)
-                            ? "bg-[#eaa94d] text-white border-green-500"
-                            : "bg-white text-gray-600 border-gray-200 hover:border-[#eaa94d]"
+                            ? "bg-[#eaa94d] text-white border-[#eaa94d]"
+                            : "bg-[var(--canvas)] text-[var(--text-2)] border-[var(--border)] hover:border-[#eaa94d]"
                         }`}
                       >
                         {opt === "Eggless" && <EggOff className="w-3 h-3" />}
@@ -600,8 +600,8 @@ export default function CustomCakesTab() {
                     className="bg-rose-50 rounded-lg p-3 flex items-center justify-between"
                   >
                     <div>
-                      <p className="text-xs text-gray-500">Estimated Price</p>
-                      <p className="text-xs text-gray-400">
+                      <p className="text-xs text-[var(--text-2)]">Estimated Price</p>
+                      <p className="text-xs text-[var(--text-3)]">
                         {form.cakeSize} base (${SIZE_PRICES[form.cakeSize]}) x{" "}
                         {LAYER_MULTIPLIER[form.layers]}x ({form.layers} layer
                         {form.layers > 1 ? "s" : ""})
@@ -612,10 +612,10 @@ export default function CustomCakesTab() {
                 )}
               </div>
 
-              <div className="flex items-center justify-end gap-3 p-5 border-t border-gray-100">
+              <div className="flex items-center justify-end gap-3 p-5 border-t border-[var(--border-soft)]">
                 <button
                   onClick={() => setShowForm(false)}
-                  className="px-4 py-2 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors"
+                  className="px-4 py-2 rounded-xl text-sm font-medium text-[var(--text-2)] hover:bg-[var(--surface)] transition-colors"
                 >
                   Cancel
                 </button>

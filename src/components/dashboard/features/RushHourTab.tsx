@@ -94,19 +94,19 @@ export default function RushHourTab({ restaurantId }: { restaurantId?: string })
   });
 
   if (loading) return (
-    <div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-amber-500" /></div>
+    <div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-[var(--accent)]" /></div>
   );
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-3">
-          <div className={`p-2.5 rounded-xl ${isInRushNow ? "bg-red-100" : "bg-amber-100"}`}>
-            <Flame className={`w-6 h-6 ${isInRushNow ? "text-red-500" : "text-amber-600"}`} />
+          <div className={`p-2.5 rounded-xl ${isInRushNow ? "bg-red-100" : "bg-[var(--accent-muted)]"}`}>
+            <Flame className={`w-6 h-6 ${isInRushNow ? "text-red-500" : "text-[var(--accent-text)]"}`} />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-gray-900">Rush Hour</h2>
-            <p className="text-sm text-gray-500">Define peak hours and optionally apply surge pricing</p>
+            <h2 className="text-xl font-bold text-[var(--text-1)]">Rush Hour</h2>
+            <p className="text-sm text-[var(--text-2)]">Define peak hours and optionally apply surge pricing</p>
           </div>
         </div>
         <div className="flex items-center gap-4">
@@ -116,19 +116,19 @@ export default function RushHourTab({ restaurantId }: { restaurantId?: string })
             </span>
           )}
           <button onClick={() => patchConfig({ isEnabled: !config.isEnabled })} className="flex items-center gap-2 text-sm font-medium" disabled={saving}>
-            {config.isEnabled ? <ToggleRight className="w-8 h-8 text-amber-500" /> : <ToggleLeft className="w-8 h-8 text-gray-400" />}
-            <span className={config.isEnabled ? "text-amber-600" : "text-gray-400"}>{config.isEnabled ? "Enabled" : "Disabled"}</span>
+            {config.isEnabled ? <ToggleRight className="w-8 h-8 text-[var(--accent)]" /> : <ToggleLeft className="w-8 h-8 text-[var(--text-3)]" />}
+            <span className={config.isEnabled ? "text-[var(--accent-text)]" : "text-[var(--text-3)]"}>{config.isEnabled ? "Enabled" : "Disabled"}</span>
           </button>
         </div>
       </div>
 
       {config.isEnabled && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-          <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm">
+          <div className="bg-[var(--canvas)] border border-[var(--border-soft)] rounded-xl p-5 shadow-sm">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Daily Timeline</h3>
-              <div className="flex items-center gap-3 text-xs text-gray-500">
-                <span className="flex items-center gap-1"><span className="w-3 h-3 bg-amber-400 rounded-sm inline-block" /> Rush Hours</span>
+              <h3 className="text-sm font-semibold text-[var(--text-2)] uppercase tracking-wide">Daily Timeline</h3>
+              <div className="flex items-center gap-3 text-xs text-[var(--text-2)]">
+                <span className="flex items-center gap-1"><span className="w-3 h-3 bg-[var(--accent)] rounded-sm inline-block" /> Rush Hours</span>
                 <span className="flex items-center gap-1"><span className="w-3 h-3 bg-blue-400 rounded-sm inline-block" /> Now</span>
               </div>
             </div>
@@ -138,9 +138,9 @@ export default function RushHourTab({ restaurantId }: { restaurantId?: string })
                 const isCurrent = h === now.getHours();
                 return (
                   <div key={h} className="flex-1 flex flex-col items-center gap-0.5">
-                    <div className={`w-full rounded-t-sm transition-colors ${isCurrent ? "bg-blue-500" : isRush ? "bg-amber-400" : "bg-gray-100"}`}
+                    <div className={`w-full rounded-t-sm transition-colors ${isCurrent ? "bg-blue-500" : isRush ? "bg-[var(--accent)]" : "bg-[var(--surface)]"}`}
                       style={{ height: isRush ? "100%" : "40%" }} />
-                    {h % 4 === 0 && <span className="text-[9px] text-gray-400">{String(h).padStart(2, "0")}</span>}
+                    {h % 4 === 0 && <span className="text-[9px] text-[var(--text-3)]">{String(h).padStart(2, "0")}</span>}
                   </div>
                 );
               })}
@@ -149,10 +149,10 @@ export default function RushHourTab({ restaurantId }: { restaurantId?: string })
 
           {/* Slots + Surge grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm space-y-4">
+            <div className="bg-[var(--canvas)] border border-[var(--border-soft)] rounded-xl p-5 shadow-sm space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Rush Slots</h3>
-                <button onClick={() => setShowAddSlot(!showAddSlot)} className="p-1.5 bg-amber-100 text-amber-600 rounded-lg hover:bg-amber-200 transition-colors">
+                <h3 className="text-sm font-semibold text-[var(--text-2)] uppercase tracking-wide">Rush Slots</h3>
+                <button onClick={() => setShowAddSlot(!showAddSlot)} className="p-1.5 bg-[var(--accent-muted)] text-[var(--accent-text)] rounded-lg hover:bg-[var(--accent-muted)] transition-colors">
                   <Plus className="w-4 h-4" />
                 </button>
               </div>
@@ -160,37 +160,37 @@ export default function RushHourTab({ restaurantId }: { restaurantId?: string })
               <AnimatePresence>
                 {showAddSlot && (
                   <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
-                    <div className="bg-amber-50 rounded-lg p-4 space-y-3">
+                    <div className="bg-[var(--accent-muted)] rounded-lg p-4 space-y-3">
                       <input type="text" placeholder="Label (e.g. Lunch Rush)" value={newLabel}
                         onChange={(e) => setNewLabel(e.target.value)}
-                        className="w-full border border-amber-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-300" />
+                        className="w-full border border-[var(--accent-border)] rounded-lg px-3 py-2 text-sm bg-[var(--canvas)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]" />
                       <div className="flex gap-2">
                         <div className="flex-1 space-y-1">
-                          <label className="text-xs font-medium text-amber-700 flex items-center gap-1"><Clock className="w-3 h-3" /> Start</label>
+                          <label className="text-xs font-medium text-[var(--accent-text)] flex items-center gap-1"><Clock className="w-3 h-3" /> Start</label>
                           <input type="time" value={newStart} onChange={(e) => setNewStart(e.target.value)}
-                            className="w-full border border-amber-200 rounded-lg px-2 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-300" />
+                            className="w-full border border-[var(--accent-border)] rounded-lg px-2 py-1.5 text-sm bg-[var(--canvas)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]" />
                         </div>
                         <div className="flex-1 space-y-1">
-                          <label className="text-xs font-medium text-amber-700 flex items-center gap-1"><Timer className="w-3 h-3" /> End</label>
+                          <label className="text-xs font-medium text-[var(--accent-text)] flex items-center gap-1"><Timer className="w-3 h-3" /> End</label>
                           <input type="time" value={newEnd} onChange={(e) => setNewEnd(e.target.value)}
-                            className="w-full border border-amber-200 rounded-lg px-2 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-300" />
+                            className="w-full border border-[var(--accent-border)] rounded-lg px-2 py-1.5 text-sm bg-[var(--canvas)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]" />
                         </div>
                       </div>
                       <div>
-                        <p className="text-xs font-medium text-amber-700 mb-1.5">Days (leave empty = every day)</p>
+                        <p className="text-xs font-medium text-[var(--accent-text)] mb-1.5">Days (leave empty = every day)</p>
                         <div className="flex flex-wrap gap-1.5">
                           {DAYS.map((d) => (
                             <button key={d} onClick={() => toggleDay(d)}
-                              className={`px-2 py-0.5 rounded text-xs font-bold transition-colors ${newDays.includes(d) ? "bg-amber-500 text-white" : "bg-white border border-amber-200 text-amber-600"}`}>
+                              className={`px-2 py-0.5 rounded text-xs font-bold transition-colors ${newDays.includes(d) ? "bg-[var(--accent)] text-white" : "bg-[var(--canvas)] border border-[var(--accent-border)] text-[var(--accent-text)]"}`}>
                               {d}
                             </button>
                           ))}
                         </div>
                       </div>
                       <div className="flex gap-2">
-                        <button onClick={() => setShowAddSlot(false)} className="flex-1 text-xs text-gray-500 py-1.5 hover:text-gray-700">Cancel</button>
+                        <button onClick={() => setShowAddSlot(false)} className="flex-1 text-xs text-[var(--text-2)] py-1.5 hover:text-[var(--text-2)]">Cancel</button>
                         <button onClick={addSlot} disabled={!newLabel.trim() || saving}
-                          className="flex-1 flex items-center justify-center gap-1 bg-amber-500 text-white rounded-lg py-1.5 text-xs font-semibold hover:bg-amber-600 disabled:opacity-40 transition-colors">
+                          className="flex-1 flex items-center justify-center gap-1 bg-[var(--accent)] text-white rounded-lg py-1.5 text-xs font-semibold hover:bg-[var(--accent-hover)] disabled:opacity-40 transition-colors">
                           {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />} Add Slot
                         </button>
                       </div>
@@ -201,17 +201,17 @@ export default function RushHourTab({ restaurantId }: { restaurantId?: string })
 
               <div className="space-y-2">
                 {config.slots.map((slot) => (
-                  <div key={slot.id} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2.5">
+                  <div key={slot.id} className="flex items-center justify-between bg-[var(--canvas-sub)] rounded-lg px-3 py-2.5">
                     <div>
-                      <p className="text-sm font-medium text-gray-800">{slot.label}</p>
-                      <p className="text-xs text-gray-400 flex items-center gap-1">
+                      <p className="text-sm font-medium text-[var(--text-1)]">{slot.label}</p>
+                      <p className="text-xs text-[var(--text-3)] flex items-center gap-1">
                         <Clock className="w-3 h-3" /> {slot.startTime} – {slot.endTime}
-                        {slot.days.length > 0 && <span className="ml-1 text-amber-600 font-medium">{slot.days.join(", ")}</span>}
+                        {slot.days.length > 0 && <span className="ml-1 text-[var(--accent-text)] font-medium">{slot.days.join(", ")}</span>}
                       </p>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <button onClick={() => toggleSlot(slot)}>
-                        {slot.isActive ? <ToggleRight className="w-6 h-6 text-amber-500" /> : <ToggleLeft className="w-6 h-6 text-gray-400" />}
+                        {slot.isActive ? <ToggleRight className="w-6 h-6 text-[var(--accent)]" /> : <ToggleLeft className="w-6 h-6 text-[var(--text-3)]" />}
                       </button>
                       <button onClick={() => removeSlot(slot.id)} className="p-1 text-red-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors">
                         <Trash2 className="w-3.5 h-3.5" />
@@ -220,44 +220,44 @@ export default function RushHourTab({ restaurantId }: { restaurantId?: string })
                   </div>
                 ))}
                 {config.slots.length === 0 && (
-                  <p className="text-xs text-gray-400 text-center py-4">No slots defined. Add your first rush hour slot.</p>
+                  <p className="text-xs text-[var(--text-3)] text-center py-4">No slots defined. Add your first rush hour slot.</p>
                 )}
               </div>
             </div>
 
-            <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm space-y-5">
+            <div className="bg-[var(--canvas)] border border-[var(--border-soft)] rounded-xl p-5 shadow-sm space-y-5">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Surge Pricing</h3>
+                <h3 className="text-sm font-semibold text-[var(--text-2)] uppercase tracking-wide">Surge Pricing</h3>
                 <button onClick={() => patchConfig({ surgeEnabled: !config.surgeEnabled })} disabled={saving}>
-                  {config.surgeEnabled ? <ToggleRight className="w-7 h-7 text-amber-500" /> : <ToggleLeft className="w-7 h-7 text-gray-400" />}
+                  {config.surgeEnabled ? <ToggleRight className="w-7 h-7 text-[var(--accent)]" /> : <ToggleLeft className="w-7 h-7 text-[var(--text-3)]" />}
                 </button>
               </div>
 
               {config.surgeEnabled ? (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
-                  <p className="text-xs text-gray-500">Menu prices increase automatically during rush hours. Customers are shown a notice.</p>
+                  <p className="text-xs text-[var(--text-2)]">Menu prices increase automatically during rush hours. Customers are shown a notice.</p>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <label className="text-sm font-medium text-gray-600 flex items-center gap-2">
-                        <DollarSign className="w-4 h-4 text-amber-500" /> Price Increase
+                      <label className="text-sm font-medium text-[var(--text-2)] flex items-center gap-2">
+                        <DollarSign className="w-4 h-4 text-[var(--accent)]" /> Price Increase
                       </label>
-                      <span className="text-sm font-bold text-amber-600">{surgeLocal}%</span>
+                      <span className="text-sm font-bold text-[var(--accent-text)]">{surgeLocal}%</span>
                     </div>
                     <input type="range" min={5} max={50} step={5} value={surgeLocal}
-                      onChange={(e) => setSurgeLocal(Number(e.target.value))} className="w-full accent-amber-500" />
-                    <div className="flex justify-between text-xs text-gray-400"><span>5%</span><span>25%</span><span>50%</span></div>
+                      onChange={(e) => setSurgeLocal(Number(e.target.value))} className="w-full accent-[var(--accent)]" />
+                    <div className="flex justify-between text-xs text-[var(--text-3)]"><span>5%</span><span>25%</span><span>50%</span></div>
                   </div>
                   <button onClick={saveSurge} disabled={saving}
-                    className="w-full flex items-center justify-center gap-2 py-2 bg-amber-500 text-white rounded-lg text-sm font-semibold hover:bg-amber-600 disabled:opacity-40 transition-colors">
+                    className="w-full flex items-center justify-center gap-2 py-2 bg-[var(--accent)] text-white rounded-lg text-sm font-semibold hover:bg-[var(--accent-hover)] disabled:opacity-40 transition-colors">
                     {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Save Surge Setting
                   </button>
-                  <div className="bg-amber-50 rounded-lg p-3 flex items-start gap-2">
-                    <TrendingUp className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
-                    <p className="text-xs text-amber-700">Prices increase by {surgeLocal}% during active rush slots. A banner will warn customers on the menu page.</p>
+                  <div className="bg-[var(--accent-muted)] rounded-lg p-3 flex items-start gap-2">
+                    <TrendingUp className="w-4 h-4 text-[var(--accent-text)] mt-0.5 shrink-0" />
+                    <p className="text-xs text-[var(--accent-text)]">Prices increase by {surgeLocal}% during active rush slots. A banner will warn customers on the menu page.</p>
                   </div>
                 </motion.div>
               ) : (
-                <div className="text-center py-6 text-gray-400">
+                <div className="text-center py-6 text-[var(--text-3)]">
                   <AlertCircle className="w-8 h-8 mx-auto mb-2 opacity-30" />
                   <p className="text-xs">Enable surge pricing to automatically adjust menu prices during peak hours</p>
                 </div>
@@ -268,7 +268,7 @@ export default function RushHourTab({ restaurantId }: { restaurantId?: string })
       )}
 
       {!config.isEnabled && (
-        <div className="text-center py-16 text-gray-400">
+        <div className="text-center py-16 text-[var(--text-3)]">
           <Flame className="w-12 h-12 mx-auto mb-3 opacity-20" />
           <p className="text-sm font-medium">Rush Hour is disabled</p>
           <p className="text-xs mt-1">Enable it above to configure peak-time slots and surge pricing</p>

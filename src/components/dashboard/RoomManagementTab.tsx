@@ -65,8 +65,8 @@ interface Booking {
 const ROOM_TYPES: RoomType[] = ["STANDARD", "DELUXE", "SUITE"];
 
 const ROOM_TYPE_COLORS: Record<RoomType, { bg: string; text: string; border: string }> = {
-  STANDARD: { bg: "bg-gray-50", text: "text-gray-700", border: "border-gray-200" },
-  DELUXE: { bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-200" },
+  STANDARD: { bg: "bg-[var(--canvas-sub)]", text: "text-[var(--text-2)]", border: "border-[var(--border)]" },
+  DELUXE: { bg: "bg-[var(--accent-muted)]", text: "text-[var(--accent-text)]", border: "border-[var(--accent-border)]" },
   SUITE: { bg: "bg-purple-50", text: "text-purple-700", border: "border-purple-200" },
 };
 
@@ -74,8 +74,8 @@ const BOOKING_STATUSES: BookingStatus[] = ["CONFIRMED", "CHECKED_IN", "CHECKED_O
 
 const BOOKING_STATUS_COLORS: Record<BookingStatus, { bg: string; text: string; border: string }> = {
   CONFIRMED: { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-200" },
-  CHECKED_IN: { bg: "bg-[#fef9ef]", text: "text-[#b25c1c]", border: "border-[#eaa94d]/30" },
-  CHECKED_OUT: { bg: "bg-gray-50", text: "text-gray-600", border: "border-gray-200" },
+  CHECKED_IN: { bg: "bg-[var(--accent-muted)]", text: "text-[#b25c1c]", border: "border-[var(--accent-border)]" },
+  CHECKED_OUT: { bg: "bg-[var(--canvas-sub)]", text: "text-[var(--text-2)]", border: "border-[var(--border)]" },
   CANCELLED: { bg: "bg-red-50", text: "text-red-700", border: "border-red-200" },
 };
 
@@ -130,24 +130,24 @@ export default function RoomManagementTab() {
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
-            <h2 className="text-2xl font-extrabold tracking-tight text-gray-900">
+            <h2 className="text-2xl font-extrabold tracking-tight text-[var(--text-1)]">
               Room Management
             </h2>
           </div>
-          <p className="mt-1.5 text-sm font-medium text-gray-500">
+          <p className="mt-1.5 text-sm font-medium text-[var(--text-2)]">
             Manage rooms &amp; bookings for{" "}
-            <strong className="text-gray-900">{restaurant.name}</strong>
+            <strong className="text-[var(--text-1)]">{restaurant.name}</strong>
           </p>
         </div>
       </div>
 
-      <div className="flex items-center gap-4 border-b border-gray-200/60 pb-px">
+      <div className="flex items-center gap-4 border-b border-[var(--border)]/60 pb-px">
         <button
           onClick={() => setActiveTab("rooms")}
           className={`group flex items-center gap-2 border-b-2 px-2 py-3 text-sm font-extrabold transition-all outline-none ${
             activeTab === "rooms"
-              ? "border-amber-500 text-amber-600"
-              : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
+              ? "border-[var(--accent)] text-[var(--accent-text)]"
+              : "border-transparent text-[var(--text-2)] hover:border-[var(--border)] hover:text-[var(--text-2)]"
           }`}
         >
           <BedDouble className="h-4 w-4" />
@@ -157,8 +157,8 @@ export default function RoomManagementTab() {
           onClick={() => setActiveTab("bookings")}
           className={`group flex items-center gap-2 border-b-2 px-2 py-3 text-sm font-extrabold transition-all outline-none ${
             activeTab === "bookings"
-              ? "border-amber-500 text-amber-600"
-              : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
+              ? "border-[var(--accent)] text-[var(--accent-text)]"
+              : "border-transparent text-[var(--text-2)] hover:border-[var(--border)] hover:text-[var(--text-2)]"
           }`}
         >
           <Calendar className="h-4 w-4" />
@@ -305,8 +305,8 @@ function RoomsView({ restaurantId, currency }: { restaurantId: string; currency:
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
-        <Loader2 className="h-6 w-6 animate-spin text-amber-500 mb-3" />
-        <p className="text-sm font-bold text-gray-400">Loading rooms...</p>
+        <Loader2 className="h-6 w-6 animate-spin text-[var(--accent)] mb-3" />
+        <p className="text-sm font-bold text-[var(--text-3)]">Loading rooms...</p>
       </div>
     );
   }
@@ -315,15 +315,15 @@ function RoomsView({ restaurantId, currency }: { restaurantId: string; currency:
     <div className="space-y-5">
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label: "Total Rooms", value: totalRooms, color: "text-gray-900" },
+          { label: "Total Rooms", value: totalRooms, color: "text-[var(--text-1)]" },
           { label: "Available", value: availableRooms, color: "text-[#b25c1c]" },
-          { label: "Occupied", value: occupiedRooms, color: "text-amber-600" },
+          { label: "Occupied", value: occupiedRooms, color: "text-[var(--accent-text)]" },
         ].map((stat) => (
           <div
             key={stat.label}
-            className="rounded-2xl bg-white/70 backdrop-blur-md border border-gray-100/50 p-4 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)]"
+            className="rounded-2xl bg-[var(--canvas)]/70 backdrop-blur-md border border-[var(--border-soft)]/50 p-4 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)]"
           >
-            <p className="text-xs font-semibold text-gray-500">{stat.label}</p>
+            <p className="text-xs font-semibold text-[var(--text-2)]">{stat.label}</p>
             <p className={`text-2xl font-black ${stat.color}`}>{stat.value}</p>
           </div>
         ))}
@@ -332,7 +332,7 @@ function RoomsView({ restaurantId, currency }: { restaurantId: string; currency:
       <div className="flex justify-end">
         <button
           onClick={openCreate}
-          className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-5 py-2.5 text-sm font-bold text-white shadow-[0_4px_14px_0_rgba(245,158,11,0.39)] transition-all hover:shadow-[0_6px_20px_rgba(245,158,11,0.23)] hover:-translate-y-0.5 active:scale-[0.97]"
+          className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] px-5 py-2.5 text-sm font-bold text-white shadow-[0_4px_14px_0_rgba(245,158,11,0.39)] transition-all hover:shadow-[0_6px_20px_rgba(245,158,11,0.23)] hover:-translate-y-0.5 active:scale-[0.97]"
         >
           <Plus className="h-4 w-4" strokeWidth={2.5} />
           Add Room
@@ -341,9 +341,9 @@ function RoomsView({ restaurantId, currency }: { restaurantId: string; currency:
 
       {rooms.length === 0 ? (
         <div className="flex flex-col items-center py-16 text-center">
-          <BedDouble className="h-10 w-10 text-gray-300 mb-3" />
-          <p className="font-bold text-gray-500">No rooms yet</p>
-          <p className="text-sm text-gray-400 mt-1">
+          <BedDouble className="h-10 w-10 text-[var(--text-3)] mb-3" />
+          <p className="font-bold text-[var(--text-2)]">No rooms yet</p>
+          <p className="text-sm text-[var(--text-3)] mt-1">
             Add your first room to start managing bookings
           </p>
         </div>
@@ -360,7 +360,7 @@ function RoomsView({ restaurantId, currency }: { restaurantId: string; currency:
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ delay: i * 0.03 }}
-                  className="group flex items-center gap-4 rounded-2xl bg-white/90 backdrop-blur-xl border border-gray-100 p-4 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] transition-all hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.08)] hover:-translate-y-0.5"
+                  className="group flex items-center gap-4 rounded-2xl bg-[var(--canvas)]/90 backdrop-blur-xl border border-[var(--border-soft)] p-4 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] transition-all hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.08)] hover:-translate-y-0.5"
                 >
                   <div className={`h-12 w-12 shrink-0 rounded-2xl overflow-hidden ${typeColors.bg}`}>
                     {room.imageUrls?.length > 0 ? (
@@ -378,7 +378,7 @@ function RoomsView({ restaurantId, currency }: { restaurantId: string; currency:
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h4 className="font-bold text-gray-900 truncate">
+                      <h4 className="font-bold text-[var(--text-1)] truncate">
                         #{room.roomNumber} &mdash; {room.name}
                       </h4>
                       <span
@@ -389,14 +389,14 @@ function RoomsView({ restaurantId, currency }: { restaurantId: string; currency:
                       <span
                         className={`shrink-0 rounded-md border px-2 py-0.5 text-[10px] font-bold ${
                           room.isAvailable
-                            ? "bg-[#fef9ef] text-[#b25c1c] border-[#eaa94d]/30"
+                            ? "bg-[var(--accent-muted)] text-[#b25c1c] border-[var(--accent-border)]"
                             : "bg-red-50 text-red-600 border-red-200"
                         }`}
                       >
                         {room.isAvailable ? "Available" : "Occupied"}
                       </span>
                     </div>
-                    <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                    <div className="flex items-center gap-3 mt-1 text-xs text-[var(--text-2)]">
                       <span className="font-semibold">
                         {formatPrice(room.price, currency)}/night
                       </span>
@@ -412,7 +412,7 @@ function RoomsView({ restaurantId, currency }: { restaurantId: string; currency:
                         </span>
                       )}
                       {room.imageUrls?.length > 0 && (
-                        <span className="flex items-center gap-1 text-amber-600">
+                        <span className="flex items-center gap-1 text-[var(--accent-text)]">
                           <ImageIcon className="h-3 w-3" />
                           {room.imageUrls.length}
                         </span>
@@ -423,13 +423,13 @@ function RoomsView({ restaurantId, currency }: { restaurantId: string; currency:
                         {room.amenities.slice(0, 5).map((a) => (
                           <span
                             key={a}
-                            className="rounded-md bg-gray-50 border border-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-500"
+                            className="rounded-md bg-[var(--canvas-sub)] border border-[var(--border-soft)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--text-2)]"
                           >
                             {a}
                           </span>
                         ))}
                         {room.amenities.length > 5 && (
-                          <span className="text-[10px] font-medium text-gray-400">
+                          <span className="text-[10px] font-medium text-[var(--text-3)]">
                             +{room.amenities.length - 5} more
                           </span>
                         )}
@@ -440,7 +440,7 @@ function RoomsView({ restaurantId, currency }: { restaurantId: string; currency:
                   <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={() => openEdit(room)}
-                      className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition-all"
+                      className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent-muted)] text-[var(--accent-text)] hover:bg-[var(--accent-muted)] transition-all"
                       title="Edit"
                     >
                       <Edit2 className="h-3.5 w-3.5" />
@@ -536,15 +536,15 @@ function RoomFormModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 8 }}
             transition={{ type: "spring", damping: 28, stiffness: 340, mass: 0.7 }}
-            className="fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl sm:p-8 max-h-[90dvh]"
+            className="fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-3xl bg-[var(--canvas)] p-6 shadow-2xl sm:p-8 max-h-[90dvh]"
           >
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-extrabold text-[#3e1e0c]">
+              <h3 className="text-xl font-extrabold text-[var(--text-1)]">
                 {isEditing ? "Edit Room" : "Add Room"}
               </h3>
               <button
                 onClick={onClose}
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition-all"
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-[var(--border)] text-[var(--text-3)] hover:bg-[var(--canvas-sub)] hover:text-[var(--text-2)] transition-all"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -554,7 +554,7 @@ function RoomFormModal({
               {/* Room Number & Name */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">
+                  <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">
                     Room Number <span className="text-[#eaa94d]">*</span>
                   </label>
                   <input
@@ -562,11 +562,11 @@ function RoomFormModal({
                     value={form.roomNumber}
                     onChange={(e) => setForm((f) => ({ ...f, roomNumber: e.target.value }))}
                     placeholder="e.g. 101"
-                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#3e1e0c] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">
+                  <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">
                     Name <span className="text-[#eaa94d]">*</span>
                   </label>
                   <input
@@ -574,13 +574,13 @@ function RoomFormModal({
                     value={form.name}
                     onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                     placeholder="e.g. Mountain View"
-                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#3e1e0c] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-[#3e1e0c] mb-2">
+                <label className="block text-sm font-bold text-[var(--text-1)] mb-2">
                   Type <span className="text-[#eaa94d]">*</span>
                 </label>
                 <div className="flex flex-wrap gap-2">
@@ -594,7 +594,7 @@ function RoomFormModal({
                         className={`rounded-lg border px-3 py-2 text-xs font-bold transition-all ${
                           form.type === t
                             ? `${colors.bg} ${colors.text} ${colors.border}`
-                            : "border-gray-200 bg-white text-gray-500 hover:bg-gray-50"
+                            : "border-[var(--border)] bg-[var(--canvas)] text-[var(--text-2)] hover:bg-[var(--canvas-sub)]"
                         }`}
                       >
                         {t}
@@ -607,17 +607,17 @@ function RoomFormModal({
               {/* Floor, Price, Max Guests */}
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">Floor</label>
+                  <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">Floor</label>
                   <input
                     type="number"
                     value={form.floor}
                     onChange={(e) => setForm((f) => ({ ...f, floor: parseInt(e.target.value) || 1 }))}
                     min={0}
-                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#3e1e0c] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">
+                  <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">
                     Price/Night <span className="text-[#eaa94d]">*</span>
                   </label>
                   <input
@@ -627,18 +627,18 @@ function RoomFormModal({
                     min={0}
                     step={100}
                     placeholder="0"
-                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#3e1e0c] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">Max Guests</label>
+                  <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">Max Guests</label>
                   <input
                     type="number"
                     value={form.maxGuests}
                     onChange={(e) => setForm((f) => ({ ...f, maxGuests: parseInt(e.target.value) || 1 }))}
                     min={1}
                     max={20}
-                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#3e1e0c] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
                   />
                 </div>
               </div>
@@ -646,11 +646,11 @@ function RoomFormModal({
               {/* Bed type & count */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">Bed Type</label>
+                  <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">Bed Type</label>
                   <select
                     value={form.bedType}
                     onChange={(e) => setForm((f) => ({ ...f, bedType: e.target.value }))}
-                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#3e1e0c] outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
                   >
                     <option value="">Select bed type</option>
                     {BED_TYPES.map((bt) => (
@@ -659,50 +659,50 @@ function RoomFormModal({
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">Bed Count</label>
+                  <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">Bed Count</label>
                   <input
                     type="number"
                     value={form.bedCount}
                     onChange={(e) => setForm((f) => ({ ...f, bedCount: parseInt(e.target.value) || 1 }))}
                     min={1}
                     max={10}
-                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#3e1e0c] outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">Description</label>
+                <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">Description</label>
                 <textarea
                   value={form.description}
                   onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
                   placeholder="A brief description of the room..."
                   rows={2}
-                  className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#3e1e0c] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15 resize-none"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15 resize-none"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">
+                <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">
                   Amenities{" "}
-                  <span className="text-xs font-normal text-gray-400">(comma-separated)</span>
+                  <span className="text-xs font-normal text-[var(--text-3)]">(comma-separated)</span>
                 </label>
                 <input
                   type="text"
                   value={form.amenities}
                   onChange={(e) => setForm((f) => ({ ...f, amenities: e.target.value }))}
                   placeholder="e.g. WiFi, AC, TV, Mini Bar"
-                  className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#3e1e0c] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
                 />
               </div>
 
               {/* Room Images */}
               <div>
-                <label className="block text-sm font-bold text-[#3e1e0c] mb-2">Room Photos</label>
+                <label className="block text-sm font-bold text-[var(--text-1)] mb-2">Room Photos</label>
                 {form.imageUrls.length > 0 && (
                   <div className="flex flex-wrap gap-2 mb-2">
                     {form.imageUrls.map((url, idx) => (
-                      <div key={idx} className="relative group h-20 w-20 rounded-xl overflow-hidden border border-gray-200 shrink-0">
+                      <div key={idx} className="relative group h-20 w-20 rounded-xl overflow-hidden border border-[var(--border)] shrink-0">
                         <img src={url} alt={`Room ${idx + 1}`} className="h-full w-full object-cover" />
                         <button
                           type="button"
@@ -731,7 +731,7 @@ function RoomFormModal({
                   type="button"
                   onClick={() => imgInputRef.current?.click()}
                   disabled={uploadingImg}
-                  className="flex items-center gap-2 rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-500 hover:border-amber-400 hover:bg-amber-50 hover:text-amber-700 transition-all disabled:opacity-50 w-full justify-center"
+                  className="flex items-center gap-2 rounded-xl border border-dashed border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-3 text-sm font-medium text-[var(--text-2)] hover:border-[var(--accent)] hover:bg-[var(--accent-muted)] hover:text-[var(--accent-text)] transition-all disabled:opacity-50 w-full justify-center"
                 >
                   {uploadingImg ? (
                     <><Loader2 className="h-4 w-4 animate-spin" /> Uploading...</>
@@ -746,16 +746,16 @@ function RoomFormModal({
                   type="button"
                   onClick={() => setForm((f) => ({ ...f, isAvailable: !f.isAvailable }))}
                   className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
-                    form.isAvailable ? "bg-[#eaa94d]" : "bg-gray-300"
+                    form.isAvailable ? "bg-[#eaa94d]" : "bg-[var(--border)]"
                   }`}
                 >
                   <span
-                    className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-lg transform transition duration-200 ease-in-out ${
+                    className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-[var(--canvas)] shadow-lg transform transition duration-200 ease-in-out ${
                       form.isAvailable ? "translate-x-5" : "translate-x-0"
                     }`}
                   />
                 </button>
-                <span className="text-sm font-bold text-[#3e1e0c]">
+                <span className="text-sm font-bold text-[var(--text-1)]">
                   {form.isAvailable ? "Available" : "Unavailable"}
                 </span>
               </div>
@@ -770,7 +770,7 @@ function RoomFormModal({
             <div className="mt-6 flex items-center justify-end gap-3">
               <button
                 onClick={onClose}
-                className="rounded-xl px-5 py-2.5 text-sm font-bold text-gray-500 hover:text-[#3e1e0c] hover:bg-gray-50 transition-all"
+                className="rounded-xl px-5 py-2.5 text-sm font-bold text-[var(--text-2)] hover:text-[var(--text-1)] hover:bg-[var(--canvas-sub)] transition-all"
               >
                 Cancel
               </button>
@@ -779,8 +779,8 @@ function RoomFormModal({
                 disabled={saving}
                 className={`flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-bold text-white shadow-lg transition-all active:scale-[0.97] ${
                   !saving
-                    ? "bg-gradient-to-r from-amber-500 to-orange-500 shadow-amber-500/20 hover:shadow-amber-500/30"
-                    : "bg-gray-300 shadow-none cursor-not-allowed"
+                    ? "bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] shadow-[var(--accent)]/20/20 hover:shadow-[var(--accent)]/20/30"
+                    : "bg-[var(--border)] shadow-none cursor-not-allowed"
                 }`}
               >
                 {saving ? (
@@ -904,8 +904,8 @@ function BookingsView({ restaurantId, currency }: { restaurantId: string; curren
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
-        <Loader2 className="h-6 w-6 animate-spin text-amber-500 mb-3" />
-        <p className="text-sm font-bold text-gray-400">Loading bookings...</p>
+        <Loader2 className="h-6 w-6 animate-spin text-[var(--accent)] mb-3" />
+        <p className="text-sm font-bold text-[var(--text-3)]">Loading bookings...</p>
       </div>
     );
   }
@@ -921,8 +921,8 @@ function BookingsView({ restaurantId, currency }: { restaurantId: string; curren
               onClick={() => setStatusFilter(s)}
               className={`shrink-0 rounded-lg px-3 py-2 text-xs font-bold transition-all shadow-sm ${
                 statusFilter === s
-                  ? "bg-gray-900 text-white"
-                  : "bg-white border border-gray-100 text-gray-500 hover:bg-gray-50"
+                  ? "bg-[var(--text-1)] text-white"
+                  : "bg-[var(--canvas)] border border-[var(--border-soft)] text-[var(--text-2)] hover:bg-[var(--canvas-sub)]"
               }`}
             >
               {s === "ALL" ? "All" : BOOKING_STATUS_LABELS[s]}
@@ -931,7 +931,7 @@ function BookingsView({ restaurantId, currency }: { restaurantId: string; curren
         </div>
         <button
           onClick={openCreate}
-          className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-5 py-2.5 text-sm font-bold text-white shadow-[0_4px_14px_0_rgba(245,158,11,0.39)] transition-all hover:shadow-[0_6px_20px_rgba(245,158,11,0.23)] hover:-translate-y-0.5 active:scale-[0.97]"
+          className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] px-5 py-2.5 text-sm font-bold text-white shadow-[0_4px_14px_0_rgba(245,158,11,0.39)] transition-all hover:shadow-[0_6px_20px_rgba(245,158,11,0.23)] hover:-translate-y-0.5 active:scale-[0.97]"
         >
           <Plus className="h-4 w-4" strokeWidth={2.5} />
           New Booking
@@ -940,9 +940,9 @@ function BookingsView({ restaurantId, currency }: { restaurantId: string; curren
 
       {filteredBookings.length === 0 ? (
         <div className="flex flex-col items-center py-16 text-center">
-          <Calendar className="h-10 w-10 text-gray-300 mb-3" />
-          <p className="font-bold text-gray-500">No bookings found</p>
-          <p className="text-sm text-gray-400 mt-1">
+          <Calendar className="h-10 w-10 text-[var(--text-3)] mb-3" />
+          <p className="font-bold text-[var(--text-2)]">No bookings found</p>
+          <p className="text-sm text-[var(--text-3)] mt-1">
             {statusFilter === "ALL"
               ? "Create your first booking to get started"
               : `No ${BOOKING_STATUS_LABELS[statusFilter].toLowerCase()} bookings`}
@@ -964,16 +964,16 @@ function BookingsView({ restaurantId, currency }: { restaurantId: string; curren
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ delay: i * 0.03 }}
-                  className="rounded-2xl bg-white/90 backdrop-blur-xl border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] transition-all hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.08)]"
+                  className="rounded-2xl bg-[var(--canvas)]/90 backdrop-blur-xl border border-[var(--border-soft)] shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] transition-all hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.08)]"
                 >
                   <div className="flex items-center gap-4 p-4">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-700 font-bold text-sm uppercase">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[var(--accent-muted)] text-[var(--accent-text)] font-bold text-sm uppercase">
                       {booking.guestName.charAt(0)}
                     </div>
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <h4 className="font-bold text-gray-900 truncate">
+                        <h4 className="font-bold text-[var(--text-1)] truncate">
                           {booking.guestName}
                         </h4>
                         <span
@@ -982,7 +982,7 @@ function BookingsView({ restaurantId, currency }: { restaurantId: string; curren
                           {BOOKING_STATUS_LABELS[booking.status as BookingStatus]}
                         </span>
                       </div>
-                      <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                      <div className="flex items-center gap-3 mt-1 text-xs text-[var(--text-2)]">
                         {roomInfo && (
                           <span className="font-semibold">
                             Room #{roomInfo.roomNumber} &mdash; {roomInfo.name}
@@ -993,7 +993,7 @@ function BookingsView({ restaurantId, currency }: { restaurantId: string; curren
                           {booking.guests} guest{booking.guests !== 1 ? "s" : ""}
                         </span>
                       </div>
-                      <div className="flex items-center gap-3 mt-0.5 text-xs text-gray-400">
+                      <div className="flex items-center gap-3 mt-0.5 text-xs text-[var(--text-3)]">
                         <span>
                           {new Date(booking.checkIn).toLocaleDateString(undefined, {
                             month: "short",
@@ -1006,7 +1006,7 @@ function BookingsView({ restaurantId, currency }: { restaurantId: string; curren
                             year: "numeric",
                           })}
                         </span>
-                        <span className="font-semibold text-gray-600">
+                        <span className="font-semibold text-[var(--text-2)]">
                           {formatPrice(booking.totalAmount, currency)}
                         </span>
                         {booking.advanceAmount > 0 && (
@@ -1020,7 +1020,7 @@ function BookingsView({ restaurantId, currency }: { restaurantId: string; curren
                     <div className="flex items-center gap-1.5 shrink-0">
                       <button
                         onClick={() => setExpandedId(isExpanded ? null : booking.id)}
-                        className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-50 text-gray-500 hover:bg-gray-100 transition-all"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--canvas-sub)] text-[var(--text-2)] hover:bg-[var(--surface)] transition-all"
                         title="Details"
                       >
                         <Eye className="h-3.5 w-3.5" />
@@ -1030,7 +1030,7 @@ function BookingsView({ restaurantId, currency }: { restaurantId: string; curren
                         <button
                           onClick={() => handleStatusUpdate(booking.id, "CHECKED_IN")}
                           disabled={updatingId === booking.id}
-                          className="flex h-8 items-center gap-1 rounded-lg bg-[#fef9ef] px-2 text-[#b25c1c] hover:bg-[#fef3dc] transition-all text-xs font-bold disabled:opacity-40"
+                          className="flex h-8 items-center gap-1 rounded-lg bg-[var(--accent-muted)] px-2 text-[#b25c1c] hover:bg-[var(--accent-muted)] transition-all text-xs font-bold disabled:opacity-40"
                           title="Check In"
                         >
                           {updatingId === booking.id ? (
@@ -1045,7 +1045,7 @@ function BookingsView({ restaurantId, currency }: { restaurantId: string; curren
                         <button
                           onClick={() => handleStatusUpdate(booking.id, "CHECKED_OUT")}
                           disabled={updatingId === booking.id}
-                          className="flex h-8 items-center gap-1 rounded-lg bg-gray-100 px-2 text-gray-700 hover:bg-gray-200 transition-all text-xs font-bold disabled:opacity-40"
+                          className="flex h-8 items-center gap-1 rounded-lg bg-[var(--surface)] px-2 text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-all text-xs font-bold disabled:opacity-40"
                           title="Check Out"
                         >
                           {updatingId === booking.id ? (
@@ -1082,28 +1082,28 @@ function BookingsView({ restaurantId, currency }: { restaurantId: string; curren
                         transition={{ duration: 0.2 }}
                         className="overflow-hidden"
                       >
-                        <div className="border-t border-gray-50 px-4 pb-4 pt-3 grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
+                        <div className="border-t border-[var(--border-soft)] px-4 pb-4 pt-3 grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
                           {booking.guestPhone && (
                             <div>
-                              <p className="font-semibold text-gray-400 uppercase tracking-wider mb-0.5">
+                              <p className="font-semibold text-[var(--text-3)] uppercase tracking-wider mb-0.5">
                                 Phone
                               </p>
-                              <p className="font-bold text-gray-700">{booking.guestPhone}</p>
+                              <p className="font-bold text-[var(--text-2)]">{booking.guestPhone}</p>
                             </div>
                           )}
                           {booking.guestEmail && (
                             <div>
-                              <p className="font-semibold text-gray-400 uppercase tracking-wider mb-0.5">
+                              <p className="font-semibold text-[var(--text-3)] uppercase tracking-wider mb-0.5">
                                 Email
                               </p>
-                              <p className="font-bold text-gray-700 truncate">{booking.guestEmail}</p>
+                              <p className="font-bold text-[var(--text-2)] truncate">{booking.guestEmail}</p>
                             </div>
                           )}
                           <div>
-                            <p className="font-semibold text-gray-400 uppercase tracking-wider mb-0.5">
+                            <p className="font-semibold text-[var(--text-3)] uppercase tracking-wider mb-0.5">
                               Check-In
                             </p>
-                            <p className="font-bold text-gray-700">
+                            <p className="font-bold text-[var(--text-2)]">
                               {new Date(booking.checkIn).toLocaleString(undefined, {
                                 month: "short",
                                 day: "numeric",
@@ -1114,10 +1114,10 @@ function BookingsView({ restaurantId, currency }: { restaurantId: string; curren
                             </p>
                           </div>
                           <div>
-                            <p className="font-semibold text-gray-400 uppercase tracking-wider mb-0.5">
+                            <p className="font-semibold text-[var(--text-3)] uppercase tracking-wider mb-0.5">
                               Check-Out
                             </p>
-                            <p className="font-bold text-gray-700">
+                            <p className="font-bold text-[var(--text-2)]">
                               {new Date(booking.checkOut).toLocaleString(undefined, {
                                 month: "short",
                                 day: "numeric",
@@ -1128,27 +1128,27 @@ function BookingsView({ restaurantId, currency }: { restaurantId: string; curren
                             </p>
                           </div>
                           <div>
-                            <p className="font-semibold text-gray-400 uppercase tracking-wider mb-0.5">
+                            <p className="font-semibold text-[var(--text-3)] uppercase tracking-wider mb-0.5">
                               Total
                             </p>
-                            <p className="font-bold text-gray-700">
+                            <p className="font-bold text-[var(--text-2)]">
                               {formatPrice(booking.totalAmount, currency)}
                             </p>
                           </div>
                           <div>
-                            <p className="font-semibold text-gray-400 uppercase tracking-wider mb-0.5">
+                            <p className="font-semibold text-[var(--text-3)] uppercase tracking-wider mb-0.5">
                               Advance
                             </p>
-                            <p className="font-bold text-gray-700">
+                            <p className="font-bold text-[var(--text-2)]">
                               {formatPrice(booking.advanceAmount, currency)}
                             </p>
                           </div>
                           {booking.note && (
                             <div className="col-span-2 sm:col-span-3">
-                              <p className="font-semibold text-gray-400 uppercase tracking-wider mb-0.5">
+                              <p className="font-semibold text-[var(--text-3)] uppercase tracking-wider mb-0.5">
                                 Note
                               </p>
-                              <p className="font-medium text-gray-600">{booking.note}</p>
+                              <p className="font-medium text-[var(--text-2)]">{booking.note}</p>
                             </div>
                           )}
                         </div>
@@ -1218,13 +1218,13 @@ function BookingFormModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 8 }}
             transition={{ type: "spring", damping: 28, stiffness: 340, mass: 0.7 }}
-            className="fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl sm:p-8 max-h-[90dvh]"
+            className="fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-3xl bg-[var(--canvas)] p-6 shadow-2xl sm:p-8 max-h-[90dvh]"
           >
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-extrabold text-[#3e1e0c]">New Booking</h3>
+              <h3 className="text-xl font-extrabold text-[var(--text-1)]">New Booking</h3>
               <button
                 onClick={onClose}
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition-all"
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-[var(--border)] text-[var(--text-3)] hover:bg-[var(--canvas-sub)] hover:text-[var(--text-2)] transition-all"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -1232,13 +1232,13 @@ function BookingFormModal({
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">
+                <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">
                   Room <span className="text-[#eaa94d]">*</span>
                 </label>
                 <select
                   value={form.roomId}
                   onChange={(e) => setForm((f) => ({ ...f, roomId: e.target.value }))}
-                  className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#3e1e0c] outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15 appearance-none"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15 appearance-none"
                 >
                   <option value="">Select a room</option>
                   {availableRooms.map((room) => (
@@ -1249,14 +1249,14 @@ function BookingFormModal({
                   ))}
                 </select>
                 {availableRooms.length === 0 && (
-                  <p className="mt-1 text-xs font-medium text-amber-600">
+                  <p className="mt-1 text-xs font-medium text-[var(--accent-text)]">
                     No available rooms. Mark a room as available first.
                   </p>
                 )}
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">
+                <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">
                   Guest Name <span className="text-[#eaa94d]">*</span>
                 </label>
                 <input
@@ -1264,14 +1264,14 @@ function BookingFormModal({
                   value={form.guestName}
                   onChange={(e) => setForm((f) => ({ ...f, guestName: e.target.value }))}
                   placeholder="e.g. Sita Sharma"
-                  className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#3e1e0c] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
                 />
               </div>
 
               {/* Phone & Email */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">Phone</label>
+                  <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">Phone</label>
                   <input
                     type="tel"
                     value={form.guestPhone}
@@ -1279,17 +1279,17 @@ function BookingFormModal({
                       setForm((f) => ({ ...f, guestPhone: e.target.value.replace(/[^\d+\-\s]/g, "") }))
                     }
                     placeholder="98XXXXXXXX"
-                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#3e1e0c] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">Email</label>
+                  <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">Email</label>
                   <input
                     type="email"
                     value={form.guestEmail}
                     onChange={(e) => setForm((f) => ({ ...f, guestEmail: e.target.value }))}
                     placeholder="guest@email.com"
-                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#3e1e0c] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
                   />
                 </div>
               </div>
@@ -1297,44 +1297,44 @@ function BookingFormModal({
               {/* Check-in & Check-out */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">
+                  <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">
                     Check-In <span className="text-[#eaa94d]">*</span>
                   </label>
                   <input
                     type="datetime-local"
                     value={form.checkIn}
                     onChange={(e) => setForm((f) => ({ ...f, checkIn: e.target.value }))}
-                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#3e1e0c] outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">
+                  <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">
                     Check-Out <span className="text-[#eaa94d]">*</span>
                   </label>
                   <input
                     type="datetime-local"
                     value={form.checkOut}
                     onChange={(e) => setForm((f) => ({ ...f, checkOut: e.target.value }))}
-                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#3e1e0c] outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">Guests</label>
+                <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">Guests</label>
                 <input
                   type="number"
                   value={form.guests}
                   onChange={(e) => setForm((f) => ({ ...f, guests: parseInt(e.target.value) || 1 }))}
                   min={1}
                   max={20}
-                  className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#3e1e0c] outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">
+                  <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">
                     Advance Amount
                   </label>
                   <input
@@ -1346,11 +1346,11 @@ function BookingFormModal({
                     min={0}
                     step={100}
                     placeholder="0"
-                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#3e1e0c] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">
+                  <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">
                     Total Amount
                   </label>
                   <input
@@ -1362,19 +1362,19 @@ function BookingFormModal({
                     min={0}
                     step={100}
                     placeholder="0"
-                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#3e1e0c] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">Note</label>
+                <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">Note</label>
                 <textarea
                   value={form.note}
                   onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
                   placeholder="Any special requests or notes..."
                   rows={2}
-                  className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#3e1e0c] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15 resize-none"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15 resize-none"
                 />
               </div>
             </div>
@@ -1388,7 +1388,7 @@ function BookingFormModal({
             <div className="mt-6 flex items-center justify-end gap-3">
               <button
                 onClick={onClose}
-                className="rounded-xl px-5 py-2.5 text-sm font-bold text-gray-500 hover:text-[#3e1e0c] hover:bg-gray-50 transition-all"
+                className="rounded-xl px-5 py-2.5 text-sm font-bold text-[var(--text-2)] hover:text-[var(--text-1)] hover:bg-[var(--canvas-sub)] transition-all"
               >
                 Cancel
               </button>
@@ -1397,8 +1397,8 @@ function BookingFormModal({
                 disabled={saving}
                 className={`flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-bold text-white shadow-lg transition-all active:scale-[0.97] ${
                   !saving
-                    ? "bg-gradient-to-r from-amber-500 to-orange-500 shadow-amber-500/20 hover:shadow-amber-500/30"
-                    : "bg-gray-300 shadow-none cursor-not-allowed"
+                    ? "bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] shadow-[var(--accent)]/20/20 hover:shadow-[var(--accent)]/20/30"
+                    : "bg-[var(--border)] shadow-none cursor-not-allowed"
                 }`}
               >
                 {saving ? (

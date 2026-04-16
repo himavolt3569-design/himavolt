@@ -222,10 +222,10 @@ export default function KioskPage({ params }: { params: Promise<{ slug: string }
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+      <div className="flex items-center justify-center min-h-screen bg-[var(--canvas-sub)]">
         <div className="flex flex-col items-center gap-4">
-          <div className="h-12 w-12 rounded-full border-4 border-amber-200 border-t-amber-600 animate-spin" />
-          <p className="text-sm font-medium text-gray-500">Loading menu...</p>
+          <div className="h-12 w-12 rounded-full border-4 border-[var(--accent-border)] border-t-[var(--accent)] animate-spin" />
+          <p className="text-sm font-medium text-[var(--text-2)]">Loading menu...</p>
         </div>
       </div>
     );
@@ -233,10 +233,10 @@ export default function KioskPage({ params }: { params: Promise<{ slug: string }
 
   if (error || !restaurant) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+      <div className="flex items-center justify-center min-h-screen bg-[var(--canvas-sub)]">
         <div className="text-center">
-          <p className="text-xl font-bold text-gray-900 mb-2">Unable to load</p>
-          <p className="text-sm text-gray-500">{error || "Restaurant not found"}</p>
+          <p className="text-xl font-bold text-[var(--text-1)] mb-2">Unable to load</p>
+          <p className="text-sm text-[var(--text-2)]">{error || "Restaurant not found"}</p>
         </div>
       </div>
     );
@@ -244,20 +244,20 @@ export default function KioskPage({ params }: { params: Promise<{ slug: string }
 
   if (!restaurant.isOpen) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+      <div className="flex items-center justify-center min-h-screen bg-[var(--canvas-sub)]">
         <div className="text-center">
-          <div className="h-16 w-16 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-5">
-            <X className="h-8 w-8 text-gray-400" />
+          <div className="h-16 w-16 rounded-2xl bg-[var(--surface)] flex items-center justify-center mx-auto mb-5">
+            <X className="h-8 w-8 text-[var(--text-3)]" />
           </div>
-          <p className="text-xl font-bold text-gray-900 mb-1">{restaurant.name}</p>
-          <p className="text-sm text-gray-400">Currently closed for orders</p>
+          <p className="text-xl font-bold text-[var(--text-1)] mb-1">{restaurant.name}</p>
+          <p className="text-sm text-[var(--text-3)]">Currently closed for orders</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 select-none">
+    <div className="min-h-screen bg-[var(--canvas-sub)] select-none">
       <KioskIdleOverlay
         isIdle={isIdle}
         onIdle={() => setIsIdle(true)}
@@ -287,31 +287,31 @@ export default function KioskPage({ params }: { params: Promise<{ slug: string }
       {screen === "MENU" && (
         <div className="flex h-screen">
           <div className="flex-1 flex flex-col overflow-hidden">
-            <div className="shrink-0 bg-white border-b border-gray-200 px-6 py-4">
+            <div className="shrink-0 bg-[var(--canvas)] border-b border-[var(--border)] px-6 py-4">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h1 className="text-xl font-black text-gray-900">{restaurant.name}</h1>
-                  <p className="text-sm text-gray-500">Choose your items</p>
+                  <h1 className="text-xl font-black text-[var(--text-1)]">{restaurant.name}</h1>
+                  <p className="text-sm text-[var(--text-2)]">Choose your items</p>
                 </div>
                 <button
                   onClick={resetAll}
-                  className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50"
+                  className="rounded-xl border border-[var(--border)] px-4 py-2 text-sm font-medium text-[var(--text-2)] hover:bg-[var(--canvas-sub)]"
                 >
                   Cancel
                 </button>
               </div>
 
               <div className="relative mb-4">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[var(--text-3)]" />
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search menu items..."
-                  className="w-full rounded-2xl border border-gray-200 bg-gray-50 pl-12 pr-10 py-3.5 text-base focus:outline-none focus:ring-2 focus:ring-amber-300 focus:border-amber-300 transition-all"
+                  className="w-full rounded-2xl border border-[var(--border)] bg-[var(--canvas-sub)] pl-12 pr-10 py-3.5 text-base focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] focus:border-[var(--accent-border)] transition-all"
                 />
                 {search && (
                   <button onClick={() => setSearch("")} className="absolute right-4 top-1/2 -translate-y-1/2">
-                    <X className="h-4 w-4 text-gray-400" />
+                    <X className="h-4 w-4 text-[var(--text-3)]" />
                   </button>
                 )}
               </div>

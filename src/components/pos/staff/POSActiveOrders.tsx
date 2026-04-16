@@ -22,8 +22,8 @@ const STATUS_CONFIG: Record<string, { label: string; border: string; badge: stri
   PENDING:   { label: "New",       border: "border-l-orange-400",  badge: "bg-orange-100 text-orange-700",  icon: Bell },
   ACCEPTED:  { label: "Accepted",  border: "border-l-blue-400",    badge: "bg-blue-100 text-blue-700",      icon: CheckCircle2 },
   PREPARING: { label: "Preparing", border: "border-l-amber-400",   badge: "bg-amber-100 text-amber-700",    icon: ChefHat },
-  READY:     { label: "Ready",     border: "border-l-green-400",   badge: "bg-[#fef3dc] text-[#b25c1c]",    icon: CheckCircle2 },
-  DELIVERED: { label: "Delivered", border: "border-l-gray-300",    badge: "bg-gray-100 text-gray-500",      icon: Truck },
+  READY:     { label: "Ready",     border: "border-l-green-400",   badge: "bg-[var(--accent-muted)] text-[#b25c1c]",    icon: CheckCircle2 },
+  DELIVERED: { label: "Delivered", border: "border-l-gray-300",    badge: "bg-[var(--surface)] text-[var(--text-2)]",      icon: Truck },
   CANCELLED: { label: "Cancelled", border: "border-l-red-300",     badge: "bg-red-100 text-red-600",        icon: XCircle },
 };
 
@@ -83,14 +83,14 @@ export default function POSActiveOrders({ restaurantId, currency, orders, connec
   };
 
   return (
-    <div className="flex flex-col h-full bg-gray-50">
+    <div className="flex flex-col h-full bg-[var(--canvas-sub)]">
       {/* Header */}
-      <div className="shrink-0 px-6 pt-5 pb-4 bg-white border-b border-gray-200">
+      <div className="shrink-0 px-6 pt-5 pb-4 bg-[var(--canvas)] border-b border-[var(--border)]">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-semibold text-gray-900">Active Orders</h2>
+          <h2 className="text-base font-semibold text-[var(--text-1)]">Active Orders</h2>
           <span className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
             connectionStatus === "connected"
-              ? "bg-[#fef9ef] text-[#b25c1c]"
+              ? "bg-[var(--accent-muted)] text-[#b25c1c]"
               : connectionStatus === "connecting"
               ? "bg-amber-50 text-amber-700"
               : "bg-red-50 text-red-600"
@@ -118,12 +118,12 @@ export default function POSActiveOrders({ restaurantId, currency, orders, connec
                 className={`shrink-0 flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold border transition-all ${
                   active
                     ? "bg-amber-600 text-white border-amber-600"
-                    : "bg-white text-gray-500 border-gray-200 hover:border-gray-300 hover:text-gray-700"
+                    : "bg-[var(--canvas)] text-[var(--text-2)] border-[var(--border)] hover:border-gray-300 hover:text-[var(--text-2)]"
                 }`}
               >
                 {s === "ALL" ? "All" : (STATUS_CONFIG[s]?.label ?? s)}
                 <span className={`inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-bold ${
-                  active ? "bg-white/25 text-white" : "bg-gray-100 text-gray-500"
+                  active ? "bg-[var(--canvas)]/25 text-white" : "bg-[var(--surface)] text-[var(--text-2)]"
                 }`}>
                   {count}
                 </span>
@@ -136,7 +136,7 @@ export default function POSActiveOrders({ restaurantId, currency, orders, connec
       {/* Orders grid */}
       <div className="flex-1 overflow-y-auto p-6">
         {filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-40 gap-2 text-gray-400">
+          <div className="flex flex-col items-center justify-center h-40 gap-2 text-[var(--text-3)]">
             <p className="text-sm">No orders{filter !== "ALL" ? ` with status ${STATUS_CONFIG[filter]?.label ?? filter}` : ""}</p>
           </div>
         ) : (
@@ -153,18 +153,18 @@ export default function POSActiveOrders({ restaurantId, currency, orders, connec
                     initial={{ opacity: 0, scale: 0.97 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.97 }}
-                    className={`rounded-xl border border-gray-200 border-l-4 ${cfg.border} bg-white overflow-hidden shadow-sm`}
+                    className={`rounded-xl border border-[var(--border)] border-l-4 ${cfg.border} bg-[var(--canvas)] overflow-hidden shadow-sm`}
                   >
                     {/* Card header */}
-                    <div className="px-4 pt-3.5 pb-3 border-b border-gray-100">
+                    <div className="px-4 pt-3.5 pb-3 border-b border-[var(--border-soft)]">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-bold text-gray-900">#{order.orderNo}</span>
+                        <span className="text-sm font-bold text-[var(--text-1)]">#{order.orderNo}</span>
                         <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${cfg.badge}`}>
                           {cfg.label}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                        <div className="flex items-center gap-1.5 text-xs text-[var(--text-3)]">
                           <Clock className="h-3 w-3" />
                           <span>{timeAgo(order.createdAt)}</span>
                         </div>
@@ -175,7 +175,7 @@ export default function POSActiveOrders({ restaurantId, currency, orders, connec
                     {/* Card body */}
                     <div className="px-4 py-3 space-y-2">
                       {(order.tableNo || order.guestName) && (
-                        <div className="flex items-center gap-2 text-xs text-gray-500 pb-1.5 border-b border-gray-50">
+                        <div className="flex items-center gap-2 text-xs text-[var(--text-2)] pb-1.5 border-b border-gray-50">
                           {order.tableNo && <span className="font-medium">Table {order.tableNo}</span>}
                           {order.guestName && <span className="truncate">{order.guestName}</span>}
                         </div>
@@ -183,12 +183,12 @@ export default function POSActiveOrders({ restaurantId, currency, orders, connec
 
                       <div className="space-y-1">
                         {order.items.slice(0, 4).map((item) => (
-                          <p key={item.id} className="text-xs text-gray-600 leading-snug">
+                          <p key={item.id} className="text-xs text-[var(--text-2)] leading-snug">
                             <span className="font-semibold text-gray-800">{item.quantity}x</span> {item.name}
                           </p>
                         ))}
                         {order.items.length > 4 && (
-                          <p className="text-xs text-gray-400">+{order.items.length - 4} more items</p>
+                          <p className="text-xs text-[var(--text-3)]">+{order.items.length - 4} more items</p>
                         )}
                       </div>
 

@@ -7,6 +7,7 @@ import { ToastProvider } from "@/context/ToastContext";
 import { OrderProvider } from "@/context/OrderContext";
 import { LiveOrdersProvider } from "@/context/LiveOrdersContext";
 import { RestaurantProvider } from "@/context/RestaurantContext";
+import { ThemeProvider } from "@/context/ThemeContext";
 import { registerServiceWorker } from "@/lib/sw-registration";
 import NotificationSetup from "@/components/shared/NotificationSetup";
 
@@ -16,19 +17,21 @@ export default function Providers({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AuthProvider>
-      <RestaurantProvider>
-        <CartProvider>
-          <OrderProvider>
-            <LiveOrdersProvider>
-              <ToastProvider>
-                {children}
-                <NotificationSetup />
-              </ToastProvider>
-            </LiveOrdersProvider>
-          </OrderProvider>
-        </CartProvider>
-      </RestaurantProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <RestaurantProvider>
+          <CartProvider>
+            <OrderProvider>
+              <LiveOrdersProvider>
+                <ToastProvider>
+                  {children}
+                  <NotificationSetup />
+                </ToastProvider>
+              </LiveOrdersProvider>
+            </OrderProvider>
+          </CartProvider>
+        </RestaurantProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

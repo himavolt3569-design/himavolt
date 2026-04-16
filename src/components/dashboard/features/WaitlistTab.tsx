@@ -49,8 +49,8 @@ interface TableInfo {
 const statusColors: Record<WaitlistStatus, string> = {
   Waiting: "bg-yellow-100 text-yellow-800",
   Notified: "bg-blue-100 text-blue-800",
-  Seated: "bg-[#fef3dc] text-[#3e1e0c]",
-  Left: "bg-gray-200 text-gray-600",
+  Seated: "bg-[var(--accent-muted)] text-[var(--text-1)]",
+  Left: "bg-[var(--surface-alt)] text-[var(--text-2)]",
 };
 
 const statusIcons: Record<WaitlistStatus, typeof Clock> = {
@@ -220,17 +220,17 @@ export default function WaitlistTab() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+          <h2 className="text-xl font-bold text-[var(--text-1)] flex items-center gap-2">
             <ListOrdered className="w-6 h-6 text-[#b25c1c]" />
             Waitlist Management
           </h2>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-[var(--text-2)] mt-1">
             Queue management for walk-in guests
           </p>
         </div>
         <button
           onClick={() => setShowForm(true)}
-          className="flex items-center gap-1.5 bg-[#eaa94d] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors"
+          className="flex items-center gap-1.5 bg-[#eaa94d] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#d67620] transition-colors"
         >
           <Plus className="w-4 h-4" /> Add to Waitlist
         </button>
@@ -271,21 +271,21 @@ export default function WaitlistTab() {
             value: history.filter((h) => h.status === "Seated").length,
             sub: "from waitlist",
             icon: CheckCircle2,
-            color: "text-gray-600",
+            color: "text-[var(--text-2)]",
           },
         ].map((s) => (
           <motion.div
             key={s.label}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-xl p-4 shadow-sm border border-gray-100"
+            className="bg-[var(--canvas)] rounded-xl p-4 shadow-sm border border-[var(--border-soft)]"
           >
             <div className="flex items-center gap-1.5 mb-1">
               <s.icon className={`w-3.5 h-3.5 ${s.color}`} />
-              <p className="text-xs text-gray-500">{s.label}</p>
+              <p className="text-xs text-[var(--text-2)]">{s.label}</p>
             </div>
             <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
-            <p className="text-[10px] text-gray-400">{s.sub}</p>
+            <p className="text-[10px] text-[var(--text-3)]">{s.sub}</p>
           </motion.div>
         ))}
       </div>
@@ -299,7 +299,7 @@ export default function WaitlistTab() {
               ? "bg-red-50 border border-red-200"
               : activeWaitlist.length >= 3
               ? "bg-yellow-50 border border-yellow-200"
-              : "bg-[#fef9ef] border border-[#eaa94d]/30"
+              : "bg-[var(--accent-muted)] border border-[var(--accent-border)]"
           }`}
         >
           <AlertCircle
@@ -318,7 +318,7 @@ export default function WaitlistTab() {
                   ? "text-red-800"
                   : activeWaitlist.length >= 3
                   ? "text-yellow-800"
-                  : "text-[#3e1e0c]"
+                  : "text-[var(--text-1)]"
               }`}
             >
               {activeWaitlist.length >= 5
@@ -327,7 +327,7 @@ export default function WaitlistTab() {
                 ? "Moderate demand - Average wait times"
                 : "Low demand - Short wait times"}
             </p>
-            <p className="text-xs text-gray-500 mt-0.5">
+            <p className="text-xs text-[var(--text-2)] mt-0.5">
               {freeTables.length} table(s) available &middot; Estimated new wait:{" "}
               {estimateWaitTime(2)} min for party of 2
             </p>
@@ -348,36 +348,36 @@ export default function WaitlistTab() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-2xl shadow-xl w-full max-w-md"
+              className="bg-[var(--canvas)] rounded-2xl shadow-xl w-full max-w-md"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between p-5 border-b border-gray-100">
-                <h3 className="text-lg font-semibold text-gray-900">
+              <div className="flex items-center justify-between p-5 border-b border-[var(--border-soft)]">
+                <h3 className="text-lg font-semibold text-[var(--text-1)]">
                   Add to Waitlist
                 </h3>
                 <button
                   onClick={() => setShowForm(false)}
-                  className="p-1.5 hover:bg-gray-100 rounded-lg"
+                  className="p-1.5 hover:bg-[var(--surface)] rounded-lg"
                 >
-                  <X className="w-5 h-5 text-gray-400" />
+                  <X className="w-5 h-5 text-[var(--text-3)]" />
                 </button>
               </div>
               <div className="p-5 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-2)] mb-1">
                     Guest Name *
                   </label>
                   <input
                     type="text"
                     value={formName}
                     onChange={(e) => setFormName(e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                    className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#eaa94d] focus:border-[#eaa94d] outline-none"
                     placeholder="Full name"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-[var(--text-2)] mb-1">
                       Party Size
                     </label>
                     <input
@@ -386,24 +386,24 @@ export default function WaitlistTab() {
                       max={20}
                       value={formPartySize}
                       onChange={(e) => setFormPartySize(Number(e.target.value))}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                      className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#eaa94d] focus:border-[#eaa94d] outline-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-[var(--text-2)] mb-1">
                       Phone *
                     </label>
                     <input
                       type="text"
                       value={formPhone}
                       onChange={(e) => setFormPhone(e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                      className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#eaa94d] focus:border-[#eaa94d] outline-none"
                       placeholder="+977-98..."
                     />
                   </div>
                 </div>
-                <div className="bg-[#fef9ef] rounded-lg p-3">
-                  <p className="text-sm text-[#3e1e0c] font-medium">
+                <div className="bg-[var(--accent-muted)] rounded-lg p-3">
+                  <p className="text-sm text-[var(--text-1)] font-medium">
                     Estimated Wait: ~{estimateWaitTime(formPartySize)} minutes
                   </p>
                   <p className="text-xs text-[#b25c1c] mt-0.5">
@@ -413,14 +413,14 @@ export default function WaitlistTab() {
                 <div className="flex justify-end gap-3 pt-2">
                   <button
                     onClick={() => setShowForm(false)}
-                    className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                    className="px-4 py-2 text-sm text-[var(--text-2)] hover:bg-[var(--surface)] rounded-lg transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={addToWaitlist}
                     disabled={!formName.trim() || !formPhone.trim()}
-                    className="px-6 py-2 bg-[#eaa94d] text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-6 py-2 bg-[#eaa94d] text-white text-sm font-medium rounded-lg hover:bg-[#d67620] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Add to Queue
                   </button>
@@ -431,22 +431,22 @@ export default function WaitlistTab() {
         )}
       </AnimatePresence>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="p-5 border-b border-gray-100">
-          <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+      <div className="bg-[var(--canvas)] rounded-xl shadow-sm border border-[var(--border-soft)] overflow-hidden">
+        <div className="p-5 border-b border-[var(--border-soft)]">
+          <h3 className="text-sm font-semibold text-[var(--text-1)] flex items-center gap-2">
             <ListOrdered className="w-4 h-4 text-[#b25c1c]" />
             Current Queue ({activeWaitlist.length})
           </h3>
         </div>
 
         {activeWaitlist.length === 0 ? (
-          <div className="text-center py-12 text-gray-400">
+          <div className="text-center py-12 text-[var(--text-3)]">
             <ListOrdered className="w-10 h-10 mx-auto mb-2 opacity-50" />
             <p className="text-sm">No guests waiting</p>
             <p className="text-xs mt-1">Add walk-in guests to the waitlist</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-[var(--border)]">
             <AnimatePresence>
               {activeWaitlist.map((entry, index) => {
                 const StatusIcon = statusIcons[entry.status];
@@ -465,7 +465,7 @@ export default function WaitlistTab() {
                     }`}
                   >
                     <div className="flex items-center gap-4">
-                      <div className="flex-shrink-0 w-12 h-12 rounded-full bg-[#fef3dc] flex items-center justify-center">
+                      <div className="flex-shrink-0 w-12 h-12 rounded-full bg-[var(--accent-muted)] flex items-center justify-center">
                         <span className="text-sm font-bold text-[#b25c1c]">
                           {getPositionLabel(index)}
                         </span>
@@ -473,7 +473,7 @@ export default function WaitlistTab() {
 
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className="text-sm font-medium text-gray-900 truncate">
+                          <p className="text-sm font-medium text-[var(--text-1)] truncate">
                             {entry.guestName}
                           </p>
                           <span
@@ -485,7 +485,7 @@ export default function WaitlistTab() {
                             {entry.status}
                           </span>
                         </div>
-                        <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                        <div className="flex items-center gap-3 mt-1 text-xs text-[var(--text-2)]">
                           <span className="flex items-center gap-1">
                             <Users className="w-3 h-3" /> {entry.partySize}{" "}
                             guests
@@ -499,12 +499,12 @@ export default function WaitlistTab() {
                       <div className="text-right flex-shrink-0">
                         <p
                           className={`text-lg font-bold ${
-                            overEstimate ? "text-red-600" : "text-gray-900"
+                            overEstimate ? "text-red-600" : "text-[var(--text-1)]"
                           }`}
                         >
                           {elapsed}m
                         </p>
-                        <p className="text-[10px] text-gray-400">
+                        <p className="text-[10px] text-[var(--text-3)]">
                           est. {entry.estimatedWait}m
                         </p>
                         {overEstimate && (
@@ -526,21 +526,21 @@ export default function WaitlistTab() {
                         )}
                         <button
                           onClick={() => seatGuest(entry.id)}
-                          className="flex items-center gap-1 px-2.5 py-1.5 bg-[#fef3dc] text-[#b25c1c] rounded-lg text-xs font-medium hover:bg-[#fde9ba] transition-colors"
+                          className="flex items-center gap-1 px-2.5 py-1.5 bg-[var(--accent-muted)] text-[#b25c1c] rounded-lg text-xs font-medium hover:bg-[#fde9ba] transition-colors"
                           title="Seat guest"
                         >
                           <Armchair className="w-3.5 h-3.5" /> Seat
                         </button>
                         <button
                           onClick={() => markAsLeft(entry.id)}
-                          className="flex items-center gap-1 px-2.5 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs font-medium hover:bg-gray-200 transition-colors"
+                          className="flex items-center gap-1 px-2.5 py-1.5 bg-[var(--surface)] text-[var(--text-2)] rounded-lg text-xs font-medium hover:bg-[var(--surface-alt)] transition-colors"
                           title="Guest left"
                         >
                           <LogOut className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => removeFromWaitlist(entry.id)}
-                          className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-1.5 text-[var(--text-3)] hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                           title="Remove"
                         >
                           <X className="w-4 h-4" />
@@ -562,8 +562,8 @@ export default function WaitlistTab() {
         )}
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-        <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+      <div className="bg-[var(--canvas)] rounded-xl shadow-sm border border-[var(--border-soft)] p-5">
+        <h3 className="text-sm font-semibold text-[var(--text-1)] mb-3 flex items-center gap-2">
           <Armchair className="w-4 h-4 text-[#b25c1c]" />
           Table Status
         </h3>
@@ -574,11 +574,11 @@ export default function WaitlistTab() {
               className={`rounded-lg p-2 text-center ${
                 t.occupied
                   ? "bg-red-50 border border-red-200"
-                  : "bg-[#fef9ef] border border-[#eaa94d]/30"
+                  : "bg-[var(--accent-muted)] border border-[var(--accent-border)]"
               }`}
             >
-              <p className="text-xs font-bold text-gray-700">{t.id}</p>
-              <p className="text-[10px] text-gray-500">{t.capacity} seats</p>
+              <p className="text-xs font-bold text-[var(--text-2)]">{t.id}</p>
+              <p className="text-[10px] text-[var(--text-2)]">{t.capacity} seats</p>
               {t.occupied && t.occupiedSince && (
                 <p className="text-[10px] text-red-500 font-medium">
                   {getElapsedMinutes(t.occupiedSince)}m
@@ -592,19 +592,19 @@ export default function WaitlistTab() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-[var(--canvas)] rounded-xl shadow-sm border border-[var(--border-soft)] overflow-hidden">
         <button
           onClick={() => setShowHistory(!showHistory)}
-          className="w-full flex items-center justify-between p-5 hover:bg-gray-50 transition-colors"
+          className="w-full flex items-center justify-between p-5 hover:bg-[var(--canvas-sub)] transition-colors"
         >
-          <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-            <History className="w-4 h-4 text-gray-500" />
+          <h3 className="text-sm font-semibold text-[var(--text-1)] flex items-center gap-2">
+            <History className="w-4 h-4 text-[var(--text-2)]" />
             Today&apos;s Waitlist History ({history.length})
           </h3>
           {showHistory ? (
-            <ChevronUp className="w-4 h-4 text-gray-400" />
+            <ChevronUp className="w-4 h-4 text-[var(--text-3)]" />
           ) : (
-            <ChevronDown className="w-4 h-4 text-gray-400" />
+            <ChevronDown className="w-4 h-4 text-[var(--text-3)]" />
           )}
         </button>
 
@@ -616,7 +616,7 @@ export default function WaitlistTab() {
               exit={{ height: 0, opacity: 0 }}
               className="overflow-hidden"
             >
-              <div className="border-t border-gray-100 divide-y divide-gray-50">
+              <div className="border-t border-[var(--border-soft)] divide-y divide-[var(--border)]">
                 {history.map((entry) => {
                   const waitedMinutes = entry.seatedAt
                     ? Math.round((entry.seatedAt - entry.addedAt) / 60000)
@@ -638,16 +638,16 @@ export default function WaitlistTab() {
                           {entry.status}
                         </span>
                         <div>
-                          <p className="text-sm text-gray-900">
+                          <p className="text-sm text-[var(--text-1)]">
                             {entry.guestName}
                           </p>
-                          <p className="text-xs text-gray-400">
+                          <p className="text-xs text-[var(--text-3)]">
                             Party of {entry.partySize} &middot; Waited{" "}
                             {waitedMinutes}m
                           </p>
                         </div>
                       </div>
-                      <p className="text-xs text-gray-400">
+                      <p className="text-xs text-[var(--text-3)]">
                         {entry.seatedAt
                           ? `Seated at ${new Date(entry.seatedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
                           : entry.leftAt

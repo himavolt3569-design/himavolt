@@ -69,8 +69,8 @@ const STATUS_CONFIG: Record<
 > = {
   PENDING: {
     label: "Pending",
-    color: "text-amber-700",
-    bg: "bg-amber-100",
+    color: "text-[var(--accent-text)]",
+    bg: "bg-[var(--accent-muted)]",
     icon: Clock,
   },
   ACCEPTED: {
@@ -81,20 +81,20 @@ const STATUS_CONFIG: Record<
   },
   PREPARING: {
     label: "Preparing",
-    color: "text-orange-700",
-    bg: "bg-orange-100",
+    color: "text-[var(--accent)]",
+    bg: "bg-[var(--accent)]",
     icon: ChefHat,
   },
   READY: {
     label: "Ready",
     color: "text-[#b25c1c]",
-    bg: "bg-[#fef3dc]",
+    bg: "bg-[var(--accent-muted)]",
     icon: PackageCheck,
   },
   DELIVERED: {
     label: "Delivered",
-    color: "text-gray-600",
-    bg: "bg-gray-100",
+    color: "text-[var(--text-2)]",
+    bg: "bg-[var(--surface)]",
     icon: Truck,
   },
   CANCELLED: {
@@ -150,10 +150,10 @@ function ItemsPreview({ items }: { items: OrderItem[] }) {
   const remaining = items.length - shown.length;
 
   return (
-    <p className="text-xs text-gray-500 truncate">
+    <p className="text-xs text-[var(--text-2)] truncate">
       {shown.map((item) => `${item.quantity}x ${item.name}`).join(", ")}
       {remaining > 0 && (
-        <span className="text-gray-400"> + {remaining} more</span>
+        <span className="text-[var(--text-3)]"> + {remaining} more</span>
       )}
     </p>
   );
@@ -176,14 +176,14 @@ function OrderCard({
     >
       <Link
         href={`/track/${order.id}`}
-        className={`block rounded-2xl border bg-white p-4 shadow-sm transition-all hover:shadow-md active:scale-[0.98] ${
+        className={`block rounded-2xl border bg-[var(--canvas)] p-4 shadow-sm transition-all hover:shadow-md active:scale-[0.98] ${
           isActive
             ? "border-saffron-flame/20 ring-1 ring-saffron-flame/10"
-            : "border-gray-200"
+            : "border-[var(--border)]"
         }`}
       >
         <div className="flex gap-3">
-          <div className="relative h-14 w-14 shrink-0 rounded-xl overflow-hidden bg-gray-100">
+          <div className="relative h-14 w-14 shrink-0 rounded-xl overflow-hidden bg-[var(--surface)]">
             {order.restaurant.imageUrl ? (
               <Image
                 src={order.restaurant.imageUrl}
@@ -213,11 +213,11 @@ function OrderCard({
                 <h3 className="text-sm font-bold text-gompa-slate truncate">
                   {order.restaurant.name}
                 </h3>
-                <p className="text-[11px] text-gray-400 mt-0.5">
+                <p className="text-[11px] text-[var(--text-3)] mt-0.5">
                   #{order.orderNo} &middot; {formatDate(order.createdAt)}
                 </p>
               </div>
-              <ChevronRight className="h-4 w-4 text-gray-300 shrink-0 mt-0.5" />
+              <ChevronRight className="h-4 w-4 text-[var(--text-3)] shrink-0 mt-0.5" />
             </div>
 
             <div className="mt-2">
@@ -257,7 +257,7 @@ function TableSessionOrderView() {
 
   if (!activeOrder) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50/50 p-6">
+      <div className="flex min-h-screen items-center justify-center bg-[var(--canvas-sub)] p-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -269,7 +269,7 @@ function TableSessionOrderView() {
           <h2 className="text-lg font-bold text-gompa-slate mb-2">
             No orders yet
           </h2>
-          <p className="text-sm text-gray-500 max-w-xs mb-6">
+          <p className="text-sm text-[var(--text-2)] max-w-xs mb-6">
             Place your first order from the menu!
           </p>
           {activeSession && (
@@ -291,8 +291,8 @@ function TableSessionOrderView() {
   const StatusIcon = config.icon;
 
   return (
-    <div className="min-h-screen bg-gray-50/50">
-      <header className="sticky top-0 z-40 bg-white border-b border-gray-100 shadow-sm">
+    <div className="min-h-screen bg-[var(--canvas-sub)]">
+      <header className="sticky top-0 z-40 bg-[var(--canvas)] border-b border-[var(--border-soft)] shadow-sm">
         <div className="mx-auto max-w-2xl px-4">
           <div className="flex h-14 items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-saffron-flame/10">
@@ -302,7 +302,7 @@ function TableSessionOrderView() {
               <h1 className="text-base font-bold text-gompa-slate">
                 Your Order
               </h1>
-              <p className="text-[11px] text-gray-400">
+              <p className="text-[11px] text-[var(--text-3)]">
                 Table {activeOrder.tableNo}
               </p>
             </div>
@@ -328,18 +328,18 @@ function TableSessionOrderView() {
         >
           <Link
             href={`/track/${activeOrder.id}`}
-            className={`block rounded-2xl border bg-white p-5 shadow-sm transition-all hover:shadow-md active:scale-[0.98] ${
+            className={`block rounded-2xl border bg-[var(--canvas)] p-5 shadow-sm transition-all hover:shadow-md active:scale-[0.98] ${
               isActive
                 ? "border-saffron-flame/20 ring-1 ring-saffron-flame/10"
-                : "border-gray-200"
+                : "border-[var(--border)]"
             }`}
           >
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-[var(--text-3)]">
                   Order #{activeOrder.orderNo}
                 </p>
-                <p className="text-[11px] text-gray-400 mt-0.5">
+                <p className="text-[11px] text-[var(--text-3)] mt-0.5">
                   {new Date(activeOrder.createdAt).toLocaleTimeString([], {
                     hour: "2-digit",
                     minute: "2-digit",
@@ -360,24 +360,24 @@ function TableSessionOrderView() {
                   key={item.id}
                   className="flex items-center justify-between text-sm"
                 >
-                  <span className="text-gray-700">
+                  <span className="text-[var(--text-2)]">
                     {item.quantity}x {item.name}
                   </span>
-                  <span className="text-gray-500 font-medium">
+                  <span className="text-[var(--text-2)] font-medium">
                     Rs. {item.price * item.quantity}
                   </span>
                 </div>
               ))}
             </div>
 
-            <div className="border-t border-gray-100 pt-3 flex items-center justify-between">
+            <div className="border-t border-[var(--border-soft)] pt-3 flex items-center justify-between">
               <span className="text-sm font-bold text-gompa-slate">Total</span>
               <span className="text-base font-extrabold text-saffron-flame">
                 Rs. {activeOrder.total}
               </span>
             </div>
 
-            <div className="mt-3 flex items-center justify-center gap-1 text-xs text-gray-400">
+            <div className="mt-3 flex items-center justify-center gap-1 text-xs text-[var(--text-3)]">
               <span>Tap to track order</span>
               <ChevronRight className="h-3 w-3" />
             </div>
@@ -452,7 +452,7 @@ export default function OrdersPage() {
     }
 
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50/50 p-6">
+      <div className="flex min-h-screen items-center justify-center bg-[var(--canvas-sub)] p-6">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -464,7 +464,7 @@ export default function OrdersPage() {
           <h2 className="text-xl font-bold text-gompa-slate mb-2">
             Sign in to view orders
           </h2>
-          <p className="text-sm text-gray-500 mb-6">
+          <p className="text-sm text-[var(--text-2)] mb-6">
             Sign in to see your order history and track active orders.
           </p>
           <Link
@@ -480,10 +480,10 @@ export default function OrdersPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50/50">
+      <div className="flex min-h-screen items-center justify-center bg-[var(--canvas-sub)]">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="h-8 w-8 animate-spin text-saffron-flame" />
-          <p className="text-sm font-medium text-gray-500">
+          <p className="text-sm font-medium text-[var(--text-2)]">
             Loading your orders...
           </p>
         </div>
@@ -493,7 +493,7 @@ export default function OrdersPage() {
 
   if (error && orders.length === 0) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50/50 p-6">
+      <div className="flex min-h-screen items-center justify-center bg-[var(--canvas-sub)] p-6">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -505,7 +505,7 @@ export default function OrdersPage() {
           <h2 className="text-lg font-bold text-gompa-slate mb-1">
             Something went wrong
           </h2>
-          <p className="text-sm text-gray-500 mb-6">{error}</p>
+          <p className="text-sm text-[var(--text-2)] mb-6">{error}</p>
           <button
             onClick={() => {
               setLoading(true);
@@ -522,8 +522,8 @@ export default function OrdersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50/50">
-      <header className="sticky top-0 z-40 bg-white border-b border-gray-100 shadow-sm">
+    <div className="min-h-screen bg-[var(--canvas-sub)]">
+      <header className="sticky top-0 z-40 bg-[var(--canvas)] border-b border-[var(--border-soft)] shadow-sm">
         <div className="mx-auto max-w-2xl px-4">
           <div className="flex h-14 items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-saffron-flame/10">
@@ -534,7 +534,7 @@ export default function OrdersPage() {
                 My Orders
               </h1>
               {orders.length > 0 && (
-                <p className="text-[11px] text-gray-400">
+                <p className="text-[11px] text-[var(--text-3)]">
                   {orders.length} order{orders.length !== 1 && "s"}
                 </p>
               )}
@@ -561,13 +561,13 @@ export default function OrdersPage() {
             animate={{ opacity: 1, y: 0 }}
             className="flex flex-col items-center justify-center py-20 text-center"
           >
-            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gray-100 mb-5">
-              <ShoppingBag className="h-12 w-12 text-gray-300" />
+            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[var(--surface)] mb-5">
+              <ShoppingBag className="h-12 w-12 text-[var(--text-3)]" />
             </div>
             <h2 className="text-lg font-bold text-gompa-slate mb-2">
               No orders yet
             </h2>
-            <p className="text-sm text-gray-500 max-w-xs mb-6">
+            <p className="text-sm text-[var(--text-2)] max-w-xs mb-6">
               When you place an order, it will appear here. Browse a restaurant
               menu to get started!
             </p>
@@ -590,7 +590,7 @@ export default function OrdersPage() {
             >
               <div className="flex items-center gap-2">
                 <div className="h-1.5 w-1.5 rounded-full bg-saffron-flame animate-pulse" />
-                <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                <h2 className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider">
                   Active Orders
                 </h2>
               </div>
@@ -605,7 +605,7 @@ export default function OrdersPage() {
 
         {pastOrders.length > 0 && (
           <section className="space-y-3">
-            <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+            <h2 className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider">
               Past Orders
             </h2>
             <div className="space-y-3">

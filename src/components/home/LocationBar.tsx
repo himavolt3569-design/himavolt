@@ -22,25 +22,25 @@ export default function LocationBar() {
   const { status } = location;
 
   return (
-    <div className="sticky top-[56px] z-40 bg-white/95 backdrop-blur-sm border-b border-gray-100">
+    <div className="sticky top-[56px] z-40 bg-[var(--canvas)]/95 backdrop-blur-sm border-b border-[var(--border-soft)]">
       <div className="mx-auto max-w-[1440px] px-4 md:px-8 lg:px-12 py-2 flex items-center gap-2">
         <MapPin className="h-3.5 w-3.5 text-[#eaa94d] shrink-0" />
 
         {status === "detecting" && (
-          <span className="text-[13px] text-gray-400 animate-pulse">
+          <span className="text-[13px] text-[var(--text-3)]">
             Detecting location...
           </span>
         )}
 
         {status !== "detecting" && status !== "idle" && (
           <>
-            <span className="text-[13px] font-semibold text-[#3e1e0c]">
+            <span className="text-[13px] font-semibold text-[var(--text-1)]">
               Delivering to{" "}
               <span className="text-[#eaa94d]">{location.area}</span>
             </span>
             <button
               onClick={() => setOpen(true)}
-              className="text-[11px] text-gray-400 hover:text-[#eaa94d] underline underline-offset-2 ml-1"
+              className="text-[11px] text-[var(--text-3)] hover:text-[#eaa94d] underline underline-offset-2 ml-1"
             >
               Change
             </button>
@@ -49,13 +49,13 @@ export default function LocationBar() {
 
         {status === "idle" && (
           <>
-            <span className="text-[13px] font-semibold text-[#3e1e0c]">
+            <span className="text-[13px] font-semibold text-[var(--text-1)]">
               Delivering to{" "}
               <span className="text-[#eaa94d]">{location.area}</span>
             </span>
             <button
               onClick={() => setOpen(true)}
-              className="text-[11px] text-gray-400 hover:text-[#eaa94d] underline underline-offset-2 ml-1"
+              className="text-[11px] text-[var(--text-3)] hover:text-[#eaa94d] underline underline-offset-2 ml-1"
             >
               Change
             </button>
@@ -77,16 +77,16 @@ export default function LocationBar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2 }}
-            className="absolute left-0 right-0 top-full bg-white border-b border-gray-100 shadow-lg z-50"
+            className="absolute left-0 right-0 top-full bg-[var(--canvas)] border-b border-[var(--border-soft)] shadow-lg z-50"
           >
             <div className="mx-auto max-w-[1440px] px-4 md:px-8 lg:px-12 py-4">
               <div className="flex items-center justify-between mb-3">
-                <p className="text-sm font-semibold text-[#3e1e0c]">
+                <p className="text-sm font-semibold text-[var(--text-1)]">
                   Choose your area
                 </p>
                 <button
                   onClick={() => setOpen(false)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-[var(--text-3)] hover:text-[var(--text-2)]"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -111,7 +111,7 @@ export default function LocationBar() {
                       setManual(area);
                       setOpen(false);
                     }}
-                    className="rounded-full px-3.5 py-1.5 text-[12px] font-medium border border-gray-200 text-[#3e1e0c] hover:border-[#eaa94d]/40 hover:bg-[#fdf9ef] transition-colors duration-200"
+                    className="rounded-full px-3.5 py-1.5 text-[12px] font-medium border border-[var(--border)] text-[var(--text-1)] hover:border-[#eaa94d]/40 hover:bg-[var(--accent-muted)] transition-colors duration-200"
                   >
                     {area}
                   </button>

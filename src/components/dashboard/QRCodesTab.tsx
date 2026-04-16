@@ -273,7 +273,7 @@ async function buildQRCanvas(
 
   ctx.fillStyle = cfg.textSecondary;
   ctx.font = `11px sans-serif`;
-  ctx.fillText("No app needed — just scan & order!", W / 2, qrY + qrSize + 46);
+  ctx.fillText("No app needed, just scan and order!", W / 2, qrY + qrSize + 46);
 
   ctx.fillStyle = cfg.textSecondary;
   ctx.font = `9px sans-serif`;
@@ -427,23 +427,23 @@ function QRCard({
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.3 }}
-        className="group relative flex flex-col items-center rounded-3xl border border-gray-100/60 bg-white/80 backdrop-blur-md p-6 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.08)] transition-all hover:-translate-y-1"
+        className="group relative flex flex-col items-center rounded-3xl border border-[var(--border-soft)]/60 bg-[var(--canvas)]/80 backdrop-blur-md p-6 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.08)] transition-all hover:-translate-y-1"
       >
-        <div ref={qrRef} id={`qr-printable-${tableNo}`} className="w-full flex flex-col items-center bg-white pb-4 rounded-xl">
+        <div ref={qrRef} id={`qr-printable-${tableNo}`} className="w-full flex flex-col items-center bg-[var(--canvas)] pb-4 rounded-xl">
           <div className="mb-4 flex w-full items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#3e1e0c]/10 text-xs font-bold text-[#3e1e0c]">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#3e1e0c]/10 text-xs font-bold text-[var(--text-1)]">
                 {tableNo}
               </span>
-              <span className="text-sm font-bold text-[#3e1e0c]">Table {tableNo}</span>
+              <span className="text-sm font-bold text-[var(--text-1)]">Table {tableNo}</span>
             </div>
-            <span className="rounded-full bg-[#fef3dc] px-2 py-0.5 text-[10px] font-bold text-[#b25c1c]">Active</span>
+            <span className="rounded-full bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-bold text-[#b25c1c]">Active</span>
           </div>
 
-          <div className="relative w-[180px] h-[180px] max-w-full flex items-center justify-center rounded-xl bg-white p-4 mb-4 border border-gray-100 shadow-sm">
+          <div className="relative w-[180px] h-[180px] max-w-full flex items-center justify-center rounded-xl bg-[var(--canvas)] p-4 mb-4 border border-[var(--border-soft)] shadow-sm">
             <QRCode value={tableUrl} size={256} style={{ height: "100%", maxWidth: "100%", width: "100%" }} fgColor="#3e1e0c" bgColor="transparent" level="M" />
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="rounded-sm bg-white flex items-center justify-center border border-gray-100 px-1.5 py-1 shadow-sm">
+              <div className="rounded-sm bg-[var(--canvas)] flex items-center justify-center border border-[var(--border-soft)] px-1.5 py-1 shadow-sm">
                 <span className="text-[9px] font-black text-[#eaa94d] leading-none">
                   {restaurantName.split(/\s+/).map(w => w[0]).join("").toUpperCase().slice(0, 3)}
                 </span>
@@ -463,7 +463,7 @@ function QRCard({
           </button>
           <button
             onClick={handlePrint}
-            className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
+            className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-colors"
             title="Print"
           >
             <Printer className="h-3.5 w-3.5" />
@@ -471,7 +471,7 @@ function QRCard({
           <button
             ref={shareRef}
             onClick={handleShare}
-            className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#eaa94d]/10 text-[#eaa94d] hover:bg-[#eaa94d] hover:text-white transition-all"
+            className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent-muted)] text-[#eaa94d] hover:bg-[#eaa94d] hover:text-white transition-all"
             title="Copy link"
           >
             <Share2 className="h-3.5 w-3.5" />
@@ -574,21 +574,21 @@ export default function QRCodesTab() {
     <div className="space-y-8 pb-12">
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5">
         <div>
-          <h2 className="text-2xl font-extrabold tracking-tight text-gray-900">QR Codes</h2>
-          <p className="text-sm font-medium text-gray-500 mt-1.5">Unlimited smart QR codes to scan to order instantly.</p>
+          <h2 className="text-2xl font-extrabold tracking-tight text-[var(--text-1)]">QR Codes</h2>
+          <p className="text-sm font-medium text-[var(--text-2)] mt-1.5">Unlimited smart QR codes to scan to order instantly.</p>
         </div>
         <button
           onClick={handleDownloadAll}
           disabled={downloading}
           className={`flex items-center gap-2 rounded-xl px-6 py-3 text-[13px] font-bold transition-all ${
             downloading
-              ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-              : "bg-gray-900 text-white hover:bg-gray-800 shadow-md hover:shadow-lg hover:-translate-y-0.5 active:scale-[0.97]"
+              ? "bg-[var(--surface)] text-[var(--text-3)] cursor-not-allowed"
+              : "bg-[var(--text-1)] text-white hover:bg-[var(--text-2)] shadow-md hover:shadow-lg hover:-translate-y-0.5 active:scale-[0.97]"
           }`}
         >
           {downloading ? (
             <>
-              <div className="h-4 w-4 rounded-full border-2 border-gray-300 border-t-gray-500 animate-spin" />
+              <div className="h-4 w-4 rounded-full border-2 border-[var(--border)] border-t-gray-500 animate-spin" />
               Generating PDF...
             </>
           ) : (
@@ -601,25 +601,25 @@ export default function QRCodesTab() {
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4">
-        <div className="flex-1 flex items-start gap-3 rounded-2xl bg-amber-50/80 backdrop-blur-sm border border-amber-100/50 px-5 py-4 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.02)]">
-          <Check className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
-          <p className="text-sm font-medium text-amber-900/80 leading-relaxed">
-            Each QR links to your menu with the table number pre-selected. Customers scan and order instantly — <strong className="font-bold text-amber-900">no app needed.</strong>
+        <div className="flex-1 flex items-start gap-3 rounded-2xl bg-[var(--accent-muted)] backdrop-blur-sm border border-[var(--accent-border)]/50 px-5 py-4 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.02)]">
+          <Check className="h-5 w-5 text-[var(--accent-text)] mt-0.5 shrink-0" />
+          <p className="text-sm font-medium text-[var(--accent-text)]/80 leading-relaxed">
+            Each QR links to your menu with the table number pre-selected. Customers scan and order instantly — <strong className="font-bold text-[var(--accent-text)]">no app needed.</strong>
           </p>
         </div>
 
-        <div className="flex items-center gap-3 rounded-2xl bg-white/70 backdrop-blur-md border border-gray-100/50 px-4 py-3 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] shrink-0">
-          <Palette className="h-5 w-5 text-amber-500" />
-          <span className="text-xs font-bold uppercase tracking-wide text-gray-500">Style</span>
-          <div className="flex gap-1.5 p-1 bg-gray-100/50 rounded-xl border border-black/5">
+        <div className="flex items-center gap-3 rounded-2xl bg-[var(--canvas)]/70 backdrop-blur-md border border-[var(--border-soft)]/50 px-4 py-3 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] shrink-0">
+          <Palette className="h-5 w-5 text-[var(--accent)]" />
+          <span className="text-xs font-bold uppercase tracking-wide text-[var(--text-2)]">Style</span>
+          <div className="flex gap-1.5 p-1 bg-[var(--surface)] rounded-xl border border-black/5">
             {(Object.keys(STYLES) as CardStyle[]).map((s) => (
               <button
                 key={s}
                 onClick={() => setCardStyle(s)}
                 className={`rounded-lg px-3 py-1.5 text-[11px] font-bold transition-all ${
                   cardStyle === s
-                    ? "bg-white text-gray-900 shadow-sm border border-gray-200/50"
-                    : "text-gray-500 hover:text-gray-700 hover:bg-white/50"
+                    ? "bg-[var(--canvas)] text-[var(--text-1)] shadow-sm border border-[var(--border)]/50"
+                    : "text-[var(--text-2)] hover:text-[var(--text-2)] hover:bg-[var(--canvas)]/50"
                 }`}
               >
                 {STYLES[s].label}
@@ -628,33 +628,27 @@ export default function QRCodesTab() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 rounded-xl bg-white border border-gray-200 px-3 py-2 shadow-sm shrink-0">
+        <div className="flex items-center gap-2 rounded-xl bg-[var(--canvas)] border border-[var(--border)] px-3 py-2 shadow-sm shrink-0">
           <TableProperties className="h-4 w-4 text-[#eaa94d]" />
-          <span className="text-xs font-bold text-gray-500">
+          <span className="text-xs font-bold text-[var(--text-2)]">
             {loadingTables ? "Loading..." : `${tables.length} table${tables.length !== 1 ? "s" : ""}`}
           </span>
-          <span className="text-[10px] text-gray-400">· manage in Tables tab</span>
+          <span className="text-[10px] text-[var(--text-3)]">· manage in Tables tab</span>
         </div>
       </div>
 
-      <div className="flex items-center gap-2 text-xs text-gray-400">
+      <div className="flex items-center gap-2 text-xs text-[var(--text-3)]">
         <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#3e1e0c]" />
         <span>
-          <span className="font-semibold text-[#3e1e0c]">{STYLES[cardStyle].label}</span> style selected — this affects how downloaded &amp; printed cards look.
+          <span className="font-semibold text-[var(--text-1)]">{STYLES[cardStyle].label}</span> style selected — this affects how downloaded &amp; printed cards look.
         </span>
       </div>
 
-      {loadingTables ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="rounded-2xl bg-gray-100 animate-pulse h-64" />
-          ))}
-        </div>
-      ) : tables.length === 0 ? (
+      {!loadingTables && tables.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 gap-3 text-center">
-          <TableProperties className="h-10 w-10 text-gray-300" />
-          <p className="text-sm font-semibold text-gray-500">No tables configured</p>
-          <p className="text-xs text-gray-400">Add tables in the <strong>Tables</strong> tab and QR codes will appear here automatically.</p>
+          <TableProperties className="h-10 w-10 text-[var(--text-3)]" />
+          <p className="text-sm font-semibold text-[var(--text-2)]">No tables configured</p>
+          <p className="text-xs text-[var(--text-3)]">Add tables in the <strong>Tables</strong> tab and QR codes will appear here automatically.</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">

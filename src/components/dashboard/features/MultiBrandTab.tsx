@@ -132,10 +132,10 @@ export default function MultiBrandTab() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">
+          <h2 className="text-2xl font-bold text-[var(--text-1)]">
             Multi-Brand Management
           </h2>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-[var(--text-2)] mt-1">
             Run multiple virtual brands from one cloud kitchen
           </p>
         </div>
@@ -149,29 +149,29 @@ export default function MultiBrandTab() {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-center">
+        <div className="bg-[var(--canvas)] rounded-xl shadow-sm border border-[var(--border-soft)] p-4 text-center">
           <Store className="w-5 h-5 text-violet-500 mx-auto mb-1" />
-          <p className="text-2xl font-bold text-gray-900">{brands.length}</p>
-          <p className="text-xs text-gray-500">Total Brands</p>
+          <p className="text-2xl font-bold text-[var(--text-1)]">{brands.length}</p>
+          <p className="text-xs text-[var(--text-2)]">Total Brands</p>
         </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-center">
+        <div className="bg-[var(--canvas)] rounded-xl shadow-sm border border-[var(--border-soft)] p-4 text-center">
           <ShoppingBag className="w-5 h-5 text-blue-500 mx-auto mb-1" />
-          <p className="text-2xl font-bold text-gray-900">{totalOrders}</p>
-          <p className="text-xs text-gray-500">Orders Today</p>
+          <p className="text-2xl font-bold text-[var(--text-1)]">{totalOrders}</p>
+          <p className="text-xs text-[var(--text-2)]">Orders Today</p>
         </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-center">
+        <div className="bg-[var(--canvas)] rounded-xl shadow-sm border border-[var(--border-soft)] p-4 text-center">
           <DollarSign className="w-5 h-5 text-[#d67620] mx-auto mb-1" />
-          <p className="text-2xl font-bold text-gray-900">
+          <p className="text-2xl font-bold text-[var(--text-1)]">
             {formatPrice(totalRevenue, cur)}
           </p>
-          <p className="text-xs text-gray-500">Revenue Today</p>
+          <p className="text-xs text-[var(--text-2)]">Revenue Today</p>
         </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-center">
-          <TrendingUp className="w-5 h-5 text-amber-500 mx-auto mb-1" />
-          <p className="text-2xl font-bold text-gray-900">
+        <div className="bg-[var(--canvas)] rounded-xl shadow-sm border border-[var(--border-soft)] p-4 text-center">
+          <TrendingUp className="w-5 h-5 text-[var(--accent)] mx-auto mb-1" />
+          <p className="text-2xl font-bold text-[var(--text-1)]">
             {brands.filter((b) => b.active).length}
           </p>
-          <p className="text-xs text-gray-500">Active Brands</p>
+          <p className="text-xs text-[var(--text-2)]">Active Brands</p>
         </div>
       </div>
 
@@ -183,9 +183,9 @@ export default function MultiBrandTab() {
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            <div className="bg-white rounded-xl shadow-sm border border-violet-200 p-6">
+            <div className="bg-[var(--canvas)] rounded-xl shadow-sm border border-violet-200 p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-[var(--text-1)] flex items-center gap-2">
                   <Plus className="w-4 h-4 text-violet-600" />
                   Add New Brand
                 </h3>
@@ -194,14 +194,14 @@ export default function MultiBrandTab() {
                     setShowAddForm(false);
                     setForm(emptyForm);
                   }}
-                  className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-1 hover:bg-[var(--surface)] rounded-lg transition-colors"
                 >
-                  <X className="w-4 h-4 text-gray-400" />
+                  <X className="w-4 h-4 text-[var(--text-3)]" />
                 </button>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-medium text-gray-600">
+                  <label className="text-xs font-medium text-[var(--text-2)]">
                     Brand Name *
                   </label>
                   <input
@@ -211,11 +211,11 @@ export default function MultiBrandTab() {
                       setForm({ ...form, name: e.target.value })
                     }
                     placeholder="e.g., Spice Express"
-                    className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none"
+                    className="mt-1 w-full px-3 py-2 border border-[var(--border)] rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-gray-600">
+                  <label className="text-xs font-medium text-[var(--text-2)]">
                     Cuisine Type *
                   </label>
                   <select
@@ -223,7 +223,7 @@ export default function MultiBrandTab() {
                     onChange={(e) =>
                       setForm({ ...form, cuisineType: e.target.value })
                     }
-                    className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none bg-white"
+                    className="mt-1 w-full px-3 py-2 border border-[var(--border)] rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none bg-[var(--canvas)]"
                   >
                     <option value="">Select cuisine</option>
                     {CUISINE_TYPES.map((c) => (
@@ -234,7 +234,7 @@ export default function MultiBrandTab() {
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-gray-600">
+                  <label className="text-xs font-medium text-[var(--text-2)]">
                     Description
                   </label>
                   <input
@@ -244,11 +244,11 @@ export default function MultiBrandTab() {
                       setForm({ ...form, description: e.target.value })
                     }
                     placeholder="Short description of this brand"
-                    className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none"
+                    className="mt-1 w-full px-3 py-2 border border-[var(--border)] rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-gray-600 flex items-center gap-2">
+                  <label className="text-xs font-medium text-[var(--text-2)] flex items-center gap-2">
                     <Palette className="w-3.5 h-3.5" />
                     Brand Color
                   </label>
@@ -259,9 +259,9 @@ export default function MultiBrandTab() {
                       onChange={(e) =>
                         setForm({ ...form, brandColor: e.target.value })
                       }
-                      className="w-10 h-10 rounded-lg border border-gray-200 cursor-pointer"
+                      className="w-10 h-10 rounded-lg border border-[var(--border)] cursor-pointer"
                     />
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-[var(--text-2)]">
                       {form.brandColor}
                     </span>
                   </div>
@@ -273,7 +273,7 @@ export default function MultiBrandTab() {
                     setShowAddForm(false);
                     setForm(emptyForm);
                   }}
-                  className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="px-4 py-2 text-sm text-[var(--text-2)] hover:bg-[var(--surface)] rounded-lg transition-colors"
                 >
                   Cancel
                 </button>
@@ -299,8 +299,8 @@ export default function MultiBrandTab() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className={`bg-white rounded-xl shadow-sm border overflow-hidden ${
-                brand.active ? "border-gray-200" : "border-gray-100 opacity-70"
+              className={`bg-[var(--canvas)] rounded-xl shadow-sm border overflow-hidden ${
+                brand.active ? "border-[var(--border)]" : "border-[var(--border-soft)] opacity-70"
               }`}
             >
               <div
@@ -318,10 +318,10 @@ export default function MultiBrandTab() {
                       {brand.name.charAt(0)}
                     </div>
                     <div>
-                      <h3 className="text-sm font-bold text-gray-900">
+                      <h3 className="text-sm font-bold text-[var(--text-1)]">
                         {brand.name}
                       </h3>
-                      <div className="flex items-center gap-1 text-xs text-gray-500">
+                      <div className="flex items-center gap-1 text-xs text-[var(--text-2)]">
                         <ChefHat className="w-3 h-3" />
                         {brand.cuisineType}
                       </div>
@@ -337,35 +337,35 @@ export default function MultiBrandTab() {
                         style={{ color: brand.brandColor }}
                       />
                     ) : (
-                      <ToggleLeft className="w-8 h-8 text-gray-300" />
+                      <ToggleLeft className="w-8 h-8 text-[var(--text-3)]" />
                     )}
                   </button>
                 </div>
 
                 {brand.description && (
-                  <p className="text-xs text-gray-500 mt-2 line-clamp-2">
+                  <p className="text-xs text-[var(--text-2)] mt-2 line-clamp-2">
                     {brand.description}
                   </p>
                 )}
 
-                <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
+                <div className="flex items-center justify-between mt-4 pt-3 border-t border-[var(--border-soft)]">
                   <div className="text-center">
-                    <p className="text-lg font-bold text-gray-900">
+                    <p className="text-lg font-bold text-[var(--text-1)]">
                       {brand.ordersToday}
                     </p>
-                    <p className="text-[10px] text-gray-500">Orders</p>
+                    <p className="text-[10px] text-[var(--text-2)]">Orders</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-lg font-bold text-gray-900">
+                    <p className="text-lg font-bold text-[var(--text-1)]">
                       {formatPrice(brand.revenueToday, cur)}
                     </p>
-                    <p className="text-[10px] text-gray-500">Revenue</p>
+                    <p className="text-[10px] text-[var(--text-2)]">Revenue</p>
                   </div>
                   <span
                     className={`px-2 py-1 rounded-full text-[10px] font-semibold ${
                       brand.active
-                        ? "bg-[#fef3dc] text-[#b25c1c]"
-                        : "bg-gray-100 text-gray-500"
+                        ? "bg-[var(--accent-muted)] text-[#b25c1c]"
+                        : "bg-[var(--surface)] text-[var(--text-2)]"
                     }`}
                   >
                     {brand.active ? "Active" : "Paused"}
@@ -389,7 +389,7 @@ export default function MultiBrandTab() {
                     className={`flex-1 flex items-center justify-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                       brand.sharedInventory
                         ? "bg-blue-50 text-blue-700 hover:bg-blue-100"
-                        : "bg-gray-50 text-gray-600 hover:bg-gray-100"
+                        : "bg-[var(--canvas-sub)] text-[var(--text-2)] hover:bg-[var(--surface)]"
                     }`}
                   >
                     <Package className="w-3 h-3" />
@@ -405,8 +405,8 @@ export default function MultiBrandTab() {
                       exit={{ opacity: 0, height: 0 }}
                       className="overflow-hidden"
                     >
-                      <div className="mt-3 pt-3 border-t border-gray-100">
-                        <p className="text-xs font-medium text-gray-600 mb-2">
+                      <div className="mt-3 pt-3 border-t border-[var(--border-soft)]">
+                        <p className="text-xs font-medium text-[var(--text-2)] mb-2">
                           Assigned Menu Categories
                         </p>
                         <div className="flex flex-wrap gap-1.5">
@@ -422,7 +422,7 @@ export default function MultiBrandTab() {
                                 className={`px-2 py-1 rounded-md text-[10px] font-medium transition-colors ${
                                   isActive
                                     ? "text-white"
-                                    : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                                    : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
                                 }`}
                                 style={
                                   isActive
@@ -447,17 +447,17 @@ export default function MultiBrandTab() {
 
       <motion.div
         layout
-        className="bg-white rounded-xl shadow-sm border border-gray-100 p-6"
+        className="bg-[var(--canvas)] rounded-xl shadow-sm border border-[var(--border-soft)] p-6"
       >
         <div className="flex items-center gap-3 mb-5">
           <div className="p-2 bg-violet-100 rounded-lg">
             <BarChart3 className="w-5 h-5 text-violet-600" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-gray-900">
+            <h3 className="text-sm font-semibold text-[var(--text-1)]">
               Brand Performance Comparison
             </h3>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-[var(--text-2)]">
               Revenue comparison across brands today
             </p>
           </div>
@@ -467,14 +467,14 @@ export default function MultiBrandTab() {
           {brands.map((brand) => (
             <div key={brand.id} className="space-y-1">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">
+                <span className="text-sm font-medium text-[var(--text-2)]">
                   {brand.name}
                 </span>
-                <span className="text-sm font-bold text-gray-900">
+                <span className="text-sm font-bold text-[var(--text-1)]">
                   {formatPrice(brand.revenueToday, cur)}
                 </span>
               </div>
-              <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
+              <div className="w-full bg-[var(--surface)] rounded-full h-3 overflow-hidden">
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{
@@ -485,7 +485,7 @@ export default function MultiBrandTab() {
                   style={{ backgroundColor: brand.brandColor }}
                 />
               </div>
-              <div className="flex items-center gap-3 text-[10px] text-gray-400">
+              <div className="flex items-center gap-3 text-[10px] text-[var(--text-3)]">
                 <span>{brand.ordersToday} orders</span>
                 <span>
                   Avg: {brand.ordersToday > 0

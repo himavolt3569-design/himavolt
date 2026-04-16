@@ -18,7 +18,6 @@ import {
   Wine,
   Egg,
   Utensils,
-  Loader2,
   ChevronRight,
   MapPin,
   Share2,
@@ -110,7 +109,7 @@ const spiceLabels = ["", "Mild", "Medium", "Hot", "Extra Hot"];
 const spiceClasses = [
   "",
   "text-yellow-700 bg-yellow-50 border-yellow-100",
-  "text-orange-600 bg-orange-50 border-orange-100",
+  "text-[var(--accent)] bg-[var(--accent)] border-[var(--accent-border)]",
   "text-red-600 bg-red-50 border-red-100",
   "text-red-700 bg-red-100 border-red-200",
 ];
@@ -126,8 +125,8 @@ function SuggestedCard({
 }) {
   return (
     <Link href={`/food/${item.id}`} className="group block">
-      <div className="rounded-2xl overflow-hidden border border-gray-100 bg-white hover:border-[#eaa94d]/30 hover:shadow-md transition-all duration-300">
-        <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
+      <div className="rounded-2xl overflow-hidden border border-[var(--border-soft)] bg-[var(--canvas)] hover:border-[var(--accent-border)] hover:shadow-md transition-all duration-300">
+        <div className="relative aspect-[4/3] overflow-hidden bg-[var(--surface)]">
           <img
             src={img(item.imageUrl)}
             alt={item.name}
@@ -158,7 +157,7 @@ function SuggestedCard({
         <div className="p-3">
           <div className="flex items-center gap-1.5 mb-1">
             <VegDot isVeg={item.isVeg} />
-            <p className="text-[13px] font-bold text-[#111111] truncate group-hover:text-[#eaa94d] transition-colors">
+            <p className="text-[13px] font-bold text-[var(--text-1)] truncate group-hover:text-[#eaa94d] transition-colors">
               {item.name}
             </p>
           </div>
@@ -166,7 +165,7 @@ function SuggestedCard({
             <span className="text-[13px] font-extrabold text-[#eaa94d]">
               {formatPrice(item.price, currency)}
             </span>
-            <span className="text-[11px] text-gray-400 flex items-center gap-0.5 shrink-0">
+            <span className="text-[11px] text-[var(--text-3)] flex items-center gap-0.5 shrink-0">
               <Clock className="h-3 w-3" />
               {item.prepTime}
             </span>
@@ -277,28 +276,16 @@ export default function FoodDetailsPage() {
     setTimeout(() => setAdded(false), 2200);
   }, [food, qty, unitPrice, addItem]);
 
-  /* ── Loading ── */
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-white">
-        <div className="text-center">
-          <Loader2 className="mx-auto h-9 w-9 text-[#eaa94d] animate-spin mb-3" />
-          <p className="text-sm font-semibold text-gray-400">Loading…</p>
-        </div>
-      </div>
-    );
-  }
-
   /* ── Error ── */
   if (error || !food) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-white">
+      <div className="flex min-h-screen items-center justify-center bg-[var(--canvas)]">
         <div className="text-center px-6">
-          <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-[#fdf9ef]">
+          <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-[var(--accent-muted)]">
             <Utensils className="h-8 w-8 text-[#eaa94d]" />
           </div>
-          <p className="text-xl font-bold text-[#111111]">Dish not found</p>
-          <p className="text-sm text-gray-400 mt-1">This item may have been removed.</p>
+          <p className="text-xl font-bold text-[var(--text-1)]">Dish not found</p>
+          <p className="text-sm text-[var(--text-3)] mt-1">This item may have been removed.</p>
           <Link
             href="/"
             className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#eaa94d] px-6 py-3 text-sm font-bold text-white"
@@ -320,7 +307,7 @@ export default function FoodDetailsPage() {
     <div className="min-h-screen bg-[#f7f7f7]">
 
       {/* ── Hero ──────────────────────────────────────────────────────────── */}
-      <div className="relative h-[44vh] sm:h-[52vh] overflow-hidden bg-gray-200">
+      <div className="relative h-[44vh] sm:h-[52vh] overflow-hidden bg-[var(--surface-alt)]">
         <motion.img
           src={img(food.imageUrl)}
           alt={food.name}
@@ -425,7 +412,7 @@ export default function FoodDetailsPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
       >
-        <div className="rounded-3xl bg-white shadow-xl shadow-black/[0.06] overflow-hidden">
+        <div className="rounded-3xl bg-[var(--canvas)] shadow-xl shadow-black/[0.06] overflow-hidden">
 
           <div className="p-5 sm:p-6 space-y-5">
 
@@ -433,32 +420,32 @@ export default function FoodDetailsPage() {
             <div>
               <div className="flex flex-wrap items-center gap-1.5 mb-2">
                 <VegDot isVeg={food.isVeg} />
-                <span className="text-[11px] font-semibold text-gray-400">
+                <span className="text-[11px] font-semibold text-[var(--text-3)]">
                   {food.isVeg ? "Pure Veg" : "Non-Veg"}
                 </span>
                 {food.hasEgg && (
-                  <span className="flex items-center gap-1 rounded-full border border-amber-100 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">
+                  <span className="flex items-center gap-1 rounded-full border border-[var(--accent-border)] bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-bold text-[var(--accent-text)]">
                     <Egg className="h-3 w-3" /> Contains Egg
                   </span>
                 )}
                 {food.hasOnionGarlic === false && (
-                  <span className="flex items-center gap-1 rounded-full border border-[#eaa94d]/30 bg-[#fef9ef] px-2 py-0.5 text-[10px] font-bold text-[#b25c1c]">
+                  <span className="flex items-center gap-1 rounded-full border border-[var(--accent-border)] bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-bold text-[#b25c1c]">
                     <Leaf className="h-3 w-3" /> No Onion/Garlic
                   </span>
                 )}
                 {food.isFeatured && (
-                  <span className="flex items-center gap-0.5 rounded-full bg-[#eaa94d]/10 px-2 py-0.5 text-[10px] font-bold text-[#eaa94d]">
+                  <span className="flex items-center gap-0.5 rounded-full bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-bold text-[#eaa94d]">
                     <Star className="h-3 w-3 fill-[#eaa94d]" /> Featured
                   </span>
                 )}
               </div>
-              <p className="text-[11px] font-medium text-gray-400 mb-1">
+              <p className="text-[11px] font-medium text-[var(--text-3)] mb-1">
                 {food.category.name}
               </p>
-              <h2 className="text-xl font-extrabold text-[#111111] leading-tight">
+              <h2 className="text-xl font-extrabold text-[var(--text-1)] leading-tight">
                 {food.name}
               </h2>
-              <p className="mt-2 text-sm text-gray-500 leading-relaxed">
+              <p className="mt-2 text-sm text-[var(--text-2)] leading-relaxed">
                 {food.description}
               </p>
             </div>
@@ -466,17 +453,17 @@ export default function FoodDetailsPage() {
             {/* ── Stats chips ── */}
             <div className="flex flex-wrap gap-2">
               {food.rating > 0 && (
-                <span className="flex items-center gap-1.5 rounded-full border border-amber-100 bg-amber-50 px-3 py-1.5 text-[11px] font-bold text-amber-700">
-                  <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                <span className="flex items-center gap-1.5 rounded-full border border-[var(--accent-border)] bg-[var(--accent-muted)] px-3 py-1.5 text-[11px] font-bold text-[var(--accent-text)]">
+                  <Star className="h-3.5 w-3.5 fill-[var(--accent)] text-[var(--accent)]" />
                   {food.rating.toFixed(1)} rating
                 </span>
               )}
-              <span className="flex items-center gap-1.5 rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5 text-[11px] font-bold text-gray-600">
+              <span className="flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--canvas-sub)] px-3 py-1.5 text-[11px] font-bold text-[var(--text-2)]">
                 <Clock className="h-3.5 w-3.5" />
                 {food.prepTime}
               </span>
               {food.calories != null && (
-                <span className="flex items-center gap-1.5 rounded-full border border-orange-100 bg-orange-50 px-3 py-1.5 text-[11px] font-bold text-orange-600">
+                <span className="flex items-center gap-1.5 rounded-full border border-[var(--accent-border)] bg-[var(--accent)] px-3 py-1.5 text-[11px] font-bold text-[var(--accent)]">
                   <Flame className="h-3.5 w-3.5" />
                   {food.calories} kcal
                 </span>
@@ -499,7 +486,7 @@ export default function FoodDetailsPage() {
             {/* ── Allergens ── */}
             {food.allergens && food.allergens.length > 0 && (
               <div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                <p className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider mb-2">
                   Allergens
                 </p>
                 <div className="flex flex-wrap gap-1.5">
@@ -521,7 +508,7 @@ export default function FoodDetailsPage() {
                 {food.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="rounded-full bg-gray-100 px-2.5 py-1 text-[10px] font-medium text-gray-500"
+                    className="rounded-full bg-[var(--surface)] px-2.5 py-1 text-[10px] font-medium text-[var(--text-2)]"
                   >
                     #{tag}
                   </span>
@@ -531,7 +518,7 @@ export default function FoodDetailsPage() {
 
             {/* ── Offer banner ── */}
             {(food.offerExpiresAt || food.discount > 0) && (
-              <div className="flex items-center gap-3 rounded-xl bg-[#fef3dc] border border-[#eaa94d]/25 p-3.5">
+              <div className="flex items-center gap-3 rounded-xl bg-[#fef3dc] border border-[var(--accent-border)] p-3.5">
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#eaa94d]/20 shrink-0">
                   <Tag className="h-4 w-4 text-[#d67620]" />
                 </div>
@@ -554,7 +541,7 @@ export default function FoodDetailsPage() {
             {/* ── Size selector ── */}
             {food.sizes.length > 0 && (
               <div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">
+                <p className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider mb-3">
                   Choose Size
                 </p>
                 <div className="grid grid-cols-3 gap-2">
@@ -565,23 +552,23 @@ export default function FoodDetailsPage() {
                       className={`flex flex-col items-center gap-0.5 rounded-xl border-2 py-3 px-2 transition-all ${
                         sizeIdx === i
                           ? "border-[#eaa94d] bg-[#fef3dc]"
-                          : "border-gray-200 hover:border-gray-300 bg-white"
+                          : "border-[var(--border)] hover:border-[var(--border)] bg-[var(--canvas)]"
                       }`}
                     >
                       <span
                         className={`text-sm font-extrabold leading-tight ${
-                          sizeIdx === i ? "text-[#b25c1c]" : "text-[#111111]"
+                          sizeIdx === i ? "text-[#b25c1c]" : "text-[var(--text-1)]"
                         }`}
                       >
                         {s.grams}
                       </span>
-                      <span className="text-[10px] text-gray-400 font-medium">
+                      <span className="text-[10px] text-[var(--text-3)] font-medium">
                         {s.label}
                       </span>
                       {s.priceAdd > 0 && (
                         <span
                           className={`text-[10px] font-bold mt-0.5 ${
-                            sizeIdx === i ? "text-[#d67620]" : "text-gray-400"
+                            sizeIdx === i ? "text-[#d67620]" : "text-[var(--text-3)]"
                           }`}
                         >
                           +{formatPrice(s.priceAdd, cur)}
@@ -596,7 +583,7 @@ export default function FoodDetailsPage() {
             {/* ── Add-ons ── */}
             {food.addOns.length > 0 && (
               <div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">
+                <p className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider mb-3">
                   Build Your Meal
                 </p>
                 <div className="space-y-2">
@@ -606,7 +593,7 @@ export default function FoodDetailsPage() {
                       className={`flex items-center justify-between rounded-xl border px-4 py-3 cursor-pointer transition-all ${
                         selectedAddOns.has(a.id)
                           ? "border-[#eaa94d] bg-[#fef3dc]/50"
-                          : "border-gray-100 bg-gray-50/50 hover:border-gray-200"
+                          : "border-[var(--border-soft)] bg-[var(--canvas-sub)] hover:border-[var(--border)]"
                       }`}
                     >
                       <div className="flex items-center gap-3">
@@ -614,14 +601,14 @@ export default function FoodDetailsPage() {
                           className={`flex h-5 w-5 items-center justify-center rounded-md border-2 transition-colors shrink-0 ${
                             selectedAddOns.has(a.id)
                               ? "border-[#eaa94d] bg-[#eaa94d]"
-                              : "border-gray-300"
+                              : "border-[var(--border)]"
                           }`}
                         >
                           {selectedAddOns.has(a.id) && (
                             <Check className="h-3 w-3 text-white" />
                           )}
                         </div>
-                        <span className="text-sm font-medium text-[#111111]">
+                        <span className="text-sm font-medium text-[var(--text-1)]">
                           {a.name}
                         </span>
                       </div>
@@ -640,17 +627,17 @@ export default function FoodDetailsPage() {
               </div>
             )}
 
-            <div className="h-px bg-gray-100" />
+            <div className="h-px bg-[var(--surface)]" />
 
             {/* ── Price + Qty ── */}
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                <p className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider">
                   Total
                 </p>
                 <div className="flex items-baseline gap-1.5 mt-0.5">
                   {food.discount > 0 && (
-                    <span className="text-sm text-gray-400 line-through">
+                    <span className="text-sm text-[var(--text-3)] line-through">
                       {formatPrice(food.price * qty, cur)}
                     </span>
                   )}
@@ -665,16 +652,16 @@ export default function FoodDetailsPage() {
                   </motion.span>
                 </div>
                 {qty > 1 && (
-                  <p className="text-[11px] text-gray-400 mt-0.5">
+                  <p className="text-[11px] text-[var(--text-3)] mt-0.5">
                     {qty} × {formatPrice(unitPrice, cur)}
                   </p>
                 )}
               </div>
 
-              <div className="flex items-center gap-2 rounded-2xl border border-gray-200 bg-gray-50 px-1 py-1">
+              <div className="flex items-center gap-2 rounded-2xl border border-[var(--border)] bg-[var(--canvas-sub)] px-1 py-1">
                 <button
                   onClick={() => setQty((q) => Math.max(1, q - 1))}
-                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-gray-600 hover:bg-gray-100 transition-colors shadow-sm active:scale-90"
+                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--canvas)] text-[var(--text-2)] hover:bg-[var(--surface)] transition-colors shadow-sm active:scale-90"
                 >
                   <Minus className="h-4 w-4" strokeWidth={2.5} />
                 </button>
@@ -683,7 +670,7 @@ export default function FoodDetailsPage() {
                   initial={{ scale: 1.3 }}
                   animate={{ scale: 1 }}
                   transition={{ type: "spring", stiffness: 500, damping: 20 }}
-                  className="w-8 text-center text-base font-extrabold text-[#111111]"
+                  className="w-8 text-center text-base font-extrabold text-[var(--text-1)]"
                 >
                   {qty}
                 </motion.span>
@@ -701,7 +688,7 @@ export default function FoodDetailsPage() {
               onClick={handleAdd}
               whileTap={{ scale: 0.97 }}
               whileHover={{ y: -1 }}
-              className="relative w-full flex items-center justify-center gap-2.5 rounded-2xl bg-[#eaa94d] py-4 text-base font-bold text-white shadow-lg shadow-[#eaa94d]/25 overflow-hidden transition-colors hover:bg-[#d67620]"
+              className="relative w-full flex items-center justify-center gap-2.5 rounded-2xl bg-[#eaa94d] py-4 text-base font-bold text-white shadow-lg shadow-[var(--accent)]/25 overflow-hidden transition-colors hover:bg-[#d67620]"
             >
               <motion.div
                 className="absolute inset-0 bg-linear-to-r from-transparent via-white/15 to-transparent"
@@ -741,7 +728,7 @@ export default function FoodDetailsPage() {
               </AnimatePresence>
             </motion.button>
 
-            <div className="h-px bg-gray-100" />
+            <div className="h-px bg-[var(--surface)]" />
 
             {/* ── Rating ── */}
             <RatingInput
@@ -753,15 +740,15 @@ export default function FoodDetailsPage() {
             />
 
             {/* ── Restaurant info ── */}
-            <div className="flex items-center gap-3 rounded-2xl bg-gray-50 border border-gray-100 p-3.5">
+            <div className="flex items-center gap-3 rounded-2xl bg-[var(--canvas-sub)] border border-[var(--border-soft)] p-3.5">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#3e1e0c]">
                 <Utensils className="h-5 w-5 text-white" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-[13px] font-bold text-[#111111] truncate">
+                <p className="text-[13px] font-bold text-[var(--text-1)] truncate">
                   {food.restaurant.name}
                 </p>
-                <p className="text-[11px] text-gray-400 mt-0.5 flex items-center gap-1 truncate">
+                <p className="text-[11px] text-[var(--text-3)] mt-0.5 flex items-center gap-1 truncate">
                   <MapPin className="h-3 w-3 shrink-0" />
                   {food.restaurant.address}
                 </p>
@@ -788,10 +775,10 @@ export default function FoodDetailsPage() {
         >
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-base font-extrabold text-[#111111]">
+              <h3 className="text-base font-extrabold text-[var(--text-1)]">
                 More from {food.restaurant.name}
               </h3>
-              <p className="text-[11px] text-gray-400 mt-0.5">
+              <p className="text-[11px] text-[var(--text-3)] mt-0.5">
                 {suggested.length} other dishes you might like
               </p>
             </div>

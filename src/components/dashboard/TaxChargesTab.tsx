@@ -69,7 +69,7 @@ export default function TaxChargesTab() {
   if (loading) {
     return (
       <div className="flex justify-center py-20">
-        <Loader2 className="h-6 w-6 animate-spin text-[#3e1e0c]" />
+        <Loader2 className="h-6 w-6 animate-spin text-[var(--text-1)]" />
       </div>
     );
   }
@@ -77,19 +77,19 @@ export default function TaxChargesTab() {
   return (
     <div className="max-w-xl mx-auto space-y-6">
       <div>
-        <h2 className="text-lg font-extrabold text-[#3e1e0c] flex items-center gap-2">
-          <Receipt className="h-5 w-5 text-[#3e1e0c]" />
+        <h2 className="text-lg font-extrabold text-[var(--text-1)] flex items-center gap-2">
+          <Receipt className="h-5 w-5 text-[var(--text-1)]" />
           Currency, Tax &amp; Service Charge
         </h2>
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-sm text-[var(--text-2)] mt-1">
           Configure currency, tax and service charge for all new orders.
         </p>
       </div>
 
-      <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-4">
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--canvas)] p-5 space-y-4">
         <div className="flex items-center gap-2">
-          <Coins className="h-4 w-4 text-[#3e1e0c]" />
-          <h3 className="text-sm font-bold text-[#3e1e0c]">Currency</h3>
+          <Coins className="h-4 w-4 text-[var(--text-1)]" />
+          <h3 className="text-sm font-bold text-[var(--text-1)]">Currency</h3>
         </div>
         <div className="flex gap-2">
           {CURRENCIES.map((c) => (
@@ -100,23 +100,23 @@ export default function TaxChargesTab() {
               }
               className={`flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold transition-all border ${
                 config.currency === c.code
-                  ? "border-[#3e1e0c] bg-[#3e1e0c]/5 text-[#3e1e0c] ring-2 ring-[#3e1e0c]/10"
-                  : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                  ? "border-[#3e1e0c] bg-[#3e1e0c]/5 text-[var(--text-1)] ring-2 ring-[#3e1e0c]/10"
+                  : "border-[var(--border)] bg-[var(--canvas)] text-[var(--text-2)] hover:bg-[var(--canvas-sub)]"
               }`}
             >
               <span className="text-lg">{c.flag}</span>
               <span>{c.symbol}</span>
-              <span className="text-xs text-gray-400">{c.code}</span>
+              <span className="text-xs text-[var(--text-3)]">{c.code}</span>
             </button>
           ))}
         </div>
       </div>
 
-      <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-4">
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--canvas)] p-5 space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-bold text-[#3e1e0c]">Tax (VAT)</h3>
-            <p className="text-xs text-gray-400 mt-0.5">
+            <h3 className="text-sm font-bold text-[var(--text-1)]">Tax (VAT)</h3>
+            <p className="text-xs text-[var(--text-3)] mt-0.5">
               Applied to all orders at checkout
             </p>
           </div>
@@ -125,11 +125,11 @@ export default function TaxChargesTab() {
               setConfig((c) => ({ ...c, taxEnabled: !c.taxEnabled }))
             }
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-              config.taxEnabled ? "bg-[#3e1e0c]" : "bg-gray-300"
+              config.taxEnabled ? "bg-[#3e1e0c]" : "bg-[var(--border)]"
             }`}
           >
             <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+              className={`inline-block h-4 w-4 transform rounded-full bg-[var(--canvas)] shadow transition-transform ${
                 config.taxEnabled ? "translate-x-6" : "translate-x-1"
               }`}
             />
@@ -153,9 +153,9 @@ export default function TaxChargesTab() {
                 min="0"
                 max="100"
                 step="0.1"
-                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 pr-10 text-sm font-bold text-[#3e1e0c] outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/10 transition-all"
+                className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 pr-10 text-sm font-bold text-[var(--text-1)] outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/10 transition-all"
               />
-              <Percent className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Percent className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-3)]" />
             </div>
             <div className="flex gap-1.5">
               {[5, 10, 13, 15].map((v) => (
@@ -165,7 +165,7 @@ export default function TaxChargesTab() {
                   className={`rounded-lg px-2.5 py-1.5 text-xs font-bold transition-all ${
                     config.taxRate === v
                       ? "bg-[#3e1e0c] text-white"
-                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                      : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
                   }`}
                 >
                   {v}%
@@ -176,11 +176,11 @@ export default function TaxChargesTab() {
         )}
       </div>
 
-      <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-4">
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--canvas)] p-5 space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-bold text-[#3e1e0c]">Service Charge</h3>
-            <p className="text-xs text-gray-400 mt-0.5">
+            <h3 className="text-sm font-bold text-[var(--text-1)]">Service Charge</h3>
+            <p className="text-xs text-[var(--text-3)] mt-0.5">
               Added to the bill at billing time
             </p>
           </div>
@@ -192,11 +192,11 @@ export default function TaxChargesTab() {
               }))
             }
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-              config.serviceChargeEnabled ? "bg-[#3e1e0c]" : "bg-gray-300"
+              config.serviceChargeEnabled ? "bg-[#3e1e0c]" : "bg-[var(--border)]"
             }`}
           >
             <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+              className={`inline-block h-4 w-4 transform rounded-full bg-[var(--canvas)] shadow transition-transform ${
                 config.serviceChargeEnabled ? "translate-x-6" : "translate-x-1"
               }`}
             />
@@ -220,9 +220,9 @@ export default function TaxChargesTab() {
                 min="0"
                 max="100"
                 step="0.1"
-                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 pr-10 text-sm font-bold text-[#3e1e0c] outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/10 transition-all"
+                className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 pr-10 text-sm font-bold text-[var(--text-1)] outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/10 transition-all"
               />
-              <Percent className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Percent className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-3)]" />
             </div>
             <div className="flex gap-1.5">
               {[5, 10, 12, 15].map((v) => (
@@ -234,7 +234,7 @@ export default function TaxChargesTab() {
                   className={`rounded-lg px-2.5 py-1.5 text-xs font-bold transition-all ${
                     config.serviceChargeRate === v
                       ? "bg-[#3e1e0c] text-white"
-                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                      : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
                   }`}
                 >
                   {v}%
@@ -245,18 +245,18 @@ export default function TaxChargesTab() {
         )}
       </div>
 
-      <div className="rounded-2xl border border-gray-200 bg-gray-50 p-5">
-        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--canvas-sub)] p-5">
+        <h3 className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider mb-3">
           Preview — {formatPrice(1000, cur)} order
         </h3>
         <div className="space-y-1.5 text-sm">
           <div className="flex justify-between">
-            <span className="text-gray-500">Subtotal</span>
+            <span className="text-[var(--text-2)]">Subtotal</span>
             <span className="font-medium">{formatPrice(1000, cur)}</span>
           </div>
           {config.taxEnabled && (
             <div className="flex justify-between">
-              <span className="text-gray-500">Tax ({config.taxRate}%)</span>
+              <span className="text-[var(--text-2)]">Tax ({config.taxRate}%)</span>
               <span className="font-medium">
                 {formatPrice((1000 * config.taxRate) / 100, cur)}
               </span>
@@ -264,7 +264,7 @@ export default function TaxChargesTab() {
           )}
           {config.serviceChargeEnabled && (
             <div className="flex justify-between">
-              <span className="text-gray-500">
+              <span className="text-[var(--text-2)]">
                 Service Charge ({config.serviceChargeRate}%)
               </span>
               <span className="font-medium">
@@ -272,7 +272,7 @@ export default function TaxChargesTab() {
               </span>
             </div>
           )}
-          <div className="flex justify-between border-t border-gray-200 pt-2 mt-2 font-extrabold text-[#3e1e0c]">
+          <div className="flex justify-between border-t border-[var(--border)] pt-2 mt-2 font-extrabold text-[var(--text-1)]">
             <span>Total</span>
             <span>
               {formatPrice(
@@ -291,7 +291,7 @@ export default function TaxChargesTab() {
       <button
         onClick={handleSave}
         disabled={saving}
-        className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#3e1e0c] py-3.5 text-sm font-bold text-white hover:bg-[#2d1508] disabled:bg-gray-300 transition-all shadow-sm"
+        className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#3e1e0c] py-3.5 text-sm font-bold text-white hover:bg-[#2d1508] disabled:bg-[var(--border)] transition-all shadow-sm"
       >
         {saving ? (
           <Loader2 className="h-4 w-4 animate-spin" />

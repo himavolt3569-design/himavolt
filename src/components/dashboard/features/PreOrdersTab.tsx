@@ -67,10 +67,10 @@ const TIME_SLOTS = [
 ];
 
 const STATUS_COLORS: Record<PreOrderItem["status"], string> = {
-  Pending: "bg-amber-100 text-amber-700 border-amber-200",
-  Baking: "bg-orange-100 text-orange-700 border-orange-200",
-  Ready: "bg-[#fef3dc] text-[#b25c1c] border-[#eaa94d]/30",
-  "Picked Up": "bg-gray-100 text-gray-500 border-gray-200",
+  Pending: "bg-[var(--accent-muted)] text-[var(--accent-text)] border-[var(--accent-border)]",
+  Baking: "bg-[var(--accent)] text-[var(--accent)] border-[var(--accent-border)]",
+  Ready: "bg-[var(--accent-muted)] text-[#b25c1c] border-[var(--accent-border)]",
+  "Picked Up": "bg-[var(--surface)] text-[var(--text-2)] border-[var(--border)]",
 };
 
 const STATUS_FLOW: PreOrderItem["status"][] = ["Pending", "Baking", "Ready", "Picked Up"];
@@ -182,11 +182,11 @@ export default function PreOrdersTab() {
         <div
           key={day}
           className={`h-24 border border-rose-100 rounded-lg p-1.5 ${
-            isToday ? "bg-rose-50 border-rose-300" : "bg-white"
+            isToday ? "bg-rose-50 border-rose-300" : "bg-[var(--canvas)]"
           }`}
         >
           <span
-            className={`text-xs font-medium ${isToday ? "text-rose-600" : "text-gray-600"}`}
+            className={`text-xs font-medium ${isToday ? "text-rose-600" : "text-[var(--text-2)]"}`}
           >
             {day}
           </span>
@@ -200,7 +200,7 @@ export default function PreOrdersTab() {
               </div>
             ))}
             {dayOrders.length > 2 && (
-              <div className="text-[10px] text-gray-400 px-1">
+              <div className="text-[10px] text-[var(--text-3)] px-1">
                 +{dayOrders.length - 2} more
               </div>
             )}
@@ -216,8 +216,8 @@ export default function PreOrdersTab() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-gray-800">Pre-Orders</h2>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <h2 className="text-xl font-bold text-[var(--text-1)]">Pre-Orders</h2>
+          <p className="text-sm text-[var(--text-2)] mt-0.5">
             Schedule pickups for fresh baked goods
           </p>
         </div>
@@ -226,7 +226,7 @@ export default function PreOrdersTab() {
             onClick={() => setAcceptingPreOrders(!acceptingPreOrders)}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
               acceptingPreOrders
-                ? "bg-[#fef3dc] text-[#b25c1c] hover:bg-[#fde9ba]"
+                ? "bg-[var(--accent-muted)] text-[#b25c1c] hover:bg-[#fde9ba]"
                 : "bg-red-100 text-red-700 hover:bg-red-200"
             }`}
           >
@@ -235,7 +235,7 @@ export default function PreOrdersTab() {
           </button>
           <button
             onClick={() => setShowSettings(!showSettings)}
-            className="p-2 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+            className="p-2 rounded-xl bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-colors"
           >
             <Settings className="w-5 h-5" />
           </button>
@@ -257,36 +257,36 @@ export default function PreOrdersTab() {
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            <div className="bg-white rounded-xl border border-rose-100 shadow-sm p-5">
-              <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
+            <div className="bg-[var(--canvas)] rounded-xl border border-rose-100 shadow-sm p-5">
+              <h3 className="text-sm font-semibold text-[var(--text-2)] mb-4 flex items-center gap-2">
                 <Settings className="w-4 h-4 text-rose-500" />
                 Capacity & Notification Settings
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">
+                  <label className="block text-xs font-medium text-[var(--text-2)] mb-1">
                     Max Orders Per Day
                   </label>
                   <input
                     type="number"
                     value={maxOrdersPerDay}
                     onChange={(e) => setMaxOrdersPerDay(Number(e.target.value))}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 focus:border-rose-300"
+                    className="w-full px-3 py-2 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 focus:border-rose-300"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">
+                  <label className="block text-xs font-medium text-[var(--text-2)] mb-1">
                     Max Orders Per Time Slot
                   </label>
                   <input
                     type="number"
                     value={maxOrdersPerSlot}
                     onChange={(e) => setMaxOrdersPerSlot(Number(e.target.value))}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 focus:border-rose-300"
+                    className="w-full px-3 py-2 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 focus:border-rose-300"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">
+                  <label className="block text-xs font-medium text-[var(--text-2)] mb-1">
                     <Bell className="w-3 h-3 inline mr-1" />
                     Notify Customer (hours before pickup)
                   </label>
@@ -294,7 +294,7 @@ export default function PreOrdersTab() {
                     type="number"
                     value={notifyHoursBefore}
                     onChange={(e) => setNotifyHoursBefore(Number(e.target.value))}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 focus:border-rose-300"
+                    className="w-full px-3 py-2 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 focus:border-rose-300"
                   />
                 </div>
               </div>
@@ -311,7 +311,7 @@ export default function PreOrdersTab() {
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               activeView === "list"
                 ? "bg-rose-500 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
             }`}
           >
             <ShoppingBag className="w-4 h-4 inline mr-1.5" />
@@ -322,7 +322,7 @@ export default function PreOrdersTab() {
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               activeView === "calendar"
                 ? "bg-rose-500 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
             }`}
           >
             <Calendar className="w-4 h-4 inline mr-1.5" />
@@ -333,19 +333,19 @@ export default function PreOrdersTab() {
         {activeView === "list" && (
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <div className="relative flex-1 sm:w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
               <input
                 type="text"
                 placeholder="Search orders..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
+                className="w-full pl-9 pr-3 py-2 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
               />
             </div>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as PreOrderItem["status"] | "All")}
-              className="px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 bg-white"
+              className="px-3 py-2 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 bg-[var(--canvas)]"
             >
               <option value="All">All Status</option>
               {STATUS_FLOW.map((s) => (
@@ -360,7 +360,7 @@ export default function PreOrdersTab() {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-xl border border-rose-100 shadow-sm p-5"
+          className="bg-[var(--canvas)] rounded-xl border border-rose-100 shadow-sm p-5"
         >
           <div className="flex items-center justify-between mb-4">
             <button
@@ -369,11 +369,11 @@ export default function PreOrdersTab() {
                   new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1)
                 )
               }
-              className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+              className="p-1.5 rounded-lg hover:bg-[var(--surface)] transition-colors"
             >
-              <ChevronLeft className="w-5 h-5 text-gray-600" />
+              <ChevronLeft className="w-5 h-5 text-[var(--text-2)]" />
             </button>
-            <h3 className="text-sm font-semibold text-gray-700">
+            <h3 className="text-sm font-semibold text-[var(--text-2)]">
               {calendarMonth.toLocaleString("default", { month: "long", year: "numeric" })}
             </h3>
             <button
@@ -382,14 +382,14 @@ export default function PreOrdersTab() {
                   new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1)
                 )
               }
-              className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+              className="p-1.5 rounded-lg hover:bg-[var(--surface)] transition-colors"
             >
-              <ChevronRight className="w-5 h-5 text-gray-600" />
+              <ChevronRight className="w-5 h-5 text-[var(--text-2)]" />
             </button>
           </div>
           <div className="grid grid-cols-7 gap-1 mb-1">
             {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-              <div key={d} className="text-center text-xs font-medium text-gray-400 py-1">
+              <div key={d} className="text-center text-xs font-medium text-[var(--text-3)] py-1">
                 {d}
               </div>
             ))}
@@ -405,10 +405,10 @@ export default function PreOrdersTab() {
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="text-center py-12 bg-white rounded-xl border border-rose-100"
+                className="text-center py-12 bg-[var(--canvas)] rounded-xl border border-rose-100"
               >
-                <Package className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <p className="text-gray-400 text-sm">No pre-orders found</p>
+                <Package className="w-12 h-12 text-[var(--text-3)] mx-auto mb-3" />
+                <p className="text-[var(--text-3)] text-sm">No pre-orders found</p>
               </motion.div>
             ) : (
               filteredOrders.map((order, index) => (
@@ -418,12 +418,12 @@ export default function PreOrdersTab() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ delay: index * 0.05 }}
-                  className="bg-white rounded-xl border border-rose-100 shadow-sm p-4 hover:shadow-md transition-shadow"
+                  className="bg-[var(--canvas)] rounded-xl border border-rose-100 shadow-sm p-4 hover:shadow-md transition-shadow"
                 >
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <span className="text-xs font-mono text-gray-400">{order.id}</span>
+                        <span className="text-xs font-mono text-[var(--text-3)]">{order.id}</span>
                         <span
                           className={`text-xs px-2.5 py-0.5 rounded-full border font-medium ${
                             STATUS_COLORS[order.status]
@@ -432,11 +432,11 @@ export default function PreOrdersTab() {
                           {order.status}
                         </span>
                       </div>
-                      <h4 className="font-semibold text-gray-800 flex items-center gap-2">
+                      <h4 className="font-semibold text-[var(--text-1)] flex items-center gap-2">
                         <User className="w-4 h-4 text-rose-400" />
                         {order.customerName}
                       </h4>
-                      <p className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
+                      <p className="text-xs text-[var(--text-3)] flex items-center gap-1 mt-0.5">
                         <Phone className="w-3 h-3" />
                         {order.phone}
                       </p>
@@ -451,28 +451,28 @@ export default function PreOrdersTab() {
                         ))}
                       </div>
                       {order.specialInstructions && (
-                        <p className="text-xs text-gray-500 mt-2 italic flex items-start gap-1">
-                          <AlertCircle className="w-3 h-3 mt-0.5 flex-shrink-0 text-amber-500" />
+                        <p className="text-xs text-[var(--text-2)] mt-2 italic flex items-start gap-1">
+                          <AlertCircle className="w-3 h-3 mt-0.5 flex-shrink-0 text-[var(--accent)]" />
                           {order.specialInstructions}
                         </p>
                       )}
                     </div>
                     <div className="flex flex-col items-end gap-2">
                       <div className="text-right">
-                        <p className="text-xs text-gray-400 flex items-center gap-1">
+                        <p className="text-xs text-[var(--text-3)] flex items-center gap-1">
                           <Calendar className="w-3 h-3" />
                           {order.pickupDate}
                         </p>
-                        <p className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
+                        <p className="text-xs text-[var(--text-3)] flex items-center gap-1 mt-0.5">
                           <Clock className="w-3 h-3" />
                           {order.pickupTimeSlot}
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-lg font-bold text-gray-800">
+                        <p className="text-lg font-bold text-[var(--text-1)]">
                           ${order.totalAmount.toFixed(2)}
                         </p>
-                        <p className="text-xs text-gray-400">
+                        <p className="text-xs text-[var(--text-3)]">
                           Deposit: ${order.depositAmount.toFixed(2)}
                         </p>
                       </div>
@@ -481,7 +481,7 @@ export default function PreOrdersTab() {
                           {order.status !== "Pending" && (
                             <button
                               onClick={() => updateOrderStatus(order.id, "prev")}
-                              className="text-xs px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+                              className="text-xs px-3 py-1.5 rounded-lg bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-colors"
                             >
                               Back
                             </button>
@@ -523,22 +523,22 @@ export default function PreOrdersTab() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
+              className="bg-[var(--canvas)] rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
             >
-              <div className="flex items-center justify-between p-5 border-b border-gray-100">
-                <h3 className="text-lg font-bold text-gray-800">New Pre-Order</h3>
+              <div className="flex items-center justify-between p-5 border-b border-[var(--border-soft)]">
+                <h3 className="text-lg font-bold text-[var(--text-1)]">New Pre-Order</h3>
                 <button
                   onClick={() => setShowForm(false)}
-                  className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                  className="p-1.5 rounded-lg hover:bg-[var(--surface)] transition-colors"
                 >
-                  <X className="w-5 h-5 text-gray-400" />
+                  <X className="w-5 h-5 text-[var(--text-3)]" />
                 </button>
               </div>
 
               <div className="p-5 space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1">
+                    <label className="block text-xs font-medium text-[var(--text-2)] mb-1">
                       Customer Name *
                     </label>
                     <input
@@ -547,26 +547,26 @@ export default function PreOrdersTab() {
                       onChange={(e) =>
                         setFormData({ ...formData, customerName: e.target.value })
                       }
-                      className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
+                      className="w-full px-3 py-2 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
                       placeholder="Full name"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1">
+                    <label className="block text-xs font-medium text-[var(--text-2)] mb-1">
                       Phone
                     </label>
                     <input
                       type="text"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
+                      className="w-full px-3 py-2 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
                       placeholder="555-0000"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-2">
+                  <label className="block text-xs font-medium text-[var(--text-2)] mb-2">
                     Items *
                   </label>
                   <div className="flex flex-wrap gap-2">
@@ -577,7 +577,7 @@ export default function PreOrdersTab() {
                         className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
                           formData.items.includes(item)
                             ? "bg-rose-500 text-white border-rose-500"
-                            : "bg-white text-gray-600 border-gray-200 hover:border-rose-300"
+                            : "bg-[var(--canvas)] text-[var(--text-2)] border-[var(--border)] hover:border-rose-300"
                         }`}
                       >
                         {item}
@@ -588,7 +588,7 @@ export default function PreOrdersTab() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1">
+                    <label className="block text-xs font-medium text-[var(--text-2)] mb-1">
                       Pickup Date *
                     </label>
                     <input
@@ -597,11 +597,11 @@ export default function PreOrdersTab() {
                       onChange={(e) =>
                         setFormData({ ...formData, pickupDate: e.target.value })
                       }
-                      className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
+                      className="w-full px-3 py-2 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1">
+                    <label className="block text-xs font-medium text-[var(--text-2)] mb-1">
                       Time Slot
                     </label>
                     <select
@@ -609,7 +609,7 @@ export default function PreOrdersTab() {
                       onChange={(e) =>
                         setFormData({ ...formData, pickupTimeSlot: e.target.value })
                       }
-                      className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 bg-white"
+                      className="w-full px-3 py-2 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 bg-[var(--canvas)]"
                     >
                       <option value="">Select slot</option>
                       {TIME_SLOTS.map((s) => (
@@ -620,7 +620,7 @@ export default function PreOrdersTab() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">
+                  <label className="block text-xs font-medium text-[var(--text-2)] mb-1">
                     Special Instructions
                   </label>
                   <textarea
@@ -629,14 +629,14 @@ export default function PreOrdersTab() {
                       setFormData({ ...formData, specialInstructions: e.target.value })
                     }
                     rows={2}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 resize-none"
+                    className="w-full px-3 py-2 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 resize-none"
                     placeholder="Any special requests..."
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1">
+                    <label className="block text-xs font-medium text-[var(--text-2)] mb-1">
                       Deposit Amount ($)
                     </label>
                     <input
@@ -645,13 +645,13 @@ export default function PreOrdersTab() {
                       onChange={(e) =>
                         setFormData({ ...formData, depositAmount: Number(e.target.value) })
                       }
-                      className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
+                      className="w-full px-3 py-2 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
                       min={0}
                       step={0.01}
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1">
+                    <label className="block text-xs font-medium text-[var(--text-2)] mb-1">
                       Total Amount ($)
                     </label>
                     <input
@@ -660,7 +660,7 @@ export default function PreOrdersTab() {
                       onChange={(e) =>
                         setFormData({ ...formData, totalAmount: Number(e.target.value) })
                       }
-                      className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
+                      className="w-full px-3 py-2 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
                       min={0}
                       step={0.01}
                     />
@@ -668,10 +668,10 @@ export default function PreOrdersTab() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-3 p-5 border-t border-gray-100">
+              <div className="flex items-center justify-end gap-3 p-5 border-t border-[var(--border-soft)]">
                 <button
                   onClick={() => setShowForm(false)}
-                  className="px-4 py-2 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors"
+                  className="px-4 py-2 rounded-xl text-sm font-medium text-[var(--text-2)] hover:bg-[var(--surface)] transition-colors"
                 >
                   Cancel
                 </button>

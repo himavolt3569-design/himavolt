@@ -196,7 +196,7 @@ export default function StoryManager({
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-bold text-[#3e1e0c]">Stories</h2>
-          <p className="text-xs text-gray-500 mt-0.5">
+          <p className="text-xs text-[var(--text-2)] mt-0.5">
             Share photos & videos that customers see when they open the menu.
             Stories auto-expire after the set duration.
           </p>
@@ -215,8 +215,8 @@ export default function StoryManager({
       </div>
 
       {activeStories.length > 0 && (
-        <div className="rounded-xl border border-gray-200 bg-white p-4">
-          <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--canvas)] p-4">
+          <h3 className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider mb-3">
             Customer Preview
           </h3>
           <div className="flex items-center gap-4">
@@ -229,7 +229,7 @@ export default function StoryManager({
               }
               timestamp={activeStories[0]?.createdAt}
             />
-            <div className="text-sm text-gray-500">
+            <div className="text-sm text-[var(--text-2)]">
               <span className="font-bold text-[#3e1e0c]">
                 {activeStories.length}
               </span>{" "}
@@ -240,21 +240,21 @@ export default function StoryManager({
       )}
 
       <div>
-        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
+        <h3 className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider mb-3">
           Active Stories ({activeStories.length})
         </h3>
 
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+            <Loader2 className="h-6 w-6 animate-spin text-[var(--text-3)]" />
           </div>
         ) : activeStories.length === 0 ? (
-          <div className="rounded-xl border-2 border-dashed border-gray-200 py-12 text-center">
-            <Camera className="mx-auto h-10 w-10 text-gray-300 mb-3" />
-            <p className="text-sm font-medium text-gray-400">
+          <div className="rounded-xl border-2 border-dashed border-[var(--border)] py-12 text-center">
+            <Camera className="mx-auto h-10 w-10 text-[var(--text-3)] mb-3" />
+            <p className="text-sm font-medium text-[var(--text-3)]">
               No active stories
             </p>
-            <p className="text-xs text-gray-300 mt-1">
+            <p className="text-xs text-[var(--text-3)] mt-1">
               Upload a photo or video to create your first story
             </p>
           </div>
@@ -266,9 +266,9 @@ export default function StoryManager({
                 layout
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="relative group rounded-xl overflow-hidden border border-gray-200 bg-white"
+                className="relative group rounded-xl overflow-hidden border border-[var(--border)] bg-[var(--canvas)]"
               >
-                <div className="aspect-[9/16] bg-gray-100 relative">
+                <div className="aspect-[9/16] bg-[var(--surface)] relative">
                   {story.type === "video" ? (
                     <video
                       src={story.mediaUrl}
@@ -312,7 +312,7 @@ export default function StoryManager({
                         </button>
                         <button
                           onClick={() => setDeleteConfirmId(null)}
-                          className="px-3 py-1 text-xs font-bold bg-white/20 text-white rounded-full hover:bg-white/30 transition-colors"
+                          className="px-3 py-1 text-xs font-bold bg-[var(--canvas)]/80 text-white rounded-full hover:bg-[var(--canvas)]/80 transition-colors"
                         >
                           Cancel
                         </button>
@@ -351,8 +351,8 @@ export default function StoryManager({
                   </div>
                 </div>
 
-                <div className="px-2 py-1.5 border-t border-gray-100">
-                  <p className="text-[10px] text-gray-400 truncate">
+                <div className="px-2 py-1.5 border-t border-[var(--border-soft)]">
+                  <p className="text-[10px] text-[var(--text-3)] truncate">
                     by {story.postedBy}
                   </p>
                 </div>
@@ -364,7 +364,7 @@ export default function StoryManager({
 
       {expiredStories.length > 0 && (
         <div>
-          <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+          <h3 className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider mb-3 flex items-center gap-2">
             <AlertTriangle className="h-3.5 w-3.5" />
             Expired ({expiredStories.length})
           </h3>
@@ -372,9 +372,9 @@ export default function StoryManager({
             {expiredStories.map((story) => (
               <div
                 key={story.id}
-                className="relative group rounded-xl overflow-hidden border border-gray-200 bg-white opacity-50"
+                className="relative group rounded-xl overflow-hidden border border-[var(--border)] bg-[var(--canvas)] opacity-50"
               >
-                <div className="aspect-[9/16] bg-gray-100 relative">
+                <div className="aspect-[9/16] bg-[var(--surface)] relative">
                   {story.type === "video" ? (
                     <video
                       src={story.mediaUrl}
@@ -409,7 +409,7 @@ export default function StoryManager({
                         </button>
                         <button
                           onClick={() => setDeleteConfirmId(null)}
-                          className="px-3 py-1 text-xs font-bold bg-white/20 text-white rounded-full hover:bg-white/30 transition-colors"
+                          className="px-3 py-1 text-xs font-bold bg-[var(--canvas)]/80 text-white rounded-full hover:bg-[var(--canvas)]/80 transition-colors"
                         >
                           Cancel
                         </button>
@@ -449,15 +449,15 @@ export default function StoryManager({
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="fixed inset-x-4 top-[10%] z-50 mx-auto max-w-lg rounded-2xl bg-white shadow-2xl overflow-hidden"
+              className="fixed inset-x-4 top-[10%] z-50 mx-auto max-w-lg rounded-2xl bg-[var(--canvas)] shadow-2xl overflow-hidden"
             >
-              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-soft)]">
                 <h3 className="text-base font-bold text-[#3e1e0c]">
                   Add Story
                 </h3>
                 <button
                   onClick={resetModal}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-colors"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -483,12 +483,12 @@ export default function StoryManager({
                     )}
                   </div>
                 ) : (
-                  <label className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 py-16 cursor-pointer hover:border-[#eaa94d] hover:bg-orange-50/50 transition-colors">
-                    <Upload className="h-8 w-8 text-gray-400 mb-2" />
-                    <span className="text-sm font-medium text-gray-500">
+                  <label className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-[var(--border)] py-16 cursor-pointer hover:border-[#eaa94d] hover:bg-[var(--accent)]0/50 transition-colors">
+                    <Upload className="h-8 w-8 text-[var(--text-3)] mb-2" />
+                    <span className="text-sm font-medium text-[var(--text-2)]">
                       Click to upload an image or video
                     </span>
-                    <span className="text-xs text-gray-400 mt-1">
+                    <span className="text-xs text-[var(--text-3)] mt-1">
                       Images: Max 5MB | Videos: Max 50MB
                     </span>
                     <input
@@ -501,7 +501,7 @@ export default function StoryManager({
                 )}
 
                 <div>
-                  <label className="text-xs font-bold text-gray-500 block mb-1.5">
+                  <label className="text-xs font-bold text-[var(--text-2)] block mb-1.5">
                     Caption (optional)
                   </label>
                   <input
@@ -510,12 +510,12 @@ export default function StoryManager({
                     onChange={(e) => setCaption(e.target.value)}
                     placeholder="What's happening today?"
                     maxLength={120}
-                    className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#eaa94d]/30 focus:border-[#eaa94d]/30"
+                    className="w-full rounded-lg border border-[var(--border)] px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#eaa94d]/30 focus:border-[#eaa94d]/30"
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-gray-500 block mb-1.5">
+                  <label className="text-xs font-bold text-[var(--text-2)] block mb-1.5">
                     Expires after
                   </label>
                   <div className="flex gap-2">
@@ -526,7 +526,7 @@ export default function StoryManager({
                         className={`flex-1 rounded-lg px-3 py-2 text-xs font-bold transition-all ${
                           durationHours === h
                             ? "bg-[#3e1e0c] text-white"
-                            : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                            : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
                         }`}
                       >
                         {h}h

@@ -359,16 +359,16 @@ export default function ChatWidget({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 20, scale: 0.95 }}
               transition={{ type: "spring", damping: 25 }}
-              className="fixed bottom-0 left-0 right-0 z-90 flex flex-col bg-white rounded-t-2xl shadow-2xl max-h-[75vh] md:bottom-20 md:right-4 md:left-auto md:w-[380px] md:rounded-2xl md:max-h-[500px]"
+              className="fixed bottom-0 left-0 right-0 z-90 flex flex-col bg-[var(--canvas)] rounded-t-2xl shadow-2xl max-h-[75vh] md:bottom-20 md:right-4 md:left-auto md:w-[380px] md:rounded-2xl md:max-h-[500px]"
             >
-              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 shrink-0">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-soft)] shrink-0">
                 <div className="flex items-center gap-2">
-                  <MessageCircle className="h-4 w-4 text-[#3e1e0c]" />
-                  <h3 className="text-sm font-bold text-[#3e1e0c]">
+                  <MessageCircle className="h-4 w-4 text-[var(--text-1)]" />
+                  <h3 className="text-sm font-bold text-[var(--text-1)]">
                     Live Chat
                   </h3>
                   {senderName && (
-                    <span className="rounded-md bg-amber-100 px-2 py-0.5 text-[12px] font-black text-amber-800">
+                    <span className="rounded-md bg-[var(--accent-muted)] px-2 py-0.5 text-[12px] font-black text-[var(--accent-text)]">
                       {senderName}
                     </span>
                   )}
@@ -381,7 +381,7 @@ export default function ChatWidget({
                 </div>
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="rounded-full p-1.5 text-gray-400 hover:bg-gray-100 transition-colors"
+                  className="rounded-full p-1.5 text-[var(--text-3)] hover:bg-[var(--surface)] transition-colors"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -398,15 +398,15 @@ export default function ChatWidget({
               <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 min-h-50">
                 {loading ? (
                   <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+                    <Loader2 className="h-5 w-5 animate-spin text-[var(--text-3)]" />
                   </div>
                 ) : messages.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-8 text-center">
-                    <MessageCircle className="h-8 w-8 text-gray-200 mb-2" />
-                    <p className="text-xs font-bold text-gray-400">
+                    <MessageCircle className="h-8 w-8 text-[var(--text-3)] mb-2" />
+                    <p className="text-xs font-bold text-[var(--text-3)]">
                       No messages yet
                     </p>
-                    <p className="text-[11px] text-gray-300 mt-0.5">
+                    <p className="text-[11px] text-[var(--text-3)] mt-0.5">
                       Send a message to start the conversation
                     </p>
                   </div>
@@ -422,14 +422,14 @@ export default function ChatWidget({
                 <div ref={messagesEndRef} />
               </div>
 
-              <div className="border-t border-gray-100 px-4 py-3 shrink-0">
+              <div className="border-t border-[var(--border-soft)] px-4 py-3 shrink-0">
                 <div className="flex items-center gap-2">
                   <input
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder="Type a message..."
-                    className="flex-1 rounded-xl bg-gray-100 px-4 py-2.5 text-sm text-[#3e1e0c] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#3e1e0c]/20"
+                    className="flex-1 rounded-xl bg-[var(--surface)] px-4 py-2.5 text-sm text-[var(--text-1)] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#3e1e0c]/20"
                   />
                   <button
                     onClick={sendMessage}
@@ -464,17 +464,17 @@ function OrderItemsCard({
   const totalItems = summary.items.reduce((sum, i) => sum + i.quantity, 0);
 
   return (
-    <div className="shrink-0 bg-amber-50 border-b border-amber-100">
+    <div className="shrink-0 bg-[var(--accent-muted)] border-b border-[var(--accent-border)]">
       <button
         onClick={onToggle}
         className="w-full flex items-center justify-between px-4 py-2.5 text-left"
       >
         <div className="flex items-center gap-2">
-          <ShoppingBag className="h-3.5 w-3.5 text-amber-700" />
-          <span className="text-xs font-bold text-amber-800">
+          <ShoppingBag className="h-3.5 w-3.5 text-[var(--accent-text)]" />
+          <span className="text-xs font-bold text-[var(--accent-text)]">
             Order #{summary.orderNo}
           </span>
-          <span className="text-[10px] text-amber-600">
+          <span className="text-[10px] text-[var(--accent-text)]">
             {totalItems} item{totalItems !== 1 && "s"}
           </span>
         </div>
@@ -482,7 +482,7 @@ function OrderItemsCard({
           animate={{ rotate: expanded ? 180 : 0 }}
           transition={{ duration: 0.2 }}
         >
-          <ChevronDown className="h-3.5 w-3.5 text-amber-600" />
+          <ChevronDown className="h-3.5 w-3.5 text-[var(--accent-text)]" />
         </motion.div>
       </button>
 
@@ -502,20 +502,20 @@ function OrderItemsCard({
                     key={item.id}
                     className="flex items-center justify-between text-[11px]"
                   >
-                    <span className="text-amber-800">
+                    <span className="text-[var(--accent-text)]">
                       {item.quantity}x {item.name}
                     </span>
-                    <span className="text-amber-700 font-medium">
+                    <span className="text-[var(--accent-text)] font-medium">
                       Rs. {item.price * item.quantity}
                     </span>
                   </div>
                 ))}
               </div>
-              <div className="mt-2 pt-2 border-t border-amber-200 flex items-center justify-between">
-                <span className="text-[11px] font-bold text-amber-800">
+              <div className="mt-2 pt-2 border-t border-[var(--accent-border)] flex items-center justify-between">
+                <span className="text-[11px] font-bold text-[var(--accent-text)]">
                   Total
                 </span>
-                <span className="text-xs font-extrabold text-amber-900">
+                <span className="text-xs font-extrabold text-[var(--accent-text)]">
                   Rs. {summary.total}
                 </span>
               </div>
@@ -552,13 +552,13 @@ function MessageBubble({
         className={`max-w-[75%] rounded-2xl px-3.5 py-2 ${
           isMine
             ? "bg-[#3e1e0c] text-white rounded-br-md"
-            : "bg-gray-100 text-[#3e1e0c] rounded-bl-md"
+            : "bg-[var(--surface)] text-[var(--text-1)] rounded-bl-md"
         }`}
       >
         {!isMine && message.senderName && (
           <p
             className={`text-[10px] font-bold mb-0.5 ${
-              isMine ? "text-white/70" : "text-gray-400"
+              isMine ? "text-white/70" : "text-[var(--text-3)]"
             }`}
           >
             {message.senderName}
@@ -569,7 +569,7 @@ function MessageBubble({
         </p>
         <p
           className={`text-[10px] mt-1 ${
-            isMine ? "text-white/50" : "text-gray-400"
+            isMine ? "text-white/50" : "text-[var(--text-3)]"
           }`}
         >
           {new Date(message.createdAt).toLocaleTimeString([], {
@@ -622,12 +622,12 @@ function CompactChat({
       <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 min-h-0">
         {loading ? (
           <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+            <Loader2 className="h-5 w-5 animate-spin text-[var(--text-3)]" />
           </div>
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-8 text-center">
-            <MessageCircle className="h-8 w-8 text-gray-200 mb-2" />
-            <p className="text-xs font-bold text-gray-400">
+            <MessageCircle className="h-8 w-8 text-[var(--text-3)] mb-2" />
+            <p className="text-xs font-bold text-[var(--text-3)]">
               No messages yet
             </p>
           </div>
@@ -642,14 +642,14 @@ function CompactChat({
         )}
         <div ref={messagesEndRef} />
       </div>
-      <div className="border-t border-gray-100 px-4 py-3 shrink-0">
+      <div className="border-t border-[var(--border-soft)] px-4 py-3 shrink-0">
         <div className="flex items-center gap-2">
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Type a message..."
-            className="flex-1 rounded-xl bg-gray-100 px-4 py-2.5 text-sm text-[#3e1e0c] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#3e1e0c]/20"
+            className="flex-1 rounded-xl bg-[var(--surface)] px-4 py-2.5 text-sm text-[var(--text-1)] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#3e1e0c]/20"
           />
           <button
             onClick={sendMessage}

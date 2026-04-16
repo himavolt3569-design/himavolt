@@ -65,10 +65,10 @@ const STATUS_CONFIG: Record<
   EventStatus,
   { bg: string; text: string; border: string }
 > = {
-  Inquiry: { bg: "bg-orange-50", text: "text-orange-700", border: "border-orange-200" },
+  Inquiry: { bg: "bg-[var(--accent)]", text: "text-[var(--accent)]", border: "border-[var(--accent-border)]" },
   "Quote Sent": { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-200" },
-  Confirmed: { bg: "bg-[#fef9ef]", text: "text-[#b25c1c]", border: "border-[#eaa94d]/30" },
-  "In Progress": { bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-200" },
+  Confirmed: { bg: "bg-[var(--accent-muted)]", text: "text-[#b25c1c]", border: "border-[var(--accent-border)]" },
+  "In Progress": { bg: "bg-[var(--accent-muted)]", text: "text-[var(--accent-text)]", border: "border-[var(--accent-border)]" },
   Completed: { bg: "bg-stone-50", text: "text-stone-600", border: "border-stone-200" },
 };
 
@@ -214,7 +214,7 @@ export default function EventCateringTab() {
         </div>
         <button
           onClick={() => setShowNewEvent(true)}
-          className="flex items-center gap-2 rounded-xl bg-amber-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-amber-700"
+          className="flex items-center gap-2 rounded-xl bg-[var(--accent-hover)] px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-[var(--accent-hover)]"
         >
           <Plus className="h-4 w-4" />
           New Event
@@ -227,15 +227,15 @@ export default function EventCateringTab() {
             label: "Total Events",
             value: events.length,
             icon: CalendarDays,
-            color: "text-amber-600",
-            bg: "bg-amber-50",
+            color: "text-[var(--accent-text)]",
+            bg: "bg-[var(--accent-muted)]",
           },
           {
             label: "Confirmed",
             value: events.filter((e) => e.status === "Confirmed").length,
             icon: FileText,
             color: "text-[#b25c1c]",
-            bg: "bg-[#fef9ef]",
+            bg: "bg-[var(--accent-muted)]",
           },
           {
             label: "Total Guests",
@@ -249,7 +249,7 @@ export default function EventCateringTab() {
             value: `$${events.reduce((s, e) => s + e.budget, 0).toLocaleString()}`,
             icon: DollarSign,
             color: "text-[#b25c1c]",
-            bg: "bg-[#fef9ef]",
+            bg: "bg-[var(--accent-muted)]",
           },
         ].map((stat) => (
           <motion.div
@@ -280,7 +280,7 @@ export default function EventCateringTab() {
             onClick={() => setActiveView(view)}
             className={`flex-1 rounded-lg px-4 py-2 text-sm font-medium capitalize transition ${
               activeView === view
-                ? "bg-white text-stone-800 shadow-sm"
+                ? "bg-[var(--canvas)] text-stone-800 shadow-sm"
                 : "text-stone-500 hover:text-stone-700"
             }`}
           >
@@ -325,9 +325,9 @@ export default function EventCateringTab() {
                   layout
                   initial={{ opacity: 0, scale: 0.98 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className={`rounded-xl border bg-white p-5 shadow-sm cursor-pointer transition hover:shadow-md ${
+                  className={`rounded-xl border bg-[var(--canvas)] p-5 shadow-sm cursor-pointer transition hover:shadow-md ${
                     selectedEvent === event.id
-                      ? "border-amber-300 ring-2 ring-amber-100"
+                      ? "border-[var(--accent-border)] ring-2 ring-[var(--accent-border)]"
                       : "border-stone-200"
                   }`}
                   onClick={() =>
@@ -338,8 +338,8 @@ export default function EventCateringTab() {
                 >
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="flex items-start gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 flex-shrink-0">
-                        <Icon className="h-5 w-5 text-amber-700" />
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--accent-muted)] flex-shrink-0">
+                        <Icon className="h-5 w-5 text-[var(--accent-text)]" />
                       </div>
                       <div>
                         <h3 className="font-semibold text-stone-800">
@@ -382,7 +382,7 @@ export default function EventCateringTab() {
                             e.stopPropagation();
                             advanceStatus(event.id);
                           }}
-                          className="rounded-lg bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-700 transition hover:bg-amber-100"
+                          className="rounded-lg bg-[var(--accent-muted)] px-3 py-1.5 text-xs font-medium text-[var(--accent-text)] transition hover:bg-[var(--accent-muted)]"
                         >
                           Advance
                         </button>
@@ -431,7 +431,7 @@ export default function EventCateringTab() {
                           </div>
 
                           {event.menuSelections.length > 0 && (
-                            <div className="rounded-lg bg-amber-50 p-3">
+                            <div className="rounded-lg bg-[var(--accent-muted)] p-3">
                               <p className="mb-2 text-xs font-medium text-stone-500">
                                 Menu Selections
                               </p>
@@ -439,7 +439,7 @@ export default function EventCateringTab() {
                                 {event.menuSelections.map((item) => (
                                   <span
                                     key={item}
-                                    className="rounded-full bg-white px-2.5 py-1 text-xs text-stone-600 shadow-sm"
+                                    className="rounded-full bg-[var(--canvas)] px-2.5 py-1 text-xs text-stone-600 shadow-sm"
                                   >
                                     {item}
                                   </span>
@@ -474,7 +474,7 @@ export default function EventCateringTab() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="rounded-xl border border-stone-200 bg-white p-5 shadow-sm"
+            className="rounded-xl border border-stone-200 bg-[var(--canvas)] p-5 shadow-sm"
           >
             <div className="mb-4 flex items-center justify-between">
               <button
@@ -531,19 +531,19 @@ export default function EventCateringTab() {
                     key={day}
                     className={`min-h-[60px] rounded-lg border p-1.5 text-xs ${
                       dayEvents.length > 0
-                        ? "border-amber-200 bg-amber-50"
+                        ? "border-[var(--accent-border)] bg-[var(--accent-muted)]"
                         : "border-stone-100"
                     }`}
                   >
                     <span
-                      className={`font-medium ${dayEvents.length > 0 ? "text-amber-700" : "text-stone-600"}`}
+                      className={`font-medium ${dayEvents.length > 0 ? "text-[var(--accent-text)]" : "text-stone-600"}`}
                     >
                       {day}
                     </span>
                     {dayEvents.map((ev) => (
                       <div
                         key={ev.id}
-                        className="mt-0.5 truncate rounded bg-amber-200/60 px-1 py-0.5 text-[10px] font-medium text-amber-800"
+                        className="mt-0.5 truncate rounded bg-[var(--accent-muted)] px-1 py-0.5 text-[10px] font-medium text-[var(--accent-text)]"
                         title={ev.name}
                       >
                         {ev.name.length > 12
@@ -573,11 +573,11 @@ export default function EventCateringTab() {
                   key={pkg.id}
                   initial={{ opacity: 0, scale: 0.98 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="rounded-xl border border-stone-200 bg-white p-5 shadow-sm"
+                  className="rounded-xl border border-stone-200 bg-[var(--canvas)] p-5 shadow-sm"
                 >
                   <div className="flex items-start gap-3 mb-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100">
-                      <Icon className="h-5 w-5 text-amber-700" />
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--accent-muted)]">
+                      <Icon className="h-5 w-5 text-[var(--accent-text)]" />
                     </div>
                     <div>
                       <h3 className="font-semibold text-stone-800">
@@ -595,13 +595,13 @@ export default function EventCateringTab() {
                         key={item}
                         className="flex items-center gap-2 text-sm text-stone-600"
                       >
-                        <div className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+                        <div className="h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
                         {item}
                       </div>
                     ))}
                   </div>
 
-                  <div className="flex items-center justify-between rounded-lg bg-[#fef9ef] px-4 py-2">
+                  <div className="flex items-center justify-between rounded-lg bg-[var(--accent-muted)] px-4 py-2">
                     <span className="text-sm text-stone-600">
                       Price per head
                     </span>
@@ -630,7 +630,7 @@ export default function EventCateringTab() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-xl"
+              className="w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl bg-[var(--canvas)] p-6 shadow-xl"
             >
               <div className="mb-6 flex items-center justify-between">
                 <h3 className="text-lg font-bold text-stone-800">
@@ -656,7 +656,7 @@ export default function EventCateringTab() {
                       setNewEvent((ev) => ({ ...ev, name: e.target.value }))
                     }
                     placeholder="e.g., Annual Gala Dinner"
-                    className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 placeholder:text-stone-400 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100"
+                    className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 placeholder:text-stone-400 focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                   />
                 </div>
 
@@ -673,7 +673,7 @@ export default function EventCateringTab() {
                           type: e.target.value as EventType,
                         }))
                       }
-                      className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 focus:border-amber-400 focus:outline-none"
+                      className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 focus:border-[var(--accent)] focus:outline-none"
                     >
                       {(
                         [
@@ -700,7 +700,7 @@ export default function EventCateringTab() {
                       onChange={(e) =>
                         setNewEvent((ev) => ({ ...ev, date: e.target.value }))
                       }
-                      className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 focus:border-amber-400 focus:outline-none"
+                      className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 focus:border-[var(--accent)] focus:outline-none"
                     />
                   </div>
                 </div>
@@ -719,7 +719,7 @@ export default function EventCateringTab() {
                           guestCount: parseInt(e.target.value) || 0,
                         }))
                       }
-                      className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 focus:border-amber-400 focus:outline-none"
+                      className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 focus:border-[var(--accent)] focus:outline-none"
                     />
                   </div>
                   <div>
@@ -735,7 +735,7 @@ export default function EventCateringTab() {
                           budget: parseFloat(e.target.value) || 0,
                         }))
                       }
-                      className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 focus:border-amber-400 focus:outline-none"
+                      className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 focus:border-[var(--accent)] focus:outline-none"
                     />
                   </div>
                 </div>
@@ -751,7 +751,7 @@ export default function EventCateringTab() {
                       setNewEvent((ev) => ({ ...ev, venue: e.target.value }))
                     }
                     placeholder="e.g., Grand Ballroom"
-                    className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 placeholder:text-stone-400 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100"
+                    className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 placeholder:text-stone-400 focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                   />
                 </div>
 
@@ -770,7 +770,7 @@ export default function EventCateringTab() {
                         }))
                       }
                       placeholder="Name"
-                      className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 placeholder:text-stone-400 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100"
+                      className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 placeholder:text-stone-400 focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                     />
                   </div>
                   <div>
@@ -787,7 +787,7 @@ export default function EventCateringTab() {
                         }))
                       }
                       placeholder="+977-..."
-                      className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 placeholder:text-stone-400 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100"
+                      className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 placeholder:text-stone-400 focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                     />
                   </div>
                 </div>
@@ -805,7 +805,7 @@ export default function EventCateringTab() {
                           onClick={() => toggleNewEventMenu(item)}
                           className={`rounded-lg px-2.5 py-1 text-xs font-medium transition ${
                             selected
-                              ? "bg-amber-100 text-amber-700"
+                              ? "bg-[var(--accent-muted)] text-[var(--accent-text)]"
                               : "bg-stone-100 text-stone-500 hover:bg-stone-200"
                           }`}
                         >
@@ -830,7 +830,7 @@ export default function EventCateringTab() {
                     }
                     placeholder="Dietary restrictions, setup requirements, etc."
                     rows={3}
-                    className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 placeholder:text-stone-400 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100 resize-none"
+                    className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 placeholder:text-stone-400 focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] resize-none"
                   />
                 </div>
 
@@ -839,7 +839,7 @@ export default function EventCateringTab() {
                   disabled={
                     !newEvent.name || !newEvent.date || !newEvent.venue
                   }
-                  className="w-full rounded-xl bg-amber-600 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="w-full rounded-xl bg-[var(--accent-hover)] py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-[var(--accent-hover)] disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Create Event
                 </button>

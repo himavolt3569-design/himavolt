@@ -22,11 +22,11 @@ import {
 } from "lucide-react";
 
 const ORDER_STATUSES = [
-  { label: "Pending", color: "bg-orange-100 text-orange-700 border-orange-200", desc: "Order placed, waiting for restaurant to accept" },
+  { label: "Pending", color: "bg-[var(--accent)] text-[var(--accent)] border-[var(--accent-border)]", desc: "Order placed, waiting for restaurant to accept" },
   { label: "Accepted", color: "bg-blue-100 text-blue-700 border-blue-200", desc: "Restaurant has acknowledged the order" },
-  { label: "Preparing", color: "bg-amber-100 text-amber-700 border-amber-200", desc: "Your food is being cooked" },
-  { label: "Ready", color: "bg-[#fef3dc] text-[#b25c1c] border-[#eaa94d]/30", desc: "Food is ready for pickup or serving" },
-  { label: "Delivered", color: "bg-[#fef3dc] text-[#b25c1c] border-[#eaa94d]/30", desc: "Order has been served or delivered" },
+  { label: "Preparing", color: "bg-[var(--accent-muted)] text-[var(--accent-text)] border-[var(--accent-border)]", desc: "Your food is being cooked" },
+  { label: "Ready", color: "bg-[var(--accent-muted)] text-[#b25c1c] border-[var(--accent-border)]", desc: "Food is ready for pickup or serving" },
+  { label: "Delivered", color: "bg-[var(--accent-muted)] text-[#b25c1c] border-[var(--accent-border)]", desc: "Order has been served or delivered" },
   { label: "Cancelled", color: "bg-red-100 text-red-700 border-red-200", desc: "Order was cancelled" },
   { label: "Rejected", color: "bg-rose-100 text-rose-700 border-rose-200", desc: "Restaurant could not fulfill the order" },
 ];
@@ -34,14 +34,14 @@ const ORDER_STATUSES = [
 const STAFF_ROLES = [
   { label: "Super Admin", color: "bg-purple-100 text-purple-700 border-purple-200", icon: Shield, desc: "Full access to all features and settings" },
   { label: "Manager", color: "bg-blue-100 text-blue-700 border-blue-200", icon: Shield, desc: "Management functions, staff oversight, reports" },
-  { label: "Chef", color: "bg-orange-100 text-orange-700 border-orange-200", icon: ChefHat, desc: "Kitchen operations, order preparation, menu availability" },
-  { label: "Waiter", color: "bg-[#fef3dc] text-[#b25c1c] border-[#eaa94d]/30", icon: User, desc: "Take orders, serve tables, customer interaction" },
-  { label: "Cashier", color: "bg-amber-100 text-amber-700 border-amber-200", icon: CreditCard, desc: "Billing, payments, and cash management" },
+  { label: "Chef", color: "bg-[var(--accent)] text-[var(--accent)] border-[var(--accent-border)]", icon: ChefHat, desc: "Kitchen operations, order preparation, menu availability" },
+  { label: "Waiter", color: "bg-[var(--accent-muted)] text-[#b25c1c] border-[var(--accent-border)]", icon: User, desc: "Take orders, serve tables, customer interaction" },
+  { label: "Cashier", color: "bg-[var(--accent-muted)] text-[var(--accent-text)] border-[var(--accent-border)]", icon: CreditCard, desc: "Billing, payments, and cash management" },
 ];
 
 const PAYMENT_METHODS = [
-  { label: "Cash", color: "bg-gray-100 text-gray-700", desc: "Pay at counter" },
-  { label: "eSewa", color: "bg-[#fef3dc] text-[#b25c1c]", desc: "Digital wallet payment" },
+  { label: "Cash", color: "bg-[var(--surface)] text-[var(--text-2)]", desc: "Pay at counter" },
+  { label: "eSewa", color: "bg-[var(--accent-muted)] text-[#b25c1c]", desc: "Digital wallet payment" },
   { label: "Khalti", color: "bg-purple-100 text-purple-700", desc: "Digital wallet payment" },
   { label: "Bank Transfer", color: "bg-blue-100 text-blue-700", desc: "Direct bank transfer via QR" },
 ];
@@ -54,20 +54,20 @@ const CHAT_SENDERS = [
 
 export default function GuidePage() {
   return (
-    <div className="min-h-screen bg-gray-50/50 py-8 px-4">
+    <div className="min-h-screen bg-[var(--canvas-sub)] py-8 px-4">
       <div className="mx-auto max-w-3xl space-y-8">
         <div>
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-[#eaa94d] transition-colors mb-4"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--text-2)] hover:text-[#eaa94d] transition-colors mb-4"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Home
           </Link>
-          <h1 className="text-2xl font-extrabold text-[#3e1e0c]">
+          <h1 className="text-2xl font-extrabold text-[var(--text-1)]">
             Site Guide
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-[var(--text-2)] mt-1">
             Reference for all signs, symbols, and indicators used throughout HimaVolt.
           </p>
         </div>
@@ -79,7 +79,7 @@ export default function GuidePage() {
                 <span className={`shrink-0 rounded-md border px-2.5 py-1 text-xs font-bold ${s.color}`}>
                   {s.label}
                 </span>
-                <span className="text-sm text-gray-600">{s.desc}</span>
+                <span className="text-sm text-[var(--text-2)]">{s.desc}</span>
               </div>
             ))}
           </div>
@@ -93,7 +93,7 @@ export default function GuidePage() {
                   <r.icon className="h-3 w-3" />
                   {r.label}
                 </span>
-                <span className="text-sm text-gray-600">{r.desc}</span>
+                <span className="text-sm text-[var(--text-2)]">{r.desc}</span>
               </div>
             ))}
           </div>
@@ -106,7 +106,7 @@ export default function GuidePage() {
                 <span className={`shrink-0 rounded-md px-2.5 py-1 text-xs font-bold ${p.color}`}>
                   {p.label}
                 </span>
-                <span className="text-sm text-gray-600">{p.desc}</span>
+                <span className="text-sm text-[var(--text-2)]">{p.desc}</span>
               </div>
             ))}
           </div>
@@ -123,7 +123,7 @@ export default function GuidePage() {
               label="Non-vegetarian item"
             />
             <Indicator
-              badge={<span className="flex h-4 w-4 items-center justify-center rounded-full bg-amber-400 text-[8px] font-bold text-white">E</span>}
+              badge={<span className="flex h-4 w-4 items-center justify-center rounded-full bg-[var(--accent)] text-[8px] font-bold text-white">E</span>}
               label="Contains egg"
             />
             <div className="flex items-center gap-3">
@@ -131,12 +131,12 @@ export default function GuidePage() {
                 {[1, 2, 3].map((i) => (
                   <Flame key={i} className="h-3.5 w-3.5 text-red-500" />
                 ))}
-                <Flame className="h-3.5 w-3.5 text-gray-300" />
+                <Flame className="h-3.5 w-3.5 text-[var(--text-3)]" />
               </div>
-              <span className="text-sm text-gray-600">Spice level (1-4, more flames = spicier)</span>
+              <span className="text-sm text-[var(--text-2)]">Spice level (1-4, more flames = spicier)</span>
             </div>
             <Indicator
-              badge={<Star className="h-4 w-4 text-amber-400 fill-amber-400" />}
+              badge={<Star className="h-4 w-4 text-[var(--accent)] fill-[var(--accent)]" />}
               label="Featured / recommended item"
             />
             <Indicator
@@ -148,14 +148,14 @@ export default function GuidePage() {
                 <Eye className="h-4 w-4 text-[#b25c1c]" />
                 <span className="text-xs font-bold text-[#b25c1c]">Available</span>
               </div>
-              <span className="text-sm text-gray-600">Item is visible and can be ordered</span>
+              <span className="text-sm text-[var(--text-2)]">Item is visible and can be ordered</span>
             </div>
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1.5">
-                <EyeOff className="h-4 w-4 text-gray-400" />
-                <span className="text-xs font-bold text-gray-400">Unavailable</span>
+                <EyeOff className="h-4 w-4 text-[var(--text-3)]" />
+                <span className="text-xs font-bold text-[var(--text-3)]">Unavailable</span>
               </div>
-              <span className="text-sm text-gray-600">Item is hidden from the menu or out of stock</span>
+              <span className="text-sm text-[var(--text-2)]">Item is hidden from the menu or out of stock</span>
             </div>
           </div>
         </Section>
@@ -167,20 +167,20 @@ export default function GuidePage() {
               label="Low stock - quantity below minimum threshold"
             />
             <Indicator
-              badge={<span className="rounded-full bg-[#fef3dc] px-2 py-0.5 text-[10px] font-bold text-[#b25c1c]">OK</span>}
+              badge={<span className="rounded-full bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-bold text-[#b25c1c]">OK</span>}
               label="Stock level is healthy (above minimum threshold)"
             />
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1.5">
                 <ToggleRight className="h-5 w-5 text-[#b25c1c]" />
               </div>
-              <span className="text-sm text-gray-600">Item is shown in customer menu</span>
+              <span className="text-sm text-[var(--text-2)]">Item is shown in customer menu</span>
             </div>
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1.5">
-                <ToggleLeft className="h-5 w-5 text-gray-400" />
+                <ToggleLeft className="h-5 w-5 text-[var(--text-3)]" />
               </div>
-              <span className="text-sm text-gray-600">Item is hidden from customer menu</span>
+              <span className="text-sm text-[var(--text-2)]">Item is hidden from customer menu</span>
             </div>
           </div>
         </Section>
@@ -193,8 +193,8 @@ export default function GuidePage() {
                   <c.icon className="h-3.5 w-3.5 text-white" />
                 </span>
                 <div>
-                  <span className="text-sm font-bold text-[#3e1e0c]">{c.label}</span>
-                  <span className="text-sm text-gray-500 ml-2">{c.desc}</span>
+                  <span className="text-sm font-bold text-[var(--text-1)]">{c.label}</span>
+                  <span className="text-sm text-[var(--text-2)] ml-2">{c.desc}</span>
                 </div>
               </div>
             ))}
@@ -204,18 +204,18 @@ export default function GuidePage() {
         <Section title="Live Indicators" icon={<span className="relative flex h-4 w-4 items-center justify-center"><span className="animate-ping absolute h-3 w-3 rounded-full bg-[#eaa94d] opacity-75" /><span className="relative h-2 w-2 rounded-full bg-[#eaa94d]" /></span>}>
           <div className="space-y-3">
             <div className="flex items-center gap-3">
-              <span className="flex items-center gap-1.5 rounded-full bg-[#fef9ef] px-2.5 py-1">
+              <span className="flex items-center gap-1.5 rounded-full bg-[var(--accent-muted)] px-2.5 py-1">
                 <span className="h-1.5 w-1.5 rounded-full bg-[#eaa94d] animate-pulse" />
                 <span className="text-[11px] font-semibold text-[#b25c1c]">Live</span>
               </span>
-              <span className="text-sm text-gray-600">Real-time connection active - orders update automatically</span>
+              <span className="text-sm text-[var(--text-2)]">Real-time connection active - orders update automatically</span>
             </div>
             <div className="flex items-center gap-3">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#eaa94d] opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-[#eaa94d]" />
               </span>
-              <span className="text-sm text-gray-600">Chat connection active</span>
+              <span className="text-sm text-[var(--text-2)]">Chat connection active</span>
             </div>
           </div>
         </Section>
@@ -231,10 +231,10 @@ export default function GuidePage() {
               <Link
                 key={nav.label}
                 href={nav.href}
-                className="rounded-xl border border-gray-200 p-3 hover:border-[#eaa94d]/30 hover:bg-[#eaa94d]/5 transition-all"
+                className="rounded-xl border border-[var(--border)] p-3 hover:border-[var(--accent-border)] hover:bg-[#eaa94d]/5 transition-all"
               >
-                <p className="font-bold text-[#3e1e0c]">{nav.label}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{nav.desc}</p>
+                <p className="font-bold text-[var(--text-1)]">{nav.label}</p>
+                <p className="text-xs text-[var(--text-2)] mt-0.5">{nav.desc}</p>
               </Link>
             ))}
           </div>
@@ -254,10 +254,10 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl bg-white border border-gray-100 p-6 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
+    <div className="rounded-2xl bg-[var(--canvas)] border border-[var(--border-soft)] p-6 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
       <div className="flex items-center gap-2 mb-4">
         <span className="text-[#eaa94d]">{icon}</span>
-        <h2 className="text-base font-extrabold text-[#3e1e0c]">{title}</h2>
+        <h2 className="text-base font-extrabold text-[var(--text-1)]">{title}</h2>
       </div>
       {children}
     </div>
@@ -274,7 +274,7 @@ function Indicator({
   return (
     <div className="flex items-center gap-3">
       {badge}
-      <span className="text-sm text-gray-600">{label}</span>
+      <span className="text-sm text-[var(--text-2)]">{label}</span>
     </div>
   );
 }

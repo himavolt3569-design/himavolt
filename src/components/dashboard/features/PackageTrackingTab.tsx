@@ -41,11 +41,11 @@ const PIPELINE_STAGES: PipelineStage[] = [
 
 const STAGE_COLORS: Record<PipelineStage, string> = {
   "Order Received": "bg-blue-100 text-blue-700 border-blue-200",
-  Preparing: "bg-amber-100 text-amber-700 border-amber-200",
+  Preparing: "bg-[var(--accent-muted)] text-[var(--accent-text)] border-[var(--accent-border)]",
   Packaging: "bg-violet-100 text-violet-700 border-violet-200",
-  "Quality Check": "bg-orange-100 text-orange-700 border-orange-200",
-  "Ready for Dispatch": "bg-[#fef3dc] text-[#b25c1c] border-[#eaa94d]/30",
-  Dispatched: "bg-gray-100 text-gray-600 border-gray-200",
+  "Quality Check": "bg-[var(--accent)] text-[var(--accent)] border-[var(--accent-border)]",
+  "Ready for Dispatch": "bg-[var(--accent-muted)] text-[#b25c1c] border-[var(--accent-border)]",
+  Dispatched: "bg-[var(--surface)] text-[var(--text-2)] border-[var(--border)]",
 };
 
 const STAGE_ICONS: Record<PipelineStage, React.ReactNode> = {
@@ -220,10 +220,10 @@ export default function PackageTrackingTab() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">
+          <h2 className="text-2xl font-bold text-[var(--text-1)]">
             Package Tracking
           </h2>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-[var(--text-2)] mt-1">
             Order packaging pipeline and dispatch management
           </p>
         </div>
@@ -243,8 +243,8 @@ export default function PackageTrackingTab() {
         </button>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-        <h3 className="text-sm font-semibold text-gray-900 mb-4">
+      <div className="bg-[var(--canvas)] rounded-xl shadow-sm border border-[var(--border-soft)] p-5">
+        <h3 className="text-sm font-semibold text-[var(--text-1)] mb-4">
           Pipeline Overview
         </h3>
         <div className="flex items-center gap-1 overflow-x-auto pb-2">
@@ -261,7 +261,7 @@ export default function PackageTrackingTab() {
                   className={`flex flex-col items-center px-3 py-2 rounded-xl min-w-[100px] transition-colors border ${
                     selectedStageFilter === stage
                       ? STAGE_COLORS[stage]
-                      : "border-transparent hover:bg-gray-50"
+                      : "border-transparent hover:bg-[var(--canvas-sub)]"
                   }`}
                 >
                   <div className="mb-1">{STAGE_ICONS[stage]}</div>
@@ -271,7 +271,7 @@ export default function PackageTrackingTab() {
                   <span className="text-lg font-bold mt-0.5">{count}</span>
                 </button>
                 {i < PIPELINE_STAGES.length - 1 && (
-                  <ChevronRight className="w-4 h-4 text-gray-300 shrink-0 mx-0.5" />
+                  <ChevronRight className="w-4 h-4 text-[var(--text-3)] shrink-0 mx-0.5" />
                 )}
               </div>
             );
@@ -323,10 +323,10 @@ export default function PackageTrackingTab() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className={`bg-white rounded-xl shadow-sm border p-4 ${
+              className={`bg-[var(--canvas)] rounded-xl shadow-sm border p-4 ${
                 order.stage === "Dispatched"
-                  ? "border-gray-100 opacity-60"
-                  : "border-gray-200"
+                  ? "border-[var(--border-soft)] opacity-60"
+                  : "border-[var(--border)]"
               } ${
                 batchMode && selectedForBatch.includes(order.id)
                   ? "ring-2 ring-violet-500"
@@ -345,7 +345,7 @@ export default function PackageTrackingTab() {
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-bold text-gray-900 text-sm">
+                    <span className="font-bold text-[var(--text-1)] text-sm">
                       {order.orderNumber}
                     </span>
                     <span
@@ -363,7 +363,7 @@ export default function PackageTrackingTab() {
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-4 mt-1 text-xs text-gray-500">
+                  <div className="flex items-center gap-4 mt-1 text-xs text-[var(--text-2)]">
                     <span className="flex items-center gap-1">
                       <Box className="w-3 h-3" />
                       {order.itemsCount} items
@@ -402,13 +402,13 @@ export default function PackageTrackingTab() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <motion.div
           layout
-          className="bg-white rounded-xl shadow-sm border border-gray-100 p-5"
+          className="bg-[var(--canvas)] rounded-xl shadow-sm border border-[var(--border-soft)] p-5"
         >
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 bg-violet-100 rounded-lg">
               <Box className="w-5 h-5 text-violet-600" />
             </div>
-            <h3 className="text-sm font-semibold text-gray-900">
+            <h3 className="text-sm font-semibold text-[var(--text-1)]">
               Packaging Materials
             </h3>
           </div>
@@ -421,14 +421,14 @@ export default function PackageTrackingTab() {
                   className={`flex items-center justify-between p-3 rounded-lg border ${
                     isLow
                       ? "border-red-200 bg-red-50"
-                      : "border-gray-100 bg-gray-50"
+                      : "border-[var(--border-soft)] bg-[var(--canvas-sub)]"
                   }`}
                 >
                   <div className="flex items-center gap-2">
                     {isLow && (
                       <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
                     )}
-                    <span className="text-sm font-medium text-gray-900">
+                    <span className="text-sm font-medium text-[var(--text-1)]">
                       {mat.name}
                     </span>
                   </div>
@@ -444,13 +444,13 @@ export default function PackageTrackingTab() {
                             )
                           )
                         }
-                        className="w-6 h-6 flex items-center justify-center rounded bg-gray-200 hover:bg-gray-300 text-gray-600 text-xs font-bold transition-colors"
+                        className="w-6 h-6 flex items-center justify-center rounded bg-[var(--surface-alt)] hover:bg-[var(--border)] text-[var(--text-2)] text-xs font-bold transition-colors"
                       >
                         -
                       </button>
                       <span
                         className={`text-sm font-bold min-w-[40px] text-center ${
-                          isLow ? "text-red-600" : "text-gray-900"
+                          isLow ? "text-red-600" : "text-[var(--text-1)]"
                         }`}
                       >
                         {mat.stock}
@@ -470,7 +470,7 @@ export default function PackageTrackingTab() {
                         +
                       </button>
                     </div>
-                    <span className="text-xs text-gray-400 w-10">
+                    <span className="text-xs text-[var(--text-3)] w-10">
                       {mat.unit}
                     </span>
                   </div>
@@ -482,13 +482,13 @@ export default function PackageTrackingTab() {
 
         <motion.div
           layout
-          className="bg-white rounded-xl shadow-sm border border-gray-100 p-5"
+          className="bg-[var(--canvas)] rounded-xl shadow-sm border border-[var(--border-soft)] p-5"
         >
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 bg-violet-100 rounded-lg">
               <Tag className="w-5 h-5 text-violet-600" />
             </div>
-            <h3 className="text-sm font-semibold text-gray-900">
+            <h3 className="text-sm font-semibold text-[var(--text-1)]">
               Packaging Templates
             </h3>
           </div>
@@ -502,34 +502,34 @@ export default function PackageTrackingTab() {
                   <span className="text-sm font-bold text-violet-700">
                     {tpl.size}
                   </span>
-                  <span className="text-[10px] text-gray-500">
+                  <span className="text-[10px] text-[var(--text-2)]">
                     {tpl.description}
                   </span>
                 </div>
                 <div className="grid grid-cols-4 gap-2">
                   <div className="text-center">
-                    <p className="text-lg font-bold text-gray-900">
+                    <p className="text-lg font-bold text-[var(--text-1)]">
                       {tpl.containers}
                     </p>
-                    <p className="text-[10px] text-gray-500">Containers</p>
+                    <p className="text-[10px] text-[var(--text-2)]">Containers</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-lg font-bold text-gray-900">
+                    <p className="text-lg font-bold text-[var(--text-1)]">
                       {tpl.bags}
                     </p>
-                    <p className="text-[10px] text-gray-500">Bags</p>
+                    <p className="text-[10px] text-[var(--text-2)]">Bags</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-lg font-bold text-gray-900">
+                    <p className="text-lg font-bold text-[var(--text-1)]">
                       {tpl.seals}
                     </p>
-                    <p className="text-[10px] text-gray-500">Seals</p>
+                    <p className="text-[10px] text-[var(--text-2)]">Seals</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-lg font-bold text-gray-900">
+                    <p className="text-lg font-bold text-[var(--text-1)]">
                       {tpl.labels}
                     </p>
-                    <p className="text-[10px] text-gray-500">Labels</p>
+                    <p className="text-[10px] text-[var(--text-2)]">Labels</p>
                   </div>
                 </div>
               </div>
@@ -539,18 +539,18 @@ export default function PackageTrackingTab() {
 
         <motion.div
           layout
-          className="bg-white rounded-xl shadow-sm border border-gray-100 p-5"
+          className="bg-[var(--canvas)] rounded-xl shadow-sm border border-[var(--border-soft)] p-5"
         >
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-[#fef3dc] rounded-lg">
+              <div className="p-2 bg-[var(--accent-muted)] rounded-lg">
                 <ClipboardCheck className="w-5 h-5 text-[#b25c1c]" />
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-gray-900">
+                <h3 className="text-sm font-semibold text-[var(--text-1)]">
                   Quality Check
                 </h3>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-[var(--text-2)]">
                   {qcProgress}/{qcTotal} completed
                 </p>
               </div>
@@ -563,7 +563,7 @@ export default function PackageTrackingTab() {
             </button>
           </div>
 
-          <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden mb-4">
+          <div className="w-full bg-[var(--surface)] rounded-full h-2 overflow-hidden mb-4">
             <motion.div
               animate={{
                 width: `${(qcProgress / qcTotal) * 100}%`,
@@ -582,15 +582,15 @@ export default function PackageTrackingTab() {
                 onClick={() => toggleQcItem(item.id)}
                 className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-colors text-left ${
                   item.checked
-                    ? "bg-[#fef9ef] border-[#eaa94d]/30"
-                    : "bg-gray-50 border-gray-100 hover:bg-gray-100"
+                    ? "bg-[var(--accent-muted)] border-[var(--accent-border)]"
+                    : "bg-[var(--canvas-sub)] border-[var(--border-soft)] hover:bg-[var(--surface)]"
                 }`}
               >
                 <div
                   className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${
                     item.checked
-                      ? "bg-[#eaa94d] border-emerald-500"
-                      : "border-gray-300"
+                      ? "bg-[#eaa94d] border-[#eaa94d]"
+                      : "border-[var(--border)]"
                   }`}
                 >
                   {item.checked && (
@@ -601,7 +601,7 @@ export default function PackageTrackingTab() {
                   className={`text-sm ${
                     item.checked
                       ? "text-[#b25c1c] line-through"
-                      : "text-gray-700"
+                      : "text-[var(--text-2)]"
                   }`}
                 >
                   {item.label}
@@ -614,7 +614,7 @@ export default function PackageTrackingTab() {
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="mt-4 p-3 bg-[#fef3dc] rounded-lg text-center"
+              className="mt-4 p-3 bg-[var(--accent-muted)] rounded-lg text-center"
             >
               <CheckCircle2 className="w-6 h-6 text-[#b25c1c] mx-auto mb-1" />
               <p className="text-sm font-semibold text-[#b25c1c]">
@@ -626,46 +626,46 @@ export default function PackageTrackingTab() {
 
         <motion.div
           layout
-          className="bg-white rounded-xl shadow-sm border border-gray-100 p-5"
+          className="bg-[var(--canvas)] rounded-xl shadow-sm border border-[var(--border-soft)] p-5"
         >
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 bg-violet-100 rounded-lg">
               <History className="w-5 h-5 text-violet-600" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-gray-900">
+              <h3 className="text-sm font-semibold text-[var(--text-1)]">
                 Dispatch Log
               </h3>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-[var(--text-2)]">
                 Recently dispatched orders
               </p>
             </div>
           </div>
           <div className="space-y-2">
             {dispatchLog.length === 0 ? (
-              <p className="text-sm text-gray-400 text-center py-6">
+              <p className="text-sm text-[var(--text-3)] text-center py-6">
                 No dispatched orders yet
               </p>
             ) : (
               dispatchLog.map((log) => (
                 <div
                   key={log.id}
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100"
+                  className="flex items-center justify-between p-3 bg-[var(--canvas-sub)] rounded-lg border border-[var(--border-soft)]"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="p-1.5 bg-[#fef3dc] rounded-lg">
+                    <div className="p-1.5 bg-[var(--accent-muted)] rounded-lg">
                       <Truck className="w-4 h-4 text-[#b25c1c]" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-900">
+                      <p className="text-sm font-medium text-[var(--text-1)]">
                         {log.orderNumber}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-[var(--text-2)]">
                         {log.itemsCount} items &middot; {log.partner}
                       </p>
                     </div>
                   </div>
-                  <span className="text-xs text-gray-400 font-medium">
+                  <span className="text-xs text-[var(--text-3)] font-medium">
                     {log.dispatchedAt}
                   </span>
                 </div>

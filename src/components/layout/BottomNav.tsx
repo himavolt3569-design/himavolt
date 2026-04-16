@@ -34,7 +34,6 @@ export default function BottomNav() {
   const activeSession = useActiveTableSession();
   const { isSignedIn, isLoaded, user, userRole } = useAuth();
 
-  /* Build initials for logged-in avatar */
   const userInitials = useMemo(() => {
     if (!user) return "";
     const name =
@@ -51,7 +50,6 @@ export default function BottomNav() {
   const avatarUrl = user?.user_metadata?.avatar_url || null;
 
   const navItems = useMemo<NavItem[]>(() => {
-    /* ── Active table session: focused ordering flow ── */
     if (activeSession) {
       return [
         { name: "Home", href: "/", icon: Home },
@@ -71,7 +69,6 @@ export default function BottomNav() {
       ];
     }
 
-    /* ── Admin: platform management ── */
     if (isSignedIn && userRole === "ADMIN") {
       return [
         { name: "Home", href: "/", icon: Home },
@@ -88,7 +85,6 @@ export default function BottomNav() {
       ];
     }
 
-    /* ── Owner: restaurant management ── */
     if (isSignedIn && userRole === "OWNER") {
       return [
         { name: "Home", href: "/", icon: Home },
@@ -105,7 +101,6 @@ export default function BottomNav() {
       ];
     }
 
-    /* ── Logged-in customer: full experience ── */
     if (isSignedIn) {
       return [
         { name: "Home", href: "/", icon: Home },
@@ -122,7 +117,6 @@ export default function BottomNav() {
       ];
     }
 
-    /* ── Guest (not logged in): discovery + access ── */
     return [
       { name: "Home", href: "/", icon: Home },
       { name: "Explore", href: "/menu", icon: Search },
@@ -140,7 +134,7 @@ export default function BottomNav() {
   if (!isLoaded) return null;
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-t border-brand-200/40 pb-safe">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[var(--canvas)]/95 backdrop-blur-xl border-t border-[var(--border)] pb-safe">
       <div className="flex justify-around items-center h-[56px] px-1">
         {navItems.map((item) => {
           const match = item.matchPath || item.href;
@@ -156,12 +150,11 @@ export default function BottomNav() {
               {isActive && (
                 <motion.div
                   layoutId="bottomNavActive"
-                  className="absolute inset-x-2 top-1 bottom-1 bg-brand-400/10 rounded-2xl"
+                  className="absolute inset-x-2 top-1 bottom-1 bg-[var(--accent-muted)] rounded-xl"
                   transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
                 />
               )}
 
-              {/* Icon — avatar variant for Account tab */}
               {item.avatar || item.initials ? (
                 <div className="relative z-10 mb-0.5">
                   {item.avatar ? (
@@ -169,19 +162,19 @@ export default function BottomNav() {
                       src={item.avatar}
                       alt=""
                       className={clsx(
-                        "h-5.5 w-5.5 rounded-full object-cover transition-all",
+                        "h-5 w-5 rounded-full object-cover transition-all",
                         isActive
-                          ? "ring-[1.5px] ring-brand-400 ring-offset-1"
+                          ? "ring-[1.5px] ring-[var(--accent)] ring-offset-1"
                           : "opacity-60 group-hover:opacity-90"
                       )}
                     />
                   ) : (
                     <span
                       className={clsx(
-                        "flex h-5.5 w-5.5 items-center justify-center rounded-full text-[8px] font-bold transition-all",
+                        "flex h-5 w-5 items-center justify-center rounded-full text-[8px] font-bold transition-colors",
                         isActive
-                          ? "bg-brand-400 text-white ring-[1.5px] ring-brand-400 ring-offset-1"
-                          : "bg-brand-100 text-brand-700 group-hover:bg-brand-200"
+                          ? "bg-[var(--accent)] text-white"
+                          : "bg-[var(--surface)] text-[var(--text-2)]"
                       )}
                     >
                       {item.initials}
@@ -191,10 +184,10 @@ export default function BottomNav() {
               ) : (
                 <item.icon
                   className={clsx(
-                    "h-5 w-5 mb-0.5 transition-all z-10",
+                    "h-5 w-5 mb-0.5 transition-colors z-10",
                     isActive
-                      ? "text-brand-400"
-                      : "text-gray-400 group-hover:text-brand-600"
+                      ? "text-[var(--accent)]"
+                      : "text-[var(--text-3)] group-hover:text-[var(--text-2)]"
                   )}
                   strokeWidth={isActive ? 2.2 : 1.8}
                 />
@@ -202,10 +195,10 @@ export default function BottomNav() {
 
               <span
                 className={clsx(
-                  "text-[10px] font-semibold transition-all z-10 leading-none",
+                  "text-[10px] font-semibold transition-colors z-10 leading-none",
                   isActive
-                    ? "text-brand-500"
-                    : "text-gray-400 group-hover:text-brand-600"
+                    ? "text-[var(--accent)]"
+                    : "text-[var(--text-3)] group-hover:text-[var(--text-2)]"
                 )}
               >
                 {item.name}

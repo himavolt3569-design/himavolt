@@ -184,15 +184,15 @@ export default function TabManagementTab() {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4"
+            className="bg-[var(--accent-border)] border border-[var(--accent)]/30 rounded-xl p-4"
           >
             <div className="flex items-center gap-2 mb-2">
-              <AlertTriangle className="w-5 h-5 text-amber-400" />
-              <h4 className="text-amber-400 font-medium">Tab Alerts</h4>
+              <AlertTriangle className="w-5 h-5 text-[var(--accent)]" />
+              <h4 className="text-[var(--accent)] font-medium">Tab Alerts</h4>
             </div>
             <div className="space-y-1">
               {alertTabs.map((tab) => (
-                <p key={tab.id} className="text-amber-300/80 text-sm">
+                <p key={tab.id} className="text-[var(--accent)]/80 text-sm">
                   {tab.limit && tab.runningTotal >= tab.limit * 0.8
                     ? `${tab.customerName} (Table ${tab.tableNumber}) - Approaching limit: Rs ${tab.runningTotal}/${tab.limit}`
                     : `${tab.customerName} (Table ${tab.tableNumber}) - Open for ${tab.minutesOpen} minutes`}
@@ -306,7 +306,7 @@ export default function TabManagementTab() {
               selectedForMerge.includes(tab.id)
                 ? "border-purple-500"
                 : tab.status === "Settling"
-                ? "border-amber-500/50"
+                ? "border-[var(--accent)]/50"
                 : "border-zinc-700/50"
             }`}
           >
@@ -336,9 +336,9 @@ export default function TabManagementTab() {
                   <span
                     className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                       tab.status === "Open"
-                        ? "bg-[#eaa94d]/20 text-emerald-400"
+                        ? "bg-[#eaa94d]/20 text-[#d67620]"
                         : tab.status === "Settling"
-                        ? "bg-amber-500/20 text-amber-400"
+                        ? "bg-[var(--accent-border)] text-[var(--accent)]"
                         : "bg-zinc-600/20 text-zinc-400"
                     }`}
                   >
@@ -420,7 +420,7 @@ export default function TabManagementTab() {
                         <button
                           key={label}
                           onClick={() => closeTab(tab.id)}
-                          className="p-2 bg-[#eaa94d] hover:bg-emerald-700 text-white rounded-lg text-sm transition-colors"
+                          className="p-2 bg-[#eaa94d] hover:bg-[#d67620] text-white rounded-lg text-sm transition-colors"
                           title={label}
                         >
                           <Icon className="w-4 h-4" />
@@ -563,7 +563,7 @@ export default function TabManagementTab() {
                     className="bg-zinc-800/80 rounded-xl p-3 border border-zinc-700/50 flex items-center justify-between"
                   >
                     <div className="flex items-center gap-3">
-                      <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                      <CheckCircle2 className="w-5 h-5 text-[#d67620]" />
                       <div>
                         <p className="text-white text-sm font-medium">{tab.customerName}</p>
                         <p className="text-zinc-400 text-xs">

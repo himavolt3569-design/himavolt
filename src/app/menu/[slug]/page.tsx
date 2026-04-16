@@ -248,34 +248,34 @@ function WifiBadge({ name, password }: { name: string; password: string | null }
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -4 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 top-full mt-2 w-56 rounded-2xl bg-white shadow-xl ring-1 ring-gray-200 p-4 z-50"
+            className="absolute right-0 top-full mt-2 w-56 rounded-2xl bg-[var(--canvas)] shadow-xl ring-1 ring-[var(--border)] p-4 z-50"
           >
             <div className="flex items-center gap-2 mb-3">
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50">
                 <Wifi className="h-4 w-4 text-blue-500" />
               </div>
-              <span className="text-xs font-bold text-gray-700">WiFi Details</span>
+              <span className="text-xs font-bold text-[var(--text-2)]">WiFi Details</span>
             </div>
             <div className="space-y-2">
               <div>
-                <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">Network</p>
-                <p className="text-sm font-bold text-gray-800">{name}</p>
+                <p className="text-[10px] text-[var(--text-3)] font-semibold uppercase tracking-wider">Network</p>
+                <p className="text-sm font-bold text-[var(--text-1)]">{name}</p>
               </div>
               {password ? (
                 <div>
-                  <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">Password</p>
+                  <p className="text-[10px] text-[var(--text-3)] font-semibold uppercase tracking-wider">Password</p>
                   <div className="flex items-center justify-between mt-0.5">
-                    <p className="text-sm font-mono font-bold text-gray-800">{password}</p>
+                    <p className="text-sm font-mono font-bold text-[var(--text-1)]">{password}</p>
                     <button
                       onClick={copy}
-                      className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                      className="flex h-7 w-7 items-center justify-center rounded-lg text-[var(--text-3)] hover:text-blue-600 hover:bg-blue-50 transition-colors"
                     >
                       {copied ? <Check className="h-3.5 w-3.5 text-[#d67620]" /> : <Copy className="h-3.5 w-3.5" />}
                     </button>
                   </div>
                 </div>
               ) : (
-                <p className="text-xs text-gray-400">Open network — no password needed</p>
+                <p className="text-xs text-[var(--text-3)]">Open network — no password needed</p>
               )}
             </div>
           </motion.div>
@@ -321,18 +321,18 @@ function PaymentQRBadge({ paymentQRs }: { paymentQRs?: { id: string; label: stri
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
                 transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                className="fixed left-1/2 top-1/2 z-[9999] w-[90%] max-w-sm -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-3xl bg-white shadow-2xl"
+                className="fixed left-1/2 top-1/2 z-[9999] w-[90%] max-w-sm -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-3xl bg-[var(--canvas)] shadow-2xl"
               >
-                <div className="flex items-center justify-between border-b border-gray-100 p-4">
+                <div className="flex items-center justify-between border-b border-[var(--border-soft)] p-4">
                   <div className="flex items-center gap-2">
                     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-50">
                       <QrCode className="h-4 w-4 text-purple-600" />
                     </div>
-                    <h3 className="font-bold text-gray-900">Scan to Pay</h3>
+                    <h3 className="font-bold text-[var(--text-1)]">Scan to Pay</h3>
                   </div>
                   <button
                     onClick={() => setOpen(false)}
-                    className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
+                    className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-colors"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -341,8 +341,8 @@ function PaymentQRBadge({ paymentQRs }: { paymentQRs?: { id: string; label: stri
                 <div className="max-h-[70vh] overflow-y-auto p-5 space-y-6">
                   {paymentQRs.map((qr) => (
                     <div key={qr.id} className="text-center flex flex-col items-center">
-                      <p className="mb-3 text-sm font-bold text-gray-700">{qr.label}</p>
-                      <div className="w-full max-w-[280px] overflow-hidden rounded-2xl border border-gray-200 bg-white p-2 shadow-[0_4px_24px_rgba(0,0,0,0.06)]">
+                      <p className="mb-3 text-sm font-bold text-[var(--text-2)]">{qr.label}</p>
+                      <div className="w-full max-w-[280px] overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--canvas)] p-2 shadow-[0_4px_24px_rgba(0,0,0,0.06)]">
                         <img
                           src={img(qr.imageUrl)}
                           alt={qr.label}
@@ -459,15 +459,15 @@ function ComboDealCard({
   };
 
   return (
-    <div className="flex-shrink-0 w-64 rounded-2xl border border-gray-100 bg-white shadow-[0_2px_12px_rgba(0,0,0,0.06)] overflow-hidden">
+    <div className="flex-shrink-0 w-64 rounded-2xl border border-[var(--border-soft)] bg-[var(--canvas)] shadow-[0_2px_12px_rgba(0,0,0,0.06)] overflow-hidden">
       {combo.imageUrl && (
-        <div className="h-32 w-full overflow-hidden bg-gray-100">
+        <div className="h-32 w-full overflow-hidden bg-[var(--surface)]">
           <img src={combo.imageUrl} alt={combo.name} className="h-full w-full object-cover" />
         </div>
       )}
       <div className="p-3 space-y-2">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="text-sm font-bold text-[#3e1e0c] leading-tight">{combo.name}</h3>
+          <h3 className="text-sm font-bold text-[var(--text-1)] leading-tight">{combo.name}</h3>
           {savings > 0 && (
             <span className="flex-shrink-0 rounded-full bg-[#fef3dc] px-2 py-0.5 text-[10px] font-bold text-[#b25c1c]">
               Save {formatPrice(savings, currency)}
@@ -475,20 +475,20 @@ function ComboDealCard({
           )}
         </div>
         {combo.description && (
-          <p className="text-[11px] text-gray-400 line-clamp-2">{combo.description}</p>
+          <p className="text-[11px] text-[var(--text-3)] line-clamp-2">{combo.description}</p>
         )}
         <div className="flex flex-wrap gap-1">
           {combo.items.map((ci) => (
-            <span key={ci.id} className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
+            <span key={ci.id} className="rounded-full bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-semibold text-[var(--accent-text)]">
               {ci.quantity > 1 ? `${ci.quantity}× ` : ""}{ci.name}
             </span>
           ))}
         </div>
         <div className="flex items-center justify-between pt-1">
           <div>
-            <span className="text-sm font-extrabold text-[#3e1e0c]">{formatPrice(effectivePrice, currency)}</span>
+            <span className="text-sm font-extrabold text-[var(--text-1)]">{formatPrice(effectivePrice, currency)}</span>
             {combo.originalPrice > combo.comboPrice && (
-              <span className="ml-1.5 text-[11px] text-gray-400 line-through">{formatPrice(Math.round(combo.originalPrice * surgeMultiplier), currency)}</span>
+              <span className="ml-1.5 text-[11px] text-[var(--text-3)] line-through">{formatPrice(Math.round(combo.originalPrice * surgeMultiplier), currency)}</span>
             )}
           </div>
           <button
@@ -553,13 +553,13 @@ function MenuItemCard({
       variants={itemVariants}
       whileHover={{ y: -3, boxShadow: "0 8px 30px rgba(0,0,0,0.08)" }}
       transition={{ type: "spring", stiffness: 400, damping: 25 }}
-      className="group rounded-2xl bg-white border border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.04)] overflow-hidden"
+      className="group rounded-2xl bg-[var(--canvas)] border border-[var(--border-soft)] shadow-[0_2px_12px_rgba(0,0,0,0.04)] overflow-hidden"
     >
       <div
         className="flex gap-4 p-3 cursor-pointer"
         onClick={() => onSelect(item)}
       >
-        <div className="relative h-24 w-24 sm:h-28 sm:w-28 shrink-0 overflow-hidden rounded-xl bg-gray-100">
+        <div className="relative h-24 w-24 sm:h-28 sm:w-28 shrink-0 overflow-hidden rounded-xl bg-[var(--surface)]">
           <img
             src={img(item.imageUrl)}
             alt={item.name}
@@ -600,33 +600,33 @@ function MenuItemCard({
                 </span>
               )}
               {item.lowStock && !item.outOfStock && (
-                <span className="rounded-full bg-orange-50 px-1.5 py-0.5 text-[8px] font-bold text-orange-600">
+                <span className="rounded-full bg-[var(--accent)] px-1.5 py-0.5 text-[8px] font-bold text-[var(--accent)]">
                   Few left
                 </span>
               )}
             </div>
-            <h3 className="text-sm font-bold text-[#3e1e0c] truncate flex items-center gap-1">
+            <h3 className="text-sm font-bold text-[var(--text-1)] truncate flex items-center gap-1">
               {stripEmojis(item.name)}
               {item.isFeatured && (
                 <Star className="h-3 w-3 fill-[#eaa94d] text-[#eaa94d] shrink-0" />
               )}
             </h3>
-            <p className="mt-0.5 text-[11px] text-gray-400 line-clamp-2 leading-relaxed">
+            <p className="mt-0.5 text-[11px] text-[var(--text-3)] line-clamp-2 leading-relaxed">
               {item.description}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm font-extrabold text-[#3e1e0c]">
+            <span className="text-sm font-extrabold text-[var(--text-1)]">
               {formatPrice(displayPrice, restaurantCurrency)}
             </span>
             {surgeMultiplier > 1 && (
-              <span className="text-[10px] text-gray-400 line-through">{formatPrice(item.price, restaurantCurrency)}</span>
+              <span className="text-[10px] text-[var(--text-3)] line-through">{formatPrice(item.price, restaurantCurrency)}</span>
             )}
-            <span className="flex items-center gap-0.5 text-[11px] text-gray-400">
+            <span className="flex items-center gap-0.5 text-[11px] text-[var(--text-3)]">
               <Star className="h-3 w-3 fill-[#eaa94d] text-[#eaa94d]" />
               {item.rating.toFixed(1)}
             </span>
-            <span className="flex items-center gap-0.5 text-[11px] text-gray-400">
+            <span className="flex items-center gap-0.5 text-[11px] text-[var(--text-3)]">
               <Clock className="h-3 w-3" />
               {item.prepTime}
             </span>
@@ -657,7 +657,7 @@ function MenuItemCard({
           <motion.div
             initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex items-center justify-center gap-1 text-[11px] font-semibold text-[#3e1e0c]"
+            className="flex items-center justify-center gap-1 text-[11px] font-semibold text-[var(--text-1)]"
           >
             <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#eaa94d] text-[9px] font-bold text-white">
               {qty}
@@ -666,7 +666,7 @@ function MenuItemCard({
           </motion.div>
         )}
         {item.outOfStock ? (
-          <div className="flex w-full items-center justify-center gap-2 rounded-xl bg-gray-200 py-2.5 text-[13px] font-bold text-gray-500 cursor-not-allowed">
+          <div className="flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--surface-alt)] py-2.5 text-[13px] font-bold text-[var(--text-2)] cursor-not-allowed">
             Out of Stock
           </div>
         ) : (
@@ -674,7 +674,7 @@ function MenuItemCard({
             ref={btnRef}
             onClick={handleQuickAdd}
             whileTap={{ scale: 0.96 }}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#eaa94d] py-2.5 text-[13px] font-bold text-white shadow-sm shadow-[#eaa94d]/20 hover:bg-[#d67620] transition-colors cursor-pointer"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#eaa94d] py-2.5 text-[13px] font-bold text-white shadow-sm shadow-[var(--accent)]/20 hover:bg-[#d67620] transition-colors cursor-pointer"
           >
             <Plus className="h-4 w-4" strokeWidth={3} />
             Add to Cart
@@ -713,7 +713,7 @@ function HeroDish({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
       whileHover={{ y: -4, boxShadow: "0 12px 30px rgba(0,0,0,0.1)" }}
-      className="relative overflow-hidden rounded-2xl bg-white border border-gray-100 cursor-pointer group shadow-[0_2px_12px_rgba(0,0,0,0.04)]"
+      className="relative overflow-hidden rounded-2xl bg-[var(--canvas)] border border-[var(--border-soft)] cursor-pointer group shadow-[0_2px_12px_rgba(0,0,0,0.04)]"
     >
       <div className="relative aspect-[2.2/1] md:aspect-3/1 overflow-hidden">
         <img
@@ -778,7 +778,7 @@ function FilterPill({
       className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-[11px] font-bold tracking-wide transition-all ${
         active
           ? "bg-[#1a1a1a] text-white shadow-md shadow-black/10"
-          : "bg-white text-gray-500 border border-gray-200 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-900"
+          : "bg-[var(--canvas)] text-[var(--text-2)] border border-[var(--border)] hover:border-[var(--border)] hover:bg-[var(--canvas-sub)] hover:text-[var(--text-1)]"
       }`}
     >
       {icon}
@@ -799,14 +799,14 @@ function DesktopCartPreview({
   const { items, subtotal, totalItems, increaseQty, decreaseQty } = useCart();
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white shadow-[0_2px_16px_rgba(0,0,0,0.04)] overflow-hidden">
-      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+    <div className="rounded-2xl border border-[var(--border)] bg-[var(--canvas)] shadow-[0_2px_16px_rgba(0,0,0,0.04)] overflow-hidden">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-soft)]">
         <div className="flex items-center gap-2">
           <ShoppingBag className="h-4 w-4 text-[#eaa94d]" />
-          <h3 className="text-sm font-bold text-[#3e1e0c]">Your Order</h3>
+          <h3 className="text-sm font-bold text-[var(--text-1)]">Your Order</h3>
         </div>
         {totalItems > 0 && (
-          <span className="rounded-full bg-[#eaa94d]/10 px-2.5 py-0.5 text-[11px] font-bold text-[#eaa94d]">
+          <span className="rounded-full bg-[var(--accent-muted)] px-2.5 py-0.5 text-[11px] font-bold text-[#eaa94d]">
             {totalItems} items
           </span>
         )}
@@ -814,11 +814,11 @@ function DesktopCartPreview({
 
       {items.length === 0 ? (
         <div className="px-5 py-10 text-center">
-          <ShoppingBag className="mx-auto h-8 w-8 text-gray-200 mb-2" />
-          <p className="text-xs font-medium text-gray-400">
+          <ShoppingBag className="mx-auto h-8 w-8 text-[var(--text-3)] mb-2" />
+          <p className="text-xs font-medium text-[var(--text-3)]">
             Your cart is empty
           </p>
-          <p className="text-[11px] text-gray-300 mt-0.5">
+          <p className="text-[11px] text-[var(--text-3)] mt-0.5">
             Add dishes from the menu
           </p>
         </div>
@@ -836,7 +836,7 @@ function DesktopCartPreview({
                   />
                 </div>
                 <div className="flex-1">
-                  <h2 className="text-xl font-black text-[#3e1e0c] leading-tight">
+                  <h2 className="text-xl font-black text-[var(--text-1)] leading-tight">
                     {stripEmojis(item.name)}
                   </h2>
                   <p className="text-xs font-semibold text-[#eaa94d]">
@@ -846,7 +846,7 @@ function DesktopCartPreview({
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => decreaseQty(item.id)}
-                    className="flex h-6 w-6 items-center justify-center rounded-md border border-gray-200 text-gray-400 hover:bg-gray-50 text-xs"
+                    className="flex h-6 w-6 items-center justify-center rounded-md border border-[var(--border)] text-[var(--text-3)] hover:bg-[var(--canvas-sub)] text-xs"
                   >
                     <Minus className="h-3 w-3" />
                   </button>
@@ -863,12 +863,12 @@ function DesktopCartPreview({
               </div>
             ))}
           </div>
-          <div className="border-t border-gray-100 px-5 py-4 space-y-3">
+          <div className="border-t border-[var(--border-soft)] px-5 py-4 space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-gray-500">
+              <span className="text-xs font-medium text-[var(--text-2)]">
                 Subtotal
               </span>
-              <span className="text-sm font-bold text-[#3e1e0c]">
+              <span className="text-sm font-bold text-[var(--text-1)]">
                 {formatPrice(subtotal, currency)}
               </span>
             </div>
@@ -879,7 +879,7 @@ function DesktopCartPreview({
                 boxShadow: "0 10px 20px -6px rgba(255,153,51,0.35)",
               }}
               whileTap={{ scale: 0.97 }}
-              className="relative w-full rounded-xl bg-[#eaa94d] py-3.5 text-sm font-bold text-white overflow-hidden shadow-md shadow-[#eaa94d]/25"
+              className="relative w-full rounded-xl bg-[#eaa94d] py-3.5 text-sm font-bold text-white overflow-hidden shadow-md shadow-[var(--accent)]/25"
             >
               <motion.div
                 className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent"
@@ -1178,60 +1178,8 @@ function MenuPageContent() {
   // digital payment flows (Bank details, eSewa/Khalti gateway) run inside
   // the CheckoutSheet which is rendered in the main JSX below.
   if (showOrder && !checkoutOpen) {
-    if (!activeOrder) {
-      return (
-        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white">
-          <Loader2 className="h-8 w-8 animate-spin text-[#eaa94d] mb-3" />
-          <p className="text-sm font-semibold text-gray-500">Loading your order…</p>
-        </div>
-      );
-    }
+    if (!activeOrder) return null;
     return <OrderStatus onClose={() => { localStorage.removeItem(`hh_tracking_${slug}`); setShowOrder(false); }} />;
-  }
-
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[#F7F8FA]">
-        <motion.div
-          className="flex flex-col items-center gap-4"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.4 }}
-        >
-          <motion.div
-            className="relative flex h-16 w-16 items-center justify-center"
-            animate={{ scale: [1, 1.08, 1] }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-          >
-            <div className="absolute inset-0 rounded-full bg-[#eaa94d]/10" />
-            <motion.div
-              className="absolute inset-1 rounded-full bg-[#eaa94d]/20"
-              animate={{ scale: [1, 1.15, 1] }}
-              transition={{
-                duration: 1.5,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: 0.2,
-              }}
-            />
-            <ShoppingBag className="h-7 w-7 text-[#eaa94d] relative z-[1]" />
-          </motion.div>
-          <div className="space-y-1.5 text-center">
-            <p className="text-sm font-bold text-[#3e1e0c]">Loading menu</p>
-            <div className="flex items-center gap-1 justify-center">
-              {[0, 1, 2].map((i) => (
-                <motion.div
-                  key={i}
-                  className="h-1.5 w-1.5 rounded-full bg-[#eaa94d]"
-                  animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1.2, 0.8] }}
-                  transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
-                />
-              ))}
-            </div>
-          </div>
-        </motion.div>
-      </div>
-    );
   }
 
   if (error || !restaurant) {
@@ -1241,10 +1189,10 @@ function MenuPageContent() {
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-100 mb-4">
             <X className="h-8 w-8 text-red-500" />
           </div>
-          <h2 className="text-lg font-bold text-[#3e1e0c] mb-1">
+          <h2 className="text-lg font-bold text-[var(--text-1)] mb-1">
             Restaurant not found
           </h2>
-          <p className="text-sm text-gray-500 mb-6">
+          <p className="text-sm text-[var(--text-2)] mb-6">
             {error || "We couldn't find the restaurant you're looking for."}
           </p>
           <Link
@@ -1269,7 +1217,7 @@ function MenuPageContent() {
 
   return (
     <div className="min-h-screen bg-[#F7F8FA] flex justify-center w-full" style={themeStyle}>
-      <div className="w-full max-w-5xl bg-white min-h-screen shadow-[0_0_40px_rgba(0,0,0,0.03)] relative flex flex-col">
+      <div className="w-full max-w-5xl bg-[var(--canvas)] min-h-screen shadow-[0_0_40px_rgba(0,0,0,0.03)] relative flex flex-col">
         {restaurant.coverUrl && (
           <div className="relative w-full h-[180px] sm:h-[240px] md:h-[280px] shrink-0">
             <img 
@@ -1280,7 +1228,7 @@ function MenuPageContent() {
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
             
             <div className="absolute bottom-6 left-6 right-6 flex items-end gap-3 sm:gap-4">
-               <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl bg-white p-1 shadow-lg shrink-0 overflow-hidden">
+               <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl bg-[var(--canvas)] p-1 shadow-lg shrink-0 overflow-hidden">
                  <img src={restaurant.imageUrl || PLACEHOLDER_IMG} alt={restaurant.name} className="h-full w-full object-cover rounded-xl" />
                </div>
                <div className="flex-1 pb-1">
@@ -1306,13 +1254,13 @@ function MenuPageContent() {
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="sticky top-0 z-40 bg-white/95 backdrop-blur-3xl shadow-sm border-b border-black/[0.04]"
+          className="sticky top-0 z-40 bg-[var(--canvas)]/95 backdrop-blur-3xl shadow-sm border-b border-black/[0.04]"
         >
           <div className="px-4 md:px-6 py-2">
             <div className="flex h-12 sm:h-14 items-center gap-3 sm:gap-4">
               <Link
                 href="/"
-                className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-[#3e1e0c] transition-all shrink-0 shadow-sm"
+                className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)] hover:text-[var(--text-1)] transition-all shrink-0 shadow-sm"
               >
                 <ArrowLeft className="h-4 w-4" />
               </Link>
@@ -1332,7 +1280,7 @@ function MenuPageContent() {
                   )}
                 </div>
               ) : (
-                <span className="text-sm font-bold text-[#3e1e0c] truncate hidden sm:inline-block">Menu</span>
+                <span className="text-sm font-bold text-[var(--text-1)] truncate hidden sm:inline-block">Menu</span>
               )}
             </div>
             <div className="flex items-center gap-2 shrink-0">
@@ -1343,7 +1291,7 @@ function MenuPageContent() {
               {restaurant.phone && (
                 <a
                   href={`tel:${restaurant.phone}`}
-                  className="hidden sm:flex h-9 items-center gap-1.5 rounded-full bg-gray-100 px-3 text-xs font-bold text-gray-600 hover:bg-gray-200 transition-colors"
+                  className="hidden sm:flex h-9 items-center gap-1.5 rounded-full bg-[var(--surface)] px-3 text-xs font-bold text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-colors"
                 >
                   <Phone className="h-3.5 w-3.5" />
                   Call
@@ -1352,7 +1300,7 @@ function MenuPageContent() {
               {isSignedIn && (
                 <button
                   onClick={() => setShowHistory(true)}
-                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-colors"
                   title="My Order History"
                 >
                   <History className="h-4 w-4" />
@@ -1363,7 +1311,7 @@ function MenuPageContent() {
                 whileHover={{ scale: 1.04 }}
                 whileTap={{ scale: 0.95 }}
                 transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                className="relative flex h-9 items-center gap-1.5 rounded-xl bg-[#eaa94d] px-4 text-xs font-bold text-white shadow-md shadow-[#eaa94d]/20 hover:bg-[#d67620]"
+                className="relative flex h-9 items-center gap-1.5 rounded-xl bg-[#eaa94d] px-4 text-xs font-bold text-white shadow-md shadow-[var(--accent)]/20 hover:bg-[#d67620]"
               >
                 <ShoppingBag className="h-4 w-4" />
                 <span className="hidden sm:inline">Cart</span>
@@ -1373,7 +1321,7 @@ function MenuPageContent() {
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ type: "spring", stiffness: 500, damping: 15 }}
-                    className="flex h-5 w-5 items-center justify-center rounded-full bg-white text-[10px] font-bold text-[#eaa94d]"
+                    className="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--canvas)] text-[10px] font-bold text-[#eaa94d]"
                   >
                     {totalItems}
                   </motion.span>
@@ -1407,20 +1355,20 @@ function MenuPageContent() {
             )}
 
             {/* Search + Category bar — sticky seamlessly under header */}
-            <div className="sticky top-[64px] sm:top-[72px] z-30 -mx-4 px-4 md:-mx-6 md:px-6 pt-1 pb-2 bg-white/95 backdrop-blur-md space-y-3">
+            <div className="sticky top-[64px] sm:top-[72px] z-30 -mx-4 px-4 md:-mx-6 md:px-6 pt-1 pb-2 bg-[var(--canvas)]/95 backdrop-blur-md space-y-3">
             <motion.div
               className="relative group"
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.1 }}
             >
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-[#eaa94d] transition-colors" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-3)] group-focus-within:text-[#eaa94d] transition-colors" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search dishes, cuisines..."
-                className="w-full rounded-xl bg-white py-3 pl-11 pr-4 text-sm font-medium text-[#3e1e0c] placeholder-gray-400 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#eaa94d]/20 focus:border-[#eaa94d]/40 transition-all shadow-sm"
+                className="w-full rounded-xl bg-[var(--canvas)] py-3 pl-11 pr-4 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 border border-[var(--border)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] focus:border-[#eaa94d]/40 transition-all shadow-sm"
               />
             </motion.div>
 
@@ -1444,7 +1392,7 @@ function MenuPageContent() {
                     className={`shrink-0 rounded-full px-6 py-2.5 text-[11px] font-bold tracking-wide uppercase transition-all ${
                       activeCategory === ""
                         ? "bg-[#1a1a1a] text-white shadow-md shadow-black/10"
-                        : "bg-white text-gray-500 border border-gray-200 hover:border-gray-300 hover:bg-gray-50 hover:text-[#1a1a1a]"
+                        : "bg-[var(--canvas)] text-[var(--text-2)] border border-[var(--border)] hover:border-[var(--border)] hover:bg-[var(--canvas-sub)] hover:text-[#1a1a1a]"
                     }`}
                   >
                     All
@@ -1459,7 +1407,7 @@ function MenuPageContent() {
                       className={`shrink-0 rounded-full px-6 py-2.5 text-[11px] font-bold tracking-wide uppercase transition-all flex items-center ${
                         activeCategory === cat.name
                           ? "bg-[#1a1a1a] text-white shadow-md shadow-black/10"
-                          : "bg-white text-gray-500 border border-gray-200 hover:border-gray-300 hover:bg-gray-50 hover:text-[#1a1a1a]"
+                          : "bg-[var(--canvas)] text-[var(--text-2)] border border-[var(--border)] hover:border-[var(--border)] hover:bg-[var(--canvas-sub)] hover:text-[#1a1a1a]"
                       }`}
                     >
                       {stripEmojis(cat.name)}
@@ -1470,7 +1418,7 @@ function MenuPageContent() {
                 {/* Grid / Scroll toggle */}
                 <button
                   onClick={() => setCategoryView((v) => (v === "scroll" ? "grid" : "scroll"))}
-                  className="shrink-0 flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-400 hover:text-brand-600 hover:border-brand-200 transition-all"
+                  className="shrink-0 flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--canvas)] text-[var(--text-3)] hover:text-brand-600 hover:border-brand-200 transition-all"
                   title={categoryView === "scroll" ? "Grid view" : "List view"}
                 >
                   {categoryView === "scroll" ? (
@@ -1497,7 +1445,7 @@ function MenuPageContent() {
                         className={`shrink-0 rounded-full px-4 py-1.5 text-[10px] font-bold tracking-wide uppercase transition-all ${
                           activeSubCategory === ""
                             ? "bg-[#1a1a1a] text-white shadow-sm"
-                            : "bg-white text-gray-500 border border-gray-200 hover:border-gray-300 hover:bg-gray-50 hover:text-[#1a1a1a]"
+                            : "bg-[var(--canvas)] text-[var(--text-2)] border border-[var(--border)] hover:border-[var(--border)] hover:bg-[var(--canvas-sub)] hover:text-[#1a1a1a]"
                         }`}
                       >
                         All {stripEmojis(activeCategory)}
@@ -1509,7 +1457,7 @@ function MenuPageContent() {
                           className={`shrink-0 rounded-full px-4 py-1.5 text-[10px] font-bold tracking-wide uppercase transition-all ${
                             activeSubCategory === sub.name
                               ? "bg-[#1a1a1a] text-white shadow-sm"
-                              : "bg-white text-gray-500 border border-gray-200 hover:border-gray-300 hover:bg-gray-50 hover:text-[#1a1a1a]"
+                              : "bg-[var(--canvas)] text-[var(--text-2)] border border-[var(--border)] hover:border-[var(--border)] hover:bg-[var(--canvas-sub)] hover:text-[#1a1a1a]"
                           }`}
                         >
                           {stripEmojis(sub.name)}
@@ -1583,14 +1531,14 @@ function MenuPageContent() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4 }}
-                className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-red-50 to-orange-50 border border-orange-200/60 px-4 py-3"
+                className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-red-50 to-[var(--accent-hover)] border border-[var(--accent-border)]0/60 px-4 py-3"
               >
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-orange-100 shrink-0">
-                  <Flame className="h-4 w-4 text-orange-600" />
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent)] shrink-0">
+                  <Flame className="h-4 w-4 text-[var(--accent)]" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-orange-800">Rush Hour Pricing Active</p>
-                  <p className="text-[11px] text-orange-600">Prices +{rushHour.surgePercent}% during peak hours</p>
+                  <p className="text-xs font-bold text-[var(--accent)]">Rush Hour Pricing Active</p>
+                  <p className="text-[11px] text-[var(--accent)]">Prices +{rushHour.surgePercent}% during peak hours</p>
                 </div>
               </motion.div>
             )}
@@ -1603,10 +1551,10 @@ function MenuPageContent() {
                 className="space-y-3"
               >
                 <div className="flex items-center gap-2">
-                  <Tag className="h-4 w-4 text-[#3e1e0c]" />
-                  <h2 className="text-sm font-bold text-[#3e1e0c]">Combo Deals</h2>
-                  <span className="text-[11px] font-semibold text-gray-400">{comboMeals.length} deal{comboMeals.length > 1 ? "s" : ""}</span>
-                  <div className="flex-1 h-px bg-gray-100" />
+                  <Tag className="h-4 w-4 text-[var(--text-1)]" />
+                  <h2 className="text-sm font-bold text-[var(--text-1)]">Combo Deals</h2>
+                  <span className="text-[11px] font-semibold text-[var(--text-3)]">{comboMeals.length} deal{comboMeals.length > 1 ? "s" : ""}</span>
+                  <div className="flex-1 h-px bg-[var(--surface)]" />
                 </div>
                 <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
                   {comboMeals.map((combo) => (
@@ -1629,13 +1577,13 @@ function MenuPageContent() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.25 }}
-                className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-green-50 to-emerald-50 border border-[#eaa94d]/30/60 px-4 py-3"
+                className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-[#fef9ef] to-[#fef9ef] border border-[var(--accent-border)]/60 px-4 py-3"
               >
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#fef3dc] shrink-0">
                   <Tag className="h-4 w-4 text-[#b25c1c]" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-[#3e1e0c]">Coupons Available!</p>
+                  <p className="text-xs font-bold text-[var(--text-1)]">Coupons Available!</p>
                   <p className="text-[11px] text-[#b25c1c]">Apply a coupon code at checkout to get a discount</p>
                 </div>
               </motion.div>
@@ -1651,20 +1599,20 @@ function MenuPageContent() {
               >
                 <button
                   onClick={() => setShowRooms(!showRooms)}
-                  className="flex w-full items-center justify-between rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/60 px-4 py-3"
+                  className="flex w-full items-center justify-between rounded-2xl bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] border border-[var(--accent-border)]/60 px-4 py-3"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-100 shrink-0">
-                      <BedDouble className="h-4 w-4 text-amber-700" />
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent-muted)] shrink-0">
+                      <BedDouble className="h-4 w-4 text-[var(--accent-text)]" />
                     </div>
                     <div className="text-left">
-                      <p className="text-xs font-bold text-amber-800">
+                      <p className="text-xs font-bold text-[var(--accent-text)]">
                         {rooms.length} Room{rooms.length > 1 ? "s" : ""} Available
                       </p>
-                      <p className="text-[11px] text-amber-600">Tap to browse & book rooms</p>
+                      <p className="text-[11px] text-[var(--accent-text)]">Tap to browse & book rooms</p>
                     </div>
                   </div>
-                  <ChevronDown className={`h-4 w-4 text-amber-400 transition-transform ${showRooms ? "rotate-180" : ""}`} />
+                  <ChevronDown className={`h-4 w-4 text-[var(--accent)] transition-transform ${showRooms ? "rotate-180" : ""}`} />
                 </button>
 
                 <AnimatePresence>
@@ -1680,7 +1628,7 @@ function MenuPageContent() {
                         {rooms.map((room) => (
                           <div
                             key={room.id}
-                            className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden"
+                            className="rounded-2xl border border-[var(--border-soft)] bg-[var(--canvas)] shadow-sm overflow-hidden"
                           >
                             {room.imageUrls[0] && (
                               <div className="relative h-36 w-full overflow-hidden">
@@ -1690,28 +1638,28 @@ function MenuPageContent() {
                                   className="h-full w-full object-cover"
                                   loading="lazy"
                                 />
-                                <span className="absolute top-2 right-2 rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-bold text-[#3e1e0c] shadow-sm">
+                                <span className="absolute top-2 right-2 rounded-full bg-[var(--canvas)]/90 px-2.5 py-1 text-[11px] font-bold text-[var(--text-1)] shadow-sm">
                                   {formatPrice(room.price, cur)}/night
                                 </span>
                               </div>
                             )}
                             <div className="p-4 space-y-2">
                               <div className="flex items-center justify-between">
-                                <h4 className="text-sm font-bold text-[#3e1e0c]">
+                                <h4 className="text-sm font-bold text-[var(--text-1)]">
                                   {room.name || `Room ${room.roomNumber}`}
                                 </h4>
                                 <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
                                   room.type === "SUITE" ? "bg-purple-50 text-purple-700" :
-                                  room.type === "DELUXE" ? "bg-amber-50 text-amber-700" :
-                                  "bg-gray-50 text-gray-600"
+                                  room.type === "DELUXE" ? "bg-[var(--accent-muted)] text-[var(--accent-text)]" :
+                                  "bg-[var(--canvas-sub)] text-[var(--text-2)]"
                                 }`}>
                                   {room.type}
                                 </span>
                               </div>
                               {room.description && (
-                                <p className="text-[11px] text-gray-500 line-clamp-2">{room.description}</p>
+                                <p className="text-[11px] text-[var(--text-2)] line-clamp-2">{room.description}</p>
                               )}
-                              <div className="flex items-center gap-3 text-[11px] text-gray-400">
+                              <div className="flex items-center gap-3 text-[11px] text-[var(--text-3)]">
                                 <span className="flex items-center gap-1">
                                   <Users className="h-3 w-3" />
                                   Up to {room.maxGuests} guests
@@ -1721,12 +1669,12 @@ function MenuPageContent() {
                               {room.amenities.length > 0 && (
                                 <div className="flex flex-wrap gap-1">
                                   {room.amenities.slice(0, 4).map((a) => (
-                                    <span key={a} className="rounded-full bg-gray-50 px-2 py-0.5 text-[9px] font-medium text-gray-500">
+                                    <span key={a} className="rounded-full bg-[var(--canvas-sub)] px-2 py-0.5 text-[9px] font-medium text-[var(--text-2)]">
                                       {a}
                                     </span>
                                   ))}
                                   {room.amenities.length > 4 && (
-                                    <span className="rounded-full bg-gray-50 px-2 py-0.5 text-[9px] font-medium text-gray-400">
+                                    <span className="rounded-full bg-[var(--canvas-sub)] px-2 py-0.5 text-[9px] font-medium text-[var(--text-3)]">
                                       +{room.amenities.length - 4} more
                                     </span>
                                   )}
@@ -1757,19 +1705,19 @@ function MenuPageContent() {
                     key="empty"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="py-12 text-center text-sm text-gray-400"
+                    className="py-12 text-center text-sm text-[var(--text-3)]"
                   >
                     No dishes found. Try a different filter.
                   </motion.p>
                 ) : activeCategory ? (
                   /* Single category selected */
                   <div key="single" className="space-y-3">
-                    <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">
+                    <h3 className="text-sm font-bold text-[var(--text-3)] uppercase tracking-wider">
                       {stripEmojis(activeCategory)}
                       {activeSubCategory && (
                         <span className="text-brand-500"> / {activeSubCategory}</span>
                       )}
-                      <span className="ml-2 text-[#3e1e0c]">
+                      <span className="ml-2 text-[var(--text-1)]">
                         ({smartSorted.length})
                       </span>
                     </h3>
@@ -1810,13 +1758,13 @@ function MenuPageContent() {
                       return (
                         <div key={cat.id} className="space-y-3">
                           <div className="flex items-center gap-3">
-                            <h3 className="text-sm font-bold text-[#3e1e0c]">
+                            <h3 className="text-sm font-bold text-[var(--text-1)]">
                               {stripEmojis(cat.name)}
                             </h3>
-                            <span className="text-[11px] font-semibold text-gray-400">
+                            <span className="text-[11px] font-semibold text-[var(--text-3)]">
                               {catItems.length} {catItems.length === 1 ? "item" : "items"}
                             </span>
-                            <div className="flex-1 h-px bg-gray-100" />
+                            <div className="flex-1 h-px bg-[var(--surface)]" />
                           </div>
                           <motion.div
                             variants={containerVariants}
@@ -1846,7 +1794,7 @@ function MenuPageContent() {
                       (item) => !categories.some((c) => c.name === item.category.name),
                     ).length > 0 && (
                       <div className="space-y-3">
-                        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">
+                        <h3 className="text-sm font-bold text-[var(--text-3)] uppercase tracking-wider">
                           Other
                         </h3>
                         <motion.div
@@ -1913,7 +1861,7 @@ function MenuPageContent() {
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ type: "spring", stiffness: 500, damping: 15 }}
-                  className="flex h-6 w-6 items-center justify-center rounded-full bg-white/20 text-xs font-bold"
+                  className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--canvas)]/20 text-xs font-bold"
                 >
                   {totalItems}
                 </motion.span>
@@ -2020,8 +1968,8 @@ function MenuPageContent() {
       />
 
       {restaurant.footerText && (
-        <div className="border-t border-gray-100 px-6 py-4 text-center">
-          <p className="text-xs text-gray-400">{restaurant.footerText}</p>
+        <div className="border-t border-[var(--border-soft)] px-6 py-4 text-center">
+          <p className="text-xs text-[var(--text-3)]">{restaurant.footerText}</p>
         </div>
       )}
     </div>
@@ -2039,11 +1987,11 @@ interface HistoryOrder {
 }
 
 const H_STATUS: Record<string, { label: string; color: string; bg: string }> = {
-  PENDING:   { label: "Pending",   color: "text-amber-700",  bg: "bg-amber-50" },
+  PENDING:   { label: "Pending",   color: "text-[var(--accent-text)]",  bg: "bg-[var(--accent-muted)]" },
   ACCEPTED:  { label: "Accepted",  color: "text-blue-700",   bg: "bg-blue-50" },
   PREPARING: { label: "Preparing", color: "text-purple-700", bg: "bg-purple-50" },
-  READY:     { label: "Ready",     color: "text-[#b25c1c]",bg: "bg-[#fef9ef]" },
-  DELIVERED: { label: "Delivered", color: "text-[#b25c1c]",  bg: "bg-[#fef9ef]" },
+  READY:     { label: "Ready",     color: "text-[#b25c1c]",bg: "bg-[var(--accent-muted)]" },
+  DELIVERED: { label: "Delivered", color: "text-[#b25c1c]",  bg: "bg-[var(--accent-muted)]" },
   CANCELLED: { label: "Cancelled", color: "text-red-700",    bg: "bg-red-50" },
   REJECTED:  { label: "Rejected",  color: "text-red-700",    bg: "bg-red-50" },
 };
@@ -2089,14 +2037,14 @@ function OrderHistorySheet({
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 28, stiffness: 280 }}
-            className="fixed right-0 top-0 bottom-0 z-50 w-full max-w-sm bg-white shadow-2xl flex flex-col"
+            className="fixed right-0 top-0 bottom-0 z-50 w-full max-w-sm bg-[var(--canvas)] shadow-2xl flex flex-col"
           >
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 shrink-0">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-soft)] shrink-0">
               <div className="flex items-center gap-2">
                 <History className="h-5 w-5 text-[#eaa94d]" />
-                <h3 className="text-base font-bold text-[#3e1e0c]">My Orders Here</h3>
+                <h3 className="text-base font-bold text-[var(--text-1)]">My Orders Here</h3>
               </div>
-              <button onClick={onClose} className="rounded-full p-2 text-gray-400 hover:bg-gray-100 transition-colors">
+              <button onClick={onClose} className="rounded-full p-2 text-[var(--text-3)] hover:bg-[var(--surface)] transition-colors">
                 <X className="h-4 w-4" />
               </button>
             </div>
@@ -2104,42 +2052,42 @@ function OrderHistorySheet({
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
               {loading ? (
                 <div className="flex items-center justify-center py-16">
-                  <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+                  <Loader2 className="h-6 w-6 animate-spin text-[var(--text-3)]" />
                 </div>
               ) : orders.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+                <div className="flex flex-col items-center justify-center py-16 text-[var(--text-3)]">
                   <Receipt className="h-12 w-12 mb-3 opacity-30" />
-                  <p className="text-sm font-semibold text-gray-500">No orders yet</p>
-                  <p className="text-xs text-gray-400 mt-1">Your orders at this place will appear here</p>
+                  <p className="text-sm font-semibold text-[var(--text-2)]">No orders yet</p>
+                  <p className="text-xs text-[var(--text-3)] mt-1">Your orders at this place will appear here</p>
                 </div>
               ) : (
                 orders.map((order) => {
                   const meta = H_STATUS[order.status] || H_STATUS.PENDING;
                   const expanded = expandedId === order.id;
                   return (
-                    <div key={order.id} className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+                    <div key={order.id} className="rounded-2xl border border-[var(--border-soft)] bg-[var(--canvas)] shadow-sm overflow-hidden">
                       <button
                         onClick={() => setExpandedId(expanded ? null : order.id)}
                         className="w-full p-4 text-left"
                       >
                         <div className="flex items-center justify-between mb-1">
-                          <p className="text-sm font-bold text-gray-800">#{order.orderNo}</p>
+                          <p className="text-sm font-bold text-[var(--text-1)]">#{order.orderNo}</p>
                           <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${meta.bg} ${meta.color}`}>
                             {meta.label}
                           </span>
                         </div>
-                        <p className="text-xs text-gray-400">
+                        <p className="text-xs text-[var(--text-3)]">
                           {order.items.map((i) => `${i.quantity}x ${i.name}`).join(", ")}
                         </p>
                         <div className="flex items-center justify-between mt-2">
-                          <p className="text-sm font-bold text-gray-900">
+                          <p className="text-sm font-bold text-[var(--text-1)]">
                             {formatPrice(order.total, currency)}
                           </p>
                           <div className="flex items-center gap-1.5">
-                            <p className="text-[10px] text-gray-400">
+                            <p className="text-[10px] text-[var(--text-3)]">
                               {new Date(order.createdAt).toLocaleDateString("en-NP", { month: "short", day: "numeric" })}
                             </p>
-                            <ChevronDown className={`h-3.5 w-3.5 text-gray-300 transition-transform ${expanded ? "rotate-180" : ""}`} />
+                            <ChevronDown className={`h-3.5 w-3.5 text-[var(--text-3)] transition-transform ${expanded ? "rotate-180" : ""}`} />
                           </div>
                         </div>
                       </button>
@@ -2153,21 +2101,21 @@ function OrderHistorySheet({
                             transition={{ duration: 0.2 }}
                             className="overflow-hidden"
                           >
-                            <div className="border-t border-gray-100 px-4 py-3 space-y-2">
+                            <div className="border-t border-[var(--border-soft)] px-4 py-3 space-y-2">
                               {order.items.map((item) => (
                                 <div key={item.id} className="flex items-center justify-between">
-                                  <span className="text-xs text-gray-600">{item.quantity}x {item.name}</span>
-                                  <span className="text-xs font-medium text-gray-700">
+                                  <span className="text-xs text-[var(--text-2)]">{item.quantity}x {item.name}</span>
+                                  <span className="text-xs font-medium text-[var(--text-2)]">
                                     {formatPrice(item.price * item.quantity, currency)}
                                   </span>
                                 </div>
                               ))}
-                              <div className="border-t border-dashed border-gray-200 pt-2 flex justify-between">
-                                <span className="text-xs font-bold text-gray-800">Total</span>
-                                <span className="text-xs font-bold text-gray-800">{formatPrice(order.total, currency)}</span>
+                              <div className="border-t border-dashed border-[var(--border)] pt-2 flex justify-between">
+                                <span className="text-xs font-bold text-[var(--text-1)]">Total</span>
+                                <span className="text-xs font-bold text-[var(--text-1)]">{formatPrice(order.total, currency)}</span>
                               </div>
                               {order.payment && (
-                                <p className="text-[10px] text-gray-400">
+                                <p className="text-[10px] text-[var(--text-3)]">
                                   Paid via {order.payment.method}
                                 </p>
                               )}

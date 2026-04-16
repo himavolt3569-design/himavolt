@@ -35,7 +35,7 @@ export default function OffersCarousel() {
   const offer = offers[currentIndex];
 
   return (
-    <section className="bg-white">
+    <section className="bg-[var(--canvas)]">
       <div className="mx-auto max-w-[1440px] px-4 md:px-8 lg:px-12 py-10 md:py-16">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
@@ -46,7 +46,7 @@ export default function OffersCarousel() {
               <h2 className="text-xl font-extrabold tracking-tight text-[#3e1e0c] md:text-2xl">
                 Deals that make you drool
               </h2>
-              <p className="text-xs text-gray-400 font-medium mt-0.5 hidden sm:block">
+              <p className="text-xs text-[var(--text-3)] font-medium mt-0.5 hidden sm:block">
                 Limited-time offers on your favourite food
               </p>
             </div>
@@ -54,14 +54,14 @@ export default function OffersCarousel() {
           <div className="flex items-center gap-2">
             <button
               onClick={prev}
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-[#3e1e0c] transition-all active:scale-95"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border)] text-[var(--text-2)] hover:bg-[var(--canvas-sub)] hover:border-[var(--border)] hover:text-[#3e1e0c] transition-all active:scale-95"
               aria-label="Previous offer"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
             <button
               onClick={next}
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-[#3e1e0c] transition-all active:scale-95"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border)] text-[var(--text-2)] hover:bg-[var(--canvas-sub)] hover:border-[var(--border)] hover:text-[#3e1e0c] transition-all active:scale-95"
               aria-label="Next offer"
             >
               <ChevronRight className="h-4 w-4" />
@@ -107,7 +107,7 @@ export default function OffersCarousel() {
                     ease: [0.16, 1, 0.3, 1],
                   }}
                 >
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-sm px-3.5 py-1.5 text-[11px] font-bold text-white/90 uppercase tracking-wider border border-white/10">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--canvas)]/80 backdrop-blur-sm px-3.5 py-1.5 text-[11px] font-bold text-white/90 uppercase tracking-wider border border-white/10">
                     <Sparkles className="h-3 w-3" />
                     {offer.badge}
                   </span>
@@ -149,7 +149,7 @@ export default function OffersCarousel() {
                   }}
                   className="mt-5"
                 >
-                  <Link href="/offers" className="group inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-xs sm:text-sm font-bold text-[#3e1e0c] shadow-lg shadow-black/20 transition-all hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 cursor-pointer">
+                  <Link href="/offers" className="group inline-flex items-center gap-2 rounded-full bg-[var(--canvas)] px-5 py-2.5 text-xs sm:text-sm font-bold text-[#3e1e0c] shadow-lg shadow-black/20 transition-all hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 cursor-pointer">
                     {offer.cta}
                     <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
                   </Link>
@@ -165,8 +165,8 @@ export default function OffersCarousel() {
                 onClick={() => goTo(idx)}
                 className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
                   currentIndex === idx
-                    ? "w-7 bg-white"
-                    : "w-1.5 bg-white/30 hover:bg-white/50"
+                    ? "w-7 bg-[var(--canvas)]"
+                    : "w-1.5 bg-[var(--canvas)]/80 hover:bg-[var(--canvas)]/80"
                 }`}
                 aria-label={`Go to offer ${idx + 1}`}
               />
@@ -182,7 +182,7 @@ export default function OffersCarousel() {
               className={`group relative overflow-hidden rounded-2xl p-4 text-left transition-all cursor-pointer ${
                 currentIndex === idx
                   ? "ring-2 ring-[#eaa94d]/30 bg-[#eaa94d]/5"
-                  : "bg-gray-50 hover:bg-gray-100"
+                  : "bg-[var(--canvas-sub)] hover:bg-[var(--surface)]"
               }`}
             >
               <div className="flex items-center gap-3">
@@ -199,7 +199,7 @@ export default function OffersCarousel() {
                   >
                     {o.title}
                   </p>
-                  <p className="text-[10px] text-gray-400 font-medium truncate mt-0.5">
+                  <p className="text-[10px] text-[var(--text-3)] font-medium truncate mt-0.5">
                     {o.badge}
                   </p>
                 </div>

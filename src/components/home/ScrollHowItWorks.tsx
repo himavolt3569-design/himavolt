@@ -142,7 +142,7 @@ export default function ScrollHowItWorks() {
                     key={step.num}
                     className="step-panel w-full shrink-0 px-3"
                   >
-                    <div className="rounded-2xl border border-[#f4d69a]/25 bg-white p-10 relative overflow-hidden min-h-[320px]">
+                    <div className="rounded-2xl border border-[#f4d69a]/25 bg-[var(--canvas)] p-10 relative overflow-hidden min-h-[320px]">
                       <span className="absolute top-6 right-8 text-[80px] font-extrabold leading-none text-[#3e1e0c]/[0.03] select-none pointer-events-none">
                         {step.num}
                       </span>

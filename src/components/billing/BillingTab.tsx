@@ -202,11 +202,11 @@ async function staffFetch(url: string, opts?: RequestInit) {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  PENDING: "bg-orange-100 text-orange-700",
+  PENDING: "bg-[var(--accent)] text-[var(--accent)]",
   ACCEPTED: "bg-blue-100 text-blue-700",
-  PREPARING: "bg-amber-100 text-amber-700",
-  READY: "bg-[#fef3dc] text-[#b25c1c]",
-  DELIVERED: "bg-gray-100 text-gray-600",
+  PREPARING: "bg-[var(--accent-muted)] text-[var(--accent-text)]",
+  READY: "bg-[var(--accent-muted)] text-[#b25c1c]",
+  DELIVERED: "bg-[var(--surface)] text-[var(--text-2)]",
   CANCELLED: "bg-red-100 text-red-600",
   REJECTED: "bg-red-100 text-red-600",
 };
@@ -584,13 +584,7 @@ export default function BillingTab({
   const cashCount = orders.filter(isCashOrder).length;
   const onlineCount = orders.filter((o) => !!isOnlineOrder(o)).length;
 
-  if (loading) {
-    return (
-      <div className="flex justify-center py-20">
-        <Loader2 className="h-6 w-6 animate-spin text-[#eaa94d]" />
-      </div>
-    );
-  }
+  if (loading) return null;
 
   return (
     <div className="space-y-5">
@@ -609,11 +603,11 @@ export default function BillingTab({
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="relative max-w-2xl w-full bg-white rounded-2xl overflow-hidden shadow-2xl"
+              className="relative max-w-2xl w-full bg-[var(--canvas)] rounded-2xl overflow-hidden shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between px-4 py-3 border-b">
-                <span className="text-sm font-bold text-gray-800">Payment Proof</span>
+                <span className="text-sm font-bold text-[var(--text-1)]">Payment Proof</span>
                 <div className="flex items-center gap-2">
                   <a
                     href={proofPreviewUrl}
@@ -626,9 +620,9 @@ export default function BillingTab({
                   </a>
                   <button
                     onClick={() => setProofPreviewUrl(null)}
-                    className="rounded-lg p-1.5 hover:bg-gray-100 transition-colors"
+                    className="rounded-lg p-1.5 hover:bg-[var(--surface)] transition-colors"
                   >
-                    <X className="h-4 w-4 text-gray-500" />
+                    <X className="h-4 w-4 text-[var(--text-2)]" />
                   </button>
                 </div>
               </div>
@@ -636,7 +630,7 @@ export default function BillingTab({
               <img
                 src={proofPreviewUrl}
                 alt="Payment proof"
-                className="w-full max-h-[70vh] object-contain bg-gray-50"
+                className="w-full max-h-[70vh] object-contain bg-[var(--canvas-sub)]"
               />
             </motion.div>
           </motion.div>
@@ -650,7 +644,7 @@ export default function BillingTab({
             value={formatPrice(summary.totalRevenue, cur)}
             icon={TrendingUp}
             color="text-[#b25c1c]"
-            bg="bg-[#fef9ef]"
+            bg="bg-[var(--accent-muted)]"
           />
           <SummaryCard
             label="Cash Collected"
@@ -664,8 +658,8 @@ export default function BillingTab({
             label="Pending"
             value={formatPrice(summary.pendingAmount, cur)}
             icon={Clock}
-            color="text-orange-600"
-            bg="bg-orange-50"
+            color="text-[var(--accent)]"
+            bg="bg-[var(--accent)]"
             highlight={summary.pendingAmount > 0}
           />
           <SummaryCard
@@ -680,7 +674,7 @@ export default function BillingTab({
 
       {summary && (
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4 text-xs text-gray-500">
+          <div className="flex items-center gap-4 text-xs text-[var(--text-2)]">
             <span className="flex items-center gap-1">
               <Receipt className="h-3 w-3" />
               {summary.totalOrders} orders today
@@ -690,7 +684,7 @@ export default function BillingTab({
               {summary.paidOrders} paid
             </span>
             <span className="flex items-center gap-1">
-              <AlertCircle className="h-3 w-3 text-orange-500" />
+              <AlertCircle className="h-3 w-3 text-[var(--accent)]" />
               {summary.unpaidOrders} unpaid
             </span>
             {summary.digitalRevenue > 0 && (
@@ -736,7 +730,7 @@ export default function BillingTab({
         </div>
       )}
 
-      <div className="flex rounded-2xl bg-gray-100/50 backdrop-blur-sm p-1 gap-1 border border-black/5 shadow-inner">
+      <div className="flex rounded-2xl bg-[var(--surface)] backdrop-blur-sm p-1 gap-1 border border-black/5 shadow-inner">
         {[
           {
             key: "all" as PayType,
@@ -766,11 +760,11 @@ export default function BillingTab({
               className={`flex-1 flex items-center justify-center gap-1.5 rounded-xl px-3 py-3 text-xs font-bold transition-all ${
                 isActive
                   ? t.key === "cash"
-                    ? "bg-white text-[#b25c1c] shadow-[0_4px_12px_-4px_rgba(16,185,129,0.3)] ring-1 ring-emerald-100"
+                    ? "bg-[var(--canvas)] text-[#b25c1c] shadow-[0_4px_12px_-4px_rgba(16,185,129,0.3)] ring-1 ring-[var(--accent-border)]"
                     : t.key === "online"
-                      ? "bg-white text-purple-700 shadow-[0_4px_12px_-4px_rgba(168,85,247,0.3)] ring-1 ring-purple-100"
-                      : "bg-white text-gray-900 shadow-[0_4px_12px_-4px_rgba(0,0,0,0.1)] ring-1 ring-gray-200"
-                  : "text-gray-500 hover:text-gray-700 hover:bg-white/50"
+                      ? "bg-[var(--canvas)] text-purple-700 shadow-[0_4px_12px_-4px_rgba(168,85,247,0.3)] ring-1 ring-purple-100"
+                      : "bg-[var(--canvas)] text-[var(--text-1)] shadow-[0_4px_12px_-4px_rgba(0,0,0,0.1)] ring-1 ring-[var(--border)]"
+                  : "text-[var(--text-2)] hover:text-[var(--text-2)] hover:bg-[var(--canvas)]/50"
               }`}
             >
               <Icon
@@ -780,8 +774,8 @@ export default function BillingTab({
                       ? "text-[#d67620]"
                       : t.key === "online"
                         ? "text-purple-500"
-                        : "text-gray-800"
-                    : "text-gray-400"
+                        : "text-[var(--text-1)]"
+                    : "text-[var(--text-3)]"
                 }`}
               />
               <span className="hidden sm:inline tracking-wide">{t.label}</span>
@@ -793,11 +787,11 @@ export default function BillingTab({
                   className={`inline-flex h-4 min-w-[16px] items-center justify-center rounded-full px-1.5 text-[10px] font-black ${
                     isActive
                       ? t.key === "cash"
-                        ? "bg-[#fef3dc]/80 text-[#b25c1c]"
+                        ? "bg-[var(--accent-muted)]/80 text-[#b25c1c]"
                         : t.key === "online"
                           ? "bg-purple-100/80 text-purple-700"
-                          : "bg-gray-100 text-gray-800"
-                      : "bg-gray-200/50 text-gray-500"
+                          : "bg-[var(--surface)] text-[var(--text-1)]"
+                      : "bg-[var(--surface-alt)]/50 text-[var(--text-2)]"
                   }`}
                 >
                   {t.count}
@@ -809,7 +803,7 @@ export default function BillingTab({
       </div>
 
       {payType === "cash" && (
-        <div className="flex items-center gap-2 rounded-xl bg-[#fef9ef] border border-[#eaa94d]/30 px-4 py-2.5">
+        <div className="flex items-center gap-2 rounded-xl bg-[var(--accent-muted)] border border-[var(--accent-border)] px-4 py-2.5">
           <BillIcon className="h-4 w-4 text-[#b25c1c] shrink-0" />
           <p className="text-xs text-[#b25c1c] font-medium">
             <span className="font-bold">Cash Bills</span> — Customer pays at the
@@ -828,13 +822,13 @@ export default function BillingTab({
       )}
 
       {/* Main tabs: Orders vs Staff Report */}
-      <div className="flex gap-2 border-b border-gray-100 pb-0">
+      <div className="flex gap-2 border-b border-[var(--border-soft)] pb-0">
         <button
           onClick={() => setActiveTab("orders")}
           className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-all -mb-px ${
             activeTab === "orders"
-              ? "border-[#3e1e0c] text-[#3e1e0c]"
-              : "border-transparent text-gray-500 hover:text-gray-700"
+              ? "border-[#3e1e0c] text-[var(--text-1)]"
+              : "border-transparent text-[var(--text-2)] hover:text-[var(--text-2)]"
           }`}
         >
           <div className="flex items-center gap-1.5">
@@ -849,8 +843,8 @@ export default function BillingTab({
           }}
           className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-all -mb-px ${
             activeTab === "staff-report"
-              ? "border-[#3e1e0c] text-[#3e1e0c]"
-              : "border-transparent text-gray-500 hover:text-gray-700"
+              ? "border-[#3e1e0c] text-[var(--text-1)]"
+              : "border-transparent text-[var(--text-2)] hover:text-[var(--text-2)]"
           }`}
         >
           <div className="flex items-center gap-1.5">
@@ -871,7 +865,7 @@ export default function BillingTab({
                 setStaffReportDate(e.target.value);
                 loadStaffReport(e.target.value);
               }}
-              className="rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 outline-none focus:border-[#3e1e0c] focus:ring-1 focus:ring-[#3e1e0c]/20"
+              className="rounded-xl border border-[var(--border)] px-3 py-2 text-sm font-medium text-[var(--text-2)] outline-none focus:border-[#3e1e0c] focus:ring-1 focus:ring-[#3e1e0c]/20"
             />
             <button
               onClick={() => loadStaffReport(staffReportDate)}
@@ -882,15 +876,11 @@ export default function BillingTab({
             </button>
           </div>
 
-          {staffReportLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
-            </div>
-          ) : staffReport ? (
+          {staffReport ? (
             <div className="space-y-4">
               {/* Grand total */}
               <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-2xl bg-[#fef9ef] border border-[#eaa94d]/30 p-4">
+                <div className="rounded-2xl bg-[var(--accent-muted)] border border-[var(--accent-border)] p-4">
                   <p className="text-xs text-[#b25c1c] font-semibold">Total Collected</p>
                   <p className="text-2xl font-black text-[#b25c1c] mt-1">
                     {formatPrice(staffReport.grandTotal, cur)}
@@ -906,7 +896,7 @@ export default function BillingTab({
 
               {/* Per-staff breakdown */}
               {staffReport.staff.map((s) => (
-                <div key={s.staffId} className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm space-y-3">
+                <div key={s.staffId} className="rounded-2xl border border-[var(--border-soft)] bg-[var(--canvas)] p-4 shadow-sm space-y-3">
                   {/* Staff header */}
                   <div className="flex items-start justify-between">
                     <div>
@@ -915,15 +905,15 @@ export default function BillingTab({
                           {s.staffName.charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <p className="text-sm font-bold text-gray-800">{s.staffName}</p>
-                          <p className="text-[10px] text-gray-500">{s.staffEmail}</p>
+                          <p className="text-sm font-bold text-[var(--text-1)]">{s.staffName}</p>
+                          <p className="text-[10px] text-[var(--text-2)]">{s.staffEmail}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 mt-2">
-                        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[9px] font-bold text-gray-600 uppercase tracking-wide">
+                        <span className="rounded-full bg-[var(--surface)] px-2 py-0.5 text-[9px] font-bold text-[var(--text-2)] uppercase tracking-wide">
                           {s.role}
                         </span>
-                        <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[9px] font-bold text-amber-700 uppercase tracking-wide">
+                        <span className="rounded-full bg-[var(--accent-muted)] px-2 py-0.5 text-[9px] font-bold text-[var(--accent-text)] uppercase tracking-wide">
                           {s.staffType.replace("_", " ")}
                         </span>
                         {s.shift && (
@@ -938,7 +928,7 @@ export default function BillingTab({
                       <p className="text-lg font-black text-[#b25c1c]">
                         {formatPrice(s.totalCollected, cur)}
                       </p>
-                      <p className="text-[10px] text-gray-500">{s.orderCount} orders</p>
+                      <p className="text-[10px] text-[var(--text-2)]">{s.orderCount} orders</p>
                     </div>
                   </div>
 
@@ -948,21 +938,21 @@ export default function BillingTab({
                       {Object.entries(s.byMethod)
                         .filter(([, v]) => v.count > 0)
                         .map(([method, v]) => (
-                          <div key={method} className="rounded-xl bg-gray-50 px-3 py-2 text-center">
-                            <p className="text-[9px] font-bold text-gray-500 uppercase tracking-wide">
+                          <div key={method} className="rounded-xl bg-[var(--canvas-sub)] px-3 py-2 text-center">
+                            <p className="text-[9px] font-bold text-[var(--text-2)] uppercase tracking-wide">
                               {paymentMethodLabel(method)}
                             </p>
-                            <p className="text-sm font-black text-gray-800 mt-0.5">
+                            <p className="text-sm font-black text-[var(--text-1)] mt-0.5">
                               {formatPrice(v.amount, cur)}
                             </p>
-                            <p className="text-[9px] text-gray-400">{v.count} orders</p>
+                            <p className="text-[9px] text-[var(--text-3)]">{v.count} orders</p>
                           </div>
                         ))}
                     </div>
                   )}
 
                   {s.orderCount === 0 && (
-                    <p className="text-xs text-gray-400 text-center py-2">
+                    <p className="text-xs text-[var(--text-3)] text-center py-2">
                       No payments collected today
                     </p>
                   )}
@@ -970,14 +960,14 @@ export default function BillingTab({
               ))}
 
               {staffReport.staff.length === 0 && (
-                <div className="text-center py-8 text-gray-400">
+                <div className="text-center py-8 text-[var(--text-3)]">
                   <UserIcon className="h-8 w-8 mx-auto mb-2 opacity-30" />
                   <p className="text-sm font-medium">No staff data for this date</p>
                 </div>
               )}
             </div>
           ) : (
-            <div className="text-center py-8 text-gray-400">
+            <div className="text-center py-8 text-[var(--text-3)]">
               <p className="text-sm">Select a date to view the staff report</p>
             </div>
           )}
@@ -1002,7 +992,7 @@ export default function BillingTab({
               className={`flex items-center gap-1 rounded-xl px-3.5 py-2 text-xs font-bold transition-all ${
                 filter === f.key
                   ? "bg-[#3e1e0c] text-white shadow-sm"
-                  : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                  : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
               }`}
             >
               <Filter className="h-3 w-3" />
@@ -1011,8 +1001,8 @@ export default function BillingTab({
                 <span
                   className={`ml-1 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[9px] font-bold ${
                     filter === f.key
-                      ? "bg-white/20 text-white"
-                      : "bg-gray-300 text-gray-700"
+                      ? "bg-[var(--canvas)]/20 text-white"
+                      : "bg-[var(--border)] text-[var(--text-2)]"
                   }`}
                 >
                   {f.count}
@@ -1022,18 +1012,18 @@ export default function BillingTab({
           ))}
         </div>
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-3)]" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search order #, customer, table..."
-            className="w-full rounded-xl border border-gray-200 bg-white pl-10 pr-4 py-2.5 text-sm font-medium text-[#3e1e0c] placeholder-gray-400 outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/10 transition-all"
+            className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] pl-10 pr-4 py-2.5 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/10 transition-all"
           />
         </div>
       </div>
 
       {filtered.length === 0 && (
-        <div className="text-center py-16 text-gray-400">
+        <div className="text-center py-16 text-[var(--text-3)]">
           <Receipt className="mx-auto h-10 w-10 mb-3 opacity-40" />
           <p className="font-bold">No orders found</p>
           <p className="text-xs mt-1">
@@ -1053,17 +1043,17 @@ export default function BillingTab({
             animate={{ opacity: 1, y: 0 }}
             className={`relative rounded-3xl backdrop-blur-md p-5 border transition-all hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.06)] hover:-translate-y-0.5 ${
               isPaid(order)
-                ? "bg-white/80 border-gray-100/60 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.02)]"
-                : "bg-orange-50/50 border-orange-200/50 shadow-[0_4px_20px_-4px_rgba(249,115,22,0.05)]"
+                ? "bg-[var(--canvas)]/80 border-[var(--border-soft)]/60 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.02)]"
+                : "bg-[var(--accent)]0/50 border-[var(--accent-border)]0/50 shadow-[0_4px_20px_-4px_rgba(249,115,22,0.05)]"
             }`}
           >
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-sm font-extrabold text-[#3e1e0c]">
+                <span className="text-sm font-extrabold text-[var(--text-1)]">
                   #{order.orderNo}
                 </span>
                 {order.tableNo && (
-                  <span className="rounded-lg bg-gray-100 px-2 py-0.5 text-[10px] font-bold text-gray-600">
+                  <span className="rounded-lg bg-[var(--surface)] px-2 py-0.5 text-[10px] font-bold text-[var(--text-2)]">
                     <Utensils className="inline h-2.5 w-2.5 mr-0.5" />
                     Table {order.tableNo}
                   </span>
@@ -1081,27 +1071,27 @@ export default function BillingTab({
                   </span>
                 )}
                 {order.type === "TAKEAWAY" && (
-                  <span className="rounded-lg bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-600">
+                  <span className="rounded-lg bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-bold text-[var(--accent-text)]">
                     <ShoppingCart className="inline h-2.5 w-2.5 mr-0.5" />
                     Takeaway
                   </span>
                 )}
                 <span
-                  className={`rounded-lg px-2 py-0.5 text-[10px] font-bold ${STATUS_COLORS[order.status] || "bg-gray-100"}`}
+                  className={`rounded-lg px-2 py-0.5 text-[10px] font-bold ${STATUS_COLORS[order.status] || "bg-[var(--surface)]"}`}
                 >
                   {order.status}
                 </span>
                 {order.payment ? (
                   order.payment.method === "CASH" ? (
-                    <span className="flex items-center gap-0.5 rounded-lg bg-[#fef9ef] border border-[#eaa94d]/30 px-2 py-0.5 text-[10px] font-bold text-[#b25c1c]">
+                    <span className="flex items-center gap-0.5 rounded-lg bg-[var(--accent-muted)] border border-[var(--accent-border)] px-2 py-0.5 text-[10px] font-bold text-[#b25c1c]">
                       <BillIcon className="h-2.5 w-2.5" />
                       Cash Bill
                     </span>
                   ) : order.payment.method === "DIRECT" ? (
                     <span className={`flex items-center gap-0.5 rounded-lg border px-2 py-0.5 text-[10px] font-bold ${
                       order.payment.status === "COMPLETED"
-                        ? "bg-[#fef9ef] border-[#eaa94d]/30 text-[#b25c1c]"
-                        : "bg-orange-50 border-orange-200 text-orange-700"
+                        ? "bg-[var(--accent-muted)] border-[var(--accent-border)] text-[#b25c1c]"
+                        : "bg-[var(--accent)] border-[var(--accent-border)] text-[var(--accent)]"
                     }`}>
                       <Receipt className="h-2.5 w-2.5" />
                       Direct Pay &middot; {order.payment.status === "COMPLETED" ? "Paid" : "Unpaid"}
@@ -1113,7 +1103,7 @@ export default function BillingTab({
                     </span>
                   )
                 ) : (
-                  <span className="flex items-center gap-0.5 rounded-lg bg-gray-50 border border-gray-100 px-2 py-0.5 text-[10px] font-bold text-gray-500">
+                  <span className="flex items-center gap-0.5 rounded-lg bg-[var(--canvas-sub)] border border-[var(--border-soft)] px-2 py-0.5 text-[10px] font-bold text-[var(--text-2)]">
                     <BillIcon className="h-2.5 w-2.5" />
                     Bill
                   </span>
@@ -1121,12 +1111,12 @@ export default function BillingTab({
               </div>
               <div className="flex items-center gap-1.5">
                 {isPaid(order) ? (
-                  <span className="flex items-center gap-1 rounded-lg bg-[#fef9ef] px-2 py-1 text-[10px] font-bold text-[#b25c1c]">
+                  <span className="flex items-center gap-1 rounded-lg bg-[var(--accent-muted)] px-2 py-1 text-[10px] font-bold text-[#b25c1c]">
                     <CheckCircle2 className="h-3 w-3" />
                     PAID
                   </span>
                 ) : (
-                  <span className="flex items-center gap-1 rounded-lg bg-orange-50 px-2 py-1 text-[10px] font-bold text-orange-700">
+                  <span className="flex items-center gap-1 rounded-lg bg-[var(--accent)] px-2 py-1 text-[10px] font-bold text-[var(--accent)]">
                     <Clock className="h-3 w-3" />
                     UNPAID
                   </span>
@@ -1150,31 +1140,31 @@ export default function BillingTab({
             <div className="space-y-1 mb-3">
               {order.items.slice(0, 3).map((item) => (
                 <div key={item.id} className="flex justify-between text-xs">
-                  <span className="text-gray-600">
+                  <span className="text-[var(--text-2)]">
                     {item.quantity}× {item.name}
                   </span>
-                  <span className="font-bold text-gray-500">
+                  <span className="font-bold text-[var(--text-2)]">
                     {formatPrice(item.price * item.quantity, cur)}
                   </span>
                 </div>
               ))}
               {order.items.length > 3 && (
-                <p className="text-[10px] text-gray-400">
+                <p className="text-[10px] text-[var(--text-3)]">
                   +{order.items.length - 3} more items
                 </p>
               )}
             </div>
 
-            <div className="rounded-xl bg-gray-50 p-3 space-y-1 mb-3">
+            <div className="rounded-xl bg-[var(--canvas-sub)] p-3 space-y-1 mb-3">
               <div className="flex justify-between text-xs">
-                <span className="text-gray-500">Subtotal</span>
+                <span className="text-[var(--text-2)]">Subtotal</span>
                 <span className="font-medium">
                   {formatPrice(order.bill?.subtotal ?? order.subtotal, cur)}
                 </span>
               </div>
               {taxEnabled && (
                 <div className="flex justify-between text-xs">
-                  <span className="text-gray-500">Tax ({taxRate}%)</span>
+                  <span className="text-[var(--text-2)]">Tax ({taxRate}%)</span>
                   <span className="font-medium">
                     {formatPrice(order.bill?.tax ?? order.tax, cur)}
                   </span>
@@ -1182,7 +1172,7 @@ export default function BillingTab({
               )}
               {order.bill && order.bill.serviceCharge > 0 && (
                 <div className="flex justify-between text-xs">
-                  <span className="text-gray-500">
+                  <span className="text-[var(--text-2)]">
                     Service Charge ({scRate}%)
                   </span>
                   <span className="font-medium">
@@ -1192,7 +1182,7 @@ export default function BillingTab({
               )}
               {order.deliveryFee > 0 && (
                 <div className="flex justify-between text-xs">
-                  <span className="text-gray-500">Delivery Fee</span>
+                  <span className="text-[var(--text-2)]">Delivery Fee</span>
                   <span className="font-medium">
                     {formatPrice(order.deliveryFee, cur)}
                   </span>
@@ -1206,16 +1196,16 @@ export default function BillingTab({
                   </span>
                 </div>
               )}
-              <div className="flex justify-between text-sm font-extrabold border-t border-gray-200 pt-1.5 mt-1.5">
-                <span className="text-[#3e1e0c]">Total</span>
-                <span className="text-[#3e1e0c]">
+              <div className="flex justify-between text-sm font-extrabold border-t border-[var(--border)] pt-1.5 mt-1.5">
+                <span className="text-[var(--text-1)]">Total</span>
+                <span className="text-[var(--text-1)]">
                   {formatPrice(order.bill?.total ?? order.total, cur)}
                 </span>
               </div>
             </div>
 
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-[10px] text-gray-400">
+              <div className="flex items-center gap-2 text-[10px] text-[var(--text-3)]">
                 <Clock className="h-3 w-3" />
                 {timeAgo(order.createdAt)}
                 {order.user?.name && (
@@ -1241,7 +1231,7 @@ export default function BillingTab({
                   className={`flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[10px] font-bold transition-all ${
                     order.payment && order.payment.method !== "CASH"
                       ? "bg-purple-50 text-purple-700 hover:bg-purple-100"
-                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                      : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
                   }`}
                 >
                   <ExternalLink className="h-3 w-3" />
@@ -1254,7 +1244,7 @@ export default function BillingTab({
                   href={`/bill/${order.id}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1 rounded-lg bg-gray-100 px-2.5 py-1.5 text-[10px] font-bold text-gray-600 hover:bg-gray-200 transition-all"
+                  className="flex items-center gap-1 rounded-lg bg-[var(--surface)] px-2.5 py-1.5 text-[10px] font-bold text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-all"
                   title="Print"
                 >
                   <Printer className="h-3 w-3" />
@@ -1290,7 +1280,7 @@ export default function BillingTab({
                       <button
                         onClick={() => handleVerifyBank(order, "VERIFY")}
                         disabled={actionLoading}
-                        className="flex items-center gap-1 rounded-lg bg-[#eaa94d] px-2.5 py-1.5 text-[10px] font-bold text-white hover:bg-[#d67620] disabled:bg-gray-300 transition-all shadow-sm"
+                        className="flex items-center gap-1 rounded-lg bg-[#eaa94d] px-2.5 py-1.5 text-[10px] font-bold text-white hover:bg-[#d67620] disabled:bg-[var(--border)] transition-all shadow-sm"
                       >
                         <CheckCircle2 className="h-3 w-3" />
                         Verify
@@ -1298,7 +1288,7 @@ export default function BillingTab({
                       <button
                         onClick={() => handleVerifyBank(order, "REJECT")}
                         disabled={actionLoading}
-                        className="flex items-center gap-1 rounded-lg bg-red-50 border border-red-200 px-2.5 py-1.5 text-[10px] font-bold text-red-600 hover:bg-red-100 disabled:bg-gray-200 transition-all"
+                        className="flex items-center gap-1 rounded-lg bg-red-50 border border-red-200 px-2.5 py-1.5 text-[10px] font-bold text-red-600 hover:bg-red-100 disabled:bg-[var(--surface-alt)] transition-all"
                       >
                         <X className="h-3 w-3" />
                         Reject
@@ -1378,14 +1368,14 @@ export default function BillingTab({
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl"
+              className="w-full max-w-md rounded-3xl bg-[var(--canvas)] p-6 shadow-2xl"
             >
               <div className="flex items-center justify-between mb-5">
                 <div>
-                  <h2 className="text-lg font-extrabold text-[#3e1e0c]">
+                  <h2 className="text-lg font-extrabold text-[var(--text-1)]">
                     Collect Payment
                   </h2>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-[var(--text-3)]">
                     Order #{selectedOrder.orderNo}
                   </p>
                 </div>
@@ -1394,17 +1384,17 @@ export default function BillingTab({
                     setShowCollect(false);
                     setSelectedOrder(null);
                   }}
-                  className="rounded-full bg-gray-100 p-2 text-gray-500 hover:bg-gray-200"
+                  className="rounded-full bg-[var(--surface)] p-2 text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
                 >
                   <X className="h-4 w-4" />
                 </button>
               </div>
 
-              <div className="rounded-2xl bg-gray-50 p-4 mb-5 text-center">
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">
+              <div className="rounded-2xl bg-[var(--canvas-sub)] p-4 mb-5 text-center">
+                <p className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider mb-1">
                   Amount Due
                 </p>
-                <p className="text-3xl font-extrabold text-[#3e1e0c]">
+                <p className="text-3xl font-extrabold text-[var(--text-1)]">
                   {formatPrice(selectedOrder.bill?.total ?? selectedOrder.total, cur)}
                 </p>
                 {selectedOrder.bill?.discount &&
@@ -1415,22 +1405,22 @@ export default function BillingTab({
                   )}
               </div>
 
-              <div className="rounded-xl bg-gray-50 p-3 space-y-1 mb-5">
+              <div className="rounded-xl bg-[var(--canvas-sub)] p-3 space-y-1 mb-5">
                 <div className="flex justify-between text-xs">
-                  <span className="text-gray-500">Subtotal</span>
+                  <span className="text-[var(--text-2)]">Subtotal</span>
                   <span>
                     {formatPrice(selectedOrder.bill?.subtotal ?? selectedOrder.subtotal, cur)}
                   </span>
                 </div>
                 <div className="flex justify-between text-xs">
-                  <span className="text-gray-500">Tax ({taxRate}%)</span>
+                  <span className="text-[var(--text-2)]">Tax ({taxRate}%)</span>
                   <span>
                     {formatPrice(selectedOrder.bill?.tax ?? selectedOrder.tax, cur)}
                   </span>
                 </div>
                 {selectedOrder.bill && selectedOrder.bill.serviceCharge > 0 && (
                   <div className="flex justify-between text-xs">
-                    <span className="text-gray-500">
+                    <span className="text-[var(--text-2)]">
                       Service Charge ({scRate}%)
                     </span>
                     <span>
@@ -1440,7 +1430,7 @@ export default function BillingTab({
                 )}
                 {selectedOrder.deliveryFee > 0 && (
                   <div className="flex justify-between text-xs">
-                    <span className="text-gray-500">Delivery Fee</span>
+                    <span className="text-[var(--text-2)]">Delivery Fee</span>
                     <span>{formatPrice(selectedOrder.deliveryFee, cur)}</span>
                   </div>
                 )}
@@ -1453,7 +1443,7 @@ export default function BillingTab({
               </div>
 
               <div className="space-y-2 mb-5">
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                <p className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider">
                   Payment Method
                 </p>
                 <div className="grid grid-cols-2 gap-2">
@@ -1467,21 +1457,21 @@ export default function BillingTab({
                           onClick={() => setCollectMethod(method)}
                           className={`flex items-center gap-2 rounded-xl border-2 px-3 py-3 text-left transition-all ${
                             isSelected
-                              ? "border-[#eaa94d] bg-[#fef9ef] shadow-sm"
-                              : "border-gray-100 bg-white hover:border-gray-200"
+                              ? "border-[#eaa94d] bg-[var(--accent-muted)] shadow-sm"
+                              : "border-[var(--border-soft)] bg-[var(--canvas)] hover:border-[var(--border)]"
                           }`}
                         >
                           <Icon
-                            className={`h-4 w-4 shrink-0 ${isSelected ? "text-[#b25c1c]" : "text-gray-400"}`}
+                            className={`h-4 w-4 shrink-0 ${isSelected ? "text-[#b25c1c]" : "text-[var(--text-3)]"}`}
                           />
                           <div>
                             <span
-                              className={`text-xs font-bold block ${isSelected ? "text-[#b25c1c]" : "text-gray-600"}`}
+                              className={`text-xs font-bold block ${isSelected ? "text-[#b25c1c]" : "text-[var(--text-2)]"}`}
                             >
                               {paymentMethodLabel(method)}
                             </span>
                             {paymentMethodDesc(method) && (
-                              <span className="text-[10px] text-gray-400 leading-tight block">
+                              <span className="text-[10px] text-[var(--text-3)] leading-tight block">
                                 {paymentMethodDesc(method)}
                               </span>
                             )}
@@ -1496,14 +1486,14 @@ export default function BillingTab({
               {/* Transaction ID for non-cash online methods */}
               {collectMethod !== "CASH" && collectMethod !== "COUNTER" && collectMethod !== "DIRECT" && (
                 <div className="mb-5">
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5 block">
+                  <label className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider mb-1.5 block">
                     Transaction / Reference ID
                   </label>
                   <input
                     value={collectTxn}
                     onChange={(e) => setCollectTxn(e.target.value)}
                     placeholder="Enter transaction ID..."
-                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-[#eaa94d] focus:ring-2 focus:ring-[#eaa94d]/20 transition-all"
+                    className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm outline-none focus:border-[#eaa94d] focus:ring-2 focus:ring-[var(--accent-border)] transition-all"
                   />
                 </div>
               )}
@@ -1514,14 +1504,14 @@ export default function BillingTab({
                     setShowCollect(false);
                     setSelectedOrder(null);
                   }}
-                  className="flex-1 rounded-xl border border-gray-200 py-3 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-all"
+                  className="flex-1 rounded-xl border border-[var(--border)] py-3 text-sm font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleCollectPayment}
                   disabled={actionLoading}
-                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[#eaa94d] py-3 text-sm font-bold text-white hover:bg-[#d67620] disabled:bg-gray-300 transition-all shadow-sm"
+                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[#eaa94d] py-3 text-sm font-bold text-white hover:bg-[#d67620] disabled:bg-[var(--border)] transition-all shadow-sm"
                 >
                   {actionLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -1543,14 +1533,14 @@ export default function BillingTab({
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl"
+              className="w-full max-w-md rounded-3xl bg-[var(--canvas)] p-6 shadow-2xl"
             >
               <div className="flex items-center justify-between mb-5">
                 <div>
-                  <h2 className="text-lg font-extrabold text-[#3e1e0c]">
+                  <h2 className="text-lg font-extrabold text-[var(--text-1)]">
                     Apply Discount
                   </h2>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-[var(--text-3)]">
                     Order #{selectedOrder.orderNo}
                   </p>
                 </div>
@@ -1559,16 +1549,16 @@ export default function BillingTab({
                     setShowDiscount(false);
                     setSelectedOrder(null);
                   }}
-                  className="rounded-full bg-gray-100 p-2 text-gray-500 hover:bg-gray-200"
+                  className="rounded-full bg-[var(--surface)] p-2 text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
                 >
                   <X className="h-4 w-4" />
                 </button>
               </div>
 
-              <div className="rounded-2xl bg-gray-50 p-4 mb-5">
+              <div className="rounded-2xl bg-[var(--canvas-sub)] p-4 mb-5">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Current Bill Total</span>
-                  <span className="font-bold text-[#3e1e0c]">
+                  <span className="text-[var(--text-2)]">Current Bill Total</span>
+                  <span className="font-bold text-[var(--text-1)]">
                     {formatPrice(selectedOrder.bill?.total ?? selectedOrder.total, cur)}
                   </span>
                 </div>
@@ -1585,7 +1575,7 @@ export default function BillingTab({
 
               <div className="space-y-3 mb-5">
                 <div>
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5 block">
+                  <label className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider mb-1.5 block">
                     Discount Amount ({getCurrencySymbol(cur)})
                   </label>
                   <input
@@ -1594,18 +1584,18 @@ export default function BillingTab({
                     placeholder="e.g., 100"
                     type="number"
                     min="0"
-                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-pink-400 focus:ring-2 focus:ring-pink-100 transition-all"
+                    className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm outline-none focus:border-pink-400 focus:ring-2 focus:ring-pink-100 transition-all"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5 block">
+                  <label className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider mb-1.5 block">
                     Reason (optional)
                   </label>
                   <input
                     value={discountReason}
                     onChange={(e) => setDiscountReason(e.target.value)}
                     placeholder="e.g., Regular customer, promo code..."
-                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-pink-400 focus:ring-2 focus:ring-pink-100 transition-all"
+                    className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm outline-none focus:border-pink-400 focus:ring-2 focus:ring-pink-100 transition-all"
                   />
                 </div>
 
@@ -1642,7 +1632,7 @@ export default function BillingTab({
                     <span className="text-pink-600 font-medium">
                       New Total after Discount
                     </span>
-                    <span className="font-extrabold text-[#3e1e0c]">
+                    <span className="font-extrabold text-[var(--text-1)]">
                       {formatPrice(Math.max(
                         0,
                         (selectedOrder.bill?.subtotal ?? selectedOrder.subtotal) +
@@ -1662,7 +1652,7 @@ export default function BillingTab({
                     setShowDiscount(false);
                     setSelectedOrder(null);
                   }}
-                  className="flex-1 rounded-xl border border-gray-200 py-3 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-all"
+                  className="flex-1 rounded-xl border border-[var(--border)] py-3 text-sm font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-all"
                 >
                   Cancel
                 </button>
@@ -1673,7 +1663,7 @@ export default function BillingTab({
                     !discountAmount ||
                     parseFloat(discountAmount) <= 0
                   }
-                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-pink-500 py-3 text-sm font-bold text-white hover:bg-pink-600 disabled:bg-gray-300 transition-all shadow-sm"
+                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-pink-500 py-3 text-sm font-bold text-white hover:bg-pink-600 disabled:bg-[var(--border)] transition-all shadow-sm"
                 >
                   {actionLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -1696,30 +1686,30 @@ export default function BillingTab({
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl"
+              className="w-full max-w-md rounded-3xl bg-[var(--canvas)] p-6 shadow-2xl"
             >
               <div className="flex items-center justify-between mb-5">
                 <div>
-                  <h2 className="text-lg font-extrabold text-[#3e1e0c]">Split Payment</h2>
-                  <p className="text-xs text-gray-400">Order #{selectedOrder.orderNo}</p>
+                  <h2 className="text-lg font-extrabold text-[var(--text-1)]">Split Payment</h2>
+                  <p className="text-xs text-[var(--text-3)]">Order #{selectedOrder.orderNo}</p>
                 </div>
                 <button
                   onClick={() => { setShowSplit(false); setSelectedOrder(null); }}
-                  className="rounded-full bg-gray-100 p-2 text-gray-500 hover:bg-gray-200"
+                  className="rounded-full bg-[var(--surface)] p-2 text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
                 >
                   <X className="h-4 w-4" />
                 </button>
               </div>
 
-              <div className="rounded-2xl bg-gray-50 p-3 mb-4 flex justify-between text-sm">
-                <span className="text-gray-500 font-medium">Bill Total</span>
-                <span className="font-extrabold text-[#3e1e0c]">
+              <div className="rounded-2xl bg-[var(--canvas-sub)] p-3 mb-4 flex justify-between text-sm">
+                <span className="text-[var(--text-2)] font-medium">Bill Total</span>
+                <span className="font-extrabold text-[var(--text-1)]">
                   {formatPrice(selectedOrder.bill?.total ?? selectedOrder.total, cur)}
                 </span>
               </div>
 
               <div className="space-y-3 mb-4">
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                <p className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider">
                   Payment Splits
                 </p>
                 {splitEntries.map((entry, i) => (
@@ -1731,7 +1721,7 @@ export default function BillingTab({
                         updated[i] = { ...updated[i], method: e.target.value };
                         setSplitEntries(updated);
                       }}
-                      className="rounded-xl border border-gray-200 px-3 py-2.5 text-xs font-bold text-[#3e1e0c] outline-none focus:border-indigo-400 transition-all"
+                      className="rounded-xl border border-[var(--border)] px-3 py-2.5 text-xs font-bold text-[var(--text-1)] outline-none focus:border-indigo-400 transition-all"
                     >
                       {(["CASH", "ESEWA", "KHALTI", "BANK", "COUNTER", "DIRECT"] as const).map((m) => (
                         <option key={m} value={m}>{paymentMethodLabel(m)}</option>
@@ -1747,7 +1737,7 @@ export default function BillingTab({
                         setSplitEntries(updated);
                       }}
                       placeholder="Amount"
-                      className="flex-1 rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
+                      className="flex-1 rounded-xl border border-[var(--border)] px-3 py-2.5 text-sm outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
                     />
                     {splitEntries.length > 2 && (
                       <button
@@ -1776,12 +1766,12 @@ export default function BillingTab({
                 const remaining = billTotal - entered;
                 return (
                   <div className={`rounded-xl p-3 mb-5 border text-sm flex justify-between ${
-                    Math.abs(remaining) <= 1 ? "bg-[#fef9ef] border-[#eaa94d]/30" : "bg-indigo-50 border-indigo-100"
+                    Math.abs(remaining) <= 1 ? "bg-[var(--accent-muted)] border-[var(--accent-border)]" : "bg-indigo-50 border-indigo-100"
                   }`}>
                     <span className={Math.abs(remaining) <= 1 ? "text-[#b25c1c] font-medium" : "text-indigo-700 font-medium"}>
                       {Math.abs(remaining) <= 1 ? <span className="flex items-center gap-1"><Check className="h-3.5 w-3.5" /> Amounts balanced</span> : `Remaining: ${formatPrice(Math.abs(remaining), cur)} ${remaining > 0 ? "unallocated" : "over"}`}
                     </span>
-                    <span className="font-extrabold text-[#3e1e0c]">{formatPrice(entered, cur)}</span>
+                    <span className="font-extrabold text-[var(--text-1)]">{formatPrice(entered, cur)}</span>
                   </div>
                 );
               })()}
@@ -1789,14 +1779,14 @@ export default function BillingTab({
               <div className="flex gap-2">
                 <button
                   onClick={() => { setShowSplit(false); setSelectedOrder(null); }}
-                  className="flex-1 rounded-xl border border-gray-200 py-3 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-all"
+                  className="flex-1 rounded-xl border border-[var(--border)] py-3 text-sm font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSplitPayment}
                   disabled={actionLoading}
-                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-indigo-500 py-3 text-sm font-bold text-white hover:bg-indigo-600 disabled:bg-gray-300 transition-all shadow-sm"
+                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-indigo-500 py-3 text-sm font-bold text-white hover:bg-indigo-600 disabled:bg-[var(--border)] transition-all shadow-sm"
                 >
                   {actionLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -1838,17 +1828,17 @@ function SummaryCard({
       whileHover={{ y: -2 }}
       className={`relative overflow-hidden rounded-2xl border p-4 transition-all hover:shadow-md ${
         highlight
-          ? "border-orange-200 bg-orange-50/40 shadow-sm"
-          : "border-gray-100/50 bg-white/70 backdrop-blur-md shadow-sm"
+          ? "border-[var(--accent-border)] bg-[var(--accent)]0/40 shadow-sm"
+          : "border-[var(--border-soft)]/50 bg-[var(--canvas)]/70 backdrop-blur-md shadow-sm"
       }`}
     >
       <div className="flex items-start justify-between">
         <div>
-          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-1">
+          <span className="text-[10px] font-bold text-[var(--text-2)] uppercase tracking-wider block mb-1">
             {label}
           </span>
-          <p className="text-xl font-black text-gray-900 tracking-tight">{value}</p>
-          {sub && <p className="text-[10px] text-gray-400 mt-0.5">{sub}</p>}
+          <p className="text-xl font-black text-[var(--text-1)] tracking-tight">{value}</p>
+          {sub && <p className="text-[10px] text-[var(--text-3)] mt-0.5">{sub}</p>}
         </div>
         <div
           className={`flex h-9 w-9 items-center justify-center rounded-xl shadow-sm border border-black/5 ${bg}`}

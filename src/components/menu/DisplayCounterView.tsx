@@ -24,9 +24,9 @@ interface DisplayCounterData {
 }
 
 const STATUS_CONFIG: Record<ItemStatus, { label: string; icon: typeof Sparkles; color: string; bg: string; ring: string }> = {
-  available: { label: "Available", icon: Sparkles, color: "text-[#b25c1c]", bg: "bg-[#fef9ef]", ring: "ring-green-100" },
-  "just-baked": { label: "Fresh Now", icon: Flame, color: "text-amber-600", bg: "bg-amber-50", ring: "ring-amber-100" },
-  "last-few": { label: "Last Few!", icon: Clock, color: "text-orange-600", bg: "bg-orange-50", ring: "ring-orange-100" },
+  available: { label: "Available", icon: Sparkles, color: "text-[#b25c1c]", bg: "bg-[var(--accent-muted)]", ring: "ring-[var(--accent-border)]" },
+  "just-baked": { label: "Fresh Now", icon: Flame, color: "text-[var(--accent-text)]", bg: "bg-[var(--accent-muted)]", ring: "ring-[var(--accent-border)]" },
+  "last-few": { label: "Last Few!", icon: Clock, color: "text-[var(--accent)]", bg: "bg-[var(--accent)]", ring: "ring-orange-100" },
   "sold-out": { label: "Sold Out", icon: X, color: "text-red-400", bg: "bg-red-50", ring: "ring-red-100" },
 };
 
@@ -59,17 +59,17 @@ export default function DisplayCounterView({ slug }: { slug: string }) {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-      className="rounded-2xl bg-gradient-to-br from-amber-50/80 via-white to-pink-50/60 ring-1 ring-amber-100/60 shadow-sm overflow-hidden"
+      className="rounded-2xl bg-gradient-to-br from-[var(--accent)]0/80 via-white to-pink-50/60 ring-1 ring-[var(--accent-border)]/60 shadow-sm overflow-hidden"
     >
       <div className="px-4 pt-4 pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-pink-400 shadow-sm">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--accent)] to-pink-400 shadow-sm">
               <Monitor className="h-4 w-4 text-white" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-gray-900">Live Counter</h3>
-              <p className="text-[10px] text-gray-400 font-medium">
+              <h3 className="text-sm font-bold text-[var(--text-1)]">Live Counter</h3>
+              <p className="text-[10px] text-[var(--text-3)] font-medium">
                 {availableItems.length} available{freshCount > 0 ? ` · ${freshCount} fresh now` : ""}
               </p>
             </div>
@@ -77,7 +77,7 @@ export default function DisplayCounterView({ slug }: { slug: string }) {
           {data.items.length > 6 && (
             <button
               onClick={() => setExpanded(!expanded)}
-              className="flex items-center gap-1 text-[11px] font-semibold text-amber-600 hover:text-amber-700 transition-colors"
+              className="flex items-center gap-1 text-[11px] font-semibold text-[var(--accent-text)] hover:text-[var(--accent-text)] transition-colors"
             >
               {expanded ? "Show less" : "View all"}
               <ChevronRight className={`h-3.5 w-3.5 transition-transform ${expanded ? "rotate-90" : ""}`} />
@@ -91,8 +91,8 @@ export default function DisplayCounterView({ slug }: { slug: string }) {
               onClick={() => setSelectedCategory("all")}
               className={`shrink-0 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wide transition-all ${
                 selectedCategory === "all"
-                  ? "bg-gray-900 text-white shadow-sm"
-                  : "bg-white text-gray-500 ring-1 ring-gray-200 hover:ring-gray-300"
+                  ? "bg-[var(--text-1)] text-white shadow-sm"
+                  : "bg-[var(--canvas)] text-[var(--text-2)] ring-1 ring-[var(--border)] hover:ring-[var(--border)]"
               }`}
             >
               All
@@ -103,8 +103,8 @@ export default function DisplayCounterView({ slug }: { slug: string }) {
                 onClick={() => setSelectedCategory(c)}
                 className={`shrink-0 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wide transition-all ${
                   selectedCategory === c
-                    ? "bg-gray-900 text-white shadow-sm"
-                    : "bg-white text-gray-500 ring-1 ring-gray-200 hover:ring-gray-300"
+                    ? "bg-[var(--text-1)] text-white shadow-sm"
+                    : "bg-[var(--canvas)] text-[var(--text-2)] ring-1 ring-[var(--border)] hover:ring-[var(--border)]"
                 }`}
               >
                 {c}
@@ -130,12 +130,12 @@ export default function DisplayCounterView({ slug }: { slug: string }) {
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.2 }}
-                  className={`relative rounded-xl bg-white p-3 ring-1 shadow-sm transition-all ${
+                  className={`relative rounded-xl bg-[var(--canvas)] p-3 ring-1 shadow-sm transition-all ${
                     isSoldOut
-                      ? "ring-gray-100 opacity-50"
+                      ? "ring-[var(--border)] opacity-50"
                       : item.status === "just-baked"
-                      ? `${sc.ring} shadow-amber-50`
-                      : "ring-gray-100 hover:ring-gray-200 hover:shadow-md"
+                      ? `${sc.ring} shadow-[var(--accent)]/20`
+                      : "ring-[var(--border)] hover:ring-[var(--border)] hover:shadow-md"
                   }`}
                 >
                   {item.status !== "available" && (
@@ -152,18 +152,18 @@ export default function DisplayCounterView({ slug }: { slug: string }) {
                       </div>
                     ) : (
                       <div className={`h-10 w-10 mx-auto rounded-lg flex items-center justify-center mb-2 ${
-                        item.status === "just-baked" ? "bg-amber-50" : "bg-gray-50"
+                        item.status === "just-baked" ? "bg-[var(--accent-muted)]" : "bg-[var(--canvas-sub)]"
                       }`}>
                         <Sparkles className={`h-4 w-4 ${
-                          item.status === "just-baked" ? "text-amber-400" : "text-gray-300"
+                          item.status === "just-baked" ? "text-[var(--accent)]" : "text-[var(--text-3)]"
                         }`} />
                       </div>
                     )}
-                    <p className={`text-xs font-bold leading-tight ${isSoldOut ? "text-gray-400 line-through" : "text-gray-800"}`}>
+                    <p className={`text-xs font-bold leading-tight ${isSoldOut ? "text-[var(--text-3)] line-through" : "text-[var(--text-1)]"}`}>
                       {item.name}
                     </p>
                     {item.price !== null && (
-                      <p className={`text-[11px] font-bold mt-0.5 ${isSoldOut ? "text-gray-300" : "text-pink-500"}`}>
+                      <p className={`text-[11px] font-bold mt-0.5 ${isSoldOut ? "text-[var(--text-3)]" : "text-pink-500"}`}>
                         {formatPrice(item.price, data.currency)}
                       </p>
                     )}

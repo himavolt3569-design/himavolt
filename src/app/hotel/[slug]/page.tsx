@@ -95,7 +95,7 @@ const AMENITY_ICONS: Record<string, typeof Wifi> = {
 function AmenityChip({ label }: { label: string }) {
   const Icon = AMENITY_ICONS[label] ?? Coffee;
   return (
-    <span className="flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-[12px] font-medium text-amber-700 ring-1 ring-amber-100">
+    <span className="flex items-center gap-1.5 rounded-full bg-[var(--accent-muted)] px-3 py-1 text-[12px] font-medium text-[var(--accent-text)] ring-1 ring-[var(--accent-border)]">
       <Icon className="h-3 w-3" />
       {label}
     </span>
@@ -104,17 +104,17 @@ function AmenityChip({ label }: { label: string }) {
 
 const TYPE_COLORS: Record<string, string> = {
   STANDARD: "bg-slate-100 text-slate-700",
-  DELUXE: "bg-amber-100 text-amber-700",
+  DELUXE: "bg-[var(--accent-muted)] text-[var(--accent-text)]",
   SUITE: "bg-purple-100 text-purple-700",
-  DORMITORY: "bg-[#fef3dc] text-[#b25c1c]",
+  DORMITORY: "bg-[var(--accent-muted)] text-[#b25c1c]",
 };
 
 function ImageCarousel({ images, name }: { images: string[]; name: string }) {
   const [idx, setIdx] = useState(0);
   if (!images.length) {
     return (
-      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-amber-50 to-orange-50">
-        <BedDouble className="h-12 w-12 text-amber-200" />
+      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[var(--accent)] to-[var(--accent-hover)]">
+        <BedDouble className="h-12 w-12 text-[var(--accent)]" />
       </div>
     );
   }
@@ -143,7 +143,7 @@ function ImageCarousel({ images, name }: { images: string[]; name: string }) {
             {images.map((_, i) => (
               <span
                 key={i}
-                className={`h-1.5 w-1.5 rounded-full transition-all ${i === idx ? "bg-white w-4" : "bg-white/50"}`}
+                className={`h-1.5 w-1.5 rounded-full transition-all ${i === idx ? "bg-[var(--canvas)] w-4" : "bg-[var(--canvas)]/50"}`}
               />
             ))}
           </div>
@@ -290,51 +290,51 @@ function BookingModal({
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 40, opacity: 0 }}
         transition={{ type: "spring", damping: 28, stiffness: 300 }}
-        className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white shadow-2xl"
+        className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-[var(--canvas)] shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-100 bg-white/95 backdrop-blur-sm px-6 py-4">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[var(--border-soft)] bg-[var(--canvas)]/95 backdrop-blur-sm px-6 py-4">
           <div>
-            <h2 className="text-[16px] font-bold text-gray-900">Book Room</h2>
-            <p className="text-[12px] text-gray-500">
+            <h2 className="text-[16px] font-bold text-[var(--text-1)]">Book Room</h2>
+            <p className="text-[12px] text-[var(--text-2)]">
               {room.name || `Room ${room.roomNumber}`} · {cur}{room.price.toLocaleString()}/night
             </p>
           </div>
-          <button onClick={onClose} className="rounded-full p-2 hover:bg-gray-100 transition-colors">
-            <X className="h-4 w-4 text-gray-500" />
+          <button onClick={onClose} className="rounded-full p-2 hover:bg-[var(--surface)] transition-colors">
+            <X className="h-4 w-4 text-[var(--text-2)]" />
           </button>
         </div>
 
         <div className="px-6 py-5 space-y-5">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-1.5">Check-in</label>
+              <label className="block text-[11px] font-semibold uppercase tracking-wide text-[var(--text-2)] mb-1.5">Check-in</label>
               <input
                 type="date"
                 value={form.checkIn}
                 min={today}
                 onChange={(e) => setForm((f) => ({ ...f, checkIn: e.target.value }))}
-                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-[13px] font-medium text-gray-800 focus:border-amber-400 focus:outline-none focus:bg-white transition-all"
+                className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-3 py-2.5 text-[13px] font-medium text-[var(--text-1)] focus:border-[var(--accent)] focus:outline-none focus:bg-[var(--canvas)] transition-all"
               />
             </div>
             <div>
-              <label className="block text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-1.5">Check-out</label>
+              <label className="block text-[11px] font-semibold uppercase tracking-wide text-[var(--text-2)] mb-1.5">Check-out</label>
               <input
                 type="date"
                 value={form.checkOut}
                 min={form.checkIn}
                 onChange={(e) => setForm((f) => ({ ...f, checkOut: e.target.value }))}
-                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-[13px] font-medium text-gray-800 focus:border-amber-400 focus:outline-none focus:bg-white transition-all"
+                className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-3 py-2.5 text-[13px] font-medium text-[var(--text-1)] focus:border-[var(--accent)] focus:outline-none focus:bg-[var(--canvas)] transition-all"
               />
             </div>
           </div>
 
-          <div className="rounded-2xl bg-amber-50 p-4 ring-1 ring-amber-100">
+          <div className="rounded-2xl bg-[var(--accent-muted)] p-4 ring-1 ring-[var(--accent-border)]">
             <div className="flex justify-between text-[13px] mb-1">
-              <span className="text-gray-600">{cur}{room.price.toLocaleString()} × {nights} night{nights > 1 ? "s" : ""}</span>
-              <span className="font-semibold text-gray-800">{cur}{totalPrice.toLocaleString()}</span>
+              <span className="text-[var(--text-2)]">{cur}{room.price.toLocaleString()} × {nights} night{nights > 1 ? "s" : ""}</span>
+              <span className="font-semibold text-[var(--text-1)]">{cur}{totalPrice.toLocaleString()}</span>
             </div>
-            <div className="flex justify-between text-[13px] font-bold text-amber-700 border-t border-amber-100 pt-2 mt-2">
+            <div className="flex justify-between text-[13px] font-bold text-[var(--accent-text)] border-t border-[var(--accent-border)] pt-2 mt-2">
               <span>Advance required ({hotel.hotelAdvanceType === "PERCENTAGE" ? `${hotel.hotelAdvanceValue}%` : "Fixed"})</span>
               <span>{cur}{advanceAmount.toLocaleString()}</span>
             </div>
@@ -342,25 +342,25 @@ function BookingModal({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-1.5">Adults</label>
+              <label className="block text-[11px] font-semibold uppercase tracking-wide text-[var(--text-2)] mb-1.5">Adults</label>
               <input
                 type="number"
                 min={1}
                 max={room.maxGuests}
                 value={form.adults}
                 onChange={(e) => setForm((f) => ({ ...f, adults: parseInt(e.target.value) || 1 }))}
-                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-[13px] font-medium text-gray-800 focus:border-amber-400 focus:outline-none focus:bg-white transition-all"
+                className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-3 py-2.5 text-[13px] font-medium text-[var(--text-1)] focus:border-[var(--accent)] focus:outline-none focus:bg-[var(--canvas)] transition-all"
               />
             </div>
             <div>
-              <label className="block text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-1.5">Children</label>
+              <label className="block text-[11px] font-semibold uppercase tracking-wide text-[var(--text-2)] mb-1.5">Children</label>
               <input
                 type="number"
                 min={0}
                 max={room.maxGuests}
                 value={form.children}
                 onChange={(e) => setForm((f) => ({ ...f, children: parseInt(e.target.value) || 0 }))}
-                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-[13px] font-medium text-gray-800 focus:border-amber-400 focus:outline-none focus:bg-white transition-all"
+                className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-3 py-2.5 text-[13px] font-medium text-[var(--text-1)] focus:border-[var(--accent)] focus:outline-none focus:bg-[var(--canvas)] transition-all"
               />
             </div>
           </div>
@@ -372,30 +372,30 @@ function BookingModal({
             { field: "guestAddress" as const, label: "Address", placeholder: "Your home address" },
           ].map(({ field, label, placeholder }) => (
             <div key={field}>
-              <label className="block text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-1.5">{label}</label>
+              <label className="block text-[11px] font-semibold uppercase tracking-wide text-[var(--text-2)] mb-1.5">{label}</label>
               <input
                 type={field === "guestEmail" ? "email" : "text"}
                 value={form[field] as string}
                 onChange={(e) => setForm((f) => ({ ...f, [field]: e.target.value }))}
                 placeholder={placeholder}
-                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-[13px] text-gray-800 placeholder:text-gray-400 focus:border-amber-400 focus:outline-none focus:bg-white transition-all"
+                className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-3 py-2.5 text-[13px] text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:border-[var(--accent)] focus:outline-none focus:bg-[var(--canvas)] transition-all"
               />
             </div>
           ))}
 
           <div>
-            <label className="block text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-1.5">Special Requests</label>
+            <label className="block text-[11px] font-semibold uppercase tracking-wide text-[var(--text-2)] mb-1.5">Special Requests</label>
             <textarea
               value={form.notes}
               onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
               placeholder="Any special requirements..."
               rows={2}
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-[13px] text-gray-800 placeholder:text-gray-400 focus:border-amber-400 focus:outline-none focus:bg-white transition-all resize-none"
+              className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-3 py-2.5 text-[13px] text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:border-[var(--accent)] focus:outline-none focus:bg-[var(--canvas)] transition-all resize-none"
             />
           </div>
 
           <div>
-            <label className="block text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-2">Pay Advance via</label>
+            <label className="block text-[11px] font-semibold uppercase tracking-wide text-[var(--text-2)] mb-2">Pay Advance via</label>
             <div className="grid grid-cols-3 gap-2">
               {(["ESEWA", "KHALTI", "CASH"] as const).map((m) => (
                 <button
@@ -403,8 +403,8 @@ function BookingModal({
                   onClick={() => setPayMethod(m)}
                   className={`rounded-xl border-2 py-2.5 text-[12px] font-bold transition-all ${
                     payMethod === m
-                      ? "border-amber-500 bg-amber-50 text-amber-700"
-                      : "border-gray-200 text-gray-500 hover:border-gray-300"
+                      ? "border-[var(--accent)] bg-[var(--accent-muted)] text-[var(--accent-text)]"
+                      : "border-[var(--border)] text-[var(--text-2)] hover:border-[var(--border)]"
                   }`}
                 >
                   {m === "ESEWA" ? "eSewa" : m === "KHALTI" ? "Khalti" : "Cash"}
@@ -412,7 +412,7 @@ function BookingModal({
               ))}
             </div>
             {payMethod === "CASH" && (
-              <p className="mt-2 text-[11px] text-gray-500">
+              <p className="mt-2 text-[11px] text-[var(--text-2)]">
                 Pay the advance at the hotel front desk. Your booking will be confirmed by staff.
               </p>
             )}
@@ -427,7 +427,7 @@ function BookingModal({
           <button
             onClick={handleBook}
             disabled={loading}
-            className="w-full rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 py-4 text-[14px] font-bold text-white shadow-lg hover:from-amber-400 hover:to-orange-400 active:scale-[0.98] transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full rounded-2xl bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] py-4 text-[14px] font-bold text-white shadow-lg hover:from-[var(--accent)] hover:to-[var(--accent-hover)] active:scale-[0.98] transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {loading ? (
               <><Loader2 className="h-4 w-4 animate-spin" /> Processing...</>
@@ -463,22 +463,22 @@ function RoomCard({
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      className="overflow-hidden rounded-2xl bg-white ring-1 ring-gray-100 shadow-sm hover:shadow-md transition-all"
+      className="overflow-hidden rounded-2xl bg-[var(--canvas)] ring-1 ring-[var(--border)] shadow-sm hover:shadow-md transition-all"
     >
-      <div className="relative h-48 overflow-hidden bg-gray-50">
+      <div className="relative h-48 overflow-hidden bg-[var(--canvas-sub)]">
         <ImageCarousel images={room.imageUrls} name={room.name || `Room ${room.roomNumber}`} />
         {!room.isAvailable && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-            <span className="rounded-full bg-white/90 px-4 py-1.5 text-[12px] font-bold text-gray-800">
+            <span className="rounded-full bg-[var(--canvas)]/90 px-4 py-1.5 text-[12px] font-bold text-[var(--text-1)]">
               Not Available
             </span>
           </div>
         )}
         <div className="absolute top-3 left-3 flex gap-1.5">
-          <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${TYPE_COLORS[room.type] || "bg-gray-100 text-gray-600"}`}>
+          <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${TYPE_COLORS[room.type] || "bg-[var(--surface)] text-[var(--text-2)]"}`}>
             {room.type}
           </span>
-          <span className="rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-semibold text-gray-700">
+          <span className="rounded-full bg-[var(--canvas)]/90 px-2.5 py-1 text-[10px] font-semibold text-[var(--text-2)]">
             Floor {room.floor}
           </span>
         </div>
@@ -487,33 +487,33 @@ function RoomCard({
       <div className="p-4">
         <div className="flex items-start justify-between mb-2">
           <div>
-            <h3 className="text-[15px] font-bold text-gray-900">
+            <h3 className="text-[15px] font-bold text-[var(--text-1)]">
               {room.name || `Room ${room.roomNumber}`}
             </h3>
-            <p className="text-[11px] text-gray-500">Room #{room.roomNumber}</p>
+            <p className="text-[11px] text-[var(--text-2)]">Room #{room.roomNumber}</p>
           </div>
           <div className="text-right">
-            <p className="text-[17px] font-black text-amber-600">{cur}{room.price.toLocaleString()}</p>
-            <p className="text-[10px] text-gray-400">per night</p>
+            <p className="text-[17px] font-black text-[var(--accent-text)]">{cur}{room.price.toLocaleString()}</p>
+            <p className="text-[10px] text-[var(--text-3)]">per night</p>
           </div>
         </div>
 
         {/* Bed & guests */}
         <div className="flex items-center gap-4 mb-3">
           {room.bedType && (
-            <span className="flex items-center gap-1 text-[12px] text-gray-600">
-              <BedDouble className="h-3.5 w-3.5 text-amber-500" />
+            <span className="flex items-center gap-1 text-[12px] text-[var(--text-2)]">
+              <BedDouble className="h-3.5 w-3.5 text-[var(--accent)]" />
               {room.bedCount > 1 ? `${room.bedCount}x ` : ""}{room.bedType}
             </span>
           )}
-          <span className="flex items-center gap-1 text-[12px] text-gray-600">
-            <Users className="h-3.5 w-3.5 text-amber-500" />
+          <span className="flex items-center gap-1 text-[12px] text-[var(--text-2)]">
+            <Users className="h-3.5 w-3.5 text-[var(--accent)]" />
             Up to {room.maxGuests} guests
           </span>
         </div>
 
         {room.description && (
-          <p className="text-[12px] text-gray-500 mb-3 line-clamp-2">{room.description}</p>
+          <p className="text-[12px] text-[var(--text-2)] mb-3 line-clamp-2">{room.description}</p>
         )}
 
         {room.amenities.length > 0 && (
@@ -522,7 +522,7 @@ function RoomCard({
               <AmenityChip key={a} label={a} />
             ))}
             {room.amenities.length > 5 && (
-              <span className="rounded-full bg-gray-100 px-2.5 py-1 text-[11px] text-gray-500">
+              <span className="rounded-full bg-[var(--surface)] px-2.5 py-1 text-[11px] text-[var(--text-2)]">
                 +{room.amenities.length - 5} more
               </span>
             )}
@@ -532,7 +532,7 @@ function RoomCard({
         <button
           onClick={onBook}
           disabled={!room.isAvailable}
-          className="w-full rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 py-3 text-[13px] font-bold text-white shadow-sm hover:from-amber-400 hover:to-orange-400 active:scale-[0.97] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+          className="w-full rounded-xl bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] py-3 text-[13px] font-bold text-white shadow-sm hover:from-[var(--accent)] hover:to-[var(--accent-hover)] active:scale-[0.97] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {room.isAvailable ? "Book Now" : "Not Available"}
         </button>
@@ -577,11 +577,11 @@ export default function HotelPublicPage() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50">
         <div className="flex flex-col items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--accent)]">
             <Mountain className="h-6 w-6 text-white" />
           </div>
-          <Loader2 className="h-5 w-5 animate-spin text-amber-500" />
-          <p className="text-[13px] text-gray-500">Loading hotel...</p>
+          <Loader2 className="h-5 w-5 animate-spin text-[var(--accent)]" />
+          <p className="text-[13px] text-[var(--text-2)]">Loading hotel...</p>
         </div>
       </div>
     );
@@ -591,9 +591,9 @@ export default function HotelPublicPage() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50">
         <div className="text-center">
-          <Building2 className="mx-auto h-12 w-12 text-gray-300 mb-3" />
-          <p className="text-[15px] font-semibold text-gray-600">{error || "Hotel not found"}</p>
-          <Link href="/" className="mt-4 inline-block text-[13px] text-amber-600 hover:underline">
+          <Building2 className="mx-auto h-12 w-12 text-[var(--text-3)] mb-3" />
+          <p className="text-[15px] font-semibold text-[var(--text-2)]">{error || "Hotel not found"}</p>
+          <Link href="/" className="mt-4 inline-block text-[13px] text-[var(--accent-text)] hover:underline">
             Back to home
           </Link>
         </div>
@@ -609,22 +609,22 @@ export default function HotelPublicPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans">
-      <nav className="sticky top-0 z-40 flex items-center justify-between border-b border-gray-200/50 bg-white/80 backdrop-blur-xl px-5 py-3.5 shadow-sm">
+      <nav className="sticky top-0 z-40 flex items-center justify-between border-b border-[var(--border)]/50 bg-[var(--canvas)]/80 backdrop-blur-xl px-5 py-3.5 shadow-sm">
         <Link href="/" className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--accent)]">
             <Mountain className="h-3.5 w-3.5 text-white" strokeWidth={2.5} />
           </div>
-          <span className="text-[15px] font-bold text-gray-900">
-            Hima<span className="text-amber-500">Volt</span>
+          <span className="text-[15px] font-bold text-[var(--text-1)]">
+            Hima<span className="text-[var(--accent)]">Volt</span>
           </span>
         </Link>
-        <div className="flex items-center gap-1.5 text-[12px] text-gray-500">
+        <div className="flex items-center gap-1.5 text-[12px] text-[var(--text-2)]">
           <MapPin className="h-3 w-3" />
           {hotel.city}
         </div>
       </nav>
 
-      <div className="relative h-64 sm:h-80 md:h-96 overflow-hidden bg-gradient-to-br from-amber-900 to-gray-900">
+      <div className="relative h-64 sm:h-80 md:h-96 overflow-hidden bg-gradient-to-br from-[var(--accent)] to-gray-900">
         {hotel.heroSlides.length > 0 ? (
           <img
             src={hotel.heroSlides[heroIdx].imageUrl}
@@ -642,7 +642,7 @@ export default function HotelPublicPage() {
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
         <div className="absolute bottom-6 left-5 right-5">
-          <p className="mb-1 text-[11px] font-bold uppercase tracking-widest text-amber-300">
+          <p className="mb-1 text-[11px] font-bold uppercase tracking-widest text-[var(--accent)]">
             {hotel.type.replace("_", " ")}
           </p>
           <h1 className="text-[28px] sm:text-[36px] font-black text-white leading-tight drop-shadow-lg">
@@ -654,8 +654,8 @@ export default function HotelPublicPage() {
               {hotel.address}, {hotel.city}
             </span>
             {hotel.rating > 0 && (
-              <span className="flex items-center gap-1 rounded-full bg-amber-400/20 px-2.5 py-0.5 text-[11px] font-bold text-amber-300">
-                <Star className="h-2.5 w-2.5 fill-amber-300" />
+              <span className="flex items-center gap-1 rounded-full bg-[var(--accent)]/20 px-2.5 py-0.5 text-[11px] font-bold text-[var(--accent)]">
+                <Star className="h-2.5 w-2.5 fill-[var(--accent)]" />
                 {hotel.rating.toFixed(1)}
               </span>
             )}
@@ -663,16 +663,16 @@ export default function HotelPublicPage() {
         </div>
       </div>
 
-      <div className="bg-white border-b border-gray-100 px-5 py-3 flex items-center gap-6 overflow-x-auto scrollbar-hide">
-        <span className="flex items-center gap-1.5 text-[12px] text-gray-600 whitespace-nowrap">
-          <Phone className="h-3.5 w-3.5 text-amber-500" />
+      <div className="bg-[var(--canvas)] border-b border-[var(--border-soft)] px-5 py-3 flex items-center gap-6 overflow-x-auto scrollbar-hide">
+        <span className="flex items-center gap-1.5 text-[12px] text-[var(--text-2)] whitespace-nowrap">
+          <Phone className="h-3.5 w-3.5 text-[var(--accent)]" />
           {hotel.phone}
         </span>
-        <span className="flex items-center gap-1.5 text-[12px] text-gray-600 whitespace-nowrap">
-          <Clock className="h-3.5 w-3.5 text-amber-500" />
+        <span className="flex items-center gap-1.5 text-[12px] text-[var(--text-2)] whitespace-nowrap">
+          <Clock className="h-3.5 w-3.5 text-[var(--accent)]" />
           {hotel.openingTime} – {hotel.closingTime}
         </span>
-        <span className="flex items-center gap-1.5 text-[12px] text-amber-700 font-semibold whitespace-nowrap">
+        <span className="flex items-center gap-1.5 text-[12px] text-[var(--accent-text)] font-semibold whitespace-nowrap">
           <CreditCard className="h-3.5 w-3.5" />
           {hotel.hotelAdvanceType === "PERCENTAGE"
             ? `${hotel.hotelAdvanceValue}% advance`
@@ -684,7 +684,7 @@ export default function HotelPublicPage() {
         </span>
       </div>
 
-      <div className="sticky top-[57px] z-30 bg-white/90 backdrop-blur-sm border-b border-gray-100 px-5 py-3">
+      <div className="sticky top-[57px] z-30 bg-[var(--canvas)]/90 backdrop-blur-sm border-b border-[var(--border-soft)] px-5 py-3">
         <div className="flex gap-2 overflow-x-auto scrollbar-hide">
           {roomTypes.map((type) => (
             <button
@@ -692,8 +692,8 @@ export default function HotelPublicPage() {
               onClick={() => setActiveType(type)}
               className={`whitespace-nowrap rounded-full px-4 py-1.5 text-[12px] font-semibold transition-all ${
                 activeType === type
-                  ? "bg-amber-500 text-white shadow-sm"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  ? "bg-[var(--accent)] text-white shadow-sm"
+                  : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
               }`}
             >
               {type === "ALL" ? `All Rooms (${rooms.length})` : `${type} (${grouped[type]?.length ?? 0})`}
@@ -705,8 +705,8 @@ export default function HotelPublicPage() {
       <main className="mx-auto max-w-6xl px-4 py-8">
         {displayedRooms.length === 0 ? (
           <div className="py-20 text-center">
-            <BedDouble className="mx-auto h-12 w-12 text-gray-200 mb-3" />
-            <p className="text-[14px] font-medium text-gray-400">No rooms found</p>
+            <BedDouble className="mx-auto h-12 w-12 text-[var(--text-3)] mb-3" />
+            <p className="text-[14px] font-medium text-[var(--text-3)]">No rooms found</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -728,10 +728,10 @@ export default function HotelPublicPage() {
         )}
       </main>
 
-      <footer className="border-t border-gray-100 bg-white px-5 py-6 text-center">
-        <p className="text-[11px] text-gray-400">
+      <footer className="border-t border-[var(--border-soft)] bg-[var(--canvas)] px-5 py-6 text-center">
+        <p className="text-[11px] text-[var(--text-3)]">
           Powered by{" "}
-          <Link href="/" className="font-bold text-amber-500">HimaVolt</Link>
+          <Link href="/" className="font-bold text-[var(--accent)]">HimaVolt</Link>
         </p>
       </footer>
 
@@ -760,11 +760,11 @@ export default function HotelPublicPage() {
             <CheckCircle className="h-5 w-5 shrink-0" />
             <div>
               <p className="text-[13px] font-bold">Booking Submitted!</p>
-              <p className="text-[11px] text-emerald-100">
+              <p className="text-[11px] text-[#fef3dc]">
                 Staff will confirm your booking shortly.
               </p>
             </div>
-            <button onClick={() => setBookedId(null)} className="ml-2 rounded-full p-1 hover:bg-white/20 transition-colors">
+            <button onClick={() => setBookedId(null)} className="ml-2 rounded-full p-1 hover:bg-[var(--canvas)]/20 transition-colors">
               <X className="h-3.5 w-3.5" />
             </button>
           </motion.div>

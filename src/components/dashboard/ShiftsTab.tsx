@@ -217,19 +217,19 @@ export default function ShiftsTab() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h2 className="text-lg font-extrabold text-[#3e1e0c]">Shift Management</h2>
-          <p className="text-xs text-gray-400 mt-0.5">
+          <h2 className="text-lg font-extrabold text-[var(--text-1)]">Shift Management</h2>
+          <p className="text-xs text-[var(--text-3)] mt-0.5">
             Define time-window shifts for Shift-Based staff
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2">
-            <Calendar className="h-4 w-4 text-gray-400" />
+          <div className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-3 py-2">
+            <Calendar className="h-4 w-4 text-[var(--text-3)]" />
             <input
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="text-sm font-medium text-[#3e1e0c] outline-none bg-transparent"
+              className="text-sm font-medium text-[var(--text-1)] outline-none bg-transparent"
             />
           </div>
           {shiftBasedStaff.length > 0 && (
@@ -249,7 +249,7 @@ export default function ShiftsTab() {
         <div className="flex items-start gap-3 rounded-2xl bg-indigo-50 border border-indigo-100 px-4 py-3">
           <Info className="h-4 w-4 text-indigo-500 shrink-0 mt-0.5" />
           <div>
-            <p className="text-xs font-bold text-indigo-700">Full-Time Staff — Always Active</p>
+            <p className="text-xs font-bold text-indigo-700">Full-Time Staff: Always Active</p>
             <p className="text-xs text-indigo-600 mt-0.5">
               {fullTimeStaff.map((s) => s.user.name).join(", ")} do not require shift windows.
               Their orders are attributed by who processed them in the POS.
@@ -260,11 +260,11 @@ export default function ShiftsTab() {
 
       {/* Overlap warning */}
       {overlapping && (
-        <div className="flex items-start gap-3 rounded-2xl bg-amber-50 border border-amber-200 px-4 py-3">
-          <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+        <div className="flex items-start gap-3 rounded-2xl bg-[var(--accent-muted)] border border-[var(--accent-border)] px-4 py-3">
+          <AlertTriangle className="h-4 w-4 text-[var(--accent)] shrink-0 mt-0.5" />
           <div>
-            <p className="text-xs font-bold text-amber-700">Overlapping Shifts Detected</p>
-            <p className="text-xs text-amber-600 mt-0.5">
+            <p className="text-xs font-bold text-[var(--accent-text)]">Overlapping Shifts Detected</p>
+            <p className="text-xs text-[var(--accent-text)] mt-0.5">
               Orders during the overlap will be attributed to the earlier shift (first-match).
               Consider adjusting shift boundaries to avoid gaps.
             </p>
@@ -282,10 +282,10 @@ export default function ShiftsTab() {
             className="rounded-2xl border border-[#3e1e0c]/20 bg-[#3e1e0c]/5 p-5 space-y-4"
           >
             <div className="flex items-center justify-between">
-              <p className="text-sm font-extrabold text-[#3e1e0c]">New Shift</p>
+              <p className="text-sm font-extrabold text-[var(--text-1)]">New Shift</p>
               <button
                 onClick={() => setShowAddForm(false)}
-                className="rounded-full bg-gray-100 p-1.5 text-gray-500 hover:bg-gray-200"
+                className="rounded-full bg-[var(--surface)] p-1.5 text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
@@ -293,13 +293,13 @@ export default function ShiftsTab() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                <label className="text-xs font-bold text-[var(--text-2)] uppercase tracking-wider">
                   Staff Member
                 </label>
                 <select
                   value={addForm.staffId}
                   onChange={(e) => setAddForm((f) => ({ ...f, staffId: e.target.value }))}
-                  className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-medium text-[#3e1e0c] outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/10"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-3 py-2.5 text-sm font-medium text-[var(--text-1)] outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/10"
                 >
                   {shiftBasedStaff.length === 0 && (
                     <option value="">No shift-based staff available</option>
@@ -313,7 +313,7 @@ export default function ShiftsTab() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                <label className="text-xs font-bold text-[var(--text-2)] uppercase tracking-wider">
                   Label (optional)
                 </label>
                 <input
@@ -322,31 +322,31 @@ export default function ShiftsTab() {
                   onChange={(e) => setAddForm((f) => ({ ...f, label: e.target.value }))}
                   placeholder="e.g. Morning Shift"
                   maxLength={80}
-                  className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-medium text-[#3e1e0c] placeholder-gray-400 outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/10"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-3 py-2.5 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/10"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                <label className="text-xs font-bold text-[var(--text-2)] uppercase tracking-wider">
                   Start Time
                 </label>
                 <input
                   type="time"
                   value={addForm.startTime}
                   onChange={(e) => setAddForm((f) => ({ ...f, startTime: e.target.value }))}
-                  className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-medium text-[#3e1e0c] outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/10"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-3 py-2.5 text-sm font-medium text-[var(--text-1)] outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/10"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                <label className="text-xs font-bold text-[var(--text-2)] uppercase tracking-wider">
                   End Time
                 </label>
                 <input
                   type="time"
                   value={addForm.endTime}
                   onChange={(e) => setAddForm((f) => ({ ...f, endTime: e.target.value }))}
-                  className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-medium text-[#3e1e0c] outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/10"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-3 py-2.5 text-sm font-medium text-[var(--text-1)] outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/10"
                 />
               </div>
             </div>
@@ -354,7 +354,7 @@ export default function ShiftsTab() {
             <div className="flex items-center gap-2 justify-end">
               <button
                 onClick={() => setShowAddForm(false)}
-                className="rounded-xl px-4 py-2 text-sm font-bold text-gray-500 hover:bg-gray-100"
+                className="rounded-xl px-4 py-2 text-sm font-bold text-[var(--text-2)] hover:bg-[var(--surface)]"
               >
                 Cancel
               </button>
@@ -377,10 +377,10 @@ export default function ShiftsTab() {
 
       {/* No shift-based staff notice */}
       {!loading && shiftBasedStaff.length === 0 && (
-        <div className="rounded-2xl bg-gray-50 border border-gray-100 px-4 py-6 text-center">
-          <User className="mx-auto h-8 w-8 text-gray-300 mb-2" />
-          <p className="text-sm font-bold text-gray-400">No shift-based staff</p>
-          <p className="text-xs text-gray-400 mt-1">
+        <div className="rounded-2xl bg-[var(--canvas-sub)] border border-[var(--border-soft)] px-4 py-6 text-center">
+          <User className="mx-auto h-8 w-8 text-[var(--text-3)] mb-2" />
+          <p className="text-sm font-bold text-[var(--text-3)]">No shift-based staff</p>
+          <p className="text-xs text-[var(--text-3)] mt-1">
             Go to Staff tab and set a staff member as Shift-Based to manage their shifts.
           </p>
         </div>
@@ -394,10 +394,10 @@ export default function ShiftsTab() {
       ) : (
         <div className="space-y-3">
           {shifts.length === 0 && shiftBasedStaff.length > 0 && (
-            <div className="rounded-2xl bg-gray-50 border border-gray-100 px-4 py-8 text-center">
-              <Clock className="mx-auto h-8 w-8 text-gray-300 mb-2" />
-              <p className="text-sm font-bold text-gray-400">No shifts defined for this date</p>
-              <p className="text-xs text-gray-400 mt-1">
+            <div className="rounded-2xl bg-[var(--canvas-sub)] border border-[var(--border-soft)] px-4 py-8 text-center">
+              <Clock className="mx-auto h-8 w-8 text-[var(--text-3)] mb-2" />
+              <p className="text-sm font-bold text-[var(--text-3)]">No shifts defined for this date</p>
+              <p className="text-xs text-[var(--text-3)] mt-1">
                 Click "Add Shift" to assign a time window to a staff member.
               </p>
             </div>
@@ -409,36 +409,36 @@ export default function ShiftsTab() {
               layout
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              className="rounded-2xl bg-white border border-gray-100 shadow-sm p-4"
+              className="rounded-2xl bg-[var(--canvas)] border border-[var(--border-soft)] shadow-sm p-4"
             >
               {editingShiftId === shift.id ? (
                 /* Inline edit form */
                 <div className="space-y-3">
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                      <label className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider">
                         Start
                       </label>
                       <input
                         type="time"
                         value={editForm.startTime}
                         onChange={(e) => setEditForm((f) => ({ ...f, startTime: e.target.value }))}
-                        className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm font-medium text-[#3e1e0c] outline-none focus:border-[#3e1e0c]"
+                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-3 py-2 text-sm font-medium text-[var(--text-1)] outline-none focus:border-[#3e1e0c]"
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                      <label className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider">
                         End
                       </label>
                       <input
                         type="time"
                         value={editForm.endTime}
                         onChange={(e) => setEditForm((f) => ({ ...f, endTime: e.target.value }))}
-                        className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm font-medium text-[#3e1e0c] outline-none focus:border-[#3e1e0c]"
+                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-3 py-2 text-sm font-medium text-[var(--text-1)] outline-none focus:border-[#3e1e0c]"
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                      <label className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider">
                         Label
                       </label>
                       <input
@@ -446,14 +446,14 @@ export default function ShiftsTab() {
                         value={editForm.label}
                         onChange={(e) => setEditForm((f) => ({ ...f, label: e.target.value }))}
                         placeholder="Optional label"
-                        className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm font-medium text-[#3e1e0c] placeholder-gray-400 outline-none focus:border-[#3e1e0c]"
+                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-3 py-2 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none focus:border-[#3e1e0c]"
                       />
                     </div>
                   </div>
                   <div className="flex items-center gap-2 justify-end">
                     <button
                       onClick={() => setEditingShiftId(null)}
-                      className="rounded-xl px-3 py-1.5 text-xs font-bold text-gray-500 hover:bg-gray-100"
+                      className="rounded-xl px-3 py-1.5 text-xs font-bold text-[var(--text-2)] hover:bg-[var(--surface)]"
                     >
                       Cancel
                     </button>
@@ -472,20 +472,20 @@ export default function ShiftsTab() {
                 <div className="flex items-center justify-between gap-3 flex-wrap">
                   <div className="flex items-center gap-3">
                     <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#3e1e0c]/10">
-                      <User className="h-4 w-4 text-[#3e1e0c]" />
+                      <User className="h-4 w-4 text-[var(--text-1)]" />
                     </div>
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm font-extrabold text-[#3e1e0c]">
+                        <span className="text-sm font-extrabold text-[var(--text-1)]">
                           {shift.staff.user.name}
                         </span>
                         {shift.label && (
-                          <span className="rounded-lg bg-[#eaa94d]/20 px-2 py-0.5 text-[10px] font-bold text-[#3e1e0c]">
+                          <span className="rounded-lg bg-[#eaa94d]/20 px-2 py-0.5 text-[10px] font-bold text-[var(--text-1)]">
                             {shift.label}
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-1 text-xs text-gray-500 mt-0.5">
+                      <div className="flex items-center gap-1 text-xs text-[var(--text-2)] mt-0.5">
                         <Clock className="h-3 w-3" />
                         <span className="font-medium">
                           {shift.startTime} – {shift.actualEndTime
@@ -498,7 +498,7 @@ export default function ShiftsTab() {
                   <div className="flex items-center gap-1.5">
                     <button
                       onClick={() => startEdit(shift)}
-                      className="flex items-center gap-1 rounded-lg bg-gray-100 px-2.5 py-1.5 text-[10px] font-bold text-gray-600 hover:bg-gray-200 transition-all"
+                      className="flex items-center gap-1 rounded-lg bg-[var(--surface)] px-2.5 py-1.5 text-[10px] font-bold text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-all"
                     >
                       <Pencil className="h-3 w-3" />
                       Edit

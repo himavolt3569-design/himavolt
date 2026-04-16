@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState } from "react";
+import { motion } from "framer-motion";
 import Navbar from "@/components/layout/Navbar";
 import LandingHero from "@/components/home/LandingHero";
 import FoodCategories from "@/components/home/FoodCategories";
@@ -13,72 +13,48 @@ import TrustMarquee from "@/components/home/TrustMarquee";
 import Testimonials from "@/components/home/Testimonials";
 import Footer from "@/components/layout/Footer";
 import CartSidebar from "@/components/cart/CartSidebar";
-import LoadingClock from "@/components/shared/LoadingClock";
 import FloatingCart from "@/components/shared/FloatingCart";
 import LocationBar from "@/components/home/LocationBar";
 import { LocationProvider } from "@/context/LocationContext";
 
 export default function Home() {
-  const [loading, setLoading] = useState(true);
   const [cartOpen, setCartOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState("All");
 
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 1200);
-    return () => clearTimeout(timer);
-  }, []);
-
   return (
-    <>
-      <AnimatePresence>
-        {loading && (
-          <motion.div
-            key="loader"
-            exit={{ opacity: 0, scale: 0.96 }}
-            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed inset-0 z-100 flex flex-col items-center justify-center bg-white"
-          >
-            <LoadingClock className="scale-125" />
-          </motion.div>
-        )}
-      </AnimatePresence>
+    <LocationProvider>
+      <motion.main
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.25, ease: "easeOut" }}
+        className="min-h-screen relative bg-[var(--canvas)]"
+      >
+        <Navbar onCartClick={() => setCartOpen(true)} />
 
-      {!loading && (
-        <LocationProvider>
-          <motion.main
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-            className="min-h-screen relative bg-white"
-          >
-            <Navbar onCartClick={() => setCartOpen(true)} />
+        <LocationBar />
 
-            <LocationBar />
+        <LandingHero />
 
-            <LandingHero />
+        <TrustMarquee />
 
-            <TrustMarquee />
+        <FoodCategories onCategoryChange={setActiveCategory} />
 
-            <FoodCategories onCategoryChange={setActiveCategory} />
+        <PopularFoods activeCategory={activeCategory} />
 
-            <PopularFoods activeCategory={activeCategory} />
+        <FeaturesSection />
 
-            <FeaturesSection />
+        <TopPlaces />
 
-            <TopPlaces />
+        <DealsSection />
 
-            <DealsSection />
+        <Testimonials />
 
-            <Testimonials />
+        <Footer />
 
-            <Footer />
+        <CartSidebar open={cartOpen} onClose={() => setCartOpen(false)} />
 
-            <CartSidebar open={cartOpen} onClose={() => setCartOpen(false)} />
-
-            <FloatingCart onOpen={() => setCartOpen(true)} />
-          </motion.main>
-        </LocationProvider>
-      )}
-    </>
+        <FloatingCart onOpen={() => setCartOpen(true)} />
+      </motion.main>
+    </LocationProvider>
   );
 }

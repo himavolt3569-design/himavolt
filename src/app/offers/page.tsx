@@ -171,8 +171,8 @@ export default function OffersPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="sticky top-0 z-40 bg-white border-b border-gray-100">
+    <div className="min-h-screen bg-[var(--canvas)]">
+      <div className="sticky top-0 z-40 bg-[var(--canvas)] border-b border-[var(--border-soft)]">
         <AnimatePresence mode="wait">
           {searchOpen ? (
             <motion.div
@@ -185,7 +185,7 @@ export default function OffersPage() {
             >
               <button
                 onClick={() => { setSearchOpen(false); setSearchQuery(""); }}
-                className="shrink-0 p-1.5 -ml-1.5 text-gray-500 active:text-gray-800 transition-colors"
+                className="shrink-0 p-1.5 -ml-1.5 text-[var(--text-2)] active:text-[var(--text-1)] transition-colors"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -195,12 +195,12 @@ export default function OffersPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search restaurants, cuisines..."
-                className="flex-1 text-[15px] text-[#3e1e0c] placeholder-gray-400 outline-none bg-transparent"
+                className="flex-1 text-[15px] text-[var(--text-1)] placeholder-gray-400 outline-none bg-transparent"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery("")}
-                  className="shrink-0 text-gray-400 active:text-gray-600"
+                  className="shrink-0 text-[var(--text-3)] active:text-[var(--text-2)]"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -218,18 +218,18 @@ export default function OffersPage() {
               <div className="flex items-center gap-3">
                 <Link
                   href="/"
-                  className="p-1.5 -ml-1.5 text-[#3e1e0c] active:text-gray-500 transition-colors"
+                  className="p-1.5 -ml-1.5 text-[var(--text-1)] active:text-[var(--text-2)] transition-colors"
                   aria-label="Back"
                 >
                   <ArrowLeft className="h-5 w-5" strokeWidth={2.5} />
                 </Link>
-                <h1 className="text-[17px] font-bold text-[#3e1e0c] tracking-tight">
+                <h1 className="text-[17px] font-bold text-[var(--text-1)] tracking-tight">
                   Flavourful Offers League
                 </h1>
               </div>
               <button
                 onClick={() => setSearchOpen(true)}
-                className="p-1.5 text-[#3e1e0c] active:text-gray-500 transition-colors"
+                className="p-1.5 text-[var(--text-1)] active:text-[var(--text-2)] transition-colors"
                 aria-label="Search"
               >
                 <Search className="h-5 w-5" strokeWidth={2} />
@@ -245,7 +245,7 @@ export default function OffersPage() {
               className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[13px] font-semibold transition-all active:scale-95 ${
                 activeFiltersCount > 0
                   ? "border-[#eaa94d] bg-[#eaa94d]/5 text-[#eaa94d]"
-                  : "border-gray-300 bg-white text-[#3e1e0c]"
+                  : "border-[var(--border)] bg-[var(--canvas)] text-[var(--text-1)]"
               }`}
             >
               <SlidersHorizontal className="h-3.5 w-3.5" strokeWidth={2.5} />
@@ -263,7 +263,7 @@ export default function OffersPage() {
                 className={`flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[13px] font-semibold transition-all active:scale-95 ${
                   sortBy !== "relevance"
                     ? "border-[#3e1e0c] bg-[#3e1e0c] text-white"
-                    : "border-gray-300 bg-white text-[#3e1e0c]"
+                    : "border-[var(--border)] bg-[var(--canvas)] text-[var(--text-1)]"
                 }`}
               >
                 Sort by
@@ -276,14 +276,14 @@ export default function OffersPage() {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 4, scale: 0.95 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute left-0 top-full mt-1.5 z-50 min-w-[160px] rounded-2xl border border-gray-100 bg-white shadow-xl shadow-black/10 overflow-hidden"
+                    className="absolute left-0 top-full mt-1.5 z-50 min-w-[160px] rounded-2xl border border-[var(--border-soft)] bg-[var(--canvas)] shadow-xl shadow-black/10 overflow-hidden"
                   >
                     {(["relevance", "rating", "delivery", "distance"] as SortOption[]).map((opt) => (
                       <button
                         key={opt}
                         onClick={() => { setSortBy(opt); setShowSortMenu(false); }}
-                        className={`flex w-full items-center justify-between px-4 py-3 text-[13px] font-semibold transition-colors hover:bg-gray-50 ${
-                          sortBy === opt ? "text-[#eaa94d]" : "text-[#3e1e0c]"
+                        className={`flex w-full items-center justify-between px-4 py-3 text-[13px] font-semibold transition-colors hover:bg-[var(--canvas-sub)] ${
+                          sortBy === opt ? "text-[#eaa94d]" : "text-[var(--text-1)]"
                         }`}
                       >
                         {opt === "relevance" ? "Relevance" : opt === "rating" ? "Rating" : opt === "delivery" ? "Delivery Time" : "Distance"}
@@ -302,7 +302,7 @@ export default function OffersPage() {
                 className={`flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[13px] font-semibold transition-all active:scale-95 ${
                   vegFilter !== "all"
                     ? "border-[#3e1e0c] bg-[#3e1e0c] text-white"
-                    : "border-gray-300 bg-white text-[#3e1e0c]"
+                    : "border-[var(--border)] bg-[var(--canvas)] text-[var(--text-1)]"
                 }`}
               >
                 {vegFilter === "all" ? "Veg/Non-Veg" : vegFilter === "veg" ? "Veg Only" : "Non-Veg"}
@@ -315,14 +315,14 @@ export default function OffersPage() {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 4, scale: 0.95 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute left-0 top-full mt-1.5 z-50 min-w-[140px] rounded-2xl border border-gray-100 bg-white shadow-xl shadow-black/10 overflow-hidden"
+                    className="absolute left-0 top-full mt-1.5 z-50 min-w-[140px] rounded-2xl border border-[var(--border-soft)] bg-[var(--canvas)] shadow-xl shadow-black/10 overflow-hidden"
                   >
                     {(["all", "veg", "non-veg"] as VegFilter[]).map((opt) => (
                       <button
                         key={opt}
                         onClick={() => { setVegFilter(opt); setShowVegMenu(false); }}
-                        className={`flex w-full items-center gap-2.5 px-4 py-3 text-[13px] font-semibold transition-colors hover:bg-gray-50 ${
-                          vegFilter === opt ? "text-[#eaa94d]" : "text-[#3e1e0c]"
+                        className={`flex w-full items-center gap-2.5 px-4 py-3 text-[13px] font-semibold transition-colors hover:bg-[var(--canvas-sub)] ${
+                          vegFilter === opt ? "text-[#eaa94d]" : "text-[var(--text-1)]"
                         }`}
                       >
                         <span
@@ -331,7 +331,7 @@ export default function OffersPage() {
                               ? "border-green-600 bg-[#eaa94d]"
                               : opt === "non-veg"
                               ? "border-red-600 bg-red-500"
-                              : "border-gray-400 bg-gray-200"
+                              : "border-gray-400 bg-[var(--surface-alt)]"
                           }`}
                         />
                         {opt === "all" ? "All" : opt === "veg" ? "Pure Veg" : "Non-Veg"}
@@ -347,14 +347,14 @@ export default function OffersPage() {
               className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[13px] font-semibold transition-all active:scale-95 ${
                 minRating != null
                   ? "border-[#3e1e0c] bg-[#3e1e0c] text-white"
-                  : "border-gray-300 bg-white text-[#3e1e0c]"
+                  : "border-[var(--border)] bg-[var(--canvas)] text-[var(--text-1)]"
               }`}
             >
               <Star className={`h-3.5 w-3.5 ${minRating != null ? "fill-white text-white" : "fill-[#eaa94d] text-[#eaa94d]"}`} />
               Ratings 4.0+
             </button>
 
-            <button className="flex shrink-0 items-center gap-1.5 rounded-full border border-gray-300 bg-white px-3.5 py-1.5 text-[13px] font-semibold text-[#3e1e0c] transition-all active:scale-95">
+            <button className="flex shrink-0 items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--canvas)] px-3.5 py-1.5 text-[13px] font-semibold text-[var(--text-1)] transition-all active:scale-95">
               New Arrivals
             </button>
           </div>
@@ -372,7 +372,7 @@ export default function OffersPage() {
       <div className="mx-auto max-w-2xl">
         {loading ? (
           <div className="flex items-center justify-center py-24">
-            <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-gray-200 border-t-[#eaa94d]" />
+            <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-[var(--border)] border-t-[#eaa94d]" />
           </div>
         ) : filtered.length === 0 ? (
           <motion.div
@@ -380,9 +380,9 @@ export default function OffersPage() {
             animate={{ opacity: 1, y: 0 }}
             className="flex flex-col items-center justify-center py-24 px-8 text-center"
           >
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 mx-auto"><UtensilsCrossed className="h-8 w-8 text-gray-400" /></div>
-            <p className="text-base font-bold text-[#3e1e0c]">No restaurants found</p>
-            <p className="mt-1 text-sm text-gray-400">Try adjusting your filters</p>
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--surface)] mx-auto"><UtensilsCrossed className="h-8 w-8 text-[var(--text-3)]" /></div>
+            <p className="text-base font-bold text-[var(--text-1)]">No restaurants found</p>
+            <p className="mt-1 text-sm text-[var(--text-3)]">Try adjusting your filters</p>
             <button
               onClick={clearAllFilters}
               className="mt-4 rounded-full bg-[#eaa94d] px-5 py-2 text-sm font-bold text-white"
@@ -393,7 +393,7 @@ export default function OffersPage() {
         ) : (
           <>
             <div className="px-4 py-3">
-              <p className="text-[13px] font-medium text-gray-400">
+              <p className="text-[13px] font-medium text-[var(--text-3)]">
                 {filtered.length} restaurant{filtered.length !== 1 ? "s" : ""} with deals
               </p>
             </div>
@@ -402,7 +402,7 @@ export default function OffersPage() {
               variants={containerVariants}
               initial="hidden"
               animate="visible"
-              className="divide-y divide-gray-100"
+              className="divide-y divide-[var(--border)]"
             >
               {filtered.map((restaurant, index) => {
                 const badge = getOfferBadge(index);
@@ -416,14 +416,14 @@ export default function OffersPage() {
                   (restaurant.rating ?? 0) >= 4
                     ? "text-[#1e9a6f] bg-[#1e9a6f]/10"
                     : (restaurant.rating ?? 0) >= 3.5
-                    ? "text-[#eaa94d] bg-[#eaa94d]/10"
-                    : "text-[#eaa94d] bg-[#eaa94d]/10";
+                    ? "text-[#eaa94d] bg-[var(--accent-muted)]"
+                    : "text-[#eaa94d] bg-[var(--accent-muted)]";
 
                 return (
                   <motion.div key={restaurant.id} variants={itemVariants}>
                     <Link
                       href={`/menu/${restaurant.slug}`}
-                      className="flex gap-3.5 px-4 py-4 active:bg-gray-50 transition-colors"
+                      className="flex gap-3.5 px-4 py-4 active:bg-[var(--canvas-sub)] transition-colors"
                     >
                       <div className="relative h-[110px] w-[110px] shrink-0 rounded-2xl overflow-hidden">
                         <img
@@ -436,11 +436,11 @@ export default function OffersPage() {
 
                         <button
                           onClick={(e) => toggleWishlist(restaurant.id, e)}
-                          className="absolute top-1.5 right-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm shadow-sm transition-transform active:scale-90"
+                          className="absolute top-1.5 right-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-[var(--canvas)]/90 backdrop-blur-sm shadow-sm transition-transform active:scale-90"
                           aria-label={isWished ? "Remove from wishlist" : "Add to wishlist"}
                         >
                           <Heart
-                            className={`h-3.5 w-3.5 transition-colors ${isWished ? "fill-[#eaa94d] text-[#eaa94d]" : "text-gray-500"}`}
+                            className={`h-3.5 w-3.5 transition-colors ${isWished ? "fill-[#eaa94d] text-[#eaa94d]" : "text-[var(--text-2)]"}`}
                             strokeWidth={2}
                           />
                         </button>
@@ -466,12 +466,12 @@ export default function OffersPage() {
 
                       <div className="flex min-w-0 flex-1 flex-col justify-between py-0.5">
                         <div className="flex items-start justify-between gap-2">
-                          <h3 className="text-[15px] font-bold text-[#3e1e0c] leading-tight">
+                          <h3 className="text-[15px] font-bold text-[var(--text-1)] leading-tight">
                             {restaurant.name}
                           </h3>
                           <button
                             onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                            className="shrink-0 p-0.5 text-gray-400 active:text-gray-600 -mt-0.5 -mr-0.5"
+                            className="shrink-0 p-0.5 text-[var(--text-3)] active:text-[var(--text-2)] -mt-0.5 -mr-0.5"
                             aria-label="More options"
                           >
                             <MoreVertical className="h-4.5 w-4.5" strokeWidth={2} />
@@ -486,23 +486,23 @@ export default function OffersPage() {
                               {restaurant.rating.toFixed(1)}
                             </span>
                           )}
-                          <span className="text-gray-300 text-xs">•</span>
+                          <span className="text-[var(--text-3)] text-xs">•</span>
                           <div className="flex items-center gap-0.5">
-                            <Clock className="h-3 w-3 text-gray-400" strokeWidth={2} />
-                            <span className="text-[12px] font-bold text-[#3e1e0c]">
+                            <Clock className="h-3 w-3 text-[var(--text-3)]" strokeWidth={2} />
+                            <span className="text-[12px] font-bold text-[var(--text-1)]">
                               {deliveryTime}
                             </span>
                           </div>
                         </div>
 
-                        <p className="mt-1 text-[12px] text-gray-400 truncate font-medium">
+                        <p className="mt-1 text-[12px] text-[var(--text-3)] truncate font-medium">
                           {cuisines.join(", ")}
                         </p>
 
                         {/* Location + distance */}
                         <div className="flex items-center gap-1 mt-1">
-                          <MapPin className="h-3 w-3 shrink-0 text-gray-400" strokeWidth={2} />
-                          <p className="text-[12px] text-gray-400 truncate font-medium">
+                          <MapPin className="h-3 w-3 shrink-0 text-[var(--text-3)]" strokeWidth={2} />
+                          <p className="text-[12px] text-[var(--text-3)] truncate font-medium">
                             {location} • {distance}
                           </p>
                         </div>

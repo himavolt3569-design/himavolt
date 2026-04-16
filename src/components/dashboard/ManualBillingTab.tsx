@@ -405,12 +405,12 @@ export default function ManualBillingTab({
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: "spring", damping: 14 }}
             className={`flex h-24 w-24 items-center justify-center rounded-full shadow-lg ${
-              isPaid ? "bg-[#fef3dc] ring-4 ring-green-200" : "bg-orange-100 ring-4 ring-orange-200"
+              isPaid ? "bg-[var(--accent-muted)] ring-4 ring-[#eaa94d]/30" : "bg-[var(--accent)] ring-4 ring-orange-200"
             }`}
           >
             {isPaid
               ? <CheckCircle2 className="h-12 w-12 text-[#b25c1c]" />
-              : <Clock className="h-12 w-12 text-orange-500" />
+              : <Clock className="h-12 w-12 text-[var(--accent)]" />
             }
           </motion.div>
 
@@ -421,17 +421,17 @@ export default function ManualBillingTab({
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -6 }}
-                className={`text-2xl font-black tracking-wide ${isPaid ? "text-[#b25c1c]" : "text-orange-600"}`}
+                className={`text-2xl font-black tracking-wide ${isPaid ? "text-[#b25c1c]" : "text-[var(--accent)]"}`}
               >
                 {isPaid ? "PAID" : "UNPAID"}
               </motion.h3>
             </AnimatePresence>
-            <p className="text-sm text-gray-500 mt-1">
-              {orderNo && <span className="font-semibold text-gray-700">#{orderNo} &middot; </span>}
+            <p className="text-sm text-[var(--text-2)] mt-1">
+              {orderNo && <span className="font-semibold text-[var(--text-2)]">#{orderNo} &middot; </span>}
               {tableNo ? `Table ${tableNo}` : "No table"}
               {guestName.trim() && <> &middot; {guestName.trim()}</>}
             </p>
-            <p className="text-xl font-extrabold text-gray-800 mt-2">
+            <p className="text-xl font-extrabold text-[var(--text-1)] mt-2">
               {formatPrice(total, currency)}
             </p>
           </div>
@@ -451,7 +451,7 @@ export default function ManualBillingTab({
           )}
 
           {isPaid && (
-            <div className="w-full rounded-2xl bg-[#fef9ef] border border-[#eaa94d]/30 py-3 px-4 text-sm font-semibold text-[#b25c1c] flex items-center justify-center gap-2">
+            <div className="w-full rounded-2xl bg-[var(--accent-muted)] border border-[var(--accent-border)] py-3 px-4 text-sm font-semibold text-[#b25c1c] flex items-center justify-center gap-2">
               <CheckCircle2 className="h-4 w-4" /> Payment recorded
             </div>
           )}
@@ -460,14 +460,14 @@ export default function ManualBillingTab({
           {hasDrinks && (
             <div className="w-full rounded-xl bg-blue-50 border border-blue-200 px-4 py-2.5 flex items-center gap-2 text-sm text-blue-700">
               <Wine className="h-4 w-4 flex-shrink-0" />
-              <span className="font-semibold">Bar items in this order — BOT sent to bar</span>
+              <span className="font-semibold">Bar items in this order. BOT sent to bar</span>
             </div>
           )}
 
           <div className="flex gap-2 w-full">
             <button
               onClick={() => handlePrintBill()}
-              className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+              className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm font-semibold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors"
             >
               <Printer className="h-4 w-4" /> Reprint Bill
             </button>
@@ -484,14 +484,14 @@ export default function ManualBillingTab({
                 href={`/bill/${orderId}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm font-semibold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors"
               >
                 <Receipt className="h-4 w-4" /> View Bill
               </a>
             )}
             <button
               onClick={handleReset}
-              className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+              className="flex-1 rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm font-semibold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors"
             >
               New Bill
             </button>
@@ -503,13 +503,13 @@ export default function ManualBillingTab({
     /* Manual Pay (COUNTER) success */
     return (
       <div className="flex flex-col items-center justify-center py-16 gap-4">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#fef3dc]">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--accent-muted)]">
           <Check className="h-8 w-8 text-[#b25c1c]" />
         </div>
-        <h3 className="text-lg font-bold text-gray-800">
+        <h3 className="text-lg font-bold text-[var(--text-1)]">
           {hasDrinks && hasFood ? "Order Sent to Kitchen & Bar" : hasDrinks ? "Order Sent to Bar" : "Order Sent to Kitchen"}
         </h3>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-[var(--text-2)]">
           {tableNo ? `Table ${tableNo}` : "No table assigned"}
           {guestName.trim() && <> &middot; {guestName.trim()}</>}
           {" "}&middot; {formatPrice(total, currency)}
@@ -521,7 +521,7 @@ export default function ManualBillingTab({
           </div>
         )}
         {hasFood && (
-          <p className="text-xs text-amber-600 bg-amber-50 rounded-xl px-4 py-2 border border-amber-100">
+          <p className="text-xs text-[var(--accent-text)] bg-[var(--accent-muted)] rounded-xl px-4 py-2 border border-[var(--accent-border)]">
             Customer pays at the counter after food is served.
           </p>
         )}
@@ -547,14 +547,14 @@ export default function ManualBillingTab({
               href={`/bill/${orderId}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 rounded-xl border border-gray-200 px-5 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors"
+              className="flex items-center gap-2 rounded-xl border border-[var(--border)] px-5 py-2.5 text-sm font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors"
             >
               <Receipt className="h-4 w-4" /> View Bill
             </a>
           )}
           <button
             onClick={handleReset}
-            className="rounded-xl border border-gray-200 px-5 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+            className="rounded-xl border border-[var(--border)] px-5 py-2.5 text-sm font-semibold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors"
           >
             New Order
           </button>
@@ -573,12 +573,12 @@ export default function ManualBillingTab({
           onClick={() => setPayMethod("COUNTER")}
           className={`flex items-center justify-center gap-2 rounded-xl border-2 p-2.5 text-center transition-all ${
             payMethod === "COUNTER"
-              ? "border-amber-400 bg-amber-50"
-              : "border-gray-200 bg-white hover:border-gray-300"
+              ? "border-[var(--accent)] bg-[var(--accent-muted)]"
+              : "border-[var(--border)] bg-[var(--canvas)] hover:border-[var(--border)]"
           }`}
         >
-          <Receipt className={`h-4 w-4 ${payMethod === "COUNTER" ? "text-amber-600" : "text-gray-400"}`} />
-          <span className={`text-[11px] font-bold ${payMethod === "COUNTER" ? "text-amber-700" : "text-gray-600"}`}>Manual Pay</span>
+          <Receipt className={`h-4 w-4 ${payMethod === "COUNTER" ? "text-[var(--accent-text)]" : "text-[var(--text-3)]"}`} />
+          <span className={`text-[11px] font-bold ${payMethod === "COUNTER" ? "text-[var(--accent-text)]" : "text-[var(--text-2)]"}`}>Manual Pay</span>
         </button>
         <button
           type="button"
@@ -586,11 +586,11 @@ export default function ManualBillingTab({
           className={`flex items-center justify-center gap-2 rounded-xl border-2 p-2.5 text-center transition-all ${
             payMethod === "DIRECT"
               ? "border-teal-400 bg-teal-50"
-              : "border-gray-200 bg-white hover:border-gray-300"
+              : "border-[var(--border)] bg-[var(--canvas)] hover:border-[var(--border)]"
           }`}
         >
-          <Printer className={`h-4 w-4 ${payMethod === "DIRECT" ? "text-teal-600" : "text-gray-400"}`} />
-          <span className={`text-[11px] font-bold ${payMethod === "DIRECT" ? "text-teal-700" : "text-gray-600"}`}>Direct Pay</span>
+          <Printer className={`h-4 w-4 ${payMethod === "DIRECT" ? "text-teal-600" : "text-[var(--text-3)]"}`} />
+          <span className={`text-[11px] font-bold ${payMethod === "DIRECT" ? "text-teal-700" : "text-[var(--text-2)]"}`}>Direct Pay</span>
         </button>
       </div>
 
@@ -598,19 +598,19 @@ export default function ManualBillingTab({
 
       <div className="lg:col-span-2 space-y-3">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-3)]" />
           <input
             type="text"
             placeholder="Search menu items..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-xl border border-gray-200 pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-amber-300"
+            className="w-full rounded-xl border border-[var(--border)] pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--accent-border)]"
           />
         </div>
 
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-5 w-5 animate-spin text-amber-500" />
+            <Loader2 className="h-5 w-5 animate-spin text-[var(--accent)]" />
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-[60vh] overflow-y-auto pr-1">
@@ -618,10 +618,10 @@ export default function ManualBillingTab({
               <button
                 key={item.id}
                 onClick={() => addItem(item)}
-                className="flex flex-col items-start rounded-xl border border-gray-200 overflow-hidden text-left hover:border-amber-300 hover:shadow-md transition-all group"
+                className="flex flex-col items-start rounded-xl border border-[var(--border)] overflow-hidden text-left hover:border-[var(--accent-border)] hover:shadow-md transition-all group"
               >
                 {item.imageUrl ? (
-                  <div className="w-full h-20 overflow-hidden bg-gray-100 flex-shrink-0">
+                  <div className="w-full h-20 overflow-hidden bg-[var(--surface)] flex-shrink-0">
                     <img
                       src={item.imageUrl}
                       alt={item.name}
@@ -629,13 +629,13 @@ export default function ManualBillingTab({
                     />
                   </div>
                 ) : (
-                  <div className="w-full h-20 bg-gradient-to-br from-amber-50 to-orange-50 flex items-center justify-center flex-shrink-0">
-                    <Utensils className="h-7 w-7 text-amber-300" />
+                  <div className="w-full h-20 bg-gradient-to-br from-[var(--accent)] to-[var(--accent-hover)] flex items-center justify-center flex-shrink-0">
+                    <Utensils className="h-7 w-7 text-[var(--accent)]" />
                   </div>
                 )}
                 <div className="p-2.5 flex flex-col flex-1 w-full">
                   <div className="flex items-center gap-1 mb-0.5">
-                    <span className="text-[10px] text-gray-400">{item.category?.name}</span>
+                    <span className="text-[10px] text-[var(--text-3)]">{item.category?.name}</span>
                     {item.isDrink && (
                       <span className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1 py-0.5 rounded bg-blue-100 text-blue-600 leading-none">
                         {item.drinkCategory === "ALCOHOL"
@@ -647,38 +647,38 @@ export default function ManualBillingTab({
                       </span>
                     )}
                   </div>
-                  <span className={`text-xs font-semibold leading-tight line-clamp-2 ${item.isDrink ? "group-hover:text-blue-700" : "group-hover:text-amber-700"} text-gray-800`}>{item.name}</span>
-                  <span className={`text-xs font-bold mt-auto pt-1 ${item.isDrink ? "text-blue-600" : "text-amber-600"}`}>{formatPrice(item.price, currency)}</span>
+                  <span className={`text-xs font-semibold leading-tight line-clamp-2 ${item.isDrink ? "group-hover:text-blue-700" : "group-hover:text-[var(--accent-text)]"} text-[var(--text-1)]`}>{item.name}</span>
+                  <span className={`text-xs font-bold mt-auto pt-1 ${item.isDrink ? "text-blue-600" : "text-[var(--accent-text)]"}`}>{formatPrice(item.price, currency)}</span>
                 </div>
               </button>
             ))}
             {filtered.length === 0 && (
-              <p className="col-span-full text-center text-sm text-gray-400 py-8">No items found</p>
+              <p className="col-span-full text-center text-sm text-[var(--text-3)] py-8">No items found</p>
             )}
           </div>
         )}
       </div>
 
       {/* Right: Bill summary + customer info */}
-      <div className="rounded-2xl border border-gray-200 bg-white flex flex-col" ref={printRef}>
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--canvas)] flex flex-col" ref={printRef}>
 
         {/* Customer & table info */}
-        <div className="p-4 border-b border-gray-100 space-y-2.5">
+        <div className="p-4 border-b border-[var(--border-soft)] space-y-2.5">
           <div className="relative">
             <button
               type="button"
               onClick={() => setShowTables(!showTables)}
-              className="w-full flex items-center justify-between rounded-xl border border-gray-200 px-3 py-2.5 text-sm hover:border-amber-300 transition-colors"
+              className="w-full flex items-center justify-between rounded-xl border border-[var(--border)] px-3 py-2.5 text-sm hover:border-[var(--accent-border)] transition-colors"
             >
-              <div className="flex items-center gap-2 text-gray-600">
-                <Utensils className="h-4 w-4 text-gray-400" />
+              <div className="flex items-center gap-2 text-[var(--text-2)]">
+                <Utensils className="h-4 w-4 text-[var(--text-3)]" />
                 {tableNo ? (
-                  <span className="font-semibold text-[#3e1e0c]">Table {tableNo}</span>
+                  <span className="font-semibold text-[var(--text-1)]">Table {tableNo}</span>
                 ) : (
-                  <span className="text-gray-400">Select table (optional)</span>
+                  <span className="text-[var(--text-3)]">Select table (optional)</span>
                 )}
               </div>
-              <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${showTables ? "rotate-180" : ""}`} />
+              <ChevronDown className={`h-4 w-4 text-[var(--text-3)] transition-transform ${showTables ? "rotate-180" : ""}`} />
             </button>
 
             <AnimatePresence>
@@ -687,20 +687,20 @@ export default function ManualBillingTab({
                   initial={{ opacity: 0, y: -8 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -8 }}
-                  className="absolute z-10 mt-1 w-full rounded-xl border border-gray-200 bg-white shadow-xl overflow-hidden"
+                  className="absolute z-10 mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] shadow-xl overflow-hidden"
                 >
                   <button
                     onClick={() => { setTableNo(""); setShowTables(false); }}
-                    className="w-full px-3 py-2 text-sm text-left text-gray-400 hover:bg-gray-50"
+                    className="w-full px-3 py-2 text-sm text-left text-[var(--text-3)] hover:bg-[var(--canvas-sub)]"
                   >
                     None / No table
                   </button>
-                  <div className="px-3 py-2 border-t border-gray-100">
+                  <div className="px-3 py-2 border-t border-[var(--border-soft)]">
                     <input
                       type="number"
                       placeholder="Enter table number manually..."
                       min={1}
-                      className="w-full rounded-lg border border-gray-200 px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-amber-300"
+                      className="w-full rounded-lg border border-[var(--border)] px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-[var(--accent-border)]"
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
                           const v = parseInt((e.target as HTMLInputElement).value);
@@ -710,30 +710,30 @@ export default function ManualBillingTab({
                     />
                   </div>
                   {availableTables.length > 0 && (
-                    <div className="border-t border-gray-100">
-                      <p className="px-3 py-1 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Available Tables</p>
+                    <div className="border-t border-[var(--border-soft)]">
+                      <p className="px-3 py-1 text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider">Available Tables</p>
                       {availableTables.map((t) => (
                         <button
                           key={t.id}
                           onClick={() => { setTableNo(t.tableNo); setShowTables(false); }}
-                          className="w-full flex items-center justify-between px-3 py-2 text-sm text-left hover:bg-amber-50 transition-colors"
+                          className="w-full flex items-center justify-between px-3 py-2 text-sm text-left hover:bg-[var(--accent-muted)] transition-colors"
                         >
-                          <span className="font-semibold text-gray-700">
+                          <span className="font-semibold text-[var(--text-2)]">
                             Table {t.tableNo}
-                            {t.label && <span className="text-xs text-gray-400 ml-1">· {t.label}</span>}
+                            {t.label && <span className="text-xs text-[var(--text-3)] ml-1">· {t.label}</span>}
                           </span>
-                          <span className="text-xs text-gray-400">{t.capacity} seats</span>
+                          <span className="text-xs text-[var(--text-3)]">{t.capacity} seats</span>
                         </button>
                       ))}
                     </div>
                   )}
                   {tables.filter((t) => t.isOccupied).length > 0 && (
-                    <div className="border-t border-gray-100">
-                      <p className="px-3 py-1 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Occupied</p>
+                    <div className="border-t border-[var(--border-soft)]">
+                      <p className="px-3 py-1 text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider">Occupied</p>
                       {tables.filter((t) => t.isOccupied).map((t) => (
                         <div key={t.id} className="flex items-center justify-between px-3 py-2 text-sm opacity-50 cursor-not-allowed">
                           <span>Table {t.tableNo}</span>
-                          <span className="text-[10px] text-orange-500 font-bold">OCCUPIED</span>
+                          <span className="text-[10px] text-[var(--accent)] font-bold">OCCUPIED</span>
                         </div>
                       ))}
                     </div>
@@ -744,13 +744,13 @@ export default function ManualBillingTab({
           </div>
 
           <div className="relative">
-            <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-3)]" />
             <input
               type="text"
               placeholder="Guest name (optional)"
               value={guestName}
               onChange={(e) => setGuestName(e.target.value)}
-              className="w-full rounded-xl border border-gray-200 pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-amber-300"
+              className="w-full rounded-xl border border-[var(--border)] pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--accent-border)]"
             />
           </div>
 
@@ -760,13 +760,13 @@ export default function ManualBillingTab({
               onClick={() => setPayMethod("COUNTER")}
               className={`flex flex-col items-center rounded-xl border-2 p-2.5 text-center transition-all ${
                 payMethod === "COUNTER"
-                  ? "border-amber-400 bg-amber-50"
-                  : "border-gray-200 bg-white hover:border-gray-300"
+                  ? "border-[var(--accent)] bg-[var(--accent-muted)]"
+                  : "border-[var(--border)] bg-[var(--canvas)] hover:border-[var(--border)]"
               }`}
             >
-              <Receipt className={`h-4 w-4 mb-1 ${payMethod === "COUNTER" ? "text-amber-600" : "text-gray-400"}`} />
-              <span className={`text-[11px] font-bold ${payMethod === "COUNTER" ? "text-amber-700" : "text-gray-600"}`}>Manual Pay</span>
-              <span className="text-[10px] text-gray-400 leading-tight">Staff records payment</span>
+              <Receipt className={`h-4 w-4 mb-1 ${payMethod === "COUNTER" ? "text-[var(--accent-text)]" : "text-[var(--text-3)]"}`} />
+              <span className={`text-[11px] font-bold ${payMethod === "COUNTER" ? "text-[var(--accent-text)]" : "text-[var(--text-2)]"}`}>Manual Pay</span>
+              <span className="text-[10px] text-[var(--text-3)] leading-tight">Staff records payment</span>
             </button>
             <button
               type="button"
@@ -774,25 +774,25 @@ export default function ManualBillingTab({
               className={`flex flex-col items-center rounded-xl border-2 p-2.5 text-center transition-all ${
                 payMethod === "DIRECT"
                   ? "border-teal-400 bg-teal-50"
-                  : "border-gray-200 bg-white hover:border-gray-300"
+                  : "border-[var(--border)] bg-[var(--canvas)] hover:border-[var(--border)]"
               }`}
             >
-              <Printer className={`h-4 w-4 mb-1 ${payMethod === "DIRECT" ? "text-teal-600" : "text-gray-400"}`} />
-              <span className={`text-[11px] font-bold ${payMethod === "DIRECT" ? "text-teal-700" : "text-gray-600"}`}>Direct Pay</span>
-              <span className="text-[10px] text-gray-400 leading-tight">Print bill immediately</span>
+              <Printer className={`h-4 w-4 mb-1 ${payMethod === "DIRECT" ? "text-teal-600" : "text-[var(--text-3)]"}`} />
+              <span className={`text-[11px] font-bold ${payMethod === "DIRECT" ? "text-teal-700" : "text-[var(--text-2)]"}`}>Direct Pay</span>
+              <span className="text-[10px] text-[var(--text-3)] leading-tight">Print bill immediately</span>
             </button>
           </div>
         </div>
 
         <div className="flex items-center gap-2 px-4 pt-3 pb-1">
-          <Receipt className="h-4 w-4 text-amber-500" />
-          <h3 className="text-sm font-bold text-gray-800">
+          <Receipt className="h-4 w-4 text-[var(--accent)]" />
+          <h3 className="text-sm font-bold text-[var(--text-1)]">
             Order {tableNo ? `· Table ${tableNo}` : ""}
           </h3>
         </div>
 
         {billItems.length === 0 ? (
-          <div className="flex-1 flex items-center justify-center py-8 px-4 text-sm text-gray-400">
+          <div className="flex-1 flex items-center justify-center py-8 px-4 text-sm text-[var(--text-3)]">
             Tap menu items on the left to add
           </div>
         ) : (
@@ -805,7 +805,7 @@ export default function ManualBillingTab({
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
-                    className={`flex items-center gap-2 rounded-lg p-2 ${item.isDrink ? "bg-blue-50 ring-1 ring-blue-100" : "bg-gray-50"}`}
+                    className={`flex items-center gap-2 rounded-lg p-2 ${item.isDrink ? "bg-blue-50 ring-1 ring-blue-100" : "bg-[var(--canvas-sub)]"}`}
                   >
                     {item.imageUrl ? (
                       <img
@@ -814,42 +814,42 @@ export default function ManualBillingTab({
                         className="h-9 w-9 rounded-md object-cover flex-shrink-0"
                       />
                     ) : (
-                      <div className={`h-9 w-9 rounded-md flex items-center justify-center flex-shrink-0 ${item.isDrink ? "bg-blue-100" : "bg-amber-50"}`}>
+                      <div className={`h-9 w-9 rounded-md flex items-center justify-center flex-shrink-0 ${item.isDrink ? "bg-blue-100" : "bg-[var(--accent-muted)]"}`}>
                         {item.isDrink
                           ? <Wine className="h-4 w-4 text-blue-400" />
-                          : <Utensils className="h-4 w-4 text-amber-300" />
+                          : <Utensils className="h-4 w-4 text-[var(--accent)]" />
                         }
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1">
-                        <p className="text-xs font-semibold text-gray-800 truncate">{item.name}</p>
+                        <p className="text-xs font-semibold text-[var(--text-1)] truncate">{item.name}</p>
                         {item.isDrink && (
                           <span className="text-[9px] font-bold px-1 rounded bg-blue-200 text-blue-700 flex-shrink-0">BOT</span>
                         )}
                       </div>
                       <div className="flex items-center gap-1 mt-0.5">
-                        <span className="text-[10px] text-gray-400">Price:</span>
+                        <span className="text-[10px] text-[var(--text-3)]">Price:</span>
                         <input
                           type="number"
                           value={item.price}
                           onChange={(e) => updatePrice(item.menuItemId, parseFloat(e.target.value) || 0)}
-                          className="w-16 rounded border border-gray-200 px-1 py-0.5 text-xs text-center focus:outline-none focus:ring-1 focus:ring-amber-300"
+                          className="w-16 rounded border border-[var(--border)] px-1 py-0.5 text-xs text-center focus:outline-none focus:ring-1 focus:ring-[var(--accent-border)]"
                           min={0} step={10}
                         />
                       </div>
                     </div>
                     <div className="flex items-center gap-1">
-                      <button onClick={() => updateQuantity(item.menuItemId, -1)} className="flex h-6 w-6 items-center justify-center rounded-md bg-gray-200 hover:bg-gray-300 transition-colors">
+                      <button onClick={() => updateQuantity(item.menuItemId, -1)} className="flex h-6 w-6 items-center justify-center rounded-md bg-[var(--surface-alt)] hover:bg-[var(--border)] transition-colors">
                         <Minus className="h-3 w-3" />
                       </button>
                       <span className="w-6 text-center text-xs font-bold">{item.quantity}</span>
-                      <button onClick={() => updateQuantity(item.menuItemId, 1)} className={`flex h-6 w-6 items-center justify-center rounded-md transition-colors ${item.isDrink ? "bg-blue-100 hover:bg-blue-200 text-blue-700" : "bg-amber-100 hover:bg-amber-200 text-amber-700"}`}>
+                      <button onClick={() => updateQuantity(item.menuItemId, 1)} className={`flex h-6 w-6 items-center justify-center rounded-md transition-colors ${item.isDrink ? "bg-blue-100 hover:bg-blue-200 text-blue-700" : "bg-[var(--accent-muted)] hover:bg-[var(--accent-muted)] text-[var(--accent-text)]"}`}>
                         <Plus className="h-3 w-3" />
                       </button>
                     </div>
-                    <span className="text-xs font-bold text-gray-700 w-16 text-right">{formatPrice(item.price * item.quantity, currency)}</span>
-                    <button onClick={() => removeItem(item.menuItemId)} className="text-gray-400 hover:text-red-500 transition-colors">
+                    <span className="text-xs font-bold text-[var(--text-2)] w-16 text-right">{formatPrice(item.price * item.quantity, currency)}</span>
+                    <button onClick={() => removeItem(item.menuItemId)} className="text-[var(--text-3)] hover:text-red-500 transition-colors">
                       <X className="h-3.5 w-3.5" />
                     </button>
                   </motion.div>
@@ -857,20 +857,20 @@ export default function ManualBillingTab({
               </AnimatePresence>
             </div>
 
-            <div className="border-t border-gray-200 pt-3 space-y-1.5">
+            <div className="border-t border-[var(--border)] pt-3 space-y-1.5">
               <div className="flex justify-between text-xs">
-                <span className="text-gray-500">Subtotal</span>
+                <span className="text-[var(--text-2)]">Subtotal</span>
                 <span className="font-semibold">{formatPrice(subtotal, currency)}</span>
               </div>
               {taxEnabled && (
                 <div className="flex justify-between text-xs">
-                  <span className="text-gray-500">Tax ({taxRate}%)</span>
+                  <span className="text-[var(--text-2)]">Tax ({taxRate}%)</span>
                   <span className="font-semibold">{formatPrice(tax, currency)}</span>
                 </div>
               )}
-              <div className="flex justify-between text-sm font-bold pt-1 border-t border-gray-100">
+              <div className="flex justify-between text-sm font-bold pt-1 border-t border-[var(--border-soft)]">
                 <span>Total</span>
-                <span className="text-amber-600">{formatPrice(total, currency)}</span>
+                <span className="text-[var(--accent-text)]">{formatPrice(total, currency)}</span>
               </div>
             </div>
 
@@ -898,7 +898,7 @@ export default function ManualBillingTab({
                   <button
                     onClick={handleSubmit}
                     disabled={submitting || billItems.length === 0}
-                    className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-amber-500 py-2.5 text-sm font-bold text-white hover:bg-amber-600 disabled:opacity-40 transition-colors"
+                    className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[var(--accent)] py-2.5 text-sm font-bold text-white hover:bg-[var(--accent-hover)] disabled:opacity-40 transition-colors"
                   >
                     {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Check className="h-4 w-4" /> Send to Kitchen</>}
                   </button>
@@ -907,7 +907,7 @@ export default function ManualBillingTab({
                     onClick={() => handlePrintKOT()}
                     disabled={billItems.length === 0}
                     title="Print KOT (Kitchen Order Ticket)"
-                    className="flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-40 transition-colors"
+                    className="flex items-center gap-1.5 rounded-xl border border-[var(--border)] px-3 py-2.5 text-sm font-semibold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] disabled:opacity-40 transition-colors"
                   >
                     <Printer className="h-4 w-4" />
                   </button>

@@ -35,11 +35,11 @@ interface TableData {
 }
 
 const STATUS_COLOR: Record<string, string> = {
-  PENDING:   "bg-orange-100 text-orange-700",
+  PENDING:   "bg-[var(--accent)] text-[var(--accent)]",
   ACCEPTED:  "bg-blue-100 text-blue-700",
-  PREPARING: "bg-amber-100 text-amber-700",
-  READY:     "bg-[#fef3dc] text-[#b25c1c]",
-  DELIVERED: "bg-gray-100 text-gray-600",
+  PREPARING: "bg-[var(--accent-muted)] text-[var(--accent-text)]",
+  READY:     "bg-[var(--accent-muted)] text-[#b25c1c]",
+  DELIVERED: "bg-[var(--surface)] text-[var(--text-2)]",
 };
 
 function elapsed(iso: string) {
@@ -248,26 +248,26 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
 
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-100">
-            <TableProperties className="h-5 w-5 text-amber-600" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent-muted)]">
+            <TableProperties className="h-5 w-5 text-[var(--accent-text)]" />
           </div>
           <div>
-            <h2 className="text-base font-extrabold text-[#3e1e0c]">Table Management</h2>
-            <p className="text-xs text-gray-400">
+            <h2 className="text-base font-extrabold text-[var(--text-1)]">Table Management</h2>
+            <p className="text-xs text-[var(--text-3)]">
               {tables.length} tables · <span className="text-[#b25c1c] font-semibold">{available} free</span>
-              {occupied > 0 && <> · <span className="text-orange-500 font-semibold">{occupied} occupied</span></>}
+              {occupied > 0 && <> · <span className="text-[var(--accent)] font-semibold">{occupied} occupied</span></>}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={load} className="rounded-xl p-2 text-gray-400 hover:bg-gray-100 transition-colors">
+          <button onClick={load} className="rounded-xl p-2 text-[var(--text-3)] hover:bg-[var(--surface)] transition-colors">
             <RefreshCw className="h-4 w-4" />
           </button>
           {canManage && (
             <>
               <button
                 onClick={() => setShowBulk(true)}
-                className="flex items-center gap-1.5 rounded-xl border border-[#3e1e0c] px-3 py-2 text-xs font-bold text-[#3e1e0c] hover:bg-amber-50 transition-colors"
+                className="flex items-center gap-1.5 rounded-xl border border-[#3e1e0c] px-3 py-2 text-xs font-bold text-[var(--text-1)] hover:bg-[var(--accent-muted)] transition-colors"
               >
                 <Plus className="h-3.5 w-3.5" /> Bulk Create
               </button>
@@ -282,12 +282,12 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
         </div>
       </div>
 
-      <div className="flex items-center gap-4 text-xs text-gray-500">
+      <div className="flex items-center gap-4 text-xs text-[var(--text-2)]">
         <span className="flex items-center gap-1.5">
           <span className="h-3 w-3 rounded-full bg-[#eaa94d] inline-block" />Available
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="h-3 w-3 rounded-full bg-orange-400 inline-block" />Occupied
+          <span className="h-3 w-3 rounded-full bg-[var(--accent)] inline-block" />Occupied
         </span>
         <span className="flex items-center gap-1.5">
           <span className="h-3 w-3 rounded-full bg-[#eaa94d] inline-block" />Paid
@@ -299,13 +299,13 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
           {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
         </div>
       ) : tables.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-gray-400 gap-3">
+        <div className="flex flex-col items-center justify-center py-16 text-[var(--text-3)] gap-3">
           <TableProperties className="h-10 w-10 opacity-30" />
           <p className="font-bold">No tables configured</p>
           {canManage && (
             <button
               onClick={() => setShowAdd(true)}
-              className="flex items-center gap-1.5 rounded-xl bg-amber-500 px-4 py-2 text-sm font-bold text-white hover:bg-amber-600 transition-colors"
+              className="flex items-center gap-1.5 rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white hover:bg-[var(--accent-hover)] transition-colors"
             >
               <Plus className="h-4 w-4" /> Add your first table
             </button>
@@ -316,11 +316,11 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
           {tables.map((table) => {
             const isPaid = table.session?.order?.payment?.status === "COMPLETED";
             const bgClass = !table.isOccupied
-              ? "bg-[#fef9ef] border-[#eaa94d]/30 hover:border-[#eaa94d]"
+              ? "bg-[var(--accent-muted)] border-[var(--accent-border)] hover:border-[#eaa94d]"
               : isPaid
-                ? "bg-[#fef9ef] border-[#eaa94d] hover:border-[#eaa94d]"
-                : "bg-orange-50 border-orange-200 hover:border-orange-400";
-            const dotClass = !table.isOccupied ? "bg-[#eaa94d]" : isPaid ? "bg-[#eaa94d]" : "bg-orange-400";
+                ? "bg-[var(--accent-muted)] border-[#eaa94d] hover:border-[#eaa94d]"
+                : "bg-[var(--accent)] border-[var(--accent-border)] hover:border-[var(--accent-border)]";
+            const dotClass = !table.isOccupied ? "bg-[#eaa94d]" : isPaid ? "bg-[#eaa94d]" : "bg-[var(--accent)]";
 
             return (
               <motion.button
@@ -335,16 +335,16 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
                       value={editLabel}
                       onChange={(e) => setEditLabel(e.target.value)}
                       placeholder="Label (optional)"
-                      className="w-full rounded-lg border border-gray-200 px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-amber-300"
+                      className="w-full rounded-lg border border-[var(--border)] px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-[var(--accent-border)]"
                     />
                     <div className="flex items-center gap-1">
-                      <Users className="h-3 w-3 text-gray-400 shrink-0" />
+                      <Users className="h-3 w-3 text-[var(--text-3)] shrink-0" />
                       <input
                         type="number"
                         value={editCap}
                         onChange={(e) => setEditCap(e.target.value)}
                         min={1} max={20}
-                        className="w-full rounded-lg border border-gray-200 px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-amber-300"
+                        className="w-full rounded-lg border border-[var(--border)] px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-[var(--accent-border)]"
                       />
                     </div>
                     <div className="flex gap-1">
@@ -357,7 +357,7 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
                       </button>
                       <button
                         onClick={() => setEditId(null)}
-                        className="flex-1 flex items-center justify-center rounded-lg bg-gray-200 py-1 text-[10px] font-bold text-gray-600"
+                        className="flex-1 flex items-center justify-center rounded-lg bg-[var(--surface-alt)] py-1 text-[10px] font-bold text-[var(--text-2)]"
                       >
                         <X className="h-3 w-3" />
                       </button>
@@ -369,10 +369,10 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
                       <div>
                         <div className="flex items-center gap-1.5 mb-0.5">
                           <span className={`h-2 w-2 rounded-full ${dotClass}`} />
-                          <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">T{table.tableNo}</span>
+                          <span className="text-xs font-bold text-[var(--text-2)] uppercase tracking-wider">T{table.tableNo}</span>
                         </div>
                         {table.label && (
-                          <p className="text-[10px] text-gray-400 truncate max-w-[80px]">{table.label}</p>
+                          <p className="text-[10px] text-[var(--text-3)] truncate max-w-[80px]">{table.label}</p>
                         )}
                       </div>
                       {canManage && (
@@ -380,9 +380,9 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
                              onClick={(e) => e.stopPropagation()}>
                           <button
                             onClick={() => { setEditId(table.id); setEditLabel(table.label ?? ""); setEditCap(String(table.capacity)); }}
-                            className="rounded-md p-1 hover:bg-white/60"
+                            className="rounded-md p-1 hover:bg-[var(--canvas)]/60"
                           >
-                            <Edit2 className="h-2.5 w-2.5 text-gray-400" />
+                            <Edit2 className="h-2.5 w-2.5 text-[var(--text-3)]" />
                           </button>
                           <button
                             onClick={() => handleDelete(table.id)}
@@ -394,23 +394,23 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
                       )}
                     </div>
 
-                    <div className="flex items-center gap-1 text-[10px] text-gray-400 mb-2">
+                    <div className="flex items-center gap-1 text-[10px] text-[var(--text-3)] mb-2">
                       <Users className="h-3 w-3" />
                       <span>{table.capacity} seats</span>
                     </div>
 
                     {table.isOccupied && table.session?.order ? (
                       <div className="space-y-1">
-                        <div className={`inline-flex rounded-md px-1.5 py-0.5 text-[9px] font-bold ${STATUS_COLOR[table.session.order.status] ?? "bg-gray-100 text-gray-600"}`}>
+                        <div className={`inline-flex rounded-md px-1.5 py-0.5 text-[9px] font-bold ${STATUS_COLOR[table.session.order.status] ?? "bg-[var(--surface)] text-[var(--text-2)]"}`}>
                           {table.session.order.status}
                         </div>
-                        <p className="text-[10px] text-gray-500 truncate">
+                        <p className="text-[10px] text-[var(--text-2)] truncate">
                           #{table.session.order.orderNo}
                         </p>
-                        <p className="text-xs font-bold text-[#3e1e0c]">
+                        <p className="text-xs font-bold text-[var(--text-1)]">
                           {formatPrice(table.session.order.total, cur)}
                         </p>
-                        <div className="flex items-center gap-1 text-[9px] text-gray-400">
+                        <div className="flex items-center gap-1 text-[9px] text-[var(--text-3)]">
                           <Clock className="h-2.5 w-2.5" />
                           {elapsed(table.session.startedAt)}
                         </div>
@@ -419,7 +419,7 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
                       <p className="text-xs font-semibold text-[#b25c1c]">Available</p>
                     )}
 
-                    <ChevronRight className="absolute bottom-3 right-3 h-3 w-3 text-gray-300" />
+                    <ChevronRight className="absolute bottom-3 right-3 h-3 w-3 text-[var(--text-3)]" />
                   </>
                 )}
               </motion.button>
@@ -438,30 +438,30 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 40 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl"
+              className="w-full max-w-sm rounded-3xl bg-[var(--canvas)] p-6 shadow-2xl"
             >
               <div className="flex items-center justify-between mb-5">
                 <div>
-                  <h3 className="text-lg font-extrabold text-[#3e1e0c]">
+                  <h3 className="text-lg font-extrabold text-[var(--text-1)]">
                     Table {selected.tableNo}
-                    {selected.label && <span className="text-sm font-normal text-gray-400 ml-1">· {selected.label}</span>}
+                    {selected.label && <span className="text-sm font-normal text-[var(--text-3)] ml-1">· {selected.label}</span>}
                   </h3>
-                  <p className="text-xs text-gray-400 flex items-center gap-1">
+                  <p className="text-xs text-[var(--text-3)] flex items-center gap-1">
                     <Users className="h-3 w-3" /> {selected.capacity} seats
                   </p>
                 </div>
-                <button onClick={() => setSelected(null)} className="rounded-full bg-gray-100 p-2 hover:bg-gray-200">
-                  <X className="h-4 w-4 text-gray-500" />
+                <button onClick={() => setSelected(null)} className="rounded-full bg-[var(--surface)] p-2 hover:bg-[var(--surface-alt)]">
+                  <X className="h-4 w-4 text-[var(--text-2)]" />
                 </button>
               </div>
 
               {!selected.isOccupied ? (
                 <div className="flex flex-col items-center gap-3 py-6">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#fef3dc]">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--accent-muted)]">
                     <Utensils className="h-7 w-7 text-[#b25c1c]" />
                   </div>
                   <p className="text-sm font-bold text-[#b25c1c]">Table is Available</p>
-                  <p className="text-xs text-gray-400 text-center">
+                  <p className="text-xs text-[var(--text-3)] text-center">
                     Customer can scan the QR code or staff can create a manual order for this table.
                   </p>
                 </div>
@@ -471,36 +471,36 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
                 const guestDisplay = order.guestName ?? order.user?.name ?? "Guest";
                 return (
                   <div className="space-y-4">
-                    <div className="rounded-2xl bg-orange-50 border border-orange-100 p-4 space-y-2">
+                    <div className="rounded-2xl bg-[var(--accent)] border border-[var(--accent-border)] p-4 space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-gray-500">Order</span>
-                        <span className={`rounded-lg px-2 py-0.5 text-[10px] font-bold ${STATUS_COLOR[order.status] ?? "bg-gray-100"}`}>
+                        <span className="text-xs font-bold text-[var(--text-2)]">Order</span>
+                        <span className={`rounded-lg px-2 py-0.5 text-[10px] font-bold ${STATUS_COLOR[order.status] ?? "bg-[var(--surface)]"}`}>
                           {order.status}
                         </span>
                       </div>
-                      <p className="text-sm font-extrabold text-[#3e1e0c]">#{order.orderNo}</p>
+                      <p className="text-sm font-extrabold text-[var(--text-1)]">#{order.orderNo}</p>
 
-                      <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                      <div className="flex items-center gap-1.5 text-xs text-[var(--text-2)]">
                         <UserIcon className="h-3 w-3" />
                         <span>{guestDisplay}</span>
                       </div>
 
-                      <div className="flex items-center justify-between text-sm font-bold pt-1 border-t border-orange-100">
-                        <span className="text-gray-500">Total</span>
-                        <span className="text-[#3e1e0c]">{formatPrice(order.total, cur)}</span>
+                      <div className="flex items-center justify-between text-sm font-bold pt-1 border-t border-[var(--accent-border)]">
+                        <span className="text-[var(--text-2)]">Total</span>
+                        <span className="text-[var(--text-1)]">{formatPrice(order.total, cur)}</span>
                       </div>
 
                       {order.payment && (
                         <div className="flex items-center gap-1.5 text-[10px]">
-                          <CreditCard className="h-3 w-3 text-gray-400" />
-                          <span className="text-gray-500">{order.payment.method}</span>
-                          <span className={`rounded-md px-1.5 py-0.5 font-bold ${isPaid ? "bg-[#fef3dc] text-[#b25c1c]" : "bg-amber-100 text-amber-700"}`}>
+                          <CreditCard className="h-3 w-3 text-[var(--text-3)]" />
+                          <span className="text-[var(--text-2)]">{order.payment.method}</span>
+                          <span className={`rounded-md px-1.5 py-0.5 font-bold ${isPaid ? "bg-[var(--accent-muted)] text-[#b25c1c]" : "bg-[var(--accent-muted)] text-[var(--accent-text)]"}`}>
                             {isPaid ? "PAID" : "PENDING"}
                           </span>
                         </div>
                       )}
 
-                      <div className="flex items-center gap-1 text-[10px] text-gray-400">
+                      <div className="flex items-center gap-1 text-[10px] text-[var(--text-3)]">
                         <Clock className="h-3 w-3" />
                         Seated {elapsed(selected.session.startedAt)} ago
                       </div>
@@ -511,7 +511,7 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
                         href={`/bill/${order.id}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-gray-200 py-2.5 text-xs font-bold text-gray-600 hover:bg-gray-50 transition-colors"
+                        className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-[var(--border)] py-2.5 text-xs font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors"
                       >
                         View Bill
                       </a>
@@ -531,7 +531,7 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
                   </div>
                 );
               })() : (
-                <p className="text-sm text-gray-400 text-center py-4">Session active but no order yet.</p>
+                <p className="text-sm text-[var(--text-3)] text-center py-4">Session active but no order yet.</p>
               )}
             </motion.div>
           </div>
@@ -548,45 +548,45 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl"
+              className="w-full max-w-sm rounded-3xl bg-[var(--canvas)] p-6 shadow-2xl"
             >
               <div className="flex items-center justify-between mb-5">
-                <h3 className="text-lg font-extrabold text-[#3e1e0c]">Add New Table</h3>
-                <button onClick={() => setShowAdd(false)} className="rounded-full bg-gray-100 p-2 hover:bg-gray-200">
-                  <X className="h-4 w-4 text-gray-500" />
+                <h3 className="text-lg font-extrabold text-[var(--text-1)]">Add New Table</h3>
+                <button onClick={() => setShowAdd(false)} className="rounded-full bg-[var(--surface)] p-2 hover:bg-[var(--surface-alt)]">
+                  <X className="h-4 w-4 text-[var(--text-2)]" />
                 </button>
               </div>
 
               <div className="space-y-3 mb-5">
                 <div>
-                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Table Number *</label>
+                  <label className="text-xs font-bold text-[var(--text-2)] uppercase tracking-wider mb-1 block">Table Number *</label>
                   <input
                     type="number" value={addNo} onChange={(e) => setAddNo(e.target.value)}
                     placeholder="e.g. 1" min={1}
-                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+                    className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Label (optional)</label>
+                  <label className="text-xs font-bold text-[var(--text-2)] uppercase tracking-wider mb-1 block">Label (optional)</label>
                   <input
                     value={addLabel} onChange={(e) => setAddLabel(e.target.value)}
                     placeholder="e.g. Window Seat, VIP 1"
-                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+                    className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Capacity (seats)</label>
+                  <label className="text-xs font-bold text-[var(--text-2)] uppercase tracking-wider mb-1 block">Capacity (seats)</label>
                   <input
                     type="number" value={addCap} onChange={(e) => setAddCap(e.target.value)}
                     min={1} max={30}
-                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+                    className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                   />
                 </div>
               </div>
 
               <div className="flex gap-2">
                 <button onClick={() => setShowAdd(false)}
-                  className="flex-1 rounded-xl border border-gray-200 py-3 text-sm font-bold text-gray-600 hover:bg-gray-50">
+                  className="flex-1 rounded-xl border border-[var(--border)] py-3 text-sm font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)]">
                   Cancel
                 </button>
                 <button onClick={handleAdd} disabled={!addNo || addSaving}
@@ -610,59 +610,59 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl"
+              className="w-full max-w-sm rounded-3xl bg-[var(--canvas)] p-6 shadow-2xl"
             >
               <div className="flex items-center justify-between mb-5">
                 <div>
-                  <h3 className="text-lg font-extrabold text-[#3e1e0c]">Bulk Create Tables</h3>
-                  <p className="text-xs text-gray-400 mt-0.5">Create multiple tables with QR codes at once</p>
+                  <h3 className="text-lg font-extrabold text-[var(--text-1)]">Bulk Create Tables</h3>
+                  <p className="text-xs text-[var(--text-3)] mt-0.5">Create multiple tables with QR codes at once</p>
                 </div>
-                <button onClick={() => !bulkSaving && setShowBulk(false)} className="rounded-full bg-gray-100 p-2 hover:bg-gray-200">
-                  <X className="h-4 w-4 text-gray-500" />
+                <button onClick={() => !bulkSaving && setShowBulk(false)} className="rounded-full bg-[var(--surface)] p-2 hover:bg-[var(--surface-alt)]">
+                  <X className="h-4 w-4 text-[var(--text-2)]" />
                 </button>
               </div>
 
               <div className="space-y-3 mb-5">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">From *</label>
+                    <label className="text-xs font-bold text-[var(--text-2)] uppercase tracking-wider mb-1 block">From *</label>
                     <input
                       type="number" value={bulkFrom} onChange={(e) => setBulkFrom(e.target.value)}
                       placeholder="1" min={1}
-                      className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+                      className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">To *</label>
+                    <label className="text-xs font-bold text-[var(--text-2)] uppercase tracking-wider mb-1 block">To *</label>
                     <input
                       type="number" value={bulkTo} onChange={(e) => setBulkTo(e.target.value)}
                       placeholder="20" min={1}
-                      className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+                      className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Seats per table</label>
+                  <label className="text-xs font-bold text-[var(--text-2)] uppercase tracking-wider mb-1 block">Seats per table</label>
                   <input
                     type="number" value={bulkCap} onChange={(e) => setBulkCap(e.target.value)}
                     min={1} max={30}
-                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+                    className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                   />
                 </div>
                 {parseInt(bulkFrom) > 0 && parseInt(bulkTo) >= parseInt(bulkFrom) && (
-                  <div className="rounded-xl bg-amber-50 border border-amber-100 px-4 py-2.5 text-xs text-amber-700 font-semibold">
+                  <div className="rounded-xl bg-[var(--accent-muted)] border border-[var(--accent-border)] px-4 py-2.5 text-xs text-[var(--accent-text)] font-semibold">
                     Will create {parseInt(bulkTo) - parseInt(bulkFrom) + 1} tables (T{bulkFrom} to T{bulkTo})
                   </div>
                 )}
                 {bulkSaving && bulkProgress > 0 && (
                   <div className="space-y-1.5">
-                    <div className="flex justify-between text-xs text-gray-500">
+                    <div className="flex justify-between text-xs text-[var(--text-2)]">
                       <span>Creating tables...</span>
                       <span>{bulkProgress}%</span>
                     </div>
-                    <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
+                    <div className="h-2 rounded-full bg-[var(--surface)] overflow-hidden">
                       <div
-                        className="h-full rounded-full bg-amber-400 transition-all duration-300"
+                        className="h-full rounded-full bg-[var(--accent)] transition-all duration-300"
                         style={{ width: `${bulkProgress}%` }}
                       />
                     </div>
@@ -670,13 +670,13 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
                 )}
               </div>
 
-              <p className="text-xs text-gray-400 mb-4">
+              <p className="text-xs text-[var(--text-3)] mb-4">
                 QR codes are auto-generated when a customer scans. Duplicate table numbers are skipped.
               </p>
 
               <div className="flex gap-2">
                 <button onClick={() => !bulkSaving && setShowBulk(false)} disabled={bulkSaving}
-                  className="flex-1 rounded-xl border border-gray-200 py-3 text-sm font-bold text-gray-600 hover:bg-gray-50 disabled:opacity-40">
+                  className="flex-1 rounded-xl border border-[var(--border)] py-3 text-sm font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] disabled:opacity-40">
                   Cancel
                 </button>
                 <button onClick={handleBulkCreate} disabled={bulkSaving || !bulkFrom || !bulkTo || parseInt(bulkFrom) > parseInt(bulkTo)}

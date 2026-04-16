@@ -52,7 +52,10 @@
       "Bash(python3:*)",
       "Bash(cmd /c \"node_modules\\\\.bin\\\\tsc --noEmit 2>&1\")",
       "Bash(powershell -Command \"cd 'D:/Official_Projects/himalhub'; npx tsc --noEmit 2>&1 | Select-Object -First 80\")",
-      "Bash(/d/Official_Projects/himalhub/node_modules/.bin/tsc --noEmit)"
+      "Bash(/d/Official_Projects/himalhub/node_modules/.bin/tsc --noEmit)",
+      "Bash(cd /d \"D:\\\\Official_Projects\\\\himalhub\")",
+      "Bash(npx --prefix D:/Official_Projects/himalhub tsc --noEmit)",
+      "Bash(node_modules/.bin/next build:*)"
     ],
     "additionalDirectories": [
       "d:\\Official_Projects\\himalhub\\src\\app\\api\\public\\restaurants\\[slug]"

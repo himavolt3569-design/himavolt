@@ -68,15 +68,15 @@ const CATEGORY_ICONS: Record<string, React.ReactNode> = {
 };
 
 const CATEGORY_COLORS: Record<string, string> = {
-  Bread: "bg-amber-50 text-amber-700 border-amber-200",
+  Bread: "bg-[var(--accent-muted)] text-[var(--accent-text)] border-[var(--accent-border)]",
   Pastry: "bg-pink-50 text-pink-700 border-pink-200",
-  Cookie: "bg-orange-50 text-orange-700 border-orange-200",
+  Cookie: "bg-[var(--accent)] text-[var(--accent)] border-[var(--accent-border)]",
   Cake: "bg-rose-50 text-rose-700 border-rose-200",
 };
 
 const BADGE_STYLES: Record<string, string> = {
-  Fresh: "bg-[#fef3dc] text-[#b25c1c]",
-  Limited: "bg-amber-100 text-amber-700",
+  Fresh: "bg-[var(--accent-muted)] text-[#b25c1c]",
+  Limited: "bg-[var(--accent-muted)] text-[var(--accent-text)]",
   New: "bg-blue-100 text-blue-700",
   Popular: "bg-purple-100 text-purple-700",
 };
@@ -149,15 +149,15 @@ export default function DailySpecialsTab() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-gray-800">Daily Specials</h2>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <h2 className="text-xl font-bold text-[var(--text-1)]">Daily Specials</h2>
+          <p className="text-sm text-[var(--text-2)] mt-0.5">
             Highlight today&apos;s fresh-from-oven items
           </p>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowHistory(!showHistory)}
-            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors text-sm font-medium"
+            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-colors text-sm font-medium"
           >
             <History className="w-4 h-4" />
             History
@@ -212,13 +212,13 @@ export default function DailySpecialsTab() {
       {/* Search & Filter */}
       <div className="flex items-center gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
           <input
             type="text"
             placeholder="Search specials..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
+            className="w-full pl-9 pr-3 py-2 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
           />
         </div>
         <div className="flex gap-1.5">
@@ -227,7 +227,7 @@ export default function DailySpecialsTab() {
             className={`text-xs px-3 py-2 rounded-lg font-medium transition-colors ${
               categoryFilter === "All"
                 ? "bg-rose-500 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
             }`}
           >
             All
@@ -239,7 +239,7 @@ export default function DailySpecialsTab() {
               className={`text-xs px-3 py-2 rounded-lg font-medium transition-colors flex items-center gap-1.5 ${
                 categoryFilter === cat
                   ? "bg-rose-500 text-white"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
               }`}
             >
               {CATEGORY_ICONS[cat]}
@@ -258,8 +258,8 @@ export default function DailySpecialsTab() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ delay: index * 0.05 }}
-              className={`bg-white rounded-xl border shadow-sm p-4 hover:shadow-md transition-shadow ${
-                special.soldOut ? "border-gray-200 opacity-75" : "border-rose-100"
+              className={`bg-[var(--canvas)] rounded-xl border shadow-sm p-4 hover:shadow-md transition-shadow ${
+                special.soldOut ? "border-[var(--border)] opacity-75" : "border-rose-100"
               }`}
             >
               <div className="flex items-start justify-between mb-2">
@@ -289,8 +289,8 @@ export default function DailySpecialsTab() {
                     onClick={() => toggleFeatured(special.id)}
                     className={`p-1.5 rounded-lg transition-colors ${
                       special.featured
-                        ? "bg-amber-100 text-amber-600"
-                        : "hover:bg-gray-100 text-gray-400"
+                        ? "bg-[var(--accent-muted)] text-[var(--accent-text)]"
+                        : "hover:bg-[var(--surface)] text-[var(--text-3)]"
                     }`}
                     title="Feature this special"
                   >
@@ -299,12 +299,12 @@ export default function DailySpecialsTab() {
                 </div>
               </div>
 
-              <h4 className={`font-semibold text-gray-800 ${special.soldOut ? "line-through" : ""}`}>
+              <h4 className={`font-semibold text-[var(--text-1)] ${special.soldOut ? "line-through" : ""}`}>
                 {special.name}
               </h4>
-              <p className="text-xs text-gray-500 mt-0.5">{special.description}</p>
+              <p className="text-xs text-[var(--text-2)] mt-0.5">{special.description}</p>
 
-              <div className="flex items-center gap-4 mt-3 text-xs text-gray-400">
+              <div className="flex items-center gap-4 mt-3 text-xs text-[var(--text-3)]">
                 <span className="flex items-center gap-1">
                   <Clock className="w-3 h-3" />
                   Baked at {special.bakedAt}
@@ -312,10 +312,10 @@ export default function DailySpecialsTab() {
                 <span>Until {special.availableUntil}</span>
               </div>
 
-              <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-50">
+              <div className="flex items-center justify-between mt-3 pt-3 border-t border-[var(--border-soft)]">
                 <div>
-                  <p className="text-lg font-bold text-gray-800">${special.price.toFixed(2)}</p>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-lg font-bold text-[var(--text-1)]">${special.price.toFixed(2)}</p>
+                  <p className="text-xs text-[var(--text-3)]">
                     {special.availableQuantity}/{special.batchQuantity} available
                   </p>
                 </div>
@@ -328,7 +328,7 @@ export default function DailySpecialsTab() {
                         className={`text-[9px] px-1.5 py-0.5 rounded transition-colors ${
                           special.badge === badge
                             ? BADGE_STYLES[badge]
-                            : "bg-gray-50 text-gray-400 hover:bg-gray-100"
+                            : "bg-[var(--canvas-sub)] text-[var(--text-3)] hover:bg-[var(--surface)]"
                         }`}
                       >
                         {badge}
@@ -339,7 +339,7 @@ export default function DailySpecialsTab() {
                     onClick={() => toggleSoldOut(special.id)}
                     className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-colors ${
                       special.soldOut
-                        ? "bg-[#fef3dc] text-[#b25c1c] hover:bg-[#fde9ba]"
+                        ? "bg-[var(--accent-muted)] text-[#b25c1c] hover:bg-[#fde9ba]"
                         : "bg-red-100 text-red-700 hover:bg-red-200"
                     }`}
                   >
@@ -353,9 +353,9 @@ export default function DailySpecialsTab() {
       </div>
 
       {filteredSpecials.length === 0 && (
-        <div className="text-center py-12 bg-white rounded-xl border border-rose-100">
-          <Flame className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-400 text-sm">No specials found</p>
+        <div className="text-center py-12 bg-[var(--canvas)] rounded-xl border border-rose-100">
+          <Flame className="w-12 h-12 text-[var(--text-3)] mx-auto mb-3" />
+          <p className="text-[var(--text-3)] text-sm">No specials found</p>
         </div>
       )}
 
@@ -367,8 +367,8 @@ export default function DailySpecialsTab() {
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            <div className="bg-white rounded-xl border border-rose-100 shadow-sm p-5">
-              <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
+            <div className="bg-[var(--canvas)] rounded-xl border border-rose-100 shadow-sm p-5">
+              <h3 className="text-sm font-semibold text-[var(--text-2)] mb-4 flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-rose-500" />
                 Recurring Specials Schedule
               </h3>
@@ -379,8 +379,8 @@ export default function DailySpecialsTab() {
                     className="flex items-center justify-between p-3 bg-rose-50 rounded-lg"
                   >
                     <div>
-                      <p className="text-sm font-medium text-gray-700">{item.name}</p>
-                      <p className="text-xs text-gray-400">{item.category} - ${item.price.toFixed(2)}</p>
+                      <p className="text-sm font-medium text-[var(--text-2)]">{item.name}</p>
+                      <p className="text-xs text-[var(--text-3)]">{item.category} - ${item.price.toFixed(2)}</p>
                     </div>
                     <div className="flex gap-1">
                       {DAYS_OF_WEEK.map((day) => (
@@ -389,7 +389,7 @@ export default function DailySpecialsTab() {
                           className={`text-[10px] w-8 h-6 flex items-center justify-center rounded font-medium ${
                             item.days.includes(day)
                               ? "bg-rose-500 text-white"
-                              : "bg-white text-gray-400 border border-gray-200"
+                              : "bg-[var(--canvas)] text-[var(--text-3)] border border-[var(--border)]"
                           }`}
                         >
                           {day}
@@ -412,42 +412,42 @@ export default function DailySpecialsTab() {
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            <div className="bg-white rounded-xl border border-rose-100 shadow-sm p-5">
-              <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
+            <div className="bg-[var(--canvas)] rounded-xl border border-rose-100 shadow-sm p-5">
+              <h3 className="text-sm font-semibold text-[var(--text-2)] mb-4 flex items-center gap-2">
                 <History className="w-4 h-4 text-rose-500" />
                 Past Specials Performance
               </h3>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-gray-100">
-                      <th className="text-left text-xs font-medium text-gray-400 pb-2">Item</th>
-                      <th className="text-left text-xs font-medium text-gray-400 pb-2">Date</th>
-                      <th className="text-right text-xs font-medium text-gray-400 pb-2">Baked</th>
-                      <th className="text-right text-xs font-medium text-gray-400 pb-2">Sold</th>
-                      <th className="text-right text-xs font-medium text-gray-400 pb-2">Sell %</th>
-                      <th className="text-right text-xs font-medium text-gray-400 pb-2">Revenue</th>
+                    <tr className="border-b border-[var(--border-soft)]">
+                      <th className="text-left text-xs font-medium text-[var(--text-3)] pb-2">Item</th>
+                      <th className="text-left text-xs font-medium text-[var(--text-3)] pb-2">Date</th>
+                      <th className="text-right text-xs font-medium text-[var(--text-3)] pb-2">Baked</th>
+                      <th className="text-right text-xs font-medium text-[var(--text-3)] pb-2">Sold</th>
+                      <th className="text-right text-xs font-medium text-[var(--text-3)] pb-2">Sell %</th>
+                      <th className="text-right text-xs font-medium text-[var(--text-3)] pb-2">Revenue</th>
                     </tr>
                   </thead>
                   <tbody>
                     {([] as PastSpecial[]).map((h) => (
-                      <tr key={h.id} className="border-b border-gray-50">
-                        <td className="py-2 font-medium text-gray-700">{h.name}</td>
-                        <td className="py-2 text-gray-500">{h.date}</td>
-                        <td className="py-2 text-right text-gray-500">{h.quantityBaked}</td>
-                        <td className="py-2 text-right text-gray-700 font-medium">{h.quantitySold}</td>
+                      <tr key={h.id} className="border-b border-[var(--border-soft)]">
+                        <td className="py-2 font-medium text-[var(--text-2)]">{h.name}</td>
+                        <td className="py-2 text-[var(--text-2)]">{h.date}</td>
+                        <td className="py-2 text-right text-[var(--text-2)]">{h.quantityBaked}</td>
+                        <td className="py-2 text-right text-[var(--text-2)] font-medium">{h.quantitySold}</td>
                         <td className="py-2 text-right">
                           <span
                             className={`text-xs font-medium ${
                               (h.quantitySold / h.quantityBaked) * 100 >= 90
                                 ? "text-[#b25c1c]"
-                                : "text-amber-600"
+                                : "text-[var(--accent-text)]"
                             }`}
                           >
                             {((h.quantitySold / h.quantityBaked) * 100).toFixed(0)}%
                           </span>
                         </td>
-                        <td className="py-2 text-right font-semibold text-gray-800">
+                        <td className="py-2 text-right font-semibold text-[var(--text-1)]">
                           ${h.revenue.toFixed(2)}
                         </td>
                       </tr>
@@ -474,34 +474,34 @@ export default function DailySpecialsTab() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto"
+              className="bg-[var(--canvas)] rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto"
             >
-              <div className="flex items-center justify-between p-5 border-b border-gray-100">
-                <h3 className="text-lg font-bold text-gray-800">Add Daily Special</h3>
+              <div className="flex items-center justify-between p-5 border-b border-[var(--border-soft)]">
+                <h3 className="text-lg font-bold text-[var(--text-1)]">Add Daily Special</h3>
                 <button
                   onClick={() => setShowForm(false)}
-                  className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                  className="p-1.5 rounded-lg hover:bg-[var(--surface)] transition-colors"
                 >
-                  <X className="w-5 h-5 text-gray-400" />
+                  <X className="w-5 h-5 text-[var(--text-3)]" />
                 </button>
               </div>
 
               <div className="p-5 space-y-4">
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">
+                  <label className="block text-xs font-medium text-[var(--text-2)] mb-1">
                     Item Name *
                   </label>
                   <input
                     type="text"
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
+                    className="w-full px-3 py-2 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
                     placeholder="e.g., Sourdough Boule"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-2">
+                  <label className="block text-xs font-medium text-[var(--text-2)] mb-2">
                     Category *
                   </label>
                   <div className="flex gap-2">
@@ -512,7 +512,7 @@ export default function DailySpecialsTab() {
                         className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border text-sm font-medium transition-colors ${
                           form.category === cat
                             ? "bg-rose-500 text-white border-rose-500"
-                            : "bg-white text-gray-600 border-gray-200 hover:border-rose-300"
+                            : "bg-[var(--canvas)] text-[var(--text-2)] border-[var(--border)] hover:border-rose-300"
                         }`}
                       >
                         {CATEGORY_ICONS[cat]}
@@ -524,26 +524,26 @@ export default function DailySpecialsTab() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1">
+                    <label className="block text-xs font-medium text-[var(--text-2)] mb-1">
                       Quantity Baked *
                     </label>
                     <input
                       type="number"
                       value={form.batchQuantity}
                       onChange={(e) => setForm({ ...form, batchQuantity: Number(e.target.value) })}
-                      className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
+                      className="w-full px-3 py-2 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
                       min={1}
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1">
+                    <label className="block text-xs font-medium text-[var(--text-2)] mb-1">
                       Price ($)
                     </label>
                     <input
                       type="number"
                       value={form.price}
                       onChange={(e) => setForm({ ...form, price: Number(e.target.value) })}
-                      className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
+                      className="w-full px-3 py-2 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
                       min={0}
                       step={0.5}
                     />
@@ -551,32 +551,32 @@ export default function DailySpecialsTab() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">
+                  <label className="block text-xs font-medium text-[var(--text-2)] mb-1">
                     Description
                   </label>
                   <textarea
                     value={form.description}
                     onChange={(e) => setForm({ ...form, description: e.target.value })}
                     rows={2}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 resize-none"
+                    className="w-full px-3 py-2 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 resize-none"
                     placeholder="Describe this special item..."
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">
+                  <label className="block text-xs font-medium text-[var(--text-2)] mb-1">
                     Available Until
                   </label>
                   <input
                     type="time"
                     value={form.availableUntil}
                     onChange={(e) => setForm({ ...form, availableUntil: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
+                    className="w-full px-3 py-2 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-2">
+                  <label className="block text-xs font-medium text-[var(--text-2)] mb-2">
                     Badge
                   </label>
                   <div className="flex gap-2">
@@ -587,7 +587,7 @@ export default function DailySpecialsTab() {
                         className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
                           form.badge === badge
                             ? BADGE_STYLES[badge] + " border-transparent"
-                            : "bg-white text-gray-500 border-gray-200 hover:border-gray-300"
+                            : "bg-[var(--canvas)] text-[var(--text-2)] border-[var(--border)] hover:border-[var(--border)]"
                         }`}
                       >
                         {badge}
@@ -597,10 +597,10 @@ export default function DailySpecialsTab() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-3 p-5 border-t border-gray-100">
+              <div className="flex items-center justify-end gap-3 p-5 border-t border-[var(--border-soft)]">
                 <button
                   onClick={() => setShowForm(false)}
-                  className="px-4 py-2 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors"
+                  className="px-4 py-2 rounded-xl text-sm font-medium text-[var(--text-2)] hover:bg-[var(--surface)] transition-colors"
                 >
                   Cancel
                 </button>

@@ -106,11 +106,11 @@ export default function GuestBillingTab() {
     <div className="max-w-5xl mx-auto space-y-6 pb-10">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+          <h2 className="text-xl font-bold text-[var(--text-1)] flex items-center gap-2">
             <CreditCard className="h-5 w-5 text-indigo-500" />
             Guest Room Billing
           </h2>
-          <p className="text-sm text-gray-500 mt-1">Charge meals and services to guest rooms</p>
+          <p className="text-sm text-[var(--text-2)] mt-1">Charge meals and services to guest rooms</p>
         </div>
         <button
           onClick={() => setShowAddCharge(true)}
@@ -128,28 +128,28 @@ export default function GuestBillingTab() {
           { label: "Total Rooms", value: String(guests.length), icon: DoorOpen, color: "#10B981" },
           { label: "Settled Today", value: String(guests.filter((g) => g.settled).length), icon: Check, color: "#8B5CF6" },
         ].map((s) => (
-          <div key={s.label} className="rounded-xl bg-white ring-1 ring-gray-100 p-4 shadow-sm">
+          <div key={s.label} className="rounded-xl bg-[var(--canvas)] ring-1 ring-[var(--border)] p-4 shadow-sm">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-medium text-gray-500">{s.label}</span>
+              <span className="text-[11px] font-medium text-[var(--text-2)]">{s.label}</span>
               <s.icon className="h-4 w-4" style={{ color: s.color }} />
             </div>
-            <p className="text-lg font-bold text-gray-900">{s.value}</p>
+            <p className="text-lg font-bold text-[var(--text-1)]">{s.value}</p>
           </div>
         ))}
       </div>
 
-      <div className="flex items-center gap-3 rounded-xl bg-amber-50 p-4 ring-1 ring-amber-100">
-        <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />
+      <div className="flex items-center gap-3 rounded-xl bg-[var(--accent-muted)] p-4 ring-1 ring-[var(--accent-border)]">
+        <AlertTriangle className="h-4 w-4 text-[var(--accent)] shrink-0" />
         <div className="flex-1">
-          <p className="text-sm font-semibold text-gray-800">Room Charge Limits</p>
-          <p className="text-xs text-gray-500">Prevent charges exceeding the maximum per room</p>
+          <p className="text-sm font-semibold text-[var(--text-1)]">Room Charge Limits</p>
+          <p className="text-xs text-[var(--text-2)]">Prevent charges exceeding the maximum per room</p>
         </div>
         <button
           onClick={() => setMaxLimitEnabled(!maxLimitEnabled)}
-          className={`relative h-6 w-11 rounded-full transition-colors ${maxLimitEnabled ? "bg-indigo-500" : "bg-gray-200"}`}
+          className={`relative h-6 w-11 rounded-full transition-colors ${maxLimitEnabled ? "bg-indigo-500" : "bg-[var(--surface-alt)]"}`}
         >
           <span
-            className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${maxLimitEnabled ? "translate-x-5" : ""}`}
+            className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-[var(--canvas)] shadow transition-transform ${maxLimitEnabled ? "translate-x-5" : ""}`}
           />
         </button>
       </div>
@@ -157,13 +157,13 @@ export default function GuestBillingTab() {
       {/* Search & Filter */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-3)]" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by name or room number..."
-            className="w-full rounded-xl bg-gray-50 pl-10 pr-4 py-2.5 text-sm outline-none ring-1 ring-gray-200 focus:ring-indigo-400 focus:bg-white transition-all"
+            className="w-full rounded-xl bg-[var(--canvas-sub)] pl-10 pr-4 py-2.5 text-sm outline-none ring-1 ring-[var(--border)] focus:ring-indigo-400 focus:bg-[var(--canvas)] transition-all"
           />
         </div>
         <div className="flex gap-1.5">
@@ -172,7 +172,7 @@ export default function GuestBillingTab() {
               key={f}
               onClick={() => setFilter(f)}
               className={`rounded-lg px-3 py-2 text-xs font-semibold capitalize transition-all ${
-                filter === f ? "bg-indigo-100 text-indigo-700" : "bg-gray-50 text-gray-500 hover:bg-gray-100"
+                filter === f ? "bg-indigo-100 text-indigo-700" : "bg-[var(--canvas-sub)] text-[var(--text-2)] hover:bg-[var(--surface)]"
               }`}
             >
               {f}
@@ -189,20 +189,20 @@ export default function GuestBillingTab() {
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            <div className="rounded-xl bg-white ring-1 ring-gray-200 p-5 shadow-md space-y-4">
+            <div className="rounded-xl bg-[var(--canvas)] ring-1 ring-[var(--border)] p-5 shadow-md space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-gray-900">Add Room Charge</h3>
-                <button onClick={() => setShowAddCharge(false)} className="text-gray-400 hover:text-gray-600">
+                <h3 className="text-sm font-bold text-[var(--text-1)]">Add Room Charge</h3>
+                <button onClick={() => setShowAddCharge(false)} className="text-[var(--text-3)] hover:text-[var(--text-2)]">
                   <X className="h-4 w-4" />
                 </button>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">Room Number</label>
+                  <label className="block text-xs font-semibold text-[var(--text-2)] mb-1">Room Number</label>
                   <select
                     value={chargeRoom}
                     onChange={(e) => setChargeRoom(e.target.value)}
-                    className="w-full rounded-lg bg-gray-50 px-3 py-2.5 text-sm ring-1 ring-gray-200 outline-none focus:ring-indigo-400"
+                    className="w-full rounded-lg bg-[var(--canvas-sub)] px-3 py-2.5 text-sm ring-1 ring-[var(--border)] outline-none focus:ring-indigo-400"
                   >
                     <option value="">Select room</option>
                     {guests
@@ -215,33 +215,33 @@ export default function GuestBillingTab() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">Item / Service</label>
+                  <label className="block text-xs font-semibold text-[var(--text-2)] mb-1">Item / Service</label>
                   <input
                     type="text"
                     value={chargeItem}
                     onChange={(e) => setChargeItem(e.target.value)}
                     placeholder="e.g., Club Sandwich x2"
-                    className="w-full rounded-lg bg-gray-50 px-3 py-2.5 text-sm ring-1 ring-gray-200 outline-none focus:ring-indigo-400"
+                    className="w-full rounded-lg bg-[var(--canvas-sub)] px-3 py-2.5 text-sm ring-1 ring-[var(--border)] outline-none focus:ring-indigo-400"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">{`Amount (${getCurrencySymbol(cur)})`}</label>
+                  <label className="block text-xs font-semibold text-[var(--text-2)] mb-1">{`Amount (${getCurrencySymbol(cur)})`}</label>
                   <input
                     type="number"
                     value={chargeAmount}
                     onChange={(e) => setChargeAmount(e.target.value)}
                     placeholder="0"
-                    className="w-full rounded-lg bg-gray-50 px-3 py-2.5 text-sm ring-1 ring-gray-200 outline-none focus:ring-indigo-400"
+                    className="w-full rounded-lg bg-[var(--canvas-sub)] px-3 py-2.5 text-sm ring-1 ring-[var(--border)] outline-none focus:ring-indigo-400"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">Note (optional)</label>
+                  <label className="block text-xs font-semibold text-[var(--text-2)] mb-1">Note (optional)</label>
                   <input
                     type="text"
                     value={chargeNote}
                     onChange={(e) => setChargeNote(e.target.value)}
                     placeholder="e.g., Room service"
-                    className="w-full rounded-lg bg-gray-50 px-3 py-2.5 text-sm ring-1 ring-gray-200 outline-none focus:ring-indigo-400"
+                    className="w-full rounded-lg bg-[var(--canvas-sub)] px-3 py-2.5 text-sm ring-1 ring-[var(--border)] outline-none focus:ring-indigo-400"
                   />
                 </div>
               </div>
@@ -249,7 +249,7 @@ export default function GuestBillingTab() {
                 <button
                   onClick={handleAddCharge}
                   disabled={!chargeRoom || !chargeItem || !chargeAmount}
-                  className="flex items-center gap-2 rounded-lg bg-indigo-500 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-400 disabled:bg-gray-200 disabled:text-gray-400 transition-all"
+                  className="flex items-center gap-2 rounded-lg bg-indigo-500 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-400 disabled:bg-[var(--surface-alt)] disabled:text-[var(--text-3)] transition-all"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   Add Charge
@@ -271,27 +271,27 @@ export default function GuestBillingTab() {
             <motion.div
               key={guest.id}
               layout
-              className={`rounded-xl bg-white ring-1 ${guest.settled ? "ring-gray-100 opacity-60" : "ring-gray-200"} shadow-sm overflow-hidden`}
+              className={`rounded-xl bg-[var(--canvas)] ring-1 ${guest.settled ? "ring-[var(--border)] opacity-60" : "ring-[var(--border)]"} shadow-sm overflow-hidden`}
             >
               <button
                 onClick={() => setExpandedRoom(isExpanded ? null : guest.id)}
-                className="flex items-center gap-4 w-full p-4 text-left hover:bg-gray-50/50 transition-colors"
+                className="flex items-center gap-4 w-full p-4 text-left hover:bg-[var(--surface)]/50 transition-colors"
               >
-                <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${guest.settled ? "bg-gray-100" : "bg-indigo-50"}`}>
-                  <DoorOpen className={`h-5 w-5 ${guest.settled ? "text-gray-400" : "text-indigo-500"}`} />
+                <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${guest.settled ? "bg-[var(--surface)]" : "bg-indigo-50"}`}>
+                  <DoorOpen className={`h-5 w-5 ${guest.settled ? "text-[var(--text-3)]" : "text-indigo-500"}`} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold text-gray-900">Room {guest.roomNumber}</span>
+                    <span className="text-sm font-bold text-[var(--text-1)]">Room {guest.roomNumber}</span>
                     {guest.settled && (
-                      <span className="text-[10px] font-bold bg-[#fef3dc] text-[#b25c1c] px-1.5 py-0.5 rounded">SETTLED</span>
+                      <span className="text-[10px] font-bold bg-[var(--accent-muted)] text-[#b25c1c] px-1.5 py-0.5 rounded">SETTLED</span>
                     )}
                     {!guest.settled && nearLimit && (
-                      <span className="text-[10px] font-bold bg-amber-100 text-amber-600 px-1.5 py-0.5 rounded">NEAR LIMIT</span>
+                      <span className="text-[10px] font-bold bg-[var(--accent-muted)] text-[var(--accent-text)] px-1.5 py-0.5 rounded">NEAR LIMIT</span>
                     )}
                   </div>
-                  <p className="text-xs text-gray-500">{guest.guestName}</p>
-                  <div className="flex items-center gap-3 mt-1 text-[10px] text-gray-400">
+                  <p className="text-xs text-[var(--text-2)]">{guest.guestName}</p>
+                  <div className="flex items-center gap-3 mt-1 text-[10px] text-[var(--text-3)]">
                     <span className="flex items-center gap-1">
                       <Calendar className="h-2.5 w-2.5" />
                       {guest.checkIn} → {guest.checkOut}
@@ -300,23 +300,23 @@ export default function GuestBillingTab() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-lg font-bold text-gray-900">{formatPrice(total, cur)}</p>
+                  <p className="text-lg font-bold text-[var(--text-1)]">{formatPrice(total, cur)}</p>
                   {maxLimitEnabled && (
                     <div className="flex items-center gap-1.5 mt-1">
-                      <div className="h-1.5 w-16 rounded-full bg-gray-100 overflow-hidden">
+                      <div className="h-1.5 w-16 rounded-full bg-[var(--surface)] overflow-hidden">
                         <div
-                          className={`h-full rounded-full ${nearLimit ? "bg-amber-400" : "bg-indigo-400"}`}
+                          className={`h-full rounded-full ${nearLimit ? "bg-[var(--accent)]" : "bg-indigo-400"}`}
                           style={{ width: `${Math.min(limitPercent, 100)}%` }}
                         />
                       </div>
-                      <span className="text-[10px] text-gray-400">/ {formatPrice(guest.maxLimit, cur)}</span>
+                      <span className="text-[10px] text-[var(--text-3)]">/ {formatPrice(guest.maxLimit, cur)}</span>
                     </div>
                   )}
                 </div>
                 {isExpanded ? (
-                  <ChevronUp className="h-4 w-4 text-gray-400 shrink-0" />
+                  <ChevronUp className="h-4 w-4 text-[var(--text-3)] shrink-0" />
                 ) : (
-                  <ChevronDown className="h-4 w-4 text-gray-400 shrink-0" />
+                  <ChevronDown className="h-4 w-4 text-[var(--text-3)] shrink-0" />
                 )}
               </button>
 
@@ -328,21 +328,21 @@ export default function GuestBillingTab() {
                     exit={{ height: 0 }}
                     className="overflow-hidden"
                   >
-                    <div className="border-t border-gray-100 px-4 py-3 space-y-2">
+                    <div className="border-t border-[var(--border-soft)] px-4 py-3 space-y-2">
                       {guest.charges.map((charge) => (
-                        <div key={charge.id} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+                        <div key={charge.id} className="flex items-center justify-between py-2 border-b border-[var(--border-soft)] last:border-0">
                           <div>
-                            <p className="text-sm font-medium text-gray-800">{charge.item}</p>
-                            <p className="text-[11px] text-gray-400">
+                            <p className="text-sm font-medium text-[var(--text-1)]">{charge.item}</p>
+                            <p className="text-[11px] text-[var(--text-3)]">
                               {charge.time}
                               {charge.note && ` · ${charge.note}`}
                             </p>
                           </div>
-                          <span className="text-sm font-bold text-gray-700">{formatPrice(charge.amount, cur)}</span>
+                          <span className="text-sm font-bold text-[var(--text-2)]">{formatPrice(charge.amount, cur)}</span>
                         </div>
                       ))}
-                      <div className="flex items-center justify-between pt-2 border-t border-gray-200">
-                        <span className="text-sm font-bold text-gray-700">Total</span>
+                      <div className="flex items-center justify-between pt-2 border-t border-[var(--border)]">
+                        <span className="text-sm font-bold text-[var(--text-2)]">Total</span>
                         <span className="text-base font-bold text-indigo-600">{formatPrice(total, cur)}</span>
                       </div>
                       {!guest.settled && (
@@ -354,7 +354,7 @@ export default function GuestBillingTab() {
                             <Check className="h-3 w-3" />
                             Settle & Checkout
                           </button>
-                          <button className="flex items-center gap-1.5 rounded-lg bg-gray-100 px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-200 transition-all">
+                          <button className="flex items-center gap-1.5 rounded-lg bg-[var(--surface)] px-4 py-2 text-xs font-semibold text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-all">
                             <Printer className="h-3 w-3" />
                             Print Bill
                           </button>
@@ -370,8 +370,8 @@ export default function GuestBillingTab() {
 
         {filtered.length === 0 && (
           <div className="text-center py-16">
-            <CreditCard className="h-10 w-10 text-gray-200 mx-auto mb-3" />
-            <p className="text-sm text-gray-400">No guest rooms found</p>
+            <CreditCard className="h-10 w-10 text-[var(--text-3)] mx-auto mb-3" />
+            <p className="text-sm text-[var(--text-3)]">No guest rooms found</p>
           </div>
         )}
       </div>

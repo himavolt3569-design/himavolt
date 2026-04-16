@@ -103,11 +103,11 @@ const today = "2026-03-15";
 
 const statusColors: Record<ReservationStatus, string> = {
   Pending: "bg-yellow-100 text-yellow-800",
-  Confirmed: "bg-[#fef3dc] text-[#3e1e0c]",
+  Confirmed: "bg-[var(--accent-muted)] text-[var(--text-1)]",
   Seated: "bg-blue-100 text-blue-800",
-  Completed: "bg-gray-100 text-gray-700",
+  Completed: "bg-[var(--surface)] text-[var(--text-2)]",
   "No Show": "bg-red-100 text-red-800",
-  Cancelled: "bg-gray-200 text-gray-500",
+  Cancelled: "bg-[var(--surface-alt)] text-[var(--text-2)]",
 };
 
 export default function TableReservationsTab() {
@@ -244,7 +244,7 @@ export default function TableReservationsTab() {
     return (
       <div className="grid grid-cols-7 gap-1">
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-          <div key={d} className="text-center text-xs font-medium text-gray-500 py-2">
+          <div key={d} className="text-center text-xs font-medium text-[var(--text-2)] py-2">
             {d}
           </div>
         ))}
@@ -263,8 +263,8 @@ export default function TableReservationsTab() {
                 isSelected
                   ? "bg-[#eaa94d] text-white"
                   : isToday
-                  ? "bg-[#fef9ef] border-2 border-[#eaa94d] text-[#3e1e0c]"
-                  : "hover:bg-gray-100 text-gray-700"
+                  ? "bg-[var(--accent-muted)] border-2 border-[#eaa94d] text-[var(--text-1)]"
+                  : "hover:bg-[var(--surface)] text-[var(--text-2)]"
               }`}
             >
               <span className="font-medium">{day}</span>
@@ -272,8 +272,8 @@ export default function TableReservationsTab() {
                 <span
                   className={`text-[10px] px-1.5 rounded-full ${
                     isSelected
-                      ? "bg-white/30 text-white"
-                      : "bg-[#fef3dc] text-[#b25c1c]"
+                      ? "bg-[var(--canvas)]/30 text-white"
+                      : "bg-[var(--accent-muted)] text-[#b25c1c]"
                   }`}
                 >
                   {count}
@@ -306,11 +306,11 @@ export default function TableReservationsTab() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+          <h2 className="text-xl font-bold text-[var(--text-1)] flex items-center gap-2">
             <CalendarDays className="w-6 h-6 text-[#b25c1c]" />
             Table Reservations
           </h2>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-[var(--text-2)] mt-1">
             Manage bookings and table assignments
           </p>
         </div>
@@ -322,7 +322,7 @@ export default function TableReservationsTab() {
               className={`px-3 py-1.5 text-sm rounded-lg font-medium transition-colors ${
                 view === v
                   ? "bg-[#eaa94d] text-white"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
               }`}
             >
               {v === "list"
@@ -336,7 +336,7 @@ export default function TableReservationsTab() {
           ))}
           <button
             onClick={() => setShowForm(true)}
-            className="flex items-center gap-1.5 bg-[#eaa94d] text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors"
+            className="flex items-center gap-1.5 bg-[#eaa94d] text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-[#d67620] transition-colors"
           >
             <Plus className="w-4 h-4" /> New Reservation
           </button>
@@ -345,7 +345,7 @@ export default function TableReservationsTab() {
 
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         {[
-          { label: "Today Total", value: stats.todayTotal, color: "text-gray-900" },
+          { label: "Today Total", value: stats.todayTotal, color: "text-[var(--text-1)]" },
           { label: "Confirmed", value: stats.todayConfirmed, color: "text-[#b25c1c]" },
           { label: "Seated", value: stats.todaySeated, color: "text-blue-600" },
           { label: "Pending", value: stats.todayPending, color: "text-yellow-600" },
@@ -355,9 +355,9 @@ export default function TableReservationsTab() {
             key={s.label}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-xl p-4 shadow-sm border border-gray-100"
+            className="bg-[var(--canvas)] rounded-xl p-4 shadow-sm border border-[var(--border-soft)]"
           >
-            <p className="text-xs text-gray-500">{s.label}</p>
+            <p className="text-xs text-[var(--text-2)]">{s.label}</p>
             <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
           </motion.div>
         ))}
@@ -376,50 +376,50 @@ export default function TableReservationsTab() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
+              className="bg-[var(--canvas)] rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between p-5 border-b border-gray-100">
-                <h3 className="text-lg font-semibold text-gray-900">
+              <div className="flex items-center justify-between p-5 border-b border-[var(--border-soft)]">
+                <h3 className="text-lg font-semibold text-[var(--text-1)]">
                   New Reservation
                 </h3>
                 <button
                   onClick={() => setShowForm(false)}
-                  className="p-1.5 hover:bg-gray-100 rounded-lg"
+                  className="p-1.5 hover:bg-[var(--surface)] rounded-lg"
                 >
-                  <X className="w-5 h-5 text-gray-400" />
+                  <X className="w-5 h-5 text-[var(--text-3)]" />
                 </button>
               </div>
               <div className="p-5 space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-[var(--text-2)] mb-1">
                       Guest Name *
                     </label>
                     <input
                       type="text"
                       value={formName}
                       onChange={(e) => setFormName(e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                      className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#eaa94d] focus:border-[#eaa94d] outline-none"
                       placeholder="Full name"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-[var(--text-2)] mb-1">
                       Phone *
                     </label>
                     <input
                       type="text"
                       value={formPhone}
                       onChange={(e) => setFormPhone(e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                      className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#eaa94d] focus:border-[#eaa94d] outline-none"
                       placeholder="+977-98XXXXXXXX"
                     />
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-[var(--text-2)] mb-1">
                       Party Size
                     </label>
                     <input
@@ -428,28 +428,28 @@ export default function TableReservationsTab() {
                       max={20}
                       value={formPartySize}
                       onChange={(e) => setFormPartySize(Number(e.target.value))}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                      className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#eaa94d] focus:border-[#eaa94d] outline-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-[var(--text-2)] mb-1">
                       Date
                     </label>
                     <input
                       type="date"
                       value={formDate}
                       onChange={(e) => setFormDate(e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                      className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#eaa94d] focus:border-[#eaa94d] outline-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-[var(--text-2)] mb-1">
                       Time Slot
                     </label>
                     <select
                       value={formTimeSlot}
                       onChange={(e) => setFormTimeSlot(e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                      className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#eaa94d] focus:border-[#eaa94d] outline-none"
                     >
                       {TIME_SLOTS.map((t) => {
                         const used = slotsUsedForDate(formDate, t);
@@ -468,7 +468,7 @@ export default function TableReservationsTab() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-2)] mb-1">
                     Table Preference
                   </label>
                   <div className="flex gap-2">
@@ -480,7 +480,7 @@ export default function TableReservationsTab() {
                           className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                             formPreference === pref
                               ? "bg-[#eaa94d] text-white"
-                              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                              : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
                           }`}
                         >
                           {pref}
@@ -488,19 +488,19 @@ export default function TableReservationsTab() {
                       )
                     )}
                   </div>
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="text-xs text-[var(--text-3)] mt-1">
                     Auto-assigned table: {autoAssignTable(formPreference, formPartySize)} (capacity: {TABLE_CAPACITY[autoAssignTable(formPreference, formPartySize)]})
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-2)] mb-1">
                     Special Requests
                   </label>
                   <textarea
                     value={formRequests}
                     onChange={(e) => setFormRequests(e.target.value)}
                     rows={3}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none resize-none"
+                    className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#eaa94d] focus:border-[#eaa94d] outline-none resize-none"
                     placeholder="Allergies, celebrations, seating preferences..."
                   />
                 </div>
@@ -518,14 +518,14 @@ export default function TableReservationsTab() {
                       resetForm();
                       setShowForm(false);
                     }}
-                    className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                    className="px-4 py-2 text-sm text-[var(--text-2)] hover:bg-[var(--surface)] rounded-lg transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={createReservation}
                     disabled={!formName.trim() || !formPhone.trim()}
-                    className="px-6 py-2 bg-[#eaa94d] text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-6 py-2 bg-[#eaa94d] text-white text-sm font-medium rounded-lg hover:bg-[#d67620] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Create Reservation
                   </button>
@@ -549,53 +549,53 @@ export default function TableReservationsTab() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-2xl shadow-xl w-full max-w-md"
+              className="bg-[var(--canvas)] rounded-2xl shadow-xl w-full max-w-md"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="p-5 border-b border-gray-100 flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">
+              <div className="p-5 border-b border-[var(--border-soft)] flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-[var(--text-1)]">
                   Reservation Details
                 </h3>
                 <button
                   onClick={() => setSelectedReservation(null)}
-                  className="p-1.5 hover:bg-gray-100 rounded-lg"
+                  className="p-1.5 hover:bg-[var(--surface)] rounded-lg"
                 >
-                  <X className="w-5 h-5 text-gray-400" />
+                  <X className="w-5 h-5 text-[var(--text-3)]" />
                 </button>
               </div>
               <div className="p-5 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">Guest</span>
-                  <span className="font-medium text-gray-900">
+                  <span className="text-sm text-[var(--text-2)]">Guest</span>
+                  <span className="font-medium text-[var(--text-1)]">
                     {selectedReservation.guestName}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">Phone</span>
-                  <span className="text-sm text-gray-700">
+                  <span className="text-sm text-[var(--text-2)]">Phone</span>
+                  <span className="text-sm text-[var(--text-2)]">
                     {selectedReservation.phone}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">Party Size</span>
-                  <span className="text-sm text-gray-700">
+                  <span className="text-sm text-[var(--text-2)]">Party Size</span>
+                  <span className="text-sm text-[var(--text-2)]">
                     {selectedReservation.partySize} guests
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">Date & Time</span>
-                  <span className="text-sm text-gray-700">
+                  <span className="text-sm text-[var(--text-2)]">Date & Time</span>
+                  <span className="text-sm text-[var(--text-2)]">
                     {selectedReservation.date} at {selectedReservation.timeSlot}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">Table</span>
-                  <span className="text-sm text-gray-700">
+                  <span className="text-sm text-[var(--text-2)]">Table</span>
+                  <span className="text-sm text-[var(--text-2)]">
                     {selectedReservation.tableAssigned} ({selectedReservation.tablePreference})
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">Status</span>
+                  <span className="text-sm text-[var(--text-2)]">Status</span>
                   <span
                     className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                       statusColors[selectedReservation.status]
@@ -606,13 +606,13 @@ export default function TableReservationsTab() {
                 </div>
                 {selectedReservation.specialRequests && (
                   <div>
-                    <span className="text-sm text-gray-500">Special Requests</span>
-                    <p className="text-sm text-gray-700 mt-1 bg-gray-50 rounded-lg p-2">
+                    <span className="text-sm text-[var(--text-2)]">Special Requests</span>
+                    <p className="text-sm text-[var(--text-2)] mt-1 bg-[var(--canvas-sub)] rounded-lg p-2">
                       {selectedReservation.specialRequests}
                     </p>
                   </div>
                 )}
-                <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-100">
+                <div className="flex flex-wrap gap-2 pt-3 border-t border-[var(--border-soft)]">
                   {selectedReservation.status === "Pending" && (
                     <button
                       onClick={() => {
@@ -622,7 +622,7 @@ export default function TableReservationsTab() {
                           status: "Confirmed",
                         });
                       }}
-                      className="flex items-center gap-1 px-3 py-1.5 bg-[#fef3dc] text-[#b25c1c] rounded-lg text-sm font-medium hover:bg-[#fde9ba]"
+                      className="flex items-center gap-1 px-3 py-1.5 bg-[var(--accent-muted)] text-[#b25c1c] rounded-lg text-sm font-medium hover:bg-[#fde9ba]"
                     >
                       <CheckCircle2 className="w-3.5 h-3.5" /> Confirm
                     </button>
@@ -661,7 +661,7 @@ export default function TableReservationsTab() {
                             status: "Cancelled",
                           });
                         }}
-                        className="flex items-center gap-1 px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-200"
+                        className="flex items-center gap-1 px-3 py-1.5 bg-[var(--surface)] text-[var(--text-2)] rounded-lg text-sm font-medium hover:bg-[var(--surface-alt)]"
                       >
                         <XCircle className="w-3.5 h-3.5" /> Cancel
                       </button>
@@ -676,7 +676,7 @@ export default function TableReservationsTab() {
                           status: "Completed",
                         });
                       }}
-                      className="flex items-center gap-1 px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200"
+                      className="flex items-center gap-1 px-3 py-1.5 bg-[var(--surface)] text-[var(--text-2)] rounded-lg text-sm font-medium hover:bg-[var(--surface-alt)]"
                     >
                       <CheckCircle2 className="w-3.5 h-3.5" /> Complete
                     </button>
@@ -706,8 +706,8 @@ export default function TableReservationsTab() {
         >
           {/* Today's Highlighted */}
           {todayReservations.length > 0 && (
-            <div className="bg-[#fef9ef] border border-[#eaa94d]/30 rounded-xl p-4">
-              <h3 className="text-sm font-semibold text-[#3e1e0c] mb-2 flex items-center gap-1.5">
+            <div className="bg-[var(--accent-muted)] border border-[var(--accent-border)] rounded-xl p-4">
+              <h3 className="text-sm font-semibold text-[var(--text-1)] mb-2 flex items-center gap-1.5">
                 <Clock className="w-4 h-4" /> Today&apos;s Reservations ({todayReservations.length})
               </h3>
               <div className="flex flex-wrap gap-2">
@@ -721,17 +721,17 @@ export default function TableReservationsTab() {
                     <button
                       key={r.id}
                       onClick={() => setSelectedReservation(r)}
-                      className="bg-white rounded-lg px-3 py-2 text-sm shadow-sm border border-[#eaa94d]/30 hover:shadow-md transition-shadow text-left"
+                      className="bg-[var(--canvas)] rounded-lg px-3 py-2 text-sm shadow-sm border border-[var(--accent-border)] hover:shadow-md transition-shadow text-left"
                     >
-                      <span className="font-medium text-gray-900">
+                      <span className="font-medium text-[var(--text-1)]">
                         {r.guestName}
                       </span>
-                      <span className="text-gray-500 mx-1.5">|</span>
-                      <span className="text-gray-600">{r.timeSlot}</span>
-                      <span className="text-gray-500 mx-1.5">|</span>
-                      <Users className="w-3 h-3 inline text-gray-400" />{" "}
-                      <span className="text-gray-600">{r.partySize}</span>
-                      <span className="text-gray-500 mx-1.5">|</span>
+                      <span className="text-[var(--text-2)] mx-1.5">|</span>
+                      <span className="text-[var(--text-2)]">{r.timeSlot}</span>
+                      <span className="text-[var(--text-2)] mx-1.5">|</span>
+                      <Users className="w-3 h-3 inline text-[var(--text-3)]" />{" "}
+                      <span className="text-[var(--text-2)]">{r.partySize}</span>
+                      <span className="text-[var(--text-2)] mx-1.5">|</span>
                       <span
                         className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
                           statusColors[r.status]
@@ -747,13 +747,13 @@ export default function TableReservationsTab() {
 
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-3)]" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search by name or phone..."
-                className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                className="w-full pl-9 pr-3 py-2 border border-[var(--border)] rounded-lg text-sm focus:ring-2 focus:ring-[#eaa94d] focus:border-[#eaa94d] outline-none"
               />
             </div>
             <select
@@ -761,7 +761,7 @@ export default function TableReservationsTab() {
               onChange={(e) =>
                 setFilterStatus(e.target.value as ReservationStatus | "All")
               }
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+              className="border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#eaa94d] focus:border-[#eaa94d] outline-none"
             >
               <option value="All">All Statuses</option>
               {(
@@ -781,27 +781,27 @@ export default function TableReservationsTab() {
             </select>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="bg-[var(--canvas)] rounded-xl shadow-sm border border-[var(--border-soft)] overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-gray-50 border-b border-gray-100">
-                    <th className="text-left px-4 py-3 font-medium text-gray-600">
+                  <tr className="bg-[var(--canvas-sub)] border-b border-[var(--border-soft)]">
+                    <th className="text-left px-4 py-3 font-medium text-[var(--text-2)]">
                       Guest
                     </th>
-                    <th className="text-left px-4 py-3 font-medium text-gray-600">
+                    <th className="text-left px-4 py-3 font-medium text-[var(--text-2)]">
                       Party
                     </th>
-                    <th className="text-left px-4 py-3 font-medium text-gray-600">
+                    <th className="text-left px-4 py-3 font-medium text-[var(--text-2)]">
                       Date & Time
                     </th>
-                    <th className="text-left px-4 py-3 font-medium text-gray-600">
+                    <th className="text-left px-4 py-3 font-medium text-[var(--text-2)]">
                       Table
                     </th>
-                    <th className="text-left px-4 py-3 font-medium text-gray-600">
+                    <th className="text-left px-4 py-3 font-medium text-[var(--text-2)]">
                       Status
                     </th>
-                    <th className="text-left px-4 py-3 font-medium text-gray-600">
+                    <th className="text-left px-4 py-3 font-medium text-[var(--text-2)]">
                       Actions
                     </th>
                   </tr>
@@ -814,36 +814,36 @@ export default function TableReservationsTab() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className={`border-b border-gray-50 hover:bg-gray-50 cursor-pointer ${
+                        className={`border-b border-[var(--border-soft)] hover:bg-[var(--canvas-sub)] cursor-pointer ${
                           r.date === today ? "bg-[#fef9ef]/30" : ""
                         }`}
                         onClick={() => setSelectedReservation(r)}
                       >
                         <td className="px-4 py-3">
                           <div>
-                            <p className="font-medium text-gray-900">
+                            <p className="font-medium text-[var(--text-1)]">
                               {r.guestName}
                             </p>
-                            <p className="text-xs text-gray-400 flex items-center gap-1">
+                            <p className="text-xs text-[var(--text-3)] flex items-center gap-1">
                               <Phone className="w-3 h-3" /> {r.phone}
                             </p>
                           </div>
                         </td>
                         <td className="px-4 py-3">
-                          <span className="flex items-center gap-1 text-gray-700">
-                            <Users className="w-3.5 h-3.5 text-gray-400" />{" "}
+                          <span className="flex items-center gap-1 text-[var(--text-2)]">
+                            <Users className="w-3.5 h-3.5 text-[var(--text-3)]" />{" "}
                             {r.partySize}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-gray-700">
+                        <td className="px-4 py-3 text-[var(--text-2)]">
                           <p>{r.date}</p>
-                          <p className="text-xs text-gray-500">{r.timeSlot}</p>
+                          <p className="text-xs text-[var(--text-2)]">{r.timeSlot}</p>
                         </td>
                         <td className="px-4 py-3">
-                          <span className="text-gray-700 font-mono text-xs bg-gray-100 px-2 py-0.5 rounded">
+                          <span className="text-[var(--text-2)] font-mono text-xs bg-[var(--surface)] px-2 py-0.5 rounded">
                             {r.tableAssigned}
                           </span>
-                          <span className="text-xs text-gray-400 ml-1">
+                          <span className="text-xs text-[var(--text-3)] ml-1">
                             {r.tablePreference}
                           </span>
                         </td>
@@ -862,9 +862,9 @@ export default function TableReservationsTab() {
                               e.stopPropagation();
                               setSelectedReservation(r);
                             }}
-                            className="p-1.5 hover:bg-gray-100 rounded-lg"
+                            className="p-1.5 hover:bg-[var(--surface)] rounded-lg"
                           >
-                            <Eye className="w-4 h-4 text-gray-500" />
+                            <Eye className="w-4 h-4 text-[var(--text-2)]" />
                           </button>
                         </td>
                       </motion.tr>
@@ -874,7 +874,7 @@ export default function TableReservationsTab() {
               </table>
             </div>
             {filteredReservations.length === 0 && (
-              <div className="text-center py-12 text-gray-400">
+              <div className="text-center py-12 text-[var(--text-3)]">
                 <CalendarDays className="w-10 h-10 mx-auto mb-2 opacity-50" />
                 <p className="text-sm">No reservations found</p>
               </div>
@@ -889,7 +889,7 @@ export default function TableReservationsTab() {
           animate={{ opacity: 1 }}
           className="space-y-4"
         >
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+          <div className="bg-[var(--canvas)] rounded-xl shadow-sm border border-[var(--border-soft)] p-5">
             <div className="flex items-center justify-between mb-4">
               <button
                 onClick={() =>
@@ -900,11 +900,11 @@ export default function TableReservationsTab() {
                       : { ...prev, month: m };
                   })
                 }
-                className="p-1.5 hover:bg-gray-100 rounded-lg"
+                className="p-1.5 hover:bg-[var(--surface)] rounded-lg"
               >
-                <ChevronLeft className="w-5 h-5 text-gray-600" />
+                <ChevronLeft className="w-5 h-5 text-[var(--text-2)]" />
               </button>
-              <h3 className="text-lg font-semibold text-gray-900">
+              <h3 className="text-lg font-semibold text-[var(--text-1)]">
                 {monthNames[calendarMonth.month]} {calendarMonth.year}
               </h3>
               <button
@@ -916,25 +916,25 @@ export default function TableReservationsTab() {
                       : { ...prev, month: m };
                   })
                 }
-                className="p-1.5 hover:bg-gray-100 rounded-lg"
+                className="p-1.5 hover:bg-[var(--surface)] rounded-lg"
               >
-                <ChevronRight className="w-5 h-5 text-gray-600" />
+                <ChevronRight className="w-5 h-5 text-[var(--text-2)]" />
               </button>
             </div>
             {renderCalendar()}
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">
+          <div className="bg-[var(--canvas)] rounded-xl shadow-sm border border-[var(--border-soft)] p-5">
+            <h3 className="text-sm font-semibold text-[var(--text-1)] mb-3">
               Reservations for {selectedDate}
               {selectedDate === today && (
-                <span className="ml-2 text-xs bg-[#fef3dc] text-[#b25c1c] px-2 py-0.5 rounded-full">
+                <span className="ml-2 text-xs bg-[var(--accent-muted)] text-[#b25c1c] px-2 py-0.5 rounded-full">
                   Today
                 </span>
               )}
             </h3>
             {reservationsForDate(selectedDate).length === 0 ? (
-              <p className="text-sm text-gray-400 py-6 text-center">
+              <p className="text-sm text-[var(--text-3)] py-6 text-center">
                 No reservations for this date
               </p>
             ) : (
@@ -949,16 +949,16 @@ export default function TableReservationsTab() {
                     <button
                       key={r.id}
                       onClick={() => setSelectedReservation(r)}
-                      className="w-full flex items-center justify-between bg-gray-50 rounded-lg px-4 py-3 hover:bg-gray-100 transition-colors text-left"
+                      className="w-full flex items-center justify-between bg-[var(--canvas-sub)] rounded-lg px-4 py-3 hover:bg-[var(--surface)] transition-colors text-left"
                     >
                       <div className="flex items-center gap-3">
                         <span className="text-sm font-medium text-[#b25c1c] w-20">
                           {r.timeSlot}
                         </span>
-                        <span className="text-sm font-medium text-gray-900">
+                        <span className="text-sm font-medium text-[var(--text-1)]">
                           {r.guestName}
                         </span>
-                        <span className="text-xs text-gray-500 flex items-center gap-1">
+                        <span className="text-xs text-[var(--text-2)] flex items-center gap-1">
                           <Users className="w-3 h-3" /> {r.partySize}
                         </span>
                       </div>
@@ -981,30 +981,30 @@ export default function TableReservationsTab() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
+          className="bg-[var(--canvas)] rounded-xl shadow-sm border border-[var(--border-soft)] overflow-hidden"
         >
-          <div className="p-5 border-b border-gray-100">
-            <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+          <div className="p-5 border-b border-[var(--border-soft)]">
+            <h3 className="text-sm font-semibold text-[var(--text-1)] flex items-center gap-2">
               <UserX className="w-4 h-4 text-red-500" /> No-Show Blacklist
             </h3>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-[var(--text-2)] mt-1">
               Guests with repeated no-show history
             </p>
           </div>
           {blacklist.length === 0 ? (
-            <div className="text-center py-12 text-gray-400">
+            <div className="text-center py-12 text-[var(--text-3)]">
               <p className="text-sm">No blacklisted guests</p>
             </div>
           ) : (
-            <div className="divide-y divide-gray-50">
+            <div className="divide-y divide-[var(--border)]">
               {blacklist.map((b) => (
                 <div
                   key={b.id}
                   className="flex items-center justify-between px-5 py-3"
                 >
                   <div>
-                    <p className="text-sm font-medium text-gray-900">{b.name}</p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-sm font-medium text-[var(--text-1)]">{b.name}</p>
+                    <p className="text-xs text-[var(--text-2)]">
                       {b.phone} &middot; {b.noShowCount} no-show(s) &middot;
                       Blacklisted {b.blacklistedAt}
                     </p>
@@ -1026,15 +1026,15 @@ export default function TableReservationsTab() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 space-y-5"
+          className="bg-[var(--canvas)] rounded-xl shadow-sm border border-[var(--border-soft)] p-5 space-y-5"
         >
-          <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-            <Settings className="w-4 h-4 text-gray-500" /> Reservation Capacity
+          <h3 className="text-sm font-semibold text-[var(--text-1)] flex items-center gap-2">
+            <Settings className="w-4 h-4 text-[var(--text-2)]" /> Reservation Capacity
             Settings
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-[var(--text-2)] mb-1">
                 Max Reservations per Time Slot
               </label>
               <input
@@ -1048,14 +1048,14 @@ export default function TableReservationsTab() {
                     maxPerSlot: Number(e.target.value),
                   }))
                 }
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#eaa94d] focus:border-[#eaa94d] outline-none"
               />
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="text-xs text-[var(--text-3)] mt-1">
                 Limits how many bookings can be made for each time slot
               </p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-[var(--text-2)] mb-1">
                 Buffer Time Between Seatings (minutes)
               </label>
               <input
@@ -1069,19 +1069,19 @@ export default function TableReservationsTab() {
                     bufferMinutes: Number(e.target.value),
                   }))
                 }
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#eaa94d] focus:border-[#eaa94d] outline-none"
               />
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="text-xs text-[var(--text-3)] mt-1">
                 Time reserved between seatings for cleanup
               </p>
             </div>
           </div>
-          <div className="flex items-center justify-between bg-gray-50 rounded-lg p-4">
+          <div className="flex items-center justify-between bg-[var(--canvas-sub)] rounded-lg p-4">
             <div>
-              <p className="text-sm font-medium text-gray-900">
+              <p className="text-sm font-medium text-[var(--text-1)]">
                 SMS / Notification Reminders
               </p>
-              <p className="text-xs text-gray-500 mt-0.5">
+              <p className="text-xs text-[var(--text-2)] mt-0.5">
                 Send automated reminders before reservation time
               </p>
             </div>
@@ -1097,7 +1097,7 @@ export default function TableReservationsTab() {
               {capacitySettings.smsReminders ? (
                 <ToggleRight className="w-8 h-8" />
               ) : (
-                <ToggleLeft className="w-8 h-8 text-gray-400" />
+                <ToggleLeft className="w-8 h-8 text-[var(--text-3)]" />
               )}
             </button>
           </div>

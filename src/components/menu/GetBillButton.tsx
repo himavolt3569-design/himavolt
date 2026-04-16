@@ -69,17 +69,17 @@ export default function GetBillButton({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ type: "spring", damping: 25 }}
-              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[90%] max-w-sm rounded-2xl bg-white shadow-2xl overflow-hidden"
+              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[90%] max-w-sm rounded-2xl bg-[var(--canvas)] shadow-2xl overflow-hidden"
             >
-              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-soft)]">
                 <div className="flex items-center gap-2">
                   <Receipt className="h-5 w-5 text-[#b25c1c]" />
-                  <h3 className="text-base font-bold text-gray-900">Get Bill</h3>
+                  <h3 className="text-base font-bold text-[var(--text-1)]">Get Bill</h3>
                 </div>
                 {!loading && (
                   <button
                     onClick={() => setShowModal(false)}
-                    className="rounded-full p-2 text-gray-400 hover:bg-gray-50 transition-colors cursor-pointer"
+                    className="rounded-full p-2 text-[var(--text-3)] hover:bg-[var(--canvas-sub)] transition-colors cursor-pointer"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -93,12 +93,12 @@ export default function GetBillButton({
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                       transition={{ type: "spring", stiffness: 500, damping: 15 }}
-                      className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[#fef3dc]"
+                      className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--accent-muted)]"
                     >
                       <Receipt className="h-6 w-6 text-[#b25c1c]" />
                     </motion.div>
-                    <p className="font-bold text-gray-900">Bill requested!</p>
-                    <p className="text-sm text-gray-500 mt-1">
+                    <p className="font-bold text-[var(--text-1)]">Bill requested!</p>
+                    <p className="text-sm text-[var(--text-2)] mt-1">
                       {paymentMethod === "CASH"
                         ? "Please proceed to the counter for payment."
                         : "Your payment has been recorded. Thank you!"}
@@ -106,14 +106,14 @@ export default function GetBillButton({
                   </div>
                 ) : (
                   <>
-                    <div className="rounded-xl bg-gray-50 p-4 space-y-2">
+                    <div className="rounded-xl bg-[var(--canvas-sub)] p-4 space-y-2">
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-500">Items</span>
-                        <span className="font-medium text-gray-900">{itemCount}</span>
+                        <span className="text-[var(--text-2)]">Items</span>
+                        <span className="font-medium text-[var(--text-1)]">{itemCount}</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-500">Payment</span>
-                        <span className="flex items-center gap-1 font-medium text-gray-900">
+                        <span className="text-[var(--text-2)]">Payment</span>
+                        <span className="flex items-center gap-1 font-medium text-[var(--text-1)]">
                           {paymentMethod === "CASH" ? (
                             <Banknote className="h-3.5 w-3.5 text-[#b25c1c]" />
                           ) : (
@@ -122,22 +122,22 @@ export default function GetBillButton({
                           {paymentMethod || "CASH"}
                         </span>
                       </div>
-                      <div className="border-t border-gray-200 pt-2 flex justify-between">
-                        <span className="font-bold text-gray-900">Total</span>
+                      <div className="border-t border-[var(--border)] pt-2 flex justify-between">
+                        <span className="font-bold text-[var(--text-1)]">Total</span>
                         <span className="font-bold text-[#b25c1c] text-lg">
                           {formatPrice(total, currency)}
                         </span>
                       </div>
                     </div>
 
-                    <p className="text-xs text-gray-400 text-center">
+                    <p className="text-xs text-[var(--text-3)] text-center">
                       This will end your table session. All orders will be finalized.
                     </p>
 
                     <button
                       onClick={handleGetBill}
                       disabled={loading}
-                      className="w-full rounded-xl bg-[#eaa94d] py-3 text-sm font-bold text-white hover:bg-[#fef9ef]0 transition-colors disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+                      className="w-full rounded-xl bg-[#eaa94d] py-3 text-sm font-bold text-white hover:bg-[var(--accent-muted)]0 transition-colors disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
                     >
                       {loading ? (
                         <Loader2 className="h-4 w-4 animate-spin" />

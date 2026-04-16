@@ -29,9 +29,9 @@ export default function KioskCategoryBar({ categories, activeId, onSelect }: Pro
     <div className="relative flex items-center gap-2">
       <button
         onClick={() => scroll("left")}
-        className="shrink-0 flex h-10 w-10 items-center justify-center rounded-xl bg-white border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors"
+        className="shrink-0 flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--canvas)] border border-[var(--border)] shadow-sm hover:bg-[var(--canvas-sub)] transition-colors"
       >
-        <ChevronLeft className="h-4 w-4 text-gray-500" />
+        <ChevronLeft className="h-4 w-4 text-[var(--text-2)]" />
       </button>
 
       <div
@@ -43,8 +43,8 @@ export default function KioskCategoryBar({ categories, activeId, onSelect }: Pro
           onClick={() => onSelect("ALL")}
           className={`shrink-0 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all ${
             activeId === "ALL"
-              ? "bg-amber-600 text-white shadow-md shadow-amber-600/25"
-              : "bg-white text-gray-600 border border-gray-200 hover:border-amber-300 hover:bg-amber-50"
+              ? "bg-[var(--accent-hover)] text-white shadow-md shadow-[var(--accent)]/20/25"
+              : "bg-[var(--canvas)] text-[var(--text-2)] border border-[var(--border)] hover:border-[var(--accent-border)] hover:bg-[var(--accent-muted)]"
           }`}
         >
           All Items
@@ -57,8 +57,8 @@ export default function KioskCategoryBar({ categories, activeId, onSelect }: Pro
             onClick={() => onSelect(cat.id)}
             className={`shrink-0 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all ${
               activeId === cat.id
-                ? "bg-amber-600 text-white shadow-md shadow-amber-600/25"
-                : "bg-white text-gray-600 border border-gray-200 hover:border-amber-300 hover:bg-amber-50"
+                ? "bg-[var(--accent-hover)] text-white shadow-md shadow-[var(--accent)]/20/25"
+                : "bg-[var(--canvas)] text-[var(--text-2)] border border-[var(--border)] hover:border-[var(--accent-border)] hover:bg-[var(--accent-muted)]"
             }`}
           >
             {cat.name}
@@ -68,9 +68,9 @@ export default function KioskCategoryBar({ categories, activeId, onSelect }: Pro
 
       <button
         onClick={() => scroll("right")}
-        className="shrink-0 flex h-10 w-10 items-center justify-center rounded-xl bg-white border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors"
+        className="shrink-0 flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--canvas)] border border-[var(--border)] shadow-sm hover:bg-[var(--canvas-sub)] transition-colors"
       >
-        <ChevronRight className="h-4 w-4 text-gray-500" />
+        <ChevronRight className="h-4 w-4 text-[var(--text-2)]" />
       </button>
     </div>
   );

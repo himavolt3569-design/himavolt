@@ -54,11 +54,11 @@ const STATUS_CONFIG: Record<
   OrderStatus,
   { bg: string; text: string; icon: typeof Clock }
 > = {
-  Received: { bg: "bg-orange-100", text: "text-orange-700", icon: Package },
-  Preparing: { bg: "bg-amber-100", text: "text-amber-700", icon: ChefHat },
+  Received: { bg: "bg-[var(--accent)]", text: "text-[var(--accent)]", icon: Package },
+  Preparing: { bg: "bg-[var(--accent-muted)]", text: "text-[var(--accent-text)]", icon: ChefHat },
   "On the Way": { bg: "bg-blue-100", text: "text-blue-700", icon: Truck },
   Delivered: {
-    bg: "bg-[#fef3dc]",
+    bg: "bg-[var(--accent-muted)]",
     text: "text-[#b25c1c]",
     icon: CheckCircle2,
   },
@@ -197,7 +197,7 @@ export default function RoomServiceTab() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => setShowNewOrder(true)}
-            className="flex items-center gap-2 rounded-xl bg-amber-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-amber-700"
+            className="flex items-center gap-2 rounded-xl bg-[var(--accent-hover)] px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-[var(--accent-hover)]"
           >
             <Plus className="h-4 w-4" />
             New Order
@@ -211,15 +211,15 @@ export default function RoomServiceTab() {
             label: "Active Orders",
             value: activeOrders,
             icon: Package,
-            color: "text-orange-600",
-            bg: "bg-orange-50",
+            color: "text-[var(--accent)]",
+            bg: "bg-[var(--accent)]",
           },
           {
             label: "Today's Revenue",
             value: `$${totalRevenue.toFixed(2)}`,
             icon: DollarSign,
             color: "text-[#b25c1c]",
-            bg: "bg-[#fef9ef]",
+            bg: "bg-[var(--accent-muted)]",
           },
           {
             label: "24/7 Service",
@@ -232,8 +232,8 @@ export default function RoomServiceTab() {
             label: "Menu Items",
             value: menuItems.filter((m) => m.availableForRoomService).length,
             icon: Utensils,
-            color: "text-amber-600",
-            bg: "bg-amber-50",
+            color: "text-[var(--accent-text)]",
+            bg: "bg-[var(--accent-muted)]",
           },
         ].map((stat) => (
           <motion.div
@@ -264,7 +264,7 @@ export default function RoomServiceTab() {
             onClick={() => setActiveView(view)}
             className={`flex-1 rounded-lg px-4 py-2 text-sm font-medium capitalize transition ${
               activeView === view
-                ? "bg-white text-stone-800 shadow-sm"
+                ? "bg-[var(--canvas)] text-stone-800 shadow-sm"
                 : "text-stone-500 hover:text-stone-700"
             }`}
           >
@@ -293,7 +293,7 @@ export default function RoomServiceTab() {
                   onClick={() => setOrderFilter(status)}
                   className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
                     orderFilter === status
-                      ? "bg-amber-600 text-white"
+                      ? "bg-[var(--accent-hover)] text-white"
                       : "bg-stone-100 text-stone-600 hover:bg-stone-200"
                   }`}
                 >
@@ -321,13 +321,13 @@ export default function RoomServiceTab() {
                     layout
                     initial={{ opacity: 0, scale: 0.98 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="rounded-xl border border-stone-200 bg-white p-5 shadow-sm"
+                    className="rounded-xl border border-stone-200 bg-[var(--canvas)] p-5 shadow-sm"
                   >
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                       <div className="flex-1 space-y-3">
                         <div className="flex items-center gap-3">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100">
-                            <BedDouble className="h-5 w-5 text-amber-700" />
+                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--accent-muted)]">
+                            <BedDouble className="h-5 w-5 text-[var(--accent-text)]" />
                           </div>
                           <div>
                             <p className="font-semibold text-stone-800">
@@ -384,7 +384,7 @@ export default function RoomServiceTab() {
                               onChange={(e) =>
                                 assignStaff(order.id, e.target.value)
                               }
-                              className="rounded border border-stone-200 bg-white px-2 py-0.5 text-xs text-stone-700"
+                              className="rounded border border-stone-200 bg-[var(--canvas)] px-2 py-0.5 text-xs text-stone-700"
                             >
                               <option value="Unassigned">Unassigned</option>
                               {STAFF_LIST.map((s) => (
@@ -400,7 +400,7 @@ export default function RoomServiceTab() {
                       {order.status !== "Delivered" && (
                         <button
                           onClick={() => advanceOrderStatus(order.id)}
-                          className="rounded-lg bg-amber-50 px-4 py-2 text-sm font-medium text-amber-700 transition hover:bg-amber-100"
+                          className="rounded-lg bg-[var(--accent-muted)] px-4 py-2 text-sm font-medium text-[var(--accent-text)] transition hover:bg-[var(--accent-muted)]"
                         >
                           {order.status === "Received"
                             ? "Start Preparing"
@@ -437,7 +437,7 @@ export default function RoomServiceTab() {
                 placeholder="Search menu items..."
                 value={menuSearch}
                 onChange={(e) => setMenuSearch(e.target.value)}
-                className="w-full rounded-xl border border-stone-200 bg-white py-2.5 pl-10 pr-4 text-sm text-stone-700 placeholder:text-stone-400 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100"
+                className="w-full rounded-xl border border-stone-200 bg-[var(--canvas)] py-2.5 pl-10 pr-4 text-sm text-stone-700 placeholder:text-stone-400 focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
               />
             </div>
 
@@ -446,7 +446,7 @@ export default function RoomServiceTab() {
                 <motion.div
                   key={item.id}
                   layout
-                  className="flex items-center justify-between rounded-xl border border-stone-200 bg-white px-5 py-4 shadow-sm"
+                  className="flex items-center justify-between rounded-xl border border-stone-200 bg-[var(--canvas)] px-5 py-4 shadow-sm"
                 >
                   <div className="flex items-center gap-3">
                     <Utensils className="h-4 w-4 text-stone-400" />
@@ -464,12 +464,12 @@ export default function RoomServiceTab() {
                     className="flex items-center gap-2"
                   >
                     {item.availableForRoomService ? (
-                      <ToggleRight className="h-7 w-7 text-amber-600" />
+                      <ToggleRight className="h-7 w-7 text-[var(--accent-text)]" />
                     ) : (
                       <ToggleLeft className="h-7 w-7 text-stone-300" />
                     )}
                     <span
-                      className={`text-xs font-medium ${item.availableForRoomService ? "text-amber-600" : "text-stone-400"}`}
+                      className={`text-xs font-medium ${item.availableForRoomService ? "text-[var(--accent-text)]" : "text-stone-400"}`}
                     >
                       {item.availableForRoomService ? "Available" : "Off"}
                     </span>
@@ -489,10 +489,10 @@ export default function RoomServiceTab() {
             className="space-y-6"
           >
             {/* 24/7 Toggle */}
-            <div className="rounded-xl border border-stone-200 bg-white p-6 shadow-sm">
+            <div className="rounded-xl border border-stone-200 bg-[var(--canvas)] p-6 shadow-sm">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <Clock className="h-5 w-5 text-amber-600" />
+                  <Clock className="h-5 w-5 text-[var(--accent-text)]" />
                   <div>
                     <p className="font-medium text-stone-800">
                       24/7 Room Service
@@ -504,7 +504,7 @@ export default function RoomServiceTab() {
                 </div>
                 <button onClick={() => setIs24_7(!is24_7)}>
                   {is24_7 ? (
-                    <ToggleRight className="h-8 w-8 text-amber-600" />
+                    <ToggleRight className="h-8 w-8 text-[var(--accent-text)]" />
                   ) : (
                     <ToggleLeft className="h-8 w-8 text-stone-300" />
                   )}
@@ -530,7 +530,7 @@ export default function RoomServiceTab() {
                           start: e.target.value,
                         }))
                       }
-                      className="rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-700 focus:border-amber-400 focus:outline-none"
+                      className="rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-700 focus:border-[var(--accent)] focus:outline-none"
                     />
                   </div>
                   <div>
@@ -546,16 +546,16 @@ export default function RoomServiceTab() {
                           end: e.target.value,
                         }))
                       }
-                      className="rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-700 focus:border-amber-400 focus:outline-none"
+                      className="rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-700 focus:border-[var(--accent)] focus:outline-none"
                     />
                   </div>
                 </motion.div>
               )}
             </div>
 
-            <div className="rounded-xl border border-stone-200 bg-white p-6 shadow-sm">
+            <div className="rounded-xl border border-stone-200 bg-[var(--canvas)] p-6 shadow-sm">
               <div className="flex items-center gap-3 mb-4">
-                <DollarSign className="h-5 w-5 text-amber-600" />
+                <DollarSign className="h-5 w-5 text-[var(--accent-text)]" />
                 <div>
                   <p className="font-medium text-stone-800">
                     Room Service Surcharge
@@ -574,7 +574,7 @@ export default function RoomServiceTab() {
                     }
                     className={`rounded-md px-3 py-1.5 text-xs font-medium transition ${
                       surcharge.type === "flat"
-                        ? "bg-white text-stone-800 shadow-sm"
+                        ? "bg-[var(--canvas)] text-stone-800 shadow-sm"
                         : "text-stone-500"
                     }`}
                   >
@@ -586,7 +586,7 @@ export default function RoomServiceTab() {
                     }
                     className={`rounded-md px-3 py-1.5 text-xs font-medium transition ${
                       surcharge.type === "percentage"
-                        ? "bg-white text-stone-800 shadow-sm"
+                        ? "bg-[var(--canvas)] text-stone-800 shadow-sm"
                         : "text-stone-500"
                     }`}
                   >
@@ -606,7 +606,7 @@ export default function RoomServiceTab() {
                         value: parseFloat(e.target.value) || 0,
                       }))
                     }
-                    className="w-24 rounded-lg border border-stone-200 py-2 pl-7 pr-3 text-sm text-stone-700 focus:border-amber-400 focus:outline-none"
+                    className="w-24 rounded-lg border border-stone-200 py-2 pl-7 pr-3 text-sm text-stone-700 focus:border-[var(--accent)] focus:outline-none"
                   />
                   {surcharge.type === "percentage" && (
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-stone-400">
@@ -634,7 +634,7 @@ export default function RoomServiceTab() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl"
+              className="w-full max-w-lg rounded-2xl bg-[var(--canvas)] p-6 shadow-xl"
             >
               <div className="mb-6 flex items-center justify-between">
                 <h3 className="text-lg font-bold text-stone-800">
@@ -658,7 +658,7 @@ export default function RoomServiceTab() {
                     value={newOrderRoom}
                     onChange={(e) => setNewOrderRoom(e.target.value)}
                     placeholder="e.g., 301"
-                    className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 placeholder:text-stone-400 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100"
+                    className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 placeholder:text-stone-400 focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                   />
                 </div>
 
@@ -671,7 +671,7 @@ export default function RoomServiceTab() {
                       <button
                         key={item.id}
                         onClick={() => addItemToNewOrder(item)}
-                        className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm text-stone-700 transition hover:bg-amber-50"
+                        className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm text-stone-700 transition hover:bg-[var(--accent-muted)]"
                       >
                         <span>{item.name}</span>
                         <span className="text-stone-400">
@@ -687,7 +687,7 @@ export default function RoomServiceTab() {
                     <label className="mb-1.5 block text-sm font-medium text-stone-700">
                       Order Items
                     </label>
-                    <div className="space-y-1 rounded-xl bg-amber-50 p-3">
+                    <div className="space-y-1 rounded-xl bg-[var(--accent-muted)] p-3">
                       {newOrderItems.map((item) => (
                         <div
                           key={item.name}
@@ -716,7 +716,7 @@ export default function RoomServiceTab() {
                 <button
                   onClick={submitNewOrder}
                   disabled={!newOrderRoom || newOrderItems.length === 0}
-                  className="w-full rounded-xl bg-amber-600 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="w-full rounded-xl bg-[var(--accent-hover)] py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-[var(--accent-hover)] disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Submit Order
                 </button>

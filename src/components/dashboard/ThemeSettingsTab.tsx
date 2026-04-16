@@ -163,29 +163,21 @@ export default function ThemeSettingsTab() {
 
   if (!restaurant) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+      <div className="flex flex-col items-center justify-center py-20 text-[var(--text-3)]">
         <Palette className="h-10 w-10 mb-3" />
         <p className="text-sm font-medium">Select a restaurant first</p>
       </div>
     );
   }
 
-  if (loading) {
-    return (
-      <div className="space-y-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="h-20 animate-pulse rounded-2xl bg-gray-100" />
-        ))}
-      </div>
-    );
-  }
+  if (loading) return null;
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-lg font-bold text-amber-950">Theme Settings</h2>
-          <p className="text-sm text-gray-400">
+          <h2 className="text-lg font-bold text-[var(--text-1)]">Theme Settings</h2>
+          <p className="text-sm text-[var(--text-3)]">
             Customize colors, fonts, and layout for your public menu page.
           </p>
         </div>
@@ -193,7 +185,7 @@ export default function ThemeSettingsTab() {
           {isDirty && (
             <button
               onClick={handleReset}
-              className="flex items-center gap-1.5 rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+              className="flex items-center gap-1.5 rounded-xl border border-[var(--border)] px-4 py-2 text-sm font-semibold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors"
             >
               <RotateCcw className="h-3.5 w-3.5" />
               Reset
@@ -202,7 +194,7 @@ export default function ThemeSettingsTab() {
           <button
             onClick={handleSave}
             disabled={!isDirty || saving}
-            className="flex items-center gap-2 rounded-xl bg-amber-700 px-5 py-2 text-sm font-bold text-white hover:bg-amber-600 shadow-md shadow-amber-700/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            className="flex items-center gap-2 rounded-xl bg-[var(--accent-hover)] px-5 py-2 text-sm font-bold text-white hover:bg-[var(--accent-hover)] shadow-md shadow-[var(--accent)]/20/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
             {saving ? "Saving..." : "Save Theme"}
@@ -231,20 +223,20 @@ export default function ThemeSettingsTab() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-5">
-          <h3 className="text-sm font-bold text-gray-700 flex items-center gap-2">
-            <Palette className="h-4 w-4 text-amber-600" />
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--canvas)] p-5 space-y-5">
+          <h3 className="text-sm font-bold text-[var(--text-2)] flex items-center gap-2">
+            <Palette className="h-4 w-4 text-[var(--accent-text)]" />
             Brand Colors
           </h3>
 
           <div>
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Presets</p>
+            <p className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider mb-2">Presets</p>
             <div className="flex flex-wrap gap-2">
               {COLOR_PRESETS.map((preset) => (
                 <button
                   key={preset.label}
                   onClick={() => applyPreset(preset)}
-                  className="group relative flex items-center gap-2 rounded-xl border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700 hover:border-gray-300 hover:bg-gray-50 transition-all"
+                  className="group relative flex items-center gap-2 rounded-xl border border-[var(--border)] px-3 py-2 text-xs font-semibold text-[var(--text-2)] hover:border-[var(--border)] hover:bg-[var(--canvas-sub)] transition-all"
                 >
                   <span
                     className="h-4 w-4 rounded-full border border-white shadow-sm"
@@ -266,13 +258,13 @@ export default function ThemeSettingsTab() {
               { key: "accentColor" as const, label: "Accent Color" },
             ].map(({ key, label }) => (
               <div key={key} className="flex items-center gap-3">
-                <label className="text-xs font-semibold text-gray-600 w-32 shrink-0">{label}</label>
+                <label className="text-xs font-semibold text-[var(--text-2)] w-32 shrink-0">{label}</label>
                 <div className="flex items-center gap-2 flex-1">
                   <input
                     type="color"
                     value={theme[key] ?? "#eaa94d"}
                     onChange={(e) => setTheme((t) => ({ ...t, [key]: e.target.value }))}
-                    className="h-9 w-12 cursor-pointer rounded-lg border border-gray-200 p-0.5"
+                    className="h-9 w-12 cursor-pointer rounded-lg border border-[var(--border)] p-0.5"
                   />
                   <input
                     type="text"
@@ -284,12 +276,12 @@ export default function ThemeSettingsTab() {
                       }
                     }}
                     placeholder="#eaa94d"
-                    className="flex-1 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-[#eaa94d]/30 focus:bg-white transition-all"
+                    className="flex-1 rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-3 py-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] focus:bg-[var(--canvas)] transition-all"
                   />
                   {theme[key] && (
                     <button
                       onClick={() => setTheme((t) => ({ ...t, [key]: null }))}
-                      className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                      className="text-xs text-[var(--text-3)] hover:text-[var(--text-2)] transition-colors"
                     >
                       Clear
                     </button>
@@ -302,9 +294,9 @@ export default function ThemeSettingsTab() {
 
         {/* Typography & Layout */}
         <div className="space-y-5">
-          <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-3">
-            <h3 className="text-sm font-bold text-gray-700 flex items-center gap-2">
-              <Type className="h-4 w-4 text-amber-600" />
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--canvas)] p-5 space-y-3">
+            <h3 className="text-sm font-bold text-[var(--text-2)] flex items-center gap-2">
+              <Type className="h-4 w-4 text-[var(--accent-text)]" />
               Font Family
             </h3>
             <div className="grid grid-cols-2 gap-2">
@@ -315,8 +307,8 @@ export default function ThemeSettingsTab() {
                   style={font.style}
                   className={`rounded-xl border px-3 py-2.5 text-sm text-left transition-all ${
                     theme.fontFamily === font.value
-                      ? "border-amber-400 bg-amber-50 text-amber-700"
-                      : "border-gray-200 hover:border-gray-300 text-gray-700"
+                      ? "border-[var(--accent)] bg-[var(--accent-muted)] text-[var(--accent-text)]"
+                      : "border-[var(--border)] hover:border-[var(--border)] text-[var(--text-2)]"
                   }`}
                 >
                   {font.label}
@@ -326,8 +318,8 @@ export default function ThemeSettingsTab() {
                 onClick={() => setTheme((t) => ({ ...t, fontFamily: null }))}
                 className={`rounded-xl border px-3 py-2.5 text-sm text-left transition-all ${
                   !theme.fontFamily
-                    ? "border-amber-400 bg-amber-50 text-amber-700"
-                    : "border-gray-200 hover:border-gray-300 text-gray-700"
+                    ? "border-[var(--accent)] bg-[var(--accent-muted)] text-[var(--accent-text)]"
+                    : "border-[var(--border)] hover:border-[var(--border)] text-[var(--text-2)]"
                 }`}
               >
                 Default
@@ -335,9 +327,9 @@ export default function ThemeSettingsTab() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-3">
-            <h3 className="text-sm font-bold text-gray-700 flex items-center gap-2">
-              <Layout className="h-4 w-4 text-amber-600" />
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--canvas)] p-5 space-y-3">
+            <h3 className="text-sm font-bold text-[var(--text-2)] flex items-center gap-2">
+              <Layout className="h-4 w-4 text-[var(--accent-text)]" />
               Menu Layout
             </h3>
             <div className="grid grid-cols-3 gap-2">
@@ -347,8 +339,8 @@ export default function ThemeSettingsTab() {
                   onClick={() => setTheme((t) => ({ ...t, menuLayout: layout.value }))}
                   className={`rounded-xl border p-3 text-left transition-all ${
                     theme.menuLayout === layout.value
-                      ? "border-amber-400 bg-amber-50 text-amber-700"
-                      : "border-gray-200 hover:border-gray-300 text-gray-500"
+                      ? "border-[var(--accent)] bg-[var(--accent-muted)] text-[var(--accent-text)]"
+                      : "border-[var(--border)] hover:border-[var(--border)] text-[var(--text-2)]"
                   }`}
                 >
                   <div className="mb-2">{layout.preview}</div>
@@ -362,43 +354,43 @@ export default function ThemeSettingsTab() {
 
       {/* Feature toggles & footer */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-4">
-          <h3 className="text-sm font-bold text-gray-700 flex items-center gap-2">
-            <Eye className="h-4 w-4 text-amber-600" />
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--canvas)] p-5 space-y-4">
+          <h3 className="text-sm font-bold text-[var(--text-2)] flex items-center gap-2">
+            <Eye className="h-4 w-4 text-[var(--accent-text)]" />
             Visible Sections
           </h3>
           {[
             { key: "showStories" as const, label: "Stories Section", desc: "Show stories carousel on menu page" },
             { key: "showReviews" as const, label: "Reviews Section", desc: "Show customer reviews on menu page" },
           ].map(({ key, label, desc }) => (
-            <div key={key} className="flex items-center justify-between py-2 border-t border-gray-50 first:border-0 first:pt-0">
+            <div key={key} className="flex items-center justify-between py-2 border-t border-[var(--border-soft)] first:border-0 first:pt-0">
               <div>
-                <p className="text-sm font-semibold text-gray-700">{label}</p>
-                <p className="text-xs text-gray-400">{desc}</p>
+                <p className="text-sm font-semibold text-[var(--text-2)]">{label}</p>
+                <p className="text-xs text-[var(--text-3)]">{desc}</p>
               </div>
               <button
                 onClick={() => setTheme((t) => ({ ...t, [key]: !t[key] }))}
                 className="shrink-0"
               >
                 {theme[key] ? (
-                  <Eye className="h-5 w-5 text-amber-600" />
+                  <Eye className="h-5 w-5 text-[var(--accent-text)]" />
                 ) : (
-                  <EyeOff className="h-5 w-5 text-gray-300" />
+                  <EyeOff className="h-5 w-5 text-[var(--text-3)]" />
                 )}
               </button>
             </div>
           ))}
         </div>
 
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-3">
-          <h3 className="text-sm font-bold text-gray-700">Footer Text</h3>
-          <p className="text-xs text-gray-400">Shown at the bottom of the public menu page.</p>
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--canvas)] p-5 space-y-3">
+          <h3 className="text-sm font-bold text-[var(--text-2)]">Footer Text</h3>
+          <p className="text-xs text-[var(--text-3)]">Shown at the bottom of the public menu page.</p>
           <textarea
             value={theme.footerText ?? ""}
             onChange={(e) => setTheme((t) => ({ ...t, footerText: e.target.value || null }))}
             placeholder="e.g. Thank you for visiting! Follow us on Instagram @yourhandle"
             rows={4}
-            className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#eaa94d]/30 focus:bg-white transition-all resize-none"
+            className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] focus:bg-[var(--canvas)] transition-all resize-none"
           />
         </div>
       </div>
@@ -407,17 +399,17 @@ export default function ThemeSettingsTab() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="sticky bottom-4 flex items-center justify-between rounded-2xl bg-amber-950 px-5 py-3 text-white shadow-2xl"
+          className="sticky bottom-4 flex items-center justify-between rounded-2xl bg-[var(--text-1)] px-5 py-3 text-white shadow-2xl"
         >
           <p className="text-sm font-semibold">You have unsaved changes</p>
           <div className="flex items-center gap-2">
-            <button onClick={handleReset} className="rounded-xl px-4 py-1.5 text-sm font-semibold text-amber-200 hover:text-white transition-colors">
+            <button onClick={handleReset} className="rounded-xl px-4 py-1.5 text-sm font-semibold text-[var(--accent)] hover:text-white transition-colors">
               Discard
             </button>
             <button
               onClick={handleSave}
               disabled={saving}
-              className="flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-1.5 text-sm font-bold text-white hover:bg-amber-400 disabled:opacity-60 transition-colors"
+              className="flex items-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-1.5 text-sm font-bold text-white hover:bg-[var(--accent)] disabled:opacity-60 transition-colors"
             >
               {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
               {saving ? "Saving..." : "Save"}

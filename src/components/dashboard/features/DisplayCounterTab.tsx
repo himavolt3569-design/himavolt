@@ -60,9 +60,9 @@ interface MenuItem {
 }
 
 const STATUS_CONFIG: Record<ItemStatus, { label: string; color: string; bg: string }> = {
-  available:    { label: "Available", color: "text-[#b25c1c]",  bg: "bg-[#fef9ef]"  },
-  "just-baked": { label: "Fresh Now", color: "text-amber-600",  bg: "bg-amber-50"  },
-  "last-few":   { label: "Last Few",  color: "text-orange-600", bg: "bg-orange-50" },
+  available:    { label: "Available", color: "text-[#b25c1c]",  bg: "bg-[var(--accent-muted)]"  },
+  "just-baked": { label: "Fresh Now", color: "text-[var(--accent-text)]",  bg: "bg-[var(--accent-muted)]"  },
+  "last-few":   { label: "Last Few",  color: "text-[var(--accent)]", bg: "bg-[var(--accent)]" },
   "sold-out":   { label: "Sold Out",  color: "text-red-600",    bg: "bg-red-50"    },
 };
 
@@ -256,11 +256,11 @@ export default function DisplayCounterTab() {
     <div className="max-w-5xl mx-auto space-y-6 pb-10">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+          <h2 className="text-xl font-bold text-[var(--text-1)] flex items-center gap-2">
             <Monitor className="h-5 w-5 text-pink-500" />
             Display Counter
           </h2>
-          <p className="text-sm text-gray-500 mt-1">Manage showcase items visible to your customers</p>
+          <p className="text-sm text-[var(--text-2)] mt-1">Manage showcase items visible to your customers</p>
         </div>
         <div className="flex gap-2">
           <button
@@ -273,7 +273,7 @@ export default function DisplayCounterTab() {
           <button
             onClick={() => setPreviewMode(!previewMode)}
             className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${
-              previewMode ? "bg-pink-500 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              previewMode ? "bg-pink-500 text-white" : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
             }`}
           >
             <Eye className="h-4 w-4" />
@@ -283,46 +283,46 @@ export default function DisplayCounterTab() {
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4">
-        <div className="flex items-center gap-3 rounded-xl bg-white p-4 ring-1 ring-gray-100 shadow-sm flex-1">
+        <div className="flex items-center gap-3 rounded-xl bg-[var(--canvas)] p-4 ring-1 ring-[var(--border)] shadow-sm flex-1">
           <Monitor className="h-5 w-5 text-pink-500" />
           <div className="flex-1">
-            <p className="text-sm font-semibold text-gray-800">Display Counter Mode</p>
-            <p className="text-xs text-gray-400">Enable customer-facing display</p>
+            <p className="text-sm font-semibold text-[var(--text-1)]">Display Counter Mode</p>
+            <p className="text-xs text-[var(--text-3)]">Enable customer-facing display</p>
           </div>
           <button
             onClick={() => updateConfig({ isEnabled: !config.isEnabled })}
-            className={`relative h-6 w-11 rounded-full transition-colors ${config.isEnabled ? "bg-pink-500" : "bg-gray-200"}`}
+            className={`relative h-6 w-11 rounded-full transition-colors ${config.isEnabled ? "bg-pink-500" : "bg-[var(--surface-alt)]"}`}
           >
-            <span className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${config.isEnabled ? "translate-x-5" : ""}`} />
+            <span className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-[var(--canvas)] shadow transition-transform ${config.isEnabled ? "translate-x-5" : ""}`} />
           </button>
         </div>
-        <div className="flex items-center gap-3 rounded-xl bg-white p-4 ring-1 ring-gray-100 shadow-sm flex-1">
-          <AlertCircle className="h-5 w-5 text-gray-400" />
+        <div className="flex items-center gap-3 rounded-xl bg-[var(--canvas)] p-4 ring-1 ring-[var(--border)] shadow-sm flex-1">
+          <AlertCircle className="h-5 w-5 text-[var(--text-3)]" />
           <div className="flex-1">
-            <p className="text-sm font-semibold text-gray-800">Auto-hide Sold Out</p>
-            <p className="text-xs text-gray-400">Remove sold out items from display</p>
+            <p className="text-sm font-semibold text-[var(--text-1)]">Auto-hide Sold Out</p>
+            <p className="text-xs text-[var(--text-3)]">Remove sold out items from display</p>
           </div>
           <button
             onClick={() => updateConfig({ autoHideSoldOut: !config.autoHideSoldOut })}
-            className={`relative h-6 w-11 rounded-full transition-colors ${config.autoHideSoldOut ? "bg-pink-500" : "bg-gray-200"}`}
+            className={`relative h-6 w-11 rounded-full transition-colors ${config.autoHideSoldOut ? "bg-pink-500" : "bg-[var(--surface-alt)]"}`}
           >
-            <span className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${config.autoHideSoldOut ? "translate-x-5" : ""}`} />
+            <span className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-[var(--canvas)] shadow transition-transform ${config.autoHideSoldOut ? "translate-x-5" : ""}`} />
           </button>
         </div>
       </div>
 
       <div className="grid grid-cols-3 gap-4">
-        <div className="rounded-xl bg-white ring-1 ring-gray-100 p-4 shadow-sm text-center">
+        <div className="rounded-xl bg-[var(--canvas)] ring-1 ring-[var(--border)] p-4 shadow-sm text-center">
           <p className="text-2xl font-bold text-[#d67620]">{availableCount}</p>
-          <p className="text-[11px] text-gray-500">Available</p>
+          <p className="text-[11px] text-[var(--text-2)]">Available</p>
         </div>
-        <div className="rounded-xl bg-white ring-1 ring-gray-100 p-4 shadow-sm text-center">
-          <p className="text-2xl font-bold text-amber-500">{freshCount}</p>
-          <p className="text-[11px] text-gray-500">Fresh Now</p>
+        <div className="rounded-xl bg-[var(--canvas)] ring-1 ring-[var(--border)] p-4 shadow-sm text-center">
+          <p className="text-2xl font-bold text-[var(--accent)]">{freshCount}</p>
+          <p className="text-[11px] text-[var(--text-2)]">Fresh Now</p>
         </div>
-        <div className="rounded-xl bg-white ring-1 ring-gray-100 p-4 shadow-sm text-center">
+        <div className="rounded-xl bg-[var(--canvas)] ring-1 ring-[var(--border)] p-4 shadow-sm text-center">
           <p className="text-2xl font-bold text-red-500">{soldOutCount}</p>
-          <p className="text-[11px] text-gray-500">Sold Out</p>
+          <p className="text-[11px] text-[var(--text-2)]">Sold Out</p>
         </div>
       </div>
 
@@ -334,14 +334,14 @@ export default function DisplayCounterTab() {
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            <div className="rounded-xl bg-white ring-1 ring-gray-100 shadow-sm overflow-hidden">
-              <div className="flex border-b border-gray-100">
+            <div className="rounded-xl bg-[var(--canvas)] ring-1 ring-[var(--border)] shadow-sm overflow-hidden">
+              <div className="flex border-b border-[var(--border-soft)]">
                 <button
                   onClick={() => setAddMode("menu")}
                   className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold transition-all ${
                     addMode === "menu"
                       ? "border-b-2 border-pink-500 text-pink-600"
-                      : "text-gray-400 hover:text-gray-600"
+                      : "text-[var(--text-3)] hover:text-[var(--text-2)]"
                   }`}
                 >
                   <UtensilsCrossed className="h-3.5 w-3.5" />
@@ -352,7 +352,7 @@ export default function DisplayCounterTab() {
                   className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold transition-all ${
                     addMode === "manual"
                       ? "border-b-2 border-pink-500 text-pink-600"
-                      : "text-gray-400 hover:text-gray-600"
+                      : "text-[var(--text-3)] hover:text-[var(--text-2)]"
                   }`}
                 >
                   <PenLine className="h-3.5 w-3.5" />
@@ -360,7 +360,7 @@ export default function DisplayCounterTab() {
                 </button>
                 <button
                   onClick={() => setShowAddForm(false)}
-                  className="ml-auto px-4 text-xs text-gray-400 hover:text-gray-600"
+                  className="ml-auto px-4 text-xs text-[var(--text-3)] hover:text-[var(--text-2)]"
                 >
                   Close
                 </button>
@@ -370,22 +370,22 @@ export default function DisplayCounterTab() {
                 <div className="p-4 space-y-3">
                   {menuItems.length === 0 ? (
                     <div className="py-10 text-center">
-                      <UtensilsCrossed className="h-8 w-8 text-gray-200 mx-auto mb-2" />
-                      <p className="text-sm text-gray-400">No menu items found</p>
-                      <p className="text-xs text-gray-300 mt-1">Add items to your menu first, then import them here</p>
+                      <UtensilsCrossed className="h-8 w-8 text-[var(--text-3)] mx-auto mb-2" />
+                      <p className="text-sm text-[var(--text-3)]">No menu items found</p>
+                      <p className="text-xs text-[var(--text-3)] mt-1">Add items to your menu first, then import them here</p>
                     </div>
                   ) : (
                     <>
                       {/* Search + category filter */}
                       <div className="flex gap-2">
                         <div className="relative flex-1">
-                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--text-3)]" />
                           <input
                             type="text"
                             value={menuSearch}
                             onChange={(e) => setMenuSearch(e.target.value)}
                             placeholder="Search menu items..."
-                            className="w-full rounded-lg border border-gray-200 bg-gray-50 pl-9 pr-3 py-2 text-sm outline-none focus:ring-2 focus:ring-pink-400/20 focus:border-pink-400"
+                            className="w-full rounded-lg border border-[var(--border)] bg-[var(--canvas-sub)] pl-9 pr-3 py-2 text-sm outline-none focus:ring-2 focus:ring-pink-400/20 focus:border-pink-400"
                           />
                         </div>
                       </div>
@@ -393,7 +393,7 @@ export default function DisplayCounterTab() {
                         <button
                           onClick={() => setMenuCatFilter("all")}
                           className={`shrink-0 rounded-full px-3 py-1 text-[11px] font-semibold transition-all ${
-                            menuCatFilter === "all" ? "bg-pink-500 text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                            menuCatFilter === "all" ? "bg-pink-500 text-white" : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
                           }`}
                         >
                           All
@@ -403,7 +403,7 @@ export default function DisplayCounterTab() {
                             key={c}
                             onClick={() => setMenuCatFilter(c)}
                             className={`shrink-0 rounded-full px-3 py-1 text-[11px] font-semibold transition-all ${
-                              menuCatFilter === c ? "bg-pink-500 text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                              menuCatFilter === c ? "bg-pink-500 text-white" : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
                             }`}
                           >
                             {c}
@@ -421,8 +421,8 @@ export default function DisplayCounterTab() {
                               disabled={alreadyAdded || isImporting}
                               className={`relative flex flex-col rounded-xl border text-left overflow-hidden transition-all ${
                                 alreadyAdded
-                                  ? "border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed"
-                                  : "border-gray-200 bg-white hover:border-pink-400 hover:shadow-md cursor-pointer"
+                                  ? "border-[var(--border-soft)] bg-[var(--canvas-sub)] opacity-50 cursor-not-allowed"
+                                  : "border-[var(--border)] bg-[var(--canvas)] hover:border-pink-400 hover:shadow-md cursor-pointer"
                               }`}
                             >
                               <div className="h-20 w-full bg-pink-50 overflow-hidden">
@@ -435,14 +435,14 @@ export default function DisplayCounterTab() {
                                 )}
                               </div>
                               <div className="p-2">
-                                <p className="text-xs font-semibold text-gray-800 leading-tight line-clamp-1">{mi.name}</p>
-                                <p className="text-[10px] text-gray-400 mt-0.5">{formatPrice(mi.price, cur)}</p>
+                                <p className="text-xs font-semibold text-[var(--text-1)] leading-tight line-clamp-1">{mi.name}</p>
+                                <p className="text-[10px] text-[var(--text-3)] mt-0.5">{formatPrice(mi.price, cur)}</p>
                                 {mi.category && (
                                   <p className="text-[10px] text-pink-400 mt-0.5">{mi.category.name}</p>
                                 )}
                               </div>
                               {isImporting && (
-                                <div className="absolute inset-0 flex items-center justify-center bg-white/70">
+                                <div className="absolute inset-0 flex items-center justify-center bg-[var(--canvas)]/70">
                                   <Loader2 className="h-4 w-4 animate-spin text-pink-500" />
                                 </div>
                               )}
@@ -456,7 +456,7 @@ export default function DisplayCounterTab() {
                         })}
                       </div>
                       {filteredMenuItems.length === 0 && (
-                        <p className="py-6 text-center text-sm text-gray-400">No items match your search</p>
+                        <p className="py-6 text-center text-sm text-[var(--text-3)]">No items match your search</p>
                       )}
                     </>
                   )}
@@ -469,14 +469,14 @@ export default function DisplayCounterTab() {
                     <button
                       type="button"
                       onClick={() => setShowAddImagePicker(true)}
-                      className="relative h-20 w-20 shrink-0 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 hover:border-pink-400 hover:bg-pink-50 transition-all overflow-hidden"
+                      className="relative h-20 w-20 shrink-0 rounded-xl border-2 border-dashed border-[var(--border)] bg-[var(--canvas-sub)] hover:border-pink-400 hover:bg-pink-50 transition-all overflow-hidden"
                     >
                       {newItem.imageUrl ? (
                         <img src={newItem.imageUrl} alt="" className="h-full w-full object-cover" />
                       ) : (
                         <div className="flex flex-col items-center justify-center h-full gap-1">
-                          <Camera className="h-5 w-5 text-gray-300" />
-                          <span className="text-[10px] text-gray-400">Image</span>
+                          <Camera className="h-5 w-5 text-[var(--text-3)]" />
+                          <span className="text-[10px] text-[var(--text-3)]">Image</span>
                         </div>
                       )}
                     </button>
@@ -486,12 +486,12 @@ export default function DisplayCounterTab() {
                         placeholder="Item name"
                         value={newItem.name}
                         onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-                        className="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-pink-400/20 focus:border-pink-400"
+                        className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-pink-400/20 focus:border-pink-400"
                       />
                       <select
                         value={newItem.category}
                         onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}
-                        className="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-pink-400/20 focus:border-pink-400"
+                        className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-pink-400/20 focus:border-pink-400"
                       >
                         {categoryNames.map((c) => (
                           <option key={c} value={c}>{c}</option>
@@ -503,14 +503,14 @@ export default function DisplayCounterTab() {
                         placeholder="Price"
                         value={newItem.price || ""}
                         onChange={(e) => setNewItem({ ...newItem, price: Number(e.target.value) })}
-                        className="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-pink-400/20 focus:border-pink-400"
+                        className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-pink-400/20 focus:border-pink-400"
                       />
                     </div>
                   </div>
                   <div className="flex gap-2 justify-end">
                     <button
                       onClick={() => setShowAddForm(false)}
-                      className="rounded-lg px-4 py-2 text-sm font-semibold text-gray-500 hover:bg-gray-50"
+                      className="rounded-lg px-4 py-2 text-sm font-semibold text-[var(--text-2)] hover:bg-[var(--canvas-sub)]"
                     >
                       Cancel
                     </button>
@@ -534,7 +534,7 @@ export default function DisplayCounterTab() {
         <button
           onClick={() => setSelectedCategory("all")}
           className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
-            selectedCategory === "all" ? "bg-pink-100 text-pink-700" : "bg-gray-50 text-gray-500 hover:bg-gray-100"
+            selectedCategory === "all" ? "bg-pink-100 text-pink-700" : "bg-[var(--canvas-sub)] text-[var(--text-2)] hover:bg-[var(--surface)]"
           }`}
         >
           All
@@ -544,7 +544,7 @@ export default function DisplayCounterTab() {
             key={c}
             onClick={() => setSelectedCategory(c)}
             className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
-              selectedCategory === c ? "bg-pink-100 text-pink-700" : "bg-gray-50 text-gray-500 hover:bg-gray-100"
+              selectedCategory === c ? "bg-pink-100 text-pink-700" : "bg-[var(--canvas-sub)] text-[var(--text-2)] hover:bg-[var(--surface)]"
             }`}
           >
             {c}
@@ -558,14 +558,14 @@ export default function DisplayCounterTab() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="rounded-2xl bg-gradient-to-br from-pink-50 to-amber-50 p-6 ring-1 ring-pink-100"
+            className="rounded-2xl bg-gradient-to-br from-pink-50 to-[var(--accent-hover)] p-6 ring-1 ring-pink-100"
           >
             <p className="text-center text-xs font-bold text-pink-400 uppercase tracking-widest mb-4">Customer Display Preview</p>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
               {displayItems.filter((i) => i.status !== "sold-out").map((item) => {
                 const sc = STATUS_CONFIG[item.status];
                 return (
-                  <div key={item.id} className="rounded-xl bg-white p-4 shadow-sm text-center">
+                  <div key={item.id} className="rounded-xl bg-[var(--canvas)] p-4 shadow-sm text-center">
                     <div className="h-16 w-16 mx-auto rounded-xl overflow-hidden bg-pink-50 flex items-center justify-center mb-2">
                       {item.imageUrl ? (
                         <img src={item.imageUrl} alt={item.name} className="h-full w-full object-cover" />
@@ -573,7 +573,7 @@ export default function DisplayCounterTab() {
                         <Sparkles className="h-6 w-6 text-pink-300" />
                       )}
                     </div>
-                    <p className="text-sm font-bold text-gray-800">{item.name}</p>
+                    <p className="text-sm font-bold text-[var(--text-1)]">{item.name}</p>
                     {item.showPrice && <p className="text-sm font-bold text-pink-500 mt-1">{formatPrice(item.price, cur)}</p>}
                     {item.status !== "available" && (
                       <span className={`inline-block mt-1.5 text-[9px] font-bold ${sc.color} ${sc.bg} px-2 py-0.5 rounded-full`}>
@@ -595,15 +595,15 @@ export default function DisplayCounterTab() {
             <motion.div
               key={item.id}
               layout
-              className={`flex items-center gap-4 rounded-xl bg-white ring-1 ring-gray-100 p-3.5 shadow-sm ${
+              className={`flex items-center gap-4 rounded-xl bg-[var(--canvas)] ring-1 ring-[var(--border)] p-3.5 shadow-sm ${
                 item.status === "sold-out" ? "opacity-50" : ""
               }`}
             >
               <div className="flex flex-col gap-0.5 shrink-0">
-                <button onClick={() => handleMoveUp(item.id)} className="text-gray-300 hover:text-gray-500 transition-colors" disabled={idx === 0}>
+                <button onClick={() => handleMoveUp(item.id)} className="text-[var(--text-3)] hover:text-[var(--text-2)] transition-colors" disabled={idx === 0}>
                   <ChevronUp className="h-3.5 w-3.5" />
                 </button>
-                <button onClick={() => handleMoveDown(item.id)} className="text-gray-300 hover:text-gray-500 transition-colors" disabled={idx === displayItems.length - 1}>
+                <button onClick={() => handleMoveDown(item.id)} className="text-[var(--text-3)] hover:text-[var(--text-2)] transition-colors" disabled={idx === displayItems.length - 1}>
                   <ChevronDown className="h-3.5 w-3.5" />
                 </button>
               </div>
@@ -629,16 +629,16 @@ export default function DisplayCounterTab() {
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-gray-800">{item.name}</p>
+                  <p className="text-sm font-semibold text-[var(--text-1)]">{item.name}</p>
                   <span className={`text-[9px] font-bold ${sc.color} ${sc.bg} px-1.5 py-0.5 rounded`}>{sc.label}</span>
                 </div>
-                <p className="text-[11px] text-gray-400">{item.category} · {formatPrice(item.price, cur)}</p>
+                <p className="text-[11px] text-[var(--text-3)]">{item.category} · {formatPrice(item.price, cur)}</p>
               </div>
 
               <select
                 value={item.status}
                 onChange={(e) => updateItem(item.id, { status: e.target.value as ItemStatus })}
-                className="rounded-lg bg-gray-50 px-2 py-1.5 text-xs ring-1 ring-gray-200 outline-none focus:ring-pink-400"
+                className="rounded-lg bg-[var(--canvas-sub)] px-2 py-1.5 text-xs ring-1 ring-[var(--border)] outline-none focus:ring-pink-400"
               >
                 <option value="available">Available</option>
                 <option value="just-baked">Fresh Now</option>
@@ -649,7 +649,7 @@ export default function DisplayCounterTab() {
               <button
                 onClick={() => updateItem(item.id, { showPrice: !item.showPrice })}
                 className={`flex h-8 w-8 items-center justify-center rounded-lg transition-all ${
-                  item.showPrice ? "bg-pink-50 text-pink-500" : "bg-gray-50 text-gray-300"
+                  item.showPrice ? "bg-pink-50 text-pink-500" : "bg-[var(--canvas-sub)] text-[var(--text-3)]"
                 }`}
                 title={item.showPrice ? "Hide price" : "Show price"}
               >
@@ -658,7 +658,7 @@ export default function DisplayCounterTab() {
 
               <button
                 onClick={() => deleteItem(item.id)}
-                className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-50 text-gray-300 hover:text-red-500 hover:bg-red-50 transition-all"
+                className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--canvas-sub)] text-[var(--text-3)] hover:text-red-500 hover:bg-red-50 transition-all"
                 title="Remove item"
               >
                 <Trash2 className="h-3.5 w-3.5" />
@@ -670,9 +670,9 @@ export default function DisplayCounterTab() {
 
       {displayItems.length === 0 && (
         <div className="text-center py-16">
-          <Monitor className="h-10 w-10 text-gray-200 mx-auto mb-3" />
-          <p className="text-sm text-gray-400">No items to display</p>
-          <p className="text-xs text-gray-300 mt-1">Add items to your display counter to get started</p>
+          <Monitor className="h-10 w-10 text-[var(--text-3)] mx-auto mb-3" />
+          <p className="text-sm text-[var(--text-3)]">No items to display</p>
+          <p className="text-xs text-[var(--text-3)] mt-1">Add items to your display counter to get started</p>
         </div>
       )}
 

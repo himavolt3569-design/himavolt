@@ -58,8 +58,8 @@ export default function POSDailySummary({ restaurantId, currency }: Props) {
 
   const stats = [
     { label: "Total Orders",    value: s.totalOrders,     icon: ShoppingCart, bg: "bg-blue-50",    text: "text-blue-700",    border: "border-blue-100" },
-    { label: "Completed",       value: s.completedOrders, icon: TrendingUp,   bg: "bg-[#fef9ef]",   text: "text-[#b25c1c]",   border: "border-[#eaa94d]/30" },
-    { label: "Paid",            value: s.paidOrders,      icon: CreditCard,   bg: "bg-[#fef9ef]", text: "text-[#b25c1c]", border: "border-[#eaa94d]/30" },
+    { label: "Completed",       value: s.completedOrders, icon: TrendingUp,   bg: "bg-[var(--accent-muted)]",   text: "text-[#b25c1c]",   border: "border-[var(--accent-border)]" },
+    { label: "Paid",            value: s.paidOrders,      icon: CreditCard,   bg: "bg-[var(--accent-muted)]", text: "text-[#b25c1c]", border: "border-[var(--accent-border)]" },
     { label: "Unpaid",          value: s.unpaidOrders,    icon: ShoppingCart, bg: "bg-orange-50",  text: "text-orange-700",  border: "border-orange-100" },
   ];
 
@@ -72,20 +72,20 @@ export default function POSDailySummary({ restaurantId, currency }: Props) {
   ];
 
   return (
-    <div className="h-full bg-gray-50 overflow-y-auto">
+    <div className="h-full bg-[var(--canvas-sub)] overflow-y-auto">
       <div className="max-w-3xl mx-auto px-6 py-6">
         {/* Page header */}
         <div className="flex items-start justify-between mb-6">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Daily Summary</h2>
-            <p className="text-sm text-gray-400 mt-0.5">
+            <h2 className="text-lg font-semibold text-[var(--text-1)]">Daily Summary</h2>
+            <p className="text-sm text-[var(--text-3)] mt-0.5">
               {new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
             </p>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={fetchSummary}
-              className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3.5 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors shadow-sm"
+              className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--canvas)] px-3.5 py-2 text-xs font-semibold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors shadow-sm"
             >
               <RefreshCw className="h-3.5 w-3.5" />
               Refresh
@@ -117,15 +117,15 @@ export default function POSDailySummary({ restaurantId, currency }: Props) {
         </div>
 
         {/* Financial breakdown */}
-        <div className="rounded-xl border border-gray-200 bg-white overflow-hidden shadow-sm">
-          <div className="flex items-center gap-2.5 px-5 py-4 border-b border-gray-100 bg-gray-50">
-            <DollarSign className="h-4 w-4 text-gray-500" />
-            <h3 className="text-sm font-semibold text-gray-700">Financial Summary</h3>
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--canvas)] overflow-hidden shadow-sm">
+          <div className="flex items-center gap-2.5 px-5 py-4 border-b border-[var(--border-soft)] bg-[var(--canvas-sub)]">
+            <DollarSign className="h-4 w-4 text-[var(--text-2)]" />
+            <h3 className="text-sm font-semibold text-[var(--text-2)]">Financial Summary</h3>
           </div>
           <div className="divide-y divide-gray-50">
             {financials.map((item) => (
               <div key={item.label} className="flex items-center justify-between px-5 py-4">
-                <span className="text-sm text-gray-600">{item.label}</span>
+                <span className="text-sm text-[var(--text-2)]">{item.label}</span>
                 <span className={`text-lg font-bold ${item.valueClass}`}>
                   {formatPrice(item.value, currency)}
                 </span>

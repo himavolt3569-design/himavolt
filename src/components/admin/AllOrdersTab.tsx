@@ -68,11 +68,11 @@ const ORDER_STATUSES = ["All", "PENDING", "ACCEPTED", "PREPARING", "READY", "DEL
 const ORDER_TYPES = ["All", "DINE_IN", "DELIVERY", "TAKEAWAY"];
 
 const STATUS_COLORS: Record<string, string> = {
-  PENDING: "bg-amber-100 text-amber-700",
+  PENDING: "bg-[var(--accent-muted)] text-[var(--accent-text)]",
   ACCEPTED: "bg-blue-100 text-blue-700",
   PREPARING: "bg-indigo-100 text-indigo-700",
-  READY: "bg-[#fef3dc] text-[#b25c1c]",
-  DELIVERED: "bg-[#fef3dc] text-[#b25c1c]",
+  READY: "bg-[var(--accent-muted)] text-[#b25c1c]",
+  DELIVERED: "bg-[var(--accent-muted)] text-[#b25c1c]",
   CANCELLED: "bg-red-100 text-red-700",
   REJECTED: "bg-red-100 text-red-700",
 };
@@ -225,16 +225,16 @@ export default function AllOrdersTab() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative flex-1 sm:max-w-xs">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-3)]" />
           <input
             type="text"
             placeholder="Search orders, restaurants, customers..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-xl border border-gray-200 bg-white py-2 pl-9 pr-3 text-sm text-gompa-slate placeholder:text-gray-400 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-200"
+            className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] py-2 pl-9 pr-3 text-sm text-gompa-slate placeholder:text-[var(--text-3)] focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-200"
           />
           {search && (
-            <button onClick={() => setSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-brand-500">
+            <button onClick={() => setSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--text-3)] hover:text-brand-500">
               <X className="h-3.5 w-3.5" />
             </button>
           )}
@@ -244,7 +244,7 @@ export default function AllOrdersTab() {
           className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-medium transition-all ${
             showFilters || statusFilter !== "All" || typeFilter !== "All"
               ? "border-saffron-flame bg-saffron-flame/5 text-saffron-flame"
-              : "border-gray-200 text-gray-600 hover:bg-brand-50"
+              : "border-[var(--border)] text-[var(--text-2)] hover:bg-brand-50"
           }`}
         >
           <Filter className="h-3.5 w-3.5" />
@@ -252,13 +252,13 @@ export default function AllOrdersTab() {
         </button>
         <button
           onClick={() => fetchOrders(page)}
-          className="flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-2 text-xs font-medium text-gray-600 hover:bg-brand-50"
+          className="flex items-center gap-1.5 rounded-xl border border-[var(--border)] px-3 py-2 text-xs font-medium text-[var(--text-2)] hover:bg-brand-50"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
           Refresh
         </button>
         {pagination && (
-          <span className="ml-auto text-xs text-gray-400">{pagination.total.toLocaleString()} orders</span>
+          <span className="ml-auto text-xs text-[var(--text-3)]">{pagination.total.toLocaleString()} orders</span>
         )}
       </div>
 
@@ -282,14 +282,14 @@ export default function AllOrdersTab() {
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
             <div className="space-y-2 pb-2">
               <div>
-                <p className="mb-1 text-[11px] font-medium text-gray-400 uppercase">Status</p>
+                <p className="mb-1 text-[11px] font-medium text-[var(--text-3)] uppercase">Status</p>
                 <div className="flex flex-wrap gap-1.5">
                   {ORDER_STATUSES.map((s) => (
                     <button
                       key={s}
                       onClick={() => { setStatusFilter(s); setPage(1); }}
                       className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-all ${
-                        statusFilter === s ? "bg-gompa-slate text-white" : "bg-gray-100 text-gray-600 hover:bg-brand-50"
+                        statusFilter === s ? "bg-gompa-slate text-white" : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-brand-50"
                       }`}
                     >
                       {s === "All" ? "All Statuses" : s}
@@ -298,14 +298,14 @@ export default function AllOrdersTab() {
                 </div>
               </div>
               <div>
-                <p className="mb-1 text-[11px] font-medium text-gray-400 uppercase">Type</p>
+                <p className="mb-1 text-[11px] font-medium text-[var(--text-3)] uppercase">Type</p>
                 <div className="flex flex-wrap gap-1.5">
                   {ORDER_TYPES.map((t) => (
                     <button
                       key={t}
                       onClick={() => { setTypeFilter(t); setPage(1); }}
                       className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-all ${
-                        typeFilter === t ? "bg-gompa-slate text-white" : "bg-gray-100 text-gray-600 hover:bg-brand-50"
+                        typeFilter === t ? "bg-gompa-slate text-white" : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-brand-50"
                       }`}
                     >
                       {t === "All" ? "All Types" : t.replace("_", " ")}
@@ -318,7 +318,7 @@ export default function AllOrdersTab() {
         )}
       </AnimatePresence>
 
-      <div className="overflow-hidden rounded-2xl border border-brand-100 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-brand-100 bg-[var(--canvas)] shadow-sm">
         <div className="flex items-center justify-between border-b border-brand-100 px-4 py-2.5">
           <div className="flex items-center gap-2">
             <input
@@ -328,7 +328,7 @@ export default function AllOrdersTab() {
               className="h-3.5 w-3.5 rounded accent-gompa-slate"
             />
             <ShoppingBag className="h-4 w-4 text-brand-400" />
-            <span className="text-xs font-semibold text-gray-500">All Orders</span>
+            <span className="text-xs font-semibold text-[var(--text-2)]">All Orders</span>
           </div>
           <div className="flex items-center gap-1.5 text-[11px] text-[#b25c1c]">
             <span className="relative flex h-1.5 w-1.5">
@@ -347,21 +347,21 @@ export default function AllOrdersTab() {
           <div className="py-16 text-center">
             <AlertCircle className="mx-auto mb-2 h-8 w-8 text-red-400" />
             <p className="text-sm font-semibold text-red-500">Failed to load orders</p>
-            <p className="mt-1 text-xs text-gray-400">{error}</p>
+            <p className="mt-1 text-xs text-[var(--text-3)]">{error}</p>
             <button
               onClick={() => fetchOrders(page)}
-              className="mt-3 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50"
+              className="mt-3 rounded-lg border border-[var(--border)] px-3 py-1.5 text-xs font-medium text-[var(--text-2)] hover:bg-[var(--canvas-sub)]"
             >
               Retry
             </button>
           </div>
         ) : orders.length === 0 ? (
           <div className="py-16 text-center">
-            <ShoppingBag className="mx-auto mb-2 h-8 w-8 text-gray-300" />
-            <p className="text-sm text-gray-400">No orders found</p>
+            <ShoppingBag className="mx-auto mb-2 h-8 w-8 text-[var(--text-3)]" />
+            <p className="text-sm text-[var(--text-3)]">No orders found</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-[var(--border)]">
             {orders.map((order) => {
               const StatusIcon = STATUS_ICONS[order.status] || Clock;
               const isExpanded = expandedId === order.id;
@@ -387,7 +387,7 @@ export default function AllOrdersTab() {
                       onClick={(e) => e.stopPropagation()}
                       className="h-3.5 w-3.5 flex-shrink-0 rounded accent-gompa-slate"
                     />
-                    <div className={`flex-shrink-0 rounded-lg p-2 ${STATUS_COLORS[order.status] || "bg-gray-100 text-gray-600"}`}>
+                    <div className={`flex-shrink-0 rounded-lg p-2 ${STATUS_COLORS[order.status] || "bg-[var(--surface)] text-[var(--text-2)]"}`}>
                       <StatusIcon className="h-4 w-4" />
                     </div>
                     <div className="min-w-0 flex-1">
@@ -396,11 +396,11 @@ export default function AllOrdersTab() {
                         <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${STATUS_COLORS[order.status]}`}>
                           {order.status}
                         </span>
-                        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-500">
+                        <span className="rounded-full bg-[var(--surface)] px-2 py-0.5 text-[10px] font-medium text-[var(--text-2)]">
                           {order.type.replace("_", " ")}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <div className="flex items-center gap-2 text-xs text-[var(--text-2)]">
                         <span className="flex items-center gap-1">
                           <Store className="h-3 w-3" />
                           {order.restaurant.name}
@@ -418,14 +418,14 @@ export default function AllOrdersTab() {
                       <p className="text-sm font-bold text-gompa-slate">
                         {formatPrice(order.total, order.restaurant.currency)}
                       </p>
-                      <p className="text-[11px] text-gray-400">
+                      <p className="text-[11px] text-[var(--text-3)]">
                         {order.items.length} item{order.items.length !== 1 ? "s" : ""}
                       </p>
                     </div>
-                    <span className="flex-shrink-0 text-[11px] text-gray-400 tabular-nums">
+                    <span className="flex-shrink-0 text-[11px] text-[var(--text-3)] tabular-nums">
                       {timeAgo(order.createdAt)}
                     </span>
-                    <ChevronDown className={`h-3.5 w-3.5 flex-shrink-0 text-gray-300 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+                    <ChevronDown className={`h-3.5 w-3.5 flex-shrink-0 text-[var(--text-3)] transition-transform ${isExpanded ? "rotate-180" : ""}`} />
                   </button>
 
                   <AnimatePresence>
@@ -438,7 +438,7 @@ export default function AllOrdersTab() {
                       >
                         <div className="border-t border-brand-100 bg-brand-50/30 px-4 py-3 space-y-3">
                           <div>
-                            <p className="mb-1.5 text-[11px] font-medium text-gray-400 uppercase">Items</p>
+                            <p className="mb-1.5 text-[11px] font-medium text-[var(--text-3)] uppercase">Items</p>
                             <div className="space-y-1">
                               {order.items.map((item) => (
                                 <div key={item.id} className="flex items-center justify-between text-xs">
@@ -453,31 +453,31 @@ export default function AllOrdersTab() {
 
                           <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-xs sm:grid-cols-4">
                             <div>
-                              <span className="text-gray-400">Subtotal</span>
+                              <span className="text-[var(--text-3)]">Subtotal</span>
                               <p className="font-medium text-gompa-slate">{formatPrice(order.subtotal, order.restaurant.currency)}</p>
                             </div>
                             <div>
-                              <span className="text-gray-400">Tax</span>
+                              <span className="text-[var(--text-3)]">Tax</span>
                               <p className="font-medium text-gompa-slate">{formatPrice(order.tax, order.restaurant.currency)}</p>
                             </div>
                             <div>
-                              <span className="text-gray-400">Total</span>
+                              <span className="text-[var(--text-3)]">Total</span>
                               <p className="font-bold text-gompa-slate">{formatPrice(order.total, order.restaurant.currency)}</p>
                             </div>
                             <div>
-                              <span className="text-gray-400">Payment</span>
+                              <span className="text-[var(--text-3)]">Payment</span>
                               <p className="font-medium text-gompa-slate">
                                 {order.payment ? `${order.payment.method} (${order.payment.status})` : "None"}
                               </p>
                             </div>
                             {order.deliveryAddress && (
                               <div className="col-span-2 sm:col-span-4">
-                                <span className="text-gray-400">Delivery Address</span>
+                                <span className="text-[var(--text-3)]">Delivery Address</span>
                                 <p className="font-medium text-gompa-slate">{order.deliveryAddress}</p>
                               </div>
                             )}
                             <div className="col-span-2 sm:col-span-4">
-                              <span className="text-gray-400">Created</span>
+                              <span className="text-[var(--text-3)]">Created</span>
                               <p className="font-medium text-gompa-slate">{new Date(order.createdAt).toLocaleString()}</p>
                             </div>
                           </div>
@@ -513,13 +513,13 @@ export default function AllOrdersTab() {
         )}
 
         {pagination && pagination.totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-gray-100 px-4 py-2.5">
-            <span className="text-xs text-gray-400">Page {pagination.page} of {pagination.totalPages}</span>
+          <div className="flex items-center justify-between border-t border-[var(--border-soft)] px-4 py-2.5">
+            <span className="text-xs text-[var(--text-3)]">Page {pagination.page} of {pagination.totalPages}</span>
             <div className="flex gap-1.5">
-              <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="rounded-lg border border-gray-200 p-1.5 text-gray-500 hover:bg-brand-50 disabled:opacity-40">
+              <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-2)] hover:bg-brand-50 disabled:opacity-40">
                 <ChevronLeft className="h-3.5 w-3.5" />
               </button>
-              <button disabled={page >= pagination.totalPages} onClick={() => setPage((p) => p + 1)} className="rounded-lg border border-gray-200 p-1.5 text-gray-500 hover:bg-brand-50 disabled:opacity-40">
+              <button disabled={page >= pagination.totalPages} onClick={() => setPage((p) => p + 1)} className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-2)] hover:bg-brand-50 disabled:opacity-40">
                 <ChevronRight className="h-3.5 w-3.5" />
               </button>
             </div>

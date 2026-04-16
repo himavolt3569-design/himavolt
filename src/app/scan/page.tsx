@@ -218,12 +218,12 @@ function ScanPageContent() {
   };
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center bg-white overflow-hidden">
+    <div className="relative flex min-h-screen flex-col items-center justify-center bg-[var(--canvas)] overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,153,51,0.04),transparent_50%),radial-gradient(circle_at_70%_80%,rgba(10,77,60,0.03),transparent_50%)]" />
 
       <Link
         href="/"
-        className="absolute top-5 left-5 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+        className="absolute top-5 left-5 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-colors"
       >
         <ArrowLeft className="h-4 w-4" />
       </Link>
@@ -235,7 +235,7 @@ function ScanPageContent() {
         className="mb-10 flex items-center gap-2"
       >
         <Mountain className="h-7 w-7 text-[#eaa94d]" strokeWidth={2.5} />
-        <span className="text-xl font-extrabold tracking-tight text-[#3e1e0c]">
+        <span className="text-xl font-extrabold tracking-tight text-[var(--text-1)]">
           Hima<span className="text-[#eaa94d]">Volt</span>
         </span>
       </motion.div>
@@ -247,9 +247,9 @@ function ScanPageContent() {
         className="relative z-10 w-full max-w-sm px-6 space-y-8"
       >
         {restaurantSlug && (
-          <p className="text-center text-sm text-gray-500">
+          <p className="text-center text-sm text-[var(--text-2)]">
             Scanning for{" "}
-            <strong className="text-[#3e1e0c]">
+            <strong className="text-[var(--text-1)]">
               {restaurantSlug.replace(/-/g, " ")}
             </strong>
           </p>
@@ -261,8 +261,8 @@ function ScanPageContent() {
             scanSuccess
               ? "border-[#3e1e0c] bg-[#3e1e0c]/10 shadow-2xl shadow-[#3e1e0c]/20"
               : cameraActive
-                ? "border-[#eaa94d] shadow-xl shadow-[#eaa94d]/15"
-                : "border-gray-200 bg-gray-50"
+                ? "border-[#eaa94d] shadow-xl shadow-[var(--accent)]/15"
+                : "border-[var(--border)] bg-[var(--canvas-sub)]"
           }`}
         >
           <video
@@ -282,8 +282,8 @@ function ScanPageContent() {
               onClick={toggleTorch}
               className={`absolute top-3 right-3 z-20 p-2 rounded-full backdrop-blur transition-colors ${
                 torchSupported
-                  ? "bg-white/60 hover:bg-white/80 text-gray-700"
-                  : "bg-white/30 text-gray-400 cursor-not-allowed"
+                  ? "bg-[var(--canvas)]/60 hover:bg-[var(--canvas)]/80 text-[var(--text-2)]"
+                  : "bg-[var(--canvas)]/30 text-[var(--text-3)] cursor-not-allowed"
               }`}
               title={torchSupported ? "Toggle flashlight" : "Flashlight not supported on this device"}
             >
@@ -306,12 +306,12 @@ function ScanPageContent() {
                 key="success"
                 initial={{ scale: 0.5, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-white/80 z-20"
+                className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-[var(--canvas)]/80 z-20"
               >
-                <div className="bg-white rounded-full p-2 shadow-lg">
-                  <CheckCircle2 className="h-12 w-12 text-[#3e1e0c]" />
+                <div className="bg-[var(--canvas)] rounded-full p-2 shadow-lg">
+                  <CheckCircle2 className="h-12 w-12 text-[var(--text-1)]" />
                 </div>
-                <p className="text-[#3e1e0c] font-bold text-lg">Redirecting…</p>
+                <p className="text-[var(--text-1)] font-bold text-lg">Redirecting…</p>
               </motion.div>
             ) : cameraActive ? (
               /* Scanning line animation */
@@ -334,23 +334,23 @@ function ScanPageContent() {
               >
                 {cameraError === "permission_denied" ? (
                   <>
-                    <ShieldAlert className="h-10 w-10 text-amber-400" />
-                    <p className="text-xs font-bold text-gray-700">Camera access denied</p>
-                    <p className="text-[10px] text-gray-400 leading-snug">
+                    <ShieldAlert className="h-10 w-10 text-[var(--accent)]" />
+                    <p className="text-xs font-bold text-[var(--text-2)]">Camera access denied</p>
+                    <p className="text-[10px] text-[var(--text-3)] leading-snug">
                       Allow camera in your browser settings, then tap Scan again
                     </p>
                   </>
                 ) : cameraError === "no_camera" ? (
                   <>
-                    <CameraOff className="h-10 w-10 text-gray-300" />
-                    <p className="text-xs font-bold text-gray-600">No camera found</p>
-                    <p className="text-[10px] text-gray-400">Use the manual entry below</p>
+                    <CameraOff className="h-10 w-10 text-[var(--text-3)]" />
+                    <p className="text-xs font-bold text-[var(--text-2)]">No camera found</p>
+                    <p className="text-[10px] text-[var(--text-3)]">Use the manual entry below</p>
                   </>
                 ) : (
                   <>
-                    <CameraOff className="h-10 w-10 text-gray-300" />
-                    <p className="text-xs font-bold text-gray-600">Camera not supported</p>
-                    <p className="text-[10px] text-gray-400">Use the manual entry below</p>
+                    <CameraOff className="h-10 w-10 text-[var(--text-3)]" />
+                    <p className="text-xs font-bold text-[var(--text-2)]">Camera not supported</p>
+                    <p className="text-[10px] text-[var(--text-3)]">Use the manual entry below</p>
                   </>
                 )}
               </motion.div>
@@ -358,7 +358,7 @@ function ScanPageContent() {
               <motion.div
                 key="idle"
                 exit={{ opacity: 0 }}
-                className="flex flex-col items-center gap-3 text-gray-300 z-10"
+                className="flex flex-col items-center gap-3 text-[var(--text-3)] z-10"
               >
                 <svg className="h-16 w-16" viewBox="0 0 64 64" fill="none">
                   <rect x="4" y="4" width="22" height="22" rx="3" stroke="currentColor" strokeWidth="2.5" />
@@ -373,7 +373,7 @@ function ScanPageContent() {
                   <line x1="60" y1="38" x2="60" y2="46" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
                   <line x1="52" y1="52" x2="60" y2="60" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
                 </svg>
-                <p className="text-xs font-medium text-gray-400">Tap below to scan</p>
+                <p className="text-xs font-medium text-[var(--text-3)]">Tap below to scan</p>
               </motion.div>
             )}
           </AnimatePresence>
@@ -385,11 +385,11 @@ function ScanPageContent() {
           disabled={starting || scanSuccess}
           className={`w-full rounded-2xl py-4 text-base font-bold text-white transition-all shadow-lg active:scale-[0.98] flex items-center justify-center gap-2 ${
             scanSuccess
-              ? "bg-gray-300 cursor-not-allowed shadow-none"
+              ? "bg-[var(--border)] cursor-not-allowed shadow-none"
               : cameraActive
                 ? "bg-rose-600 hover:bg-rose-700 shadow-rose-200"
                 : starting
-                  ? "bg-gray-300 cursor-not-allowed shadow-none"
+                  ? "bg-[var(--border)] cursor-not-allowed shadow-none"
                   : "bg-[#3e1e0c] hover:bg-[#2d1508] hover:shadow-xl hover:-translate-y-0.5 shadow-[#3e1e0c]/25"
           }`}
         >
@@ -408,9 +408,9 @@ function ScanPageContent() {
         </button>
 
         <div className="flex items-center gap-4">
-          <div className="flex-1 h-px bg-gray-200" />
-          <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">or</span>
-          <div className="flex-1 h-px bg-gray-200" />
+          <div className="flex-1 h-px bg-[var(--surface-alt)]" />
+          <span className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider">or</span>
+          <div className="flex-1 h-px bg-[var(--surface-alt)]" />
         </div>
 
         <div className="space-y-3">
@@ -420,7 +420,7 @@ function ScanPageContent() {
               className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-bold transition-all ${
                 inputMode === "table"
                   ? "bg-[#3e1e0c] text-white"
-                  : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                  : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
               }`}
             >
               <Hash className="h-3.5 w-3.5" />
@@ -431,7 +431,7 @@ function ScanPageContent() {
               className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-bold transition-all ${
                 inputMode === "room"
                   ? "bg-[#3e1e0c] text-white"
-                  : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                  : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
               }`}
             >
               <BedDouble className="h-3.5 w-3.5" />
@@ -439,7 +439,7 @@ function ScanPageContent() {
             </button>
           </div>
 
-          <p className="text-sm font-bold text-[#3e1e0c] text-center">
+          <p className="text-sm font-bold text-[var(--text-1)] text-center">
             {inputMode === "table"
               ? "Enter table number manually"
               : "Enter guest house room number"}
@@ -447,9 +447,9 @@ function ScanPageContent() {
           <div className="flex gap-3">
             <div className="relative flex-1">
               {inputMode === "table" ? (
-                <Hash className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Hash className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-3)]" />
               ) : (
-                <BedDouble className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <BedDouble className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-3)]" />
               )}
               <input
                 type="text"
@@ -464,7 +464,7 @@ function ScanPageContent() {
                 }}
                 onKeyDown={(e) => e.key === "Enter" && handleTableSubmit()}
                 placeholder={inputMode === "table" ? "e.g. 07" : "e.g. 101"}
-                className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3.5 pl-11 pr-4 text-center text-lg font-bold text-[#3e1e0c] placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-[#eaa94d]/30 focus:border-[#eaa94d]/30 focus:bg-white transition-all tracking-[0.3em]"
+                className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] py-3.5 pl-11 pr-4 text-center text-lg font-bold text-[var(--text-1)] placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] focus:border-[var(--accent-border)] focus:bg-[var(--canvas)] transition-all tracking-[0.3em]"
               />
             </div>
             <button
@@ -477,21 +477,21 @@ function ScanPageContent() {
                 restaurantSlug &&
                 (inputMode === "table" ? tableNum.length >= 1 : roomNum.length >= 1)
                   ? "bg-[#eaa94d] text-white shadow-md hover:bg-[#d67620]"
-                  : "bg-gray-100 text-gray-300 cursor-not-allowed"
+                  : "bg-[var(--surface)] text-[var(--text-3)] cursor-not-allowed"
               }`}
             >
               <ArrowRight className="h-5 w-5" />
             </button>
           </div>
           {!restaurantSlug && (inputMode === "table" ? tableNum : roomNum) && (
-            <p className="text-center text-[11px] text-amber-600">
+            <p className="text-center text-[11px] text-[var(--accent-text)]">
               Scan a QR code first — manual entry needs a restaurant to be selected
             </p>
           )}
         </div>
 
         <div className="text-center pt-2">
-          <Link href="/" className="text-xs font-bold text-[#3e1e0c] hover:underline">
+          <Link href="/" className="text-xs font-bold text-[var(--text-1)] hover:underline">
             Skip &amp; Browse Restaurants
           </Link>
         </div>

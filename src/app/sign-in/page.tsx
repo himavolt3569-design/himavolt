@@ -20,10 +20,7 @@ export default function SignInPage() {
     setLoading(true);
 
     const supabase = getSupabaseBrowserClient();
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
 
     if (signInError) {
       setError(signInError.message);
@@ -44,55 +41,52 @@ export default function SignInPage() {
   };
 
   const handleGoogleSignIn = async () => {
-    // Google sign-in is exclusively for restaurant owners
     document.cookie = `intended_role=OWNER; path=/; max-age=600; SameSite=Lax`;
     const supabase = getSupabaseBrowserClient();
     await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback?role=OWNER`,
-      },
+      options: { redirectTo: `${window.location.origin}/auth/callback?role=OWNER` },
     });
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-[#fdf9ef] via-[#fefcf5] to-[#fdf9ef] p-6">
+    <div className="flex min-h-screen items-center justify-center bg-[var(--canvas-sub)] p-6">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-32 -right-32 h-96 w-96 rounded-full bg-[#eaa94d]/15 blur-3xl" />
-        <div className="absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-[#d67620]/10 blur-3xl" />
+        <div className="absolute -top-32 -right-32 h-96 w-96 rounded-full bg-[var(--accent)]/10 blur-3xl" />
+        <div className="absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-[var(--accent-hover)]/8 blur-3xl" />
       </div>
 
       <div className="relative w-full max-w-sm">
         <div className="mb-8 text-center">
           <Link href="/" className="inline-flex items-center gap-2">
-            <Mountain className="h-8 w-8 text-[#eaa94d]" strokeWidth={2.5} />
-            <span className="text-2xl font-extrabold tracking-tight text-[#3e1e0c]">
-              Hima<span className="text-[#eaa94d]">Volt</span>
+            <Mountain className="h-8 w-8 text-[var(--accent)]" strokeWidth={2.5} />
+            <span className="text-2xl font-black tracking-tight text-[var(--text-1)]">
+              Hima<span className="text-[var(--accent)]">Volt</span>
             </span>
           </Link>
-          <p className="mt-2 text-sm text-[#8e491e]/50">Welcome back — sign in to continue</p>
+          <p className="mt-2 text-sm text-[var(--text-2)]">Welcome back. Sign in to continue.</p>
         </div>
 
-        <div className="rounded-2xl border border-[#f4d69a]/40 bg-white/90 p-6 shadow-xl shadow-[#eaa94d]/8 backdrop-blur-sm">
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--canvas)] p-6 shadow-xl shadow-black/[0.04]">
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+              <div className="rounded-xl border border-[var(--status-error-text)]/20 bg-[var(--status-error-bg)] px-4 py-3 text-sm text-[var(--status-error-text)]">
                 {error}
               </div>
             )}
 
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-[#8e491e]/50">
+              <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--text-3)]">
                 Email
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#b25c1c]/30" />
+                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-3)]" />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full rounded-xl border border-[#f4d69a]/40 bg-[#fdf9ef]/50 py-2.5 pl-10 pr-4 text-sm text-[#3e1e0c] placeholder:text-[#b25c1c]/30 focus:border-[#eaa94d]/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#eaa94d]/10 transition-all"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] py-2.5 pl-10 pr-4 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] transition-colors"
                   placeholder="you@example.com"
                 />
               </div>
@@ -100,30 +94,30 @@ export default function SignInPage() {
 
             <div>
               <div className="mb-1.5 flex items-center justify-between">
-                <label className="text-xs font-semibold uppercase tracking-wide text-[#8e491e]/50">
+                <label className="text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--text-3)]">
                   Password
                 </label>
                 <Link
                   href="/auth/forgot-password"
-                  className="text-xs font-semibold text-[#eaa94d] hover:text-[#d67620] transition-colors"
+                  className="text-xs font-semibold text-[var(--accent)] hover:text-[var(--accent-hover)] transition-colors"
                 >
                   Forgot password?
                 </Link>
               </div>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#b25c1c]/30" />
+                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-3)]" />
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full rounded-xl border border-[#f4d69a]/40 bg-[#fdf9ef]/50 py-2.5 pl-10 pr-10 text-sm text-[#3e1e0c] placeholder:text-[#b25c1c]/30 focus:border-[#eaa94d]/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#eaa94d]/10 transition-all"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] py-2.5 pl-10 pr-10 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] transition-colors"
                   placeholder="Your password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((p) => !p)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#b25c1c]/30 hover:text-[#b25c1c]/60 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-3)] hover:text-[var(--text-2)] transition-colors"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -133,21 +127,17 @@ export default function SignInPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-xl bg-[#3e1e0c] py-3 text-sm font-bold text-white shadow-md shadow-[#3e1e0c]/20 transition-all hover:bg-[#2a1408] active:scale-[0.98] disabled:opacity-50"
+              className="w-full rounded-xl bg-[var(--accent)] py-3 text-sm font-bold text-white shadow-md shadow-[var(--accent)]/20 hover:bg-[var(--accent-hover)] active:scale-[0.98] disabled:opacity-50 transition-colors"
             >
-              {loading ? (
-                <Loader2 className="mx-auto h-4 w-4 animate-spin" />
-              ) : (
-                "Sign In"
-              )}
+              {loading ? <Loader2 className="mx-auto h-4 w-4 animate-spin" /> : "Sign In"}
             </button>
           </form>
 
-          <div className="mt-4 rounded-xl border border-dashed border-[#f4d69a]/40 bg-[#fdf9ef]/50 px-4 py-3 text-center">
-            <p className="text-xs text-[#8e491e]/40 mb-2">Restaurant Owner?</p>
+          <div className="mt-4 rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-3 text-center">
+            <p className="text-xs text-[var(--text-3)] mb-2">Restaurant Owner?</p>
             <button
               onClick={handleGoogleSignIn}
-              className="w-full rounded-lg border border-[#f4d69a]/40 bg-white py-2.5 text-sm font-semibold text-[#3e1e0c] transition-all hover:bg-[#fdf9ef] hover:border-[#eaa94d]/30"
+              className="w-full rounded-lg border border-[var(--border)] bg-[var(--canvas)] py-2.5 text-sm font-semibold text-[var(--text-1)] hover:bg-[var(--surface)] transition-colors"
             >
               <span className="flex items-center justify-center gap-2">
                 <svg className="h-4 w-4" viewBox="0 0 24 24">
@@ -162,9 +152,9 @@ export default function SignInPage() {
           </div>
         </div>
 
-        <p className="mt-5 text-center text-sm text-[#8e491e]/40">
+        <p className="mt-5 text-center text-sm text-[var(--text-3)]">
           Don&apos;t have an account?{" "}
-          <Link href="/sign-up" className="font-bold text-[#eaa94d] hover:text-[#d67620] transition-colors">
+          <Link href="/sign-up" className="font-bold text-[var(--accent)] hover:text-[var(--accent-hover)] transition-colors">
             Sign Up
           </Link>
         </p>

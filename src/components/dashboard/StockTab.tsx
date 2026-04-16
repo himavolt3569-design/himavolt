@@ -132,12 +132,12 @@ export default function StockTab() {
     <div className="space-y-6 max-w-5xl mx-auto pb-12">
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-extrabold tracking-tight text-[#3e1e0c]">
+          <h2 className="text-2xl font-extrabold tracking-tight text-[var(--text-1)]">
             Stock / Inventory
           </h2>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-[var(--text-2)]">
             Track ingredients and supplies for{" "}
-            <strong className="text-[#3e1e0c]">{restaurant.name}</strong>
+            <strong className="text-[var(--text-1)]">{restaurant.name}</strong>
           </p>
         </div>
         <button
@@ -157,7 +157,7 @@ export default function StockTab() {
           {
             label: "Total Items",
             value: items.length,
-            color: "text-[#3e1e0c]",
+            color: "text-[var(--text-1)]",
             icon: Box,
             iconColor: "text-blue-500",
           },
@@ -178,17 +178,17 @@ export default function StockTab() {
           {
             label: "Total Value",
             value: formatPrice(totalValue, cur),
-            color: "text-[#3e1e0c]",
+            color: "text-[var(--text-1)]",
             icon: TrendingDown,
-            iconColor: "text-amber-500",
+            iconColor: "text-[var(--accent)]",
           },
         ].map((stat) => (
           <div
             key={stat.label}
-            className="rounded-2xl bg-white border border-gray-100 p-4 shadow-[0_2px_12px_rgba(0,0,0,0.04)]"
+            className="rounded-2xl bg-[var(--canvas)] border border-[var(--border-soft)] p-4 shadow-[0_2px_12px_rgba(0,0,0,0.04)]"
           >
             <div className="flex items-center justify-between mb-1">
-              <p className="text-xs font-semibold text-gray-500">
+              <p className="text-xs font-semibold text-[var(--text-2)]">
                 {stat.label}
               </p>
               <stat.icon className={`h-4 w-4 ${stat.iconColor}`} />
@@ -200,13 +200,13 @@ export default function StockTab() {
 
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-3)]" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search items..."
-            className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm font-medium text-[#3e1e0c] placeholder-gray-400 outline-none transition-all focus:border-[#eaa94d] focus:ring-2 focus:ring-[#eaa94d]/15"
+            className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] py-2.5 pl-10 pr-4 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#eaa94d] focus:ring-2 focus:ring-[#eaa94d]/15"
           />
         </div>
         <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
@@ -217,21 +217,21 @@ export default function StockTab() {
               className={`shrink-0 rounded-lg px-3 py-2 text-xs font-bold transition-all ${
                 filterStatus === s
                   ? "bg-[#3e1e0c] text-white"
-                  : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                  : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
               }`}
             >
               {s === "all" ? "All" : s === "low" ? "Low Stock" : "In Stock"}
             </button>
           ))}
-          <span className="w-px bg-gray-200 mx-1 shrink-0" />
+          <span className="w-px bg-[var(--surface-alt)] mx-1 shrink-0" />
           {(["all", "drinks", "ingredients"] as const).map((t) => (
             <button
               key={t}
               onClick={() => setFilterType(t)}
               className={`shrink-0 rounded-lg px-3 py-2 text-xs font-bold transition-all ${
                 filterType === t
-                  ? "bg-amber-500 text-white"
-                  : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                  ? "bg-[var(--accent)] text-white"
+                  : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
               }`}
             >
               {t === "all" ? "All Types" : t === "drinks" ? "Drinks" : "Ingredients"}
@@ -241,7 +241,7 @@ export default function StockTab() {
         <select
           value={filterCat}
           onChange={(e) => setFilterCat(e.target.value)}
-          className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-bold text-gray-600 outline-none focus:border-[#eaa94d]"
+          className="rounded-lg border border-[var(--border)] bg-[var(--canvas)] px-3 py-2 text-xs font-bold text-[var(--text-2)] outline-none focus:border-[#eaa94d]"
         >
           <option value="all">All Categories</option>
           {categories.map((c) => (
@@ -254,15 +254,15 @@ export default function StockTab() {
 
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+          <Loader2 className="h-6 w-6 animate-spin text-[var(--text-3)]" />
         </div>
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center py-16 text-center">
-          <Package className="h-10 w-10 text-gray-300 mb-3" />
-          <p className="font-bold text-gray-500">
+          <Package className="h-10 w-10 text-[var(--text-3)] mb-3" />
+          <p className="font-bold text-[var(--text-2)]">
             {items.length === 0 ? "No items yet" : "No items match filters"}
           </p>
-          <p className="text-sm text-gray-400 mt-1">
+          <p className="text-sm text-[var(--text-3)] mt-1">
             {items.length === 0
               ? "Add your first inventory item to start tracking"
               : "Try adjusting your search or filters"}
@@ -281,13 +281,13 @@ export default function StockTab() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ delay: i * 0.02 }}
-                  className={`group flex items-center gap-4 rounded-2xl bg-white border p-4 shadow-[0_2px_12px_rgba(0,0,0,0.04)] transition-all hover:shadow-[0_4px_20px_rgba(0,0,0,0.07)] ${
-                    isLow ? "border-red-200 bg-red-50/30" : "border-gray-100"
+                  className={`group flex items-center gap-4 rounded-2xl bg-[var(--canvas)] border p-4 shadow-[0_2px_12px_rgba(0,0,0,0.04)] transition-all hover:shadow-[0_4px_20px_rgba(0,0,0,0.07)] ${
+                    isLow ? "border-red-200 bg-red-50/30" : "border-[var(--border-soft)]"
                   }`}
                 >
                   <div
                     className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${
-                      isLow ? "bg-red-50" : "bg-[#fef9ef]"
+                      isLow ? "bg-red-50" : "bg-[var(--accent-muted)]"
                     }`}
                   >
                     {isLow ? (
@@ -299,10 +299,10 @@ export default function StockTab() {
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <h4 className="font-bold text-[#3e1e0c] truncate">
+                      <h4 className="font-bold text-[var(--text-1)] truncate">
                         {item.name}
                       </h4>
-                      <span className="shrink-0 rounded-md bg-gray-100 border border-gray-200 px-2 py-0.5 text-[10px] font-bold text-gray-500">
+                      <span className="shrink-0 rounded-md bg-[var(--surface)] border border-[var(--border)] px-2 py-0.5 text-[10px] font-bold text-[var(--text-2)]">
                         {item.category}
                       </span>
                       {item.isDrink && (
@@ -311,7 +311,7 @@ export default function StockTab() {
                         </span>
                       )}
                       {item.showOnMenu && (
-                        <span className="shrink-0 rounded-md bg-[#fef9ef] border border-[#eaa94d]/30 px-2 py-0.5 text-[10px] font-bold text-[#b25c1c]">
+                        <span className="shrink-0 rounded-md bg-[var(--accent-muted)] border border-[var(--accent-border)] px-2 py-0.5 text-[10px] font-bold text-[#b25c1c]">
                           On Menu
                         </span>
                       )}
@@ -321,8 +321,8 @@ export default function StockTab() {
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      <span className="font-semibold text-[#3e1e0c]">
+                    <p className="text-xs text-[var(--text-2)] mt-0.5">
+                      <span className="font-semibold text-[var(--text-1)]">
                         {item.quantity}
                       </span>{" "}
                       {item.unit} &middot; Min: {item.minStock} {item.unit}
@@ -334,22 +334,22 @@ export default function StockTab() {
                       )}
                     </p>
                     {item.sellingPrice != null && item.sellingPrice > 0 && (
-                      <p className="text-[11px] text-amber-600 font-semibold mt-0.5">
+                      <p className="text-[11px] text-[var(--accent-text)] font-semibold mt-0.5">
                         Sells at: {formatPrice(item.sellingPrice, cur)}
                       </p>
                     )}
                     {item.notes && (
-                      <p className="text-[11px] text-gray-400 mt-0.5 truncate">
+                      <p className="text-[11px] text-[var(--text-3)] mt-0.5 truncate">
                         {item.notes}
                       </p>
                     )}
                     {item.usedInMenuItems && item.usedInMenuItems.length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-1">
-                        <span className="text-[10px] font-semibold text-amber-600">Used in:</span>
+                        <span className="text-[10px] font-semibold text-[var(--accent-text)]">Used in:</span>
                         {item.usedInMenuItems.map((mi) => (
                           <span
                             key={mi.id}
-                            className="shrink-0 rounded-md bg-amber-50 border border-amber-200 px-1.5 py-0.5 text-[10px] font-bold text-amber-700"
+                            className="shrink-0 rounded-md bg-[var(--accent-muted)] border border-[var(--accent-border)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--accent-text)]"
                           >
                             {mi.name}
                           </span>
@@ -372,7 +372,7 @@ export default function StockTab() {
                         setEditItem(item);
                         setShowAdd(true);
                       }}
-                      className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition-all"
+                      className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent-muted)] text-[var(--accent-text)] hover:bg-[var(--accent-muted)] transition-all"
                       title="Edit"
                     >
                       <Pencil className="h-3.5 w-3.5" />
@@ -453,12 +453,12 @@ function QuickAdjust({
           onChange={(e) => setVal(e.target.value)}
           placeholder={String(item.quantity)}
           autoFocus
-          className="w-16 rounded-md border border-amber-300 bg-amber-50/50 px-2 py-1 text-xs font-bold text-[#3e1e0c] outline-none focus:ring-2 focus:ring-amber-200 text-center"
+          className="w-16 rounded-md border border-[var(--accent-border)] bg-[var(--accent-muted)] px-2 py-1 text-xs font-bold text-[var(--text-1)] outline-none focus:ring-2 focus:ring-[var(--accent-border)] text-center"
         />
         <button
           onClick={() => save(Number(val) || item.quantity)}
           disabled={saving}
-          className="flex h-6 w-6 items-center justify-center rounded-md bg-[#fef9ef] text-[#b25c1c] hover:bg-[#fef3dc] disabled:opacity-40 transition-all"
+          className="flex h-6 w-6 items-center justify-center rounded-md bg-[var(--accent-muted)] text-[#b25c1c] hover:bg-[var(--accent-muted)] disabled:opacity-40 transition-all"
         >
           {saving ? (
             <Loader2 className="h-3 w-3 animate-spin" />
@@ -471,7 +471,7 @@ function QuickAdjust({
             setAdjusting(false);
             setVal("");
           }}
-          className="flex h-6 w-6 items-center justify-center rounded-md bg-gray-100 text-gray-500 hover:bg-gray-200 transition-all"
+          className="flex h-6 w-6 items-center justify-center rounded-md bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-all"
         >
           <X className="h-3 w-3" />
         </button>
@@ -483,20 +483,20 @@ function QuickAdjust({
     <div className="flex items-center gap-1">
       <button
         onClick={() => save(Math.max(0, item.quantity - 1))}
-        className="flex h-7 w-7 items-center justify-center rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 font-bold text-sm transition-all"
+        className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)] font-bold text-sm transition-all"
       >
         −
       </button>
       <button
         onClick={() => setAdjusting(true)}
-        className="min-w-[3rem] rounded-lg bg-gray-50 px-2 py-1 text-center text-sm font-bold text-[#3e1e0c] hover:bg-gray-100 transition-all cursor-pointer"
+        className="min-w-[3rem] rounded-lg bg-[var(--canvas-sub)] px-2 py-1 text-center text-sm font-bold text-[var(--text-1)] hover:bg-[var(--surface)] transition-all cursor-pointer"
         title="Click to set quantity"
       >
         {item.quantity}
       </button>
       <button
         onClick={() => save(item.quantity + 1)}
-        className="flex h-7 w-7 items-center justify-center rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 font-bold text-sm transition-all"
+        className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)] font-bold text-sm transition-all"
       >
         +
       </button>
@@ -620,15 +620,15 @@ function AddEditModal({
               stiffness: 340,
               mass: 0.7,
             }}
-            className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl sm:p-8 max-h-[90dvh]"
+            className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-3xl bg-[var(--canvas)] p-6 shadow-2xl sm:p-8 max-h-[90dvh]"
           >
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-extrabold text-[#3e1e0c]">
+              <h3 className="text-xl font-extrabold text-[var(--text-1)]">
                 {item ? "Edit Item" : "Add Inventory Item"}
               </h3>
               <button
                 onClick={onClose}
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition-all"
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-[var(--border)] text-[var(--text-3)] hover:bg-[var(--canvas-sub)] hover:text-[var(--text-2)] transition-all"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -636,7 +636,7 @@ function AddEditModal({
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">
+                <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">
                   Item Name <span className="text-[#eaa94d]">*</span>
                 </label>
                 <input
@@ -644,20 +644,20 @@ function AddEditModal({
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Chicken, Rice, Cooking Oil"
-                  className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#3e1e0c] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
                 />
               </div>
 
               {/* Unit + Category row */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">
+                  <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">
                     Unit
                   </label>
                   <select
                     value={unit}
                     onChange={(e) => setUnit(e.target.value)}
-                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#3e1e0c] outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
                   >
                     {UNITS.map((u) => (
                       <option key={u} value={u}>
@@ -667,13 +667,13 @@ function AddEditModal({
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">
+                  <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">
                     Category
                   </label>
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#3e1e0c] outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
                   >
                     {CATEGORIES.map((c) => (
                       <option key={c} value={c}>
@@ -687,7 +687,7 @@ function AddEditModal({
               {/* Quantity + Min Stock */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">
+                  <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">
                     Current Qty
                   </label>
                   <input
@@ -696,11 +696,11 @@ function AddEditModal({
                     onChange={(e) => setQuantity(e.target.value)}
                     placeholder="0"
                     min="0"
-                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#3e1e0c] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">
+                  <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">
                     Min Stock Alert
                   </label>
                   <input
@@ -709,13 +709,13 @@ function AddEditModal({
                     onChange={(e) => setMinStock(e.target.value)}
                     placeholder="5"
                     min="0"
-                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#3e1e0c] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">
+                <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">
                   Cost per {unit}
                 </label>
                 <input
@@ -724,12 +724,12 @@ function AddEditModal({
                   onChange={(e) => setCostPerUnit(e.target.value)}
                   placeholder="0"
                   min="0"
-                  className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#3e1e0c] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">
+                <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">
                   Notes
                 </label>
                 <input
@@ -737,36 +737,36 @@ function AddEditModal({
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Optional notes..."
-                  className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#3e1e0c] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
                 />
               </div>
 
-              <div className="border-t border-gray-100 pt-4">
-                <p className="text-sm font-bold text-[#3e1e0c] mb-3">Drink & Menu Settings</p>
+              <div className="border-t border-[var(--border-soft)] pt-4">
+                <p className="text-sm font-bold text-[var(--text-1)] mb-3">Drink & Menu Settings</p>
 
                 <div className="flex items-center justify-between rounded-xl bg-purple-50/50 border border-purple-100 px-4 py-3 mb-3">
                   <div>
-                    <p className="text-sm font-bold text-[#3e1e0c]">This is a drink</p>
-                    <p className="text-xs text-gray-500">Mark this as a drink/beverage item</p>
+                    <p className="text-sm font-bold text-[var(--text-1)]">This is a drink</p>
+                    <p className="text-xs text-[var(--text-2)]">Mark this as a drink/beverage item</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => setIsDrink(!isDrink)}
-                    className={`relative h-6 w-11 rounded-full transition-colors ${isDrink ? "bg-purple-500" : "bg-gray-300"}`}
+                    className={`relative h-6 w-11 rounded-full transition-colors ${isDrink ? "bg-purple-500" : "bg-[var(--border)]"}`}
                   >
-                    <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${isDrink ? "left-[calc(100%-1.375rem)]" : "left-0.5"}`} />
+                    <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-[var(--canvas)] shadow transition-all ${isDrink ? "left-[calc(100%-1.375rem)]" : "left-0.5"}`} />
                   </button>
                 </div>
 
                 {isDrink && (
                   <div className="mb-3">
-                    <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">
+                    <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">
                       Drink Category
                     </label>
                     <select
                       value={drinkCategory}
                       onChange={(e) => setDrinkCategory(e.target.value)}
-                      className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#3e1e0c] outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
+                      className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
                     >
                       <option value="">Select category</option>
                       {DRINK_CATEGORIES.map((c) => (
@@ -776,24 +776,24 @@ function AddEditModal({
                   </div>
                 )}
 
-                <div className="flex items-center justify-between rounded-xl bg-[#fef9ef]/50 border border-[#eaa94d]/30 px-4 py-3 mb-3">
+                <div className="flex items-center justify-between rounded-xl bg-[#fef9ef]/50 border border-[var(--accent-border)] px-4 py-3 mb-3">
                   <div>
-                    <p className="text-sm font-bold text-[#3e1e0c]">Show on customer menu</p>
-                    <p className="text-xs text-gray-500">Display as purchasable item for customers</p>
+                    <p className="text-sm font-bold text-[var(--text-1)]">Show on customer menu</p>
+                    <p className="text-xs text-[var(--text-2)]">Display as purchasable item for customers</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => setShowOnMenu(!showOnMenu)}
-                    className={`relative h-6 w-11 rounded-full transition-colors ${showOnMenu ? "bg-[#eaa94d]" : "bg-gray-300"}`}
+                    className={`relative h-6 w-11 rounded-full transition-colors ${showOnMenu ? "bg-[#eaa94d]" : "bg-[var(--border)]"}`}
                   >
-                    <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${showOnMenu ? "left-[calc(100%-1.375rem)]" : "left-0.5"}`} />
+                    <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-[var(--canvas)] shadow transition-all ${showOnMenu ? "left-[calc(100%-1.375rem)]" : "left-0.5"}`} />
                   </button>
                 </div>
 
                 {/* Selling Price (shown if showOnMenu is true) */}
                 {showOnMenu && (
                   <div>
-                    <label className="block text-sm font-bold text-[#3e1e0c] mb-1.5">
+                    <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">
                       Selling Price
                     </label>
                     <input
@@ -802,7 +802,7 @@ function AddEditModal({
                       onChange={(e) => setSellingPrice(e.target.value)}
                       placeholder="0"
                       min="0"
-                      className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#3e1e0c] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
+                      className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
                     />
                   </div>
                 )}
@@ -818,7 +818,7 @@ function AddEditModal({
             <div className="mt-6 flex items-center justify-end gap-3">
               <button
                 onClick={onClose}
-                className="rounded-xl px-5 py-2.5 text-sm font-bold text-gray-500 hover:text-[#3e1e0c] hover:bg-gray-50 transition-all"
+                className="rounded-xl px-5 py-2.5 text-sm font-bold text-[var(--text-2)] hover:text-[var(--text-1)] hover:bg-[var(--canvas-sub)] transition-all"
               >
                 Cancel
               </button>
@@ -828,7 +828,7 @@ function AddEditModal({
                 className={`flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-bold text-white shadow-lg transition-all active:scale-[0.97] ${
                   name.trim() && !saving
                     ? "bg-[#3e1e0c] shadow-[#3e1e0c]/20 hover:bg-[#2d1508]"
-                    : "bg-gray-300 shadow-none cursor-not-allowed"
+                    : "bg-[var(--border)] shadow-none cursor-not-allowed"
                 }`}
               >
                 {saving ? (

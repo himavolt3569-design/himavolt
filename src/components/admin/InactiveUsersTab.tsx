@@ -182,38 +182,38 @@ export default function InactiveUsersTab() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-start gap-3 rounded-2xl border border-amber-100 bg-amber-50 px-4 py-3">
-        <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-500" />
-        <div className="text-xs text-amber-700">
-          <span className="font-semibold">Inactive accounts</span> — users who joined more than 15 days ago and have
+      <div className="flex items-start gap-3 rounded-2xl border border-[var(--accent-border)] bg-[var(--accent-muted)] px-4 py-3">
+        <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-[var(--accent)]" />
+        <div className="text-xs text-[var(--accent-text)]">
+          <span className="font-semibold">Inactive accounts</span>: users who joined more than 15 days ago and have
           placed no orders in the last 15 days. Admin accounts are excluded.
         </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative flex-1 sm:max-w-xs">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-3)]" />
           <input
             type="text"
             placeholder="Search by name, email, phone..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-xl border border-gray-200 bg-white py-2 pl-9 pr-3 text-sm text-gompa-slate placeholder:text-gray-400 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-200"
+            className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] py-2 pl-9 pr-3 text-sm text-gompa-slate placeholder:text-[var(--text-3)] focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-200"
           />
           {search && (
-            <button onClick={() => setSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-brand-500">
+            <button onClick={() => setSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--text-3)] hover:text-brand-500">
               <X className="h-3.5 w-3.5" />
             </button>
           )}
         </div>
         <button
           onClick={() => fetchUsers(page)}
-          className="flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-2 text-xs font-medium text-gray-600 hover:bg-brand-50"
+          className="flex items-center gap-1.5 rounded-xl border border-[var(--border)] px-3 py-2 text-xs font-medium text-[var(--text-2)] hover:bg-brand-50"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
         </button>
         {pagination && (
-          <span className="ml-auto text-xs text-gray-400">
+          <span className="ml-auto text-xs text-[var(--text-3)]">
             {pagination.total.toLocaleString()} inactive account{pagination.total !== 1 ? "s" : ""}
           </span>
         )}
@@ -234,7 +234,7 @@ export default function InactiveUsersTab() {
         </div>
       )}
 
-      <div className="overflow-hidden rounded-2xl border border-brand-100 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-brand-100 bg-[var(--canvas)] shadow-sm">
         <div className="flex items-center gap-2 border-b border-brand-100 px-4 py-2.5">
           <input
             type="checkbox"
@@ -242,8 +242,8 @@ export default function InactiveUsersTab() {
             onChange={() => setSelectedIds(allSelected ? new Set() : new Set(users.map((u) => u.id)))}
             className="h-3.5 w-3.5 rounded accent-gompa-slate"
           />
-          <UserX className="h-4 w-4 text-amber-400" />
-          <span className="text-xs font-semibold text-gray-500">Inactive Accounts (15+ days)</span>
+          <UserX className="h-4 w-4 text-[var(--accent)]" />
+          <span className="text-xs font-semibold text-[var(--text-2)]">Inactive Accounts (15+ days)</span>
         </div>
 
         {loading && users.length === 0 ? (
@@ -252,12 +252,12 @@ export default function InactiveUsersTab() {
           </div>
         ) : users.length === 0 ? (
           <div className="py-16 text-center">
-            <UserCheck className="mx-auto mb-2 h-8 w-8 text-green-300" />
-            <p className="text-sm font-medium text-gray-500">No inactive accounts found</p>
-            <p className="mt-0.5 text-xs text-gray-400">All users have been active in the last 15 days</p>
+            <UserCheck className="mx-auto mb-2 h-8 w-8 text-[#d67620]" />
+            <p className="text-sm font-medium text-[var(--text-2)]">No inactive accounts found</p>
+            <p className="mt-0.5 text-xs text-[var(--text-3)]">All users have been active in the last 15 days</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-[var(--border)]">
             {users.map((user) => {
               const isExpanded = expandedId === user.id;
               const inactiveDays = daysSince(user.lastOrderAt ?? user.createdAt);
@@ -265,7 +265,7 @@ export default function InactiveUsersTab() {
               const isSelected = selectedIds.has(user.id);
 
               return (
-                <div key={user.id} className={`transition-all hover:bg-amber-50/30 ${isSelected ? "bg-red-50/30" : ""}`}>
+                <div key={user.id} className={`transition-all hover:bg-[var(--accent-muted)] ${isSelected ? "bg-red-50/30" : ""}`}>
                   <button
                     type="button"
                     onClick={() => setExpandedId(isExpanded ? null : user.id)}
@@ -285,11 +285,11 @@ export default function InactiveUsersTab() {
                       onClick={(e) => e.stopPropagation()}
                       className="h-3.5 w-3.5 flex-shrink-0 rounded accent-gompa-slate"
                     />
-                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-amber-50 overflow-hidden">
+                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[var(--accent-muted)] overflow-hidden">
                       {user.imageUrl ? (
                         <img src={user.imageUrl} alt={user.name} className="h-10 w-10 object-cover rounded-full" />
                       ) : (
-                        <UserX className="h-5 w-5 text-amber-400" />
+                        <UserX className="h-5 w-5 text-[var(--accent)]" />
                       )}
                     </div>
 
@@ -297,21 +297,21 @@ export default function InactiveUsersTab() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-bold text-gompa-slate truncate">{user.name || "Unnamed"}</span>
-                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${ROLE_COLORS[user.role] || "bg-gray-100 text-gray-600"}`}>
+                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${ROLE_COLORS[user.role] || "bg-[var(--surface)] text-[var(--text-2)]"}`}>
                           {user.role}
                         </span>
                       </div>
-                      <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                      <p className="text-xs text-[var(--text-2)] truncate">{user.email}</p>
                     </div>
 
                     <div className="hidden flex-shrink-0 sm:flex items-center gap-1.5">
-                      <span className="flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-semibold text-amber-700">
+                      <span className="flex items-center gap-1 rounded-full bg-[var(--accent-muted)] px-2.5 py-1 text-[11px] font-semibold text-[var(--accent-text)]">
                         <Clock className="h-3 w-3" />
                         {inactiveDays != null ? `${inactiveDays}d inactive` : "New"}
                       </span>
                     </div>
 
-                    <ChevronDown className={`h-3.5 w-3.5 flex-shrink-0 text-gray-300 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+                    <ChevronDown className={`h-3.5 w-3.5 flex-shrink-0 text-[var(--text-3)] transition-transform ${isExpanded ? "rotate-180" : ""}`} />
                   </button>
 
                   <AnimatePresence>
@@ -322,47 +322,47 @@ export default function InactiveUsersTab() {
                         exit={{ height: 0, opacity: 0 }}
                         className="overflow-hidden"
                       >
-                        <div className="border-t border-brand-100 bg-amber-50/20 px-4 py-3 space-y-3">
+                        <div className="border-t border-brand-100 bg-[var(--accent-muted)] px-4 py-3 space-y-3">
                           <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-xs sm:grid-cols-3">
                             <div className="flex items-center gap-1.5">
-                              <Mail className="h-3.5 w-3.5 flex-shrink-0 text-gray-400" />
+                              <Mail className="h-3.5 w-3.5 flex-shrink-0 text-[var(--text-3)]" />
                               <div className="min-w-0">
-                                <span className="block text-gray-400">Email</span>
+                                <span className="block text-[var(--text-3)]">Email</span>
                                 <p className="truncate font-medium text-gompa-slate">{user.email}</p>
                               </div>
                             </div>
                             <div className="flex items-center gap-1.5">
-                              <Phone className="h-3.5 w-3.5 flex-shrink-0 text-gray-400" />
+                              <Phone className="h-3.5 w-3.5 flex-shrink-0 text-[var(--text-3)]" />
                               <div>
-                                <span className="block text-gray-400">Phone</span>
+                                <span className="block text-[var(--text-3)]">Phone</span>
                                 <p className="font-medium text-gompa-slate">{user.phone || "—"}</p>
                               </div>
                             </div>
                             <div className="flex items-center gap-1.5">
-                              <Calendar className="h-3.5 w-3.5 flex-shrink-0 text-gray-400" />
+                              <Calendar className="h-3.5 w-3.5 flex-shrink-0 text-[var(--text-3)]" />
                               <div>
-                                <span className="block text-gray-400">Joined</span>
+                                <span className="block text-[var(--text-3)]">Joined</span>
                                 <p className="font-medium text-gompa-slate">{formatDate(user.createdAt)}</p>
                               </div>
                             </div>
                             <div className="flex items-center gap-1.5">
-                              <Clock className="h-3.5 w-3.5 flex-shrink-0 text-gray-400" />
+                              <Clock className="h-3.5 w-3.5 flex-shrink-0 text-[var(--text-3)]" />
                               <div>
-                                <span className="block text-gray-400">Last Order</span>
+                                <span className="block text-[var(--text-3)]">Last Order</span>
                                 <p className="font-medium text-gompa-slate">{formatDate(user.lastOrderAt)}</p>
                               </div>
                             </div>
                             <div className="flex items-center gap-1.5">
-                              <ShoppingBag className="h-3.5 w-3.5 flex-shrink-0 text-gray-400" />
+                              <ShoppingBag className="h-3.5 w-3.5 flex-shrink-0 text-[var(--text-3)]" />
                               <div>
-                                <span className="block text-gray-400">Total Orders</span>
+                                <span className="block text-[var(--text-3)]">Total Orders</span>
                                 <p className="font-bold text-gompa-slate">{user._count.orders}</p>
                               </div>
                             </div>
                             <div className="flex items-center gap-1.5">
-                              <Star className="h-3.5 w-3.5 flex-shrink-0 text-gray-400" />
+                              <Star className="h-3.5 w-3.5 flex-shrink-0 text-[var(--text-3)]" />
                               <div>
-                                <span className="block text-gray-400">Reviews</span>
+                                <span className="block text-[var(--text-3)]">Reviews</span>
                                 <p className="font-medium text-gompa-slate">{user._count.reviews}</p>
                               </div>
                             </div>
@@ -371,11 +371,11 @@ export default function InactiveUsersTab() {
                           {/* Username & ID */}
                           <div className="grid grid-cols-2 gap-x-6 text-xs">
                             <div>
-                              <span className="text-gray-400">Username</span>
+                              <span className="text-[var(--text-3)]">Username</span>
                               <p className="font-medium text-gompa-slate">{user.username || "—"}</p>
                             </div>
                             <div>
-                              <span className="text-gray-400">User ID</span>
+                              <span className="text-[var(--text-3)]">User ID</span>
                               <p className="font-mono text-[11px] text-gompa-slate truncate">{user.id}</p>
                             </div>
                           </div>
@@ -384,10 +384,10 @@ export default function InactiveUsersTab() {
                             <button
                               onClick={() => handleReactivate(user.id)}
                               disabled={isReactivating}
-                              className="flex items-center gap-1.5 rounded-lg bg-[#fef9ef] px-3 py-1.5 text-xs font-medium text-[#b25c1c] hover:bg-[#fef3dc] transition-all disabled:opacity-50"
+                              className="flex items-center gap-1.5 rounded-lg bg-[var(--accent-muted)] px-3 py-1.5 text-xs font-medium text-[#b25c1c] hover:bg-[var(--accent-muted)] transition-all disabled:opacity-50"
                             >
                               {isReactivating ? (
-                                <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#eaa94d]/30 border-t-green-500" />
+                                <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[var(--accent-border)] border-t-green-500" />
                               ) : (
                                 <UserCheck className="h-3.5 w-3.5" />
                               )}
@@ -412,13 +412,13 @@ export default function InactiveUsersTab() {
         )}
 
         {pagination && pagination.totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-gray-100 px-4 py-2.5">
-            <span className="text-xs text-gray-400">Page {pagination.page} of {pagination.totalPages}</span>
+          <div className="flex items-center justify-between border-t border-[var(--border-soft)] px-4 py-2.5">
+            <span className="text-xs text-[var(--text-3)]">Page {pagination.page} of {pagination.totalPages}</span>
             <div className="flex gap-1.5">
-              <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="rounded-lg border border-gray-200 p-1.5 text-gray-500 hover:bg-brand-50 disabled:opacity-40">
+              <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-2)] hover:bg-brand-50 disabled:opacity-40">
                 <ChevronLeft className="h-3.5 w-3.5" />
               </button>
-              <button disabled={page >= pagination.totalPages} onClick={() => setPage((p) => p + 1)} className="rounded-lg border border-gray-200 p-1.5 text-gray-500 hover:bg-brand-50 disabled:opacity-40">
+              <button disabled={page >= pagination.totalPages} onClick={() => setPage((p) => p + 1)} className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-2)] hover:bg-brand-50 disabled:opacity-40">
                 <ChevronRight className="h-3.5 w-3.5" />
               </button>
             </div>

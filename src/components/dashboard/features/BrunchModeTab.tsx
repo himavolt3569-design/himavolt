@@ -175,12 +175,12 @@ export default function BrunchModeTab() {
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-amber-100 rounded-xl">
-            <Coffee className="w-6 h-6 text-amber-600" />
+          <div className="p-2.5 bg-[var(--accent-muted)] rounded-xl">
+            <Coffee className="w-6 h-6 text-[var(--accent-text)]" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-gray-900">Brunch Mode</h2>
-            <p className="text-sm text-gray-500">Weekend brunch & pastry focus management</p>
+            <h2 className="text-xl font-bold text-[var(--text-1)]">Brunch Mode</h2>
+            <p className="text-sm text-[var(--text-2)]">Weekend brunch & pastry focus management</p>
           </div>
         </div>
         <button
@@ -188,11 +188,11 @@ export default function BrunchModeTab() {
           className="flex items-center gap-2 text-sm font-medium"
         >
           {brunchEnabled ? (
-            <ToggleRight className="w-8 h-8 text-amber-500" />
+            <ToggleRight className="w-8 h-8 text-[var(--accent)]" />
           ) : (
-            <ToggleLeft className="w-8 h-8 text-gray-400" />
+            <ToggleLeft className="w-8 h-8 text-[var(--text-3)]" />
           )}
-          <span className={brunchEnabled ? "text-amber-600" : "text-gray-400"}>
+          <span className={brunchEnabled ? "text-[var(--accent-text)]" : "text-[var(--text-3)]"}>
             {brunchEnabled ? "Active" : "Inactive"}
           </span>
         </button>
@@ -202,23 +202,23 @@ export default function BrunchModeTab() {
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             {[
-              { label: "Current Covers", value: currentCovers, icon: Users, color: "text-amber-600 bg-amber-50" },
-              { label: "Available Seats", value: availableSeats, icon: UtensilsCrossed, color: "text-[#b25c1c] bg-[#fef9ef]" },
-              { label: "Waitlist", value: waitlistCount, icon: ClipboardList, color: "text-orange-600 bg-orange-50" },
+              { label: "Current Covers", value: currentCovers, icon: Users, color: "text-[var(--accent-text)] bg-[var(--accent-muted)]" },
+              { label: "Available Seats", value: availableSeats, icon: UtensilsCrossed, color: "text-[#b25c1c] bg-[var(--accent-muted)]" },
+              { label: "Waitlist", value: waitlistCount, icon: ClipboardList, color: "text-[var(--accent)] bg-[var(--accent)]" },
               { label: "Avg Spend/Cover", value: formatPrice(avgSpendPerCover, cur), icon: TrendingUp, color: "text-purple-600 bg-purple-50" },
             ].map((stat) => (
               <motion.div
                 key={stat.label}
                 whileHover={{ scale: 1.02 }}
-                className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm"
+                className="bg-[var(--canvas)] border border-[var(--border-soft)] rounded-xl p-4 shadow-sm"
               >
                 <div className="flex items-center gap-3">
                   <div className={`p-2 rounded-lg ${stat.color}`}>
                     <stat.icon className="w-4 h-4" />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">{stat.label}</p>
-                    <p className="text-lg font-bold text-gray-900">{stat.value}</p>
+                    <p className="text-xs text-[var(--text-2)]">{stat.label}</p>
+                    <p className="text-lg font-bold text-[var(--text-1)]">{stat.value}</p>
                   </div>
                 </div>
               </motion.div>
@@ -227,15 +227,15 @@ export default function BrunchModeTab() {
 
           {/* Schedule & Live Status */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm space-y-5">
-              <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-amber-500" />
+            <div className="bg-[var(--canvas)] border border-[var(--border-soft)] rounded-xl p-5 shadow-sm space-y-5">
+              <h3 className="text-sm font-semibold text-[var(--text-2)] uppercase tracking-wide flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-[var(--accent)]" />
                 Brunch Schedule
               </h3>
 
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-600 mb-2 block">Brunch Days</label>
+                  <label className="text-sm font-medium text-[var(--text-2)] mb-2 block">Brunch Days</label>
                   <div className="flex gap-2">
                     {allDays.map((day) => (
                       <button
@@ -243,8 +243,8 @@ export default function BrunchModeTab() {
                         onClick={() => toggleDay(day)}
                         className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
                           brunchDays.includes(day)
-                            ? "bg-amber-500 text-white"
-                            : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                            ? "bg-[var(--accent)] text-white"
+                            : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
                         }`}
                       >
                         {day}
@@ -255,31 +255,31 @@ export default function BrunchModeTab() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-gray-600 flex items-center gap-1">
-                      <Clock className="w-3.5 h-3.5 text-amber-500" /> Start Time
+                    <label className="text-sm font-medium text-[var(--text-2)] flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5 text-[var(--accent)]" /> Start Time
                     </label>
                     <input
                       type="time"
                       value={startTime}
                       onChange={(e) => setStartTime(e.target.value)}
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+                      className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-gray-600 flex items-center gap-1">
-                      <Timer className="w-3.5 h-3.5 text-amber-500" /> End Time
+                    <label className="text-sm font-medium text-[var(--text-2)] flex items-center gap-1">
+                      <Timer className="w-3.5 h-3.5 text-[var(--accent)]" /> End Time
                     </label>
                     <input
                       type="time"
                       value={endTime}
                       onChange={(e) => setEndTime(e.target.value)}
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+                      className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                     />
                   </div>
                 </div>
 
-                <div className="bg-amber-50 rounded-lg p-3">
-                  <p className="text-xs text-amber-700">
+                <div className="bg-[var(--accent-muted)] rounded-lg p-3">
+                  <p className="text-xs text-[var(--accent-text)]">
                     Brunch runs on <span className="font-semibold">{brunchDays.join(", ")}</span> from{" "}
                     <span className="font-semibold">{startTime}</span> to{" "}
                     <span className="font-semibold">{endTime}</span>
@@ -288,13 +288,13 @@ export default function BrunchModeTab() {
               </div>
             </div>
 
-            <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm space-y-4">
+            <div className="bg-[var(--canvas)] border border-[var(--border-soft)] rounded-xl p-5 shadow-sm space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide flex items-center gap-2">
-                  <ClipboardList className="w-4 h-4 text-amber-500" />
+                <h3 className="text-sm font-semibold text-[var(--text-2)] uppercase tracking-wide flex items-center gap-2">
+                  <ClipboardList className="w-4 h-4 text-[var(--accent)]" />
                   Reservation Slots
                 </h3>
-                <span className="text-xs text-gray-400">{totalBooked}/{totalSlotCapacity} total booked</span>
+                <span className="text-xs text-[var(--text-3)]">{totalBooked}/{totalSlotCapacity} total booked</span>
               </div>
 
               <div className="space-y-2">
@@ -304,17 +304,17 @@ export default function BrunchModeTab() {
                   return (
                     <div key={slot.id} className="space-y-1.5">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-gray-700">{slot.time}</span>
-                        <span className={`text-xs font-semibold ${isFull ? "text-red-500" : "text-gray-500"}`}>
+                        <span className="text-sm font-medium text-[var(--text-2)]">{slot.time}</span>
+                        <span className={`text-xs font-semibold ${isFull ? "text-red-500" : "text-[var(--text-2)]"}`}>
                           {slot.booked}/{slot.capacity} {isFull && "(Full)"}
                         </span>
                       </div>
-                      <div className="w-full bg-gray-100 rounded-full h-2">
+                      <div className="w-full bg-[var(--surface)] rounded-full h-2">
                         <motion.div
                           initial={{ width: 0 }}
                           animate={{ width: `${pct}%` }}
                           transition={{ duration: 0.6, ease: "easeOut" }}
-                          className={`h-2 rounded-full ${isFull ? "bg-red-400" : pct > 70 ? "bg-amber-400" : "bg-[#eaa94d]"}`}
+                          className={`h-2 rounded-full ${isFull ? "bg-red-400" : pct > 70 ? "bg-[var(--accent)]" : "bg-[#eaa94d]"}`}
                         />
                       </div>
                     </div>
@@ -324,15 +324,15 @@ export default function BrunchModeTab() {
             </div>
           </div>
 
-          <div className="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
-            <div className="flex items-center justify-between p-5 border-b border-gray-100">
-              <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide flex items-center gap-2">
-                <Package className="w-4 h-4 text-amber-500" />
+          <div className="bg-[var(--canvas)] border border-[var(--border-soft)] rounded-xl shadow-sm overflow-hidden">
+            <div className="flex items-center justify-between p-5 border-b border-[var(--border-soft)]">
+              <h3 className="text-sm font-semibold text-[var(--text-2)] uppercase tracking-wide flex items-center gap-2">
+                <Package className="w-4 h-4 text-[var(--accent)]" />
                 Brunch Packages
               </h3>
               <button
                 onClick={() => setShowAddPackage(!showAddPackage)}
-                className="flex items-center gap-2 px-3 py-2 bg-amber-500 text-white rounded-lg text-sm font-semibold hover:bg-amber-600 transition-colors"
+                className="flex items-center gap-2 px-3 py-2 bg-[var(--accent)] text-white rounded-lg text-sm font-semibold hover:bg-[var(--accent-hover)] transition-colors"
               >
                 <Plus className="w-4 h-4" />
                 Add Package
@@ -345,7 +345,7 @@ export default function BrunchModeTab() {
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="border-b border-gray-100 bg-amber-50/50"
+                  className="border-b border-[var(--border-soft)] bg-[var(--accent-muted)]"
                 >
                   <div className="p-5 space-y-3">
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -354,14 +354,14 @@ export default function BrunchModeTab() {
                         placeholder="Package name"
                         value={newPkgName}
                         onChange={(e) => setNewPkgName(e.target.value)}
-                        className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+                        className="border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                       />
                       <input
                         type="text"
                         placeholder="Description"
                         value={newPkgDesc}
                         onChange={(e) => setNewPkgDesc(e.target.value)}
-                        className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+                        className="border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                       />
                       <input
                         type="number"
@@ -369,19 +369,19 @@ export default function BrunchModeTab() {
                         min={0}
                         value={newPkgPrice || ""}
                         onChange={(e) => setNewPkgPrice(Number(e.target.value))}
-                        className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+                        className="border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                       />
                     </div>
                     <div className="flex gap-2">
                       <button
                         onClick={addPackage}
-                        className="px-4 py-2 bg-amber-500 text-white rounded-lg text-sm font-semibold hover:bg-amber-600 transition-colors"
+                        className="px-4 py-2 bg-[var(--accent)] text-white rounded-lg text-sm font-semibold hover:bg-[var(--accent-hover)] transition-colors"
                       >
                         Add
                       </button>
                       <button
                         onClick={() => setShowAddPackage(false)}
-                        className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-300 transition-colors"
+                        className="px-4 py-2 bg-[var(--surface-alt)] text-[var(--text-2)] rounded-lg text-sm font-medium hover:bg-[var(--border)] transition-colors"
                       >
                         Cancel
                       </button>
@@ -391,32 +391,32 @@ export default function BrunchModeTab() {
               )}
             </AnimatePresence>
 
-            <div className="divide-y divide-gray-50">
+            <div className="divide-y divide-[var(--border)]">
               {packages.map((pkg) => (
                 <motion.div
                   key={pkg.id}
                   layout
-                  className="flex items-center justify-between px-5 py-4 hover:bg-gray-50/50 transition-colors"
+                  className="flex items-center justify-between px-5 py-4 hover:bg-[var(--surface)]/50 transition-colors"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
-                      <Croissant className="w-5 h-5 text-amber-600" />
+                    <div className="w-10 h-10 rounded-lg bg-[var(--accent-muted)] flex items-center justify-center">
+                      <Croissant className="w-5 h-5 text-[var(--accent-text)]" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-800">{pkg.name}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">{pkg.description}</p>
+                      <p className="text-sm font-medium text-[var(--text-1)]">{pkg.name}</p>
+                      <p className="text-xs text-[var(--text-3)] mt-0.5">{pkg.description}</p>
                       {pkg.items.length > 0 && (
-                        <p className="text-xs text-amber-500 mt-1">{pkg.items.join(" + ")}</p>
+                        <p className="text-xs text-[var(--accent)] mt-1">{pkg.items.join(" + ")}</p>
                       )}
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-sm font-bold text-amber-600">{formatPrice(pkg.price, cur)}</span>
+                    <span className="text-sm font-bold text-[var(--accent-text)]">{formatPrice(pkg.price, cur)}</span>
                     <button onClick={() => togglePackage(pkg.id)}>
                       {pkg.active ? (
-                        <ToggleRight className="w-6 h-6 text-amber-500" />
+                        <ToggleRight className="w-6 h-6 text-[var(--accent)]" />
                       ) : (
-                        <ToggleLeft className="w-6 h-6 text-gray-400" />
+                        <ToggleLeft className="w-6 h-6 text-[var(--text-3)]" />
                       )}
                     </button>
                     <button
@@ -431,15 +431,15 @@ export default function BrunchModeTab() {
             </div>
           </div>
 
-          <div className="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
-            <div className="flex items-center justify-between p-5 border-b border-gray-100">
-              <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide flex items-center gap-2">
-                <UtensilsCrossed className="w-4 h-4 text-amber-500" />
+          <div className="bg-[var(--canvas)] border border-[var(--border-soft)] rounded-xl shadow-sm overflow-hidden">
+            <div className="flex items-center justify-between p-5 border-b border-[var(--border-soft)]">
+              <h3 className="text-sm font-semibold text-[var(--text-2)] uppercase tracking-wide flex items-center gap-2">
+                <UtensilsCrossed className="w-4 h-4 text-[var(--accent)]" />
                 Brunch Menu Items
               </h3>
               <button
                 onClick={() => setShowAddItem(!showAddItem)}
-                className="flex items-center gap-2 px-3 py-2 bg-amber-500 text-white rounded-lg text-sm font-semibold hover:bg-amber-600 transition-colors"
+                className="flex items-center gap-2 px-3 py-2 bg-[var(--accent)] text-white rounded-lg text-sm font-semibold hover:bg-[var(--accent-hover)] transition-colors"
               >
                 <Plus className="w-4 h-4" />
                 Add Item
@@ -452,7 +452,7 @@ export default function BrunchModeTab() {
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="border-b border-gray-100 bg-amber-50/50"
+                  className="border-b border-[var(--border-soft)] bg-[var(--accent-muted)]"
                 >
                   <div className="p-5 space-y-3">
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -461,12 +461,12 @@ export default function BrunchModeTab() {
                         placeholder="Item name"
                         value={newItemName}
                         onChange={(e) => setNewItemName(e.target.value)}
-                        className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+                        className="border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                       />
                       <select
                         value={newItemCategory}
                         onChange={(e) => setNewItemCategory(e.target.value as "Main Menu" | "Brunch Exclusive")}
-                        className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+                        className="border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                       >
                         <option value="Brunch Exclusive">Brunch Exclusive</option>
                         <option value="Main Menu">From Main Menu</option>
@@ -477,19 +477,19 @@ export default function BrunchModeTab() {
                         min={0}
                         value={newItemPrice || ""}
                         onChange={(e) => setNewItemPrice(Number(e.target.value))}
-                        className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+                        className="border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                       />
                     </div>
                     <div className="flex gap-2">
                       <button
                         onClick={addMenuItem}
-                        className="px-4 py-2 bg-amber-500 text-white rounded-lg text-sm font-semibold hover:bg-amber-600 transition-colors"
+                        className="px-4 py-2 bg-[var(--accent)] text-white rounded-lg text-sm font-semibold hover:bg-[var(--accent-hover)] transition-colors"
                       >
                         Add
                       </button>
                       <button
                         onClick={() => setShowAddItem(false)}
-                        className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-300 transition-colors"
+                        className="px-4 py-2 bg-[var(--surface-alt)] text-[var(--text-2)] rounded-lg text-sm font-medium hover:bg-[var(--border)] transition-colors"
                       >
                         Cancel
                       </button>
@@ -499,7 +499,7 @@ export default function BrunchModeTab() {
               )}
             </AnimatePresence>
 
-            <div className="divide-y divide-gray-50">
+            <div className="divide-y divide-[var(--border)]">
               <AnimatePresence>
                 {menuItems.map((item) => (
                   <motion.div
@@ -508,19 +508,19 @@ export default function BrunchModeTab() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0, x: 40 }}
-                    className="flex items-center justify-between px-5 py-3.5 hover:bg-gray-50/50 transition-colors"
+                    className="flex items-center justify-between px-5 py-3.5 hover:bg-[var(--surface)]/50 transition-colors"
                   >
                     <div className="flex items-center gap-4">
                       <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                        item.category === "Brunch Exclusive" ? "bg-amber-100" : "bg-gray-100"
+                        item.category === "Brunch Exclusive" ? "bg-[var(--accent-muted)]" : "bg-[var(--surface)]"
                       }`}>
                         <UtensilsCrossed className={`w-5 h-5 ${
-                          item.category === "Brunch Exclusive" ? "text-amber-600" : "text-gray-500"
+                          item.category === "Brunch Exclusive" ? "text-[var(--accent-text)]" : "text-[var(--text-2)]"
                         }`} />
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <p className="text-sm font-medium text-gray-800">{item.name}</p>
+                          <p className="text-sm font-medium text-[var(--text-1)]">{item.name}</p>
                           {item.popular && (
                             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-700">
                               <Star className="w-3 h-3" /> Popular
@@ -532,35 +532,35 @@ export default function BrunchModeTab() {
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-gray-400 mt-0.5">{item.category}</p>
+                        <p className="text-xs text-[var(--text-3)] mt-0.5">{item.category}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
                       {editingPrice === item.id ? (
                         <div className="flex items-center gap-1.5">
-                          <span className="text-xs text-gray-400">{getCurrencySymbol(cur)}</span>
+                          <span className="text-xs text-[var(--text-3)]">{getCurrencySymbol(cur)}</span>
                           <input
                             type="number"
                             value={editPriceValue}
                             onChange={(e) => setEditPriceValue(Number(e.target.value))}
-                            className="w-20 border border-gray-200 rounded-lg px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 focus:ring-amber-300"
+                            className="w-20 border border-[var(--border)] rounded-lg px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                           />
-                          <button onClick={() => savePriceEdit(item.id)} className="p-1 text-[#b25c1c] hover:bg-[#fef9ef] rounded">
+                          <button onClick={() => savePriceEdit(item.id)} className="p-1 text-[#b25c1c] hover:bg-[var(--accent-muted)] rounded">
                             <Check className="w-4 h-4" />
                           </button>
-                          <button onClick={() => setEditingPrice(null)} className="p-1 text-gray-400 hover:bg-gray-100 rounded">
+                          <button onClick={() => setEditingPrice(null)} className="p-1 text-[var(--text-3)] hover:bg-[var(--surface)] rounded">
                             <X className="w-4 h-4" />
                           </button>
                         </div>
                       ) : (
                         <div className="flex items-center gap-2">
                           {item.hasPriceOverride && (
-                            <span className="text-xs text-gray-400 line-through">{formatPrice(item.regularPrice, cur)}</span>
+                            <span className="text-xs text-[var(--text-3)] line-through">{formatPrice(item.regularPrice, cur)}</span>
                           )}
-                          <span className="text-sm font-bold text-amber-600">{formatPrice(item.brunchPrice, cur)}</span>
+                          <span className="text-sm font-bold text-[var(--accent-text)]">{formatPrice(item.brunchPrice, cur)}</span>
                           <button
                             onClick={() => startPriceEdit(item)}
-                            className="p-1 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded transition-colors"
+                            className="p-1 text-[var(--text-3)] hover:text-[var(--accent-text)] hover:bg-[var(--accent-muted)] rounded transition-colors"
                             title="Set brunch price"
                           >
                             <Edit3 className="w-3.5 h-3.5" />
@@ -570,7 +570,7 @@ export default function BrunchModeTab() {
                       <button
                         onClick={() => togglePopular(item.id)}
                         className={`p-1.5 rounded-lg transition-colors ${
-                          item.popular ? "text-yellow-500 bg-yellow-50" : "text-gray-300 hover:text-yellow-500 hover:bg-yellow-50"
+                          item.popular ? "text-yellow-500 bg-yellow-50" : "text-[var(--text-3)] hover:text-yellow-500 hover:bg-yellow-50"
                         }`}
                       >
                         <Star className="w-4 h-4" />
@@ -588,9 +588,9 @@ export default function BrunchModeTab() {
             </div>
           </div>
 
-          <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm">
-            <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide flex items-center gap-2 mb-4">
-              <TrendingUp className="w-4 h-4 text-amber-500" />
+          <div className="bg-[var(--canvas)] border border-[var(--border-soft)] rounded-xl p-5 shadow-sm">
+            <h3 className="text-sm font-semibold text-[var(--text-2)] uppercase tracking-wide flex items-center gap-2 mb-4">
+              <TrendingUp className="w-4 h-4 text-[var(--accent)]" />
               Brunch Performance
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
@@ -600,10 +600,10 @@ export default function BrunchModeTab() {
                 { label: "Total Covers (Today)", value: currentCovers.toString(), sub: `${totalCapacity} capacity` },
                 { label: "Revenue (Today)", value: formatPrice(currentCovers * avgSpendPerCover, cur), sub: "Based on avg spend" },
               ].map((item) => (
-                <div key={item.label} className="bg-amber-50 rounded-xl p-4">
-                  <p className="text-xs text-amber-600 font-medium">{item.label}</p>
-                  <p className="text-lg font-bold text-amber-800 mt-1">{item.value}</p>
-                  <p className="text-xs text-amber-500 mt-0.5">{item.sub}</p>
+                <div key={item.label} className="bg-[var(--accent-muted)] rounded-xl p-4">
+                  <p className="text-xs text-[var(--accent-text)] font-medium">{item.label}</p>
+                  <p className="text-lg font-bold text-[var(--accent-text)] mt-1">{item.value}</p>
+                  <p className="text-xs text-[var(--accent)] mt-0.5">{item.sub}</p>
                 </div>
               ))}
             </div>

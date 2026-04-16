@@ -47,7 +47,7 @@ function getTableStatus(table: TableData): "available" | "occupied" | "needs_bil
 }
 
 const STATUS_STYLES = {
-  available:     { card: "border-gray-200 bg-white hover:border-[#eaa94d] hover:bg-[#fef9ef]/50",  dot: "bg-[#eaa94d]", label: "Available" },
+  available:     { card: "border-[var(--border)] bg-[var(--canvas)] hover:border-[#eaa94d] hover:bg-[#fef9ef]/50",  dot: "bg-[#eaa94d]", label: "Available" },
   occupied:      { card: "border-amber-200 bg-amber-50/60 hover:border-amber-300",                dot: "bg-amber-500", label: "Occupied" },
   needs_billing: { card: "border-red-200 bg-red-50/60 hover:border-red-300",                      dot: "bg-red-500",   label: "Needs Billing" },
 };
@@ -79,15 +79,15 @@ export default function POSTableView({ restaurantId, currency, onTableSelect }: 
   };
 
   return (
-    <div className="h-full bg-gray-50 overflow-y-auto">
+    <div className="h-full bg-[var(--canvas-sub)] overflow-y-auto">
       <div className="px-6 py-5">
         {/* Header */}
         <div className="flex items-start justify-between mb-5">
           <div>
-            <h2 className="text-base font-semibold text-gray-900">Table Overview</h2>
+            <h2 className="text-base font-semibold text-[var(--text-1)]">Table Overview</h2>
             <div className="flex items-center gap-4 mt-2">
               {Object.entries(STATUS_STYLES).map(([key, s]) => (
-                <span key={key} className="flex items-center gap-1.5 text-xs text-gray-500">
+                <span key={key} className="flex items-center gap-1.5 text-xs text-[var(--text-2)]">
                   <span className={`h-2 w-2 rounded-full ${s.dot}`} />
                   {s.label}
                 </span>
@@ -96,7 +96,7 @@ export default function POSTableView({ restaurantId, currency, onTableSelect }: 
           </div>
           <button
             onClick={fetchTables}
-            className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3.5 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors shadow-sm"
+            className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--canvas)] px-3.5 py-2 text-xs font-semibold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors shadow-sm"
           >
             <RefreshCw className="h-3.5 w-3.5" />
             Refresh
@@ -116,11 +116,11 @@ export default function POSTableView({ restaurantId, currency, onTableSelect }: 
                 className={`relative rounded-xl border-2 p-3 text-left transition-all shadow-sm ${styles.card}`}
               >
                 <span className={`absolute top-2.5 right-2.5 h-2 w-2 rounded-full ${styles.dot}`} />
-                <p className="text-2xl font-bold text-gray-900 leading-none mb-1">{table.tableNo}</p>
+                <p className="text-2xl font-bold text-[var(--text-1)] leading-none mb-1">{table.tableNo}</p>
                 {table.label && (
-                  <p className="text-[10px] text-gray-400 truncate mb-1.5">{table.label}</p>
+                  <p className="text-[10px] text-[var(--text-3)] truncate mb-1.5">{table.label}</p>
                 )}
-                <div className="flex items-center gap-1 text-[11px] text-gray-400">
+                <div className="flex items-center gap-1 text-[11px] text-[var(--text-3)]">
                   <Users className="h-3 w-3" />
                   <span>{table.capacity}</span>
                 </div>
@@ -128,13 +128,13 @@ export default function POSTableView({ restaurantId, currency, onTableSelect }: 
                   <div className="mt-2 space-y-0.5">
                     {table.session.order && (
                       <>
-                        <p className="text-[11px] font-semibold text-gray-700">#{table.session.order.orderNo}</p>
+                        <p className="text-[11px] font-semibold text-[var(--text-2)]">#{table.session.order.orderNo}</p>
                         <p className="text-[11px] font-bold text-amber-700">
                           {formatPrice(table.session.order.total, currency)}
                         </p>
                       </>
                     )}
-                    <div className="flex items-center gap-1 text-[10px] text-gray-400">
+                    <div className="flex items-center gap-1 text-[10px] text-[var(--text-3)]">
                       <Clock className="h-2.5 w-2.5" />
                       <span>{timeSince(table.session.startedAt)}</span>
                     </div>

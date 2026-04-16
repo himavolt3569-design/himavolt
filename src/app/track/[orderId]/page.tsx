@@ -92,8 +92,8 @@ const STEPS = [
     key: "PREPARING",
     label: "Preparing",
     icon: ChefHat,
-    color: "text-amber-500",
-    bg: "bg-amber-500",
+    color: "text-[var(--accent)]",
+    bg: "bg-[var(--accent)]",
   },
   {
     key: "READY",
@@ -106,7 +106,7 @@ const STEPS = [
     key: "DELIVERED",
     label: "Delivered",
     icon: Truck,
-    color: "text-[#3e1e0c]",
+    color: "text-[var(--text-1)]",
     bg: "bg-[#3e1e0c]",
   },
 ];
@@ -171,10 +171,10 @@ function CountdownTimer({
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <Timer className="h-4 w-4 text-[#eaa94d] mb-0.5" />
-          <span className="text-2xl font-black text-[#3e1e0c] tabular-nums">
+          <span className="text-2xl font-black text-[var(--text-1)] tabular-nums">
             {mins}:{secs.toString().padStart(2, "0")}
           </span>
-          <span className="text-[10px] font-medium text-gray-400">
+          <span className="text-[10px] font-medium text-[var(--text-3)]">
             remaining
           </span>
         </div>
@@ -194,25 +194,25 @@ function CountdownTimer({
 
 function PaymentBadge({ method, status }: { method: string; status: string }) {
   const methods: Record<string, { label: string; color: string }> = {
-    ESEWA: { label: "eSewa", color: "bg-[#fef3dc] text-[#b25c1c]" },
+    ESEWA: { label: "eSewa", color: "bg-[var(--accent-muted)] text-[#b25c1c]" },
     KHALTI: { label: "Khalti", color: "bg-purple-100 text-purple-700" },
     BANK: { label: "Bank Transfer", color: "bg-blue-100 text-blue-700" },
-    CASH: { label: "Cash", color: "bg-gray-100 text-gray-700" },
-    COUNTER: { label: "Counter Pay", color: "bg-amber-100 text-amber-700" },
+    CASH: { label: "Cash", color: "bg-[var(--surface)] text-[var(--text-2)]" },
+    COUNTER: { label: "Counter Pay", color: "bg-[var(--accent-muted)] text-[var(--accent-text)]" },
     DIRECT: { label: "Direct Pay", color: "bg-teal-100 text-teal-700" },
   };
   const m = methods[method] || {
     label: method,
-    color: "bg-gray-100 text-gray-700",
+    color: "bg-[var(--surface)] text-[var(--text-2)]",
   };
 
   const statusConfig: Record<string, { label: string; color: string; icon: typeof CheckCircle2 }> = {
-    COMPLETED: { label: "Paid", color: "bg-[#fef3dc] text-[#b25c1c]", icon: CheckCircle2 },
-    PENDING: { label: "Pending", color: "bg-amber-100 text-amber-700", icon: Clock },
+    COMPLETED: { label: "Paid", color: "bg-[var(--accent-muted)] text-[#b25c1c]", icon: CheckCircle2 },
+    PENDING: { label: "Pending", color: "bg-[var(--accent-muted)] text-[var(--accent-text)]", icon: Clock },
     AWAITING_VERIFICATION: { label: "Verifying", color: "bg-blue-100 text-blue-700", icon: Clock },
     FAILED: { label: "Failed", color: "bg-red-100 text-red-700", icon: XCircle },
     EXPIRED: { label: "Expired", color: "bg-red-100 text-red-600", icon: XCircle },
-    REFUNDED: { label: "Refunded", color: "bg-gray-100 text-gray-700", icon: CheckCircle2 },
+    REFUNDED: { label: "Refunded", color: "bg-[var(--surface)] text-[var(--text-2)]", icon: CheckCircle2 },
   };
   const s = statusConfig[status] || statusConfig.PENDING;
   const StatusIcon = s.icon;
@@ -250,12 +250,12 @@ function BillSection({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2 }}
-      className="rounded-2xl border border-gray-200 bg-white overflow-hidden"
+      className="rounded-2xl border border-[var(--border)] bg-[var(--canvas)] overflow-hidden"
     >
-      <div className="flex items-center gap-2 px-5 py-4 border-b border-gray-100 bg-gray-50/50">
+      <div className="flex items-center gap-2 px-5 py-4 border-b border-[var(--border-soft)] bg-[var(--canvas-sub)]">
         <Receipt className="h-4 w-4 text-[#eaa94d]" />
-        <h3 className="text-sm font-bold text-[#3e1e0c]">Invoice</h3>
-        <span className="ml-auto text-[11px] font-mono text-gray-400">
+        <h3 className="text-sm font-bold text-[var(--text-1)]">Invoice</h3>
+        <span className="ml-auto text-[11px] font-mono text-[var(--text-3)]">
           {bill.billNo}
         </span>
       </div>
@@ -265,26 +265,26 @@ function BillSection({
             key={item.id}
             className="flex items-center justify-between text-sm"
           >
-            <span className="text-gray-600">
+            <span className="text-[var(--text-2)]">
               <span className="font-bold text-[#eaa94d]">{item.quantity}x</span>{" "}
               {item.name}
             </span>
-            <span className="font-semibold text-[#3e1e0c]">
+            <span className="font-semibold text-[var(--text-1)]">
               {formatPrice(item.price * item.quantity, currency)}
             </span>
           </div>
         ))}
-        <div className="border-t border-dashed border-gray-200 pt-3 mt-3 space-y-1.5">
-          <div className="flex justify-between text-xs text-gray-500">
+        <div className="border-t border-dashed border-[var(--border)] pt-3 mt-3 space-y-1.5">
+          <div className="flex justify-between text-xs text-[var(--text-2)]">
             <span>Subtotal</span>
             <span>{formatPrice(bill.subtotal, currency)}</span>
           </div>
-          <div className="flex justify-between text-xs text-gray-500">
+          <div className="flex justify-between text-xs text-[var(--text-2)]">
             <span>Tax</span>
             <span>{formatPrice(bill.tax, currency)}</span>
           </div>
           {bill.serviceCharge > 0 && (
-            <div className="flex justify-between text-xs text-gray-500">
+            <div className="flex justify-between text-xs text-[var(--text-2)]">
               <span>Service Charge</span>
               <span>{formatPrice(bill.serviceCharge, currency)}</span>
             </div>
@@ -295,8 +295,8 @@ function BillSection({
               <span>-{formatPrice(bill.discount, currency)}</span>
             </div>
           )}
-          <div className="flex justify-between text-base font-extrabold pt-2 border-t border-gray-200">
-            <span className="text-[#3e1e0c]">Total</span>
+          <div className="flex justify-between text-base font-extrabold pt-2 border-t border-[var(--border)]">
+            <span className="text-[var(--text-1)]">Total</span>
             <span className="text-[#eaa94d]">{formatPrice(bill.total, currency)}</span>
           </div>
         </div>
@@ -454,30 +454,17 @@ export default function TrackOrderPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-8 w-8 animate-spin text-[#eaa94d]" />
-          <p className="text-sm font-medium text-gray-500">
-            Loading your order...
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   if (error || !order) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50 p-6">
+      <div className="flex min-h-screen items-center justify-center bg-[var(--canvas-sub)] p-6">
         <div className="text-center max-w-sm">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-100 mb-4">
             <XCircle className="h-8 w-8 text-red-500" />
           </div>
-          <h2 className="text-lg font-bold text-[#3e1e0c] mb-1">
+          <h2 className="text-lg font-bold text-[var(--text-1)] mb-1">
             Order Not Found
           </h2>
-          <p className="text-sm text-gray-500 mb-6">
+          <p className="text-sm text-[var(--text-2)] mb-6">
             {error || "We couldn't find this order."}
           </p>
           <Link
@@ -505,19 +492,19 @@ export default function TrackOrderPage() {
     (order.preparingAt || order.acceptedAt);
 
   return (
-    <div className="min-h-screen bg-gray-50/50">
-      <header className="sticky top-0 z-40 bg-white border-b border-gray-100 shadow-sm">
+    <div className="min-h-screen bg-[var(--canvas-sub)]">
+      <header className="sticky top-0 z-40 bg-[var(--canvas)] border-b border-[var(--border-soft)] shadow-sm">
         <div className="mx-auto max-w-2xl px-4">
           <div className="flex h-14 items-center gap-3">
             <Link
               href={order ? `/menu/${order.restaurant.slug}` : "/"}
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-colors"
             >
               <ArrowLeft className="h-4 w-4" />
             </Link>
             <div className="flex-1 min-w-0">
-              <h1 className="text-sm font-bold text-[#3e1e0c]">Track Order</h1>
-              <p className="text-[11px] text-gray-400">Live updates</p>
+              <h1 className="text-sm font-bold text-[var(--text-1)]">Track Order</h1>
+              <p className="text-[11px] text-[var(--text-3)]">Live updates</p>
             </div>
             {isActive && (
               <div className="flex items-center gap-1.5">
@@ -543,7 +530,7 @@ export default function TrackOrderPage() {
               exit={{ opacity: 0, y: -10 }}
               className={`rounded-xl px-4 py-3 text-sm font-bold ${
                 paymentStatus === "success"
-                  ? "bg-[#fef3dc] text-[#b25c1c]"
+                  ? "bg-[var(--accent-muted)] text-[#b25c1c]"
                   : "bg-red-100 text-red-700"
               }`}
             >
@@ -557,20 +544,20 @@ export default function TrackOrderPage() {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl bg-white border border-gray-200 p-5 shadow-sm"
+          className="rounded-2xl bg-[var(--canvas)] border border-[var(--border)] p-5 shadow-sm"
         >
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">
+              <p className="text-[11px] font-medium text-[var(--text-3)] uppercase tracking-wider">
                 Order ID
               </p>
               <div className="flex items-center gap-2 mt-1">
-                <h2 className="text-xl font-black text-[#3e1e0c]">
+                <h2 className="text-xl font-black text-[var(--text-1)]">
                   {order.orderNo}
                 </h2>
                 <button
                   onClick={copyOrderId}
-                  className="flex h-7 w-7 items-center justify-center rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
+                  className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-colors"
                 >
                   {copied ? (
                     <Check className="h-3.5 w-3.5 text-[#d67620]" />
@@ -582,7 +569,7 @@ export default function TrackOrderPage() {
               {(order.tableNo || order.roomNo || order.type) && (
                 <div className="flex items-center gap-2 mt-1 flex-wrap">
                   {order.tableNo && (
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-[var(--text-2)]">
                       Table {order.tableNo}
                     </span>
                   )}
@@ -592,7 +579,7 @@ export default function TrackOrderPage() {
                       Room {order.roomNo}
                     </span>
                   )}
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-[var(--text-3)]">
                     {order.type === "DINE_IN"
                       ? "Dine In"
                       : order.type === "TAKEAWAY"
@@ -603,7 +590,7 @@ export default function TrackOrderPage() {
               )}
             </div>
             <div className="text-right">
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-[var(--text-3)]">
                 {new Date(order.createdAt).toLocaleTimeString([], {
                   hour: "2-digit",
                   minute: "2-digit",
@@ -615,22 +602,22 @@ export default function TrackOrderPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 mt-4 pt-4 border-t border-gray-100">
+          <div className="flex items-center gap-3 mt-4 pt-4 border-t border-[var(--border-soft)]">
             <div className="h-10 w-10 rounded-xl bg-[#3e1e0c]/10 flex items-center justify-center shrink-0">
-              <MapPin className="h-4 w-4 text-[#3e1e0c]" />
+              <MapPin className="h-4 w-4 text-[var(--text-1)]" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-[#3e1e0c] truncate">
+              <p className="text-sm font-bold text-[var(--text-1)] truncate">
                 {order.restaurant.name}
               </p>
-              <p className="text-[11px] text-gray-400 truncate">
+              <p className="text-[11px] text-[var(--text-3)] truncate">
                 {order.restaurant.address}
               </p>
             </div>
             {order.restaurant.phone && (
               <a
                 href={`tel:${order.restaurant.phone}`}
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-[#3e1e0c]/10 text-[#3e1e0c] hover:bg-[#3e1e0c]/20 transition-colors"
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-[#3e1e0c]/10 text-[var(--text-1)] hover:bg-[#3e1e0c]/20 transition-colors"
               >
                 <Phone className="h-4 w-4" />
               </a>
@@ -638,7 +625,7 @@ export default function TrackOrderPage() {
           </div>
 
           {order.payment && (
-            <div className="mt-4 pt-4 border-t border-gray-100">
+            <div className="mt-4 pt-4 border-t border-[var(--border-soft)]">
               <PaymentBadge
                 method={order.payment.method}
                 status={order.payment.status}
@@ -653,7 +640,7 @@ export default function TrackOrderPage() {
 
           {/* Cancel button — only for PENDING orders */}
           {order.status === "PENDING" && (
-            <div className="mt-4 pt-4 border-t border-gray-100">
+            <div className="mt-4 pt-4 border-t border-[var(--border-soft)]">
               {!cancelConfirm ? (
                 <button
                   onClick={() => setCancelConfirm(true)}
@@ -667,7 +654,7 @@ export default function TrackOrderPage() {
                   <div className="flex gap-2">
                     <button
                       onClick={() => setCancelConfirm(false)}
-                      className="flex-1 rounded-xl border border-gray-200 bg-white py-2 text-sm font-semibold text-gray-700"
+                      className="flex-1 rounded-xl border border-[var(--border)] bg-[var(--canvas)] py-2 text-sm font-semibold text-[var(--text-2)]"
                     >
                       Keep Order
                     </button>
@@ -693,15 +680,15 @@ export default function TrackOrderPage() {
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="rounded-2xl border border-amber-200 bg-amber-50 overflow-hidden shadow-sm"
+              className="rounded-2xl border border-[var(--accent-border)] bg-[var(--accent-muted)] overflow-hidden shadow-sm"
             >
               <button
                 onClick={() => setShowQRs(!showQRs)}
                 className="w-full flex items-center justify-between px-5 py-4"
               >
                 <div className="flex items-center gap-2">
-                  <QrCode className="h-4 w-4 text-amber-600" />
-                  <span className="text-sm font-bold text-amber-800">
+                  <QrCode className="h-4 w-4 text-[var(--accent-text)]" />
+                  <span className="text-sm font-bold text-[var(--accent-text)]">
                     Scan to Pay &middot; {formatPrice(order.total, order.restaurant.currency ?? "NPR")}
                   </span>
                 </div>
@@ -709,7 +696,7 @@ export default function TrackOrderPage() {
                   animate={{ rotate: showQRs ? 180 : 0 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <ChevronDown className="h-4 w-4 text-amber-600" />
+                  <ChevronDown className="h-4 w-4 text-[var(--accent-text)]" />
                 </motion.div>
               </button>
               <AnimatePresence>
@@ -722,7 +709,7 @@ export default function TrackOrderPage() {
                     className="overflow-hidden"
                   >
                     <div className="px-5 pb-5 space-y-3">
-                      <p className="text-[11px] text-amber-700">
+                      <p className="text-[11px] text-[var(--accent-text)]">
                         Scan one of the QR codes below to complete your payment.
                       </p>
                       {paymentQRs.map((qr) => (
@@ -731,17 +718,17 @@ export default function TrackOrderPage() {
                           onClick={() =>
                             setSelectedQR(selectedQR === qr.id ? null : qr.id)
                           }
-                          className={`w-full rounded-xl border-2 p-3 text-left transition-all bg-white ${
+                          className={`w-full rounded-xl border-2 p-3 text-left transition-all bg-[var(--canvas)] ${
                             selectedQR === qr.id
-                              ? "border-amber-400"
-                              : "border-gray-100 hover:border-gray-200"
+                              ? "border-[var(--accent)]"
+                              : "border-[var(--border-soft)] hover:border-[var(--border)]"
                           }`}
                         >
                           <div className="flex items-center gap-3">
-                            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-100">
-                              <QrCode className="h-4 w-4 text-amber-600" />
+                            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--accent-muted)]">
+                              <QrCode className="h-4 w-4 text-[var(--accent-text)]" />
                             </div>
-                            <span className="text-sm font-bold text-[#3e1e0c]">
+                            <span className="text-sm font-bold text-[var(--text-1)]">
                               {qr.label}
                             </span>
                             <motion.div
@@ -750,7 +737,7 @@ export default function TrackOrderPage() {
                               }}
                               className="ml-auto"
                             >
-                              <ChevronDown className="h-4 w-4 text-gray-400" />
+                              <ChevronDown className="h-4 w-4 text-[var(--text-3)]" />
                             </motion.div>
                           </div>
                           <AnimatePresence>
@@ -764,7 +751,7 @@ export default function TrackOrderPage() {
                                 <img
                                   src={qr.imageUrl}
                                   alt={qr.label}
-                                  className="w-full max-h-72 object-contain rounded-xl bg-white border border-gray-100 p-2"
+                                  className="w-full max-h-72 object-contain rounded-xl bg-[var(--canvas)] border border-[var(--border-soft)] p-2"
                                 />
                               </motion.div>
                             )}
@@ -785,17 +772,17 @@ export default function TrackOrderPage() {
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="rounded-2xl border-2 border-amber-200 bg-amber-50/60 p-4 space-y-3"
+              className="rounded-2xl border-2 border-[var(--accent-border)] bg-[var(--accent-muted)] p-4 space-y-3"
             >
               <div className="flex items-center gap-2">
-                <CreditCard className="h-4 w-4 text-amber-700" />
-                <span className="text-sm font-bold text-amber-900">
+                <CreditCard className="h-4 w-4 text-[var(--accent-text)]" />
+                <span className="text-sm font-bold text-[var(--accent-text)]">
                   {order.payment.status === "FAILED"
                     ? "Payment was not completed"
                     : "Complete your payment"}
                 </span>
               </div>
-              <p className="text-xs text-amber-700">
+              <p className="text-xs text-[var(--accent-text)]">
                 {order.payment.status === "FAILED"
                   ? "Your payment attempt was unsuccessful. You can try again below."
                   : `Complete your ${order.payment.method === "ESEWA" ? "eSewa" : "Khalti"} payment to get your order started.`}
@@ -892,7 +879,7 @@ export default function TrackOrderPage() {
                         fetchOrder();
                       } catch { /* upload failed */ }
                     }}
-                    className="w-full rounded-xl border border-blue-200 bg-white px-4 py-3 text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-blue-100 file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-blue-700 hover:file:bg-blue-200"
+                    className="w-full rounded-xl border border-blue-200 bg-[var(--canvas)] px-4 py-3 text-sm text-[var(--text-2)] file:mr-3 file:rounded-lg file:border-0 file:bg-blue-100 file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-blue-700 hover:file:bg-blue-200"
                   />
                 </>
               )}
@@ -921,7 +908,7 @@ export default function TrackOrderPage() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="rounded-2xl bg-white border border-gray-200 p-6 flex justify-center shadow-sm"
+            className="rounded-2xl bg-[var(--canvas)] border border-[var(--border)] p-6 flex justify-center shadow-sm"
           >
             <CountdownTimer
               estimatedTime={order.estimatedTime!}
@@ -934,7 +921,7 @@ export default function TrackOrderPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="rounded-2xl bg-white border border-gray-200 p-5 shadow-sm"
+          className="rounded-2xl bg-[var(--canvas)] border border-[var(--border)] p-5 shadow-sm"
         >
           {isCancelled ? (
             <div className="flex flex-col items-center py-4">
@@ -946,12 +933,12 @@ export default function TrackOrderPage() {
               >
                 <XCircle className="h-8 w-8 text-red-500" />
               </motion.div>
-              <h3 className="text-lg font-bold text-[#3e1e0c]">
+              <h3 className="text-lg font-bold text-[var(--text-1)]">
                 {order.status === "REJECTED"
                   ? "Order Rejected"
                   : "Order Cancelled"}
               </h3>
-              <p className="text-sm text-gray-400 mt-1">
+              <p className="text-sm text-[var(--text-3)] mt-1">
                 {order.status === "REJECTED"
                   ? "The restaurant was unable to fulfill your order"
                   : "This order has been cancelled"}
@@ -967,17 +954,17 @@ export default function TrackOrderPage() {
               >
                 <CheckCircle2 className="h-8 w-8 text-white" />
               </motion.div>
-              <h3 className="text-lg font-bold text-[#3e1e0c]">
+              <h3 className="text-lg font-bold text-[var(--text-1)]">
                 Order Delivered!
               </h3>
-              <p className="text-sm text-gray-400 mt-1">Enjoy your meal!</p>
+              <p className="text-sm text-[var(--text-3)] mt-1">Enjoy your meal!</p>
             </div>
           ) : (
             <div className="flex flex-col items-center mb-6">
               {order.status === "PREPARING" ? (
                 <div
                   ref={clockRef}
-                  className="relative flex h-16 w-16 items-center justify-center rounded-full border-[3px] border-[#eaa94d] bg-white shadow-lg mb-3"
+                  className="relative flex h-16 w-16 items-center justify-center rounded-full border-[3px] border-[#eaa94d] bg-[var(--canvas)] shadow-lg mb-3"
                 >
                   <div className="absolute top-1/2 left-1/2 h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#eaa94d] z-10" />
                   <div
@@ -995,10 +982,10 @@ export default function TrackOrderPage() {
                   })()}
                 </div>
               )}
-              <h3 className="text-lg font-bold text-[#3e1e0c]">
+              <h3 className="text-lg font-bold text-[var(--text-1)]">
                 {STEPS[currentStep].label}
               </h3>
-              <p className="text-sm text-gray-400 mt-0.5">
+              <p className="text-sm text-[var(--text-3)] mt-0.5">
                 {order.status === "PENDING" &&
                   "Your order has been sent to the kitchen"}
                 {order.status === "ACCEPTED" &&
@@ -1025,19 +1012,19 @@ export default function TrackOrderPage() {
                           scale: isCurrent ? 1.1 : 1,
                         }}
                         className={`flex h-8 w-8 items-center justify-center rounded-full ${
-                          isDone ? step.bg : "bg-gray-100"
+                          isDone ? step.bg : "bg-[var(--surface)]"
                         } transition-colors`}
                       >
                         <Icon
                           className={`h-4 w-4 ${
-                            isDone ? "text-white" : "text-gray-400"
+                            isDone ? "text-white" : "text-[var(--text-3)]"
                           }`}
                         />
                       </motion.div>
                       {i < STEPS.length - 1 && (
                         <div
                           className={`w-0.5 h-8 ${
-                            i < currentStep ? step.bg : "bg-gray-200"
+                            i < currentStep ? step.bg : "bg-[var(--surface-alt)]"
                           } transition-colors`}
                         />
                       )}
@@ -1045,13 +1032,13 @@ export default function TrackOrderPage() {
                     <div className="pb-4">
                       <p
                         className={`text-sm font-bold ${
-                          isDone ? "text-[#3e1e0c]" : "text-gray-400"
+                          isDone ? "text-[var(--text-1)]" : "text-[var(--text-3)]"
                         }`}
                       >
                         {step.label}
                       </p>
                       {isDone && i === 0 && order.createdAt && (
-                        <p className="text-[11px] text-gray-400">
+                        <p className="text-[11px] text-[var(--text-3)]">
                           {new Date(order.createdAt).toLocaleTimeString([], {
                             hour: "2-digit",
                             minute: "2-digit",
@@ -1059,7 +1046,7 @@ export default function TrackOrderPage() {
                         </p>
                       )}
                       {isDone && i === 1 && order.acceptedAt && (
-                        <p className="text-[11px] text-gray-400">
+                        <p className="text-[11px] text-[var(--text-3)]">
                           {new Date(order.acceptedAt).toLocaleTimeString([], {
                             hour: "2-digit",
                             minute: "2-digit",
@@ -1067,7 +1054,7 @@ export default function TrackOrderPage() {
                         </p>
                       )}
                       {isDone && i === 2 && order.preparingAt && (
-                        <p className="text-[11px] text-gray-400">
+                        <p className="text-[11px] text-[var(--text-3)]">
                           {new Date(order.preparingAt).toLocaleTimeString([], {
                             hour: "2-digit",
                             minute: "2-digit",
@@ -1075,7 +1062,7 @@ export default function TrackOrderPage() {
                         </p>
                       )}
                       {isDone && i === 3 && order.readyAt && (
-                        <p className="text-[11px] text-gray-400">
+                        <p className="text-[11px] text-[var(--text-3)]">
                           {new Date(order.readyAt).toLocaleTimeString([], {
                             hour: "2-digit",
                             minute: "2-digit",
@@ -1083,7 +1070,7 @@ export default function TrackOrderPage() {
                         </p>
                       )}
                       {isDone && i === 4 && order.deliveredAt && (
-                        <p className="text-[11px] text-gray-400">
+                        <p className="text-[11px] text-[var(--text-3)]">
                           {new Date(order.deliveredAt).toLocaleTimeString([], {
                             hour: "2-digit",
                             minute: "2-digit",
@@ -1119,30 +1106,30 @@ export default function TrackOrderPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
-          className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm"
+          className="rounded-2xl border border-[var(--border)] bg-[var(--canvas)] p-5 shadow-sm"
         >
-          <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
+          <h3 className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider mb-3">
             Order Items
           </h3>
           <div className="space-y-2.5">
             {order.items.map((item) => (
               <div key={item.id} className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#eaa94d]/10 text-[11px] font-bold text-[#eaa94d]">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--accent-muted)] text-[11px] font-bold text-[#eaa94d]">
                     {item.quantity}
                   </span>
-                  <span className="text-sm font-medium text-[#3e1e0c]">
+                  <span className="text-sm font-medium text-[var(--text-1)]">
                     {item.name}
                   </span>
                 </div>
-                <span className="text-sm font-bold text-gray-500">
+                <span className="text-sm font-bold text-[var(--text-2)]">
                   {formatPrice(item.price * item.quantity, order.restaurant.currency ?? "NPR")}
                 </span>
               </div>
             ))}
           </div>
-          <div className="border-t border-gray-100 mt-3 pt-3 flex items-center justify-between">
-            <span className="text-sm font-bold text-[#3e1e0c]">Total</span>
+          <div className="border-t border-[var(--border-soft)] mt-3 pt-3 flex items-center justify-between">
+            <span className="text-sm font-bold text-[var(--text-1)]">Total</span>
             <span className="text-base font-extrabold text-[#eaa94d]">
               {formatPrice(order.total, order.restaurant.currency ?? "NPR")}
             </span>
@@ -1151,17 +1138,17 @@ export default function TrackOrderPage() {
 
         <button
           onClick={() => setShowBill(!showBill)}
-          className="w-full rounded-xl border border-gray-200 bg-white py-3.5 px-5 flex items-center justify-between shadow-sm hover:bg-gray-50 transition-colors"
+          className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] py-3.5 px-5 flex items-center justify-between shadow-sm hover:bg-[var(--canvas-sub)] transition-colors"
         >
           <div className="flex items-center gap-2">
             <Receipt className="h-4 w-4 text-[#eaa94d]" />
-            <span className="text-sm font-bold text-[#3e1e0c]">
+            <span className="text-sm font-bold text-[var(--text-1)]">
               View Invoice
             </span>
           </div>
           <motion.span
             animate={{ rotate: showBill ? 180 : 0 }}
-            className="text-gray-400"
+            className="text-[var(--text-3)]"
           >
             <svg
               className="h-4 w-4"
@@ -1197,19 +1184,19 @@ export default function TrackOrderPage() {
         {["CASH", "COUNTER", "DIRECT"].includes(order.payment?.method ?? "") &&
           order.payment?.status !== "COMPLETED" &&
           !["DELIVERED", "CANCELLED", "REJECTED"].includes(order.status) && (
-            <div className="rounded-2xl border-2 border-amber-200 bg-amber-50/60 p-4 space-y-3">
+            <div className="rounded-2xl border-2 border-[var(--accent-border)] bg-[var(--accent-muted)] p-4 space-y-3">
               <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-amber-700" />
-                <span className="text-sm font-bold text-amber-900">
+                <Clock className="h-4 w-4 text-[var(--accent-text)]" />
+                <span className="text-sm font-bold text-[var(--accent-text)]">
                   Verification Pending
                 </span>
               </div>
-              <p className="text-xs text-amber-700/80">
+              <p className="text-xs text-[var(--accent-text)]/80">
                 Please pay at the counter. Your order will be sent to the kitchen once staff confirms payment.
               </p>
               <button
                 onClick={() => setShowBill(true)}
-                className="w-full flex items-center justify-center gap-2 rounded-xl bg-amber-700 py-3 text-sm font-bold text-white hover:bg-amber-600 transition-colors cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--accent-hover)] py-3 text-sm font-bold text-white hover:bg-[var(--accent-hover)] transition-colors cursor-pointer"
               >
                 <CreditCard className="h-4 w-4" />
                 View Bill
@@ -1220,10 +1207,10 @@ export default function TrackOrderPage() {
         {/* Any payment method — COMPLETED confirmation */}
         {order.payment?.status === "COMPLETED" &&
           !["DELIVERED", "CANCELLED", "REJECTED"].includes(order.status) && (
-            <div className="rounded-2xl border-2 border-[#eaa94d]/30 bg-[#fef9ef]/60 p-4 space-y-2">
+            <div className="rounded-2xl border-2 border-[var(--accent-border)] bg-[#fef9ef]/60 p-4 space-y-2">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-[#b25c1c]" />
-                <span className="text-sm font-bold text-[#3e1e0c]">
+                <span className="text-sm font-bold text-[var(--text-1)]">
                   Payment Verified
                 </span>
               </div>

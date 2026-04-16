@@ -65,11 +65,11 @@ interface Pagination {
 const DELIVERY_STATUSES = ["All", "PENDING", "ASSIGNED", "PICKED_UP", "IN_TRANSIT", "DELIVERED", "CANCELLED"];
 
 const STATUS_COLORS: Record<string, string> = {
-  PENDING: "bg-amber-100 text-amber-700",
+  PENDING: "bg-[var(--accent-muted)] text-[var(--accent-text)]",
   ASSIGNED: "bg-blue-100 text-blue-700",
   PICKED_UP: "bg-indigo-100 text-indigo-700",
   IN_TRANSIT: "bg-purple-100 text-purple-700",
-  DELIVERED: "bg-[#fef3dc] text-[#b25c1c]",
+  DELIVERED: "bg-[var(--accent-muted)] text-[#b25c1c]",
   CANCELLED: "bg-red-100 text-red-700",
 };
 
@@ -194,7 +194,7 @@ export default function AllDeliveriesTab() {
               key={s}
               onClick={() => { setStatusFilter(s); setPage(1); }}
               className={`rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all ${
-                statusFilter === s ? "bg-gompa-slate text-white" : "bg-gray-100 text-gray-600 hover:bg-brand-50"
+                statusFilter === s ? "bg-gompa-slate text-white" : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-brand-50"
               }`}
             >
               {s === "All" ? "All" : s.replace(/_/g, " ")}
@@ -203,13 +203,13 @@ export default function AllDeliveriesTab() {
         </div>
         <button
           onClick={() => fetchDeliveries(page)}
-          className="flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-2 text-xs font-medium text-gray-600 hover:bg-brand-50"
+          className="flex items-center gap-1.5 rounded-xl border border-[var(--border)] px-3 py-2 text-xs font-medium text-[var(--text-2)] hover:bg-brand-50"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
           Refresh
         </button>
         {pagination && (
-          <span className="ml-auto text-xs text-gray-400">{pagination.total} deliveries</span>
+          <span className="ml-auto text-xs text-[var(--text-3)]">{pagination.total} deliveries</span>
         )}
       </div>
 
@@ -228,7 +228,7 @@ export default function AllDeliveriesTab() {
         </div>
       )}
 
-      <div className="overflow-hidden rounded-2xl border border-brand-100 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-brand-100 bg-[var(--canvas)] shadow-sm">
         <div className="flex items-center justify-between border-b border-brand-100 px-4 py-2.5">
           <div className="flex items-center gap-2">
             <input
@@ -238,7 +238,7 @@ export default function AllDeliveriesTab() {
               className="h-3.5 w-3.5 rounded accent-gompa-slate"
             />
             <Truck className="h-4 w-4 text-brand-400" />
-            <span className="text-xs font-semibold text-gray-500">Deliveries</span>
+            <span className="text-xs font-semibold text-[var(--text-2)]">Deliveries</span>
           </div>
           <div className="flex items-center gap-1.5 text-[11px] text-[#b25c1c]">
             <span className="relative flex h-1.5 w-1.5">
@@ -255,11 +255,11 @@ export default function AllDeliveriesTab() {
           </div>
         ) : deliveries.length === 0 ? (
           <div className="py-16 text-center">
-            <Truck className="mx-auto mb-2 h-8 w-8 text-gray-300" />
-            <p className="text-sm text-gray-400">No deliveries found</p>
+            <Truck className="mx-auto mb-2 h-8 w-8 text-[var(--text-3)]" />
+            <p className="text-sm text-[var(--text-3)]">No deliveries found</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-[var(--border)]">
             {deliveries.map((delivery) => {
               const StatusIcon = STATUS_ICONS[delivery.status] || Clock;
               const isExpanded = expandedId === delivery.id;
@@ -285,7 +285,7 @@ export default function AllDeliveriesTab() {
                       onClick={(e) => e.stopPropagation()}
                       className="h-3.5 w-3.5 flex-shrink-0 rounded accent-gompa-slate"
                     />
-                    <div className={`flex-shrink-0 rounded-lg p-2 ${STATUS_COLORS[delivery.status] || "bg-gray-100 text-gray-600"}`}>
+                    <div className={`flex-shrink-0 rounded-lg p-2 ${STATUS_COLORS[delivery.status] || "bg-[var(--surface)] text-[var(--text-2)]"}`}>
                       <StatusIcon className="h-4 w-4" />
                     </div>
                     <div className="min-w-0 flex-1">
@@ -297,13 +297,13 @@ export default function AllDeliveriesTab() {
                           {delivery.status.replace(/_/g, " ")}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <div className="flex items-center gap-2 text-xs text-[var(--text-2)]">
                         <span className="flex items-center gap-1"><Store className="h-3 w-3" />{delivery.order.restaurant.name}</span>
                         {delivery.driver && (
                           <span className="flex items-center gap-1">
                             <User className="h-3 w-3" />
                             {delivery.driver.name}
-                            <span className={`ml-0.5 inline-flex h-1.5 w-1.5 rounded-full ${delivery.driver.isOnline ? "bg-[#eaa94d]" : "bg-gray-400"}`} />
+                            <span className={`ml-0.5 inline-flex h-1.5 w-1.5 rounded-full ${delivery.driver.isOnline ? "bg-[#eaa94d]" : "bg-[var(--text-3)]"}`} />
                           </span>
                         )}
                         {delivery.distanceKm && (
@@ -316,13 +316,13 @@ export default function AllDeliveriesTab() {
                         <p className="text-sm font-bold text-gompa-slate">{formatPrice(delivery.fee, "NPR")}</p>
                       )}
                       {delivery.estimatedMinutes && (
-                        <p className="text-[11px] text-gray-400">~{delivery.estimatedMinutes} min</p>
+                        <p className="text-[11px] text-[var(--text-3)]">~{delivery.estimatedMinutes} min</p>
                       )}
                     </div>
-                    <span className="flex-shrink-0 text-[11px] text-gray-400 tabular-nums">
+                    <span className="flex-shrink-0 text-[11px] text-[var(--text-3)] tabular-nums">
                       {timeAgo(delivery.createdAt)}
                     </span>
-                    <ChevronDown className={`h-3.5 w-3.5 flex-shrink-0 text-gray-300 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+                    <ChevronDown className={`h-3.5 w-3.5 flex-shrink-0 text-[var(--text-3)] transition-transform ${isExpanded ? "rotate-180" : ""}`} />
                   </button>
 
                   <AnimatePresence>
@@ -338,66 +338,66 @@ export default function AllDeliveriesTab() {
                             {delivery.driver && (
                               <>
                                 <div>
-                                  <span className="text-gray-400">Driver</span>
+                                  <span className="text-[var(--text-3)]">Driver</span>
                                   <p className="font-medium text-gompa-slate">{delivery.driver.name}</p>
                                 </div>
                                 <div>
-                                  <span className="text-gray-400">Driver Phone</span>
+                                  <span className="text-[var(--text-3)]">Driver Phone</span>
                                   <p className="font-medium text-gompa-slate">{delivery.driver.phone}</p>
                                 </div>
                                 <div>
-                                  <span className="text-gray-400">Vehicle</span>
+                                  <span className="text-[var(--text-3)]">Vehicle</span>
                                   <p className="font-medium text-gompa-slate">{delivery.driver.vehicleType} - {delivery.driver.vehicleNo}</p>
                                 </div>
                                 <div>
-                                  <span className="text-gray-400">Driver Status</span>
-                                  <p className={`font-medium ${delivery.driver.isOnline ? "text-[#b25c1c]" : "text-gray-400"}`}>
+                                  <span className="text-[var(--text-3)]">Driver Status</span>
+                                  <p className={`font-medium ${delivery.driver.isOnline ? "text-[#b25c1c]" : "text-[var(--text-3)]"}`}>
                                     {delivery.driver.isOnline ? "Online" : "Offline"}
                                   </p>
                                 </div>
                               </>
                             )}
                             <div>
-                              <span className="text-gray-400">Customer</span>
+                              <span className="text-[var(--text-3)]">Customer</span>
                               <p className="font-medium text-gompa-slate">{delivery.order.user?.name || "Guest"}</p>
                             </div>
                             <div>
-                              <span className="text-gray-400">Order Total</span>
+                              <span className="text-[var(--text-3)]">Order Total</span>
                               <p className="font-bold text-gompa-slate">{formatPrice(delivery.order.total, "NPR")}</p>
                             </div>
                             {delivery.order.deliveryAddress && (
                               <div className="col-span-2 sm:col-span-4">
-                                <span className="text-gray-400">Delivery Address</span>
+                                <span className="text-[var(--text-3)]">Delivery Address</span>
                                 <p className="font-medium text-gompa-slate">{delivery.order.deliveryAddress}</p>
                               </div>
                             )}
                             {delivery.order.deliveryPhone && (
                               <div>
-                                <span className="text-gray-400">Delivery Phone</span>
+                                <span className="text-[var(--text-3)]">Delivery Phone</span>
                                 <p className="font-medium text-gompa-slate">{delivery.order.deliveryPhone}</p>
                               </div>
                             )}
                             <div>
-                              <span className="text-gray-400">Distance</span>
+                              <span className="text-[var(--text-3)]">Distance</span>
                               <p className="font-medium text-gompa-slate">{delivery.distanceKm ? `${delivery.distanceKm.toFixed(1)} km` : "—"}</p>
                             </div>
                             <div>
-                              <span className="text-gray-400">Est. Time</span>
+                              <span className="text-[var(--text-3)]">Est. Time</span>
                               <p className="font-medium text-gompa-slate">{delivery.estimatedMinutes ? `${delivery.estimatedMinutes} min` : "—"}</p>
                             </div>
                             <div>
-                              <span className="text-gray-400">Actual Time</span>
+                              <span className="text-[var(--text-3)]">Actual Time</span>
                               <p className="font-medium text-gompa-slate">{delivery.actualMinutes ? `${delivery.actualMinutes} min` : "—"}</p>
                             </div>
                             {delivery.pickedUpAt && (
                               <div>
-                                <span className="text-gray-400">Picked Up</span>
+                                <span className="text-[var(--text-3)]">Picked Up</span>
                                 <p className="font-medium text-gompa-slate">{new Date(delivery.pickedUpAt).toLocaleString()}</p>
                               </div>
                             )}
                             {delivery.deliveredAt && (
                               <div>
-                                <span className="text-gray-400">Delivered</span>
+                                <span className="text-[var(--text-3)]">Delivered</span>
                                 <p className="font-medium text-gompa-slate">{new Date(delivery.deliveredAt).toLocaleString()}</p>
                               </div>
                             )}
@@ -422,13 +422,13 @@ export default function AllDeliveriesTab() {
         )}
 
         {pagination && pagination.totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-gray-100 px-4 py-2.5">
-            <span className="text-xs text-gray-400">Page {pagination.page} of {pagination.totalPages}</span>
+          <div className="flex items-center justify-between border-t border-[var(--border-soft)] px-4 py-2.5">
+            <span className="text-xs text-[var(--text-3)]">Page {pagination.page} of {pagination.totalPages}</span>
             <div className="flex gap-1.5">
-              <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="rounded-lg border border-gray-200 p-1.5 text-gray-500 hover:bg-brand-50 disabled:opacity-40">
+              <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-2)] hover:bg-brand-50 disabled:opacity-40">
                 <ChevronLeft className="h-3.5 w-3.5" />
               </button>
-              <button disabled={page >= pagination.totalPages} onClick={() => setPage((p) => p + 1)} className="rounded-lg border border-gray-200 p-1.5 text-gray-500 hover:bg-brand-50 disabled:opacity-40">
+              <button disabled={page >= pagination.totalPages} onClick={() => setPage((p) => p + 1)} className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-2)] hover:bg-brand-50 disabled:opacity-40">
                 <ChevronRight className="h-3.5 w-3.5" />
               </button>
             </div>

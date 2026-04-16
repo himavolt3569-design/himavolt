@@ -2,7 +2,7 @@
 
 import { useState, useRef, useMemo, useEffect, useCallback } from "react";
 import { Star, Clock, ChevronDown, SlidersHorizontal, Flame, Sparkles, Tag, Plus } from "lucide-react";
-import { AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/context/CartContext";
 import { formatPrice } from "@/lib/currency";
 import { useLocation } from "@/context/LocationContext";
@@ -100,7 +100,7 @@ function FoodCard({ item, onOpenPopup }: { item: FoodItem; onOpenPopup: (id: str
                   item.restaurantSlug
                 )
               }
-              className="flex items-center gap-0.5 rounded-xl border-2 border-[#eaa94d] bg-white px-4 py-1 text-[13px] font-extrabold text-[#eaa94d] shadow-md whitespace-nowrap active:scale-95 transition-transform"
+              className="flex items-center gap-0.5 rounded-xl border-2 border-[#eaa94d] bg-[var(--canvas)] px-4 py-1 text-[13px] font-extrabold text-[#eaa94d] shadow-md whitespace-nowrap active:scale-95 transition-transform"
             >
               <Plus className="h-3.5 w-3.5" />
               ADD
@@ -110,11 +110,11 @@ function FoodCard({ item, onOpenPopup }: { item: FoodItem; onOpenPopup: (id: str
 
         <button onClick={() => onOpenPopup(item.id)} className="flex-1 min-w-0 text-left">
           {/* Veg / Non-veg indicator */}
-          <div className={`mb-1.5 flex h-[18px] w-[18px] items-center justify-center rounded-sm border-2 ${vegBorderColor} bg-white`}>
+          <div className={`mb-1.5 flex h-[18px] w-[18px] items-center justify-center rounded-sm border-2 ${vegBorderColor} bg-[var(--canvas)]`}>
             <div className={`h-2 w-2 rounded-full ${vegDotColor}`} />
           </div>
 
-          <h3 className="text-[15px] font-bold text-[#3e1e0c] leading-snug line-clamp-2">
+          <h3 className="text-[15px] font-bold text-[var(--text-1)] leading-snug line-clamp-2">
             {item.name}
           </h3>
 
@@ -126,18 +126,18 @@ function FoodCard({ item, onOpenPopup }: { item: FoodItem; onOpenPopup: (id: str
               {item.rating.toFixed(1)}
               <Star className="h-2.5 w-2.5 fill-white ml-0.5" />
             </span>
-            <span className="text-[11px] text-gray-400">&bull;</span>
+            <span className="text-[11px] text-[var(--text-3)]">&bull;</span>
             <div className="flex items-center gap-0.5">
-              <Clock className="h-3 w-3 text-gray-400" />
-              <span className="text-[11px] text-gray-500">{item.prepTime}</span>
+              <Clock className="h-3 w-3 text-[var(--text-3)]" />
+              <span className="text-[11px] text-[var(--text-2)]">{item.prepTime}</span>
             </div>
           </div>
 
           {item.restaurantName && (
-            <p className="mt-0.5 text-[11px] text-gray-400 truncate">by {item.restaurantName}</p>
+            <p className="mt-0.5 text-[11px] text-[var(--text-3)] truncate">by {item.restaurantName}</p>
           )}
 
-          <p className="mt-2 text-[17px] font-extrabold text-[#3e1e0c] tracking-tight">
+          <p className="mt-2 text-[17px] font-extrabold text-[var(--text-1)] tracking-tight">
             {formatPrice(item.price, "NPR")}
           </p>
 
@@ -151,8 +151,8 @@ function FoodCard({ item, onOpenPopup }: { item: FoodItem; onOpenPopup: (id: str
       </div>
 
       {/* ── Desktop: vertical card ── */}
-      <button onClick={() => onOpenPopup(item.id)} className="hidden sm:block w-full text-left">
-        <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-gray-100 shadow-sm">
+      <div onClick={() => onOpenPopup(item.id)} className="hidden sm:block w-full text-left cursor-pointer">
+        <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-[var(--surface)] shadow-sm">
           <img
             src={item.image}
             alt={item.name}
@@ -179,7 +179,7 @@ function FoodCard({ item, onOpenPopup }: { item: FoodItem; onOpenPopup: (id: str
             </span>
           </div>
 
-          <div className={`absolute top-2.5 left-2.5 flex h-5 w-5 items-center justify-center rounded-sm border-2 ${vegBorderColor} bg-white`}>
+          <div className={`absolute top-2.5 left-2.5 flex h-5 w-5 items-center justify-center rounded-sm border-2 ${vegBorderColor} bg-[var(--canvas)]`}>
             <div className={`h-2 w-2 rounded-full ${vegDotColor}`} />
           </div>
 
@@ -194,27 +194,27 @@ function FoodCard({ item, onOpenPopup }: { item: FoodItem; onOpenPopup: (id: str
                 item.restaurantSlug,
               );
             }}
-            className="absolute bottom-3 right-3 hidden sm:flex items-center gap-1 rounded-xl bg-white px-3 py-1.5 text-[13px] font-extrabold text-[#eaa94d] border-2 border-[#eaa94d] shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 active:scale-95"
+            className="absolute bottom-3 right-3 hidden sm:flex items-center gap-1 rounded-xl bg-[var(--canvas)] px-3 py-1.5 text-[13px] font-extrabold text-[#eaa94d] border-2 border-[#eaa94d] shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 active:scale-95"
           >
             <Plus className="h-3.5 w-3.5" /> ADD
           </button>
         </div>
 
         <div className="mt-2.5 px-0.5">
-          <h3 className="text-[15px] font-bold text-[#3e1e0c] truncate leading-snug group-hover:text-[#eaa94d] transition-colors">
+          <h3 className="text-[15px] font-bold text-[var(--text-1)] truncate leading-snug group-hover:text-[#eaa94d] transition-colors">
             {item.name}
           </h3>
           <div className="flex items-center gap-1.5 mt-0.5">
-            <Clock className="h-3 w-3 text-gray-400" />
-            <span className="text-[12px] text-gray-500">{item.prepTime}</span>
+            <Clock className="h-3 w-3 text-[var(--text-3)]" />
+            <span className="text-[12px] text-[var(--text-2)]">{item.prepTime}</span>
           </div>
-          <p className="text-[12px] text-gray-400 truncate mt-0.5">{item.tags.join(", ")}</p>
+          <p className="text-[12px] text-[var(--text-3)] truncate mt-0.5">{item.tags.join(", ")}</p>
           {item.restaurantName && (
-            <p className="text-[11px] text-gray-400 truncate mt-0.5">by {item.restaurantName}</p>
+            <p className="text-[11px] text-[var(--text-3)] truncate mt-0.5">by {item.restaurantName}</p>
           )}
-          <p className="text-[15px] font-bold text-[#3e1e0c] mt-1">{formatPrice(item.price, "NPR")}</p>
+          <p className="text-[15px] font-bold text-[var(--text-1)] mt-1">{formatPrice(item.price, "NPR")}</p>
         </div>
-      </button>
+      </div>
 
     </div>
   );
@@ -292,10 +292,10 @@ export default function PopularFoods({
   /* Header entrance — no GSAP fromTo (avoids mobile invisible bug) */
 
   return (
-    <section ref={sectionRef} className="bg-white">
+    <section ref={sectionRef} className="bg-[var(--canvas)]">
       <div className="mx-auto max-w-[1440px] px-4 md:px-8 lg:px-12 py-8 md:py-12 space-y-6">
         <div className="flex gap-2.5 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
-          <button className="shrink-0 flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-4 py-2 text-[13px] font-semibold text-gray-600 hover:border-gray-300 transition-all">
+          <button className="shrink-0 flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--canvas)] px-4 py-2 text-[13px] font-semibold text-[var(--text-2)] hover:border-[var(--border)] transition-all">
             <SlidersHorizontal className="h-3.5 w-3.5" />
             Filters
           </button>
@@ -305,8 +305,8 @@ export default function PopularFoods({
               onClick={() => toggleFilter(f.id)}
               className={`shrink-0 rounded-full border px-4 py-2 text-[13px] font-semibold transition-all ${
                 activeFilters.has(f.id)
-                  ? "border-[#eaa94d] bg-[#fdf9ef] text-[#eaa94d]"
-                  : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
+                  ? "border-[#eaa94d] bg-[var(--accent-muted)] text-[#eaa94d]"
+                  : "border-[var(--border)] bg-[var(--canvas)] text-[var(--text-2)] hover:border-[var(--border)]"
               }`}
             >
               {f.label}
@@ -315,42 +315,27 @@ export default function PopularFoods({
         </div>
 
         <div ref={headerRef} className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#eaa94d]/10">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent-muted)]">
             <Flame className="h-4.5 w-4.5 text-[#eaa94d]" />
           </div>
           <div>
-            <h2 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">
+            <h2 className="text-[11px] font-bold text-[var(--text-3)] uppercase tracking-widest">
               {activeCategory === "All" ? "Recommended for you" : activeCategory}
             </h2>
-            <p className="text-[12px] text-gray-400">
+            <p className="text-[12px] text-[var(--text-3)]">
               {filtered.length} dishes {activeCategory !== "All" ? `in ${activeCategory}` : location.area !== "Kathmandu" ? `near ${location.area}` : "from nearby restaurants"}
             </p>
           </div>
         </div>
 
-        {isLoading && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-7 pb-4">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="animate-pulse">
-                <div className="aspect-[4/3] rounded-2xl bg-gray-100" />
-                <div className="mt-3 space-y-2 px-0.5">
-                  <div className="h-4 w-3/4 rounded bg-gray-100" />
-                  <div className="h-3 w-1/2 rounded bg-gray-100" />
-                  <div className="h-4 w-1/3 rounded bg-gray-100" />
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
         {/* No dishes — loading complete but DB is empty */}
         {!isLoading && filtered.length === 0 && foods.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 mb-4">
-              <Sparkles className="h-7 w-7 text-gray-300" />
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--surface)] mb-4">
+              <Sparkles className="h-7 w-7 text-[var(--text-3)]" />
             </div>
-            <p className="text-base font-bold text-[#3e1e0c]">No dishes yet</p>
-            <p className="text-sm text-gray-400 mt-1">
+            <p className="text-base font-bold text-[var(--text-1)]">No dishes yet</p>
+            <p className="text-sm text-[var(--text-3)] mt-1">
               Restaurants are coming soon — check back shortly!
             </p>
           </div>
@@ -358,29 +343,34 @@ export default function PopularFoods({
 
         {!isLoading && foods.length > 0 && filtered.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 mb-4">
-              <Sparkles className="h-7 w-7 text-gray-300" />
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--surface)] mb-4">
+              <Sparkles className="h-7 w-7 text-[var(--text-3)]" />
             </div>
-            <p className="text-base font-bold text-[#3e1e0c]">No dishes found</p>
-            <p className="text-sm text-gray-400 mt-1">Try adjusting your filters</p>
+            <p className="text-base font-bold text-[var(--text-1)]">No dishes found</p>
+            <p className="text-sm text-[var(--text-3)] mt-1">Try adjusting your filters</p>
           </div>
         )}
 
-        {!isLoading && displayed.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-7 sm:gap-y-7 pb-4 sm:pb-0">
+        {displayed.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.15 }}
+            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-7 sm:gap-y-7 pb-4 sm:pb-0"
+          >
             {displayed.map((item, idx) => (
-              <div key={item.id} className={idx !== 0 ? "sm:border-t-0 border-t border-gray-100" : ""}>
+              <div key={item.id} className={idx !== 0 ? "sm:border-t-0 border-t border-[var(--border-soft)]" : ""}>
                 <FoodCard item={item} onOpenPopup={setPopupItemId} />
               </div>
             ))}
-          </div>
+          </motion.div>
         )}
 
         {filtered.length > VISIBLE && (
           <div className="flex justify-center pt-2">
             <button
               onClick={() => setShowAll(!showAll)}
-              className="flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-6 py-3 text-[13px] font-bold text-[#eaa94d] hover:bg-[#fdf9ef] hover:border-[#eaa94d]/30 transition-all active:scale-[0.97] shadow-sm"
+              className="flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--canvas)] px-6 py-3 text-[13px] font-bold text-[#eaa94d] hover:bg-[var(--accent-muted)] hover:border-[var(--accent-border)] transition-all active:scale-[0.97] shadow-sm"
             >
               {showAll ? "Show Less" : `See all ${filtered.length} dishes`}
               <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-300 ${showAll ? "rotate-180" : ""}`} />
@@ -390,7 +380,7 @@ export default function PopularFoods({
       </div>
 
       <div className="mx-auto max-w-[1440px] px-4 md:px-8 lg:px-12">
-        <hr className="border-gray-100" />
+        <hr className="border-[var(--border-soft)]" />
       </div>
 
       <AnimatePresence>

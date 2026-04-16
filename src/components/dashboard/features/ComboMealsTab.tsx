@@ -155,7 +155,7 @@ export default function ComboMealsTab({ restaurantId }: { restaurantId?: string 
 
   if (loading) return (
     <div className="flex items-center justify-center py-20">
-      <Loader2 className="w-6 h-6 animate-spin text-orange-500" />
+      <Loader2 className="w-6 h-6 animate-spin text-[var(--accent)]" />
     </div>
   );
 
@@ -163,17 +163,17 @@ export default function ComboMealsTab({ restaurantId }: { restaurantId?: string 
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-orange-100 rounded-xl">
-            <UtensilsCrossed className="w-6 h-6 text-orange-600" />
+          <div className="p-2.5 bg-[var(--accent)] rounded-xl">
+            <UtensilsCrossed className="w-6 h-6 text-[var(--accent)]" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-gray-900">Combo Deals</h2>
-            <p className="text-sm text-gray-500">Bundle menu items into value deals shown to customers</p>
+            <h2 className="text-xl font-bold text-[var(--text-1)]">Combo Deals</h2>
+            <p className="text-sm text-[var(--text-2)]">Bundle menu items into value deals shown to customers</p>
           </div>
         </div>
         <button
           onClick={() => { resetForm(); setShowForm(true); }}
-          className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-semibold hover:bg-orange-600 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] text-white rounded-lg text-sm font-semibold hover:bg-[var(--accent)] transition-colors"
         >
           <Plus className="w-4 h-4" /> Create Combo
         </button>
@@ -183,90 +183,90 @@ export default function ComboMealsTab({ restaurantId }: { restaurantId?: string 
       <AnimatePresence>
         {showForm && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
-            <div className="bg-white border border-orange-200 rounded-xl p-6 shadow-sm space-y-5">
+            <div className="bg-[var(--canvas)] border border-[var(--accent-border)] rounded-xl p-6 shadow-sm space-y-5">
               <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-gray-800">{editingId ? "Edit Combo" : "New Combo Deal"}</h3>
-                <button onClick={resetForm}><X className="w-5 h-5 text-gray-400 hover:text-gray-600" /></button>
+                <h3 className="font-semibold text-[var(--text-1)]">{editingId ? "Edit Combo" : "New Combo Deal"}</h3>
+                <button onClick={resetForm}><X className="w-5 h-5 text-[var(--text-3)] hover:text-[var(--text-2)]" /></button>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-gray-600">Combo Name *</label>
+                  <label className="text-sm font-medium text-[var(--text-2)]">Combo Name *</label>
                   <input type="text" placeholder="e.g. Family Feast" value={formName}
                     onChange={(e) => setFormName(e.target.value)}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" />
+                    className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-gray-600">Short Description</label>
+                  <label className="text-sm font-medium text-[var(--text-2)]">Short Description</label>
                   <input type="text" placeholder="e.g. Perfect for 2 people" value={formDesc}
                     onChange={(e) => setFormDesc(e.target.value)}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" />
+                    className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-gray-600">Original Price (Rs) *</label>
+                  <label className="text-sm font-medium text-[var(--text-2)]">Original Price (Rs) *</label>
                   <input type="number" placeholder="580" value={formOriginalPrice}
                     onChange={(e) => setFormOriginalPrice(e.target.value)}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" />
+                    className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-gray-600">Combo Price (Rs) *</label>
+                  <label className="text-sm font-medium text-[var(--text-2)]">Combo Price (Rs) *</label>
                   <input type="number" placeholder="450" value={formComboPrice}
                     onChange={(e) => setFormComboPrice(e.target.value)}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" />
+                    className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-600 flex items-center gap-1.5"><ImageIcon className="w-3.5 h-3.5" /> Photo URL (optional)</label>
+                <label className="text-sm font-medium text-[var(--text-2)] flex items-center gap-1.5"><ImageIcon className="w-3.5 h-3.5" /> Photo URL (optional)</label>
                 <input type="url" placeholder="https://..." value={formImageUrl}
                   onChange={(e) => setFormImageUrl(e.target.value)}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" />
+                  className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" />
               </div>
 
               {formComboPrice && formOriginalPrice && Number(formOriginalPrice) > Number(formComboPrice) && (
-                <div className="flex items-center gap-2 text-sm text-[#b25c1c] bg-[#fef9ef] rounded-lg px-3 py-2">
+                <div className="flex items-center gap-2 text-sm text-[#b25c1c] bg-[var(--accent-muted)] rounded-lg px-3 py-2">
                   <Percent className="w-4 h-4" />
                   Customer saves {savings(Number(formOriginalPrice), Number(formComboPrice))}% — Rs {Number(formOriginalPrice) - Number(formComboPrice)} off
                 </div>
               )}
 
               <div className="space-y-3">
-                <label className="text-sm font-medium text-gray-600">Select Menu Items *</label>
+                <label className="text-sm font-medium text-[var(--text-2)]">Select Menu Items *</label>
                 <div className="relative">
-                  <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
+                  <Search className="absolute left-3 top-2.5 w-4 h-4 text-[var(--text-3)]" />
                   <input type="text" placeholder="Search your menu..." value={itemSearch}
                     onChange={(e) => setItemSearch(e.target.value)}
-                    className="w-full border border-gray-200 rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" />
+                    className="w-full border border-[var(--border)] rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" />
                 </div>
 
                 {menuItems.length === 0 ? (
-                  <p className="text-xs text-gray-400 text-center py-4">No menu items found. Add items to your menu first.</p>
+                  <p className="text-xs text-[var(--text-3)] text-center py-4">No menu items found. Add items to your menu first.</p>
                 ) : (
-                  <div className="max-h-48 overflow-y-auto border border-gray-100 rounded-lg divide-y divide-gray-50">
+                  <div className="max-h-48 overflow-y-auto border border-[var(--border-soft)] rounded-lg divide-y divide-[var(--border)]">
                     {filteredMenuItems.map((item) => {
                       const selected = formItems.find((i) => i.menuItemId === item.id);
                       return (
-                        <div key={item.id} className={`flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-gray-50 transition-colors ${selected ? "bg-orange-50" : ""}`}
+                        <div key={item.id} className={`flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-[var(--canvas-sub)] transition-colors ${selected ? "bg-[var(--accent)]" : ""}`}
                           onClick={() => toggleMenuItem(item)}>
                           {item.imageUrl ? (
                             <img src={item.imageUrl} alt={item.name} className="w-8 h-8 rounded object-cover shrink-0" />
                           ) : (
-                            <div className="w-8 h-8 rounded bg-gray-100 flex items-center justify-center shrink-0">
-                              <UtensilsCrossed className="w-3.5 h-3.5 text-gray-400" />
+                            <div className="w-8 h-8 rounded bg-[var(--surface)] flex items-center justify-center shrink-0">
+                              <UtensilsCrossed className="w-3.5 h-3.5 text-[var(--text-3)]" />
                             </div>
                           )}
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-800 truncate">{item.name}</p>
-                            <p className="text-xs text-gray-400">Rs {item.price}</p>
+                            <p className="text-sm font-medium text-[var(--text-1)] truncate">{item.name}</p>
+                            <p className="text-xs text-[var(--text-3)]">Rs {item.price}</p>
                           </div>
                           {selected && (
                             <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
-                              <button onClick={() => updateQty(item.id, selected.quantity - 1)} className="w-6 h-6 flex items-center justify-center bg-orange-100 rounded text-orange-600 font-bold text-sm hover:bg-orange-200">-</button>
-                              <span className="text-sm font-bold text-gray-800 w-4 text-center">{selected.quantity}</span>
-                              <button onClick={() => updateQty(item.id, selected.quantity + 1)} className="w-6 h-6 flex items-center justify-center bg-orange-100 rounded text-orange-600 font-bold text-sm hover:bg-orange-200">+</button>
+                              <button onClick={() => updateQty(item.id, selected.quantity - 1)} className="w-6 h-6 flex items-center justify-center bg-[var(--accent)] rounded text-[var(--accent)] font-bold text-sm hover:bg-[var(--accent)]">-</button>
+                              <span className="text-sm font-bold text-[var(--text-1)] w-4 text-center">{selected.quantity}</span>
+                              <button onClick={() => updateQty(item.id, selected.quantity + 1)} className="w-6 h-6 flex items-center justify-center bg-[var(--accent)] rounded text-[var(--accent)] font-bold text-sm hover:bg-[var(--accent)]">+</button>
                             </div>
                           )}
-                          <div className={`w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center ${selected ? "bg-orange-500 border-orange-500" : "border-gray-300"}`}>
+                          <div className={`w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center ${selected ? "bg-[var(--accent)] border-[var(--accent-border)]" : "border-[var(--border)]"}`}>
                             {selected && <Check className="w-2.5 h-2.5 text-white" />}
                           </div>
                         </div>
@@ -278,7 +278,7 @@ export default function ComboMealsTab({ restaurantId }: { restaurantId?: string 
                 {formItems.length > 0 && (
                   <div className="flex flex-wrap gap-1.5">
                     {formItems.map((i) => (
-                      <span key={i.menuItemId} className="flex items-center gap-1 px-2 py-0.5 bg-orange-100 text-orange-700 rounded-full text-xs font-medium">
+                      <span key={i.menuItemId} className="flex items-center gap-1 px-2 py-0.5 bg-[var(--accent)] text-[var(--accent)] rounded-full text-xs font-medium">
                         {i.quantity > 1 && <span className="font-bold">{i.quantity}×</span>}
                         {i.name}
                         <button onClick={() => setFormItems((prev) => prev.filter((p) => p.menuItemId !== i.menuItemId))}><X className="w-3 h-3" /></button>
@@ -289,9 +289,9 @@ export default function ComboMealsTab({ restaurantId }: { restaurantId?: string 
               </div>
 
               <div className="flex justify-end gap-3 pt-2">
-                <button onClick={resetForm} className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800">Cancel</button>
+                <button onClick={resetForm} className="px-4 py-2 text-sm text-[var(--text-2)] hover:text-[var(--text-1)]">Cancel</button>
                 <button onClick={handleSubmit} disabled={saving || !formName.trim() || formItems.length === 0 || !formComboPrice || !formOriginalPrice}
-                  className="flex items-center gap-2 px-5 py-2 bg-orange-500 text-white rounded-lg text-sm font-semibold hover:bg-orange-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                  className="flex items-center gap-2 px-5 py-2 bg-[var(--accent)] text-white rounded-lg text-sm font-semibold hover:bg-[var(--accent)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                   {editingId ? "Update" : "Create"} Combo
                 </button>
@@ -305,24 +305,24 @@ export default function ComboMealsTab({ restaurantId }: { restaurantId?: string 
         <AnimatePresence>
           {combos.map((combo) => (
             <motion.div key={combo.id} layout initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-              className={`bg-white border rounded-xl shadow-sm transition-opacity ${combo.isActive ? "border-gray-100" : "border-gray-200 opacity-60"}`}>
+              className={`bg-[var(--canvas)] border rounded-xl shadow-sm transition-opacity ${combo.isActive ? "border-[var(--border-soft)]" : "border-[var(--border)] opacity-60"}`}>
               {combo.imageUrl && (
                 <img src={combo.imageUrl} alt={combo.name} className="w-full h-32 object-cover rounded-t-xl" />
               )}
               <div className="p-5">
                 <div className="flex items-start justify-between mb-2">
                   <div>
-                    <h4 className="font-semibold text-gray-900">{combo.name}</h4>
-                    {combo.description && <p className="text-xs text-gray-400 mt-0.5">{combo.description}</p>}
+                    <h4 className="font-semibold text-[var(--text-1)]">{combo.name}</h4>
+                    {combo.description && <p className="text-xs text-[var(--text-3)] mt-0.5">{combo.description}</p>}
                   </div>
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#fef3dc] text-[#b25c1c] rounded-full text-xs font-bold shrink-0">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[var(--accent-muted)] text-[#b25c1c] rounded-full text-xs font-bold shrink-0">
                     <Tag className="w-3 h-3" />{savings(combo.originalPrice, combo.comboPrice)}% OFF
                   </span>
                 </div>
 
                 <div className="flex flex-wrap gap-1.5 mb-4">
                   {combo.items.map((item, idx) => (
-                    <span key={idx} className="px-2 py-0.5 bg-amber-50 text-amber-700 rounded text-xs font-medium">
+                    <span key={idx} className="px-2 py-0.5 bg-[var(--accent-muted)] text-[var(--accent-text)] rounded text-xs font-medium">
                       {item.quantity > 1 && <span className="font-bold">{item.quantity}× </span>}{item.name}
                     </span>
                   ))}
@@ -330,23 +330,23 @@ export default function ComboMealsTab({ restaurantId }: { restaurantId?: string 
 
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-baseline gap-2">
-                    <span className="text-lg font-bold text-gray-900">Rs {combo.comboPrice}</span>
-                    <span className="text-sm text-gray-400 line-through">Rs {combo.originalPrice}</span>
+                    <span className="text-lg font-bold text-[var(--text-1)]">Rs {combo.comboPrice}</span>
+                    <span className="text-sm text-[var(--text-3)] line-through">Rs {combo.originalPrice}</span>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-3 border-t border-gray-50">
+                <div className="flex items-center justify-between pt-3 border-t border-[var(--border-soft)]">
                   <div className="flex items-center gap-2">
                     <button onClick={() => toggleActive(combo)}>
-                      {combo.isActive ? <ToggleRight className="w-7 h-7 text-orange-500" /> : <ToggleLeft className="w-7 h-7 text-gray-400" />}
+                      {combo.isActive ? <ToggleRight className="w-7 h-7 text-[var(--accent)]" /> : <ToggleLeft className="w-7 h-7 text-[var(--text-3)]" />}
                     </button>
-                    <span className={`text-xs font-medium ${combo.isActive ? "text-orange-600" : "text-gray-400"}`}>
+                    <span className={`text-xs font-medium ${combo.isActive ? "text-[var(--accent)]" : "text-[var(--text-3)]"}`}>
                       {combo.isActive ? "Live on menu" : "Hidden"}
                     </span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <button onClick={() => openEdit(combo)} className="p-1.5 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"><Pencil className="w-4 h-4" /></button>
-                    <button onClick={() => deleteCombo(combo.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>
+                    <button onClick={() => openEdit(combo)} className="p-1.5 text-[var(--text-3)] hover:text-[var(--accent)] hover:bg-[var(--accent)] rounded-lg transition-colors"><Pencil className="w-4 h-4" /></button>
+                    <button onClick={() => deleteCombo(combo.id)} className="p-1.5 text-[var(--text-3)] hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>
                   </div>
                 </div>
               </div>
@@ -356,7 +356,7 @@ export default function ComboMealsTab({ restaurantId }: { restaurantId?: string 
       </div>
 
       {combos.length === 0 && !showForm && (
-        <div className="text-center py-16 text-gray-400">
+        <div className="text-center py-16 text-[var(--text-3)]">
           <UtensilsCrossed className="w-12 h-12 mx-auto mb-3 opacity-30" />
           <p className="text-sm font-medium">No combo deals yet</p>
           <p className="text-xs mt-1">Create your first combo to show customers bundled value deals</p>

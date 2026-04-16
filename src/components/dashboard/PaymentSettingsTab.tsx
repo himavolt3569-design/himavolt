@@ -143,7 +143,7 @@ export default function PaymentSettingsTab() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+        <Loader2 className="h-6 w-6 animate-spin text-[var(--text-3)]" />
       </div>
     );
   }
@@ -151,8 +151,8 @@ export default function PaymentSettingsTab() {
   return (
     <div className="space-y-6 max-w-2xl">
       <div>
-        <h2 className="text-lg font-bold text-amber-950">Payment Settings</h2>
-        <p className="text-sm text-gray-500 mt-1">
+        <h2 className="text-lg font-bold text-[var(--text-1)]">Payment Settings</h2>
+        <p className="text-sm text-[var(--text-2)] mt-1">
           Configure which payment methods customers can use and enter your
           gateway credentials.
         </p>
@@ -303,7 +303,7 @@ export default function PaymentSettingsTab() {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="flex items-center gap-2 rounded-xl bg-amber-700 px-6 py-3 text-sm font-bold text-white transition-all hover:bg-amber-600 active:scale-[0.98] disabled:opacity-60"
+          className="flex items-center gap-2 rounded-xl bg-[var(--accent-hover)] px-6 py-3 text-sm font-bold text-white transition-all hover:bg-[var(--accent-hover)] active:scale-[0.98] disabled:opacity-60"
         >
           {saving ? (
             <>
@@ -342,17 +342,17 @@ function PaymentSection({
   children?: React.ReactNode;
 }) {
   const colorMap: Record<string, string> = {
-    green: "bg-[#fef9ef] border-[#eaa94d]/30 text-[#b25c1c]",
+    green: "bg-[var(--accent-muted)] border-[var(--accent-border)] text-[#b25c1c]",
     purple: "bg-purple-50 border-purple-200 text-purple-600",
     blue: "bg-blue-50 border-blue-200 text-blue-600",
-    gray: "bg-gray-50 border-gray-200 text-gray-600",
+    gray: "bg-[var(--canvas-sub)] border-[var(--border)] text-[var(--text-2)]",
   };
 
   return (
     <motion.div
       layout
       className={`rounded-2xl border-2 overflow-hidden transition-colors ${
-        enabled ? colorMap[color] || colorMap.gray : "border-gray-100 bg-white"
+        enabled ? colorMap[color] || colorMap.gray : "border-[var(--border-soft)] bg-[var(--canvas)]"
       }`}
     >
       <div className="flex items-center justify-between px-5 py-4">
@@ -361,25 +361,25 @@ function PaymentSection({
             className={`flex h-10 w-10 items-center justify-center rounded-xl ${
               enabled
                 ? colorMap[color] || colorMap.gray
-                : "bg-gray-100 text-gray-400"
+                : "bg-[var(--surface)] text-[var(--text-3)]"
             }`}
           >
             {icon}
           </div>
           <div>
-            <p className="text-sm font-bold text-amber-950">{title}</p>
-            <p className="text-xs text-gray-500">{description}</p>
+            <p className="text-sm font-bold text-[var(--text-1)]">{title}</p>
+            <p className="text-xs text-[var(--text-2)]">{description}</p>
           </div>
         </div>
         <button
           onClick={() => onToggle(!enabled)}
           className={`relative h-7 w-12 rounded-full transition-colors ${
-            enabled ? "bg-amber-700" : "bg-gray-300"
+            enabled ? "bg-[var(--accent-hover)]" : "bg-[var(--border)]"
           }`}
         >
           <motion.div
             layout
-            className="absolute top-0.5 h-6 w-6 rounded-full bg-white shadow"
+            className="absolute top-0.5 h-6 w-6 rounded-full bg-[var(--canvas)] shadow"
             style={{ left: enabled ? "calc(100% - 1.625rem)" : "0.125rem" }}
           />
         </button>
@@ -389,7 +389,7 @@ function PaymentSection({
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}
           exit={{ opacity: 0, height: 0 }}
-          className="border-t border-gray-200/50 px-5 py-4 bg-white/80 space-y-3"
+          className="border-t border-[var(--border)]/50 px-5 py-4 bg-[var(--canvas)]/80 space-y-3"
         >
           {children}
         </motion.div>
@@ -417,7 +417,7 @@ function SecretField({
 
   return (
     <div>
-      <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+      <label className="block text-xs font-semibold text-[var(--text-2)] mb-1.5">
         {label}
       </label>
       <div className="relative">
@@ -426,14 +426,14 @@ function SecretField({
           value={isMasked ? "" : value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={
-            isMasked ? "••••••  (saved — enter new to update)" : placeholder
+            isMasked ? "••••••  (saved, enter new to update)" : placeholder
           }
-          className="w-full rounded-xl border border-gray-200 py-2.5 pl-4 pr-10 text-sm text-amber-950 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/30"
+          className="w-full rounded-xl border border-[var(--border)] py-2.5 pl-4 pr-10 text-sm text-[var(--text-1)] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/20 focus:border-[var(--accent)]/30"
         />
         <button
           type="button"
           onClick={onToggleShow}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-3)] hover:text-[var(--text-2)]"
         >
           {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
         </button>
@@ -455,7 +455,7 @@ function InputField({
 }) {
   return (
     <div>
-      <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+      <label className="block text-xs font-semibold text-[var(--text-2)] mb-1.5">
         {label}
       </label>
       <input
@@ -463,7 +463,7 @@ function InputField({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full rounded-xl border border-gray-200 py-2.5 px-4 text-sm text-amber-950 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/30"
+        className="w-full rounded-xl border border-[var(--border)] py-2.5 px-4 text-sm text-[var(--text-1)] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/20 focus:border-[var(--accent)]/30"
       />
     </div>
   );
@@ -471,9 +471,9 @@ function InputField({
 
 function CredentialWarning({ method }: { method: string }) {
   return (
-    <div className="flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2.5 mt-2">
-      <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
-      <p className="text-[11px] text-amber-700">
+    <div className="flex items-start gap-2 rounded-lg bg-[var(--accent-muted)] border border-[var(--accent-border)] px-3 py-2.5 mt-2">
+      <AlertCircle className="h-4 w-4 text-[var(--accent)] mt-0.5 shrink-0" />
+      <p className="text-[11px] text-[var(--accent-text)]">
         {method} is enabled but credentials are missing. Customers won&apos;t
         see this option until credentials are saved.
       </p>

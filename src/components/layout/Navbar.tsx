@@ -11,11 +11,11 @@ import {
   X,
   User,
   LayoutDashboard,
-  ChevronDown,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
+import ThemeToggle from "@/components/shared/ThemeToggle";
 import Link from "next/link";
 
 export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
@@ -41,7 +41,6 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
     if (searchOpen) searchRef.current?.focus();
   }, [searchOpen]);
 
-  // Close profile menu on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (profileMenuRef.current && !profileMenuRef.current.contains(e.target as Node)) {
@@ -67,43 +66,44 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
   return (
     <>
       <nav
-        className={`sticky top-0 z-50 w-full transition-all duration-500 ${
+        className={`sticky top-0 z-50 w-full transition-all duration-300 ${
           scrolled
-            ? "bg-white/90 backdrop-blur-xl shadow-[0_1px_2px_rgba(62,30,12,0.05)]"
+            ? "bg-[var(--canvas)]/90 backdrop-blur-xl border-b border-[var(--border)]"
             : "bg-transparent"
         }`}
       >
         <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-12">
           <div className="flex h-14 items-center justify-between">
+            {/* Logo */}
             <Link href="/" className="flex shrink-0 items-center gap-1.5 group">
               <motion.div
                 whileHover={{ rotate: -12 }}
                 transition={{ type: "spring", stiffness: 300, damping: 15 }}
               >
-                <Mountain
-                  className="h-5 w-5 text-[#eaa94d]"
-                  strokeWidth={2.5}
-                />
+                <Mountain className="h-5 w-5 text-[var(--accent)]" strokeWidth={2.5} />
               </motion.div>
-              <span className="text-base font-extrabold tracking-tight text-[#3e1e0c]">
-                Hima<span className="text-[#eaa94d]">Volt</span>
+              <span className="text-base font-black tracking-tight text-[var(--text-1)]">
+                Hima<span className="text-[var(--accent)]">Volt</span>
               </span>
             </Link>
 
-            <div className="flex items-center gap-0.5">
-              <motion.button
-                whileHover={{ scale: 1.08 }}
-                whileTap={{ scale: 0.92 }}
+            {/* Actions */}
+            <div className="flex items-center gap-1">
+              {/* Search */}
+              <button
                 onClick={() => setSearchOpen(true)}
-                className="flex h-9 w-9 items-center justify-center rounded-full text-[#3e1e0c]/40 hover:text-[#3e1e0c] hover:bg-[#fdf9ef] transition-colors"
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-3)] hover:text-[var(--text-1)] hover:bg-[var(--surface)] transition-colors"
               >
-                <Search className="h-[18px] w-[18px]" />
-              </motion.button>
+                <Search className="h-4 w-4" />
+              </button>
+
+              {/* Theme toggle */}
+              <ThemeToggle />
 
               {isLoaded && isSignedIn && isOwnerOrAdmin && (
                 <Link
                   href="/manage-restaurants"
-                  className="hidden md:flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold text-[#3e1e0c]/50 hover:text-[#3e1e0c] hover:bg-[#fdf9ef] transition-all"
+                  className="hidden md:flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-[var(--text-2)] hover:text-[var(--text-1)] hover:bg-[var(--surface)] transition-colors"
                 >
                   <Store className="h-3.5 w-3.5" />
                   Restaurants
@@ -113,20 +113,19 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
               {isLoaded && !isSignedIn && (
                 <Link
                   href="/staff-login"
-                  className="hidden md:flex items-center gap-1 rounded-full px-2.5 py-1.5 text-[11px] font-medium text-[#3e1e0c]/35 hover:text-[#3e1e0c]/60 transition-colors"
+                  className="hidden md:flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[11px] font-medium text-[var(--text-3)] hover:text-[var(--text-2)] transition-colors"
                 >
                   <KeyRound className="h-3 w-3" />
                   Staff
                 </Link>
               )}
 
-              <motion.button
-                whileHover={{ scale: 1.08 }}
-                whileTap={{ scale: 0.92 }}
+              {/* Cart */}
+              <button
                 onClick={onCartClick}
-                className="relative flex h-9 w-9 items-center justify-center rounded-full text-[#3e1e0c]/40 hover:text-[#3e1e0c] hover:bg-[#fdf9ef] transition-colors"
+                className="relative flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-3)] hover:text-[var(--text-1)] hover:bg-[var(--surface)] transition-colors"
               >
-                <ShoppingBag className="h-[18px] w-[18px]" />
+                <ShoppingBag className="h-4 w-4" />
                 <AnimatePresence>
                   {totalItems > 0 && (
                     <motion.span
@@ -134,51 +133,46 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                       exit={{ scale: 0 }}
-                      transition={{
-                        type: "spring",
-                        stiffness: 500,
-                        damping: 15,
-                      }}
-                      className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#eaa94d] text-[8px] font-bold text-[#3e1e0c]"
+                      transition={{ type: "spring", stiffness: 500, damping: 15 }}
+                      className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--accent)] text-[8px] font-bold text-white"
                     >
                       {totalItems}
                     </motion.span>
                   )}
                 </AnimatePresence>
-              </motion.button>
+              </button>
 
+              {/* Auth */}
               {isLoaded && (
                 <>
                   {isSignedIn ? (
                     <div className="relative flex items-center gap-0.5" ref={profileMenuRef}>
-                      {/* Avatar button — opens dropdown on all sizes */}
                       <button
                         onClick={() => setProfileMenuOpen((v) => !v)}
-                        className="flex h-8 w-8 items-center justify-center rounded-full overflow-hidden hover:ring-2 hover:ring-[#eaa94d]/20 transition-all"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg overflow-hidden hover:ring-2 hover:ring-[var(--accent-border)] transition-all"
                         aria-label="Account menu"
                       >
                         {user?.user_metadata?.avatar_url ? (
                           <img
                             src={user.user_metadata.avatar_url}
                             alt="Profile"
-                            className="h-8 w-8 rounded-full object-cover"
+                            className="h-8 w-8 rounded-lg object-cover"
                           />
                         ) : (
-                          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#eaa94d]/10 text-[10px] font-bold text-[#b25c1c]">
+                          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent-muted)] text-[10px] font-bold text-[var(--accent-text)]">
                             {userInitials}
                           </span>
                         )}
                       </button>
-                      {/* Desktop-only logout quick button */}
+
                       <button
                         onClick={signOut}
-                        className="hidden md:flex h-8 w-8 items-center justify-center rounded-full text-[#3e1e0c]/25 hover:text-red-500 hover:bg-red-50/50 transition-all"
+                        className="hidden md:flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-3)] hover:text-red-500 hover:bg-red-50/50 transition-colors"
                         aria-label="Sign Out"
                       >
                         <LogOut className="h-3.5 w-3.5" />
                       </button>
 
-                      {/* Dropdown menu (mobile + desktop) */}
                       <AnimatePresence>
                         {profileMenuOpen && (
                           <motion.div
@@ -186,42 +180,42 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: -6 }}
                             transition={{ duration: 0.15 }}
-                            className="absolute right-0 top-full mt-2 w-48 rounded-2xl bg-white shadow-xl shadow-[#3e1e0c]/8 ring-1 ring-brand-200/30 overflow-hidden z-70"
+                            className="absolute right-0 top-full mt-2 w-48 rounded-2xl bg-[var(--canvas)] border border-[var(--border)] shadow-xl overflow-hidden z-70"
                           >
-                            <div className="px-4 py-3 border-b border-gray-100">
-                              <p className="text-xs font-bold text-[#3e1e0c] truncate">
+                            <div className="px-4 py-3 border-b border-[var(--border)]">
+                              <p className="text-xs font-bold text-[var(--text-1)] truncate">
                                 {user?.user_metadata?.full_name || user?.user_metadata?.name || "Account"}
                               </p>
-                              <p className="text-[10px] text-gray-400 truncate">{user?.email}</p>
+                              <p className="text-[10px] text-[var(--text-3)] truncate">{user?.email}</p>
                             </div>
                             <div className="py-1">
                               <Link
                                 href="/profile"
                                 onClick={() => setProfileMenuOpen(false)}
-                                className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-[#3e1e0c] hover:bg-[#fdf9ef] transition-colors"
+                                className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-[var(--text-1)] hover:bg-[var(--surface)] transition-colors"
                               >
-                                <User className="h-3.5 w-3.5 text-gray-400" />
+                                <User className="h-3.5 w-3.5 text-[var(--text-3)]" />
                                 View Profile
                               </Link>
                               <Link
                                 href="/dashboard"
                                 onClick={() => setProfileMenuOpen(false)}
-                                className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-[#3e1e0c] hover:bg-[#fdf9ef] transition-colors"
+                                className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-[var(--text-1)] hover:bg-[var(--surface)] transition-colors"
                               >
-                                <LayoutDashboard className="h-3.5 w-3.5 text-gray-400" />
+                                <LayoutDashboard className="h-3.5 w-3.5 text-[var(--text-3)]" />
                                 Dashboard
                               </Link>
                               {isOwnerOrAdmin && (
                                 <Link
                                   href="/manage-restaurants"
                                   onClick={() => setProfileMenuOpen(false)}
-                                  className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-[#3e1e0c] hover:bg-[#fdf9ef] transition-colors"
+                                  className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-[var(--text-1)] hover:bg-[var(--surface)] transition-colors"
                                 >
-                                  <Store className="h-3.5 w-3.5 text-gray-400" />
+                                  <Store className="h-3.5 w-3.5 text-[var(--text-3)]" />
                                   My Restaurants
                                 </Link>
                               )}
-                              <div className="border-t border-gray-100 mt-1 pt-1">
+                              <div className="border-t border-[var(--border)] mt-1 pt-1">
                                 <button
                                   onClick={() => { setProfileMenuOpen(false); signOut(); }}
                                   className="flex w-full items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-red-500 hover:bg-red-50 transition-colors"
@@ -239,13 +233,13 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
                     <div className="flex items-center gap-1 ml-1">
                       <Link
                         href="/sign-in"
-                        className="rounded-full px-3 py-1.5 text-xs font-semibold text-[#3e1e0c]/60 hover:text-[#3e1e0c] transition-colors"
+                        className="rounded-lg px-3 py-1.5 text-xs font-semibold text-[var(--text-2)] hover:text-[var(--text-1)] hover:bg-[var(--surface)] transition-colors"
                       >
                         Login
                       </Link>
                       <Link
                         href="/sign-up"
-                        className="rounded-full bg-[#3e1e0c] px-4 py-1.5 text-xs font-bold text-white hover:bg-[#733e1b] active:scale-[0.97] transition-all"
+                        className="rounded-xl bg-[var(--text-1)] px-4 py-1.5 text-xs font-bold text-[var(--canvas)] hover:opacity-80 active:scale-[0.97] transition-all"
                       >
                         Sign Up
                       </Link>
@@ -258,7 +252,7 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
         </div>
       </nav>
 
-      {/* ── Search overlay ── */}
+      {/* Search overlay */}
       <AnimatePresence>
         {searchOpen && (
           <motion.div
@@ -266,11 +260,8 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
-            className="fixed inset-0 z-[60] bg-[#3e1e0c]/10 backdrop-blur-sm"
-            onClick={() => {
-              setSearchOpen(false);
-              setSearchValue("");
-            }}
+            className="fixed inset-0 z-[60] bg-black/20 backdrop-blur-sm"
+            onClick={() => { setSearchOpen(false); setSearchValue(""); }}
           >
             <motion.div
               initial={{ opacity: 0, y: -20, scale: 0.98 }}
@@ -280,27 +271,24 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
               className="mx-auto max-w-xl px-4 pt-24 sm:pt-28"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="relative flex items-center rounded-2xl bg-white shadow-2xl shadow-[#3e1e0c]/8 ring-1 ring-[#f4d69a]/30">
-                <Search className="absolute left-4 h-5 w-5 text-[#8e491e]/25 pointer-events-none" />
+              <div className="relative flex items-center rounded-2xl bg-[var(--canvas)] border border-[var(--border)] shadow-2xl">
+                <Search className="absolute left-4 h-5 w-5 text-[var(--text-3)] pointer-events-none" />
                 <input
                   ref={searchRef}
                   type="text"
                   value={searchValue}
                   onChange={(e) => setSearchValue(e.target.value)}
                   placeholder="Search food, restaurants, cuisines..."
-                  className="w-full bg-transparent py-4 pl-12 pr-12 text-base text-[#3e1e0c] placeholder-[#8e491e]/25 focus:outline-none rounded-2xl"
+                  className="w-full bg-transparent py-4 pl-12 pr-12 text-base text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:outline-none rounded-2xl"
                 />
                 <button
-                  onClick={() => {
-                    setSearchOpen(false);
-                    setSearchValue("");
-                  }}
-                  className="absolute right-3 flex h-8 w-8 items-center justify-center rounded-full text-[#8e491e]/30 hover:bg-[#fdf9ef] transition-colors"
+                  onClick={() => { setSearchOpen(false); setSearchValue(""); }}
+                  className="absolute right-3 flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-3)] hover:bg-[var(--surface)] transition-colors"
                 >
                   <X className="h-4 w-4" />
                 </button>
               </div>
-              <p className="mt-3 text-center text-[11px] text-[#8e491e]/30 font-medium">
+              <p className="mt-3 text-center text-[11px] text-[var(--text-3)] font-medium">
                 Press ESC to close
               </p>
             </motion.div>

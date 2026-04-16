@@ -39,10 +39,10 @@ interface DeliveryOrder {
 }
 
 const STATUS_COLORS: Record<DeliveryStatus, string> = {
-  Preparing: "bg-amber-100 text-amber-700",
+  Preparing: "bg-[var(--accent-muted)] text-[var(--accent-text)]",
   "Ready for Pickup": "bg-blue-100 text-blue-700",
   "Out for Delivery": "bg-violet-100 text-violet-700",
-  Delivered: "bg-[#fef3dc] text-[#b25c1c]",
+  Delivered: "bg-[var(--accent-muted)] text-[#b25c1c]",
 };
 
 const STATUS_ICONS: Record<DeliveryStatus, React.ReactNode> = {
@@ -106,10 +106,10 @@ export default function DeliveryOpsTab() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">
+          <h2 className="text-2xl font-bold text-[var(--text-1)]">
             Delivery Operations
           </h2>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-[var(--text-2)] mt-1">
             Manage delivery-only kitchen operations
           </p>
         </div>
@@ -124,7 +124,7 @@ export default function DeliveryOpsTab() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <motion.div
           layout
-          className="bg-white rounded-xl shadow-sm border border-gray-100 p-5"
+          className="bg-[var(--canvas)] rounded-xl shadow-sm border border-[var(--border-soft)] p-5"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -132,10 +132,10 @@ export default function DeliveryOpsTab() {
                 <Truck className="w-5 h-5 text-violet-600" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-gray-900">
+                <p className="text-sm font-semibold text-[var(--text-1)]">
                   Delivery-Only Mode
                 </p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-[var(--text-2)]">
                   No dine-in or pickup
                 </p>
               </div>
@@ -147,7 +147,7 @@ export default function DeliveryOpsTab() {
               {deliveryOnly ? (
                 <ToggleRight className="w-10 h-10 text-violet-600" />
               ) : (
-                <ToggleLeft className="w-10 h-10 text-gray-300" />
+                <ToggleLeft className="w-10 h-10 text-[var(--text-3)]" />
               )}
             </button>
           </div>
@@ -155,18 +155,18 @@ export default function DeliveryOpsTab() {
 
         <motion.div
           layout
-          className="bg-white rounded-xl shadow-sm border border-gray-100 p-5"
+          className="bg-[var(--canvas)] rounded-xl shadow-sm border border-[var(--border-soft)] p-5"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-[#fef3dc] rounded-lg">
+              <div className="p-2 bg-[var(--accent-muted)] rounded-lg">
                 <Zap className="w-5 h-5 text-[#b25c1c]" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-gray-900">
+                <p className="text-sm font-semibold text-[var(--text-1)]">
                   Auto-Accept Orders
                 </p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-[var(--text-2)]">
                   Instantly accept incoming
                 </p>
               </div>
@@ -178,7 +178,7 @@ export default function DeliveryOpsTab() {
               {autoAccept ? (
                 <ToggleRight className="w-10 h-10 text-[#b25c1c]" />
               ) : (
-                <ToggleLeft className="w-10 h-10 text-gray-300" />
+                <ToggleLeft className="w-10 h-10 text-[var(--text-3)]" />
               )}
             </button>
           </div>
@@ -186,18 +186,18 @@ export default function DeliveryOpsTab() {
 
         <motion.div
           layout
-          className="bg-white rounded-xl shadow-sm border border-gray-100 p-5"
+          className="bg-[var(--canvas)] rounded-xl shadow-sm border border-[var(--border-soft)] p-5"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-amber-100 rounded-lg">
-                <AlertTriangle className="w-5 h-5 text-amber-600" />
+              <div className="p-2 bg-[var(--accent-muted)] rounded-lg">
+                <AlertTriangle className="w-5 h-5 text-[var(--accent-text)]" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-gray-900">
+                <p className="text-sm font-semibold text-[var(--text-1)]">
                   Peak Hour Throttle
                 </p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-[var(--text-2)]">
                   Limit: {maxOrdersPerHour}/hr
                 </p>
               </div>
@@ -207,9 +207,9 @@ export default function DeliveryOpsTab() {
               className="focus:outline-none"
             >
               {peakThrottle ? (
-                <ToggleRight className="w-10 h-10 text-amber-600" />
+                <ToggleRight className="w-10 h-10 text-[var(--accent-text)]" />
               ) : (
-                <ToggleLeft className="w-10 h-10 text-gray-300" />
+                <ToggleLeft className="w-10 h-10 text-[var(--text-3)]" />
               )}
             </button>
           </div>
@@ -217,9 +217,9 @@ export default function DeliveryOpsTab() {
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
-              className="mt-3 pt-3 border-t border-gray-100"
+              className="mt-3 pt-3 border-t border-[var(--border-soft)]"
             >
-              <label className="text-xs text-gray-500">
+              <label className="text-xs text-[var(--text-2)]">
                 Max orders per hour
               </label>
               <input
@@ -228,7 +228,7 @@ export default function DeliveryOpsTab() {
                 onChange={(e) =>
                   setMaxOrdersPerHour(Number(e.target.value) || 1)
                 }
-                className="mt-1 w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none"
+                className="mt-1 w-full px-3 py-1.5 border border-[var(--border)] rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none"
               />
             </motion.div>
           )}
@@ -236,35 +236,35 @@ export default function DeliveryOpsTab() {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-center">
+        <div className="bg-[var(--canvas)] rounded-xl shadow-sm border border-[var(--border-soft)] p-4 text-center">
           <TrendingUp className="w-5 h-5 text-violet-500 mx-auto mb-1" />
-          <p className="text-2xl font-bold text-gray-900">{avgDeliveryTime}</p>
-          <p className="text-xs text-gray-500">Avg Delivery (min)</p>
+          <p className="text-2xl font-bold text-[var(--text-1)]">{avgDeliveryTime}</p>
+          <p className="text-xs text-[var(--text-2)]">Avg Delivery (min)</p>
         </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-center">
+        <div className="bg-[var(--canvas)] rounded-xl shadow-sm border border-[var(--border-soft)] p-4 text-center">
           <CircleDot className="w-5 h-5 text-blue-500 mx-auto mb-1" />
-          <p className="text-2xl font-bold text-gray-900">
+          <p className="text-2xl font-bold text-[var(--text-1)]">
             {activeOrders.length}
           </p>
-          <p className="text-xs text-gray-500">In Progress</p>
+          <p className="text-xs text-[var(--text-2)]">In Progress</p>
         </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-center">
+        <div className="bg-[var(--canvas)] rounded-xl shadow-sm border border-[var(--border-soft)] p-4 text-center">
           <CheckCircle2 className="w-5 h-5 text-[#d67620] mx-auto mb-1" />
-          <p className="text-2xl font-bold text-gray-900">{deliveredCount}</p>
-          <p className="text-xs text-gray-500">Delivered Today</p>
+          <p className="text-2xl font-bold text-[var(--text-1)]">{deliveredCount}</p>
+          <p className="text-xs text-[var(--text-2)]">Delivered Today</p>
         </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-center">
-          <Users className="w-5 h-5 text-amber-500 mx-auto mb-1" />
-          <p className="text-2xl font-bold text-gray-900">
+        <div className="bg-[var(--canvas)] rounded-xl shadow-sm border border-[var(--border-soft)] p-4 text-center">
+          <Users className="w-5 h-5 text-[var(--accent)] mx-auto mb-1" />
+          <p className="text-2xl font-bold text-[var(--text-1)]">
             {DELIVERY_PARTNERS.length - 1}
           </p>
-          <p className="text-xs text-gray-500">Active Partners</p>
+          <p className="text-xs text-[var(--text-2)]">Active Partners</p>
         </div>
       </div>
 
       <motion.div
         layout
-        className="bg-white rounded-xl shadow-sm border border-gray-100 p-6"
+        className="bg-[var(--canvas)] rounded-xl shadow-sm border border-[var(--border-soft)] p-6"
       >
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
@@ -272,10 +272,10 @@ export default function DeliveryOpsTab() {
               <Gauge className="w-5 h-5 text-violet-600" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-gray-900">
+              <h3 className="text-sm font-semibold text-[var(--text-1)]">
                 Kitchen Capacity
               </h3>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-[var(--text-2)]">
                 {currentLoad} of {maxConcurrent} concurrent orders
               </p>
             </div>
@@ -285,7 +285,7 @@ export default function DeliveryOpsTab() {
               loadPercent > 80
                 ? "text-red-600"
                 : loadPercent > 50
-                ? "text-amber-600"
+                ? "text-[var(--accent-text)]"
                 : "text-[#b25c1c]"
             }`}
           >
@@ -293,7 +293,7 @@ export default function DeliveryOpsTab() {
           </span>
         </div>
 
-        <div className="w-full bg-gray-100 rounded-full h-4 overflow-hidden">
+        <div className="w-full bg-[var(--surface)] rounded-full h-4 overflow-hidden">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${loadPercent}%` }}
@@ -302,7 +302,7 @@ export default function DeliveryOpsTab() {
               loadPercent > 80
                 ? "bg-red-500"
                 : loadPercent > 50
-                ? "bg-amber-500"
+                ? "bg-[var(--accent)]"
                 : "bg-violet-500"
             }`}
           />
@@ -310,18 +310,18 @@ export default function DeliveryOpsTab() {
 
         <div className="flex items-center gap-4 mt-4">
           <div className="flex-1">
-            <label className="text-xs text-gray-500">Max Concurrent</label>
+            <label className="text-xs text-[var(--text-2)]">Max Concurrent</label>
             <input
               type="number"
               value={maxConcurrent}
               onChange={(e) =>
                 setMaxConcurrent(Math.max(1, Number(e.target.value) || 1))
               }
-              className="mt-1 w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none"
+              className="mt-1 w-full px-3 py-1.5 border border-[var(--border)] rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none"
             />
           </div>
           <div className="flex-1">
-            <label className="text-xs text-gray-500">Current Load</label>
+            <label className="text-xs text-[var(--text-2)]">Current Load</label>
             <input
               type="number"
               value={currentLoad}
@@ -330,7 +330,7 @@ export default function DeliveryOpsTab() {
                   Math.max(0, Math.min(maxConcurrent, Number(e.target.value) || 0))
                 )
               }
-              className="mt-1 w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none"
+              className="mt-1 w-full px-3 py-1.5 border border-[var(--border)] rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none"
             />
           </div>
         </div>
@@ -339,17 +339,17 @@ export default function DeliveryOpsTab() {
       {/* Active Delivery Orders / Priority Queue */}
       <motion.div
         layout
-        className="bg-white rounded-xl shadow-sm border border-gray-100 p-6"
+        className="bg-[var(--canvas)] rounded-xl shadow-sm border border-[var(--border-soft)] p-6"
       >
         <div className="flex items-center gap-3 mb-5">
           <div className="p-2 bg-violet-100 rounded-lg">
             <Package className="w-5 h-5 text-violet-600" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-gray-900">
+            <h3 className="text-sm font-semibold text-[var(--text-1)]">
               Order Priority Queue
             </h3>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-[var(--text-2)]">
               Reorder with arrows, update status, assign partners
             </p>
           </div>
@@ -367,8 +367,8 @@ export default function DeliveryOpsTab() {
                 transition={{ duration: 0.2 }}
                 className={`border rounded-xl p-4 ${
                   order.status === "Delivered"
-                    ? "border-gray-100 bg-gray-50 opacity-60"
-                    : "border-gray-200 bg-white"
+                    ? "border-[var(--border-soft)] bg-[var(--canvas-sub)] opacity-60"
+                    : "border-[var(--border)] bg-[var(--canvas)]"
                 }`}
               >
                 <div className="flex items-start gap-3">
@@ -376,17 +376,17 @@ export default function DeliveryOpsTab() {
                     <button
                       onClick={() => movePriority(idx, "up")}
                       disabled={idx === 0}
-                      className="p-0.5 rounded hover:bg-violet-100 disabled:opacity-20 disabled:cursor-not-allowed text-gray-400 hover:text-violet-600 transition-colors"
+                      className="p-0.5 rounded hover:bg-violet-100 disabled:opacity-20 disabled:cursor-not-allowed text-[var(--text-3)] hover:text-violet-600 transition-colors"
                     >
                       <ChevronUp className="w-4 h-4" />
                     </button>
-                    <span className="text-xs font-bold text-gray-400 w-5 text-center">
+                    <span className="text-xs font-bold text-[var(--text-3)] w-5 text-center">
                       {idx + 1}
                     </span>
                     <button
                       onClick={() => movePriority(idx, "down")}
                       disabled={idx === orders.length - 1}
-                      className="p-0.5 rounded hover:bg-violet-100 disabled:opacity-20 disabled:cursor-not-allowed text-gray-400 hover:text-violet-600 transition-colors"
+                      className="p-0.5 rounded hover:bg-violet-100 disabled:opacity-20 disabled:cursor-not-allowed text-[var(--text-3)] hover:text-violet-600 transition-colors"
                     >
                       <ChevronDown className="w-4 h-4" />
                     </button>
@@ -394,7 +394,7 @@ export default function DeliveryOpsTab() {
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-bold text-gray-900 text-sm">
+                      <span className="font-bold text-[var(--text-1)] text-sm">
                         {order.orderNumber}
                       </span>
                       <span
@@ -405,15 +405,15 @@ export default function DeliveryOpsTab() {
                         {STATUS_ICONS[order.status]}
                         {order.status}
                       </span>
-                      <span className="inline-flex items-center gap-1 text-xs text-gray-400">
+                      <span className="inline-flex items-center gap-1 text-xs text-[var(--text-3)]">
                         <Timer className="w-3 h-3" />
                         {order.timeElapsedMin}m
                       </span>
                     </div>
-                    <p className="text-xs text-gray-600 mt-1 truncate">
+                    <p className="text-xs text-[var(--text-2)] mt-1 truncate">
                       {order.items.join(", ")}
                     </p>
-                    <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
+                    <div className="flex items-center gap-1 mt-1 text-xs text-[var(--text-2)]">
                       <MapPin className="w-3 h-3" />
                       {order.customerAddress}
                     </div>
@@ -428,7 +428,7 @@ export default function DeliveryOpsTab() {
                           e.target.value as DeliveryStatus
                         )
                       }
-                      className="text-xs border border-gray-200 rounded-lg px-2 py-1 focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none bg-white"
+                      className="text-xs border border-[var(--border)] rounded-lg px-2 py-1 focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none bg-[var(--canvas)]"
                     >
                       <option value="Preparing">Preparing</option>
                       <option value="Ready for Pickup">Ready for Pickup</option>
@@ -440,7 +440,7 @@ export default function DeliveryOpsTab() {
                       onChange={(e) =>
                         assignPartner(order.id, e.target.value)
                       }
-                      className="text-xs border border-gray-200 rounded-lg px-2 py-1 focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none bg-white"
+                      className="text-xs border border-[var(--border)] rounded-lg px-2 py-1 focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none bg-[var(--canvas)]"
                     >
                       {DELIVERY_PARTNERS.map((p) => (
                         <option key={p} value={p}>

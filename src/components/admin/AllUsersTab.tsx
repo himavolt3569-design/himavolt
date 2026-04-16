@@ -178,16 +178,16 @@ export default function AllUsersTab() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative flex-1 sm:max-w-xs">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-3)]" />
           <input
             type="text"
             placeholder="Search users by name, email, phone..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-xl border border-gray-200 bg-white py-2 pl-9 pr-3 text-sm text-gompa-slate placeholder:text-gray-400 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-200"
+            className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] py-2 pl-9 pr-3 text-sm text-gompa-slate placeholder:text-[var(--text-3)] focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-200"
           />
           {search && (
-            <button onClick={() => setSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-brand-500">
+            <button onClick={() => setSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--text-3)] hover:text-brand-500">
               <X className="h-3.5 w-3.5" />
             </button>
           )}
@@ -197,7 +197,7 @@ export default function AllUsersTab() {
           className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-medium transition-all ${
             showFilters || roleFilter !== "All"
               ? "border-saffron-flame bg-saffron-flame/5 text-saffron-flame"
-              : "border-gray-200 text-gray-600 hover:bg-brand-50"
+              : "border-[var(--border)] text-[var(--text-2)] hover:bg-brand-50"
           }`}
         >
           <Filter className="h-3.5 w-3.5" />
@@ -205,12 +205,12 @@ export default function AllUsersTab() {
         </button>
         <button
           onClick={() => fetchUsers(page)}
-          className="flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-2 text-xs font-medium text-gray-600 hover:bg-brand-50"
+          className="flex items-center gap-1.5 rounded-xl border border-[var(--border)] px-3 py-2 text-xs font-medium text-[var(--text-2)] hover:bg-brand-50"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
         </button>
         {pagination && (
-          <span className="ml-auto text-xs text-gray-400">{pagination.total.toLocaleString()} users</span>
+          <span className="ml-auto text-xs text-[var(--text-3)]">{pagination.total.toLocaleString()} users</span>
         )}
       </div>
 
@@ -238,14 +238,14 @@ export default function AllUsersTab() {
         {showFilters && (
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
             <div className="pb-2">
-              <p className="mb-1 text-[11px] font-medium text-gray-400 uppercase">Role</p>
+              <p className="mb-1 text-[11px] font-medium text-[var(--text-3)] uppercase">Role</p>
               <div className="flex flex-wrap gap-1.5">
                 {ROLES.map((r) => (
                   <button
                     key={r}
                     onClick={() => { setRoleFilter(r); setPage(1); }}
                     className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-all ${
-                      roleFilter === r ? "bg-gompa-slate text-white" : "bg-gray-100 text-gray-600 hover:bg-brand-50"
+                      roleFilter === r ? "bg-gompa-slate text-white" : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-brand-50"
                     }`}
                   >
                     {r === "All" ? "All Roles" : r}
@@ -257,7 +257,7 @@ export default function AllUsersTab() {
         )}
       </AnimatePresence>
 
-      <div className="overflow-hidden rounded-2xl border border-brand-100 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-brand-100 bg-[var(--canvas)] shadow-sm">
         <div className="flex items-center gap-2 border-b border-brand-100 px-4 py-2.5">
           <input
             type="checkbox"
@@ -266,7 +266,7 @@ export default function AllUsersTab() {
             className="h-3.5 w-3.5 rounded accent-gompa-slate"
           />
           <Users className="h-4 w-4 text-brand-400" />
-          <span className="text-xs font-semibold text-gray-500">All Users</span>
+          <span className="text-xs font-semibold text-[var(--text-2)]">All Users</span>
         </div>
 
         {loading && users.length === 0 ? (
@@ -275,11 +275,11 @@ export default function AllUsersTab() {
           </div>
         ) : users.length === 0 ? (
           <div className="py-16 text-center">
-            <Users className="mx-auto mb-2 h-8 w-8 text-gray-300" />
-            <p className="text-sm text-gray-400">No users found</p>
+            <Users className="mx-auto mb-2 h-8 w-8 text-[var(--text-3)]" />
+            <p className="text-sm text-[var(--text-3)]">No users found</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-[var(--border)]">
             {users.map((user) => {
               const isExpanded = expandedId === user.id;
               const isSelected = selectedIds.has(user.id);
@@ -314,18 +314,18 @@ export default function AllUsersTab() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-bold text-gompa-slate truncate">{user.name || "Unnamed"}</span>
-                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${ROLE_COLORS[user.role] || "bg-gray-100 text-gray-600"}`}>
+                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${ROLE_COLORS[user.role] || "bg-[var(--surface)] text-[var(--text-2)]"}`}>
                           {user.role}
                         </span>
                       </div>
-                      <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                      <p className="text-xs text-[var(--text-2)] truncate">{user.email}</p>
                     </div>
-                    <div className="hidden flex-shrink-0 gap-3 text-xs text-gray-400 sm:flex">
+                    <div className="hidden flex-shrink-0 gap-3 text-xs text-[var(--text-3)] sm:flex">
                       <span className="flex items-center gap-1"><ShoppingBag className="h-3 w-3" />{user._count.orders}</span>
                       <span className="flex items-center gap-1"><Store className="h-3 w-3" />{user._count.ownedRestaurants}</span>
                       <span className="flex items-center gap-1"><Star className="h-3 w-3" />{user._count.reviews}</span>
                     </div>
-                    <ChevronDown className={`h-3.5 w-3.5 flex-shrink-0 text-gray-300 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+                    <ChevronDown className={`h-3.5 w-3.5 flex-shrink-0 text-[var(--text-3)] transition-transform ${isExpanded ? "rotate-180" : ""}`} />
                   </button>
 
                   <AnimatePresence>
@@ -339,37 +339,37 @@ export default function AllUsersTab() {
                         <div className="border-t border-brand-100 bg-brand-50/30 px-4 py-3 space-y-3">
                           <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-xs sm:grid-cols-4">
                             <div>
-                              <span className="text-gray-400">Username</span>
+                              <span className="text-[var(--text-3)]">Username</span>
                               <p className="font-medium text-gompa-slate">{user.username || "—"}</p>
                             </div>
                             <div>
-                              <span className="text-gray-400">Phone</span>
+                              <span className="text-[var(--text-3)]">Phone</span>
                               <p className="font-medium text-gompa-slate">{user.phone || "—"}</p>
                             </div>
                             <div>
-                              <span className="text-gray-400">Orders</span>
+                              <span className="text-[var(--text-3)]">Orders</span>
                               <p className="font-bold text-gompa-slate">{user._count.orders}</p>
                             </div>
                             <div>
-                              <span className="text-gray-400">Restaurants</span>
+                              <span className="text-[var(--text-3)]">Restaurants</span>
                               <p className="font-bold text-gompa-slate">{user._count.ownedRestaurants}</p>
                             </div>
                             <div>
-                              <span className="text-gray-400">Reviews</span>
+                              <span className="text-[var(--text-3)]">Reviews</span>
                               <p className="font-medium text-gompa-slate">{user._count.reviews}</p>
                             </div>
                             <div>
-                              <span className="text-gray-400">Joined</span>
+                              <span className="text-[var(--text-3)]">Joined</span>
                               <p className="font-medium text-gompa-slate">{new Date(user.createdAt).toLocaleDateString()}</p>
                             </div>
                             <div className="col-span-2">
-                              <span className="text-gray-400">User ID</span>
+                              <span className="text-[var(--text-3)]">User ID</span>
                               <p className="font-mono text-gompa-slate text-[11px]">{user.id}</p>
                             </div>
                           </div>
 
                           <div className="flex flex-wrap items-center gap-2 pt-1">
-                            <span className="text-xs font-medium text-gray-500">Change Role:</span>
+                            <span className="text-xs font-medium text-[var(--text-2)]">Change Role:</span>
                             {["CUSTOMER", "OWNER", "ADMIN"].map((role) => (
                               <button
                                 key={role}
@@ -378,7 +378,7 @@ export default function AllUsersTab() {
                                 className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-all disabled:opacity-40 ${
                                   user.role === role
                                     ? "bg-gompa-slate text-white"
-                                    : "bg-gray-100 text-gray-600 hover:bg-brand-50"
+                                    : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-brand-50"
                                 }`}
                               >
                                 {changingRole === user.id ? "..." : role}
@@ -403,13 +403,13 @@ export default function AllUsersTab() {
         )}
 
         {pagination && pagination.totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-gray-100 px-4 py-2.5">
-            <span className="text-xs text-gray-400">Page {pagination.page} of {pagination.totalPages}</span>
+          <div className="flex items-center justify-between border-t border-[var(--border-soft)] px-4 py-2.5">
+            <span className="text-xs text-[var(--text-3)]">Page {pagination.page} of {pagination.totalPages}</span>
             <div className="flex gap-1.5">
-              <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="rounded-lg border border-gray-200 p-1.5 text-gray-500 hover:bg-brand-50 disabled:opacity-40">
+              <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-2)] hover:bg-brand-50 disabled:opacity-40">
                 <ChevronLeft className="h-3.5 w-3.5" />
               </button>
-              <button disabled={page >= pagination.totalPages} onClick={() => setPage((p) => p + 1)} className="rounded-lg border border-gray-200 p-1.5 text-gray-500 hover:bg-brand-50 disabled:opacity-40">
+              <button disabled={page >= pagination.totalPages} onClick={() => setPage((p) => p + 1)} className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-2)] hover:bg-brand-50 disabled:opacity-40">
                 <ChevronRight className="h-3.5 w-3.5" />
               </button>
             </div>

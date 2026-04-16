@@ -134,7 +134,7 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="overflow-hidden rounded-2xl border border-blue-100 bg-white/90 shadow-xl shadow-blue-100/40 backdrop-blur-sm">
+          <div className="overflow-hidden rounded-2xl border border-blue-100 bg-[var(--canvas)]/90 shadow-xl shadow-blue-100/40 backdrop-blur-sm">
             <div className="border-b border-slate-100 p-4">
               <label className="mb-1.5 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
                 <KeyRound className="h-3.5 w-3.5" />
@@ -272,7 +272,7 @@ export default function MasterAdminPage() {
   return (
     <div className="min-h-screen bg-[#F5F8FF]">
       {/* ── Header ──────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-40 border-b border-blue-100/80 bg-white/90 backdrop-blur-xl shadow-sm shadow-blue-50/60">
+      <header className="sticky top-0 z-40 border-b border-blue-100/80 bg-[var(--canvas)]/90 backdrop-blur-xl shadow-sm shadow-blue-50/60">
         <div className="mx-auto flex max-w-[1400px] items-center justify-between px-4 py-3 sm:px-6">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-linear-to-br from-blue-500 to-indigo-500 shadow-sm shadow-blue-200/50">
@@ -311,7 +311,7 @@ export default function MasterAdminPage() {
       </header>
 
       {/* ── Desktop Tab Bar ────────────────────────────────────── */}
-      <div className="sticky top-[57px] z-30 hidden border-b border-blue-100/80 bg-white/90 backdrop-blur-xl shadow-sm sm:block">
+      <div className="sticky top-[57px] z-30 hidden border-b border-blue-100/80 bg-[var(--canvas)]/90 backdrop-blur-xl shadow-sm sm:block">
         <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
           <div className="flex gap-0 overflow-x-auto scrollbar-none">
             {TABS.map((t) => (
@@ -343,7 +343,7 @@ export default function MasterAdminPage() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden border-b border-blue-100/80 bg-white/95 sm:hidden"
+            className="overflow-hidden border-b border-blue-100/80 bg-[var(--canvas)]/95 sm:hidden"
           >
             <div className="grid grid-cols-4 gap-1 p-3">
               {TABS.map((t) => (
@@ -369,7 +369,7 @@ export default function MasterAdminPage() {
       </AnimatePresence>
 
       {/* ── Mobile Bottom Tab Bar ──────────────────────────────── */}
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-blue-100/80 bg-white/95 backdrop-blur-lg sm:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-blue-100/80 bg-[var(--canvas)]/95 backdrop-blur-lg sm:hidden">
         <div className="flex items-center justify-around px-1 py-1">
           {TABS.slice(0, 5).map((t) => (
             <button

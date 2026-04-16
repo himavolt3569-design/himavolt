@@ -24,8 +24,8 @@ export default function KioskOrderType({ tables, onConfirm, onBack }: Props) {
       exit={{ opacity: 0, y: -16 }}
       className="flex flex-col items-center justify-center min-h-full py-10 px-6"
     >
-      <h2 className="text-2xl font-black text-gray-900 mb-1.5">How would you like your order?</h2>
-      <p className="text-gray-400 text-sm mb-8">Select your preference to continue</p>
+      <h2 className="text-2xl font-black text-[var(--text-1)] mb-1.5">How would you like your order?</h2>
+      <p className="text-[var(--text-3)] text-sm mb-8">Select your preference to continue</p>
 
       {/* Order type cards */}
       <div className="grid grid-cols-2 gap-4 w-full max-w-lg mb-8">
@@ -41,18 +41,18 @@ export default function KioskOrderType({ tables, onConfirm, onBack }: Props) {
               onClick={() => { setOrderType(type); setSelectedTable(null); }}
               className={`flex flex-col items-center gap-4 rounded-2xl border-2 p-8 transition-all ${
                 active
-                  ? "border-amber-400 bg-amber-50 shadow-lg shadow-amber-100"
-                  : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50"
+                  ? "border-[var(--accent)] bg-[var(--accent-muted)] shadow-lg shadow-[var(--accent)]/20"
+                  : "border-[var(--border)] bg-[var(--canvas)] hover:border-[var(--border)] hover:bg-[var(--canvas-sub)]"
               }`}
             >
               <div className={`flex h-16 w-16 items-center justify-center rounded-2xl ${
-                active ? "bg-amber-600" : "bg-gray-100"
+                active ? "bg-[var(--accent-hover)]" : "bg-[var(--surface)]"
               }`}>
-                <Icon className={`h-8 w-8 ${active ? "text-white" : "text-gray-400"}`} />
+                <Icon className={`h-8 w-8 ${active ? "text-white" : "text-[var(--text-3)]"}`} />
               </div>
               <div className="text-center">
-                <p className={`text-lg font-bold ${active ? "text-amber-800" : "text-gray-900"}`}>{label}</p>
-                <p className="text-xs text-gray-400 mt-0.5">{sub}</p>
+                <p className={`text-lg font-bold ${active ? "text-[var(--accent-text)]" : "text-[var(--text-1)]"}`}>{label}</p>
+                <p className="text-xs text-[var(--text-3)] mt-0.5">{sub}</p>
               </div>
             </motion.button>
           );
@@ -66,7 +66,7 @@ export default function KioskOrderType({ tables, onConfirm, onBack }: Props) {
           animate={{ opacity: 1, height: "auto" }}
           className="w-full max-w-lg mb-6"
         >
-          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Select Your Table</h3>
+          <h3 className="text-xs font-bold text-[var(--text-2)] uppercase tracking-widest mb-3">Select Your Table</h3>
           <div className="grid grid-cols-6 sm:grid-cols-8 gap-2.5">
             {tables.map((t) => (
               <motion.button
@@ -75,8 +75,8 @@ export default function KioskOrderType({ tables, onConfirm, onBack }: Props) {
                 onClick={() => setSelectedTable(t.tableNo)}
                 className={`flex items-center justify-center rounded-xl border-2 py-3.5 transition-all ${
                   selectedTable === t.tableNo
-                    ? "border-amber-500 bg-amber-600 text-white shadow-md shadow-amber-200"
-                    : "border-gray-200 bg-white text-gray-700 hover:border-amber-300 hover:bg-amber-50"
+                    ? "border-[var(--accent)] bg-[var(--accent-hover)] text-white shadow-md shadow-[var(--accent)]/20"
+                    : "border-[var(--border)] bg-[var(--canvas)] text-[var(--text-2)] hover:border-[var(--accent-border)] hover:bg-[var(--accent-muted)]"
                 }`}
               >
                 <span className="text-base font-black">{t.tableNo}</span>
@@ -93,16 +93,16 @@ export default function KioskOrderType({ tables, onConfirm, onBack }: Props) {
           animate={{ opacity: 1 }}
           className="w-full max-w-lg mb-8"
         >
-          <label className="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">
+          <label className="text-xs font-bold text-[var(--text-2)] uppercase tracking-widest block mb-2">
             Your Name (optional)
           </label>
           <div className="relative">
-            <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-3)]" />
             <input
               value={guestName}
               onChange={(e) => setGuestName(e.target.value)}
               placeholder="Enter your name for the order"
-              className="w-full rounded-xl border-2 border-gray-200 bg-white pl-11 pr-4 py-3.5 text-sm font-medium focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100 transition-all"
+              className="w-full rounded-xl border-2 border-[var(--border)] bg-[var(--canvas)] pl-11 pr-4 py-3.5 text-sm font-medium focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-border)] transition-all"
             />
           </div>
         </motion.div>
@@ -112,7 +112,7 @@ export default function KioskOrderType({ tables, onConfirm, onBack }: Props) {
       <div className="flex items-center gap-3 w-full max-w-lg">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 rounded-xl border-2 border-gray-200 bg-white px-7 py-3.5 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors"
+          className="flex items-center gap-2 rounded-xl border-2 border-[var(--border)] bg-[var(--canvas)] px-7 py-3.5 text-sm font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           Back
@@ -120,7 +120,7 @@ export default function KioskOrderType({ tables, onConfirm, onBack }: Props) {
         <button
           onClick={() => canProceed && onConfirm(orderType!, selectedTable, guestName.trim())}
           disabled={!canProceed}
-          className="flex-1 flex items-center justify-center gap-2.5 rounded-xl bg-amber-600 py-3.5 text-sm font-bold text-white hover:bg-amber-500 transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-amber-600/25 active:scale-[0.98]"
+          className="flex-1 flex items-center justify-center gap-2.5 rounded-xl bg-[var(--accent-hover)] py-3.5 text-sm font-bold text-white hover:bg-[var(--accent)] transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-[var(--accent)]/20/25 active:scale-[0.98]"
         >
           Continue
           <ArrowRight className="h-4 w-4" />

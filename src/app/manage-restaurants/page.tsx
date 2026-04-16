@@ -41,22 +41,22 @@ export default function ManageRestaurantsPage() {
   return (
     <div className="min-h-screen bg-[#F5F6F8] font-sans">
       {/* ── Header ────────────────────────────────────────────── */}
-      <header className="border-b border-gray-200/70 bg-white">
+      <header className="border-b border-[var(--border)]/70 bg-[var(--canvas)]">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
             <Link
               href="/"
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-all"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-3)] hover:bg-[var(--surface)] hover:text-[var(--text-2)] transition-all"
             >
               <ChevronLeft className="h-4 w-4" />
             </Link>
             <div>
-              <div className="flex items-center gap-1.5 text-[13px] text-gray-400 mb-0.5">
+              <div className="flex items-center gap-1.5 text-[13px] text-[var(--text-3)] mb-0.5">
                 <span>Home</span>
                 <ChevronRight className="h-3 w-3" />
-                <span className="font-medium text-gray-700">Restaurants</span>
+                <span className="font-medium text-[var(--text-2)]">Restaurants</span>
               </div>
-              <h1 className="text-xl font-bold tracking-tight text-gray-900">
+              <h1 className="text-xl font-bold tracking-tight text-[var(--text-1)]">
                 Manage Restaurants
               </h1>
             </div>
@@ -64,19 +64,19 @@ export default function ManageRestaurantsPage() {
 
           <div className="flex items-center gap-2.5">
             <div className="relative hidden sm:block">
-              <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--text-3)]" />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search..."
-                className="w-40 rounded-lg bg-gray-50 py-2 pl-9 pr-3 text-[13px] text-gray-800 placeholder-gray-400 outline-none ring-1 ring-gray-100 transition-all focus:bg-white focus:ring-amber-300 lg:w-48"
+                className="w-40 rounded-lg bg-[var(--canvas-sub)] py-2 pl-9 pr-3 text-[13px] text-[var(--text-1)] placeholder-gray-400 outline-none ring-1 ring-[var(--border)] transition-all focus:bg-[var(--canvas)] focus:ring-[var(--accent-border)] lg:w-48"
               />
             </div>
 
             <button
               onClick={() => setCreateOpen(true)}
-              className="flex items-center gap-1.5 rounded-lg bg-amber-500 px-3.5 py-2 text-[13px] font-semibold text-white transition-all hover:bg-amber-400 active:scale-[0.97] sm:px-4"
+              className="flex items-center gap-1.5 rounded-lg bg-[var(--accent)] px-3.5 py-2 text-[13px] font-semibold text-white transition-all hover:bg-[var(--accent)] active:scale-[0.97] sm:px-4"
             >
               <Plus className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Add New</span>
@@ -88,15 +88,15 @@ export default function ManageRestaurantsPage() {
       {/* ── Content ───────────────────────────────────────────── */}
       <main className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8">
         {!loading && filtered.length > 0 && (
-          <p className="text-[12px] font-medium text-gray-400 mb-4">
+          <p className="text-[12px] font-medium text-[var(--text-3)] mb-4">
             {filtered.length} restaurant{filtered.length !== 1 ? "s" : ""}
           </p>
         )}
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
-            <Loader2 className="h-7 w-7 animate-spin text-amber-500 mb-3" />
-            <p className="text-sm text-gray-400">Loading restaurants...</p>
+            <Loader2 className="h-7 w-7 animate-spin text-[var(--accent)] mb-3" />
+            <p className="text-sm text-[var(--text-3)]">Loading restaurants...</p>
           </div>
         ) : (
           <AnimatePresence mode="popLayout">
@@ -106,15 +106,15 @@ export default function ManageRestaurantsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 className="flex flex-col items-center justify-center py-24 text-center"
               >
-                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-xl bg-gray-100">
-                  <Building2 className="h-7 w-7 text-gray-400" />
+                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-xl bg-[var(--surface)]">
+                  <Building2 className="h-7 w-7 text-[var(--text-3)]" />
                 </div>
-                <p className="text-lg font-bold text-gray-800">
+                <p className="text-lg font-bold text-[var(--text-1)]">
                   {search
                     ? "No restaurants match your search"
                     : "No restaurants yet"}
                 </p>
-                <p className="mt-1 text-sm text-gray-400 max-w-xs">
+                <p className="mt-1 text-sm text-[var(--text-3)] max-w-xs">
                   {search
                     ? "Try a different search term"
                     : "Create your first restaurant and start managing orders, menus, and staff."}
@@ -122,7 +122,7 @@ export default function ManageRestaurantsPage() {
                 {!search && (
                   <button
                     onClick={() => setCreateOpen(true)}
-                    className="mt-5 flex items-center gap-2 rounded-lg bg-amber-500 px-5 py-2.5 text-sm font-semibold text-white transition-all hover:bg-amber-400 active:scale-[0.97]"
+                    className="mt-5 flex items-center gap-2 rounded-lg bg-[var(--accent)] px-5 py-2.5 text-sm font-semibold text-white transition-all hover:bg-[var(--accent)] active:scale-[0.97]"
                   >
                     <Plus className="h-4 w-4" />
                     Create Restaurant
@@ -139,24 +139,24 @@ export default function ManageRestaurantsPage() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.97 }}
                     transition={{ delay: i * 0.04 }}
-                    className="group overflow-hidden rounded-xl bg-white ring-1 ring-gray-100 transition-all hover:ring-gray-200"
+                    className="group overflow-hidden rounded-xl bg-[var(--canvas)] ring-1 ring-[var(--border)] transition-all hover:ring-[var(--border)]"
                   >
                     <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
                       {/* Left: icon + info */}
                       <div className="flex items-center gap-4 flex-1 min-w-0">
-                        <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gray-50 ring-1 ring-gray-100">
-                          {(() => { const Icon = TYPE_ICON[restaurant.type] ?? UtensilsCrossed; return <Icon className="h-5 w-5 text-gray-500" />; })()}
+                        <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-[var(--canvas-sub)] ring-1 ring-[var(--border)]">
+                          {(() => { const Icon = TYPE_ICON[restaurant.type] ?? UtensilsCrossed; return <Icon className="h-5 w-5 text-[var(--text-2)]" />; })()}
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="truncate text-[15px] font-bold text-gray-900">
+                            <h3 className="truncate text-[15px] font-bold text-[var(--text-1)]">
                               {restaurant.name}
                             </h3>
-                            <span className="shrink-0 rounded-md bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-600">
+                            <span className="shrink-0 rounded-md bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-semibold text-[var(--accent-text)]">
                               {getTypeLabel(restaurant.type)}
                             </span>
                           </div>
-                          <div className="mt-1 flex items-center gap-3 text-[12px] text-gray-400">
+                          <div className="mt-1 flex items-center gap-3 text-[12px] text-[var(--text-3)]">
                             {restaurant.address && (
                               <span className="flex items-center gap-1 truncate">
                                 <MapPin className="h-3 w-3 shrink-0" />
@@ -180,7 +180,7 @@ export default function ManageRestaurantsPage() {
                           href={`/pos/${restaurant.slug}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center justify-center gap-1.5 rounded-lg bg-amber-500 px-3.5 py-2.5 text-[13px] font-semibold text-white transition-all hover:bg-amber-400 active:scale-[0.97]"
+                          className="flex items-center justify-center gap-1.5 rounded-lg bg-[var(--accent)] px-3.5 py-2.5 text-[13px] font-semibold text-white transition-all hover:bg-[var(--accent)] active:scale-[0.97]"
                           title="Open POS / Kiosk terminal"
                         >
                           <Monitor className="h-3.5 w-3.5" />

@@ -56,23 +56,23 @@ const ROLE_META: Record<
   CHEF: {
     label: "Chef",
     icon: ChefHat,
-    gradient: "from-orange-400 to-amber-500",
-    text: "text-orange-700",
-    badge: "bg-orange-50 text-orange-700 border-orange-200",
+    gradient: "from-[var(--accent)] to-[var(--accent-hover)]",
+    text: "text-[var(--accent)]",
+    badge: "bg-[var(--accent)] text-[var(--accent)] border-[var(--accent-border)]",
   },
   WAITER: {
     label: "Waiter",
     icon: UserCheck,
-    gradient: "from-emerald-400 to-teal-500",
+    gradient: "from-[#eaa94d] to-[#d67620]",
     text: "text-[#b25c1c]",
-    badge: "bg-[#fef9ef] text-[#b25c1c] border-[#eaa94d]/30",
+    badge: "bg-[var(--accent-muted)] text-[#b25c1c] border-[var(--accent-border)]",
   },
   CASHIER: {
     label: "Cashier",
     icon: UserCheck,
-    gradient: "from-amber-400 to-orange-500",
-    text: "text-amber-700",
-    badge: "bg-amber-50 text-amber-700 border-amber-200",
+    gradient: "from-[var(--accent)] to-[var(--accent-hover)]",
+    text: "text-[var(--accent-text)]",
+    badge: "bg-[var(--accent-muted)] text-[var(--accent-text)] border-[var(--accent-border)]",
   },
 };
 
@@ -158,7 +158,7 @@ function RoleDropdown({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: -4 }}
               transition={{ duration: 0.12 }}
-              className="absolute left-0 top-full mt-1.5 z-20 w-44 rounded-xl border border-gray-100 bg-white shadow-xl overflow-hidden"
+              className="absolute left-0 top-full mt-1.5 z-20 w-44 rounded-xl border border-[var(--border-soft)] bg-[var(--canvas)] shadow-xl overflow-hidden"
             >
               {ALL_ROLES.map((role) => {
                 const rm = ROLE_META[role];
@@ -170,16 +170,16 @@ function RoleDropdown({
                     onClick={() => handleChange(role)}
                     disabled={!!saving}
                     className={`flex w-full items-center gap-2.5 px-3 py-2.5 text-xs font-semibold transition-colors ${
-                      isActive ? "bg-gray-50 text-gray-900" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                      isActive ? "bg-[var(--canvas-sub)] text-[var(--text-1)]" : "text-[var(--text-2)] hover:bg-[var(--canvas-sub)] hover:text-[var(--text-1)]"
                     }`}
                   >
                     {saving === role ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin text-gray-400" />
+                      <Loader2 className="h-3.5 w-3.5 animate-spin text-[var(--text-3)]" />
                     ) : (
                       <RI className={`h-3.5 w-3.5 ${rm.text}`} />
                     )}
                     <span className="flex-1 text-left">{rm.label}</span>
-                    {isActive && <Check className="h-3 w-3 text-gray-400" />}
+                    {isActive && <Check className="h-3 w-3 text-[var(--text-3)]" />}
                   </button>
                 );
               })}
@@ -251,7 +251,7 @@ function StaffCard({
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
-      className="group relative rounded-2xl bg-white border border-gray-100 shadow-[0_2px_16px_-4px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.1)] hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
+      className="group relative rounded-2xl bg-[var(--canvas)] border border-[var(--border-soft)] shadow-[0_2px_16px_-4px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.1)] hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
     >
       <div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r ${meta.gradient}`} />
 
@@ -262,20 +262,20 @@ function StaffCard({
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <h4 className="font-bold text-gray-900 text-[15px] leading-tight truncate">
+              <h4 className="font-bold text-[var(--text-1)] text-[15px] leading-tight truncate">
                 {member.user.name}
               </h4>
               {!member.isActive && (
-                <span className="rounded-md bg-gray-100 px-2 py-0.5 text-[10px] font-bold text-gray-500">
+                <span className="rounded-md bg-[var(--surface)] px-2 py-0.5 text-[10px] font-bold text-[var(--text-2)]">
                   Inactive
                 </span>
               )}
             </div>
-            <p className="text-xs text-gray-400 mt-0.5 truncate">
+            <p className="text-xs text-[var(--text-3)] mt-0.5 truncate">
               {member.user.email}
             </p>
             {member.user.phone && (
-              <p className="text-xs text-gray-400 truncate">{member.user.phone}</p>
+              <p className="text-xs text-[var(--text-3)] truncate">{member.user.phone}</p>
             )}
           </div>
 
@@ -284,20 +284,20 @@ function StaffCard({
             title={member.isActive ? "Deactivate" : "Activate"}
             className={`shrink-0 flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-bold transition-all ${
               member.isActive
-                ? "bg-[#fef9ef] text-[#b25c1c] hover:bg-[#fef3dc] border border-[#eaa94d]/30"
-                : "bg-gray-100 text-gray-500 hover:bg-gray-200 border border-gray-200"
+                ? "bg-[var(--accent-muted)] text-[#b25c1c] hover:bg-[var(--accent-muted)] border border-[var(--accent-border)]"
+                : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)] border border-[var(--border)]"
             }`}
           >
             {member.isActive ? (
               <><span className="h-1.5 w-1.5 rounded-full bg-[#eaa94d] animate-pulse" />Active</>
             ) : (
-              <><span className="h-1.5 w-1.5 rounded-full bg-gray-400" />Off</>
+              <><span className="h-1.5 w-1.5 rounded-full bg-[var(--text-3)]" />Off</>
             )}
           </button>
         </div>
 
         <div className="mt-3 flex items-center gap-2">
-          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Role:</span>
+          <span className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider">Role:</span>
           <RoleDropdown
             current={roleKey}
             staffId={member.id}
@@ -308,16 +308,16 @@ function StaffCard({
 
         {/* Staff type classification — Owner-only */}
         <div className="mt-2.5 flex items-center gap-2 flex-wrap">
-          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Type:</span>
-          <div className="flex items-center gap-1 rounded-lg bg-gray-100 p-0.5">
+          <span className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider">Type:</span>
+          <div className="flex items-center gap-1 rounded-lg bg-[var(--surface)] p-0.5">
             <button
               onClick={() => handleSetStaffType("SHIFT_BASED")}
               disabled={savingType}
               title="Shift-Based: operates within defined time windows"
               className={`rounded-md px-2.5 py-1 text-[10px] font-bold transition-all ${
                 (member.staffType ?? "SHIFT_BASED") === "SHIFT_BASED"
-                  ? "bg-white text-amber-700 shadow-sm"
-                  : "text-gray-400 hover:text-gray-600"
+                  ? "bg-[var(--canvas)] text-[var(--accent-text)] shadow-sm"
+                  : "text-[var(--text-3)] hover:text-[var(--text-2)]"
               }`}
             >
               {savingType && (member.staffType ?? "SHIFT_BASED") !== "SHIFT_BASED" ? (
@@ -331,8 +331,8 @@ function StaffCard({
               title="Full-Time: always active, attributed by who processed the order"
               className={`rounded-md px-2.5 py-1 text-[10px] font-bold transition-all ${
                 member.staffType === "FULL_TIME"
-                  ? "bg-white text-indigo-700 shadow-sm"
-                  : "text-gray-400 hover:text-gray-600"
+                  ? "bg-[var(--canvas)] text-indigo-700 shadow-sm"
+                  : "text-[var(--text-3)] hover:text-[var(--text-2)]"
               }`}
             >
               {savingType && member.staffType !== "FULL_TIME" ? (
@@ -343,10 +343,10 @@ function StaffCard({
           </div>
         </div>
 
-        <div className="mt-3 border-t border-gray-50" />
+        <div className="mt-3 border-t border-[var(--border-soft)]" />
 
         <div className="mt-3 flex items-center gap-2">
-          <KeyRound className="h-3.5 w-3.5 text-gray-300 shrink-0" />
+          <KeyRound className="h-3.5 w-3.5 text-[var(--text-3)] shrink-0" />
           {editingPin ? (
             <div className="flex items-center gap-2 flex-1">
               <input
@@ -355,36 +355,36 @@ function StaffCard({
                 onChange={(e) => setNewPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
                 placeholder="New 4-digit PIN"
                 autoFocus
-                className="w-28 rounded-lg border border-amber-300 bg-amber-50/50 px-2.5 py-1 font-mono text-sm font-bold text-[#3e1e0c] outline-none focus:ring-2 focus:ring-amber-200 tracking-widest"
+                className="w-28 rounded-lg border border-[var(--accent-border)] bg-[var(--accent-muted)] px-2.5 py-1 font-mono text-sm font-bold text-[var(--text-1)] outline-none focus:ring-2 focus:ring-[var(--accent-border)] tracking-widest"
               />
               <button
                 onClick={handleSavePin}
                 disabled={!/^\d{4}$/.test(newPin) || savingPin}
-                className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#fef9ef] text-[#b25c1c] hover:bg-[#fef3dc] disabled:opacity-40 transition-all"
+                className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--accent-muted)] text-[#b25c1c] hover:bg-[var(--accent-muted)] disabled:opacity-40 transition-all"
               >
                 {savingPin ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
               </button>
               <button
                 onClick={() => { setEditingPin(false); setNewPin(""); }}
-                className="flex h-7 w-7 items-center justify-center rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 transition-all"
+                className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-all"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
             </div>
           ) : (
             <div className="flex items-center gap-2 flex-1">
-              <span className="font-mono text-sm font-bold text-gray-700 bg-gray-50 rounded-lg px-2.5 py-1 tracking-widest border border-gray-100">
+              <span className="font-mono text-sm font-bold text-[var(--text-2)] bg-[var(--canvas-sub)] rounded-lg px-2.5 py-1 tracking-widest border border-[var(--border-soft)]">
                 {pinVisible ? member.pin : "••••"}
               </span>
               <button
                 onClick={() => setPinVisible((v) => !v)}
-                className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
+                className="flex h-7 w-7 items-center justify-center rounded-lg text-[var(--text-3)] hover:text-[var(--text-2)] hover:bg-[var(--surface)] transition-all"
               >
                 {pinVisible ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
               </button>
               <button
                 onClick={() => { setEditingPin(true); setNewPin(member.pin); }}
-                className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 hover:text-amber-600 hover:bg-amber-50 transition-all"
+                className="flex h-7 w-7 items-center justify-center rounded-lg text-[var(--text-3)] hover:text-[var(--accent-text)] hover:bg-[var(--accent-muted)] transition-all"
                 title="Change PIN"
               >
                 <Pencil className="h-3.5 w-3.5" />
@@ -433,20 +433,20 @@ function StaffDirectoryView({
     {
       label: "Total",
       value: restaurant.staff.length,
-      color: "text-gray-900",
-      bg: "bg-gray-50",
+      color: "text-[var(--text-1)]",
+      bg: "bg-[var(--canvas-sub)]",
     },
     {
       label: "Active",
       value: restaurant.staff.filter((s: StaffMember) => s.isActive).length,
       color: "text-[#b25c1c]",
-      bg: "bg-[#fef9ef]",
+      bg: "bg-[var(--accent-muted)]",
     },
     {
       label: "Inactive",
       value: restaurant.staff.filter((s: StaffMember) => !s.isActive).length,
-      color: "text-amber-600",
-      bg: "bg-amber-50",
+      color: "text-[var(--accent-text)]",
+      bg: "bg-[var(--accent-muted)]",
     },
     {
       label: "Roles",
@@ -465,7 +465,7 @@ function StaffDirectoryView({
             className={`rounded-2xl ${s.bg} border border-white p-4 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.05)]`}
           >
             <p className={`text-2xl font-black ${s.color}`}>{s.value}</p>
-            <p className="text-[11px] font-semibold text-gray-500 mt-0.5">{s.label}</p>
+            <p className="text-[11px] font-semibold text-[var(--text-2)] mt-0.5">{s.label}</p>
           </div>
         ))}
       </div>
@@ -473,13 +473,13 @@ function StaffDirectoryView({
       {/* Search + filter */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1 max-w-xs">
-          <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-3)]" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by name or email…"
-            className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none transition-all focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 shadow-sm"
+            className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] py-2.5 pl-10 pr-4 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 shadow-sm"
           />
         </div>
 
@@ -495,8 +495,8 @@ function StaffDirectoryView({
                   isActive
                     ? meta
                       ? `bg-gradient-to-r ${meta.gradient} text-white shadow-md`
-                      : "bg-gray-900 text-white"
-                    : "bg-white border border-gray-200 text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                      : "bg-[var(--text-1)] text-white"
+                    : "bg-[var(--canvas)] border border-[var(--border)] text-[var(--text-2)] hover:border-[var(--border)] hover:text-[var(--text-2)]"
                 }`}
               >
                 {r === "all" ? "All Roles" : ROLE_META[r].label}
@@ -512,13 +512,13 @@ function StaffDirectoryView({
           animate={{ opacity: 1 }}
           className="flex flex-col items-center py-20 text-center"
         >
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100 mb-4">
-            <UserX className="h-7 w-7 text-gray-400" />
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--surface)] mb-4">
+            <UserX className="h-7 w-7 text-[var(--text-3)]" />
           </div>
-          <p className="font-bold text-gray-600">
+          <p className="font-bold text-[var(--text-2)]">
             {search || filterRole !== "all" ? "No matching staff found" : "No staff members yet"}
           </p>
-          <p className="text-sm text-gray-400 mt-1">
+          <p className="text-sm text-[var(--text-3)] mt-1">
             {search || filterRole !== "all"
               ? "Try a different search or filter"
               : "Add your first team member to get started"}
@@ -568,7 +568,7 @@ function AttendanceLogsView({ restaurantId }: { restaurantId: string }) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20 gap-2 text-gray-400">
+      <div className="flex items-center justify-center py-20 gap-2 text-[var(--text-3)]">
         <Loader2 className="h-5 w-5 animate-spin" />
         <span className="text-sm font-medium">Loading attendance…</span>
       </div>
@@ -578,11 +578,11 @@ function AttendanceLogsView({ restaurantId }: { restaurantId: string }) {
   if (logs.length === 0) {
     return (
       <div className="flex flex-col items-center py-20 text-center">
-        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100 mb-4">
-          <Calendar className="h-7 w-7 text-gray-400" />
+        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--surface)] mb-4">
+          <Calendar className="h-7 w-7 text-[var(--text-3)]" />
         </div>
-        <p className="font-bold text-gray-600">No attendance records</p>
-        <p className="text-sm text-gray-400 mt-1">
+        <p className="font-bold text-[var(--text-2)]">No attendance records</p>
+        <p className="text-sm text-[var(--text-3)] mt-1">
           Staff punch-in records will appear here
         </p>
       </div>
@@ -629,19 +629,19 @@ function AttendanceLogsView({ restaurantId }: { restaurantId: string }) {
       {/* Filter + summary bar */}
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-4 flex-wrap">
-          <div className="flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-2">
-            <Calendar className="h-3.5 w-3.5 text-gray-400" />
+          <div className="flex items-center gap-1.5 rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-3 py-2">
+            <Calendar className="h-3.5 w-3.5 text-[var(--text-3)]" />
             <input
               type="date"
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value)}
-              className="text-sm font-medium text-[#3e1e0c] outline-none bg-transparent"
+              className="text-sm font-medium text-[var(--text-1)] outline-none bg-transparent"
             />
           </div>
           {dateFilter && (
             <button
               onClick={() => setDateFilter("")}
-              className="text-[11px] font-bold text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors"
+              className="text-[11px] font-bold text-[var(--text-3)] hover:text-[var(--text-2)] underline underline-offset-2 transition-colors"
             >
               Clear filter
             </button>
@@ -650,13 +650,13 @@ function AttendanceLogsView({ restaurantId }: { restaurantId: string }) {
         {filtered.length > 0 && (
           <div className="flex items-center gap-3">
             {presentCount > 0 && (
-              <span className="flex items-center gap-1.5 rounded-lg bg-amber-50 border border-amber-100 px-2.5 py-1 text-[11px] font-bold text-amber-600">
-                <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
+              <span className="flex items-center gap-1.5 rounded-lg bg-[var(--accent-muted)] border border-[var(--accent-border)] px-2.5 py-1 text-[11px] font-bold text-[var(--accent-text)]">
+                <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] animate-pulse" />
                 {presentCount} on shift
               </span>
             )}
             {completedCount > 0 && (
-              <span className="flex items-center gap-1.5 rounded-lg bg-[#fef9ef] border border-[#eaa94d]/30 px-2.5 py-1 text-[11px] font-bold text-[#b25c1c]">
+              <span className="flex items-center gap-1.5 rounded-lg bg-[var(--accent-muted)] border border-[var(--accent-border)] px-2.5 py-1 text-[11px] font-bold text-[#b25c1c]">
                 <span className="h-1.5 w-1.5 rounded-full bg-[#eaa94d]" />
                 {completedCount} completed
               </span>
@@ -666,9 +666,9 @@ function AttendanceLogsView({ restaurantId }: { restaurantId: string }) {
       </div>
 
       {filtered.length === 0 && (
-        <div className="rounded-2xl bg-white border border-gray-100 px-4 py-10 text-center">
-          <Calendar className="mx-auto h-8 w-8 text-gray-300 mb-2" />
-          <p className="text-sm font-bold text-gray-400">No records for this date</p>
+        <div className="rounded-2xl bg-[var(--canvas)] border border-[var(--border-soft)] px-4 py-10 text-center">
+          <Calendar className="mx-auto h-8 w-8 text-[var(--text-3)] mb-2" />
+          <p className="text-sm font-bold text-[var(--text-3)]">No records for this date</p>
         </div>
       )}
 
@@ -683,24 +683,24 @@ function AttendanceLogsView({ restaurantId }: { restaurantId: string }) {
           <div key={dateLabel}>
             {/* Date header */}
             <div className="flex items-center gap-3 mb-3">
-              <div className="h-px flex-1 bg-gray-100" />
+              <div className="h-px flex-1 bg-[var(--surface)]" />
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-2)]">
                   {dateLabel}
                 </span>
-                <span className="text-[10px] font-semibold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+                <span className="text-[10px] font-semibold text-[var(--text-3)] bg-[var(--surface)] px-2 py-0.5 rounded-full">
                   {dayLogs.length} staff
                 </span>
                 {activeCount > 0 && (
-                  <span className="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100">
+                  <span className="text-[10px] font-bold text-[var(--accent-text)] bg-[var(--accent-muted)] px-2 py-0.5 rounded-full border border-[var(--accent-border)]">
                     {activeCount} active
                   </span>
                 )}
               </div>
-              <div className="h-px flex-1 bg-gray-100" />
+              <div className="h-px flex-1 bg-[var(--surface)]" />
             </div>
 
-            <div className="rounded-2xl bg-white border border-gray-100 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.04)] overflow-hidden">
+            <div className="rounded-2xl bg-[var(--canvas)] border border-[var(--border-soft)] shadow-[0_2px_12px_-4px_rgba(0,0,0,0.04)] overflow-hidden">
               {dayLogs.map((log, idx) => {
                 const mins = calcMins(log.checkIn, log.checkOut);
                 const roleKey = log.staff.role as StaffRole;
@@ -711,8 +711,8 @@ function AttendanceLogsView({ restaurantId }: { restaurantId: string }) {
                   <div
                     key={log.id}
                     className={`flex items-center gap-4 px-5 py-3.5 ${
-                      idx < dayLogs.length - 1 ? "border-b border-gray-50" : ""
-                    } hover:bg-gray-50/50 transition-colors`}
+                      idx < dayLogs.length - 1 ? "border-b border-[var(--border-soft)]" : ""
+                    } hover:bg-[var(--surface)]/50 transition-colors`}
                   >
                     <Avatar
                       name={log.staff.user.name}
@@ -721,7 +721,7 @@ function AttendanceLogsView({ restaurantId }: { restaurantId: string }) {
                     />
 
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-gray-900 truncate">
+                      <p className="text-sm font-bold text-[var(--text-1)] truncate">
                         {log.staff.user.name}
                       </p>
                       <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
@@ -731,7 +731,7 @@ function AttendanceLogsView({ restaurantId }: { restaurantId: string }) {
                           {meta.label}
                         </span>
                         {isLate && (
-                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-orange-50 border border-orange-100 text-orange-500">
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-[var(--accent)] border border-[var(--accent-border)] text-[var(--accent)]">
                             {log.status}
                           </span>
                         )}
@@ -740,31 +740,31 @@ function AttendanceLogsView({ restaurantId }: { restaurantId: string }) {
 
                     {/* Times + duration */}
                     <div className="flex items-center gap-2 shrink-0">
-                      <div className="flex items-center gap-1.5 rounded-lg bg-gray-50 border border-gray-100 px-2.5 py-1.5">
-                        <Clock className="h-3 w-3 text-gray-400" />
-                        <span className="text-[12px] font-bold text-gray-700">
+                      <div className="flex items-center gap-1.5 rounded-lg bg-[var(--canvas-sub)] border border-[var(--border-soft)] px-2.5 py-1.5">
+                        <Clock className="h-3 w-3 text-[var(--text-3)]" />
+                        <span className="text-[12px] font-bold text-[var(--text-2)]">
                           {new Date(log.checkIn).toLocaleTimeString([], {
                             hour: "2-digit",
                             minute: "2-digit",
                           })}
                         </span>
-                        <ArrowRight className="h-3 w-3 text-gray-300" />
+                        <ArrowRight className="h-3 w-3 text-[var(--text-3)]" />
                         {log.checkOut ? (
-                          <span className="text-[12px] font-bold text-gray-700">
+                          <span className="text-[12px] font-bold text-[var(--text-2)]">
                             {new Date(log.checkOut).toLocaleTimeString([], {
                               hour: "2-digit",
                               minute: "2-digit",
                             })}
                           </span>
                         ) : (
-                          <span className="flex items-center gap-1 text-[11px] font-bold text-amber-600">
-                            <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
+                          <span className="flex items-center gap-1 text-[11px] font-bold text-[var(--accent-text)]">
+                            <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] animate-pulse" />
                             On shift
                           </span>
                         )}
                       </div>
                       {mins > 0 && (
-                        <span className="rounded-lg bg-[#fef9ef] border border-[#eaa94d]/30 px-2 py-1 text-[10px] font-bold text-[#b25c1c] shrink-0">
+                        <span className="rounded-lg bg-[var(--accent-muted)] border border-[var(--accent-border)] px-2 py-1 text-[10px] font-bold text-[#b25c1c] shrink-0">
                           {formatDur(mins)}
                         </span>
                       )}
@@ -777,7 +777,7 @@ function AttendanceLogsView({ restaurantId }: { restaurantId: string }) {
             {/* Day total */}
             <div className="mt-1.5 flex items-center justify-end gap-2 px-1">
               {totalMins > 0 && (
-                <span className="text-[10px] font-semibold text-gray-400">
+                <span className="text-[10px] font-semibold text-[var(--text-3)]">
                   Team total: {formatDur(totalMins)}
                 </span>
               )}
@@ -867,11 +867,11 @@ function AddStaffModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 8 }}
             transition={{ type: "spring", damping: 28, stiffness: 340, mass: 0.7 }}
-            className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl sm:p-8 max-h-[90dvh]"
+            className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-3xl bg-[var(--canvas)] p-6 shadow-2xl sm:p-8 max-h-[90dvh]"
           >
             <button
               onClick={() => { reset(); onClose(); }}
-              className="absolute right-5 top-5 flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition-all"
+              className="absolute right-5 top-5 flex h-8 w-8 items-center justify-center rounded-full border border-[var(--border)] text-[var(--text-3)] hover:bg-[var(--canvas-sub)] hover:text-[var(--text-2)] transition-all"
             >
               <X className="h-4 w-4" />
             </button>
@@ -879,31 +879,31 @@ function AddStaffModal({
             {successData ? (
               <div className="space-y-5">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#fef9ef]">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--accent-muted)]">
                     <Check className="h-5 w-5 text-[#d67620]" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-extrabold text-gray-900">Staff Added!</h3>
-                    <p className="text-sm text-gray-500">
+                    <h3 className="text-lg font-extrabold text-[var(--text-1)]">Staff Added!</h3>
+                    <p className="text-sm text-[var(--text-2)]">
                       Share these credentials with {successData.name}
                     </p>
                   </div>
                 </div>
 
-                <div className="rounded-2xl bg-gray-50 border border-gray-100 p-5 space-y-3">
-                  <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                <div className="rounded-2xl bg-[var(--canvas-sub)] border border-[var(--border-soft)] p-5 space-y-3">
+                  <div className="flex items-center justify-between py-2 border-b border-[var(--border-soft)]">
+                    <span className="text-xs font-bold text-[var(--text-2)] uppercase tracking-wider">
                       Restaurant Code
                     </span>
-                    <span className="font-mono text-base font-black text-[#3e1e0c] bg-white px-3 py-1 rounded-lg border border-gray-200 tracking-widest">
+                    <span className="font-mono text-base font-black text-[var(--text-1)] bg-[var(--canvas)] px-3 py-1 rounded-lg border border-[var(--border)] tracking-widest">
                       {successData.code}
                     </span>
                   </div>
                   <div className="flex items-center justify-between pt-1">
-                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                    <span className="text-xs font-bold text-[var(--text-2)] uppercase tracking-wider">
                       Login PIN
                     </span>
-                    <span className="font-mono text-2xl font-black text-amber-500 bg-amber-50 px-4 py-1.5 rounded-xl border border-amber-100 tracking-[0.3em]">
+                    <span className="font-mono text-2xl font-black text-[var(--accent)] bg-[var(--accent-muted)] px-4 py-1.5 rounded-xl border border-[var(--accent-border)] tracking-[0.3em]">
                       {successData.pin}
                     </span>
                   </div>
@@ -920,8 +920,8 @@ function AddStaffModal({
             ) : (
               <>
                 <div className="mb-6">
-                  <h3 className="text-xl font-extrabold text-[#3e1e0c]">Add Staff Member</h3>
-                  <p className="text-sm text-gray-500 mt-0.5">
+                  <h3 className="text-xl font-extrabold text-[var(--text-1)]">Add Staff Member</h3>
+                  <p className="text-sm text-[var(--text-2)] mt-0.5">
                     A PIN will be auto-generated for login
                   </p>
                 </div>
@@ -933,23 +933,23 @@ function AddStaffModal({
                     { label: "Phone", key: "phone", value: phone, setter: (v: string) => setPhone(v.replace(/\D/g, "")), placeholder: "98XXXXXXXX", required: false },
                   ].map((f) => (
                     <div key={f.key}>
-                      <label className="block text-sm font-bold text-gray-800 mb-1.5">
+                      <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">
                         {f.label}
-                        {f.required && <span className="text-amber-500 ml-0.5">*</span>}
+                        {f.required && <span className="text-[var(--accent)] ml-0.5">*</span>}
                       </label>
                       <input
                         type={f.type ?? "text"}
                         value={f.value}
                         onChange={(e) => f.setter(e.target.value)}
                         placeholder={f.placeholder}
-                        className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none transition-all focus:border-amber-400 focus:ring-2 focus:ring-amber-400/15"
+                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
                       />
                     </div>
                   ))}
 
                   <div>
-                    <label className="block text-sm font-bold text-gray-800 mb-2">
-                      Role <span className="text-amber-500">*</span>
+                    <label className="block text-sm font-bold text-[var(--text-1)] mb-2">
+                      Role <span className="text-[var(--accent)]">*</span>
                     </label>
                     <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                       {ALL_ROLES.map((r) => {
@@ -964,7 +964,7 @@ function AddStaffModal({
                             className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-bold transition-all ${
                               selected
                                 ? `bg-gradient-to-r ${meta.gradient} text-white border-transparent shadow-md`
-                                : "border-gray-200 bg-white text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                                : "border-[var(--border)] bg-[var(--canvas)] text-[var(--text-2)] hover:border-[var(--border)] hover:text-[var(--text-2)]"
                             }`}
                           >
                             <Icon className="h-4 w-4 shrink-0" />
@@ -985,7 +985,7 @@ function AddStaffModal({
                 <div className="mt-5 flex items-center justify-end gap-3">
                   <button
                     onClick={() => { reset(); onClose(); }}
-                    className="rounded-xl px-5 py-2.5 text-sm font-bold text-gray-500 hover:text-gray-700 hover:bg-gray-50 transition-all"
+                    className="rounded-xl px-5 py-2.5 text-sm font-bold text-[var(--text-2)] hover:text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-all"
                   >
                     Cancel
                   </button>
@@ -995,7 +995,7 @@ function AddStaffModal({
                     className={`flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-bold text-white transition-all active:scale-[0.97] ${
                       isValid && !saving
                         ? "bg-[#3e1e0c] shadow-lg shadow-[#3e1e0c]/20 hover:bg-[#2d1508]"
-                        : "bg-gray-300 cursor-not-allowed"
+                        : "bg-[var(--border)] cursor-not-allowed"
                     }`}
                   >
                     {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
@@ -1031,13 +1031,13 @@ export default function StaffManagementTab() {
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <div className="flex items-center gap-3 flex-wrap">
-            <h2 className="text-2xl font-extrabold tracking-tight text-gray-900">
+            <h2 className="text-2xl font-extrabold tracking-tight text-[var(--text-1)]">
               Staff Management
             </h2>
             {restaurant.restaurantCode && (
-              <div className="flex items-center gap-1.5 rounded-lg bg-[#fef9ef] border border-[#eaa94d]/30 px-3 py-1 shadow-sm">
+              <div className="flex items-center gap-1.5 rounded-lg bg-[var(--accent-muted)] border border-[var(--accent-border)] px-3 py-1 shadow-sm">
                 <Building2 className="h-3.5 w-3.5 text-[#b25c1c]" />
-                <span className="text-xs font-bold text-[#3e1e0c]">
+                <span className="text-xs font-bold text-[var(--text-1)]">
                   Code:{" "}
                   <span className="font-mono tracking-widest">
                     {restaurant.restaurantCode}
@@ -1046,15 +1046,15 @@ export default function StaffManagementTab() {
               </div>
             )}
           </div>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-[var(--text-2)]">
             Team for{" "}
-            <span className="font-bold text-gray-800">{restaurant.name}</span>
+            <span className="font-bold text-[var(--text-1)]">{restaurant.name}</span>
           </p>
         </div>
 
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-5 py-2.5 text-sm font-bold text-white shadow-[0_4px_14px_0_rgba(245,158,11,0.35)] hover:shadow-[0_6px_20px_rgba(245,158,11,0.25)] hover:-translate-y-0.5 active:scale-[0.97] transition-all"
+          className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] px-5 py-2.5 text-sm font-bold text-white shadow-[0_4px_14px_0_rgba(245,158,11,0.35)] hover:shadow-[0_6px_20px_rgba(245,158,11,0.25)] hover:-translate-y-0.5 active:scale-[0.97] transition-all"
         >
           <UserPlus className="h-4 w-4" strokeWidth={2.5} />
           Add Staff
@@ -1062,15 +1062,15 @@ export default function StaffManagementTab() {
       </div>
 
       {/* ── Tab bar ─────────────────────────────────────────────── */}
-      <div className="flex items-center gap-1 rounded-xl bg-gray-100/70 p-1 w-fit">
+      <div className="flex items-center gap-1 rounded-xl bg-[var(--surface)] p-1 w-fit">
         {tabs.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
             onClick={() => setActiveTab(id)}
             className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold transition-all ${
               activeTab === id
-                ? "bg-white text-gray-900 shadow-sm"
-                : "text-gray-500 hover:text-gray-700"
+                ? "bg-[var(--canvas)] text-[var(--text-1)] shadow-sm"
+                : "text-[var(--text-2)] hover:text-[var(--text-2)]"
             }`}
           >
             <Icon className="h-4 w-4" />

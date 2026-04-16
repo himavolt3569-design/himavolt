@@ -191,10 +191,10 @@ function ProgressBar({
         return (
           <div
             key={index}
-            className="flex-1 h-0.5 bg-white/30 rounded-full overflow-hidden"
+            className="flex-1 h-0.5 bg-[var(--canvas)]/80 rounded-full overflow-hidden"
           >
             <motion.div
-              className="h-full bg-white rounded-full"
+              className="h-full bg-[var(--canvas)] rounded-full"
               initial={{ width: isPast || isCompleted ? "100%" : "0%" }}
               animate={{
                 width: isActive ? `${progress}%` : isPast ? "100%" : "0%",
@@ -590,7 +590,7 @@ function StoryViewerModal({
                   type="button"
                   className={cn(
                     "inline-flex items-center justify-center rounded-md",
-                    "h-8 w-8 text-white hover:bg-white/20 transition-colors",
+                    "h-8 w-8 text-white hover:bg-[var(--canvas)]/80 transition-colors",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50",
                   )}
                   onClick={(e) => {
@@ -611,7 +611,7 @@ function StoryViewerModal({
                 type="button"
                 className={cn(
                   "inline-flex items-center justify-center rounded-md",
-                  "h-8 w-8 text-white hover:bg-white/20 transition-colors",
+                  "h-8 w-8 text-white hover:bg-[var(--canvas)]/80 transition-colors",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50",
                 )}
                 onClick={(e) => {
@@ -666,7 +666,7 @@ function StoryViewerModal({
             type="button"
             className={cn(
               "inline-flex items-center justify-center",
-              "h-10 w-10 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors pointer-events-auto",
+              "h-10 w-10 rounded-full bg-[var(--canvas)]/80 text-white hover:bg-[var(--canvas)]/80 transition-colors pointer-events-auto",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50",
               "disabled:pointer-events-none disabled:opacity-50",
               currentIndex === 0 && "opacity-50 cursor-not-allowed",
@@ -685,7 +685,7 @@ function StoryViewerModal({
             type="button"
             className={cn(
               "inline-flex items-center justify-center",
-              "h-10 w-10 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors pointer-events-auto",
+              "h-10 w-10 rounded-full bg-[var(--canvas)]/80 text-white hover:bg-[var(--canvas)]/80 transition-colors pointer-events-auto",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50",
             )}
             onClick={(e) => {

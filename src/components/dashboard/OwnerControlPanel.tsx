@@ -36,7 +36,7 @@ const ROLE_INFO: Record<
 > = {
   SUPER_ADMIN: {
     label: "Super Admin",
-    desc: "Full system access — all features unlocked",
+    desc: "Full system access: all features unlocked",
     icon: Crown,
     bg: "bg-purple-50",
     text: "text-purple-700",
@@ -56,28 +56,28 @@ const ROLE_INFO: Record<
     label: "Chef",
     desc: "Kitchen display and order preparation",
     icon: ChefHat,
-    bg: "bg-orange-50",
-    text: "text-orange-700",
-    border: "border-orange-200",
+    bg: "bg-[var(--accent)]",
+    text: "text-[var(--accent)]",
+    border: "border-[var(--accent-border)]",
     ring: "ring-orange-400",
   },
   WAITER: {
     label: "Waiter",
     desc: "Order taking and table service",
     icon: UserCheck,
-    bg: "bg-[#fef9ef]",
+    bg: "bg-[var(--accent-muted)]",
     text: "text-[#b25c1c]",
-    border: "border-[#eaa94d]/30",
+    border: "border-[var(--accent-border)]",
     ring: "ring-[#eaa94d]",
   },
   CASHIER: {
     label: "Cashier",
     desc: "Billing, payments, and counter",
     icon: UserCheck,
-    bg: "bg-amber-50",
-    text: "text-amber-700",
-    border: "border-amber-200",
-    ring: "ring-amber-400",
+    bg: "bg-[var(--accent-muted)]",
+    text: "text-[var(--accent-text)]",
+    border: "border-[var(--accent-border)]",
+    ring: "ring-[var(--accent)]",
   },
 };
 
@@ -148,10 +148,10 @@ function StaffRoleCard({
   };
 
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white shadow-[0_2px_12px_-2px_rgba(0,0,0,0.04)] overflow-hidden">
+    <div className="rounded-2xl border border-[var(--border-soft)] bg-[var(--canvas)] shadow-[0_2px_12px_-2px_rgba(0,0,0,0.04)] overflow-hidden">
       <button
         onClick={() => setExpanded((e) => !e)}
-        className="flex w-full items-center gap-3 p-4 text-left hover:bg-gray-50/60 transition-colors"
+        className="flex w-full items-center gap-3 p-4 text-left hover:bg-[var(--surface)]/60 transition-colors"
       >
         <div
           className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${info.bg}`}
@@ -161,11 +161,11 @@ function StaffRoleCard({
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-bold text-gray-900 text-sm truncate">
+            <span className="font-bold text-[var(--text-1)] text-sm truncate">
               {member.user.name}
             </span>
             {saved ? (
-              <span className="flex items-center gap-1 rounded-md bg-[#fef9ef] border border-[#eaa94d]/30 px-2 py-0.5 text-[10px] font-bold text-[#b25c1c]">
+              <span className="flex items-center gap-1 rounded-md bg-[var(--accent-muted)] border border-[var(--accent-border)] px-2 py-0.5 text-[10px] font-bold text-[#b25c1c]">
                 <Check className="h-2.5 w-2.5" />
                 Updated
               </span>
@@ -173,18 +173,18 @@ function StaffRoleCard({
               <RoleBadge role={currentRole} small />
             )}
             {!member.isActive && (
-              <span className="rounded-md bg-gray-100 px-2 py-0.5 text-[10px] font-bold text-gray-500">
+              <span className="rounded-md bg-[var(--surface)] px-2 py-0.5 text-[10px] font-bold text-[var(--text-2)]">
                 Inactive
               </span>
             )}
           </div>
-          <p className="text-[11px] text-gray-400 mt-0.5 truncate">
+          <p className="text-[11px] text-[var(--text-3)] mt-0.5 truncate">
             {member.user.email}
           </p>
         </div>
 
         <ChevronDown
-          className={`h-4 w-4 text-gray-400 transition-transform duration-200 shrink-0 ${expanded ? "rotate-180" : ""}`}
+          className={`h-4 w-4 text-[var(--text-3)] transition-transform duration-200 shrink-0 ${expanded ? "rotate-180" : ""}`}
         />
       </button>
 
@@ -197,8 +197,8 @@ function StaffRoleCard({
             transition={{ duration: 0.18 }}
             className="overflow-hidden"
           >
-            <div className="px-4 pb-4 pt-1 border-t border-gray-50">
-              <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-3">
+            <div className="px-4 pb-4 pt-1 border-t border-[var(--border-soft)]">
+              <p className="text-[11px] font-bold text-[var(--text-3)] uppercase tracking-wider mb-3">
                 Assign Role
               </p>
               <div className="grid grid-cols-1 gap-2">
@@ -215,11 +215,11 @@ function StaffRoleCard({
                       className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-all ${
                         isActive
                           ? `${ri.bg} ${ri.border} ring-1 ${ri.ring}`
-                          : "border-gray-100 bg-gray-50/50 hover:bg-gray-100/60 hover:border-gray-200"
+                          : "border-[var(--border-soft)] bg-[var(--canvas-sub)] hover:bg-[var(--surface)]/60 hover:border-[var(--border)]"
                       } ${saving && !isLoading ? "opacity-40" : ""}`}
                     >
                       <div
-                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${isActive ? "bg-white shadow-sm" : ri.bg}`}
+                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${isActive ? "bg-[var(--canvas)] shadow-sm" : ri.bg}`}
                       >
                         {isLoading ? (
                           <Loader2 className={`h-3.5 w-3.5 animate-spin ${ri.text}`} />
@@ -229,7 +229,7 @@ function StaffRoleCard({
                       </div>
                       <div className="flex-1 min-w-0">
                         <p
-                          className={`text-sm font-bold ${isActive ? ri.text : "text-gray-700"}`}
+                          className={`text-sm font-bold ${isActive ? ri.text : "text-[var(--text-2)]"}`}
                         >
                           {ri.label}
                           {ROLE_RANK[role] === ROLE_RANK.SUPER_ADMIN && (
@@ -238,7 +238,7 @@ function StaffRoleCard({
                             </span>
                           )}
                         </p>
-                        <p className="text-[10px] text-gray-400 truncate">
+                        <p className="text-[10px] text-[var(--text-3)] truncate">
                           {ri.desc}
                         </p>
                       </div>
@@ -273,10 +273,10 @@ function RoleGroup({
   const Icon = info.icon;
 
   return (
-    <div className="rounded-2xl border border-gray-100 overflow-hidden bg-white shadow-[0_2px_12px_-2px_rgba(0,0,0,0.03)]">
+    <div className="rounded-2xl border border-[var(--border-soft)] overflow-hidden bg-[var(--canvas)] shadow-[0_2px_12px_-2px_rgba(0,0,0,0.03)]">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center gap-3 px-4 py-3.5 bg-gray-50/40 hover:bg-gray-50/80 transition-colors"
+        className="flex w-full items-center gap-3 px-4 py-3.5 bg-[var(--canvas-sub)] hover:bg-[var(--surface)]/80 transition-colors"
       >
         <div
           className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${info.bg}`}
@@ -284,13 +284,13 @@ function RoleGroup({
           <Icon className={`h-4 w-4 ${info.text}`} />
         </div>
         <div className="flex-1 text-left">
-          <span className="text-sm font-bold text-gray-800">{info.label}</span>
-          <span className="ml-2 text-[11px] font-semibold text-gray-400">
+          <span className="text-sm font-bold text-[var(--text-1)]">{info.label}</span>
+          <span className="ml-2 text-[11px] font-semibold text-[var(--text-3)]">
             {members.length} staff
           </span>
         </div>
         <ChevronDown
-          className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          className={`h-4 w-4 text-[var(--text-3)] transition-transform duration-200 ${open ? "rotate-180" : ""}`}
         />
       </button>
 
@@ -320,7 +320,7 @@ function RoleGroup({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="px-4 py-6 text-center text-[12px] text-gray-400"
+            className="px-4 py-6 text-center text-[12px] text-[var(--text-3)]"
           >
             No staff in this category
           </motion.div>
@@ -357,15 +357,15 @@ function EnableAllDialog({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 8 }}
             transition={{ type: "spring", damping: 28, stiffness: 340, mass: 0.7 }}
-            className="fixed left-1/2 top-1/2 z-50 w-full max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-3xl bg-white p-6 shadow-2xl"
+            className="fixed left-1/2 top-1/2 z-50 w-full max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-3xl bg-[var(--canvas)] p-6 shadow-2xl"
           >
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 mb-4">
-              <AlertTriangle className="h-6 w-6 text-amber-500" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--accent-muted)] mb-4">
+              <AlertTriangle className="h-6 w-6 text-[var(--accent)]" />
             </div>
-            <h3 className="text-lg font-extrabold text-gray-900 mb-1">
+            <h3 className="text-lg font-extrabold text-[var(--text-1)] mb-1">
               Enable Full Access for All Staff?
             </h3>
-            <p className="text-sm text-gray-500 mb-5">
+            <p className="text-sm text-[var(--text-2)] mb-5">
               This will set every staff member&apos;s role to{" "}
               <strong className="text-purple-700">Super Admin</strong>, granting
               them complete system access. You can reassign roles individually
@@ -374,14 +374,14 @@ function EnableAllDialog({
             <div className="flex gap-3">
               <button
                 onClick={onCancel}
-                className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-all"
+                className="flex-1 rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-all"
               >
                 Cancel
               </button>
               <button
                 onClick={onConfirm}
                 disabled={loading}
-                className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-amber-500 px-4 py-2.5 text-sm font-bold text-white hover:bg-amber-400 transition-all disabled:opacity-60"
+                className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white hover:bg-[var(--accent)] transition-all disabled:opacity-60"
               >
                 {loading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -436,7 +436,7 @@ export default function OwnerControlPanel() {
 
   if (!restaurant) {
     return (
-      <div className="flex items-center justify-center py-24 text-gray-400 text-sm">
+      <div className="flex items-center justify-center py-24 text-[var(--text-3)] text-sm">
         No restaurant selected.
       </div>
     );
@@ -461,22 +461,22 @@ export default function OwnerControlPanel() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5 mb-1">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 shadow-sm">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--accent)] to-[var(--accent-hover)] shadow-sm">
               <Crown className="h-4.5 w-4.5 text-white" />
             </div>
-            <h2 className="text-2xl font-extrabold tracking-tight text-gray-900">
+            <h2 className="text-2xl font-extrabold tracking-tight text-[var(--text-1)]">
               Owner Control Panel
             </h2>
           </div>
-          <p className="text-sm text-gray-500 ml-11">
+          <p className="text-sm text-[var(--text-2)] ml-11">
             Manage staff roles and feature access for{" "}
-            <strong className="text-gray-800">{restaurant.name}</strong>
+            <strong className="text-[var(--text-1)]">{restaurant.name}</strong>
           </p>
         </div>
         <button
           onClick={refresh}
           disabled={refreshing}
-          className="flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-2 text-[12px] font-bold text-gray-500 hover:bg-gray-50 transition-all shadow-sm disabled:opacity-50"
+          className="flex items-center gap-1.5 rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-3 py-2 text-[12px] font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-all shadow-sm disabled:opacity-50"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
           Refresh
@@ -484,13 +484,13 @@ export default function OwnerControlPanel() {
       </div>
 
       {/* ── Owner-only notice ────────────────────────────────────── */}
-      <div className="flex items-start gap-3 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-100/60 p-4">
-        <Crown className="h-4.5 w-4.5 text-amber-500 shrink-0 mt-0.5" />
+      <div className="flex items-start gap-3 rounded-2xl bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] border border-[var(--accent-border)]/60 p-4">
+        <Crown className="h-4.5 w-4.5 text-[var(--accent)] shrink-0 mt-0.5" />
         <div>
-          <p className="text-sm font-bold text-amber-900">
+          <p className="text-sm font-bold text-[var(--accent-text)]">
             Owner-only section
           </p>
-          <p className="text-xs text-amber-700 mt-0.5">
+          <p className="text-xs text-[var(--accent-text)] mt-0.5">
             Changes made here take effect immediately. Staff members will use
             their new permissions on next login.
           </p>
@@ -498,16 +498,16 @@ export default function OwnerControlPanel() {
       </div>
 
       {/* ── Global Enable All toggle ─────────────────────────────── */}
-      <div className="rounded-2xl border border-gray-100 bg-white shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] overflow-hidden">
+      <div className="rounded-2xl border border-[var(--border-soft)] bg-[var(--canvas)] shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] overflow-hidden">
         <div className="flex items-center gap-4 p-5">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-50 to-purple-100">
             <Zap className="h-5 w-5 text-purple-600" />
           </div>
           <div className="flex-1">
-            <p className="font-bold text-gray-900">
+            <p className="font-bold text-[var(--text-1)]">
               Enable all features for all staff
             </p>
-            <p className="text-xs text-gray-500 mt-0.5">
+            <p className="text-xs text-[var(--text-2)] mt-0.5">
               Grants every staff member{" "}
               <span className="font-semibold text-purple-700">Super Admin</span>{" "}
               access — full system permissions
@@ -520,7 +520,7 @@ export default function OwnerControlPanel() {
             className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition-all active:scale-[0.97] ${
               allSuperAdmin
                 ? "bg-purple-50 text-purple-600 border border-purple-100 cursor-default"
-                : "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-[0_4px_14px_0_rgba(245,158,11,0.3)] hover:shadow-[0_6px_20px_rgba(245,158,11,0.2)] hover:-translate-y-0.5"
+                : "bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] text-white shadow-[0_4px_14px_0_rgba(245,158,11,0.3)] hover:shadow-[0_6px_20px_rgba(245,158,11,0.2)] hover:-translate-y-0.5"
             }`}
           >
             {allSuperAdmin ? (
@@ -538,12 +538,12 @@ export default function OwnerControlPanel() {
         </div>
 
         {staff.length > 0 && (
-          <div className="grid grid-cols-3 divide-x divide-gray-100 border-t border-gray-100">
+          <div className="grid grid-cols-3 divide-x divide-[var(--border)] border-t border-[var(--border-soft)]">
             {[
               {
                 label: "Total Staff",
                 value: staff.length,
-                color: "text-gray-800",
+                color: "text-[var(--text-1)]",
               },
               {
                 label: "Full Access",
@@ -560,7 +560,7 @@ export default function OwnerControlPanel() {
                 <p className={`text-xl font-black ${stat.color}`}>
                   {stat.value}
                 </p>
-                <p className="text-[10px] font-semibold text-gray-400 mt-0.5">
+                <p className="text-[10px] font-semibold text-[var(--text-3)] mt-0.5">
                   {stat.label}
                 </p>
               </div>
@@ -572,17 +572,17 @@ export default function OwnerControlPanel() {
       {/* ── Manage Roles section ─────────────────────────────────── */}
       <div>
         <div className="flex items-center gap-2 mb-3">
-          <Users className="h-4 w-4 text-gray-400" />
-          <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider">
+          <Users className="h-4 w-4 text-[var(--text-3)]" />
+          <h3 className="text-sm font-bold text-[var(--text-2)] uppercase tracking-wider">
             Staff by Role
           </h3>
         </div>
 
         {staff.length === 0 ? (
-          <div className="flex flex-col items-center py-16 text-center rounded-2xl border border-dashed border-gray-200">
-            <Users className="h-10 w-10 text-gray-300 mb-3" />
-            <p className="font-bold text-gray-500">No staff members yet</p>
-            <p className="text-sm text-gray-400 mt-1">
+          <div className="flex flex-col items-center py-16 text-center rounded-2xl border border-dashed border-[var(--border)]">
+            <Users className="h-10 w-10 text-[var(--text-3)] mb-3" />
+            <p className="font-bold text-[var(--text-2)]">No staff members yet</p>
+            <p className="text-sm text-[var(--text-3)] mt-1">
               Add staff from the Staff Management tab
             </p>
           </div>
@@ -602,8 +602,8 @@ export default function OwnerControlPanel() {
       </div>
 
       {/* ── Feature permissions legend ───────────────────────────── */}
-      <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.03)]">
-        <h3 className="text-sm font-bold text-gray-700 mb-3">
+      <div className="rounded-2xl border border-[var(--border-soft)] bg-[var(--canvas)] p-5 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.03)]">
+        <h3 className="text-sm font-bold text-[var(--text-2)] mb-3">
           Role Permissions Overview
         </h3>
         <div className="space-y-2">
@@ -620,7 +620,7 @@ export default function OwnerControlPanel() {
                   <span className={`text-sm font-bold ${info.text}`}>
                     {info.label}
                   </span>
-                  <span className="text-[11px] text-gray-500 ml-2">
+                  <span className="text-[11px] text-[var(--text-2)] ml-2">
                     {info.desc}
                   </span>
                 </div>
@@ -645,30 +645,30 @@ export default function OwnerControlPanel() {
                   )}
                   {role === "CHEF" && (
                     <>
-                      <span className="rounded-md bg-orange-100 px-1.5 py-0.5 text-[10px] font-bold text-orange-700">
+                      <span className="rounded-md bg-[var(--accent)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--accent)]">
                         Kitchen
                       </span>
-                      <span className="rounded-md bg-orange-100 px-1.5 py-0.5 text-[10px] font-bold text-orange-700">
+                      <span className="rounded-md bg-[var(--accent)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--accent)]">
                         Orders
                       </span>
                     </>
                   )}
                   {role === "WAITER" && (
                     <>
-                      <span className="rounded-md bg-[#fef3dc] px-1.5 py-0.5 text-[10px] font-bold text-[#b25c1c]">
+                      <span className="rounded-md bg-[var(--accent-muted)] px-1.5 py-0.5 text-[10px] font-bold text-[#b25c1c]">
                         Orders
                       </span>
-                      <span className="rounded-md bg-[#fef3dc] px-1.5 py-0.5 text-[10px] font-bold text-[#b25c1c]">
+                      <span className="rounded-md bg-[var(--accent-muted)] px-1.5 py-0.5 text-[10px] font-bold text-[#b25c1c]">
                         Tables
                       </span>
                     </>
                   )}
                   {role === "CASHIER" && (
                     <>
-                      <span className="rounded-md bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-700">
+                      <span className="rounded-md bg-[var(--accent-muted)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--accent-text)]">
                         Billing
                       </span>
-                      <span className="rounded-md bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-700">
+                      <span className="rounded-md bg-[var(--accent-muted)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--accent-text)]">
                         Payments
                       </span>
                     </>

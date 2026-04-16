@@ -65,24 +65,24 @@ const sections = [
 
 export default function RefundPage() {
   return (
-    <div className="min-h-screen bg-white">
-      <header className="sticky top-0 z-30 border-b border-gray-100 bg-white/80 backdrop-blur-2xl">
+    <div className="min-h-screen bg-[var(--canvas)]">
+      <header className="sticky top-0 z-30 border-b border-[var(--border-soft)] bg-[var(--canvas)]/80 backdrop-blur-2xl">
         <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-4 sm:px-6 lg:px-10">
           <div className="flex items-center gap-3">
             <Link
               href="/"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-[#3e1e0c] transition-all"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--border)] text-[var(--text-2)] hover:bg-[var(--canvas-sub)] hover:text-[var(--text-1)] transition-all"
             >
               <ArrowLeft className="h-4 w-4" />
             </Link>
             <Link href="/" className="flex items-center gap-2">
               <Mountain className="h-6 w-6 text-[#eaa94d]" strokeWidth={2.5} />
-              <span className="text-lg font-extrabold tracking-tight text-[#3e1e0c]">
+              <span className="text-lg font-extrabold tracking-tight text-[var(--text-1)]">
                 Hima<span className="text-[#eaa94d]">Volt</span>
               </span>
             </Link>
           </div>
-          <div className="flex items-center gap-2 text-xs text-gray-400">
+          <div className="flex items-center gap-2 text-xs text-[var(--text-3)]">
             <Link
               href="/legal/terms"
               className="font-bold hover:text-[#eaa94d] transition-colors"
@@ -103,7 +103,7 @@ export default function RefundPage() {
       <section className="bg-gradient-to-br from-[#eaa94d] via-[#d67620] to-[#e67a00] text-white">
         <div className="relative z-10 mx-auto max-w-4xl px-4 py-16 sm:px-6 sm:py-20 lg:px-10">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-bold text-white/90 mb-5 backdrop-blur-sm border border-white/15">
+            <div className="inline-flex items-center gap-2 rounded-full bg-[var(--canvas)]/15 px-4 py-2 text-sm font-bold text-white/90 mb-5 backdrop-blur-sm border border-white/15">
               <RefreshCcw className="h-4 w-4" />
               Legal
             </div>
@@ -130,14 +130,14 @@ export default function RefundPage() {
               }}
             >
               <div className="flex items-start gap-4">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#eaa94d]/8 text-[#eaa94d] group-hover:bg-[#eaa94d]/15 transition-colors mt-0.5">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[var(--accent-muted)] text-[#eaa94d] group-hover:bg-[#eaa94d]/15 transition-colors mt-0.5">
                   <section.icon className="h-5 w-5" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-[#3e1e0c] mb-2">
+                  <h2 className="text-lg font-bold text-[var(--text-1)] mb-2">
                     {section.title}
                   </h2>
-                  <p className="text-sm text-gray-500 leading-relaxed">
+                  <p className="text-sm text-[var(--text-2)] leading-relaxed">
                     {section.content}
                   </p>
                 </div>
@@ -147,7 +147,7 @@ export default function RefundPage() {
         </div>
 
         <div className="mt-16 rounded-2xl bg-[#eaa94d]/5 border border-[#eaa94d]/10 p-8 text-center">
-          <p className="text-sm text-gray-500 mb-3">
+          <p className="text-sm text-[var(--text-2)] mb-3">
             Need to request a refund or have questions about our policy?
           </p>
           <Link
