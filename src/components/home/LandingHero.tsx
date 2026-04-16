@@ -6,12 +6,48 @@ import { ArrowRight, QrCode, Truck, MapPin, Clock, Star } from "lucide-react";
 import Link from "next/link";
 
 const liveOrders = [
-  { name: "Aarav", area: "Thamel", item: "Chicken Momo", time: "2 min ago", img: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=80&h=80&fit=crop" },
-  { name: "Priya", area: "Lazimpat", item: "Thakali Set", time: "just now", img: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=80&h=80&fit=crop" },
-  { name: "Bikash", area: "Baluwatar", item: "Cheese Pizza", time: "1 min ago", img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=80&h=80&fit=crop" },
-  { name: "Sita", area: "Patan", item: "Dal Bhat", time: "just now", img: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=80&h=80&fit=crop" },
-  { name: "Rohan", area: "Baneshwor", item: "Sekuwa Plate", time: "3 min ago", img: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=80&h=80&fit=crop" },
-  { name: "Anisha", area: "Jhamsikhel", item: "Newari Khaja", time: "just now", img: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=80&h=80&fit=crop" },
+  {
+    name: "Aarav",
+    area: "Thamel",
+    item: "Chicken Momo",
+    time: "2 min ago",
+    img: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=80&h=80&fit=crop",
+  },
+  {
+    name: "Priya",
+    area: "Lazimpat",
+    item: "Thakali Set",
+    time: "just now",
+    img: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=80&h=80&fit=crop",
+  },
+  {
+    name: "Bikash",
+    area: "Baluwatar",
+    item: "Cheese Pizza",
+    time: "1 min ago",
+    img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=80&h=80&fit=crop",
+  },
+  {
+    name: "Sita",
+    area: "Patan",
+    item: "Dal Bhat",
+    time: "just now",
+    img: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=80&h=80&fit=crop",
+  },
+  {
+    name: "Rohan",
+    area: "Baneshwor",
+    item: "Sekuwa Plate",
+    time: "3 min ago",
+    img: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=80&h=80&fit=crop",
+  },
+  {
+    name: "Anisha",
+    area: "Jhamsikhel",
+    item: "Newari Khaja",
+    time: "just now",
+    img: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=80&h=80&fit=crop",
+  },
 ];
 
 function LiveOrderFeed() {
@@ -44,7 +80,11 @@ function LiveOrderFeed() {
             className="flex items-center gap-2.5 rounded-2xl bg-[var(--canvas)] border border-[var(--border)] pl-1.5 pr-4 py-1.5 shadow-lg shadow-black/[0.06] max-w-[260px]"
           >
             <div className="h-9 w-9 rounded-xl overflow-hidden shrink-0">
-              <img src={order.img} alt="" className="h-full w-full object-cover" />
+              <img
+                src={order.img}
+                alt=""
+                className="h-full w-full object-cover"
+              />
             </div>
             <div className="min-w-0">
               <p className="text-[11px] font-bold text-[var(--text-1)] truncate">
@@ -125,7 +165,7 @@ export default function LandingHero() {
 
       <div className="relative z-10 mx-auto max-w-7xl px-4 md:px-8 lg:px-12 pt-20 md:pt-28 lg:pt-32 pb-10">
         <div className="text-center max-w-2xl mx-auto">
-          {/* Live pill */}
+          {/* Live pill
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -138,20 +178,22 @@ export default function LandingHero() {
               </span>
               Now live in Kathmandu
             </span>
-          </motion.div>
-
+          </motion.div> */}
           {/* Headline */}
           <motion.h1
             initial={{ opacity: 0, y: 22 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.65, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
+            transition={{
+              duration: 0.65,
+              delay: 0.08,
+              ease: [0.16, 1, 0.3, 1],
+            }}
             className="mt-5 text-[2.75rem] leading-[1.05] sm:text-5xl md:text-6xl lg:text-[4rem] font-black tracking-tight text-[var(--text-1)]"
           >
-            Order from Nepal&apos;s
+            Scan. Order. Enjoy.
             <br />
-            <span className="text-[var(--accent)]">best restaurants.</span>
+            <span className="text-[var(--accent)]"></span>
           </motion.h1>
-
           {/* Subheadline */}
           <motion.p
             initial={{ opacity: 0, y: 18 }}
@@ -159,10 +201,9 @@ export default function LandingHero() {
             transition={{ duration: 0.6, delay: 0.16, ease: [0.16, 1, 0.3, 1] }}
             className="mt-4 text-base md:text-lg text-[var(--text-2)] leading-relaxed"
           >
-            Scan your table QR to dine-in, or get delivery straight to your
-            door — live-tracked from kitchen to doorstep.
+            Scan your table QR to dine-in, or get delivery straight to your door
+            - live-tracked from kitchen to doorstep.
           </motion.p>
-
           {/* CTAs */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
@@ -186,7 +227,6 @@ export default function LandingHero() {
               Scan Table QR
             </Link>
           </motion.div>
-
           {/* Stats */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -223,7 +263,11 @@ export default function LandingHero() {
             style={{ scrollbarWidth: "none" }}
           >
             {shelfItems.map((item) => (
-              <Link key={item.name} href="/menu" className="shrink-0 w-[150px] group">
+              <Link
+                key={item.name}
+                href="/menu"
+                className="shrink-0 w-[150px] group"
+              >
                 <div className="aspect-square rounded-2xl overflow-hidden bg-[var(--surface)]">
                   <img
                     src={item.img}
@@ -250,7 +294,11 @@ export default function LandingHero() {
                 key={item.name}
                 initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.55, delay: 0.38 + i * 0.07, ease: [0.16, 1, 0.3, 1] }}
+                transition={{
+                  duration: 0.55,
+                  delay: 0.38 + i * 0.07,
+                  ease: [0.16, 1, 0.3, 1],
+                }}
               >
                 <Link href="/menu" className="group block">
                   <div className="aspect-square rounded-2xl overflow-hidden bg-[var(--surface)] relative">
