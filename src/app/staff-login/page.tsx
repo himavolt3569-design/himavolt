@@ -75,7 +75,7 @@ function FloatingImage({
 }) {
   return (
     <motion.div
-      className={`absolute overflow-hidden rounded-2xl shadow-2xl shadow-brand-950/50 pointer-events-none ${className}`}
+      className={`absolute overflow-hidden rounded-2xl shadow-2xl shadow-[var(--accent)]/20/50 pointer-events-none ${className}`}
       initial={{ opacity: 0, scale: 0.6, rotate: -10 }}
       animate={{ opacity: 1, scale: 1, rotate: 0 }}
       transition={{ delay, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
@@ -172,7 +172,7 @@ function PinBox({
       <AnimatePresence>
         {focused && (
           <motion.div
-            className="absolute -inset-1 rounded-2xl bg-brand-400/20"
+            className="absolute -inset-1 rounded-2xl bg-[var(--accent)]/20"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
@@ -184,7 +184,7 @@ function PinBox({
       <AnimatePresence>
         {digit && (
           <motion.div
-            className="absolute -top-1 -right-1 z-10 h-3 w-3 rounded-full bg-brand-400 border-2 border-brand-50"
+            className="absolute -top-1 -right-1 z-10 h-3 w-3 rounded-full bg-[var(--accent)] border-2 border-[var(--border-soft)]"
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
@@ -207,7 +207,7 @@ function PinBox({
             : { scale: 1, borderColor: "rgba(62,30,12,0.10)" }
         }
         transition={{ duration: 0.2 }}
-        className="relative z-[1] h-14 w-full text-center text-xl font-bold bg-[var(--canvas)] border border-brand-200/60 rounded-xl text-brand-950 shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-400/40 focus:border-brand-400/50 transition-colors font-mono"
+        className="relative z-[1] h-14 w-full text-center text-xl font-bold bg-[var(--canvas)] border border-brand-200/60 rounded-xl text-[var(--text-1)] shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] focus:border-[var(--accent)]/50 transition-colors font-mono"
         aria-label={`PIN digit ${index + 1}`}
       />
     </motion.div>
@@ -326,7 +326,7 @@ export default function StaffLoginPage() {
     <div className="min-h-screen flex bg-[#fefcf6]">
       {/* ── Left panel — animated food imagery ── */}
       <div
-        className="hidden lg:flex lg:w-[45%] xl:w-[50%] relative overflow-hidden bg-brand-950"
+        className="hidden lg:flex lg:w-[45%] xl:w-[50%] relative overflow-hidden bg-[var(--text-1)]"
         onMouseMove={handleMouseMove}
       >
         <motion.img
@@ -336,8 +336,8 @@ export default function StaffLoginPage() {
           style={{ x: imgX, y: imgY, scale: 1.1 }}
         />
 
-        <div className="absolute inset-0 bg-linear-to-t from-brand-950 via-brand-950/60 to-transparent" />
-        <div className="absolute inset-0 bg-linear-to-r from-transparent to-brand-950/80" />
+        <div className="absolute inset-0 bg-linear-to-t from-[var(--accent)] via-brand-950/60 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-r from-transparent to-[var(--accent-hover)]/80" />
 
         <Orb
           color="rgba(234,169,77,0.18)"
@@ -405,12 +405,12 @@ export default function StaffLoginPage() {
                 }}
               >
                 <Mountain
-                  className="h-6 w-6 text-brand-400"
+                  className="h-6 w-6 text-[var(--accent)]"
                   strokeWidth={2.5}
                 />
               </motion.div>
               <span className="text-xl font-extrabold text-white tracking-tight">
-                Hima<span className="text-brand-400">Volt</span>
+                Hima<span className="text-[var(--accent)]">Volt</span>
               </span>
             </Link>
           </motion.div>
@@ -422,14 +422,14 @@ export default function StaffLoginPage() {
               className="flex items-center gap-3 mb-6"
             >
               {[
-                { Icon: ChefHat, color: "text-brand-400" },
-                { Icon: Utensils, color: "text-brand-600" },
-                { Icon: Coffee, color: "text-brand-300" },
-                { Icon: Flame, color: "text-brand-500" },
+                { Icon: ChefHat, color: "text-[var(--accent)]" },
+                { Icon: Utensils, color: "text-[var(--accent-hover)]" },
+                { Icon: Coffee, color: "text-[var(--accent)]" },
+                { Icon: Flame, color: "text-[var(--accent)]" },
               ].map(({ Icon, color }, i) => (
                 <motion.div
                   key={i}
-                  className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-400/10 border border-brand-400/15"
+                  className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--accent)]/10 border border-[var(--accent)]/15"
                   whileHover={{ scale: 1.15, rotate: -5 }}
                   transition={{ type: "spring", stiffness: 400, damping: 15 }}
                 >
@@ -444,7 +444,7 @@ export default function StaffLoginPage() {
             >
               Kitchen & POS
               <br />
-              <span className="text-transparent bg-clip-text bg-linear-to-r from-brand-400 to-brand-300">
+              <span className="text-transparent bg-clip-text bg-linear-to-r from-[var(--accent)] to-[var(--accent-hover)]">
                 Command Centre.
               </span>
             </motion.h1>
@@ -462,7 +462,7 @@ export default function StaffLoginPage() {
                 (label, i) => (
                   <motion.span
                     key={label}
-                    className="rounded-full bg-brand-400/10 border border-brand-400/15 px-3 py-1.5 text-[11px] font-semibold text-brand-200/70"
+                    className="rounded-full bg-[var(--accent)]/10 border border-[var(--accent)]/15 px-3 py-1.5 text-[11px] font-semibold text-brand-200/70"
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{
@@ -481,7 +481,7 @@ export default function StaffLoginPage() {
       </div>
 
       {/* ── Right panel — animated login form ── */}
-      <div className="flex-1 flex flex-col bg-[#fefcf6] lg:bg-brand-50 relative overflow-hidden">
+      <div className="flex-1 flex flex-col bg-[#fefcf6] lg:bg-[var(--accent-muted)] relative overflow-hidden">
         <Orb
           color="rgba(234,169,77,0.08)"
           size={300}
@@ -504,14 +504,14 @@ export default function StaffLoginPage() {
           transition={{ duration: 0.4 }}
         >
           <Link href="/" className="flex items-center gap-2">
-            <Mountain className="h-5 w-5 text-brand-400" strokeWidth={2.5} />
-            <span className="text-lg font-extrabold text-brand-950 tracking-tight">
-              Hima<span className="text-brand-400">Volt</span>
+            <Mountain className="h-5 w-5 text-[var(--accent)]" strokeWidth={2.5} />
+            <span className="text-lg font-extrabold text-[var(--text-1)] tracking-tight">
+              Hima<span className="text-[var(--accent)]">Volt</span>
             </span>
           </Link>
           <Link
             href="/"
-            className="text-xs font-medium text-brand-600 hover:text-brand-800 transition-colors"
+            className="text-xs font-medium text-[var(--accent-hover)] hover:text-[var(--accent-hover)] transition-colors"
           >
             &larr; Back to App
           </Link>
@@ -562,7 +562,7 @@ export default function StaffLoginPage() {
                   </div>
                 </motion.div>
                 <motion.h3
-                  className="text-xl font-extrabold text-brand-950 mb-2"
+                  className="text-xl font-extrabold text-[var(--text-1)] mb-2"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
@@ -570,7 +570,7 @@ export default function StaffLoginPage() {
                   Welcome back!
                 </motion.h3>
                 <motion.p
-                  className="text-sm text-brand-700/70"
+                  className="text-sm text-[var(--accent-text)]/70"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.5 }}
@@ -603,12 +603,12 @@ export default function StaffLoginPage() {
                 key="form"
                 variants={shake}
                 animate={formShake ? "error" : "idle"}
-                className="w-full max-w-sm bg-[var(--canvas)]/70 backdrop-blur-sm rounded-2xl p-8 shadow-xl shadow-brand-200/20 border border-brand-100"
+                className="w-full max-w-sm bg-[var(--canvas)]/70 backdrop-blur-sm rounded-2xl p-8 shadow-xl shadow-[var(--accent)]/20/20 border border-[var(--accent-border)]"
               >
                 <motion.div variants={stagger} initial="hidden" animate="show">
                   <motion.div variants={fadeUp} className="mb-9">
                     <motion.div
-                      className="inline-flex items-center gap-1.5 rounded-full bg-brand-100/60 backdrop-blur-sm px-3.5 py-1.5 text-[11px] font-bold text-brand-700 uppercase tracking-wider border border-brand-200/60 mb-5"
+                      className="inline-flex items-center gap-1.5 rounded-full bg-[var(--accent-muted)] backdrop-blur-sm px-3.5 py-1.5 text-[11px] font-bold text-[var(--accent-text)] uppercase tracking-wider border border-brand-200/60 mb-5"
                       variants={scaleIn}
                     >
                       <motion.div
@@ -622,14 +622,14 @@ export default function StaffLoginPage() {
                           ease: "easeInOut",
                         }}
                       >
-                        <ShieldCheck className="h-3 w-3 text-brand-500" />
+                        <ShieldCheck className="h-3 w-3 text-[var(--accent)]" />
                       </motion.div>
                       Secure staff access
                     </motion.div>
-                    <h2 className="text-2xl sm:text-3xl font-extrabold text-brand-950 tracking-tight">
+                    <h2 className="text-2xl sm:text-3xl font-extrabold text-[var(--text-1)] tracking-tight">
                       Staff Portal
                     </h2>
-                    <p className="mt-2 text-sm text-brand-700/70">
+                    <p className="mt-2 text-sm text-[var(--accent-text)]/70">
                       Enter your restaurant code and PIN to continue.
                     </p>
                   </motion.div>
@@ -644,7 +644,7 @@ export default function StaffLoginPage() {
                       </label>
                       <div className="relative group">
                         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                          <Building2 className="h-4 w-4 text-brand-300 group-focus-within:text-brand-500 transition-colors" />
+                          <Building2 className="h-4 w-4 text-[var(--accent)] group-focus-within:text-[var(--accent)] transition-colors" />
                         </div>
                         <motion.input
                           id="code"
@@ -657,7 +657,7 @@ export default function StaffLoginPage() {
                           }}
                           whileFocus={{ scale: 1.01 }}
                           transition={{ duration: 0.15 }}
-                          className="block w-full pl-11 pr-4 py-3.5 bg-[var(--canvas)] border border-brand-200/60 rounded-xl text-brand-950 font-mono tracking-widest text-sm shadow-sm placeholder:tracking-normal placeholder:font-sans placeholder:text-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-400/40 focus:border-brand-400/50 transition-all"
+                          className="block w-full pl-11 pr-4 py-3.5 bg-[var(--canvas)] border border-brand-200/60 rounded-xl text-[var(--text-1)] font-mono tracking-widest text-sm shadow-sm placeholder:tracking-normal placeholder:font-sans placeholder:text-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] focus:border-[var(--accent)]/50 transition-all"
                           placeholder="e.g. HH-1A2B"
                         />
                         <AnimatePresence>
@@ -705,9 +705,9 @@ export default function StaffLoginPage() {
                         ))}
                       </div>
 
-                      <div className="mt-3 h-1 rounded-full bg-brand-100 overflow-hidden">
+                      <div className="mt-3 h-1 rounded-full bg-[var(--accent-muted)] overflow-hidden">
                         <motion.div
-                          className="h-full rounded-full bg-linear-to-r from-brand-400 to-brand-300"
+                          className="h-full rounded-full bg-linear-to-r from-[var(--accent)] to-[var(--accent-hover)]"
                           initial={{ width: "0%" }}
                           animate={{
                             width: `${(pin.length / 4) * 100}%`,
@@ -742,7 +742,7 @@ export default function StaffLoginPage() {
                             filter: "blur(8px)",
                           }}
                           transition={{ duration: 0.3 }}
-                          className="flex items-center gap-2.5 p-3.5 rounded-xl bg-[var(--accent-muted)] border border-[#eaa94d]/20 text-[#e58f2a]"
+                          className="flex items-center gap-2.5 p-3.5 rounded-xl bg-[var(--accent-muted)] border border-[var(--accent)]/20 text-[#e58f2a]"
                         >
                           <motion.div
                             animate={{ rotate: [0, -10, 10, -5, 5, 0] }}
@@ -762,7 +762,7 @@ export default function StaffLoginPage() {
                       <motion.button
                         type="submit"
                         disabled={loading || !code || pin.length !== 4}
-                        className="relative w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl text-sm font-bold transition-colors cursor-pointer disabled:cursor-not-allowed bg-linear-to-br from-brand-400 to-brand-600 text-white shadow-lg shadow-brand-400/25 disabled:from-gray-300 disabled:to-gray-300 disabled:text-[var(--text-2)] disabled:shadow-none overflow-hidden"
+                        className="relative w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl text-sm font-bold transition-colors cursor-pointer disabled:cursor-not-allowed bg-linear-to-br from-[var(--accent)] to-[var(--accent-hover)] text-white shadow-lg shadow-[var(--accent)]/20/25 disabled:from-gray-300 disabled:to-gray-300 disabled:text-[var(--text-2)] disabled:shadow-none overflow-hidden"
                         whileHover={
                           isReady
                             ? {
@@ -821,7 +821,7 @@ export default function StaffLoginPage() {
                   >
                     <Link
                       href="/"
-                      className="text-sm font-medium text-brand-600 hover:text-brand-800 transition-colors flex items-center justify-center gap-1.5"
+                      className="text-sm font-medium text-[var(--accent-hover)] hover:text-[var(--accent-hover)] transition-colors flex items-center justify-center gap-1.5"
                     >
                       &larr; Back to App
                     </Link>

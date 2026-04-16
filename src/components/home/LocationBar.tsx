@@ -24,7 +24,7 @@ export default function LocationBar() {
   return (
     <div className="sticky top-[56px] z-40 bg-[var(--canvas)]/95 backdrop-blur-sm border-b border-[var(--border-soft)]">
       <div className="mx-auto max-w-[1440px] px-4 md:px-8 lg:px-12 py-2 flex items-center gap-2">
-        <MapPin className="h-3.5 w-3.5 text-[#eaa94d] shrink-0" />
+        <MapPin className="h-3.5 w-3.5 text-[var(--accent)] shrink-0" />
 
         {status === "detecting" && (
           <span className="text-[13px] text-[var(--text-3)]">
@@ -36,11 +36,11 @@ export default function LocationBar() {
           <>
             <span className="text-[13px] font-semibold text-[var(--text-1)]">
               Delivering to{" "}
-              <span className="text-[#eaa94d]">{location.area}</span>
+              <span className="text-[var(--accent)]">{location.area}</span>
             </span>
             <button
               onClick={() => setOpen(true)}
-              className="text-[11px] text-[var(--text-3)] hover:text-[#eaa94d] underline underline-offset-2 ml-1"
+              className="text-[11px] text-[var(--text-3)] hover:text-[var(--accent)] underline underline-offset-2 ml-1"
             >
               Change
             </button>
@@ -51,17 +51,17 @@ export default function LocationBar() {
           <>
             <span className="text-[13px] font-semibold text-[var(--text-1)]">
               Delivering to{" "}
-              <span className="text-[#eaa94d]">{location.area}</span>
+              <span className="text-[var(--accent)]">{location.area}</span>
             </span>
             <button
               onClick={() => setOpen(true)}
-              className="text-[11px] text-[var(--text-3)] hover:text-[#eaa94d] underline underline-offset-2 ml-1"
+              className="text-[11px] text-[var(--text-3)] hover:text-[var(--accent)] underline underline-offset-2 ml-1"
             >
               Change
             </button>
             <button
               onClick={detect}
-              className="ml-auto text-[11px] font-semibold text-[#eaa94d] hover:underline flex items-center gap-1"
+              className="ml-auto text-[11px] font-semibold text-[var(--accent)] hover:underline flex items-center gap-1"
             >
               <Navigation className="h-3 w-3" /> Detect my location
             </button>
@@ -97,7 +97,7 @@ export default function LocationBar() {
                   detect();
                   setOpen(false);
                 }}
-                className="flex items-center gap-2 text-[13px] font-semibold text-[#eaa94d] hover:underline mb-3"
+                className="flex items-center gap-2 text-[13px] font-semibold text-[var(--accent)] hover:underline mb-3"
               >
                 <Navigation className="h-3.5 w-3.5" />
                 Use my current location
@@ -111,7 +111,7 @@ export default function LocationBar() {
                       setManual(area);
                       setOpen(false);
                     }}
-                    className="rounded-full px-3.5 py-1.5 text-[12px] font-medium border border-[var(--border)] text-[var(--text-1)] hover:border-[#eaa94d]/40 hover:bg-[var(--accent-muted)] transition-colors duration-200"
+                    className="rounded-full px-3.5 py-1.5 text-[12px] font-medium border border-[var(--border)] text-[var(--text-1)] hover:border-[var(--accent)]/40 hover:bg-[var(--accent-muted)] transition-colors duration-200"
                   >
                     {area}
                   </button>

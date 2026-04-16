@@ -104,7 +104,7 @@ function MobileCard({ restaurant }: { restaurant: Restaurant }) {
           <div className="flex items-center gap-1.5 mt-1">
             {restaurant.rating != null && (
               <>
-                <Star className="h-3 w-3 fill-[#b25c1c] text-[#b25c1c]" />
+                <Star className="h-3 w-3 fill-[#b25c1c] text-[var(--accent-text)]" />
                 <span className="text-xs font-bold text-[var(--text-1)]">
                   {restaurant.rating.toFixed(1)}
                 </span>
@@ -137,7 +137,7 @@ function DesktopCard({ restaurant }: { restaurant: Restaurant }) {
       }}
     >
       <Link href={`/menu/${restaurant.slug}`}>
-        <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-sm group-hover:shadow-xl group-hover:shadow-[#eaa94d]/[0.08] transition-shadow duration-300">
+        <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-sm group-hover:shadow-xl group-hover:shadow-[var(--accent)]/[0.08] transition-shadow duration-300">
           <RestaurantImage restaurant={restaurant} />
           <div className="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-transparent" />
           <motion.div
@@ -167,7 +167,7 @@ function DesktopCard({ restaurant }: { restaurant: Restaurant }) {
                 damping: 15,
               }}
             >
-              <Star className="h-3 w-3 fill-[#eaa94d] text-[#eaa94d]" />
+              <Star className="h-3 w-3 fill-[var(--accent)] text-[var(--accent)]" />
               <span className="text-[10px] font-bold text-[var(--text-1)]">
                 {restaurant.rating.toFixed(1)}
               </span>
@@ -176,13 +176,13 @@ function DesktopCard({ restaurant }: { restaurant: Restaurant }) {
         </div>
 
         <div className="pt-2.5">
-          <h3 className="text-[15px] font-bold text-[var(--text-1)] leading-tight truncate group-hover:text-[#eaa94d] transition-colors">
+          <h3 className="text-[15px] font-bold text-[var(--text-1)] leading-tight truncate group-hover:text-[var(--accent)] transition-colors">
             {restaurant.name}
           </h3>
           <div className="flex items-center gap-1 mt-1">
             {restaurant.rating != null && (
               <>
-                <Star className="h-3 w-3 fill-[#b25c1c] text-[#b25c1c]" />
+                <Star className="h-3 w-3 fill-[#b25c1c] text-[var(--accent-text)]" />
                 <span className="text-xs font-bold text-[var(--text-1)]">
                   {restaurant.rating.toFixed(1)}
                 </span>
@@ -228,7 +228,7 @@ export default function TopPlaces() {
         >
           <h2 className="text-xl font-bold tracking-tight text-[var(--text-1)] md:text-2xl">
             Popular Restaurants{" "}
-            <span className="text-[#eaa94d]">
+            <span className="text-[var(--accent)]">
               {location.area !== "Kathmandu"
                 ? `near ${location.area}`
                 : "Near You"}

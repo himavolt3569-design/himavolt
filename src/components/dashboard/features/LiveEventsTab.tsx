@@ -48,12 +48,12 @@ const EVENT_TYPE_CONFIG: Record<EventType, { label: string; icon: typeof Music; 
   "karaoke": { label: "Karaoke", icon: Mic2, color: "text-pink-500", bg: "bg-pink-50" },
   "comedy": { label: "Comedy Night", icon: Laugh, color: "text-[var(--accent)]", bg: "bg-[var(--accent-muted)]" },
   "open-mic": { label: "Open Mic", icon: Radio, color: "text-blue-500", bg: "bg-blue-50" },
-  "sports": { label: "Sports Screening", icon: Tv, color: "text-[#d67620]", bg: "bg-[var(--accent-muted)]" },
+  "sports": { label: "Sports Screening", icon: Tv, color: "text-[var(--accent-hover)]", bg: "bg-[var(--accent-muted)]" },
 };
 
 const STATUS_COLORS: Record<EventStatus, { label: string; color: string; bg: string }> = {
   upcoming: { label: "Upcoming", color: "text-blue-600", bg: "bg-blue-50" },
-  ongoing: { label: "Ongoing", color: "text-[#b25c1c]", bg: "bg-[var(--accent-muted)]" },
+  ongoing: { label: "Ongoing", color: "text-[var(--accent-text)]", bg: "bg-[var(--accent-muted)]" },
   completed: { label: "Completed", color: "text-[var(--text-2)]", bg: "bg-[var(--canvas-sub)]" },
   cancelled: { label: "Cancelled", color: "text-red-600", bg: "bg-red-50" },
 };
@@ -279,17 +279,17 @@ export default function LiveEventsTab() {
                 <div className="text-right shrink-0">
                   <div className="flex items-center gap-1.5 mb-1">
                     <div className="h-2 w-16 rounded-full bg-[var(--surface)] overflow-hidden">
-                      <div className={`h-full rounded-full ${occupancy > 80 ? "bg-[#eaa94d]" : occupancy > 50 ? "bg-[var(--accent)]" : "bg-[var(--border)]"}`} style={{ width: `${occupancy}%` }} />
+                      <div className={`h-full rounded-full ${occupancy > 80 ? "bg-[var(--accent)]" : occupancy > 50 ? "bg-[var(--accent)]" : "bg-[var(--border)]"}`} style={{ width: `${occupancy}%` }} />
                     </div>
                     <span className="text-[10px] text-[var(--text-2)]">{occupancy}%</span>
                   </div>
                   <p className="text-xs text-[var(--text-2)]">{event.ticketsSold}/{event.capacity} sold</p>
-                  {event.revenue > 0 && <p className="text-xs font-bold text-[#d67620] mt-0.5">{formatPrice(event.revenue, cur)}</p>}
+                  {event.revenue > 0 && <p className="text-xs font-bold text-[var(--accent-hover)] mt-0.5">{formatPrice(event.revenue, cur)}</p>}
                 </div>
               </div>
               {event.status === "upcoming" && (
                 <div className="flex gap-2 mt-3 pt-3 border-t border-[var(--border-soft)]">
-                  <button onClick={() => handleStatusChange(event.id, "ongoing")} className="text-xs font-semibold text-[#b25c1c] bg-[var(--accent-muted)] px-3 py-1.5 rounded-lg hover:bg-[var(--accent-muted)] transition-all">Start Event</button>
+                  <button onClick={() => handleStatusChange(event.id, "ongoing")} className="text-xs font-semibold text-[var(--accent-text)] bg-[var(--accent-muted)] px-3 py-1.5 rounded-lg hover:bg-[var(--accent-muted)] transition-all">Start Event</button>
                   <button onClick={() => handleStatusChange(event.id, "cancelled")} className="text-xs font-semibold text-red-600 bg-red-50 px-3 py-1.5 rounded-lg hover:bg-red-100 transition-all">Cancel</button>
                 </div>
               )}

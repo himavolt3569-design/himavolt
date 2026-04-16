@@ -72,8 +72,8 @@ export default function PWAInstallPrompt() {
           className="fixed bottom-24 md:bottom-auto md:top-24 left-4 right-4 md:left-auto md:right-4 md:w-96 z-50 bg-[var(--canvas)] rounded-2xl p-4 shadow-2xl border border-snow-white/20"
         >
           <div className="flex items-start gap-4">
-            <div className="shrink-0 w-12 h-12 bg-saffron-flame/10 rounded-xl flex items-center justify-center">
-              <Download className="w-6 h-6 text-saffron-flame" />
+            <div className="shrink-0 w-12 h-12 bg-[var(--accent-muted)] rounded-xl flex items-center justify-center">
+              <Download className="w-6 h-6 text-[var(--accent)]" />
             </div>
 
             <div className="grow">
@@ -88,7 +88,7 @@ export default function PWAInstallPrompt() {
               <div className="flex gap-2">
                 <button
                   onClick={handleInstallClick}
-                  className="flex-1 bg-saffron-flame text-white text-sm font-medium py-2 rounded-lg hover:bg-saffron-flame/90 transition-colors"
+                  className="flex-1 bg-[var(--accent)] text-white text-sm font-medium py-2 rounded-lg hover:bg-[var(--accent)]/90 transition-colors"
                 >
                   Add to Home Screen
                 </button>

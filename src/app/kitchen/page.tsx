@@ -1825,7 +1825,7 @@ export default function KitchenPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-brand-50/30 flex items-center justify-center">
+      <div className="dark min-h-screen bg-[#0a0a0a] flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="h-8 w-8 text-brand-400 animate-spin" />
           <p className="text-sm font-medium text-[var(--text-2)]">Loading portal...</p>
@@ -1859,8 +1859,8 @@ export default function KitchenPage() {
   const defaultTab = roleKey === "CASHIER" ? "billing" : "orders";
 
   return (
-    <div className="min-h-screen bg-brand-50/30">
-      <header className="sticky top-0 z-50 bg-[var(--canvas)]/90 backdrop-blur-2xl shadow-[0_1px_12px_rgba(0,0,0,0.06)] border-b border-brand-100">
+    <div className="dark min-h-screen bg-[#0a0a0a]">
+      <header className="sticky top-0 z-50 bg-[#111111]/90 backdrop-blur-2xl shadow-[0_1px_12px_rgba(0,0,0,0.4)] border-b border-[#1f1f1f]">
         <div className="mx-auto max-w-5xl px-4 sm:px-6">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-2">

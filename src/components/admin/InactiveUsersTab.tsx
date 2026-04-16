@@ -198,17 +198,17 @@ export default function InactiveUsersTab() {
             placeholder="Search by name, email, phone..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] py-2 pl-9 pr-3 text-sm text-gompa-slate placeholder:text-[var(--text-3)] focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-200"
+            className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] py-2 pl-9 pr-3 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
           />
           {search && (
-            <button onClick={() => setSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--text-3)] hover:text-brand-500">
+            <button onClick={() => setSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--text-3)] hover:text-[var(--accent)]">
               <X className="h-3.5 w-3.5" />
             </button>
           )}
         </div>
         <button
           onClick={() => fetchUsers(page)}
-          className="flex items-center gap-1.5 rounded-xl border border-[var(--border)] px-3 py-2 text-xs font-medium text-[var(--text-2)] hover:bg-brand-50"
+          className="flex items-center gap-1.5 rounded-xl border border-[var(--border)] px-3 py-2 text-xs font-medium text-[var(--text-2)] hover:bg-[var(--accent-muted)]"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
         </button>
@@ -234,13 +234,13 @@ export default function InactiveUsersTab() {
         </div>
       )}
 
-      <div className="overflow-hidden rounded-2xl border border-brand-100 bg-[var(--canvas)] shadow-sm">
-        <div className="flex items-center gap-2 border-b border-brand-100 px-4 py-2.5">
+      <div className="overflow-hidden rounded-2xl border border-[var(--accent-muted)] bg-[var(--canvas)] shadow-sm">
+        <div className="flex items-center gap-2 border-b border-[var(--accent-muted)] px-4 py-2.5">
           <input
             type="checkbox"
             checked={allSelected}
             onChange={() => setSelectedIds(allSelected ? new Set() : new Set(users.map((u) => u.id)))}
-            className="h-3.5 w-3.5 rounded accent-gompa-slate"
+            className="h-3.5 w-3.5 rounded accent-[var(--accent)]"
           />
           <UserX className="h-4 w-4 text-[var(--accent)]" />
           <span className="text-xs font-semibold text-[var(--text-2)]">Inactive Accounts (15+ days)</span>
@@ -248,11 +248,11 @@ export default function InactiveUsersTab() {
 
         {loading && users.length === 0 ? (
           <div className="flex items-center justify-center py-16">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-brand-400 border-t-transparent" />
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" />
           </div>
         ) : users.length === 0 ? (
           <div className="py-16 text-center">
-            <UserCheck className="mx-auto mb-2 h-8 w-8 text-[#d67620]" />
+            <UserCheck className="mx-auto mb-2 h-8 w-8 text-[var(--accent-hover)]" />
             <p className="text-sm font-medium text-[var(--text-2)]">No inactive accounts found</p>
             <p className="mt-0.5 text-xs text-[var(--text-3)]">All users have been active in the last 15 days</p>
           </div>
@@ -283,7 +283,7 @@ export default function InactiveUsersTab() {
                         });
                       }}
                       onClick={(e) => e.stopPropagation()}
-                      className="h-3.5 w-3.5 flex-shrink-0 rounded accent-gompa-slate"
+                      className="h-3.5 w-3.5 flex-shrink-0 rounded accent-[var(--accent)]"
                     />
                     <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[var(--accent-muted)] overflow-hidden">
                       {user.imageUrl ? (
@@ -296,7 +296,7 @@ export default function InactiveUsersTab() {
                     {/* Name & email */}
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold text-gompa-slate truncate">{user.name || "Unnamed"}</span>
+                        <span className="text-sm font-bold text-[var(--text-1)] truncate">{user.name || "Unnamed"}</span>
                         <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${ROLE_COLORS[user.role] || "bg-[var(--surface)] text-[var(--text-2)]"}`}>
                           {user.role}
                         </span>
@@ -322,48 +322,48 @@ export default function InactiveUsersTab() {
                         exit={{ height: 0, opacity: 0 }}
                         className="overflow-hidden"
                       >
-                        <div className="border-t border-brand-100 bg-[var(--accent-muted)] px-4 py-3 space-y-3">
+                        <div className="border-t border-[var(--accent-muted)] bg-[var(--accent-muted)] px-4 py-3 space-y-3">
                           <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-xs sm:grid-cols-3">
                             <div className="flex items-center gap-1.5">
                               <Mail className="h-3.5 w-3.5 flex-shrink-0 text-[var(--text-3)]" />
                               <div className="min-w-0">
                                 <span className="block text-[var(--text-3)]">Email</span>
-                                <p className="truncate font-medium text-gompa-slate">{user.email}</p>
+                                <p className="truncate font-medium text-[var(--text-1)]">{user.email}</p>
                               </div>
                             </div>
                             <div className="flex items-center gap-1.5">
                               <Phone className="h-3.5 w-3.5 flex-shrink-0 text-[var(--text-3)]" />
                               <div>
                                 <span className="block text-[var(--text-3)]">Phone</span>
-                                <p className="font-medium text-gompa-slate">{user.phone || "—"}</p>
+                                <p className="font-medium text-[var(--text-1)]">{user.phone || "—"}</p>
                               </div>
                             </div>
                             <div className="flex items-center gap-1.5">
                               <Calendar className="h-3.5 w-3.5 flex-shrink-0 text-[var(--text-3)]" />
                               <div>
                                 <span className="block text-[var(--text-3)]">Joined</span>
-                                <p className="font-medium text-gompa-slate">{formatDate(user.createdAt)}</p>
+                                <p className="font-medium text-[var(--text-1)]">{formatDate(user.createdAt)}</p>
                               </div>
                             </div>
                             <div className="flex items-center gap-1.5">
                               <Clock className="h-3.5 w-3.5 flex-shrink-0 text-[var(--text-3)]" />
                               <div>
                                 <span className="block text-[var(--text-3)]">Last Order</span>
-                                <p className="font-medium text-gompa-slate">{formatDate(user.lastOrderAt)}</p>
+                                <p className="font-medium text-[var(--text-1)]">{formatDate(user.lastOrderAt)}</p>
                               </div>
                             </div>
                             <div className="flex items-center gap-1.5">
                               <ShoppingBag className="h-3.5 w-3.5 flex-shrink-0 text-[var(--text-3)]" />
                               <div>
                                 <span className="block text-[var(--text-3)]">Total Orders</span>
-                                <p className="font-bold text-gompa-slate">{user._count.orders}</p>
+                                <p className="font-bold text-[var(--text-1)]">{user._count.orders}</p>
                               </div>
                             </div>
                             <div className="flex items-center gap-1.5">
                               <Star className="h-3.5 w-3.5 flex-shrink-0 text-[var(--text-3)]" />
                               <div>
                                 <span className="block text-[var(--text-3)]">Reviews</span>
-                                <p className="font-medium text-gompa-slate">{user._count.reviews}</p>
+                                <p className="font-medium text-[var(--text-1)]">{user._count.reviews}</p>
                               </div>
                             </div>
                           </div>
@@ -372,11 +372,11 @@ export default function InactiveUsersTab() {
                           <div className="grid grid-cols-2 gap-x-6 text-xs">
                             <div>
                               <span className="text-[var(--text-3)]">Username</span>
-                              <p className="font-medium text-gompa-slate">{user.username || "—"}</p>
+                              <p className="font-medium text-[var(--text-1)]">{user.username || "—"}</p>
                             </div>
                             <div>
                               <span className="text-[var(--text-3)]">User ID</span>
-                              <p className="font-mono text-[11px] text-gompa-slate truncate">{user.id}</p>
+                              <p className="font-mono text-[11px] text-[var(--text-1)] truncate">{user.id}</p>
                             </div>
                           </div>
 
@@ -384,7 +384,7 @@ export default function InactiveUsersTab() {
                             <button
                               onClick={() => handleReactivate(user.id)}
                               disabled={isReactivating}
-                              className="flex items-center gap-1.5 rounded-lg bg-[var(--accent-muted)] px-3 py-1.5 text-xs font-medium text-[#b25c1c] hover:bg-[var(--accent-muted)] transition-all disabled:opacity-50"
+                              className="flex items-center gap-1.5 rounded-lg bg-[var(--accent-muted)] px-3 py-1.5 text-xs font-medium text-[var(--accent-text)] hover:bg-[var(--accent-muted)] transition-all disabled:opacity-50"
                             >
                               {isReactivating ? (
                                 <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[var(--accent-border)] border-t-green-500" />
@@ -415,10 +415,10 @@ export default function InactiveUsersTab() {
           <div className="flex items-center justify-between border-t border-[var(--border-soft)] px-4 py-2.5">
             <span className="text-xs text-[var(--text-3)]">Page {pagination.page} of {pagination.totalPages}</span>
             <div className="flex gap-1.5">
-              <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-2)] hover:bg-brand-50 disabled:opacity-40">
+              <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-2)] hover:bg-[var(--accent-muted)] disabled:opacity-40">
                 <ChevronLeft className="h-3.5 w-3.5" />
               </button>
-              <button disabled={page >= pagination.totalPages} onClick={() => setPage((p) => p + 1)} className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-2)] hover:bg-brand-50 disabled:opacity-40">
+              <button disabled={page >= pagination.totalPages} onClick={() => setPage((p) => p + 1)} className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-2)] hover:bg-[var(--accent-muted)] disabled:opacity-40">
                 <ChevronRight className="h-3.5 w-3.5" />
               </button>
             </div>

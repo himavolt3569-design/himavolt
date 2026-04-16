@@ -11,7 +11,7 @@ const deals = [
     title: "50% Off First Order",
     subtitle: "Use code NAMASTE50 at checkout",
     Icon: Percent,
-    gradient: "from-[#eaa94d] to-[#d67620]",
+    gradient: "from-[var(--accent)] to-[var(--accent-hover)]",
   },
   {
     id: 2,
@@ -45,7 +45,7 @@ export default function DealsSection() {
     <section ref={sectionRef} className="bg-[var(--canvas)]">
       <div className="mx-auto max-w-[1440px] px-4 md:px-8 lg:px-12 py-16 md:py-24">
         {/* Hero banner */}
-        <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-[#eaa94d] via-[#e58f2a] to-[#d67620] p-8 md:p-12 lg:p-16 mb-10">
+        <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-[var(--accent)] via-[#e58f2a] to-[var(--accent-hover)] p-8 md:p-12 lg:p-16 mb-10">
           <div className="absolute right-0 top-0 bottom-0 w-[45%] hidden md:block pointer-events-none">
             <motion.div
               style={{ y: img1Y }}
@@ -93,7 +93,7 @@ export default function DealsSection() {
               whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-              className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-sm px-4 py-2 text-[10px] font-bold text-white/90 uppercase tracking-wider border border-white/10 mb-5"
+              className="inline-flex items-center gap-2 rounded-full bg-[var(--canvas)]/80 backdrop-blur-sm px-4 py-2 text-[10px] font-bold text-white/90 uppercase tracking-wider border border-white/10 mb-5"
             >
               <Sparkles className="h-3.5 w-3.5" />
               Limited time offers
@@ -127,7 +127,7 @@ export default function DealsSection() {
             >
               <Link
                 href="/offers"
-                className="group inline-flex items-center gap-2.5 rounded-xl bg-white px-6 py-3 text-sm font-bold text-[#3e1e0c] shadow-lg shadow-black/20 transition-all hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0"
+                className="group inline-flex items-center gap-2.5 rounded-xl bg-[var(--canvas)] px-6 py-3 text-sm font-bold text-[var(--text-1)] shadow-lg shadow-black/20 transition-all hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0"
               >
                 View All Offers
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />

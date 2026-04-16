@@ -23,7 +23,7 @@ export default function TableSessionBanner({
     status === "PREPARING"
       ? "bg-[var(--accent)]"
       : status === "READY"
-        ? "bg-[#eaa94d]"
+        ? "bg-[var(--accent)]"
         : status === "ACCEPTED"
           ? "bg-blue-500"
           : "bg-[var(--accent)]";

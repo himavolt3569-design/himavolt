@@ -114,7 +114,7 @@ function paymentLabel(method: string) {
 
 function statusColor(status: string) {
   if (status === "DELIVERED")
-    return "bg-[#fef9ef] text-[#b25c1c] border-[#eaa94d]/30";
+    return "bg-[#fef9ef] text-[var(--accent-text)] border-[var(--accent)]/30";
   if (status === "CANCELLED" || status === "REJECTED")
     return "bg-red-50 text-red-700 border-red-200";
   return "bg-[var(--accent-muted)] text-[var(--accent-text)] border-[var(--accent-border)]";
@@ -201,15 +201,15 @@ export default function BillPage() {
           className="text-center space-y-4"
         >
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-red-50">
-            <AlertCircle className="h-7 w-7 text-[#eaa94d]" />
+            <AlertCircle className="h-7 w-7 text-[var(--accent)]" />
           </div>
-          <p className="text-lg font-bold text-[#3e1e0c]">Bill not found</p>
+          <p className="text-lg font-bold text-[var(--text-1)]">Bill not found</p>
           <p className="text-sm text-[var(--text-3)]">
             This order may not have a bill yet
           </p>
           <Link
             href="/"
-            className="inline-flex items-center gap-2 rounded-xl bg-[#eaa94d] px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-[#eaa94d]/20"
+            className="inline-flex items-center gap-2 rounded-xl bg-[var(--accent)] px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-[var(--accent)]/20"
           >
             <ArrowLeft className="h-4 w-4" /> Back to Home
           </Link>
@@ -235,7 +235,7 @@ export default function BillPage() {
         <div className="mx-auto max-w-2xl flex items-center justify-between px-4 py-3">
           <Link
             href={`/track/${order.id}`}
-            className="flex items-center gap-2 text-sm font-bold text-[var(--text-2)] hover:text-[#3e1e0c] transition-colors"
+            className="flex items-center gap-2 text-sm font-bold text-[var(--text-2)] hover:text-[var(--text-1)] transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Order
@@ -251,7 +251,7 @@ export default function BillPage() {
               onClick={onDownload}
               disabled={downloading || !isPaid}
               title={!isPaid ? "Bill can only be downloaded after payment is collected" : undefined}
-              className="flex items-center gap-2 rounded-xl border border-[var(--border)] px-4 py-2.5 text-xs font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] hover:border-[#eaa94d]/20 hover:text-[#eaa94d] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 rounded-xl border border-[var(--border)] px-4 py-2.5 text-xs font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] hover:border-[var(--accent)]/20 hover:text-[var(--accent)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {downloading ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -262,7 +262,7 @@ export default function BillPage() {
             </button>
             <button
               onClick={handlePrint}
-              className="flex items-center gap-2 rounded-xl bg-[#eaa94d] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#d67620] transition-all shadow-sm shadow-[#eaa94d]/20"
+              className="flex items-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-2.5 text-xs font-bold text-white hover:bg-[var(--accent-hover)] transition-all shadow-sm shadow-[var(--accent)]/20"
             >
               <Printer className="h-3.5 w-3.5" />
               {printLabel}
@@ -300,7 +300,7 @@ export default function BillPage() {
                 <div
                   className={`rounded-xl px-3 py-1.5 text-[11px] font-bold border ${
                     isPaid
-                      ? "bg-[#eaa94d]/10 text-[#d67620] border-[#eaa94d]/20"
+                      ? "bg-[var(--accent)]/10 text-[var(--accent-hover)] border-[var(--accent)]/20"
                       : "bg-[var(--accent-border)] text-[var(--accent)] border-[var(--accent)]/20"
                   }`}
                 >
@@ -333,7 +333,7 @@ export default function BillPage() {
               <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-3)]">
                 From
               </p>
-              <p className="text-sm font-bold text-[#3e1e0c]">
+              <p className="text-sm font-bold text-[var(--text-1)]">
                 {order.restaurant.name}
               </p>
               <p className="text-[12px] text-[var(--text-2)] flex items-center gap-1">
@@ -349,7 +349,7 @@ export default function BillPage() {
                 <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-3)]">
                   Bill to
                 </p>
-                <p className="text-sm font-bold text-[#3e1e0c]">
+                <p className="text-sm font-bold text-[var(--text-1)]">
                   {order.user.name || "Guest"}
                 </p>
                 {order.user.email && (
@@ -408,7 +408,7 @@ export default function BillPage() {
                     className={`${i < order.items.length - 1 ? "border-b border-[var(--border-soft)]" : ""}`}
                   >
                     <td className="py-3">
-                      <p className="font-bold text-[#3e1e0c] text-[13px]">
+                      <p className="font-bold text-[var(--text-1)] text-[13px]">
                         {item.name}
                       </p>
                       {item.addOns && (
@@ -423,7 +423,7 @@ export default function BillPage() {
                     <td className="py-3 text-right text-[var(--text-2)] font-medium">
                       {formatPrice(item.price, cur)}
                     </td>
-                    <td className="py-3 text-right font-bold text-[#3e1e0c]">
+                    <td className="py-3 text-right font-bold text-[var(--text-1)]">
                       {formatPrice(item.price * item.quantity, cur)}
                     </td>
                   </tr>
@@ -436,14 +436,14 @@ export default function BillPage() {
           <div className="px-6 sm:px-8 py-5 bg-[var(--canvas-sub)] border-t border-[var(--border-soft)] space-y-2.5 print:bg-[var(--canvas-sub)]">
             <div className="flex justify-between text-[13px]">
               <span className="text-[var(--text-2)]">Subtotal</span>
-              <span className="font-medium text-[#3e1e0c]">
+              <span className="font-medium text-[var(--text-1)]">
                 {formatPrice(bill.subtotal, cur)}
               </span>
             </div>
             {bill.tax > 0 && (
               <div className="flex justify-between text-[13px]">
                 <span className="text-[var(--text-2)]">Tax</span>
-                <span className="font-medium text-[#3e1e0c]">
+                <span className="font-medium text-[var(--text-1)]">
                   {formatPrice(bill.tax, cur)}
                 </span>
               </div>
@@ -451,7 +451,7 @@ export default function BillPage() {
             {bill.serviceCharge > 0 && (
               <div className="flex justify-between text-[13px]">
                 <span className="text-[var(--text-2)]">Service Charge</span>
-                <span className="font-medium text-[#3e1e0c]">
+                <span className="font-medium text-[var(--text-1)]">
                   {formatPrice(bill.serviceCharge, cur)}
                 </span>
               </div>
@@ -459,25 +459,25 @@ export default function BillPage() {
             {order.deliveryFee > 0 && (
               <div className="flex justify-between text-[13px]">
                 <span className="text-[var(--text-2)]">Delivery Fee</span>
-                <span className="font-medium text-[#3e1e0c]">
+                <span className="font-medium text-[var(--text-1)]">
                   {formatPrice(order.deliveryFee, cur)}
                 </span>
               </div>
             )}
             {bill.discount > 0 && (
               <div className="flex justify-between text-[13px]">
-                <span className="text-[#eaa94d] font-medium">Discount</span>
-                <span className="font-medium text-[#eaa94d]">
+                <span className="text-[var(--accent)] font-medium">Discount</span>
+                <span className="font-medium text-[var(--accent)]">
                   -{formatPrice(bill.discount, cur)}
                 </span>
               </div>
             )}
 
             <div className="border-t-2 border-dashed border-[var(--border)] mt-3 pt-3 flex justify-between items-baseline">
-              <span className="text-base font-extrabold text-[#3e1e0c]">
+              <span className="text-base font-extrabold text-[var(--text-1)]">
                 Grand Total
               </span>
-              <span className="text-2xl font-extrabold text-[#3e1e0c]">
+              <span className="text-2xl font-extrabold text-[var(--text-1)]">
                 {formatPrice(bill.total, cur)}
               </span>
             </div>
@@ -493,11 +493,11 @@ export default function BillPage() {
                   }`}
                 >
                   <CreditCard
-                    className={`h-5 w-5 ${isPaid ? "text-[#b25c1c]" : "text-[var(--accent-text)]"}`}
+                    className={`h-5 w-5 ${isPaid ? "text-[var(--accent-text)]" : "text-[var(--accent-text)]"}`}
                   />
                 </div>
                 <div className="flex-1">
-                  <p className="text-[13px] font-bold text-[#3e1e0c]">
+                  <p className="text-[13px] font-bold text-[var(--text-1)]">
                     {paymentLabel(order.payment.method)}
                   </p>
                   <p className="text-[11px] text-[var(--text-3)]">
@@ -509,7 +509,7 @@ export default function BillPage() {
                 <span
                   className={`rounded-lg px-2.5 py-1 text-[11px] font-bold ${
                     isPaid
-                      ? "bg-[#fef9ef] text-[#b25c1c]"
+                      ? "bg-[#fef9ef] text-[var(--accent-text)]"
                       : "bg-[var(--accent-muted)] text-[var(--accent-text)]"
                   }`}
                 >
@@ -537,7 +537,7 @@ export default function BillPage() {
 
           {/* ── Footer ─────────────────────────────── */}
           <div className="px-6 sm:px-8 py-6 border-t border-[var(--border-soft)] text-center space-y-2">
-            <p className="text-[12px] font-bold text-[#eaa94d]">
+            <p className="text-[12px] font-bold text-[var(--accent)]">
               Thank you for dining with us!
             </p>
             <p className="text-[11px] text-[var(--text-3)]">
@@ -562,7 +562,7 @@ export default function BillPage() {
             onClick={onDownload}
             disabled={downloading || !isPaid}
             title={!isPaid ? "Bill can only be downloaded after payment is collected" : undefined}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-2xl border-2 border-[var(--border)] px-6 py-3.5 text-sm font-bold text-[var(--text-2)] hover:border-[#eaa94d]/30 hover:text-[#eaa94d] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-2xl border-2 border-[var(--border)] px-6 py-3.5 text-sm font-bold text-[var(--text-2)] hover:border-[var(--accent)]/30 hover:text-[var(--accent)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {downloading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -573,7 +573,7 @@ export default function BillPage() {
           </button>
           <button
             onClick={handlePrint}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#eaa94d] to-[#e58f2a] px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-[#eaa94d]/20 hover:shadow-xl hover:-translate-y-0.5 transition-all"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[var(--accent)] to-[#e58f2a] px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-[var(--accent)]/20 hover:shadow-xl hover:-translate-y-0.5 transition-all"
           >
             <Printer className="h-4 w-4" />
             {printLabel}
@@ -590,7 +590,7 @@ export default function BillPage() {
           >
             <div className="flex items-center justify-center gap-2 mb-2">
               <Star className="h-4 w-4 text-[var(--accent)]" />
-              <span className="text-sm font-bold text-[#3e1e0c]">Share your feedback</span>
+              <span className="text-sm font-bold text-[var(--text-1)]">Share your feedback</span>
             </div>
             <p className="text-xs text-[var(--text-2)] mb-4">
               Scan the QR below or tap the link to rate your experience

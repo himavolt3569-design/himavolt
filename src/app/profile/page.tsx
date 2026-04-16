@@ -93,10 +93,10 @@ export default function ProfilePage() {
           animate={{ opacity: 1, scale: 1 }}
           className="text-center max-w-sm"
         >
-          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-saffron-flame/10 mb-5">
-            <User className="h-10 w-10 text-saffron-flame" />
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[var(--accent-muted)] mb-5">
+            <User className="h-10 w-10 text-[var(--accent)]" />
           </div>
-          <h2 className="text-xl font-bold text-gompa-slate mb-2">
+          <h2 className="text-xl font-bold text-[var(--text-1)] mb-2">
             Sign in to your account
           </h2>
           <p className="text-sm text-[var(--text-2)] mb-6">
@@ -105,7 +105,7 @@ export default function ProfilePage() {
           </p>
           <Link
             href="/sign-in"
-            className="inline-flex items-center gap-2 rounded-xl bg-saffron-flame px-6 py-3 text-sm font-bold text-white hover:bg-saffron-flame/90 transition-colors"
+            className="inline-flex items-center gap-2 rounded-xl bg-[var(--accent)] px-6 py-3 text-sm font-bold text-white hover:bg-[var(--accent)]/90 transition-colors"
           >
             Sign In
           </Link>
@@ -132,10 +132,10 @@ export default function ProfilePage() {
       <header className="sticky top-0 z-40 bg-[var(--canvas)] border-b border-[var(--border-soft)] shadow-sm">
         <div className="mx-auto max-w-2xl px-4">
           <div className="flex h-14 items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-saffron-flame/10">
-              <User className="h-5 w-5 text-saffron-flame" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent-muted)]">
+              <User className="h-5 w-5 text-[var(--accent)]" />
             </div>
-            <h1 className="text-base font-bold text-gompa-slate">Profile</h1>
+            <h1 className="text-base font-bold text-[var(--text-1)]">Profile</h1>
           </div>
         </div>
       </header>
@@ -147,7 +147,7 @@ export default function ProfilePage() {
           className="rounded-2xl border border-[var(--border)] bg-[var(--canvas)] p-5 shadow-sm"
         >
           <div className="flex items-center gap-4">
-            <div className="relative h-16 w-16 shrink-0 rounded-full overflow-hidden ring-2 ring-saffron-flame/20 ring-offset-2">
+            <div className="relative h-16 w-16 shrink-0 rounded-full overflow-hidden ring-2 ring-[var(--accent-border)] ring-offset-2">
               {avatarUrl ? (
                 <Image
                   src={avatarUrl}
@@ -157,13 +157,13 @@ export default function ProfilePage() {
                   sizes="64px"
                 />
               ) : (
-                <div className="flex h-full w-full items-center justify-center bg-saffron-flame/10">
-                  <User className="h-8 w-8 text-saffron-flame" />
+                <div className="flex h-full w-full items-center justify-center bg-[var(--accent-muted)]">
+                  <User className="h-8 w-8 text-[var(--accent)]" />
                 </div>
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <h2 className="text-lg font-bold text-gompa-slate truncate">
+              <h2 className="text-lg font-bold text-[var(--text-1)] truncate">
                 {displayName}
               </h2>
               <p className="text-sm text-[var(--text-2)] truncate">
@@ -175,7 +175,7 @@ export default function ProfilePage() {
                     ? "bg-[var(--accent-muted)] text-[var(--accent-text)]"
                     : dbRole === "ADMIN"
                     ? "bg-purple-100 text-purple-700"
-                    : "bg-saffron-flame/10 text-saffron-flame"
+                    : "bg-[var(--accent-muted)] text-[var(--accent)]"
                 }`}>
                   {dbRole === "OWNER" ? "Restaurant Owner" : dbRole === "ADMIN" ? "Admin" : "Food Lover"}
                 </span>
@@ -191,11 +191,11 @@ export default function ProfilePage() {
         >
           <div className="rounded-2xl border border-[var(--border)] bg-[var(--canvas)] p-4 shadow-sm">
             <div className="flex items-center gap-2 mb-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-saffron-flame/10">
-                <ShoppingBag className="h-4 w-4 text-saffron-flame" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent-muted)]">
+                <ShoppingBag className="h-4 w-4 text-[var(--accent)]" />
               </div>
             </div>
-            <p className="text-2xl font-extrabold text-gompa-slate">
+            <p className="text-2xl font-extrabold text-[var(--text-1)]">
               {stats.totalOrders}
             </p>
             <p className="text-xs text-[var(--text-3)] font-medium mt-0.5">
@@ -204,11 +204,11 @@ export default function ProfilePage() {
           </div>
           <div className="rounded-2xl border border-[var(--border)] bg-[var(--canvas)] p-4 shadow-sm">
             <div className="flex items-center gap-2 mb-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-saffron-flame/10">
-                <CalendarDays className="h-4 w-4 text-saffron-flame" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent-muted)]">
+                <CalendarDays className="h-4 w-4 text-[var(--accent)]" />
               </div>
             </div>
-            <p className="text-sm font-extrabold text-gompa-slate">
+            <p className="text-sm font-extrabold text-[var(--text-1)]">
               {memberSince}
             </p>
             <p className="text-xs text-[var(--text-3)] font-medium mt-0.5">
@@ -235,18 +235,18 @@ export default function ProfilePage() {
             <div
               className={`flex h-9 w-9 items-center justify-center rounded-xl ${
                 soundEnabled
-                  ? "bg-saffron-flame/10"
+                  ? "bg-[var(--accent-muted)]"
                   : "bg-[var(--surface)]"
               }`}
             >
               {soundEnabled ? (
-                <Volume2 className="h-4 w-4 text-saffron-flame" />
+                <Volume2 className="h-4 w-4 text-[var(--accent)]" />
               ) : (
                 <VolumeX className="h-4 w-4 text-[var(--text-3)]" />
               )}
             </div>
             <div className="flex-1 text-left">
-              <p className="text-sm font-semibold text-gompa-slate">
+              <p className="text-sm font-semibold text-[var(--text-1)]">
                 Sound Notifications
               </p>
               <p className="text-[11px] text-[var(--text-3)]">
@@ -257,7 +257,7 @@ export default function ProfilePage() {
             </div>
             <div
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                soundEnabled ? "bg-saffron-flame" : "bg-[var(--surface-alt)]"
+                soundEnabled ? "bg-[var(--accent)]" : "bg-[var(--surface-alt)]"
               }`}
             >
               <motion.div
@@ -284,11 +284,11 @@ export default function ProfilePage() {
             href="/orders"
             className="flex items-center gap-3 px-5 py-4 hover:bg-[var(--canvas-sub)] transition-colors border-b border-[var(--border-soft)]"
           >
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-saffron-flame/10">
-              <Receipt className="h-4 w-4 text-saffron-flame" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent-muted)]">
+              <Receipt className="h-4 w-4 text-[var(--accent)]" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-semibold text-gompa-slate">
+              <p className="text-sm font-semibold text-[var(--text-1)]">
                 Order History
               </p>
               <p className="text-[11px] text-[var(--text-3)]">
@@ -307,7 +307,7 @@ export default function ProfilePage() {
               <HelpCircle className="h-4 w-4 text-blue-500" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-semibold text-gompa-slate">
+              <p className="text-sm font-semibold text-[var(--text-1)]">
                 Help & Support
               </p>
               <p className="text-[11px] text-[var(--text-3)]">
@@ -325,7 +325,7 @@ export default function ProfilePage() {
               <Shield className="h-4 w-4 text-[var(--text-2)]" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-semibold text-gompa-slate">
+              <p className="text-sm font-semibold text-[var(--text-1)]">
                 Legal
               </p>
               <p className="text-[11px] text-[var(--text-3)]">

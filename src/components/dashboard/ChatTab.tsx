@@ -42,7 +42,7 @@ const STATUS_COLORS: Record<string, string> = {
   PENDING: "bg-[var(--accent)] text-[var(--accent)]",
   ACCEPTED: "bg-blue-100 text-blue-700",
   PREPARING: "bg-[var(--accent-muted)] text-[var(--accent-text)]",
-  READY: "bg-[var(--accent-muted)] text-[#b25c1c]",
+  READY: "bg-[var(--accent-muted)] text-[var(--accent-text)]",
   DELIVERED: "bg-[var(--surface)] text-[var(--text-2)]",
 };
 

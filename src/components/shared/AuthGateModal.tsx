@@ -43,11 +43,11 @@ export default function AuthGateModal({
             </button>
 
             <div className="text-center">
-              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50">
-                <Mountain className="h-7 w-7 text-brand-400" strokeWidth={2} />
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--accent-muted)]">
+                <Mountain className="h-7 w-7 text-[var(--accent)]" strokeWidth={2} />
               </div>
 
-              <h3 className="text-lg font-bold text-brand-950 mb-1.5">
+              <h3 className="text-lg font-bold text-[var(--text-1)] mb-1.5">
                 {title}
               </h3>
               <p className="text-sm text-[var(--text-2)] leading-relaxed mb-6">
@@ -57,14 +57,14 @@ export default function AuthGateModal({
               <div className="space-y-2.5">
                 <Link
                   href="/sign-in"
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand-400 py-3 text-sm font-bold text-white shadow-md shadow-brand-400/20 transition-all hover:bg-brand-500 active:scale-[0.98]"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--accent)] py-3 text-sm font-bold text-white shadow-md shadow-[var(--accent)]/20/20 transition-all hover:bg-[var(--accent)] active:scale-[0.98]"
                 >
                   <LogIn className="h-4 w-4" />
                   Sign In
                 </Link>
                 <Link
                   href="/sign-up"
-                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-[var(--border)] py-3 text-sm font-bold text-brand-950 transition-all hover:bg-brand-50 active:scale-[0.98]"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-[var(--border)] py-3 text-sm font-bold text-[var(--text-1)] transition-all hover:bg-[var(--accent-muted)] active:scale-[0.98]"
                 >
                   Create Account
                 </Link>

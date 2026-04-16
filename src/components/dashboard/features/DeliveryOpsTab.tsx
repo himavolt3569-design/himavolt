@@ -42,7 +42,7 @@ const STATUS_COLORS: Record<DeliveryStatus, string> = {
   Preparing: "bg-[var(--accent-muted)] text-[var(--accent-text)]",
   "Ready for Pickup": "bg-blue-100 text-blue-700",
   "Out for Delivery": "bg-violet-100 text-violet-700",
-  Delivered: "bg-[var(--accent-muted)] text-[#b25c1c]",
+  Delivered: "bg-[var(--accent-muted)] text-[var(--accent-text)]",
 };
 
 const STATUS_ICONS: Record<DeliveryStatus, React.ReactNode> = {
@@ -160,7 +160,7 @@ export default function DeliveryOpsTab() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-[var(--accent-muted)] rounded-lg">
-                <Zap className="w-5 h-5 text-[#b25c1c]" />
+                <Zap className="w-5 h-5 text-[var(--accent-text)]" />
               </div>
               <div>
                 <p className="text-sm font-semibold text-[var(--text-1)]">
@@ -176,7 +176,7 @@ export default function DeliveryOpsTab() {
               className="focus:outline-none"
             >
               {autoAccept ? (
-                <ToggleRight className="w-10 h-10 text-[#b25c1c]" />
+                <ToggleRight className="w-10 h-10 text-[var(--accent-text)]" />
               ) : (
                 <ToggleLeft className="w-10 h-10 text-[var(--text-3)]" />
               )}
@@ -249,7 +249,7 @@ export default function DeliveryOpsTab() {
           <p className="text-xs text-[var(--text-2)]">In Progress</p>
         </div>
         <div className="bg-[var(--canvas)] rounded-xl shadow-sm border border-[var(--border-soft)] p-4 text-center">
-          <CheckCircle2 className="w-5 h-5 text-[#d67620] mx-auto mb-1" />
+          <CheckCircle2 className="w-5 h-5 text-[var(--accent-hover)] mx-auto mb-1" />
           <p className="text-2xl font-bold text-[var(--text-1)]">{deliveredCount}</p>
           <p className="text-xs text-[var(--text-2)]">Delivered Today</p>
         </div>
@@ -286,7 +286,7 @@ export default function DeliveryOpsTab() {
                 ? "text-red-600"
                 : loadPercent > 50
                 ? "text-[var(--accent-text)]"
-                : "text-[#b25c1c]"
+                : "text-[var(--accent-text)]"
             }`}
           >
             {loadPercent}%

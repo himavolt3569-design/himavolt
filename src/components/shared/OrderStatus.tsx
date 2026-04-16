@@ -50,14 +50,14 @@ function CountdownTimer({
         <svg className="h-full w-full -rotate-90" viewBox="0 0 100 100">
           <circle cx="50" cy="50" r="42" fill="none" stroke="#f3f4f6" strokeWidth="6" />
           <motion.circle
-            cx="50" cy="50" r="42" fill="none" stroke="#eaa94d" strokeWidth="6"
+            cx="50" cy="50" r="42" fill="none" stroke="var(--accent)" strokeWidth="6"
             strokeLinecap="round" strokeDasharray={264}
             animate={{ strokeDashoffset: 264 * (1 - progress) }}
             transition={{ duration: 1, ease: "easeOut" }}
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <Timer className="h-3.5 w-3.5 text-[#eaa94d] mb-0.5" />
+          <Timer className="h-3.5 w-3.5 text-[var(--accent)] mb-0.5" />
           <span className="text-xl font-black text-[var(--text-1)] tabular-nums">
             {mins}:{secs.toString().padStart(2, "0")}
           </span>
@@ -65,7 +65,7 @@ function CountdownTimer({
         </div>
       </div>
       {remaining === 0 && (
-        <p className="mt-2 text-xs font-bold text-[#eaa94d]">Should be ready any moment!</p>
+        <p className="mt-2 text-xs font-bold text-[var(--accent)]">Should be ready any moment!</p>
       )}
     </div>
   );
@@ -123,7 +123,7 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
   if (!activeOrder) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[var(--canvas)]">
-        <Loader2 className="h-8 w-8 animate-spin text-[#eaa94d]" />
+        <Loader2 className="h-8 w-8 animate-spin text-[var(--accent)]" />
       </div>
     );
   }
@@ -164,12 +164,12 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
           ) : activeOrder.status === "PREPARING" ? (
             <div
               ref={clockRef}
-              className="mx-auto relative flex h-20 w-20 items-center justify-center rounded-full border-[3px] border-[#eaa94d] bg-[var(--canvas)] shadow-xl mb-4"
+              className="mx-auto relative flex h-20 w-20 items-center justify-center rounded-full border-[3px] border-[var(--accent)] bg-[var(--canvas)] shadow-xl mb-4"
             >
-              <div className="absolute top-1/2 left-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#eaa94d] z-10" />
+              <div className="absolute top-1/2 left-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--accent)] z-10" />
               <div
                 ref={handRef}
-                className="absolute bottom-1/2 left-1/2 h-6 w-[2px] -translate-x-1/2 rounded-full bg-[#eaa94d] origin-bottom"
+                className="absolute bottom-1/2 left-1/2 h-6 w-[2px] -translate-x-1/2 rounded-full bg-[var(--accent)] origin-bottom"
               />
             </div>
           ) : activeOrder.status === "DELIVERED" ? (
@@ -177,7 +177,7 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ type: "spring", damping: 15, stiffness: 200 }}
-              className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#3e1e0c] mb-4"
+              className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[var(--text-1)] mb-4"
             >
               <CheckCircle2 className="h-10 w-10 text-white" />
             </motion.div>
@@ -185,7 +185,7 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
             <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[var(--accent-muted)] mb-4">
               {(() => {
                 const Icon = STEPS[currentIdx]?.icon ?? Clock;
-                return <Icon className="h-10 w-10 text-[#eaa94d]" />;
+                return <Icon className="h-10 w-10 text-[var(--accent)]" />;
               })()}
             </div>
           )}
@@ -251,7 +251,7 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
                     <motion.div
                       animate={{ scale: [1, 1.6, 1], opacity: [0.5, 0, 0.5] }}
                       transition={{ duration: 2, repeat: Infinity }}
-                      className="absolute inset-0 rounded-full bg-[#3e1e0c]"
+                      className="absolute inset-0 rounded-full bg-[var(--text-1)]"
                     />
                   )}
                 </div>
@@ -272,7 +272,7 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
             initial={false}
             animate={{ width: `${((currentIdx + 1) / STEPS.length) * 100}%` }}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className="absolute inset-y-0 left-0 rounded-full bg-[#3e1e0c]"
+            className="absolute inset-y-0 left-0 rounded-full bg-[var(--text-1)]"
           />
         </div>
 
@@ -283,7 +283,7 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
           {activeOrder.items.map((item) => (
             <div key={item.id} className="flex items-center justify-between py-1.5">
               <div className="flex items-center gap-2">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--accent-muted)] text-[10px] font-bold text-[#eaa94d]">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--accent-muted)] text-[10px] font-bold text-[var(--accent)]">
                   {item.quantity}
                 </span>
                 <span className="text-sm font-medium text-[var(--text-1)]">{item.name}</span>
@@ -295,7 +295,7 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
           ))}
           <div className="border-t border-[var(--border)] pt-3 flex items-center justify-between">
             <span className="text-sm font-bold text-[var(--text-1)]">Total</span>
-            <span className="text-base font-extrabold text-[#eaa94d]">
+            <span className="text-base font-extrabold text-[var(--accent)]">
               {formatPrice(activeOrder.total, currency)}
             </span>
           </div>

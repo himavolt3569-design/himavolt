@@ -38,7 +38,7 @@ const STATUS_COLOR: Record<string, string> = {
   PENDING:   "bg-[var(--accent)] text-[var(--accent)]",
   ACCEPTED:  "bg-blue-100 text-blue-700",
   PREPARING: "bg-[var(--accent-muted)] text-[var(--accent-text)]",
-  READY:     "bg-[var(--accent-muted)] text-[#b25c1c]",
+  READY:     "bg-[var(--accent-muted)] text-[var(--accent-text)]",
   DELIVERED: "bg-[var(--surface)] text-[var(--text-2)]",
 };
 
@@ -112,7 +112,11 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
   }, [load]);
 
   const handleAdd = async () => {
-    if (!rid || !addNo) return;
+    if (!rid) {
+      showToast("Restaurant not loaded — please refresh", "error");
+      return;
+    }
+    if (!addNo) return;
     setAddSaving(true);
     try {
       const res = await fetch(`/api/restaurants/${rid}/tables`, {
@@ -123,7 +127,7 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        alert(body.error ?? "Failed to create table");
+        showToast(body.error ?? "Failed to create table", "error");
         return;
       }
       setShowAdd(false); setAddNo(""); setAddLabel(""); setAddCap("4");
@@ -254,7 +258,7 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
           <div>
             <h2 className="text-base font-extrabold text-[var(--text-1)]">Table Management</h2>
             <p className="text-xs text-[var(--text-3)]">
-              {tables.length} tables · <span className="text-[#b25c1c] font-semibold">{available} free</span>
+              {tables.length} tables · <span className="text-[var(--accent-text)] font-semibold">{available} free</span>
               {occupied > 0 && <> · <span className="text-[var(--accent)] font-semibold">{occupied} occupied</span></>}
             </p>
           </div>
@@ -273,7 +277,7 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
               </button>
               <button
                 onClick={() => setShowAdd(true)}
-                className="flex items-center gap-1.5 rounded-xl bg-[#3e1e0c] px-3 py-2 text-xs font-bold text-white hover:bg-[#2d1508] transition-colors"
+                className="flex items-center gap-1.5 rounded-xl bg-[var(--text-1)] px-3 py-2 text-xs font-bold text-white hover:bg-[#2d1508] transition-colors"
               >
                 <Plus className="h-3.5 w-3.5" /> Add Table
               </button>
@@ -284,13 +288,13 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
 
       <div className="flex items-center gap-4 text-xs text-[var(--text-2)]">
         <span className="flex items-center gap-1.5">
-          <span className="h-3 w-3 rounded-full bg-[#eaa94d] inline-block" />Available
+          <span className="h-3 w-3 rounded-full bg-[var(--accent)] inline-block" />Available
         </span>
         <span className="flex items-center gap-1.5">
           <span className="h-3 w-3 rounded-full bg-[var(--accent)] inline-block" />Occupied
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="h-3 w-3 rounded-full bg-[#eaa94d] inline-block" />Paid
+          <span className="h-3 w-3 rounded-full bg-[var(--accent)] inline-block" />Paid
         </span>
       </div>
 
@@ -316,11 +320,11 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
           {tables.map((table) => {
             const isPaid = table.session?.order?.payment?.status === "COMPLETED";
             const bgClass = !table.isOccupied
-              ? "bg-[var(--accent-muted)] border-[var(--accent-border)] hover:border-[#eaa94d]"
+              ? "bg-[var(--accent-muted)] border-[var(--accent-border)] hover:border-[var(--accent)]"
               : isPaid
-                ? "bg-[var(--accent-muted)] border-[#eaa94d] hover:border-[#eaa94d]"
+                ? "bg-[var(--accent-muted)] border-[var(--accent)] hover:border-[var(--accent)]"
                 : "bg-[var(--accent)] border-[var(--accent-border)] hover:border-[var(--accent-border)]";
-            const dotClass = !table.isOccupied ? "bg-[#eaa94d]" : isPaid ? "bg-[#eaa94d]" : "bg-[var(--accent)]";
+            const dotClass = !table.isOccupied ? "bg-[var(--accent)]" : isPaid ? "bg-[var(--accent)]" : "bg-[var(--accent)]";
 
             return (
               <motion.button
@@ -351,7 +355,7 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
                       <button
                         onClick={() => handleEdit(table.id)}
                         disabled={editSaving}
-                        className="flex-1 flex items-center justify-center rounded-lg bg-[#eaa94d] py-1 text-[10px] font-bold text-white"
+                        className="flex-1 flex items-center justify-center rounded-lg bg-[var(--accent)] py-1 text-[10px] font-bold text-white"
                       >
                         {editSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
                       </button>
@@ -416,7 +420,7 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
                         </div>
                       </div>
                     ) : (
-                      <p className="text-xs font-semibold text-[#b25c1c]">Available</p>
+                      <p className="text-xs font-semibold text-[var(--accent-text)]">Available</p>
                     )}
 
                     <ChevronRight className="absolute bottom-3 right-3 h-3 w-3 text-[var(--text-3)]" />
@@ -458,9 +462,9 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
               {!selected.isOccupied ? (
                 <div className="flex flex-col items-center gap-3 py-6">
                   <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--accent-muted)]">
-                    <Utensils className="h-7 w-7 text-[#b25c1c]" />
+                    <Utensils className="h-7 w-7 text-[var(--accent-text)]" />
                   </div>
-                  <p className="text-sm font-bold text-[#b25c1c]">Table is Available</p>
+                  <p className="text-sm font-bold text-[var(--accent-text)]">Table is Available</p>
                   <p className="text-xs text-[var(--text-3)] text-center">
                     Customer can scan the QR code or staff can create a manual order for this table.
                   </p>
@@ -494,7 +498,7 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
                         <div className="flex items-center gap-1.5 text-[10px]">
                           <CreditCard className="h-3 w-3 text-[var(--text-3)]" />
                           <span className="text-[var(--text-2)]">{order.payment.method}</span>
-                          <span className={`rounded-md px-1.5 py-0.5 font-bold ${isPaid ? "bg-[var(--accent-muted)] text-[#b25c1c]" : "bg-[var(--accent-muted)] text-[var(--accent-text)]"}`}>
+                          <span className={`rounded-md px-1.5 py-0.5 font-bold ${isPaid ? "bg-[var(--accent-muted)] text-[var(--accent-text)]" : "bg-[var(--accent-muted)] text-[var(--accent-text)]"}`}>
                             {isPaid ? "PAID" : "PENDING"}
                           </span>
                         </div>
@@ -590,7 +594,7 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
                   Cancel
                 </button>
                 <button onClick={handleAdd} disabled={!addNo || addSaving}
-                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[#3e1e0c] py-3 text-sm font-bold text-white hover:bg-[#2d1508] disabled:opacity-40">
+                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] py-3 text-sm font-bold text-white hover:bg-[#2d1508] disabled:opacity-40">
                   {addSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
                   Add Table
                 </button>
@@ -680,7 +684,7 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
                   Cancel
                 </button>
                 <button onClick={handleBulkCreate} disabled={bulkSaving || !bulkFrom || !bulkTo || parseInt(bulkFrom) > parseInt(bulkTo)}
-                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[#3e1e0c] py-3 text-sm font-bold text-white hover:bg-[#2d1508] disabled:opacity-40">
+                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] py-3 text-sm font-bold text-white hover:bg-[#2d1508] disabled:opacity-40">
                   {bulkSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
                   {bulkSaving ? `Creating... ${bulkProgress}%` : "Create Tables"}
                 </button>

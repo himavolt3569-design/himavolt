@@ -210,8 +210,8 @@ export default function RatingInput({
                   exit={{ opacity: 0, y: -4 }}
                   className="flex items-center gap-2 rounded-lg bg-[var(--accent-muted)] border border-[var(--accent-border)] px-3 py-2"
                 >
-                  <Check className="h-4 w-4 text-[#d67620] shrink-0" />
-                  <span className="text-[12px] font-medium text-[#b25c1c]">
+                  <Check className="h-4 w-4 text-[var(--accent-hover)] shrink-0" />
+                  <span className="text-[12px] font-medium text-[var(--accent-text)]">
                     Thanks for your rating!
                   </span>
                 </motion.div>

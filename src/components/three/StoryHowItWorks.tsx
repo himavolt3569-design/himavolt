@@ -26,7 +26,7 @@ const steps = [
     Icon: QrCode,
     title: "Scan & Browse",
     desc: "Scan the QR code at your table or browse restaurants near you.",
-    accent: "from-[#eaa94d] to-[#d67620]",
+    accent: "from-[var(--accent)] to-[var(--accent-hover)]",
     accentColor: "#eaa94d",
     image:
       "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=400&h=700&fit=crop",
@@ -36,7 +36,7 @@ const steps = [
     Icon: UtensilsCrossed,
     title: "Pick & Order",
     desc: "Choose from digital menus and customize your order effortlessly.",
-    accent: "from-[#eaa94d] to-[#f1c980]",
+    accent: "from-[var(--accent)] to-[#f1c980]",
     accentColor: "#eaa94d",
     image:
       "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=700&fit=crop",
@@ -46,7 +46,7 @@ const steps = [
     Icon: Bell,
     title: "Live Tracking",
     desc: "Real-time updates while we prepare and deliver your food.",
-    accent: "from-[#eaa94d] to-[#34D399]",
+    accent: "from-[var(--accent)] to-[#34D399]",
     accentColor: "#eaa94d",
     image:
       "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=700&fit=crop",
@@ -227,7 +227,7 @@ export default function StoryHowItWorks() {
       <div className="absolute -top-32 left-0 right-0 h-32 bg-gradient-to-b from-transparent to-[#0B0E14] pointer-events-none z-10" />
 
       {/* Ambient glows — softer, fewer */}
-      <div className="absolute top-[15%] left-[15%] h-[500px] w-[500px] rounded-full bg-[#eaa94d]/[0.03] blur-[150px] pointer-events-none" />
+      <div className="absolute top-[15%] left-[15%] h-[500px] w-[500px] rounded-full bg-[var(--accent)]/[0.03] blur-[150px] pointer-events-none" />
       <div className="absolute bottom-[10%] right-[15%] h-[450px] w-[450px] rounded-full bg-[#6366F1]/[0.03] blur-[140px] pointer-events-none" />
 
       <div className="relative z-10 mx-auto max-w-[1440px] px-4 md:px-8 lg:px-12 h-screen flex items-center">
@@ -242,7 +242,7 @@ export default function StoryHowItWorks() {
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight leading-[1.1]">
                 From scan to savour
                 <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#eaa94d] to-[#f1c980]">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--accent)] to-[#f1c980]">
                   in four easy steps.
                 </span>
               </h2>
@@ -372,7 +372,7 @@ export default function StoryHowItWorks() {
                               </div>
                             </div>
                             <div className="flex items-center gap-2 rounded-xl bg-white/8 p-2.5">
-                              <MapPin className="h-4 w-4 text-[#eaa94d]" />
+                              <MapPin className="h-4 w-4 text-[var(--accent)]" />
                               <div>
                                 <p className="text-[10px] font-bold text-white">
                                   Or browse nearby
@@ -405,14 +405,14 @@ export default function StoryHowItWorks() {
                                         {name}
                                       </p>
                                       <div className="flex items-center gap-1">
-                                        <Star className="h-2 w-2 fill-[#eaa94d] text-[#eaa94d]" />
+                                        <Star className="h-2 w-2 fill-[var(--accent)] text-[var(--accent)]" />
                                         <span className="text-[8px] text-white/40">
                                           {(4.3 + j * 0.2).toFixed(1)}
                                         </span>
                                       </div>
                                     </div>
                                   </div>
-                                  <span className="text-[9px] font-bold text-[#eaa94d]">
+                                  <span className="text-[9px] font-bold text-[var(--accent)]">
                                     {formatPrice(220 + j * 130, "NPR")}
                                   </span>
                                 </div>
@@ -432,7 +432,7 @@ export default function StoryHowItWorks() {
                                 </span>
                               </div>
                               <div className="h-1 rounded-full bg-white/10 overflow-hidden">
-                                <div className="h-full w-[65%] rounded-full bg-gradient-to-r from-[#eaa94d] to-[#34D399]" />
+                                <div className="h-full w-[65%] rounded-full bg-gradient-to-r from-[var(--accent)] to-[#34D399]" />
                               </div>
                               <div className="flex items-center justify-between mt-2">
                                 <div className="flex items-center gap-1">
@@ -454,7 +454,7 @@ export default function StoryHowItWorks() {
                                 (s, j) => (
                                   <div key={j} className="flex-1 text-center">
                                     <div
-                                      className={`mx-auto h-5 w-5 rounded-full flex items-center justify-center mb-1 ${j < 2 ? "bg-[#eaa94d]" : "bg-white/8"}`}
+                                      className={`mx-auto h-5 w-5 rounded-full flex items-center justify-center mb-1 ${j < 2 ? "bg-[var(--accent)]" : "bg-white/8"}`}
                                     >
                                       {j < 2 ? (
                                         <Check className="h-2.5 w-2.5 text-white" />
@@ -496,7 +496,7 @@ export default function StoryHowItWorks() {
                                 </span>
                               </div>
                               <div className="flex items-center gap-1">
-                                <Star className="h-2.5 w-2.5 text-[#eaa94d]" />
+                                <Star className="h-2.5 w-2.5 text-[var(--accent)]" />
                                 <span className="text-[9px] text-white/50">
                                   Rate your experience
                                 </span>

@@ -76,23 +76,23 @@ export default function RefundPage() {
               <ArrowLeft className="h-4 w-4" />
             </Link>
             <Link href="/" className="flex items-center gap-2">
-              <Mountain className="h-6 w-6 text-[#eaa94d]" strokeWidth={2.5} />
+              <Mountain className="h-6 w-6 text-[var(--accent)]" strokeWidth={2.5} />
               <span className="text-lg font-extrabold tracking-tight text-[var(--text-1)]">
-                Hima<span className="text-[#eaa94d]">Volt</span>
+                Hima<span className="text-[var(--accent)]">Volt</span>
               </span>
             </Link>
           </div>
           <div className="flex items-center gap-2 text-xs text-[var(--text-3)]">
             <Link
               href="/legal/terms"
-              className="font-bold hover:text-[#eaa94d] transition-colors"
+              className="font-bold hover:text-[var(--accent)] transition-colors"
             >
               Terms
             </Link>
             <span>/</span>
             <Link
               href="/legal/privacy"
-              className="font-bold hover:text-[#eaa94d] transition-colors"
+              className="font-bold hover:text-[var(--accent)] transition-colors"
             >
               Privacy Policy
             </Link>
@@ -100,7 +100,7 @@ export default function RefundPage() {
         </div>
       </header>
 
-      <section className="bg-gradient-to-br from-[#eaa94d] via-[#d67620] to-[#e67a00] text-white">
+      <section className="bg-gradient-to-br from-[var(--accent)] via-[#d67620] to-[#e67a00] text-white">
         <div className="relative z-10 mx-auto max-w-4xl px-4 py-16 sm:px-6 sm:py-20 lg:px-10">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full bg-[var(--canvas)]/15 px-4 py-2 text-sm font-bold text-white/90 mb-5 backdrop-blur-sm border border-white/15">
@@ -130,7 +130,7 @@ export default function RefundPage() {
               }}
             >
               <div className="flex items-start gap-4">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[var(--accent-muted)] text-[#eaa94d] group-hover:bg-[#eaa94d]/15 transition-colors mt-0.5">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[var(--accent-muted)] text-[var(--accent)] group-hover:bg-[var(--accent)]/15 transition-colors mt-0.5">
                   <section.icon className="h-5 w-5" />
                 </div>
                 <div>
@@ -146,13 +146,13 @@ export default function RefundPage() {
           ))}
         </div>
 
-        <div className="mt-16 rounded-2xl bg-[#eaa94d]/5 border border-[#eaa94d]/10 p-8 text-center">
+        <div className="mt-16 rounded-2xl bg-[var(--accent)]/5 border border-[var(--accent)]/10 p-8 text-center">
           <p className="text-sm text-[var(--text-2)] mb-3">
             Need to request a refund or have questions about our policy?
           </p>
           <Link
             href="/contact"
-            className="inline-flex items-center gap-2 rounded-xl bg-[#eaa94d] px-6 py-3 text-sm font-bold text-white hover:bg-[#d67620] transition-all"
+            className="inline-flex items-center gap-2 rounded-xl bg-[var(--accent)] px-6 py-3 text-sm font-bold text-white hover:bg-[var(--accent-hover)] transition-all"
           >
             Contact Support
           </Link>

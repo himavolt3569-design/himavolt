@@ -432,19 +432,19 @@ function QRCard({
         <div ref={qrRef} id={`qr-printable-${tableNo}`} className="w-full flex flex-col items-center bg-[var(--canvas)] pb-4 rounded-xl">
           <div className="mb-4 flex w-full items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#3e1e0c]/10 text-xs font-bold text-[var(--text-1)]">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--text-1)]/10 text-xs font-bold text-[var(--text-1)]">
                 {tableNo}
               </span>
               <span className="text-sm font-bold text-[var(--text-1)]">Table {tableNo}</span>
             </div>
-            <span className="rounded-full bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-bold text-[#b25c1c]">Active</span>
+            <span className="rounded-full bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-bold text-[var(--accent-text)]">Active</span>
           </div>
 
           <div className="relative w-[180px] h-[180px] max-w-full flex items-center justify-center rounded-xl bg-[var(--canvas)] p-4 mb-4 border border-[var(--border-soft)] shadow-sm">
             <QRCode value={tableUrl} size={256} style={{ height: "100%", maxWidth: "100%", width: "100%" }} fgColor="#3e1e0c" bgColor="transparent" level="M" />
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="rounded-sm bg-[var(--canvas)] flex items-center justify-center border border-[var(--border-soft)] px-1.5 py-1 shadow-sm">
-                <span className="text-[9px] font-black text-[#eaa94d] leading-none">
+                <span className="text-[9px] font-black text-[var(--accent)] leading-none">
                   {restaurantName.split(/\s+/).map(w => w[0]).join("").toUpperCase().slice(0, 3)}
                 </span>
               </div>
@@ -456,7 +456,7 @@ function QRCard({
           <button
             ref={downloadRef}
             onClick={handleDownload}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[#3e1e0c] py-2.5 text-xs font-bold text-white hover:bg-[#2d1508] transition-all active:scale-[0.97]"
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[var(--text-1)] py-2.5 text-xs font-bold text-white hover:bg-[#2d1508] transition-all active:scale-[0.97]"
           >
             <Download className="h-3.5 w-3.5" />
             Download
@@ -471,7 +471,7 @@ function QRCard({
           <button
             ref={shareRef}
             onClick={handleShare}
-            className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent-muted)] text-[#eaa94d] hover:bg-[#eaa94d] hover:text-white transition-all"
+            className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent-muted)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white transition-all"
             title="Copy link"
           >
             <Share2 className="h-3.5 w-3.5" />
@@ -629,7 +629,7 @@ export default function QRCodesTab() {
         </div>
 
         <div className="flex items-center gap-2 rounded-xl bg-[var(--canvas)] border border-[var(--border)] px-3 py-2 shadow-sm shrink-0">
-          <TableProperties className="h-4 w-4 text-[#eaa94d]" />
+          <TableProperties className="h-4 w-4 text-[var(--accent)]" />
           <span className="text-xs font-bold text-[var(--text-2)]">
             {loadingTables ? "Loading..." : `${tables.length} table${tables.length !== 1 ? "s" : ""}`}
           </span>
@@ -638,7 +638,7 @@ export default function QRCodesTab() {
       </div>
 
       <div className="flex items-center gap-2 text-xs text-[var(--text-3)]">
-        <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#3e1e0c]" />
+        <span className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--text-1)]" />
         <span>
           <span className="font-semibold text-[var(--text-1)]">{STYLES[cardStyle].label}</span> style selected — this affects how downloaded &amp; printed cards look.
         </span>

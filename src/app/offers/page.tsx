@@ -36,11 +36,11 @@ type OfferBadge = {
 const OFFER_BADGES: OfferBadge[] = [
   { label: "BUY 1 GET 1", isAd: true, bgColor: "bg-black/70" },
   { label: "60% OFF", subLabel: `UPTO ${formatPrice(110, "NPR")}`, isAd: true, bgColor: "bg-black/70" },
-  { label: `FLAT ${formatPrice(100, "NPR")} OFF`, isAd: false, bgColor: "bg-[#eaa94d]/80" },
-  { label: "FREE DELIVERY", isAd: false, bgColor: "bg-[#3e1e0c]/80" },
-  { label: "20% OFF", subLabel: `MIN ORDER ${formatPrice(299, "NPR")}`, isAd: false, bgColor: "bg-[#eaa94d]/90" },
+  { label: `FLAT ${formatPrice(100, "NPR")} OFF`, isAd: false, bgColor: "bg-[var(--accent)]/80" },
+  { label: "FREE DELIVERY", isAd: false, bgColor: "bg-[var(--text-1)]/80" },
+  { label: "20% OFF", subLabel: `MIN ORDER ${formatPrice(299, "NPR")}`, isAd: false, bgColor: "bg-[var(--accent)]/90" },
   { label: "BUY 1 GET 1", isAd: true, bgColor: "bg-black/70" },
-  { label: "30% OFF", subLabel: `UPTO ${formatPrice(75, "NPR")}`, isAd: false, bgColor: "bg-[#eaa94d]/80" },
+  { label: "30% OFF", subLabel: `UPTO ${formatPrice(75, "NPR")}`, isAd: false, bgColor: "bg-[var(--accent)]/80" },
   { label: "50% OFF", subLabel: `UPTO ${formatPrice(150, "NPR")}`, isAd: true, bgColor: "bg-black/70" },
 ];
 
@@ -244,14 +244,14 @@ export default function OffersPage() {
               onClick={clearAllFilters}
               className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[13px] font-semibold transition-all active:scale-95 ${
                 activeFiltersCount > 0
-                  ? "border-[#eaa94d] bg-[#eaa94d]/5 text-[#eaa94d]"
+                  ? "border-[var(--accent)] bg-[var(--accent)]/5 text-[var(--accent)]"
                   : "border-[var(--border)] bg-[var(--canvas)] text-[var(--text-1)]"
               }`}
             >
               <SlidersHorizontal className="h-3.5 w-3.5" strokeWidth={2.5} />
               Filter
               {activeFiltersCount > 0 && (
-                <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#eaa94d] text-[10px] font-bold text-white">
+                <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[var(--accent)] text-[10px] font-bold text-white">
                   {activeFiltersCount}
                 </span>
               )}
@@ -262,7 +262,7 @@ export default function OffersPage() {
                 onClick={() => { setShowSortMenu(!showSortMenu); setShowVegMenu(false); }}
                 className={`flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[13px] font-semibold transition-all active:scale-95 ${
                   sortBy !== "relevance"
-                    ? "border-[#3e1e0c] bg-[#3e1e0c] text-white"
+                    ? "border-[#3e1e0c] bg-[var(--text-1)] text-white"
                     : "border-[var(--border)] bg-[var(--canvas)] text-[var(--text-1)]"
                 }`}
               >
@@ -283,11 +283,11 @@ export default function OffersPage() {
                         key={opt}
                         onClick={() => { setSortBy(opt); setShowSortMenu(false); }}
                         className={`flex w-full items-center justify-between px-4 py-3 text-[13px] font-semibold transition-colors hover:bg-[var(--canvas-sub)] ${
-                          sortBy === opt ? "text-[#eaa94d]" : "text-[var(--text-1)]"
+                          sortBy === opt ? "text-[var(--accent)]" : "text-[var(--text-1)]"
                         }`}
                       >
                         {opt === "relevance" ? "Relevance" : opt === "rating" ? "Rating" : opt === "delivery" ? "Delivery Time" : "Distance"}
-                        {sortBy === opt && <Star className="h-3 w-3 fill-[#eaa94d] text-[#eaa94d]" />}
+                        {sortBy === opt && <Star className="h-3 w-3 fill-[var(--accent)] text-[var(--accent)]" />}
                       </button>
                     ))}
                   </motion.div>
@@ -301,7 +301,7 @@ export default function OffersPage() {
                 onClick={() => { setShowVegMenu(!showVegMenu); setShowSortMenu(false); }}
                 className={`flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[13px] font-semibold transition-all active:scale-95 ${
                   vegFilter !== "all"
-                    ? "border-[#3e1e0c] bg-[#3e1e0c] text-white"
+                    ? "border-[#3e1e0c] bg-[var(--text-1)] text-white"
                     : "border-[var(--border)] bg-[var(--canvas)] text-[var(--text-1)]"
                 }`}
               >
@@ -322,13 +322,13 @@ export default function OffersPage() {
                         key={opt}
                         onClick={() => { setVegFilter(opt); setShowVegMenu(false); }}
                         className={`flex w-full items-center gap-2.5 px-4 py-3 text-[13px] font-semibold transition-colors hover:bg-[var(--canvas-sub)] ${
-                          vegFilter === opt ? "text-[#eaa94d]" : "text-[var(--text-1)]"
+                          vegFilter === opt ? "text-[var(--accent)]" : "text-[var(--text-1)]"
                         }`}
                       >
                         <span
                           className={`h-3 w-3 rounded-sm border-2 ${
                             opt === "veg"
-                              ? "border-green-600 bg-[#eaa94d]"
+                              ? "border-green-600 bg-[var(--accent)]"
                               : opt === "non-veg"
                               ? "border-red-600 bg-red-500"
                               : "border-gray-400 bg-[var(--surface-alt)]"
@@ -346,11 +346,11 @@ export default function OffersPage() {
               onClick={() => setMinRating(minRating === 4 ? null : 4)}
               className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[13px] font-semibold transition-all active:scale-95 ${
                 minRating != null
-                  ? "border-[#3e1e0c] bg-[#3e1e0c] text-white"
+                  ? "border-[#3e1e0c] bg-[var(--text-1)] text-white"
                   : "border-[var(--border)] bg-[var(--canvas)] text-[var(--text-1)]"
               }`}
             >
-              <Star className={`h-3.5 w-3.5 ${minRating != null ? "fill-white text-white" : "fill-[#eaa94d] text-[#eaa94d]"}`} />
+              <Star className={`h-3.5 w-3.5 ${minRating != null ? "fill-white text-white" : "fill-[var(--accent)] text-[var(--accent)]"}`} />
               Ratings 4.0+
             </button>
 
@@ -385,7 +385,7 @@ export default function OffersPage() {
             <p className="mt-1 text-sm text-[var(--text-3)]">Try adjusting your filters</p>
             <button
               onClick={clearAllFilters}
-              className="mt-4 rounded-full bg-[#eaa94d] px-5 py-2 text-sm font-bold text-white"
+              className="mt-4 rounded-full bg-[var(--accent)] px-5 py-2 text-sm font-bold text-white"
             >
               Clear Filters
             </button>
@@ -416,8 +416,8 @@ export default function OffersPage() {
                   (restaurant.rating ?? 0) >= 4
                     ? "text-[#1e9a6f] bg-[#1e9a6f]/10"
                     : (restaurant.rating ?? 0) >= 3.5
-                    ? "text-[#eaa94d] bg-[var(--accent-muted)]"
-                    : "text-[#eaa94d] bg-[var(--accent-muted)]";
+                    ? "text-[var(--accent)] bg-[var(--accent-muted)]"
+                    : "text-[var(--accent)] bg-[var(--accent-muted)]";
 
                 return (
                   <motion.div key={restaurant.id} variants={itemVariants}>
@@ -440,7 +440,7 @@ export default function OffersPage() {
                           aria-label={isWished ? "Remove from wishlist" : "Add to wishlist"}
                         >
                           <Heart
-                            className={`h-3.5 w-3.5 transition-colors ${isWished ? "fill-[#eaa94d] text-[#eaa94d]" : "text-[var(--text-2)]"}`}
+                            className={`h-3.5 w-3.5 transition-colors ${isWished ? "fill-[var(--accent)] text-[var(--accent)]" : "text-[var(--text-2)]"}`}
                             strokeWidth={2}
                           />
                         </button>

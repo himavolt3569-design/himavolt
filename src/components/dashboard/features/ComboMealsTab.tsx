@@ -224,7 +224,7 @@ export default function ComboMealsTab({ restaurantId }: { restaurantId?: string 
               </div>
 
               {formComboPrice && formOriginalPrice && Number(formOriginalPrice) > Number(formComboPrice) && (
-                <div className="flex items-center gap-2 text-sm text-[#b25c1c] bg-[var(--accent-muted)] rounded-lg px-3 py-2">
+                <div className="flex items-center gap-2 text-sm text-[var(--accent-text)] bg-[var(--accent-muted)] rounded-lg px-3 py-2">
                   <Percent className="w-4 h-4" />
                   Customer saves {savings(Number(formOriginalPrice), Number(formComboPrice))}% — Rs {Number(formOriginalPrice) - Number(formComboPrice)} off
                 </div>
@@ -315,7 +315,7 @@ export default function ComboMealsTab({ restaurantId }: { restaurantId?: string 
                     <h4 className="font-semibold text-[var(--text-1)]">{combo.name}</h4>
                     {combo.description && <p className="text-xs text-[var(--text-3)] mt-0.5">{combo.description}</p>}
                   </div>
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[var(--accent-muted)] text-[#b25c1c] rounded-full text-xs font-bold shrink-0">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[var(--accent-muted)] text-[var(--accent-text)] rounded-full text-xs font-bold shrink-0">
                     <Tag className="w-3 h-3" />{savings(combo.originalPrice, combo.comboPrice)}% OFF
                   </span>
                 </div>

@@ -114,7 +114,7 @@ const DEFAULT_CATEGORIES: { name: string; icon: string; subs: string[] }[] = [
 const BADGE_OPTIONS = ["Bestseller", "New", "Chef's Special", "Must Try", "Popular", "Seasonal"];
 const ALLERGEN_OPTIONS = ["Gluten", "Dairy", "Nuts", "Soy", "Eggs", "Shellfish", "Sesame", "Mustard"];
 const SPICE_LABELS = ["None", "Mild", "Medium", "Hot", "Extra Hot"];
-const SPICE_COLORS = ["text-[var(--text-3)]", "text-[#d67620]", "text-yellow-500", "text-[var(--accent)]", "text-red-500"];
+const SPICE_COLORS = ["text-[var(--text-3)]", "text-[var(--accent-hover)]", "text-yellow-500", "text-[var(--accent)]", "text-red-500"];
 
 
 function PriceInput({ value, onChange, placeholder, currencySymbol = "Rs." }: { value: string; onChange: (v: string) => void; placeholder?: string; currencySymbol?: string }) {
@@ -166,10 +166,10 @@ function MenuStats({ items, categories, currency }: { items: MenuItem[]; categor
 
   const stats = [
     { label: "Total Items", value: items.length, icon: UtensilsCrossed, color: "text-[var(--accent)]", bg: "bg-gradient-to-br from-[var(--accent)]0/20 to-[var(--accent-hover)]/10", border: "border-[var(--accent-border)]/50" },
-    { label: "Active", value: `${active}/${items.length}`, icon: Eye, color: "text-[#d67620]", bg: "bg-gradient-to-br from-[#eaa94d]/20 to-[#fef9ef]", border: "border-[var(--accent-border)]/50" },
+    { label: "Active", value: `${active}/${items.length}`, icon: Eye, color: "text-[var(--accent-hover)]", bg: "bg-gradient-to-br from-[var(--accent)]/20 to-[#fef9ef]", border: "border-[var(--accent-border)]/50" },
     { label: "Categories", value: `${topCats.length} + ${totalSubs} sub`, icon: Layers, color: "text-indigo-500", bg: "bg-gradient-to-br from-indigo-400/20 to-purple-500/10", border: "border-indigo-100/50" },
     { label: "Avg Price", value: formatPrice(avgPrice, currency), icon: TrendingUp, color: "text-blue-500", bg: "bg-gradient-to-br from-blue-400/20 to-cyan-500/10", border: "border-blue-100/50" },
-    { label: "Veg / Non-Veg", value: `${vegCount}/${items.length - vegCount}`, icon: Leaf, color: "text-[#b25c1c]", bg: "bg-gradient-to-br from-[#eaa94d]/20 to-[#fef3dc]", border: "border-[var(--accent-border)]/50" },
+    { label: "Veg / Non-Veg", value: `${vegCount}/${items.length - vegCount}`, icon: Leaf, color: "text-[var(--accent-text)]", bg: "bg-gradient-to-br from-[var(--accent)]/20 to-[#fef3dc]", border: "border-[var(--accent-border)]/50" },
     { label: "Featured", value: featuredCount, icon: Star, color: "text-[var(--accent)]", bg: "bg-gradient-to-br from-[var(--accent)]0/20 to-yellow-500/10", border: "border-[var(--accent-border)]/50" },
   ];
 
@@ -372,15 +372,15 @@ function MenuItemCard({
           {/* Veg indicator — always visible */}
           <div className="absolute top-2 right-2 z-10">
             <span className={`flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center rounded-md border-2 shadow-sm bg-[var(--canvas)]/90 ${
-              item.isVeg ? "border-[#eaa94d]" : "border-rose-500"
+              item.isVeg ? "border-[var(--accent)]" : "border-rose-500"
             }`}>
-              <span className={`h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full ${item.isVeg ? "bg-[#eaa94d]" : "bg-rose-500"}`} />
+              <span className={`h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full ${item.isVeg ? "bg-[var(--accent)]" : "bg-rose-500"}`} />
             </span>
           </div>
 
           {item.discount > 0 && (
             <div className="absolute top-2 left-2 z-10">
-              <span className="rounded-full bg-gradient-to-r from-[#eaa94d] to-[#d67620] px-1.5 py-0.5 text-[9px] font-bold text-white shadow-md">
+              <span className="rounded-full bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] px-1.5 py-0.5 text-[9px] font-bold text-white shadow-md">
                 {item.discountLabel || `${item.discount}% OFF`}
               </span>
             </div>
@@ -397,7 +397,7 @@ function MenuItemCard({
             <button
               onClick={onToggle}
               className={`rounded-full p-2 shadow-lg backdrop-blur-md transition-all hover:scale-105 active:scale-95 ${
-                item.isAvailable ? "bg-[#eaa94d]/90 text-white" : "bg-[var(--text-2)]/90 text-white"
+                item.isAvailable ? "bg-[var(--accent)]/90 text-white" : "bg-[var(--text-2)]/90 text-white"
               }`}
               title={item.isAvailable ? "Mark unavailable" : "Mark available"}
             >
@@ -513,7 +513,7 @@ function MenuItemCard({
           <button
             onClick={onToggle}
             className={`rounded-full p-2 shadow-sm transition-all active:scale-95 ${
-              item.isAvailable ? "bg-[var(--accent-muted)] text-[#b25c1c]" : "bg-[var(--surface)] text-[var(--text-2)]"
+              item.isAvailable ? "bg-[var(--accent-muted)] text-[var(--accent-text)]" : "bg-[var(--surface)] text-[var(--text-2)]"
             }`}
             title={item.isAvailable ? "Mark unavailable" : "Mark available"}
           >
@@ -891,7 +891,7 @@ function DishForm({
                   type="button"
                   onClick={() => update({ isVeg: true })}
                   className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-[12px] font-semibold border transition-all ${
-                    form.isVeg ? "border-[#eaa94d] bg-[var(--accent-muted)] text-[#b25c1c] ring-1 ring-[var(--accent-border)]" : "border-[var(--border)] text-[var(--text-3)]"
+                    form.isVeg ? "border-[var(--accent)] bg-[var(--accent-muted)] text-[var(--accent-text)] ring-1 ring-[var(--accent-border)]" : "border-[var(--border)] text-[var(--text-3)]"
                   }`}
                 >
                   <Leaf className="h-3.5 w-3.5" /> Vegetarian
@@ -998,7 +998,7 @@ function DishForm({
                 />
               </div>
               {Number(form.discount) > 0 && Number(form.price) > 0 && (
-                <p className="text-[11px] text-[#b25c1c] mt-1.5">
+                <p className="text-[11px] text-[var(--accent-text)] mt-1.5">
                   Customer pays: {formatPrice(Math.round(Number(form.price) * (1 - Number(form.discount) / 100)), currency)}
                   {" "}(was {formatPrice(Number(form.price), currency)})
                 </p>
@@ -1355,7 +1355,10 @@ export default function MenuManagementTab() {
   }, [categories]);
 
   const createCategory = async (name?: string, parentId?: string | null) => {
-    if (!restaurantId) return;
+    if (!restaurantId) {
+      showToast("No restaurant selected — please refresh");
+      return;
+    }
     const catName = name || newCatName.trim();
     if (!catName) return;
     setCreatingCat(true);
@@ -1368,8 +1371,8 @@ export default function MenuManagementTab() {
       if (!name) { setNewCatName(""); setShowNewCat(false); }
       setAddSubParentId(null);
       await fetchData();
-    } catch {
-      showToast("Failed to create category");
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Failed to create category");
     } finally {
       setCreatingCat(false);
     }
@@ -1610,18 +1613,18 @@ export default function MenuManagementTab() {
         >
           <div className="flex items-center gap-3">
             <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${isOpen ? "bg-[var(--accent-muted)]" : "bg-red-100"}`}>
-              {isOpen ? <Eye className="h-4 w-4 text-[#b25c1c]" /> : <EyeOff className="h-4 w-4 text-red-500" />}
+              {isOpen ? <Eye className="h-4 w-4 text-[var(--accent-text)]" /> : <EyeOff className="h-4 w-4 text-red-500" />}
             </div>
             <div className="text-left">
               <p className={`text-xs font-bold ${isOpen ? "text-[var(--text-1)]" : "text-red-700"}`}>
                 {isOpen ? "Restaurant Visible" : "Restaurant Hidden"}
               </p>
-              <p className={`text-[11px] ${isOpen ? "text-[#b25c1c]" : "text-red-500"}`}>
+              <p className={`text-[11px] ${isOpen ? "text-[var(--accent-text)]" : "text-red-500"}`}>
                 {isOpen ? "Showing on landing page" : "Hidden from landing page"}
               </p>
             </div>
           </div>
-          <div className={`relative h-6 w-11 rounded-full transition-colors ${isOpen ? "bg-[#eaa94d]" : "bg-[var(--border)]"}`}>
+          <div className={`relative h-6 w-11 rounded-full transition-colors ${isOpen ? "bg-[var(--accent)]" : "bg-[var(--border)]"}`}>
             <div className={`absolute top-0.5 h-5 w-5 rounded-full bg-[var(--canvas)] shadow transition-transform ${isOpen ? "translate-x-5" : "translate-x-0.5"}`} />
           </div>
         </button>

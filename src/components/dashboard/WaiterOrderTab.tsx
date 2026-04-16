@@ -186,7 +186,7 @@ export default function WaiterOrderTab({ restaurantId }: { restaurantId: string 
         <div className={`mb-5 flex h-16 w-16 items-center justify-center rounded-full ${isDirect ? "bg-blue-100" : "bg-[var(--accent-muted)]"}`}>
           {isDirect
             ? <PersonStanding className="h-8 w-8 text-blue-600" />
-            : <CheckCircle2 className="h-8 w-8 text-[#b25c1c]" />
+            : <CheckCircle2 className="h-8 w-8 text-[var(--accent-text)]" />
           }
         </div>
         <h2 className="text-xl font-black text-[var(--text-1)]">

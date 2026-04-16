@@ -73,8 +73,8 @@ function FoodCard({ item, onOpenPopup }: { item: FoodItem; onOpenPopup: (id: str
   const cardRef = useRef<HTMLDivElement>(null);
   const { addItem } = useCart();
 
-  const vegDotColor = item.isVeg ? "bg-[#eaa94d]" : "bg-[#E23744]";
-  const vegBorderColor = item.isVeg ? "border-[#eaa94d]" : "border-[#E23744]";
+  const vegDotColor = item.isVeg ? "bg-[var(--accent)]" : "bg-[#E23744]";
+  const vegBorderColor = item.isVeg ? "border-[var(--accent)]" : "border-[#E23744]";
 
   return (
     <div ref={cardRef} className="group">
@@ -100,7 +100,7 @@ function FoodCard({ item, onOpenPopup }: { item: FoodItem; onOpenPopup: (id: str
                   item.restaurantSlug
                 )
               }
-              className="flex items-center gap-0.5 rounded-xl border-2 border-[#eaa94d] bg-[var(--canvas)] px-4 py-1 text-[13px] font-extrabold text-[#eaa94d] shadow-md whitespace-nowrap active:scale-95 transition-transform"
+              className="flex items-center gap-0.5 rounded-xl border-2 border-[var(--accent)] bg-[var(--canvas)] px-4 py-1 text-[13px] font-extrabold text-[var(--accent)] shadow-md whitespace-nowrap active:scale-95 transition-transform"
             >
               <Plus className="h-3.5 w-3.5" />
               ADD
@@ -121,7 +121,7 @@ function FoodCard({ item, onOpenPopup }: { item: FoodItem; onOpenPopup: (id: str
           {/* Rating + prep time */}
           <div className="mt-1 flex items-center gap-2">
             <span className={`inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[11px] font-bold text-white leading-none ${
-              item.rating >= 4.0 ? "bg-[#eaa94d]" : item.rating >= 3.0 ? "bg-[#DB7C10]" : "bg-[#E23744]"
+              item.rating >= 4.0 ? "bg-[var(--accent)]" : item.rating >= 3.0 ? "bg-[#DB7C10]" : "bg-[#E23744]"
             }`}>
               {item.rating.toFixed(1)}
               <Star className="h-2.5 w-2.5 fill-white ml-0.5" />
@@ -142,9 +142,9 @@ function FoodCard({ item, onOpenPopup }: { item: FoodItem; onOpenPopup: (id: str
           </p>
 
           {item.offer && (
-            <div className="mt-1.5 inline-flex items-center gap-1 rounded-md bg-[#F0FAF4] border border-[#eaa94d]/20 px-2 py-1">
-              <Tag className="h-3 w-3 text-[#eaa94d] shrink-0" />
-              <span className="text-[11px] font-bold text-[#eaa94d] leading-none">{item.offer}</span>
+            <div className="mt-1.5 inline-flex items-center gap-1 rounded-md bg-[#F0FAF4] border border-[var(--accent)]/20 px-2 py-1">
+              <Tag className="h-3 w-3 text-[var(--accent)] shrink-0" />
+              <span className="text-[11px] font-bold text-[var(--accent)] leading-none">{item.offer}</span>
             </div>
           )}
         </button>
@@ -163,7 +163,7 @@ function FoodCard({ item, onOpenPopup }: { item: FoodItem; onOpenPopup: (id: str
 
           {item.offer && (
             <div className="absolute bottom-2.5 left-2.5">
-              <span className="inline-flex items-center gap-1 rounded-md bg-[#eaa94d] px-2 py-1 text-[11px] font-extrabold text-white leading-none shadow-lg">
+              <span className="inline-flex items-center gap-1 rounded-md bg-[var(--accent)] px-2 py-1 text-[11px] font-extrabold text-white leading-none shadow-lg">
                 <Tag className="h-2.5 w-2.5" />
                 {item.offer}
               </span>
@@ -172,7 +172,7 @@ function FoodCard({ item, onOpenPopup }: { item: FoodItem; onOpenPopup: (id: str
 
           <div className="absolute bottom-2.5 right-2.5">
             <span className={`inline-flex items-center gap-0.5 rounded-md px-1.5 py-1 text-[11px] font-bold text-white leading-none shadow-lg ${
-              item.rating >= 4.0 ? "bg-[#eaa94d]" : item.rating >= 3.0 ? "bg-[#DB7C10]" : "bg-[#E23744]"
+              item.rating >= 4.0 ? "bg-[var(--accent)]" : item.rating >= 3.0 ? "bg-[#DB7C10]" : "bg-[#E23744]"
             }`}>
               {item.rating.toFixed(1)}
               <Star className="h-2.5 w-2.5 fill-white" />
@@ -194,14 +194,14 @@ function FoodCard({ item, onOpenPopup }: { item: FoodItem; onOpenPopup: (id: str
                 item.restaurantSlug,
               );
             }}
-            className="absolute bottom-3 right-3 hidden sm:flex items-center gap-1 rounded-xl bg-[var(--canvas)] px-3 py-1.5 text-[13px] font-extrabold text-[#eaa94d] border-2 border-[#eaa94d] shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 active:scale-95"
+            className="absolute bottom-3 right-3 hidden sm:flex items-center gap-1 rounded-xl bg-[var(--canvas)] px-3 py-1.5 text-[13px] font-extrabold text-[var(--accent)] border-2 border-[var(--accent)] shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 active:scale-95"
           >
             <Plus className="h-3.5 w-3.5" /> ADD
           </button>
         </div>
 
         <div className="mt-2.5 px-0.5">
-          <h3 className="text-[15px] font-bold text-[var(--text-1)] truncate leading-snug group-hover:text-[#eaa94d] transition-colors">
+          <h3 className="text-[15px] font-bold text-[var(--text-1)] truncate leading-snug group-hover:text-[var(--accent)] transition-colors">
             {item.name}
           </h3>
           <div className="flex items-center gap-1.5 mt-0.5">
@@ -305,7 +305,7 @@ export default function PopularFoods({
               onClick={() => toggleFilter(f.id)}
               className={`shrink-0 rounded-full border px-4 py-2 text-[13px] font-semibold transition-all ${
                 activeFilters.has(f.id)
-                  ? "border-[#eaa94d] bg-[var(--accent-muted)] text-[#eaa94d]"
+                  ? "border-[var(--accent)] bg-[var(--accent-muted)] text-[var(--accent)]"
                   : "border-[var(--border)] bg-[var(--canvas)] text-[var(--text-2)] hover:border-[var(--border)]"
               }`}
             >
@@ -316,7 +316,7 @@ export default function PopularFoods({
 
         <div ref={headerRef} className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent-muted)]">
-            <Flame className="h-4.5 w-4.5 text-[#eaa94d]" />
+            <Flame className="h-4.5 w-4.5 text-[var(--accent)]" />
           </div>
           <div>
             <h2 className="text-[11px] font-bold text-[var(--text-3)] uppercase tracking-widest">
@@ -370,7 +370,7 @@ export default function PopularFoods({
           <div className="flex justify-center pt-2">
             <button
               onClick={() => setShowAll(!showAll)}
-              className="flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--canvas)] px-6 py-3 text-[13px] font-bold text-[#eaa94d] hover:bg-[var(--accent-muted)] hover:border-[var(--accent-border)] transition-all active:scale-[0.97] shadow-sm"
+              className="flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--canvas)] px-6 py-3 text-[13px] font-bold text-[var(--accent)] hover:bg-[var(--accent-muted)] hover:border-[var(--accent-border)] transition-all active:scale-[0.97] shadow-sm"
             >
               {showAll ? "Show Less" : `See all ${filtered.length} dishes`}
               <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-300 ${showAll ? "rotate-180" : ""}`} />

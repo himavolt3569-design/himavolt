@@ -203,7 +203,7 @@ export default function BrunchModeTab() {
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             {[
               { label: "Current Covers", value: currentCovers, icon: Users, color: "text-[var(--accent-text)] bg-[var(--accent-muted)]" },
-              { label: "Available Seats", value: availableSeats, icon: UtensilsCrossed, color: "text-[#b25c1c] bg-[var(--accent-muted)]" },
+              { label: "Available Seats", value: availableSeats, icon: UtensilsCrossed, color: "text-[var(--accent-text)] bg-[var(--accent-muted)]" },
               { label: "Waitlist", value: waitlistCount, icon: ClipboardList, color: "text-[var(--accent)] bg-[var(--accent)]" },
               { label: "Avg Spend/Cover", value: formatPrice(avgSpendPerCover, cur), icon: TrendingUp, color: "text-purple-600 bg-purple-50" },
             ].map((stat) => (
@@ -314,7 +314,7 @@ export default function BrunchModeTab() {
                           initial={{ width: 0 }}
                           animate={{ width: `${pct}%` }}
                           transition={{ duration: 0.6, ease: "easeOut" }}
-                          className={`h-2 rounded-full ${isFull ? "bg-red-400" : pct > 70 ? "bg-[var(--accent)]" : "bg-[#eaa94d]"}`}
+                          className={`h-2 rounded-full ${isFull ? "bg-red-400" : pct > 70 ? "bg-[var(--accent)]" : "bg-[var(--accent)]"}`}
                         />
                       </div>
                     </div>
@@ -545,7 +545,7 @@ export default function BrunchModeTab() {
                             onChange={(e) => setEditPriceValue(Number(e.target.value))}
                             className="w-20 border border-[var(--border)] rounded-lg px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                           />
-                          <button onClick={() => savePriceEdit(item.id)} className="p-1 text-[#b25c1c] hover:bg-[var(--accent-muted)] rounded">
+                          <button onClick={() => savePriceEdit(item.id)} className="p-1 text-[var(--accent-text)] hover:bg-[var(--accent-muted)] rounded">
                             <Check className="w-4 h-4" />
                           </button>
                           <button onClick={() => setEditingPrice(null)} className="p-1 text-[var(--text-3)] hover:bg-[var(--surface)] rounded">

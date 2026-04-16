@@ -102,16 +102,16 @@ export default function WifiSettingsTab({ restaurantId: propRestaurantId }: { re
       >
         <div className="flex items-center gap-2 mb-1">
           {hasWifi ? (
-            <Wifi className="h-4 w-4 text-[#b25c1c]" />
+            <Wifi className="h-4 w-4 text-[var(--accent-text)]" />
           ) : (
             <WifiOff className="h-4 w-4 text-[var(--text-3)]" />
           )}
-          <span className={`text-xs font-bold ${hasWifi ? "text-[#b25c1c]" : "text-[var(--text-2)]"}`}>
+          <span className={`text-xs font-bold ${hasWifi ? "text-[var(--accent-text)]" : "text-[var(--text-2)]"}`}>
             {hasWifi ? "WiFi Visible to Customers" : "No WiFi Configured"}
           </span>
         </div>
         {hasWifi && (
-          <p className="text-xs text-[#b25c1c] mt-1">
+          <p className="text-xs text-[var(--accent-text)] mt-1">
             Customers will see <strong>{wifiName}</strong> on the menu page.
           </p>
         )}
@@ -150,7 +150,7 @@ export default function WifiSettingsTab({ restaurantId: propRestaurantId }: { re
                   className="flex h-7 w-7 items-center justify-center rounded-lg text-[var(--text-3)] hover:text-[var(--accent-text)] hover:bg-[var(--accent-muted)] transition-colors"
                   title="Copy password"
                 >
-                  {copied ? <Check className="h-3.5 w-3.5 text-[#d67620]" /> : <Copy className="h-3.5 w-3.5" />}
+                  {copied ? <Check className="h-3.5 w-3.5 text-[var(--accent-hover)]" /> : <Copy className="h-3.5 w-3.5" />}
                 </button>
               )}
               <button

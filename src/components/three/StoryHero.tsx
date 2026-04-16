@@ -168,9 +168,9 @@ export default function StoryHero() {
         }}
       />
 
-      <div className="absolute top-[10%] right-[10%] h-[350px] w-[350px] rounded-full bg-[#eaa94d]/[0.06] blur-[100px] pointer-events-none" />
-      <div className="absolute bottom-[10%] left-[10%] h-[400px] w-[400px] rounded-full bg-[#eaa94d]/[0.08] blur-[100px] pointer-events-none" />
-      <div className="absolute top-[40%] left-[40%] h-[300px] w-[300px] rounded-full bg-[#d67620]/[0.04] blur-[80px] pointer-events-none" />
+      <div className="absolute top-[10%] right-[10%] h-[350px] w-[350px] rounded-full bg-[var(--accent)]/[0.06] blur-[100px] pointer-events-none" />
+      <div className="absolute bottom-[10%] left-[10%] h-[400px] w-[400px] rounded-full bg-[var(--accent)]/[0.08] blur-[100px] pointer-events-none" />
+      <div className="absolute top-[40%] left-[40%] h-[300px] w-[300px] rounded-full bg-[var(--accent-hover)]/[0.04] blur-[80px] pointer-events-none" />
 
       <div ref={floatingRef} className="absolute inset-0 pointer-events-none overflow-hidden">
         {FLOAT_ITEMS.map((item, i) => (
@@ -201,7 +201,7 @@ export default function StoryHero() {
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
             className="mb-5"
           >
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/80 backdrop-blur-sm px-4 py-2 text-[11px] font-bold text-[#eaa94d] uppercase tracking-wider border border-[#eaa94d]/10 shadow-sm">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/80 backdrop-blur-sm px-4 py-2 text-[11px] font-bold text-[var(--accent)] uppercase tracking-wider border border-[var(--accent)]/10 shadow-sm">
               <motion.span
                 animate={{ rotate: [0, 15, -15, 0], scale: [1, 1.2, 1] }}
                 transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
@@ -216,19 +216,19 @@ export default function StoryHero() {
             initial={{ opacity: 0, y: 24, filter: "blur(8px)" }}
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             transition={{ duration: 0.7, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-            className="mb-2 text-[2.5rem] font-extrabold tracking-tight text-[#3e1e0c] sm:text-5xl md:text-6xl lg:text-7xl leading-[1.08]"
+            className="mb-2 text-[2.5rem] font-extrabold tracking-tight text-[var(--text-1)] sm:text-5xl md:text-6xl lg:text-7xl leading-[1.08]"
           >
             Craving something{" "}
             <span className="relative inline-block">
               <motion.span
-                className="text-transparent bg-clip-text bg-gradient-to-r from-[#eaa94d] via-[#d67620] to-[#eaa94d]"
+                className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--accent)] via-[#d67620] to-[var(--accent)]"
                 animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
                 transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
                 style={{ backgroundSize: "200% 200%" }}
               >
                 {typedWord}
               </motion.span>
-              <span className="animate-cursor text-[#eaa94d] ml-[1px] font-light">|</span>
+              <span className="animate-cursor text-[var(--accent)] ml-[1px] font-light">|</span>
             </span>
           </motion.h1>
 

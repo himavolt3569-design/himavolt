@@ -153,7 +153,7 @@ export async function middleware(req: NextRequest) {
 async function refreshSupabaseSession(req: NextRequest) {
   const res = NextResponse.next();
 
-  createServerClient(
+  const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
@@ -169,6 +169,11 @@ async function refreshSupabaseSession(req: NextRequest) {
       },
     },
   );
+
+  // Calling getUser() triggers token refresh if the access token has expired.
+  // Without this, public routes never refresh the session and auth cookies
+  // go stale, causing route handlers that call getOrCreateUser() to get 401s.
+  await supabase.auth.getUser();
 
   return res;
 }

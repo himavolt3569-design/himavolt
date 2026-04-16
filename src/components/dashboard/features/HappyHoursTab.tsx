@@ -194,7 +194,7 @@ export default function HappyHoursTab() {
             >
               {[
                 { label: "Orders Today", value: "47", icon: Zap, color: "text-rose-400" },
-                { label: "Revenue (HH)", value: "Rs 32,400", icon: DollarSign, color: "text-[#d67620]" },
+                { label: "Revenue (HH)", value: "Rs 32,400", icon: DollarSign, color: "text-[var(--accent-hover)]" },
                 { label: "Avg Discount", value: "25%", icon: Percent, color: "text-[var(--accent)]" },
                 { label: "Popular Item", value: "Margarita", icon: Star, color: "text-purple-400" },
               ].map((stat) => (
@@ -406,7 +406,7 @@ export default function HappyHoursTab() {
                 <button
                   onClick={() => toggleAutoActivate(hh.id)}
                   className={`flex items-center gap-1 ${
-                    hh.autoActivate ? "text-[#d67620]" : "text-zinc-500"
+                    hh.autoActivate ? "text-[var(--accent-hover)]" : "text-zinc-500"
                   }`}
                 >
                   <Zap className="w-3 h-3" />

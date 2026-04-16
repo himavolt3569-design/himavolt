@@ -63,7 +63,7 @@ const ALL_PAYMENT_METHODS: {
     label: "eSewa",
     sublabel: "Pay online via eSewa wallet",
     icon: Wallet,
-    color: "text-[#b25c1c]",
+    color: "text-[var(--accent-text)]",
     bg: "bg-[var(--accent-muted)] border-[var(--accent-border)]",
   },
   {
@@ -347,8 +347,8 @@ export default function CheckoutSheet({
     if (totalRef.current && open) {
       gsap.fromTo(
         totalRef.current,
-        { scale: 1.1, color: "#eaa94d" },
-        { scale: 1, color: "#3e1e0c", duration: 0.4, ease: "back.out(2)" },
+        { scale: 1.1, color: "var(--accent)" },
+        { scale: 1, color: "var(--text-1)", duration: 0.4, ease: "back.out(2)" },
       );
     }
   }, [total, open]);
@@ -607,7 +607,7 @@ export default function CheckoutSheet({
           >
             <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border-soft)] shrink-0">
               <div className="flex items-center gap-2">
-                <ShoppingBag className="h-5 w-5 text-[#eaa94d]" />
+                <ShoppingBag className="h-5 w-5 text-[var(--accent)]" />
                 <h2 className="text-lg font-bold text-[var(--text-1)]">
                   {step === "review"
                     ? "Review Order"
@@ -677,18 +677,18 @@ export default function CheckoutSheet({
                               isDisabled
                                 ? "opacity-40 cursor-not-allowed border-[var(--border-soft)]"
                                 : isActive
-                                  ? "border-[#eaa94d] bg-[#eaa94d]/5 shadow-sm"
+                                  ? "border-[var(--accent)] bg-[var(--accent)]/5 shadow-sm"
                                   : "border-[var(--border-soft)] hover:border-[var(--border)]"
                             }`}
                           >
                             <Icon
                               className={`h-5 w-5 ${
-                                isActive ? "text-[#eaa94d]" : "text-[var(--text-3)]"
+                                isActive ? "text-[var(--accent)]" : "text-[var(--text-3)]"
                               }`}
                             />
                             <span
                               className={`text-xs font-bold ${
-                                isActive ? "text-[#eaa94d]" : "text-[var(--text-2)]"
+                                isActive ? "text-[var(--accent)]" : "text-[var(--text-2)]"
                               }`}
                             >
                               {ot.label}
@@ -696,7 +696,7 @@ export default function CheckoutSheet({
                             {isActive && (
                               <motion.div
                                 layoutId="orderTypeIndicator"
-                                className="absolute -top-px -right-px h-3 w-3 rounded-full bg-[#eaa94d] border-2 border-white"
+                                className="absolute -top-px -right-px h-3 w-3 rounded-full bg-[var(--accent)] border-2 border-white"
                               />
                             )}
                           </button>
@@ -825,8 +825,8 @@ export default function CheckoutSheet({
                     )}
                     {couponDiscount > 0 && (
                       <div className="flex justify-between text-sm">
-                        <span className="text-[#b25c1c] font-medium">Coupon Discount</span>
-                        <span className="font-semibold text-[#b25c1c]">
+                        <span className="text-[var(--accent-text)] font-medium">Coupon Discount</span>
+                        <span className="font-semibold text-[var(--accent-text)]">
                           -{formatPrice(couponDiscount, currency)}
                         </span>
                       </div>
@@ -837,7 +837,7 @@ export default function CheckoutSheet({
                       </span>
                       <span
                         ref={totalRef}
-                        className="text-lg font-extrabold text-[#eaa94d]"
+                        className="text-lg font-extrabold text-[var(--accent)]"
                       >
                         {formatPrice(total, currency)}
                       </span>
@@ -846,10 +846,10 @@ export default function CheckoutSheet({
 
                   {/* Table / Room info */}
                   {(tableNo || roomNo) && orderType === "DINE_IN" && (
-                    <div className="flex items-center gap-2 rounded-xl bg-[#3e1e0c]/5 px-4 py-3">
+                    <div className="flex items-center gap-2 rounded-xl bg-[var(--text-1)]/5 px-4 py-3">
                       {tableNo && (
                         <>
-                          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#3e1e0c]/10 text-sm font-bold text-[var(--text-1)]">
+                          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--text-1)]/10 text-sm font-bold text-[var(--text-1)]">
                             {tableNo}
                           </span>
                           <span className="text-sm font-medium text-[var(--text-1)]">
@@ -872,8 +872,8 @@ export default function CheckoutSheet({
                     {couponApplied ? (
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <Tag className="h-4 w-4 text-[#b25c1c]" />
-                          <span className="text-sm font-semibold text-[#b25c1c]">
+                          <Tag className="h-4 w-4 text-[var(--accent-text)]" />
+                          <span className="text-sm font-semibold text-[var(--accent-text)]">
                             {couponCode.toUpperCase()} applied
                           </span>
                         </div>
@@ -897,7 +897,7 @@ export default function CheckoutSheet({
                           <button
                             onClick={handleApplyCoupon}
                             disabled={!couponCode.trim() || couponLoading}
-                            className="rounded-lg bg-[#eaa94d] px-4 py-2 text-xs font-bold text-white hover:bg-[#d67620] disabled:opacity-40 transition-colors"
+                            className="rounded-lg bg-[var(--accent)] px-4 py-2 text-xs font-bold text-white hover:bg-[var(--accent-hover)] disabled:opacity-40 transition-colors"
                           >
                             {couponLoading ? "..." : "Apply"}
                           </button>
@@ -924,7 +924,7 @@ export default function CheckoutSheet({
                     <div className="rounded-xl bg-[var(--canvas-sub)] p-4 space-y-3">
                       <div className="flex justify-between">
                         <span className="text-xs text-[var(--text-2)]">Amount</span>
-                        <span className="text-lg font-extrabold text-[#eaa94d]">{formatPrice(bankTotal, currency)}</span>
+                        <span className="text-lg font-extrabold text-[var(--accent)]">{formatPrice(bankTotal, currency)}</span>
                       </div>
                       <div className="border-t border-[var(--border)] pt-3 space-y-2">
                         <div className="flex justify-between text-xs">
@@ -999,11 +999,11 @@ export default function CheckoutSheet({
                   <div className="flex justify-center">
                     <div className="relative">
                       <div className="h-20 w-20 rounded-full bg-[var(--accent-muted)] flex items-center justify-center">
-                        <Loader2 className="h-10 w-10 animate-spin text-[#eaa94d]" />
+                        <Loader2 className="h-10 w-10 animate-spin text-[var(--accent)]" />
                       </div>
                       <div className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-[var(--canvas)] shadow flex items-center justify-center">
                         {selectedPayment === "ESEWA" ? (
-                          <Wallet className="h-4 w-4 text-[#b25c1c]" />
+                          <Wallet className="h-4 w-4 text-[var(--accent-text)]" />
                         ) : selectedPayment === "KHALTI" ? (
                           <Wallet className="h-4 w-4 text-purple-600" />
                         ) : (
@@ -1027,7 +1027,7 @@ export default function CheckoutSheet({
                   <div className="rounded-xl bg-[var(--canvas-sub)] p-4">
                     <div className="flex justify-between">
                       <span className="text-sm font-bold text-[var(--text-1)]">Total</span>
-                      <span className="text-lg font-extrabold text-[#eaa94d]">{formatPrice(total, currency)}</span>
+                      <span className="text-lg font-extrabold text-[var(--accent)]">{formatPrice(total, currency)}</span>
                     </div>
                   </div>
                   <div className="flex items-start gap-2 rounded-xl bg-[var(--accent-muted)] border border-[var(--accent-border)] px-4 py-3 text-left">
@@ -1067,7 +1067,7 @@ export default function CheckoutSheet({
                         }
                         className={`w-full rounded-xl border-2 p-3 text-left transition-all ${
                           selectedQR?.id === qr.id
-                            ? "border-[#eaa94d] bg-[#eaa94d]/5 shadow-sm"
+                            ? "border-[var(--accent)] bg-[var(--accent)]/5 shadow-sm"
                             : "border-[var(--border-soft)] hover:border-[var(--border)]"
                         }`}
                       >
@@ -1109,7 +1109,7 @@ export default function CheckoutSheet({
                       <span className="text-sm font-bold text-[var(--text-1)]">
                         Amount to Pay
                       </span>
-                      <span className="text-lg font-extrabold text-[#eaa94d]">
+                      <span className="text-lg font-extrabold text-[var(--accent)]">
                         {formatPrice(total, currency)}
                       </span>
                     </div>
@@ -1160,7 +1160,7 @@ export default function CheckoutSheet({
                           <div
                             className={`flex h-5 w-5 items-center justify-center rounded-full border-2 ${
                               isSelected
-                                ? "border-[#eaa94d] bg-[#eaa94d]"
+                                ? "border-[var(--accent)] bg-[var(--accent)]"
                                 : "border-[var(--border)]"
                             }`}
                           >
@@ -1281,7 +1281,7 @@ export default function CheckoutSheet({
                 <button
                   onClick={() => setStep("payment")}
                   disabled={items.length === 0 || !canProceed}
-                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#eaa94d] py-4 text-base font-bold text-white transition-all hover:bg-[#d67620] active:scale-[0.98] shadow-lg shadow-[var(--accent)]/25 disabled:opacity-50"
+                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--accent)] py-4 text-base font-bold text-white transition-all hover:bg-[var(--accent-hover)] active:scale-[0.98] shadow-lg shadow-[var(--accent)]/25 disabled:opacity-50"
                 >
                   Continue to Payment
                   <ChevronRight className="h-4 w-4" />
@@ -1291,7 +1291,7 @@ export default function CheckoutSheet({
                   <button
                     onClick={handlePlaceOrder}
                     disabled={loading}
-                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#3e1e0c] py-4 text-base font-bold text-white transition-all hover:bg-[#2d1508] active:scale-[0.98] shadow-lg shadow-[#3e1e0c]/25 disabled:opacity-60"
+                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] py-4 text-base font-bold text-white transition-all hover:bg-[#2d1508] active:scale-[0.98] shadow-lg shadow-[var(--text-1)]/25 disabled:opacity-60"
                   >
                     {loading ? (
                       <>
@@ -1364,7 +1364,7 @@ export default function CheckoutSheet({
                       (paymentQRs.length > 0 ? handleContinueToPayment : handlePlaceOrder)();
                     }}
                     disabled={loading}
-                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#3e1e0c] py-4 text-base font-bold text-white transition-all hover:bg-[#2d1508] active:scale-[0.98] shadow-lg shadow-[#3e1e0c]/25 disabled:opacity-60"
+                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] py-4 text-base font-bold text-white transition-all hover:bg-[#2d1508] active:scale-[0.98] shadow-lg shadow-[var(--text-1)]/25 disabled:opacity-60"
                   >
                     {loading ? (
                       <>

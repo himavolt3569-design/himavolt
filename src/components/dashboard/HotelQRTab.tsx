@@ -175,7 +175,7 @@ export default function HotelQRTab() {
             ].map((item) => (
               <div key={item} className="flex items-start gap-2">
                 <div className="mt-0.5 h-4 w-4 shrink-0 rounded-full bg-[var(--accent-muted)] flex items-center justify-center">
-                  <Check className="h-2.5 w-2.5 text-[#b25c1c]" />
+                  <Check className="h-2.5 w-2.5 text-[var(--accent-text)]" />
                 </div>
                 <p className="text-[12px] text-[var(--text-2)]">{item}</p>
               </div>
@@ -201,7 +201,7 @@ export default function HotelQRTab() {
               className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[var(--canvas)] ring-1 ring-[var(--border)] py-3.5 text-[13px] font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] active:scale-[0.98] transition-all disabled:opacity-50"
             >
               {copied ? (
-                <><Check className="h-4 w-4 text-[#d67620]" /> Link Copied!</>
+                <><Check className="h-4 w-4 text-[var(--accent-hover)]" /> Link Copied!</>
               ) : (
                 <><Copy className="h-4 w-4" /> Copy Hotel Link</>
               )}

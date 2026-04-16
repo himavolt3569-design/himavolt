@@ -594,8 +594,8 @@ function NavSection({
               )}
               {item.badge === "live" && newOrderCount === 0 && (
                 <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#eaa94d] opacity-50" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-[#eaa94d]" />
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--accent)] opacity-50" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--accent)]" />
                 </span>
               )}
             </button>
@@ -1182,7 +1182,7 @@ function OverviewTab({
                 This week&apos;s performance
               </p>
             </div>
-            <span className="flex items-center gap-1.5 rounded-lg bg-[var(--accent-muted)] px-3 py-1.5 text-[12px] font-bold text-[#b25c1c]">
+            <span className="flex items-center gap-1.5 rounded-lg bg-[var(--accent-muted)] px-3 py-1.5 text-[12px] font-bold text-[var(--accent-text)]">
               <TrendingUp className="h-3 w-3" />
               {formatPrice(todayRevenue, cur)}
             </span>
@@ -1591,7 +1591,7 @@ export default function DashboardPage() {
 
             <div className="hidden sm:flex items-center gap-1.5 rounded-full bg-[var(--accent-muted)] px-2.5 py-1">
               <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] animate-pulse" />
-              <span className="text-[11px] font-semibold text-[#b25c1c]">
+              <span className="text-[11px] font-semibold text-[var(--accent-text)]">
                 Live
               </span>
             </div>

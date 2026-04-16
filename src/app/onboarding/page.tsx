@@ -99,9 +99,9 @@ export default function OnboardingPage() {
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
           <Link href="/" className="inline-flex items-center gap-2">
-            <Mountain className="h-8 w-8 text-[#eaa94d]" strokeWidth={2.5} />
+            <Mountain className="h-8 w-8 text-[var(--accent)]" strokeWidth={2.5} />
             <span className="text-2xl font-extrabold tracking-tight text-[var(--text-1)]">
-              Hima<span className="text-[#eaa94d]">Volt</span>
+              Hima<span className="text-[var(--accent)]">Volt</span>
             </span>
           </Link>
 
@@ -118,9 +118,9 @@ export default function OnboardingPage() {
                         <div
                           className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold transition-colors ${
                             isDone
-                              ? "bg-[#eaa94d] text-white"
+                              ? "bg-[var(--accent)] text-white"
                               : isActive
-                              ? "bg-[#eaa94d] text-white"
+                              ? "bg-[var(--accent)] text-white"
                               : "bg-[var(--surface-alt)] text-[var(--text-3)]"
                           }`}
                         >
@@ -171,7 +171,7 @@ export default function OnboardingPage() {
               >
                 <div>
                   <label className="mb-1 block text-sm font-medium text-[var(--text-2)]">
-                    Restaurant Name <span className="text-[#eaa94d]">*</span>
+                    Restaurant Name <span className="text-[var(--accent)]">*</span>
                   </label>
                   <div className="relative">
                     <Store className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-3)]" />
@@ -188,7 +188,7 @@ export default function OnboardingPage() {
 
                 <div>
                   <label className="mb-2 block text-sm font-medium text-[var(--text-2)]">
-                    Type <span className="text-[#eaa94d]">*</span>
+                    Type <span className="text-[var(--accent)]">*</span>
                   </label>
                   <div className="grid grid-cols-4 gap-2">
                     {RESTAURANT_TYPES.map(({ value, label, Icon }) => (
@@ -198,15 +198,15 @@ export default function OnboardingPage() {
                         onClick={() => update("type", value)}
                         className={`flex flex-col items-center gap-1 rounded-xl border-2 py-2.5 px-1 text-center transition-all ${
                           form.type === value
-                            ? "border-[#eaa94d] bg-[#eaa94d]/5"
+                            ? "border-[var(--accent)] bg-[var(--accent)]/5"
                             : "border-[var(--border)] hover:border-[var(--border)]"
                         }`}
                       >
-                        <Icon className={`h-5 w-5 ${form.type === value ? "text-[#eaa94d]" : "text-[var(--text-3)]"}`} />
+                        <Icon className={`h-5 w-5 ${form.type === value ? "text-[var(--accent)]" : "text-[var(--text-3)]"}`} />
                         <span
                           className={`text-[10px] font-semibold leading-tight ${
                             form.type === value
-                              ? "text-[#eaa94d]"
+                              ? "text-[var(--accent)]"
                               : "text-[var(--text-2)]"
                           }`}
                         >
@@ -220,7 +220,7 @@ export default function OnboardingPage() {
                 <button
                   type="submit"
                   disabled={!form.name.trim() || !form.type}
-                  className="w-full rounded-xl bg-[#eaa94d] py-3 text-sm font-bold text-white transition-all hover:bg-[#d67620] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed shadow-sm shadow-[var(--accent)]/20 flex items-center justify-center gap-2"
+                  className="w-full rounded-xl bg-[var(--accent)] py-3 text-sm font-bold text-white transition-all hover:bg-[var(--accent-hover)] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed shadow-sm shadow-[var(--accent)]/20 flex items-center justify-center gap-2"
                 >
                   Next
                   <ChevronRight className="h-4 w-4" />
@@ -250,7 +250,7 @@ export default function OnboardingPage() {
 
                 <div>
                   <label className="mb-1 block text-sm font-medium text-[var(--text-2)]">
-                    Business Phone <span className="text-[#eaa94d]">*</span>
+                    Business Phone <span className="text-[var(--accent)]">*</span>
                   </label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-3)]" />
@@ -306,7 +306,7 @@ export default function OnboardingPage() {
                   <button
                     type="submit"
                     disabled={!form.phone.trim() || loading}
-                    className="flex-[2] rounded-xl bg-[#eaa94d] py-3 text-sm font-bold text-white transition-all hover:bg-[#d67620] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed shadow-sm shadow-[var(--accent)]/20 flex items-center justify-center gap-2"
+                    className="flex-[2] rounded-xl bg-[var(--accent)] py-3 text-sm font-bold text-white transition-all hover:bg-[var(--accent-hover)] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed shadow-sm shadow-[var(--accent)]/20 flex items-center justify-center gap-2"
                   >
                     {loading ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -332,7 +332,7 @@ export default function OnboardingPage() {
               className="text-center"
             >
               <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-[var(--accent-muted)]">
-                <Building2 className="h-10 w-10 text-[#b25c1c]" />
+                <Building2 className="h-10 w-10 text-[var(--accent-text)]" />
               </div>
               <h2 className="text-xl font-bold text-[var(--text-1)] mb-2">
                 {restaurantName} is live!
@@ -345,7 +345,7 @@ export default function OnboardingPage() {
               <div className="space-y-3">
                 <button
                   onClick={() => router.push("/dashboard")}
-                  className="w-full rounded-xl bg-[#eaa94d] py-3 text-sm font-bold text-white transition-all hover:bg-[#d67620] shadow-sm shadow-[var(--accent)]/20"
+                  className="w-full rounded-xl bg-[var(--accent)] py-3 text-sm font-bold text-white transition-all hover:bg-[var(--accent-hover)] shadow-sm shadow-[var(--accent)]/20"
                 >
                   Go to Dashboard
                 </button>

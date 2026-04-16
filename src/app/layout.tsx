@@ -45,7 +45,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${inter.variable} antialiased selection:bg-brand-400 selection:text-white`}
+        className={`${inter.variable} antialiased selection:bg-[var(--accent)] selection:text-white`}
       >
         <Providers>
           {children}

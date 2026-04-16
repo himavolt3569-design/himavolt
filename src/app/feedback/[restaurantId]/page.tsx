@@ -18,7 +18,7 @@ interface Restaurant {
 }
 
 const STAR_LABELS = ["", "Poor", "Fair", "Good", "Very Good", "Excellent"];
-const STAR_COLORS = ["", "text-red-400", "text-[var(--accent)]", "text-[var(--accent)]", "text-lime-500", "text-[#d67620]"];
+const STAR_COLORS = ["", "text-red-400", "text-[var(--accent)]", "text-[var(--accent)]", "text-lime-500", "text-[var(--accent-hover)]"];
 
 
 export default function FeedbackPage() {
@@ -145,7 +145,7 @@ export default function FeedbackPage() {
                   </button>
                   <button
                     onClick={() => setStep("review")}
-                    className="flex-1 rounded-xl bg-[#3e1e0c] py-3 text-sm font-bold text-white hover:bg-[#2d1508] transition-colors"
+                    className="flex-1 rounded-xl bg-[var(--text-1)] py-3 text-sm font-bold text-white hover:bg-[#2d1508] transition-colors"
                   >
                     Continue
                   </button>
@@ -210,7 +210,7 @@ export default function FeedbackPage() {
                   <button
                     onClick={handleSubmit}
                     disabled={submitting || (rating === 0 && !comment.trim())}
-                    className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[#eaa94d] py-3 text-sm font-bold text-white hover:bg-[#d67620] disabled:opacity-40 transition-colors shadow-sm"
+                    className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[var(--accent)] py-3 text-sm font-bold text-white hover:bg-[var(--accent-hover)] disabled:opacity-40 transition-colors shadow-sm"
                   >
                     {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                     {submitting ? "Sending…" : "Submit Feedback"}
@@ -223,7 +223,7 @@ export default function FeedbackPage() {
             {step === "done" && (
               <motion.div key="done" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center gap-4 py-6 text-center">
                 <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--accent-muted)]">
-                  <Check className="h-8 w-8 text-[#b25c1c]" />
+                  <Check className="h-8 w-8 text-[var(--accent-text)]" />
                 </div>
                 <h2 className="text-lg font-extrabold text-[var(--text-1)]">Thank you!</h2>
                 <p className="text-sm text-[var(--text-2)] max-w-xs">
@@ -231,7 +231,7 @@ export default function FeedbackPage() {
                 </p>
                 <Link
                   href={`/menu/${restaurant.slug}`}
-                  className="mt-2 rounded-xl bg-[#3e1e0c] px-6 py-3 text-sm font-bold text-white hover:bg-[#2d1508] transition-colors"
+                  className="mt-2 rounded-xl bg-[var(--text-1)] px-6 py-3 text-sm font-bold text-white hover:bg-[#2d1508] transition-colors"
                 >
                   Back to Menu
                 </Link>

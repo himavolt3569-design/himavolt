@@ -140,7 +140,7 @@ function VegDot({ isVeg }: { isVeg: boolean }) {
     >
       <span
         className={`h-2 w-2 rounded-full ${
-          isVeg ? "bg-[#eaa94d]" : "bg-red-600"
+          isVeg ? "bg-[var(--accent)]" : "bg-red-600"
         }`}
       />
     </span>
@@ -217,7 +217,7 @@ function SimilarCard({
 }) {
   return (
     <button onClick={onSelect} className="text-left group block w-full">
-      <div className="rounded-xl overflow-hidden border border-[var(--border-soft)] bg-[var(--canvas)] hover:border-[#eaa94d]/40 hover:shadow-md transition-all duration-200">
+      <div className="rounded-xl overflow-hidden border border-[var(--border-soft)] bg-[var(--canvas)] hover:border-[var(--accent)]/40 hover:shadow-md transition-all duration-200">
         <div className="relative aspect-[4/3] overflow-hidden bg-[var(--surface)]">
           <img
             src={imgSrc(item.imageUrl)}
@@ -232,7 +232,7 @@ function SimilarCard({
           )}
           {item.rating > 0 && (
             <span className="absolute bottom-1.5 right-1.5 flex items-center gap-0.5 rounded-md bg-black/55 backdrop-blur-sm px-1.5 py-0.5 text-[9px] font-bold text-white">
-              <Star className="h-2 w-2 fill-[#eaa94d] text-[#eaa94d]" />
+              <Star className="h-2 w-2 fill-[var(--accent)] text-[var(--accent)]" />
               {item.rating.toFixed(1)}
             </span>
           )}
@@ -240,12 +240,12 @@ function SimilarCard({
         <div className="p-2">
           <div className="flex items-center gap-1 mb-0.5">
             <VegDot isVeg={item.isVeg} />
-            <p className="text-[11px] font-bold text-[#111] truncate group-hover:text-[#eaa94d] transition-colors">
+            <p className="text-[11px] font-bold text-[var(--text-1)] truncate group-hover:text-[var(--accent)] transition-colors">
               {item.name}
             </p>
           </div>
           <div className="flex items-center justify-between gap-1">
-            <p className="text-[11px] font-extrabold text-[#eaa94d]">
+            <p className="text-[11px] font-extrabold text-[var(--accent)]">
               {formatPrice(item.price, currency)}
             </p>
             <span className="text-[10px] text-[var(--text-3)] flex items-center gap-0.5 shrink-0">
@@ -611,13 +611,13 @@ export default function FoodDetailPopup({
             </span>
           )}
           {item.hasOnionGarlic === false && (
-            <span className="flex items-center gap-1 rounded-full border border-[var(--accent-border)] bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-bold text-[#b25c1c]">
+            <span className="flex items-center gap-1 rounded-full border border-[var(--accent-border)] bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-bold text-[var(--accent-text)]">
               <Leaf className="h-3 w-3" /> No Onion/Garlic
             </span>
           )}
           {item.isFeatured && (
-            <span className="flex items-center gap-0.5 rounded-full bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-bold text-[#eaa94d]">
-              <Star className="h-3 w-3 fill-[#eaa94d]" /> Featured
+            <span className="flex items-center gap-0.5 rounded-full bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-bold text-[var(--accent)]">
+              <Star className="h-3 w-3 fill-[var(--accent)]" /> Featured
             </span>
           )}
         </div>
@@ -627,7 +627,7 @@ export default function FoodDetailPopup({
           <p className="text-[11px] font-medium text-[var(--text-3)] mb-1">
             {item.category.name}
           </p>
-          <h2 className="text-xl font-extrabold text-[#111] leading-tight">
+          <h2 className="text-xl font-extrabold text-[var(--text-1)] leading-tight">
             {item.name}
           </h2>
           {item.description && (
@@ -705,13 +705,13 @@ export default function FoodDetailPopup({
 
         {/* Offer banner */}
         {(item.offerExpiresAt || item.discount > 0) && (
-          <div className="flex items-center gap-3 rounded-2xl bg-[#fef3dc] border border-[var(--accent-border)] p-3.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#eaa94d]/20 shrink-0">
-              <Tag className="h-4 w-4 text-[#d67620]" />
+          <div className="flex items-center gap-3 rounded-2xl bg-[var(--accent-muted)] border border-[var(--accent-border)] p-3.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent)]/20 shrink-0">
+              <Tag className="h-4 w-4 text-[var(--accent-hover)]" />
             </div>
             <div className="min-w-0 flex-1">
               {item.discountLabel && (
-                <p className="text-sm font-extrabold text-[#b25c1c]">
+                <p className="text-sm font-extrabold text-[var(--accent-text)]">
                   {item.discountLabel}
                 </p>
               )}
@@ -738,13 +738,13 @@ export default function FoodDetailPopup({
                   onClick={() => setSizeIdx(i)}
                   className={`flex flex-col items-center gap-0.5 rounded-xl border-2 py-3 px-2 transition-all ${
                     sizeIdx === i
-                      ? "border-[#eaa94d] bg-[#fef3dc]"
+                      ? "border-[var(--accent)] bg-[var(--accent-muted)]"
                       : "border-[var(--border)] hover:border-[var(--border)] bg-[var(--canvas)]"
                   }`}
                 >
                   <span
                     className={`text-sm font-extrabold leading-tight ${
-                      sizeIdx === i ? "text-[#b25c1c]" : "text-[#111]"
+                      sizeIdx === i ? "text-[var(--accent-text)]" : "text-[var(--text-1)]"
                     }`}
                   >
                     {s.grams}
@@ -755,7 +755,7 @@ export default function FoodDetailPopup({
                   {s.priceAdd > 0 && (
                     <span
                       className={`text-[10px] font-bold mt-0.5 ${
-                        sizeIdx === i ? "text-[#d67620]" : "text-[var(--text-3)]"
+                        sizeIdx === i ? "text-[var(--accent-hover)]" : "text-[var(--text-3)]"
                       }`}
                     >
                       +{formatPrice(s.priceAdd, cur)}
@@ -779,7 +779,7 @@ export default function FoodDetailPopup({
                   key={a.id}
                   className={`flex items-center justify-between rounded-xl border px-4 py-3 cursor-pointer transition-all ${
                     selectedAddOns.has(a.id)
-                      ? "border-[#eaa94d] bg-[#fef3dc]/50"
+                      ? "border-[var(--accent)] bg-[var(--accent-muted)]/50"
                       : "border-[var(--border-soft)] bg-[var(--canvas-sub)] hover:border-[var(--border)]"
                   }`}
                 >
@@ -787,7 +787,7 @@ export default function FoodDetailPopup({
                     <div
                       className={`flex h-5 w-5 items-center justify-center rounded-md border-2 transition-colors shrink-0 ${
                         selectedAddOns.has(a.id)
-                          ? "border-[#eaa94d] bg-[#eaa94d]"
+                          ? "border-[var(--accent)] bg-[var(--accent)]"
                           : "border-[var(--border)]"
                       }`}
                     >
@@ -795,11 +795,11 @@ export default function FoodDetailPopup({
                         <Check className="h-3 w-3 text-white" />
                       )}
                     </div>
-                    <span className="text-sm font-medium text-[#111]">
+                    <span className="text-sm font-medium text-[var(--text-1)]">
                       {a.name}
                     </span>
                   </div>
-                  <span className="text-sm font-bold text-[#eaa94d]">
+                  <span className="text-sm font-bold text-[var(--accent)]">
                     +{formatPrice(a.price, cur)}
                   </span>
                   <input
@@ -856,7 +856,7 @@ export default function FoodDetailPopup({
               initial={{ scale: 1.3 }}
               animate={{ scale: 1 }}
               transition={{ type: "spring", stiffness: 500, damping: 20 }}
-              className="w-8 text-center text-base font-extrabold text-[#111]"
+              className="w-8 text-center text-base font-extrabold text-[var(--text-1)]"
             >
               {qty}
             </motion.span>
@@ -886,11 +886,11 @@ export default function FoodDetailPopup({
 
         {/* Restaurant card */}
         <div className="flex items-center gap-3 rounded-2xl bg-[var(--canvas-sub)] border border-[var(--border-soft)] p-3.5">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#3e1e0c]">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[var(--text-1)]">
             <Utensils className="h-5 w-5 text-white" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-[13px] font-bold text-[#111] truncate">
+            <p className="text-[13px] font-bold text-[var(--text-1)] truncate">
               {item.restaurant.name}
             </p>
             {item.restaurant.address && (
@@ -903,7 +903,7 @@ export default function FoodDetailPopup({
           <Link
             href={`/menu/${item.restaurant.slug}`}
             onClick={handleClose}
-            className="shrink-0 flex items-center gap-0.5 text-[12px] font-bold text-[#eaa94d] hover:underline"
+            className="shrink-0 flex items-center gap-0.5 text-[12px] font-bold text-[var(--accent)] hover:underline"
           >
             Full Menu <ChevronRight className="h-3.5 w-3.5" />
           </Link>
@@ -913,7 +913,7 @@ export default function FoodDetailPopup({
         {related.length > 0 && (
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-extrabold text-[#111]">
+              <h3 className="text-sm font-extrabold text-[var(--text-1)]">
                 {context === "landing" ? "Similar dishes" : "You might also like"}
               </h3>
               <span className="text-[11px] text-[var(--text-3)]">
@@ -975,13 +975,13 @@ export default function FoodDetailPopup({
             </span>
           )}
           {item.hasOnionGarlic === false && (
-            <span className="flex items-center gap-1 rounded-full border border-[var(--accent-border)] bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-bold text-[#b25c1c]">
+            <span className="flex items-center gap-1 rounded-full border border-[var(--accent-border)] bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-bold text-[var(--accent-text)]">
               <Leaf className="h-3 w-3" /> No Onion/Garlic
             </span>
           )}
           {item.isFeatured && (
-            <span className="flex items-center gap-0.5 rounded-full bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-bold text-[#eaa94d]">
-              <Star className="h-3 w-3 fill-[#eaa94d]" /> Featured
+            <span className="flex items-center gap-0.5 rounded-full bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-bold text-[var(--accent)]">
+              <Star className="h-3 w-3 fill-[var(--accent)]" /> Featured
             </span>
           )}
         </div>
@@ -1054,13 +1054,13 @@ export default function FoodDetailPopup({
 
         {/* Offer banner */}
         {(item.offerExpiresAt || item.discount > 0) && (
-          <div className="flex items-center gap-3 rounded-2xl bg-[#fef3dc] border border-[var(--accent-border)] p-3.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#eaa94d]/20 shrink-0">
-              <Tag className="h-4 w-4 text-[#d67620]" />
+          <div className="flex items-center gap-3 rounded-2xl bg-[var(--accent-muted)] border border-[var(--accent-border)] p-3.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent)]/20 shrink-0">
+              <Tag className="h-4 w-4 text-[var(--accent-hover)]" />
             </div>
             <div className="min-w-0 flex-1">
               {item.discountLabel && (
-                <p className="text-sm font-extrabold text-[#b25c1c]">
+                <p className="text-sm font-extrabold text-[var(--accent-text)]">
                   {item.discountLabel}
                 </p>
               )}
@@ -1087,13 +1087,13 @@ export default function FoodDetailPopup({
                   onClick={() => setSizeIdx(i)}
                   className={`flex flex-col items-center gap-0.5 rounded-xl border-2 py-3 px-2 transition-all ${
                     sizeIdx === i
-                      ? "border-[#eaa94d] bg-[#fef3dc]"
+                      ? "border-[var(--accent)] bg-[var(--accent-muted)]"
                       : "border-[var(--border)] hover:border-[var(--border)] bg-[var(--canvas)]"
                   }`}
                 >
                   <span
                     className={`text-sm font-extrabold ${
-                      sizeIdx === i ? "text-[#b25c1c]" : "text-[#111]"
+                      sizeIdx === i ? "text-[var(--accent-text)]" : "text-[var(--text-1)]"
                     }`}
                   >
                     {s.grams}
@@ -1104,7 +1104,7 @@ export default function FoodDetailPopup({
                   {s.priceAdd > 0 && (
                     <span
                       className={`text-[10px] font-bold mt-0.5 ${
-                        sizeIdx === i ? "text-[#d67620]" : "text-[var(--text-3)]"
+                        sizeIdx === i ? "text-[var(--accent-hover)]" : "text-[var(--text-3)]"
                       }`}
                     >
                       +{formatPrice(s.priceAdd, cur)}
@@ -1128,7 +1128,7 @@ export default function FoodDetailPopup({
                   key={a.id}
                   className={`flex items-center justify-between rounded-xl border px-4 py-3 cursor-pointer transition-all ${
                     selectedAddOns.has(a.id)
-                      ? "border-[#eaa94d] bg-[#fef3dc]/50"
+                      ? "border-[var(--accent)] bg-[var(--accent-muted)]/50"
                       : "border-[var(--border-soft)] bg-[var(--canvas-sub)] hover:border-[var(--border)]"
                   }`}
                 >
@@ -1136,7 +1136,7 @@ export default function FoodDetailPopup({
                     <div
                       className={`flex h-5 w-5 items-center justify-center rounded-md border-2 transition-colors shrink-0 ${
                         selectedAddOns.has(a.id)
-                          ? "border-[#eaa94d] bg-[#eaa94d]"
+                          ? "border-[var(--accent)] bg-[var(--accent)]"
                           : "border-[var(--border)]"
                       }`}
                     >
@@ -1144,11 +1144,11 @@ export default function FoodDetailPopup({
                         <Check className="h-3 w-3 text-white" />
                       )}
                     </div>
-                    <span className="text-sm font-medium text-[#111]">
+                    <span className="text-sm font-medium text-[var(--text-1)]">
                       {a.name}
                     </span>
                   </div>
-                  <span className="text-sm font-bold text-[#eaa94d]">
+                  <span className="text-sm font-bold text-[var(--accent)]">
                     +{formatPrice(a.price, cur)}
                   </span>
                   <input
@@ -1205,7 +1205,7 @@ export default function FoodDetailPopup({
               initial={{ scale: 1.3 }}
               animate={{ scale: 1 }}
               transition={{ type: "spring", stiffness: 500, damping: 20 }}
-              className="w-8 text-center text-base font-extrabold text-[#111]"
+              className="w-8 text-center text-base font-extrabold text-[var(--text-1)]"
             >
               {qty}
             </motion.span>
@@ -1237,7 +1237,7 @@ export default function FoodDetailPopup({
         {related.length > 0 && (
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-extrabold text-[#111]">
+              <h3 className="text-sm font-extrabold text-[var(--text-1)]">
                 {context === "landing" ? "Similar dishes" : "You might also like"}
               </h3>
               <span className="text-[11px] text-[var(--text-3)]">
@@ -1322,9 +1322,9 @@ export default function FoodDetailPopup({
                     <span
                       className={`rounded-full px-2.5 py-0.5 text-[10px] font-extrabold text-white shadow ${
                         item.badge === "Bestseller"
-                          ? "bg-[#eaa94d]"
+                          ? "bg-[var(--accent)]"
                           : item.badge === "Most Liked"
-                            ? "bg-[#3e1e0c]"
+                            ? "bg-[var(--text-1)]"
                             : "bg-purple-500"
                       }`}
                     >
@@ -1348,7 +1348,7 @@ export default function FoodDetailPopup({
                       <p className="text-white/55 text-[10px] line-through leading-none">
                         {formatPrice(item.price, cur)}
                       </p>
-                      <p className="text-lg font-extrabold text-[#eaa94d] leading-tight drop-shadow">
+                      <p className="text-lg font-extrabold text-[var(--accent)] leading-tight drop-shadow">
                         {formatPrice(baseDiscounted, cur)}
                       </p>
                     </>
@@ -1460,9 +1460,9 @@ export default function FoodDetailPopup({
                       <span
                         className={`rounded-full px-2.5 py-0.5 text-[10px] font-extrabold text-white shadow ${
                           item.badge === "Bestseller"
-                            ? "bg-[#eaa94d]"
+                            ? "bg-[var(--accent)]"
                             : item.badge === "Most Liked"
-                              ? "bg-[#3e1e0c]"
+                              ? "bg-[var(--text-1)]"
                               : "bg-purple-500"
                         }`}
                       >
@@ -1486,7 +1486,7 @@ export default function FoodDetailPopup({
                         <p className="text-white/55 text-[10px] line-through leading-none">
                           {formatPrice(item.price, cur)}
                         </p>
-                        <p className="text-xl font-extrabold text-[#eaa94d] leading-tight drop-shadow">
+                        <p className="text-xl font-extrabold text-[var(--accent)] leading-tight drop-shadow">
                           {formatPrice(baseDiscounted, cur)}
                         </p>
                       </>
@@ -1502,11 +1502,11 @@ export default function FoodDetailPopup({
                 {item && (
                   <div className="absolute bottom-0 left-0 right-0 p-3 z-10">
                     <div className="flex items-center gap-2.5 rounded-xl bg-[var(--canvas)]/90 backdrop-blur-md border border-white/60 p-2.5 shadow-sm">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#3e1e0c]">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--text-1)]">
                         <Utensils className="h-4 w-4 text-white" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-[12px] font-bold text-[#111] truncate">
+                        <p className="text-[12px] font-bold text-[var(--text-1)] truncate">
                           {item.restaurant.name}
                         </p>
                         {item.restaurant.address && (
@@ -1518,7 +1518,7 @@ export default function FoodDetailPopup({
                       <Link
                         href={`/menu/${item.restaurant.slug}`}
                         onClick={handleClose}
-                        className="shrink-0 text-[11px] font-bold text-[#eaa94d] hover:underline flex items-center gap-0.5"
+                        className="shrink-0 text-[11px] font-bold text-[var(--accent)] hover:underline flex items-center gap-0.5"
                       >
                         Menu <ChevronRight className="h-3 w-3" />
                       </Link>
@@ -1537,7 +1537,7 @@ export default function FoodDetailPopup({
                         <p className="text-[10px] font-medium text-[var(--text-3)] uppercase tracking-wider mb-0.5">
                           {item.category.name}
                         </p>
-                        <h2 className="text-lg font-extrabold text-[#111] leading-tight line-clamp-2">
+                        <h2 className="text-lg font-extrabold text-[var(--text-1)] leading-tight line-clamp-2">
                           {item.name}
                         </h2>
                       </>
@@ -1546,7 +1546,7 @@ export default function FoodDetailPopup({
                   <div className="flex items-center gap-1.5 shrink-0">
                     <button
                       onClick={handleShare}
-                      className="flex h-8 w-8 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--canvas)] text-[var(--text-2)] hover:border-[#eaa94d]/50 hover:text-[#eaa94d] transition-colors"
+                      className="flex h-8 w-8 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--canvas)] text-[var(--text-2)] hover:border-[var(--accent)]/50 hover:text-[var(--accent)] transition-colors"
                     >
                       <AnimatePresence mode="wait">
                         {shareState === "copied" ? (
@@ -1556,7 +1556,7 @@ export default function FoodDetailPopup({
                             animate={{ scale: 1 }}
                             exit={{ scale: 0 }}
                           >
-                            <Check className="h-3.5 w-3.5 text-[#d67620]" />
+                            <Check className="h-3.5 w-3.5 text-[var(--accent-hover)]" />
                           </motion.div>
                         ) : (
                           <motion.div

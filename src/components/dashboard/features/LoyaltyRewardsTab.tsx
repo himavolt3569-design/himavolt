@@ -190,7 +190,7 @@ export default function LoyaltyRewardsTab() {
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             {[
               { label: "Active Members", value: stats.activeMembers, icon: Users, color: "text-[var(--accent-text)] bg-[var(--accent-muted)]" },
-              { label: "Engagement Rate", value: `${stats.engagementRate}%`, icon: TrendingUp, color: "text-[#b25c1c] bg-[var(--accent-muted)]" },
+              { label: "Engagement Rate", value: `${stats.engagementRate}%`, icon: TrendingUp, color: "text-[var(--accent-text)] bg-[var(--accent-muted)]" },
               { label: "Points Issued Today", value: stats.pointsToday.toLocaleString(), icon: Star, color: "text-[var(--accent)] bg-[var(--accent)]" },
               { label: "Redeemed Today", value: stats.rewardsRedeemedToday, icon: Award, color: "text-purple-600 bg-purple-50" },
             ].map((stat) => (
@@ -272,7 +272,7 @@ export default function LoyaltyRewardsTab() {
                       { label: "This Month", value: stats.rewardsRedeemedMonth },
                     ].map((s) => (
                       <div key={s.label} className="bg-[var(--accent-muted)] rounded-lg p-2.5 text-center">
-                        <p className="text-xs text-[#b25c1c]">{s.label}</p>
+                        <p className="text-xs text-[var(--accent-text)]">{s.label}</p>
                         <p className="text-sm font-bold text-[var(--text-1)]">{s.value}</p>
                       </div>
                     ))}
@@ -401,7 +401,7 @@ export default function LoyaltyRewardsTab() {
                           onChange={(e) => setEditDesc(e.target.value)}
                           className="border border-[var(--border)] rounded-lg px-2 py-1.5 text-sm flex-1 focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                         />
-                        <button onClick={() => saveEdit(reward.id)} className="p-1.5 text-[#b25c1c] hover:bg-[var(--accent-muted)] rounded-lg">
+                        <button onClick={() => saveEdit(reward.id)} className="p-1.5 text-[var(--accent-text)] hover:bg-[var(--accent-muted)] rounded-lg">
                           <Check className="w-4 h-4" />
                         </button>
                         <button onClick={() => setEditingReward(null)} className="p-1.5 text-[var(--text-3)] hover:bg-[var(--surface)] rounded-lg">

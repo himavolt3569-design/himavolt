@@ -99,7 +99,7 @@ function VegDot({ isVeg }: { isVeg: boolean }) {
       }`}
     >
       <span
-        className={`h-2 w-2 rounded-full ${isVeg ? "bg-[#eaa94d]" : "bg-red-600"}`}
+        className={`h-2 w-2 rounded-full ${isVeg ? "bg-[var(--accent)]" : "bg-red-600"}`}
       />
     </span>
   );
@@ -141,7 +141,7 @@ function SuggestedCard({
           {item.badge && (
             <span
               className={`absolute top-2 right-2 rounded-lg px-2 py-0.5 text-[10px] font-extrabold text-white shadow ${
-                item.badge === "Bestseller" ? "bg-[#eaa94d]" : "bg-[#3e1e0c]"
+                item.badge === "Bestseller" ? "bg-[var(--accent)]" : "bg-[var(--text-1)]"
               }`}
             >
               {item.badge}
@@ -149,7 +149,7 @@ function SuggestedCard({
           )}
           {item.rating > 0 && (
             <span className="absolute bottom-2 right-2 flex items-center gap-0.5 rounded-lg bg-black/55 backdrop-blur-sm px-1.5 py-0.5 text-[10px] font-bold text-white">
-              <Star className="h-2.5 w-2.5 fill-[#eaa94d] text-[#eaa94d]" />
+              <Star className="h-2.5 w-2.5 fill-[var(--accent)] text-[var(--accent)]" />
               {item.rating.toFixed(1)}
             </span>
           )}
@@ -157,12 +157,12 @@ function SuggestedCard({
         <div className="p-3">
           <div className="flex items-center gap-1.5 mb-1">
             <VegDot isVeg={item.isVeg} />
-            <p className="text-[13px] font-bold text-[var(--text-1)] truncate group-hover:text-[#eaa94d] transition-colors">
+            <p className="text-[13px] font-bold text-[var(--text-1)] truncate group-hover:text-[var(--accent)] transition-colors">
               {item.name}
             </p>
           </div>
           <div className="flex items-center justify-between gap-2">
-            <span className="text-[13px] font-extrabold text-[#eaa94d]">
+            <span className="text-[13px] font-extrabold text-[var(--accent)]">
               {formatPrice(item.price, currency)}
             </span>
             <span className="text-[11px] text-[var(--text-3)] flex items-center gap-0.5 shrink-0">
@@ -282,13 +282,13 @@ export default function FoodDetailsPage() {
       <div className="flex min-h-screen items-center justify-center bg-[var(--canvas)]">
         <div className="text-center px-6">
           <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-[var(--accent-muted)]">
-            <Utensils className="h-8 w-8 text-[#eaa94d]" />
+            <Utensils className="h-8 w-8 text-[var(--accent)]" />
           </div>
           <p className="text-xl font-bold text-[var(--text-1)]">Dish not found</p>
           <p className="text-sm text-[var(--text-3)] mt-1">This item may have been removed.</p>
           <Link
             href="/"
-            className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#eaa94d] px-6 py-3 text-sm font-bold text-white"
+            className="mt-6 inline-flex items-center gap-2 rounded-full bg-[var(--accent)] px-6 py-3 text-sm font-bold text-white"
           >
             <ArrowLeft className="h-4 w-4" /> Go Home
           </Link>
@@ -356,9 +356,9 @@ export default function FoodDetailsPage() {
                   <span
                     className={`rounded-full px-2.5 py-0.5 text-[10px] font-extrabold text-white ${
                       food.badge === "Bestseller"
-                        ? "bg-[#eaa94d]"
+                        ? "bg-[var(--accent)]"
                         : food.badge === "Most Liked"
-                          ? "bg-[#3e1e0c]"
+                          ? "bg-[var(--text-1)]"
                           : "bg-purple-500"
                     }`}
                   >
@@ -391,7 +391,7 @@ export default function FoodDetailsPage() {
                   <p className="text-white/50 text-xs line-through leading-none">
                     {formatPrice(food.price, cur)}
                   </p>
-                  <p className="text-xl font-extrabold text-[#eaa94d] leading-tight">
+                  <p className="text-xl font-extrabold text-[var(--accent)] leading-tight">
                     {formatPrice(baseDiscounted, cur)}
                   </p>
                 </>
@@ -429,13 +429,13 @@ export default function FoodDetailsPage() {
                   </span>
                 )}
                 {food.hasOnionGarlic === false && (
-                  <span className="flex items-center gap-1 rounded-full border border-[var(--accent-border)] bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-bold text-[#b25c1c]">
+                  <span className="flex items-center gap-1 rounded-full border border-[var(--accent-border)] bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-bold text-[var(--accent-text)]">
                     <Leaf className="h-3 w-3" /> No Onion/Garlic
                   </span>
                 )}
                 {food.isFeatured && (
-                  <span className="flex items-center gap-0.5 rounded-full bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-bold text-[#eaa94d]">
-                    <Star className="h-3 w-3 fill-[#eaa94d]" /> Featured
+                  <span className="flex items-center gap-0.5 rounded-full bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-bold text-[var(--accent)]">
+                    <Star className="h-3 w-3 fill-[var(--accent)]" /> Featured
                   </span>
                 )}
               </div>
@@ -519,12 +519,12 @@ export default function FoodDetailsPage() {
             {/* ── Offer banner ── */}
             {(food.offerExpiresAt || food.discount > 0) && (
               <div className="flex items-center gap-3 rounded-xl bg-[#fef3dc] border border-[var(--accent-border)] p-3.5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#eaa94d]/20 shrink-0">
-                  <Tag className="h-4 w-4 text-[#d67620]" />
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--accent)]/20 shrink-0">
+                  <Tag className="h-4 w-4 text-[var(--accent-hover)]" />
                 </div>
                 <div className="min-w-0 flex-1">
                   {food.discountLabel && (
-                    <p className="text-sm font-extrabold text-[#b25c1c]">
+                    <p className="text-sm font-extrabold text-[var(--accent-text)]">
                       {food.discountLabel}
                     </p>
                   )}
@@ -551,13 +551,13 @@ export default function FoodDetailsPage() {
                       onClick={() => setSizeIdx(i)}
                       className={`flex flex-col items-center gap-0.5 rounded-xl border-2 py-3 px-2 transition-all ${
                         sizeIdx === i
-                          ? "border-[#eaa94d] bg-[#fef3dc]"
+                          ? "border-[var(--accent)] bg-[#fef3dc]"
                           : "border-[var(--border)] hover:border-[var(--border)] bg-[var(--canvas)]"
                       }`}
                     >
                       <span
                         className={`text-sm font-extrabold leading-tight ${
-                          sizeIdx === i ? "text-[#b25c1c]" : "text-[var(--text-1)]"
+                          sizeIdx === i ? "text-[var(--accent-text)]" : "text-[var(--text-1)]"
                         }`}
                       >
                         {s.grams}
@@ -568,7 +568,7 @@ export default function FoodDetailsPage() {
                       {s.priceAdd > 0 && (
                         <span
                           className={`text-[10px] font-bold mt-0.5 ${
-                            sizeIdx === i ? "text-[#d67620]" : "text-[var(--text-3)]"
+                            sizeIdx === i ? "text-[var(--accent-hover)]" : "text-[var(--text-3)]"
                           }`}
                         >
                           +{formatPrice(s.priceAdd, cur)}
@@ -592,7 +592,7 @@ export default function FoodDetailsPage() {
                       key={a.id}
                       className={`flex items-center justify-between rounded-xl border px-4 py-3 cursor-pointer transition-all ${
                         selectedAddOns.has(a.id)
-                          ? "border-[#eaa94d] bg-[#fef3dc]/50"
+                          ? "border-[var(--accent)] bg-[#fef3dc]/50"
                           : "border-[var(--border-soft)] bg-[var(--canvas-sub)] hover:border-[var(--border)]"
                       }`}
                     >
@@ -600,7 +600,7 @@ export default function FoodDetailsPage() {
                         <div
                           className={`flex h-5 w-5 items-center justify-center rounded-md border-2 transition-colors shrink-0 ${
                             selectedAddOns.has(a.id)
-                              ? "border-[#eaa94d] bg-[#eaa94d]"
+                              ? "border-[var(--accent)] bg-[var(--accent)]"
                               : "border-[var(--border)]"
                           }`}
                         >
@@ -612,7 +612,7 @@ export default function FoodDetailsPage() {
                           {a.name}
                         </span>
                       </div>
-                      <span className="text-sm font-bold text-[#eaa94d]">
+                      <span className="text-sm font-bold text-[var(--accent)]">
                         +{formatPrice(a.price, cur)}
                       </span>
                       <input
@@ -676,7 +676,7 @@ export default function FoodDetailsPage() {
                 </motion.span>
                 <button
                   onClick={() => setQty((q) => q + 1)}
-                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#eaa94d] text-white hover:bg-[#d67620] transition-colors shadow-sm active:scale-90"
+                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent)] text-white hover:bg-[var(--accent-hover)] transition-colors shadow-sm active:scale-90"
                 >
                   <Plus className="h-4 w-4" strokeWidth={2.5} />
                 </button>
@@ -688,7 +688,7 @@ export default function FoodDetailsPage() {
               onClick={handleAdd}
               whileTap={{ scale: 0.97 }}
               whileHover={{ y: -1 }}
-              className="relative w-full flex items-center justify-center gap-2.5 rounded-2xl bg-[#eaa94d] py-4 text-base font-bold text-white shadow-lg shadow-[var(--accent)]/25 overflow-hidden transition-colors hover:bg-[#d67620]"
+              className="relative w-full flex items-center justify-center gap-2.5 rounded-2xl bg-[var(--accent)] py-4 text-base font-bold text-white shadow-lg shadow-[var(--accent)]/25 overflow-hidden transition-colors hover:bg-[var(--accent-hover)]"
             >
               <motion.div
                 className="absolute inset-0 bg-linear-to-r from-transparent via-white/15 to-transparent"
@@ -741,7 +741,7 @@ export default function FoodDetailsPage() {
 
             {/* ── Restaurant info ── */}
             <div className="flex items-center gap-3 rounded-2xl bg-[var(--canvas-sub)] border border-[var(--border-soft)] p-3.5">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#3e1e0c]">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[var(--text-1)]">
                 <Utensils className="h-5 w-5 text-white" />
               </div>
               <div className="min-w-0 flex-1">
@@ -755,7 +755,7 @@ export default function FoodDetailsPage() {
               </div>
               <Link
                 href={`/menu/${food.restaurant.slug}`}
-                className="shrink-0 flex items-center gap-0.5 text-[12px] font-bold text-[#eaa94d] hover:underline"
+                className="shrink-0 flex items-center gap-0.5 text-[12px] font-bold text-[var(--accent)] hover:underline"
               >
                 Full Menu
                 <ChevronRight className="h-3.5 w-3.5" />
@@ -784,7 +784,7 @@ export default function FoodDetailsPage() {
             </div>
             <Link
               href={`/menu/${food.restaurant.slug}`}
-              className="text-[12px] font-bold text-[#eaa94d] flex items-center gap-0.5 hover:underline"
+              className="text-[12px] font-bold text-[var(--accent)] flex items-center gap-0.5 hover:underline"
             >
               See all <ChevronRight className="h-3.5 w-3.5" />
             </Link>

@@ -195,13 +195,13 @@ export default function StoryManager({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-bold text-[#3e1e0c]">Stories</h2>
+          <h2 className="text-lg font-bold text-[var(--text-1)]">Stories</h2>
           <p className="text-xs text-[var(--text-2)] mt-0.5">
             Share photos & videos that customers see when they open the menu.
             Stories auto-expire after the set duration.
           </p>
         </div>
-        <label className="flex items-center gap-2 rounded-xl bg-[#eaa94d] px-4 py-2.5 text-sm font-bold text-white cursor-pointer hover:bg-[#d67620] transition-colors shadow-md">
+        <label className="flex items-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white cursor-pointer hover:bg-[var(--accent-hover)] transition-colors shadow-md">
           <Plus className="h-4 w-4" />
           Add Story
           <input
@@ -230,7 +230,7 @@ export default function StoryManager({
               timestamp={activeStories[0]?.createdAt}
             />
             <div className="text-sm text-[var(--text-2)]">
-              <span className="font-bold text-[#3e1e0c]">
+              <span className="font-bold text-[var(--text-1)]">
                 {activeStories.length}
               </span>{" "}
               active {activeStories.length === 1 ? "story" : "stories"}
@@ -452,7 +452,7 @@ export default function StoryManager({
               className="fixed inset-x-4 top-[10%] z-50 mx-auto max-w-lg rounded-2xl bg-[var(--canvas)] shadow-2xl overflow-hidden"
             >
               <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-soft)]">
-                <h3 className="text-base font-bold text-[#3e1e0c]">
+                <h3 className="text-base font-bold text-[var(--text-1)]">
                   Add Story
                 </h3>
                 <button
@@ -483,7 +483,7 @@ export default function StoryManager({
                     )}
                   </div>
                 ) : (
-                  <label className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-[var(--border)] py-16 cursor-pointer hover:border-[#eaa94d] hover:bg-[var(--accent)]0/50 transition-colors">
+                  <label className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-[var(--border)] py-16 cursor-pointer hover:border-[var(--accent)] hover:bg-[var(--accent)]0/50 transition-colors">
                     <Upload className="h-8 w-8 text-[var(--text-3)] mb-2" />
                     <span className="text-sm font-medium text-[var(--text-2)]">
                       Click to upload an image or video
@@ -510,7 +510,7 @@ export default function StoryManager({
                     onChange={(e) => setCaption(e.target.value)}
                     placeholder="What's happening today?"
                     maxLength={120}
-                    className="w-full rounded-lg border border-[var(--border)] px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#eaa94d]/30 focus:border-[#eaa94d]/30"
+                    className="w-full rounded-lg border border-[var(--border)] px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/30 focus:border-[var(--accent)]/30"
                   />
                 </div>
 
@@ -525,7 +525,7 @@ export default function StoryManager({
                         onClick={() => setDurationHours(h)}
                         className={`flex-1 rounded-lg px-3 py-2 text-xs font-bold transition-all ${
                           durationHours === h
-                            ? "bg-[#3e1e0c] text-white"
+                            ? "bg-[var(--text-1)] text-white"
                             : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
                         }`}
                       >
@@ -538,7 +538,7 @@ export default function StoryManager({
                 <button
                   onClick={handleUpload}
                   disabled={!previewFile || uploading}
-                  className="w-full rounded-xl bg-[#eaa94d] py-3 text-sm font-bold text-white transition-all hover:bg-[#d67620] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full rounded-xl bg-[var(--accent)] py-3 text-sm font-bold text-white transition-all hover:bg-[var(--accent-hover)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {uploading ? (
                     <>

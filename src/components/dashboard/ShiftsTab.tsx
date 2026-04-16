@@ -235,7 +235,7 @@ export default function ShiftsTab() {
           {shiftBasedStaff.length > 0 && (
             <button
               onClick={() => setShowAddForm(true)}
-              className="flex items-center gap-1.5 rounded-xl bg-[#3e1e0c] px-4 py-2 text-sm font-bold text-white hover:bg-[#2c1508] transition-all"
+              className="flex items-center gap-1.5 rounded-xl bg-[var(--text-1)] px-4 py-2 text-sm font-bold text-white hover:bg-[#2c1508] transition-all"
             >
               <Plus className="h-4 w-4" />
               Add Shift
@@ -279,7 +279,7 @@ export default function ShiftsTab() {
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            className="rounded-2xl border border-[#3e1e0c]/20 bg-[#3e1e0c]/5 p-5 space-y-4"
+            className="rounded-2xl border border-[var(--text-1)]/20 bg-[var(--text-1)]/5 p-5 space-y-4"
           >
             <div className="flex items-center justify-between">
               <p className="text-sm font-extrabold text-[var(--text-1)]">New Shift</p>
@@ -299,7 +299,7 @@ export default function ShiftsTab() {
                 <select
                   value={addForm.staffId}
                   onChange={(e) => setAddForm((f) => ({ ...f, staffId: e.target.value }))}
-                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-3 py-2.5 text-sm font-medium text-[var(--text-1)] outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/10"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-3 py-2.5 text-sm font-medium text-[var(--text-1)] outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/10"
                 >
                   {shiftBasedStaff.length === 0 && (
                     <option value="">No shift-based staff available</option>
@@ -322,7 +322,7 @@ export default function ShiftsTab() {
                   onChange={(e) => setAddForm((f) => ({ ...f, label: e.target.value }))}
                   placeholder="e.g. Morning Shift"
                   maxLength={80}
-                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-3 py-2.5 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/10"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-3 py-2.5 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/10"
                 />
               </div>
 
@@ -334,7 +334,7 @@ export default function ShiftsTab() {
                   type="time"
                   value={addForm.startTime}
                   onChange={(e) => setAddForm((f) => ({ ...f, startTime: e.target.value }))}
-                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-3 py-2.5 text-sm font-medium text-[var(--text-1)] outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/10"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-3 py-2.5 text-sm font-medium text-[var(--text-1)] outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/10"
                 />
               </div>
 
@@ -346,7 +346,7 @@ export default function ShiftsTab() {
                   type="time"
                   value={addForm.endTime}
                   onChange={(e) => setAddForm((f) => ({ ...f, endTime: e.target.value }))}
-                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-3 py-2.5 text-sm font-medium text-[var(--text-1)] outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/10"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-3 py-2.5 text-sm font-medium text-[var(--text-1)] outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/10"
                 />
               </div>
             </div>
@@ -361,7 +361,7 @@ export default function ShiftsTab() {
               <button
                 onClick={handleAddShift}
                 disabled={addLoading || shiftBasedStaff.length === 0}
-                className="flex items-center gap-1.5 rounded-xl bg-[#3e1e0c] px-4 py-2 text-sm font-bold text-white hover:bg-[#2c1508] disabled:opacity-50 transition-all"
+                className="flex items-center gap-1.5 rounded-xl bg-[var(--text-1)] px-4 py-2 text-sm font-bold text-white hover:bg-[#2c1508] disabled:opacity-50 transition-all"
               >
                 {addLoading ? (
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -389,7 +389,7 @@ export default function ShiftsTab() {
       {/* Shift list */}
       {loading ? (
         <div className="flex justify-center py-10">
-          <Loader2 className="h-5 w-5 animate-spin text-[#eaa94d]" />
+          <Loader2 className="h-5 w-5 animate-spin text-[var(--accent)]" />
         </div>
       ) : (
         <div className="space-y-3">
@@ -460,7 +460,7 @@ export default function ShiftsTab() {
                     <button
                       onClick={() => handleSaveEdit(shift.id)}
                       disabled={editLoading}
-                      className="flex items-center gap-1 rounded-xl bg-[#eaa94d] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#d67620] disabled:opacity-50"
+                      className="flex items-center gap-1 rounded-xl bg-[var(--accent)] px-3 py-1.5 text-xs font-bold text-white hover:bg-[var(--accent-hover)] disabled:opacity-50"
                     >
                       {editLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
                       Save
@@ -471,7 +471,7 @@ export default function ShiftsTab() {
                 /* Shift display */
                 <div className="flex items-center justify-between gap-3 flex-wrap">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#3e1e0c]/10">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--text-1)]/10">
                       <User className="h-4 w-4 text-[var(--text-1)]" />
                     </div>
                     <div>
@@ -480,7 +480,7 @@ export default function ShiftsTab() {
                           {shift.staff.user.name}
                         </span>
                         {shift.label && (
-                          <span className="rounded-lg bg-[#eaa94d]/20 px-2 py-0.5 text-[10px] font-bold text-[var(--text-1)]">
+                          <span className="rounded-lg bg-[var(--accent)]/20 px-2 py-0.5 text-[10px] font-bold text-[var(--text-1)]">
                             {shift.label}
                           </span>
                         )}

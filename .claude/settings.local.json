@@ -55,7 +55,8 @@
       "Bash(/d/Official_Projects/himalhub/node_modules/.bin/tsc --noEmit)",
       "Bash(cd /d \"D:\\\\Official_Projects\\\\himalhub\")",
       "Bash(npx --prefix D:/Official_Projects/himalhub tsc --noEmit)",
-      "Bash(node_modules/.bin/next build:*)"
+      "Bash(node_modules/.bin/next build:*)",
+      "Bash(find:*)"
     ],
     "additionalDirectories": [
       "d:\\Official_Projects\\himalhub\\src\\app\\api\\public\\restaurants\\[slug]"

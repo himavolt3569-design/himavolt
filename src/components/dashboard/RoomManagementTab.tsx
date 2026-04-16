@@ -74,7 +74,7 @@ const BOOKING_STATUSES: BookingStatus[] = ["CONFIRMED", "CHECKED_IN", "CHECKED_O
 
 const BOOKING_STATUS_COLORS: Record<BookingStatus, { bg: string; text: string; border: string }> = {
   CONFIRMED: { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-200" },
-  CHECKED_IN: { bg: "bg-[var(--accent-muted)]", text: "text-[#b25c1c]", border: "border-[var(--accent-border)]" },
+  CHECKED_IN: { bg: "bg-[var(--accent-muted)]", text: "text-[var(--accent-text)]", border: "border-[var(--accent-border)]" },
   CHECKED_OUT: { bg: "bg-[var(--canvas-sub)]", text: "text-[var(--text-2)]", border: "border-[var(--border)]" },
   CANCELLED: { bg: "bg-red-50", text: "text-red-700", border: "border-red-200" },
 };
@@ -316,7 +316,7 @@ function RoomsView({ restaurantId, currency }: { restaurantId: string; currency:
       <div className="grid grid-cols-3 gap-3">
         {[
           { label: "Total Rooms", value: totalRooms, color: "text-[var(--text-1)]" },
-          { label: "Available", value: availableRooms, color: "text-[#b25c1c]" },
+          { label: "Available", value: availableRooms, color: "text-[var(--accent-text)]" },
           { label: "Occupied", value: occupiedRooms, color: "text-[var(--accent-text)]" },
         ].map((stat) => (
           <div
@@ -389,7 +389,7 @@ function RoomsView({ restaurantId, currency }: { restaurantId: string; currency:
                       <span
                         className={`shrink-0 rounded-md border px-2 py-0.5 text-[10px] font-bold ${
                           room.isAvailable
-                            ? "bg-[var(--accent-muted)] text-[#b25c1c] border-[var(--accent-border)]"
+                            ? "bg-[var(--accent-muted)] text-[var(--accent-text)] border-[var(--accent-border)]"
                             : "bg-red-50 text-red-600 border-red-200"
                         }`}
                       >
@@ -555,33 +555,33 @@ function RoomFormModal({
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">
-                    Room Number <span className="text-[#eaa94d]">*</span>
+                    Room Number <span className="text-[var(--accent)]">*</span>
                   </label>
                   <input
                     type="text"
                     value={form.roomNumber}
                     onChange={(e) => setForm((f) => ({ ...f, roomNumber: e.target.value }))}
                     placeholder="e.g. 101"
-                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">
-                    Name <span className="text-[#eaa94d]">*</span>
+                    Name <span className="text-[var(--accent)]">*</span>
                   </label>
                   <input
                     type="text"
                     value={form.name}
                     onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                     placeholder="e.g. Mountain View"
-                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
                   />
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm font-bold text-[var(--text-1)] mb-2">
-                  Type <span className="text-[#eaa94d]">*</span>
+                  Type <span className="text-[var(--accent)]">*</span>
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {ROOM_TYPES.map((t) => {
@@ -613,12 +613,12 @@ function RoomFormModal({
                     value={form.floor}
                     onChange={(e) => setForm((f) => ({ ...f, floor: parseInt(e.target.value) || 1 }))}
                     min={0}
-                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">
-                    Price/Night <span className="text-[#eaa94d]">*</span>
+                    Price/Night <span className="text-[var(--accent)]">*</span>
                   </label>
                   <input
                     type="number"
@@ -627,7 +627,7 @@ function RoomFormModal({
                     min={0}
                     step={100}
                     placeholder="0"
-                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
                   />
                 </div>
                 <div>
@@ -638,7 +638,7 @@ function RoomFormModal({
                     onChange={(e) => setForm((f) => ({ ...f, maxGuests: parseInt(e.target.value) || 1 }))}
                     min={1}
                     max={20}
-                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
                   />
                 </div>
               </div>
@@ -650,7 +650,7 @@ function RoomFormModal({
                   <select
                     value={form.bedType}
                     onChange={(e) => setForm((f) => ({ ...f, bedType: e.target.value }))}
-                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
                   >
                     <option value="">Select bed type</option>
                     {BED_TYPES.map((bt) => (
@@ -666,7 +666,7 @@ function RoomFormModal({
                     onChange={(e) => setForm((f) => ({ ...f, bedCount: parseInt(e.target.value) || 1 }))}
                     min={1}
                     max={10}
-                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
                   />
                 </div>
               </div>
@@ -678,7 +678,7 @@ function RoomFormModal({
                   onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
                   placeholder="A brief description of the room..."
                   rows={2}
-                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15 resize-none"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15 resize-none"
                 />
               </div>
 
@@ -692,7 +692,7 @@ function RoomFormModal({
                   value={form.amenities}
                   onChange={(e) => setForm((f) => ({ ...f, amenities: e.target.value }))}
                   placeholder="e.g. WiFi, AC, TV, Mini Bar"
-                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
                 />
               </div>
 
@@ -746,7 +746,7 @@ function RoomFormModal({
                   type="button"
                   onClick={() => setForm((f) => ({ ...f, isAvailable: !f.isAvailable }))}
                   className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
-                    form.isAvailable ? "bg-[#eaa94d]" : "bg-[var(--border)]"
+                    form.isAvailable ? "bg-[var(--accent)]" : "bg-[var(--border)]"
                   }`}
                 >
                   <span
@@ -1010,7 +1010,7 @@ function BookingsView({ restaurantId, currency }: { restaurantId: string; curren
                           {formatPrice(booking.totalAmount, currency)}
                         </span>
                         {booking.advanceAmount > 0 && (
-                          <span className="text-[#b25c1c] font-semibold">
+                          <span className="text-[var(--accent-text)] font-semibold">
                             Adv: {formatPrice(booking.advanceAmount, currency)}
                           </span>
                         )}
@@ -1030,7 +1030,7 @@ function BookingsView({ restaurantId, currency }: { restaurantId: string; curren
                         <button
                           onClick={() => handleStatusUpdate(booking.id, "CHECKED_IN")}
                           disabled={updatingId === booking.id}
-                          className="flex h-8 items-center gap-1 rounded-lg bg-[var(--accent-muted)] px-2 text-[#b25c1c] hover:bg-[var(--accent-muted)] transition-all text-xs font-bold disabled:opacity-40"
+                          className="flex h-8 items-center gap-1 rounded-lg bg-[var(--accent-muted)] px-2 text-[var(--accent-text)] hover:bg-[var(--accent-muted)] transition-all text-xs font-bold disabled:opacity-40"
                           title="Check In"
                         >
                           {updatingId === booking.id ? (
@@ -1233,12 +1233,12 @@ function BookingFormModal({
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">
-                  Room <span className="text-[#eaa94d]">*</span>
+                  Room <span className="text-[var(--accent)]">*</span>
                 </label>
                 <select
                   value={form.roomId}
                   onChange={(e) => setForm((f) => ({ ...f, roomId: e.target.value }))}
-                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15 appearance-none"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15 appearance-none"
                 >
                   <option value="">Select a room</option>
                   {availableRooms.map((room) => (
@@ -1257,14 +1257,14 @@ function BookingFormModal({
 
               <div>
                 <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">
-                  Guest Name <span className="text-[#eaa94d]">*</span>
+                  Guest Name <span className="text-[var(--accent)]">*</span>
                 </label>
                 <input
                   type="text"
                   value={form.guestName}
                   onChange={(e) => setForm((f) => ({ ...f, guestName: e.target.value }))}
                   placeholder="e.g. Sita Sharma"
-                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
                 />
               </div>
 
@@ -1279,7 +1279,7 @@ function BookingFormModal({
                       setForm((f) => ({ ...f, guestPhone: e.target.value.replace(/[^\d+\-\s]/g, "") }))
                     }
                     placeholder="98XXXXXXXX"
-                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
                   />
                 </div>
                 <div>
@@ -1289,7 +1289,7 @@ function BookingFormModal({
                     value={form.guestEmail}
                     onChange={(e) => setForm((f) => ({ ...f, guestEmail: e.target.value }))}
                     placeholder="guest@email.com"
-                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
                   />
                 </div>
               </div>
@@ -1298,24 +1298,24 @@ function BookingFormModal({
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">
-                    Check-In <span className="text-[#eaa94d]">*</span>
+                    Check-In <span className="text-[var(--accent)]">*</span>
                   </label>
                   <input
                     type="datetime-local"
                     value={form.checkIn}
                     onChange={(e) => setForm((f) => ({ ...f, checkIn: e.target.value }))}
-                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">
-                    Check-Out <span className="text-[#eaa94d]">*</span>
+                    Check-Out <span className="text-[var(--accent)]">*</span>
                   </label>
                   <input
                     type="datetime-local"
                     value={form.checkOut}
                     onChange={(e) => setForm((f) => ({ ...f, checkOut: e.target.value }))}
-                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
                   />
                 </div>
               </div>
@@ -1328,7 +1328,7 @@ function BookingFormModal({
                   onChange={(e) => setForm((f) => ({ ...f, guests: parseInt(e.target.value) || 1 }))}
                   min={1}
                   max={20}
-                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
                 />
               </div>
 
@@ -1346,7 +1346,7 @@ function BookingFormModal({
                     min={0}
                     step={100}
                     placeholder="0"
-                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
                   />
                 </div>
                 <div>
@@ -1362,7 +1362,7 @@ function BookingFormModal({
                     min={0}
                     step={100}
                     placeholder="0"
-                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
                   />
                 </div>
               </div>
@@ -1374,7 +1374,7 @@ function BookingFormModal({
                   onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
                   placeholder="Any special requests or notes..."
                   rows={2}
-                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/15 resize-none"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15 resize-none"
                 />
               </div>
             </div>

@@ -127,12 +127,12 @@ export default function BookingConfirmationPage() {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-3 rounded-2xl bg-[var(--accent-muted)] p-4 ring-1 ring-[#eaa94d]/30"
+            className="flex items-center gap-3 rounded-2xl bg-[var(--accent-muted)] p-4 ring-1 ring-[var(--accent)]/30"
           >
-            <CheckCircle className="h-5 w-5 text-[#b25c1c] shrink-0" />
+            <CheckCircle className="h-5 w-5 text-[var(--accent-text)] shrink-0" />
             <div>
-              <p className="text-[13px] font-bold text-[#b25c1c]">Payment Successful!</p>
-              <p className="text-[11px] text-[#b25c1c]">Your advance payment has been received.</p>
+              <p className="text-[13px] font-bold text-[var(--accent-text)]">Payment Successful!</p>
+              <p className="text-[11px] text-[var(--accent-text)]">Your advance payment has been received.</p>
             </div>
           </motion.div>
         )}
@@ -202,7 +202,7 @@ export default function BookingConfirmationPage() {
                 <div className="flex items-center gap-1 text-[11px] text-[var(--text-2)]">
                   <CreditCard className="h-3 w-3" />
                   via {booking.paymentMethod}
-                  {booking.advancePaid && <CheckCircle className="h-3 w-3 text-[#d67620] ml-1" />}
+                  {booking.advancePaid && <CheckCircle className="h-3 w-3 text-[var(--accent-hover)] ml-1" />}
                 </div>
               )}
             </div>

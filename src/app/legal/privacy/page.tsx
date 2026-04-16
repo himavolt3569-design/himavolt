@@ -83,23 +83,23 @@ export default function PrivacyPage() {
               <ArrowLeft className="h-4 w-4" />
             </Link>
             <Link href="/" className="flex items-center gap-2">
-              <Mountain className="h-6 w-6 text-[#eaa94d]" strokeWidth={2.5} />
+              <Mountain className="h-6 w-6 text-[var(--accent)]" strokeWidth={2.5} />
               <span className="text-lg font-extrabold tracking-tight text-[var(--text-1)]">
-                Hima<span className="text-[#eaa94d]">Volt</span>
+                Hima<span className="text-[var(--accent)]">Volt</span>
               </span>
             </Link>
           </div>
           <div className="flex items-center gap-2 text-xs text-[var(--text-3)]">
             <Link
               href="/legal/terms"
-              className="font-bold hover:text-[#eaa94d] transition-colors"
+              className="font-bold hover:text-[var(--accent)] transition-colors"
             >
               Terms
             </Link>
             <span>/</span>
             <Link
               href="/legal/refund"
-              className="font-bold hover:text-[#eaa94d] transition-colors"
+              className="font-bold hover:text-[var(--accent)] transition-colors"
             >
               Refund Policy
             </Link>
@@ -137,7 +137,7 @@ export default function PrivacyPage() {
               }}
             >
               <div className="flex items-start gap-4">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#3e1e0c]/5 text-[var(--text-1)] group-hover:bg-[#3e1e0c]/10 transition-colors mt-0.5">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[var(--text-1)]/5 text-[var(--text-1)] group-hover:bg-[var(--text-1)]/10 transition-colors mt-0.5">
                   <section.icon className="h-5 w-5" />
                 </div>
                 <div>
@@ -159,7 +159,7 @@ export default function PrivacyPage() {
           </p>
           <Link
             href="/contact"
-            className="inline-flex items-center gap-2 rounded-xl bg-[#3e1e0c] px-6 py-3 text-sm font-bold text-white hover:bg-[#2a3838] transition-all"
+            className="inline-flex items-center gap-2 rounded-xl bg-[var(--text-1)] px-6 py-3 text-sm font-bold text-white hover:bg-[#2a3838] transition-all"
           >
             Contact Our Privacy Team
           </Link>

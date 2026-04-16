@@ -261,9 +261,9 @@ export default function TableReservationsTab() {
               onClick={() => setSelectedDate(dateStr)}
               className={`h-16 rounded-lg text-sm flex flex-col items-center justify-center gap-0.5 transition-colors ${
                 isSelected
-                  ? "bg-[#eaa94d] text-white"
+                  ? "bg-[var(--accent)] text-white"
                   : isToday
-                  ? "bg-[var(--accent-muted)] border-2 border-[#eaa94d] text-[var(--text-1)]"
+                  ? "bg-[var(--accent-muted)] border-2 border-[var(--accent)] text-[var(--text-1)]"
                   : "hover:bg-[var(--surface)] text-[var(--text-2)]"
               }`}
             >
@@ -273,7 +273,7 @@ export default function TableReservationsTab() {
                   className={`text-[10px] px-1.5 rounded-full ${
                     isSelected
                       ? "bg-[var(--canvas)]/30 text-white"
-                      : "bg-[var(--accent-muted)] text-[#b25c1c]"
+                      : "bg-[var(--accent-muted)] text-[var(--accent-text)]"
                   }`}
                 >
                   {count}
@@ -307,7 +307,7 @@ export default function TableReservationsTab() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-[var(--text-1)] flex items-center gap-2">
-            <CalendarDays className="w-6 h-6 text-[#b25c1c]" />
+            <CalendarDays className="w-6 h-6 text-[var(--accent-text)]" />
             Table Reservations
           </h2>
           <p className="text-sm text-[var(--text-2)] mt-1">
@@ -321,7 +321,7 @@ export default function TableReservationsTab() {
               onClick={() => setView(v)}
               className={`px-3 py-1.5 text-sm rounded-lg font-medium transition-colors ${
                 view === v
-                  ? "bg-[#eaa94d] text-white"
+                  ? "bg-[var(--accent)] text-white"
                   : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
               }`}
             >
@@ -336,7 +336,7 @@ export default function TableReservationsTab() {
           ))}
           <button
             onClick={() => setShowForm(true)}
-            className="flex items-center gap-1.5 bg-[#eaa94d] text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-[#d67620] transition-colors"
+            className="flex items-center gap-1.5 bg-[var(--accent)] text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-[var(--accent-hover)] transition-colors"
           >
             <Plus className="w-4 h-4" /> New Reservation
           </button>
@@ -346,7 +346,7 @@ export default function TableReservationsTab() {
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         {[
           { label: "Today Total", value: stats.todayTotal, color: "text-[var(--text-1)]" },
-          { label: "Confirmed", value: stats.todayConfirmed, color: "text-[#b25c1c]" },
+          { label: "Confirmed", value: stats.todayConfirmed, color: "text-[var(--accent-text)]" },
           { label: "Seated", value: stats.todaySeated, color: "text-blue-600" },
           { label: "Pending", value: stats.todayPending, color: "text-yellow-600" },
           { label: "No Shows (All)", value: stats.noShows, color: "text-red-600" },
@@ -400,7 +400,7 @@ export default function TableReservationsTab() {
                       type="text"
                       value={formName}
                       onChange={(e) => setFormName(e.target.value)}
-                      className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#eaa94d] focus:border-[#eaa94d] outline-none"
+                      className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[var(--accent)] focus:border-[var(--accent)] outline-none"
                       placeholder="Full name"
                     />
                   </div>
@@ -412,7 +412,7 @@ export default function TableReservationsTab() {
                       type="text"
                       value={formPhone}
                       onChange={(e) => setFormPhone(e.target.value)}
-                      className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#eaa94d] focus:border-[#eaa94d] outline-none"
+                      className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[var(--accent)] focus:border-[var(--accent)] outline-none"
                       placeholder="+977-98XXXXXXXX"
                     />
                   </div>
@@ -428,7 +428,7 @@ export default function TableReservationsTab() {
                       max={20}
                       value={formPartySize}
                       onChange={(e) => setFormPartySize(Number(e.target.value))}
-                      className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#eaa94d] focus:border-[#eaa94d] outline-none"
+                      className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[var(--accent)] focus:border-[var(--accent)] outline-none"
                     />
                   </div>
                   <div>
@@ -439,7 +439,7 @@ export default function TableReservationsTab() {
                       type="date"
                       value={formDate}
                       onChange={(e) => setFormDate(e.target.value)}
-                      className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#eaa94d] focus:border-[#eaa94d] outline-none"
+                      className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[var(--accent)] focus:border-[var(--accent)] outline-none"
                     />
                   </div>
                   <div>
@@ -449,7 +449,7 @@ export default function TableReservationsTab() {
                     <select
                       value={formTimeSlot}
                       onChange={(e) => setFormTimeSlot(e.target.value)}
-                      className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#eaa94d] focus:border-[#eaa94d] outline-none"
+                      className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[var(--accent)] focus:border-[var(--accent)] outline-none"
                     >
                       {TIME_SLOTS.map((t) => {
                         const used = slotsUsedForDate(formDate, t);
@@ -479,7 +479,7 @@ export default function TableReservationsTab() {
                           onClick={() => setFormPreference(pref)}
                           className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                             formPreference === pref
-                              ? "bg-[#eaa94d] text-white"
+                              ? "bg-[var(--accent)] text-white"
                               : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
                           }`}
                         >
@@ -500,7 +500,7 @@ export default function TableReservationsTab() {
                     value={formRequests}
                     onChange={(e) => setFormRequests(e.target.value)}
                     rows={3}
-                    className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#eaa94d] focus:border-[#eaa94d] outline-none resize-none"
+                    className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[var(--accent)] focus:border-[var(--accent)] outline-none resize-none"
                     placeholder="Allergies, celebrations, seating preferences..."
                   />
                 </div>
@@ -525,7 +525,7 @@ export default function TableReservationsTab() {
                   <button
                     onClick={createReservation}
                     disabled={!formName.trim() || !formPhone.trim()}
-                    className="px-6 py-2 bg-[#eaa94d] text-white text-sm font-medium rounded-lg hover:bg-[#d67620] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-6 py-2 bg-[var(--accent)] text-white text-sm font-medium rounded-lg hover:bg-[var(--accent-hover)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Create Reservation
                   </button>
@@ -622,7 +622,7 @@ export default function TableReservationsTab() {
                           status: "Confirmed",
                         });
                       }}
-                      className="flex items-center gap-1 px-3 py-1.5 bg-[var(--accent-muted)] text-[#b25c1c] rounded-lg text-sm font-medium hover:bg-[#fde9ba]"
+                      className="flex items-center gap-1 px-3 py-1.5 bg-[var(--accent-muted)] text-[var(--accent-text)] rounded-lg text-sm font-medium hover:bg-[#fde9ba]"
                     >
                       <CheckCircle2 className="w-3.5 h-3.5" /> Confirm
                     </button>
@@ -753,7 +753,7 @@ export default function TableReservationsTab() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search by name or phone..."
-                className="w-full pl-9 pr-3 py-2 border border-[var(--border)] rounded-lg text-sm focus:ring-2 focus:ring-[#eaa94d] focus:border-[#eaa94d] outline-none"
+                className="w-full pl-9 pr-3 py-2 border border-[var(--border)] rounded-lg text-sm focus:ring-2 focus:ring-[var(--accent)] focus:border-[var(--accent)] outline-none"
               />
             </div>
             <select
@@ -761,7 +761,7 @@ export default function TableReservationsTab() {
               onChange={(e) =>
                 setFilterStatus(e.target.value as ReservationStatus | "All")
               }
-              className="border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#eaa94d] focus:border-[#eaa94d] outline-none"
+              className="border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[var(--accent)] focus:border-[var(--accent)] outline-none"
             >
               <option value="All">All Statuses</option>
               {(
@@ -928,7 +928,7 @@ export default function TableReservationsTab() {
             <h3 className="text-sm font-semibold text-[var(--text-1)] mb-3">
               Reservations for {selectedDate}
               {selectedDate === today && (
-                <span className="ml-2 text-xs bg-[var(--accent-muted)] text-[#b25c1c] px-2 py-0.5 rounded-full">
+                <span className="ml-2 text-xs bg-[var(--accent-muted)] text-[var(--accent-text)] px-2 py-0.5 rounded-full">
                   Today
                 </span>
               )}
@@ -952,7 +952,7 @@ export default function TableReservationsTab() {
                       className="w-full flex items-center justify-between bg-[var(--canvas-sub)] rounded-lg px-4 py-3 hover:bg-[var(--surface)] transition-colors text-left"
                     >
                       <div className="flex items-center gap-3">
-                        <span className="text-sm font-medium text-[#b25c1c] w-20">
+                        <span className="text-sm font-medium text-[var(--accent-text)] w-20">
                           {r.timeSlot}
                         </span>
                         <span className="text-sm font-medium text-[var(--text-1)]">
@@ -1011,7 +1011,7 @@ export default function TableReservationsTab() {
                   </div>
                   <button
                     onClick={() => removeFromBlacklist(b.id)}
-                    className="text-xs text-[#b25c1c] hover:text-[#b25c1c] font-medium"
+                    className="text-xs text-[var(--accent-text)] hover:text-[var(--accent-text)] font-medium"
                   >
                     Remove
                   </button>
@@ -1048,7 +1048,7 @@ export default function TableReservationsTab() {
                     maxPerSlot: Number(e.target.value),
                   }))
                 }
-                className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#eaa94d] focus:border-[#eaa94d] outline-none"
+                className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[var(--accent)] focus:border-[var(--accent)] outline-none"
               />
               <p className="text-xs text-[var(--text-3)] mt-1">
                 Limits how many bookings can be made for each time slot
@@ -1069,7 +1069,7 @@ export default function TableReservationsTab() {
                     bufferMinutes: Number(e.target.value),
                   }))
                 }
-                className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#eaa94d] focus:border-[#eaa94d] outline-none"
+                className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[var(--accent)] focus:border-[var(--accent)] outline-none"
               />
               <p className="text-xs text-[var(--text-3)] mt-1">
                 Time reserved between seatings for cleanup
@@ -1092,7 +1092,7 @@ export default function TableReservationsTab() {
                   smsReminders: !prev.smsReminders,
                 }))
               }
-              className="text-[#b25c1c]"
+              className="text-[var(--accent-text)]"
             >
               {capacitySettings.smsReminders ? (
                 <ToggleRight className="w-8 h-8" />

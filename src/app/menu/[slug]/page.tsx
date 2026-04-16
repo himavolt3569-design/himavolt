@@ -270,7 +270,7 @@ function WifiBadge({ name, password }: { name: string; password: string | null }
                       onClick={copy}
                       className="flex h-7 w-7 items-center justify-center rounded-lg text-[var(--text-3)] hover:text-blue-600 hover:bg-blue-50 transition-colors"
                     >
-                      {copied ? <Check className="h-3.5 w-3.5 text-[#d67620]" /> : <Copy className="h-3.5 w-3.5" />}
+                      {copied ? <Check className="h-3.5 w-3.5 text-[var(--accent-hover)]" /> : <Copy className="h-3.5 w-3.5" />}
                     </button>
                   </div>
                 </div>
@@ -365,7 +365,7 @@ function PaymentQRBadge({ paymentQRs }: { paymentQRs?: { id: string; label: stri
 function VegIcon() {
   return (
     <span className="flex h-4 w-4 items-center justify-center rounded-sm border border-green-600">
-      <span className="h-2 w-2 rounded-full bg-[#eaa94d]" />
+      <span className="h-2 w-2 rounded-full bg-[var(--accent)]" />
     </span>
   );
 }
@@ -469,7 +469,7 @@ function ComboDealCard({
         <div className="flex items-start justify-between gap-2">
           <h3 className="text-sm font-bold text-[var(--text-1)] leading-tight">{combo.name}</h3>
           {savings > 0 && (
-            <span className="flex-shrink-0 rounded-full bg-[#fef3dc] px-2 py-0.5 text-[10px] font-bold text-[#b25c1c]">
+            <span className="flex-shrink-0 rounded-full bg-[#fef3dc] px-2 py-0.5 text-[10px] font-bold text-[var(--accent-text)]">
               Save {formatPrice(savings, currency)}
             </span>
           )}
@@ -493,7 +493,7 @@ function ComboDealCard({
           </div>
           <button
             onClick={handleAddAll}
-            className="flex items-center gap-1.5 rounded-xl bg-[#eaa94d] px-3 py-2 text-[11px] font-bold text-white hover:bg-[#d67620] transition-colors"
+            className="flex items-center gap-1.5 rounded-xl bg-[var(--accent)] px-3 py-2 text-[11px] font-bold text-white hover:bg-[var(--accent-hover)] transition-colors"
           >
             <Plus className="h-3 w-3" strokeWidth={3} />
             Add All
@@ -578,9 +578,9 @@ function MenuItemCard({
               }}
               className={`absolute top-1.5 left-1.5 rounded-full px-2 py-0.5 text-[10px] font-bold text-white shadow ${
                 item.badge === "Bestseller"
-                  ? "bg-[#eaa94d]"
+                  ? "bg-[var(--accent)]"
                   : item.badge === "Most Liked"
-                    ? "bg-[#3e1e0c]"
+                    ? "bg-[var(--text-1)]"
                     : "bg-purple-500"
               }`}
             >
@@ -608,7 +608,7 @@ function MenuItemCard({
             <h3 className="text-sm font-bold text-[var(--text-1)] truncate flex items-center gap-1">
               {stripEmojis(item.name)}
               {item.isFeatured && (
-                <Star className="h-3 w-3 fill-[#eaa94d] text-[#eaa94d] shrink-0" />
+                <Star className="h-3 w-3 fill-[var(--accent)] text-[var(--accent)] shrink-0" />
               )}
             </h3>
             <p className="mt-0.5 text-[11px] text-[var(--text-3)] line-clamp-2 leading-relaxed">
@@ -623,7 +623,7 @@ function MenuItemCard({
               <span className="text-[10px] text-[var(--text-3)] line-through">{formatPrice(item.price, restaurantCurrency)}</span>
             )}
             <span className="flex items-center gap-0.5 text-[11px] text-[var(--text-3)]">
-              <Star className="h-3 w-3 fill-[#eaa94d] text-[#eaa94d]" />
+              <Star className="h-3 w-3 fill-[var(--accent)] text-[var(--accent)]" />
               {item.rating.toFixed(1)}
             </span>
             <span className="flex items-center gap-0.5 text-[11px] text-[var(--text-3)]">
@@ -643,7 +643,7 @@ function MenuItemCard({
                 stiffness: 500,
                 damping: 15,
               }}
-              className="mt-1 inline-flex w-fit items-center gap-1 rounded-md bg-[#eaa94d] px-2 py-0.5 text-[10px] font-extrabold text-white shadow"
+              className="mt-1 inline-flex w-fit items-center gap-1 rounded-md bg-[var(--accent)] px-2 py-0.5 text-[10px] font-extrabold text-white shadow"
             >
               {item.discountLabel}
             </motion.span>
@@ -659,7 +659,7 @@ function MenuItemCard({
             animate={{ opacity: 1, y: 0 }}
             className="flex items-center justify-center gap-1 text-[11px] font-semibold text-[var(--text-1)]"
           >
-            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#eaa94d] text-[9px] font-bold text-white">
+            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[var(--accent)] text-[9px] font-bold text-white">
               {qty}
             </span>
             in cart
@@ -674,7 +674,7 @@ function MenuItemCard({
             ref={btnRef}
             onClick={handleQuickAdd}
             whileTap={{ scale: 0.96 }}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#eaa94d] py-2.5 text-[13px] font-bold text-white shadow-sm shadow-[var(--accent)]/20 hover:bg-[#d67620] transition-colors cursor-pointer"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--accent)] py-2.5 text-[13px] font-bold text-white shadow-sm shadow-[var(--accent)]/20 hover:bg-[var(--accent-hover)] transition-colors cursor-pointer"
           >
             <Plus className="h-4 w-4" strokeWidth={3} />
             Add to Cart
@@ -726,8 +726,8 @@ function HeroDish({
         <div className="absolute bottom-4 left-5 right-5">
           <div className="flex items-center gap-2 mb-1">
             {dish.isVeg ? (
-              <span className="flex h-4 w-4 items-center justify-center rounded-sm border border-[#eaa94d]">
-                <span className="h-2 w-2 rounded-full bg-[#eaa94d]" />
+              <span className="flex h-4 w-4 items-center justify-center rounded-sm border border-[var(--accent)]">
+                <span className="h-2 w-2 rounded-full bg-[var(--accent)]" />
               </span>
             ) : (
               <span className="flex h-4 w-4 items-center justify-center rounded-sm border border-red-400">
@@ -735,7 +735,7 @@ function HeroDish({
               </span>
             )}
             {dish.badge && (
-              <span className="rounded-full bg-[#eaa94d] px-2.5 py-0.5 text-[10px] font-bold text-white">
+              <span className="rounded-full bg-[var(--accent)] px-2.5 py-0.5 text-[10px] font-bold text-white">
                 {dish.badge === "Bestseller" ? "# Bestseller" : dish.badge}
               </span>
             )}
@@ -748,7 +748,7 @@ function HeroDish({
           </p>
           <span
             ref={priceRef}
-            className="mt-1.5 inline-block text-xl font-extrabold text-[#eaa94d]"
+            className="mt-1.5 inline-block text-xl font-extrabold text-[var(--accent)]"
           >
             {formatPrice(dish.price, currency)}
           </span>
@@ -802,11 +802,11 @@ function DesktopCartPreview({
     <div className="rounded-2xl border border-[var(--border)] bg-[var(--canvas)] shadow-[0_2px_16px_rgba(0,0,0,0.04)] overflow-hidden">
       <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-soft)]">
         <div className="flex items-center gap-2">
-          <ShoppingBag className="h-4 w-4 text-[#eaa94d]" />
+          <ShoppingBag className="h-4 w-4 text-[var(--accent)]" />
           <h3 className="text-sm font-bold text-[var(--text-1)]">Your Order</h3>
         </div>
         {totalItems > 0 && (
-          <span className="rounded-full bg-[var(--accent-muted)] px-2.5 py-0.5 text-[11px] font-bold text-[#eaa94d]">
+          <span className="rounded-full bg-[var(--accent-muted)] px-2.5 py-0.5 text-[11px] font-bold text-[var(--accent)]">
             {totalItems} items
           </span>
         )}
@@ -839,7 +839,7 @@ function DesktopCartPreview({
                   <h2 className="text-xl font-black text-[var(--text-1)] leading-tight">
                     {stripEmojis(item.name)}
                   </h2>
-                  <p className="text-xs font-semibold text-[#eaa94d]">
+                  <p className="text-xs font-semibold text-[var(--accent)]">
                     {formatPrice(item.price * item.quantity, currency)}
                   </p>
                 </div>
@@ -855,7 +855,7 @@ function DesktopCartPreview({
                   </span>
                   <button
                     onClick={() => increaseQty(item.id)}
-                    className="flex h-6 w-6 items-center justify-center rounded-md bg-[#eaa94d] text-white text-xs"
+                    className="flex h-6 w-6 items-center justify-center rounded-md bg-[var(--accent)] text-white text-xs"
                   >
                     <Plus className="h-3 w-3" />
                   </button>
@@ -879,7 +879,7 @@ function DesktopCartPreview({
                 boxShadow: "0 10px 20px -6px rgba(255,153,51,0.35)",
               }}
               whileTap={{ scale: 0.97 }}
-              className="relative w-full rounded-xl bg-[#eaa94d] py-3.5 text-sm font-bold text-white overflow-hidden shadow-md shadow-[var(--accent)]/25"
+              className="relative w-full rounded-xl bg-[var(--accent)] py-3.5 text-sm font-bold text-white overflow-hidden shadow-md shadow-[var(--accent)]/25"
             >
               <motion.div
                 className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent"
@@ -1197,7 +1197,7 @@ function MenuPageContent() {
           </p>
           <Link
             href="/"
-            className="inline-flex items-center gap-2 rounded-xl bg-[#3e1e0c] px-6 py-3 text-sm font-bold text-white hover:bg-[#733e1b] transition-colors"
+            className="inline-flex items-center gap-2 rounded-xl bg-[var(--text-1)] px-6 py-3 text-sm font-bold text-white hover:bg-[#733e1b] transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Home
@@ -1236,8 +1236,8 @@ function MenuPageContent() {
                    {restaurant.name}
                  </h1>
                  <div className="mt-2 flex items-center gap-3 text-white/90 text-[10px] sm:text-xs font-semibold">
-                    <span className="flex items-center gap-1 bg-black/40 backdrop-blur-md px-2 py-0.5 rounded-md text-[#eaa94d]">
-                      <Star className="h-3 w-3 text-[#eaa94d] fill-[#eaa94d]" />
+                    <span className="flex items-center gap-1 bg-black/40 backdrop-blur-md px-2 py-0.5 rounded-md text-[var(--accent)]">
+                      <Star className="h-3 w-3 text-[var(--accent)] fill-[var(--accent)]" />
                       {restaurant.rating.toFixed(1)}
                     </span>
                     <span className="flex items-center gap-1 drop-shadow-md truncate">
@@ -1269,12 +1269,12 @@ function MenuPageContent() {
               {(tableNo || roomNo) ? (
                 <div className="flex gap-2">
                   {tableNo && (
-                    <span className="inline-flex items-center gap-1 rounded-md bg-[#eaa94d]/15 px-2.5 py-1 text-[13px] font-black text-[#eaa94d]">
+                    <span className="inline-flex items-center gap-1 rounded-md bg-[var(--accent)]/15 px-2.5 py-1 text-[13px] font-black text-[var(--accent)]">
                       Table {tableNo}
                     </span>
                   )}
                   {roomNo && (
-                    <span className="inline-flex items-center gap-1 rounded-md bg-[#eaa94d]/15 px-2.5 py-1 text-[13px] font-black text-[#eaa94d]">
+                    <span className="inline-flex items-center gap-1 rounded-md bg-[var(--accent)]/15 px-2.5 py-1 text-[13px] font-black text-[var(--accent)]">
                       Room {roomNo}
                     </span>
                   )}
@@ -1311,7 +1311,7 @@ function MenuPageContent() {
                 whileHover={{ scale: 1.04 }}
                 whileTap={{ scale: 0.95 }}
                 transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                className="relative flex h-9 items-center gap-1.5 rounded-xl bg-[#eaa94d] px-4 text-xs font-bold text-white shadow-md shadow-[var(--accent)]/20 hover:bg-[#d67620]"
+                className="relative flex h-9 items-center gap-1.5 rounded-xl bg-[var(--accent)] px-4 text-xs font-bold text-white shadow-md shadow-[var(--accent)]/20 hover:bg-[var(--accent-hover)]"
               >
                 <ShoppingBag className="h-4 w-4" />
                 <span className="hidden sm:inline">Cart</span>
@@ -1321,7 +1321,7 @@ function MenuPageContent() {
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ type: "spring", stiffness: 500, damping: 15 }}
-                    className="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--canvas)] text-[10px] font-bold text-[#eaa94d]"
+                    className="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--canvas)] text-[10px] font-bold text-[var(--accent)]"
                   >
                     {totalItems}
                   </motion.span>
@@ -1362,13 +1362,13 @@ function MenuPageContent() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.1 }}
             >
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-3)] group-focus-within:text-[#eaa94d] transition-colors" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-3)] group-focus-within:text-[var(--accent)] transition-colors" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search dishes, cuisines..."
-                className="w-full rounded-xl bg-[var(--canvas)] py-3 pl-11 pr-4 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 border border-[var(--border)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] focus:border-[#eaa94d]/40 transition-all shadow-sm"
+                className="w-full rounded-xl bg-[var(--canvas)] py-3 pl-11 pr-4 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 border border-[var(--border)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] focus:border-[var(--accent)]/40 transition-all shadow-sm"
               />
             </motion.div>
 
@@ -1418,7 +1418,7 @@ function MenuPageContent() {
                 {/* Grid / Scroll toggle */}
                 <button
                   onClick={() => setCategoryView((v) => (v === "scroll" ? "grid" : "scroll"))}
-                  className="shrink-0 flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--canvas)] text-[var(--text-3)] hover:text-brand-600 hover:border-brand-200 transition-all"
+                  className="shrink-0 flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--canvas)] text-[var(--text-3)] hover:text-[var(--accent-hover)] hover:border-[var(--accent)] transition-all"
                   title={categoryView === "scroll" ? "Grid view" : "List view"}
                 >
                   {categoryView === "scroll" ? (
@@ -1580,11 +1580,11 @@ function MenuPageContent() {
                 className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-[#fef9ef] to-[#fef9ef] border border-[var(--accent-border)]/60 px-4 py-3"
               >
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#fef3dc] shrink-0">
-                  <Tag className="h-4 w-4 text-[#b25c1c]" />
+                  <Tag className="h-4 w-4 text-[var(--accent-text)]" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-bold text-[var(--text-1)]">Coupons Available!</p>
-                  <p className="text-[11px] text-[#b25c1c]">Apply a coupon code at checkout to get a discount</p>
+                  <p className="text-[11px] text-[var(--accent-text)]">Apply a coupon code at checkout to get a discount</p>
                 </div>
               </motion.div>
             )}
@@ -1682,7 +1682,7 @@ function MenuPageContent() {
                               )}
                               {!room.imageUrls[0] && (
                                 <div className="flex items-center justify-between pt-1">
-                                  <span className="text-sm font-bold text-[#eaa94d]">
+                                  <span className="text-sm font-bold text-[var(--accent)]">
                                     {formatPrice(room.price, cur)}/night
                                   </span>
                                 </div>
@@ -1715,7 +1715,7 @@ function MenuPageContent() {
                     <h3 className="text-sm font-bold text-[var(--text-3)] uppercase tracking-wider">
                       {stripEmojis(activeCategory)}
                       {activeSubCategory && (
-                        <span className="text-brand-500"> / {activeSubCategory}</span>
+                        <span className="text-[var(--accent)]"> / {activeSubCategory}</span>
                       )}
                       <span className="ml-2 text-[var(--text-1)]">
                         ({smartSorted.length})
@@ -1853,7 +1853,7 @@ function MenuPageContent() {
             <motion.button
               onClick={() => setCartOpen(true)}
               whileTap={{ scale: 0.98 }}
-              className="flex w-full items-center justify-between bg-[#3e1e0c] px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] text-white shadow-[0_-4px_20px_rgba(0,0,0,0.15)]"
+              className="flex w-full items-center justify-between bg-[var(--text-1)] px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] text-white shadow-[0_-4px_20px_rgba(0,0,0,0.15)]"
             >
               <div className="flex items-center gap-2">
                 <motion.span
@@ -1941,7 +1941,7 @@ function MenuPageContent() {
         !["DELIVERED", "CANCELLED", "REJECTED"].includes(activeOrder.status) && (
           <button
             onClick={() => setShowOrder(true)}
-            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 rounded-full bg-[#3e1e0c] px-5 py-3 text-sm font-bold text-white shadow-xl shadow-[#3e1e0c]/30 hover:bg-[#2d1508] active:scale-95 transition-all"
+            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 rounded-full bg-[var(--text-1)] px-5 py-3 text-sm font-bold text-white shadow-xl shadow-[var(--text-1)]/30 hover:bg-[#2d1508] active:scale-95 transition-all"
           >
             <Receipt className="h-4 w-4" />
             Track Order · {activeOrder.orderNo}
@@ -1990,8 +1990,8 @@ const H_STATUS: Record<string, { label: string; color: string; bg: string }> = {
   PENDING:   { label: "Pending",   color: "text-[var(--accent-text)]",  bg: "bg-[var(--accent-muted)]" },
   ACCEPTED:  { label: "Accepted",  color: "text-blue-700",   bg: "bg-blue-50" },
   PREPARING: { label: "Preparing", color: "text-purple-700", bg: "bg-purple-50" },
-  READY:     { label: "Ready",     color: "text-[#b25c1c]",bg: "bg-[var(--accent-muted)]" },
-  DELIVERED: { label: "Delivered", color: "text-[#b25c1c]",  bg: "bg-[var(--accent-muted)]" },
+  READY:     { label: "Ready",     color: "text-[var(--accent-text)]",bg: "bg-[var(--accent-muted)]" },
+  DELIVERED: { label: "Delivered", color: "text-[var(--accent-text)]",  bg: "bg-[var(--accent-muted)]" },
   CANCELLED: { label: "Cancelled", color: "text-red-700",    bg: "bg-red-50" },
   REJECTED:  { label: "Rejected",  color: "text-red-700",    bg: "bg-red-50" },
 };
@@ -2041,7 +2041,7 @@ function OrderHistorySheet({
           >
             <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-soft)] shrink-0">
               <div className="flex items-center gap-2">
-                <History className="h-5 w-5 text-[#eaa94d]" />
+                <History className="h-5 w-5 text-[var(--accent)]" />
                 <h3 className="text-base font-bold text-[var(--text-1)]">My Orders Here</h3>
               </div>
               <button onClick={onClose} className="rounded-full p-2 text-[var(--text-3)] hover:bg-[var(--surface)] transition-colors">

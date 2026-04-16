@@ -338,7 +338,7 @@ export default function GuestCheckInTab() {
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <div className={`flex h-9 w-9 items-center justify-center rounded-xl text-sm font-bold ${
-                    guest.status === "CHECKED_IN" ? "bg-[var(--accent-muted)] text-[#b25c1c]" : "bg-[var(--surface)] text-[var(--text-2)]"
+                    guest.status === "CHECKED_IN" ? "bg-[var(--accent-muted)] text-[var(--accent-text)]" : "bg-[var(--surface)] text-[var(--text-2)]"
                   }`}>
                     {guest.roomNo}
                   </div>
@@ -351,7 +351,7 @@ export default function GuestCheckInTab() {
                   </div>
                 </div>
                 <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                  guest.status === "CHECKED_IN" ? "bg-[var(--accent-muted)] text-[#b25c1c]" : "bg-[var(--surface)] text-[var(--text-2)]"
+                  guest.status === "CHECKED_IN" ? "bg-[var(--accent-muted)] text-[var(--accent-text)]" : "bg-[var(--surface)] text-[var(--text-2)]"
                 }`}>
                   {guest.status === "CHECKED_IN" ? "In" : "Out"}
                 </span>
@@ -425,7 +425,7 @@ export default function GuestCheckInTab() {
             >
               <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-soft)] sticky top-0 bg-[var(--canvas)] z-10">
                 <div className="flex items-center gap-2">
-                  <ClipboardList className="h-5 w-5 text-[#eaa94d]" />
+                  <ClipboardList className="h-5 w-5 text-[var(--accent)]" />
                   <h3 className="text-base font-bold text-[var(--text-1)]">Guest Check-In</h3>
                 </div>
                 <button onClick={() => setShowForm(false)} className="rounded-full p-2 text-[var(--text-3)] hover:bg-[var(--surface)]">
@@ -586,7 +586,7 @@ export default function GuestCheckInTab() {
                     <button
                       onClick={() => fileInputRef.current?.click()}
                       disabled={uploadingId}
-                      className="w-full flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[var(--border)] py-6 text-[var(--text-3)] hover:border-[#eaa94d] hover:text-[#eaa94d] hover:bg-[#eaa94d]/5 transition-all disabled:opacity-50"
+                      className="w-full flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[var(--border)] py-6 text-[var(--text-3)] hover:border-[var(--accent)] hover:text-[var(--accent)] hover:bg-[var(--accent)]/5 transition-all disabled:opacity-50"
                     >
                       {uploadingId ? (
                         <>

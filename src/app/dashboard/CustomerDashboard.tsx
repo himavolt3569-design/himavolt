@@ -160,8 +160,8 @@ const STATUS_META: Record<string, { label: string; color: string; bg: string; ic
   PENDING:   { label: "Pending",   color: "text-[var(--accent-text)]",   bg: "bg-[var(--accent-muted)]",   icon: Clock },
   ACCEPTED:  { label: "Accepted",  color: "text-blue-700",    bg: "bg-blue-50",    icon: CheckCircle },
   PREPARING: { label: "Preparing", color: "text-violet-700",  bg: "bg-violet-50",  icon: ChefHat },
-  READY:     { label: "Ready",     color: "text-[#b25c1c]", bg: "bg-[var(--accent-muted)]", icon: Package },
-  DELIVERED: { label: "Delivered", color: "text-[#b25c1c]",   bg: "bg-[var(--accent-muted)]",   icon: Truck },
+  READY:     { label: "Ready",     color: "text-[var(--accent-text)]", bg: "bg-[var(--accent-muted)]", icon: Package },
+  DELIVERED: { label: "Delivered", color: "text-[var(--accent-text)]",   bg: "bg-[var(--accent-muted)]",   icon: Truck },
   CANCELLED: { label: "Cancelled", color: "text-red-700",     bg: "bg-red-50",     icon: XCircle },
   REJECTED:  { label: "Rejected",  color: "text-red-700",     bg: "bg-red-50",     icon: XCircle },
 };
@@ -296,12 +296,12 @@ export default function CustomerDashboard() {
   return (
     <div className="flex min-h-screen flex-col bg-[#fdf9f3]">
       {/* ── Header ── */}
-      <header className="sticky top-0 z-40 bg-[var(--canvas)]/95 backdrop-blur-xl border-b border-[#eaa94d]/10 shadow-[0_1px_6px_rgba(234,169,77,0.06)]">
+      <header className="sticky top-0 z-40 bg-[var(--canvas)]/95 backdrop-blur-xl border-b border-[var(--accent)]/10 shadow-[0_1px_6px_rgba(234,169,77,0.06)]">
         <div className="mx-auto flex h-14 max-w-lg items-center justify-between px-4">
           <Link href="/" className="flex items-center gap-2">
-            <Mountain className="h-5 w-5 text-[#eaa94d]" strokeWidth={2.5} />
+            <Mountain className="h-5 w-5 text-[var(--accent)]" strokeWidth={2.5} />
             <span className="text-base font-extrabold tracking-tight text-[var(--text-1)]">
-              Hima<span className="text-[#eaa94d]">Volt</span>
+              Hima<span className="text-[var(--accent)]">Volt</span>
             </span>
           </Link>
           <div className="flex items-center gap-2">
@@ -315,7 +315,7 @@ export default function CustomerDashboard() {
             {avatarUrl ? (
               <img src={avatarUrl} alt="" className="h-7 w-7 rounded-full object-cover ring-2 ring-[var(--accent-border)]" />
             ) : (
-              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--accent-muted)] text-[11px] font-bold text-[#eaa94d]">
+              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--accent-muted)] text-[11px] font-bold text-[var(--accent)]">
                 {firstName[0]?.toUpperCase()}
               </div>
             )}
@@ -397,17 +397,17 @@ export default function CustomerDashboard() {
                 )}
                 <div className="relative z-10">
                   <Icon
-                    className={`h-5 w-5 transition-all ${active ? "text-[#eaa94d]" : "text-[var(--text-3)] group-hover:text-[var(--text-2)]"}`}
+                    className={`h-5 w-5 transition-all ${active ? "text-[var(--accent)]" : "text-[var(--text-3)] group-hover:text-[var(--text-2)]"}`}
                     strokeWidth={active ? 2.2 : 1.8}
                     fill={active && id === "saved" ? "#eaa94d" : "none"}
                   />
                   {badge && badge > 0 ? (
-                    <span className="absolute -top-1 -right-1.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[#eaa94d] text-[8px] font-bold text-white">
+                    <span className="absolute -top-1 -right-1.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[var(--accent)] text-[8px] font-bold text-white">
                       {badge > 9 ? "9+" : badge}
                     </span>
                   ) : null}
                 </div>
-                <span className={`text-[10px] font-semibold z-10 transition-all ${active ? "text-[#eaa94d]" : "text-[var(--text-3)]"}`}>
+                <span className={`text-[10px] font-semibold z-10 transition-all ${active ? "text-[var(--accent)]" : "text-[var(--text-3)]"}`}>
                   {label}
                 </span>
               </button>
@@ -538,7 +538,7 @@ function AttendanceButton() {
             className={`relative w-full h-full rounded-2xl flex flex-col items-center justify-center gap-0.5 transition-colors select-none ${
               checked
                 ? "bg-[var(--accent-muted)] border-2 border-[var(--accent-border)] cursor-default"
-                : "bg-[#eaa94d] active:bg-[#d4922a] shadow-md shadow-[var(--accent)]/30"
+                : "bg-[var(--accent)] active:bg-[#d4922a] shadow-md shadow-[var(--accent)]/30"
             }`}
           >
             <motion.div
@@ -546,11 +546,11 @@ function AttendanceButton() {
               transition={{ duration: 0.5 }}
             >
               {checked
-                ? <Check className="h-6 w-6 text-[#d67620]" strokeWidth={2.5} />
+                ? <Check className="h-6 w-6 text-[var(--accent-hover)]" strokeWidth={2.5} />
                 : <Zap className="h-6 w-6 text-white" strokeWidth={2} fill="white" />
               }
             </motion.div>
-            <span className={`text-[10px] font-bold leading-none ${checked ? "text-[#d67620]" : "text-white"}`}>
+            <span className={`text-[10px] font-bold leading-none ${checked ? "text-[var(--accent-hover)]" : "text-white"}`}>
               {checked ? "Done!" : "Check In"}
             </span>
           </motion.button>
@@ -630,7 +630,7 @@ function HomeTab({
         {avatarUrl ? (
           <img src={avatarUrl} alt="" className="h-12 w-12 rounded-full object-cover ring-2 ring-white shadow-md" />
         ) : (
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#eaa94d]/15 text-base font-bold text-[#eaa94d] shadow">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--accent)]/15 text-base font-bold text-[var(--accent)] shadow">
             {firstName[0]?.toUpperCase()}
           </div>
         )}
@@ -640,8 +640,8 @@ function HomeTab({
         </div>
         {memberSince && (
           <div className="ml-auto flex items-center gap-1 rounded-full bg-[var(--accent-muted)] px-2.5 py-1 border border-[var(--accent-border)]">
-            <BadgeCheck className="h-3 w-3 text-[#eaa94d]" />
-            <span className="text-[9px] font-bold text-[#eaa94d]">Food Lover</span>
+            <BadgeCheck className="h-3 w-3 text-[var(--accent)]" />
+            <span className="text-[9px] font-bold text-[var(--accent)]">Food Lover</span>
           </div>
         )}
       </div>
@@ -665,19 +665,19 @@ function HomeTab({
       )}
 
       {stats?.favoriteRestaurant && (
-        <div className="flex items-center gap-3 rounded-2xl border border-[#eaa94d]/12 bg-[var(--canvas)] p-3.5 shadow-sm">
+        <div className="flex items-center gap-3 rounded-2xl border border-[var(--accent)]/12 bg-[var(--canvas)] p-3.5 shadow-sm">
           {stats.favoriteRestaurant.imageUrl ? (
             <img src={stats.favoriteRestaurant.imageUrl} alt="" className="h-10 w-10 rounded-xl object-cover shrink-0" />
           ) : (
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--accent-muted)]">
-              <Building2 className="h-5 w-5 text-[#eaa94d]" />
+              <Building2 className="h-5 w-5 text-[var(--accent)]" />
             </div>
           )}
           <div className="flex-1 min-w-0">
             <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-3)]">Most Ordered From</p>
             <p className="text-sm font-bold text-[var(--text-1)] truncate">{stats.favoriteRestaurant.name}</p>
           </div>
-          <TrendingUp className="h-4 w-4 text-[#eaa94d] shrink-0" />
+          <TrendingUp className="h-4 w-4 text-[var(--accent)] shrink-0" />
         </div>
       )}
 
@@ -691,7 +691,7 @@ function HomeTab({
           <button
             key={label}
             onClick={action}
-            className="flex flex-col items-center gap-1.5 rounded-2xl bg-[var(--canvas)] border border-[var(--border-soft)] py-3.5 shadow-sm hover:border-[#eaa94d]/20 transition-all active:scale-95"
+            className="flex flex-col items-center gap-1.5 rounded-2xl bg-[var(--canvas)] border border-[var(--border-soft)] py-3.5 shadow-sm hover:border-[var(--accent)]/20 transition-all active:scale-95"
           >
             <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${color}`}>
               <Icon className="h-4.5 w-4.5" strokeWidth={1.8} />
@@ -735,13 +735,13 @@ function HomeTab({
       )}
 
       {recentOrders.length === 0 && (
-        <div className="rounded-2xl border-2 border-dashed border-[#eaa94d]/20 bg-[#fdf9ef]/50 p-8 text-center">
-          <Utensils className="mx-auto h-9 w-9 text-[#eaa94d]/30 mb-3" />
+        <div className="rounded-2xl border-2 border-dashed border-[var(--accent)]/20 bg-[#fdf9ef]/50 p-8 text-center">
+          <Utensils className="mx-auto h-9 w-9 text-[var(--accent)]/30 mb-3" />
           <p className="text-sm font-bold text-[var(--text-2)] mb-1">No orders yet</p>
           <p className="text-xs text-[var(--text-3)] mb-4">Explore restaurants and place your first order!</p>
           <Link
             href="/"
-            className="inline-block rounded-xl bg-[#eaa94d] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#d4922a] transition-colors"
+            className="inline-block rounded-xl bg-[var(--accent)] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#d4922a] transition-colors"
           >
             Browse Restaurants
           </Link>
@@ -766,7 +766,7 @@ function SectionHeader({
       {onAction && actionLabel && (
         <button
           onClick={onAction}
-          className="flex items-center gap-0.5 text-xs font-semibold text-[#eaa94d] hover:underline"
+          className="flex items-center gap-0.5 text-xs font-semibold text-[var(--accent)] hover:underline"
         >
           {actionLabel} <ChevronRight className="h-3 w-3" />
         </button>
@@ -786,8 +786,8 @@ function StatTile({
 }) {
   const colors = {
     blue:    { bg: "bg-blue-50",    text: "text-blue-600"    },
-    emerald: { bg: "bg-[var(--accent-muted)]", text: "text-[#b25c1c]" },
-    amber:   { bg: "bg-[var(--accent-muted)]", text: "text-[#eaa94d]" },
+    emerald: { bg: "bg-[var(--accent-muted)]", text: "text-[var(--accent-text)]" },
+    amber:   { bg: "bg-[var(--accent-muted)]", text: "text-[var(--accent)]" },
   }[color];
 
   return (
@@ -808,7 +808,7 @@ function LiveOrderCard({ order }: { order: Order }) {
   const currentStep = steps.indexOf(order.status);
 
   return (
-    <div className="rounded-2xl border border-[#eaa94d]/20 bg-gradient-to-br from-[#fdf9ef] to-white p-4 shadow-sm">
+    <div className="rounded-2xl border border-[var(--accent)]/20 bg-gradient-to-br from-[#fdf9ef] to-white p-4 shadow-sm">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <div className={`flex h-8 w-8 items-center justify-center rounded-full ${meta.bg}`}>
@@ -819,7 +819,7 @@ function LiveOrderCard({ order }: { order: Order }) {
             <p className={`text-[11px] font-semibold ${meta.color}`}>{meta.label}</p>
           </div>
         </div>
-        <span className="rounded-full bg-[var(--accent-muted)] px-2 py-0.5 text-[9px] font-bold text-[#eaa94d]">
+        <span className="rounded-full bg-[var(--accent-muted)] px-2 py-0.5 text-[9px] font-bold text-[var(--accent)]">
           {timeAgo(order.createdAt)}
         </span>
       </div>
@@ -827,7 +827,7 @@ function LiveOrderCard({ order }: { order: Order }) {
         {steps.map((s, i) => (
           <div
             key={s}
-            className={`h-1.5 flex-1 rounded-full transition-all ${i <= currentStep ? "bg-[#eaa94d]" : "bg-[var(--surface-alt)]"}`}
+            className={`h-1.5 flex-1 rounded-full transition-all ${i <= currentStep ? "bg-[var(--accent)]" : "bg-[var(--surface-alt)]"}`}
           />
         ))}
       </div>
@@ -966,7 +966,7 @@ function OrdersTab({
             onClick={() => setFilter(id)}
             className={`shrink-0 inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all ${
               filter === id
-                ? "bg-[#eaa94d] text-white shadow-sm shadow-[var(--accent)]/30"
+                ? "bg-[var(--accent)] text-white shadow-sm shadow-[var(--accent)]/30"
                 : "bg-[var(--canvas)] text-[var(--text-2)] border border-[var(--border)] hover:border-[var(--border)]"
             }`}
           >
@@ -1120,7 +1120,7 @@ function OrderCard({
                   </div>
                 ) : null}
                 {order.bill?.discount ? (
-                  <div className="flex justify-between text-xs text-[#b25c1c]">
+                  <div className="flex justify-between text-xs text-[var(--accent-text)]">
                     <span>Discount</span><span>-{formatPrice(order.bill.discount, currency)}</span>
                   </div>
                 ) : null}
@@ -1138,7 +1138,7 @@ function OrderCard({
                   {order.type.replace("_", " ")}
                 </span>
                 {order.payment && (
-                  <span className={`inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] font-medium ${order.payment.status === "COMPLETED" ? "bg-[var(--accent-muted)] text-[#b25c1c]" : "bg-[var(--accent-muted)] text-[var(--accent-text)]"}`}>
+                  <span className={`inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] font-medium ${order.payment.status === "COMPLETED" ? "bg-[var(--accent-muted)] text-[var(--accent-text)]" : "bg-[var(--accent-muted)] text-[var(--accent-text)]"}`}>
                     <CreditCard className="h-3 w-3" />{order.payment.method}
                   </span>
                 )}
@@ -1163,7 +1163,7 @@ function OrderCard({
               {order.status === "DELIVERED" && (
                 <Link
                   href={`/menu/${order.restaurant.slug}`}
-                  className="flex items-center justify-center gap-1.5 rounded-xl bg-[var(--accent-muted)] py-2.5 text-xs font-semibold text-[#eaa94d] hover:bg-[#eaa94d]/15 transition-colors"
+                  className="flex items-center justify-center gap-1.5 rounded-xl bg-[var(--accent-muted)] py-2.5 text-xs font-semibold text-[var(--accent)] hover:bg-[var(--accent)]/15 transition-colors"
                 >
                   <RefreshCw className="h-3.5 w-3.5" /> Order Again
                 </Link>
@@ -1178,7 +1178,7 @@ function OrderCard({
 
 const BOOKING_STATUS_META: Record<string, { label: string; color: string; bg: string }> = {
   PENDING:    { label: "Awaiting Confirmation", color: "text-[var(--accent-text)]",   bg: "bg-[var(--accent-muted)]" },
-  CONFIRMED:  { label: "Confirmed",             color: "text-[#b25c1c]", bg: "bg-[var(--accent-muted)]" },
+  CONFIRMED:  { label: "Confirmed",             color: "text-[var(--accent-text)]", bg: "bg-[var(--accent-muted)]" },
   CHECKED_IN: { label: "Checked In",            color: "text-blue-700",    bg: "bg-blue-50" },
   CHECKED_OUT:{ label: "Checked Out",           color: "text-[var(--text-2)]",    bg: "bg-[var(--surface)]" },
   CANCELLED:  { label: "Cancelled",             color: "text-red-700",     bg: "bg-red-50" },
@@ -1207,20 +1207,20 @@ function HotelStayCard({ booking }: { booking: HotelBooking }) {
           </span>
         </div>
         <div className="flex items-center gap-1.5 text-xs text-[var(--text-2)]">
-          <Calendar className="h-3.5 w-3.5 text-[#eaa94d]" />
+          <Calendar className="h-3.5 w-3.5 text-[var(--accent)]" />
           {fmtDate(booking.checkIn)} → {fmtDate(booking.checkOut)}
           <span className="text-[var(--text-3)]">({booking.nights}N)</span>
         </div>
         <div className="flex items-center justify-between rounded-xl bg-[var(--accent-muted)] px-3 py-2">
           <span className="text-xs text-[var(--text-2)]">Total</span>
-          <span className="text-sm font-bold text-[#eaa94d]">Rs.{booking.totalPrice.toLocaleString()}</span>
+          <span className="text-sm font-bold text-[var(--accent)]">Rs.{booking.totalPrice.toLocaleString()}</span>
         </div>
         <div className="flex items-center justify-between text-[11px]">
-          <span className={`flex items-center gap-1 font-medium ${booking.advancePaid ? "text-[#b25c1c]" : "text-[var(--accent)]"}`}>
+          <span className={`flex items-center gap-1 font-medium ${booking.advancePaid ? "text-[var(--accent-text)]" : "text-[var(--accent)]"}`}>
             <CreditCard className="h-3 w-3" />
             Advance {booking.advancePaid ? "Paid" : `Due · Rs.${booking.advanceAmount.toLocaleString()}`}
           </span>
-          <a href={`/hotel/booking/${booking.id}`} className="font-semibold text-[#eaa94d] hover:underline">
+          <a href={`/hotel/booking/${booking.id}`} className="font-semibold text-[var(--accent)] hover:underline">
             View Details →
           </a>
         </div>
@@ -1295,7 +1295,7 @@ function ReviewsTab({
           <p className="text-xs text-[var(--text-3)] mb-4">Order from a restaurant and share your experience!</p>
           <Link
             href="/"
-            className="inline-block rounded-xl bg-[#eaa94d] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#d4922a] transition-colors"
+            className="inline-block rounded-xl bg-[var(--accent)] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#d4922a] transition-colors"
           >
             Explore Restaurants
           </Link>
@@ -1321,7 +1321,7 @@ function ReviewsTab({
                   <div className="flex-1 min-w-0">
                     <Link
                       href={`/menu/${review.restaurant.slug}`}
-                      className="text-sm font-bold text-[var(--text-1)] hover:text-[#eaa94d] transition-colors"
+                      className="text-sm font-bold text-[var(--text-1)] hover:text-[var(--accent)] transition-colors"
                     >
                       {review.restaurant.name}
                     </Link>
@@ -1332,7 +1332,7 @@ function ReviewsTab({
                   {!isEditing && (
                     <button
                       onClick={() => startEdit(review)}
-                      className="shrink-0 flex h-8 w-8 items-center justify-center rounded-full bg-[var(--canvas-sub)] text-[var(--text-3)] hover:bg-[var(--accent-muted)] hover:text-[#eaa94d] transition-colors"
+                      className="shrink-0 flex h-8 w-8 items-center justify-center rounded-full bg-[var(--canvas-sub)] text-[var(--text-3)] hover:bg-[var(--accent-muted)] hover:text-[var(--accent)] transition-colors"
                     >
                       <Pencil className="h-3.5 w-3.5" />
                     </button>
@@ -1369,7 +1369,7 @@ function ReviewsTab({
                       <button
                         onClick={() => saveEdit(review.restaurant.id)}
                         disabled={saving || !editRating}
-                        className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-[#eaa94d] py-2 text-xs font-bold text-white hover:bg-[#d4922a] transition-colors disabled:opacity-50"
+                        className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-[var(--accent)] py-2 text-xs font-bold text-white hover:bg-[#d4922a] transition-colors disabled:opacity-50"
                       >
                         {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
                         {saving ? "Saving…" : "Save Review"}
@@ -1390,7 +1390,7 @@ function ReviewsTab({
                     )}
                     <Link
                       href={`/menu/${review.restaurant.slug}`}
-                      className="inline-flex items-center gap-1 text-xs font-semibold text-[#eaa94d] hover:underline"
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--accent)] hover:underline"
                     >
                       Visit restaurant <ChevronRight className="h-3 w-3" />
                     </Link>
@@ -1457,7 +1457,7 @@ function SavedTab({
           <p className="text-xs text-[var(--text-3)] mb-4">Tap the heart on any restaurant to save it here</p>
           <Link
             href="/"
-            className="inline-block rounded-xl bg-[#eaa94d] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#d4922a] transition-colors"
+            className="inline-block rounded-xl bg-[var(--accent)] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#d4922a] transition-colors"
           >
             Explore Restaurants
           </Link>
@@ -1486,7 +1486,7 @@ function SavedTab({
                   <div className="flex-1 min-w-0">
                     <Link
                       href={`/menu/${r.slug}`}
-                      className="text-sm font-bold text-[var(--text-1)] hover:text-[#eaa94d] transition-colors"
+                      className="text-sm font-bold text-[var(--text-1)] hover:text-[var(--accent)] transition-colors"
                     >
                       {r.name}
                     </Link>
@@ -1536,12 +1536,12 @@ function AccountTab({
 }) {
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl border border-[#eaa94d]/12 bg-[var(--canvas)] p-5 shadow-sm">
+      <div className="rounded-2xl border border-[var(--accent)]/12 bg-[var(--canvas)] p-5 shadow-sm">
         <div className="flex items-center gap-4">
           {avatarUrl ? (
             <img src={avatarUrl} alt="" className="h-16 w-16 rounded-full object-cover ring-4 ring-white shadow-lg shrink-0" />
           ) : (
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[#eaa94d]/12 text-xl font-extrabold text-[#eaa94d] shadow ring-4 ring-white">
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[var(--accent)]/12 text-xl font-extrabold text-[var(--accent)] shadow ring-4 ring-white">
               {displayName[0]?.toUpperCase()}
             </div>
           )}
@@ -1549,7 +1549,7 @@ function AccountTab({
             <h3 className="text-base font-extrabold text-[var(--text-1)] truncate">{displayName}</h3>
             <p className="text-xs text-[var(--text-3)] truncate">{user?.email}</p>
             <div className="mt-1.5 flex items-center gap-1.5">
-              <span className="inline-flex items-center gap-1 rounded-full bg-[var(--accent-muted)] px-2.5 py-0.5 text-[10px] font-bold text-[#eaa94d]">
+              <span className="inline-flex items-center gap-1 rounded-full bg-[var(--accent-muted)] px-2.5 py-0.5 text-[10px] font-bold text-[var(--accent)]">
                 <BadgeCheck className="h-3 w-3" /> Food Lover
               </span>
               {memberSince && (
@@ -1571,14 +1571,14 @@ function AccountTab({
               <p className="text-[10px] text-blue-500 font-medium">Total Orders</p>
             </div>
             <div className="rounded-xl bg-[var(--accent-muted)] p-3">
-              <p className="text-lg font-extrabold text-[#b25c1c]">
+              <p className="text-lg font-extrabold text-[var(--accent-text)]">
                 Rs.{Math.round(stats.totalSpent).toLocaleString("en-IN")}
               </p>
-              <p className="text-[10px] text-[#d67620] font-medium">Total Spent</p>
+              <p className="text-[10px] text-[var(--accent-hover)] font-medium">Total Spent</p>
             </div>
             <div className="rounded-xl bg-[var(--accent-muted)] p-3">
-              <p className="text-lg font-extrabold text-[#eaa94d]">{stats.ratingsGiven}</p>
-              <p className="text-[10px] text-[#eaa94d]/70 font-medium">Reviews Given</p>
+              <p className="text-lg font-extrabold text-[var(--accent)]">{stats.ratingsGiven}</p>
+              <p className="text-[10px] text-[var(--accent)]/70 font-medium">Reviews Given</p>
             </div>
             {stats.favoriteRestaurant && (
               <div className="rounded-xl bg-rose-50 p-3 flex items-center gap-2">
@@ -1694,7 +1694,7 @@ function UsernameEditor() {
             onChange={(e) => handleChange(e.target.value)}
             placeholder="your_username"
             className={`w-full rounded-xl border py-2.5 pl-9 pr-3 text-sm focus:outline-none focus:ring-1 transition-colors ${
-              status === "available" ? "border-[#eaa94d] focus:ring-[var(--accent-border)]"
+              status === "available" ? "border-[var(--accent)] focus:ring-[var(--accent-border)]"
               : status === "taken" || status === "invalid" ? "border-red-400 focus:ring-red-200"
               : "border-[var(--border)] focus:border-[var(--accent-border)] focus:ring-[var(--accent-border)]"
             }`}
@@ -1703,27 +1703,27 @@ function UsernameEditor() {
             <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-[var(--text-3)]" />
           )}
           {status === "available" && (
-            <Check className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#d67620]" />
+            <Check className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--accent-hover)]" />
           )}
         </div>
         {username !== currentUsername && (status === "available" || status === "saving") && (
           <button
             onClick={handleSave}
             disabled={status !== "available"}
-            className="shrink-0 flex items-center gap-1 rounded-xl bg-[#eaa94d] px-3 py-2 text-xs font-bold text-white hover:bg-[#d4922a] transition-colors disabled:opacity-40"
+            className="shrink-0 flex items-center gap-1 rounded-xl bg-[var(--accent)] px-3 py-2 text-xs font-bold text-white hover:bg-[#d4922a] transition-colors disabled:opacity-40"
           >
             {status === "saving" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
             {status === "saving" ? "Saving…" : "Save"}
           </button>
         )}
         {status === "saved" && (
-          <div className="shrink-0 flex items-center gap-1 rounded-xl bg-[var(--accent-muted)] px-3 py-2 text-xs font-bold text-[#b25c1c]">
+          <div className="shrink-0 flex items-center gap-1 rounded-xl bg-[var(--accent-muted)] px-3 py-2 text-xs font-bold text-[var(--accent-text)]">
             <BadgeCheck className="h-3.5 w-3.5" /> Saved
           </div>
         )}
       </div>
       <p className={`mt-1.5 text-[11px] ${
-        status === "available" ? "text-[#b25c1c]"
+        status === "available" ? "text-[var(--accent-text)]"
         : status === "taken" ? "text-red-500"
         : status === "invalid" ? "text-red-500"
         : "text-[var(--text-3)]"

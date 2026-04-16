@@ -14,19 +14,19 @@ const steps = [
     Icon: QrCode,
     title: "Scan & Browse",
     desc: "Scan the QR code at your table or browse restaurants near you.",
-    accent: "from-[#eaa94d] to-[#e58f2a]",
+    accent: "from-[var(--accent)] to-[#e58f2a]",
   },
   {
     Icon: UtensilsCrossed,
     title: "Pick & Order",
     desc: "Choose from digital menus and customize your order effortlessly.",
-    accent: "from-[#eaa94d] to-[#f1c980]",
+    accent: "from-[var(--accent)] to-[#f1c980]",
   },
   {
     Icon: Bell,
     title: "Live Tracking",
     desc: "Real-time updates while we prepare and deliver your food.",
-    accent: "from-[#eaa94d] to-[#34D399]",
+    accent: "from-[var(--accent)] to-[#34D399]",
   },
   {
     Icon: CreditCard,
@@ -39,8 +39,8 @@ const steps = [
 export default function HowItWorks() {
   return (
     <section className="relative overflow-hidden bg-[#0F1219] text-white py-20 md:py-28">
-      <div className="absolute top-0 left-1/4 h-[500px] w-[500px] rounded-full bg-[#eaa94d]/[0.04] blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-0 right-1/4 h-[400px] w-[400px] rounded-full bg-[#eaa94d]/[0.04] blur-[100px] pointer-events-none" />
+      <div className="absolute top-0 left-1/4 h-[500px] w-[500px] rounded-full bg-[var(--accent)]/[0.04] blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 h-[400px] w-[400px] rounded-full bg-[var(--accent)]/[0.04] blur-[100px] pointer-events-none" />
 
       <div
         className="absolute inset-0 opacity-[0.03] pointer-events-none"
@@ -59,8 +59,8 @@ export default function HowItWorks() {
             viewport={{ once: true }}
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
           >
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/[0.06] backdrop-blur-sm px-3.5 py-1.5 text-[11px] font-bold text-white/70 uppercase tracking-wider border border-white/[0.06] mb-5">
-              <ArrowRight className="h-3 w-3 text-[#eaa94d]" />
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--canvas)]/[0.06] backdrop-blur-sm px-3.5 py-1.5 text-[11px] font-bold text-white/70 uppercase tracking-wider border border-white/[0.06] mb-5">
+              <ArrowRight className="h-3 w-3 text-[var(--accent)]" />
               How it works
             </span>
           </motion.div>
@@ -73,7 +73,7 @@ export default function HowItWorks() {
           >
             From scan to savour
             <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#eaa94d] to-[#f1c980]">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--accent)] to-[#f1c980]">
               in four easy steps.
             </span>
           </motion.h2>
@@ -91,7 +91,7 @@ export default function HowItWorks() {
                 delay: idx * 0.08,
                 ease: [0.16, 1, 0.3, 1],
               }}
-              className="group relative rounded-2xl border border-white/[0.06] bg-white/[0.03] backdrop-blur-sm p-7 transition-all duration-300 hover:bg-white/[0.06] hover:border-white/[0.1]"
+              className="group relative rounded-2xl border border-white/[0.06] bg-[var(--canvas)]/[0.03] backdrop-blur-sm p-7 transition-all duration-300 hover:bg-[var(--canvas)]/[0.06] hover:border-white/[0.1]"
             >
               {/* Step number — large, faded */}
               <div className="absolute top-5 right-6 text-[64px] font-extrabold leading-none text-white/[0.03] select-none pointer-events-none">
@@ -107,7 +107,7 @@ export default function HowItWorks() {
               <h3 className="text-base font-bold text-white mb-2 tracking-tight">
                 {step.title}
               </h3>
-              <p className="text-sm text-gray-500 leading-relaxed">
+              <p className="text-sm text-[var(--text-2)] leading-relaxed">
                 {step.desc}
               </p>
 

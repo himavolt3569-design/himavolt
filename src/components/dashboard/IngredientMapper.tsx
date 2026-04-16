@@ -259,7 +259,7 @@ export default function IngredientMapper({
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search inventory items..."
-                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] py-2.5 pl-10 pr-4 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#eaa94d] focus:ring-2 focus:ring-[#eaa94d]/15"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] py-2.5 pl-10 pr-4 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
                 />
               </div>
 

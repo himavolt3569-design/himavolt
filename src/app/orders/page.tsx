@@ -81,13 +81,13 @@ const STATUS_CONFIG: Record<
   },
   PREPARING: {
     label: "Preparing",
-    color: "text-[var(--accent)]",
+    color: "text-white",
     bg: "bg-[var(--accent)]",
     icon: ChefHat,
   },
   READY: {
     label: "Ready",
-    color: "text-[#b25c1c]",
+    color: "text-[var(--accent-text)]",
     bg: "bg-[var(--accent-muted)]",
     icon: PackageCheck,
   },
@@ -178,7 +178,7 @@ function OrderCard({
         href={`/track/${order.id}`}
         className={`block rounded-2xl border bg-[var(--canvas)] p-4 shadow-sm transition-all hover:shadow-md active:scale-[0.98] ${
           isActive
-            ? "border-saffron-flame/20 ring-1 ring-saffron-flame/10"
+            ? "border-[var(--accent-border)] ring-1 ring-[var(--accent-border)]"
             : "border-[var(--border)]"
         }`}
       >
@@ -193,15 +193,15 @@ function OrderCard({
                 sizes="56px"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center bg-saffron-flame/10">
-                <UtensilsCrossed className="h-6 w-6 text-saffron-flame" />
+              <div className="flex h-full w-full items-center justify-center bg-[var(--accent-muted)]">
+                <UtensilsCrossed className="h-6 w-6 text-[var(--accent)]" />
               </div>
             )}
             {isActive && (
               <div className="absolute top-1 right-1">
                 <span className="relative flex h-2.5 w-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-saffron-flame opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-saffron-flame" />
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--accent)] opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[var(--accent)]" />
                 </span>
               </div>
             )}
@@ -210,7 +210,7 @@ function OrderCard({
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <h3 className="text-sm font-bold text-gompa-slate truncate">
+                <h3 className="text-sm font-bold text-[var(--text-1)] truncate">
                   {order.restaurant.name}
                 </h3>
                 <p className="text-[11px] text-[var(--text-3)] mt-0.5">
@@ -226,7 +226,7 @@ function OrderCard({
 
             <div className="flex items-center justify-between mt-2.5">
               <StatusBadge status={order.status} />
-              <span className="text-sm font-extrabold text-saffron-flame">
+              <span className="text-sm font-extrabold text-[var(--accent)]">
                 {formatPrice(order.total, order.restaurant.currency ?? "NPR")}
               </span>
             </div>
@@ -263,10 +263,10 @@ function TableSessionOrderView() {
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-col items-center justify-center text-center max-w-sm"
         >
-          <div className="flex h-24 w-24 items-center justify-center rounded-full bg-saffron-flame/10 mb-5">
-            <ShoppingBag className="h-12 w-12 text-saffron-flame" />
+          <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[var(--accent-muted)] mb-5">
+            <ShoppingBag className="h-12 w-12 text-[var(--accent)]" />
           </div>
-          <h2 className="text-lg font-bold text-gompa-slate mb-2">
+          <h2 className="text-lg font-bold text-[var(--text-1)] mb-2">
             No orders yet
           </h2>
           <p className="text-sm text-[var(--text-2)] max-w-xs mb-6">
@@ -275,7 +275,7 @@ function TableSessionOrderView() {
           {activeSession && (
             <Link
               href={`/menu/${activeSession.restaurantSlug}?table=${activeSession.tableNo}`}
-              className="inline-flex items-center gap-2 rounded-xl bg-saffron-flame px-6 py-3 text-sm font-bold text-white hover:bg-saffron-flame/90 transition-colors shadow-lg shadow-saffron-flame/20"
+              className="inline-flex items-center gap-2 rounded-xl bg-[var(--accent)] px-6 py-3 text-sm font-bold text-white hover:bg-[var(--accent-hover)] transition-colors shadow-lg shadow-[var(--accent)]/20"
             >
               <UtensilsCrossed className="h-4 w-4" />
               Go to Menu
@@ -295,11 +295,11 @@ function TableSessionOrderView() {
       <header className="sticky top-0 z-40 bg-[var(--canvas)] border-b border-[var(--border-soft)] shadow-sm">
         <div className="mx-auto max-w-2xl px-4">
           <div className="flex h-14 items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-saffron-flame/10">
-              <Receipt className="h-5 w-5 text-saffron-flame" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent-muted)]">
+              <Receipt className="h-5 w-5 text-[var(--accent)]" />
             </div>
             <div className="flex-1">
-              <h1 className="text-base font-bold text-gompa-slate">
+              <h1 className="text-base font-bold text-[var(--text-1)]">
                 Your Order
               </h1>
               <p className="text-[11px] text-[var(--text-3)]">
@@ -309,10 +309,10 @@ function TableSessionOrderView() {
             {isActive && (
               <div className="flex items-center gap-1.5">
                 <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#eaa94d] opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#eaa94d]" />
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--accent)] opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--accent)]" />
                 </span>
-                <span className="text-[11px] font-bold text-[#b25c1c]">
+                <span className="text-[11px] font-bold text-[var(--accent-text)]">
                   Active
                 </span>
               </div>
@@ -330,7 +330,7 @@ function TableSessionOrderView() {
             href={`/track/${activeOrder.id}`}
             className={`block rounded-2xl border bg-[var(--canvas)] p-5 shadow-sm transition-all hover:shadow-md active:scale-[0.98] ${
               isActive
-                ? "border-saffron-flame/20 ring-1 ring-saffron-flame/10"
+                ? "border-[var(--accent-border)] ring-1 ring-[var(--accent-border)]"
                 : "border-[var(--border)]"
             }`}
           >
@@ -371,8 +371,8 @@ function TableSessionOrderView() {
             </div>
 
             <div className="border-t border-[var(--border-soft)] pt-3 flex items-center justify-between">
-              <span className="text-sm font-bold text-gompa-slate">Total</span>
-              <span className="text-base font-extrabold text-saffron-flame">
+              <span className="text-sm font-bold text-[var(--text-1)]">Total</span>
+              <span className="text-base font-extrabold text-[var(--accent)]">
                 Rs. {activeOrder.total}
               </span>
             </div>
@@ -458,10 +458,10 @@ export default function OrdersPage() {
           animate={{ opacity: 1, scale: 1 }}
           className="text-center max-w-sm"
         >
-          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-saffron-flame/10 mb-5">
-            <Receipt className="h-10 w-10 text-saffron-flame" />
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[var(--accent-muted)] mb-5">
+            <Receipt className="h-10 w-10 text-[var(--accent)]" />
           </div>
-          <h2 className="text-xl font-bold text-gompa-slate mb-2">
+          <h2 className="text-xl font-bold text-[var(--text-1)] mb-2">
             Sign in to view orders
           </h2>
           <p className="text-sm text-[var(--text-2)] mb-6">
@@ -469,7 +469,7 @@ export default function OrdersPage() {
           </p>
           <Link
             href="/sign-in"
-            className="inline-flex items-center gap-2 rounded-xl bg-saffron-flame px-6 py-3 text-sm font-bold text-white hover:bg-saffron-flame/90 transition-colors"
+            className="inline-flex items-center gap-2 rounded-xl bg-[var(--accent)] px-6 py-3 text-sm font-bold text-white hover:bg-[var(--accent-hover)] transition-colors"
           >
             Sign In
           </Link>
@@ -482,7 +482,7 @@ export default function OrdersPage() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[var(--canvas-sub)]">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-8 w-8 animate-spin text-saffron-flame" />
+          <Loader2 className="h-8 w-8 animate-spin text-[var(--accent)]" />
           <p className="text-sm font-medium text-[var(--text-2)]">
             Loading your orders...
           </p>
@@ -502,7 +502,7 @@ export default function OrdersPage() {
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-100 mb-4">
             <XCircle className="h-8 w-8 text-red-500" />
           </div>
-          <h2 className="text-lg font-bold text-gompa-slate mb-1">
+          <h2 className="text-lg font-bold text-[var(--text-1)] mb-1">
             Something went wrong
           </h2>
           <p className="text-sm text-[var(--text-2)] mb-6">{error}</p>
@@ -512,7 +512,7 @@ export default function OrdersPage() {
               setError(null);
               fetchOrders();
             }}
-            className="inline-flex items-center gap-2 rounded-xl bg-saffron-flame px-6 py-3 text-sm font-bold text-white hover:bg-saffron-flame/90 transition-colors"
+            className="inline-flex items-center gap-2 rounded-xl bg-[var(--accent)] px-6 py-3 text-sm font-bold text-white hover:bg-[var(--accent-hover)] transition-colors"
           >
             Try Again
           </button>
@@ -526,11 +526,11 @@ export default function OrdersPage() {
       <header className="sticky top-0 z-40 bg-[var(--canvas)] border-b border-[var(--border-soft)] shadow-sm">
         <div className="mx-auto max-w-2xl px-4">
           <div className="flex h-14 items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-saffron-flame/10">
-              <Receipt className="h-5 w-5 text-saffron-flame" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent-muted)]">
+              <Receipt className="h-5 w-5 text-[var(--accent)]" />
             </div>
             <div className="flex-1">
-              <h1 className="text-base font-bold text-gompa-slate">
+              <h1 className="text-base font-bold text-[var(--text-1)]">
                 My Orders
               </h1>
               {orders.length > 0 && (
@@ -542,10 +542,10 @@ export default function OrdersPage() {
             {activeOrders.length > 0 && (
               <div className="flex items-center gap-1.5">
                 <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#eaa94d] opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#eaa94d]" />
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--accent)] opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--accent)]" />
                 </span>
-                <span className="text-[11px] font-bold text-[#b25c1c]">
+                <span className="text-[11px] font-bold text-[var(--accent-text)]">
                   {activeOrders.length} Active
                 </span>
               </div>
@@ -564,7 +564,7 @@ export default function OrdersPage() {
             <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[var(--surface)] mb-5">
               <ShoppingBag className="h-12 w-12 text-[var(--text-3)]" />
             </div>
-            <h2 className="text-lg font-bold text-gompa-slate mb-2">
+            <h2 className="text-lg font-bold text-[var(--text-1)] mb-2">
               No orders yet
             </h2>
             <p className="text-sm text-[var(--text-2)] max-w-xs mb-6">
@@ -573,7 +573,7 @@ export default function OrdersPage() {
             </p>
             <Link
               href="/"
-              className="inline-flex items-center gap-2 rounded-xl bg-saffron-flame px-6 py-3 text-sm font-bold text-white hover:bg-saffron-flame/90 transition-colors shadow-lg shadow-saffron-flame/20"
+              className="inline-flex items-center gap-2 rounded-xl bg-[var(--accent)] px-6 py-3 text-sm font-bold text-white hover:bg-[var(--accent-hover)] transition-colors shadow-lg shadow-[var(--accent)]/20"
             >
               <UtensilsCrossed className="h-4 w-4" />
               Explore Restaurants
@@ -589,7 +589,7 @@ export default function OrdersPage() {
               className="space-y-3"
             >
               <div className="flex items-center gap-2">
-                <div className="h-1.5 w-1.5 rounded-full bg-saffron-flame animate-pulse" />
+                <div className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] animate-pulse" />
                 <h2 className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider">
                   Active Orders
                 </h2>

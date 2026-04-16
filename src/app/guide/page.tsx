@@ -25,8 +25,8 @@ const ORDER_STATUSES = [
   { label: "Pending", color: "bg-[var(--accent)] text-[var(--accent)] border-[var(--accent-border)]", desc: "Order placed, waiting for restaurant to accept" },
   { label: "Accepted", color: "bg-blue-100 text-blue-700 border-blue-200", desc: "Restaurant has acknowledged the order" },
   { label: "Preparing", color: "bg-[var(--accent-muted)] text-[var(--accent-text)] border-[var(--accent-border)]", desc: "Your food is being cooked" },
-  { label: "Ready", color: "bg-[var(--accent-muted)] text-[#b25c1c] border-[var(--accent-border)]", desc: "Food is ready for pickup or serving" },
-  { label: "Delivered", color: "bg-[var(--accent-muted)] text-[#b25c1c] border-[var(--accent-border)]", desc: "Order has been served or delivered" },
+  { label: "Ready", color: "bg-[var(--accent-muted)] text-[var(--accent-text)] border-[var(--accent-border)]", desc: "Food is ready for pickup or serving" },
+  { label: "Delivered", color: "bg-[var(--accent-muted)] text-[var(--accent-text)] border-[var(--accent-border)]", desc: "Order has been served or delivered" },
   { label: "Cancelled", color: "bg-red-100 text-red-700 border-red-200", desc: "Order was cancelled" },
   { label: "Rejected", color: "bg-rose-100 text-rose-700 border-rose-200", desc: "Restaurant could not fulfill the order" },
 ];
@@ -35,20 +35,20 @@ const STAFF_ROLES = [
   { label: "Super Admin", color: "bg-purple-100 text-purple-700 border-purple-200", icon: Shield, desc: "Full access to all features and settings" },
   { label: "Manager", color: "bg-blue-100 text-blue-700 border-blue-200", icon: Shield, desc: "Management functions, staff oversight, reports" },
   { label: "Chef", color: "bg-[var(--accent)] text-[var(--accent)] border-[var(--accent-border)]", icon: ChefHat, desc: "Kitchen operations, order preparation, menu availability" },
-  { label: "Waiter", color: "bg-[var(--accent-muted)] text-[#b25c1c] border-[var(--accent-border)]", icon: User, desc: "Take orders, serve tables, customer interaction" },
+  { label: "Waiter", color: "bg-[var(--accent-muted)] text-[var(--accent-text)] border-[var(--accent-border)]", icon: User, desc: "Take orders, serve tables, customer interaction" },
   { label: "Cashier", color: "bg-[var(--accent-muted)] text-[var(--accent-text)] border-[var(--accent-border)]", icon: CreditCard, desc: "Billing, payments, and cash management" },
 ];
 
 const PAYMENT_METHODS = [
   { label: "Cash", color: "bg-[var(--surface)] text-[var(--text-2)]", desc: "Pay at counter" },
-  { label: "eSewa", color: "bg-[var(--accent-muted)] text-[#b25c1c]", desc: "Digital wallet payment" },
+  { label: "eSewa", color: "bg-[var(--accent-muted)] text-[var(--accent-text)]", desc: "Digital wallet payment" },
   { label: "Khalti", color: "bg-purple-100 text-purple-700", desc: "Digital wallet payment" },
   { label: "Bank Transfer", color: "bg-blue-100 text-blue-700", desc: "Direct bank transfer via QR" },
 ];
 
 const CHAT_SENDERS = [
-  { label: "Customer", color: "bg-[#eaa94d]", icon: User, desc: "Messages from the customer" },
-  { label: "Kitchen", color: "bg-[#3e1e0c]", icon: ChefHat, desc: "Messages from kitchen staff" },
+  { label: "Customer", color: "bg-[var(--accent)]", icon: User, desc: "Messages from the customer" },
+  { label: "Kitchen", color: "bg-[var(--text-1)]", icon: ChefHat, desc: "Messages from kitchen staff" },
   { label: "Billing", color: "bg-blue-500", icon: Receipt, desc: "Messages from billing/cashier" },
 ];
 
@@ -59,7 +59,7 @@ export default function GuidePage() {
         <div>
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--text-2)] hover:text-[#eaa94d] transition-colors mb-4"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--text-2)] hover:text-[var(--accent)] transition-colors mb-4"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Home
@@ -115,7 +115,7 @@ export default function GuidePage() {
         <Section title="Menu Indicators" icon={<Leaf className="h-4 w-4" />}>
           <div className="space-y-3">
             <Indicator
-              badge={<span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#eaa94d]"><Leaf className="h-2.5 w-2.5 text-white" /></span>}
+              badge={<span className="flex h-4 w-4 items-center justify-center rounded-full bg-[var(--accent)]"><Leaf className="h-2.5 w-2.5 text-white" /></span>}
               label="Vegetarian item"
             />
             <Indicator
@@ -145,8 +145,8 @@ export default function GuidePage() {
             />
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1.5">
-                <Eye className="h-4 w-4 text-[#b25c1c]" />
-                <span className="text-xs font-bold text-[#b25c1c]">Available</span>
+                <Eye className="h-4 w-4 text-[var(--accent-text)]" />
+                <span className="text-xs font-bold text-[var(--accent-text)]">Available</span>
               </div>
               <span className="text-sm text-[var(--text-2)]">Item is visible and can be ordered</span>
             </div>
@@ -167,12 +167,12 @@ export default function GuidePage() {
               label="Low stock - quantity below minimum threshold"
             />
             <Indicator
-              badge={<span className="rounded-full bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-bold text-[#b25c1c]">OK</span>}
+              badge={<span className="rounded-full bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-bold text-[var(--accent-text)]">OK</span>}
               label="Stock level is healthy (above minimum threshold)"
             />
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1.5">
-                <ToggleRight className="h-5 w-5 text-[#b25c1c]" />
+                <ToggleRight className="h-5 w-5 text-[var(--accent-text)]" />
               </div>
               <span className="text-sm text-[var(--text-2)]">Item is shown in customer menu</span>
             </div>
@@ -201,19 +201,19 @@ export default function GuidePage() {
           </div>
         </Section>
 
-        <Section title="Live Indicators" icon={<span className="relative flex h-4 w-4 items-center justify-center"><span className="animate-ping absolute h-3 w-3 rounded-full bg-[#eaa94d] opacity-75" /><span className="relative h-2 w-2 rounded-full bg-[#eaa94d]" /></span>}>
+        <Section title="Live Indicators" icon={<span className="relative flex h-4 w-4 items-center justify-center"><span className="animate-ping absolute h-3 w-3 rounded-full bg-[var(--accent)] opacity-75" /><span className="relative h-2 w-2 rounded-full bg-[var(--accent)]" /></span>}>
           <div className="space-y-3">
             <div className="flex items-center gap-3">
               <span className="flex items-center gap-1.5 rounded-full bg-[var(--accent-muted)] px-2.5 py-1">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#eaa94d] animate-pulse" />
-                <span className="text-[11px] font-semibold text-[#b25c1c]">Live</span>
+                <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] animate-pulse" />
+                <span className="text-[11px] font-semibold text-[var(--accent-text)]">Live</span>
               </span>
               <span className="text-sm text-[var(--text-2)]">Real-time connection active - orders update automatically</span>
             </div>
             <div className="flex items-center gap-3">
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#eaa94d] opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#eaa94d]" />
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--accent)] opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--accent)]" />
               </span>
               <span className="text-sm text-[var(--text-2)]">Chat connection active</span>
             </div>
@@ -231,7 +231,7 @@ export default function GuidePage() {
               <Link
                 key={nav.label}
                 href={nav.href}
-                className="rounded-xl border border-[var(--border)] p-3 hover:border-[var(--accent-border)] hover:bg-[#eaa94d]/5 transition-all"
+                className="rounded-xl border border-[var(--border)] p-3 hover:border-[var(--accent-border)] hover:bg-[var(--accent)]/5 transition-all"
               >
                 <p className="font-bold text-[var(--text-1)]">{nav.label}</p>
                 <p className="text-xs text-[var(--text-2)] mt-0.5">{nav.desc}</p>
@@ -256,7 +256,7 @@ function Section({
   return (
     <div className="rounded-2xl bg-[var(--canvas)] border border-[var(--border-soft)] p-6 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
       <div className="flex items-center gap-2 mb-4">
-        <span className="text-[#eaa94d]">{icon}</span>
+        <span className="text-[var(--accent)]">{icon}</span>
         <h2 className="text-base font-extrabold text-[var(--text-1)]">{title}</h2>
       </div>
       {children}

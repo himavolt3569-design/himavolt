@@ -85,8 +85,8 @@ const STEPS = [
     key: "ACCEPTED",
     label: "Accepted",
     icon: CheckCircle2,
-    color: "text-[#d67620]",
-    bg: "bg-[#eaa94d]",
+    color: "text-[var(--accent-hover)]",
+    bg: "bg-[var(--accent)]",
   },
   {
     key: "PREPARING",
@@ -99,15 +99,15 @@ const STEPS = [
     key: "READY",
     label: "Ready",
     icon: PackageCheck,
-    color: "text-[#d67620]",
-    bg: "bg-[#eaa94d]",
+    color: "text-[var(--accent-hover)]",
+    bg: "bg-[var(--accent)]",
   },
   {
     key: "DELIVERED",
     label: "Delivered",
     icon: Truck,
     color: "text-[var(--text-1)]",
-    bg: "bg-[#3e1e0c]",
+    bg: "bg-[var(--text-1)]",
   },
 ];
 
@@ -153,7 +153,7 @@ function CountdownTimer({
             cy="50"
             r="42"
             fill="none"
-            stroke="#f3f4f6"
+            stroke="var(--border)"
             strokeWidth="6"
           />
           <motion.circle
@@ -161,7 +161,7 @@ function CountdownTimer({
             cy="50"
             r="42"
             fill="none"
-            stroke="#eaa94d"
+            stroke="var(--accent)"
             strokeWidth="6"
             strokeLinecap="round"
             strokeDasharray={264}
@@ -170,7 +170,7 @@ function CountdownTimer({
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <Timer className="h-4 w-4 text-[#eaa94d] mb-0.5" />
+          <Timer className="h-4 w-4 text-[var(--accent)] mb-0.5" />
           <span className="text-2xl font-black text-[var(--text-1)] tabular-nums">
             {mins}:{secs.toString().padStart(2, "0")}
           </span>
@@ -183,7 +183,7 @@ function CountdownTimer({
         <motion.p
           initial={{ opacity: 0, y: 5 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mt-2 text-xs font-bold text-[#eaa94d]"
+          className="mt-2 text-xs font-bold text-[var(--accent)]"
         >
           Should be ready any moment!
         </motion.p>
@@ -194,7 +194,7 @@ function CountdownTimer({
 
 function PaymentBadge({ method, status }: { method: string; status: string }) {
   const methods: Record<string, { label: string; color: string }> = {
-    ESEWA: { label: "eSewa", color: "bg-[var(--accent-muted)] text-[#b25c1c]" },
+    ESEWA: { label: "eSewa", color: "bg-[var(--accent-muted)] text-[var(--accent-text)]" },
     KHALTI: { label: "Khalti", color: "bg-purple-100 text-purple-700" },
     BANK: { label: "Bank Transfer", color: "bg-blue-100 text-blue-700" },
     CASH: { label: "Cash", color: "bg-[var(--surface)] text-[var(--text-2)]" },
@@ -207,7 +207,7 @@ function PaymentBadge({ method, status }: { method: string; status: string }) {
   };
 
   const statusConfig: Record<string, { label: string; color: string; icon: typeof CheckCircle2 }> = {
-    COMPLETED: { label: "Paid", color: "bg-[var(--accent-muted)] text-[#b25c1c]", icon: CheckCircle2 },
+    COMPLETED: { label: "Paid", color: "bg-[var(--accent-muted)] text-[var(--accent-text)]", icon: CheckCircle2 },
     PENDING: { label: "Pending", color: "bg-[var(--accent-muted)] text-[var(--accent-text)]", icon: Clock },
     AWAITING_VERIFICATION: { label: "Verifying", color: "bg-blue-100 text-blue-700", icon: Clock },
     FAILED: { label: "Failed", color: "bg-red-100 text-red-700", icon: XCircle },
@@ -253,7 +253,7 @@ function BillSection({
       className="rounded-2xl border border-[var(--border)] bg-[var(--canvas)] overflow-hidden"
     >
       <div className="flex items-center gap-2 px-5 py-4 border-b border-[var(--border-soft)] bg-[var(--canvas-sub)]">
-        <Receipt className="h-4 w-4 text-[#eaa94d]" />
+        <Receipt className="h-4 w-4 text-[var(--accent)]" />
         <h3 className="text-sm font-bold text-[var(--text-1)]">Invoice</h3>
         <span className="ml-auto text-[11px] font-mono text-[var(--text-3)]">
           {bill.billNo}
@@ -266,7 +266,7 @@ function BillSection({
             className="flex items-center justify-between text-sm"
           >
             <span className="text-[var(--text-2)]">
-              <span className="font-bold text-[#eaa94d]">{item.quantity}x</span>{" "}
+              <span className="font-bold text-[var(--accent)]">{item.quantity}x</span>{" "}
               {item.name}
             </span>
             <span className="font-semibold text-[var(--text-1)]">
@@ -290,19 +290,19 @@ function BillSection({
             </div>
           )}
           {bill.discount > 0 && (
-            <div className="flex justify-between text-xs text-[#b25c1c]">
+            <div className="flex justify-between text-xs text-[var(--accent-text)]">
               <span>Discount</span>
               <span>-{formatPrice(bill.discount, currency)}</span>
             </div>
           )}
           <div className="flex justify-between text-base font-extrabold pt-2 border-t border-[var(--border)]">
             <span className="text-[var(--text-1)]">Total</span>
-            <span className="text-[#eaa94d]">{formatPrice(bill.total, currency)}</span>
+            <span className="text-[var(--accent)]">{formatPrice(bill.total, currency)}</span>
           </div>
         </div>
         <Link
           href={`/bill/${order.id}`}
-          className="flex items-center justify-center gap-2 mt-4 rounded-xl bg-[#eaa94d] py-2.5 text-xs font-bold text-white hover:bg-[#d67620] transition-all shadow-sm"
+          className="flex items-center justify-center gap-2 mt-4 rounded-xl bg-[var(--accent)] py-2.5 text-xs font-bold text-white hover:bg-[var(--accent-hover)] transition-all shadow-sm"
         >
           <Receipt className="h-3.5 w-3.5" />
           View Full Bill · Download
@@ -469,7 +469,7 @@ export default function TrackOrderPage() {
           </p>
           <Link
             href="/"
-            className="inline-flex items-center gap-2 rounded-xl bg-[#3e1e0c] px-6 py-3 text-sm font-bold text-white hover:bg-[#2d1508] transition-colors"
+            className="inline-flex items-center gap-2 rounded-xl bg-[var(--text-1)] px-6 py-3 text-sm font-bold text-white hover:bg-[#2d1508] transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Menu
@@ -509,10 +509,10 @@ export default function TrackOrderPage() {
             {isActive && (
               <div className="flex items-center gap-1.5">
                 <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#eaa94d] opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#eaa94d]" />
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--accent)] opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--accent)]" />
                 </span>
-                <span className="text-[11px] font-bold text-[#b25c1c]">
+                <span className="text-[11px] font-bold text-[var(--accent-text)]">
                   Live
                 </span>
               </div>
@@ -530,7 +530,7 @@ export default function TrackOrderPage() {
               exit={{ opacity: 0, y: -10 }}
               className={`rounded-xl px-4 py-3 text-sm font-bold ${
                 paymentStatus === "success"
-                  ? "bg-[var(--accent-muted)] text-[#b25c1c]"
+                  ? "bg-[var(--accent-muted)] text-[var(--accent-text)]"
                   : "bg-red-100 text-red-700"
               }`}
             >
@@ -560,7 +560,7 @@ export default function TrackOrderPage() {
                   className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-colors"
                 >
                   {copied ? (
-                    <Check className="h-3.5 w-3.5 text-[#d67620]" />
+                    <Check className="h-3.5 w-3.5 text-[var(--accent-hover)]" />
                   ) : (
                     <Copy className="h-3.5 w-3.5" />
                   )}
@@ -596,14 +596,14 @@ export default function TrackOrderPage() {
                   minute: "2-digit",
                 })}
               </p>
-              <p className="text-lg font-extrabold text-[#eaa94d] mt-0.5">
+              <p className="text-lg font-extrabold text-[var(--accent)] mt-0.5">
                 {formatPrice(order.total, order.restaurant.currency ?? "NPR")}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-3 mt-4 pt-4 border-t border-[var(--border-soft)]">
-            <div className="h-10 w-10 rounded-xl bg-[#3e1e0c]/10 flex items-center justify-center shrink-0">
+            <div className="h-10 w-10 rounded-xl bg-[var(--text-1)]/10 flex items-center justify-center shrink-0">
               <MapPin className="h-4 w-4 text-[var(--text-1)]" />
             </div>
             <div className="flex-1 min-w-0">
@@ -617,7 +617,7 @@ export default function TrackOrderPage() {
             {order.restaurant.phone && (
               <a
                 href={`tel:${order.restaurant.phone}`}
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-[#3e1e0c]/10 text-[var(--text-1)] hover:bg-[#3e1e0c]/20 transition-colors"
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--text-1)]/10 text-[var(--text-1)] hover:bg-[var(--text-1)]/20 transition-colors"
               >
                 <Phone className="h-4 w-4" />
               </a>
@@ -821,7 +821,7 @@ export default function TrackOrderPage() {
                       }
                     } catch { /* retry failed */ }
                   }}
-                  className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-[#eaa94d] py-3 text-sm font-bold text-white hover:bg-[#d67620] transition-all shadow-sm"
+                  className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-[var(--accent)] py-3 text-sm font-bold text-white hover:bg-[var(--accent-hover)] transition-all shadow-sm"
                 >
                   {order.payment.status === "FAILED" ? "Try Again" : "Complete Payment"}
                 </button>
@@ -950,7 +950,7 @@ export default function TrackOrderPage() {
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ type: "spring", damping: 15 }}
-                className="flex h-16 w-16 items-center justify-center rounded-full bg-[#3e1e0c] mb-3"
+                className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--text-1)] mb-3"
               >
                 <CheckCircle2 className="h-8 w-8 text-white" />
               </motion.div>
@@ -964,12 +964,12 @@ export default function TrackOrderPage() {
               {order.status === "PREPARING" ? (
                 <div
                   ref={clockRef}
-                  className="relative flex h-16 w-16 items-center justify-center rounded-full border-[3px] border-[#eaa94d] bg-[var(--canvas)] shadow-lg mb-3"
+                  className="relative flex h-16 w-16 items-center justify-center rounded-full border-[3px] border-[var(--accent)] bg-[var(--canvas)] shadow-lg mb-3"
                 >
-                  <div className="absolute top-1/2 left-1/2 h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#eaa94d] z-10" />
+                  <div className="absolute top-1/2 left-1/2 h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--accent)] z-10" />
                   <div
                     ref={handRef}
-                    className="absolute bottom-1/2 left-1/2 h-5 w-[2px] -translate-x-1/2 rounded-full bg-[#eaa94d] origin-bottom"
+                    className="absolute bottom-1/2 left-1/2 h-5 w-[2px] -translate-x-1/2 rounded-full bg-[var(--accent)] origin-bottom"
                   />
                 </div>
               ) : (
@@ -1081,7 +1081,7 @@ export default function TrackOrderPage() {
                         <motion.div
                           animate={{ opacity: [0.5, 1, 0.5] }}
                           transition={{ duration: 2, repeat: Infinity }}
-                          className="mt-0.5 h-1 w-16 rounded-full bg-[#eaa94d]/30"
+                          className="mt-0.5 h-1 w-16 rounded-full bg-[var(--accent)]/30"
                         >
                           <motion.div
                             animate={{ width: ["0%", "100%", "0%"] }}
@@ -1090,7 +1090,7 @@ export default function TrackOrderPage() {
                               repeat: Infinity,
                               ease: "easeInOut",
                             }}
-                            className="h-full rounded-full bg-[#eaa94d]"
+                            className="h-full rounded-full bg-[var(--accent)]"
                           />
                         </motion.div>
                       )}
@@ -1115,7 +1115,7 @@ export default function TrackOrderPage() {
             {order.items.map((item) => (
               <div key={item.id} className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--accent-muted)] text-[11px] font-bold text-[#eaa94d]">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--accent-muted)] text-[11px] font-bold text-[var(--accent)]">
                     {item.quantity}
                   </span>
                   <span className="text-sm font-medium text-[var(--text-1)]">
@@ -1130,7 +1130,7 @@ export default function TrackOrderPage() {
           </div>
           <div className="border-t border-[var(--border-soft)] mt-3 pt-3 flex items-center justify-between">
             <span className="text-sm font-bold text-[var(--text-1)]">Total</span>
-            <span className="text-base font-extrabold text-[#eaa94d]">
+            <span className="text-base font-extrabold text-[var(--accent)]">
               {formatPrice(order.total, order.restaurant.currency ?? "NPR")}
             </span>
           </div>
@@ -1141,7 +1141,7 @@ export default function TrackOrderPage() {
           className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] py-3.5 px-5 flex items-center justify-between shadow-sm hover:bg-[var(--canvas-sub)] transition-colors"
         >
           <div className="flex items-center gap-2">
-            <Receipt className="h-4 w-4 text-[#eaa94d]" />
+            <Receipt className="h-4 w-4 text-[var(--accent)]" />
             <span className="text-sm font-bold text-[var(--text-1)]">
               View Invoice
             </span>
@@ -1209,12 +1209,12 @@ export default function TrackOrderPage() {
           !["DELIVERED", "CANCELLED", "REJECTED"].includes(order.status) && (
             <div className="rounded-2xl border-2 border-[var(--accent-border)] bg-[#fef9ef]/60 p-4 space-y-2">
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-[#b25c1c]" />
+                <CheckCircle2 className="h-4 w-4 text-[var(--accent-text)]" />
                 <span className="text-sm font-bold text-[var(--text-1)]">
                   Payment Verified
                 </span>
               </div>
-              <p className="text-xs text-[#b25c1c]/80">
+              <p className="text-xs text-[var(--accent-text)]/80">
                 Your payment has been confirmed. Your order is being processed by the kitchen.
               </p>
             </div>
@@ -1222,7 +1222,7 @@ export default function TrackOrderPage() {
 
         <Link
           href={`/menu/${order.restaurant.slug}${order.tableNo ? `?table=${order.tableNo}` : ""}`}
-          className="block w-full rounded-xl bg-[#3e1e0c] py-4 text-center text-sm font-bold text-white hover:bg-[#2d1508] transition-colors shadow-lg cursor-pointer"
+          className="block w-full rounded-xl bg-[var(--text-1)] py-4 text-center text-sm font-bold text-white hover:bg-[#2d1508] transition-colors shadow-lg cursor-pointer"
         >
           Back to Menu
         </Link>

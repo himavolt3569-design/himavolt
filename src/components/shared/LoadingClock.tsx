@@ -39,7 +39,7 @@ export default function LoadingClock({
         viewBox="0 0 48 48"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        className="text-[#eaa94d]"
+        className="text-[var(--accent)]"
       >
         <circle cx="24" cy="24" r="22" stroke="currentColor" strokeWidth="4" />
         <rect

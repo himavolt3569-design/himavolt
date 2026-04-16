@@ -66,9 +66,9 @@ const ROLE_INFO: Record<
     desc: "Order taking and table service",
     icon: UserCheck,
     bg: "bg-[var(--accent-muted)]",
-    text: "text-[#b25c1c]",
+    text: "text-[var(--accent-text)]",
     border: "border-[var(--accent-border)]",
-    ring: "ring-[#eaa94d]",
+    ring: "ring-[var(--accent)]",
   },
   CASHIER: {
     label: "Cashier",
@@ -165,7 +165,7 @@ function StaffRoleCard({
               {member.user.name}
             </span>
             {saved ? (
-              <span className="flex items-center gap-1 rounded-md bg-[var(--accent-muted)] border border-[var(--accent-border)] px-2 py-0.5 text-[10px] font-bold text-[#b25c1c]">
+              <span className="flex items-center gap-1 rounded-md bg-[var(--accent-muted)] border border-[var(--accent-border)] px-2 py-0.5 text-[10px] font-bold text-[var(--accent-text)]">
                 <Check className="h-2.5 w-2.5" />
                 Updated
               </span>
@@ -553,7 +553,7 @@ export default function OwnerControlPanel() {
               {
                 label: "Active",
                 value: staff.filter((s) => s.isActive).length,
-                color: "text-[#b25c1c]",
+                color: "text-[var(--accent-text)]",
               },
             ].map((stat) => (
               <div key={stat.label} className="py-3 px-4 text-center">
@@ -655,10 +655,10 @@ export default function OwnerControlPanel() {
                   )}
                   {role === "WAITER" && (
                     <>
-                      <span className="rounded-md bg-[var(--accent-muted)] px-1.5 py-0.5 text-[10px] font-bold text-[#b25c1c]">
+                      <span className="rounded-md bg-[var(--accent-muted)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--accent-text)]">
                         Orders
                       </span>
-                      <span className="rounded-md bg-[var(--accent-muted)] px-1.5 py-0.5 text-[10px] font-bold text-[#b25c1c]">
+                      <span className="rounded-md bg-[var(--accent-muted)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--accent-text)]">
                         Tables
                       </span>
                     </>

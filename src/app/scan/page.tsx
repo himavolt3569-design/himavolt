@@ -234,9 +234,9 @@ function ScanPageContent() {
         transition={{ duration: 0.5 }}
         className="mb-10 flex items-center gap-2"
       >
-        <Mountain className="h-7 w-7 text-[#eaa94d]" strokeWidth={2.5} />
+        <Mountain className="h-7 w-7 text-[var(--accent)]" strokeWidth={2.5} />
         <span className="text-xl font-extrabold tracking-tight text-[var(--text-1)]">
-          Hima<span className="text-[#eaa94d]">Volt</span>
+          Hima<span className="text-[var(--accent)]">Volt</span>
         </span>
       </motion.div>
 
@@ -259,9 +259,9 @@ function ScanPageContent() {
         <div
           className={`relative mx-auto flex h-64 w-64 items-center justify-center rounded-3xl border-2 transition-all duration-500 overflow-hidden ${
             scanSuccess
-              ? "border-[#3e1e0c] bg-[#3e1e0c]/10 shadow-2xl shadow-[#3e1e0c]/20"
+              ? "border-[#3e1e0c] bg-[var(--text-1)]/10 shadow-2xl shadow-[var(--text-1)]/20"
               : cameraActive
-                ? "border-[#eaa94d] shadow-xl shadow-[var(--accent)]/15"
+                ? "border-[var(--accent)] shadow-xl shadow-[var(--accent)]/15"
                 : "border-[var(--border)] bg-[var(--canvas-sub)]"
           }`}
         >
@@ -288,7 +288,7 @@ function ScanPageContent() {
               title={torchSupported ? "Toggle flashlight" : "Flashlight not supported on this device"}
             >
               {flashlightOn ? (
-                <Flashlight className="w-5 h-5 text-[#eaa94d]" />
+                <Flashlight className="w-5 h-5 text-[var(--accent)]" />
               ) : (
                 <FlashlightOff className="w-5 h-5" />
               )}
@@ -323,7 +323,7 @@ function ScanPageContent() {
                 transition={{ duration: 2.2, ease: "easeInOut", repeat: Infinity }}
                 style={{ position: "absolute" }}
               >
-                <div className="h-[3px] w-full rounded-full bg-[#eaa94d] shadow-[0_0_14px_4px_rgba(234,169,77,0.7)]" />
+                <div className="h-[3px] w-full rounded-full bg-[var(--accent)] shadow-[0_0_14px_4px_rgba(234,169,77,0.7)]" />
               </motion.div>
             ) : cameraError ? (
               <motion.div
@@ -390,7 +390,7 @@ function ScanPageContent() {
                 ? "bg-rose-600 hover:bg-rose-700 shadow-rose-200"
                 : starting
                   ? "bg-[var(--border)] cursor-not-allowed shadow-none"
-                  : "bg-[#3e1e0c] hover:bg-[#2d1508] hover:shadow-xl hover:-translate-y-0.5 shadow-[#3e1e0c]/25"
+                  : "bg-[var(--text-1)] hover:bg-[#2d1508] hover:shadow-xl hover:-translate-y-0.5 shadow-[var(--text-1)]/25"
           }`}
         >
           {starting ? (
@@ -419,7 +419,7 @@ function ScanPageContent() {
               onClick={() => setInputMode("table")}
               className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-bold transition-all ${
                 inputMode === "table"
-                  ? "bg-[#3e1e0c] text-white"
+                  ? "bg-[var(--text-1)] text-white"
                   : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
               }`}
             >
@@ -430,7 +430,7 @@ function ScanPageContent() {
               onClick={() => setInputMode("room")}
               className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-bold transition-all ${
                 inputMode === "room"
-                  ? "bg-[#3e1e0c] text-white"
+                  ? "bg-[var(--text-1)] text-white"
                   : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
               }`}
             >
@@ -476,7 +476,7 @@ function ScanPageContent() {
               className={`flex h-[52px] w-[52px] items-center justify-center rounded-xl transition-all ${
                 restaurantSlug &&
                 (inputMode === "table" ? tableNum.length >= 1 : roomNum.length >= 1)
-                  ? "bg-[#eaa94d] text-white shadow-md hover:bg-[#d67620]"
+                  ? "bg-[var(--accent)] text-white shadow-md hover:bg-[var(--accent-hover)]"
                   : "bg-[var(--surface)] text-[var(--text-3)] cursor-not-allowed"
               }`}
             >

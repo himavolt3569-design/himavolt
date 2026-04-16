@@ -221,7 +221,7 @@ export default function WaitlistTab() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-[var(--text-1)] flex items-center gap-2">
-            <ListOrdered className="w-6 h-6 text-[#b25c1c]" />
+            <ListOrdered className="w-6 h-6 text-[var(--accent-text)]" />
             Waitlist Management
           </h2>
           <p className="text-sm text-[var(--text-2)] mt-1">
@@ -230,7 +230,7 @@ export default function WaitlistTab() {
         </div>
         <button
           onClick={() => setShowForm(true)}
-          className="flex items-center gap-1.5 bg-[#eaa94d] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#d67620] transition-colors"
+          className="flex items-center gap-1.5 bg-[var(--accent)] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[var(--accent-hover)] transition-colors"
         >
           <Plus className="w-4 h-4" /> Add to Waitlist
         </button>
@@ -243,7 +243,7 @@ export default function WaitlistTab() {
             value: activeWaitlist.length,
             sub: `${totalGuests} guests`,
             icon: Users,
-            color: "text-[#b25c1c]",
+            color: "text-[var(--accent-text)]",
           },
           {
             label: "Free Tables",
@@ -308,7 +308,7 @@ export default function WaitlistTab() {
                 ? "text-red-600"
                 : activeWaitlist.length >= 3
                 ? "text-yellow-600"
-                : "text-[#b25c1c]"
+                : "text-[var(--accent-text)]"
             }`}
           />
           <div>
@@ -371,7 +371,7 @@ export default function WaitlistTab() {
                     type="text"
                     value={formName}
                     onChange={(e) => setFormName(e.target.value)}
-                    className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#eaa94d] focus:border-[#eaa94d] outline-none"
+                    className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[var(--accent)] focus:border-[var(--accent)] outline-none"
                     placeholder="Full name"
                   />
                 </div>
@@ -386,7 +386,7 @@ export default function WaitlistTab() {
                       max={20}
                       value={formPartySize}
                       onChange={(e) => setFormPartySize(Number(e.target.value))}
-                      className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#eaa94d] focus:border-[#eaa94d] outline-none"
+                      className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[var(--accent)] focus:border-[var(--accent)] outline-none"
                     />
                   </div>
                   <div>
@@ -397,7 +397,7 @@ export default function WaitlistTab() {
                       type="text"
                       value={formPhone}
                       onChange={(e) => setFormPhone(e.target.value)}
-                      className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#eaa94d] focus:border-[#eaa94d] outline-none"
+                      className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[var(--accent)] focus:border-[var(--accent)] outline-none"
                       placeholder="+977-98..."
                     />
                   </div>
@@ -406,7 +406,7 @@ export default function WaitlistTab() {
                   <p className="text-sm text-[var(--text-1)] font-medium">
                     Estimated Wait: ~{estimateWaitTime(formPartySize)} minutes
                   </p>
-                  <p className="text-xs text-[#b25c1c] mt-0.5">
+                  <p className="text-xs text-[var(--accent-text)] mt-0.5">
                     Based on current table availability and queue
                   </p>
                 </div>
@@ -420,7 +420,7 @@ export default function WaitlistTab() {
                   <button
                     onClick={addToWaitlist}
                     disabled={!formName.trim() || !formPhone.trim()}
-                    className="px-6 py-2 bg-[#eaa94d] text-white text-sm font-medium rounded-lg hover:bg-[#d67620] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-6 py-2 bg-[var(--accent)] text-white text-sm font-medium rounded-lg hover:bg-[var(--accent-hover)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Add to Queue
                   </button>
@@ -434,7 +434,7 @@ export default function WaitlistTab() {
       <div className="bg-[var(--canvas)] rounded-xl shadow-sm border border-[var(--border-soft)] overflow-hidden">
         <div className="p-5 border-b border-[var(--border-soft)]">
           <h3 className="text-sm font-semibold text-[var(--text-1)] flex items-center gap-2">
-            <ListOrdered className="w-4 h-4 text-[#b25c1c]" />
+            <ListOrdered className="w-4 h-4 text-[var(--accent-text)]" />
             Current Queue ({activeWaitlist.length})
           </h3>
         </div>
@@ -466,7 +466,7 @@ export default function WaitlistTab() {
                   >
                     <div className="flex items-center gap-4">
                       <div className="flex-shrink-0 w-12 h-12 rounded-full bg-[var(--accent-muted)] flex items-center justify-center">
-                        <span className="text-sm font-bold text-[#b25c1c]">
+                        <span className="text-sm font-bold text-[var(--accent-text)]">
                           {getPositionLabel(index)}
                         </span>
                       </div>
@@ -526,7 +526,7 @@ export default function WaitlistTab() {
                         )}
                         <button
                           onClick={() => seatGuest(entry.id)}
-                          className="flex items-center gap-1 px-2.5 py-1.5 bg-[var(--accent-muted)] text-[#b25c1c] rounded-lg text-xs font-medium hover:bg-[#fde9ba] transition-colors"
+                          className="flex items-center gap-1 px-2.5 py-1.5 bg-[var(--accent-muted)] text-[var(--accent-text)] rounded-lg text-xs font-medium hover:bg-[#fde9ba] transition-colors"
                           title="Seat guest"
                         >
                           <Armchair className="w-3.5 h-3.5" /> Seat
@@ -564,7 +564,7 @@ export default function WaitlistTab() {
 
       <div className="bg-[var(--canvas)] rounded-xl shadow-sm border border-[var(--border-soft)] p-5">
         <h3 className="text-sm font-semibold text-[var(--text-1)] mb-3 flex items-center gap-2">
-          <Armchair className="w-4 h-4 text-[#b25c1c]" />
+          <Armchair className="w-4 h-4 text-[var(--accent-text)]" />
           Table Status
         </h3>
         <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
@@ -585,7 +585,7 @@ export default function WaitlistTab() {
                 </p>
               )}
               {!t.occupied && (
-                <p className="text-[10px] text-[#b25c1c] font-medium">Free</p>
+                <p className="text-[10px] text-[var(--accent-text)] font-medium">Free</p>
               )}
             </div>
           ))}

@@ -63,9 +63,9 @@ const ROLE_META: Record<
   WAITER: {
     label: "Waiter",
     icon: UserCheck,
-    gradient: "from-[#eaa94d] to-[#d67620]",
-    text: "text-[#b25c1c]",
-    badge: "bg-[var(--accent-muted)] text-[#b25c1c] border-[var(--accent-border)]",
+    gradient: "from-[var(--accent)] to-[var(--accent-hover)]",
+    text: "text-[var(--accent-text)]",
+    badge: "bg-[var(--accent-muted)] text-[var(--accent-text)] border-[var(--accent-border)]",
   },
   CASHIER: {
     label: "Cashier",
@@ -284,12 +284,12 @@ function StaffCard({
             title={member.isActive ? "Deactivate" : "Activate"}
             className={`shrink-0 flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-bold transition-all ${
               member.isActive
-                ? "bg-[var(--accent-muted)] text-[#b25c1c] hover:bg-[var(--accent-muted)] border border-[var(--accent-border)]"
+                ? "bg-[var(--accent-muted)] text-[var(--accent-text)] hover:bg-[var(--accent-muted)] border border-[var(--accent-border)]"
                 : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)] border border-[var(--border)]"
             }`}
           >
             {member.isActive ? (
-              <><span className="h-1.5 w-1.5 rounded-full bg-[#eaa94d] animate-pulse" />Active</>
+              <><span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] animate-pulse" />Active</>
             ) : (
               <><span className="h-1.5 w-1.5 rounded-full bg-[var(--text-3)]" />Off</>
             )}
@@ -360,7 +360,7 @@ function StaffCard({
               <button
                 onClick={handleSavePin}
                 disabled={!/^\d{4}$/.test(newPin) || savingPin}
-                className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--accent-muted)] text-[#b25c1c] hover:bg-[var(--accent-muted)] disabled:opacity-40 transition-all"
+                className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--accent-muted)] text-[var(--accent-text)] hover:bg-[var(--accent-muted)] disabled:opacity-40 transition-all"
               >
                 {savingPin ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
               </button>
@@ -439,7 +439,7 @@ function StaffDirectoryView({
     {
       label: "Active",
       value: restaurant.staff.filter((s: StaffMember) => s.isActive).length,
-      color: "text-[#b25c1c]",
+      color: "text-[var(--accent-text)]",
       bg: "bg-[var(--accent-muted)]",
     },
     {
@@ -656,8 +656,8 @@ function AttendanceLogsView({ restaurantId }: { restaurantId: string }) {
               </span>
             )}
             {completedCount > 0 && (
-              <span className="flex items-center gap-1.5 rounded-lg bg-[var(--accent-muted)] border border-[var(--accent-border)] px-2.5 py-1 text-[11px] font-bold text-[#b25c1c]">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#eaa94d]" />
+              <span className="flex items-center gap-1.5 rounded-lg bg-[var(--accent-muted)] border border-[var(--accent-border)] px-2.5 py-1 text-[11px] font-bold text-[var(--accent-text)]">
+                <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
                 {completedCount} completed
               </span>
             )}
@@ -764,7 +764,7 @@ function AttendanceLogsView({ restaurantId }: { restaurantId: string }) {
                         )}
                       </div>
                       {mins > 0 && (
-                        <span className="rounded-lg bg-[var(--accent-muted)] border border-[var(--accent-border)] px-2 py-1 text-[10px] font-bold text-[#b25c1c] shrink-0">
+                        <span className="rounded-lg bg-[var(--accent-muted)] border border-[var(--accent-border)] px-2 py-1 text-[10px] font-bold text-[var(--accent-text)] shrink-0">
                           {formatDur(mins)}
                         </span>
                       )}
@@ -880,7 +880,7 @@ function AddStaffModal({
               <div className="space-y-5">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--accent-muted)]">
-                    <Check className="h-5 w-5 text-[#d67620]" />
+                    <Check className="h-5 w-5 text-[var(--accent-hover)]" />
                   </div>
                   <div>
                     <h3 className="text-lg font-extrabold text-[var(--text-1)]">Staff Added!</h3>
@@ -911,7 +911,7 @@ function AddStaffModal({
 
                 <button
                   onClick={() => { reset(); onClose(); }}
-                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#3e1e0c] px-6 py-3 text-sm font-bold text-white hover:bg-[#2d1508] active:scale-[0.97] transition-all"
+                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] px-6 py-3 text-sm font-bold text-white hover:bg-[#2d1508] active:scale-[0.97] transition-all"
                 >
                   <Check className="h-4 w-4" />
                   Done
@@ -994,7 +994,7 @@ function AddStaffModal({
                     disabled={!isValid || saving}
                     className={`flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-bold text-white transition-all active:scale-[0.97] ${
                       isValid && !saving
-                        ? "bg-[#3e1e0c] shadow-lg shadow-[#3e1e0c]/20 hover:bg-[#2d1508]"
+                        ? "bg-[var(--text-1)] shadow-lg shadow-[var(--text-1)]/20 hover:bg-[#2d1508]"
                         : "bg-[var(--border)] cursor-not-allowed"
                     }`}
                   >
@@ -1036,7 +1036,7 @@ export default function StaffManagementTab() {
             </h2>
             {restaurant.restaurantCode && (
               <div className="flex items-center gap-1.5 rounded-lg bg-[var(--accent-muted)] border border-[var(--accent-border)] px-3 py-1 shadow-sm">
-                <Building2 className="h-3.5 w-3.5 text-[#b25c1c]" />
+                <Building2 className="h-3.5 w-3.5 text-[var(--accent-text)]" />
                 <span className="text-xs font-bold text-[var(--text-1)]">
                   Code:{" "}
                   <span className="font-mono tracking-widest">

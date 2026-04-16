@@ -1,10 +1,10 @@
 import { cn } from "@/lib/utils";
 
 const variantStyles: Record<string, string> = {
-  default: "bg-[#3e1e0c] text-white border-transparent",
+  default: "bg-[var(--text-1)] text-white border-transparent",
   secondary: "bg-[#fdf9ef] text-[#8e491e] border-[#f4d69a]/30",
   outline: "bg-transparent text-white/80 border-white/20",
-  saffron: "bg-[#eaa94d]/10 text-[#b25c1c] border-[#eaa94d]/20",
+  saffron: "bg-[var(--accent)]/10 text-[var(--accent-text)] border-[var(--accent)]/20",
 };
 
 interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {

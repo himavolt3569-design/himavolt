@@ -67,7 +67,7 @@ const STATUS_CONFIG: Record<
 > = {
   Inquiry: { bg: "bg-[var(--accent)]", text: "text-[var(--accent)]", border: "border-[var(--accent-border)]" },
   "Quote Sent": { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-200" },
-  Confirmed: { bg: "bg-[var(--accent-muted)]", text: "text-[#b25c1c]", border: "border-[var(--accent-border)]" },
+  Confirmed: { bg: "bg-[var(--accent-muted)]", text: "text-[var(--accent-text)]", border: "border-[var(--accent-border)]" },
   "In Progress": { bg: "bg-[var(--accent-muted)]", text: "text-[var(--accent-text)]", border: "border-[var(--accent-border)]" },
   Completed: { bg: "bg-stone-50", text: "text-stone-600", border: "border-stone-200" },
 };
@@ -234,7 +234,7 @@ export default function EventCateringTab() {
             label: "Confirmed",
             value: events.filter((e) => e.status === "Confirmed").length,
             icon: FileText,
-            color: "text-[#b25c1c]",
+            color: "text-[var(--accent-text)]",
             bg: "bg-[var(--accent-muted)]",
           },
           {
@@ -248,7 +248,7 @@ export default function EventCateringTab() {
             label: "Est. Revenue",
             value: `$${events.reduce((s, e) => s + e.budget, 0).toLocaleString()}`,
             icon: DollarSign,
-            color: "text-[#b25c1c]",
+            color: "text-[var(--accent-text)]",
             bg: "bg-[var(--accent-muted)]",
           },
         ].map((stat) => (
@@ -605,7 +605,7 @@ export default function EventCateringTab() {
                     <span className="text-sm text-stone-600">
                       Price per head
                     </span>
-                    <span className="text-lg font-bold text-[#b25c1c]">
+                    <span className="text-lg font-bold text-[var(--accent-text)]">
                       ${pkg.pricePerHead}
                     </span>
                   </div>

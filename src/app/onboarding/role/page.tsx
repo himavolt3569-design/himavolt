@@ -75,12 +75,12 @@ export default function OnboardingRolePage() {
       >
         <div className="mb-8 text-center">
           <Link href="/" className="inline-flex items-center gap-2">
-            <Mountain className="h-8 w-8 text-[#eaa94d]" strokeWidth={2.5} />
-            <span className="text-2xl font-extrabold tracking-tight text-[#3e1e0c]">
-              Hima<span className="text-[#eaa94d]">Volt</span>
+            <Mountain className="h-8 w-8 text-[var(--accent)]" strokeWidth={2.5} />
+            <span className="text-2xl font-extrabold tracking-tight text-[var(--text-1)]">
+              Hima<span className="text-[var(--accent)]">Volt</span>
             </span>
           </Link>
-          <p className="mt-3 text-lg font-bold text-[#3e1e0c]">
+          <p className="mt-3 text-lg font-bold text-[var(--text-1)]">
             Welcome! How will you use HimaVolt?
           </p>
           <p className="mt-1 text-sm text-[var(--text-3)]">
@@ -93,7 +93,7 @@ export default function OnboardingRolePage() {
             onClick={() => setRole("CUSTOMER")}
             className={`relative rounded-2xl border-2 p-5 text-left transition-all duration-200 ${
               role === "CUSTOMER"
-                ? "border-[#eaa94d] bg-[#eaa94d]/5 shadow-lg shadow-[#eaa94d]/10"
+                ? "border-[var(--accent)] bg-[var(--accent)]/5 shadow-lg shadow-[var(--accent)]/10"
                 : "border-[var(--border)] bg-[var(--canvas)] hover:border-[var(--border)] hover:shadow-sm"
             }`}
           >
@@ -101,15 +101,15 @@ export default function OnboardingRolePage() {
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                className="absolute right-4 top-4 flex h-6 w-6 items-center justify-center rounded-full bg-[#eaa94d]"
+                className="absolute right-4 top-4 flex h-6 w-6 items-center justify-center rounded-full bg-[var(--accent)]"
               >
                 <Check className="h-3.5 w-3.5 text-white" />
               </motion.div>
             )}
-            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#eaa94d]/10">
-              <UtensilsCrossed className="h-6 w-6 text-[#eaa94d]" />
+            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--accent)]/10">
+              <UtensilsCrossed className="h-6 w-6 text-[var(--accent)]" />
             </div>
-            <h3 className="text-base font-bold text-[#3e1e0c] mb-1">
+            <h3 className="text-base font-bold text-[var(--text-1)] mb-1">
               Food Lover
             </h3>
             <p className="text-xs text-[var(--text-2)] mb-4 leading-relaxed">
@@ -118,7 +118,7 @@ export default function OnboardingRolePage() {
             <ul className="space-y-2">
               {CUSTOMER_FEATURES.map(({ icon: Icon, text }) => (
                 <li key={text} className="flex items-center gap-2 text-xs text-[var(--text-2)]">
-                  <Icon className="h-3.5 w-3.5 shrink-0 text-[#eaa94d]" />
+                  <Icon className="h-3.5 w-3.5 shrink-0 text-[var(--accent)]" />
                   {text}
                 </li>
               ))}
@@ -129,7 +129,7 @@ export default function OnboardingRolePage() {
             onClick={() => setRole("OWNER")}
             className={`relative rounded-2xl border-2 p-5 text-left transition-all duration-200 ${
               role === "OWNER"
-                ? "border-[#3e1e0c] bg-[#3e1e0c] shadow-lg shadow-[#3e1e0c]/20"
+                ? "border-[#3e1e0c] bg-[var(--text-1)] shadow-lg shadow-[var(--text-1)]/20"
                 : "border-[var(--border)] bg-[var(--canvas)] hover:border-[var(--border)] hover:shadow-sm"
             }`}
           >
@@ -139,7 +139,7 @@ export default function OnboardingRolePage() {
                 animate={{ scale: 1 }}
                 className="absolute right-4 top-4 flex h-6 w-6 items-center justify-center rounded-full bg-[var(--accent)]"
               >
-                <Check className="h-3.5 w-3.5 text-[#3e1e0c]" />
+                <Check className="h-3.5 w-3.5 text-[var(--text-1)]" />
               </motion.div>
             ) : (
               <span className="absolute right-4 top-4 rounded-full bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[var(--accent-text)]">
@@ -159,7 +159,7 @@ export default function OnboardingRolePage() {
             </div>
             <h3
               className={`text-base font-bold mb-1 ${
-                role === "OWNER" ? "text-white" : "text-[#3e1e0c]"
+                role === "OWNER" ? "text-white" : "text-[var(--text-1)]"
               }`}
             >
               Restaurant Owner
@@ -200,7 +200,7 @@ export default function OnboardingRolePage() {
         <button
           onClick={handleContinue}
           disabled={!role || loading}
-          className="w-full rounded-xl bg-[#eaa94d] py-3 text-sm font-bold text-white transition-all hover:bg-[#d67620] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed shadow-sm shadow-[#eaa94d]/20"
+          className="w-full rounded-xl bg-[var(--accent)] py-3 text-sm font-bold text-white transition-all hover:bg-[var(--accent-hover)] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed shadow-sm shadow-[var(--accent)]/20"
         >
           {loading ? (
             <Loader2 className="mx-auto h-4 w-4 animate-spin" />

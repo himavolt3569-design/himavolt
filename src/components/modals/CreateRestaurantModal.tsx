@@ -49,7 +49,7 @@ const TYPE_ACCENTS: Record<string, { bg: string; ring: string; iconBg: string; t
   CLOUD_KITCHEN: { bg: "bg-violet-500", ring: "ring-violet-400", iconBg: "bg-violet-50", text: "text-violet-600" },
   BAR: { bg: "bg-rose-500", ring: "ring-rose-400", iconBg: "bg-rose-50", text: "text-rose-600" },
   CAFE: { bg: "bg-[var(--accent)]", ring: "ring-[var(--accent)]", iconBg: "bg-[var(--accent-muted)]", text: "text-[var(--accent-text)]" },
-  RESTAURANT: { bg: "bg-[#eaa94d]", ring: "ring-[#eaa94d]", iconBg: "bg-[var(--accent-muted)]", text: "text-[#b25c1c]" },
+  RESTAURANT: { bg: "bg-[var(--accent)]", ring: "ring-[var(--accent)]", iconBg: "bg-[var(--accent-muted)]", text: "text-[var(--accent-text)]" },
 };
 
 interface NominatimResult {

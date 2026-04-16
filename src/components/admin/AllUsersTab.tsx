@@ -184,10 +184,10 @@ export default function AllUsersTab() {
             placeholder="Search users by name, email, phone..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] py-2 pl-9 pr-3 text-sm text-gompa-slate placeholder:text-[var(--text-3)] focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-200"
+            className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] py-2 pl-9 pr-3 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
           />
           {search && (
-            <button onClick={() => setSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--text-3)] hover:text-brand-500">
+            <button onClick={() => setSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--text-3)] hover:text-[var(--accent)]">
               <X className="h-3.5 w-3.5" />
             </button>
           )}
@@ -196,8 +196,8 @@ export default function AllUsersTab() {
           onClick={() => setShowFilters((p) => !p)}
           className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-medium transition-all ${
             showFilters || roleFilter !== "All"
-              ? "border-saffron-flame bg-saffron-flame/5 text-saffron-flame"
-              : "border-[var(--border)] text-[var(--text-2)] hover:bg-brand-50"
+              ? "border-[var(--accent)] bg-[var(--accent)]/5 text-[var(--accent)]"
+              : "border-[var(--border)] text-[var(--text-2)] hover:bg-[var(--accent-muted)]"
           }`}
         >
           <Filter className="h-3.5 w-3.5" />
@@ -205,7 +205,7 @@ export default function AllUsersTab() {
         </button>
         <button
           onClick={() => fetchUsers(page)}
-          className="flex items-center gap-1.5 rounded-xl border border-[var(--border)] px-3 py-2 text-xs font-medium text-[var(--text-2)] hover:bg-brand-50"
+          className="flex items-center gap-1.5 rounded-xl border border-[var(--border)] px-3 py-2 text-xs font-medium text-[var(--text-2)] hover:bg-[var(--accent-muted)]"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
         </button>
@@ -245,7 +245,7 @@ export default function AllUsersTab() {
                     key={r}
                     onClick={() => { setRoleFilter(r); setPage(1); }}
                     className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-all ${
-                      roleFilter === r ? "bg-gompa-slate text-white" : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-brand-50"
+                      roleFilter === r ? "bg-[var(--text-1)] text-white" : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--accent-muted)]"
                     }`}
                   >
                     {r === "All" ? "All Roles" : r}
@@ -257,21 +257,21 @@ export default function AllUsersTab() {
         )}
       </AnimatePresence>
 
-      <div className="overflow-hidden rounded-2xl border border-brand-100 bg-[var(--canvas)] shadow-sm">
-        <div className="flex items-center gap-2 border-b border-brand-100 px-4 py-2.5">
+      <div className="overflow-hidden rounded-2xl border border-[var(--accent-muted)] bg-[var(--canvas)] shadow-sm">
+        <div className="flex items-center gap-2 border-b border-[var(--accent-muted)] px-4 py-2.5">
           <input
             type="checkbox"
             checked={allSelected}
             onChange={() => setSelectedIds(allSelected ? new Set() : new Set(users.map((u) => u.id)))}
-            className="h-3.5 w-3.5 rounded accent-gompa-slate"
+            className="h-3.5 w-3.5 rounded accent-[var(--accent)]"
           />
-          <Users className="h-4 w-4 text-brand-400" />
+          <Users className="h-4 w-4 text-[var(--accent)]" />
           <span className="text-xs font-semibold text-[var(--text-2)]">All Users</span>
         </div>
 
         {loading && users.length === 0 ? (
           <div className="flex items-center justify-center py-16">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-brand-400 border-t-transparent" />
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" />
           </div>
         ) : users.length === 0 ? (
           <div className="py-16 text-center">
@@ -284,7 +284,7 @@ export default function AllUsersTab() {
               const isExpanded = expandedId === user.id;
               const isSelected = selectedIds.has(user.id);
               return (
-                <div key={user.id} className={`transition-all hover:bg-brand-50/40 ${isSelected ? "bg-red-50/40" : ""}`}>
+                <div key={user.id} className={`transition-all hover:bg-[var(--accent-muted)]/40 ${isSelected ? "bg-red-50/40" : ""}`}>
                   <button
                     type="button"
                     onClick={() => setExpandedId(isExpanded ? null : user.id)}
@@ -302,18 +302,18 @@ export default function AllUsersTab() {
                         });
                       }}
                       onClick={(e) => e.stopPropagation()}
-                      className="h-3.5 w-3.5 flex-shrink-0 rounded accent-gompa-slate"
+                      className="h-3.5 w-3.5 flex-shrink-0 rounded accent-[var(--accent)]"
                     />
-                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-brand-50 overflow-hidden">
+                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[var(--accent-muted)] overflow-hidden">
                       {user.imageUrl ? (
                         <img src={user.imageUrl} alt={user.name} className="h-10 w-10 object-cover rounded-full" />
                       ) : (
-                        <Users className="h-5 w-5 text-brand-400" />
+                        <Users className="h-5 w-5 text-[var(--accent)]" />
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold text-gompa-slate truncate">{user.name || "Unnamed"}</span>
+                        <span className="text-sm font-bold text-[var(--text-1)] truncate">{user.name || "Unnamed"}</span>
                         <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${ROLE_COLORS[user.role] || "bg-[var(--surface)] text-[var(--text-2)]"}`}>
                           {user.role}
                         </span>
@@ -336,35 +336,35 @@ export default function AllUsersTab() {
                         exit={{ height: 0, opacity: 0 }}
                         className="overflow-hidden"
                       >
-                        <div className="border-t border-brand-100 bg-brand-50/30 px-4 py-3 space-y-3">
+                        <div className="border-t border-[var(--accent-muted)] bg-[var(--accent-muted)]/30 px-4 py-3 space-y-3">
                           <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-xs sm:grid-cols-4">
                             <div>
                               <span className="text-[var(--text-3)]">Username</span>
-                              <p className="font-medium text-gompa-slate">{user.username || "—"}</p>
+                              <p className="font-medium text-[var(--text-1)]">{user.username || "—"}</p>
                             </div>
                             <div>
                               <span className="text-[var(--text-3)]">Phone</span>
-                              <p className="font-medium text-gompa-slate">{user.phone || "—"}</p>
+                              <p className="font-medium text-[var(--text-1)]">{user.phone || "—"}</p>
                             </div>
                             <div>
                               <span className="text-[var(--text-3)]">Orders</span>
-                              <p className="font-bold text-gompa-slate">{user._count.orders}</p>
+                              <p className="font-bold text-[var(--text-1)]">{user._count.orders}</p>
                             </div>
                             <div>
                               <span className="text-[var(--text-3)]">Restaurants</span>
-                              <p className="font-bold text-gompa-slate">{user._count.ownedRestaurants}</p>
+                              <p className="font-bold text-[var(--text-1)]">{user._count.ownedRestaurants}</p>
                             </div>
                             <div>
                               <span className="text-[var(--text-3)]">Reviews</span>
-                              <p className="font-medium text-gompa-slate">{user._count.reviews}</p>
+                              <p className="font-medium text-[var(--text-1)]">{user._count.reviews}</p>
                             </div>
                             <div>
                               <span className="text-[var(--text-3)]">Joined</span>
-                              <p className="font-medium text-gompa-slate">{new Date(user.createdAt).toLocaleDateString()}</p>
+                              <p className="font-medium text-[var(--text-1)]">{new Date(user.createdAt).toLocaleDateString()}</p>
                             </div>
                             <div className="col-span-2">
                               <span className="text-[var(--text-3)]">User ID</span>
-                              <p className="font-mono text-gompa-slate text-[11px]">{user.id}</p>
+                              <p className="font-mono text-[var(--text-1)] text-[11px]">{user.id}</p>
                             </div>
                           </div>
 
@@ -377,8 +377,8 @@ export default function AllUsersTab() {
                                 disabled={changingRole === user.id || user.role === role}
                                 className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-all disabled:opacity-40 ${
                                   user.role === role
-                                    ? "bg-gompa-slate text-white"
-                                    : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-brand-50"
+                                    ? "bg-[var(--text-1)] text-white"
+                                    : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--accent-muted)]"
                                 }`}
                               >
                                 {changingRole === user.id ? "..." : role}
@@ -406,10 +406,10 @@ export default function AllUsersTab() {
           <div className="flex items-center justify-between border-t border-[var(--border-soft)] px-4 py-2.5">
             <span className="text-xs text-[var(--text-3)]">Page {pagination.page} of {pagination.totalPages}</span>
             <div className="flex gap-1.5">
-              <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-2)] hover:bg-brand-50 disabled:opacity-40">
+              <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-2)] hover:bg-[var(--accent-muted)] disabled:opacity-40">
                 <ChevronLeft className="h-3.5 w-3.5" />
               </button>
-              <button disabled={page >= pagination.totalPages} onClick={() => setPage((p) => p + 1)} className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-2)] hover:bg-brand-50 disabled:opacity-40">
+              <button disabled={page >= pagination.totalPages} onClick={() => setPage((p) => p + 1)} className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-2)] hover:bg-[var(--accent-muted)] disabled:opacity-40">
                 <ChevronRight className="h-3.5 w-3.5" />
               </button>
             </div>

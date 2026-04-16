@@ -129,7 +129,7 @@ export default function StaffPOSPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="dark flex items-center justify-center min-h-screen bg-[#0a0a0a]">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="h-8 w-8 animate-spin text-amber-600" />
           <p className="text-sm font-medium text-gray-500">Loading POS...</p>
@@ -141,7 +141,7 @@ export default function StaffPOSPage() {
   if (!session) return null;
 
   return (
-    <div className="flex flex-col h-screen bg-gray-100 select-none overflow-hidden">
+    <div className="dark flex flex-col h-screen bg-[#0a0a0a] select-none overflow-hidden">
       <POSHeader
         restaurantName={session.restaurantName}
         restaurantSlug={session.restaurantSlug}

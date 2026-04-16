@@ -176,7 +176,7 @@ export default function QuickCounterTab() {
       case "PENDING": return "bg-[var(--accent)] text-[var(--accent)]";
       case "ACCEPTED": return "bg-blue-100 text-blue-700";
       case "PREPARING": return "bg-[var(--accent-muted)] text-[var(--accent-text)]";
-      case "READY": return "bg-[var(--accent-muted)] text-[#b25c1c]";
+      case "READY": return "bg-[var(--accent-muted)] text-[var(--accent-text)]";
       default: return "bg-[var(--surface)] text-[var(--text-2)]";
     }
   };
@@ -227,7 +227,7 @@ export default function QuickCounterTab() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
               { label: "Pending", value: pendingOrders.length, icon: Package, color: "text-[var(--accent)] bg-[var(--accent)]" },
-              { label: "Ready for Pickup", value: readyOrders.length, icon: Bell, color: "text-[#b25c1c] bg-[var(--accent-muted)]" },
+              { label: "Ready for Pickup", value: readyOrders.length, icon: Bell, color: "text-[var(--accent-text)] bg-[var(--accent-muted)]" },
               { label: "Est. Wait", value: `${estimatedWait} min`, icon: Timer, color: "text-[var(--accent)] bg-[var(--accent)]" },
               { label: "Active Counters", value: stations.filter((s) => s.active).length, icon: Users, color: "text-blue-600 bg-blue-50" },
             ].map((stat) => (
@@ -404,7 +404,7 @@ export default function QuickCounterTab() {
                             <button
                               onClick={() => handleForwardBilling(order)}
                               disabled={busy}
-                              className="flex items-center gap-1.5 rounded-lg bg-[#eaa94d] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#d67620] disabled:opacity-50 transition-colors"
+                              className="flex items-center gap-1.5 rounded-lg bg-[var(--accent)] px-3 py-1.5 text-xs font-bold text-white hover:bg-[var(--accent-hover)] disabled:opacity-50 transition-colors"
                             >
                               {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Receipt className="h-3 w-3" />}
                               Billing

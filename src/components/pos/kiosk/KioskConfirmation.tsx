@@ -34,7 +34,7 @@ export default function KioskConfirmation({ orderNo, total, currency, onReset }:
         transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.1 }}
         className="relative z-10 flex h-24 w-24 items-center justify-center rounded-full bg-[var(--accent-muted)] ring-8 ring-[var(--accent-border)] mb-8"
       >
-        <CheckCircle2 className="h-14 w-14 text-[#d67620]" />
+        <CheckCircle2 className="h-14 w-14 text-[var(--accent-hover)]" />
       </motion.div>
 
       <motion.div

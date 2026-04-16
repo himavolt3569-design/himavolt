@@ -57,7 +57,7 @@ const PAYMENT_METHODS = ["All", "ESEWA", "KHALTI", "BANK", "CASH", "COUNTER", "D
 
 const STATUS_COLORS: Record<string, string> = {
   PENDING: "bg-[var(--accent-muted)] text-[var(--accent-text)]",
-  COMPLETED: "bg-[var(--accent-muted)] text-[#b25c1c]",
+  COMPLETED: "bg-[var(--accent-muted)] text-[var(--accent-text)]",
   FAILED: "bg-red-100 text-red-700",
   REFUNDED: "bg-purple-100 text-purple-700",
 };
@@ -191,18 +191,18 @@ export default function AllPaymentsTab() {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <div className="rounded-2xl border border-brand-100 bg-[var(--canvas)] p-4 shadow-sm">
+        <div className="rounded-2xl border border-[var(--accent-muted)] bg-[var(--canvas)] p-4 shadow-sm">
           <p className="text-xs text-[var(--text-2)]">Total Amount</p>
-          <p className="text-xl font-bold text-gompa-slate">{formatPrice(summary.totalAmount, "NPR")}</p>
+          <p className="text-xl font-bold text-[var(--text-1)]">{formatPrice(summary.totalAmount, "NPR")}</p>
         </div>
-        <div className="rounded-2xl border border-brand-100 bg-[var(--canvas)] p-4 shadow-sm">
+        <div className="rounded-2xl border border-[var(--accent-muted)] bg-[var(--canvas)] p-4 shadow-sm">
           <p className="text-xs text-[var(--text-2)]">Total Transactions</p>
-          <p className="text-xl font-bold text-gompa-slate">{summary.totalCount.toLocaleString()}</p>
+          <p className="text-xl font-bold text-[var(--text-1)]">{summary.totalCount.toLocaleString()}</p>
         </div>
         {pagination && (
-          <div className="rounded-2xl border border-brand-100 bg-[var(--canvas)] p-4 shadow-sm">
+          <div className="rounded-2xl border border-[var(--accent-muted)] bg-[var(--canvas)] p-4 shadow-sm">
             <p className="text-xs text-[var(--text-2)]">Filtered Results</p>
-            <p className="text-xl font-bold text-gompa-slate">{pagination.total.toLocaleString()}</p>
+            <p className="text-xl font-bold text-[var(--text-1)]">{pagination.total.toLocaleString()}</p>
           </div>
         )}
       </div>
@@ -215,10 +215,10 @@ export default function AllPaymentsTab() {
             placeholder="Search by transaction ID, order, restaurant..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] py-2 pl-9 pr-3 text-sm text-gompa-slate placeholder:text-[var(--text-3)] focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-200"
+            className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] py-2 pl-9 pr-3 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
           />
           {search && (
-            <button onClick={() => setSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--text-3)] hover:text-brand-500">
+            <button onClick={() => setSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--text-3)] hover:text-[var(--accent)]">
               <X className="h-3.5 w-3.5" />
             </button>
           )}
@@ -227,8 +227,8 @@ export default function AllPaymentsTab() {
           onClick={() => setShowFilters((p) => !p)}
           className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-medium transition-all ${
             showFilters || statusFilter !== "All" || methodFilter !== "All"
-              ? "border-saffron-flame bg-saffron-flame/5 text-saffron-flame"
-              : "border-[var(--border)] text-[var(--text-2)] hover:bg-brand-50"
+              ? "border-[var(--accent)] bg-[var(--accent)]/5 text-[var(--accent)]"
+              : "border-[var(--border)] text-[var(--text-2)] hover:bg-[var(--accent-muted)]"
           }`}
         >
           <Filter className="h-3.5 w-3.5" />
@@ -236,7 +236,7 @@ export default function AllPaymentsTab() {
         </button>
         <button
           onClick={() => fetchPayments(page)}
-          className="flex items-center gap-1.5 rounded-xl border border-[var(--border)] px-3 py-2 text-xs font-medium text-[var(--text-2)] hover:bg-brand-50"
+          className="flex items-center gap-1.5 rounded-xl border border-[var(--border)] px-3 py-2 text-xs font-medium text-[var(--text-2)] hover:bg-[var(--accent-muted)]"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
         </button>
@@ -254,7 +254,7 @@ export default function AllPaymentsTab() {
                       key={s}
                       onClick={() => { setStatusFilter(s); setPage(1); }}
                       className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-all ${
-                        statusFilter === s ? "bg-gompa-slate text-white" : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-brand-50"
+                        statusFilter === s ? "bg-[var(--text-1)] text-white" : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--accent-muted)]"
                       }`}
                     >
                       {s}
@@ -270,7 +270,7 @@ export default function AllPaymentsTab() {
                       key={m}
                       onClick={() => { setMethodFilter(m); setPage(1); }}
                       className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-all ${
-                        methodFilter === m ? "bg-gompa-slate text-white" : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-brand-50"
+                        methodFilter === m ? "bg-[var(--text-1)] text-white" : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--accent-muted)]"
                       }`}
                     >
                       {m}
@@ -298,21 +298,21 @@ export default function AllPaymentsTab() {
         </div>
       )}
 
-      <div className="overflow-hidden rounded-2xl border border-brand-100 bg-[var(--canvas)] shadow-sm">
-        <div className="flex items-center gap-2 border-b border-brand-100 px-4 py-2.5">
+      <div className="overflow-hidden rounded-2xl border border-[var(--accent-muted)] bg-[var(--canvas)] shadow-sm">
+        <div className="flex items-center gap-2 border-b border-[var(--accent-muted)] px-4 py-2.5">
           <input
             type="checkbox"
             checked={allSelected}
             onChange={() => setSelectedIds(allSelected ? new Set() : new Set(payments.map((p) => p.id)))}
-            className="h-3.5 w-3.5 rounded accent-gompa-slate"
+            className="h-3.5 w-3.5 rounded accent-[var(--accent)]"
           />
-          <CreditCard className="h-4 w-4 text-brand-400" />
+          <CreditCard className="h-4 w-4 text-[var(--accent)]" />
           <span className="text-xs font-semibold text-[var(--text-2)]">All Payments</span>
         </div>
 
         {loading && payments.length === 0 ? (
           <div className="flex items-center justify-center py-16">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-brand-400 border-t-transparent" />
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" />
           </div>
         ) : payments.length === 0 ? (
           <div className="py-16 text-center">
@@ -326,7 +326,7 @@ export default function AllPaymentsTab() {
               const isExpanded = expandedId === payment.id;
               const isSelected = selectedIds.has(payment.id);
               return (
-                <div key={payment.id} className={`transition-all hover:bg-brand-50/40 ${isSelected ? "bg-red-50/30" : ""}`}>
+                <div key={payment.id} className={`transition-all hover:bg-[var(--accent-muted)]/40 ${isSelected ? "bg-red-50/30" : ""}`}>
                   <button
                     type="button"
                     onClick={() => setExpandedId(isExpanded ? null : payment.id)}
@@ -344,14 +344,14 @@ export default function AllPaymentsTab() {
                         });
                       }}
                       onClick={(e) => e.stopPropagation()}
-                      className="h-3.5 w-3.5 flex-shrink-0 rounded accent-gompa-slate"
+                      className="h-3.5 w-3.5 flex-shrink-0 rounded accent-[var(--accent)]"
                     />
                     <div className={`flex-shrink-0 rounded-lg p-2 ${STATUS_COLORS[payment.status] || "bg-[var(--surface)] text-[var(--text-2)]"}`}>
                       <MethodIcon className="h-4 w-4" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold text-gompa-slate">
+                        <span className="text-sm font-bold text-[var(--text-1)]">
                           {formatPrice(payment.amount, "NPR")}
                         </span>
                         <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${STATUS_COLORS[payment.status]}`}>
@@ -383,33 +383,33 @@ export default function AllPaymentsTab() {
                         exit={{ height: 0, opacity: 0 }}
                         className="overflow-hidden"
                       >
-                        <div className="border-t border-brand-100 bg-brand-50/30 px-4 py-3 space-y-3">
+                        <div className="border-t border-[var(--accent-muted)] bg-[var(--accent-muted)]/30 px-4 py-3 space-y-3">
                           <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-xs sm:grid-cols-4">
                             <div>
                               <span className="text-[var(--text-3)]">Transaction ID</span>
-                              <p className="font-mono text-gompa-slate">{payment.transactionId || "—"}</p>
+                              <p className="font-mono text-[var(--text-1)]">{payment.transactionId || "—"}</p>
                             </div>
                             <div>
                               <span className="text-[var(--text-3)]">PIDX</span>
-                              <p className="font-mono text-gompa-slate">{payment.pidx || "—"}</p>
+                              <p className="font-mono text-[var(--text-1)]">{payment.pidx || "—"}</p>
                             </div>
                             <div>
                               <span className="text-[var(--text-3)]">Ref ID</span>
-                              <p className="font-mono text-gompa-slate">{payment.refId || "—"}</p>
+                              <p className="font-mono text-[var(--text-1)]">{payment.refId || "—"}</p>
                             </div>
                             <div>
                               <span className="text-[var(--text-3)]">Paid At</span>
-                              <p className="font-medium text-gompa-slate">
+                              <p className="font-medium text-[var(--text-1)]">
                                 {payment.paidAt ? new Date(payment.paidAt).toLocaleString() : "—"}
                               </p>
                             </div>
                             <div>
                               <span className="text-[var(--text-3)]">Order Total</span>
-                              <p className="font-bold text-gompa-slate">{formatPrice(payment.order.total, "NPR")}</p>
+                              <p className="font-bold text-[var(--text-1)]">{formatPrice(payment.order.total, "NPR")}</p>
                             </div>
                             <div>
                               <span className="text-[var(--text-3)]">Created</span>
-                              <p className="font-medium text-gompa-slate">{new Date(payment.createdAt).toLocaleString()}</p>
+                              <p className="font-medium text-[var(--text-1)]">{new Date(payment.createdAt).toLocaleString()}</p>
                             </div>
                           </div>
                           <div className="pt-1">
@@ -435,10 +435,10 @@ export default function AllPaymentsTab() {
           <div className="flex items-center justify-between border-t border-[var(--border-soft)] px-4 py-2.5">
             <span className="text-xs text-[var(--text-3)]">Page {pagination.page} of {pagination.totalPages}</span>
             <div className="flex gap-1.5">
-              <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-2)] hover:bg-brand-50 disabled:opacity-40">
+              <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-2)] hover:bg-[var(--accent-muted)] disabled:opacity-40">
                 <ChevronLeft className="h-3.5 w-3.5" />
               </button>
-              <button disabled={page >= pagination.totalPages} onClick={() => setPage((p) => p + 1)} className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-2)] hover:bg-brand-50 disabled:opacity-40">
+              <button disabled={page >= pagination.totalPages} onClick={() => setPage((p) => p + 1)} className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-2)] hover:bg-[var(--accent-muted)] disabled:opacity-40">
                 <ChevronRight className="h-3.5 w-3.5" />
               </button>
             </div>

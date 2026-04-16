@@ -66,12 +66,12 @@ function StatCard({
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -2, transition: { type: "spring", stiffness: 400, damping: 20 } }}
       onClick={onClick}
-      className={`relative overflow-hidden rounded-2xl border border-brand-100 bg-[var(--canvas)] p-5 shadow-sm transition-all duration-200 hover:shadow-md ${onClick ? "cursor-pointer" : ""}`}
+      className={`relative overflow-hidden rounded-2xl border border-[var(--accent-border)] bg-[var(--canvas)] p-5 shadow-sm transition-all duration-200 hover:shadow-md ${onClick ? "cursor-pointer" : ""}`}
     >
       <div className="flex items-start justify-between">
         <div className="space-y-1">
           <p className="text-sm font-medium text-[var(--text-2)]">{label}</p>
-          <p className="text-2xl font-bold text-gompa-slate">{value}</p>
+          <p className="text-2xl font-bold text-[var(--text-1)]">{value}</p>
           {sub && <p className="text-xs text-[var(--text-3)]">{sub}</p>}
         </div>
         <div className={`rounded-xl p-2.5 ${color}`}>
@@ -120,7 +120,7 @@ export default function MasterOverview({
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-brand-400 border-t-transparent" />
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" />
       </div>
     );
   }
@@ -130,7 +130,7 @@ export default function MasterOverview({
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <AlertCircle className="mb-3 h-10 w-10 text-red-400" />
         <p className="text-sm text-[var(--text-2)]">{error || "Failed to load"}</p>
-        <button onClick={fetchStats} className="mt-3 text-sm text-brand-500 hover:underline">
+        <button onClick={fetchStats} className="mt-3 text-sm text-[var(--accent)] hover:underline">
           Retry
         </button>
       </div>
@@ -140,10 +140,10 @@ export default function MasterOverview({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-bold text-gompa-slate">System Overview</h2>
+        <h2 className="text-sm font-bold text-[var(--text-1)]">System Overview</h2>
         <button
           onClick={fetchStats}
-          className="flex items-center gap-1.5 text-xs text-[var(--text-2)] hover:text-brand-500 transition-colors"
+          className="flex items-center gap-1.5 text-xs text-[var(--text-2)] hover:text-[var(--accent)] transition-colors"
         >
           <RefreshCw className="h-3.5 w-3.5" />
           Refresh
@@ -163,7 +163,7 @@ export default function MasterOverview({
           value={stats.restaurants.total}
           sub={`${stats.restaurants.active} active`}
           icon={Store}
-          color="text-saffron-flame bg-[var(--accent)]"
+          color="text-[var(--accent)] bg-[var(--accent)]"
           onClick={() => onNavigate("restaurants")}
         />
         <StatCard
@@ -179,7 +179,7 @@ export default function MasterOverview({
           value={formatCurrency(stats.revenue.today)}
           sub={`${formatCurrency(stats.revenue.total)} lifetime`}
           icon={TrendingUp}
-          color="text-[#b25c1c] bg-[var(--accent-muted)]"
+          color="text-[var(--accent-text)] bg-[var(--accent-muted)]"
           onClick={() => onNavigate("payments")}
         />
         <StatCard
@@ -206,15 +206,15 @@ export default function MasterOverview({
           label="Completed Payments"
           value={stats.payments.completed.toLocaleString()}
           icon={CreditCard}
-          color="text-[#b25c1c] bg-[var(--accent-muted)]"
+          color="text-[var(--accent-text)] bg-[var(--accent-muted)]"
           onClick={() => onNavigate("payments")}
         />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <div className="rounded-2xl border border-brand-100 bg-[var(--canvas)] p-5 shadow-sm">
+        <div className="rounded-2xl border border-[var(--accent-border)] bg-[var(--canvas)] p-5 shadow-sm">
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-sm font-bold text-gompa-slate">Orders by Status</h3>
+            <h3 className="text-sm font-bold text-[var(--text-1)]">Orders by Status</h3>
             <span className="text-xs text-[var(--text-3)]">{stats.orders.total.toLocaleString()} total</span>
           </div>
           <div className="space-y-2.5">
@@ -223,14 +223,14 @@ export default function MasterOverview({
               const pct = Math.round((count / total) * 100);
               const barColor =
                 status === "DELIVERED"
-                  ? "bg-[#eaa94d]"
+                  ? "bg-[var(--accent)]"
                   : status === "CANCELLED" || status === "REJECTED"
                     ? "bg-red-400"
                     : status === "PENDING"
                       ? "bg-[var(--accent)]"
                       : status === "PREPARING"
                         ? "bg-blue-400"
-                        : "bg-brand-500";
+                        : "bg-[var(--accent)]";
               return (
                 <div key={status}>
                   <div className="mb-1 flex items-center justify-between text-xs">
@@ -239,7 +239,7 @@ export default function MasterOverview({
                       {count} ({pct}%)
                     </span>
                   </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-brand-50">
+                  <div className="h-2 overflow-hidden rounded-full bg-[var(--accent-muted)]">
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${pct}%` }}
@@ -253,19 +253,19 @@ export default function MasterOverview({
           </div>
         </div>
 
-        <div className="rounded-2xl border border-brand-100 bg-[var(--canvas)] p-5 shadow-sm">
-          <h3 className="mb-4 text-sm font-bold text-gompa-slate">Top Restaurants</h3>
+        <div className="rounded-2xl border border-[var(--accent-border)] bg-[var(--canvas)] p-5 shadow-sm">
+          <h3 className="mb-4 text-sm font-bold text-[var(--text-1)]">Top Restaurants</h3>
           <div className="space-y-2.5">
             {stats.topRestaurants.map((r, i) => (
               <div
                 key={r.id}
-                className="flex items-center gap-3 rounded-xl p-2 transition-all hover:bg-brand-50/60"
+                className="flex items-center gap-3 rounded-xl p-2 transition-all hover:bg-[var(--accent-muted)]"
               >
-                <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-gompa-slate text-xs font-bold text-white">
+                <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-[var(--text-1)] text-xs font-bold text-white">
                   {i + 1}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-gompa-slate">{r.name}</p>
+                  <p className="truncate text-sm font-semibold text-[var(--text-1)]">{r.name}</p>
                   <div className="flex items-center gap-2 text-[11px] text-[var(--text-3)]">
                     <span>{r.city}</span>
                     {r.rating > 0 && (
@@ -280,7 +280,7 @@ export default function MasterOverview({
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-bold text-gompa-slate">{r.totalOrders}</p>
+                  <p className="text-sm font-bold text-[var(--text-1)]">{r.totalOrders}</p>
                   <p className="text-[11px] text-[var(--text-3)]">orders</p>
                 </div>
               </div>
@@ -291,25 +291,25 @@ export default function MasterOverview({
           </div>
         </div>
 
-        <div className="rounded-2xl border border-brand-100 bg-[var(--canvas)] p-5 shadow-sm">
-          <h3 className="mb-4 text-sm font-bold text-gompa-slate">Quick Actions</h3>
+        <div className="rounded-2xl border border-[var(--accent-border)] bg-[var(--canvas)] p-5 shadow-sm">
+          <h3 className="mb-4 text-sm font-bold text-[var(--text-1)]">Quick Actions</h3>
           <div className="space-y-2">
             {[
               { label: "View All Orders", icon: ShoppingBag, tab: "orders", color: "text-blue-600" },
-              { label: "Manage Restaurants", icon: Store, tab: "restaurants", color: "text-saffron-flame" },
+              { label: "Manage Restaurants", icon: Store, tab: "restaurants", color: "text-[var(--accent)]" },
               { label: "Manage Users", icon: Users, tab: "users", color: "text-indigo-600" },
               { label: "View Chats", icon: MessageCircle, tab: "chats", color: "text-purple-600" },
-              { label: "Payment History", icon: CreditCard, tab: "payments", color: "text-[#b25c1c]" },
+              { label: "Payment History", icon: CreditCard, tab: "payments", color: "text-[var(--accent-text)]" },
               { label: "Active Deliveries", icon: Truck, tab: "deliveries", color: "text-teal-600" },
               { label: "Audit Events", icon: Zap, tab: "audit", color: "text-pink-600" },
             ].map((action) => (
               <button
                 key={action.tab}
                 onClick={() => onNavigate(action.tab)}
-                className="flex w-full items-center gap-3 rounded-xl p-2.5 text-left transition-all hover:bg-brand-50/60"
+                className="flex w-full items-center gap-3 rounded-xl p-2.5 text-left transition-all hover:bg-[var(--accent-muted)]"
               >
                 <action.icon className={`h-4 w-4 ${action.color}`} />
-                <span className="flex-1 text-sm font-medium text-gompa-slate">{action.label}</span>
+                <span className="flex-1 text-sm font-medium text-[var(--text-1)]">{action.label}</span>
                 <ArrowUpRight className="h-3.5 w-3.5 text-[var(--text-3)]" />
               </button>
             ))}

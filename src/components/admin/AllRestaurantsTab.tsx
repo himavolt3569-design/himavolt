@@ -196,10 +196,10 @@ export default function AllRestaurantsTab() {
             placeholder="Search restaurants, owners, cities..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] py-2 pl-9 pr-3 text-sm text-gompa-slate placeholder:text-[var(--text-3)] focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-200"
+            className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] py-2 pl-9 pr-3 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
           />
           {search && (
-            <button onClick={() => setSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--text-3)] hover:text-brand-500">
+            <button onClick={() => setSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--text-3)] hover:text-[var(--accent)]">
               <X className="h-3.5 w-3.5" />
             </button>
           )}
@@ -208,8 +208,8 @@ export default function AllRestaurantsTab() {
           onClick={() => setShowFilters((p) => !p)}
           className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-medium transition-all ${
             showFilters || typeFilter !== "All" || activeFilter
-              ? "border-saffron-flame bg-saffron-flame/5 text-saffron-flame"
-              : "border-[var(--border)] text-[var(--text-2)] hover:bg-brand-50"
+              ? "border-[var(--accent)] bg-[var(--accent)]/5 text-[var(--accent)]"
+              : "border-[var(--border)] text-[var(--text-2)] hover:bg-[var(--accent-muted)]"
           }`}
         >
           <Filter className="h-3.5 w-3.5" />
@@ -217,7 +217,7 @@ export default function AllRestaurantsTab() {
         </button>
         <button
           onClick={() => fetchRestaurants(page)}
-          className="flex items-center gap-1.5 rounded-xl border border-[var(--border)] px-3 py-2 text-xs font-medium text-[var(--text-2)] hover:bg-brand-50"
+          className="flex items-center gap-1.5 rounded-xl border border-[var(--border)] px-3 py-2 text-xs font-medium text-[var(--text-2)] hover:bg-[var(--accent-muted)]"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
         </button>
@@ -233,7 +233,7 @@ export default function AllRestaurantsTab() {
                 <div className="flex flex-wrap gap-1.5">
                   {RESTAURANT_TYPES.map((t) => (
                     <button key={t} onClick={() => { setTypeFilter(t); setPage(1); }}
-                      className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-all ${typeFilter === t ? "bg-gompa-slate text-white" : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-brand-50"}`}>
+                      className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-all ${typeFilter === t ? "bg-[var(--text-1)] text-white" : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--accent-muted)]"}`}>
                       {t === "All" ? "All Types" : t.replace(/_/g, " ")}
                     </button>
                   ))}
@@ -244,7 +244,7 @@ export default function AllRestaurantsTab() {
                 <div className="flex flex-wrap gap-1.5">
                   {["", "true", "false"].map((v) => (
                     <button key={v} onClick={() => { setActiveFilter(v); setPage(1); }}
-                      className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-all ${activeFilter === v ? "bg-gompa-slate text-white" : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-brand-50"}`}>
+                      className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-all ${activeFilter === v ? "bg-[var(--text-1)] text-white" : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--accent-muted)]"}`}>
                       {v === "" ? "All" : v === "true" ? "Active" : "Inactive"}
                     </button>
                   ))}
@@ -255,8 +255,8 @@ export default function AllRestaurantsTab() {
         )}
       </AnimatePresence>
 
-      <div className="overflow-hidden rounded-2xl border border-brand-100 bg-[var(--canvas)] shadow-sm">
-        <div className="flex items-center gap-3 border-b border-brand-100 px-4 py-2.5">
+      <div className="overflow-hidden rounded-2xl border border-[var(--accent-muted)] bg-[var(--canvas)] shadow-sm">
+        <div className="flex items-center gap-3 border-b border-[var(--accent-muted)] px-4 py-2.5">
           <input
             type="checkbox"
             checked={allSelected}
@@ -264,13 +264,13 @@ export default function AllRestaurantsTab() {
             className="h-4 w-4 rounded border-[var(--border)] accent-red-500 cursor-pointer"
             title="Select all"
           />
-          <Store className="h-4 w-4 text-brand-400" />
+          <Store className="h-4 w-4 text-[var(--accent)]" />
           <span className="text-xs font-semibold text-[var(--text-2)]">All Restaurants</span>
         </div>
 
         {loading && restaurants.length === 0 ? (
           <div className="flex items-center justify-center py-16">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-brand-400 border-t-transparent" />
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" />
           </div>
         ) : restaurants.length === 0 ? (
           <div className="py-16 text-center">
@@ -283,7 +283,7 @@ export default function AllRestaurantsTab() {
               const isExpanded = expandedId === r.id;
               const isSelected = selectedIds.has(r.id);
               return (
-                <div key={r.id} className={`transition-all ${isSelected ? "bg-red-50/60" : "hover:bg-brand-50/40"}`}>
+                <div key={r.id} className={`transition-all ${isSelected ? "bg-red-50/60" : "hover:bg-[var(--accent-muted)]/40"}`}>
                   <div className="flex w-full items-center gap-3 px-4 py-3">
                     <input
                       type="checkbox"
@@ -296,17 +296,17 @@ export default function AllRestaurantsTab() {
                       onClick={() => setExpandedId(isExpanded ? null : r.id)}
                       className="flex flex-1 items-center gap-3 text-left min-w-0"
                     >
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 overflow-hidden">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--accent-muted)] overflow-hidden">
                         {r.imageUrl ? (
                           <img src={r.imageUrl} alt={r.name} className="h-10 w-10 object-cover" />
                         ) : (
-                          <Store className="h-5 w-5 text-brand-400" />
+                          <Store className="h-5 w-5 text-[var(--accent)]" />
                         )}
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-bold text-gompa-slate truncate">{r.name}</span>
-                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${r.isActive ? "bg-[var(--accent-muted)] text-[#b25c1c]" : "bg-red-100 text-red-700"}`}>
+                          <span className="text-sm font-bold text-[var(--text-1)] truncate">{r.name}</span>
+                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${r.isActive ? "bg-[var(--accent-muted)] text-[var(--accent-text)]" : "bg-red-100 text-red-700"}`}>
                             {r.isActive ? "Active" : "Inactive"}
                           </span>
                           <span className="rounded-full bg-[var(--surface)] px-2 py-0.5 text-[10px] font-medium text-[var(--text-2)]">
@@ -331,27 +331,27 @@ export default function AllRestaurantsTab() {
                   <AnimatePresence>
                     {isExpanded && (
                       <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                        <div className="border-t border-brand-100 bg-brand-50/30 px-4 py-3 space-y-3">
+                        <div className="border-t border-[var(--accent-muted)] bg-[var(--accent-muted)]/30 px-4 py-3 space-y-3">
                           <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-xs sm:grid-cols-4">
-                            <div><span className="text-[var(--text-3)]">Slug</span><p className="font-mono text-gompa-slate">{r.slug}</p></div>
-                            <div><span className="text-[var(--text-3)]">Code</span><p className="font-mono text-gompa-slate">{r.restaurantCode}</p></div>
-                            <div><span className="text-[var(--text-3)]">Phone</span><p className="font-medium text-gompa-slate">{r.phone}</p></div>
-                            <div><span className="text-[var(--text-3)]">Currency</span><p className="font-medium text-gompa-slate">{r.currency}</p></div>
-                            <div><span className="text-[var(--text-3)]">Menu Items</span><p className="font-medium text-gompa-slate">{r._count.menuItems}</p></div>
-                            <div><span className="text-[var(--text-3)]">Reviews</span><p className="font-medium text-gompa-slate">{r._count.reviews}</p></div>
-                            <div><span className="text-[var(--text-3)]">Total Orders</span><p className="font-bold text-gompa-slate">{r.totalOrders}</p></div>
-                            <div><span className="text-[var(--text-3)]">Created</span><p className="font-medium text-gompa-slate">{new Date(r.createdAt).toLocaleDateString()}</p></div>
-                            <div className="col-span-2 sm:col-span-4"><span className="text-[var(--text-3)]">Address</span><p className="font-medium text-gompa-slate">{r.address}</p></div>
-                            <div className="col-span-2 sm:col-span-4"><span className="text-[var(--text-3)]">Owner</span><p className="font-medium text-gompa-slate">{r.owner.name} ({r.owner.email})</p></div>
+                            <div><span className="text-[var(--text-3)]">Slug</span><p className="font-mono text-[var(--text-1)]">{r.slug}</p></div>
+                            <div><span className="text-[var(--text-3)]">Code</span><p className="font-mono text-[var(--text-1)]">{r.restaurantCode}</p></div>
+                            <div><span className="text-[var(--text-3)]">Phone</span><p className="font-medium text-[var(--text-1)]">{r.phone}</p></div>
+                            <div><span className="text-[var(--text-3)]">Currency</span><p className="font-medium text-[var(--text-1)]">{r.currency}</p></div>
+                            <div><span className="text-[var(--text-3)]">Menu Items</span><p className="font-medium text-[var(--text-1)]">{r._count.menuItems}</p></div>
+                            <div><span className="text-[var(--text-3)]">Reviews</span><p className="font-medium text-[var(--text-1)]">{r._count.reviews}</p></div>
+                            <div><span className="text-[var(--text-3)]">Total Orders</span><p className="font-bold text-[var(--text-1)]">{r.totalOrders}</p></div>
+                            <div><span className="text-[var(--text-3)]">Created</span><p className="font-medium text-[var(--text-1)]">{new Date(r.createdAt).toLocaleDateString()}</p></div>
+                            <div className="col-span-2 sm:col-span-4"><span className="text-[var(--text-3)]">Address</span><p className="font-medium text-[var(--text-1)]">{r.address}</p></div>
+                            <div className="col-span-2 sm:col-span-4"><span className="text-[var(--text-3)]">Owner</span><p className="font-medium text-[var(--text-1)]">{r.owner.name} ({r.owner.email})</p></div>
                           </div>
                           <div className="flex items-center gap-2 pt-1">
                             <button onClick={() => toggleActive(r.id, r.isActive)} disabled={toggling === r.id}
-                              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all disabled:opacity-50 ${r.isActive ? "bg-red-100 text-red-600 hover:bg-red-200" : "bg-[var(--accent-muted)] text-[#b25c1c] hover:bg-[#fde9ba]"}`}>
+                              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all disabled:opacity-50 ${r.isActive ? "bg-red-100 text-red-600 hover:bg-red-200" : "bg-[var(--accent-muted)] text-[var(--accent-text)] hover:bg-[#fde9ba]"}`}>
                               {r.isActive ? <ToggleRight className="h-3.5 w-3.5" /> : <ToggleLeft className="h-3.5 w-3.5" />}
                               {toggling === r.id ? "Updating..." : r.isActive ? "Deactivate" : "Activate"}
                             </button>
                             <a href={`/menu/${r.slug}`} target="_blank" rel="noopener noreferrer"
-                              className="flex items-center gap-1.5 rounded-lg bg-brand-50 px-3 py-1.5 text-xs font-medium text-brand-600 hover:bg-brand-100">
+                              className="flex items-center gap-1.5 rounded-lg bg-[var(--accent-muted)] px-3 py-1.5 text-xs font-medium text-[var(--accent-hover)] hover:bg-[var(--accent-muted)]">
                               <ExternalLink className="h-3.5 w-3.5" />View Menu
                             </a>
                             <button onClick={() => setDeleteTarget(r)}
@@ -373,8 +373,8 @@ export default function AllRestaurantsTab() {
           <div className="flex items-center justify-between border-t border-[var(--border-soft)] px-4 py-2.5">
             <span className="text-xs text-[var(--text-3)]">Page {pagination.page} of {pagination.totalPages}</span>
             <div className="flex gap-1.5">
-              <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-2)] hover:bg-brand-50 disabled:opacity-40"><ChevronLeft className="h-3.5 w-3.5" /></button>
-              <button disabled={page >= pagination.totalPages} onClick={() => setPage((p) => p + 1)} className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-2)] hover:bg-brand-50 disabled:opacity-40"><ChevronRight className="h-3.5 w-3.5" /></button>
+              <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-2)] hover:bg-[var(--accent-muted)] disabled:opacity-40"><ChevronLeft className="h-3.5 w-3.5" /></button>
+              <button disabled={page >= pagination.totalPages} onClick={() => setPage((p) => p + 1)} className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-2)] hover:bg-[var(--accent-muted)] disabled:opacity-40"><ChevronRight className="h-3.5 w-3.5" /></button>
             </div>
           </div>
         )}

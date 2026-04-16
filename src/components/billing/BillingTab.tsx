@@ -205,7 +205,7 @@ const STATUS_COLORS: Record<string, string> = {
   PENDING: "bg-[var(--accent)] text-[var(--accent)]",
   ACCEPTED: "bg-blue-100 text-blue-700",
   PREPARING: "bg-[var(--accent-muted)] text-[var(--accent-text)]",
-  READY: "bg-[var(--accent-muted)] text-[#b25c1c]",
+  READY: "bg-[var(--accent-muted)] text-[var(--accent-text)]",
   DELIVERED: "bg-[var(--surface)] text-[var(--text-2)]",
   CANCELLED: "bg-red-100 text-red-600",
   REJECTED: "bg-red-100 text-red-600",
@@ -643,7 +643,7 @@ export default function BillingTab({
             label="Total Revenue"
             value={formatPrice(summary.totalRevenue, cur)}
             icon={TrendingUp}
-            color="text-[#b25c1c]"
+            color="text-[var(--accent-text)]"
             bg="bg-[var(--accent-muted)]"
           />
           <SummaryCard
@@ -680,7 +680,7 @@ export default function BillingTab({
               {summary.totalOrders} orders today
             </span>
             <span className="flex items-center gap-1">
-              <CheckCircle2 className="h-3 w-3 text-[#d67620]" />
+              <CheckCircle2 className="h-3 w-3 text-[var(--accent-hover)]" />
               {summary.paidOrders} paid
             </span>
             <span className="flex items-center gap-1">
@@ -760,7 +760,7 @@ export default function BillingTab({
               className={`flex-1 flex items-center justify-center gap-1.5 rounded-xl px-3 py-3 text-xs font-bold transition-all ${
                 isActive
                   ? t.key === "cash"
-                    ? "bg-[var(--canvas)] text-[#b25c1c] shadow-[0_4px_12px_-4px_rgba(16,185,129,0.3)] ring-1 ring-[var(--accent-border)]"
+                    ? "bg-[var(--canvas)] text-[var(--accent-text)] shadow-[0_4px_12px_-4px_rgba(16,185,129,0.3)] ring-1 ring-[var(--accent-border)]"
                     : t.key === "online"
                       ? "bg-[var(--canvas)] text-purple-700 shadow-[0_4px_12px_-4px_rgba(168,85,247,0.3)] ring-1 ring-purple-100"
                       : "bg-[var(--canvas)] text-[var(--text-1)] shadow-[0_4px_12px_-4px_rgba(0,0,0,0.1)] ring-1 ring-[var(--border)]"
@@ -771,7 +771,7 @@ export default function BillingTab({
                 className={`h-4 w-4 ${
                   isActive
                     ? t.key === "cash"
-                      ? "text-[#d67620]"
+                      ? "text-[var(--accent-hover)]"
                       : t.key === "online"
                         ? "text-purple-500"
                         : "text-[var(--text-1)]"
@@ -787,7 +787,7 @@ export default function BillingTab({
                   className={`inline-flex h-4 min-w-[16px] items-center justify-center rounded-full px-1.5 text-[10px] font-black ${
                     isActive
                       ? t.key === "cash"
-                        ? "bg-[var(--accent-muted)]/80 text-[#b25c1c]"
+                        ? "bg-[var(--accent-muted)]/80 text-[var(--accent-text)]"
                         : t.key === "online"
                           ? "bg-purple-100/80 text-purple-700"
                           : "bg-[var(--surface)] text-[var(--text-1)]"
@@ -804,9 +804,9 @@ export default function BillingTab({
 
       {payType === "cash" && (
         <div className="flex items-center gap-2 rounded-xl bg-[var(--accent-muted)] border border-[var(--accent-border)] px-4 py-2.5">
-          <BillIcon className="h-4 w-4 text-[#b25c1c] shrink-0" />
-          <p className="text-xs text-[#b25c1c] font-medium">
-            <span className="font-bold">Cash Bills</span> — Customer pays at the
+          <BillIcon className="h-4 w-4 text-[var(--accent-text)] shrink-0" />
+          <p className="text-xs text-[var(--accent-text)] font-medium">
+            <span className="font-bold">Cash Bills</span>: Customer pays at the
             counter. Collect cash and mark as paid.
           </p>
         </div>
@@ -815,7 +815,7 @@ export default function BillingTab({
         <div className="flex items-center gap-2 rounded-xl bg-purple-50 border border-purple-100 px-4 py-2.5">
           <ScanLine className="h-4 w-4 text-purple-600 shrink-0" />
           <p className="text-xs text-purple-700 font-medium">
-            <span className="font-bold">Online Receipts</span> — Payment
+            <span className="font-bold">Online Receipts</span>: Payment
             collected via eSewa / Khalti / Bank. View or print the receipt.
           </p>
         </div>
@@ -865,11 +865,11 @@ export default function BillingTab({
                 setStaffReportDate(e.target.value);
                 loadStaffReport(e.target.value);
               }}
-              className="rounded-xl border border-[var(--border)] px-3 py-2 text-sm font-medium text-[var(--text-2)] outline-none focus:border-[#3e1e0c] focus:ring-1 focus:ring-[#3e1e0c]/20"
+              className="rounded-xl border border-[var(--border)] px-3 py-2 text-sm font-medium text-[var(--text-2)] outline-none focus:border-[#3e1e0c] focus:ring-1 focus:ring-[var(--text-1)]/20"
             />
             <button
               onClick={() => loadStaffReport(staffReportDate)}
-              className="flex items-center gap-1.5 rounded-xl bg-[#3e1e0c] px-4 py-2 text-xs font-bold text-white hover:bg-[#5a2d12] transition-colors"
+              className="flex items-center gap-1.5 rounded-xl bg-[var(--text-1)] px-4 py-2 text-xs font-bold text-white hover:bg-[#5a2d12] transition-colors"
             >
               <TrendingUp className="h-3.5 w-3.5" />
               Refresh
@@ -881,8 +881,8 @@ export default function BillingTab({
               {/* Grand total */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-2xl bg-[var(--accent-muted)] border border-[var(--accent-border)] p-4">
-                  <p className="text-xs text-[#b25c1c] font-semibold">Total Collected</p>
-                  <p className="text-2xl font-black text-[#b25c1c] mt-1">
+                  <p className="text-xs text-[var(--accent-text)] font-semibold">Total Collected</p>
+                  <p className="text-2xl font-black text-[var(--accent-text)] mt-1">
                     {formatPrice(staffReport.grandTotal, cur)}
                   </p>
                 </div>
@@ -901,7 +901,7 @@ export default function BillingTab({
                   <div className="flex items-start justify-between">
                     <div>
                       <div className="flex items-center gap-2">
-                        <div className="h-8 w-8 rounded-full bg-[#3e1e0c] flex items-center justify-center text-white text-xs font-bold">
+                        <div className="h-8 w-8 rounded-full bg-[var(--text-1)] flex items-center justify-center text-white text-xs font-bold">
                           {s.staffName.charAt(0).toUpperCase()}
                         </div>
                         <div>
@@ -925,7 +925,7 @@ export default function BillingTab({
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-lg font-black text-[#b25c1c]">
+                      <p className="text-lg font-black text-[var(--accent-text)]">
                         {formatPrice(s.totalCollected, cur)}
                       </p>
                       <p className="text-[10px] text-[var(--text-2)]">{s.orderCount} orders</p>
@@ -991,7 +991,7 @@ export default function BillingTab({
               }}
               className={`flex items-center gap-1 rounded-xl px-3.5 py-2 text-xs font-bold transition-all ${
                 filter === f.key
-                  ? "bg-[#3e1e0c] text-white shadow-sm"
+                  ? "bg-[var(--text-1)] text-white shadow-sm"
                   : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
               }`}
             >
@@ -1017,7 +1017,7 @@ export default function BillingTab({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search order #, customer, table..."
-            className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] pl-10 pr-4 py-2.5 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/10 transition-all"
+            className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] pl-10 pr-4 py-2.5 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/10 transition-all"
           />
         </div>
       </div>
@@ -1083,14 +1083,14 @@ export default function BillingTab({
                 </span>
                 {order.payment ? (
                   order.payment.method === "CASH" ? (
-                    <span className="flex items-center gap-0.5 rounded-lg bg-[var(--accent-muted)] border border-[var(--accent-border)] px-2 py-0.5 text-[10px] font-bold text-[#b25c1c]">
+                    <span className="flex items-center gap-0.5 rounded-lg bg-[var(--accent-muted)] border border-[var(--accent-border)] px-2 py-0.5 text-[10px] font-bold text-[var(--accent-text)]">
                       <BillIcon className="h-2.5 w-2.5" />
                       Cash Bill
                     </span>
                   ) : order.payment.method === "DIRECT" ? (
                     <span className={`flex items-center gap-0.5 rounded-lg border px-2 py-0.5 text-[10px] font-bold ${
                       order.payment.status === "COMPLETED"
-                        ? "bg-[var(--accent-muted)] border-[var(--accent-border)] text-[#b25c1c]"
+                        ? "bg-[var(--accent-muted)] border-[var(--accent-border)] text-[var(--accent-text)]"
                         : "bg-[var(--accent)] border-[var(--accent-border)] text-[var(--accent)]"
                     }`}>
                       <Receipt className="h-2.5 w-2.5" />
@@ -1111,7 +1111,7 @@ export default function BillingTab({
               </div>
               <div className="flex items-center gap-1.5">
                 {isPaid(order) ? (
-                  <span className="flex items-center gap-1 rounded-lg bg-[var(--accent-muted)] px-2 py-1 text-[10px] font-bold text-[#b25c1c]">
+                  <span className="flex items-center gap-1 rounded-lg bg-[var(--accent-muted)] px-2 py-1 text-[10px] font-bold text-[var(--accent-text)]">
                     <CheckCircle2 className="h-3 w-3" />
                     PAID
                   </span>
@@ -1280,7 +1280,7 @@ export default function BillingTab({
                       <button
                         onClick={() => handleVerifyBank(order, "VERIFY")}
                         disabled={actionLoading}
-                        className="flex items-center gap-1 rounded-lg bg-[#eaa94d] px-2.5 py-1.5 text-[10px] font-bold text-white hover:bg-[#d67620] disabled:bg-[var(--border)] transition-all shadow-sm"
+                        className="flex items-center gap-1 rounded-lg bg-[var(--accent)] px-2.5 py-1.5 text-[10px] font-bold text-white hover:bg-[var(--accent-hover)] disabled:bg-[var(--border)] transition-all shadow-sm"
                       >
                         <CheckCircle2 className="h-3 w-3" />
                         Verify
@@ -1308,7 +1308,7 @@ export default function BillingTab({
                           setCollectMethod(order.payment?.method || "CASH");
                           setShowCollect(true);
                         }}
-                        className="flex items-center gap-1 rounded-lg bg-[#eaa94d] px-3 py-1.5 text-[10px] font-bold text-white hover:bg-[#d67620] transition-all shadow-sm"
+                        className="flex items-center gap-1 rounded-lg bg-[var(--accent)] px-3 py-1.5 text-[10px] font-bold text-white hover:bg-[var(--accent-hover)] transition-all shadow-sm"
                       >
                         <CreditCard className="h-3 w-3" />
                         Mark Paid
@@ -1457,16 +1457,16 @@ export default function BillingTab({
                           onClick={() => setCollectMethod(method)}
                           className={`flex items-center gap-2 rounded-xl border-2 px-3 py-3 text-left transition-all ${
                             isSelected
-                              ? "border-[#eaa94d] bg-[var(--accent-muted)] shadow-sm"
+                              ? "border-[var(--accent)] bg-[var(--accent-muted)] shadow-sm"
                               : "border-[var(--border-soft)] bg-[var(--canvas)] hover:border-[var(--border)]"
                           }`}
                         >
                           <Icon
-                            className={`h-4 w-4 shrink-0 ${isSelected ? "text-[#b25c1c]" : "text-[var(--text-3)]"}`}
+                            className={`h-4 w-4 shrink-0 ${isSelected ? "text-[var(--accent-text)]" : "text-[var(--text-3)]"}`}
                           />
                           <div>
                             <span
-                              className={`text-xs font-bold block ${isSelected ? "text-[#b25c1c]" : "text-[var(--text-2)]"}`}
+                              className={`text-xs font-bold block ${isSelected ? "text-[var(--accent-text)]" : "text-[var(--text-2)]"}`}
                             >
                               {paymentMethodLabel(method)}
                             </span>
@@ -1493,7 +1493,7 @@ export default function BillingTab({
                     value={collectTxn}
                     onChange={(e) => setCollectTxn(e.target.value)}
                     placeholder="Enter transaction ID..."
-                    className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm outline-none focus:border-[#eaa94d] focus:ring-2 focus:ring-[var(--accent-border)] transition-all"
+                    className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-border)] transition-all"
                   />
                 </div>
               )}
@@ -1511,7 +1511,7 @@ export default function BillingTab({
                 <button
                   onClick={handleCollectPayment}
                   disabled={actionLoading}
-                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[#eaa94d] py-3 text-sm font-bold text-white hover:bg-[#d67620] disabled:bg-[var(--border)] transition-all shadow-sm"
+                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[var(--accent)] py-3 text-sm font-bold text-white hover:bg-[var(--accent-hover)] disabled:bg-[var(--border)] transition-all shadow-sm"
                 >
                   {actionLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -1768,7 +1768,7 @@ export default function BillingTab({
                   <div className={`rounded-xl p-3 mb-5 border text-sm flex justify-between ${
                     Math.abs(remaining) <= 1 ? "bg-[var(--accent-muted)] border-[var(--accent-border)]" : "bg-indigo-50 border-indigo-100"
                   }`}>
-                    <span className={Math.abs(remaining) <= 1 ? "text-[#b25c1c] font-medium" : "text-indigo-700 font-medium"}>
+                    <span className={Math.abs(remaining) <= 1 ? "text-[var(--accent-text)] font-medium" : "text-indigo-700 font-medium"}>
                       {Math.abs(remaining) <= 1 ? <span className="flex items-center gap-1"><Check className="h-3.5 w-3.5" /> Amounts balanced</span> : `Remaining: ${formatPrice(Math.abs(remaining), cur)} ${remaining > 0 ? "unallocated" : "over"}`}
                     </span>
                     <span className="font-extrabold text-[var(--text-1)]">{formatPrice(entered, cur)}</span>

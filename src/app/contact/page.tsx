@@ -126,15 +126,15 @@ export default function ContactPage() {
               <ArrowLeft className="h-4 w-4" />
             </Link>
             <Link href="/" className="flex items-center gap-2">
-              <Mountain className="h-6 w-6 text-[#eaa94d]" strokeWidth={2.5} />
+              <Mountain className="h-6 w-6 text-[var(--accent)]" strokeWidth={2.5} />
               <span className="text-lg font-extrabold tracking-tight text-[var(--text-1)]">
-                Hima<span className="text-[#eaa94d]">Volt</span>
+                Hima<span className="text-[var(--accent)]">Volt</span>
               </span>
             </Link>
           </div>
           <Link
             href="/"
-            className="flex items-center gap-1.5 rounded-xl bg-[#3e1e0c] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#2d1508] transition-all"
+            className="flex items-center gap-1.5 rounded-xl bg-[var(--text-1)] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#2d1508] transition-all"
           >
             <Globe className="h-3.5 w-3.5" />
             Back to Home
@@ -158,7 +158,7 @@ export default function ContactPage() {
             </div>
             <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl leading-[1.1] mb-5">
               We would love to{" "}
-              <span className="text-[#eaa94d]">hear from you</span>
+              <span className="text-[var(--accent)]">hear from you</span>
             </h1>
             <p className="text-lg text-white/60 font-medium max-w-xl leading-relaxed">
               Have a question, feedback, or want to partner with us?
@@ -179,16 +179,16 @@ export default function ContactPage() {
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true }}
-              className="group flex flex-col gap-3 rounded-2xl bg-[var(--canvas)] p-6 shadow-lg shadow-black/5 border border-[var(--border-soft)] hover:border-[#eaa94d]/20 hover:shadow-xl transition-all"
+              className="group flex flex-col gap-3 rounded-2xl bg-[var(--canvas)] p-6 shadow-lg shadow-black/5 border border-[var(--border-soft)] hover:border-[var(--accent)]/20 hover:shadow-xl transition-all"
             >
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--accent-muted)] text-[#eaa94d] group-hover:bg-[#eaa94d] group-hover:text-white transition-all">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--accent-muted)] text-[var(--accent)] group-hover:bg-[var(--accent)] group-hover:text-white transition-all">
                 <info.icon className="h-5 w-5" />
               </div>
               <div>
                 <p className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider mb-1">
                   {info.label}
                 </p>
-                <p className="text-sm font-bold text-[var(--text-1)] group-hover:text-[#eaa94d] transition-colors">
+                <p className="text-sm font-bold text-[var(--text-1)] group-hover:text-[var(--accent)] transition-colors">
                   {info.value}
                 </p>
                 <p className="text-xs text-[var(--text-3)] mt-1">{info.description}</p>
@@ -219,9 +219,9 @@ export default function ContactPage() {
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="flex flex-col items-center justify-center rounded-3xl bg-[#3e1e0c]/5 border border-[#3e1e0c]/10 p-12 text-center"
+                  className="flex flex-col items-center justify-center rounded-3xl bg-[var(--text-1)]/5 border border-[var(--text-1)]/10 p-12 text-center"
                 >
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#3e1e0c]/10 mb-5">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--text-1)]/10 mb-5">
                     <CheckCircle2 className="h-8 w-8 text-[var(--text-1)]" />
                   </div>
                   <h3 className="text-xl font-bold text-[var(--text-1)] mb-2">
@@ -235,7 +235,7 @@ export default function ContactPage() {
                       setSubmitted(false);
                       setForm({ name: "", email: "", phone: "", subject: "", message: "" });
                     }}
-                    className="mt-6 rounded-xl bg-[#3e1e0c] px-6 py-3 text-sm font-bold text-white hover:bg-[#2d1508] transition-all"
+                    className="mt-6 rounded-xl bg-[var(--text-1)] px-6 py-3 text-sm font-bold text-white hover:bg-[#2d1508] transition-all"
                   >
                     Send Another Message
                   </button>
@@ -253,7 +253,7 @@ export default function ContactPage() {
                         value={form.name}
                         onChange={set("name")}
                         placeholder="Rajan Shrestha"
-                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-3.5 text-sm font-medium text-[var(--text-1)] placeholder-gray-300 outline-none transition-all focus:border-[#eaa94d]/40 focus:ring-2 focus:ring-[#eaa94d]/15 focus:bg-[var(--canvas)]"
+                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-3.5 text-sm font-medium text-[var(--text-1)] placeholder-gray-300 outline-none transition-all focus:border-[var(--accent)]/40 focus:ring-2 focus:ring-[var(--accent)]/15 focus:bg-[var(--canvas)]"
                       />
                     </div>
                     <div className="space-y-2">
@@ -266,7 +266,7 @@ export default function ContactPage() {
                         value={form.email}
                         onChange={set("email")}
                         placeholder="rajan@example.com"
-                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-3.5 text-sm font-medium text-[var(--text-1)] placeholder-gray-300 outline-none transition-all focus:border-[#eaa94d]/40 focus:ring-2 focus:ring-[#eaa94d]/15 focus:bg-[var(--canvas)]"
+                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-3.5 text-sm font-medium text-[var(--text-1)] placeholder-gray-300 outline-none transition-all focus:border-[var(--accent)]/40 focus:ring-2 focus:ring-[var(--accent)]/15 focus:bg-[var(--canvas)]"
                       />
                     </div>
                   </div>
@@ -281,7 +281,7 @@ export default function ContactPage() {
                         value={form.phone}
                         onChange={set("phone")}
                         placeholder="+977 98XXXXXXXX"
-                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-3.5 text-sm font-medium text-[var(--text-1)] placeholder-gray-300 outline-none transition-all focus:border-[#eaa94d]/40 focus:ring-2 focus:ring-[#eaa94d]/15 focus:bg-[var(--canvas)]"
+                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-3.5 text-sm font-medium text-[var(--text-1)] placeholder-gray-300 outline-none transition-all focus:border-[var(--accent)]/40 focus:ring-2 focus:ring-[var(--accent)]/15 focus:bg-[var(--canvas)]"
                       />
                     </div>
                     <div className="space-y-2">
@@ -292,7 +292,7 @@ export default function ContactPage() {
                         value={form.subject}
                         onChange={set("subject")}
                         required
-                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-3.5 text-sm font-medium text-[var(--text-1)] outline-none transition-all focus:border-[#eaa94d]/40 focus:ring-2 focus:ring-[#eaa94d]/15 focus:bg-[var(--canvas)] appearance-none"
+                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-3.5 text-sm font-medium text-[var(--text-1)] outline-none transition-all focus:border-[var(--accent)]/40 focus:ring-2 focus:ring-[var(--accent)]/15 focus:bg-[var(--canvas)] appearance-none"
                       >
                         <option value="" disabled>Select a topic</option>
                         <option value="general">General Inquiry</option>
@@ -315,13 +315,13 @@ export default function ContactPage() {
                       value={form.message}
                       onChange={set("message")}
                       placeholder="Tell us how we can help..."
-                      className="w-full resize-none rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-3.5 text-sm font-medium text-[var(--text-1)] placeholder-gray-300 outline-none transition-all focus:border-[#eaa94d]/40 focus:ring-2 focus:ring-[#eaa94d]/15 focus:bg-[var(--canvas)]"
+                      className="w-full resize-none rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-3.5 text-sm font-medium text-[var(--text-1)] placeholder-gray-300 outline-none transition-all focus:border-[var(--accent)]/40 focus:ring-2 focus:ring-[var(--accent)]/15 focus:bg-[var(--canvas)]"
                     />
                   </div>
 
                   <button
                     type="submit"
-                    className="group flex w-full items-center justify-center gap-2.5 rounded-2xl bg-[#3e1e0c] py-4 text-[15px] font-extrabold text-white shadow-lg shadow-[#3e1e0c]/20 transition-all hover:bg-[#2d1508] active:scale-[0.98]"
+                    className="group flex w-full items-center justify-center gap-2.5 rounded-2xl bg-[var(--text-1)] py-4 text-[15px] font-extrabold text-white shadow-lg shadow-[var(--text-1)]/20 transition-all hover:bg-[#2d1508] active:scale-[0.98]"
                   >
                     <Send className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                     {submitting ? "Sending..." : "Send Message"}
@@ -346,16 +346,16 @@ export default function ContactPage() {
                   <a
                     key={contact.value}
                     href={contact.href}
-                    className="group flex items-center gap-4 rounded-2xl bg-[var(--canvas-sub)] p-4 hover:bg-[#eaa94d]/5 border border-transparent hover:border-[var(--accent-border)] transition-all"
+                    className="group flex items-center gap-4 rounded-2xl bg-[var(--canvas-sub)] p-4 hover:bg-[var(--accent)]/5 border border-transparent hover:border-[var(--accent-border)] transition-all"
                   >
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--canvas)] shadow-sm text-[var(--text-3)] group-hover:text-[#eaa94d] transition-colors">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--canvas)] shadow-sm text-[var(--text-3)] group-hover:text-[var(--accent)] transition-colors">
                       <contact.icon className="h-4 w-4" />
                     </div>
                     <div className="min-w-0">
                       <p className="text-xs font-bold text-[var(--text-3)] mb-0.5">
                         {contact.label}
                       </p>
-                      <p className="text-sm font-bold text-[var(--text-1)] group-hover:text-[#eaa94d] transition-colors truncate">
+                      <p className="text-sm font-bold text-[var(--text-1)] group-hover:text-[var(--accent)] transition-colors truncate">
                         {contact.value}
                       </p>
                     </div>
@@ -366,7 +366,7 @@ export default function ContactPage() {
               <div className="mt-8 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)]">
                 <div className="aspect-[4/3] relative">
                   <div className="absolute inset-0 flex flex-col items-center justify-center text-[var(--text-3)]">
-                    <MapPin className="h-10 w-10 mb-2 text-[#eaa94d]" />
+                    <MapPin className="h-10 w-10 mb-2 text-[var(--accent)]" />
                     <p className="text-sm font-bold text-[var(--text-1)]">Thamel, Kathmandu</p>
                     <p className="text-xs text-[var(--text-3)] mt-0.5">Nepal, 44600</p>
                   </div>

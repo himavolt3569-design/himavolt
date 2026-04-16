@@ -51,8 +51,8 @@ interface ChatWidgetProps {
 }
 
 const SENDER_CONFIG = {
-  CUSTOMER: { label: "You", icon: User, color: "bg-[#eaa94d]" },
-  KITCHEN: { label: "Kitchen", icon: ChefHat, color: "bg-[#3e1e0c]" },
+  CUSTOMER: { label: "You", icon: User, color: "bg-[var(--accent)]" },
+  KITCHEN: { label: "Kitchen", icon: ChefHat, color: "bg-[var(--text-1)]" },
   BILLING: { label: "Billing", icon: Receipt, color: "bg-blue-500" },
 };
 
@@ -329,7 +329,7 @@ export default function ChatWidget({
     <>
       <motion.button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-20 right-4 z-80 flex h-14 w-14 items-center justify-center rounded-full bg-[#3e1e0c] text-white shadow-xl hover:bg-[#2d1508] transition-colors md:bottom-6"
+        className="fixed bottom-20 right-4 z-80 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--text-1)] text-white shadow-xl hover:bg-[#2d1508] transition-colors md:bottom-6"
         whileTap={{ scale: 0.95 }}
       >
         <MessageCircle className="h-6 w-6" />
@@ -374,8 +374,8 @@ export default function ChatWidget({
                   )}
                   <span className="flex items-center gap-1">
                     <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#eaa94d] opacity-75" />
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-[#eaa94d]" />
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--accent)] opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--accent)]" />
                     </span>
                   </span>
                 </div>
@@ -429,12 +429,12 @@ export default function ChatWidget({
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder="Type a message..."
-                    className="flex-1 rounded-xl bg-[var(--surface)] px-4 py-2.5 text-sm text-[var(--text-1)] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#3e1e0c]/20"
+                    className="flex-1 rounded-xl bg-[var(--surface)] px-4 py-2.5 text-sm text-[var(--text-1)] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--text-1)]/20"
                   />
                   <button
                     onClick={sendMessage}
                     disabled={!input.trim() || sending}
-                    className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#3e1e0c] text-white hover:bg-[#2d1508] transition-colors disabled:opacity-50"
+                    className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--text-1)] text-white hover:bg-[#2d1508] transition-colors disabled:opacity-50"
                   >
                     {sending ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -551,7 +551,7 @@ function MessageBubble({
       <div
         className={`max-w-[75%] rounded-2xl px-3.5 py-2 ${
           isMine
-            ? "bg-[#3e1e0c] text-white rounded-br-md"
+            ? "bg-[var(--text-1)] text-white rounded-br-md"
             : "bg-[var(--surface)] text-[var(--text-1)] rounded-bl-md"
         }`}
       >
@@ -649,12 +649,12 @@ function CompactChat({
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Type a message..."
-            className="flex-1 rounded-xl bg-[var(--surface)] px-4 py-2.5 text-sm text-[var(--text-1)] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#3e1e0c]/20"
+            className="flex-1 rounded-xl bg-[var(--surface)] px-4 py-2.5 text-sm text-[var(--text-1)] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--text-1)]/20"
           />
           <button
             onClick={sendMessage}
             disabled={!input.trim() || sending}
-            className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#3e1e0c] text-white hover:bg-[#2d1508] transition-colors disabled:opacity-50"
+            className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--text-1)] text-white hover:bg-[#2d1508] transition-colors disabled:opacity-50"
           >
             {sending ? (
               <Loader2 className="h-4 w-4 animate-spin" />

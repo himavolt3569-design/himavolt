@@ -152,7 +152,7 @@ export default function DeliveryZonesTab() {
           <p className="text-xs text-[var(--text-2)]">Total Zones</p>
         </div>
         <div className="bg-[var(--canvas)] rounded-xl shadow-sm border border-[var(--border-soft)] p-4 text-center">
-          <Navigation className="w-5 h-5 text-[#d67620] mx-auto mb-1" />
+          <Navigation className="w-5 h-5 text-[var(--accent-hover)] mx-auto mb-1" />
           <p className="text-2xl font-bold text-[var(--text-1)]">{totalActiveZones}</p>
           <p className="text-xs text-[var(--text-2)]">Active Zones</p>
         </div>
@@ -410,7 +410,7 @@ export default function DeliveryZonesTab() {
                       <span
                         className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
                           zone.active
-                            ? "bg-[var(--accent-muted)] text-[#b25c1c]"
+                            ? "bg-[var(--accent-muted)] text-[var(--accent-text)]"
                             : "bg-[var(--surface)] text-[var(--text-2)]"
                         }`}
                       >
@@ -427,7 +427,7 @@ export default function DeliveryZonesTab() {
                         {zone.radiusKm} km
                       </span>
                       <span className="inline-flex items-center gap-1 text-xs text-[var(--text-2)]">
-                        <DollarSign className="w-3 h-3 text-[#d67620]" />
+                        <DollarSign className="w-3 h-3 text-[var(--accent-hover)]" />
                         {formatPrice(zone.deliveryFee, cur)}
                       </span>
                       <span className="inline-flex items-center gap-1 text-xs text-[var(--text-2)]">
@@ -489,7 +489,7 @@ export default function DeliveryZonesTab() {
                           </p>
                         </div>
                         <div className="bg-[var(--accent-muted)] rounded-lg p-3">
-                          <p className="text-[10px] font-medium text-[#b25c1c] uppercase tracking-wide">
+                          <p className="text-[10px] font-medium text-[var(--accent-text)] uppercase tracking-wide">
                             Free Delivery
                           </p>
                           <p className="text-sm font-bold text-[var(--text-1)] mt-0.5">

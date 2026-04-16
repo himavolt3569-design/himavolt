@@ -69,7 +69,7 @@ const STATUS_COLORS: Record<string, string> = {
   ASSIGNED: "bg-blue-100 text-blue-700",
   PICKED_UP: "bg-indigo-100 text-indigo-700",
   IN_TRANSIT: "bg-purple-100 text-purple-700",
-  DELIVERED: "bg-[var(--accent-muted)] text-[#b25c1c]",
+  DELIVERED: "bg-[var(--accent-muted)] text-[var(--accent-text)]",
   CANCELLED: "bg-red-100 text-red-700",
 };
 
@@ -194,7 +194,7 @@ export default function AllDeliveriesTab() {
               key={s}
               onClick={() => { setStatusFilter(s); setPage(1); }}
               className={`rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all ${
-                statusFilter === s ? "bg-gompa-slate text-white" : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-brand-50"
+                statusFilter === s ? "bg-[var(--text-1)] text-white" : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--accent-muted)]"
               }`}
             >
               {s === "All" ? "All" : s.replace(/_/g, " ")}
@@ -203,7 +203,7 @@ export default function AllDeliveriesTab() {
         </div>
         <button
           onClick={() => fetchDeliveries(page)}
-          className="flex items-center gap-1.5 rounded-xl border border-[var(--border)] px-3 py-2 text-xs font-medium text-[var(--text-2)] hover:bg-brand-50"
+          className="flex items-center gap-1.5 rounded-xl border border-[var(--border)] px-3 py-2 text-xs font-medium text-[var(--text-2)] hover:bg-[var(--accent-muted)]"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
           Refresh
@@ -228,22 +228,22 @@ export default function AllDeliveriesTab() {
         </div>
       )}
 
-      <div className="overflow-hidden rounded-2xl border border-brand-100 bg-[var(--canvas)] shadow-sm">
-        <div className="flex items-center justify-between border-b border-brand-100 px-4 py-2.5">
+      <div className="overflow-hidden rounded-2xl border border-[var(--accent-muted)] bg-[var(--canvas)] shadow-sm">
+        <div className="flex items-center justify-between border-b border-[var(--accent-muted)] px-4 py-2.5">
           <div className="flex items-center gap-2">
             <input
               type="checkbox"
               checked={allSelected}
               onChange={() => setSelectedIds(allSelected ? new Set() : new Set(deliveries.map((d) => d.id)))}
-              className="h-3.5 w-3.5 rounded accent-gompa-slate"
+              className="h-3.5 w-3.5 rounded accent-[var(--accent)]"
             />
-            <Truck className="h-4 w-4 text-brand-400" />
+            <Truck className="h-4 w-4 text-[var(--accent)]" />
             <span className="text-xs font-semibold text-[var(--text-2)]">Deliveries</span>
           </div>
-          <div className="flex items-center gap-1.5 text-[11px] text-[#b25c1c]">
+          <div className="flex items-center gap-1.5 text-[11px] text-[var(--accent-text)]">
             <span className="relative flex h-1.5 w-1.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#eaa94d] opacity-75" />
-              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#eaa94d]" />
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--accent)] opacity-75" />
+              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
             </span>
             Auto-refresh
           </div>
@@ -251,7 +251,7 @@ export default function AllDeliveriesTab() {
 
         {loading && deliveries.length === 0 ? (
           <div className="flex items-center justify-center py-16">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-brand-400 border-t-transparent" />
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" />
           </div>
         ) : deliveries.length === 0 ? (
           <div className="py-16 text-center">
@@ -265,7 +265,7 @@ export default function AllDeliveriesTab() {
               const isExpanded = expandedId === delivery.id;
               const isSelected = selectedIds.has(delivery.id);
               return (
-                <div key={delivery.id} className={`transition-all hover:bg-brand-50/40 ${isSelected ? "bg-red-50/30" : ""}`}>
+                <div key={delivery.id} className={`transition-all hover:bg-[var(--accent-muted)]/40 ${isSelected ? "bg-red-50/30" : ""}`}>
                   <button
                     type="button"
                     onClick={() => setExpandedId(isExpanded ? null : delivery.id)}
@@ -283,14 +283,14 @@ export default function AllDeliveriesTab() {
                         });
                       }}
                       onClick={(e) => e.stopPropagation()}
-                      className="h-3.5 w-3.5 flex-shrink-0 rounded accent-gompa-slate"
+                      className="h-3.5 w-3.5 flex-shrink-0 rounded accent-[var(--accent)]"
                     />
                     <div className={`flex-shrink-0 rounded-lg p-2 ${STATUS_COLORS[delivery.status] || "bg-[var(--surface)] text-[var(--text-2)]"}`}>
                       <StatusIcon className="h-4 w-4" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold text-gompa-slate">
+                        <span className="text-sm font-bold text-[var(--text-1)]">
                           Order #{delivery.order.orderNo}
                         </span>
                         <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${STATUS_COLORS[delivery.status]}`}>
@@ -303,7 +303,7 @@ export default function AllDeliveriesTab() {
                           <span className="flex items-center gap-1">
                             <User className="h-3 w-3" />
                             {delivery.driver.name}
-                            <span className={`ml-0.5 inline-flex h-1.5 w-1.5 rounded-full ${delivery.driver.isOnline ? "bg-[#eaa94d]" : "bg-[var(--text-3)]"}`} />
+                            <span className={`ml-0.5 inline-flex h-1.5 w-1.5 rounded-full ${delivery.driver.isOnline ? "bg-[var(--accent)]" : "bg-[var(--text-3)]"}`} />
                           </span>
                         )}
                         {delivery.distanceKm && (
@@ -313,7 +313,7 @@ export default function AllDeliveriesTab() {
                     </div>
                     <div className="hidden flex-shrink-0 text-right sm:block">
                       {delivery.fee != null && (
-                        <p className="text-sm font-bold text-gompa-slate">{formatPrice(delivery.fee, "NPR")}</p>
+                        <p className="text-sm font-bold text-[var(--text-1)]">{formatPrice(delivery.fee, "NPR")}</p>
                       )}
                       {delivery.estimatedMinutes && (
                         <p className="text-[11px] text-[var(--text-3)]">~{delivery.estimatedMinutes} min</p>
@@ -333,25 +333,25 @@ export default function AllDeliveriesTab() {
                         exit={{ height: 0, opacity: 0 }}
                         className="overflow-hidden"
                       >
-                        <div className="border-t border-brand-100 bg-brand-50/30 px-4 py-3">
+                        <div className="border-t border-[var(--accent-muted)] bg-[var(--accent-muted)]/30 px-4 py-3">
                           <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-xs sm:grid-cols-4">
                             {delivery.driver && (
                               <>
                                 <div>
                                   <span className="text-[var(--text-3)]">Driver</span>
-                                  <p className="font-medium text-gompa-slate">{delivery.driver.name}</p>
+                                  <p className="font-medium text-[var(--text-1)]">{delivery.driver.name}</p>
                                 </div>
                                 <div>
                                   <span className="text-[var(--text-3)]">Driver Phone</span>
-                                  <p className="font-medium text-gompa-slate">{delivery.driver.phone}</p>
+                                  <p className="font-medium text-[var(--text-1)]">{delivery.driver.phone}</p>
                                 </div>
                                 <div>
                                   <span className="text-[var(--text-3)]">Vehicle</span>
-                                  <p className="font-medium text-gompa-slate">{delivery.driver.vehicleType} - {delivery.driver.vehicleNo}</p>
+                                  <p className="font-medium text-[var(--text-1)]">{delivery.driver.vehicleType} - {delivery.driver.vehicleNo}</p>
                                 </div>
                                 <div>
                                   <span className="text-[var(--text-3)]">Driver Status</span>
-                                  <p className={`font-medium ${delivery.driver.isOnline ? "text-[#b25c1c]" : "text-[var(--text-3)]"}`}>
+                                  <p className={`font-medium ${delivery.driver.isOnline ? "text-[var(--accent-text)]" : "text-[var(--text-3)]"}`}>
                                     {delivery.driver.isOnline ? "Online" : "Offline"}
                                   </p>
                                 </div>
@@ -359,46 +359,46 @@ export default function AllDeliveriesTab() {
                             )}
                             <div>
                               <span className="text-[var(--text-3)]">Customer</span>
-                              <p className="font-medium text-gompa-slate">{delivery.order.user?.name || "Guest"}</p>
+                              <p className="font-medium text-[var(--text-1)]">{delivery.order.user?.name || "Guest"}</p>
                             </div>
                             <div>
                               <span className="text-[var(--text-3)]">Order Total</span>
-                              <p className="font-bold text-gompa-slate">{formatPrice(delivery.order.total, "NPR")}</p>
+                              <p className="font-bold text-[var(--text-1)]">{formatPrice(delivery.order.total, "NPR")}</p>
                             </div>
                             {delivery.order.deliveryAddress && (
                               <div className="col-span-2 sm:col-span-4">
                                 <span className="text-[var(--text-3)]">Delivery Address</span>
-                                <p className="font-medium text-gompa-slate">{delivery.order.deliveryAddress}</p>
+                                <p className="font-medium text-[var(--text-1)]">{delivery.order.deliveryAddress}</p>
                               </div>
                             )}
                             {delivery.order.deliveryPhone && (
                               <div>
                                 <span className="text-[var(--text-3)]">Delivery Phone</span>
-                                <p className="font-medium text-gompa-slate">{delivery.order.deliveryPhone}</p>
+                                <p className="font-medium text-[var(--text-1)]">{delivery.order.deliveryPhone}</p>
                               </div>
                             )}
                             <div>
                               <span className="text-[var(--text-3)]">Distance</span>
-                              <p className="font-medium text-gompa-slate">{delivery.distanceKm ? `${delivery.distanceKm.toFixed(1)} km` : "—"}</p>
+                              <p className="font-medium text-[var(--text-1)]">{delivery.distanceKm ? `${delivery.distanceKm.toFixed(1)} km` : "—"}</p>
                             </div>
                             <div>
                               <span className="text-[var(--text-3)]">Est. Time</span>
-                              <p className="font-medium text-gompa-slate">{delivery.estimatedMinutes ? `${delivery.estimatedMinutes} min` : "—"}</p>
+                              <p className="font-medium text-[var(--text-1)]">{delivery.estimatedMinutes ? `${delivery.estimatedMinutes} min` : "—"}</p>
                             </div>
                             <div>
                               <span className="text-[var(--text-3)]">Actual Time</span>
-                              <p className="font-medium text-gompa-slate">{delivery.actualMinutes ? `${delivery.actualMinutes} min` : "—"}</p>
+                              <p className="font-medium text-[var(--text-1)]">{delivery.actualMinutes ? `${delivery.actualMinutes} min` : "—"}</p>
                             </div>
                             {delivery.pickedUpAt && (
                               <div>
                                 <span className="text-[var(--text-3)]">Picked Up</span>
-                                <p className="font-medium text-gompa-slate">{new Date(delivery.pickedUpAt).toLocaleString()}</p>
+                                <p className="font-medium text-[var(--text-1)]">{new Date(delivery.pickedUpAt).toLocaleString()}</p>
                               </div>
                             )}
                             {delivery.deliveredAt && (
                               <div>
                                 <span className="text-[var(--text-3)]">Delivered</span>
-                                <p className="font-medium text-gompa-slate">{new Date(delivery.deliveredAt).toLocaleString()}</p>
+                                <p className="font-medium text-[var(--text-1)]">{new Date(delivery.deliveredAt).toLocaleString()}</p>
                               </div>
                             )}
                           </div>
@@ -425,10 +425,10 @@ export default function AllDeliveriesTab() {
           <div className="flex items-center justify-between border-t border-[var(--border-soft)] px-4 py-2.5">
             <span className="text-xs text-[var(--text-3)]">Page {pagination.page} of {pagination.totalPages}</span>
             <div className="flex gap-1.5">
-              <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-2)] hover:bg-brand-50 disabled:opacity-40">
+              <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-2)] hover:bg-[var(--accent-muted)] disabled:opacity-40">
                 <ChevronLeft className="h-3.5 w-3.5" />
               </button>
-              <button disabled={page >= pagination.totalPages} onClick={() => setPage((p) => p + 1)} className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-2)] hover:bg-brand-50 disabled:opacity-40">
+              <button disabled={page >= pagination.totalPages} onClick={() => setPage((p) => p + 1)} className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-2)] hover:bg-[var(--accent-muted)] disabled:opacity-40">
                 <ChevronRight className="h-3.5 w-3.5" />
               </button>
             </div>

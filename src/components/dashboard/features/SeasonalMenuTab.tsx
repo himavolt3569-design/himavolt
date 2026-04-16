@@ -56,7 +56,7 @@ interface PastItem {
 }
 
 const seasonConfig: Record<Season, { icon: typeof Sun; color: string; bg: string }> = {
-  Spring: { icon: Leaf, color: "text-[#b25c1c]", bg: "bg-[var(--accent-muted)]" },
+  Spring: { icon: Leaf, color: "text-[var(--accent-text)]", bg: "bg-[var(--accent-muted)]" },
   Summer: { icon: Sun, color: "text-[var(--accent)]", bg: "bg-[var(--accent)]" },
   Autumn: { icon: CloudRain, color: "text-[var(--accent-text)]", bg: "bg-[var(--accent-muted)]" },
   Winter: { icon: Snowflake, color: "text-blue-600", bg: "bg-blue-50" },
@@ -165,7 +165,7 @@ export default function SeasonalMenuTab() {
           { label: "Active Items", value: activeItems.length, icon: Package, color: `${seasonConfig[currentSeason].color} ${seasonConfig[currentSeason].bg}` },
           { label: "Featured Items", value: activeItems.filter((i) => i.featured).length, icon: Star, color: "text-yellow-600 bg-yellow-50" },
           { label: "Limited Items", value: items.filter((i) => i.limitedQuantity).length, icon: Clock, color: "text-red-600 bg-red-50" },
-          { label: "Total Sold (Season)", value: activeItems.reduce((s, i) => s + (i.soldCount || 0), 0), icon: TrendingUp, color: "text-[#b25c1c] bg-[var(--accent-muted)]" },
+          { label: "Total Sold (Season)", value: activeItems.reduce((s, i) => s + (i.soldCount || 0), 0), icon: TrendingUp, color: "text-[var(--accent-text)] bg-[var(--accent-muted)]" },
         ].map((stat) => (
           <motion.div
             key={stat.label}

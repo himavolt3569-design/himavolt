@@ -336,7 +336,7 @@ export default function TabManagementTab() {
                   <span
                     className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                       tab.status === "Open"
-                        ? "bg-[#eaa94d]/20 text-[#d67620]"
+                        ? "bg-[var(--accent)]/20 text-[var(--accent-hover)]"
                         : tab.status === "Settling"
                         ? "bg-[var(--accent-border)] text-[var(--accent)]"
                         : "bg-zinc-600/20 text-zinc-400"
@@ -420,7 +420,7 @@ export default function TabManagementTab() {
                         <button
                           key={label}
                           onClick={() => closeTab(tab.id)}
-                          className="p-2 bg-[#eaa94d] hover:bg-[#d67620] text-white rounded-lg text-sm transition-colors"
+                          className="p-2 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white rounded-lg text-sm transition-colors"
                           title={label}
                         >
                           <Icon className="w-4 h-4" />
@@ -563,7 +563,7 @@ export default function TabManagementTab() {
                     className="bg-zinc-800/80 rounded-xl p-3 border border-zinc-700/50 flex items-center justify-between"
                   >
                     <div className="flex items-center gap-3">
-                      <CheckCircle2 className="w-5 h-5 text-[#d67620]" />
+                      <CheckCircle2 className="w-5 h-5 text-[var(--accent-hover)]" />
                       <div>
                         <p className="text-white text-sm font-medium">{tab.customerName}</p>
                         <p className="text-zinc-400 text-xs">

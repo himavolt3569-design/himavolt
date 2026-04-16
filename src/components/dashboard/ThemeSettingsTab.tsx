@@ -244,7 +244,7 @@ export default function ThemeSettingsTab() {
                   />
                   {preset.label}
                   {theme.primaryColor === preset.primary && (
-                    <Check className="h-3 w-3 text-[#d67620]" />
+                    <Check className="h-3 w-3 text-[var(--accent-hover)]" />
                   )}
                 </button>
               ))}

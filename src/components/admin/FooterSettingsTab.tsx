@@ -165,7 +165,7 @@ export default function FooterSettingsTab() {
         <motion.div
           initial={{ opacity: 0, y: -4 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mt-4 flex items-center gap-2 rounded-xl border border-[var(--accent-border)] bg-[var(--accent-muted)] px-4 py-2.5 text-sm text-[#b25c1c]"
+          className="mt-4 flex items-center gap-2 rounded-xl border border-[var(--accent-border)] bg-[var(--accent-muted)] px-4 py-2.5 text-sm text-[var(--accent-text)]"
         >
           <CheckCircle className="h-4 w-4 shrink-0" />
           Footer settings saved successfully.

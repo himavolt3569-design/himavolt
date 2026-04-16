@@ -139,7 +139,7 @@ function AttendancePill({ attendance }: { attendance: StaffAttendanceSummary | n
         <>
           <span className="text-[11px] font-bold text-[var(--text-2)]">{checkOutTime}</span>
           {attendance.durationMinutes != null && (
-            <span className="ml-0.5 text-[10px] font-bold text-[#b25c1c] bg-[var(--accent-muted)] px-1.5 py-0.5 rounded-md border border-[var(--accent-border)]">
+            <span className="ml-0.5 text-[10px] font-bold text-[var(--accent-text)] bg-[var(--accent-muted)] px-1.5 py-0.5 rounded-md border border-[var(--accent-border)]">
               {formatDuration(attendance.durationMinutes)}
             </span>
           )}
@@ -268,7 +268,7 @@ function ShiftCard({
               {/* Paid / unpaid breakdown header */}
               <div className="flex items-center gap-6 px-5 py-2.5 bg-[var(--canvas-sub)] border-b border-[var(--border-soft)]">
                 <div className="flex items-center gap-1.5">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#eaa94d]" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
                   <span className="text-[11px] font-bold text-[var(--text-2)]">
                     Paid: {paidOrders.length} &middot; {formatPrice(paidRevenue, cur)}
                   </span>
@@ -305,7 +305,7 @@ function ShiftCard({
                         <span
                           className={`rounded px-1.5 py-0.5 font-bold ${
                             o.payment.status === "COMPLETED"
-                              ? "bg-[var(--accent-muted)] text-[#b25c1c]"
+                              ? "bg-[var(--accent-muted)] text-[var(--accent-text)]"
                               : "bg-[var(--accent)] text-[var(--accent)]"
                           }`}
                         >
@@ -431,7 +431,7 @@ export default function ReportsTab() {
           className="relative overflow-hidden rounded-3xl bg-[var(--canvas)]/70 backdrop-blur-md border border-[var(--border-soft)]/50 p-6 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.03)]"
         >
           <div className="flex items-center gap-3 mb-5">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--accent-muted)] text-[#b25c1c] shadow-sm border border-[var(--accent-border)]/50">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--accent-muted)] text-[var(--accent-text)] shadow-sm border border-[var(--accent-border)]/50">
               <TrendingUp className="h-5 w-5" />
             </span>
             <span className="text-[13px] font-bold tracking-wide text-[var(--text-2)] uppercase">
@@ -441,7 +441,7 @@ export default function ReportsTab() {
           <p className="text-3xl font-black text-[var(--text-1)] leading-none tracking-tight">
             {formatPrice(totalRevenue, cur)}
           </p>
-          <div className="mt-4 flex items-center gap-1.5 text-xs font-bold text-[#b25c1c] bg-[#fef9ef]/50 w-fit px-2 py-1 rounded-md">
+          <div className="mt-4 flex items-center gap-1.5 text-xs font-bold text-[var(--accent-text)] bg-[#fef9ef]/50 w-fit px-2 py-1 rounded-md">
             <ArrowUpRight className="h-3.5 w-3.5" />
             Lifetime earnings
           </div>

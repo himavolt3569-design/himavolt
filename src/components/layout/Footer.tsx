@@ -31,9 +31,9 @@ function FooterLink({
     <li>
       <Link
         href={href}
-        className="relative inline-flex items-center gap-1.5 text-[13px] text-white/40 hover:text-[#eaa94d] transition-colors duration-300 group py-0.5"
+        className="relative inline-flex items-center gap-1.5 text-[13px] text-white/40 hover:text-[var(--accent)] transition-colors duration-300 group py-0.5"
       >
-        <span className="h-px w-0 bg-[#eaa94d]/60 transition-all duration-300 group-hover:w-3 shrink-0" />
+        <span className="h-px w-0 bg-[var(--accent)]/60 transition-all duration-300 group-hover:w-3 shrink-0" />
         {children}
       </Link>
     </li>
@@ -46,7 +46,7 @@ function SocialIcon({ label, path }: { label: string; path: string }) {
       href="#"
       whileHover={{ scale: 1.15, y: -2 }}
       whileTap={{ scale: 0.9 }}
-      className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/4 text-white/30 hover:text-[#eaa94d] hover:bg-[#eaa94d]/10 border border-white/4 hover:border-[#eaa94d]/20 transition-colors duration-300"
+      className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--canvas)]/80 text-white/30 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 border border-white/4 hover:border-[var(--accent)]/20 transition-colors duration-300"
       aria-label={label}
     >
       <svg
@@ -97,7 +97,7 @@ export default function Footer() {
   return (
     <footer className="relative bg-[#111111]">
       {/* Top accent line */}
-      <div className="h-0.5 bg-linear-to-r from-transparent via-[#eaa94d]/30 to-transparent" />
+      <div className="h-0.5 bg-linear-to-r from-transparent via-[var(--accent)]/30 to-transparent" />
 
       {/* Main footer grid */}
       <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-12 pt-16 md:pt-20 pb-10">
@@ -110,12 +110,12 @@ export default function Footer() {
                 transition={{ type: "spring", stiffness: 300, damping: 15 }}
               >
                 <Mountain
-                  className="h-6 w-6 text-[#eaa94d]"
+                  className="h-6 w-6 text-[var(--accent)]"
                   strokeWidth={2.5}
                 />
               </motion.div>
               <span className="text-lg font-extrabold text-white tracking-tight">
-                Hima<span className="text-[#eaa94d]">Volt</span>
+                Hima<span className="text-[var(--accent)]">Volt</span>
               </span>
             </Link>
             <p className="mt-4 text-[13px] leading-relaxed text-white/30 max-w-xs">
@@ -125,24 +125,24 @@ export default function Footer() {
             <div className="mt-6 space-y-3">
               <a
                 href={`tel:${settings.phone.replace(/\s+/g, "")}`}
-                className="group flex items-center gap-3 text-[13px] text-white/30 hover:text-[#eaa94d] transition-colors duration-300"
+                className="group flex items-center gap-3 text-[13px] text-white/30 hover:text-[var(--accent)] transition-colors duration-300"
               >
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/4 group-hover:bg-[#eaa94d]/10 transition-colors duration-300">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--canvas)]/80 group-hover:bg-[var(--accent)]/10 transition-colors duration-300">
                   <Phone className="h-3.5 w-3.5" />
                 </span>
                 {settings.phone}
               </a>
               <a
                 href={`mailto:${settings.email}`}
-                className="group flex items-center gap-3 text-[13px] text-white/30 hover:text-[#eaa94d] transition-colors duration-300"
+                className="group flex items-center gap-3 text-[13px] text-white/30 hover:text-[var(--accent)] transition-colors duration-300"
               >
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/4 group-hover:bg-[#eaa94d]/10 transition-colors duration-300">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--canvas)]/80 group-hover:bg-[var(--accent)]/10 transition-colors duration-300">
                   <Mail className="h-3.5 w-3.5" />
                 </span>
                 {settings.email}
               </a>
               <span className="flex items-center gap-3 text-[13px] text-white/30">
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/4">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--canvas)]/80">
                   <MapPin className="h-3.5 w-3.5" />
                 </span>
                 {settings.address}
@@ -153,7 +153,7 @@ export default function Footer() {
           {/* Right: 3 link columns */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-8">
             <div>
-              <h4 className="text-[11px] font-bold text-[#eaa94d]/50 mb-5 uppercase tracking-[0.18em]">
+              <h4 className="text-[11px] font-bold text-[var(--accent)]/50 mb-5 uppercase tracking-[0.18em]">
                 Company
               </h4>
               <ul className="space-y-3">
@@ -165,7 +165,7 @@ export default function Footer() {
             </div>
 
             <div>
-              <h4 className="text-[11px] font-bold text-[#eaa94d]/50 mb-5 uppercase tracking-[0.18em]">
+              <h4 className="text-[11px] font-bold text-[var(--accent)]/50 mb-5 uppercase tracking-[0.18em]">
                 Product
               </h4>
               <ul className="space-y-3">
@@ -177,7 +177,7 @@ export default function Footer() {
             </div>
 
             <div>
-              <h4 className="text-[11px] font-bold text-[#eaa94d]/50 mb-5 uppercase tracking-[0.18em]">
+              <h4 className="text-[11px] font-bold text-[var(--accent)]/50 mb-5 uppercase tracking-[0.18em]">
                 Legal
               </h4>
               <ul className="space-y-3">
@@ -204,8 +204,8 @@ export default function Footer() {
             <p className="text-xs text-white/25">
               &copy; {new Date().getFullYear()} HimaVolt
             </p>
-            <span className="h-3 w-px bg-white/10" />
-            <p className="text-xs text-[#eaa94d]/40 font-medium">
+            <span className="h-3 w-px bg-[var(--canvas)]/80" />
+            <p className="text-xs text-[var(--accent)]/40 font-medium">
               Made for Nepal.
             </p>
           </div>
@@ -222,10 +222,10 @@ export default function Footer() {
             whileHover={{ scale: 1.1, y: -2 }}
             whileTap={{ scale: 0.9 }}
             onClick={scrollToTop}
-            className="group flex items-center gap-2 text-xs text-white/25 hover:text-[#eaa94d] transition-colors duration-300"
+            className="group flex items-center gap-2 text-xs text-white/25 hover:text-[var(--accent)] transition-colors duration-300"
           >
             Back to top
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/4 group-hover:bg-[#eaa94d]/10 border border-white/4 group-hover:border-[#eaa94d]/20 transition-all duration-300">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--canvas)]/80 group-hover:bg-[var(--accent)]/10 border border-white/4 group-hover:border-[var(--accent)]/20 transition-all duration-300">
               <ArrowUp className="h-3.5 w-3.5" />
             </span>
           </motion.button>

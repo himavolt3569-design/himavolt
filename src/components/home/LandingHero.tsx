@@ -1,9 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, QrCode, Truck, MapPin, Clock, Star } from "lucide-react";
+
 import Link from "next/link";
+
+const ANIMATED_WORDS = ["Delicious", "Fresh", "Fast", "Spicy", "Healthy"];
 
 const liveOrders = [
   {
@@ -153,6 +156,18 @@ const stats = [
 ];
 
 export default function LandingHero() {
+  const [wordIdx, setWordIdx] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    timerRef.current = setInterval(() => {
+      setWordIdx((i) => (i + 1) % ANIMATED_WORDS.length);
+    }, 2200);
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, []);
+
   return (
     <section className="relative bg-[var(--canvas)] overflow-hidden">
       <div
@@ -165,20 +180,17 @@ export default function LandingHero() {
 
       <div className="relative z-10 mx-auto max-w-7xl px-4 md:px-8 lg:px-12 pt-20 md:pt-28 lg:pt-32 pb-10">
         <div className="text-center max-w-2xl mx-auto">
-          {/* Live pill
+          {/* FREE badge */}
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: "easeOut" }}
           >
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--accent-muted)] border border-[var(--accent-border)] px-3.5 py-1 text-[10px] font-bold text-[var(--accent-text)] uppercase tracking-wider">
-              <span className="relative flex h-1.5 w-1.5">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--accent)]/60" />
-                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
-              </span>
-              Now live in Kathmandu
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-3.5 py-1 text-[10px] font-bold text-emerald-700 uppercase tracking-wider dark:bg-emerald-950/30 dark:border-emerald-800/40 dark:text-emerald-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              100% Free to use
             </span>
-          </motion.div> */}
+          </motion.div>
           {/* Headline */}
           <motion.h1
             initial={{ opacity: 0, y: 22 }}
@@ -190,9 +202,22 @@ export default function LandingHero() {
             }}
             className="mt-5 text-[2.75rem] leading-[1.05] sm:text-5xl md:text-6xl lg:text-[4rem] font-black tracking-tight text-[var(--text-1)]"
           >
-            Scan. Order. Enjoy.
+            Scan. Order.
             <br />
-            <span className="text-[var(--accent)]"></span>
+            <span className="inline-block min-w-[1ch]">
+              <AnimatePresence mode="wait">
+                <motion.span
+                  key={ANIMATED_WORDS[wordIdx]}
+                  initial={{ y: 36, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: -28, opacity: 0 }}
+                  transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
+                  className="inline-block text-[var(--accent)]"
+                >
+                  {ANIMATED_WORDS[wordIdx]}.
+                </motion.span>
+              </AnimatePresence>
+            </span>
           </motion.h1>
           {/* Subheadline */}
           <motion.p
@@ -209,23 +234,28 @@ export default function LandingHero() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.24, ease: [0.16, 1, 0.3, 1] }}
-            className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3"
+            className="mt-8 flex flex-col items-center gap-3"
           >
-            <Link
-              href="/menu"
-              className="group w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-6 py-3 text-sm font-bold text-white shadow-md shadow-[var(--accent)]/20 hover:bg-[var(--accent-hover)] active:scale-[0.97] transition-colors"
-            >
-              <Truck className="h-4 w-4" />
-              Order Delivery
-              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-            </Link>
-            <Link
-              href="/scan"
-              className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] px-6 py-3 text-sm font-bold text-[var(--canvas)] hover:opacity-80 active:scale-[0.97] transition-all"
-            >
-              <QrCode className="h-4 w-4" />
-              Scan Table QR
-            </Link>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full">
+              <Link
+                href="/menu"
+                className="group w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-6 py-3 text-sm font-bold text-white shadow-md shadow-[var(--accent)]/20 hover:bg-[var(--accent-hover)] active:scale-[0.97] transition-colors"
+              >
+                <Truck className="h-4 w-4" />
+                Order Delivery
+                <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+              </Link>
+              <Link
+                href="/scan"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] px-6 py-3 text-sm font-bold text-[var(--canvas)] hover:opacity-80 active:scale-[0.97] transition-all"
+              >
+                <QrCode className="h-4 w-4" />
+                Scan Table QR
+              </Link>
+            </div>
+            <p className="text-[11px] text-[var(--text-3)]">
+              No credit card required. Free for restaurants.
+            </p>
           </motion.div>
           {/* Stats */}
           <motion.div

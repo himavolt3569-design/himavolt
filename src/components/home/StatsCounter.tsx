@@ -86,8 +86,8 @@ export default function StatsCounter() {
         }}
       />
 
-      <div className="absolute top-0 left-1/4 w-60 h-40 rounded-full bg-[#eaa94d]/[0.06] blur-[80px] pointer-events-none" />
-      <div className="absolute bottom-0 right-1/4 w-60 h-40 rounded-full bg-[#d67620]/[0.06] blur-[80px] pointer-events-none" />
+      <div className="absolute top-0 left-1/4 w-60 h-40 rounded-full bg-[var(--accent)]/[0.06] blur-[80px] pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-60 h-40 rounded-full bg-[var(--accent-hover)]/[0.06] blur-[80px] pointer-events-none" />
 
       <div className="relative mx-auto max-w-6xl px-4 md:px-8 lg:px-12">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
@@ -133,7 +133,7 @@ export default function StatsCounter() {
 
                 {/* Separator (between items on desktop) */}
                 {i < stats.length - 1 && (
-                  <div className="hidden lg:block absolute right-0 top-1/2 -translate-y-1/2 h-16 w-px bg-white/[0.06]" />
+                  <div className="hidden lg:block absolute right-0 top-1/2 -translate-y-1/2 h-16 w-px bg-[var(--canvas)]/[0.06]" />
                 )}
               </motion.div>
             );

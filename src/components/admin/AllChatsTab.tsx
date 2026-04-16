@@ -51,7 +51,7 @@ interface Pagination {
 const SENDER_COLORS: Record<string, string> = {
   CUSTOMER: "bg-blue-100 text-blue-700",
   KITCHEN: "bg-[var(--accent-muted)] text-[var(--accent-text)]",
-  BILLING: "bg-[var(--accent-muted)] text-[#b25c1c]",
+  BILLING: "bg-[var(--accent-muted)] text-[var(--accent-text)]",
   ADMIN: "bg-red-100 text-red-700",
   MANAGER: "bg-purple-100 text-purple-700",
 };
@@ -207,7 +207,7 @@ export default function AllChatsTab() {
               key={v}
               onClick={() => { setActiveFilter(v); setPage(1); }}
               className={`rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all ${
-                activeFilter === v ? "bg-gompa-slate text-white" : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-brand-50"
+                activeFilter === v ? "bg-[var(--text-1)] text-white" : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--accent-muted)]"
               }`}
             >
               {v === "" ? "All Chats" : v === "true" ? "Active" : "Closed"}
@@ -216,7 +216,7 @@ export default function AllChatsTab() {
         </div>
         <button
           onClick={() => fetchRooms(page)}
-          className="flex items-center gap-1.5 rounded-xl border border-[var(--border)] px-3 py-2 text-xs font-medium text-[var(--text-2)] hover:bg-brand-50"
+          className="flex items-center gap-1.5 rounded-xl border border-[var(--border)] px-3 py-2 text-xs font-medium text-[var(--text-2)] hover:bg-[var(--accent-muted)]"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
           Refresh
@@ -242,22 +242,22 @@ export default function AllChatsTab() {
       )}
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <div className="overflow-hidden rounded-2xl border border-brand-100 bg-[var(--canvas)] shadow-sm">
-          <div className="flex items-center justify-between border-b border-brand-100 px-4 py-2.5">
+        <div className="overflow-hidden rounded-2xl border border-[var(--accent-muted)] bg-[var(--canvas)] shadow-sm">
+          <div className="flex items-center justify-between border-b border-[var(--accent-muted)] px-4 py-2.5">
             <div className="flex items-center gap-2">
               <input
                 type="checkbox"
                 checked={allSelected}
                 onChange={() => setSelectedIds(allSelected ? new Set() : new Set(rooms.map((r) => r.id)))}
-                className="h-3.5 w-3.5 rounded accent-gompa-slate"
+                className="h-3.5 w-3.5 rounded accent-[var(--accent)]"
               />
-              <MessageCircle className="h-4 w-4 text-brand-400" />
+              <MessageCircle className="h-4 w-4 text-[var(--accent)]" />
               <span className="text-xs font-semibold text-[var(--text-2)]">Chat Rooms</span>
             </div>
-            <div className="flex items-center gap-1.5 text-[11px] text-[#b25c1c]">
+            <div className="flex items-center gap-1.5 text-[11px] text-[var(--accent-text)]">
               <span className="relative flex h-1.5 w-1.5">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#eaa94d] opacity-75" />
-                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#eaa94d]" />
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--accent)] opacity-75" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
               </span>
               Live
             </div>
@@ -265,7 +265,7 @@ export default function AllChatsTab() {
 
           {loading && rooms.length === 0 ? (
             <div className="flex items-center justify-center py-16">
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-brand-400 border-t-transparent" />
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" />
             </div>
           ) : rooms.length === 0 ? (
             <div className="py-16 text-center">
@@ -281,8 +281,8 @@ export default function AllChatsTab() {
                 return (
                   <div
                     key={room.id}
-                    className={`flex w-full items-start gap-3 px-4 py-3 transition-all hover:bg-brand-50/40 ${
-                      isSelected ? "bg-brand-50 border-l-2 border-brand-500" : isBulkSelected ? "bg-red-50/30" : ""
+                    className={`flex w-full items-start gap-3 px-4 py-3 transition-all hover:bg-[var(--accent-muted)]/40 ${
+                      isSelected ? "bg-[var(--accent-muted)] border-l-2 border-[var(--accent)]" : isBulkSelected ? "bg-red-50/30" : ""
                     }`}
                   >
                   <input
@@ -293,22 +293,22 @@ export default function AllChatsTab() {
                       if (next.has(room.id)) next.delete(room.id); else next.add(room.id);
                       return next;
                     })}
-                    className="mt-3 h-3.5 w-3.5 flex-shrink-0 rounded accent-gompa-slate"
+                    className="mt-3 h-3.5 w-3.5 flex-shrink-0 rounded accent-[var(--accent)]"
                   />
                   <button
                     type="button"
                     onClick={() => fetchMessages(room.id)}
                     className="flex flex-1 items-start gap-3 text-left"
                   >
-                    <div className={`mt-0.5 flex-shrink-0 rounded-lg p-2 ${room.isActive ? "bg-[var(--accent-muted)] text-[#b25c1c]" : "bg-[var(--surface)] text-[var(--text-3)]"}`}>
+                    <div className={`mt-0.5 flex-shrink-0 rounded-lg p-2 ${room.isActive ? "bg-[var(--accent-muted)] text-[var(--accent-text)]" : "bg-[var(--surface)] text-[var(--text-3)]"}`}>
                       <MessageCircle className="h-4 w-4" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-gompa-slate">
+                        <span className="text-sm font-semibold text-[var(--text-1)]">
                           {room.restaurant?.name || "Unknown"}
                         </span>
-                        <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${room.isActive ? "bg-[var(--accent-muted)] text-[#b25c1c]" : "bg-[var(--surface)] text-[var(--text-2)]"}`}>
+                        <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${room.isActive ? "bg-[var(--accent-muted)] text-[var(--accent-text)]" : "bg-[var(--surface)] text-[var(--text-2)]"}`}>
                           {room.isActive ? "Active" : "Closed"}
                         </span>
                         <span className="rounded-full bg-[var(--surface)] px-1.5 py-0.5 text-[10px] text-[var(--text-2)]">
@@ -329,7 +329,7 @@ export default function AllChatsTab() {
                       <p className="text-[11px] text-[var(--text-3)] tabular-nums">
                         {timeAgo(room.updatedAt)}
                       </p>
-                      <p className="mt-0.5 rounded-full bg-brand-100 px-1.5 py-0.5 text-[10px] font-medium text-brand-600">
+                      <p className="mt-0.5 rounded-full bg-[var(--accent-muted)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--accent-hover)]">
                         {room._count.messages} msgs
                       </p>
                     </div>
@@ -351,10 +351,10 @@ export default function AllChatsTab() {
             <div className="flex items-center justify-between border-t border-[var(--border-soft)] px-4 py-2.5">
               <span className="text-xs text-[var(--text-3)]">Page {pagination.page} of {pagination.totalPages}</span>
               <div className="flex gap-1.5">
-                <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-2)] hover:bg-brand-50 disabled:opacity-40">
+                <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-2)] hover:bg-[var(--accent-muted)] disabled:opacity-40">
                   <ChevronLeft className="h-3.5 w-3.5" />
                 </button>
-                <button disabled={page >= pagination.totalPages} onClick={() => setPage((p) => p + 1)} className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-2)] hover:bg-brand-50 disabled:opacity-40">
+                <button disabled={page >= pagination.totalPages} onClick={() => setPage((p) => p + 1)} className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-2)] hover:bg-[var(--accent-muted)] disabled:opacity-40">
                   <ChevronRight className="h-3.5 w-3.5" />
                 </button>
               </div>
@@ -362,16 +362,16 @@ export default function AllChatsTab() {
           )}
         </div>
 
-        <div className="overflow-hidden rounded-2xl border border-brand-100 bg-[var(--canvas)] shadow-sm">
-          <div className="flex items-center gap-2 border-b border-brand-100 px-4 py-2.5">
-            <Send className="h-4 w-4 text-brand-400" />
+        <div className="overflow-hidden rounded-2xl border border-[var(--accent-muted)] bg-[var(--canvas)] shadow-sm">
+          <div className="flex items-center gap-2 border-b border-[var(--accent-muted)] px-4 py-2.5">
+            <Send className="h-4 w-4 text-[var(--accent)]" />
             <span className="text-xs font-semibold text-[var(--text-2)]">
               {selectedRoom ? "Messages" : "Select a chat room"}
             </span>
             {selectedRoom && (
               <button
                 onClick={() => { setSelectedRoom(null); setMessages([]); }}
-                className="ml-auto text-[var(--text-3)] hover:text-brand-500"
+                className="ml-auto text-[var(--text-3)] hover:text-[var(--accent)]"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
@@ -387,7 +387,7 @@ export default function AllChatsTab() {
             </div>
           ) : messagesLoading && messages.length === 0 ? (
             <div className="flex items-center justify-center py-20">
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-brand-400 border-t-transparent" />
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" />
             </div>
           ) : messages.length === 0 ? (
             <div className="flex items-center justify-center py-20">
@@ -399,7 +399,7 @@ export default function AllChatsTab() {
                 const isAdmin = msg.sender === "ADMIN" || msg.sender === "MANAGER" || msg.sender === "BILLING" || msg.sender === "KITCHEN";
                 return (
                   <div key={msg.id} className={`flex ${isAdmin ? "justify-end" : "justify-start"}`}>
-                    <div className={`max-w-[80%] rounded-2xl px-3 py-2 ${isAdmin ? "bg-brand-100 text-gompa-slate" : "bg-[var(--surface)] text-gompa-slate"}`}>
+                    <div className={`max-w-[80%] rounded-2xl px-3 py-2 ${isAdmin ? "bg-[var(--accent-muted)] text-[var(--text-1)]" : "bg-[var(--surface)] text-[var(--text-1)]"}`}>
                       <div className="flex items-center gap-2 mb-0.5">
                         <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${SENDER_COLORS[msg.sender] || "bg-[var(--surface-alt)] text-[var(--text-2)]"}`}>
                           {msg.sender}

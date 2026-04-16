@@ -109,10 +109,10 @@ export default function ScrollHowItWorks() {
             {/* Left: persistent panel */}
             <div>
               <Badge variant="saffron">How it works</Badge>
-              <h2 className="mt-4 text-4xl font-extrabold tracking-tight text-[#3e1e0c] leading-[1.1]">
+              <h2 className="mt-4 text-4xl font-extrabold tracking-tight text-[var(--text-1)] leading-[1.1]">
                 From scan to savour
                 <br />
-                <span className="text-transparent bg-clip-text bg-linear-to-r from-[#eaa94d] to-[#d67620]">
+                <span className="text-transparent bg-clip-text bg-linear-to-r from-[var(--accent)] to-[var(--accent-hover)]">
                   in four simple steps.
                 </span>
               </h2>
@@ -143,7 +143,7 @@ export default function ScrollHowItWorks() {
                     className="step-panel w-full shrink-0 px-3"
                   >
                     <div className="rounded-2xl border border-[#f4d69a]/25 bg-[var(--canvas)] p-10 relative overflow-hidden min-h-[320px]">
-                      <span className="absolute top-6 right-8 text-[80px] font-extrabold leading-none text-[#3e1e0c]/[0.03] select-none pointer-events-none">
+                      <span className="absolute top-6 right-8 text-[80px] font-extrabold leading-none text-[var(--text-1)]/[0.03] select-none pointer-events-none">
                         {step.num}
                       </span>
                       <div
@@ -165,7 +165,7 @@ export default function ScrollHowItWorks() {
                       >
                         Step {step.num}
                       </span>
-                      <h3 className="mt-2 text-2xl font-extrabold text-[#3e1e0c] tracking-tight">
+                      <h3 className="mt-2 text-2xl font-extrabold text-[var(--text-1)] tracking-tight">
                         {step.title}
                       </h3>
                       <p className="mt-3 text-base text-[#8e491e]/55 leading-relaxed max-w-sm">
@@ -196,14 +196,14 @@ export default function ScrollHowItWorks() {
             <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-[#111111] leading-[1.1]">
               From scan to savour
               <br />
-              <span className="text-transparent bg-clip-text bg-linear-to-r from-[#eaa94d] to-[#d67620]">
+              <span className="text-transparent bg-clip-text bg-linear-to-r from-[var(--accent)] to-[var(--accent-hover)]">
                 in four simple steps.
               </span>
             </h2>
           </motion.div>
 
           <div className="relative">
-            <div className="absolute left-[27px] top-0 bottom-0 w-px bg-[#eaa94d]/15" />
+            <div className="absolute left-[27px] top-0 bottom-0 w-px bg-[var(--accent)]/15" />
 
             <div className="space-y-10">
               {steps.map((step, i) => (

@@ -90,10 +90,10 @@ const ACTION_ICONS: Record<string, typeof Activity> = {
 
 const ACTION_COLORS: Record<string, string> = {
   ORDER_CREATED: "text-blue-600 bg-blue-50",
-  ORDER_ACCEPTED: "text-[#b25c1c] bg-[var(--accent-muted)]",
+  ORDER_ACCEPTED: "text-[var(--accent-text)] bg-[var(--accent-muted)]",
   ORDER_PREPARING: "text-[var(--accent-text)] bg-[var(--accent-muted)]",
-  ORDER_READY: "text-[#b25c1c] bg-[var(--accent-muted)]",
-  ORDER_DELIVERED: "text-[#b25c1c] bg-[var(--accent-muted)]",
+  ORDER_READY: "text-[var(--accent-text)] bg-[var(--accent-muted)]",
+  ORDER_DELIVERED: "text-[var(--accent-text)] bg-[var(--accent-muted)]",
   ORDER_CANCELLED: "text-red-600 bg-red-50",
   ORDER_REJECTED: "text-red-600 bg-red-50",
   MENU_ITEM_CREATED: "text-purple-600 bg-purple-50",
@@ -103,10 +103,10 @@ const ACTION_COLORS: Record<string, string> = {
   STAFF_REMOVED: "text-red-500 bg-red-50",
   STAFF_LOGIN: "text-teal-600 bg-teal-50",
   STAFF_LOGOUT: "text-[var(--text-2)] bg-[var(--surface)]",
-  PAYMENT_COMPLETED: "text-[#b25c1c] bg-[var(--accent-muted)]",
+  PAYMENT_COMPLETED: "text-[var(--accent-text)] bg-[var(--accent-muted)]",
   PAYMENT_FAILED: "text-red-600 bg-red-50",
-  RESTAURANT_CREATED: "text-saffron-flame bg-[var(--accent)]",
-  RESTAURANT_UPDATED: "text-saffron-flame bg-[var(--accent)]",
+  RESTAURANT_CREATED: "text-[var(--accent)] bg-[var(--accent)]",
+  RESTAURANT_UPDATED: "text-[var(--accent)] bg-[var(--accent)]",
   INVENTORY_ADDED: "text-cyan-600 bg-cyan-50",
   INVENTORY_UPDATED: "text-cyan-600 bg-cyan-50",
   USER_CREATED: "text-indigo-600 bg-indigo-50",
@@ -152,7 +152,7 @@ function AuditRow({ log, isNew }: { log: AuditLog; isNew?: boolean }) {
       layout
       initial={isNew ? { opacity: 0, x: -20, scale: 0.98 } : false}
       animate={{ opacity: 1, x: 0, scale: 1 }}
-      className={`group border-b border-[var(--border-soft)] transition-all hover:bg-brand-50/60 ${isNew ? "bg-brand-100/30" : ""}`}
+      className={`group border-b border-[var(--border-soft)] transition-all hover:bg-[var(--accent-muted)]/60 ${isNew ? "bg-[var(--accent-muted)]/30" : ""}`}
     >
       <button
         type="button"
@@ -164,9 +164,9 @@ function AuditRow({ log, isNew }: { log: AuditLog; isNew?: boolean }) {
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold text-gompa-slate">{formatAction(log.action)}</span>
+            <span className="text-sm font-semibold text-[var(--text-1)]">{formatAction(log.action)}</span>
             {isNew && (
-              <span className="inline-flex items-center rounded-full bg-brand-500 px-1.5 py-0.5 text-[10px] font-bold text-white shadow-sm">
+              <span className="inline-flex items-center rounded-full bg-[var(--accent)] px-1.5 py-0.5 text-[10px] font-bold text-white shadow-sm">
                 NEW
               </span>
             )}
@@ -180,7 +180,7 @@ function AuditRow({ log, isNew }: { log: AuditLog; isNew?: boolean }) {
           {log.restaurant && <p className="text-[11px] text-[var(--text-3)]">{log.restaurant.name}</p>}
         </div>
         <span className="flex-shrink-0 text-[11px] text-[var(--text-3)] tabular-nums">{timeAgo(log.createdAt)}</span>
-        <Eye className="h-3.5 w-3.5 flex-shrink-0 text-[var(--text-3)] group-hover:text-brand-400" />
+        <Eye className="h-3.5 w-3.5 flex-shrink-0 text-[var(--text-3)] group-hover:text-[var(--accent)]" />
       </button>
 
       <AnimatePresence>
@@ -191,32 +191,32 @@ function AuditRow({ log, isNew }: { log: AuditLog; isNew?: boolean }) {
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden"
           >
-            <div className="border-t border-brand-100 bg-brand-50/30 px-4 py-3">
+            <div className="border-t border-[var(--accent-muted)] bg-[var(--accent-muted)]/30 px-4 py-3">
               <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-xs sm:grid-cols-4">
                 <div>
                   <span className="text-[var(--text-3)]">Entity</span>
-                  <p className="font-medium text-gompa-slate">{log.entity}</p>
+                  <p className="font-medium text-[var(--text-1)]">{log.entity}</p>
                 </div>
                 <div>
                   <span className="text-[var(--text-3)]">Entity ID</span>
-                  <p className="font-mono text-gompa-slate">{log.entityId ? `...${log.entityId.slice(-8)}` : "—"}</p>
+                  <p className="font-mono text-[var(--text-1)]">{log.entityId ? `...${log.entityId.slice(-8)}` : "—"}</p>
                 </div>
                 <div>
                   <span className="text-[var(--text-3)]">User</span>
-                  <p className="font-medium text-gompa-slate">{log.user?.email ?? "System"}</p>
+                  <p className="font-medium text-[var(--text-1)]">{log.user?.email ?? "System"}</p>
                 </div>
                 <div>
                   <span className="text-[var(--text-3)]">IP Address</span>
-                  <p className="font-mono text-gompa-slate">{log.ipAddress ?? "—"}</p>
+                  <p className="font-mono text-[var(--text-1)]">{log.ipAddress ?? "—"}</p>
                 </div>
                 <div className="col-span-2 sm:col-span-4">
                   <span className="text-[var(--text-3)]">Timestamp</span>
-                  <p className="font-medium text-gompa-slate">{new Date(log.createdAt).toLocaleString()}</p>
+                  <p className="font-medium text-[var(--text-1)]">{new Date(log.createdAt).toLocaleString()}</p>
                 </div>
                 {log.metadata && (
                   <div className="col-span-2 sm:col-span-4">
                     <span className="text-[var(--text-3)]">Metadata</span>
-                    <pre className="mt-1 max-h-32 overflow-auto rounded-lg bg-gompa-slate p-2 text-[11px] text-[#d67620]">
+                    <pre className="mt-1 max-h-32 overflow-auto rounded-lg bg-[var(--text-1)] p-2 text-[11px] text-[var(--accent-hover)]">
                       {JSON.stringify(JSON.parse(log.metadata), null, 2)}
                     </pre>
                   </div>
@@ -348,10 +348,10 @@ export default function AuditTab() {
             placeholder="Search audit logs..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] py-2 pl-9 pr-3 text-sm text-gompa-slate placeholder:text-[var(--text-3)] focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-200"
+            className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] py-2 pl-9 pr-3 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
           />
           {search && (
-            <button onClick={() => setSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--text-3)] hover:text-brand-500">
+            <button onClick={() => setSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--text-3)] hover:text-[var(--accent)]">
               <X className="h-3.5 w-3.5" />
             </button>
           )}
@@ -360,8 +360,8 @@ export default function AuditTab() {
           onClick={() => setShowFilters((p) => !p)}
           className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-medium transition-all ${
             showFilters || entityFilter !== "All"
-              ? "border-saffron-flame bg-saffron-flame/5 text-saffron-flame"
-              : "border-[var(--border)] text-[var(--text-2)] hover:bg-brand-50"
+              ? "border-[var(--accent)] bg-[var(--accent)]/5 text-[var(--accent)]"
+              : "border-[var(--border)] text-[var(--text-2)] hover:bg-[var(--accent-muted)]"
           }`}
         >
           <Filter className="h-3.5 w-3.5" />
@@ -371,7 +371,7 @@ export default function AuditTab() {
           onClick={() => setLiveEnabled((p) => !p)}
           className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-medium transition-all ${
             liveEnabled
-              ? "border-[#eaa94d] bg-[var(--accent-muted)] text-[#b25c1c]"
+              ? "border-[var(--accent)] bg-[var(--accent-muted)] text-[var(--accent-text)]"
               : "border-[var(--border)] text-[var(--text-2)] hover:bg-[var(--canvas-sub)]"
           }`}
         >
@@ -380,7 +380,7 @@ export default function AuditTab() {
         </button>
         <button
           onClick={() => fetchLogs(page)}
-          className="flex items-center gap-1.5 rounded-xl border border-[var(--border)] px-3 py-2 text-xs font-medium text-[var(--text-2)] hover:bg-brand-50"
+          className="flex items-center gap-1.5 rounded-xl border border-[var(--border)] px-3 py-2 text-xs font-medium text-[var(--text-2)] hover:bg-[var(--accent-muted)]"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
           Refresh
@@ -396,7 +396,7 @@ export default function AuditTab() {
                   key={e}
                   onClick={() => { setEntityFilter(e); setPage(1); }}
                   className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-all ${
-                    entityFilter === e ? "bg-gompa-slate text-white" : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-brand-50"
+                    entityFilter === e ? "bg-[var(--text-1)] text-white" : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--accent-muted)]"
                   }`}
                 >
                   {e}
@@ -407,22 +407,22 @@ export default function AuditTab() {
         )}
       </AnimatePresence>
 
-      <div className="overflow-hidden rounded-2xl border border-brand-100 bg-[var(--canvas)] shadow-sm">
-        <div className="flex items-center justify-between border-b border-brand-100 px-4 py-2.5">
+      <div className="overflow-hidden rounded-2xl border border-[var(--accent-muted)] bg-[var(--canvas)] shadow-sm">
+        <div className="flex items-center justify-between border-b border-[var(--accent-muted)] px-4 py-2.5">
           <div className="flex items-center gap-2">
-            <Activity className="h-4 w-4 text-brand-400" />
+            <Activity className="h-4 w-4 text-[var(--accent)]" />
             <span className="text-xs font-semibold text-[var(--text-2)]">Activity Feed</span>
             {pagination && (
-              <span className="rounded-md bg-brand-50 px-1.5 py-0.5 text-[10px] font-medium text-brand-600">
+              <span className="rounded-md bg-[var(--accent-muted)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--accent-hover)]">
                 {pagination.total.toLocaleString()} total
               </span>
             )}
           </div>
           {liveEnabled && (
-            <div className="flex items-center gap-1.5 text-[11px] text-[#b25c1c]">
+            <div className="flex items-center gap-1.5 text-[11px] text-[var(--accent-text)]">
               <span className="relative flex h-1.5 w-1.5">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#eaa94d] opacity-75" />
-                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#eaa94d]" />
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--accent)] opacity-75" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
               </span>
               Streaming
             </div>
@@ -431,7 +431,7 @@ export default function AuditTab() {
 
         {loading && logs.length === 0 ? (
           <div className="flex items-center justify-center py-16">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-brand-400 border-t-transparent" />
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" />
           </div>
         ) : logs.length === 0 ? (
           <div className="py-16 text-center">
@@ -450,10 +450,10 @@ export default function AuditTab() {
           <div className="flex items-center justify-between border-t border-[var(--border-soft)] px-4 py-2.5">
             <span className="text-xs text-[var(--text-3)]">Page {pagination.page} of {pagination.totalPages}</span>
             <div className="flex gap-1.5">
-              <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-2)] hover:bg-brand-50 disabled:opacity-40">
+              <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-2)] hover:bg-[var(--accent-muted)] disabled:opacity-40">
                 <ChevronLeft className="h-3.5 w-3.5" />
               </button>
-              <button disabled={page >= pagination.totalPages} onClick={() => setPage((p) => p + 1)} className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-2)] hover:bg-brand-50 disabled:opacity-40">
+              <button disabled={page >= pagination.totalPages} onClick={() => setPage((p) => p + 1)} className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-2)] hover:bg-[var(--accent-muted)] disabled:opacity-40">
                 <ChevronRight className="h-3.5 w-3.5" />
               </button>
             </div>

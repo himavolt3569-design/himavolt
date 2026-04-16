@@ -69,7 +69,7 @@ const TIME_SLOTS = [
 const STATUS_COLORS: Record<PreOrderItem["status"], string> = {
   Pending: "bg-[var(--accent-muted)] text-[var(--accent-text)] border-[var(--accent-border)]",
   Baking: "bg-[var(--accent)] text-[var(--accent)] border-[var(--accent-border)]",
-  Ready: "bg-[var(--accent-muted)] text-[#b25c1c] border-[var(--accent-border)]",
+  Ready: "bg-[var(--accent-muted)] text-[var(--accent-text)] border-[var(--accent-border)]",
   "Picked Up": "bg-[var(--surface)] text-[var(--text-2)] border-[var(--border)]",
 };
 
@@ -226,7 +226,7 @@ export default function PreOrdersTab() {
             onClick={() => setAcceptingPreOrders(!acceptingPreOrders)}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
               acceptingPreOrders
-                ? "bg-[var(--accent-muted)] text-[#b25c1c] hover:bg-[#fde9ba]"
+                ? "bg-[var(--accent-muted)] text-[var(--accent-text)] hover:bg-[#fde9ba]"
                 : "bg-red-100 text-red-700 hover:bg-red-200"
             }`}
           >

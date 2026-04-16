@@ -118,7 +118,7 @@ export default function TakeawayTab() {
       case "Packing":
         return "bg-[var(--accent-muted)] text-[var(--accent-text)]";
       case "Packed":
-        return "bg-[var(--accent-muted)] text-[#b25c1c]";
+        return "bg-[var(--accent-muted)] text-[var(--accent-text)]";
       case "Picked Up":
         return "bg-blue-100 text-blue-600";
     }
@@ -176,7 +176,7 @@ export default function TakeawayTab() {
               { label: "Active Orders", value: activeOrders.length, icon: Package, color: "text-[var(--accent-text)] bg-[var(--accent-muted)]" },
               { label: "Avg Prep Time", value: `${avgPrepTime} min`, icon: Timer, color: "text-[var(--accent)] bg-[var(--accent)]" },
               { label: "Pickup Counter", value: pickupCounter, icon: MapPin, color: "text-blue-600 bg-blue-50" },
-              { label: "Print Labels", value: printLabelEnabled ? "On" : "Off", icon: Printer, color: "text-[#b25c1c] bg-[var(--accent-muted)]" },
+              { label: "Print Labels", value: printLabelEnabled ? "On" : "Off", icon: Printer, color: "text-[var(--accent-text)] bg-[var(--accent-muted)]" },
             ].map((stat) => (
               <motion.div
                 key={stat.label}
@@ -295,7 +295,7 @@ export default function TakeawayTab() {
                             onChange={(e) => setNewPkgEco(e.target.checked)}
                             className="accent-green-500"
                           />
-                          <Leaf className="w-3.5 h-3.5 text-[#d67620]" />
+                          <Leaf className="w-3.5 h-3.5 text-[var(--accent-hover)]" />
                           Eco-Friendly
                         </label>
                         <button
@@ -330,7 +330,7 @@ export default function TakeawayTab() {
                           <div className="flex items-center gap-1.5">
                             <span className="text-sm font-medium text-[var(--text-1)]">{pkg.name}</span>
                             {pkg.ecoFriendly && (
-                              <Leaf className="w-3 h-3 text-[#d67620]" />
+                              <Leaf className="w-3 h-3 text-[var(--accent-hover)]" />
                             )}
                           </div>
                           <span className="text-xs text-[var(--text-3)]">Rs {pkg.costPerUnit}/unit</span>
@@ -383,7 +383,7 @@ export default function TakeawayTab() {
                   <p className="text-sm font-semibold text-[var(--text-1)]">{partner.name}</p>
                   <p
                     className={`text-xs mt-1 ${
-                      partner.connected ? "text-[#b25c1c]" : "text-[var(--text-3)]"
+                      partner.connected ? "text-[var(--accent-text)]" : "text-[var(--text-3)]"
                     }`}
                   >
                     {partner.statusLabel}

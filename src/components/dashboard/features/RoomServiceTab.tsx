@@ -59,7 +59,7 @@ const STATUS_CONFIG: Record<
   "On the Way": { bg: "bg-blue-100", text: "text-blue-700", icon: Truck },
   Delivered: {
     bg: "bg-[var(--accent-muted)]",
-    text: "text-[#b25c1c]",
+    text: "text-[var(--accent-text)]",
     icon: CheckCircle2,
   },
 };
@@ -218,7 +218,7 @@ export default function RoomServiceTab() {
             label: "Today's Revenue",
             value: `$${totalRevenue.toFixed(2)}`,
             icon: DollarSign,
-            color: "text-[#b25c1c]",
+            color: "text-[var(--accent-text)]",
             bg: "bg-[var(--accent-muted)]",
           },
           {

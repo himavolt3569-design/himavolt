@@ -60,7 +60,7 @@ interface MenuItem {
 }
 
 const STATUS_CONFIG: Record<ItemStatus, { label: string; color: string; bg: string }> = {
-  available:    { label: "Available", color: "text-[#b25c1c]",  bg: "bg-[var(--accent-muted)]"  },
+  available:    { label: "Available", color: "text-[var(--accent-text)]",  bg: "bg-[var(--accent-muted)]"  },
   "just-baked": { label: "Fresh Now", color: "text-[var(--accent-text)]",  bg: "bg-[var(--accent-muted)]"  },
   "last-few":   { label: "Last Few",  color: "text-[var(--accent)]", bg: "bg-[var(--accent)]" },
   "sold-out":   { label: "Sold Out",  color: "text-red-600",    bg: "bg-red-50"    },
@@ -313,7 +313,7 @@ export default function DisplayCounterTab() {
 
       <div className="grid grid-cols-3 gap-4">
         <div className="rounded-xl bg-[var(--canvas)] ring-1 ring-[var(--border)] p-4 shadow-sm text-center">
-          <p className="text-2xl font-bold text-[#d67620]">{availableCount}</p>
+          <p className="text-2xl font-bold text-[var(--accent-hover)]">{availableCount}</p>
           <p className="text-[11px] text-[var(--text-2)]">Available</p>
         </div>
         <div className="rounded-xl bg-[var(--canvas)] ring-1 ring-[var(--border)] p-4 shadow-sm text-center">
@@ -447,7 +447,7 @@ export default function DisplayCounterTab() {
                                 </div>
                               )}
                               {alreadyAdded && (
-                                <div className="absolute top-1.5 right-1.5 rounded-full bg-[#eaa94d] px-1.5 py-0.5">
+                                <div className="absolute top-1.5 right-1.5 rounded-full bg-[var(--accent)] px-1.5 py-0.5">
                                   <span className="text-[9px] font-bold text-white">Added</span>
                                 </div>
                               )}

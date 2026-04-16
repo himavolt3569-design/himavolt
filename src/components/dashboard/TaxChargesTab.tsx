@@ -100,7 +100,7 @@ export default function TaxChargesTab() {
               }
               className={`flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold transition-all border ${
                 config.currency === c.code
-                  ? "border-[#3e1e0c] bg-[#3e1e0c]/5 text-[var(--text-1)] ring-2 ring-[#3e1e0c]/10"
+                  ? "border-[#3e1e0c] bg-[var(--text-1)]/5 text-[var(--text-1)] ring-2 ring-[var(--text-1)]/10"
                   : "border-[var(--border)] bg-[var(--canvas)] text-[var(--text-2)] hover:bg-[var(--canvas-sub)]"
               }`}
             >
@@ -125,7 +125,7 @@ export default function TaxChargesTab() {
               setConfig((c) => ({ ...c, taxEnabled: !c.taxEnabled }))
             }
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-              config.taxEnabled ? "bg-[#3e1e0c]" : "bg-[var(--border)]"
+              config.taxEnabled ? "bg-[var(--text-1)]" : "bg-[var(--border)]"
             }`}
           >
             <span
@@ -153,7 +153,7 @@ export default function TaxChargesTab() {
                 min="0"
                 max="100"
                 step="0.1"
-                className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 pr-10 text-sm font-bold text-[var(--text-1)] outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/10 transition-all"
+                className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 pr-10 text-sm font-bold text-[var(--text-1)] outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/10 transition-all"
               />
               <Percent className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-3)]" />
             </div>
@@ -164,7 +164,7 @@ export default function TaxChargesTab() {
                   onClick={() => setConfig((c) => ({ ...c, taxRate: v }))}
                   className={`rounded-lg px-2.5 py-1.5 text-xs font-bold transition-all ${
                     config.taxRate === v
-                      ? "bg-[#3e1e0c] text-white"
+                      ? "bg-[var(--text-1)] text-white"
                       : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
                   }`}
                 >
@@ -192,7 +192,7 @@ export default function TaxChargesTab() {
               }))
             }
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-              config.serviceChargeEnabled ? "bg-[#3e1e0c]" : "bg-[var(--border)]"
+              config.serviceChargeEnabled ? "bg-[var(--text-1)]" : "bg-[var(--border)]"
             }`}
           >
             <span
@@ -220,7 +220,7 @@ export default function TaxChargesTab() {
                 min="0"
                 max="100"
                 step="0.1"
-                className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 pr-10 text-sm font-bold text-[var(--text-1)] outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[#3e1e0c]/10 transition-all"
+                className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 pr-10 text-sm font-bold text-[var(--text-1)] outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/10 transition-all"
               />
               <Percent className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-3)]" />
             </div>
@@ -233,7 +233,7 @@ export default function TaxChargesTab() {
                   }
                   className={`rounded-lg px-2.5 py-1.5 text-xs font-bold transition-all ${
                     config.serviceChargeRate === v
-                      ? "bg-[#3e1e0c] text-white"
+                      ? "bg-[var(--text-1)] text-white"
                       : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
                   }`}
                 >
@@ -291,7 +291,7 @@ export default function TaxChargesTab() {
       <button
         onClick={handleSave}
         disabled={saving}
-        className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#3e1e0c] py-3.5 text-sm font-bold text-white hover:bg-[#2d1508] disabled:bg-[var(--border)] transition-all shadow-sm"
+        className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] py-3.5 text-sm font-bold text-white hover:bg-[#2d1508] disabled:bg-[var(--border)] transition-all shadow-sm"
       >
         {saving ? (
           <Loader2 className="h-4 w-4 animate-spin" />

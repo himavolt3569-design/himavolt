@@ -52,7 +52,7 @@ interface AdminBooking {
 
 const STATUS_COLORS: Record<string, string> = {
   PENDING:     "bg-[var(--accent-muted)] text-[var(--accent-text)]",
-  CONFIRMED:   "bg-[var(--accent-muted)] text-[#b25c1c]",
+  CONFIRMED:   "bg-[var(--accent-muted)] text-[var(--accent-text)]",
   CHECKED_IN:  "bg-blue-100 text-blue-700",
   CHECKED_OUT: "bg-[var(--surface)] text-[var(--text-2)]",
   CANCELLED:   "bg-rose-100 text-rose-600",
@@ -248,7 +248,7 @@ export default function AllBookingsTab() {
                       type="checkbox"
                       checked={allSelected}
                       onChange={() => setSelectedIds(allSelected ? new Set() : new Set(filtered.map((b) => b.id)))}
-                      className="h-3.5 w-3.5 rounded accent-gompa-slate"
+                      className="h-3.5 w-3.5 rounded accent-[var(--accent)]"
                     />
                   </th>
                   {["Guest", "Hotel / Room", "Dates", "Guests", "Total", "Advance", "Status", ""].map((h) => (
@@ -278,7 +278,7 @@ export default function AllBookingsTab() {
                             if (next.has(b.id)) next.delete(b.id); else next.add(b.id);
                             return next;
                           })}
-                          className="h-3.5 w-3.5 rounded accent-gompa-slate"
+                          className="h-3.5 w-3.5 rounded accent-[var(--accent)]"
                         />
                       </td>
                       <td className="px-4 py-3">
@@ -309,8 +309,8 @@ export default function AllBookingsTab() {
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1">
-                          <CreditCard className={`h-3 w-3 ${b.advancePaid ? "text-[#d67620]" : "text-[var(--accent)]"}`} />
-                          <span className={b.advancePaid ? "text-[#b25c1c] font-semibold" : "text-[var(--accent)]"}>
+                          <CreditCard className={`h-3 w-3 ${b.advancePaid ? "text-[var(--accent-hover)]" : "text-[var(--accent)]"}`} />
+                          <span className={b.advancePaid ? "text-[var(--accent-text)] font-semibold" : "text-[var(--accent)]"}>
                             {b.advancePaid ? "Paid" : "Unpaid"}
                           </span>
                         </div>

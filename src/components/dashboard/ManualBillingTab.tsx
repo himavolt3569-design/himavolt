@@ -405,11 +405,11 @@ export default function ManualBillingTab({
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: "spring", damping: 14 }}
             className={`flex h-24 w-24 items-center justify-center rounded-full shadow-lg ${
-              isPaid ? "bg-[var(--accent-muted)] ring-4 ring-[#eaa94d]/30" : "bg-[var(--accent)] ring-4 ring-orange-200"
+              isPaid ? "bg-[var(--accent-muted)] ring-4 ring-[var(--accent)]/30" : "bg-[var(--accent)] ring-4 ring-orange-200"
             }`}
           >
             {isPaid
-              ? <CheckCircle2 className="h-12 w-12 text-[#b25c1c]" />
+              ? <CheckCircle2 className="h-12 w-12 text-[var(--accent-text)]" />
               : <Clock className="h-12 w-12 text-[var(--accent)]" />
             }
           </motion.div>
@@ -421,7 +421,7 @@ export default function ManualBillingTab({
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -6 }}
-                className={`text-2xl font-black tracking-wide ${isPaid ? "text-[#b25c1c]" : "text-[var(--accent)]"}`}
+                className={`text-2xl font-black tracking-wide ${isPaid ? "text-[var(--accent-text)]" : "text-[var(--accent)]"}`}
               >
                 {isPaid ? "PAID" : "UNPAID"}
               </motion.h3>
@@ -441,7 +441,7 @@ export default function ManualBillingTab({
             <button
               onClick={handleMarkPaid}
               disabled={markingPaid}
-              className="w-full flex items-center justify-center gap-2 rounded-2xl bg-[#eaa94d] py-4 text-base font-bold text-white hover:bg-[#eaa94d] disabled:opacity-60 transition-all shadow-lg shadow-green-200 active:scale-[0.98]"
+              className="w-full flex items-center justify-center gap-2 rounded-2xl bg-[var(--accent)] py-4 text-base font-bold text-white hover:bg-[var(--accent)] disabled:opacity-60 transition-all shadow-lg shadow-green-200 active:scale-[0.98]"
             >
               {markingPaid
                 ? <Loader2 className="h-5 w-5 animate-spin" />
@@ -451,7 +451,7 @@ export default function ManualBillingTab({
           )}
 
           {isPaid && (
-            <div className="w-full rounded-2xl bg-[var(--accent-muted)] border border-[var(--accent-border)] py-3 px-4 text-sm font-semibold text-[#b25c1c] flex items-center justify-center gap-2">
+            <div className="w-full rounded-2xl bg-[var(--accent-muted)] border border-[var(--accent-border)] py-3 px-4 text-sm font-semibold text-[var(--accent-text)] flex items-center justify-center gap-2">
               <CheckCircle2 className="h-4 w-4" /> Payment recorded
             </div>
           )}
@@ -504,7 +504,7 @@ export default function ManualBillingTab({
     return (
       <div className="flex flex-col items-center justify-center py-16 gap-4">
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--accent-muted)]">
-          <Check className="h-8 w-8 text-[#b25c1c]" />
+          <Check className="h-8 w-8 text-[var(--accent-text)]" />
         </div>
         <h3 className="text-lg font-bold text-[var(--text-1)]">
           {hasDrinks && hasFood ? "Order Sent to Kitchen & Bar" : hasDrinks ? "Order Sent to Bar" : "Order Sent to Kitchen"}
@@ -529,7 +529,7 @@ export default function ManualBillingTab({
           {hasFood && (
             <button
               onClick={() => handlePrintKOT()}
-              className="flex items-center gap-2 rounded-xl bg-[#3e1e0c] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#3e1e0c]/90 transition-colors"
+              className="flex items-center gap-2 rounded-xl bg-[var(--text-1)] px-5 py-2.5 text-sm font-bold text-white hover:bg-[var(--text-1)]/90 transition-colors"
             >
               <Printer className="h-4 w-4" /> Print KOT
             </button>

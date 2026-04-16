@@ -44,7 +44,7 @@ const STAGE_COLORS: Record<PipelineStage, string> = {
   Preparing: "bg-[var(--accent-muted)] text-[var(--accent-text)] border-[var(--accent-border)]",
   Packaging: "bg-violet-100 text-violet-700 border-violet-200",
   "Quality Check": "bg-[var(--accent)] text-[var(--accent)] border-[var(--accent-border)]",
-  "Ready for Dispatch": "bg-[var(--accent-muted)] text-[#b25c1c] border-[var(--accent-border)]",
+  "Ready for Dispatch": "bg-[var(--accent-muted)] text-[var(--accent-text)] border-[var(--accent-border)]",
   Dispatched: "bg-[var(--surface)] text-[var(--text-2)] border-[var(--border)]",
 };
 
@@ -544,7 +544,7 @@ export default function PackageTrackingTab() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-[var(--accent-muted)] rounded-lg">
-                <ClipboardCheck className="w-5 h-5 text-[#b25c1c]" />
+                <ClipboardCheck className="w-5 h-5 text-[var(--accent-text)]" />
               </div>
               <div>
                 <h3 className="text-sm font-semibold text-[var(--text-1)]">
@@ -570,7 +570,7 @@ export default function PackageTrackingTab() {
               }}
               transition={{ duration: 0.3 }}
               className={`h-full rounded-full ${
-                qcProgress === qcTotal ? "bg-[#eaa94d]" : "bg-violet-500"
+                qcProgress === qcTotal ? "bg-[var(--accent)]" : "bg-violet-500"
               }`}
             />
           </div>
@@ -589,7 +589,7 @@ export default function PackageTrackingTab() {
                 <div
                   className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${
                     item.checked
-                      ? "bg-[#eaa94d] border-[#eaa94d]"
+                      ? "bg-[var(--accent)] border-[var(--accent)]"
                       : "border-[var(--border)]"
                   }`}
                 >
@@ -600,7 +600,7 @@ export default function PackageTrackingTab() {
                 <span
                   className={`text-sm ${
                     item.checked
-                      ? "text-[#b25c1c] line-through"
+                      ? "text-[var(--accent-text)] line-through"
                       : "text-[var(--text-2)]"
                   }`}
                 >
@@ -616,8 +616,8 @@ export default function PackageTrackingTab() {
               animate={{ opacity: 1, scale: 1 }}
               className="mt-4 p-3 bg-[var(--accent-muted)] rounded-lg text-center"
             >
-              <CheckCircle2 className="w-6 h-6 text-[#b25c1c] mx-auto mb-1" />
-              <p className="text-sm font-semibold text-[#b25c1c]">
+              <CheckCircle2 className="w-6 h-6 text-[var(--accent-text)] mx-auto mb-1" />
+              <p className="text-sm font-semibold text-[var(--accent-text)]">
                 Quality check passed!
               </p>
             </motion.div>
@@ -654,7 +654,7 @@ export default function PackageTrackingTab() {
                 >
                   <div className="flex items-center gap-3">
                     <div className="p-1.5 bg-[var(--accent-muted)] rounded-lg">
-                      <Truck className="w-4 h-4 text-[#b25c1c]" />
+                      <Truck className="w-4 h-4 text-[var(--accent-text)]" />
                     </div>
                     <div>
                       <p className="text-sm font-medium text-[var(--text-1)]">

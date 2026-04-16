@@ -48,7 +48,7 @@ export default function GetBillButton({
         animate={{ opacity: 1, y: 0 }}
         whileHover={{ scale: 1.03 }}
         whileTap={{ scale: 0.97 }}
-        className="fixed bottom-24 right-4 z-40 flex items-center gap-2 rounded-full bg-gradient-to-r from-[#d67620] to-[#d67620] px-5 py-3 text-sm font-bold text-white shadow-lg shadow-green-600/30 cursor-pointer md:bottom-6"
+        className="fixed bottom-24 right-4 z-40 flex items-center gap-2 rounded-full bg-gradient-to-r from-[#d67620] to-[var(--accent-hover)] px-5 py-3 text-sm font-bold text-white shadow-lg shadow-green-600/30 cursor-pointer md:bottom-6"
       >
         <Receipt className="h-4 w-4" />
         Get Bill
@@ -73,7 +73,7 @@ export default function GetBillButton({
             >
               <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-soft)]">
                 <div className="flex items-center gap-2">
-                  <Receipt className="h-5 w-5 text-[#b25c1c]" />
+                  <Receipt className="h-5 w-5 text-[var(--accent-text)]" />
                   <h3 className="text-base font-bold text-[var(--text-1)]">Get Bill</h3>
                 </div>
                 {!loading && (
@@ -95,7 +95,7 @@ export default function GetBillButton({
                       transition={{ type: "spring", stiffness: 500, damping: 15 }}
                       className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--accent-muted)]"
                     >
-                      <Receipt className="h-6 w-6 text-[#b25c1c]" />
+                      <Receipt className="h-6 w-6 text-[var(--accent-text)]" />
                     </motion.div>
                     <p className="font-bold text-[var(--text-1)]">Bill requested!</p>
                     <p className="text-sm text-[var(--text-2)] mt-1">
@@ -115,7 +115,7 @@ export default function GetBillButton({
                         <span className="text-[var(--text-2)]">Payment</span>
                         <span className="flex items-center gap-1 font-medium text-[var(--text-1)]">
                           {paymentMethod === "CASH" ? (
-                            <Banknote className="h-3.5 w-3.5 text-[#b25c1c]" />
+                            <Banknote className="h-3.5 w-3.5 text-[var(--accent-text)]" />
                           ) : (
                             <CreditCard className="h-3.5 w-3.5 text-blue-600" />
                           )}
@@ -124,7 +124,7 @@ export default function GetBillButton({
                       </div>
                       <div className="border-t border-[var(--border)] pt-2 flex justify-between">
                         <span className="font-bold text-[var(--text-1)]">Total</span>
-                        <span className="font-bold text-[#b25c1c] text-lg">
+                        <span className="font-bold text-[var(--accent-text)] text-lg">
                           {formatPrice(total, currency)}
                         </span>
                       </div>
@@ -137,7 +137,7 @@ export default function GetBillButton({
                     <button
                       onClick={handleGetBill}
                       disabled={loading}
-                      className="w-full rounded-xl bg-[#eaa94d] py-3 text-sm font-bold text-white hover:bg-[var(--accent-muted)]0 transition-colors disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+                      className="w-full rounded-xl bg-[var(--accent)] py-3 text-sm font-bold text-white hover:bg-[var(--accent-muted)]0 transition-colors disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
                     >
                       {loading ? (
                         <Loader2 className="h-4 w-4 animate-spin" />

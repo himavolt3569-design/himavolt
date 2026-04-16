@@ -192,7 +192,7 @@ export default function PaymentQRTab() {
             >
               <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-soft)]">
                 <div className="flex items-center gap-2">
-                  <QrCode className="h-5 w-5 text-[#eaa94d]" />
+                  <QrCode className="h-5 w-5 text-[var(--accent)]" />
                   <h3 className="text-base font-bold text-[var(--text-1)]">
                     Add Payment QR
                   </h3>
@@ -256,11 +256,11 @@ export default function PaymentQRTab() {
                         const file = e.dataTransfer.files[0];
                         if (file) handleFileUpload(file);
                       }}
-                      className="flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-[var(--border)] bg-[var(--canvas-sub)] py-10 cursor-pointer hover:border-[#eaa94d] hover:bg-[#eaa94d]/5 transition-all"
+                      className="flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-[var(--border)] bg-[var(--canvas-sub)] py-10 cursor-pointer hover:border-[var(--accent)] hover:bg-[var(--accent)]/5 transition-all"
                     >
                       {uploading ? (
                         <>
-                          <Loader2 className="h-7 w-7 animate-spin text-[#eaa94d]" />
+                          <Loader2 className="h-7 w-7 animate-spin text-[var(--accent)]" />
                           <p className="text-sm font-bold text-[var(--text-2)]">
                             Uploading...
                           </p>
@@ -268,7 +268,7 @@ export default function PaymentQRTab() {
                       ) : (
                         <>
                           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--accent-muted)]">
-                            <Upload className="h-5 w-5 text-[#eaa94d]" />
+                            <Upload className="h-5 w-5 text-[var(--accent)]" />
                           </div>
                           <div className="text-center">
                             <p className="text-sm font-bold text-[var(--text-1)]">
@@ -386,7 +386,7 @@ export default function PaymentQRTab() {
                 <span
                   className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
                     qr.isActive
-                      ? "bg-[var(--accent-muted)] text-[#b25c1c]"
+                      ? "bg-[var(--accent-muted)] text-[var(--accent-text)]"
                       : "bg-[var(--surface)] text-[var(--text-3)]"
                   }`}
                 >
@@ -396,7 +396,7 @@ export default function PaymentQRTab() {
 
               <button
                 onClick={() => setPreviewQR(qr)}
-                className="w-full rounded-xl overflow-hidden border border-[var(--border-soft)] bg-[var(--canvas-sub)] hover:border-[#eaa94d]/40 transition-colors cursor-pointer"
+                className="w-full rounded-xl overflow-hidden border border-[var(--border-soft)] bg-[var(--canvas-sub)] hover:border-[var(--accent)]/40 transition-colors cursor-pointer"
               >
                 <img
                   src={qr.imageUrl}
@@ -411,7 +411,7 @@ export default function PaymentQRTab() {
                   className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-bold transition-all ${
                     qr.isActive
                       ? "bg-[var(--accent-muted)] text-[var(--accent-text)] hover:bg-[var(--accent-muted)]"
-                      : "bg-[var(--accent-muted)] text-[#b25c1c] hover:bg-[var(--accent-muted)]"
+                      : "bg-[var(--accent-muted)] text-[var(--accent-text)] hover:bg-[var(--accent-muted)]"
                   }`}
                 >
                   {qr.isActive ? (

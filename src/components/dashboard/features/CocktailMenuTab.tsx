@@ -185,7 +185,7 @@ export default function CocktailMenuTab() {
       case "Signature":
         return "text-purple-400 bg-purple-500/10";
       case "Mocktail":
-        return "text-[#d67620] bg-[var(--accent-muted)]";
+        return "text-[var(--accent-hover)] bg-[var(--accent-muted)]";
       case "Shot":
         return "text-red-400 bg-red-500/10";
       default:
@@ -466,7 +466,7 @@ export default function CocktailMenuTab() {
               {newCocktail.cost && newCocktail.price && (
                 <div className="bg-zinc-900 rounded-lg p-3 flex items-center justify-between">
                   <span className="text-zinc-400 text-sm">Profit Margin</span>
-                  <span className="text-[#d67620] font-semibold">
+                  <span className="text-[var(--accent-hover)] font-semibold">
                     {Math.round(
                       ((parseFloat(newCocktail.price) - parseFloat(newCocktail.cost)) /
                         parseFloat(newCocktail.price)) *
@@ -512,7 +512,7 @@ export default function CocktailMenuTab() {
                         <Star className="w-3.5 h-3.5 text-[var(--accent)] fill-[var(--accent)]" />
                       )}
                       {cocktail.isSeasonal && (
-                        <span className="px-1.5 py-0.5 bg-[#eaa94d]/20 text-[#d67620] text-[10px] rounded-full font-medium">
+                        <span className="px-1.5 py-0.5 bg-[var(--accent)]/20 text-[var(--accent-hover)] text-[10px] rounded-full font-medium">
                           Seasonal
                         </span>
                       )}
@@ -552,7 +552,7 @@ export default function CocktailMenuTab() {
                     <p className="text-zinc-500 text-xs">Cost</p>
                   </div>
                   <div>
-                    <p className="text-[#d67620] text-sm font-medium">
+                    <p className="text-[var(--accent-hover)] text-sm font-medium">
                       {Math.round(((cocktail.price - cocktail.cost) / cocktail.price) * 100)}%
                     </p>
                     <p className="text-zinc-500 text-xs">Margin</p>
@@ -584,8 +584,8 @@ export default function CocktailMenuTab() {
                     onClick={() => toggleSeasonal(cocktail.id)}
                     className={`flex items-center gap-1 text-sm transition-colors ${
                       cocktail.isSeasonal
-                        ? "text-[#d67620]"
-                        : "text-zinc-400 hover:text-[#d67620]"
+                        ? "text-[var(--accent-hover)]"
+                        : "text-zinc-400 hover:text-[var(--accent-hover)]"
                     }`}
                   >
                     <Sparkles className="w-3.5 h-3.5" />
@@ -643,13 +643,13 @@ export default function CocktailMenuTab() {
       {selectedCategory === "All" && cocktails.some((c) => c.category === "Mocktail") && (
         <div>
           <div className="flex items-center gap-2 mb-3">
-            <Leaf className="w-5 h-5 text-[#d67620]" />
+            <Leaf className="w-5 h-5 text-[var(--accent-hover)]" />
             <h3 className="text-white font-semibold">Mocktail Corner</h3>
-            <span className="px-2 py-0.5 bg-[#eaa94d]/20 text-[#d67620] text-xs rounded-full">
+            <span className="px-2 py-0.5 bg-[var(--accent)]/20 text-[var(--accent-hover)] text-xs rounded-full">
               Non-Alcoholic
             </span>
           </div>
-          <div className="bg-gradient-to-r from-[#eaa94d]/5 to-transparent rounded-xl p-4 border border-[#eaa94d]/20">
+          <div className="bg-gradient-to-r from-[var(--accent)]/5 to-transparent rounded-xl p-4 border border-[var(--accent)]/20">
             <div className="flex gap-3 overflow-x-auto">
               {cocktails
                 .filter((c) => c.category === "Mocktail")
@@ -662,7 +662,7 @@ export default function CocktailMenuTab() {
                     <p className="text-zinc-400 text-xs mt-0.5">
                       {mocktail.ingredients.length} ingredients
                     </p>
-                    <p className="text-[#d67620] font-semibold text-sm mt-2">
+                    <p className="text-[var(--accent-hover)] font-semibold text-sm mt-2">
                       Rs {mocktail.price}
                     </p>
                   </div>

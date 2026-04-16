@@ -55,7 +55,7 @@ export default function WifiSeatingTab() {
 
   const statusColor = (status: Table["status"]) => {
     switch (status) {
-      case "Available": return "bg-[var(--accent-muted)] text-[#b25c1c]";
+      case "Available": return "bg-[var(--accent-muted)] text-[var(--accent-text)]";
       case "Occupied": return "bg-[var(--accent-muted)] text-[var(--accent-text)]";
       case "Reserved": return "bg-blue-100 text-blue-700";
     }
@@ -115,7 +115,7 @@ export default function WifiSeatingTab() {
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         {[
           { label: "Occupancy", value: `${occupiedSeats}/${totalSeats}`, icon: Users, color: "text-[var(--accent-text)] bg-[var(--accent-muted)]" },
-          { label: "Occupancy Rate", value: `${occupancyPct}%`, icon: BarChart3, color: "text-[#b25c1c] bg-[var(--accent-muted)]" },
+          { label: "Occupancy Rate", value: `${occupancyPct}%`, icon: BarChart3, color: "text-[var(--accent-text)] bg-[var(--accent-muted)]" },
           { label: "Avg Session", value: `${avgSession} min`, icon: Clock, color: "text-blue-600 bg-blue-50" },
           { label: "Turnover Rate", value: `${turnoverRate}x/day`, icon: RefreshCw, color: "text-purple-600 bg-purple-50" },
         ].map((stat) => (
@@ -147,7 +147,7 @@ export default function WifiSeatingTab() {
             initial={{ width: 0 }}
             animate={{ width: `${occupancyPct}%` }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className={`h-3 rounded-full ${occupancyPct > 80 ? "bg-red-400" : occupancyPct > 50 ? "bg-[var(--accent)]" : "bg-[#eaa94d]"}`}
+            className={`h-3 rounded-full ${occupancyPct > 80 ? "bg-red-400" : occupancyPct > 50 ? "bg-[var(--accent)]" : "bg-[var(--accent)]"}`}
           />
         </div>
         <div className="flex items-center justify-between mt-2">
@@ -209,7 +209,7 @@ export default function WifiSeatingTab() {
                     onClick={copyPassword}
                     className="px-3 py-2 bg-[var(--surface)] text-[var(--text-2)] rounded-lg hover:bg-[var(--surface-alt)] transition-colors"
                   >
-                    {copied ? <Check className="w-4 h-4 text-[#d67620]" /> : <Copy className="w-4 h-4" />}
+                    {copied ? <Check className="w-4 h-4 text-[var(--accent-hover)]" /> : <Copy className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
@@ -338,7 +338,7 @@ export default function WifiSeatingTab() {
                   onClick={() => togglePower(table.id)}
                   className={`flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-lg transition-colors ${
                     table.hasPowerOutlet
-                      ? "bg-[var(--accent-muted)] text-[#b25c1c]"
+                      ? "bg-[var(--accent-muted)] text-[var(--accent-text)]"
                       : "bg-[var(--surface)] text-[var(--text-3)]"
                   }`}
                 >

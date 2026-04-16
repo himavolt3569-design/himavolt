@@ -199,14 +199,14 @@ export default function MultiOutletTab() {
             label: "Active Now",
             value: activeCount,
             icon: MapPin,
-            color: "text-[#b25c1c]",
+            color: "text-[var(--accent-text)]",
             bg: "bg-[var(--accent-muted)]",
           },
           {
             label: "Today's Revenue",
             value: `$${totalRevenue.toLocaleString()}`,
             icon: DollarSign,
-            color: "text-[#b25c1c]",
+            color: "text-[var(--accent-text)]",
             bg: "bg-[var(--accent-muted)]",
           },
           {
@@ -265,7 +265,7 @@ export default function MultiOutletTab() {
                       <span
                         className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                           outlet.isActive
-                            ? "bg-[var(--accent-muted)] text-[#b25c1c]"
+                            ? "bg-[var(--accent-muted)] text-[var(--accent-text)]"
                             : "bg-stone-100 text-stone-500"
                         }`}
                       >
@@ -289,7 +289,7 @@ export default function MultiOutletTab() {
                 <div className="flex items-center gap-2">
                   <div className="rounded-lg bg-[var(--accent-muted)] px-3 py-1.5 text-right">
                     <p className="text-xs text-stone-500">Revenue</p>
-                    <p className="text-sm font-bold text-[#b25c1c]">
+                    <p className="text-sm font-bold text-[var(--accent-text)]">
                       ${outlet.todayRevenue.toLocaleString()}
                     </p>
                   </div>
@@ -306,7 +306,7 @@ export default function MultiOutletTab() {
                     title={outlet.isActive ? "Close outlet" : "Open outlet"}
                   >
                     {outlet.isActive ? (
-                      <ToggleRight className="h-7 w-7 text-[#b25c1c]" />
+                      <ToggleRight className="h-7 w-7 text-[var(--accent-text)]" />
                     ) : (
                       <ToggleLeft className="h-7 w-7 text-stone-300" />
                     )}

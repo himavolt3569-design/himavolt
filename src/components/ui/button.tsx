@@ -2,9 +2,9 @@ import { cn } from "@/lib/utils";
 import { forwardRef } from "react";
 
 const variantStyles: Record<string, string> = {
-  primary: "bg-[#eaa94d] text-[#0c0c0c] hover:bg-[#f0b85d] shadow-lg shadow-[#eaa94d]/15",
-  ghost: "bg-transparent text-[#3e1e0c] hover:bg-[#fdf9ef]",
-  outline: "bg-transparent text-[#3e1e0c] border border-[#f4d69a]/40 hover:border-[#eaa94d]/40 hover:bg-[#fdf9ef]",
+  primary: "bg-[var(--accent)] text-[#0c0c0c] hover:bg-[#f0b85d] shadow-lg shadow-[var(--accent)]/15",
+  ghost: "bg-transparent text-[var(--text-1)] hover:bg-[#fdf9ef]",
+  outline: "bg-transparent text-[var(--text-1)] border border-[#f4d69a]/40 hover:border-[var(--accent)]/40 hover:bg-[#fdf9ef]",
 };
 
 const sizeStyles: Record<string, string> = {
