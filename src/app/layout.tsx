@@ -4,6 +4,7 @@ import "./globals.css";
 import Providers from "./providers";
 import PWAInstallPrompt from "@/components/shared/PWAInstallPrompt";
 import BottomNav from "@/components/layout/BottomNav";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -52,6 +53,7 @@ export default function RootLayout({
           <BottomNav />
           <PWAInstallPrompt />
         </Providers>
+        <SpeedInsights />
       </body>
     </html>
   );
