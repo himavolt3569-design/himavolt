@@ -151,7 +151,18 @@ export default function ReservePage() {
               <input
                 type="tel"
                 value={form.phone}
-                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    phone: e.target.value.replace(/\D/g, "").slice(0, 10),
+                  })
+                }
+                required
+                maxLength={10}
+                minLength={10}
+                pattern="\d{10}"
+                inputMode="numeric"
+                title="Enter exactly 10 digits"
                 placeholder="98XXXXXXXX"
                 className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-3 text-sm text-[var(--text-1)] focus:outline-none focus:border-[var(--accent)]"
               />

@@ -1271,13 +1271,24 @@ function BookingFormModal({
               {/* Phone & Email */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">Phone</label>
+                  <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">
+                    Phone <span className="text-[var(--accent)]">*</span>
+                  </label>
                   <input
                     type="tel"
                     value={form.guestPhone}
                     onChange={(e) =>
-                      setForm((f) => ({ ...f, guestPhone: e.target.value.replace(/[^\d+\-\s]/g, "") }))
+                      setForm((f) => ({
+                        ...f,
+                        guestPhone: e.target.value.replace(/\D/g, "").slice(0, 10),
+                      }))
                     }
+                    required
+                    maxLength={10}
+                    minLength={10}
+                    pattern="\d{10}"
+                    inputMode="numeric"
+                    title="Enter exactly 10 digits"
                     placeholder="98XXXXXXXX"
                     className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
                   />

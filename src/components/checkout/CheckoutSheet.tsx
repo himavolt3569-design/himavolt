@@ -783,8 +783,18 @@ export default function CheckoutSheet({
                           <input
                             type="tel"
                             value={deliveryPhone}
-                            onChange={(e) => setDeliveryPhone(e.target.value)}
-                            placeholder="Phone number (e.g. 9800000000)"
+                            onChange={(e) =>
+                              setDeliveryPhone(
+                                e.target.value.replace(/\D/g, "").slice(0, 10),
+                              )
+                            }
+                            required
+                            maxLength={10}
+                            minLength={10}
+                            pattern="\d{10}"
+                            inputMode="numeric"
+                            title="Enter exactly 10 digits"
+                            placeholder="9800000000"
                             className="w-full rounded-xl border border-[var(--border)] py-3 pl-10 pr-4 text-sm text-[var(--text-1)] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] focus:border-[var(--accent-border)]"
                           />
                         </div>

@@ -461,13 +461,18 @@ export const POST = safeHandler(
       });
     }
 
-    if (paymentMethod && paymentMethod !== "NONE") {
+    {
+      const effectiveMethod = (paymentMethod && paymentMethod !== "NONE"
+        ? paymentMethod
+        : "COUNTER") as "CASH" | "ESEWA" | "KHALTI" | "BANK" | "COUNTER" | "DIRECT";
+      const isAlreadyPaid = effectiveMethod === "DIRECT";
       await db.payment.create({
         data: {
           orderId: order.id,
-          method: paymentMethod as "CASH" | "ESEWA" | "KHALTI" | "BANK" | "COUNTER" | "DIRECT",
-          status: paymentMethod === "COUNTER" ? "PENDING" : "PENDING",
+          method: effectiveMethod,
+          status: isAlreadyPaid ? "COMPLETED" : "PENDING",
           amount: total,
+          ...(isAlreadyPaid ? { paidAt: new Date() } : {}),
         },
       });
     }

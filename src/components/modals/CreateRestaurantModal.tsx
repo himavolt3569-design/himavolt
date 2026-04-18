@@ -445,8 +445,14 @@ function ModalBody({
                 <input
                   type="tel"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
-                  placeholder={countryCode}
+                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                  required
+                  maxLength={10}
+                  minLength={10}
+                  pattern="\d{10}"
+                  inputMode="numeric"
+                  title="Enter exactly 10 digits"
+                  placeholder="98XXXXXXXX"
                   className="w-full rounded-xl bg-[var(--canvas-sub)] pl-10 pr-3.5 py-3 text-sm text-[var(--text-1)] placeholder-gray-400 outline-none ring-1 ring-[var(--border)]/80 transition-all focus:bg-[var(--canvas)] focus:ring-[var(--accent)]"
                 />
               </div>

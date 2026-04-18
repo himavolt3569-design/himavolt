@@ -100,6 +100,12 @@ export default function SignUpPage() {
       document.cookie = `intended_role=${role}; path=/; max-age=86400; SameSite=Lax`;
     }
 
+    if (role === "OWNER" && !/^\d{10}$/.test(phone)) {
+      setError("Phone number must be exactly 10 digits");
+      setLoading(false);
+      return;
+    }
+
     const supabase = getSupabaseBrowserClient();
     const { error: signUpError } = await supabase.auth.signUp({
       email,
@@ -455,14 +461,19 @@ export default function SignUpPage() {
                         <input
                           type="tel"
                           value={phone}
-                          onChange={(e) => setPhone(e.target.value)}
+                          onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
                           required
+                          maxLength={10}
+                          minLength={10}
+                          pattern="\d{10}"
+                          inputMode="numeric"
                           className={inputClass}
-                          placeholder="+977 98XXXXXXXX"
+                          placeholder="98XXXXXXXX"
+                          title="Enter exactly 10 digits"
                         />
                       </div>
                       <p className="mt-1 text-[11px] text-[var(--text-3)]">
-                        Required for restaurant verification
+                        Must be exactly 10 digits (required)
                       </p>
                     </motion.div>
                   )}

@@ -257,10 +257,15 @@ export default function OnboardingPage() {
                     <input
                       type="tel"
                       value={form.phone}
-                      onChange={(e) => update("phone", e.target.value)}
+                      onChange={(e) => update("phone", e.target.value.replace(/\D/g, "").slice(0, 10))}
                       required
+                      maxLength={10}
+                      minLength={10}
+                      pattern="\d{10}"
+                      inputMode="numeric"
+                      title="Enter exactly 10 digits"
                       className="w-full rounded-xl border border-[var(--border)] py-2.5 pl-9 pr-4 text-sm focus:border-[var(--accent-border)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-border)]"
-                      placeholder="+977 01-XXXXXXX or 98XXXXXXXX"
+                      placeholder="98XXXXXXXX"
                     />
                   </div>
                 </div>

@@ -1,9 +1,16 @@
 import { z } from "zod";
 
 
+export const phoneSchema = z
+  .string()
+  .trim()
+  .length(10, "Phone number must be exactly 10 digits")
+  .regex(/^\d{10}$/, "Phone number must contain only digits");
+
+
 export const createRestaurantSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(100),
-  phone: z.string().trim().min(7).max(15),
+  phone: phoneSchema,
   countryCode: z.string().default("+977"),
   type: z.enum([
     "FAST_FOOD",
@@ -26,7 +33,7 @@ export type CreateRestaurantInput = z.infer<typeof createRestaurantSchema>;
 
 export const updateRestaurantSchema = z.object({
   name: z.string().trim().min(1).max(100).optional(),
-  phone: z.string().trim().min(7).max(15).optional(),
+  phone: phoneSchema.optional(),
   address: z.string().max(200).optional(),
   city: z.string().max(50).optional(),
   type: z.string().optional(),
@@ -65,7 +72,7 @@ export type CreateMenuItemInput = z.infer<typeof createMenuItemSchema>;
 export const createStaffSchema = z.object({
   name: z.string().trim().min(1).max(60),
   email: z.string().email(),
-  phone: z.string().max(15).optional(),
+  phone: phoneSchema,
   role: z.enum(["SUPER_ADMIN", "MANAGER", "CHEF", "WAITER", "CASHIER"]),
 });
 export type CreateStaffInput = z.infer<typeof createStaffSchema>;
@@ -74,7 +81,7 @@ export type CreateStaffInput = z.infer<typeof createStaffSchema>;
 export const contactSchema = z.object({
   name: z.string().trim().min(1).max(60),
   email: z.string().email(),
-  phone: z.string().max(15).optional(),
+  phone: phoneSchema,
   subject: z.string().trim().min(1).max(120),
   message: z.string().trim().min(10, "Message too short").max(2000),
 });
@@ -133,7 +140,7 @@ export const createOrderSchema = z.object({
   deliveryAddress: z.string().max(300).optional().nullable(),
   deliveryLat: z.number().optional().nullable(),
   deliveryLng: z.number().optional().nullable(),
-  deliveryPhone: z.string().max(20).optional().nullable(),
+  deliveryPhone: phoneSchema.optional().nullable(),
   deliveryNote: z.string().max(300).optional().nullable(),
   couponCode: z.string().max(50).optional().nullable(), // optional coupon code
   autoAccept: z.boolean().optional(), // Fast Pay: skip PENDING, go directly to kitchen

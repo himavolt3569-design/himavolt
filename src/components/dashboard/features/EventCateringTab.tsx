@@ -777,7 +777,7 @@ export default function EventCateringTab() {
                   </div>
                   <div>
                     <label className="mb-1.5 block text-sm font-medium text-stone-700">
-                      Phone
+                      Phone <span className="text-[var(--accent)]">*</span>
                     </label>
                     <input
                       type="tel"
@@ -785,10 +785,16 @@ export default function EventCateringTab() {
                       onChange={(e) =>
                         setNewEvent((ev) => ({
                           ...ev,
-                          contactPhone: e.target.value,
+                          contactPhone: e.target.value.replace(/\D/g, "").slice(0, 10),
                         }))
                       }
-                      placeholder="+977-..."
+                      required
+                      maxLength={10}
+                      minLength={10}
+                      pattern="\d{10}"
+                      inputMode="numeric"
+                      title="Enter exactly 10 digits"
+                      placeholder="98XXXXXXXX"
                       className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 placeholder:text-stone-400 focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                     />
                   </div>

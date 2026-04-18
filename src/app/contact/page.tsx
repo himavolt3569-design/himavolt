@@ -279,8 +279,19 @@ export default function ContactPage() {
                       <input
                         type="tel"
                         value={form.phone}
-                        onChange={set("phone")}
-                        placeholder="+977 98XXXXXXXX"
+                        onChange={(e) =>
+                          setForm((p) => ({
+                            ...p,
+                            phone: e.target.value.replace(/\D/g, "").slice(0, 10),
+                          }))
+                        }
+                        required
+                        maxLength={10}
+                        minLength={10}
+                        pattern="\d{10}"
+                        inputMode="numeric"
+                        title="Enter exactly 10 digits"
+                        placeholder="98XXXXXXXX"
                         className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-3.5 text-sm font-medium text-[var(--text-1)] placeholder-gray-300 outline-none transition-all focus:border-[var(--accent)]/40 focus:ring-2 focus:ring-[var(--accent)]/15 focus:bg-[var(--canvas)]"
                       />
                     </div>
