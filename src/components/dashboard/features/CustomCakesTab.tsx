@@ -23,6 +23,7 @@ import {
   List,
   Calculator,
 } from "lucide-react";
+import NotPersistedBanner from "./_NotPersistedBanner";
 
 interface CustomCakeOrder {
   id: string;
@@ -174,6 +175,7 @@ export default function CustomCakesTab() {
 
   return (
     <div className="space-y-6">
+      <NotPersistedBanner />
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-[var(--text-1)]">Custom Cakes</h2>

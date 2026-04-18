@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireStaffForRestaurant } from "@/lib/staff-auth";
 import { getAuthUser } from "@/lib/auth";
+import { STAFF_TABLE_MANAGE_ROLES } from "@/lib/staff-roles";
 
 type Params = { params: Promise<{ id: string; tableId: string }> };
 
@@ -20,8 +21,9 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   const { id: restaurantId, tableId } = await params;
   const access = await verifyAccess(req, restaurantId);
   if (!access) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (!["OWNER", "MANAGER", "SUPER_ADMIN"].includes(access.role)) {
-    return NextResponse.json({ error: "Manager or owner access required" }, { status: 403 });
+  const patchAllowed: string[] = ["OWNER", ...STAFF_TABLE_MANAGE_ROLES];
+  if (!patchAllowed.includes(access.role)) {
+    return NextResponse.json({ error: "Access denied" }, { status: 403 });
   }
 
   const body = await req.json();
@@ -39,8 +41,9 @@ export async function DELETE(req: NextRequest, { params }: Params) {
   const { id: restaurantId, tableId } = await params;
   const access = await verifyAccess(req, restaurantId);
   if (!access) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (!["OWNER", "MANAGER", "SUPER_ADMIN"].includes(access.role)) {
-    return NextResponse.json({ error: "Manager or owner access required" }, { status: 403 });
+  const deleteAllowed: string[] = ["OWNER", ...STAFF_TABLE_MANAGE_ROLES];
+  if (!deleteAllowed.includes(access.role)) {
+    return NextResponse.json({ error: "Access denied" }, { status: 403 });
   }
 
   await db.table.delete({ where: { id: tableId } });

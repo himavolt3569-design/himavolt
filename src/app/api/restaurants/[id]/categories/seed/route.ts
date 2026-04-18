@@ -99,6 +99,16 @@ const CATEGORIES_BY_TYPE: Record<string, CategoryTemplate[]> = {
     { name: "Desserts", icon: "🍮", subs: ["Gulab Jamun", "Ice Cream", "Kheer"] },
     DRINKS_CATEGORY,
   ],
+  SWEETS: [
+    { name: "Traditional Sweets", icon: "🍮", subs: ["Laddu", "Barfi", "Halwa", "Peda", "Jalebi", "Gulab Jamun"] },
+    { name: "Milk-Based Sweets", icon: "🥛", subs: ["Kheer", "Rasmalai", "Rasgulla", "Sandesh", "Cham Cham"] },
+    { name: "Dry Sweets", icon: "🫙", subs: ["Soan Papdi", "Mathura Peda", "Kaju Katli", "Besan Laddu"] },
+    { name: "Seasonal & Festival", icon: "🎉", subs: ["Dashain Special", "Tihar Special", "Teej Special", "Chhath Special"] },
+    { name: "Namkeen & Savory", icon: "🥨", subs: ["Sev", "Chana Chur", "Mixture", "Pakoda"] },
+    { name: "Ice Cream", icon: "🍦", subs: ["Single Scoop", "Double Scoop", "Sundae", "Kulfi"] },
+    { name: "Gift Boxes", icon: "🎁", subs: ["Small Box", "Medium Box", "Large Box", "Custom Box"] },
+    DRINKS_CATEGORY,
+  ],
   MO_MO_SHOP: [
     { name: "Buff Momo", icon: "🐃", subs: ["Steam", "Fried", "Jhol", "Chilli", "Kothey", "C.Momo", "Tandoori", "Pan Fried"] },
     { name: "Chicken Momo", icon: "🐔", subs: ["Steam", "Fried", "Jhol", "Chilli", "Kothey", "C.Momo", "Tandoori"] },
@@ -156,43 +166,74 @@ export async function POST(
   const templates = CATEGORIES_BY_TYPE[restaurant.type] ?? DEFAULT_CATEGORIES;
 
   try {
-    // Delete subcategories first, then parents — self-referential FK requires this order
-    await db.menuCategory.deleteMany({ where: { restaurantId: id, parentId: { not: null } } });
-    await db.menuCategory.deleteMany({ where: { restaurantId: id, parentId: null } });
-
-    let sortOrder = 1;
+    // Use create-if-not-exists (by slug) so existing categories and their
+    // menu items are never touched. Running this multiple times is idempotent.
     const created: { name: string; subs: string[] }[] = [];
+
+    // Get the current max sortOrder among top-level categories so new ones
+    // are appended rather than placed at position 1.
+    const maxSort = await db.menuCategory.aggregate({
+      where: { restaurantId: id, parentId: null },
+      _max: { sortOrder: true },
+    });
+    let nextSort = (maxSort._max.sortOrder ?? 0) + 1;
 
     for (const cat of templates) {
       const parentSlug = toSlug(cat.name);
-      const parent = await db.menuCategory.create({
-        data: {
-          name: cat.name,
-          slug: parentSlug,
-          icon: cat.icon,
-          sortOrder: sortOrder++,
-          restaurantId: id,
-        },
+
+      const existingParent = await db.menuCategory.findFirst({
+        where: { restaurantId: id, slug: parentSlug, parentId: null },
       });
 
-      let subSort = 1;
-      for (const subName of cat.subs) {
-        await db.menuCategory.create({
+      let parentId: string;
+      let isNewParent = false;
+
+      if (existingParent) {
+        parentId = existingParent.id;
+      } else {
+        const parent = await db.menuCategory.create({
           data: {
-            name: subName,
-            slug: `${parentSlug}--${toSlug(subName)}`,
-            sortOrder: subSort++,
+            name: cat.name,
+            slug: parentSlug,
+            icon: cat.icon,
+            sortOrder: nextSort++,
             restaurantId: id,
-            parentId: parent.id,
           },
         });
+        parentId = parent.id;
+        isNewParent = true;
       }
 
-      created.push({ name: cat.name, subs: cat.subs });
+      const newSubs: string[] = [];
+      let subSort = 1;
+      for (const subName of cat.subs) {
+        const subSlug = `${parentSlug}--${toSlug(subName)}`;
+        const existingSub = await db.menuCategory.findFirst({
+          where: { restaurantId: id, slug: subSlug },
+        });
+        if (!existingSub) {
+          await db.menuCategory.create({
+            data: {
+              name: subName,
+              slug: subSlug,
+              sortOrder: subSort++,
+              restaurantId: id,
+              parentId,
+            },
+          });
+          newSubs.push(subName);
+        }
+      }
+
+      if (isNewParent || newSubs.length > 0) {
+        created.push({ name: cat.name, subs: newSubs });
+      }
     }
 
     return NextResponse.json({
-      message: `Created ${created.length} categories for ${restaurant.type}`,
+      message: created.length > 0
+        ? `Added ${created.length} new categories for ${restaurant.type}`
+        : `All categories already exist for ${restaurant.type}`,
       categories: created,
     });
   } catch (err) {

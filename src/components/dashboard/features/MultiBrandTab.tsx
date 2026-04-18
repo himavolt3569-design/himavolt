@@ -20,6 +20,7 @@ import {
   DollarSign,
   ShoppingBag,
 } from "lucide-react";
+import NotPersistedBanner from "./_NotPersistedBanner";
 
 interface Brand {
   id: string;
@@ -130,6 +131,7 @@ export default function MultiBrandTab() {
 
   return (
     <div className="space-y-6">
+      <NotPersistedBanner />
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-[var(--text-1)]">

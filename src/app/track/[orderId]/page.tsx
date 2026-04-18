@@ -63,6 +63,11 @@ interface TrackingOrder {
     discount: number;
     total: number;
   } | null;
+  prepaidToken: {
+    token: string;
+    status: string;
+    amount: number;
+  } | null;
   restaurant: {
     name: string;
     slug: string;
@@ -199,7 +204,7 @@ function PaymentBadge({ method, status }: { method: string; status: string }) {
     BANK: { label: "Bank Transfer", color: "bg-blue-100 text-blue-700" },
     CASH: { label: "Cash", color: "bg-[var(--surface)] text-[var(--text-2)]" },
     COUNTER: { label: "Counter Pay", color: "bg-[var(--accent-muted)] text-[var(--accent-text)]" },
-    DIRECT: { label: "Direct Pay", color: "bg-teal-100 text-teal-700" },
+    DIRECT: { label: "Fast Pay", color: "bg-teal-100 text-teal-700" },
   };
   const m = methods[method] || {
     label: method,
@@ -454,6 +459,13 @@ export default function TrackOrderPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const copyToken = async () => {
+    if (!order?.prepaidToken) return;
+    await navigator.clipboard.writeText(order.prepaidToken.token);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   if (error || !order) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[var(--canvas-sub)] p-6">
@@ -540,6 +552,37 @@ export default function TrackOrderPage() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {order.prepaidToken && order.prepaidToken.status === "ACTIVE" && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="rounded-2xl border-2 border-dashed border-[var(--accent-border)] bg-gradient-to-br from-[var(--accent-soft)] to-transparent p-5"
+          >
+            <p className="text-[11px] font-semibold text-[var(--accent-text)] uppercase tracking-wider">
+              Prepaid Token — show this at pickup
+            </p>
+            <div className="mt-2 flex items-center justify-between gap-3">
+              <h3 className="font-mono text-2xl font-black tracking-wider text-[var(--text-1)] break-all">
+                {order.prepaidToken.token.slice(-12).toUpperCase()}
+              </h3>
+              <button
+                onClick={copyToken}
+                className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--accent)] text-white hover:bg-[var(--accent-hover)] transition-colors shrink-0"
+                aria-label="Copy token"
+              >
+                {copied ? (
+                  <Check className="h-4 w-4" />
+                ) : (
+                  <Copy className="h-4 w-4" />
+                )}
+              </button>
+            </div>
+            <p className="mt-1 text-xs text-[var(--text-2)]">
+              Payment received. Present this token at the counter to start preparation.
+            </p>
+          </motion.div>
+        )}
 
         <motion.div
           initial={{ opacity: 0, y: 10 }}

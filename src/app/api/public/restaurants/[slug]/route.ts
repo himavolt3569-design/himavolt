@@ -7,25 +7,31 @@ export async function GET(
 ) {
   const { slug } = await params;
 
-  const restaurant = await db.restaurant.findUnique({
-    where: { slug },
-    include: {
-      categories: {
-        where: { isActive: true },
-        orderBy: { sortOrder: "asc" },
-        select: { id: true, name: true, slug: true, parentId: true, icon: true },
+  let restaurant;
+  try {
+    restaurant = await db.restaurant.findUnique({
+      where: { slug },
+      include: {
+        categories: {
+          where: { isActive: true },
+          orderBy: { sortOrder: "asc" },
+          select: { id: true, name: true, slug: true, parentId: true, icon: true },
+        },
+        paymentQRs: {
+          where: { isActive: true },
+          orderBy: { sortOrder: "asc" },
+          select: { id: true, label: true, imageUrl: true },
+        },
+        tables: {
+          where: { isActive: true },
+          select: { tableNo: true, label: true },
+        },
       },
-      paymentQRs: {
-        where: { isActive: true },
-        orderBy: { sortOrder: "asc" },
-        select: { id: true, label: true, imageUrl: true },
-      },
-      tables: {
-        where: { isActive: true },
-        select: { tableNo: true, label: true },
-      },
-    },
-  });
+    });
+  } catch (err) {
+    console.error("[Public Restaurant GET]", err);
+    return NextResponse.json({ error: "Failed to load restaurant" }, { status: 500 });
+  }
 
   if (!restaurant) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -71,5 +77,7 @@ export async function GET(
     footerText: r.footerText ?? null,
     showStories: r.showStories ?? true,
     showReviews: r.showReviews ?? true,
+    featuresEnabled: Array.isArray(r.featuresEnabled) ? (r.featuresEnabled as string[]) : [],
+    featuresDisabled: Array.isArray(r.featuresDisabled) ? (r.featuresDisabled as string[]) : [],
   });
 }

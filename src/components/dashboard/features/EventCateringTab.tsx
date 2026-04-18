@@ -22,6 +22,7 @@ import {
   Trash2,
   ChevronLeft,
 } from "lucide-react";
+import NotPersistedBanner from "./_NotPersistedBanner";
 
 type EventStatus =
   | "Inquiry"
@@ -203,6 +204,7 @@ export default function EventCateringTab() {
 
   return (
     <div className="space-y-6">
+      <NotPersistedBanner />
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-2xl font-bold text-stone-800">

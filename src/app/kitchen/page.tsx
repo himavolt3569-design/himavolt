@@ -42,6 +42,7 @@ import {
   getFeatureTabsForType,
   type FeatureTabId,
 } from "@/lib/restaurant-types";
+import { KITCHEN_VISIBLE_FEATURES } from "@/lib/staff-roles";
 
 import QuickCounterTab from "@/components/dashboard/features/QuickCounterTab";
 import ComboMealsTab from "@/components/dashboard/features/ComboMealsTab";
@@ -132,6 +133,8 @@ interface StaffSession {
   restaurantPhone: string;
   taxRate: number;
   taxEnabled: boolean;
+  featuresEnabled?: string[];
+  featuresDisabled?: string[];
 }
 
 interface OrderItem {
@@ -1842,16 +1845,35 @@ export default function KitchenPage() {
   // Filter tabs based on staff role
   const baseTabs = ALL_TABS.filter((tab) => tab.roles.includes(roleKey));
 
-  // Add type-specific feature tabs (available to SUPER_ADMIN and MANAGER)
-  const featureTabs = getFeatureTabsForType(session.restaurantType || "RESTAURANT");
-  const featureTabItems = (roleKey === "SUPER_ADMIN" || roleKey === "MANAGER")
-    ? featureTabs.map((f) => ({
+  // Add type-specific feature tabs:
+  // - SUPER_ADMIN / MANAGER: all feature tabs for the restaurant type
+  // - CHEF / WAITER: only kitchen-safe features (order-focused, no billing)
+  // - CASHIER: handled via billing tab + feature tabs for SUPER_ADMIN/MANAGER above
+  const featureTabs = getFeatureTabsForType(session.restaurantType || "RESTAURANT", {
+    featuresEnabled: session.featuresEnabled,
+    featuresDisabled: session.featuresDisabled,
+  });
+  const featureTabItems = (() => {
+    if (roleKey === "SUPER_ADMIN" || roleKey === "MANAGER") {
+      return featureTabs.map((f) => ({
         id: f.id as TabId,
         label: f.label,
         icon: ClipboardList,
         roles: ["SUPER_ADMIN", "MANAGER"],
-      }))
-    : [];
+      }));
+    }
+    if (roleKey === "CHEF" || roleKey === "WAITER") {
+      return featureTabs
+        .filter((f) => KITCHEN_VISIBLE_FEATURES.has(f.id))
+        .map((f) => ({
+          id: f.id as TabId,
+          label: f.label,
+          icon: ClipboardList,
+          roles: ["CHEF", "WAITER"],
+        }));
+    }
+    return [];
+  })();
 
   const TABS = [...baseTabs, ...featureTabItems];
 

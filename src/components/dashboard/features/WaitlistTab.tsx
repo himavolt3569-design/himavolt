@@ -21,6 +21,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
+import NotPersistedBanner from "./_NotPersistedBanner";
 
 type WaitlistStatus = "Waiting" | "Notified" | "Seated" | "Left";
 
@@ -218,6 +219,7 @@ export default function WaitlistTab() {
 
   return (
     <div className="space-y-6">
+      <NotPersistedBanner />
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-[var(--text-1)] flex items-center gap-2">

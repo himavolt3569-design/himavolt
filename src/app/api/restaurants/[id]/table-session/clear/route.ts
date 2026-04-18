@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { requireStaffForRestaurant } from "@/lib/staff-auth";
 import { getAuthUser } from "@/lib/auth";
 import { logAudit, getClientIp } from "@/lib/audit";
+import { STAFF_BILLING_ROLES } from "@/lib/staff-roles";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -32,7 +33,7 @@ export async function POST(req: NextRequest, { params }: Params) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
     actorId = user.id;
-  } else if (!["OWNER", "CASHIER", "MANAGER", "SUPER_ADMIN"].includes(staff.role)) {
+  } else if (!(STAFF_BILLING_ROLES as readonly string[]).includes(staff.role)) {
     return NextResponse.json({ error: "Insufficient permissions" }, { status: 403 });
   }
 

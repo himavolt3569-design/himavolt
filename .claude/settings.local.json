@@ -56,7 +56,10 @@
       "Bash(cd /d \"D:\\\\Official_Projects\\\\himalhub\")",
       "Bash(npx --prefix D:/Official_Projects/himalhub tsc --noEmit)",
       "Bash(node_modules/.bin/next build:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(sed \"s/\\\\`.*//\")",
+      "Bash(sed \"s/.*\\\\`//\")",
+      "Bash(/api/restaurants\" /d/Official_Projects/himalhub/src/components/dashboard/features/QuickCounterTab.tsx | head -20)"
     ],
     "additionalDirectories": [
       "d:\\Official_Projects\\himalhub\\src\\app\\api\\public\\restaurants\\[slug]"

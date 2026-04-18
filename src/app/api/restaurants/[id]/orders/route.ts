@@ -141,6 +141,7 @@ export const POST = safeHandler(
       deliveryPhone,
       deliveryNote,
       couponCode,
+      autoAccept,
     } = body;
 
     const restaurant = await db.restaurant.findUnique({ where: { id } });
@@ -367,6 +368,8 @@ export const POST = safeHandler(
     // Newer columns are moved to extendedData and dropped on retry.
     const baseOrderData = {
       orderNo,
+      // Fast Pay orders skip the PENDING queue and go directly to kitchen
+      ...(autoAccept ? { status: "ACCEPTED" as const } : {}),
       tableNo:
         orderType === "DINE_IN" && tableNo && !isNaN(parseInt(String(tableNo), 10))
           ? parseInt(String(tableNo), 10)

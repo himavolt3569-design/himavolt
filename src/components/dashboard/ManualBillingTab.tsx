@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus, Minus, Trash2, Printer, Search, Receipt,
   Loader2, Check, X, User, Utensils, ChevronDown,
-  Banknote, CheckCircle2, Clock, Wine, Coffee, GlassWater,
+  Banknote, CheckCircle2, Zap, Wine, Coffee, GlassWater,
 } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
 
@@ -158,6 +158,8 @@ export default function ManualBillingTab({
             })),
             type: "DINE_IN",
             paymentMethod: payMethod,
+            // Fast Pay: skip PENDING queue, go directly to kitchen
+            ...(payMethod === "DIRECT" ? { autoAccept: true } : {}),
             note: `Counter order${tableNo ? ` - Table ${tableNo}` : ""}${guestName.trim() ? ` - ${guestName.trim()}` : ""}`,
           }),
         },
@@ -174,20 +176,20 @@ export default function ManualBillingTab({
     }
   };
 
-  // For Direct Pay: create order AND open the print dialog
+  // For Fast Pay: create order AND open the print dialog
   const handleDirectPay = async () => {
     if (!rid || billItems.length === 0) return;
     const order = await handleSubmit();
     handlePrint(order?.orderNo);
   };
 
-  // For Direct Pay: create order WITHOUT printing
+  // For Fast Pay: create order WITHOUT printing
   const handleDirectConfirmOnly = async () => {
     if (!rid || billItems.length === 0) return;
     await handleSubmit();
   };
 
-  // Mark Direct Pay bill as paid via billing/collect
+  // Mark Fast Pay bill as paid via billing/collect
   const handleMarkPaid = async () => {
     if (!rid || !orderId) return;
     setMarkingPaid(true);
@@ -210,7 +212,7 @@ export default function ManualBillingTab({
   const hasDrinks  = drinkItems.length > 0;
   const hasFood    = foodItems.length > 0;
 
-  // Authentic Tax Invoice (Direct Pay) — all items, payment method shown
+  // Authentic Tax Invoice (Fast Pay) — all items, payment method shown
   const handlePrintBill = (orderNoOverride?: string) => {
     const pw = window.open("", "_blank");
     if (!pw) return;
@@ -270,7 +272,7 @@ export default function ManualBillingTab({
       <div class="divider"></div>
       <div class="row tot-row"><span>TOTAL</span><span>${formatPrice(total, currency)}</span></div>
       <div class="divider"></div>
-      <div class="row"><span style="font-size:11px">Payment</span><span class="pay-badge">Direct Pay</span></div>
+      <div class="row"><span style="font-size:11px">Payment</span><span class="pay-badge">Fast Pay</span></div>
       <div class="center" style="margin-top:14px;font-size:10px;color:#777">Thank you for dining with us!</div>
       <script>window.onload=function(){window.print();window.close();};<\/script>
       </body></html>
@@ -379,11 +381,11 @@ export default function ManualBillingTab({
   const handlePrint = (orderNoOverride?: string) => {
     if (payMethod === "DIRECT") {
       handlePrintBill(orderNoOverride);
-      if (hasDrinks) setTimeout(() => handlePrintBOT(orderNoOverride), 600);
+      if (hasDrinks) handlePrintBOT(orderNoOverride);
     } else {
       // COUNTER: KOT for food, BOT for drinks (auto both if mixed order)
       if (hasFood || !hasDrinks) handlePrintKOT(orderNoOverride);
-      if (hasDrinks) setTimeout(() => handlePrintBOT(orderNoOverride), 600);
+      if (hasDrinks) handlePrintBOT(orderNoOverride);
     }
   };
 
@@ -394,87 +396,97 @@ export default function ManualBillingTab({
 
 
   if (success) {
-    /* Direct Pay success — shows live paid/unpaid status */
+    /* Fast Pay success — order is already in kitchen, collect payment separately */
     if (payMethod === "DIRECT") {
       return (
-        <div className="flex flex-col items-center justify-center py-12 gap-5 max-w-sm mx-auto text-center">
-          {/* Payment status badge — this is the main thing staff needs to see */}
+        <div className="flex flex-col items-center justify-center py-10 gap-4 max-w-sm mx-auto text-center">
+          {/* Kitchen confirmation — bold and instant */}
           <motion.div
-            key={isPaid ? "paid" : "unpaid"}
-            initial={{ scale: 0.8, opacity: 0 }}
+            initial={{ scale: 0.7, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: "spring", damping: 14 }}
-            className={`flex h-24 w-24 items-center justify-center rounded-full shadow-lg ${
-              isPaid ? "bg-[var(--accent-muted)] ring-4 ring-[var(--accent)]/30" : "bg-[var(--accent)] ring-4 ring-orange-200"
-            }`}
+            transition={{ type: "spring", damping: 12, stiffness: 200 }}
+            className="flex h-20 w-20 items-center justify-center rounded-2xl bg-[var(--accent)] shadow-lg shadow-[var(--accent)]/25"
           >
-            {isPaid
-              ? <CheckCircle2 className="h-12 w-12 text-[var(--accent-text)]" />
-              : <Clock className="h-12 w-12 text-[var(--accent)]" />
-            }
+            <Zap className="h-10 w-10 text-white" />
           </motion.div>
 
           <div>
-            <AnimatePresence mode="wait">
-              <motion.h3
-                key={isPaid ? "paid-title" : "unpaid-title"}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                className={`text-2xl font-black tracking-wide ${isPaid ? "text-[var(--accent-text)]" : "text-[var(--accent)]"}`}
-              >
-                {isPaid ? "PAID" : "UNPAID"}
-              </motion.h3>
-            </AnimatePresence>
-            <p className="text-sm text-[var(--text-2)] mt-1">
-              {orderNo && <span className="font-semibold text-[var(--text-2)]">#{orderNo} &middot; </span>}
+            <motion.h3
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="text-2xl font-black text-[var(--text-1)] tracking-tight"
+            >
+              {hasDrinks && hasFood ? "Kitchen & Bar" : hasDrinks ? "Sent to Bar" : "Sent to Kitchen"}
+            </motion.h3>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.18 }}
+              className="text-sm text-[var(--text-2)] mt-1"
+            >
+              {orderNo && <span className="font-semibold">#{orderNo} &middot; </span>}
               {tableNo ? `Table ${tableNo}` : "No table"}
               {guestName.trim() && <> &middot; {guestName.trim()}</>}
-            </p>
-            <p className="text-xl font-extrabold text-[var(--text-1)] mt-2">
-              {formatPrice(total, currency)}
-            </p>
-          </div>
-
-          {/* Mark as Paid — primary CTA when not yet paid */}
-          {!isPaid && (
-            <button
-              onClick={handleMarkPaid}
-              disabled={markingPaid}
-              className="w-full flex items-center justify-center gap-2 rounded-2xl bg-[var(--accent)] py-4 text-base font-bold text-white hover:bg-[var(--accent)] disabled:opacity-60 transition-all shadow-lg shadow-green-200 active:scale-[0.98]"
+            </motion.p>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.22 }}
+              className="text-2xl font-black text-[var(--accent-text)] mt-2 tabular-nums"
             >
-              {markingPaid
-                ? <Loader2 className="h-5 w-5 animate-spin" />
-                : <><Banknote className="h-5 w-5" /> Mark as Paid</>
-              }
-            </button>
-          )}
-
-          {isPaid && (
-            <div className="w-full rounded-2xl bg-[var(--accent-muted)] border border-[var(--accent-border)] py-3 px-4 text-sm font-semibold text-[var(--accent-text)] flex items-center justify-center gap-2">
-              <CheckCircle2 className="h-4 w-4" /> Payment recorded
-            </div>
-          )}
+              {formatPrice(total, currency)}
+            </motion.p>
+          </div>
 
           {/* Drink/bar indicator */}
           {hasDrinks && (
             <div className="w-full rounded-xl bg-blue-50 border border-blue-200 px-4 py-2.5 flex items-center gap-2 text-sm text-blue-700">
               <Wine className="h-4 w-4 flex-shrink-0" />
-              <span className="font-semibold">Bar items in this order. BOT sent to bar</span>
+              <span className="font-semibold">Bar items included — BOT sent to bar</span>
             </div>
           )}
+
+          {/* Payment collection — secondary action */}
+          <AnimatePresence mode="wait">
+            {!isPaid ? (
+              <motion.button
+                key="mark-paid"
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                onClick={handleMarkPaid}
+                disabled={markingPaid}
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] py-3 text-sm font-bold text-[var(--canvas)] hover:opacity-80 disabled:opacity-50 transition-all active:scale-[0.98]"
+              >
+                {markingPaid
+                  ? <Loader2 className="h-4 w-4 animate-spin" />
+                  : <><Banknote className="h-4 w-4" /> Collect Payment</>
+                }
+              </motion.button>
+            ) : (
+              <motion.div
+                key="paid-confirm"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="w-full rounded-xl bg-emerald-50 border border-emerald-200 py-3 px-4 text-sm font-bold text-emerald-700 flex items-center justify-center gap-2"
+              >
+                <CheckCircle2 className="h-4 w-4" /> Payment collected
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <div className="flex gap-2 w-full">
             <button
               onClick={() => handlePrintBill()}
-              className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm font-semibold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors"
+              className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-[var(--border)] px-3 py-2.5 text-sm font-semibold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors"
             >
-              <Printer className="h-4 w-4" /> Reprint Bill
+              <Printer className="h-4 w-4" /> Reprint
             </button>
             {hasDrinks && (
               <button
                 onClick={() => handlePrintBOT()}
-                className="flex items-center justify-center gap-2 rounded-xl border-2 border-blue-300 bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 hover:bg-blue-100 transition-colors"
+                className="flex items-center justify-center gap-2 rounded-xl border-2 border-blue-300 bg-blue-50 px-3 py-2.5 text-sm font-semibold text-blue-700 hover:bg-blue-100 transition-colors"
               >
                 <Wine className="h-4 w-4" /> BOT
               </button>
@@ -484,14 +496,14 @@ export default function ManualBillingTab({
                 href={`/bill/${orderId}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm font-semibold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-[var(--border)] px-3 py-2.5 text-sm font-semibold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors"
               >
-                <Receipt className="h-4 w-4" /> View Bill
+                <Receipt className="h-4 w-4" /> Bill
               </a>
             )}
             <button
               onClick={handleReset}
-              className="flex-1 rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm font-semibold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors"
+              className="flex-1 rounded-xl bg-[var(--accent)] px-3 py-2.5 text-sm font-bold text-white hover:bg-[var(--accent-hover)] transition-colors"
             >
               New Bill
             </button>
@@ -590,7 +602,7 @@ export default function ManualBillingTab({
           }`}
         >
           <Printer className={`h-4 w-4 ${payMethod === "DIRECT" ? "text-teal-600" : "text-[var(--text-3)]"}`} />
-          <span className={`text-[11px] font-bold ${payMethod === "DIRECT" ? "text-teal-700" : "text-[var(--text-2)]"}`}>Direct Pay</span>
+          <span className={`text-[11px] font-bold ${payMethod === "DIRECT" ? "text-teal-700" : "text-[var(--text-2)]"}`}>Fast Pay</span>
         </button>
       </div>
 
@@ -778,8 +790,8 @@ export default function ManualBillingTab({
               }`}
             >
               <Printer className={`h-4 w-4 mb-1 ${payMethod === "DIRECT" ? "text-teal-600" : "text-[var(--text-3)]"}`} />
-              <span className={`text-[11px] font-bold ${payMethod === "DIRECT" ? "text-teal-700" : "text-[var(--text-2)]"}`}>Direct Pay</span>
-              <span className="text-[10px] text-[var(--text-3)] leading-tight">Print bill immediately</span>
+              <span className={`text-[11px] font-bold ${payMethod === "DIRECT" ? "text-teal-700" : "text-[var(--text-2)]"}`}>Fast Pay</span>
+              <span className="text-[10px] text-[var(--text-3)] leading-tight">Goes directly to kitchen</span>
             </button>
           </div>
         </div>

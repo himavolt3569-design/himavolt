@@ -21,6 +21,7 @@ import {
   CircleDot,
   ArrowRight,
 } from "lucide-react";
+import NotPersistedBanner from "./_NotPersistedBanner";
 
 type PipelineStage =
   | "Order Received"
@@ -218,6 +219,7 @@ export default function PackageTrackingTab() {
 
   return (
     <div className="space-y-6">
+      <NotPersistedBanner />
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-[var(--text-1)]">

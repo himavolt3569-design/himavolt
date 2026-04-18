@@ -26,6 +26,7 @@ import {
   ChevronRight,
   Croissant,
 } from "lucide-react";
+import NotPersistedBanner from "./_NotPersistedBanner";
 
 interface BrunchMenuItem {
   id: string;
@@ -173,6 +174,7 @@ export default function BrunchModeTab() {
       transition={{ duration: 0.4 }}
       className="space-y-6"
     >
+      <NotPersistedBanner />
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="p-2.5 bg-[var(--accent-muted)] rounded-xl">

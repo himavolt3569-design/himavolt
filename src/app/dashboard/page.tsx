@@ -174,7 +174,7 @@ const NAV_MAIN: {
   { id: "billing", label: "Billing", icon: Receipt },
   { id: "chat", label: "Chats", icon: MessageCircle },
   { id: "offers" as DashTab, label: "Offers", icon: Tag },
-  { id: "manual-billing" as DashTab, label: "Manual Billing", icon: Receipt },
+  { id: "manual-billing" as DashTab, label: "Fast Billing", icon: Receipt },
   { id: "tables" as DashTab, label: "Tables", icon: LayoutGrid },
 ];
 
@@ -646,6 +646,8 @@ function Sidebar({
   newOrderCount,
   onClose,
   restaurantType,
+  featuresEnabled,
+  featuresDisabled,
   isCollapsed,
   onToggleCollapse,
 }: {
@@ -654,19 +656,24 @@ function Sidebar({
   newOrderCount: number;
   onClose?: () => void;
   restaurantType?: string;
+  featuresEnabled?: string[];
+  featuresDisabled?: string[];
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
 }) {
   /* Build dynamic feature nav items from restaurant type */
   const featureNavItems = useMemo(() => {
     if (!restaurantType) return [];
-    const features = getFeatureTabsForType(restaurantType);
+    const features = getFeatureTabsForType(restaurantType, {
+      featuresEnabled,
+      featuresDisabled,
+    });
     return features.map((f) => ({
       id: f.id as DashTab,
       label: f.label,
       icon: FEATURE_ICONS[f.id] ?? Sparkles,
     }));
-  }, [restaurantType]);
+  }, [restaurantType, featuresEnabled, featuresDisabled]);
 
   const typeLabel = restaurantType ? getTypeLabel(restaurantType) : "";
 
@@ -1409,9 +1416,11 @@ export default function DashboardPage() {
   };
 
   const restaurantType = selectedRestaurant?.type ?? "";
+  const featuresEnabled = selectedRestaurant?.featuresEnabled;
+  const featuresDisabled = selectedRestaurant?.featuresDisabled;
   const featureTabs = useMemo(
-    () => getFeatureTabsForType(restaurantType),
-    [restaurantType],
+    () => getFeatureTabsForType(restaurantType, { featuresEnabled, featuresDisabled }),
+    [restaurantType, featuresEnabled, featuresDisabled],
   );
 
   /* Resolve active tab label and icon (including type-specific feature tabs) */
@@ -1450,13 +1459,13 @@ export default function DashboardPage() {
   useEffect(() => {
     const featureId = activeTab as FeatureTabId;
     if (FEATURE_COMPONENTS[featureId] && restaurantType) {
-      const available = getFeatureTabsForType(restaurantType);
+      const available = getFeatureTabsForType(restaurantType, { featuresEnabled, featuresDisabled });
       if (!available.some((f) => f.id === featureId)) {
         handleSetActiveTab("overview");
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [restaurantType, activeTab]);
+  }, [restaurantType, activeTab, featuresEnabled, featuresDisabled]);
 
   /* Live clock — updates every minute */
   useEffect(() => {
@@ -1509,6 +1518,8 @@ export default function DashboardPage() {
           setActive={handleSetActiveTab}
           newOrderCount={newOrderCount}
           restaurantType={restaurantType}
+          featuresEnabled={selectedRestaurant?.featuresEnabled}
+          featuresDisabled={selectedRestaurant?.featuresDisabled}
           isCollapsed={sidebarCollapsed}
           onToggleCollapse={() => setSidebarCollapsed((c) => !c)}
         />
@@ -1540,6 +1551,8 @@ export default function DashboardPage() {
                 newOrderCount={newOrderCount}
                 onClose={() => setMobileSidebarOpen(false)}
                 restaurantType={restaurantType}
+                featuresEnabled={selectedRestaurant?.featuresEnabled}
+                featuresDisabled={selectedRestaurant?.featuresDisabled}
               />
             </motion.div>
           </>

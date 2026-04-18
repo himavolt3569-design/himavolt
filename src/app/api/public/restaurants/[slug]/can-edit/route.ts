@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getOrCreateUser } from "@/lib/auth";
 import { getStaffSession } from "@/lib/staff-auth";
+import { STAFF_MANAGER_ROLES } from "@/lib/staff-roles";
+import type { StaffRole } from "@/generated/prisma";
 
 export async function GET(
   req: NextRequest,
@@ -22,7 +24,7 @@ export async function GET(
         id: staffSession.staffId,
         restaurantId: restaurant.id,
         isActive: true,
-        role: { in: ["SUPER_ADMIN", "MANAGER"] },
+        role: { in: STAFF_MANAGER_ROLES as unknown as StaffRole[] },
       },
     });
     return NextResponse.json({ canEdit: !!member });

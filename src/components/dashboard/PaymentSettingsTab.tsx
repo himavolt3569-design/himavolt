@@ -239,10 +239,10 @@ export default function PaymentSettingsTab() {
         onToggle={(v) => updateField("counterPayEnabled", v)}
       />
 
-      {/* ─── Direct Pay ───────────────────────────────────── */}
+      {/* ─── Fast Pay ────────────────────────────────────── */}
       <PaymentSection
-        title="Direct Pay"
-        description="Accept direct payments (Fonepay, QR, etc.)"
+        title="Fast Pay"
+        description="Accept fast payments (Fonepay, QR, etc.)"
         icon={<CreditCard className="h-5 w-5" />}
         color="blue"
         enabled={config.directPayEnabled}

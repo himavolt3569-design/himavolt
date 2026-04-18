@@ -17,6 +17,7 @@ export const createRestaurantSchema = z.object({
     "MO_MO_SHOP",
     "TANDOORI",
     "GUEST_HOUSE",
+    "SWEETS",
   ]),
   address: z.string().max(200).optional().default(""),
   city: z.string().max(50).optional().default("Kathmandu"),
@@ -135,6 +136,7 @@ export const createOrderSchema = z.object({
   deliveryPhone: z.string().max(20).optional().nullable(),
   deliveryNote: z.string().max(300).optional().nullable(),
   couponCode: z.string().max(50).optional().nullable(), // optional coupon code
+  autoAccept: z.boolean().optional(), // Fast Pay: skip PENDING, go directly to kitchen
 });
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
 

@@ -25,6 +25,7 @@ import {
   ToggleLeft,
   ToggleRight,
 } from "lucide-react";
+import NotPersistedBanner from "./_NotPersistedBanner";
 
 interface Ingredient {
   name: string;
@@ -195,6 +196,7 @@ export default function CocktailMenuTab() {
 
   return (
     <div className="space-y-6">
+      <NotPersistedBanner />
       <AnimatePresence>
         {showStockWarnings && lowStockIngredients.length > 0 && (
           <motion.div

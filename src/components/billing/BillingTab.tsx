@@ -140,7 +140,7 @@ function paymentMethodLabel(method: string) {
     BANK: "Bank Transfer",
     CASH: "Cash",
     COUNTER: "Manual Pay",
-    DIRECT: "Direct Pay",
+    DIRECT: "Fast Pay",
   };
   return map[method] || method;
 }
@@ -1094,7 +1094,7 @@ export default function BillingTab({
                         : "bg-[var(--accent)] border-[var(--accent-border)] text-[var(--accent)]"
                     }`}>
                       <Receipt className="h-2.5 w-2.5" />
-                      Direct Pay &middot; {order.payment.status === "COMPLETED" ? "Paid" : "Unpaid"}
+                      Fast Pay &middot; {order.payment.status === "COMPLETED" ? "Paid" : "Unpaid"}
                     </span>
                   ) : (
                     <span className="flex items-center gap-0.5 rounded-lg bg-purple-50 border border-purple-100 px-2 py-0.5 text-[10px] font-bold text-purple-700">

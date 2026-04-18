@@ -42,6 +42,9 @@ export async function GET(req: NextRequest) {
                 select: { method: true, status: true, paidAt: true },
               },
               bill: true,
+              prepaidToken: {
+                select: { token: true, status: true, amount: true },
+              },
               restaurant: {
                 select: {
                   name: true,

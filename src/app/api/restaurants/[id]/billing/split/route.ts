@@ -5,10 +5,11 @@ import { generateBill } from "@/lib/billing";
 import { getAuthUser } from "@/lib/auth";
 import { logAudit, getClientIp } from "@/lib/audit";
 import { getCurrencySymbol } from "@/lib/currency";
+import { STAFF_BILLING_ROLES } from "@/lib/staff-roles";
 
 async function verifyBillingAccess(req: NextRequest, restaurantId: string) {
   const staff = await requireStaffForRestaurant(req, restaurantId);
-  if (staff && ["CASHIER", "MANAGER", "SUPER_ADMIN"].includes(staff.role)) {
+  if (staff && (STAFF_BILLING_ROLES as readonly string[]).includes(staff.role)) {
     return { type: "staff" as const, id: staff.staffId };
   }
 

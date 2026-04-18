@@ -55,6 +55,8 @@ export interface Restaurant {
   counterPayEnabled: boolean;
   directPayEnabled: boolean;
   prepaidEnabled: boolean;
+  featuresEnabled?: string[];
+  featuresDisabled?: string[];
   staff: StaffMember[];
   _count: { orders: number; menuItems: number };
 }

@@ -1,28 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getOrCreateUser } from "@/lib/auth";
-import { getStaffSession } from "@/lib/staff-auth";
+import {
+  getRestaurantAccess,
+  requireOwnerOrStaffManager,
+} from "@/lib/access-control";
 
 type Params = { params: Promise<{ id: string; roomId: string }> };
 
-async function canAccess(req: NextRequest, restaurantId: string) {
-  const staff = await getStaffSession(req);
-  if (staff && staff.restaurantId === restaurantId) return true;
-  const user = await getOrCreateUser();
-  if (!user) return false;
-  const rest = await db.restaurant.findFirst({
-    where: { id: restaurantId, ownerId: user.id },
-  });
-  return !!rest;
-}
-
 // GET /api/restaurants/[id]/rooms/[roomId] — get single room details
-export async function GET(
-  req: NextRequest,
-  { params }: Params,
-) {
+export async function GET(req: NextRequest, { params }: Params) {
   const { id, roomId } = await params;
-  if (!(await canAccess(req, id))) {
+  const access = await getRestaurantAccess(req, id);
+  if (!access) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -46,14 +35,12 @@ export async function GET(
   return NextResponse.json(room);
 }
 
-// PATCH /api/restaurants/[id]/rooms/[roomId] — update room details
-export async function PATCH(
-  req: NextRequest,
-  { params }: Params,
-) {
+// PATCH /api/restaurants/[id]/rooms/[roomId] — update room details (owner or MANAGER+)
+export async function PATCH(req: NextRequest, { params }: Params) {
   const { id, roomId } = await params;
-  if (!(await canAccess(req, id))) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const access = await requireOwnerOrStaffManager(req, id);
+  if (!access) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const existing = await db.room.findFirst({
@@ -81,7 +68,6 @@ export async function PATCH(
     sortOrder,
   } = body;
 
-  // If changing room number, check for duplicates
   if (roomNumber && roomNumber.trim() !== existing.roomNumber) {
     const duplicate = await db.room.findUnique({
       where: {
@@ -122,14 +108,12 @@ export async function PATCH(
   return NextResponse.json(room);
 }
 
-// DELETE /api/restaurants/[id]/rooms/[roomId] — soft-delete room
-export async function DELETE(
-  req: NextRequest,
-  { params }: Params,
-) {
+// DELETE /api/restaurants/[id]/rooms/[roomId] — soft-delete room (owner or MANAGER+)
+export async function DELETE(req: NextRequest, { params }: Params) {
   const { id, roomId } = await params;
-  if (!(await canAccess(req, id))) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const access = await requireOwnerOrStaffManager(req, id);
+  if (!access) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const existing = await db.room.findFirst({

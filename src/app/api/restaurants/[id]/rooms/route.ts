@@ -1,25 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getOrCreateUser } from "@/lib/auth";
-import { getStaffSession } from "@/lib/staff-auth";
+import {
+  getRestaurantAccess,
+  requireOwnerOrStaffManager,
+} from "@/lib/access-control";
 
 type Params = { params: Promise<{ id: string }> };
 
-async function canAccess(req: NextRequest, restaurantId: string) {
-  const staff = await getStaffSession(req);
-  if (staff && staff.restaurantId === restaurantId) return true;
-  const user = await getOrCreateUser();
-  if (!user) return false;
-  const rest = await db.restaurant.findFirst({
-    where: { id: restaurantId, ownerId: user.id },
-  });
-  return !!rest;
-}
-
-// GET /api/restaurants/[id]/rooms — list all rooms for a restaurant
+// GET /api/restaurants/[id]/rooms — list all rooms for a restaurant (any staff or owner)
 export async function GET(req: NextRequest, { params }: Params) {
   const { id } = await params;
-  if (!(await canAccess(req, id))) {
+  const access = await getRestaurantAccess(req, id);
+  if (!access) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -43,11 +35,12 @@ export async function GET(req: NextRequest, { params }: Params) {
   return NextResponse.json(rooms);
 }
 
-// POST /api/restaurants/[id]/rooms — create a new room
+// POST /api/restaurants/[id]/rooms — create a new room (owner or MANAGER+)
 export async function POST(req: NextRequest, { params }: Params) {
   const { id } = await params;
-  if (!(await canAccess(req, id))) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const access = await requireOwnerOrStaffManager(req, id);
+  if (!access) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const body = await req.json();

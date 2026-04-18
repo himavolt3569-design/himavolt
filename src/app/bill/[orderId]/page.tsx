@@ -107,7 +107,7 @@ function paymentLabel(method: string) {
     BANK: "Bank Transfer",
     CASH: "Cash",
     COUNTER: "Counter Pay",
-    DIRECT: "Direct Pay",
+    DIRECT: "Fast Pay",
   };
   return map[method] || method;
 }

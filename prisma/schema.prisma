@@ -28,6 +28,7 @@ model User {
   auditLogs        AuditLog[]
   menuItemRatings  MenuItemRating[]
   favourites       Favourite[]
+  loyaltyAccounts  LoyaltyAccount[]
 
   @@map("users")
 }
@@ -84,6 +85,12 @@ model Restaurant {
   hotelAdvanceType  String @default("PERCENTAGE") // "PERCENTAGE" or "FIXED"
   hotelAdvanceValue Float  @default(30) // 30 = 30% of total, or NPR fixed amount
 
+  // Master-admin feature overrides (keyed by FeatureTabId).
+  // Force-enable a feature even if the type doesn't include it by default.
+  featuresEnabled  String[] @default([])
+  // Force-disable a feature even if the type includes it by default.
+  featuresDisabled String[] @default([])
+
   // Dynamic theme (set by owner/admin via ThemeSettingsTab)
   primaryColor   String? // hex e.g. "#eaa94d"
   secondaryColor String?
@@ -128,6 +135,11 @@ model Restaurant {
   displayCounterItems  DisplayCounterItem[]
   displayCounterConfig DisplayCounterConfig?
   shifts               Shift[]
+  happyHours           HappyHour[]
+  reservations         Reservation[]
+  loyaltyConfig        LoyaltyConfig?
+  loyaltyRewards       LoyaltyReward[]
+  loyaltyAccounts      LoyaltyAccount[]
 
   @@index([ownerId])
   @@index([slug])
@@ -230,6 +242,7 @@ enum RestaurantType {
   MO_MO_SHOP
   TANDOORI
   GUEST_HOUSE
+  SWEETS
 }
 
 // ─── Staff ─────────────────────────────────────────────────────────
@@ -1039,6 +1052,7 @@ model Room {
   isAvailable Boolean  @default(true)
   isActive    Boolean  @default(true) // soft delete
   sortOrder   Int      @default(0)
+  qrUrl       String? // generated QR URL linking to /menu/[slug]?room=<roomNumber>
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -1265,4 +1279,122 @@ model WebhookLog {
   @@index([orderId])
   @@index([processedAt])
   @@map("webhook_logs")
+}
+
+// ─── Happy Hours (BAR) ─────────────────────────────────────────────
+
+model HappyHour {
+  id            String   @id @default(cuid())
+  name          String
+  days          String[] @default([]) // ["MON","TUE",...]
+  startTime     String // "17:00"
+  endTime       String // "19:00"
+  discountType  String   @default("PERCENTAGE") // PERCENTAGE | FIXED
+  discountValue Float    @default(0)
+  isActive      Boolean  @default(true)
+  appliesToAll  Boolean  @default(false) // true = all drinks, false = specific items
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  items HappyHourItem[]
+
+  @@index([restaurantId])
+  @@map("happy_hours")
+}
+
+model HappyHourItem {
+  id          String    @id @default(cuid())
+  happyHourId String
+  happyHour   HappyHour @relation(fields: [happyHourId], references: [id], onDelete: Cascade)
+  menuItemId  String
+  categoryId  String?
+
+  @@unique([happyHourId, menuItemId])
+  @@index([happyHourId])
+  @@index([menuItemId])
+  @@map("happy_hour_items")
+}
+
+// ─── Table Reservations (RESTAURANT) ────────────────────────────────
+
+model Reservation {
+  id              String   @id @default(cuid())
+  guestName       String
+  phone           String
+  email           String?
+  partySize       Int      @default(2)
+  date            DateTime // scheduled date
+  timeSlot        String // "19:00"
+  tablePreference String? // "window","private","outdoor"
+  specialRequests String?
+  status          String   @default("PENDING") // PENDING | CONFIRMED | SEATED | CANCELLED | NO_SHOW | COMPLETED
+  confirmedBy     String? // staff id who confirmed
+  tableNumber     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@index([restaurantId])
+  @@index([restaurantId, date])
+  @@index([restaurantId, status])
+  @@map("reservations")
+}
+
+// ─── Loyalty Rewards (CAFE, SWEETS) ─────────────────────────────────
+
+model LoyaltyConfig {
+  id                String   @id @default(cuid())
+  pointsPerCurrency Float    @default(1) // points earned per unit currency spent
+  isActive          Boolean  @default(true)
+  welcomeBonus      Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  restaurantId String     @unique
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@map("loyalty_config")
+}
+
+model LoyaltyReward {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  pointsCost  Int
+  active      Boolean  @default(true)
+  imageUrl    String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@index([restaurantId])
+  @@map("loyalty_rewards")
+}
+
+model LoyaltyAccount {
+  id           String    @id @default(cuid())
+  userId       String
+  points       Int       @default(0)
+  tier         String    @default("BRONZE") // BRONZE | SILVER | GOLD | PLATINUM
+  totalSpent   Float     @default(0)
+  lastEarnedAt DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, restaurantId])
+  @@index([restaurantId])
+  @@index([userId])
+  @@map("loyalty_accounts")
 }

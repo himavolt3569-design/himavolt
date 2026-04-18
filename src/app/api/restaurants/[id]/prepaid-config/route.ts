@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getOrCreateUser } from "@/lib/auth";
 import { getStaffSession } from "@/lib/staff-auth";
+import { STAFF_MANAGER_ROLES } from "@/lib/staff-roles";
 
 /**
  * GET /api/restaurants/[id]/prepaid-config
@@ -67,8 +68,7 @@ export async function POST(
     let isAuthorized = false;
     const staff = await getStaffSession(req);
     if (staff && staff.restaurantId === id) {
-      const managerRoles = ["SUPER_ADMIN", "MANAGER"];
-      if (!managerRoles.includes(staff.role)) {
+      if (!(STAFF_MANAGER_ROLES as readonly string[]).includes(staff.role)) {
         return NextResponse.json(
           { error: "Insufficient permissions" },
           { status: 403 },

@@ -28,7 +28,9 @@ import {
   Clock,
   CreditCard,
   Building2,
+  QrCode,
 } from "lucide-react";
+import QRCode from "react-qr-code";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
@@ -453,12 +455,18 @@ function RoomCard({
   room,
   currency,
   onBook,
+  menuSlug,
 }: {
   room: Room;
   currency: string;
   onBook: () => void;
+  menuSlug: string;
 }) {
   const cur = currency === "USD" ? "$" : currency === "INR" ? "₹" : "Rs.";
+  const [showQR, setShowQR] = useState(false);
+  const menuUrl = typeof window !== "undefined"
+    ? `${window.location.origin}/menu/${menuSlug}?room=${encodeURIComponent(room.roomNumber)}`
+    : `/menu/${menuSlug}?room=${encodeURIComponent(room.roomNumber)}`;
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
@@ -529,13 +537,61 @@ function RoomCard({
           </div>
         )}
 
-        <button
-          onClick={onBook}
-          disabled={!room.isAvailable}
-          className="w-full rounded-xl bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] py-3 text-[13px] font-bold text-white shadow-sm hover:from-[var(--accent)] hover:to-[var(--accent-hover)] active:scale-[0.97] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          {room.isAvailable ? "Book Now" : "Not Available"}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onBook}
+            disabled={!room.isAvailable}
+            className="flex-1 rounded-xl bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] py-3 text-[13px] font-bold text-white shadow-sm hover:from-[var(--accent)] hover:to-[var(--accent-hover)] active:scale-[0.97] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {room.isAvailable ? "Book Now" : "Not Available"}
+          </button>
+          <button
+            onClick={() => setShowQR(true)}
+            aria-label="Show room QR code"
+            className="shrink-0 rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] p-3 text-[var(--text-2)] hover:bg-[var(--surface)] active:scale-[0.97] transition-all"
+            title="Scan to order from this room"
+          >
+            <QrCode className="h-4 w-4" />
+          </button>
+        </div>
+
+        <AnimatePresence>
+          {showQR && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowQR(false)}
+              className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-6"
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className="w-full max-w-xs rounded-2xl bg-[var(--canvas)] p-6 shadow-2xl"
+              >
+                <div className="mb-4 text-center">
+                  <h4 className="text-base font-bold text-[var(--text-1)]">
+                    Scan to order
+                  </h4>
+                  <p className="text-[11px] text-[var(--text-3)]">
+                    Room #{room.roomNumber}
+                  </p>
+                </div>
+                <div className="rounded-xl bg-white p-4 flex items-center justify-center">
+                  <QRCode value={menuUrl} size={200} />
+                </div>
+                <button
+                  onClick={() => setShowQR(false)}
+                  className="mt-4 w-full rounded-xl bg-[var(--text-1)] py-2.5 text-[12px] font-bold text-white"
+                >
+                  Close
+                </button>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </motion.div>
   );
@@ -721,6 +777,7 @@ export default function HotelPublicPage() {
                   room={room}
                   currency={hotel.currency}
                   onBook={() => setSelectedRoom(room)}
+                  menuSlug={hotel.slug}
                 />
               </motion.div>
             ))}

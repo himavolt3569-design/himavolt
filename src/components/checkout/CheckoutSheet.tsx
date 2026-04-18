@@ -218,11 +218,45 @@ export default function CheckoutSheet({
   const [couponError, setCouponError] = useState("");
   const [couponApplied, setCouponApplied] = useState(false);
   const [couponLoading, setCouponLoading] = useState(false);
+  const [availableCoupons, setAvailableCoupons] = useState<
+    Array<{
+      id: string;
+      code: string;
+      description: string | null;
+      type: string;
+      value: number;
+      minOrder: number;
+    }>
+  >([]);
+
+  const [deliveryZones, setDeliveryZones] = useState<
+    Array<{
+      id: string;
+      name: string;
+      baseFee: number;
+      perKmFee: number;
+      freeAbove: number | null;
+      maxRadiusKm: number;
+    }>
+  >([]);
+  const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null);
 
   const slug = restaurantSlug || cartSlug;
 
   const DELIVERY_FEE = 50;
-  const deliveryFee = orderType === "DELIVERY" ? DELIVERY_FEE : 0;
+  const selectedZone = deliveryZones.find((z) => z.id === selectedZoneId) ??
+    (deliveryZones.length === 1 ? deliveryZones[0] : null);
+  const zoneFee = selectedZone
+    ? selectedZone.freeAbove !== null && subtotal >= selectedZone.freeAbove
+      ? 0
+      : selectedZone.baseFee
+    : DELIVERY_FEE;
+  const deliveryFee = orderType === "DELIVERY" ? zoneFee : 0;
+  const deliveryBlocked =
+    orderType === "DELIVERY" &&
+    deliveryEnabled &&
+    deliveryZones.length > 0 &&
+    !selectedZone;
   const tax = taxEnabled
     ? Math.round(subtotal * (taxRate / 100) * 100) / 100
     : 0;
@@ -274,6 +308,23 @@ export default function CheckoutSheet({
     apiFetch<PaymentQRImage[]>(`/api/public/restaurants/${slug}/payment-qrs`)
       .then(setPaymentQRs)
       .catch(() => setPaymentQRs([]));
+
+    apiFetch<{ coupons: typeof availableCoupons }>(
+      `/api/public/restaurants/${slug}/coupons`,
+    )
+      .then((data) => setAvailableCoupons(data.coupons ?? []))
+      .catch(() => setAvailableCoupons([]));
+
+    apiFetch<{ zones: typeof deliveryZones; deliveryEnabled: boolean }>(
+      `/api/public/restaurants/${slug}/delivery-zones`,
+    )
+      .then((data) => {
+        setDeliveryZones(data.zones ?? []);
+        if (data.zones && data.zones.length === 1) {
+          setSelectedZoneId(data.zones[0].id);
+        }
+      })
+      .catch(() => setDeliveryZones([]));
 
     apiFetch<PaymentMethodsResponse>(
       `/api/public/restaurants/${slug}/payment-methods`,
@@ -354,8 +405,9 @@ export default function CheckoutSheet({
   }, [total, open]);
 
   const canProceed =
-    orderType !== "DELIVERY" ||
-    (deliveryAddress.trim() !== "" && deliveryPhone.trim() !== "");
+    (orderType !== "DELIVERY" ||
+      (deliveryAddress.trim() !== "" && deliveryPhone.trim() !== "")) &&
+    !deliveryBlocked;
 
   const startPaymentPolling = (orderId: string, reason: "gateway" | "staff-confirm" = "gateway") => {
     setWaitingReason(reason);
@@ -736,6 +788,43 @@ export default function CheckoutSheet({
                             className="w-full rounded-xl border border-[var(--border)] py-3 pl-10 pr-4 text-sm text-[var(--text-1)] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] focus:border-[var(--accent-border)]"
                           />
                         </div>
+                        {deliveryEnabled && deliveryZones.length > 0 && (
+                          <div>
+                            <p className="text-[11px] font-bold text-[var(--text-3)] uppercase tracking-wider mb-1.5">
+                              Select your zone
+                            </p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {deliveryZones.map((z) => {
+                                const active = z.id === selectedZoneId;
+                                const free =
+                                  z.freeAbove !== null && subtotal >= z.freeAbove;
+                                return (
+                                  <button
+                                    key={z.id}
+                                    type="button"
+                                    onClick={() => setSelectedZoneId(z.id)}
+                                    className={`rounded-full border px-3 py-1.5 text-[11px] font-semibold transition-colors ${
+                                      active
+                                        ? "border-[var(--accent)] bg-[var(--accent)] text-white"
+                                        : "border-[var(--border)] bg-[var(--surface)] text-[var(--text-2)] hover:border-[var(--accent-border)]"
+                                    }`}
+                                  >
+                                    {z.name} · {free ? "Free" : `Rs. ${z.baseFee}`}
+                                    <span className="opacity-60 ml-1">
+                                      (≤ {z.maxRadiusKm}km)
+                                    </span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+                        {deliveryEnabled && deliveryZones.length === 0 && (
+                          <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-800">
+                            Delivery zones not configured — delivery fee may be
+                            confirmed by the restaurant after placing the order.
+                          </div>
+                        )}
                         <textarea
                           value={deliveryNote}
                           onChange={(e) => setDeliveryNote(e.target.value)}
@@ -904,6 +993,30 @@ export default function CheckoutSheet({
                         </div>
                         {couponError && (
                           <p className="mt-1.5 text-xs text-red-500">{couponError}</p>
+                        )}
+                        {availableCoupons.length > 0 && (
+                          <div className="mt-2 flex flex-wrap gap-1.5">
+                            {availableCoupons
+                              .filter((c) => subtotal >= c.minOrder)
+                              .slice(0, 6)
+                              .map((c) => (
+                                <button
+                                  key={c.id}
+                                  type="button"
+                                  onClick={() => {
+                                    setCouponCode(c.code);
+                                    setCouponError("");
+                                  }}
+                                  className="rounded-full border border-dashed border-[var(--accent-border)] bg-[var(--accent-soft)] px-2.5 py-1 text-[11px] font-semibold text-[var(--accent-text)] hover:bg-[var(--accent)] hover:text-white transition-colors"
+                                  title={c.description ?? undefined}
+                                >
+                                  {c.code}
+                                  {c.type === "PERCENTAGE"
+                                    ? ` · ${c.value}% off`
+                                    : ` · -${c.value}`}
+                                </button>
+                              ))}
+                          </div>
                         )}
                       </div>
                     )}

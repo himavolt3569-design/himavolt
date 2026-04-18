@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireStaffForRestaurant } from "@/lib/staff-auth";
 import { getAuthUser } from "@/lib/auth";
+import { STAFF_TABLE_MANAGE_ROLES } from "@/lib/staff-roles";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -59,8 +60,9 @@ export async function POST(req: NextRequest, { params }: Params) {
   const { id: restaurantId } = await params;
   const access = await verifyAccess(req, restaurantId);
   if (!access) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (!["OWNER", "MANAGER", "SUPER_ADMIN"].includes(access.role)) {
-    return NextResponse.json({ error: "Manager or owner access required" }, { status: 403 });
+  const allowed: string[] = ["OWNER", ...STAFF_TABLE_MANAGE_ROLES];
+  if (!allowed.includes(access.role)) {
+    return NextResponse.json({ error: "Access denied" }, { status: 403 });
   }
 
   const { tableNo, label, capacity } = await req.json();

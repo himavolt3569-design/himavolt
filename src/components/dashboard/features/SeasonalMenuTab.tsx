@@ -27,6 +27,7 @@ import {
   Award,
   Eye,
 } from "lucide-react";
+import NotPersistedBanner from "./_NotPersistedBanner";
 
 type Season = "Spring" | "Summer" | "Autumn" | "Winter";
 
@@ -137,6 +138,7 @@ export default function SeasonalMenuTab() {
       transition={{ duration: 0.4 }}
       className="space-y-6"
     >
+      <NotPersistedBanner />
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className={`p-2.5 rounded-xl ${seasonConfig[currentSeason].bg}`}>

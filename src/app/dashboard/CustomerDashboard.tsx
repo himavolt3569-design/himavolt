@@ -41,6 +41,7 @@ import {
   BadgeCheck,
   Flame,
   Zap,
+  Gift,
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
@@ -48,7 +49,22 @@ import { formatPrice } from "@/lib/currency";
 
 const BRAND = "#eaa94d";
 
-type Tab = "home" | "orders" | "reviews" | "saved" | "account";
+type Tab = "home" | "orders" | "rewards" | "reviews" | "saved" | "account";
+
+interface LoyaltyAccount {
+  id: string;
+  points: number;
+  tier: string;
+  totalSpent: number;
+  restaurant: {
+    id: string;
+    slug: string;
+    name: string;
+    imageUrl?: string | null;
+    currency: string;
+    type: string;
+  };
+}
 
 interface OrderItem {
   id: string;
@@ -244,22 +260,25 @@ export default function CustomerDashboard() {
   const [favourites, setFavourites]   = useState<Favourite[]>([]);
   const [reviews, setReviews]         = useState<Review[]>([]);
   const [hotelBookings, setHotelBookings] = useState<HotelBooking[]>([]);
+  const [loyaltyAccounts, setLoyaltyAccounts] = useState<LoyaltyAccount[]>([]);
   const [loading, setLoading]         = useState(true);
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
-    const [ordersRes, statsRes, favsRes, reviewsRes, hotelRes] = await Promise.allSettled([
+    const [ordersRes, statsRes, favsRes, reviewsRes, hotelRes, loyaltyRes] = await Promise.allSettled([
       fetch("/api/orders?limit=100").then((r) => r.json()),
       fetch("/api/me/stats").then((r) => r.json()),
       fetch("/api/me/favourites").then((r) => r.json()),
       fetch("/api/me/reviews").then((r) => r.json()),
       fetch("/api/me/hotel-bookings").then((r) => r.json()),
+      fetch("/api/me/loyalty").then((r) => r.json()),
     ]);
     if (ordersRes.status === "fulfilled") setOrders(Array.isArray(ordersRes.value) ? ordersRes.value : []);
     if (statsRes.status === "fulfilled") setStats(statsRes.value);
     if (favsRes.status === "fulfilled" && Array.isArray(favsRes.value)) setFavourites(favsRes.value);
     if (reviewsRes.status === "fulfilled" && Array.isArray(reviewsRes.value)) setReviews(reviewsRes.value);
     if (hotelRes.status === "fulfilled" && Array.isArray(hotelRes.value)) setHotelBookings(hotelRes.value);
+    if (loyaltyRes.status === "fulfilled" && Array.isArray(loyaltyRes.value?.accounts)) setLoyaltyAccounts(loyaltyRes.value.accounts);
     setLoading(false);
   }, []);
 
@@ -274,10 +293,11 @@ export default function CustomerDashboard() {
   const activeOrder  = orders.find((o) => !["DELIVERED", "CANCELLED", "REJECTED"].includes(o.status));
   const deliveryOrders = orders.filter((o) => o.type === "DELIVERY");
 
+  const totalPoints = loyaltyAccounts.reduce((sum, a) => sum + a.points, 0);
   const TABS: { id: Tab; label: string; icon: typeof LayoutDashboard; badge?: number }[] = [
     { id: "home",    label: "Home",    icon: LayoutDashboard },
     { id: "orders",  label: "Orders",  icon: History,       badge: activeOrder ? 1 : 0 },
-    { id: "reviews", label: "Reviews", icon: Star },
+    { id: "rewards", label: "Rewards", icon: Gift,          badge: loyaltyAccounts.length > 0 ? loyaltyAccounts.length : 0 },
     { id: "saved",   label: "Saved",   icon: Heart,         badge: favourites.length > 0 ? favourites.length : 0 },
     { id: "account", label: "Account", icon: User },
   ];
@@ -347,6 +367,11 @@ export default function CustomerDashboard() {
           {tab === "orders" && (
             <TabPanel key="orders">
               <OrdersTab orders={orders} hotelBookings={hotelBookings} />
+            </TabPanel>
+          )}
+          {tab === "rewards" && (
+            <TabPanel key="rewards">
+              <RewardsTab accounts={loyaltyAccounts} totalPoints={totalPoints} />
             </TabPanel>
           )}
           {tab === "reviews" && (
@@ -1733,6 +1758,106 @@ function UsernameEditor() {
         {status === "invalid" ? "3–20 chars: a–z, 0–9, underscores only" : ""}
         {(status === "idle" || status === "checking") && username !== currentUsername ? "3–20 chars: a–z, 0–9, underscores" : ""}
       </p>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════
+   REWARDS TAB
+   ════════════════════════════════════════════════════════ */
+function RewardsTab({
+  accounts,
+  totalPoints,
+}: {
+  accounts: LoyaltyAccount[];
+  totalPoints: number;
+}) {
+  const tierColor = (tier: string) => {
+    switch (tier) {
+      case "PLATINUM": return "bg-purple-100 text-purple-700";
+      case "GOLD": return "bg-yellow-100 text-yellow-700";
+      case "SILVER": return "bg-[var(--surface)] text-[var(--text-2)]";
+      default: return "bg-[var(--accent-muted)] text-[var(--accent-text)]";
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <h2 className="text-lg font-extrabold text-[var(--text-1)]">Rewards</h2>
+        <p className="text-xs text-[var(--text-3)] mt-0.5">
+          {accounts.length === 0
+            ? "Earn points on every order"
+            : `${accounts.length} loyalty ${accounts.length === 1 ? "program" : "programs"}`}
+        </p>
+      </div>
+
+      <div className="rounded-2xl bg-gradient-to-br from-[#eaa94d] to-[#d4922a] p-5 text-white shadow-lg">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-sm">
+            <Gift className="h-6 w-6" strokeWidth={2} />
+          </div>
+          <div>
+            <p className="text-xs font-semibold opacity-90">Total Points</p>
+            <p className="text-2xl font-extrabold">{totalPoints.toLocaleString()}</p>
+          </div>
+        </div>
+      </div>
+
+      {accounts.length === 0 ? (
+        <div className="rounded-2xl border-2 border-dashed border-[var(--border)] py-14 text-center">
+          <Gift className="mx-auto h-9 w-9 text-[var(--text-3)] mb-3" />
+          <p className="text-sm font-bold text-[var(--text-2)] mb-1">No rewards yet</p>
+          <p className="text-xs text-[var(--text-3)] mb-4">
+            Order from restaurants with loyalty programs to start earning points
+          </p>
+          <Link
+            href="/"
+            className="inline-block rounded-xl bg-[var(--accent)] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#d4922a] transition-colors"
+          >
+            Explore Restaurants
+          </Link>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {accounts.map((acc) => (
+            <Link
+              key={acc.id}
+              href={`/menu/${acc.restaurant.slug}`}
+              className="flex items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--canvas)] p-3.5 hover:border-[var(--accent-border)] hover:shadow-sm transition-all"
+            >
+              {acc.restaurant.imageUrl ? (
+                <img
+                  src={acc.restaurant.imageUrl}
+                  alt=""
+                  className="h-14 w-14 rounded-xl object-cover ring-1 ring-[var(--border)]"
+                />
+              ) : (
+                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-[var(--accent-muted)]">
+                  <Utensils className="h-6 w-6 text-[var(--accent)]" />
+                </div>
+              )}
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <p className="truncate text-sm font-bold text-[var(--text-1)]">
+                    {acc.restaurant.name}
+                  </p>
+                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${tierColor(acc.tier)}`}>
+                    {acc.tier}
+                  </span>
+                </div>
+                <p className="mt-0.5 text-xs text-[var(--text-3)]">
+                  {formatPrice(acc.totalSpent, acc.restaurant.currency)} lifetime
+                </p>
+              </div>
+              <div className="shrink-0 text-right">
+                <p className="text-lg font-extrabold text-[var(--accent)]">{acc.points.toLocaleString()}</p>
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--text-3)]">pts</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

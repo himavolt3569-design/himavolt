@@ -23,6 +23,7 @@ import {
   DollarSign,
   Timer,
 } from "lucide-react";
+import NotPersistedBanner from "./_NotPersistedBanner";
 
 interface Tab {
   id: string;
@@ -178,6 +179,7 @@ export default function TabManagementTab() {
 
   return (
     <div className="space-y-6">
+      <NotPersistedBanner />
       <AnimatePresence>
         {alertTabs.length > 0 && (
           <motion.div

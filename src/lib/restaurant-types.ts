@@ -10,6 +10,7 @@ export const RESTAURANT_TYPE_OPTIONS = [
   { value: "MO_MO_SHOP",   label: "Momo Shop",      iconName: "Utensils" },
   { value: "TANDOORI",     label: "Tandoori",       iconName: "Flame" },
   { value: "GUEST_HOUSE",  label: "Guest House",    iconName: "Home" },
+  { value: "SWEETS",       label: "Sweets Shop",    iconName: "Candy" },
 ] as const;
 
 const TYPE_MAP = Object.fromEntries(
@@ -122,6 +123,17 @@ export const TYPE_FEATURES: Record<string, TypeFeature[]> = {
     { label: "Room QR Codes", desc: "Generate QR codes per room" },
     { label: "Display Counter", desc: "Showcase available items for guests" },
     { label: "WiFi", desc: "Share WiFi credentials with guests" },
+  ],
+  SWEETS: [
+    { label: "Display Counter", desc: "Showcase sweets & confections for walk-ins" },
+    { label: "Pre-Orders", desc: "Festival & bulk sweet orders in advance" },
+    { label: "Custom Orders", desc: "Laddu, barfi & mithai boxes by specification" },
+    { label: "Daily Specials", desc: "Highlight fresh-made sweets of the day" },
+    { label: "Seasonal Menu", desc: "Festival specials — Dashain, Tihar & more" },
+    { label: "Loyalty Rewards", desc: "Reward regulars with points & offers" },
+    { label: "Takeaway Ready", desc: "Gift packaging & carry-out orders" },
+    { label: "Quick Counter", desc: "Fast walk-in counter service" },
+    { label: "WiFi", desc: "Share WiFi credentials with customers" },
   ],
 };
 
@@ -264,16 +276,70 @@ export const TYPE_FEATURE_TABS: Record<string, FeatureTabDef[]> = {
     { id: "display-counter", label: "Display Counter", desc: "Showcase available items for guests", iconHint: "Monitor" },
     { id: "wifi-settings", label: "WiFi", desc: "Share WiFi credentials with guests", iconHint: "Wifi" },
   ],
+  SWEETS: [
+    { id: "display-counter", label: "Display Counter", desc: "Showcase sweets & confections for walk-ins", iconHint: "Monitor" },
+    { id: "pre-orders", label: "Pre-Orders", desc: "Festival & bulk sweet orders in advance", iconHint: "CalendarClock" },
+    { id: "custom-cakes", label: "Custom Orders", desc: "Mithai boxes & special orders by specification", iconHint: "Candy" },
+    { id: "daily-specials", label: "Daily Specials", desc: "Highlight fresh-made sweets of the day", iconHint: "Sparkles" },
+    { id: "seasonal-menu", label: "Seasonal Menu", desc: "Festival specials — Dashain, Tihar & more", iconHint: "Leaf" },
+    { id: "loyalty-rewards", label: "Loyalty Rewards", desc: "Reward regulars with points & offers", iconHint: "Award" },
+    { id: "takeaway", label: "Takeaway & Gift Boxes", desc: "Gift packaging & carry-out orders", iconHint: "PackageCheck" },
+    { id: "quick-counter", label: "Quick Counter", desc: "Fast walk-in counter service", iconHint: "Zap" },
+    { id: "wifi-settings", label: "WiFi", desc: "Share WiFi credentials with customers", iconHint: "Wifi" },
+  ],
 };
 
-/** Check if a feature tab is available for a given restaurant type */
-export function isFeatureAvailable(restaurantType: string, featureId: FeatureTabId): boolean {
+/**
+ * Per-restaurant admin override of the type-based feature map.
+ * `featuresDisabled` wins when a feature id appears in both lists.
+ */
+export interface FeatureOverride {
+  featuresEnabled?: string[];
+  featuresDisabled?: string[];
+}
+
+/** Flat catalog of every feature def across every type — used for force-enable lookups. */
+const FEATURE_CATALOG: Map<string, FeatureTabDef> = (() => {
+  const map = new Map<string, FeatureTabDef>();
+  Object.values(TYPE_FEATURE_TABS).forEach((list) =>
+    list.forEach((f) => {
+      if (!map.has(f.id)) map.set(f.id, f);
+    }),
+  );
+  return map;
+})();
+
+/** Check if a feature tab is available for a given restaurant type, applying optional admin overrides. */
+export function isFeatureAvailable(
+  restaurantType: string,
+  featureId: FeatureTabId,
+  overrides?: FeatureOverride,
+): boolean {
+  if (overrides?.featuresDisabled?.includes(featureId)) return false;
+  if (overrides?.featuresEnabled?.includes(featureId)) return true;
   const features = TYPE_FEATURE_TABS[restaurantType];
   if (!features) return false;
   return features.some((f) => f.id === featureId);
 }
 
-/** Get all feature tab IDs for a restaurant type */
-export function getFeatureTabsForType(restaurantType: string): FeatureTabDef[] {
-  return TYPE_FEATURE_TABS[restaurantType] ?? [];
+/** Get the effective feature tab list for a restaurant: type defaults minus force-disabled, plus force-enabled. */
+export function getFeatureTabsForType(
+  restaurantType: string,
+  overrides?: FeatureOverride,
+): FeatureTabDef[] {
+  const base = TYPE_FEATURE_TABS[restaurantType] ?? [];
+  const disabled = new Set(overrides?.featuresDisabled ?? []);
+  const filtered = base.filter((f) => !disabled.has(f.id));
+  const existingIds = new Set(filtered.map((f) => f.id));
+  const extras = (overrides?.featuresEnabled ?? [])
+    .filter((id) => !disabled.has(id) && !existingIds.has(id))
+    .map((id) => FEATURE_CATALOG.get(id))
+    .filter((f): f is FeatureTabDef => !!f);
+  return [...filtered, ...extras];
+}
+
+export const ALL_FEATURE_IDS: FeatureTabId[] = Array.from(FEATURE_CATALOG.keys()) as FeatureTabId[];
+
+export function isValidFeatureId(id: string): id is FeatureTabId {
+  return FEATURE_CATALOG.has(id);
 }

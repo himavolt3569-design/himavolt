@@ -101,7 +101,7 @@ const PAYMENT_METHOD_LABELS: Record<string, string> = {
   BANK: "Bank Transfer",
   CASH: "Cash",
   COUNTER: "Manual Pay",
-  DIRECT: "Direct Pay",
+  DIRECT: "Fast Pay",
 };
 
 function formatDuration(mins: number): string {

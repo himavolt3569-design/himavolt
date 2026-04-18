@@ -5,11 +5,12 @@ import { logAudit, getClientIp } from "@/lib/audit";
 import { getAuthUser } from "@/lib/auth";
 import { touchOrderUpdatedAt } from "@/lib/order-sync";
 import { notifyCustomerOrderUpdate } from "@/lib/notifications";
+import { STAFF_BILLING_ROLES } from "@/lib/staff-roles";
 
 async function verifyStaffAccess(req: NextRequest, restaurantId: string) {
   const staff = await requireStaffForRestaurant(req, restaurantId);
   if (!staff) return null;
-  if (!["CASHIER", "MANAGER", "SUPER_ADMIN"].includes(staff.role)) return null;
+  if (!(STAFF_BILLING_ROLES as readonly string[]).includes(staff.role)) return null;
   return staff;
 }
 

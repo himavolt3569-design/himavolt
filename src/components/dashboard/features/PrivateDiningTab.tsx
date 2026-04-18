@@ -21,6 +21,7 @@ import {
   Star,
   Check,
 } from "lucide-react";
+import NotPersistedBanner from "./_NotPersistedBanner";
 
 type RoomStatus = "available" | "occupied" | "reserved" | "maintenance";
 type BookingStatus = "pending" | "confirmed" | "active" | "completed";
@@ -130,6 +131,7 @@ export default function PrivateDiningTab() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-10">
+      <NotPersistedBanner />
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-[var(--text-1)] flex items-center gap-2">

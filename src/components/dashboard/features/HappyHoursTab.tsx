@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Clock,
@@ -9,20 +9,12 @@ import {
   ToggleLeft,
   ToggleRight,
   PartyPopper,
-  TrendingUp,
-  DollarSign,
-  Beer,
-  Wine,
-  Martini,
-  Percent,
   Calendar,
-  ChevronDown,
-  ChevronUp,
-  Star,
-  Zap,
-  Edit2,
   X,
+  Loader2,
 } from "lucide-react";
+import { useRestaurant } from "@/context/RestaurantContext";
+import { apiFetch } from "@/lib/api-client";
 
 interface HappyHour {
   id: string;
@@ -30,74 +22,70 @@ interface HappyHour {
   days: string[];
   startTime: string;
   endTime: string;
-  discountType: "percentage" | "flat";
+  discountType: string;
   discountValue: number;
-  category: string;
-  active: boolean;
-  autoActivate: boolean;
+  isActive: boolean;
+  appliesToAll: boolean;
 }
 
-interface HappyHourItem {
-  id: string;
-  name: string;
-  originalPrice: number;
-  discountedPrice: number;
-  category: string;
-}
-
-interface SpecialItem {
-  id: string;
-  name: string;
-  price: number;
-  available: boolean;
-}
-
-const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const CATEGORIES = ["All Drinks", "Cocktails", "Beer", "Wine"];
+const DAYS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
 export default function HappyHoursTab() {
-  const [happyHours, setHappyHours] = useState<HappyHour[]>([]);
-  const [happyHourItems] = useState<HappyHourItem[]>([]);
-  const [specialItems, setSpecialItems] = useState<SpecialItem[]>([]);
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [expandedStats, setExpandedStats] = useState(true);
-  const [expandedSpecial, setExpandedSpecial] = useState(false);
+  const { selectedRestaurant } = useRestaurant();
+  const restaurantId = selectedRestaurant?.id ?? null;
 
-  const [newHH, setNewHH] = useState<{
-    name: string;
-    days: string[];
-    startTime: string;
-    endTime: string;
-    discountType: "percentage" | "flat";
-    discountValue: string;
-    category: string;
-  }>({
+  const [happyHours, setHappyHours] = useState<HappyHour[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+
+  const [newHH, setNewHH] = useState({
     name: "",
-    days: [],
-    startTime: "16:00",
+    days: [] as string[],
+    startTime: "17:00",
     endTime: "19:00",
-    discountType: "percentage",
+    discountType: "PERCENTAGE",
     discountValue: "",
-    category: "All Drinks",
+    appliesToAll: true,
   });
 
-  const isHappyHourActive = happyHours.some((hh) => hh.active);
+  useEffect(() => {
+    if (!restaurantId) return;
+    let cancelled = false;
+    setLoading(true);
+    apiFetch<{ happyHours: HappyHour[] }>(
+      `/api/restaurants/${restaurantId}/happy-hours`,
+    )
+      .then((res) => {
+        if (!cancelled) setHappyHours(res.happyHours);
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err?.message || "Failed to load");
+      })
+      .finally(() => !cancelled && setLoading(false));
+    return () => {
+      cancelled = true;
+    };
+  }, [restaurantId]);
 
-  const toggleHappyHour = (id: string) => {
-    setHappyHours((prev) =>
-      prev.map((hh) => (hh.id === id ? { ...hh, active: !hh.active } : hh))
-    );
-  };
-
-  const toggleAutoActivate = (id: string) => {
-    setHappyHours((prev) =>
-      prev.map((hh) => (hh.id === id ? { ...hh, autoActivate: !hh.autoActivate } : hh))
-    );
-  };
-
-  const deleteHappyHour = (id: string) => {
-    setHappyHours((prev) => prev.filter((hh) => hh.id !== id));
-  };
+  const isHappyHourActive = (() => {
+    const now = new Date();
+    const dayMap = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+    const today = dayMap[now.getDay()];
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+    const toMin = (t: string) => {
+      const [h, m] = t.split(":").map((n) => parseInt(n, 10));
+      return h * 60 + (m || 0);
+    };
+    return happyHours.some((hh) => {
+      if (!hh.isActive) return false;
+      if (hh.days.length > 0 && !hh.days.includes(today)) return false;
+      const s = toMin(hh.startTime);
+      const e = toMin(hh.endTime);
+      return e >= s ? nowMin >= s && nowMin < e : nowMin >= s || nowMin < e;
+    });
+  })();
 
   const toggleDay = (day: string) => {
     setNewHH((prev) => ({
@@ -108,30 +96,75 @@ export default function HappyHoursTab() {
     }));
   };
 
-  const createHappyHour = () => {
-    if (!newHH.name.trim() || newHH.days.length === 0 || !newHH.discountValue) return;
-    const hh: HappyHour = {
-      id: Date.now().toString(),
-      name: newHH.name.trim(),
-      days: newHH.days,
-      startTime: newHH.startTime,
-      endTime: newHH.endTime,
-      discountType: newHH.discountType,
-      discountValue: parseFloat(newHH.discountValue),
-      category: newHH.category,
-      active: false,
-      autoActivate: true,
-    };
-    setHappyHours((prev) => [...prev, hh]);
-    setNewHH({ name: "", days: [], startTime: "16:00", endTime: "19:00", discountType: "percentage", discountValue: "", category: "All Drinks" });
-    setShowCreateForm(false);
+  const createHappyHour = async () => {
+    if (!restaurantId || !newHH.name.trim() || !newHH.discountValue) return;
+    setSaving(true);
+    try {
+      const res = await apiFetch<HappyHour>(
+        `/api/restaurants/${restaurantId}/happy-hours`,
+        {
+          method: "POST",
+          body: {
+            name: newHH.name.trim(),
+            days: newHH.days,
+            startTime: newHH.startTime,
+            endTime: newHH.endTime,
+            discountType: newHH.discountType,
+            discountValue: parseFloat(newHH.discountValue),
+            appliesToAll: newHH.appliesToAll,
+          },
+        },
+      );
+      setHappyHours((prev) => [res, ...prev]);
+      setNewHH({
+        name: "",
+        days: [],
+        startTime: "17:00",
+        endTime: "19:00",
+        discountType: "PERCENTAGE",
+        discountValue: "",
+        appliesToAll: true,
+      });
+      setShowCreateForm(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to create");
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const toggleSpecialItem = (id: string) => {
-    setSpecialItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, available: !item.available } : item))
-    );
+  const toggleActive = async (hh: HappyHour) => {
+    if (!restaurantId) return;
+    try {
+      const updated = await apiFetch<HappyHour>(
+        `/api/restaurants/${restaurantId}/happy-hours/${hh.id}`,
+        { method: "PATCH", body: { isActive: !hh.isActive } },
+      );
+      setHappyHours((prev) => prev.map((h) => (h.id === hh.id ? updated : h)));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to update");
+    }
   };
+
+  const deleteHappyHour = async (id: string) => {
+    if (!restaurantId) return;
+    if (!confirm("Delete this happy hour?")) return;
+    try {
+      await apiFetch(
+        `/api/restaurants/${restaurantId}/happy-hours/${id}`,
+        { method: "DELETE" },
+      );
+      setHappyHours((prev) => prev.filter((h) => h.id !== id));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete");
+    }
+  };
+
+  if (!restaurantId) {
+    return (
+      <div className="text-zinc-400 p-4">No restaurant selected</div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -145,72 +178,36 @@ export default function HappyHoursTab() {
         }`}
       >
         <div className="flex items-center gap-3">
-          <PartyPopper className={`w-6 h-6 ${isHappyHourActive ? "animate-bounce" : ""}`} />
+          <PartyPopper
+            className={`w-6 h-6 ${isHappyHourActive ? "animate-bounce" : ""}`}
+          />
           <div>
             <h3 className="font-bold text-lg">
-              {isHappyHourActive ? "Happy Hour Active!" : "No Happy Hour Right Now"}
+              {isHappyHourActive
+                ? "Happy Hour Active!"
+                : "No Happy Hour Right Now"}
             </h3>
-            <p className={`text-sm ${isHappyHourActive ? "text-rose-100" : "text-zinc-400"}`}>
+            <p
+              className={`text-sm ${
+                isHappyHourActive ? "text-rose-100" : "text-zinc-400"
+              }`}
+            >
               {isHappyHourActive
                 ? "Discounted prices are currently applied"
-                : "Next happy hour in ~2 hours"}
+                : happyHours.length === 0
+                  ? "No schedules set up yet"
+                  : "Waiting for next active window"}
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Clock className="w-4 h-4" />
-          <span className="text-sm font-medium">
-            {isHappyHourActive ? "Ends at 7:00 PM" : "Starts at 4:00 PM"}
-          </span>
-        </div>
+        <Clock className="w-5 h-5 opacity-70" />
       </motion.div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.05 }}
-      >
-        <button
-          onClick={() => setExpandedStats(!expandedStats)}
-          className="w-full flex items-center justify-between mb-3"
-        >
-          <h3 className="text-white font-semibold flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-rose-400" />
-            Happy Hour Performance
-          </h3>
-          {expandedStats ? (
-            <ChevronUp className="w-4 h-4 text-zinc-400" />
-          ) : (
-            <ChevronDown className="w-4 h-4 text-zinc-400" />
-          )}
-        </button>
-        <AnimatePresence>
-          {expandedStats && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="grid grid-cols-2 md:grid-cols-4 gap-3 overflow-hidden"
-            >
-              {[
-                { label: "Orders Today", value: "47", icon: Zap, color: "text-rose-400" },
-                { label: "Revenue (HH)", value: "Rs 32,400", icon: DollarSign, color: "text-[var(--accent-hover)]" },
-                { label: "Avg Discount", value: "25%", icon: Percent, color: "text-[var(--accent)]" },
-                { label: "Popular Item", value: "Margarita", icon: Star, color: "text-purple-400" },
-              ].map((stat) => (
-                <div
-                  key={stat.label}
-                  className="bg-zinc-800/80 rounded-xl p-4 border border-zinc-700/50"
-                >
-                  <stat.icon className={`w-5 h-5 ${stat.color} mb-2`} />
-                  <p className="text-white font-bold text-lg">{stat.value}</p>
-                  <p className="text-zinc-400 text-xs">{stat.label}</p>
-                </div>
-              ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
+      {error && (
+        <div className="rounded-lg bg-red-500/10 border border-red-500/30 p-3 text-sm text-red-400">
+          {error}
+        </div>
+      )}
 
       <div>
         <div className="flex items-center justify-between mb-3">
@@ -237,25 +234,36 @@ export default function HappyHoursTab() {
             >
               <div className="bg-zinc-800/80 rounded-xl p-5 border border-zinc-700/50 space-y-4">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-white font-medium">Create New Happy Hour</h4>
-                  <button onClick={() => setShowCreateForm(false)} className="text-zinc-400 hover:text-white">
+                  <h4 className="text-white font-medium">
+                    Create New Happy Hour
+                  </h4>
+                  <button
+                    onClick={() => setShowCreateForm(false)}
+                    className="text-zinc-400 hover:text-white"
+                  >
                     <X className="w-4 h-4" />
                   </button>
                 </div>
 
                 <div>
-                  <label className="text-zinc-400 text-sm mb-1 block">Name</label>
+                  <label className="text-zinc-400 text-sm mb-1 block">
+                    Name
+                  </label>
                   <input
                     type="text"
                     value={newHH.name}
-                    onChange={(e) => setNewHH((prev) => ({ ...prev, name: e.target.value }))}
+                    onChange={(e) =>
+                      setNewHH((prev) => ({ ...prev, name: e.target.value }))
+                    }
                     placeholder="e.g., Weekday Happy Hour"
-                    className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-rose-500"
+                    className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm"
                   />
                 </div>
 
                 <div>
-                  <label className="text-zinc-400 text-sm mb-2 block">Days</label>
+                  <label className="text-zinc-400 text-sm mb-2 block">
+                    Days (leave all off for every day)
+                  </label>
                   <div className="flex gap-2 flex-wrap">
                     {DAYS.map((day) => (
                       <button
@@ -275,79 +283,98 @@ export default function HappyHoursTab() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-zinc-400 text-sm mb-1 block">Start Time</label>
+                    <label className="text-zinc-400 text-sm mb-1 block">
+                      Start Time
+                    </label>
                     <input
                       type="time"
                       value={newHH.startTime}
-                      onChange={(e) => setNewHH((prev) => ({ ...prev, startTime: e.target.value }))}
-                      className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-rose-500"
+                      onChange={(e) =>
+                        setNewHH((prev) => ({
+                          ...prev,
+                          startTime: e.target.value,
+                        }))
+                      }
+                      className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm"
                     />
                   </div>
                   <div>
-                    <label className="text-zinc-400 text-sm mb-1 block">End Time</label>
+                    <label className="text-zinc-400 text-sm mb-1 block">
+                      End Time
+                    </label>
                     <input
                       type="time"
                       value={newHH.endTime}
-                      onChange={(e) => setNewHH((prev) => ({ ...prev, endTime: e.target.value }))}
-                      className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-rose-500"
+                      onChange={(e) =>
+                        setNewHH((prev) => ({
+                          ...prev,
+                          endTime: e.target.value,
+                        }))
+                      }
+                      className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-zinc-400 text-sm mb-1 block">Discount Type</label>
+                    <label className="text-zinc-400 text-sm mb-1 block">
+                      Discount Type
+                    </label>
                     <select
                       value={newHH.discountType}
                       onChange={(e) =>
                         setNewHH((prev) => ({
                           ...prev,
-                          discountType: e.target.value as "percentage" | "flat",
+                          discountType: e.target.value,
                         }))
                       }
-                      className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-rose-500"
+                      className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm"
                     >
-                      <option value="percentage">Percentage (%)</option>
-                      <option value="flat">Flat (Rs)</option>
+                      <option value="PERCENTAGE">Percentage (%)</option>
+                      <option value="FIXED">Flat (Rs)</option>
                     </select>
                   </div>
                   <div>
-                    <label className="text-zinc-400 text-sm mb-1 block">Discount Value</label>
+                    <label className="text-zinc-400 text-sm mb-1 block">
+                      Discount Value
+                    </label>
                     <input
                       type="number"
                       value={newHH.discountValue}
-                      onChange={(e) => setNewHH((prev) => ({ ...prev, discountValue: e.target.value }))}
-                      placeholder={newHH.discountType === "percentage" ? "25" : "200"}
-                      className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-rose-500"
+                      onChange={(e) =>
+                        setNewHH((prev) => ({
+                          ...prev,
+                          discountValue: e.target.value,
+                        }))
+                      }
+                      placeholder={
+                        newHH.discountType === "PERCENTAGE" ? "25" : "200"
+                      }
+                      className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm"
                     />
                   </div>
                 </div>
 
-                <div>
-                  <label className="text-zinc-400 text-sm mb-1 block">Applicable Category</label>
-                  <select
-                    value={newHH.category}
-                    onChange={(e) => setNewHH((prev) => ({ ...prev, category: e.target.value }))}
-                    className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-rose-500"
-                  >
-                    {CATEGORIES.map((cat) => (
-                      <option key={cat} value={cat}>
-                        {cat}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
                 <button
                   onClick={createHappyHour}
-                  className="w-full bg-rose-600 hover:bg-rose-700 text-white rounded-lg py-2.5 font-medium transition-colors"
+                  disabled={saving}
+                  className="w-full bg-rose-600 hover:bg-rose-700 text-white rounded-lg py-2.5 font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                  Create Happy Hour
+                  {saving && <Loader2 className="w-4 h-4 animate-spin" />}
+                  {saving ? "Saving..." : "Create Happy Hour"}
                 </button>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
+
+        {loading && (
+          <div className="flex items-center justify-center py-8 text-zinc-400">
+            <Loader2 className="w-5 h-5 animate-spin mr-2" />
+            Loading...
+          </div>
+        )}
 
         <div className="space-y-3">
           {happyHours.map((hh, index) => (
@@ -357,29 +384,30 @@ export default function HappyHoursTab() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.05 }}
               className={`bg-zinc-800/80 rounded-xl p-4 border ${
-                hh.active ? "border-rose-500/50" : "border-zinc-700/50"
+                hh.isActive ? "border-rose-500/50" : "border-zinc-700/50"
               }`}
             >
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <div className="flex items-center gap-2">
                     <h4 className="text-white font-medium">{hh.name}</h4>
-                    {hh.active && (
+                    {hh.isActive && (
                       <span className="px-2 py-0.5 bg-rose-500/20 text-rose-400 text-xs rounded-full font-medium">
                         Active
                       </span>
                     )}
                   </div>
                   <p className="text-zinc-400 text-sm mt-0.5">
-                    {hh.days.join(", ")} &middot; {hh.startTime} - {hh.endTime}
+                    {hh.days.length === 0 ? "Every day" : hh.days.join(", ")}{" "}
+                    &middot; {hh.startTime} - {hh.endTime}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => toggleHappyHour(hh.id)}
+                    onClick={() => toggleActive(hh)}
                     className="text-zinc-400 hover:text-white transition-colors"
                   >
-                    {hh.active ? (
+                    {hh.isActive ? (
                       <ToggleRight className="w-6 h-6 text-rose-400" />
                     ) : (
                       <ToggleLeft className="w-6 h-6" />
@@ -396,116 +424,24 @@ export default function HappyHoursTab() {
 
               <div className="flex items-center gap-4 text-sm">
                 <span className="text-zinc-300">
-                  {hh.discountType === "percentage"
+                  {hh.discountType === "PERCENTAGE"
                     ? `${hh.discountValue}% off`
                     : `Rs ${hh.discountValue} off`}
                 </span>
                 <span className="text-zinc-500">&middot;</span>
-                <span className="text-zinc-400">{hh.category}</span>
-                <span className="text-zinc-500">&middot;</span>
-                <button
-                  onClick={() => toggleAutoActivate(hh.id)}
-                  className={`flex items-center gap-1 ${
-                    hh.autoActivate ? "text-[var(--accent-hover)]" : "text-zinc-500"
-                  }`}
-                >
-                  <Zap className="w-3 h-3" />
-                  {hh.autoActivate ? "Auto" : "Manual"}
-                </button>
+                <span className="text-zinc-400">
+                  {hh.appliesToAll ? "All drinks" : "Select items"}
+                </span>
               </div>
             </motion.div>
           ))}
-        </div>
-      </div>
 
-      <div>
-        <h3 className="text-white font-semibold flex items-center gap-2 mb-3">
-          <Beer className="w-5 h-5 text-rose-400" />
-          Discounted Items
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {happyHourItems.map((item, index) => (
-            <motion.div
-              key={item.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.03 }}
-              className="bg-zinc-800/80 rounded-xl p-3 border border-zinc-700/50 flex items-center justify-between"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-rose-500/10 flex items-center justify-center">
-                  {item.category === "Beer" ? (
-                    <Beer className="w-4 h-4 text-rose-400" />
-                  ) : item.category === "Wine" ? (
-                    <Wine className="w-4 h-4 text-rose-400" />
-                  ) : (
-                    <Martini className="w-4 h-4 text-rose-400" />
-                  )}
-                </div>
-                <div>
-                  <p className="text-white text-sm font-medium">{item.name}</p>
-                  <p className="text-zinc-500 text-xs">{item.category}</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-rose-400 font-semibold text-sm">Rs {item.discountedPrice}</p>
-                <p className="text-zinc-500 text-xs line-through">Rs {item.originalPrice}</p>
-              </div>
-            </motion.div>
-          ))}
+          {!loading && happyHours.length === 0 && (
+            <div className="text-zinc-500 text-sm text-center py-8 bg-zinc-800/40 rounded-xl border border-zinc-700/50">
+              No happy hour schedules yet. Click &quot;New Schedule&quot; to add one.
+            </div>
+          )}
         </div>
-      </div>
-
-      <div>
-        <button
-          onClick={() => setExpandedSpecial(!expandedSpecial)}
-          className="w-full flex items-center justify-between mb-3"
-        >
-          <h3 className="text-white font-semibold flex items-center gap-2">
-            <Star className="w-5 h-5 text-rose-400" />
-            Special Happy Hour Menu
-          </h3>
-          {expandedSpecial ? (
-            <ChevronUp className="w-4 h-4 text-zinc-400" />
-          ) : (
-            <ChevronDown className="w-4 h-4 text-zinc-400" />
-          )}
-        </button>
-        <AnimatePresence>
-          {expandedSpecial && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="space-y-2 overflow-hidden"
-            >
-              <p className="text-zinc-400 text-sm mb-3">
-                Items only available during happy hours
-              </p>
-              {specialItems.map((item) => (
-                <div
-                  key={item.id}
-                  className="bg-zinc-800/80 rounded-xl p-3 border border-zinc-700/50 flex items-center justify-between"
-                >
-                  <div>
-                    <p className="text-white text-sm font-medium">{item.name}</p>
-                    <p className="text-zinc-400 text-xs">Rs {item.price}</p>
-                  </div>
-                  <button
-                    onClick={() => toggleSpecialItem(item.id)}
-                    className="transition-colors"
-                  >
-                    {item.available ? (
-                      <ToggleRight className="w-6 h-6 text-rose-400" />
-                    ) : (
-                      <ToggleLeft className="w-6 h-6 text-zinc-500" />
-                    )}
-                  </button>
-                </div>
-              ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
     </div>
   );

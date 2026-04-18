@@ -122,7 +122,7 @@ const PAYMENT_LABELS: Record<string, string> = {
   BANK: "Bank",
   CASH: "Cash",
   COUNTER: "Manual Pay",
-  DIRECT: "Direct Pay",
+  DIRECT: "Fast Pay",
 };
 
 function PaymentBadge({ method, status }: { method: string; status: string }) {

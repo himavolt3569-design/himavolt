@@ -23,6 +23,7 @@ import {
   Search,
   Filter,
 } from "lucide-react";
+import NotPersistedBanner from "./_NotPersistedBanner";
 
 interface PreOrderItem {
   id: string;
@@ -214,6 +215,7 @@ export default function PreOrdersTab() {
 
   return (
     <div className="space-y-6">
+      <NotPersistedBanner />
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-[var(--text-1)]">Pre-Orders</h2>

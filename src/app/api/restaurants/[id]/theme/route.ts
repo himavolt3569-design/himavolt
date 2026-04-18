@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireStaffForRestaurant } from "@/lib/staff-auth";
 import { getAuthUser } from "@/lib/auth";
+import { STAFF_MANAGER_ROLES } from "@/lib/staff-roles";
 
 const THEME_SELECT = {
   primaryColor: true,
@@ -17,7 +18,7 @@ const THEME_SELECT = {
 async function verifyOwnerAccess(req: NextRequest, restaurantId: string) {
   // Try staff auth first (SUPER_ADMIN or MANAGER only)
   const staff = await requireStaffForRestaurant(req, restaurantId);
-  if (staff && ["SUPER_ADMIN", "MANAGER"].includes(staff.role)) {
+  if (staff && (STAFF_MANAGER_ROLES as readonly string[]).includes(staff.role)) {
     return { type: "staff" as const };
   }
   // Fallback: owner auth

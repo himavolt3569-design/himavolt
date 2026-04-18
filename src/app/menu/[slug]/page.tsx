@@ -39,6 +39,7 @@ import {
   Check,
   X,
   Flame,
+  Sparkles,
   Leaf,
   Egg,
   ChevronRight,
@@ -77,6 +78,7 @@ import { formatPrice } from "@/lib/currency";
 import OfferCountdown from "@/components/menu/OfferCountdown";
 import TableSessionBanner from "@/components/menu/TableSessionBanner";
 import DisplayCounterView from "@/components/menu/DisplayCounterView";
+import { isFeatureAvailable } from "@/lib/restaurant-types";
 import GetBillButton from "@/components/menu/GetBillButton";
 import { useTableSession } from "@/hooks/useTableSession";
 import { setActiveTableSession } from "@/hooks/useActiveTableSession";
@@ -143,6 +145,8 @@ interface Restaurant {
   footerText: string | null;
   showStories: boolean;
   showReviews: boolean;
+  featuresEnabled?: string[];
+  featuresDisabled?: string[];
 }
 
 interface MenuItemSize {
@@ -948,6 +952,14 @@ function MenuPageContent() {
   const [hasCoupons, setHasCoupons] = useState(false);
   const [comboMeals, setComboMeals] = useState<ComboMeal[]>([]);
   const [rushHour, setRushHour] = useState<RushHourData>({ isEnabled: false, isRushNow: false, surgeEnabled: false, surgePercent: 0 });
+  const [specials, setSpecials] = useState<MenuItem[]>([]);
+  const [happyHourActive, setHappyHourActive] = useState<{
+    isHappyNow: boolean;
+    name?: string;
+    endTime?: string;
+    discountType?: string;
+    discountValue?: number;
+  }>({ isHappyNow: false });
   const tabsRef = useRef<HTMLDivElement>(null);
   const { totalItems, items, subtotal, initForRestaurant } = useCart();
   const { activeOrder, restoreOrder, restoreFromStorage } = useOrder();
@@ -973,13 +985,17 @@ function MenuPageContent() {
       setLoading(true);
       setError(null);
       try {
-        const [rest, menu] = await Promise.all([
-          apiFetch<Restaurant>(`/api/public/restaurants/${slug}`),
-          apiFetch<MenuItem[]>(`/api/public/restaurants/${slug}/menu`),
-        ]);
+        // Load restaurant first — this is the critical fetch.
+        // Menu and secondary data are loaded separately so a menu failure
+        // doesn't prevent the restaurant from rendering at all.
+        const rest = await apiFetch<Restaurant>(`/api/public/restaurants/${slug}`);
         if (cancelled) return;
         setRestaurant(rest);
-        setMenuItems(menu);
+
+        // Load menu independently so a failure here doesn't block the page
+        apiFetch<MenuItem[]>(`/api/public/restaurants/${slug}/menu`)
+          .then((menu) => { if (!cancelled) setMenuItems(menu); })
+          .catch(() => {});
 
         // Load rooms for hotel/resort/guesthouse types
         const hotelTypes = ["HOTEL", "RESORT", "GUEST_HOUSE"];
@@ -995,6 +1011,33 @@ function MenuPageContent() {
 
         apiFetch<RushHourData>(`/api/public/restaurants/${slug}/rush-hour`)
           .then((r) => { if (!cancelled) setRushHour(r); })
+          .catch(() => {});
+
+        apiFetch<{ specials: MenuItem[] }>(`/api/public/restaurants/${slug}/specials`)
+          .then((s) => { if (!cancelled) setSpecials(s.specials ?? []); })
+          .catch(() => {});
+
+        apiFetch<{
+          isHappyNow: boolean;
+          activeHours: Array<{
+            name: string;
+            endTime: string;
+            discountType: string;
+            discountValue: number;
+          }>;
+        }>(`/api/public/restaurants/${slug}/happy-hours`)
+          .then((h) => {
+            if (cancelled) return;
+            if (h.isHappyNow && h.activeHours[0]) {
+              setHappyHourActive({
+                isHappyNow: true,
+                name: h.activeHours[0].name,
+                endTime: h.activeHours[0].endTime,
+                discountType: h.activeHours[0].discountType,
+                discountValue: h.activeHours[0].discountValue,
+              });
+            }
+          })
           .catch(() => {});
 
         // Check if restaurant has active coupons
@@ -1182,6 +1225,17 @@ function MenuPageContent() {
     return <OrderStatus onClose={() => { localStorage.removeItem(`hh_tracking_${slug}`); setShowOrder(false); }} />;
   }
 
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#F7F8FA]">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-[var(--accent)]" />
+          <p className="text-sm text-[var(--text-3)]">Loading menu...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (error || !restaurant) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#F7F8FA] p-6">
@@ -1342,8 +1396,11 @@ function MenuPageContent() {
               </ScrollStorySection>
             )}
 
-            {/* Display Counter - live availability view */}
-            <DisplayCounterView slug={slug} />
+            {/* Display Counter - live availability view (type-gated) */}
+            {isFeatureAvailable(restaurant.type, "display-counter", {
+              featuresEnabled: restaurant.featuresEnabled,
+              featuresDisabled: restaurant.featuresDisabled,
+            }) && <DisplayCounterView slug={slug} />}
 
             {hasSessionOrder && sessionOrder && (
               <TableSessionBanner
@@ -1526,7 +1583,63 @@ function MenuPageContent() {
               />
             )}
 
-            {rushHour.isRushNow && rushHour.surgeEnabled && (
+            {isFeatureAvailable(restaurant.type, "table-reservations", {
+              featuresEnabled: restaurant.featuresEnabled,
+              featuresDisabled: restaurant.featuresDisabled,
+            }) && (
+              <motion.a
+                href={`/menu/${slug}/reserve`}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+                className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-[var(--canvas-sub)] to-[var(--canvas)] border border-[var(--border)] px-4 py-3 hover:border-[var(--accent)] transition-all"
+              >
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent)] shrink-0">
+                  <Calendar className="h-4 w-4 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold text-[var(--text-1)]">
+                    Reserve a Table
+                  </p>
+                  <p className="text-[11px] text-[var(--text-2)]">
+                    Book your seat in advance
+                  </p>
+                </div>
+                <ChevronRight className="h-4 w-4 text-[var(--text-3)]" />
+              </motion.a>
+            )}
+
+            {happyHourActive.isHappyNow && isFeatureAvailable(restaurant.type, "happy-hours", {
+              featuresEnabled: restaurant.featuresEnabled,
+              featuresDisabled: restaurant.featuresDisabled,
+            }) && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+                className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-rose-50 to-red-50 border border-rose-200 px-4 py-3"
+              >
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-500 shrink-0">
+                  <Wine className="h-4 w-4 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold text-rose-700">
+                    Happy Hour: {happyHourActive.name}
+                  </p>
+                  <p className="text-[11px] text-rose-600">
+                    {happyHourActive.discountType === "PERCENTAGE"
+                      ? `${happyHourActive.discountValue}% off`
+                      : `Rs. ${happyHourActive.discountValue} off`}
+                    {happyHourActive.endTime && ` until ${happyHourActive.endTime}`}
+                  </p>
+                </div>
+              </motion.div>
+            )}
+
+            {rushHour.isRushNow && rushHour.surgeEnabled && isFeatureAvailable(restaurant.type, "rush-hour", {
+              featuresEnabled: restaurant.featuresEnabled,
+              featuresDisabled: restaurant.featuresDisabled,
+            }) && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -1543,7 +1656,10 @@ function MenuPageContent() {
               </motion.div>
             )}
 
-            {comboMeals.length > 0 && (
+            {comboMeals.length > 0 && isFeatureAvailable(restaurant.type, "combo-meals", {
+              featuresEnabled: restaurant.featuresEnabled,
+              featuresDisabled: restaurant.featuresDisabled,
+            }) && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -1564,6 +1680,41 @@ function MenuPageContent() {
                       restaurantId={restaurant.id}
                       restaurantSlug={restaurant.slug}
                       currency={cur}
+                      surgeMultiplier={surgeMultiplier}
+                    />
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
+            {/* Today's Specials — featured items for applicable types */}
+            {specials.length > 0 && isFeatureAvailable(restaurant.type, "daily-specials", {
+              featuresEnabled: restaurant.featuresEnabled,
+              featuresDisabled: restaurant.featuresDisabled,
+            }) && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.15 }}
+                className="space-y-3"
+              >
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-[var(--accent)]" />
+                  <h2 className="text-sm font-bold text-[var(--text-1)]">Today&apos;s Specials</h2>
+                  <span className="text-[11px] font-semibold text-[var(--text-3)]">
+                    {specials.length} {specials.length === 1 ? "pick" : "picks"}
+                  </span>
+                  <div className="flex-1 h-px bg-[var(--surface)]" />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {specials.map((item) => (
+                    <MenuItemCard
+                      key={`special-${item.id}`}
+                      item={item}
+                      restaurantId={restaurant.id}
+                      restaurantSlug={restaurant.slug}
+                      restaurantCurrency={cur}
+                      onSelect={(d) => setSelectedDish(d)}
                       surgeMultiplier={surgeMultiplier}
                     />
                   ))}
