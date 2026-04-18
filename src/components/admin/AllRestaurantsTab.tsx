@@ -20,8 +20,10 @@ import {
   ExternalLink,
   Trash2,
   CheckSquare,
+  Zap,
 } from "lucide-react";
 import DeleteConfirmDialog from "@/components/admin/DeleteConfirmDialog";
+import RestaurantFeatureOverridesModal from "@/components/admin/RestaurantFeatureOverridesModal";
 
 interface Restaurant {
   id: string;
@@ -68,6 +70,7 @@ export default function AllRestaurantsTab() {
   const [toggling, setToggling] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Restaurant | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [featuresTarget, setFeaturesTarget] = useState<Restaurant | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
@@ -354,6 +357,10 @@ export default function AllRestaurantsTab() {
                               className="flex items-center gap-1.5 rounded-lg bg-[var(--accent-muted)] px-3 py-1.5 text-xs font-medium text-[var(--accent-hover)] hover:bg-[var(--accent-muted)]">
                               <ExternalLink className="h-3.5 w-3.5" />View Menu
                             </a>
+                            <button onClick={() => setFeaturesTarget(r)}
+                              className="flex items-center gap-1.5 rounded-lg bg-violet-50 px-3 py-1.5 text-xs font-medium text-violet-700 hover:bg-violet-100 transition-all">
+                              <Zap className="h-3.5 w-3.5" />Features
+                            </button>
                             <button onClick={() => setDeleteTarget(r)}
                               className="ml-auto flex items-center gap-1.5 rounded-lg bg-red-50 px-3 py-1.5 text-xs font-medium text-red-500 hover:bg-red-100 transition-all">
                               <Trash2 className="h-3.5 w-3.5" />Delete
@@ -388,6 +395,15 @@ export default function AllRestaurantsTab() {
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
       />
+
+      {featuresTarget && (
+        <RestaurantFeatureOverridesModal
+          restaurantId={featuresTarget.id}
+          restaurantName={featuresTarget.name}
+          restaurantType={featuresTarget.type}
+          onClose={() => setFeaturesTarget(null)}
+        />
+      )}
 
       <DeleteConfirmDialog
         open={bulkDeleteOpen}

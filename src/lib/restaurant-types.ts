@@ -328,9 +328,9 @@ export function getFeatureTabsForType(
   overrides?: FeatureOverride,
 ): FeatureTabDef[] {
   const base = TYPE_FEATURE_TABS[restaurantType] ?? [];
-  const disabled = new Set(overrides?.featuresDisabled ?? []);
+  const disabled = new Set<string>(overrides?.featuresDisabled ?? []);
   const filtered = base.filter((f) => !disabled.has(f.id));
-  const existingIds = new Set(filtered.map((f) => f.id));
+  const existingIds = new Set<string>(filtered.map((f) => f.id));
   const extras = (overrides?.featuresEnabled ?? [])
     .filter((id) => !disabled.has(id) && !existingIds.has(id))
     .map((id) => FEATURE_CATALOG.get(id))
