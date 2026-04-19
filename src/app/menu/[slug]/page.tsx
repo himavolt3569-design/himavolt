@@ -58,6 +58,7 @@ import {
   Users,
   Calendar,
   AlertCircle,
+  Gift,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
@@ -1632,6 +1633,32 @@ function MenuPageContent() {
                 </div>
                 <ChevronRight className="h-4 w-4 text-[var(--text-3)]" />
               </motion.a>
+            )}
+
+            {loyaltyInfo.enabled && !isSignedIn && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+              >
+                <Link
+                  href="/sign-up"
+                  className="flex items-center gap-3 rounded-2xl bg-[var(--accent-muted)] border border-[var(--accent-border)] px-4 py-3 hover:bg-[var(--surface)] transition-colors"
+                >
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent)] shrink-0">
+                    <Gift className="h-4 w-4 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold text-[var(--accent-text)]">
+                      Sign up to earn loyalty points
+                    </p>
+                    <p className="text-[11px] text-[var(--accent)]">
+                      Earn {loyaltyInfo.pointsPerCurrency} point{loyaltyInfo.pointsPerCurrency === 1 ? "" : "s"} per {cur} on every order
+                    </p>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-[var(--accent)] shrink-0" />
+                </Link>
+              </motion.div>
             )}
 
             {happyHourActive.isHappyNow && isFeatureAvailable(restaurant.type, "happy-hours", {

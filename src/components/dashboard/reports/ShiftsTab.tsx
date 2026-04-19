@@ -19,6 +19,7 @@ import { apiFetch } from "@/lib/api-client";
 import { formatPrice } from "@/lib/currency";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { PAYMENT_METHOD_LABELS, formatDuration, toYMD } from "./utils";
+import ShiftPaidUnpaidBar from "./charts/ShiftPaidUnpaidBar";
 
 interface ShiftOrderSummary {
   id: string;
@@ -341,6 +342,46 @@ export default function ShiftsTab() {
     (o) => o.payment?.status === "COMPLETED",
   ).length;
 
+  const chartData = shiftReport
+    ? [
+        ...shiftReport.fullTimeStaff.map((f) => {
+          const paid = f.orders
+            .filter((o) => o.payment?.status === "COMPLETED")
+            .reduce((s, o) => s + (o.bill?.total ?? o.total), 0);
+          const unpaid = f.orders
+            .filter((o) => o.payment?.status !== "COMPLETED")
+            .reduce((s, o) => s + (o.bill?.total ?? o.total), 0);
+          return { label: f.staff.user.name, paid, unpaid };
+        }),
+        ...shiftReport.shifts.map((sr) => {
+          const paid = sr.orders
+            .filter((o) => o.payment?.status === "COMPLETED")
+            .reduce((s, o) => s + (o.bill?.total ?? o.total), 0);
+          const unpaid = sr.orders
+            .filter((o) => o.payment?.status !== "COMPLETED")
+            .reduce((s, o) => s + (o.bill?.total ?? o.total), 0);
+          return {
+            label: `${sr.staff.user.name} · ${sr.shift.label ?? "Shift"}`,
+            paid,
+            unpaid,
+          };
+        }),
+        ...(shiftReport.unassigned.orderCount > 0
+          ? [
+              {
+                label: "Unassigned",
+                paid: shiftReport.unassigned.orders
+                  .filter((o) => o.payment?.status === "COMPLETED")
+                  .reduce((s, o) => s + (o.bill?.total ?? o.total), 0),
+                unpaid: shiftReport.unassigned.orders
+                  .filter((o) => o.payment?.status !== "COMPLETED")
+                  .reduce((s, o) => s + (o.bill?.total ?? o.total), 0),
+              },
+            ]
+          : []),
+      ]
+    : [];
+
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between flex-wrap gap-3">
@@ -368,6 +409,15 @@ export default function ShiftsTab() {
           {loading && <Loader2 className="h-4 w-4 animate-spin text-[var(--accent)]" />}
         </div>
       </div>
+
+      {shiftReport && chartData.length > 0 && (
+        <div className="rounded-2xl bg-[var(--canvas)] border border-[var(--border-soft)] p-4">
+          <p className="text-[11px] font-bold text-[var(--text-3)] uppercase tracking-wider mb-3">
+            Paid vs Unpaid by Shift
+          </p>
+          <ShiftPaidUnpaidBar data={chartData} currency={cur} />
+        </div>
+      )}
 
       {shiftReport && shiftReport.fullTimeStaff.length > 0 && (
         <div className="space-y-2.5">

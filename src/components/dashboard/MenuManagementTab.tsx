@@ -1495,8 +1495,8 @@ export default function MenuManagementTab() {
       setShowAddForm(false);
       showToast("New dish added!");
       await fetchData();
-    } catch {
-      showToast("Failed to add dish");
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Failed to add dish");
     }
   };
 
