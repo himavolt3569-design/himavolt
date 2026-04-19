@@ -47,10 +47,15 @@ export default function OrderTypeDonut({ data, currency }: Props) {
               borderRadius: 8,
               fontSize: 12,
             }}
-            formatter={(val: number, _name, p) => [
-              `${formatPrice(val, currency)} · ${p.payload.count} orders`,
-              p.payload.name,
-            ]}
+            formatter={(val, _name, p) => {
+              const n = Number(val ?? 0);
+              const payload = (p as { payload?: { count: number; name: string } })
+                .payload;
+              return [
+                `${formatPrice(n, currency)} · ${payload?.count ?? 0} orders`,
+                payload?.name ?? "",
+              ];
+            }}
           />
           <Legend
             verticalAlign="bottom"

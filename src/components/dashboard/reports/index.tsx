@@ -10,7 +10,11 @@ import StaffDrillDownPanel from "./StaffDrillDownPanel";
 
 type TabKey = "overview" | "today" | "shifts" | "staff";
 
-const TABS: { key: TabKey; label: string; icon: React.ElementType }[] = [
+const TABS: {
+  key: TabKey;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+}[] = [
   { key: "overview", label: "Overview", icon: BarChart3 },
   { key: "today", label: "Today", icon: Clock4 },
   { key: "shifts", label: "Shifts", icon: CalendarDays },

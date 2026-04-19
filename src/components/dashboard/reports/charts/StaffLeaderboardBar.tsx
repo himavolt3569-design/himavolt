@@ -56,15 +56,22 @@ export default function StaffLeaderboardBar({ data, currency, onClick }: Props) 
               borderRadius: 8,
               fontSize: 12,
             }}
-            formatter={(val: number, _name, p) => [
-              `${formatPrice(val, currency)} · ${p.payload.orderCount} orders`,
-              "Revenue",
-            ]}
+            formatter={(val, _name, p) => {
+              const n = Number(val ?? 0);
+              const payload = (p as { payload?: { orderCount: number } }).payload;
+              return [
+                `${formatPrice(n, currency)} · ${payload?.orderCount ?? 0} orders`,
+                "Revenue",
+              ];
+            }}
           />
           <Bar
             dataKey="revenue"
             radius={[0, 4, 4, 0]}
-            onClick={(d) => onClick?.(d.staffId)}
+            onClick={(d) => {
+              const staffId = (d as unknown as { staffId?: string }).staffId;
+              if (staffId) onClick?.(staffId);
+            }}
             cursor={onClick ? "pointer" : "default"}
           >
             {data.map((_, i) => (
