@@ -64,9 +64,12 @@ export default function RevenueTrendChart({ data, currency, granularity }: Props
               fontSize: 12,
             }}
             labelFormatter={(v) => formatBucket(String(v), granularity)}
-            formatter={(val: number, name: string) =>
-              name === "revenue" ? [formatPrice(val, currency), "Revenue"] : [val, "Orders"]
-            }
+            formatter={(val, name) => {
+              const n = Number(val ?? 0);
+              return name === "revenue"
+                ? [formatPrice(n, currency), "Revenue"]
+                : [n, "Orders"];
+            }}
           />
           <Line
             type="monotone"

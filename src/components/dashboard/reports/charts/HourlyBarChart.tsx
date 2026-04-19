@@ -56,11 +56,12 @@ export default function HourlyBarChart({ data, currency }: Props) {
               fontSize: 12,
             }}
             labelFormatter={(v) => `${String(v).padStart(2, "0")}:00`}
-            formatter={(val: number, name: string) =>
-              name === "orderCount"
-                ? [val, "Orders"]
-                : [formatPrice(val, currency), "Revenue"]
-            }
+            formatter={(val, name) => {
+              const n = Number(val ?? 0);
+              return name === "orderCount"
+                ? [n, "Orders"]
+                : [formatPrice(n, currency), "Revenue"];
+            }}
           />
           <Bar dataKey="orderCount" fill="var(--accent)" radius={[4, 4, 0, 0]} />
         </BarChart>

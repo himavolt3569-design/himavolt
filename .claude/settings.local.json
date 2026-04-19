@@ -60,7 +60,9 @@
       "Bash(sed \"s/\\\\`.*//\")",
       "Bash(sed \"s/.*\\\\`//\")",
       "Bash(/api/restaurants\" /d/Official_Projects/himalhub/src/components/dashboard/features/QuickCounterTab.tsx | head -20)",
-      "Bash(sed *)"
+      "Bash(sed *)",
+      "Bash(grep -l \"LucideIcon\\\\|LucideProps\" node_modules/lucide-react/dist/lucide-react.d.ts)",
+      "Bash(head -30 node_modules/lucide-react/dist/lucide-react.d.ts)"
     ],
     "additionalDirectories": [
       "d:\\Official_Projects\\himalhub\\src\\app\\api\\public\\restaurants\\[slug]"
