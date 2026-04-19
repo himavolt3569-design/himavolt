@@ -387,7 +387,7 @@ function ScanPageContent() {
             scanSuccess
               ? "bg-[var(--border)] cursor-not-allowed shadow-none"
               : cameraActive
-                ? "bg-rose-600 hover:bg-rose-700 shadow-rose-200"
+                ? "bg-red-600 hover:bg-red-700 shadow-red-200"
                 : starting
                   ? "bg-[var(--border)] cursor-not-allowed shadow-none"
                   : "bg-[var(--text-1)] hover:bg-[#2d1508] hover:shadow-xl hover:-translate-y-0.5 shadow-[var(--text-1)]/25"

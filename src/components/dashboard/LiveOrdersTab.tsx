@@ -215,7 +215,7 @@ export default function LiveOrdersTab() {
           >
             {opt.label}
             {opt.value === "PENDING" && newCount > 0 && (
-              <span className={`ml-2 rounded-full px-2 py-0.5 text-[10px] shadow-sm ${filterStatus === opt.value ? "bg-[var(--canvas)]/20 text-white" : "bg-rose-500 text-white"}`}>
+              <span className={`ml-2 rounded-full px-2 py-0.5 text-[10px] shadow-sm ${filterStatus === opt.value ? "bg-[var(--canvas)]/20 text-white" : "bg-[var(--accent)] text-white"}`}>
                 {newCount}
               </span>
             )}

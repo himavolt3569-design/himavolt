@@ -372,9 +372,9 @@ function MenuItemCard({
           {/* Veg indicator — always visible */}
           <div className="absolute top-2 right-2 z-10">
             <span className={`flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center rounded-md border-2 shadow-sm bg-[var(--canvas)]/90 ${
-              item.isVeg ? "border-[var(--accent)]" : "border-rose-500"
+              item.isVeg ? "border-[var(--accent)]" : "border-red-500"
             }`}>
-              <span className={`h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full ${item.isVeg ? "bg-[var(--accent)]" : "bg-rose-500"}`} />
+              <span className={`h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full ${item.isVeg ? "bg-[var(--accent)]" : "bg-red-500"}`} />
             </span>
           </div>
 
@@ -387,8 +387,8 @@ function MenuItemCard({
           )}
 
           {!item.isAvailable && (
-            <div className="absolute inset-0 bg-rose-950/30 backdrop-blur-[2px] flex items-center justify-center z-10">
-              <span className="rounded-full bg-rose-600 px-2 py-0.5 text-[9px] sm:text-[11px] font-bold uppercase text-white shadow-lg">Unavailable</span>
+            <div className="absolute inset-0 bg-red-950/30 backdrop-blur-[2px] flex items-center justify-center z-10">
+              <span className="rounded-full bg-red-600 px-2 py-0.5 text-[9px] sm:text-[11px] font-bold uppercase text-white shadow-lg">Unavailable</span>
             </div>
           )}
 
@@ -424,7 +424,7 @@ function MenuItemCard({
                   <div className="h-px bg-[var(--surface)] my-1 mx-2"></div>
                   <button
                     onClick={() => { onDelete(); setShowMenu(false); }}
-                    className="flex w-full items-center gap-2.5 px-3.5 py-2 text-[13px] font-semibold text-rose-600 hover:bg-rose-50 transition-colors"
+                    className="flex w-full items-center gap-2.5 px-3.5 py-2 text-[13px] font-semibold text-red-600 hover:bg-red-50 transition-colors"
                   >
                     <Trash2 className="h-3.5 w-3.5" /> Delete Item
                   </button>
@@ -527,7 +527,7 @@ function MenuItemCard({
           </button>
           <button
             onClick={onDelete}
-            className="rounded-full bg-rose-50 p-2 text-rose-600 shadow-sm transition-all active:scale-95"
+            className="rounded-full bg-red-50 p-2 text-red-600 shadow-sm transition-all active:scale-95"
           >
             <Trash2 className="h-4 w-4" />
           </button>

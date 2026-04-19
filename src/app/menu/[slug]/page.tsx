@@ -960,6 +960,10 @@ function MenuPageContent() {
     discountType?: string;
     discountValue?: number;
   }>({ isHappyNow: false });
+  const [loyaltyInfo, setLoyaltyInfo] = useState<{
+    enabled: boolean;
+    pointsPerCurrency: number;
+  }>({ enabled: false, pointsPerCurrency: 1 });
   const tabsRef = useRef<HTMLDivElement>(null);
   const { totalItems, items, subtotal, initForRestaurant } = useCart();
   const { activeOrder, restoreOrder, restoreFromStorage } = useOrder();
@@ -1107,6 +1111,27 @@ function MenuPageContent() {
       }
     }
   }, [slug, tableNo, restaurantId]);
+
+  // Fetch loyalty config so we can prompt guests to sign up when loyalty is active
+  useEffect(() => {
+    if (!slug) return;
+    let cancelled = false;
+    fetch(`/api/public/restaurants/${slug}/rewards`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (cancelled || !d) return;
+        setLoyaltyInfo({
+          enabled: Boolean(d.loyaltyEnabled),
+          pointsPerCurrency: Number(d.pointsPerCurrency ?? 1),
+        });
+      })
+      .catch(() => {
+        /* silent — loyalty is optional */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [slug]);
 
   const handleProceedToCheckout = useCallback(() => {
     setCartOpen(false);
@@ -1617,16 +1642,16 @@ function MenuPageContent() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4 }}
-                className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-rose-50 to-red-50 border border-rose-200 px-4 py-3"
+                className="flex items-center gap-3 rounded-2xl bg-[var(--accent-muted)] border border-[var(--accent-border)] px-4 py-3"
               >
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-500 shrink-0">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent)] shrink-0">
                   <Wine className="h-4 w-4 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-rose-700">
+                  <p className="text-xs font-bold text-[var(--accent-text)]">
                     Happy Hour: {happyHourActive.name}
                   </p>
-                  <p className="text-[11px] text-rose-600">
+                  <p className="text-[11px] text-[var(--accent)]">
                     {happyHourActive.discountType === "PERCENTAGE"
                       ? `${happyHourActive.discountValue}% off`
                       : `Rs. ${happyHourActive.discountValue} off`}

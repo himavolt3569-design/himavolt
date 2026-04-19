@@ -72,6 +72,7 @@ import { useAuth } from "@/context/AuthContext";
 import CustomerDashboard from "@/app/dashboard/CustomerDashboard";
 import LiveOrdersTab from "@/components/dashboard/LiveOrdersTab";
 import NotificationBell from "@/components/dashboard/NotificationBell";
+import ThemeToggle from "@/components/shared/ThemeToggle";
 import QRCodesTab from "@/components/dashboard/QRCodesTab";
 import MenuManagementTab from "@/components/dashboard/MenuManagementTab";
 import ReportsTab from "@/components/dashboard/ReportsTab";
@@ -173,35 +174,42 @@ const NAV_MAIN: {
   { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "orders", label: "Live Orders", icon: ClipboardList, badge: "live" },
   { id: "billing", label: "Billing", icon: Receipt },
-  { id: "chat", label: "Chats", icon: MessageCircle },
-  { id: "offers" as DashTab, label: "Offers", icon: Tag },
   { id: "manual-billing" as DashTab, label: "Fast Billing", icon: Receipt },
   { id: "tables" as DashTab, label: "Tables", icon: LayoutGrid },
+  { id: "offers" as DashTab, label: "Offers", icon: Tag },
+  { id: "chat", label: "Chats", icon: MessageCircle },
 ];
+
+const ROOMS_NAV_ITEM: (typeof NAV_MAIN)[number] = {
+  id: "rooms" as DashTab,
+  label: "Rooms",
+  icon: BedDouble,
+};
+
+const ROOM_ENABLED_TYPES = new Set(["HOTEL", "RESORT", "GUEST_HOUSE"]);
 
 const NAV_MANAGE: typeof NAV_MAIN = [
   { id: "menu", label: "Menu", icon: UtensilsCrossed },
-  { id: "drinks" as DashTab, label: "Drinks", icon: Package },
   { id: "staff", label: "Staff", icon: UsersRound },
   { id: "shifts" as DashTab, label: "Shifts", icon: Clock },
-  { id: "qr", label: "QR Codes", icon: QrCode },
-  { id: "payment-qr", label: "Payment QR", icon: Wallet },
-  { id: "payment-settings", label: "Payment Settings", icon: Settings },
-  { id: "tax-charges" as DashTab, label: "Tax & Charges", icon: Receipt },
   { id: "stock" as DashTab, label: "Stock", icon: Package },
-  { id: "hero-slides" as DashTab, label: "Hero Slides", icon: ImageIcon },
+  { id: "qr", label: "QR Codes", icon: QrCode },
+  { id: "tax-charges" as DashTab, label: "Tax & Charges", icon: Receipt },
+  { id: "payment-settings", label: "Payment Settings", icon: Settings },
+  { id: "payment-qr", label: "Payment QR", icon: Wallet },
   { id: "coupons" as DashTab, label: "Coupons", icon: Tag },
-  { id: "rooms" as DashTab, label: "Rooms", icon: BedDouble },
+  { id: "drinks" as DashTab, label: "Drinks", icon: Package },
+  { id: "hero-slides" as DashTab, label: "Hero Slides", icon: ImageIcon },
   { id: "owner-control" as DashTab, label: "Owner Control", icon: Crown },
 ];
 
 const NAV_MORE: typeof NAV_MAIN = [
   { id: "reports", label: "Reports", icon: BarChart3 },
-  { id: "stories", label: "Stories", icon: Camera },
   { id: "media" as DashTab, label: "Media Library", icon: ImageIcon },
+  { id: "stories", label: "Stories", icon: Camera },
 ];
 
-const ALL_NAV = [...NAV_MAIN, ...NAV_MANAGE, ...NAV_MORE];
+const ALL_NAV = [...NAV_MAIN, ...NAV_MANAGE, ROOMS_NAV_ITEM, ...NAV_MORE];
 
 const FEATURE_ICONS: Record<FeatureTabId, typeof Zap> = {
   "quick-counter": Zap,
@@ -510,15 +518,6 @@ function RestaurantSwitcher({ onNavigate }: { onNavigate?: () => void }) {
   );
 }
 
-/* Shortcut key lookup for sidebar hints */
-const SHORTCUT_KEYS: Partial<Record<DashTab, string>> = {
-  overview: "1",
-  orders: "2",
-  menu: "3",
-  staff: "4",
-  reports: "5",
-};
-
 function NavSection({
   label,
   items,
@@ -563,7 +562,6 @@ function NavSection({
         {items.map((item) => {
           const Icon = item.icon;
           const isActive = active === item.id;
-          const shortcut = SHORTCUT_KEYS[item.id];
           return (
             <button
               key={item.id}
@@ -582,14 +580,8 @@ function NavSection({
               />
               <span className="flex-1 text-left tracking-wide">{item.label}</span>
 
-              {shortcut && !item.badge && (
-                <span className={`hidden lg:flex h-5 w-5 items-center justify-center rounded text-[9px] font-bold transition-colors ${isActive ? "bg-[var(--accent-border)] text-[var(--accent-text)]" : "bg-[var(--surface)] text-[var(--text-3)] opacity-0 group-hover:opacity-100"}`}>
-                  {shortcut}
-                </span>
-              )}
-
               {item.badge === "live" && newOrderCount > 0 && (
-                <span className="flex h-5 min-w-5 items-center justify-center rounded-md bg-rose-50 px-1.5 text-[10px] font-bold text-rose-500 ring-1 ring-rose-100">
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-md bg-[var(--accent-muted)] px-1.5 text-[10px] font-bold text-[var(--accent-text)] ring-1 ring-[var(--accent-border)]">
                   {newOrderCount}
                 </span>
               )}
@@ -676,6 +668,17 @@ function Sidebar({
     }));
   }, [restaurantType, featuresEnabled, featuresDisabled]);
 
+  const manageNavItems = useMemo(() => {
+    const showRooms = restaurantType ? ROOM_ENABLED_TYPES.has(restaurantType) : false;
+    if (!showRooms) return NAV_MANAGE;
+    const insertAt = Math.max(0, NAV_MANAGE.length - 1);
+    return [
+      ...NAV_MANAGE.slice(0, insertAt),
+      ROOMS_NAV_ITEM,
+      ...NAV_MANAGE.slice(insertAt),
+    ];
+  }, [restaurantType]);
+
   const typeLabel = restaurantType ? getTypeLabel(restaurantType) : "";
 
   if (isCollapsed) {
@@ -694,7 +697,12 @@ function Sidebar({
           </button>
         )}
         <div className="flex-1 flex flex-col items-center gap-1 mt-2 overflow-y-auto w-full px-2 scrollbar-hide">
-          {ALL_NAV.map((item) => {
+          {ALL_NAV
+            .filter((item) =>
+              item.id !== "rooms" ||
+              (restaurantType ? ROOM_ENABLED_TYPES.has(restaurantType) : false),
+            )
+            .map((item) => {
             const Icon = item.icon;
             const isActive = active === item.id;
             return (
@@ -710,7 +718,7 @@ function Sidebar({
               >
                 <Icon className="h-4 w-4" />
                 {item.badge === "live" && newOrderCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-rose-500 text-[7px] font-bold text-white">
+                  <span className="absolute -top-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[var(--accent)] text-[7px] font-bold text-white">
                     {newOrderCount}
                   </span>
                 )}
@@ -783,7 +791,7 @@ function Sidebar({
 
         <NavSection
           label="Manage"
-          items={NAV_MANAGE}
+          items={manageNavItems}
           active={active}
           setActive={setActive}
           newOrderCount={newOrderCount}
@@ -1085,21 +1093,21 @@ function OverviewTab({
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             onClick={() => setTab("orders")}
-            className="flex items-center gap-3 w-full rounded-xl bg-rose-50 border border-rose-100 p-4 text-left hover:bg-rose-100/60 transition-colors group cursor-pointer"
+            className="flex items-center gap-3 w-full rounded-xl bg-[var(--accent-muted)] border border-[var(--accent-border)] p-4 text-left hover:bg-[var(--surface)] transition-colors group cursor-pointer"
           >
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-rose-100">
-              <AlertTriangle className="h-5 w-5 text-rose-500" />
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--accent-muted)]">
+              <AlertTriangle className="h-5 w-5 text-[var(--accent)]" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[13px] font-bold text-rose-700">
+              <p className="text-[13px] font-bold text-[var(--accent-text)]">
                 {pendingCount} order{pendingCount > 1 ? "s" : ""} waiting for
                 action
               </p>
-              <p className="text-[11px] text-rose-500">
+              <p className="text-[11px] text-[var(--accent)]">
                 Click to review and accept pending orders
               </p>
             </div>
-            <ChevronRight className="h-4 w-4 text-rose-300 group-hover:text-rose-500 group-hover:translate-x-0.5 transition-all shrink-0" />
+            <ChevronRight className="h-4 w-4 text-[var(--text-3)] group-hover:text-[var(--accent)] group-hover:translate-x-0.5 transition-all shrink-0" />
           </motion.button>
         )}
       </AnimatePresence>
@@ -1372,7 +1380,7 @@ function OverviewTab({
                 {action.label}
               </span>
               {action.badge && (
-                <span className="absolute top-2 right-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white px-1 shadow-sm ring-2 ring-white">
+                <span className="absolute top-2 right-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--accent)] text-[9px] font-bold text-white px-1 shadow-sm ring-2 ring-[var(--canvas)]">
                   {action.badge}
                 </span>
               )}
@@ -1611,6 +1619,8 @@ export default function DashboardPage() {
             </div>
 
             <NotificationBell onNavigateToOrders={() => handleSetActiveTab("orders")} />
+
+            <ThemeToggle />
 
             <div className="hidden sm:block h-6 w-px bg-[var(--border)]" />
 

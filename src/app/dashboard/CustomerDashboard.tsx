@@ -711,7 +711,7 @@ function HomeTab({
           { icon: History, label: "Orders", action: onViewOrders, color: "bg-blue-50 text-blue-600" },
           { icon: Bike, label: "Delivery", action: onViewDelivery, color: "bg-violet-50 text-violet-600" },
           { icon: Star, label: "Reviews", action: onViewReviews, color: "bg-[var(--accent-muted)] text-[var(--accent-text)]" },
-          { icon: Heart, label: "Saved", action: onViewSaved, color: "bg-rose-50 text-rose-500" },
+          { icon: Heart, label: "Saved", action: onViewSaved, color: "bg-red-50 text-red-500" },
         ].map(({ icon: Icon, label, action, color }) => (
           <button
             key={label}
@@ -1528,12 +1528,12 @@ function SavedTab({
                   <button
                     onClick={() => removeFavourite(r.id)}
                     disabled={removing === r.id}
-                    className="shrink-0 flex h-9 w-9 items-center justify-center rounded-full bg-rose-50 text-rose-400 hover:bg-rose-100 transition-colors disabled:opacity-50"
+                    className="shrink-0 flex h-9 w-9 items-center justify-center rounded-full bg-red-50 text-red-400 hover:bg-red-100 transition-colors disabled:opacity-50"
                   >
                     {removing === r.id ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
-                      <Heart className="h-4 w-4 fill-rose-400" />
+                      <Heart className="h-4 w-4 fill-red-400" />
                     )}
                   </button>
                 </motion.div>
@@ -1606,17 +1606,17 @@ function AccountTab({
               <p className="text-[10px] text-[var(--accent)]/70 font-medium">Reviews Given</p>
             </div>
             {stats.favoriteRestaurant && (
-              <div className="rounded-xl bg-rose-50 p-3 flex items-center gap-2">
+              <div className="rounded-xl bg-red-50 p-3 flex items-center gap-2">
                 {stats.favoriteRestaurant.imageUrl ? (
                   <img src={stats.favoriteRestaurant.imageUrl} alt="" className="h-8 w-8 rounded-lg object-cover shrink-0" />
                 ) : (
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-rose-100">
-                    <Heart className="h-4 w-4 text-rose-400 fill-rose-400" />
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-red-100">
+                    <Heart className="h-4 w-4 text-red-400 fill-red-400" />
                   </div>
                 )}
                 <div className="min-w-0">
-                  <p className="text-[11px] font-bold text-rose-600 truncate">{stats.favoriteRestaurant.name}</p>
-                  <p className="text-[9px] text-rose-400">Favourite spot</p>
+                  <p className="text-[11px] font-bold text-red-600 truncate">{stats.favoriteRestaurant.name}</p>
+                  <p className="text-[9px] text-red-400">Favourite spot</p>
                 </div>
               </div>
             )}

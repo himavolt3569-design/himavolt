@@ -63,7 +63,8 @@
       "Bash(sed *)",
       "Bash(grep -l \"LucideIcon\\\\|LucideProps\" node_modules/lucide-react/dist/lucide-react.d.ts)",
       "Bash(head -30 node_modules/lucide-react/dist/lucide-react.d.ts)",
-      "Bash(echo \"EXIT=$?\")"
+      "Bash(echo \"EXIT=$?\")",
+      "Bash(echo \"exit=$?\")"
     ],
     "additionalDirectories": [
       "d:\\Official_Projects\\himalhub\\src\\app\\api\\public\\restaurants\\[slug]"

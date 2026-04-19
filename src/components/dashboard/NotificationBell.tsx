@@ -72,7 +72,7 @@ function timeAgo(ts: number): string {
 }
 
 const KIND_STYLE: Record<Notification["kind"], { bg: string; fg: string; Icon: React.ComponentType<{ className?: string }> }> = {
-  PENDING: { bg: "bg-rose-500/15", fg: "text-rose-600", Icon: CircleDollarSign },
+  PENDING: { bg: "bg-[var(--accent-muted)]", fg: "text-[var(--accent-text)]", Icon: CircleDollarSign },
   ACCEPTED: { bg: "bg-blue-500/15", fg: "text-blue-600", Icon: CheckCircle2 },
   PREPARING: { bg: "bg-amber-500/15", fg: "text-amber-600", Icon: ChefHat },
   READY: { bg: "bg-emerald-500/15", fg: "text-emerald-600", Icon: PackageCheck },
@@ -169,7 +169,7 @@ export default function NotificationBell({ onNavigateToOrders }: Props) {
       >
         <Bell className="h-4.5 w-4.5" />
         {unreadCount > 0 && (
-          <span className="absolute right-1.5 top-1.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-rose-500 px-1 text-[8px] font-bold text-white">
+          <span className="absolute right-1.5 top-1.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-[var(--accent)] px-1 text-[8px] font-bold text-white">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}

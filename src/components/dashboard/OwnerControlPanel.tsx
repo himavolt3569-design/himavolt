@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Crown,
@@ -16,9 +16,28 @@ import {
   ToggleLeft,
   ToggleRight,
   RefreshCw,
+  X,
+  Minus,
 } from "lucide-react";
 import { useRestaurant, type StaffMember } from "@/context/RestaurantContext";
 import { apiFetch } from "@/lib/api-client";
+import {
+  TYPE_FEATURE_TABS,
+  type FeatureTabDef,
+  type FeatureTabId,
+} from "@/lib/restaurant-types";
+
+type OverrideState = "default" | "force-on" | "force-off";
+
+const FEATURE_CATALOG: FeatureTabDef[] = (() => {
+  const map = new Map<string, FeatureTabDef>();
+  Object.values(TYPE_FEATURE_TABS).forEach((list) =>
+    list.forEach((f) => {
+      if (!map.has(f.id)) map.set(f.id, f);
+    }),
+  );
+  return Array.from(map.values()).sort((a, b) => a.label.localeCompare(b.label));
+})();
 
 type StaffRole = "SUPER_ADMIN" | "MANAGER" | "CHEF" | "WAITER" | "CASHIER";
 
@@ -398,6 +417,229 @@ function EnableAllDialog({
   );
 }
 
+function FeatureOverridesSection({
+  restaurantId,
+  restaurantType,
+  onSaved,
+}: {
+  restaurantId: string;
+  restaurantType: string;
+  onSaved: () => void;
+}) {
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [savedAt, setSavedAt] = useState<number | null>(null);
+  const [states, setStates] = useState<Record<string, OverrideState>>({});
+
+  const typeDefaultIds = useMemo(
+    () => new Set((TYPE_FEATURE_TABS[restaurantType] ?? []).map((f) => f.id)),
+    [restaurantType],
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await apiFetch<{
+          restaurant: {
+            featuresEnabled: string[];
+            featuresDisabled: string[];
+          };
+        }>(`/api/restaurants/${restaurantId}/features`);
+        if (cancelled) return;
+        const enabled = data.restaurant?.featuresEnabled ?? [];
+        const disabled = data.restaurant?.featuresDisabled ?? [];
+        const next: Record<string, OverrideState> = {};
+        FEATURE_CATALOG.forEach((f) => {
+          if (disabled.includes(f.id)) next[f.id] = "force-off";
+          else if (enabled.includes(f.id)) next[f.id] = "force-on";
+          else next[f.id] = "default";
+        });
+        setStates(next);
+      } catch (e) {
+        if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [restaurantId]);
+
+  const effectiveFor = (id: FeatureTabId) => {
+    const s = states[id];
+    if (s === "force-off") return false;
+    if (s === "force-on") return true;
+    return typeDefaultIds.has(id);
+  };
+
+  const setState = (id: string, value: OverrideState) => {
+    setStates((prev) => ({ ...prev, [id]: value }));
+  };
+
+  const overrideCount = Object.values(states).filter((v) => v !== "default").length;
+
+  const handleSave = async () => {
+    setSaving(true);
+    setError(null);
+    try {
+      const featuresEnabled = Object.entries(states)
+        .filter(([, v]) => v === "force-on")
+        .map(([k]) => k);
+      const featuresDisabled = Object.entries(states)
+        .filter(([, v]) => v === "force-off")
+        .map(([k]) => k);
+
+      await apiFetch(`/api/restaurants/${restaurantId}/features`, {
+        method: "PUT",
+        body: { featuresEnabled, featuresDisabled },
+      });
+      setSavedAt(Date.now());
+      setTimeout(() => setSavedAt(null), 1800);
+      onSaved();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to save");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="rounded-2xl border border-[var(--border-soft)] bg-[var(--canvas)] shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] overflow-hidden">
+      <div className="flex items-start justify-between gap-3 border-b border-[var(--border-soft)] px-5 py-4">
+        <div className="flex items-start gap-3 min-w-0">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--accent-muted)]">
+            <Zap className="h-5 w-5 text-[var(--accent)]" />
+          </div>
+          <div className="min-w-0">
+            <p className="font-bold text-[var(--text-1)]">Feature Toggles</p>
+            <p className="text-xs text-[var(--text-2)] mt-0.5">
+              Enable or disable features for this restaurant. Default follows the{" "}
+              <strong className="text-[var(--text-1)]">
+                {restaurantType.replace(/_/g, " ").toLowerCase()}
+              </strong>{" "}
+              type.
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={handleSave}
+          disabled={loading || saving}
+          className="flex shrink-0 items-center gap-1.5 rounded-xl bg-[var(--accent)] px-3.5 py-2 text-xs font-bold text-white hover:bg-[var(--accent-hover)] transition-all disabled:opacity-60"
+        >
+          {saving ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : savedAt ? (
+            <Check className="h-3.5 w-3.5" />
+          ) : null}
+          {saving ? "Saving..." : savedAt ? "Saved" : overrideCount > 0 ? `Save (${overrideCount})` : "Save"}
+        </button>
+      </div>
+
+      {error && (
+        <div className="border-b border-[var(--border-soft)] bg-red-50 px-5 py-2 text-xs font-semibold text-red-700">
+          {error}
+        </div>
+      )}
+
+      {loading ? (
+        <div className="flex items-center justify-center py-12 text-[var(--text-3)]">
+          <Loader2 className="h-5 w-5 animate-spin" />
+        </div>
+      ) : (
+        <ul className="divide-y divide-[var(--border-soft)]">
+          {FEATURE_CATALOG.map((f) => {
+            const state = states[f.id] ?? "default";
+            const isDefaultOn = typeDefaultIds.has(f.id);
+            const eff = effectiveFor(f.id);
+            return (
+              <li
+                key={f.id}
+                className="flex items-center gap-4 px-5 py-3 hover:bg-[var(--canvas-sub)] transition-colors"
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-sm font-semibold text-[var(--text-1)] truncate">
+                      {f.label}
+                    </span>
+                    <span
+                      className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold ${
+                        isDefaultOn
+                          ? "bg-[var(--accent-muted)] text-[var(--accent-text)]"
+                          : "bg-[var(--surface)] text-[var(--text-3)]"
+                      }`}
+                    >
+                      {isDefaultOn ? "type default: on" : "type default: off"}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-[var(--text-3)] truncate mt-0.5">
+                    {f.desc}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-1">
+                  {(["default", "force-on", "force-off"] as OverrideState[]).map((opt) => {
+                    const active = state === opt;
+                    const baseCls =
+                      "flex h-7 w-7 items-center justify-center rounded-md border text-[10px] font-bold transition-all";
+                    const activeCls =
+                      opt === "force-on"
+                        ? "border-[var(--accent)] bg-[var(--accent)] text-white"
+                        : opt === "force-off"
+                          ? "border-red-500 bg-red-500 text-white"
+                          : "border-[var(--text-2)] bg-[var(--text-1)] text-[var(--canvas)]";
+                    const idleCls =
+                      "border-[var(--border)] bg-[var(--canvas)] text-[var(--text-3)] hover:border-[var(--text-3)]";
+                    return (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() => setState(f.id, opt)}
+                        className={`${baseCls} ${active ? activeCls : idleCls}`}
+                        title={
+                          opt === "default"
+                            ? "Use type default"
+                            : opt === "force-on"
+                              ? "Force enable"
+                              : "Force disable"
+                        }
+                      >
+                        {opt === "default" ? (
+                          <Minus className="h-3 w-3" />
+                        ) : opt === "force-on" ? (
+                          <Check className="h-3 w-3" />
+                        ) : (
+                          <X className="h-3 w-3" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="w-14 text-right">
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                      eff
+                        ? "bg-[var(--accent-muted)] text-[var(--accent-text)]"
+                        : "bg-[var(--surface)] text-[var(--text-3)]"
+                    }`}
+                  >
+                    {eff ? "ON" : "OFF"}
+                  </span>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 export default function OwnerControlPanel() {
   const { selectedRestaurant, restaurants, fetchRestaurants } = useRestaurant();
   const restaurant = selectedRestaurant ?? restaurants[0];
@@ -568,6 +810,15 @@ export default function OwnerControlPanel() {
           </div>
         )}
       </div>
+
+      {/* ── Feature toggles section ──────────────────────────────── */}
+      {restaurant.type && (
+        <FeatureOverridesSection
+          restaurantId={restaurant.id}
+          restaurantType={restaurant.type}
+          onSaved={refresh}
+        />
+      )}
 
       {/* ── Manage Roles section ─────────────────────────────────── */}
       <div>

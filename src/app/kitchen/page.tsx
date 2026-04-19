@@ -36,6 +36,7 @@ import {
 } from "lucide-react";
 import BillingTab from "@/components/billing/BillingTab";
 import StoryManager from "@/components/stories/StoryManager";
+import ThemeToggle from "@/components/shared/ThemeToggle";
 import { useToast } from "@/context/ToastContext";
 import { formatPrice } from "@/lib/currency";
 import {
@@ -1933,6 +1934,8 @@ export default function KitchenPage() {
                 <User className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">{session.name}</span>
               </button>
+
+              <ThemeToggle />
 
               <button
                 onClick={handleLogout}

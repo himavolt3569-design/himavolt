@@ -41,6 +41,7 @@ import { formatPrice } from "@/lib/currency";
 import StockTab from "@/components/dashboard/StockTab";
 import { type FeatureTabId } from "@/lib/restaurant-types";
 import GlobalChatButton from "@/components/chat/GlobalChatButton";
+import ThemeToggle from "@/components/shared/ThemeToggle";
 
 import QuickCounterTab from "@/components/dashboard/features/QuickCounterTab";
 import ComboMealsTab from "@/components/dashboard/features/ComboMealsTab";
@@ -672,8 +673,8 @@ function BillingPanel({
             label="Discounts"
             value={formatPrice(summary.totalDiscount, currency)}
             icon={Tag}
-            color="text-pink-600"
-            bg="bg-pink-50"
+            color="text-[var(--accent-text)]"
+            bg="bg-[var(--accent-muted)]"
           />
         </div>
       )}
@@ -1139,8 +1140,8 @@ function BillingPanel({
               )}
               {order.bill && order.bill.discount > 0 && (
                 <div className="flex justify-between text-xs">
-                  <span className="text-pink-600 font-medium">Discount</span>
-                  <span className="font-medium text-pink-600">
+                  <span className="text-[var(--accent-text)] font-medium">Discount</span>
+                  <span className="font-medium text-[var(--accent-text)]">
                     -{formatPrice(order.bill.discount, currency)}
                   </span>
                 </div>
@@ -1192,7 +1193,7 @@ function BillingPanel({
                       setSelectedOrder(order);
                       setShowDiscount(true);
                     }}
-                    className="flex items-center gap-1 rounded-lg bg-pink-50 px-2.5 py-1.5 text-[10px] font-bold text-pink-700 hover:bg-pink-100 transition-all"
+                    className="flex items-center gap-1 rounded-lg bg-[var(--accent-muted)] px-2.5 py-1.5 text-[10px] font-bold text-[var(--accent-text)] hover:bg-[var(--surface)] transition-all"
                   >
                     <Tag className="h-3 w-3" />
                     Discount
@@ -1264,7 +1265,7 @@ function BillingPanel({
                 </p>
                 {selectedOrder.bill?.discount &&
                   selectedOrder.bill.discount > 0 && (
-                    <p className="text-xs text-pink-600 mt-1">
+                    <p className="text-xs text-[var(--accent-text)] mt-1">
                       Discount applied: {formatPrice(selectedOrder.bill.discount, currency)}
                     </p>
                   )}
@@ -1294,7 +1295,7 @@ function BillingPanel({
                   </div>
                 )}
                 {selectedOrder.bill && selectedOrder.bill.discount > 0 && (
-                  <div className="flex justify-between text-xs text-pink-600">
+                  <div className="flex justify-between text-xs text-[var(--accent-text)]">
                     <span>Discount</span>
                     <span>-{formatPrice(selectedOrder.bill.discount, currency)}</span>
                   </div>
@@ -1420,8 +1421,8 @@ function BillingPanel({
                 {selectedOrder.bill?.discount &&
                   selectedOrder.bill.discount > 0 && (
                     <div className="flex justify-between text-sm mt-1">
-                      <span className="text-pink-600">Existing Discount</span>
-                      <span className="font-bold text-pink-600">
+                      <span className="text-[var(--accent-text)]">Existing Discount</span>
+                      <span className="font-bold text-[var(--accent-text)]">
                         {formatPrice(selectedOrder.bill.discount, currency)}
                       </span>
                     </div>
@@ -1439,7 +1440,7 @@ function BillingPanel({
                     placeholder="e.g., 100"
                     type="number"
                     min="0"
-                    className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm outline-none focus:border-pink-400 focus:ring-2 focus:ring-pink-100 transition-all"
+                    className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-muted)] transition-all"
                   />
                 </div>
                 <div>
@@ -1450,7 +1451,7 @@ function BillingPanel({
                     value={discountReason}
                     onChange={(e) => setDiscountReason(e.target.value)}
                     placeholder="e.g., Regular customer, promo code..."
-                    className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm outline-none focus:border-pink-400 focus:ring-2 focus:ring-pink-100 transition-all"
+                    className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-muted)] transition-all"
                   />
                 </div>
 
@@ -1459,7 +1460,7 @@ function BillingPanel({
                     <button
                       key={amt}
                       onClick={() => setDiscountAmount(amt.toString())}
-                      className="rounded-lg bg-pink-50 px-3 py-1.5 text-xs font-bold text-pink-700 hover:bg-pink-100 transition-all"
+                      className="rounded-lg bg-[var(--accent-muted)] px-3 py-1.5 text-xs font-bold text-[var(--accent-text)] hover:bg-[var(--surface)] transition-all"
                     >
                       {formatPrice(amt, currency)}
                     </button>
@@ -1482,9 +1483,9 @@ function BillingPanel({
               </div>
 
               {discountAmount && parseFloat(discountAmount) > 0 && (
-                <div className="rounded-xl bg-pink-50 p-3 mb-5 border border-pink-100">
+                <div className="rounded-xl bg-[var(--accent-muted)] p-3 mb-5 border border-[var(--accent-border)]">
                   <div className="flex justify-between text-sm">
-                    <span className="text-pink-600 font-medium">
+                    <span className="text-[var(--accent-text)] font-medium">
                       New Total after Discount
                     </span>
                     <span className="font-extrabold text-[var(--text-1)]">
@@ -1518,7 +1519,7 @@ function BillingPanel({
                     !discountAmount ||
                     parseFloat(discountAmount) <= 0
                   }
-                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-pink-500 py-3 text-sm font-bold text-white hover:bg-pink-600 disabled:bg-gray-300 transition-all shadow-sm"
+                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[var(--accent)] py-3 text-sm font-bold text-white hover:bg-[var(--accent-hover)] disabled:bg-gray-300 transition-all shadow-sm"
                 >
                   {actionLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -1777,6 +1778,8 @@ export default function CounterPage() {
                 <User className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">{session.name}</span>
               </div>
+
+              <ThemeToggle />
 
               <button
                 onClick={handleLogout}

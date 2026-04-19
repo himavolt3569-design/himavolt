@@ -6,7 +6,7 @@ const BASE =
       (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "");
 
 type FetchOptions = {
-  method?: "GET" | "POST" | "PATCH" | "DELETE";
+  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: unknown;
   headers?: Record<string, string>;
   cache?: RequestCache;

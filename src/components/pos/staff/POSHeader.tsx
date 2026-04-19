@@ -15,6 +15,7 @@ import {
   Copy,
   Check,
 } from "lucide-react";
+import ThemeToggle from "@/components/shared/ThemeToggle";
 
 export type POSView = "register" | "tables" | "orders" | "billing" | "held" | "summary";
 
@@ -127,6 +128,7 @@ export default function POSHeader({ restaurantName, restaurantSlug, staffName, s
         >
           {soundOn ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
         </button>
+        <ThemeToggle />
         <button
           onClick={logout}
           className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-[13px] font-medium text-[var(--text-2)] hover:text-white hover:bg-gray-800 transition-colors"
