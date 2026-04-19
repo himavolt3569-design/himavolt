@@ -71,6 +71,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import CustomerDashboard from "@/app/dashboard/CustomerDashboard";
 import LiveOrdersTab from "@/components/dashboard/LiveOrdersTab";
+import NotificationBell from "@/components/dashboard/NotificationBell";
 import QRCodesTab from "@/components/dashboard/QRCodesTab";
 import MenuManagementTab from "@/components/dashboard/MenuManagementTab";
 import ReportsTab from "@/components/dashboard/ReportsTab";
@@ -1609,14 +1610,7 @@ export default function DashboardPage() {
               </span>
             </div>
 
-            <button className="relative rounded-lg p-2 text-[var(--text-2)] hover:bg-[var(--surface)] transition-colors">
-              <Bell className="h-4.5 w-4.5" />
-              {newOrderCount > 0 && (
-                <span className="absolute right-1.5 top-1.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-rose-500 text-[8px] font-bold text-white">
-                  {newOrderCount}
-                </span>
-              )}
-            </button>
+            <NotificationBell onNavigateToOrders={() => handleSetActiveTab("orders")} />
 
             <div className="hidden sm:block h-6 w-px bg-[var(--border)]" />
 
