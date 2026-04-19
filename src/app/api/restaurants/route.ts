@@ -22,7 +22,6 @@ export const GET = safeHandler(async () => {
   const user = await getOrCreateUser();
   if (!user) return unauthorized();
 
-  // Backfill: assign codes to any restaurants that don't have one yet
   const restaurants = await db.restaurant.findMany({
     where: { ownerId: user.id },
     include: {
@@ -32,15 +31,20 @@ export const GET = safeHandler(async () => {
     orderBy: { createdAt: "desc" },
   });
 
-  for (const r of restaurants) {
-    if (!r.restaurantCode) {
-      const code = await generateUniqueCode();
-      await db.restaurant.update({
-        where: { id: r.id },
-        data: { restaurantCode: code },
-      });
-      r.restaurantCode = code;
-    }
+  // Backfill: only runs for legacy rows missing a restaurantCode.
+  // Parallelized; fast-path skips when all rows already have codes.
+  const missing = restaurants.filter((r) => !r.restaurantCode);
+  if (missing.length > 0) {
+    await Promise.all(
+      missing.map(async (r) => {
+        const code = await generateUniqueCode();
+        await db.restaurant.update({
+          where: { id: r.id },
+          data: { restaurantCode: code },
+        });
+        r.restaurantCode = code;
+      }),
+    );
   }
 
   return NextResponse.json(restaurants);

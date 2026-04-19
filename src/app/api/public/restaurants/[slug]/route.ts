@@ -39,7 +39,8 @@ export async function GET(
 
   // Return safe response with defaults for new fields that may not exist yet
   const r = restaurant as Record<string, unknown>;
-  return NextResponse.json({
+  return NextResponse.json(
+    {
     id: restaurant.id,
     name: restaurant.name,
     slug: restaurant.slug,
@@ -79,5 +80,11 @@ export async function GET(
     showReviews: r.showReviews ?? true,
     featuresEnabled: Array.isArray(r.featuresEnabled) ? (r.featuresEnabled as string[]) : [],
     featuresDisabled: Array.isArray(r.featuresDisabled) ? (r.featuresDisabled as string[]) : [],
-  });
+  },
+    {
+      headers: {
+        "Cache-Control": "public, s-maxage=30, stale-while-revalidate=120",
+      },
+    },
+  );
 }

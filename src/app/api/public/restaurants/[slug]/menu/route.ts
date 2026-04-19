@@ -77,5 +77,9 @@ export async function GET(
     };
   });
 
-  return NextResponse.json(enrichedItems);
+  return NextResponse.json(enrichedItems, {
+    headers: {
+      "Cache-Control": "public, s-maxage=30, stale-while-revalidate=120",
+    },
+  });
 }

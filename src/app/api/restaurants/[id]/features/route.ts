@@ -72,12 +72,18 @@ export async function PUT(req: NextRequest, { params }: Params) {
     );
   }
 
-  const updated = await db.restaurant.update({
-    where: { id },
+  const updateResult = await db.restaurant.updateMany({
+    where: { id, ownerId: user.id },
     data: {
       featuresEnabled: dedupEnabled,
       featuresDisabled: dedupDisabled,
     },
+  });
+  if (updateResult.count === 0) {
+    return NextResponse.json({ error: "Restaurant not found" }, { status: 404 });
+  }
+  const updated = await db.restaurant.findUnique({
+    where: { id },
     select: { id: true, featuresEnabled: true, featuresDisabled: true },
   });
 

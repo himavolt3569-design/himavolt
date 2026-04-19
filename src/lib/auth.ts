@@ -1,7 +1,8 @@
+import { cache } from "react";
 import { db } from "./db";
 import { getSupabaseServerClient } from "./supabase-server";
 
-export async function getAuthUser() {
+export const getAuthUser = cache(async () => {
   const supabase = await getSupabaseServerClient();
   const {
     data: { user: supabaseUser },
@@ -14,9 +15,9 @@ export async function getAuthUser() {
       ? await db.user.findFirst({ where: { email: supabaseUser.email } })
       : null);
   return user;
-}
+});
 
-export async function getOrCreateUser() {
+export const getOrCreateUser = cache(async () => {
   const supabase = await getSupabaseServerClient();
   const {
     data: { user: supabaseUser },
@@ -104,13 +105,14 @@ export async function getOrCreateUser() {
   }
 
   // Persist OWNER role in Supabase metadata so future sessions/callbacks can
-  // reliably read it, even if cookies or query params are lost.
+  // reliably read it, even if cookies or query params are lost. Fire-and-forget
+  // so it doesn't block the request — stale JWTs will reconcile on next session.
   if (dbUser?.role === "OWNER" && intendedRole !== "OWNER") {
-    await supabase.auth.updateUser({ data: { intended_role: "OWNER" } });
+    supabase.auth.updateUser({ data: { intended_role: "OWNER" } }).catch(() => {});
   }
 
   return dbUser;
-}
+});
 
 export async function requireAuth() {
   const user = await getAuthUser();

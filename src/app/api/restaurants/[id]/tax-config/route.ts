@@ -43,7 +43,7 @@ export async function GET(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   return NextResponse.json(restaurant, {
-    headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600" },
+    headers: { "Cache-Control": "private, no-store" },
   });
 }
 
