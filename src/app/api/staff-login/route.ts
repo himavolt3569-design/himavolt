@@ -4,6 +4,7 @@ import { SignJWT } from "jose";
 import { safeHandler } from "@/lib/api-helpers";
 import { staffLoginSchema } from "@/lib/validations";
 import { logAudit, getClientIp } from "@/lib/audit";
+import { rateLimit, clientKey } from "@/lib/rate-limit";
 
 function getJwtSecret() {
   const raw = process.env.JWT_SECRET;
@@ -14,6 +15,17 @@ function getJwtSecret() {
 
 export const POST = safeHandler(
   async (_req, { body }) => {
+    const limit = rateLimit(clientKey(_req, "staff-login"), 15 * 60_000, 10);
+    if (!limit.ok) {
+      return NextResponse.json(
+        { error: "Too many attempts. Try again later." },
+        {
+          status: 429,
+          headers: { "Retry-After": String(limit.retryAfterSeconds) },
+        },
+      );
+    }
+
     const { restaurantCode, pin } = body;
 
     // 1. Find Restaurant by code

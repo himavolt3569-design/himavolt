@@ -61,21 +61,26 @@ export const getOrCreateUser = cache(async () => {
       data: { id: supabaseUser.id, email, name, imageUrl, phone, role: safeRole, username: username ?? null },
     });
   } else if (!dbUser && userByEmail) {
-    // Google OAuth with same email as an existing email/password account.
-    // Supabase may auto-link (same user.id) or create a new auth user.
-    // Use the higher of intended role vs inherited role (never downgrade).
-    const inheritedRole = userByEmail.role;
-    const finalRole = safeRole === "OWNER" || inheritedRole === "OWNER" || inheritedRole === "ADMIN"
-      ? "OWNER"
-      : inheritedRole;
+    // Email-based match but Supabase IDs differ. This is the account-takeover
+    // surface: if attacker creates a Supabase user with a victim's email,
+    // naive linking would grant access to the victim's record.
+    //
+    // Refuse linking for any privileged account (OWNER/ADMIN). Low-privilege
+    // customers can still link via OAuth to preserve the legitimate
+    // password→Google sign-in flow, but we NEVER inherit an elevated role.
+    if (userByEmail.role === "OWNER" || userByEmail.role === "ADMIN") {
+      console.warn(
+        `[AUTH] Refused email-based link to privileged account (email=${email}, existingId=${userByEmail.id}, newSupabaseId=${supabaseUser.id})`,
+      );
+      return null;
+    }
 
-    // Update the existing record with fresh metadata & role
+    // CUSTOMER record: safe to update metadata. Role stays CUSTOMER — the
+    // auto-repair block below will upgrade only if this Supabase user
+    // actually owns restaurants.
     dbUser = await db.user.update({
       where: { email },
-      data: {
-        name, imageUrl, phone,
-        ...(finalRole === "OWNER" ? { role: "OWNER" } : {}),
-      },
+      data: { name, imageUrl, phone },
     });
   } else if (dbUser) {
     // Existing user — upgrade CUSTOMER → OWNER if needed, never downgrade

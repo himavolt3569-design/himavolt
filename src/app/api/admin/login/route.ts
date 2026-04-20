@@ -1,11 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SignJWT } from "jose";
+import { rateLimit, clientKey } from "@/lib/rate-limit";
 
 /**
  * POST /api/admin/login
  * Verify master admin credentials and issue a signed JWT cookie.
  */
 export async function POST(req: NextRequest) {
+  const limit = rateLimit(clientKey(req, "admin-login"), 15 * 60_000, 5);
+  if (!limit.ok) {
+    return NextResponse.json(
+      { error: "Too many attempts. Try again later." },
+      {
+        status: 429,
+        headers: { "Retry-After": String(limit.retryAfterSeconds) },
+      },
+    );
+  }
+
   const { adminId, password } = await req.json();
 
   const expectedId = process.env.MASTER_ADMIN_ID;
