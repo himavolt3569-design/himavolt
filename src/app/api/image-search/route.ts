@@ -57,48 +57,46 @@ async function searchWikimedia(query: string, perPage: number) {
   const u = new URL("https://commons.wikimedia.org/w/api.php");
   u.searchParams.set("action", "query");
   u.searchParams.set("format", "json");
-  u.searchParams.set("origin", "*");
+  u.searchParams.set("formatversion", "2");
   u.searchParams.set("generator", "search");
   u.searchParams.set("gsrsearch", `${query} filetype:bitmap`);
   u.searchParams.set("gsrnamespace", "6");
   u.searchParams.set("gsrlimit", String(perPage));
   u.searchParams.set("prop", "imageinfo");
-  u.searchParams.set("iiprop", "url|extmetadata");
+  u.searchParams.set("iiprop", "url");
   u.searchParams.set("iiurlwidth", "600");
 
+  // Wikimedia strictly rate-limits anonymous requests without a proper
+  // User-Agent. The policy requires an app name, version, and contact info.
   const res = await fetch(u.toString(), {
-    headers: { Accept: "application/json" },
-    next: { revalidate: 600 },
+    headers: {
+      Accept: "application/json",
+      "User-Agent":
+        "himavolt/1.0 (https://himavolt.app; contact: support@himavolt.app)",
+      "Api-User-Agent":
+        "himavolt/1.0 (https://himavolt.app; contact: support@himavolt.app)",
+    },
+    next: { revalidate: 3600 },
   });
   if (!res.ok) throw new Error(`Wikimedia: ${res.status}`);
 
   type WMPage = {
     pageid: number;
     title: string;
-    imageinfo?: {
-      url: string;
-      thumburl?: string;
-      extmetadata?: { Artist?: { value?: string } };
-    }[];
+    imageinfo?: { url: string; thumburl?: string }[];
   };
-  const data = (await res.json()) as {
-    query?: { pages?: Record<string, WMPage> };
-  };
-  const pages = Object.values(data.query?.pages ?? {});
+  const data = (await res.json()) as { query?: { pages?: WMPage[] } };
+  const pages = data.query?.pages ?? [];
   return pages
     .map((p): NormalizedImage | null => {
       const info = p.imageinfo?.[0];
       if (!info) return null;
-      const rawArtist = info.extmetadata?.Artist?.value ?? null;
-      const photographer = rawArtist
-        ? rawArtist.replace(/<[^>]+>/g, "").trim()
-        : null;
       return {
         id: `wikimedia-${p.pageid}`,
         url: info.url,
         thumb: info.thumburl || info.url,
         alt: p.title.replace(/^File:/, "").replace(/\.(jpg|jpeg|png|webp)$/i, ""),
-        photographer,
+        photographer: null,
         sourceUrl: `https://commons.wikimedia.org/?curid=${p.pageid}`,
       };
     })
