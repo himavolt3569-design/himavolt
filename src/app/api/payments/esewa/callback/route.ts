@@ -72,11 +72,36 @@ export async function GET(req: NextRequest) {
         }
       }
 
-      // Get restaurant's eSewa merchant code
+      // Get order + payment row for amount verification
       const order = await db.order.findUnique({
         where: { id: orderId },
-        select: { restaurantId: true, orderNo: true },
+        select: {
+          restaurantId: true,
+          orderNo: true,
+          total: true,
+          payment: { select: { amount: true } },
+        },
       });
+
+      // Server-side amount check: reject if callback amount doesn't match
+      // what we recorded when creating the order. Tolerance of 0.01 covers
+      // rounding between paisa and rupees.
+      const expectedAmount = order?.payment?.amount ?? order?.total ?? null;
+      if (expectedAmount == null || Math.abs(totalAmount - expectedAmount) > 0.01) {
+        await logWebhook(
+          "payment.amount_mismatch",
+          orderId,
+          rawPayload,
+          302,
+          transactionUuid,
+        );
+        await db.payment.updateMany({
+          where: { orderId, status: "PENDING" },
+          data: { status: "FAILED" },
+        });
+        return NextResponse.redirect(`${APP_URL}/track/${orderId}?payment=failed`);
+      }
+
       const paymentConfig = order
         ? await db.paymentConfig.findUnique({
             where: { restaurantId: order.restaurantId },

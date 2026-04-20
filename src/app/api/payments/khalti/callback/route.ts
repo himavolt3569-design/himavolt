@@ -51,10 +51,15 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Get restaurant's Khalti secret key
+    // Get order + payment row for amount verification
     const order = await db.order.findUnique({
       where: { id: orderId },
-      select: { restaurantId: true, orderNo: true },
+      select: {
+        restaurantId: true,
+        orderNo: true,
+        total: true,
+        payment: { select: { amount: true } },
+      },
     });
     const paymentConfig = order
       ? await db.paymentConfig.findUnique({
@@ -64,6 +69,22 @@ export async function GET(req: NextRequest) {
     const secretKey = decryptIfPresent(paymentConfig?.khaltiSecretKey) || "";
 
     const verification = await verifyKhaltiPayment(pidx, secretKey);
+
+    // Server-side amount check against the gateway-verified amount.
+    // Rejects forged callbacks or replay with a different order.
+    const expectedAmount = order?.payment?.amount ?? order?.total ?? null;
+    if (
+      verification &&
+      (expectedAmount == null ||
+        Math.abs(verification.amount - expectedAmount) > 0.01)
+    ) {
+      await logWebhook("payment.amount_mismatch", orderId, rawPayload, 302, pidx);
+      await db.payment.updateMany({
+        where: { orderId, status: "PENDING" },
+        data: { status: "FAILED" },
+      });
+      return NextResponse.redirect(`${APP_URL}/track/${orderId}?payment=failed`);
+    }
 
     if (verification) {
       await db.payment.updateMany({
