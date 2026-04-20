@@ -4,13 +4,9 @@ import { rateLimit, clientKey } from "@/lib/rate-limit";
 /**
  * GET /api/image-search?q=pizza&page=1
  *
- * Proxies Pexels (preferred) or Unsplash for food/drink image search,
- * keeping the API key server-side. Results are normalized to a shared shape
- * so the client renders one grid regardless of provider.
- *
- * Env:
- *   PEXELS_API_KEY       — preferred
- *   UNSPLASH_ACCESS_KEY  — fallback
+ * Free image search — no API key required. Uses Openverse (aggregates
+ * Creative Commons / public-domain photos from Flickr, Wikimedia, etc.)
+ * with a Wikimedia Commons fallback if Openverse is unreachable.
  */
 
 type NormalizedImage = {
@@ -22,61 +18,91 @@ type NormalizedImage = {
   sourceUrl: string | null;
 };
 
-async function searchPexels(query: string, page: number, perPage: number, key: string) {
-  const u = new URL("https://api.pexels.com/v1/search");
-  u.searchParams.set("query", query);
+async function searchOpenverse(query: string, page: number, perPage: number) {
+  const u = new URL("https://api.openverse.org/v1/images/");
+  u.searchParams.set("q", query);
   u.searchParams.set("page", String(page));
-  u.searchParams.set("per_page", String(perPage));
+  u.searchParams.set("page_size", String(perPage));
+  u.searchParams.set("license_type", "all");
+  u.searchParams.set("mature", "false");
+
   const res = await fetch(u.toString(), {
-    headers: { Authorization: key },
-    next: { revalidate: 300 },
+    headers: {
+      Accept: "application/json",
+      "User-Agent": "himavolt/1.0 (restaurant menu image search)",
+    },
+    next: { revalidate: 600 },
   });
-  if (!res.ok) throw new Error(`Pexels: ${res.status}`);
-  type PexelsPhoto = {
-    id: number;
-    alt?: string;
-    url?: string;
-    photographer?: string;
-    src: { large2x?: string; large?: string; medium?: string; small?: string };
+  if (!res.ok) throw new Error(`Openverse: ${res.status}`);
+  type OVItem = {
+    id: string;
+    url: string;
+    thumbnail?: string;
+    title?: string;
+    creator?: string;
+    foreign_landing_url?: string;
   };
-  const data = (await res.json()) as { photos?: PexelsPhoto[] };
-  return (data.photos ?? []).map((p): NormalizedImage => ({
-    id: `pexels-${p.id}`,
-    url: p.src.large2x ?? p.src.large ?? p.src.medium ?? "",
-    thumb: p.src.medium ?? p.src.small ?? p.src.large ?? "",
-    alt: p.alt ?? "",
-    photographer: p.photographer ?? null,
-    sourceUrl: p.url ?? null,
+  const data = (await res.json()) as { results?: OVItem[] };
+  return (data.results ?? []).map((p): NormalizedImage => ({
+    id: `openverse-${p.id}`,
+    url: p.url,
+    thumb: p.thumbnail || p.url,
+    alt: p.title ?? "",
+    photographer: p.creator ?? null,
+    sourceUrl: p.foreign_landing_url ?? null,
   }));
 }
 
-async function searchUnsplash(query: string, page: number, perPage: number, key: string) {
-  const u = new URL("https://api.unsplash.com/search/photos");
-  u.searchParams.set("query", query);
-  u.searchParams.set("page", String(page));
-  u.searchParams.set("per_page", String(perPage));
-  u.searchParams.set("content_filter", "high");
+async function searchWikimedia(query: string, perPage: number) {
+  const u = new URL("https://commons.wikimedia.org/w/api.php");
+  u.searchParams.set("action", "query");
+  u.searchParams.set("format", "json");
+  u.searchParams.set("origin", "*");
+  u.searchParams.set("generator", "search");
+  u.searchParams.set("gsrsearch", `${query} filetype:bitmap`);
+  u.searchParams.set("gsrnamespace", "6");
+  u.searchParams.set("gsrlimit", String(perPage));
+  u.searchParams.set("prop", "imageinfo");
+  u.searchParams.set("iiprop", "url|extmetadata");
+  u.searchParams.set("iiurlwidth", "600");
+
   const res = await fetch(u.toString(), {
-    headers: { Authorization: `Client-ID ${key}` },
-    next: { revalidate: 300 },
+    headers: { Accept: "application/json" },
+    next: { revalidate: 600 },
   });
-  if (!res.ok) throw new Error(`Unsplash: ${res.status}`);
-  type UnsplashPhoto = {
-    id: string;
-    alt_description?: string;
-    links?: { html?: string };
-    user?: { name?: string };
-    urls: { regular?: string; small?: string; thumb?: string };
+  if (!res.ok) throw new Error(`Wikimedia: ${res.status}`);
+
+  type WMPage = {
+    pageid: number;
+    title: string;
+    imageinfo?: {
+      url: string;
+      thumburl?: string;
+      extmetadata?: { Artist?: { value?: string } };
+    }[];
   };
-  const data = (await res.json()) as { results?: UnsplashPhoto[] };
-  return (data.results ?? []).map((p): NormalizedImage => ({
-    id: `unsplash-${p.id}`,
-    url: p.urls.regular ?? "",
-    thumb: p.urls.small ?? p.urls.thumb ?? "",
-    alt: p.alt_description ?? "",
-    photographer: p.user?.name ?? null,
-    sourceUrl: p.links?.html ?? null,
-  }));
+  const data = (await res.json()) as {
+    query?: { pages?: Record<string, WMPage> };
+  };
+  const pages = Object.values(data.query?.pages ?? {});
+  return pages
+    .map((p): NormalizedImage | null => {
+      const info = p.imageinfo?.[0];
+      if (!info) return null;
+      const rawArtist = info.extmetadata?.Artist?.value ?? null;
+      const photographer = rawArtist
+        ? rawArtist.replace(/<[^>]+>/g, "").trim()
+        : null;
+      return {
+        id: `wikimedia-${p.pageid}`,
+        url: info.url,
+        thumb: info.thumburl || info.url,
+        alt: p.title.replace(/^File:/, "").replace(/\.(jpg|jpeg|png|webp)$/i, ""),
+        photographer,
+        sourceUrl: `https://commons.wikimedia.org/?curid=${p.pageid}`,
+      };
+    })
+    .filter((x): x is NormalizedImage => x !== null);
 }
 
 export async function GET(req: NextRequest) {
@@ -97,39 +123,27 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ images: [], provider: null });
   }
 
-  const pexelsKey = process.env.PEXELS_API_KEY;
-  const unsplashKey = process.env.UNSPLASH_ACCESS_KEY;
-
   try {
-    if (pexelsKey) {
-      const images = await searchPexels(q, page, perPage, pexelsKey);
+    const images = await searchOpenverse(q, page, perPage);
+    return NextResponse.json(
+      { images, provider: "openverse" },
+      { headers: { "Cache-Control": "private, max-age=600" } },
+    );
+  } catch {
+    try {
+      const images = await searchWikimedia(q, perPage);
       return NextResponse.json(
-        { images, provider: "pexels" },
-        { headers: { "Cache-Control": "private, max-age=300" } },
+        { images, provider: "wikimedia" },
+        { headers: { "Cache-Control": "private, max-age=600" } },
+      );
+    } catch (err) {
+      return NextResponse.json(
+        {
+          error: err instanceof Error ? err.message : "Image search failed",
+          provider: null,
+        },
+        { status: 502 },
       );
     }
-    if (unsplashKey) {
-      const images = await searchUnsplash(q, page, perPage, unsplashKey);
-      return NextResponse.json(
-        { images, provider: "unsplash" },
-        { headers: { "Cache-Control": "private, max-age=300" } },
-      );
-    }
-    return NextResponse.json(
-      {
-        error:
-          "Image search is not configured. Set PEXELS_API_KEY or UNSPLASH_ACCESS_KEY.",
-        provider: null,
-      },
-      { status: 501 },
-    );
-  } catch (err) {
-    return NextResponse.json(
-      {
-        error: err instanceof Error ? err.message : "Image search failed",
-        provider: null,
-      },
-      { status: 502 },
-    );
   }
 }
