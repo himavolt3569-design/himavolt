@@ -211,7 +211,7 @@ export default function HotelQRTab() {
               href={hotelUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-50 ring-1 ring-blue-100 py-3.5 text-[13px] font-bold text-blue-700 hover:bg-blue-100 active:scale-[0.98] transition-all"
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[var(--status-info-bg)] ring-1 ring-[var(--status-info-border)] py-3.5 text-[13px] font-bold text-[var(--status-info-text)] hover:brightness-110 active:scale-[0.98] transition-all"
             >
               <ExternalLink className="h-4 w-4" />
               Preview Guest Page

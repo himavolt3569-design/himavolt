@@ -56,7 +56,7 @@ const STATUS_CONFIG: Record<
 > = {
   Received: { bg: "bg-[var(--accent)]", text: "text-[var(--accent)]", icon: Package },
   Preparing: { bg: "bg-[var(--accent-muted)]", text: "text-[var(--accent-text)]", icon: ChefHat },
-  "On the Way": { bg: "bg-blue-100", text: "text-blue-700", icon: Truck },
+  "On the Way": { bg: "bg-[var(--status-info-bg)]", text: "text-[var(--status-info-text)]", icon: Truck },
   Delivered: {
     bg: "bg-[var(--accent-muted)]",
     text: "text-[var(--accent-text)]",
@@ -189,8 +189,8 @@ export default function RoomServiceTab() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-stone-800">Room Service</h2>
-          <p className="text-sm text-stone-500">
+          <h2 className="text-2xl font-bold text-[var(--text-1)]">Room Service</h2>
+          <p className="text-sm text-[var(--text-2)]">
             Manage room service orders and menu availability
           </p>
         </div>
@@ -225,8 +225,8 @@ export default function RoomServiceTab() {
             label: "24/7 Service",
             value: is24_7 ? "Active" : "Scheduled",
             icon: Clock,
-            color: "text-blue-600",
-            bg: "bg-blue-50",
+            color: "text-[var(--status-info-text)]",
+            bg: "bg-[var(--status-info-bg)]",
           },
           {
             label: "Menu Items",
@@ -240,12 +240,12 @@ export default function RoomServiceTab() {
             key={stat.label}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`rounded-xl ${stat.bg} border border-stone-100 p-4 shadow-sm`}
+            className={`rounded-xl ${stat.bg} border border-[var(--border-soft)] p-4 shadow-sm`}
           >
             <div className="flex items-center gap-3">
               <stat.icon className={`h-5 w-5 ${stat.color}`} />
               <div>
-                <p className="text-xs font-medium text-stone-500">
+                <p className="text-xs font-medium text-[var(--text-2)]">
                   {stat.label}
                 </p>
                 <p className={`text-lg font-bold ${stat.color}`}>
@@ -257,15 +257,15 @@ export default function RoomServiceTab() {
         ))}
       </div>
 
-      <div className="flex gap-1 rounded-xl bg-stone-100 p-1">
+      <div className="flex gap-1 rounded-xl bg-[var(--surface)] p-1">
         {(["orders", "menu", "settings"] as const).map((view) => (
           <button
             key={view}
             onClick={() => setActiveView(view)}
             className={`flex-1 rounded-lg px-4 py-2 text-sm font-medium capitalize transition ${
               activeView === view
-                ? "bg-[var(--canvas)] text-stone-800 shadow-sm"
-                : "text-stone-500 hover:text-stone-700"
+                ? "bg-[var(--canvas)] text-[var(--text-1)] shadow-sm"
+                : "text-[var(--text-2)] hover:text-[var(--text-1)]"
             }`}
           >
             {view === "orders"
@@ -294,7 +294,7 @@ export default function RoomServiceTab() {
                   className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
                     orderFilter === status
                       ? "bg-[var(--accent-hover)] text-white"
-                      : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                      : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
                   }`}
                 >
                   {status}
@@ -321,7 +321,7 @@ export default function RoomServiceTab() {
                     layout
                     initial={{ opacity: 0, scale: 0.98 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="rounded-xl border border-stone-200 bg-[var(--canvas)] p-5 shadow-sm"
+                    className="rounded-xl border border-[var(--border)] bg-[var(--canvas)] p-5 shadow-sm"
                   >
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                       <div className="flex-1 space-y-3">
@@ -330,10 +330,10 @@ export default function RoomServiceTab() {
                             <BedDouble className="h-5 w-5 text-[var(--accent-text)]" />
                           </div>
                           <div>
-                            <p className="font-semibold text-stone-800">
+                            <p className="font-semibold text-[var(--text-1)]">
                               Room {order.roomNumber}
                             </p>
-                            <p className="text-xs text-stone-500">
+                            <p className="text-xs text-[var(--text-2)]">
                               Ordered at {order.timeOrdered}
                             </p>
                           </div>
@@ -345,8 +345,8 @@ export default function RoomServiceTab() {
                           </span>
                         </div>
 
-                        <div className="rounded-lg bg-stone-50 p-3">
-                          <p className="mb-2 text-xs font-medium text-stone-500">
+                        <div className="rounded-lg bg-[var(--canvas-sub)] p-3">
+                          <p className="mb-2 text-xs font-medium text-[var(--text-2)]">
                             Items
                           </p>
                           {order.items.map((item, idx) => (
@@ -354,25 +354,25 @@ export default function RoomServiceTab() {
                               key={idx}
                               className="flex items-center justify-between py-1 text-sm"
                             >
-                              <span className="text-stone-700">
+                              <span className="text-[var(--text-1)]">
                                 {item.name} x{item.qty}
                               </span>
-                              <span className="font-medium text-stone-800">
+                              <span className="font-medium text-[var(--text-1)]">
                                 ${(item.price * item.qty).toFixed(2)}
                               </span>
                             </div>
                           ))}
-                          <div className="mt-2 flex items-center justify-between border-t border-stone-200 pt-2 text-sm">
-                            <span className="font-medium text-stone-600">
+                          <div className="mt-2 flex items-center justify-between border-t border-[var(--border)] pt-2 text-sm">
+                            <span className="font-medium text-[var(--text-2)]">
                               Total
                             </span>
-                            <span className="font-bold text-stone-800">
+                            <span className="font-bold text-[var(--text-1)]">
                               ${orderTotal.toFixed(2)}
                             </span>
                           </div>
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-4 text-xs text-stone-500">
+                        <div className="flex flex-wrap items-center gap-4 text-xs text-[var(--text-2)]">
                           <span className="flex items-center gap-1">
                             <Clock className="h-3.5 w-3.5" />
                             Est. delivery: {order.estimatedDelivery}
@@ -384,7 +384,7 @@ export default function RoomServiceTab() {
                               onChange={(e) =>
                                 assignStaff(order.id, e.target.value)
                               }
-                              className="rounded border border-stone-200 bg-[var(--canvas)] px-2 py-0.5 text-xs text-stone-700"
+                              className="rounded border border-[var(--border)] bg-[var(--canvas)] px-2 py-0.5 text-xs text-[var(--text-1)]"
                             >
                               <option value="Unassigned">Unassigned</option>
                               {STAFF_LIST.map((s) => (
@@ -414,7 +414,7 @@ export default function RoomServiceTab() {
                 );
               })}
               {filteredOrders.length === 0 && (
-                <div className="rounded-xl bg-stone-50 py-12 text-center text-stone-400">
+                <div className="rounded-xl bg-[var(--canvas-sub)] py-12 text-center text-[var(--text-3)]">
                   No orders matching this filter.
                 </div>
               )}
@@ -431,13 +431,13 @@ export default function RoomServiceTab() {
             className="space-y-4"
           >
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-3)]" />
               <input
                 type="text"
                 placeholder="Search menu items..."
                 value={menuSearch}
                 onChange={(e) => setMenuSearch(e.target.value)}
-                className="w-full rounded-xl border border-stone-200 bg-[var(--canvas)] py-2.5 pl-10 pr-4 text-sm text-stone-700 placeholder:text-stone-400 focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
+                className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] py-2.5 pl-10 pr-4 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
               />
             </div>
 
@@ -446,15 +446,15 @@ export default function RoomServiceTab() {
                 <motion.div
                   key={item.id}
                   layout
-                  className="flex items-center justify-between rounded-xl border border-stone-200 bg-[var(--canvas)] px-5 py-4 shadow-sm"
+                  className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-5 py-4 shadow-sm"
                 >
                   <div className="flex items-center gap-3">
-                    <Utensils className="h-4 w-4 text-stone-400" />
+                    <Utensils className="h-4 w-4 text-[var(--text-3)]" />
                     <div>
-                      <p className="text-sm font-medium text-stone-800">
+                      <p className="text-sm font-medium text-[var(--text-1)]">
                         {item.name}
                       </p>
-                      <p className="text-xs text-stone-500">
+                      <p className="text-xs text-[var(--text-2)]">
                         {item.category} &middot; ${item.price.toFixed(2)}
                       </p>
                     </div>
@@ -466,10 +466,10 @@ export default function RoomServiceTab() {
                     {item.availableForRoomService ? (
                       <ToggleRight className="h-7 w-7 text-[var(--accent-text)]" />
                     ) : (
-                      <ToggleLeft className="h-7 w-7 text-stone-300" />
+                      <ToggleLeft className="h-7 w-7 text-[var(--text-3)]" />
                     )}
                     <span
-                      className={`text-xs font-medium ${item.availableForRoomService ? "text-[var(--accent-text)]" : "text-stone-400"}`}
+                      className={`text-xs font-medium ${item.availableForRoomService ? "text-[var(--accent-text)]" : "text-[var(--text-3)]"}`}
                     >
                       {item.availableForRoomService ? "Available" : "Off"}
                     </span>
@@ -489,15 +489,15 @@ export default function RoomServiceTab() {
             className="space-y-6"
           >
             {/* 24/7 Toggle */}
-            <div className="rounded-xl border border-stone-200 bg-[var(--canvas)] p-6 shadow-sm">
+            <div className="rounded-xl border border-[var(--border)] bg-[var(--canvas)] p-6 shadow-sm">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <Clock className="h-5 w-5 text-[var(--accent-text)]" />
                   <div>
-                    <p className="font-medium text-stone-800">
+                    <p className="font-medium text-[var(--text-1)]">
                       24/7 Room Service
                     </p>
-                    <p className="text-sm text-stone-500">
+                    <p className="text-sm text-[var(--text-2)]">
                       Allow room service orders around the clock
                     </p>
                   </div>
@@ -506,7 +506,7 @@ export default function RoomServiceTab() {
                   {is24_7 ? (
                     <ToggleRight className="h-8 w-8 text-[var(--accent-text)]" />
                   ) : (
-                    <ToggleLeft className="h-8 w-8 text-stone-300" />
+                    <ToggleLeft className="h-8 w-8 text-[var(--text-3)]" />
                   )}
                 </button>
               </div>
@@ -515,10 +515,10 @@ export default function RoomServiceTab() {
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
-                  className="mt-4 flex items-center gap-4 border-t border-stone-100 pt-4"
+                  className="mt-4 flex items-center gap-4 border-t border-[var(--border-soft)] pt-4"
                 >
                   <div>
-                    <label className="mb-1 block text-xs font-medium text-stone-500">
+                    <label className="mb-1 block text-xs font-medium text-[var(--text-2)]">
                       Start Time
                     </label>
                     <input
@@ -530,11 +530,11 @@ export default function RoomServiceTab() {
                           start: e.target.value,
                         }))
                       }
-                      className="rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-700 focus:border-[var(--accent)] focus:outline-none"
+                      className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm text-[var(--text-1)] focus:border-[var(--accent)] focus:outline-none"
                     />
                   </div>
                   <div>
-                    <label className="mb-1 block text-xs font-medium text-stone-500">
+                    <label className="mb-1 block text-xs font-medium text-[var(--text-2)]">
                       End Time
                     </label>
                     <input
@@ -546,36 +546,36 @@ export default function RoomServiceTab() {
                           end: e.target.value,
                         }))
                       }
-                      className="rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-700 focus:border-[var(--accent)] focus:outline-none"
+                      className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm text-[var(--text-1)] focus:border-[var(--accent)] focus:outline-none"
                     />
                   </div>
                 </motion.div>
               )}
             </div>
 
-            <div className="rounded-xl border border-stone-200 bg-[var(--canvas)] p-6 shadow-sm">
+            <div className="rounded-xl border border-[var(--border)] bg-[var(--canvas)] p-6 shadow-sm">
               <div className="flex items-center gap-3 mb-4">
                 <DollarSign className="h-5 w-5 text-[var(--accent-text)]" />
                 <div>
-                  <p className="font-medium text-stone-800">
+                  <p className="font-medium text-[var(--text-1)]">
                     Room Service Surcharge
                   </p>
-                  <p className="text-sm text-stone-500">
+                  <p className="text-sm text-[var(--text-2)]">
                     Additional fee applied to room service orders
                   </p>
                 </div>
               </div>
 
               <div className="flex items-center gap-4">
-                <div className="flex gap-1 rounded-lg bg-stone-100 p-1">
+                <div className="flex gap-1 rounded-lg bg-[var(--surface)] p-1">
                   <button
                     onClick={() =>
                       setSurcharge((s) => ({ ...s, type: "flat" }))
                     }
                     className={`rounded-md px-3 py-1.5 text-xs font-medium transition ${
                       surcharge.type === "flat"
-                        ? "bg-[var(--canvas)] text-stone-800 shadow-sm"
-                        : "text-stone-500"
+                        ? "bg-[var(--canvas)] text-[var(--text-1)] shadow-sm"
+                        : "text-[var(--text-2)]"
                     }`}
                   >
                     Flat Fee
@@ -586,15 +586,15 @@ export default function RoomServiceTab() {
                     }
                     className={`rounded-md px-3 py-1.5 text-xs font-medium transition ${
                       surcharge.type === "percentage"
-                        ? "bg-[var(--canvas)] text-stone-800 shadow-sm"
-                        : "text-stone-500"
+                        ? "bg-[var(--canvas)] text-[var(--text-1)] shadow-sm"
+                        : "text-[var(--text-2)]"
                     }`}
                   >
                     Percentage
                   </button>
                 </div>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-stone-400">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[var(--text-3)]">
                     {surcharge.type === "flat" ? "$" : ""}
                   </span>
                   <input
@@ -606,10 +606,10 @@ export default function RoomServiceTab() {
                         value: parseFloat(e.target.value) || 0,
                       }))
                     }
-                    className="w-24 rounded-lg border border-stone-200 py-2 pl-7 pr-3 text-sm text-stone-700 focus:border-[var(--accent)] focus:outline-none"
+                    className="w-24 rounded-lg border border-[var(--border)] py-2 pl-7 pr-3 text-sm text-[var(--text-1)] focus:border-[var(--accent)] focus:outline-none"
                   />
                   {surcharge.type === "percentage" && (
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-stone-400">
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-[var(--text-3)]">
                       %
                     </span>
                   )}
@@ -637,12 +637,12 @@ export default function RoomServiceTab() {
               className="w-full max-w-lg rounded-2xl bg-[var(--canvas)] p-6 shadow-xl"
             >
               <div className="mb-6 flex items-center justify-between">
-                <h3 className="text-lg font-bold text-stone-800">
+                <h3 className="text-lg font-bold text-[var(--text-1)]">
                   New Room Service Order
                 </h3>
                 <button
                   onClick={() => setShowNewOrder(false)}
-                  className="rounded-lg p-1.5 text-stone-400 hover:bg-stone-100"
+                  className="rounded-lg p-1.5 text-[var(--text-3)] hover:bg-[var(--surface)]"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -650,7 +650,7 @@ export default function RoomServiceTab() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium text-stone-700">
+                  <label className="mb-1.5 block text-sm font-medium text-[var(--text-1)]">
                     Room Number
                   </label>
                   <input
@@ -658,23 +658,23 @@ export default function RoomServiceTab() {
                     value={newOrderRoom}
                     onChange={(e) => setNewOrderRoom(e.target.value)}
                     placeholder="e.g., 301"
-                    className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 placeholder:text-stone-400 focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
+                    className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                   />
                 </div>
 
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium text-stone-700">
+                  <label className="mb-1.5 block text-sm font-medium text-[var(--text-1)]">
                     Select Items
                   </label>
-                  <div className="max-h-40 space-y-1 overflow-y-auto rounded-xl border border-stone-200 p-2">
+                  <div className="max-h-40 space-y-1 overflow-y-auto rounded-xl border border-[var(--border)] p-2">
                     {availableForOrder.map((item) => (
                       <button
                         key={item.id}
                         onClick={() => addItemToNewOrder(item)}
-                        className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm text-stone-700 transition hover:bg-[var(--accent-muted)]"
+                        className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm text-[var(--text-1)] transition hover:bg-[var(--accent-muted)]"
                       >
                         <span>{item.name}</span>
-                        <span className="text-stone-400">
+                        <span className="text-[var(--text-3)]">
                           ${item.price.toFixed(2)}
                         </span>
                       </button>
@@ -684,7 +684,7 @@ export default function RoomServiceTab() {
 
                 {newOrderItems.length > 0 && (
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-stone-700">
+                    <label className="mb-1.5 block text-sm font-medium text-[var(--text-1)]">
                       Order Items
                     </label>
                     <div className="space-y-1 rounded-xl bg-[var(--accent-muted)] p-3">
@@ -693,16 +693,16 @@ export default function RoomServiceTab() {
                           key={item.name}
                           className="flex items-center justify-between text-sm"
                         >
-                          <span className="text-stone-700">
+                          <span className="text-[var(--text-1)]">
                             {item.name} x{item.qty}
                           </span>
                           <div className="flex items-center gap-2">
-                            <span className="font-medium text-stone-800">
+                            <span className="font-medium text-[var(--text-1)]">
                               ${(item.price * item.qty).toFixed(2)}
                             </span>
                             <button
                               onClick={() => removeItemFromNewOrder(item.name)}
-                              className="text-stone-400 hover:text-red-500"
+                              className="text-[var(--text-3)] hover:text-[var(--status-error-text)]"
                             >
                               <Trash2 className="h-3.5 w-3.5" />
                             </button>

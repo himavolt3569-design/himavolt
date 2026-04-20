@@ -65,7 +65,8 @@
       "Bash(head -30 node_modules/lucide-react/dist/lucide-react.d.ts)",
       "Bash(echo \"EXIT=$?\")",
       "Bash(echo \"exit=$?\")",
-      "Bash(echo \"---EXIT: $?\")"
+      "Bash(echo \"---EXIT: $?\")",
+      "Bash(npx eslint *)"
     ],
     "additionalDirectories": [
       "d:\\Official_Projects\\himalhub\\src\\app\\api\\public\\restaurants\\[slug]"

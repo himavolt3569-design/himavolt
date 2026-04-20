@@ -67,16 +67,16 @@ const ROOM_TYPES: RoomType[] = ["STANDARD", "DELUXE", "SUITE"];
 const ROOM_TYPE_COLORS: Record<RoomType, { bg: string; text: string; border: string }> = {
   STANDARD: { bg: "bg-[var(--canvas-sub)]", text: "text-[var(--text-2)]", border: "border-[var(--border)]" },
   DELUXE: { bg: "bg-[var(--accent-muted)]", text: "text-[var(--accent-text)]", border: "border-[var(--accent-border)]" },
-  SUITE: { bg: "bg-purple-50", text: "text-purple-700", border: "border-purple-200" },
+  SUITE: { bg: "bg-[var(--accent-muted)]", text: "text-[var(--accent-text)]", border: "border-[var(--accent-border)]" },
 };
 
 const BOOKING_STATUSES: BookingStatus[] = ["CONFIRMED", "CHECKED_IN", "CHECKED_OUT", "CANCELLED"];
 
 const BOOKING_STATUS_COLORS: Record<BookingStatus, { bg: string; text: string; border: string }> = {
-  CONFIRMED: { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-200" },
+  CONFIRMED: { bg: "bg-[var(--status-info-bg)]", text: "text-[var(--status-info-text)]", border: "border-[var(--status-info-border)]" },
   CHECKED_IN: { bg: "bg-[var(--accent-muted)]", text: "text-[var(--accent-text)]", border: "border-[var(--accent-border)]" },
   CHECKED_OUT: { bg: "bg-[var(--canvas-sub)]", text: "text-[var(--text-2)]", border: "border-[var(--border)]" },
-  CANCELLED: { bg: "bg-red-50", text: "text-red-700", border: "border-red-200" },
+  CANCELLED: { bg: "bg-[var(--status-error-bg)]", text: "text-[var(--status-error-text)]", border: "border-[var(--status-error-bg)]" },
 };
 
 const BOOKING_STATUS_LABELS: Record<BookingStatus, string> = {
@@ -390,7 +390,7 @@ function RoomsView({ restaurantId, currency }: { restaurantId: string; currency:
                         className={`shrink-0 rounded-md border px-2 py-0.5 text-[10px] font-bold ${
                           room.isAvailable
                             ? "bg-[var(--accent-muted)] text-[var(--accent-text)] border-[var(--accent-border)]"
-                            : "bg-red-50 text-red-600 border-red-200"
+                            : "bg-[var(--status-error-bg)] text-[var(--status-error-text)] border-[var(--status-error-bg)]"
                         }`}
                       >
                         {room.isAvailable ? "Available" : "Occupied"}
@@ -448,7 +448,7 @@ function RoomsView({ restaurantId, currency }: { restaurantId: string; currency:
                     <button
                       onClick={() => handleDelete(room.id)}
                       disabled={deletingId === room.id}
-                      className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-all disabled:opacity-40"
+                      className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--status-error-bg)] text-[var(--status-error-text)] hover:brightness-110 transition-all disabled:opacity-40"
                       title="Delete"
                     >
                       {deletingId === room.id ? (
@@ -762,7 +762,7 @@ function RoomFormModal({
             </div>
 
             {errorMsg && (
-              <p className="mt-4 rounded-xl bg-red-50 border border-red-100 px-4 py-2.5 text-sm font-medium text-red-600">
+              <p className="mt-4 rounded-xl bg-[var(--status-error-bg)] border border-[var(--status-error-bg)] px-4 py-2.5 text-sm font-medium text-[var(--status-error-text)]">
                 {errorMsg}
               </p>
             )}
@@ -1060,7 +1060,7 @@ function BookingsView({ restaurantId, currency }: { restaurantId: string; curren
                         <button
                           onClick={() => handleStatusUpdate(booking.id, "CANCELLED")}
                           disabled={updatingId === booking.id}
-                          className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-all disabled:opacity-40"
+                          className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--status-error-bg)] text-[var(--status-error-text)] hover:brightness-110 transition-all disabled:opacity-40"
                           title="Cancel"
                         >
                           {updatingId === booking.id ? (
@@ -1391,7 +1391,7 @@ function BookingFormModal({
             </div>
 
             {errorMsg && (
-              <p className="mt-4 rounded-xl bg-red-50 border border-red-100 px-4 py-2.5 text-sm font-medium text-red-600">
+              <p className="mt-4 rounded-xl bg-[var(--status-error-bg)] border border-[var(--status-error-bg)] px-4 py-2.5 text-sm font-medium text-[var(--status-error-text)]">
                 {errorMsg}
               </p>
             )}

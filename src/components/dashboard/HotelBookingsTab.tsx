@@ -65,15 +65,15 @@ interface HotelConfig {
 const STATUS_STYLES: Record<string, string> = {
   PENDING: "bg-[var(--accent-muted)] text-[var(--accent-text)] ring-[var(--accent-border)]",
   CONFIRMED: "bg-[var(--accent-muted)] text-[var(--accent-text)] ring-[var(--accent)]/30",
-  CHECKED_IN: "bg-blue-50 text-blue-700 ring-blue-200",
+  CHECKED_IN: "bg-[var(--status-info-bg)] text-[var(--status-info-text)] ring-[var(--status-info-border)]",
   CHECKED_OUT: "bg-[var(--surface)] text-[var(--text-2)] ring-[var(--border)]",
-  CANCELLED: "bg-rose-50 text-rose-600 ring-rose-200",
+  CANCELLED: "bg-[var(--status-error-bg)] text-[var(--status-error-text)] ring-[var(--status-error-bg)]",
 };
 
 const PAY_STATUS_STYLES: Record<string, string> = {
-  UNPAID: "bg-[var(--accent)] text-[var(--accent)]",
-  PAID: "bg-[var(--accent-muted)] text-[var(--accent-text)]",
-  FAILED: "bg-rose-50 text-rose-600",
+  UNPAID: "bg-[var(--accent-muted)] text-[var(--accent-text)]",
+  PAID: "bg-[var(--status-success-bg)] text-[var(--status-success-text)]",
+  FAILED: "bg-[var(--status-error-bg)] text-[var(--status-error-text)]",
 };
 
 function BookingRow({
@@ -316,9 +316,9 @@ function BookingDetailModal({
           </div>
 
           {booking.notes && (
-            <div className="rounded-xl bg-blue-50 ring-1 ring-blue-100 p-3">
-              <p className="text-[11px] font-semibold text-blue-600 mb-1">Notes</p>
-              <p className="text-[12px] text-blue-800">{booking.notes}</p>
+            <div className="rounded-xl bg-[var(--status-info-bg)] ring-1 ring-[var(--status-info-border)] p-3">
+              <p className="text-[11px] font-semibold text-[var(--status-info-text)] mb-1">Notes</p>
+              <p className="text-[12px] text-[var(--status-info-text)]">{booking.notes}</p>
             </div>
           )}
 
@@ -336,7 +336,7 @@ function BookingDetailModal({
                     </button>
                     <button
                       onClick={() => { onStatusChange(booking.id, "CANCELLED"); onClose(); }}
-                      className="rounded-xl bg-rose-50 py-2.5 text-[12px] font-bold text-rose-600 hover:bg-rose-100 transition-colors flex items-center justify-center gap-1.5"
+                      className="rounded-xl bg-[var(--status-error-bg)] py-2.5 text-[12px] font-bold text-[var(--status-error-text)] hover:brightness-110 transition-all flex items-center justify-center gap-1.5"
                     >
                       <X className="h-3.5 w-3.5" /> Cancel
                     </button>
@@ -346,7 +346,7 @@ function BookingDetailModal({
                   <>
                     <button
                       onClick={() => { onStatusChange(booking.id, "CHECKED_IN"); onClose(); }}
-                      className="rounded-xl bg-blue-500 py-2.5 text-[12px] font-bold text-white hover:bg-blue-400 transition-colors flex items-center justify-center gap-1.5 col-span-2"
+                      className="rounded-xl bg-[var(--accent)] py-2.5 text-[12px] font-bold text-white hover:bg-[var(--accent-hover)] transition-colors flex items-center justify-center gap-1.5 col-span-2"
                     >
                       <LogIn className="h-3.5 w-3.5" /> Check In Guest
                     </button>
@@ -460,7 +460,7 @@ function AdvanceConfigModal({
                 : `Customer pays ${config.currency} ${value} fixed advance`}
             </p>
           </div>
-          {error && <p className="text-[12px] text-rose-600">{error}</p>}
+          {error && <p className="text-[12px] text-[var(--status-error-text)]">{error}</p>}
           <button
             onClick={handleSave}
             disabled={saving}

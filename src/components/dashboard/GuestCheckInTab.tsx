@@ -396,7 +396,7 @@ export default function GuestCheckInTab() {
                 {guest.status === "CHECKED_IN" && (
                   <button
                     onClick={() => handleCheckOut(guest)}
-                    className="flex items-center gap-1 rounded-xl bg-red-50 px-2 py-1.5 text-xs font-bold text-red-500 hover:bg-red-100 transition-colors"
+                    className="flex items-center gap-1 rounded-xl bg-[var(--status-error-bg)] px-2 py-1.5 text-xs font-bold text-[var(--status-error-text)] hover:brightness-110 transition-all"
                     title="Check Out"
                   >
                     <LogOut className="h-3 w-3" />
@@ -436,7 +436,7 @@ export default function GuestCheckInTab() {
               <div className="p-5 space-y-4">
                 <div>
                   <label className="text-xs font-bold text-[var(--text-2)] uppercase tracking-wider block mb-1.5">
-                    Room Number <span className="text-red-400">*</span>
+                    Room Number <span className="text-[var(--status-error-text)]">*</span>
                   </label>
                   <input
                     value={form.roomNo}
@@ -448,7 +448,7 @@ export default function GuestCheckInTab() {
 
                 <div>
                   <label className="text-xs font-bold text-[var(--text-2)] uppercase tracking-wider block mb-1.5">
-                    Guest Name <span className="text-red-400">*</span>
+                    Guest Name <span className="text-[var(--status-error-text)]">*</span>
                   </label>
                   <input
                     value={form.guestName}
@@ -547,7 +547,7 @@ export default function GuestCheckInTab() {
                   <label className="text-xs font-bold text-[var(--text-2)] uppercase tracking-wider block mb-1.5 flex items-center gap-1.5">
                     <Camera className="h-3.5 w-3.5" />
                     ID Document Photo
-                    <span className="ml-auto flex items-center gap-1 text-[10px] font-semibold text-purple-500 normal-case tracking-normal">
+                    <span className="ml-auto flex items-center gap-1 text-[10px] font-semibold text-[var(--accent-text)] normal-case tracking-normal">
                       <Sparkles className="h-3 w-3" />
                       AI auto-fill
                     </span>
@@ -570,14 +570,14 @@ export default function GuestCheckInTab() {
                         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/40 backdrop-blur-[2px]">
                           <Loader2 className="h-6 w-6 animate-spin text-white" />
                           <p className="text-xs font-semibold text-white flex items-center gap-1">
-                            <Sparkles className="h-3.5 w-3.5 text-purple-300" />
+                            <Sparkles className="h-3.5 w-3.5 text-[var(--accent)]" />
                             Reading ID...
                           </p>
                         </div>
                       )}
                       <button
                         onClick={() => setForm((f) => ({ ...f, idImageUrl: "" }))}
-                        className="absolute top-2 right-2 rounded-full bg-[var(--canvas)]/90 p-1.5 text-[var(--text-2)] hover:bg-red-50 hover:text-red-500 shadow-sm"
+                        className="absolute top-2 right-2 rounded-full bg-[var(--canvas)]/90 p-1.5 text-[var(--text-2)] hover:bg-[var(--status-error-bg)] hover:text-[var(--status-error-text)] shadow-sm"
                       >
                         <X className="h-3.5 w-3.5" />
                       </button>
@@ -597,7 +597,7 @@ export default function GuestCheckInTab() {
                         <>
                           <Camera className="h-6 w-6" />
                           <span className="text-xs font-semibold">Take photo or upload ID</span>
-                          <span className="text-[10px] text-purple-400 flex items-center gap-1">
+                          <span className="text-[10px] text-[var(--accent-text)] flex items-center gap-1">
                             <Sparkles className="h-3 w-3" />
                             Fields will auto-fill
                           </span>

@@ -36,9 +36,9 @@ interface Room {
 }
 
 const TYPE_COLORS: Record<string, string> = {
-  STANDARD: "bg-slate-100 text-slate-700",
+  STANDARD: "bg-[var(--surface)] text-[var(--text-2)]",
   DELUXE: "bg-[var(--accent-muted)] text-[var(--accent-text)]",
-  SUITE: "bg-purple-100 text-purple-700",
+  SUITE: "bg-[var(--accent-muted)] text-[var(--accent-text)] ring-1 ring-[var(--accent-border)]",
   DORMITORY: "bg-[var(--accent-muted)] text-[var(--accent-text)]",
 };
 
@@ -183,7 +183,7 @@ function RoomQRCard({
           <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${TYPE_COLORS[room.type] || "bg-[var(--surface)] text-[var(--text-2)]"}`}>
             {room.type}
           </span>
-          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${room.isAvailable ? "bg-[var(--accent-muted)] text-[var(--accent-text)]" : "bg-red-100 text-red-700"}`}>
+          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${room.isAvailable ? "bg-[var(--accent-muted)] text-[var(--accent-text)]" : "bg-[var(--status-error-bg)] text-[var(--status-error-text)]"}`}>
             {room.isAvailable ? "Available" : "Occupied"}
           </span>
         </div>

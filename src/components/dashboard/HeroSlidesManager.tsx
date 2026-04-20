@@ -294,7 +294,7 @@ export default function HeroSlidesManager() {
 
                 <button
                   onClick={() => handleDelete(slide.id)}
-                  className="rounded-lg p-2 text-[var(--accent)] hover:bg-red-50 hover:text-red-500 transition-colors cursor-pointer"
+                  className="rounded-lg p-2 text-[var(--accent)] hover:bg-[var(--status-error-bg)] hover:text-[var(--status-error-text)] transition-colors cursor-pointer"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -357,7 +357,7 @@ export default function HeroSlidesManager() {
                     />
                     <button
                       onClick={() => setUploadedUrl("")}
-                      className="absolute top-2 right-2 rounded-full bg-[var(--canvas)]/90 p-1.5 text-[var(--accent-text)] hover:bg-red-50 hover:text-red-500 transition-colors cursor-pointer"
+                      className="absolute top-2 right-2 rounded-full bg-[var(--canvas)]/90 p-1.5 text-[var(--accent-text)] hover:bg-[var(--status-error-bg)] hover:text-[var(--status-error-text)] transition-colors cursor-pointer"
                     >
                       <X className="h-3.5 w-3.5" />
                     </button>
@@ -431,7 +431,7 @@ export default function HeroSlidesManager() {
                       </span>
                       <button
                         onClick={() => setFormLinkItemId("")}
-                        className="text-[var(--accent)] hover:text-red-500 cursor-pointer"
+                        className="text-[var(--accent)] hover:text-[var(--status-error-text)] cursor-pointer"
                       >
                         <X className="h-3 w-3" />
                       </button>

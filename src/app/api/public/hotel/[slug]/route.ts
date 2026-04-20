@@ -4,10 +4,13 @@ import { db } from "@/lib/db";
 const HOTEL_TYPES = ["HOTEL", "RESORT", "GUEST_HOUSE"];
 
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ slug: string }> },
 ) {
   const { slug } = await params;
+  const { searchParams } = new URL(req.url);
+  const checkInParam = searchParams.get("checkIn");
+  const checkOutParam = searchParams.get("checkOut");
 
   const restaurant = await db.restaurant.findUnique({
     where: { slug },
@@ -70,25 +73,38 @@ export async function GET(
     },
   });
 
-  // Check active bookings to mark availability
+  // Determine the availability window:
+  //   - If caller passed checkIn/checkOut, we reflect availability for that range
+  //     (treating any booking that overlaps the range as a conflict).
+  //   - Otherwise, default to "right now" (legacy behaviour).
   const now = new Date();
-  const activeBookingRoomIds = new Set(
-    (
-      await db.roomBooking.findMany({
-        where: {
-          restaurantId: restaurant.id,
-          status: { in: ["CONFIRMED", "CHECKED_IN"] },
-          checkIn: { lte: now },
-          checkOut: { gte: now },
-        },
-        select: { roomId: true },
-      })
-    ).map((b) => b.roomId),
-  );
+  let windowStart = now;
+  let windowEnd = now;
+  if (checkInParam && checkOutParam) {
+    const ci = new Date(checkInParam);
+    const co = new Date(checkOutParam);
+    if (!isNaN(ci.getTime()) && !isNaN(co.getTime()) && ci < co) {
+      windowStart = ci;
+      windowEnd = co;
+    }
+  }
+
+  const conflictingBookings = await db.roomBooking.findMany({
+    where: {
+      restaurantId: restaurant.id,
+      status: { in: ["PENDING", "CONFIRMED", "CHECKED_IN"] },
+      AND: [
+        { checkIn: { lt: windowEnd } },
+        { checkOut: { gt: windowStart } },
+      ],
+    },
+    select: { roomId: true },
+  });
+  const busyRoomIds = new Set(conflictingBookings.map((b) => b.roomId));
 
   const roomsWithAvailability = rooms.map((r) => ({
     ...r,
-    isAvailable: r.isAvailable && !activeBookingRoomIds.has(r.id),
+    isAvailable: r.isAvailable && !busyRoomIds.has(r.id),
   }));
 
   // Group rooms by type for easier rendering

@@ -142,10 +142,10 @@ const MediaTab = lazyTab(() => import("@/components/dashboard/MediaTab"));
 const ManualBillingTab = lazyTab(() => import("@/components/dashboard/ManualBillingTab"));
 const TablesTab = lazyTab(() => import("@/components/dashboard/TablesTab"));
 const CouponManagementTab = lazyTab(() => import("@/components/dashboard/CouponManagementTab"));
-const RoomManagementTab = lazyTab(() => import("@/components/dashboard/RoomManagementTab"));
 const HotelBookingsTab = lazyTab(() => import("@/components/dashboard/HotelBookingsTab"));
 const HotelQRTab = lazyTab(() => import("@/components/dashboard/HotelQRTab"));
 const RoomQRTab = lazyTab(() => import("@/components/dashboard/RoomQRTab"));
+const HotelHubTab = lazyTab(() => import("@/components/dashboard/HotelHubTab"));
 const OwnerControlPanel = lazyTab(() => import("@/components/dashboard/OwnerControlPanel"));
 
 type DashTab =
@@ -169,6 +169,7 @@ type DashTab =
   | "manual-billing"
   | "coupons"
   | "rooms"
+  | "hotel-hub"
   | "tables"
   | "owner-control"
   | "shifts"
@@ -189,13 +190,24 @@ const NAV_MAIN: {
   { id: "chat", label: "Chats", icon: MessageCircle },
 ];
 
-const ROOMS_NAV_ITEM: (typeof NAV_MAIN)[number] = {
-  id: "rooms" as DashTab,
-  label: "Rooms",
+const HOTEL_HUB_NAV_ITEM: (typeof NAV_MAIN)[number] = {
+  id: "hotel-hub" as DashTab,
+  label: "Hotel Hub",
   icon: BedDouble,
 };
 
 const ROOM_ENABLED_TYPES = new Set(["HOTEL", "RESORT", "GUEST_HOUSE"]);
+
+/* Feature tabs that now live inside the Hotel Hub — hide them
+   from the main sidebar for hotel-type restaurants to avoid duplication. */
+const HUB_FEATURE_IDS = new Set<FeatureTabId>([
+  "hotel-bookings",
+  "hotel-qr",
+  "room-qr-codes",
+  "guest-checkin",
+  "room-service",
+  "guest-billing",
+]);
 
 const NAV_MANAGE: typeof NAV_MAIN = [
   { id: "menu", label: "Menu", icon: UtensilsCrossed },
@@ -218,7 +230,7 @@ const NAV_MORE: typeof NAV_MAIN = [
   { id: "stories", label: "Stories", icon: Camera },
 ];
 
-const ALL_NAV = [...NAV_MAIN, ...NAV_MANAGE, ROOMS_NAV_ITEM, ...NAV_MORE];
+const ALL_NAV = [...NAV_MAIN, ...NAV_MANAGE, HOTEL_HUB_NAV_ITEM, ...NAV_MORE];
 
 const FEATURE_ICONS: Record<FeatureTabId, typeof Zap> = {
   "quick-counter": Zap,
@@ -339,12 +351,12 @@ function AnimatedNumber({
   const [displayed, setDisplayed] = useState(0);
 
   useEffect(() => {
+    let raf: number;
     if (value === 0) {
-      setDisplayed(0);
-      return;
+      raf = requestAnimationFrame(() => setDisplayed(0));
+      return () => cancelAnimationFrame(raf);
     }
     const startTime = performance.now();
-    let raf: number;
 
     function animate(now: number) {
       const elapsed = now - startTime;
@@ -663,27 +675,33 @@ function Sidebar({
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
 }) {
-  /* Build dynamic feature nav items from restaurant type */
+  /* Build dynamic feature nav items from restaurant type.
+     For hotel-type venues, features that live inside the Hotel Hub
+     (bookings, QR, check-ins, room service, guest billing) are filtered
+     out here so they don't show up twice in the sidebar. */
   const featureNavItems = useMemo(() => {
     if (!restaurantType) return [];
     const features = getFeatureTabsForType(restaurantType, {
       featuresEnabled,
       featuresDisabled,
     });
-    return features.map((f) => ({
-      id: f.id as DashTab,
-      label: f.label,
-      icon: FEATURE_ICONS[f.id] ?? Sparkles,
-    }));
+    const isHotelType = ROOM_ENABLED_TYPES.has(restaurantType);
+    return features
+      .filter((f) => !(isHotelType && HUB_FEATURE_IDS.has(f.id)))
+      .map((f) => ({
+        id: f.id as DashTab,
+        label: f.label,
+        icon: FEATURE_ICONS[f.id] ?? Sparkles,
+      }));
   }, [restaurantType, featuresEnabled, featuresDisabled]);
 
   const manageNavItems = useMemo(() => {
-    const showRooms = restaurantType ? ROOM_ENABLED_TYPES.has(restaurantType) : false;
-    if (!showRooms) return NAV_MANAGE;
+    const showHotel = restaurantType ? ROOM_ENABLED_TYPES.has(restaurantType) : false;
+    if (!showHotel) return NAV_MANAGE;
     const insertAt = Math.max(0, NAV_MANAGE.length - 1);
     return [
       ...NAV_MANAGE.slice(0, insertAt),
-      ROOMS_NAV_ITEM,
+      HOTEL_HUB_NAV_ITEM,
       ...NAV_MANAGE.slice(insertAt),
     ];
   }, [restaurantType]);
@@ -708,7 +726,7 @@ function Sidebar({
         <div className="flex-1 flex flex-col items-center gap-1 mt-2 overflow-y-auto w-full px-2 scrollbar-slim">
           {ALL_NAV
             .filter((item) =>
-              item.id !== "rooms" ||
+              item.id !== "hotel-hub" ||
               (restaurantType ? ROOM_ENABLED_TYPES.has(restaurantType) : false),
             )
             .map((item) => {
@@ -913,6 +931,19 @@ function OverviewTab({
     return d.getTime();
   }, []);
 
+  /* Tick every minute so relative times stay fresh without calling Date.now()
+     during render (violates react-hooks/purity). */
+  const [now, setNow] = useState(0);
+  useEffect(() => {
+    const tick = () => setNow(Date.now());
+    const raf = requestAnimationFrame(tick);
+    const t = setInterval(tick, 60000);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearInterval(t);
+    };
+  }, []);
+
   const todayOrders = useMemo(
     () => orders.filter((o) => new Date(o.createdAt).getTime() >= todayStart),
     [orders, todayStart],
@@ -983,7 +1014,8 @@ function OverviewTab({
   };
 
   function timeAgo(date: string) {
-    const diff = Math.max(0, Date.now() - new Date(date).getTime());
+    if (!now) return "";
+    const diff = Math.max(0, now - new Date(date).getTime());
     const mins = Math.floor(diff / 60000);
     if (mins < 1) return "just now";
     if (mins < 60) return `${mins}m ago`;
@@ -1695,7 +1727,7 @@ export default function DashboardPage() {
                 <TablesTab restaurantId={selectedRestaurant?.id ?? ""} currency={selectedRestaurant?.currency ?? "NPR"} />
               )}
               {activeTab === "coupons" && <CouponManagementTab />}
-              {activeTab === "rooms" && <RoomManagementTab />}
+              {(activeTab === "hotel-hub" || activeTab === "rooms") && <HotelHubTab />}
               {activeTab === "hero-slides" && <HeroSlidesManager />}
               {activeTab === "media" && <MediaTab />}
               {activeTab === "owner-control" && <OwnerControlPanel />}

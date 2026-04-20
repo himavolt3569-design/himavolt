@@ -107,14 +107,14 @@ export default function GuestBillingTab() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-[var(--text-1)] flex items-center gap-2">
-            <CreditCard className="h-5 w-5 text-indigo-500" />
+            <CreditCard className="h-5 w-5 text-[var(--accent)]" />
             Guest Room Billing
           </h2>
           <p className="text-sm text-[var(--text-2)] mt-1">Charge meals and services to guest rooms</p>
         </div>
         <button
           onClick={() => setShowAddCharge(true)}
-          className="flex items-center gap-2 rounded-xl bg-indigo-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-400 transition-all active:scale-[0.97]"
+          className="flex items-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[var(--accent-hover)] transition-all active:scale-[0.97]"
         >
           <Plus className="h-4 w-4" />
           Add Charge
@@ -146,7 +146,7 @@ export default function GuestBillingTab() {
         </div>
         <button
           onClick={() => setMaxLimitEnabled(!maxLimitEnabled)}
-          className={`relative h-6 w-11 rounded-full transition-colors ${maxLimitEnabled ? "bg-indigo-500" : "bg-[var(--surface-alt)]"}`}
+          className={`relative h-6 w-11 rounded-full transition-colors ${maxLimitEnabled ? "bg-[var(--accent)]" : "bg-[var(--surface-alt)]"}`}
         >
           <span
             className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-[var(--canvas)] shadow transition-transform ${maxLimitEnabled ? "translate-x-5" : ""}`}
@@ -163,7 +163,7 @@ export default function GuestBillingTab() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by name or room number..."
-            className="w-full rounded-xl bg-[var(--canvas-sub)] pl-10 pr-4 py-2.5 text-sm outline-none ring-1 ring-[var(--border)] focus:ring-indigo-400 focus:bg-[var(--canvas)] transition-all"
+            className="w-full rounded-xl bg-[var(--canvas-sub)] pl-10 pr-4 py-2.5 text-sm outline-none ring-1 ring-[var(--border)] focus:ring-[var(--accent-border)] focus:bg-[var(--canvas)] transition-all"
           />
         </div>
         <div className="flex gap-1.5">
@@ -172,7 +172,7 @@ export default function GuestBillingTab() {
               key={f}
               onClick={() => setFilter(f)}
               className={`rounded-lg px-3 py-2 text-xs font-semibold capitalize transition-all ${
-                filter === f ? "bg-indigo-100 text-indigo-700" : "bg-[var(--canvas-sub)] text-[var(--text-2)] hover:bg-[var(--surface)]"
+                filter === f ? "bg-[var(--accent-muted)] text-[var(--accent-text)]" : "bg-[var(--canvas-sub)] text-[var(--text-2)] hover:bg-[var(--surface)]"
               }`}
             >
               {f}
@@ -202,7 +202,7 @@ export default function GuestBillingTab() {
                   <select
                     value={chargeRoom}
                     onChange={(e) => setChargeRoom(e.target.value)}
-                    className="w-full rounded-lg bg-[var(--canvas-sub)] px-3 py-2.5 text-sm ring-1 ring-[var(--border)] outline-none focus:ring-indigo-400"
+                    className="w-full rounded-lg bg-[var(--canvas-sub)] px-3 py-2.5 text-sm ring-1 ring-[var(--border)] outline-none focus:ring-[var(--accent-border)]"
                   >
                     <option value="">Select room</option>
                     {guests
@@ -221,7 +221,7 @@ export default function GuestBillingTab() {
                     value={chargeItem}
                     onChange={(e) => setChargeItem(e.target.value)}
                     placeholder="e.g., Club Sandwich x2"
-                    className="w-full rounded-lg bg-[var(--canvas-sub)] px-3 py-2.5 text-sm ring-1 ring-[var(--border)] outline-none focus:ring-indigo-400"
+                    className="w-full rounded-lg bg-[var(--canvas-sub)] px-3 py-2.5 text-sm ring-1 ring-[var(--border)] outline-none focus:ring-[var(--accent-border)]"
                   />
                 </div>
                 <div>
@@ -231,7 +231,7 @@ export default function GuestBillingTab() {
                     value={chargeAmount}
                     onChange={(e) => setChargeAmount(e.target.value)}
                     placeholder="0"
-                    className="w-full rounded-lg bg-[var(--canvas-sub)] px-3 py-2.5 text-sm ring-1 ring-[var(--border)] outline-none focus:ring-indigo-400"
+                    className="w-full rounded-lg bg-[var(--canvas-sub)] px-3 py-2.5 text-sm ring-1 ring-[var(--border)] outline-none focus:ring-[var(--accent-border)]"
                   />
                 </div>
                 <div>
@@ -241,7 +241,7 @@ export default function GuestBillingTab() {
                     value={chargeNote}
                     onChange={(e) => setChargeNote(e.target.value)}
                     placeholder="e.g., Room service"
-                    className="w-full rounded-lg bg-[var(--canvas-sub)] px-3 py-2.5 text-sm ring-1 ring-[var(--border)] outline-none focus:ring-indigo-400"
+                    className="w-full rounded-lg bg-[var(--canvas-sub)] px-3 py-2.5 text-sm ring-1 ring-[var(--border)] outline-none focus:ring-[var(--accent-border)]"
                   />
                 </div>
               </div>
@@ -249,7 +249,7 @@ export default function GuestBillingTab() {
                 <button
                   onClick={handleAddCharge}
                   disabled={!chargeRoom || !chargeItem || !chargeAmount}
-                  className="flex items-center gap-2 rounded-lg bg-indigo-500 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-400 disabled:bg-[var(--surface-alt)] disabled:text-[var(--text-3)] transition-all"
+                  className="flex items-center gap-2 rounded-lg bg-[var(--accent)] px-5 py-2 text-sm font-semibold text-white hover:bg-[var(--accent-hover)] disabled:bg-[var(--surface-alt)] disabled:text-[var(--text-3)] transition-all"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   Add Charge
@@ -277,8 +277,8 @@ export default function GuestBillingTab() {
                 onClick={() => setExpandedRoom(isExpanded ? null : guest.id)}
                 className="flex items-center gap-4 w-full p-4 text-left hover:bg-[var(--surface)]/50 transition-colors"
               >
-                <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${guest.settled ? "bg-[var(--surface)]" : "bg-indigo-50"}`}>
-                  <DoorOpen className={`h-5 w-5 ${guest.settled ? "text-[var(--text-3)]" : "text-indigo-500"}`} />
+                <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${guest.settled ? "bg-[var(--surface)]" : "bg-[var(--accent-muted)]"}`}>
+                  <DoorOpen className={`h-5 w-5 ${guest.settled ? "text-[var(--text-3)]" : "text-[var(--accent)]"}`} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
@@ -305,7 +305,7 @@ export default function GuestBillingTab() {
                     <div className="flex items-center gap-1.5 mt-1">
                       <div className="h-1.5 w-16 rounded-full bg-[var(--surface)] overflow-hidden">
                         <div
-                          className={`h-full rounded-full ${nearLimit ? "bg-[var(--accent)]" : "bg-indigo-400"}`}
+                          className={`h-full rounded-full ${nearLimit ? "bg-[var(--accent)]" : "bg-[var(--accent-hover)]"}`}
                           style={{ width: `${Math.min(limitPercent, 100)}%` }}
                         />
                       </div>
@@ -343,7 +343,7 @@ export default function GuestBillingTab() {
                       ))}
                       <div className="flex items-center justify-between pt-2 border-t border-[var(--border)]">
                         <span className="text-sm font-bold text-[var(--text-2)]">Total</span>
-                        <span className="text-base font-bold text-indigo-600">{formatPrice(total, cur)}</span>
+                        <span className="text-base font-bold text-[var(--accent-text)]">{formatPrice(total, cur)}</span>
                       </div>
                       {!guest.settled && (
                         <div className="flex gap-2 pt-2">
