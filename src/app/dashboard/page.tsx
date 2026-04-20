@@ -705,7 +705,7 @@ function Sidebar({
             <ChevronRight className="h-4 w-4" />
           </button>
         )}
-        <div className="flex-1 flex flex-col items-center gap-1 mt-2 overflow-y-auto w-full px-2 scrollbar-hide">
+        <div className="flex-1 flex flex-col items-center gap-1 mt-2 overflow-y-auto w-full px-2 scrollbar-slim">
           {ALL_NAV
             .filter((item) =>
               item.id !== "rooms" ||
@@ -774,7 +774,7 @@ function Sidebar({
       <RestaurantSwitcher onNavigate={onClose} />
       <SlugCopyStrip />
 
-      <nav className="flex-1 overflow-y-auto px-3 pb-2 scrollbar-hide">
+      <nav className="flex-1 overflow-y-auto px-3 pb-2 scrollbar-slim">
         <NavSection
           label="Main"
           items={NAV_MAIN}

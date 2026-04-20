@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
@@ -11,6 +11,7 @@ import {
   Check,
   Loader2,
   Camera,
+  Globe,
 } from "lucide-react";
 import {
   FOOD_IMAGE_LIBRARY,
@@ -19,6 +20,7 @@ import {
 } from "@/lib/food-images";
 import { useToast } from "@/context/ToastContext";
 import { uploadFile } from "@/lib/upload";
+import ImageCropDialog from "./ImageCropDialog";
 
 interface ImagePickerProps {
   open: boolean;
@@ -27,20 +29,75 @@ interface ImagePickerProps {
   onClose: () => void;
 }
 
+type WebImage = {
+  id: string;
+  url: string;
+  thumb: string;
+  alt: string;
+  photographer: string | null;
+  sourceUrl: string | null;
+};
+
 export default function ImagePicker({
   open,
   currentImage,
   onSelect,
   onClose,
 }: ImagePickerProps) {
-  const [tab, setTab] = useState<"library" | "url" | "upload">("library");
+  const [tab, setTab] = useState<"library" | "web" | "upload" | "url">("library");
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [urlInput, setUrlInput] = useState("");
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [cropSrc, setCropSrc] = useState<{ src: string; name: string } | null>(null);
+  const [webQuery, setWebQuery] = useState("");
+  const [webResults, setWebResults] = useState<WebImage[]>([]);
+  const [webLoading, setWebLoading] = useState(false);
+  const [webError, setWebError] = useState<string | null>(null);
+  const [webProvider, setWebProvider] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { showToast } = useToast();
+
+  useEffect(() => {
+    if (tab !== "web") return;
+    const q = webQuery.trim();
+    if (!q) {
+      setWebResults([]);
+      setWebError(null);
+      return;
+    }
+    const ctrl = new AbortController();
+    const t = setTimeout(async () => {
+      setWebLoading(true);
+      setWebError(null);
+      try {
+        const res = await fetch(
+          `/api/image-search?q=${encodeURIComponent(q)}`,
+          { signal: ctrl.signal },
+        );
+        const data = await res.json();
+        if (!res.ok) {
+          setWebResults([]);
+          setWebError(data.error || "Search failed");
+          setWebProvider(null);
+        } else {
+          setWebResults(data.images || []);
+          setWebProvider(data.provider || null);
+        }
+      } catch (err) {
+        if ((err as Error).name !== "AbortError") {
+          setWebError("Search failed");
+        }
+      } finally {
+        setWebLoading(false);
+      }
+    }, 350);
+    return () => {
+      clearTimeout(t);
+      ctrl.abort();
+    };
+  }, [webQuery, tab]);
 
   const filteredImages = FOOD_IMAGE_LIBRARY.filter((img) => {
     const matchSearch =
@@ -51,13 +108,8 @@ export default function ImagePicker({
     return matchSearch && matchCat;
   });
 
-  const handleFileUpload = useCallback(
+  const uploadFinalFile = useCallback(
     async (file: File) => {
-      if (file.size > 5 * 1024 * 1024) {
-        showToast("File too large (max 5MB)", "error");
-        return;
-      }
-
       setUploading(true);
       try {
         const url = await uploadFile(file, "menu");
@@ -72,7 +124,19 @@ export default function ImagePicker({
         setUploading(false);
       }
     },
-    [onSelect, onClose],
+    [onSelect, onClose, showToast],
+  );
+
+  const handleFileUpload = useCallback(
+    (file: File) => {
+      if (file.size > 5 * 1024 * 1024) {
+        showToast("File too large (max 5MB)", "error");
+        return;
+      }
+      const src = URL.createObjectURL(file);
+      setCropSrc({ src, name: file.name });
+    },
+    [showToast],
   );
 
   const handleUrlSubmit = () => {
@@ -143,6 +207,7 @@ export default function ImagePicker({
               {(
                 [
                   { id: "library", label: "Food Library", icon: ImageIcon },
+                  { id: "web", label: "Web Search", icon: Globe },
                   { id: "upload", label: "Upload", icon: Upload },
                   { id: "url", label: "Paste URL", icon: LinkIcon },
                 ] as const
@@ -223,6 +288,86 @@ export default function ImagePicker({
                     <p className="py-8 text-center text-sm text-[var(--text-3)]">
                       No images found for &ldquo;{search}&rdquo;
                     </p>
+                  )}
+                </div>
+              )}
+
+              {tab === "web" && (
+                <div className="space-y-3">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--text-3)]" />
+                    <input
+                      value={webQuery}
+                      onChange={(e) => setWebQuery(e.target.value)}
+                      placeholder="Search food or drinks from the web…"
+                      className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] py-2.5 pl-9 pr-3 text-sm text-[var(--text-1)] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/30 focus:bg-[var(--canvas)] transition-all"
+                    />
+                  </div>
+
+                  {webLoading && (
+                    <div className="flex items-center justify-center py-10 gap-2 text-[var(--text-3)]">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span className="text-xs font-semibold">Searching…</span>
+                    </div>
+                  )}
+
+                  {webError && !webLoading && (
+                    <div className="rounded-xl bg-[var(--status-error-bg)] text-[var(--status-error-text)] p-3 text-xs font-semibold">
+                      {webError}
+                    </div>
+                  )}
+
+                  {!webLoading && !webError && webResults.length > 0 && (
+                    <>
+                      <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                        {webResults.map((img) => (
+                          <button
+                            key={img.id}
+                            onClick={() =>
+                              setCropSrc({
+                                src: img.url,
+                                name: `${(img.alt || "image").slice(0, 40)}.jpg`,
+                              })
+                            }
+                            className="group relative aspect-square rounded-xl overflow-hidden bg-[var(--surface)] hover:ring-2 hover:ring-[var(--accent)] transition-all"
+                            title={img.alt || "Search result"}
+                          >
+                            <img
+                              src={img.thumb}
+                              alt={img.alt || "Search result"}
+                              loading="lazy"
+                              className="h-full w-full object-cover transition-transform group-hover:scale-110"
+                            />
+                            <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                            {img.photographer && (
+                              <span className="absolute bottom-1.5 left-1.5 right-1.5 text-[9px] font-semibold text-white opacity-0 group-hover:opacity-100 transition-opacity truncate">
+                                {img.photographer}
+                              </span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                      {webProvider && (
+                        <p className="text-[10px] text-[var(--text-3)] text-center pt-1">
+                          Images via{" "}
+                          <span className="font-semibold capitalize">{webProvider}</span>. Pick one to crop and use.
+                        </p>
+                      )}
+                    </>
+                  )}
+
+                  {!webLoading && !webError && webQuery.trim() && webResults.length === 0 && (
+                    <p className="py-8 text-center text-sm text-[var(--text-3)]">
+                      No results for &ldquo;{webQuery}&rdquo;
+                    </p>
+                  )}
+
+                  {!webQuery.trim() && !webLoading && (
+                    <div className="py-10 text-center text-sm text-[var(--text-3)] space-y-1">
+                      <Globe className="h-6 w-6 mx-auto text-[var(--text-3)]" />
+                      <p className="font-semibold">Search food & drink photos from the web</p>
+                      <p className="text-[11px]">Try &ldquo;momo&rdquo;, &ldquo;biryani&rdquo;, &ldquo;ramen&rdquo;, &ldquo;latte&rdquo;…</p>
+                    </div>
                   )}
                 </div>
               )}
@@ -335,6 +480,23 @@ export default function ImagePicker({
               )}
             </AnimatePresence>
           </motion.div>
+
+          {cropSrc && (
+            <ImageCropDialog
+              open={!!cropSrc}
+              imageSrc={cropSrc.src}
+              fileName={cropSrc.name}
+              onCancel={() => {
+                if (cropSrc.src.startsWith("blob:")) URL.revokeObjectURL(cropSrc.src);
+                setCropSrc(null);
+              }}
+              onConfirm={async (file) => {
+                if (cropSrc.src.startsWith("blob:")) URL.revokeObjectURL(cropSrc.src);
+                setCropSrc(null);
+                await uploadFinalFile(file);
+              }}
+            />
+          )}
         </>
       )}
     </AnimatePresence>

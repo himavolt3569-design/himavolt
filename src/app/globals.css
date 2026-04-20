@@ -127,6 +127,35 @@
     display: none;
   }
 
+  /* Slim branded scrollbar — thin track, rounded accent thumb that only
+     shows color on hover. Use on vertical scroll containers like the sidebar. */
+  .scrollbar-slim {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(156, 163, 175, 0.35) transparent;
+  }
+  .scrollbar-slim::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .scrollbar-slim::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-slim::-webkit-scrollbar-thumb {
+    background: rgba(156, 163, 175, 0.35);
+    border-radius: 9999px;
+    transition: background 0.2s ease;
+  }
+  .scrollbar-slim:hover::-webkit-scrollbar-thumb,
+  .scrollbar-slim::-webkit-scrollbar-thumb:hover {
+    background: var(--accent);
+  }
+  .dark .scrollbar-slim {
+    scrollbar-color: rgba(113, 113, 122, 0.4) transparent;
+  }
+  .dark .scrollbar-slim::-webkit-scrollbar-thumb {
+    background: rgba(113, 113, 122, 0.4);
+  }
+
   /* Typewriter cursor blink */
   .animate-cursor {
     animation: cursor-blink 0.7s steps(1) infinite;

@@ -360,7 +360,7 @@ function MenuItemCard({
       {/* Mobile: image-left / text-right  |  sm+: image-top / content-below */}
       <div className="flex sm:block">
 
-        <div className="relative w-28 shrink-0 sm:w-full sm:h-44 h-auto overflow-hidden bg-gradient-to-br from-[var(--accent)] to-[var(--accent-hover)]/20">
+        <div className="relative w-28 shrink-0 sm:w-full sm:h-36 h-auto overflow-hidden bg-gradient-to-br from-[var(--accent)] to-[var(--accent-hover)]/20">
           {item.imageUrl ? (
             <img src={item.imageUrl} alt={item.name} className={`h-full w-full object-cover aspect-square sm:aspect-auto transition-transform duration-700 group-hover:scale-110 ${!item.isAvailable ? 'grayscale-[40%]' : ''}`} loading="lazy" />
           ) : (
@@ -434,7 +434,7 @@ function MenuItemCard({
           </div>
         </div>
 
-      <div className="flex-1 min-w-0 p-3 sm:p-4 bg-[var(--canvas)]/40 flex flex-col justify-between sm:block">
+      <div className="flex-1 min-w-0 p-3 sm:p-3.5 bg-[var(--canvas)]/40 flex flex-col justify-between sm:block">
         <div className="flex items-start justify-between gap-3 mb-2">
           <h4 className="text-[14px] font-extrabold text-[var(--text-1)] leading-tight line-clamp-1">{item.name}</h4>
           <div className="flex items-baseline gap-1.5 shrink-0 bg-[var(--accent-muted)] px-2 py-0.5 rounded-md border border-[var(--accent-border)]/50">
@@ -1770,7 +1770,7 @@ export default function MenuManagementTab() {
       <div className="flex gap-5">
         {flatCategories.length > 0 && (
           <div className="hidden lg:block w-52 shrink-0">
-            <div className="sticky top-6 max-h-[calc(100vh-120px)] overflow-y-auto custom-scrollbar rounded-xl bg-[var(--canvas)] ring-1 ring-[var(--border)] p-3">
+            <div className="sticky top-6 max-h-[calc(100vh-120px)] overflow-y-auto scrollbar-slim rounded-xl bg-[var(--canvas)] ring-1 ring-[var(--border)] p-3">
               <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-3)] mb-2 px-2">Categories</p>
               <CategoryTree
                 categories={flatCategories}
@@ -1843,7 +1843,7 @@ export default function MenuManagementTab() {
               hidden: { opacity: 0 },
               visible: { opacity: 1, transition: { staggerChildren: 0.05 } }
             }}
-            className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4"
           >
             <AnimatePresence mode="popLayout">
               {filtered.length === 0 ? (

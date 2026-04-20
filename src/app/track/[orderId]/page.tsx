@@ -27,6 +27,7 @@ import Link from "next/link";
 import { apiFetch } from "@/lib/api-client";
 import { formatPrice } from "@/lib/currency";
 import ChatWidget from "@/components/chat/ChatWidget";
+import TrackingCrossSell from "@/components/tracking/TrackingCrossSell";
 import gsap from "gsap";
 
 interface TrackingOrder {
@@ -1178,6 +1179,15 @@ export default function TrackOrderPage() {
             </span>
           </div>
         </motion.div>
+
+        {!isCancelled && (
+          <TrackingCrossSell
+            slug={order.restaurant.slug}
+            currency={order.restaurant.currency ?? "NPR"}
+            excludeItemNames={order.items.map((i) => i.name)}
+            tableNo={order.tableNo}
+          />
+        )}
 
         <button
           onClick={() => setShowBill(!showBill)}
