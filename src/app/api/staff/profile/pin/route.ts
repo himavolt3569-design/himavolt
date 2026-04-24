@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getStaffSession } from "@/lib/staff-auth";
+import { hashPin, verifyPin } from "@/lib/pin";
 
 export async function PATCH(req: NextRequest) {
   const session = await getStaffSession(req);
@@ -21,16 +22,17 @@ export async function PATCH(req: NextRequest) {
     where: { id: session.staffId },
   });
 
-  if (!staff || staff.pin !== currentPin) {
+  if (!staff || !(await verifyPin(currentPin, staff.pin))) {
     return NextResponse.json(
       { error: "Current PIN is incorrect" },
       { status: 400 },
     );
   }
 
+  const hashedNewPin = await hashPin(newPin);
   await db.staffMember.update({
     where: { id: session.staffId },
-    data: { pin: newPin },
+    data: { pin: hashedNewPin },
   });
 
   return NextResponse.json({ success: true });

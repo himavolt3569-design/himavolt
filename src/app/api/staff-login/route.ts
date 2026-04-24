@@ -6,6 +6,7 @@ import { staffLoginSchema } from "@/lib/validations";
 import { logAudit, getClientIp } from "@/lib/audit";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
 import { checkStaffShift, shiftReasonToMessage } from "@/lib/staff-shifts";
+import { verifyPin } from "@/lib/pin";
 
 function getJwtSecret() {
   const raw = process.env.JWT_SECRET;
@@ -27,14 +28,16 @@ export const POST = safeHandler(
       );
     }
 
-    const { restaurantCode, pin } = body;
+    const { restaurantCode, pin, rememberMe } = body;
+
+    const INVALID_CREDENTIALS_MSG = "Invalid Restaurant Code or PIN";
 
     // 1. Find Restaurant by code
     const restaurant = await db.restaurant.findUnique({
       where: { restaurantCode },
       include: {
         staff: {
-          where: { pin, isActive: true },
+          where: { isActive: true },
           include: { user: true },
         },
       },
@@ -42,15 +45,22 @@ export const POST = safeHandler(
 
     if (!restaurant) {
       return NextResponse.json(
-        { error: "Invalid Restaurant Code" },
+        { error: INVALID_CREDENTIALS_MSG },
         { status: 401 },
       );
     }
 
-    const staffMember = restaurant.staff[0];
+    // 2. Verify PIN against each active staff member (hashed or legacy plaintext)
+    let staffMember = null;
+    for (const member of restaurant.staff) {
+      if (await verifyPin(pin, member.pin)) {
+        staffMember = member;
+        break;
+      }
+    }
     if (!staffMember) {
       return NextResponse.json(
-        { error: "Invalid PIN or inactive account" },
+        { error: INVALID_CREDENTIALS_MSG },
         { status: 401 },
       );
     }
@@ -75,6 +85,8 @@ export const POST = safeHandler(
     }
 
     // 2. Generate JWT
+    const jwtExpiry = rememberMe ? "30d" : "24h";
+    const cookieMaxAge = rememberMe ? 60 * 60 * 24 * 30 : 60 * 60 * 24;
     const token = await new SignJWT({
       userId: staffMember.userId,
       staffId: staffMember.id,
@@ -84,7 +96,7 @@ export const POST = safeHandler(
     })
       .setProtectedHeader({ alg: "HS256" })
       .setIssuedAt()
-      .setExpirationTime("24h")
+      .setExpirationTime(jwtExpiry)
       .sign(getJwtSecret());
 
     // 3. Set HTTP-Only Cookie
@@ -97,7 +109,7 @@ export const POST = safeHandler(
       value: token,
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      maxAge: 60 * 60 * 24, // 24 hours
+      maxAge: cookieMaxAge,
       path: "/",
       sameSite: "lax",
     });

@@ -1,12 +1,10 @@
 import { z } from "zod";
 
-
 export const phoneSchema = z
   .string()
   .trim()
   .length(10, "Phone number must be exactly 10 digits")
   .regex(/^\d{10}$/, "Phone number must contain only digits");
-
 
 export const createRestaurantSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(100),
@@ -43,7 +41,6 @@ export const updateRestaurantSchema = z.object({
   description: z.string().max(500).optional(),
 });
 
-
 export const createMenuItemSchema = z.object({
   name: z.string().trim().min(1).max(100),
   description: z.string().max(500).optional().default(""),
@@ -68,7 +65,6 @@ export const createMenuItemSchema = z.object({
 });
 export type CreateMenuItemInput = z.infer<typeof createMenuItemSchema>;
 
-
 export const createStaffSchema = z.object({
   name: z.string().trim().min(1).max(60),
   email: z.string().email(),
@@ -76,7 +72,6 @@ export const createStaffSchema = z.object({
   role: z.enum(["SUPER_ADMIN", "MANAGER", "CHEF", "WAITER", "CASHIER"]),
 });
 export type CreateStaffInput = z.infer<typeof createStaffSchema>;
-
 
 export const contactSchema = z.object({
   name: z.string().trim().min(1).max(60),
@@ -86,7 +81,6 @@ export const contactSchema = z.object({
   message: z.string().trim().min(10, "Message too short").max(2000),
 });
 export type ContactInput = z.infer<typeof contactSchema>;
-
 
 export const initiatePaymentSchema = z.object({
   orderId: z.string().min(1, "Order ID is required"),
@@ -110,7 +104,6 @@ export const updatePaymentConfigSchema = z.object({
 export type UpdatePaymentConfigInput = z.infer<
   typeof updatePaymentConfigSchema
 >;
-
 
 const orderItemSchema = z.object({
   name: z.string().min(1),
@@ -147,7 +140,6 @@ export const createOrderSchema = z.object({
 });
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
 
-
 export const createInventoryItemSchema = z.object({
   name: z.string().trim().min(1).max(100),
   unit: z.string().max(20).optional().default("kg"),
@@ -179,7 +171,6 @@ export const updateInventoryItemSchema = z.object({
   showOnMenu: z.boolean().optional(),
 });
 
-
 export const createChatRoomSchema = z.object({
   orderId: z.string().min(1).optional(),
   restaurantId: z.string().min(1),
@@ -194,7 +185,6 @@ export const sendMessageSchema = z.object({
   userId: z.string().optional().nullable(),
 });
 export type SendMessageInput = z.infer<typeof sendMessageSchema>;
-
 
 export const createPaymentQRSchema = z.object({
   label: z.string().trim().min(1, "Label is required").max(50),
@@ -211,13 +201,13 @@ export const updatePaymentQRSchema = z.object({
 });
 export type UpdatePaymentQRInput = z.infer<typeof updatePaymentQRSchema>;
 
-
 export const staffLoginSchema = z.object({
   restaurantCode: z.string().min(1, "Restaurant code is required"),
   pin: z
     .string()
     .length(4, "PIN must be 4 digits")
     .regex(/^\d{4}$/, "PIN must be numeric"),
+  rememberMe: z.boolean().optional(),
 });
 
 export const createShiftSchema = z.object({
@@ -230,8 +220,14 @@ export const createShiftSchema = z.object({
 export type CreateShiftInput = z.infer<typeof createShiftSchema>;
 
 export const updateShiftSchema = z.object({
-  startTime: z.string().regex(/^\d{2}:\d{2}$/, "Must be HH:mm").optional(),
-  endTime: z.string().regex(/^\d{2}:\d{2}$/, "Must be HH:mm").optional(),
+  startTime: z
+    .string()
+    .regex(/^\d{2}:\d{2}$/, "Must be HH:mm")
+    .optional(),
+  endTime: z
+    .string()
+    .regex(/^\d{2}:\d{2}$/, "Must be HH:mm")
+    .optional(),
   label: z.string().max(80).optional(),
   actualEndTime: z.string().datetime().optional(),
 });

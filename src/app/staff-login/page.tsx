@@ -219,6 +219,7 @@ export default function StaffLoginPage() {
   const [success, setSuccess] = useState(false);
   const [focusedPin, setFocusedPin] = useState(-1);
   const [formShake, setFormShake] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const pinRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   // Mouse parallax for left panel
@@ -291,7 +292,11 @@ export default function StaffLoginPage() {
       const res = await fetch("/api/staff-login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ restaurantCode: code.toUpperCase(), pin }),
+        body: JSON.stringify({
+          restaurantCode: code.toUpperCase(),
+          pin,
+          rememberMe,
+        }),
       });
 
       const data = await res.json();
@@ -719,6 +724,50 @@ export default function StaffLoginPage() {
                           }}
                         />
                       </div>
+                    </motion.div>
+
+                    <motion.div
+                      variants={fadeUp}
+                      className="flex items-center gap-2.5"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => setRememberMe((v) => !v)}
+                        className={`flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-md border transition-all ${
+                          rememberMe
+                            ? "border-[var(--accent)] bg-[var(--accent)]"
+                            : "border-brand-200/60 bg-[var(--canvas)]"
+                        }`}
+                      >
+                        {rememberMe && (
+                          <motion.svg
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{
+                              type: "spring",
+                              stiffness: 500,
+                              damping: 30,
+                            }}
+                            className="h-3 w-3 text-white"
+                            viewBox="0 0 12 12"
+                            fill="none"
+                          >
+                            <path
+                              d="M2.5 6L5 8.5L9.5 3.5"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </motion.svg>
+                        )}
+                      </button>
+                      <span
+                        onClick={() => setRememberMe((v) => !v)}
+                        className="text-xs font-medium text-[var(--text-2)] cursor-pointer select-none"
+                      >
+                        Remember me for 30 days
+                      </span>
                     </motion.div>
 
                     <AnimatePresence>

@@ -37,7 +37,13 @@ type StaffRole = "SUPER_ADMIN" | "MANAGER" | "CHEF" | "WAITER" | "CASHIER";
 
 const ROLE_META: Record<
   StaffRole,
-  { label: string; icon: typeof Shield; gradient: string; text: string; badge: string }
+  {
+    label: string;
+    icon: typeof Shield;
+    gradient: string;
+    text: string;
+    badge: string;
+  }
 > = {
   SUPER_ADMIN: {
     label: "Super Admin",
@@ -58,21 +64,24 @@ const ROLE_META: Record<
     icon: ChefHat,
     gradient: "from-[var(--accent)] to-[var(--accent-hover)]",
     text: "text-[var(--accent)]",
-    badge: "bg-[var(--accent)] text-[var(--accent)] border-[var(--accent-border)]",
+    badge:
+      "bg-[var(--accent)] text-[var(--accent)] border-[var(--accent-border)]",
   },
   WAITER: {
     label: "Waiter",
     icon: UserCheck,
     gradient: "from-[var(--accent)] to-[var(--accent-hover)]",
     text: "text-[var(--accent-text)]",
-    badge: "bg-[var(--accent-muted)] text-[var(--accent-text)] border-[var(--accent-border)]",
+    badge:
+      "bg-[var(--accent-muted)] text-[var(--accent-text)] border-[var(--accent-border)]",
   },
   CASHIER: {
     label: "Cashier",
     icon: UserCheck,
     gradient: "from-[var(--accent)] to-[var(--accent-hover)]",
     text: "text-[var(--accent-text)]",
-    badge: "bg-[var(--accent-muted)] text-[var(--accent-text)] border-[var(--accent-border)]",
+    badge:
+      "bg-[var(--accent-muted)] text-[var(--accent-text)] border-[var(--accent-border)]",
   },
 };
 
@@ -93,16 +102,31 @@ interface AttendanceLog {
   staff: { role: string; user: { name: string } };
 }
 
-function Avatar({ name, gradient, size = "md" }: { name: string; gradient: string; size?: "sm" | "md" | "lg" }) {
+function Avatar({
+  name,
+  gradient,
+  size = "md",
+}: {
+  name: string;
+  gradient: string;
+  size?: "sm" | "md" | "lg";
+}) {
   const initials = name
     .split(" ")
     .map((w) => w[0])
     .slice(0, 2)
     .join("")
     .toUpperCase();
-  const sz = size === "sm" ? "h-9 w-9 text-xs" : size === "lg" ? "h-14 w-14 text-lg" : "h-11 w-11 text-sm";
+  const sz =
+    size === "sm"
+      ? "h-9 w-9 text-xs"
+      : size === "lg"
+        ? "h-14 w-14 text-lg"
+        : "h-11 w-11 text-sm";
   return (
-    <div className={`${sz} shrink-0 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center font-black text-white shadow-sm`}>
+    <div
+      className={`${sz} shrink-0 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center font-black text-white shadow-sm`}
+    >
       {initials}
     </div>
   );
@@ -123,7 +147,10 @@ function RoleDropdown({
   const [saving, setSaving] = useState<StaffRole | null>(null);
 
   const handleChange = async (role: StaffRole) => {
-    if (role === current) { setOpen(false); return; }
+    if (role === current) {
+      setOpen(false);
+      return;
+    }
     setSaving(role);
     try {
       await apiFetch(`/api/restaurants/${restaurantId}/staff/${staffId}`, {
@@ -131,8 +158,12 @@ function RoleDropdown({
         body: { role },
       });
       onUpdated();
-    } catch { /* keep open */ }
-    finally { setSaving(null); setOpen(false); }
+    } catch {
+      /* keep open */
+    } finally {
+      setSaving(null);
+      setOpen(false);
+    }
   };
 
   const meta = ROLE_META[current] ?? ROLE_META.WAITER;
@@ -146,13 +177,18 @@ function RoleDropdown({
       >
         <Icon className="h-3 w-3" />
         {meta.label}
-        <ChevronDown className={`h-3 w-3 transition-transform ${open ? "rotate-180" : ""}`} />
+        <ChevronDown
+          className={`h-3 w-3 transition-transform ${open ? "rotate-180" : ""}`}
+        />
       </button>
 
       <AnimatePresence>
         {open && (
           <>
-            <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+            <div
+              className="fixed inset-0 z-10"
+              onClick={() => setOpen(false)}
+            />
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: -4 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -170,7 +206,9 @@ function RoleDropdown({
                     onClick={() => handleChange(role)}
                     disabled={!!saving}
                     className={`flex w-full items-center gap-2.5 px-3 py-2.5 text-xs font-semibold transition-colors ${
-                      isActive ? "bg-[var(--canvas-sub)] text-[var(--text-1)]" : "text-[var(--text-2)] hover:bg-[var(--canvas-sub)] hover:text-[var(--text-1)]"
+                      isActive
+                        ? "bg-[var(--canvas-sub)] text-[var(--text-1)]"
+                        : "text-[var(--text-2)] hover:bg-[var(--canvas-sub)] hover:text-[var(--text-1)]"
                     }`}
                   >
                     {saving === role ? (
@@ -179,7 +217,9 @@ function RoleDropdown({
                       <RI className={`h-3.5 w-3.5 ${rm.text}`} />
                     )}
                     <span className="flex-1 text-left">{rm.label}</span>
-                    {isActive && <Check className="h-3 w-3 text-[var(--text-3)]" />}
+                    {isActive && (
+                      <Check className="h-3 w-3 text-[var(--text-3)]" />
+                    )}
                   </button>
                 );
               })}
@@ -253,7 +293,9 @@ function StaffCard({
       exit={{ opacity: 0, scale: 0.95 }}
       className="group relative rounded-2xl bg-[var(--canvas)] border border-[var(--border-soft)] shadow-[0_2px_16px_-4px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.1)] hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
     >
-      <div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r ${meta.gradient}`} />
+      <div
+        className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r ${meta.gradient}`}
+      />
 
       <div className="p-5">
         {/* Top row: avatar + info + status */}
@@ -275,7 +317,9 @@ function StaffCard({
               {member.user.email}
             </p>
             {member.user.phone && (
-              <p className="text-xs text-[var(--text-3)] truncate">{member.user.phone}</p>
+              <p className="text-xs text-[var(--text-3)] truncate">
+                {member.user.phone}
+              </p>
             )}
           </div>
 
@@ -289,15 +333,23 @@ function StaffCard({
             }`}
           >
             {member.isActive ? (
-              <><span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] animate-pulse" />Active</>
+              <>
+                <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] animate-pulse" />
+                Active
+              </>
             ) : (
-              <><span className="h-1.5 w-1.5 rounded-full bg-[var(--text-3)]" />Off</>
+              <>
+                <span className="h-1.5 w-1.5 rounded-full bg-[var(--text-3)]" />
+                Off
+              </>
             )}
           </button>
         </div>
 
         <div className="mt-3 flex items-center gap-2">
-          <span className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider">Role:</span>
+          <span className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider">
+            Role:
+          </span>
           <RoleDropdown
             current={roleKey}
             staffId={member.id}
@@ -308,7 +360,9 @@ function StaffCard({
 
         {/* Staff type classification — Owner-only */}
         <div className="mt-2.5 flex items-center gap-2 flex-wrap">
-          <span className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider">Type:</span>
+          <span className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider">
+            Type:
+          </span>
           <div className="flex items-center gap-1 rounded-lg bg-[var(--surface)] p-0.5">
             <button
               onClick={() => handleSetStaffType("SHIFT_BASED")}
@@ -320,7 +374,8 @@ function StaffCard({
                   : "text-[var(--text-3)] hover:text-[var(--text-2)]"
               }`}
             >
-              {savingType && (member.staffType ?? "SHIFT_BASED") !== "SHIFT_BASED" ? (
+              {savingType &&
+              (member.staffType ?? "SHIFT_BASED") !== "SHIFT_BASED" ? (
                 <Loader2 className="h-3 w-3 animate-spin inline" />
               ) : null}{" "}
               Shift-Based
@@ -352,7 +407,9 @@ function StaffCard({
               <input
                 type="text"
                 value={newPin}
-                onChange={(e) => setNewPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                onChange={(e) =>
+                  setNewPin(e.target.value.replace(/\D/g, "").slice(0, 4))
+                }
                 placeholder="New 4-digit PIN"
                 autoFocus
                 className="w-28 rounded-lg border border-[var(--accent-border)] bg-[var(--accent-muted)] px-2.5 py-1 font-mono text-sm font-bold text-[var(--text-1)] outline-none focus:ring-2 focus:ring-[var(--accent-border)] tracking-widest"
@@ -362,10 +419,17 @@ function StaffCard({
                 disabled={!/^\d{4}$/.test(newPin) || savingPin}
                 className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--accent-muted)] text-[var(--accent-text)] hover:bg-[var(--accent-muted)] disabled:opacity-40 transition-all"
               >
-                {savingPin ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                {savingPin ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Check className="h-3.5 w-3.5" />
+                )}
               </button>
               <button
-                onClick={() => { setEditingPin(false); setNewPin(""); }}
+                onClick={() => {
+                  setEditingPin(false);
+                  setNewPin("");
+                }}
                 className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-all"
               >
                 <X className="h-3.5 w-3.5" />
@@ -374,16 +438,13 @@ function StaffCard({
           ) : (
             <div className="flex items-center gap-2 flex-1">
               <span className="font-mono text-sm font-bold text-[var(--text-2)] bg-[var(--canvas-sub)] rounded-lg px-2.5 py-1 tracking-widest border border-[var(--border-soft)]">
-                {pinVisible ? member.pin : "••••"}
+                ••••
               </span>
               <button
-                onClick={() => setPinVisible((v) => !v)}
-                className="flex h-7 w-7 items-center justify-center rounded-lg text-[var(--text-3)] hover:text-[var(--text-2)] hover:bg-[var(--surface)] transition-all"
-              >
-                {pinVisible ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-              </button>
-              <button
-                onClick={() => { setEditingPin(true); setNewPin(member.pin); }}
+                onClick={() => {
+                  setEditingPin(true);
+                  setNewPin("");
+                }}
                 className="flex h-7 w-7 items-center justify-center rounded-lg text-[var(--text-3)] hover:text-[var(--accent-text)] hover:bg-[var(--accent-muted)] transition-all"
                 title="Change PIN"
               >
@@ -465,7 +526,9 @@ function StaffDirectoryView({
             className={`rounded-2xl ${s.bg} border border-white p-4 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.05)]`}
           >
             <p className={`text-2xl font-black ${s.color}`}>{s.value}</p>
-            <p className="text-[11px] font-semibold text-[var(--text-2)] mt-0.5">{s.label}</p>
+            <p className="text-[11px] font-semibold text-[var(--text-2)] mt-0.5">
+              {s.label}
+            </p>
           </div>
         ))}
       </div>
@@ -516,7 +579,9 @@ function StaffDirectoryView({
             <UserX className="h-7 w-7 text-[var(--text-3)]" />
           </div>
           <p className="font-bold text-[var(--text-2)]">
-            {search || filterRole !== "all" ? "No matching staff found" : "No staff members yet"}
+            {search || filterRole !== "all"
+              ? "No matching staff found"
+              : "No staff members yet"}
           </p>
           <p className="text-sm text-[var(--text-3)] mt-1">
             {search || filterRole !== "all"
@@ -668,7 +733,9 @@ function AttendanceLogsView({ restaurantId }: { restaurantId: string }) {
       {filtered.length === 0 && (
         <div className="rounded-2xl bg-[var(--canvas)] border border-[var(--border-soft)] px-4 py-10 text-center">
           <Calendar className="mx-auto h-8 w-8 text-[var(--text-3)] mb-2" />
-          <p className="text-sm font-bold text-[var(--text-3)]">No records for this date</p>
+          <p className="text-sm font-bold text-[var(--text-3)]">
+            No records for this date
+          </p>
         </div>
       )}
 
@@ -711,7 +778,9 @@ function AttendanceLogsView({ restaurantId }: { restaurantId: string }) {
                   <div
                     key={log.id}
                     className={`flex items-center gap-4 px-5 py-3.5 ${
-                      idx < dayLogs.length - 1 ? "border-b border-[var(--border-soft)]" : ""
+                      idx < dayLogs.length - 1
+                        ? "border-b border-[var(--border-soft)]"
+                        : ""
                     } hover:bg-[var(--surface)]/50 transition-colors`}
                   >
                     <Avatar
@@ -866,11 +935,19 @@ function AddStaffModal({
             initial={{ opacity: 0, scale: 0.96, y: 16 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 8 }}
-            transition={{ type: "spring", damping: 28, stiffness: 340, mass: 0.7 }}
+            transition={{
+              type: "spring",
+              damping: 28,
+              stiffness: 340,
+              mass: 0.7,
+            }}
             className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-3xl bg-[var(--canvas)] p-6 shadow-2xl sm:p-8 max-h-[90dvh]"
           >
             <button
-              onClick={() => { reset(); onClose(); }}
+              onClick={() => {
+                reset();
+                onClose();
+              }}
               className="absolute right-5 top-5 flex h-8 w-8 items-center justify-center rounded-full border border-[var(--border)] text-[var(--text-3)] hover:bg-[var(--canvas-sub)] hover:text-[var(--text-2)] transition-all"
             >
               <X className="h-4 w-4" />
@@ -883,7 +960,9 @@ function AddStaffModal({
                     <Check className="h-5 w-5 text-[var(--accent-hover)]" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-extrabold text-[var(--text-1)]">Staff Added!</h3>
+                    <h3 className="text-lg font-extrabold text-[var(--text-1)]">
+                      Staff Added!
+                    </h3>
                     <p className="text-sm text-[var(--text-2)]">
                       Share these credentials with {successData.name}
                     </p>
@@ -910,7 +989,10 @@ function AddStaffModal({
                 </div>
 
                 <button
-                  onClick={() => { reset(); onClose(); }}
+                  onClick={() => {
+                    reset();
+                    onClose();
+                  }}
                   className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] px-6 py-3 text-sm font-bold text-white hover:bg-[#2d1508] active:scale-[0.97] transition-all"
                 >
                   <Check className="h-4 w-4" />
@@ -920,7 +1002,9 @@ function AddStaffModal({
             ) : (
               <>
                 <div className="mb-6">
-                  <h3 className="text-xl font-extrabold text-[var(--text-1)]">Add Staff Member</h3>
+                  <h3 className="text-xl font-extrabold text-[var(--text-1)]">
+                    Add Staff Member
+                  </h3>
                   <p className="text-sm text-[var(--text-2)] mt-0.5">
                     A PIN will be auto-generated for login
                   </p>
@@ -928,14 +1012,38 @@ function AddStaffModal({
 
                 <div className="space-y-4">
                   {[
-                    { label: "Full Name", key: "name", value: name, setter: setName, placeholder: "e.g. Ram Shrestha", required: true },
-                    { label: "Email", key: "email", value: email, setter: setEmail, placeholder: "staff@restaurant.com", required: true, type: "email" },
-                    { label: "Phone", key: "phone", value: phone, setter: (v: string) => setPhone(v.replace(/\D/g, "")), placeholder: "98XXXXXXXX", required: false },
+                    {
+                      label: "Full Name",
+                      key: "name",
+                      value: name,
+                      setter: setName,
+                      placeholder: "e.g. Ram Shrestha",
+                      required: true,
+                    },
+                    {
+                      label: "Email",
+                      key: "email",
+                      value: email,
+                      setter: setEmail,
+                      placeholder: "staff@restaurant.com",
+                      required: true,
+                      type: "email",
+                    },
+                    {
+                      label: "Phone",
+                      key: "phone",
+                      value: phone,
+                      setter: (v: string) => setPhone(v.replace(/\D/g, "")),
+                      placeholder: "98XXXXXXXX",
+                      required: false,
+                    },
                   ].map((f) => (
                     <div key={f.key}>
                       <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">
                         {f.label}
-                        {f.required && <span className="text-[var(--accent)] ml-0.5">*</span>}
+                        {f.required && (
+                          <span className="text-[var(--accent)] ml-0.5">*</span>
+                        )}
                       </label>
                       <input
                         type={f.type ?? "text"}
@@ -984,7 +1092,10 @@ function AddStaffModal({
 
                 <div className="mt-5 flex items-center justify-end gap-3">
                   <button
-                    onClick={() => { reset(); onClose(); }}
+                    onClick={() => {
+                      reset();
+                      onClose();
+                    }}
                     className="rounded-xl px-5 py-2.5 text-sm font-bold text-[var(--text-2)] hover:text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-all"
                   >
                     Cancel
@@ -998,7 +1109,11 @@ function AddStaffModal({
                         : "bg-[var(--border)] cursor-not-allowed"
                     }`}
                   >
-                    {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
+                    {saving ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <UserPlus className="h-4 w-4" />
+                    )}
                     {saving ? "Adding…" : "Add Staff"}
                   </button>
                 </div>
@@ -1012,10 +1127,17 @@ function AddStaffModal({
 }
 
 export default function StaffManagementTab() {
-  const { selectedRestaurant, restaurants, addStaff, removeStaff, toggleStaffActive } =
-    useRestaurant();
+  const {
+    selectedRestaurant,
+    restaurants,
+    addStaff,
+    removeStaff,
+    toggleStaffActive,
+  } = useRestaurant();
   const restaurant = selectedRestaurant ?? restaurants[0];
-  const [activeTab, setActiveTab] = useState<"directory" | "attendance">("directory");
+  const [activeTab, setActiveTab] = useState<"directory" | "attendance">(
+    "directory",
+  );
   const [showModal, setShowModal] = useState(false);
 
   if (!restaurant) return null;
@@ -1048,7 +1170,9 @@ export default function StaffManagementTab() {
           </div>
           <p className="mt-1 text-sm text-[var(--text-2)]">
             Team for{" "}
-            <span className="font-bold text-[var(--text-1)]">{restaurant.name}</span>
+            <span className="font-bold text-[var(--text-1)]">
+              {restaurant.name}
+            </span>
           </p>
         </div>
 

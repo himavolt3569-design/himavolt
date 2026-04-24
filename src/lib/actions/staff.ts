@@ -4,10 +4,17 @@ import { db } from "@/lib/db";
 import { getOrCreateUser } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import type { StaffRole } from "@/generated/prisma";
+import { hashPin } from "@/lib/pin";
 
 export async function addStaffMember(
   restaurantId: string,
-  data: { name: string; email: string; phone?: string; role: StaffRole; pin: string }
+  data: {
+    name: string;
+    email: string;
+    phone?: string;
+    role: StaffRole;
+    pin: string;
+  },
 ) {
   const user = await getOrCreateUser();
   if (!user) throw new Error("Unauthorized");
@@ -29,15 +36,18 @@ export async function addStaffMember(
     });
   }
 
+  const hashedPin = await hashPin(data.pin);
   const member = await db.staffMember.create({
     data: {
-      pin: data.pin,
+      pin: hashedPin,
       role: data.role,
       userId: staffUser.id,
       restaurantId,
     },
     include: {
-      user: { select: { name: true, email: true, phone: true, imageUrl: true } },
+      user: {
+        select: { name: true, email: true, phone: true, imageUrl: true },
+      },
     },
   });
 
@@ -45,10 +55,7 @@ export async function addStaffMember(
   return member;
 }
 
-export async function removeStaffMember(
-  restaurantId: string,
-  staffId: string
-) {
+export async function removeStaffMember(restaurantId: string, staffId: string) {
   const user = await getOrCreateUser();
   if (!user) throw new Error("Unauthorized");
 
@@ -62,10 +69,7 @@ export async function removeStaffMember(
   revalidatePath("/dashboard");
 }
 
-export async function toggleStaffActive(
-  restaurantId: string,
-  staffId: string
-) {
+export async function toggleStaffActive(restaurantId: string, staffId: string) {
   const user = await getOrCreateUser();
   if (!user) throw new Error("Unauthorized");
 
@@ -76,7 +80,9 @@ export async function toggleStaffActive(
     where: { id: staffId },
     data: { isActive: !member.isActive },
     include: {
-      user: { select: { name: true, email: true, phone: true, imageUrl: true } },
+      user: {
+        select: { name: true, email: true, phone: true, imageUrl: true },
+      },
     },
   });
 

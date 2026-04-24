@@ -2,48 +2,6 @@ import { cache } from "react";
 import { db } from "./db";
 import { getSupabaseServerClient } from "./supabase-server";
 
-interface UserCacheEntry {
-  user: {
-    id: string;
-    email: string;
-    name: string;
-    imageUrl: string | null;
-    phone: string | null;
-    role: string;
-    [k: string]: unknown;
-  };
-  ts: number;
-}
-const USER_CACHE = new Map<string, UserCacheEntry>();
-const USER_CACHE_TTL = 60_000;
-const USER_CACHE_MAX = 200;
-
-function getCachedUser(id: string): UserCacheEntry["user"] | null {
-  const entry = USER_CACHE.get(id);
-  if (!entry) return null;
-  if (Date.now() - entry.ts > USER_CACHE_TTL) {
-    USER_CACHE.delete(id);
-    return null;
-  }
-  return entry.user;
-}
-
-function setCachedUser(user: UserCacheEntry["user"]) {
-  USER_CACHE.delete(user.id);
-  USER_CACHE.set(user.id, { user, ts: Date.now() });
-  if (USER_CACHE.size > USER_CACHE_MAX) {
-    let oldestKey: string | undefined;
-    let oldestTs = Infinity;
-    for (const [key, entry] of USER_CACHE) {
-      if (entry.ts < oldestTs) {
-        oldestTs = entry.ts;
-        oldestKey = key;
-      }
-    }
-    if (oldestKey) USER_CACHE.delete(oldestKey);
-  }
-}
-
 export const getAuthUser = cache(async () => {
   const supabase = await getSupabaseServerClient();
   const {
@@ -51,15 +9,11 @@ export const getAuthUser = cache(async () => {
   } = await supabase.auth.getUser();
   if (!supabaseUser) return null;
 
-  const cached = getCachedUser(supabaseUser.id);
-  if (cached) return cached;
-
   const user =
     (await db.user.findUnique({ where: { id: supabaseUser.id } })) ??
     (supabaseUser.email
       ? await db.user.findFirst({ where: { email: supabaseUser.email } })
       : null);
-  if (user) setCachedUser(user);
   return user;
 });
 
@@ -82,25 +36,7 @@ export const getOrCreateUser = cache(async () => {
     null;
   const phone = supabaseUser.phone ?? null;
 
-  const intendedRole = supabaseUser.user_metadata?.intended_role;
   const username = supabaseUser.user_metadata?.username as string | undefined;
-
-  const cached = getCachedUser(supabaseUser.id);
-  if (
-    cached &&
-    cached.email === email &&
-    cached.name === name &&
-    cached.imageUrl === imageUrl &&
-    cached.phone === phone
-  ) {
-    const isGoogleCached = supabaseUser.app_metadata?.provider === "google";
-    const needsUpgrade =
-      cached.role === "CUSTOMER" &&
-      (intendedRole === "OWNER" || isGoogleCached);
-    if (!needsUpgrade) {
-      return cached;
-    }
-  }
 
   let dbUser = await db.user.findUnique({ where: { id: supabaseUser.id } });
 
@@ -112,10 +48,8 @@ export const getOrCreateUser = cache(async () => {
     dbUser.phone === phone
   ) {
     const isGoogleUser = supabaseUser.app_metadata?.provider === "google";
-    const needsRoleUpgrade =
-      dbUser.role === "CUSTOMER" && (intendedRole === "OWNER" || isGoogleUser);
+    const needsRoleUpgrade = dbUser.role === "CUSTOMER" && isGoogleUser;
     if (!needsRoleUpgrade) {
-      setCachedUser(dbUser);
       return dbUser;
     }
   }
@@ -126,10 +60,7 @@ export const getOrCreateUser = cache(async () => {
   const isGoogleUser = supabaseUser.app_metadata?.provider === "google";
   const existingRole = (dbUser ?? userByEmail)?.role;
   const safeRole =
-    intendedRole === "OWNER" ||
-    existingRole === "OWNER" ||
-    existingRole === "ADMIN" ||
-    isGoogleUser
+    existingRole === "OWNER" || existingRole === "ADMIN" || isGoogleUser
       ? "OWNER"
       : "CUSTOMER";
 
@@ -154,8 +85,8 @@ export const getOrCreateUser = cache(async () => {
     }
 
     dbUser = await db.user.update({
-      where: { email },
-      data: { name, imageUrl, phone },
+      where: { id: userByEmail.id },
+      data: { id: supabaseUser.id, name, imageUrl, phone },
     });
   } else if (dbUser) {
     if (dbUser.role === "CUSTOMER" && safeRole === "OWNER") {
@@ -183,13 +114,6 @@ export const getOrCreateUser = cache(async () => {
     }
   }
 
-  if (dbUser?.role === "OWNER" && intendedRole !== "OWNER") {
-    supabase.auth
-      .updateUser({ data: { intended_role: "OWNER" } })
-      .catch(() => {});
-  }
-
-  if (dbUser) setCachedUser(dbUser);
   return dbUser;
 });
 

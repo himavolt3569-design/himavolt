@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getOrCreateUser } from "@/lib/auth";
+import { hashPin } from "@/lib/pin";
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string; staffId: string }> }
+  { params }: { params: Promise<{ id: string; staffId: string }> },
 ) {
   const { id, staffId } = await params;
   const user = await getOrCreateUser();
@@ -23,7 +24,7 @@ export async function PATCH(
   const data: Record<string, unknown> = {};
 
   if (body.role !== undefined) data.role = body.role;
-  if (body.pin !== undefined) data.pin = body.pin;
+  if (body.pin !== undefined) data.pin = await hashPin(body.pin);
   if (body.isActive !== undefined) data.isActive = body.isActive;
   // staffType is Owner-only — this route already enforces owner auth
   if (body.staffType !== undefined) data.staffType = body.staffType;
@@ -31,7 +32,11 @@ export async function PATCH(
   const member = await db.staffMember.update({
     where: { id: staffId },
     data,
-    include: { user: { select: { name: true, email: true, phone: true, imageUrl: true } } },
+    include: {
+      user: {
+        select: { name: true, email: true, phone: true, imageUrl: true },
+      },
+    },
   });
 
   return NextResponse.json(member);
@@ -39,7 +44,7 @@ export async function PATCH(
 
 export async function DELETE(
   _req: NextRequest,
-  { params }: { params: Promise<{ id: string; staffId: string }> }
+  { params }: { params: Promise<{ id: string; staffId: string }> },
 ) {
   const { id, staffId } = await params;
   const user = await getOrCreateUser();

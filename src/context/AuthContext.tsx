@@ -53,7 +53,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch {}
 
-    fetch("/api/me")
+    const controller = new AbortController();
+    fetch("/api/me", { signal: controller.signal })
       .then((r) => {
         if (!r.ok) throw new Error(`/api/me returned ${r.status}`);
         return r.json();
@@ -68,10 +69,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           );
         } catch {}
       })
-      .catch(() => {
+      .catch((err) => {
+        if (err instanceof DOMException && err.name === "AbortError") return;
         const metaRole = session.user?.user_metadata?.intended_role;
         setUserRole(metaRole === "OWNER" ? "OWNER" : "CUSTOMER");
       });
+
+    return () => controller.abort();
   }, [session]);
 
   useEffect(() => {
