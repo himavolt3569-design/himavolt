@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, use } from "react";
 import { AnimatePresence } from "framer-motion";
-import { Search, X } from "lucide-react";
+import { Search, X, LockKeyhole } from "lucide-react";
 import KioskWelcome from "@/components/pos/kiosk/KioskWelcome";
 import KioskCategoryBar from "@/components/pos/kiosk/KioskCategoryBar";
 import KioskMenuGrid from "@/components/pos/kiosk/KioskMenuGrid";
@@ -62,6 +62,7 @@ interface Restaurant {
   serviceChargeEnabled: boolean;
   categories: Category[];
   isOpen: boolean;
+  posEnabled: boolean;
 }
 
 type Screen = "WELCOME" | "MENU" | "ORDER_TYPE" | "SUMMARY" | "CONFIRMED";
@@ -251,6 +252,23 @@ export default function KioskPage({ params }: { params: Promise<{ slug: string }
           </div>
           <p className="text-xl font-bold text-[var(--text-1)] mb-1">{restaurant.name}</p>
           <p className="text-sm text-[var(--text-3)]">Currently closed for orders</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!restaurant.posEnabled) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-[var(--canvas-sub)] p-6">
+        <div className="max-w-md text-center">
+          <div className="h-16 w-16 rounded-2xl bg-[var(--accent-muted)] flex items-center justify-center mx-auto mb-5 ring-1 ring-[var(--accent-border)]">
+            <LockKeyhole className="h-8 w-8 text-[var(--accent)]" />
+          </div>
+          <p className="text-xl font-bold text-[var(--text-1)] mb-2">{restaurant.name}</p>
+          <p className="text-sm text-[var(--text-2)] leading-relaxed">
+            The self-order kiosk is not enabled for this restaurant yet. Please
+            ask a staff member to take your order.
+          </p>
         </div>
       </div>
     );

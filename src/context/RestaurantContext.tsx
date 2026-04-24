@@ -52,11 +52,19 @@ export interface Restaurant {
   ownerId: string;
   taxRate: number;
   taxEnabled: boolean;
+  serviceChargeRate?: number;
+  serviceChargeEnabled?: boolean;
   counterPayEnabled: boolean;
   directPayEnabled: boolean;
   prepaidEnabled: boolean;
   featuresEnabled?: string[];
   featuresDisabled?: string[];
+  posEnabled?: boolean;
+  posActivatedAt?: string | null;
+  posTerminalName?: string | null;
+  posOpeningCash?: number;
+  posWelcomeSeenAt?: string | null;
+  posCustomerModeEnabled?: boolean;
   staff: StaffMember[];
   _count: { orders: number; menuItems: number };
 }

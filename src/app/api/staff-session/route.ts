@@ -17,7 +17,12 @@ export const GET = safeHandler(async (req) => {
     }),
     db.restaurant.findUnique({
       where: { id: session.restaurantId },
-      select: { type: true, currency: true, name: true, address: true, phone: true, taxRate: true, taxEnabled: true, slug: true, featuresEnabled: true, featuresDisabled: true },
+      select: {
+        type: true, currency: true, name: true, address: true, phone: true,
+        taxRate: true, taxEnabled: true, slug: true,
+        featuresEnabled: true, featuresDisabled: true,
+        posEnabled: true, posTerminalName: true, posCustomerModeEnabled: true,
+      },
     }),
   ]);
 
@@ -39,6 +44,9 @@ export const GET = safeHandler(async (req) => {
     restaurantSlug: restaurant?.slug ?? "",
     featuresEnabled: restaurant?.featuresEnabled ?? [],
     featuresDisabled: restaurant?.featuresDisabled ?? [],
+    posEnabled: restaurant?.posEnabled ?? false,
+    posTerminalName: restaurant?.posTerminalName ?? null,
+    posCustomerModeEnabled: restaurant?.posCustomerModeEnabled ?? true,
   });
 });
 

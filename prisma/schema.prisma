@@ -81,6 +81,14 @@ model Restaurant {
   counterPayEnabled Boolean @default(true) // counter pay available for all types
   directPayEnabled  Boolean @default(false) // direct bank/wallet pay
 
+  // POS activation (Phase 1)
+  posEnabled        Boolean   @default(false) // master switch: when true, /pos/staff & kiosk are accessible
+  posActivatedAt    DateTime? // when POS was first activated
+  posTerminalName   String? // friendly label shown on POS header, e.g. "Front Counter"
+  posOpeningCash    Float     @default(0) // default cash drawer opening balance (NPR)
+  posWelcomeSeenAt  DateTime? // when the owner dismissed the first-time welcome guide
+  posCustomerModeEnabled Boolean @default(true) // allow staff to flip into customer-facing kiosk mode
+
   // Hotel / Resort / Guest House booking advance config
   hotelAdvanceType  String @default("PERCENTAGE") // "PERCENTAGE" or "FIXED"
   hotelAdvanceValue Float  @default(30) // 30 = 30% of total, or NPR fixed amount

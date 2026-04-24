@@ -77,6 +77,8 @@ import ThemeToggle from "@/components/shared/ThemeToggle";
 import GlobalChatButton from "@/components/chat/GlobalChatButton";
 import { useLiveOrders } from "@/context/LiveOrdersContext";
 import { useRestaurant } from "@/context/RestaurantContext";
+import POSActivationGate from "@/components/pos/activation/POSActivationGate";
+import POSLauncher from "@/components/pos/activation/POSLauncher";
 import {
   getTypeLabel,
   getFeatureTabsForType,
@@ -664,6 +666,7 @@ function Sidebar({
   featuresDisabled,
   isCollapsed,
   onToggleCollapse,
+  onRequestPOSActivate,
 }: {
   active: DashTab;
   setActive: (t: DashTab) => void;
@@ -674,7 +677,9 @@ function Sidebar({
   featuresDisabled?: string[];
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
+  onRequestPOSActivate: () => void;
 }) {
+  const { selectedRestaurant: sidebarRestaurant } = useRestaurant();
   /* Build dynamic feature nav items from restaurant type.
      For hotel-type venues, features that live inside the Hotel Hub
      (bookings, QR, check-ins, room service, guest billing) are filtered
@@ -723,6 +728,11 @@ function Sidebar({
             <ChevronRight className="h-4 w-4" />
           </button>
         )}
+        <POSLauncher
+          restaurant={sidebarRestaurant}
+          onRequestActivate={onRequestPOSActivate}
+          compact
+        />
         <div className="flex-1 flex flex-col items-center gap-1 mt-2 overflow-y-auto w-full px-2 scrollbar-slim">
           {ALL_NAV
             .filter((item) =>
@@ -791,6 +801,13 @@ function Sidebar({
 
       <RestaurantSwitcher onNavigate={onClose} />
       <SlugCopyStrip />
+      <POSLauncher
+        restaurant={sidebarRestaurant}
+        onRequestActivate={() => {
+          onRequestPOSActivate();
+          onClose?.();
+        }}
+      />
 
       <nav className="flex-1 overflow-y-auto px-3 pb-2 scrollbar-slim">
         <NavSection
@@ -1454,8 +1471,9 @@ export default function DashboardPage() {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [posWizardOpen, setPosWizardOpen] = useState(false);
   const { orders, setRestaurantId } = useLiveOrders();
-  const { restaurants, selectedRestaurant, selectRestaurant, loading: resLoading } = useRestaurant();
+  const { restaurants, selectedRestaurant, selectRestaurant, loading: resLoading, fetchRestaurants } = useRestaurant();
   const { user, isLoaded, userRole } = useAuth();
   const dashRouter = useRouter();
   const newOrderCount = orders.filter((o) => o.status === "PENDING").length;
@@ -1572,6 +1590,7 @@ export default function DashboardPage() {
           featuresDisabled={selectedRestaurant?.featuresDisabled}
           isCollapsed={sidebarCollapsed}
           onToggleCollapse={() => setSidebarCollapsed((c) => !c)}
+          onRequestPOSActivate={() => setPosWizardOpen(true)}
         />
       </div>
 
@@ -1603,6 +1622,10 @@ export default function DashboardPage() {
                 restaurantType={restaurantType}
                 featuresEnabled={selectedRestaurant?.featuresEnabled}
                 featuresDisabled={selectedRestaurant?.featuresDisabled}
+                onRequestPOSActivate={() => {
+                  setPosWizardOpen(true);
+                  setMobileSidebarOpen(false);
+                }}
               />
             </motion.div>
           </>
@@ -1781,6 +1804,14 @@ export default function DashboardPage() {
           staffName={user.user_metadata?.name ?? user.email ?? "Owner"}
         />
       )}
+
+      {/* POS welcome tour + activation wizard */}
+      <POSActivationGate
+        restaurant={selectedRestaurant}
+        openWizard={posWizardOpen}
+        onWizardClose={() => setPosWizardOpen(false)}
+        onActivated={fetchRestaurants}
+      />
     </div>
   );
 }

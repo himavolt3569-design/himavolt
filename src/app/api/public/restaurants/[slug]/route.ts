@@ -80,6 +80,8 @@ export async function GET(
     showReviews: r.showReviews ?? true,
     featuresEnabled: Array.isArray(r.featuresEnabled) ? (r.featuresEnabled as string[]) : [],
     featuresDisabled: Array.isArray(r.featuresDisabled) ? (r.featuresDisabled as string[]) : [],
+    posEnabled: r.posEnabled ?? false,
+    posCustomerModeEnabled: r.posCustomerModeEnabled ?? true,
   },
     {
       headers: {

@@ -12,6 +12,7 @@ import POSBilling from "@/components/pos/staff/POSBilling";
 import POSSplitBill from "@/components/pos/staff/POSSplitBill";
 import POSHeldOrders from "@/components/pos/staff/POSHeldOrders";
 import POSDailySummary from "@/components/pos/staff/POSDailySummary";
+import POSInactiveScreen from "@/components/pos/staff/POSInactiveScreen";
 import { usePOSOrders } from "@/hooks/usePOSOrders";
 
 
@@ -29,6 +30,9 @@ interface StaffSession {
   taxRate: number;
   taxEnabled: boolean;
   restaurantSlug: string;
+  posEnabled: boolean;
+  posTerminalName: string | null;
+  posCustomerModeEnabled: boolean;
 }
 
 interface Category {
@@ -139,6 +143,15 @@ export default function StaffPOSPage() {
   }
 
   if (!session) return null;
+
+  if (!session.posEnabled) {
+    return (
+      <POSInactiveScreen
+        restaurantName={session.restaurantName}
+        staffName={session.name}
+      />
+    );
+  }
 
   return (
     <div className="dark flex flex-col h-screen bg-[#0a0a0a] select-none overflow-hidden">

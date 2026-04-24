@@ -307,7 +307,32 @@ export default function StaffLoginPage() {
 
       setSuccess(true);
       await new Promise((r) => setTimeout(r, 1200));
-      router.push("/kitchen");
+
+      // Smart routing: POS when activated and role fits, else kitchen.
+      let destination = "/kitchen";
+      try {
+        const sessionRes = await fetch("/api/staff-session", {
+          credentials: "include",
+        });
+        if (sessionRes.ok) {
+          const s = await sessionRes.json();
+          const role = String(s.role || "").toUpperCase();
+          const posRoles = new Set([
+            "CASHIER", "WAITER", "MANAGER", "SUPER_ADMIN",
+          ]);
+          if (s.posEnabled && posRoles.has(role)) {
+            destination = "/pos/staff";
+          } else if (role === "CHEF") {
+            destination = "/kitchen";
+          } else if (s.posEnabled) {
+            destination = "/pos/staff";
+          }
+        }
+      } catch {
+        // fallback: /kitchen
+      }
+
+      router.push(destination);
       router.refresh();
     } catch (err: unknown) {
       setErrorMsg(err instanceof Error ? err.message : "Invalid Code or PIN");

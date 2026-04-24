@@ -171,6 +171,7 @@ export default function Footer() {
               <ul className="space-y-3">
                 <FooterLink href="/menu">Browse Menu</FooterLink>
                 <FooterLink href="/scan">Scan QR</FooterLink>
+                <FooterLink href="/staff-login">Staff Portal</FooterLink>
                 <FooterLink href="/contact">Partner with Us</FooterLink>
                 <FooterLink href="/contact">For Restaurants</FooterLink>
               </ul>
