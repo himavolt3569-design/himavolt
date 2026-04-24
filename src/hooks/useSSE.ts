@@ -13,10 +13,6 @@ interface UseSSEResult<T> {
 const BASE_BACKOFF_MS = 2000;
 const MAX_BACKOFF_MS = 30000;
 
-/**
- * Generic SSE hook with exponential backoff and clean lifecycle management.
- * Pass `url = null` to disconnect.
- */
 export function useSSE<T = unknown>(url: string | null): UseSSEResult<T> {
   const [data, setData] = useState<T | null>(null);
   const [status, setStatus] = useState<SSEStatus>("disconnected");
@@ -25,7 +21,6 @@ export function useSSE<T = unknown>(url: string | null): UseSSEResult<T> {
   const retryCountRef = useRef(0);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mountedRef = useRef(true);
-  // Store current url in a ref so the retry closure always sees the latest value
   const urlRef = useRef(url);
   urlRef.current = url;
 
@@ -61,13 +56,11 @@ export function useSSE<T = unknown>(url: string | null): UseSSEResult<T> {
 
     es.onmessage = (event) => {
       if (!mountedRef.current) return;
-      retryCountRef.current = 0; // reset backoff on success
+      retryCountRef.current = 0;
       setStatus("connected");
       try {
         setData(JSON.parse(event.data) as T);
-      } catch {
-        // ignore parse errors
-      }
+      } catch {}
     };
 
     es.onerror = () => {
@@ -76,9 +69,11 @@ export function useSSE<T = unknown>(url: string | null): UseSSEResult<T> {
       esRef.current = null;
       setStatus("error");
 
-      // Exponential backoff with ±500ms jitter
       const jitter = Math.random() * 1000 - 500;
-      const delay = Math.min(BASE_BACKOFF_MS * 2 ** retryCountRef.current + jitter, MAX_BACKOFF_MS);
+      const delay = Math.min(
+        BASE_BACKOFF_MS * 2 ** retryCountRef.current + jitter,
+        MAX_BACKOFF_MS,
+      );
       retryCountRef.current += 1;
 
       retryTimerRef.current = setTimeout(() => {
@@ -87,7 +82,6 @@ export function useSSE<T = unknown>(url: string | null): UseSSEResult<T> {
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Reconnect when url changes
   useEffect(() => {
     mountedRef.current = true;
     retryCountRef.current = 0;
@@ -103,6 +97,22 @@ export function useSSE<T = unknown>(url: string | null): UseSSEResult<T> {
       closeES();
     };
   }, [url]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const handleVisibility = () => {
+      if (document.hidden) {
+        closeES();
+        setStatus("disconnected");
+      } else if (urlRef.current && mountedRef.current) {
+        retryCountRef.current = 0;
+        connect();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibility);
+  }, [connect]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const reconnect = useCallback(() => {
     retryCountRef.current = 0;

@@ -1,6 +1,7 @@
 "use client";
 
 import { type ReactNode, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { AuthProvider } from "@/context/AuthContext";
 import { CartProvider } from "@/context/CartContext";
 import { ToastProvider } from "@/context/ToastContext";
@@ -9,7 +10,11 @@ import { LiveOrdersProvider } from "@/context/LiveOrdersContext";
 import { RestaurantProvider } from "@/context/RestaurantContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { registerServiceWorker } from "@/lib/sw-registration";
-import NotificationSetup from "@/components/shared/NotificationSetup";
+
+const NotificationSetup = dynamic(
+  () => import("@/components/shared/NotificationSetup"),
+  { ssr: false },
+);
 
 export default function Providers({ children }: { children: ReactNode }) {
   useEffect(() => {

@@ -2,6 +2,40 @@ import { cache } from "react";
 import { db } from "./db";
 import { getSupabaseServerClient } from "./supabase-server";
 
+interface UserCacheEntry {
+  user: {
+    id: string;
+    email: string;
+    name: string;
+    imageUrl: string | null;
+    phone: string | null;
+    role: string;
+    [k: string]: unknown;
+  };
+  ts: number;
+}
+const USER_CACHE = new Map<string, UserCacheEntry>();
+const USER_CACHE_TTL = 60_000;
+const USER_CACHE_MAX = 200;
+
+function getCachedUser(id: string): UserCacheEntry["user"] | null {
+  const entry = USER_CACHE.get(id);
+  if (!entry) return null;
+  if (Date.now() - entry.ts > USER_CACHE_TTL) {
+    USER_CACHE.delete(id);
+    return null;
+  }
+  return entry.user;
+}
+
+function setCachedUser(user: UserCacheEntry["user"]) {
+  USER_CACHE.set(user.id, { user, ts: Date.now() });
+  if (USER_CACHE.size > USER_CACHE_MAX) {
+    const oldest = USER_CACHE.keys().next().value;
+    if (oldest) USER_CACHE.delete(oldest);
+  }
+}
+
 export const getAuthUser = cache(async () => {
   const supabase = await getSupabaseServerClient();
   const {
@@ -9,11 +43,15 @@ export const getAuthUser = cache(async () => {
   } = await supabase.auth.getUser();
   if (!supabaseUser) return null;
 
-  const user = await db.user.findUnique({ where: { id: supabaseUser.id } })
-    // Fall back to email lookup for Google OAuth account linking (different Supabase ID)
-    ?? (supabaseUser.email
+  const cached = getCachedUser(supabaseUser.id);
+  if (cached) return cached;
+
+  const user =
+    (await db.user.findUnique({ where: { id: supabaseUser.id } })) ??
+    (supabaseUser.email
       ? await db.user.findFirst({ where: { email: supabaseUser.email } })
       : null);
+  if (user) setCachedUser(user);
   return user;
 });
 
@@ -39,35 +77,60 @@ export const getOrCreateUser = cache(async () => {
   const intendedRole = supabaseUser.user_metadata?.intended_role;
   const username = supabaseUser.user_metadata?.username as string | undefined;
 
-  // Look up by Supabase ID first; fall back to email (handles Google OAuth account linking)
-  let dbUser = await db.user.findUnique({ where: { id: supabaseUser.id } });
-  const userByEmail = !dbUser && email
-    ? await db.user.findFirst({ where: { email } })
-    : null;
+  const cached = getCachedUser(supabaseUser.id);
+  if (
+    cached &&
+    cached.email === email &&
+    cached.name === name &&
+    cached.imageUrl === imageUrl
+  ) {
+    return cached;
+  }
 
-  // Determine safe role — intended role or inherited from existing DB record
-  // The intended role (from signup) should always win over inherited CUSTOMER role.
-  // Google OAuth users default to OWNER (matching callback logic) since Google
-  // sign-in is exclusively for restaurant owners.
+  let dbUser = await db.user.findUnique({ where: { id: supabaseUser.id } });
+
+  if (
+    dbUser &&
+    dbUser.email === email &&
+    dbUser.name === name &&
+    dbUser.imageUrl === imageUrl &&
+    dbUser.phone === phone
+  ) {
+    const isGoogleUser = supabaseUser.app_metadata?.provider === "google";
+    const needsRoleUpgrade =
+      dbUser.role === "CUSTOMER" && (intendedRole === "OWNER" || isGoogleUser);
+    if (!needsRoleUpgrade) {
+      setCachedUser(dbUser);
+      return dbUser;
+    }
+  }
+
+  const userByEmail =
+    !dbUser && email ? await db.user.findFirst({ where: { email } }) : null;
+
   const isGoogleUser = supabaseUser.app_metadata?.provider === "google";
   const existingRole = (dbUser ?? userByEmail)?.role;
   const safeRole =
-    intendedRole === "OWNER" || existingRole === "OWNER" || existingRole === "ADMIN" || isGoogleUser
+    intendedRole === "OWNER" ||
+    existingRole === "OWNER" ||
+    existingRole === "ADMIN" ||
+    isGoogleUser
       ? "OWNER"
       : "CUSTOMER";
 
   if (!dbUser && !userByEmail) {
     dbUser = await db.user.create({
-      data: { id: supabaseUser.id, email, name, imageUrl, phone, role: safeRole, username: username ?? null },
+      data: {
+        id: supabaseUser.id,
+        email,
+        name,
+        imageUrl,
+        phone,
+        role: safeRole,
+        username: username ?? null,
+      },
     });
   } else if (!dbUser && userByEmail) {
-    // Email-based match but Supabase IDs differ. This is the account-takeover
-    // surface: if attacker creates a Supabase user with a victim's email,
-    // naive linking would grant access to the victim's record.
-    //
-    // Refuse linking for any privileged account (OWNER/ADMIN). Low-privilege
-    // customers can still link via OAuth to preserve the legitimate
-    // password→Google sign-in flow, but we NEVER inherit an elevated role.
     if (userByEmail.role === "OWNER" || userByEmail.role === "ADMIN") {
       console.warn(
         `[AUTH] Refused email-based link to privileged account (email=${email}, existingId=${userByEmail.id}, newSupabaseId=${supabaseUser.id})`,
@@ -75,15 +138,11 @@ export const getOrCreateUser = cache(async () => {
       return null;
     }
 
-    // CUSTOMER record: safe to update metadata. Role stays CUSTOMER — the
-    // auto-repair block below will upgrade only if this Supabase user
-    // actually owns restaurants.
     dbUser = await db.user.update({
       where: { email },
       data: { name, imageUrl, phone },
     });
   } else if (dbUser) {
-    // Existing user — upgrade CUSTOMER → OWNER if needed, never downgrade
     if (dbUser.role === "CUSTOMER" && safeRole === "OWNER") {
       dbUser = await db.user.update({
         where: { id: dbUser.id },
@@ -97,10 +156,10 @@ export const getOrCreateUser = cache(async () => {
     }
   }
 
-  // Auto-repair: if user owns restaurants but is stuck as CUSTOMER, upgrade to OWNER.
-  // This handles cases where Google OAuth account linking previously failed to set the role.
   if (dbUser && dbUser.role === "CUSTOMER") {
-    const ownsRestaurants = await db.restaurant.count({ where: { ownerId: dbUser.id } });
+    const ownsRestaurants = await db.restaurant.count({
+      where: { ownerId: dbUser.id },
+    });
     if (ownsRestaurants > 0) {
       dbUser = await db.user.update({
         where: { id: dbUser.id },
@@ -109,13 +168,13 @@ export const getOrCreateUser = cache(async () => {
     }
   }
 
-  // Persist OWNER role in Supabase metadata so future sessions/callbacks can
-  // reliably read it, even if cookies or query params are lost. Fire-and-forget
-  // so it doesn't block the request — stale JWTs will reconcile on next session.
   if (dbUser?.role === "OWNER" && intendedRole !== "OWNER") {
-    supabase.auth.updateUser({ data: { intended_role: "OWNER" } }).catch(() => {});
+    supabase.auth
+      .updateUser({ data: { intended_role: "OWNER" } })
+      .catch(() => {});
   }
 
+  if (dbUser) setCachedUser(dbUser);
   return dbUser;
 });
 

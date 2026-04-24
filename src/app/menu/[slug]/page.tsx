@@ -67,14 +67,26 @@ import { useOrder } from "@/context/OrderContext";
 import { apiFetch } from "@/lib/api-client";
 import gsap from "gsap";
 import Link from "next/link";
-import FoodDetailPopup, { type PopupMenuItem } from "@/components/food/FoodDetailPopup";
+import FoodDetailPopup, {
+  type PopupMenuItem,
+} from "@/components/food/FoodDetailPopup";
 import OrderStatus from "@/components/shared/OrderStatus";
 import CartSidebar from "@/components/cart/CartSidebar";
-import CheckoutSheet from "@/components/checkout/CheckoutSheet";
 import FoodSlider from "@/components/menu/FoodSlider";
-import ScrollStorySection from "@/components/three/ScrollStorySection";
 import MenuStories from "@/components/stories/MenuStories";
-import ChatWidget from "@/components/chat/ChatWidget";
+
+import dynamic from "next/dynamic";
+const CheckoutSheet = dynamic(
+  () => import("@/components/checkout/CheckoutSheet"),
+  { ssr: false },
+);
+const ScrollStorySection = dynamic(
+  () => import("@/components/three/ScrollStorySection"),
+  { ssr: false },
+);
+const ChatWidget = dynamic(() => import("@/components/chat/ChatWidget"), {
+  ssr: false,
+});
 import { formatPrice } from "@/lib/currency";
 import OfferCountdown from "@/components/menu/OfferCountdown";
 import TableSessionBanner from "@/components/menu/TableSessionBanner";
@@ -88,8 +100,13 @@ const PLACEHOLDER_IMG =
   "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80";
 
 const stripEmojis = (str?: string) => {
-  if (!str) return '';
-  return str.replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, '').trim();
+  if (!str) return "";
+  return str
+    .replace(
+      /([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g,
+      "",
+    )
+    .trim();
 };
 
 interface RestaurantCategory {
@@ -201,7 +218,13 @@ interface ComboMealItem {
   name: string;
   quantity: number;
   menuItemId: string | null;
-  menuItem: { id: string; name: string; imageUrl: string | null; price: number; isAvailable: boolean } | null;
+  menuItem: {
+    id: string;
+    name: string;
+    imageUrl: string | null;
+    price: number;
+    isAvailable: boolean;
+  } | null;
 }
 
 interface ComboMeal {
@@ -225,7 +248,13 @@ function img(url: string | null) {
   return url || PLACEHOLDER_IMG;
 }
 
-function WifiBadge({ name, password }: { name: string; password: string | null }) {
+function WifiBadge({
+  name,
+  password,
+}: {
+  name: string;
+  password: string | null;
+}) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -259,28 +288,42 @@ function WifiBadge({ name, password }: { name: string; password: string | null }
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50">
                 <Wifi className="h-4 w-4 text-blue-500" />
               </div>
-              <span className="text-xs font-bold text-[var(--text-2)]">WiFi Details</span>
+              <span className="text-xs font-bold text-[var(--text-2)]">
+                WiFi Details
+              </span>
             </div>
             <div className="space-y-2">
               <div>
-                <p className="text-[10px] text-[var(--text-3)] font-semibold uppercase tracking-wider">Network</p>
+                <p className="text-[10px] text-[var(--text-3)] font-semibold uppercase tracking-wider">
+                  Network
+                </p>
                 <p className="text-sm font-bold text-[var(--text-1)]">{name}</p>
               </div>
               {password ? (
                 <div>
-                  <p className="text-[10px] text-[var(--text-3)] font-semibold uppercase tracking-wider">Password</p>
+                  <p className="text-[10px] text-[var(--text-3)] font-semibold uppercase tracking-wider">
+                    Password
+                  </p>
                   <div className="flex items-center justify-between mt-0.5">
-                    <p className="text-sm font-mono font-bold text-[var(--text-1)]">{password}</p>
+                    <p className="text-sm font-mono font-bold text-[var(--text-1)]">
+                      {password}
+                    </p>
                     <button
                       onClick={copy}
                       className="flex h-7 w-7 items-center justify-center rounded-lg text-[var(--text-3)] hover:text-blue-600 hover:bg-blue-50 transition-colors"
                     >
-                      {copied ? <Check className="h-3.5 w-3.5 text-[var(--accent-hover)]" /> : <Copy className="h-3.5 w-3.5" />}
+                      {copied ? (
+                        <Check className="h-3.5 w-3.5 text-[var(--accent-hover)]" />
+                      ) : (
+                        <Copy className="h-3.5 w-3.5" />
+                      )}
                     </button>
                   </div>
                 </div>
               ) : (
-                <p className="text-xs text-[var(--text-3)]">Open network — no password needed</p>
+                <p className="text-xs text-[var(--text-3)]">
+                  Open network — no password needed
+                </p>
               )}
             </div>
           </motion.div>
@@ -290,7 +333,11 @@ function WifiBadge({ name, password }: { name: string; password: string | null }
   );
 }
 
-function PaymentQRBadge({ paymentQRs }: { paymentQRs?: { id: string; label: string; imageUrl: string }[] }) {
+function PaymentQRBadge({
+  paymentQRs,
+}: {
+  paymentQRs?: { id: string; label: string; imageUrl: string }[];
+}) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -310,59 +357,68 @@ function PaymentQRBadge({ paymentQRs }: { paymentQRs?: { id: string; label: stri
         <span className="hidden sm:inline">Pay</span>
       </button>
 
-      {mounted && typeof document !== "undefined" && createPortal(
-        <AnimatePresence>
-          {open && (
-            <div key="qr-modal-wrapper">
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setOpen(false)}
-                className="fixed inset-0 z-[9998] bg-black/50 backdrop-blur-sm"
-              />
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                className="fixed left-1/2 top-1/2 z-[9999] w-[90%] max-w-sm -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-3xl bg-[var(--canvas)] shadow-2xl"
-              >
-                <div className="flex items-center justify-between border-b border-[var(--border-soft)] p-4">
-                  <div className="flex items-center gap-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-50">
-                      <QrCode className="h-4 w-4 text-purple-600" />
-                    </div>
-                    <h3 className="font-bold text-[var(--text-1)]">Scan to Pay</h3>
-                  </div>
-                  <button
-                    onClick={() => setOpen(false)}
-                    className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-colors"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-
-                <div className="max-h-[70vh] overflow-y-auto p-5 space-y-6">
-                  {paymentQRs.map((qr) => (
-                    <div key={qr.id} className="text-center flex flex-col items-center">
-                      <p className="mb-3 text-sm font-bold text-[var(--text-2)]">{qr.label}</p>
-                      <div className="w-full max-w-[280px] overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--canvas)] p-2 shadow-[0_4px_24px_rgba(0,0,0,0.06)]">
-                        <img
-                          src={img(qr.imageUrl)}
-                          alt={qr.label}
-                          className="w-full max-h-[50vh] h-auto object-contain rounded-xl"
-                        />
+      {mounted &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <AnimatePresence>
+            {open && (
+              <div key="qr-modal-wrapper">
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setOpen(false)}
+                  className="fixed inset-0 z-[9998] bg-black/50 backdrop-blur-sm"
+                />
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                  className="fixed left-1/2 top-1/2 z-[9999] w-[90%] max-w-sm -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-3xl bg-[var(--canvas)] shadow-2xl"
+                >
+                  <div className="flex items-center justify-between border-b border-[var(--border-soft)] p-4">
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-50">
+                        <QrCode className="h-4 w-4 text-purple-600" />
                       </div>
+                      <h3 className="font-bold text-[var(--text-1)]">
+                        Scan to Pay
+                      </h3>
                     </div>
-                  ))}
-                </div>
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>,
-        document.body
-      )}
+                    <button
+                      onClick={() => setOpen(false)}
+                      className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-colors"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  <div className="max-h-[70vh] overflow-y-auto p-5 space-y-6">
+                    {paymentQRs.map((qr) => (
+                      <div
+                        key={qr.id}
+                        className="text-center flex flex-col items-center"
+                      >
+                        <p className="mb-3 text-sm font-bold text-[var(--text-2)]">
+                          {qr.label}
+                        </p>
+                        <div className="w-full max-w-[280px] overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--canvas)] p-2 shadow-[0_4px_24px_rgba(0,0,0,0.06)]">
+                          <img
+                            src={img(qr.imageUrl)}
+                            alt={qr.label}
+                            className="w-full max-h-[50vh] h-auto object-contain rounded-xl"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              </div>
+            )}
+          </AnimatePresence>,
+          document.body,
+        )}
     </>
   );
 }
@@ -383,7 +439,10 @@ function NonVegIcon() {
   );
 }
 
-function dishToPopupItem(dish: MenuItem, restaurant: Restaurant): PopupMenuItem {
+function dishToPopupItem(
+  dish: MenuItem,
+  restaurant: Restaurant,
+): PopupMenuItem {
   return {
     id: dish.id,
     name: dish.name,
@@ -424,7 +483,6 @@ function dishToPopupItem(dish: MenuItem, restaurant: Restaurant): PopupMenuItem 
   };
 }
 
-
 function ComboDealCard({
   combo,
   restaurantId,
@@ -447,7 +505,9 @@ function ComboDealCard({
   const handleAddAll = () => {
     combo.items.forEach((ci) => {
       const menuItem = ci.menuItem;
-      const itemPrice = menuItem ? Math.round(menuItem.price * surgeMultiplier) : 0;
+      const itemPrice = menuItem
+        ? Math.round(menuItem.price * surgeMultiplier)
+        : 0;
       addItem(
         {
           id: menuItem?.id ?? ci.id,
@@ -467,12 +527,18 @@ function ComboDealCard({
     <div className="flex-shrink-0 w-64 rounded-2xl border border-[var(--border-soft)] bg-[var(--canvas)] shadow-[0_2px_12px_rgba(0,0,0,0.06)] overflow-hidden">
       {combo.imageUrl && (
         <div className="h-32 w-full overflow-hidden bg-[var(--surface)]">
-          <img src={combo.imageUrl} alt={combo.name} className="h-full w-full object-cover" />
+          <img
+            src={combo.imageUrl}
+            alt={combo.name}
+            className="h-full w-full object-cover"
+          />
         </div>
       )}
       <div className="p-3 space-y-2">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="text-sm font-bold text-[var(--text-1)] leading-tight">{combo.name}</h3>
+          <h3 className="text-sm font-bold text-[var(--text-1)] leading-tight">
+            {combo.name}
+          </h3>
           {savings > 0 && (
             <span className="flex-shrink-0 rounded-full bg-[#fef3dc] px-2 py-0.5 text-[10px] font-bold text-[var(--accent-text)]">
               Save {formatPrice(savings, currency)}
@@ -480,20 +546,33 @@ function ComboDealCard({
           )}
         </div>
         {combo.description && (
-          <p className="text-[11px] text-[var(--text-3)] line-clamp-2">{combo.description}</p>
+          <p className="text-[11px] text-[var(--text-3)] line-clamp-2">
+            {combo.description}
+          </p>
         )}
         <div className="flex flex-wrap gap-1">
           {combo.items.map((ci) => (
-            <span key={ci.id} className="rounded-full bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-semibold text-[var(--accent-text)]">
-              {ci.quantity > 1 ? `${ci.quantity}× ` : ""}{ci.name}
+            <span
+              key={ci.id}
+              className="rounded-full bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-semibold text-[var(--accent-text)]"
+            >
+              {ci.quantity > 1 ? `${ci.quantity}× ` : ""}
+              {ci.name}
             </span>
           ))}
         </div>
         <div className="flex items-center justify-between pt-1">
           <div>
-            <span className="text-sm font-extrabold text-[var(--text-1)]">{formatPrice(effectivePrice, currency)}</span>
+            <span className="text-sm font-extrabold text-[var(--text-1)]">
+              {formatPrice(effectivePrice, currency)}
+            </span>
             {combo.originalPrice > combo.comboPrice && (
-              <span className="ml-1.5 text-[11px] text-[var(--text-3)] line-through">{formatPrice(Math.round(combo.originalPrice * surgeMultiplier), currency)}</span>
+              <span className="ml-1.5 text-[11px] text-[var(--text-3)] line-through">
+                {formatPrice(
+                  Math.round(combo.originalPrice * surgeMultiplier),
+                  currency,
+                )}
+              </span>
             )}
           </div>
           <button
@@ -625,7 +704,9 @@ function MenuItemCard({
               {formatPrice(displayPrice, restaurantCurrency)}
             </span>
             {surgeMultiplier > 1 && (
-              <span className="text-[10px] text-[var(--text-3)] line-through">{formatPrice(item.price, restaurantCurrency)}</span>
+              <span className="text-[10px] text-[var(--text-3)] line-through">
+                {formatPrice(item.price, restaurantCurrency)}
+              </span>
             )}
             <span className="flex items-center gap-0.5 text-[11px] text-[var(--text-3)]">
               <Star className="h-3 w-3 fill-[var(--accent)] text-[var(--accent)]" />
@@ -952,7 +1033,12 @@ function MenuPageContent() {
   const [showRooms, setShowRooms] = useState(false);
   const [hasCoupons, setHasCoupons] = useState(false);
   const [comboMeals, setComboMeals] = useState<ComboMeal[]>([]);
-  const [rushHour, setRushHour] = useState<RushHourData>({ isEnabled: false, isRushNow: false, surgeEnabled: false, surgePercent: 0 });
+  const [rushHour, setRushHour] = useState<RushHourData>({
+    isEnabled: false,
+    isRushNow: false,
+    surgeEnabled: false,
+    surgePercent: 0,
+  });
   const [specials, setSpecials] = useState<MenuItem[]>([]);
   const [happyHourActive, setHappyHourActive] = useState<{
     isHappyNow: boolean;
@@ -978,10 +1064,13 @@ function MenuPageContent() {
     if (restaurantId && restaurant?.slug && restaurant?.currency) {
       initForRestaurant(restaurantId, restaurant.slug, restaurant.currency);
     }
-  // Only run when restaurantId becomes available — not on every render.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Only run when restaurantId becomes available — not on every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [restaurantId]);
-  const surgeMultiplier = (rushHour.isRushNow && rushHour.surgeEnabled) ? (1 + rushHour.surgePercent / 100) : 1;
+  const surgeMultiplier =
+    rushHour.isRushNow && rushHour.surgeEnabled
+      ? 1 + rushHour.surgePercent / 100
+      : 1;
 
   useEffect(() => {
     let cancelled = false;
@@ -993,33 +1082,47 @@ function MenuPageContent() {
         // Load restaurant first — this is the critical fetch.
         // Menu and secondary data are loaded separately so a menu failure
         // doesn't prevent the restaurant from rendering at all.
-        const rest = await apiFetch<Restaurant>(`/api/public/restaurants/${slug}`);
+        const rest = await apiFetch<Restaurant>(
+          `/api/public/restaurants/${slug}`,
+        );
         if (cancelled) return;
         setRestaurant(rest);
 
         // Load menu independently so a failure here doesn't block the page
         apiFetch<MenuItem[]>(`/api/public/restaurants/${slug}/menu`)
-          .then((menu) => { if (!cancelled) setMenuItems(menu); })
+          .then((menu) => {
+            if (!cancelled) setMenuItems(menu);
+          })
           .catch(() => {});
 
         // Load rooms for hotel/resort/guesthouse types
         const hotelTypes = ["HOTEL", "RESORT", "GUEST_HOUSE"];
         if (hotelTypes.includes(rest.type)) {
           apiFetch<Room[]>(`/api/public/restaurants/${slug}/rooms`)
-            .then((r) => { if (!cancelled) setRooms(r); })
+            .then((r) => {
+              if (!cancelled) setRooms(r);
+            })
             .catch(() => {});
         }
 
         apiFetch<ComboMeal[]>(`/api/public/restaurants/${slug}/combo-meals`)
-          .then((c) => { if (!cancelled) setComboMeals(c); })
+          .then((c) => {
+            if (!cancelled) setComboMeals(c);
+          })
           .catch(() => {});
 
         apiFetch<RushHourData>(`/api/public/restaurants/${slug}/rush-hour`)
-          .then((r) => { if (!cancelled) setRushHour(r); })
+          .then((r) => {
+            if (!cancelled) setRushHour(r);
+          })
           .catch(() => {});
 
-        apiFetch<{ specials: MenuItem[] }>(`/api/public/restaurants/${slug}/specials`)
-          .then((s) => { if (!cancelled) setSpecials(s.specials ?? []); })
+        apiFetch<{ specials: MenuItem[] }>(
+          `/api/public/restaurants/${slug}/specials`,
+        )
+          .then((s) => {
+            if (!cancelled) setSpecials(s.specials ?? []);
+          })
           .catch(() => {});
 
         apiFetch<{
@@ -1046,12 +1149,18 @@ function MenuPageContent() {
           .catch(() => {});
 
         // Check if restaurant has active coupons
-        apiFetch<{ valid: boolean }>(`/api/public/restaurants/${slug}/coupons/validate`, {
-          method: "POST",
-          body: { code: "__CHECK__", orderTotal: 0 },
-        }).catch((err) => {
+        apiFetch<{ valid: boolean }>(
+          `/api/public/restaurants/${slug}/coupons/validate`,
+          {
+            method: "POST",
+            body: { code: "__CHECK__", orderTotal: 0 },
+          },
+        ).catch((err) => {
           // If error message mentions "not found" it means no coupons; any other error means coupons exist
-          if (err instanceof Error && !err.message.toLowerCase().includes("not found")) {
+          if (
+            err instanceof Error &&
+            !err.message.toLowerCase().includes("not found")
+          ) {
             if (!cancelled) setHasCoupons(true);
           }
         });
@@ -1091,7 +1200,10 @@ function MenuPageContent() {
   // including when sessionOrder is terminal or mismatched.
   useEffect(() => {
     if (restaurantId && !activeOrder && !addToOrderId) {
-      if (sessionOrder && !["DELIVERED", "CANCELLED", "REJECTED"].includes(sessionOrder.status)) {
+      if (
+        sessionOrder &&
+        !["DELIVERED", "CANCELLED", "REJECTED"].includes(sessionOrder.status)
+      ) {
         // Active table session — restore its order
         restoreOrder(restaurantId, sessionOrder.id);
       } else {
@@ -1100,12 +1212,23 @@ function MenuPageContent() {
         restoreFromStorage(restaurantId, tableNo ?? undefined);
       }
     }
-  }, [restaurantId, activeOrder, addToOrderId, sessionOrder, tableNo, restoreOrder, restoreFromStorage]);
+  }, [
+    restaurantId,
+    activeOrder,
+    addToOrderId,
+    sessionOrder,
+    tableNo,
+    restoreOrder,
+    restoreFromStorage,
+  ]);
 
   // Save last visited menu for BottomNav + active table session
   useEffect(() => {
     if (slug && typeof window !== "undefined") {
-      localStorage.setItem("hh_last_menu", `/menu/${slug}${tableNo ? `?table=${tableNo}` : ""}`);
+      localStorage.setItem(
+        "hh_last_menu",
+        `/menu/${slug}${tableNo ? `?table=${tableNo}` : ""}`,
+      );
 
       if (tableNo && restaurantId) {
         setActiveTableSession({ restaurantSlug: slug, tableNo, restaurantId });
@@ -1139,18 +1262,23 @@ function MenuPageContent() {
     setCheckoutOpen(true);
   }, []);
 
-  const handleOrderPlaced = useCallback((_orderId: string) => {
-    localStorage.setItem(`hh_tracking_${slug}`, "1");
-    setCheckoutOpen(false);
-    setShowOrder(true);
-    // Do NOT change the URL — preserves ?table=N so Dine-In stays available for repeat orders
-  }, [slug]);
+  const handleOrderPlaced = useCallback(
+    (_orderId: string) => {
+      localStorage.setItem(`hh_tracking_${slug}`, "1");
+      setCheckoutOpen(false);
+      setShowOrder(true);
+      // Do NOT change the URL — preserves ?table=N so Dine-In stays available for repeat orders
+    },
+    [slug],
+  );
 
   // Auto-show order tracking whenever an active (non-terminal) order is loaded or restored.
   // Terminal orders restored from storage are cleared immediately without reopening the overlay.
   useEffect(() => {
     if (activeOrder?.id) {
-      const isTerminal = ["DELIVERED", "CANCELLED", "REJECTED"].includes(activeOrder.status);
+      const isTerminal = ["DELIVERED", "CANCELLED", "REJECTED"].includes(
+        activeOrder.status,
+      );
       if (isTerminal) {
         // Order was already done before the page was refreshed — don't reopen overlay
         localStorage.removeItem(`hh_tracking_${slug}`);
@@ -1165,13 +1293,20 @@ function MenuPageContent() {
   }, [activeOrder?.id, slug, checkoutOpen]); // only fires when the ORDER IDENTITY changes, not on every status poll
 
   useEffect(() => {
-    if (activeOrder?.status === "DELIVERED" || activeOrder?.status === "CANCELLED" || activeOrder?.status === "REJECTED") {
+    if (
+      activeOrder?.status === "DELIVERED" ||
+      activeOrder?.status === "CANCELLED" ||
+      activeOrder?.status === "REJECTED"
+    ) {
       // Remove the tracking flag and close the overlay after a brief delay
       // (delay BEFORE removal so refresh within window still shows final state)
-      const t = setTimeout(() => {
-        localStorage.removeItem(`hh_tracking_${slug}`);
-        setShowOrder(false);
-      }, activeOrder.status === "DELIVERED" ? 4000 : 1500);
+      const t = setTimeout(
+        () => {
+          localStorage.removeItem(`hh_tracking_${slug}`);
+          setShowOrder(false);
+        },
+        activeOrder.status === "DELIVERED" ? 4000 : 1500,
+      );
       return () => clearTimeout(t);
     }
   }, [activeOrder?.status, slug]);
@@ -1248,7 +1383,14 @@ function MenuPageContent() {
   // the CheckoutSheet which is rendered in the main JSX below.
   if (showOrder && !checkoutOpen) {
     if (!activeOrder) return null;
-    return <OrderStatus onClose={() => { localStorage.removeItem(`hh_tracking_${slug}`); setShowOrder(false); }} />;
+    return (
+      <OrderStatus
+        onClose={() => {
+          localStorage.removeItem(`hh_tracking_${slug}`);
+          setShowOrder(false);
+        }}
+      />
+    );
   }
 
   if (loading) {
@@ -1289,43 +1431,60 @@ function MenuPageContent() {
 
   // Build CSS custom properties from restaurant theme
   const themeStyle: React.CSSProperties = {
-    ...(restaurant.primaryColor ? { "--menu-primary": restaurant.primaryColor } as React.CSSProperties : {}),
-    ...(restaurant.secondaryColor ? { "--menu-secondary": restaurant.secondaryColor } as React.CSSProperties : {}),
-    ...(restaurant.accentColor ? { "--menu-accent": restaurant.accentColor } as React.CSSProperties : {}),
-    ...(restaurant.fontFamily ? { fontFamily: `${restaurant.fontFamily}, sans-serif` } : {}),
+    ...(restaurant.primaryColor
+      ? ({ "--menu-primary": restaurant.primaryColor } as React.CSSProperties)
+      : {}),
+    ...(restaurant.secondaryColor
+      ? ({
+          "--menu-secondary": restaurant.secondaryColor,
+        } as React.CSSProperties)
+      : {}),
+    ...(restaurant.accentColor
+      ? ({ "--menu-accent": restaurant.accentColor } as React.CSSProperties)
+      : {}),
+    ...(restaurant.fontFamily
+      ? { fontFamily: `${restaurant.fontFamily}, sans-serif` }
+      : {}),
   };
 
   return (
-    <div className="min-h-screen bg-[#F7F8FA] flex justify-center w-full" style={themeStyle}>
+    <div
+      className="min-h-screen bg-[#F7F8FA] flex justify-center w-full"
+      style={themeStyle}
+    >
       <div className="w-full max-w-5xl bg-[var(--canvas)] min-h-screen shadow-[0_0_40px_rgba(0,0,0,0.03)] relative flex flex-col">
         {restaurant.coverUrl && (
           <div className="relative w-full h-[180px] sm:h-[240px] md:h-[280px] shrink-0">
-            <img 
-               src={restaurant.coverUrl} 
-               alt="Cover" 
-               className="w-full h-full object-cover"
+            <img
+              src={restaurant.coverUrl}
+              alt="Cover"
+              className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-            
+
             <div className="absolute bottom-6 left-6 right-6 flex items-end gap-3 sm:gap-4">
-               <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl bg-[var(--canvas)] p-1 shadow-lg shrink-0 overflow-hidden">
-                 <img src={restaurant.imageUrl || PLACEHOLDER_IMG} alt={restaurant.name} className="h-full w-full object-cover rounded-xl" />
-               </div>
-               <div className="flex-1 pb-1">
-                 <h1 className="text-2xl sm:text-3xl font-black text-white leading-none tracking-tight shadow-black drop-shadow-md">
-                   {restaurant.name}
-                 </h1>
-                 <div className="mt-2 flex items-center gap-3 text-white/90 text-[10px] sm:text-xs font-semibold">
-                    <span className="flex items-center gap-1 bg-black/40 backdrop-blur-md px-2 py-0.5 rounded-md text-[var(--accent)]">
-                      <Star className="h-3 w-3 text-[var(--accent)] fill-[var(--accent)]" />
-                      {restaurant.rating.toFixed(1)}
-                    </span>
-                    <span className="flex items-center gap-1 drop-shadow-md truncate">
-                      <MapPin className="h-3 w-3" />
-                      {restaurant.address}
-                    </span>
-                 </div>
-               </div>
+              <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl bg-[var(--canvas)] p-1 shadow-lg shrink-0 overflow-hidden">
+                <img
+                  src={restaurant.imageUrl || PLACEHOLDER_IMG}
+                  alt={restaurant.name}
+                  className="h-full w-full object-cover rounded-xl"
+                />
+              </div>
+              <div className="flex-1 pb-1">
+                <h1 className="text-2xl sm:text-3xl font-black text-white leading-none tracking-tight shadow-black drop-shadow-md">
+                  {restaurant.name}
+                </h1>
+                <div className="mt-2 flex items-center gap-3 text-white/90 text-[10px] sm:text-xs font-semibold">
+                  <span className="flex items-center gap-1 bg-black/40 backdrop-blur-md px-2 py-0.5 rounded-md text-[var(--accent)]">
+                    <Star className="h-3 w-3 text-[var(--accent)] fill-[var(--accent)]" />
+                    {restaurant.rating.toFixed(1)}
+                  </span>
+                  <span className="flex items-center gap-1 drop-shadow-md truncate">
+                    <MapPin className="h-3 w-3" />
+                    {restaurant.address}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -1344,598 +1503,501 @@ function MenuPageContent() {
               >
                 <ArrowLeft className="h-4 w-4" />
               </Link>
-            <div className="flex-1 min-w-0 flex items-center">
-              {/* Only show Table/Room badges since Resto Name is in the cover banner now */}
-              {(tableNo || roomNo) ? (
-                <div className="flex gap-2">
-                  {tableNo && (
-                    <span className="inline-flex items-center gap-1 rounded-md bg-[var(--accent)]/15 px-2.5 py-1 text-[13px] font-black text-[var(--accent)]">
-                      Table {tableNo}
-                    </span>
-                  )}
-                  {roomNo && (
-                    <span className="inline-flex items-center gap-1 rounded-md bg-[var(--accent)]/15 px-2.5 py-1 text-[13px] font-black text-[var(--accent)]">
-                      Room {roomNo}
-                    </span>
-                  )}
-                </div>
-              ) : (
-                <span className="text-sm font-bold text-[var(--text-1)] truncate hidden sm:inline-block">Menu</span>
-              )}
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              {restaurant.wifiName && (
-                <WifiBadge name={restaurant.wifiName} password={restaurant.wifiPassword} />
-              )}
-              <PaymentQRBadge paymentQRs={restaurant.paymentQRs} />
-              {restaurant.phone && (
-                <a
-                  href={`tel:${restaurant.phone}`}
-                  className="hidden sm:flex h-9 items-center gap-1.5 rounded-full bg-[var(--surface)] px-3 text-xs font-bold text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-colors"
-                >
-                  <Phone className="h-3.5 w-3.5" />
-                  Call
-                </a>
-              )}
-              {isSignedIn && (
-                <button
-                  onClick={() => setShowHistory(true)}
-                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-colors"
-                  title="My Order History"
-                >
-                  <History className="h-4 w-4" />
-                </button>
-              )}
-              <motion.button
-                onClick={() => setCartOpen(true)}
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.95 }}
-                transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                className="relative flex h-9 items-center gap-1.5 rounded-xl bg-[var(--accent)] px-4 text-xs font-bold text-white shadow-md shadow-[var(--accent)]/20 hover:bg-[var(--accent-hover)]"
-              >
-                <ShoppingBag className="h-4 w-4" />
-                <span className="hidden sm:inline">Cart</span>
-                {totalItems > 0 && (
-                  <motion.span
-                    key={totalItems}
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: "spring", stiffness: 500, damping: 15 }}
-                    className="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--canvas)] text-[10px] font-bold text-[var(--accent)]"
-                  >
-                    {totalItems}
-                  </motion.span>
+              <div className="flex-1 min-w-0 flex items-center">
+                {/* Only show Table/Room badges since Resto Name is in the cover banner now */}
+                {tableNo || roomNo ? (
+                  <div className="flex gap-2">
+                    {tableNo && (
+                      <span className="inline-flex items-center gap-1 rounded-md bg-[var(--accent)]/15 px-2.5 py-1 text-[13px] font-black text-[var(--accent)]">
+                        Table {tableNo}
+                      </span>
+                    )}
+                    {roomNo && (
+                      <span className="inline-flex items-center gap-1 rounded-md bg-[var(--accent)]/15 px-2.5 py-1 text-[13px] font-black text-[var(--accent)]">
+                        Room {roomNo}
+                      </span>
+                    )}
+                  </div>
+                ) : (
+                  <span className="text-sm font-bold text-[var(--text-1)] truncate hidden sm:inline-block">
+                    Menu
+                  </span>
                 )}
-              </motion.button>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                {restaurant.wifiName && (
+                  <WifiBadge
+                    name={restaurant.wifiName}
+                    password={restaurant.wifiPassword}
+                  />
+                )}
+                <PaymentQRBadge paymentQRs={restaurant.paymentQRs} />
+                {restaurant.phone && (
+                  <a
+                    href={`tel:${restaurant.phone}`}
+                    className="hidden sm:flex h-9 items-center gap-1.5 rounded-full bg-[var(--surface)] px-3 text-xs font-bold text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-colors"
+                  >
+                    <Phone className="h-3.5 w-3.5" />
+                    Call
+                  </a>
+                )}
+                {isSignedIn && (
+                  <button
+                    onClick={() => setShowHistory(true)}
+                    className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-colors"
+                    title="My Order History"
+                  >
+                    <History className="h-4 w-4" />
+                  </button>
+                )}
+                <motion.button
+                  onClick={() => setCartOpen(true)}
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                  className="relative flex h-9 items-center gap-1.5 rounded-xl bg-[var(--accent)] px-4 text-xs font-bold text-white shadow-md shadow-[var(--accent)]/20 hover:bg-[var(--accent-hover)]"
+                >
+                  <ShoppingBag className="h-4 w-4" />
+                  <span className="hidden sm:inline">Cart</span>
+                  {totalItems > 0 && (
+                    <motion.span
+                      key={totalItems}
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 500,
+                        damping: 15,
+                      }}
+                      className="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--canvas)] text-[10px] font-bold text-[var(--accent)]"
+                    >
+                      {totalItems}
+                    </motion.span>
+                  )}
+                </motion.button>
+              </div>
             </div>
           </div>
-        </div>
-      </motion.header>
+        </motion.header>
 
-      <div className="relative z-10 flex-1 px-4 md:px-6 pb-24">
-        <div className="flex flex-col md:flex-row gap-6 py-4 lg:py-6 w-full">
-          <div className="flex-1 min-w-0 space-y-5">
-            {/* Stories - with scroll reveal */}
-            {restaurant.showStories && (
-              <ScrollStorySection fadeIn slideFrom="bottom" scrub={false}>
-                <MenuStories slug={slug} />
-              </ScrollStorySection>
-            )}
+        <div className="relative z-10 flex-1 px-4 md:px-6 pb-24">
+          <div className="flex flex-col md:flex-row gap-6 py-4 lg:py-6 w-full">
+            <div className="flex-1 min-w-0 space-y-5">
+              {/* Stories - with scroll reveal */}
+              {restaurant.showStories && (
+                <ScrollStorySection fadeIn slideFrom="bottom" scrub={false}>
+                  <MenuStories slug={slug} />
+                </ScrollStorySection>
+              )}
 
-            {/* Display Counter - live availability view (type-gated) */}
-            {isFeatureAvailable(restaurant.type, "display-counter", {
-              featuresEnabled: restaurant.featuresEnabled,
-              featuresDisabled: restaurant.featuresDisabled,
-            }) && <DisplayCounterView slug={slug} />}
+              {/* Display Counter - live availability view (type-gated) */}
+              {isFeatureAvailable(restaurant.type, "display-counter", {
+                featuresEnabled: restaurant.featuresEnabled,
+                featuresDisabled: restaurant.featuresDisabled,
+              }) && <DisplayCounterView slug={slug} />}
 
-            {hasSessionOrder && sessionOrder && (
-              <TableSessionBanner
-                tableNo={tableNo ?? sessionOrder.tableNo ?? 0}
-                itemCount={sessionOrder.items.reduce((s, i) => s + i.quantity, 0)}
-                total={sessionOrder.total}
-                status={sessionOrder.status}
-              />
-            )}
-
-            {/* Search + Category bar — sticky seamlessly under header */}
-            <div className="sticky top-[64px] sm:top-[72px] z-30 -mx-4 px-4 md:-mx-6 md:px-6 pt-1 pb-2 bg-[var(--canvas)]/95 backdrop-blur-md space-y-3">
-            <motion.div
-              className="relative group"
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.1 }}
-            >
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-3)] group-focus-within:text-[var(--accent)] transition-colors" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search dishes, cuisines..."
-                className="w-full rounded-xl bg-[var(--canvas)] py-3 pl-11 pr-4 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 border border-[var(--border)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] focus:border-[var(--accent)]/40 transition-all shadow-sm"
-              />
-            </motion.div>
-
-            {/* Category bar with toggle + search */}
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.15 }}
-              className="space-y-2"
-            >
-              <div className="flex items-center gap-2">
-                <div
-                  ref={tabsRef}
-                  className="flex flex-1 gap-2 overflow-x-auto scrollbar-hide pb-0.5"
-                >
-                  <button
-                    onClick={() => {
-                      setActiveCategory("");
-                      setActiveSubCategory("");
-                    }}
-                    className={`shrink-0 rounded-full px-6 py-2.5 text-[11px] font-bold tracking-wide uppercase transition-all ${
-                      activeCategory === ""
-                        ? "bg-[#1a1a1a] text-white shadow-md shadow-black/10"
-                        : "bg-[var(--canvas)] text-[var(--text-2)] border border-[var(--border)] hover:border-[var(--border)] hover:bg-[var(--canvas-sub)] hover:text-[#1a1a1a]"
-                    }`}
-                  >
-                    All
-                  </button>
-                  {categories.map((cat) => (
-                    <button
-                      key={cat.id}
-                      onClick={() => {
-                        setActiveCategory(cat.name === activeCategory ? "" : cat.name);
-                        setActiveSubCategory("");
-                      }}
-                      className={`shrink-0 rounded-full px-6 py-2.5 text-[11px] font-bold tracking-wide uppercase transition-all flex items-center ${
-                        activeCategory === cat.name
-                          ? "bg-[#1a1a1a] text-white shadow-md shadow-black/10"
-                          : "bg-[var(--canvas)] text-[var(--text-2)] border border-[var(--border)] hover:border-[var(--border)] hover:bg-[var(--canvas-sub)] hover:text-[#1a1a1a]"
-                      }`}
-                    >
-                      {stripEmojis(cat.name)}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Grid / Scroll toggle */}
-                <button
-                  onClick={() => setCategoryView((v) => (v === "scroll" ? "grid" : "scroll"))}
-                  className="shrink-0 flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--canvas)] text-[var(--text-3)] hover:text-[var(--accent-hover)] hover:border-[var(--accent)] transition-all"
-                  title={categoryView === "scroll" ? "Grid view" : "List view"}
-                >
-                  {categoryView === "scroll" ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /></svg>
-                  ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" /><line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" /></svg>
+              {hasSessionOrder && sessionOrder && (
+                <TableSessionBanner
+                  tableNo={tableNo ?? sessionOrder.tableNo ?? 0}
+                  itemCount={sessionOrder.items.reduce(
+                    (s, i) => s + i.quantity,
+                    0,
                   )}
-                </button>
-              </div>
+                  total={sessionOrder.total}
+                  status={sessionOrder.status}
+                />
+              )}
 
-              {/* Subcategory chips — appear when a parent category is selected */}
-              <AnimatePresence>
-                {activeCategory && subCategories.length > 0 && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="overflow-hidden"
-                  >
-                    <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-0.5">
+              {/* Search + Category bar — sticky seamlessly under header */}
+              <div className="sticky top-[64px] sm:top-[72px] z-30 -mx-4 px-4 md:-mx-6 md:px-6 pt-1 pb-2 bg-[var(--canvas)]/95 backdrop-blur-md space-y-3">
+                <motion.div
+                  className="relative group"
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.1 }}
+                >
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-3)] group-focus-within:text-[var(--accent)] transition-colors" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search dishes, cuisines..."
+                    className="w-full rounded-xl bg-[var(--canvas)] py-3 pl-11 pr-4 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 border border-[var(--border)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] focus:border-[var(--accent)]/40 transition-all shadow-sm"
+                  />
+                </motion.div>
+
+                {/* Category bar with toggle + search */}
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.15 }}
+                  className="space-y-2"
+                >
+                  <div className="flex items-center gap-2">
+                    <div
+                      ref={tabsRef}
+                      className="flex flex-1 gap-2 overflow-x-auto scrollbar-hide pb-0.5"
+                    >
                       <button
-                        onClick={() => setActiveSubCategory("")}
-                        className={`shrink-0 rounded-full px-4 py-1.5 text-[10px] font-bold tracking-wide uppercase transition-all ${
-                          activeSubCategory === ""
-                            ? "bg-[#1a1a1a] text-white shadow-sm"
+                        onClick={() => {
+                          setActiveCategory("");
+                          setActiveSubCategory("");
+                        }}
+                        className={`shrink-0 rounded-full px-6 py-2.5 text-[11px] font-bold tracking-wide uppercase transition-all ${
+                          activeCategory === ""
+                            ? "bg-[#1a1a1a] text-white shadow-md shadow-black/10"
                             : "bg-[var(--canvas)] text-[var(--text-2)] border border-[var(--border)] hover:border-[var(--border)] hover:bg-[var(--canvas-sub)] hover:text-[#1a1a1a]"
                         }`}
                       >
-                        All {stripEmojis(activeCategory)}
+                        All
                       </button>
-                      {subCategories.map((sub) => (
+                      {categories.map((cat) => (
                         <button
-                          key={sub.id}
-                          onClick={() => setActiveSubCategory(sub.name === activeSubCategory ? "" : sub.name)}
-                          className={`shrink-0 rounded-full px-4 py-1.5 text-[10px] font-bold tracking-wide uppercase transition-all ${
-                            activeSubCategory === sub.name
-                              ? "bg-[#1a1a1a] text-white shadow-sm"
+                          key={cat.id}
+                          onClick={() => {
+                            setActiveCategory(
+                              cat.name === activeCategory ? "" : cat.name,
+                            );
+                            setActiveSubCategory("");
+                          }}
+                          className={`shrink-0 rounded-full px-6 py-2.5 text-[11px] font-bold tracking-wide uppercase transition-all flex items-center ${
+                            activeCategory === cat.name
+                              ? "bg-[#1a1a1a] text-white shadow-md shadow-black/10"
                               : "bg-[var(--canvas)] text-[var(--text-2)] border border-[var(--border)] hover:border-[var(--border)] hover:bg-[var(--canvas-sub)] hover:text-[#1a1a1a]"
                           }`}
                         >
-                          {stripEmojis(sub.name)}
+                          {stripEmojis(cat.name)}
                         </button>
+                      ))}
+                    </div>
+
+                    {/* Grid / Scroll toggle */}
+                    <button
+                      onClick={() =>
+                        setCategoryView((v) =>
+                          v === "scroll" ? "grid" : "scroll",
+                        )
+                      }
+                      className="shrink-0 flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--canvas)] text-[var(--text-3)] hover:text-[var(--accent-hover)] hover:border-[var(--accent)] transition-all"
+                      title={
+                        categoryView === "scroll" ? "Grid view" : "List view"
+                      }
+                    >
+                      {categoryView === "scroll" ? (
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <rect x="3" y="3" width="7" height="7" />
+                          <rect x="14" y="3" width="7" height="7" />
+                          <rect x="3" y="14" width="7" height="7" />
+                          <rect x="14" y="14" width="7" height="7" />
+                        </svg>
+                      ) : (
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <line x1="8" y1="6" x2="21" y2="6" />
+                          <line x1="8" y1="12" x2="21" y2="12" />
+                          <line x1="8" y1="18" x2="21" y2="18" />
+                          <line x1="3" y1="6" x2="3.01" y2="6" />
+                          <line x1="3" y1="12" x2="3.01" y2="12" />
+                          <line x1="3" y1="18" x2="3.01" y2="18" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Subcategory chips — appear when a parent category is selected */}
+                  <AnimatePresence>
+                    {activeCategory && subCategories.length > 0 && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-0.5">
+                          <button
+                            onClick={() => setActiveSubCategory("")}
+                            className={`shrink-0 rounded-full px-4 py-1.5 text-[10px] font-bold tracking-wide uppercase transition-all ${
+                              activeSubCategory === ""
+                                ? "bg-[#1a1a1a] text-white shadow-sm"
+                                : "bg-[var(--canvas)] text-[var(--text-2)] border border-[var(--border)] hover:border-[var(--border)] hover:bg-[var(--canvas-sub)] hover:text-[#1a1a1a]"
+                            }`}
+                          >
+                            All {stripEmojis(activeCategory)}
+                          </button>
+                          {subCategories.map((sub) => (
+                            <button
+                              key={sub.id}
+                              onClick={() =>
+                                setActiveSubCategory(
+                                  sub.name === activeSubCategory
+                                    ? ""
+                                    : sub.name,
+                                )
+                              }
+                              className={`shrink-0 rounded-full px-4 py-1.5 text-[10px] font-bold tracking-wide uppercase transition-all ${
+                                activeSubCategory === sub.name
+                                  ? "bg-[#1a1a1a] text-white shadow-sm"
+                                  : "bg-[var(--canvas)] text-[var(--text-2)] border border-[var(--border)] hover:border-[var(--border)] hover:bg-[var(--canvas-sub)] hover:text-[#1a1a1a]"
+                              }`}
+                            >
+                              {stripEmojis(sub.name)}
+                            </button>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+
+                <motion.div
+                  className="flex flex-wrap gap-2"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.2 }}
+                >
+                  <FilterPill
+                    active={filterVeg}
+                    onClick={() => setFilterVeg(!filterVeg)}
+                    icon={<Leaf className="h-3 w-3" />}
+                    label="Veg"
+                  />
+                  <FilterPill
+                    active={filterNonVeg}
+                    onClick={() => setFilterNonVeg(!filterNonVeg)}
+                    icon={<Flame className="h-3 w-3" />}
+                    label="Non-Veg"
+                  />
+                  <FilterPill
+                    active={filterEgg}
+                    onClick={() => setFilterEgg(!filterEgg)}
+                    icon={<Egg className="h-3 w-3" />}
+                    label="Egg"
+                  />
+                  <FilterPill
+                    active={filterNoOnionGarlic}
+                    onClick={() => setFilterNoOnionGarlic(!filterNoOnionGarlic)}
+                    icon={<X className="h-3 w-3" />}
+                    label="No Onion-Garlic"
+                  />
+                  <FilterPill
+                    active={filterBestseller}
+                    onClick={() => setFilterBestseller(!filterBestseller)}
+                    icon={<span className="text-[10px] font-black">#</span>}
+                    label="Bestseller"
+                  />
+                  {menuItems.some((i) => i.isDrink) && (
+                    <FilterPill
+                      active={filterDrinks}
+                      onClick={() => setFilterDrinks(!filterDrinks)}
+                      icon={<Wine className="h-3 w-3" />}
+                      label="Drinks"
+                    />
+                  )}
+                </motion.div>
+              </div>
+
+              {!searchQuery && (
+                <FoodSlider
+                  restaurantSlug={slug}
+                  onSlideClick={(linkItemId) => {
+                    const item = smartSorted.find((d) => d.id === linkItemId);
+                    if (item) setSelectedDish(item);
+                  }}
+                />
+              )}
+
+              {isFeatureAvailable(restaurant.type, "table-reservations", {
+                featuresEnabled: restaurant.featuresEnabled,
+                featuresDisabled: restaurant.featuresDisabled,
+              }) && (
+                <motion.a
+                  href={`/menu/${slug}/reserve`}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4 }}
+                  className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-[var(--canvas-sub)] to-[var(--canvas)] border border-[var(--border)] px-4 py-3 hover:border-[var(--accent)] transition-all"
+                >
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent)] shrink-0">
+                    <Calendar className="h-4 w-4 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold text-[var(--text-1)]">
+                      Reserve a Table
+                    </p>
+                    <p className="text-[11px] text-[var(--text-2)]">
+                      Book your seat in advance
+                    </p>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-[var(--text-3)]" />
+                </motion.a>
+              )}
+
+              {loyaltyInfo.enabled && !isSignedIn && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4 }}
+                >
+                  <Link
+                    href="/sign-up"
+                    className="flex items-center gap-3 rounded-2xl bg-[var(--accent-muted)] border border-[var(--accent-border)] px-4 py-3 hover:bg-[var(--surface)] transition-colors"
+                  >
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent)] shrink-0">
+                      <Gift className="h-4 w-4 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold text-[var(--accent-text)]">
+                        Sign up to earn loyalty points
+                      </p>
+                      <p className="text-[11px] text-[var(--accent)]">
+                        Earn {loyaltyInfo.pointsPerCurrency} point
+                        {loyaltyInfo.pointsPerCurrency === 1
+                          ? ""
+                          : "s"} per {cur} on every order
+                      </p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-[var(--accent)] shrink-0" />
+                  </Link>
+                </motion.div>
+              )}
+
+              {happyHourActive.isHappyNow &&
+                isFeatureAvailable(restaurant.type, "happy-hours", {
+                  featuresEnabled: restaurant.featuresEnabled,
+                  featuresDisabled: restaurant.featuresDisabled,
+                }) && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4 }}
+                    className="flex items-center gap-3 rounded-2xl bg-[var(--accent-muted)] border border-[var(--accent-border)] px-4 py-3"
+                  >
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent)] shrink-0">
+                      <Wine className="h-4 w-4 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold text-[var(--accent-text)]">
+                        Happy Hour: {happyHourActive.name}
+                      </p>
+                      <p className="text-[11px] text-[var(--accent)]">
+                        {happyHourActive.discountType === "PERCENTAGE"
+                          ? `${happyHourActive.discountValue}% off`
+                          : `Rs. ${happyHourActive.discountValue} off`}
+                        {happyHourActive.endTime &&
+                          ` until ${happyHourActive.endTime}`}
+                      </p>
+                    </div>
+                  </motion.div>
+                )}
+
+              {rushHour.isRushNow &&
+                rushHour.surgeEnabled &&
+                isFeatureAvailable(restaurant.type, "rush-hour", {
+                  featuresEnabled: restaurant.featuresEnabled,
+                  featuresDisabled: restaurant.featuresDisabled,
+                }) && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4 }}
+                    className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-red-50 to-[var(--accent-hover)] border border-[var(--accent-border)]0/60 px-4 py-3"
+                  >
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent)] shrink-0">
+                      <Flame className="h-4 w-4 text-[var(--accent)]" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold text-[var(--accent)]">
+                        Rush Hour Pricing Active
+                      </p>
+                      <p className="text-[11px] text-[var(--accent)]">
+                        Prices +{rushHour.surgePercent}% during peak hours
+                      </p>
+                    </div>
+                  </motion.div>
+                )}
+
+              {comboMeals.length > 0 &&
+                isFeatureAvailable(restaurant.type, "combo-meals", {
+                  featuresEnabled: restaurant.featuresEnabled,
+                  featuresDisabled: restaurant.featuresDisabled,
+                }) && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.1 }}
+                    className="space-y-3"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Tag className="h-4 w-4 text-[var(--text-1)]" />
+                      <h2 className="text-sm font-bold text-[var(--text-1)]">
+                        Combo Deals
+                      </h2>
+                      <span className="text-[11px] font-semibold text-[var(--text-3)]">
+                        {comboMeals.length} deal
+                        {comboMeals.length > 1 ? "s" : ""}
+                      </span>
+                      <div className="flex-1 h-px bg-[var(--surface)]" />
+                    </div>
+                    <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
+                      {comboMeals.map((combo) => (
+                        <ComboDealCard
+                          key={combo.id}
+                          combo={combo}
+                          restaurantId={restaurant.id}
+                          restaurantSlug={restaurant.slug}
+                          currency={cur}
+                          surgeMultiplier={surgeMultiplier}
+                        />
                       ))}
                     </div>
                   </motion.div>
                 )}
-              </AnimatePresence>
-            </motion.div>
 
-            <motion.div
-              className="flex flex-wrap gap-2"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.2 }}
-            >
-              <FilterPill
-                active={filterVeg}
-                onClick={() => setFilterVeg(!filterVeg)}
-                icon={<Leaf className="h-3 w-3" />}
-                label="Veg"
-              />
-              <FilterPill
-                active={filterNonVeg}
-                onClick={() => setFilterNonVeg(!filterNonVeg)}
-                icon={<Flame className="h-3 w-3" />}
-                label="Non-Veg"
-              />
-              <FilterPill
-                active={filterEgg}
-                onClick={() => setFilterEgg(!filterEgg)}
-                icon={<Egg className="h-3 w-3" />}
-                label="Egg"
-              />
-              <FilterPill
-                active={filterNoOnionGarlic}
-                onClick={() => setFilterNoOnionGarlic(!filterNoOnionGarlic)}
-                icon={<X className="h-3 w-3" />}
-                label="No Onion-Garlic"
-              />
-              <FilterPill
-                active={filterBestseller}
-                onClick={() => setFilterBestseller(!filterBestseller)}
-                icon={<span className="text-[10px] font-black">#</span>}
-                label="Bestseller"
-              />
-              {menuItems.some((i) => i.isDrink) && (
-                <FilterPill
-                  active={filterDrinks}
-                  onClick={() => setFilterDrinks(!filterDrinks)}
-                  icon={<Wine className="h-3 w-3" />}
-                  label="Drinks"
-                />
-              )}
-            </motion.div>
-            </div>
-
-            {!searchQuery && (
-              <FoodSlider
-                restaurantSlug={slug}
-                onSlideClick={(linkItemId) => {
-                  const item = smartSorted.find((d) => d.id === linkItemId);
-                  if (item) setSelectedDish(item);
-                }}
-              />
-            )}
-
-            {isFeatureAvailable(restaurant.type, "table-reservations", {
-              featuresEnabled: restaurant.featuresEnabled,
-              featuresDisabled: restaurant.featuresDisabled,
-            }) && (
-              <motion.a
-                href={`/menu/${slug}/reserve`}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4 }}
-                className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-[var(--canvas-sub)] to-[var(--canvas)] border border-[var(--border)] px-4 py-3 hover:border-[var(--accent)] transition-all"
-              >
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent)] shrink-0">
-                  <Calendar className="h-4 w-4 text-white" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-[var(--text-1)]">
-                    Reserve a Table
-                  </p>
-                  <p className="text-[11px] text-[var(--text-2)]">
-                    Book your seat in advance
-                  </p>
-                </div>
-                <ChevronRight className="h-4 w-4 text-[var(--text-3)]" />
-              </motion.a>
-            )}
-
-            {loyaltyInfo.enabled && !isSignedIn && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4 }}
-              >
-                <Link
-                  href="/sign-up"
-                  className="flex items-center gap-3 rounded-2xl bg-[var(--accent-muted)] border border-[var(--accent-border)] px-4 py-3 hover:bg-[var(--surface)] transition-colors"
-                >
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent)] shrink-0">
-                    <Gift className="h-4 w-4 text-white" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-[var(--accent-text)]">
-                      Sign up to earn loyalty points
-                    </p>
-                    <p className="text-[11px] text-[var(--accent)]">
-                      Earn {loyaltyInfo.pointsPerCurrency} point{loyaltyInfo.pointsPerCurrency === 1 ? "" : "s"} per {cur} on every order
-                    </p>
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-[var(--accent)] shrink-0" />
-                </Link>
-              </motion.div>
-            )}
-
-            {happyHourActive.isHappyNow && isFeatureAvailable(restaurant.type, "happy-hours", {
-              featuresEnabled: restaurant.featuresEnabled,
-              featuresDisabled: restaurant.featuresDisabled,
-            }) && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4 }}
-                className="flex items-center gap-3 rounded-2xl bg-[var(--accent-muted)] border border-[var(--accent-border)] px-4 py-3"
-              >
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent)] shrink-0">
-                  <Wine className="h-4 w-4 text-white" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-[var(--accent-text)]">
-                    Happy Hour: {happyHourActive.name}
-                  </p>
-                  <p className="text-[11px] text-[var(--accent)]">
-                    {happyHourActive.discountType === "PERCENTAGE"
-                      ? `${happyHourActive.discountValue}% off`
-                      : `Rs. ${happyHourActive.discountValue} off`}
-                    {happyHourActive.endTime && ` until ${happyHourActive.endTime}`}
-                  </p>
-                </div>
-              </motion.div>
-            )}
-
-            {rushHour.isRushNow && rushHour.surgeEnabled && isFeatureAvailable(restaurant.type, "rush-hour", {
-              featuresEnabled: restaurant.featuresEnabled,
-              featuresDisabled: restaurant.featuresDisabled,
-            }) && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4 }}
-                className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-red-50 to-[var(--accent-hover)] border border-[var(--accent-border)]0/60 px-4 py-3"
-              >
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent)] shrink-0">
-                  <Flame className="h-4 w-4 text-[var(--accent)]" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-[var(--accent)]">Rush Hour Pricing Active</p>
-                  <p className="text-[11px] text-[var(--accent)]">Prices +{rushHour.surgePercent}% during peak hours</p>
-                </div>
-              </motion.div>
-            )}
-
-            {comboMeals.length > 0 && isFeatureAvailable(restaurant.type, "combo-meals", {
-              featuresEnabled: restaurant.featuresEnabled,
-              featuresDisabled: restaurant.featuresDisabled,
-            }) && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.1 }}
-                className="space-y-3"
-              >
-                <div className="flex items-center gap-2">
-                  <Tag className="h-4 w-4 text-[var(--text-1)]" />
-                  <h2 className="text-sm font-bold text-[var(--text-1)]">Combo Deals</h2>
-                  <span className="text-[11px] font-semibold text-[var(--text-3)]">{comboMeals.length} deal{comboMeals.length > 1 ? "s" : ""}</span>
-                  <div className="flex-1 h-px bg-[var(--surface)]" />
-                </div>
-                <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
-                  {comboMeals.map((combo) => (
-                    <ComboDealCard
-                      key={combo.id}
-                      combo={combo}
-                      restaurantId={restaurant.id}
-                      restaurantSlug={restaurant.slug}
-                      currency={cur}
-                      surgeMultiplier={surgeMultiplier}
-                    />
-                  ))}
-                </div>
-              </motion.div>
-            )}
-
-            {/* Today's Specials — featured items for applicable types */}
-            {specials.length > 0 && isFeatureAvailable(restaurant.type, "daily-specials", {
-              featuresEnabled: restaurant.featuresEnabled,
-              featuresDisabled: restaurant.featuresDisabled,
-            }) && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.15 }}
-                className="space-y-3"
-              >
-                <div className="flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-[var(--accent)]" />
-                  <h2 className="text-sm font-bold text-[var(--text-1)]">Today&apos;s Specials</h2>
-                  <span className="text-[11px] font-semibold text-[var(--text-3)]">
-                    {specials.length} {specials.length === 1 ? "pick" : "picks"}
-                  </span>
-                  <div className="flex-1 h-px bg-[var(--surface)]" />
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {specials.map((item) => (
-                    <MenuItemCard
-                      key={`special-${item.id}`}
-                      item={item}
-                      restaurantId={restaurant.id}
-                      restaurantSlug={restaurant.slug}
-                      restaurantCurrency={cur}
-                      onSelect={(d) => setSelectedDish(d)}
-                      surgeMultiplier={surgeMultiplier}
-                    />
-                  ))}
-                </div>
-              </motion.div>
-            )}
-
-            {/* Coupon banner — tell customers coupons are available */}
-            {hasCoupons && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.25 }}
-                className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-[#fef9ef] to-[#fef9ef] border border-[var(--accent-border)]/60 px-4 py-3"
-              >
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#fef3dc] shrink-0">
-                  <Tag className="h-4 w-4 text-[var(--accent-text)]" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-[var(--text-1)]">Coupons Available!</p>
-                  <p className="text-[11px] text-[var(--accent-text)]">Apply a coupon code at checkout to get a discount</p>
-                </div>
-              </motion.div>
-            )}
-
-            {/* Rooms section — for hotel/resort/guesthouse */}
-            {rooms.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.3 }}
-                className="space-y-3"
-              >
-                <button
-                  onClick={() => setShowRooms(!showRooms)}
-                  className="flex w-full items-center justify-between rounded-2xl bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] border border-[var(--accent-border)]/60 px-4 py-3"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent-muted)] shrink-0">
-                      <BedDouble className="h-4 w-4 text-[var(--accent-text)]" />
-                    </div>
-                    <div className="text-left">
-                      <p className="text-xs font-bold text-[var(--accent-text)]">
-                        {rooms.length} Room{rooms.length > 1 ? "s" : ""} Available
-                      </p>
-                      <p className="text-[11px] text-[var(--accent-text)]">Tap to browse & book rooms</p>
-                    </div>
-                  </div>
-                  <ChevronDown className={`h-4 w-4 text-[var(--accent)] transition-transform ${showRooms ? "rotate-180" : ""}`} />
-                </button>
-
-                <AnimatePresence>
-                  {showRooms && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.25 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="space-y-3 pt-1">
-                        {rooms.map((room) => (
-                          <div
-                            key={room.id}
-                            className="rounded-2xl border border-[var(--border-soft)] bg-[var(--canvas)] shadow-sm overflow-hidden"
-                          >
-                            {room.imageUrls[0] && (
-                              <div className="relative h-36 w-full overflow-hidden">
-                                <img
-                                  src={room.imageUrls[0]}
-                                  alt={room.name || `Room ${room.roomNumber}`}
-                                  className="h-full w-full object-cover"
-                                  loading="lazy"
-                                />
-                                <span className="absolute top-2 right-2 rounded-full bg-[var(--canvas)]/90 px-2.5 py-1 text-[11px] font-bold text-[var(--text-1)] shadow-sm">
-                                  {formatPrice(room.price, cur)}/night
-                                </span>
-                              </div>
-                            )}
-                            <div className="p-4 space-y-2">
-                              <div className="flex items-center justify-between">
-                                <h4 className="text-sm font-bold text-[var(--text-1)]">
-                                  {room.name || `Room ${room.roomNumber}`}
-                                </h4>
-                                <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                                  room.type === "SUITE" ? "bg-purple-50 text-purple-700" :
-                                  room.type === "DELUXE" ? "bg-[var(--accent-muted)] text-[var(--accent-text)]" :
-                                  "bg-[var(--canvas-sub)] text-[var(--text-2)]"
-                                }`}>
-                                  {room.type}
-                                </span>
-                              </div>
-                              {room.description && (
-                                <p className="text-[11px] text-[var(--text-2)] line-clamp-2">{room.description}</p>
-                              )}
-                              <div className="flex items-center gap-3 text-[11px] text-[var(--text-3)]">
-                                <span className="flex items-center gap-1">
-                                  <Users className="h-3 w-3" />
-                                  Up to {room.maxGuests} guests
-                                </span>
-                                <span>Floor {room.floor}</span>
-                              </div>
-                              {room.amenities.length > 0 && (
-                                <div className="flex flex-wrap gap-1">
-                                  {room.amenities.slice(0, 4).map((a) => (
-                                    <span key={a} className="rounded-full bg-[var(--canvas-sub)] px-2 py-0.5 text-[9px] font-medium text-[var(--text-2)]">
-                                      {a}
-                                    </span>
-                                  ))}
-                                  {room.amenities.length > 4 && (
-                                    <span className="rounded-full bg-[var(--canvas-sub)] px-2 py-0.5 text-[9px] font-medium text-[var(--text-3)]">
-                                      +{room.amenities.length - 4} more
-                                    </span>
-                                  )}
-                                </div>
-                              )}
-                              {!room.imageUrls[0] && (
-                                <div className="flex items-center justify-between pt-1">
-                                  <span className="text-sm font-bold text-[var(--accent)]">
-                                    {formatPrice(room.price, cur)}/night
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            )}
-
-            {/* Dish list — grouped by category */}
-            <div className="space-y-6">
-              <AnimatePresence mode="popLayout">
-                {smartSorted.length === 0 ? (
-                  <motion.p
-                    key="empty"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="py-12 text-center text-sm text-[var(--text-3)]"
+              {/* Today's Specials — featured items for applicable types */}
+              {specials.length > 0 &&
+                isFeatureAvailable(restaurant.type, "daily-specials", {
+                  featuresEnabled: restaurant.featuresEnabled,
+                  featuresDisabled: restaurant.featuresDisabled,
+                }) && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.15 }}
+                    className="space-y-3"
                   >
-                    No dishes found. Try a different filter.
-                  </motion.p>
-                ) : activeCategory ? (
-                  /* Single category selected */
-                  <div key="single" className="space-y-3">
-                    <h3 className="text-sm font-bold text-[var(--text-3)] uppercase tracking-wider">
-                      {stripEmojis(activeCategory)}
-                      {activeSubCategory && (
-                        <span className="text-[var(--accent)]"> / {activeSubCategory}</span>
-                      )}
-                      <span className="ml-2 text-[var(--text-1)]">
-                        ({smartSorted.length})
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 text-[var(--accent)]" />
+                      <h2 className="text-sm font-bold text-[var(--text-1)]">
+                        Today&apos;s Specials
+                      </h2>
+                      <span className="text-[11px] font-semibold text-[var(--text-3)]">
+                        {specials.length}{" "}
+                        {specials.length === 1 ? "pick" : "picks"}
                       </span>
-                    </h3>
-                    <motion.div
-                      variants={containerVariants}
-                      initial="hidden"
-                      animate="visible"
-                      className={categoryView === "grid"
-                        ? "grid grid-cols-1 sm:grid-cols-2 gap-3"
-                        : "space-y-3"
-                      }
-                    >
-                      {smartSorted.map((item) => (
+                      <div className="flex-1 h-px bg-[var(--surface)]" />
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {specials.map((item) => (
                         <MenuItemCard
-                          key={item.id}
+                          key={`special-${item.id}`}
                           item={item}
                           restaurantId={restaurant.id}
                           restaurantSlug={restaurant.slug}
@@ -1944,103 +2006,309 @@ function MenuPageContent() {
                           surgeMultiplier={surgeMultiplier}
                         />
                       ))}
-                    </motion.div>
+                    </div>
+                  </motion.div>
+                )}
+
+              {/* Coupon banner — tell customers coupons are available */}
+              {hasCoupons && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.25 }}
+                  className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-[#fef9ef] to-[#fef9ef] border border-[var(--accent-border)]/60 px-4 py-3"
+                >
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#fef3dc] shrink-0">
+                    <Tag className="h-4 w-4 text-[var(--accent-text)]" />
                   </div>
-                ) : (
-                  /* All items — grouped by category */
-                  <div key="grouped" className="space-y-6">
-                    {categories.map((cat) => {
-                      const childCats = allCategories.filter((c) => c.parentId === cat.id);
-                      const childCatNames = childCats.map((c) => c.name);
-                      const catItems = smartSorted.filter(
-                        (item) =>
-                          item.category.name === cat.name ||
-                          childCatNames.includes(item.category.name),
-                      );
-                      if (catItems.length === 0) return null;
-                      return (
-                        <div key={cat.id} className="space-y-3">
-                          <div className="flex items-center gap-3">
-                            <h3 className="text-sm font-bold text-[var(--text-1)]">
-                              {stripEmojis(cat.name)}
-                            </h3>
-                            <span className="text-[11px] font-semibold text-[var(--text-3)]">
-                              {catItems.length} {catItems.length === 1 ? "item" : "items"}
-                            </span>
-                            <div className="flex-1 h-px bg-[var(--surface)]" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold text-[var(--text-1)]">
+                      Coupons Available!
+                    </p>
+                    <p className="text-[11px] text-[var(--accent-text)]">
+                      Apply a coupon code at checkout to get a discount
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Rooms section — for hotel/resort/guesthouse */}
+              {rooms.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.3 }}
+                  className="space-y-3"
+                >
+                  <button
+                    onClick={() => setShowRooms(!showRooms)}
+                    className="flex w-full items-center justify-between rounded-2xl bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] border border-[var(--accent-border)]/60 px-4 py-3"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent-muted)] shrink-0">
+                        <BedDouble className="h-4 w-4 text-[var(--accent-text)]" />
+                      </div>
+                      <div className="text-left">
+                        <p className="text-xs font-bold text-[var(--accent-text)]">
+                          {rooms.length} Room{rooms.length > 1 ? "s" : ""}{" "}
+                          Available
+                        </p>
+                        <p className="text-[11px] text-[var(--accent-text)]">
+                          Tap to browse & book rooms
+                        </p>
+                      </div>
+                    </div>
+                    <ChevronDown
+                      className={`h-4 w-4 text-[var(--accent)] transition-transform ${showRooms ? "rotate-180" : ""}`}
+                    />
+                  </button>
+
+                  <AnimatePresence>
+                    {showRooms && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.25 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="space-y-3 pt-1">
+                          {rooms.map((room) => (
+                            <div
+                              key={room.id}
+                              className="rounded-2xl border border-[var(--border-soft)] bg-[var(--canvas)] shadow-sm overflow-hidden"
+                            >
+                              {room.imageUrls[0] && (
+                                <div className="relative h-36 w-full overflow-hidden">
+                                  <img
+                                    src={room.imageUrls[0]}
+                                    alt={room.name || `Room ${room.roomNumber}`}
+                                    className="h-full w-full object-cover"
+                                    loading="lazy"
+                                  />
+                                  <span className="absolute top-2 right-2 rounded-full bg-[var(--canvas)]/90 px-2.5 py-1 text-[11px] font-bold text-[var(--text-1)] shadow-sm">
+                                    {formatPrice(room.price, cur)}/night
+                                  </span>
+                                </div>
+                              )}
+                              <div className="p-4 space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <h4 className="text-sm font-bold text-[var(--text-1)]">
+                                    {room.name || `Room ${room.roomNumber}`}
+                                  </h4>
+                                  <span
+                                    className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                                      room.type === "SUITE"
+                                        ? "bg-purple-50 text-purple-700"
+                                        : room.type === "DELUXE"
+                                          ? "bg-[var(--accent-muted)] text-[var(--accent-text)]"
+                                          : "bg-[var(--canvas-sub)] text-[var(--text-2)]"
+                                    }`}
+                                  >
+                                    {room.type}
+                                  </span>
+                                </div>
+                                {room.description && (
+                                  <p className="text-[11px] text-[var(--text-2)] line-clamp-2">
+                                    {room.description}
+                                  </p>
+                                )}
+                                <div className="flex items-center gap-3 text-[11px] text-[var(--text-3)]">
+                                  <span className="flex items-center gap-1">
+                                    <Users className="h-3 w-3" />
+                                    Up to {room.maxGuests} guests
+                                  </span>
+                                  <span>Floor {room.floor}</span>
+                                </div>
+                                {room.amenities.length > 0 && (
+                                  <div className="flex flex-wrap gap-1">
+                                    {room.amenities.slice(0, 4).map((a) => (
+                                      <span
+                                        key={a}
+                                        className="rounded-full bg-[var(--canvas-sub)] px-2 py-0.5 text-[9px] font-medium text-[var(--text-2)]"
+                                      >
+                                        {a}
+                                      </span>
+                                    ))}
+                                    {room.amenities.length > 4 && (
+                                      <span className="rounded-full bg-[var(--canvas-sub)] px-2 py-0.5 text-[9px] font-medium text-[var(--text-3)]">
+                                        +{room.amenities.length - 4} more
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                                {!room.imageUrls[0] && (
+                                  <div className="flex items-center justify-between pt-1">
+                                    <span className="text-sm font-bold text-[var(--accent)]">
+                                      {formatPrice(room.price, cur)}/night
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              )}
+
+              {/* Dish list — grouped by category */}
+              <div className="space-y-6">
+                <AnimatePresence mode="popLayout">
+                  {smartSorted.length === 0 ? (
+                    <motion.p
+                      key="empty"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="py-12 text-center text-sm text-[var(--text-3)]"
+                    >
+                      No dishes found. Try a different filter.
+                    </motion.p>
+                  ) : activeCategory ? (
+                    /* Single category selected */
+                    <div key="single" className="space-y-3">
+                      <h3 className="text-sm font-bold text-[var(--text-3)] uppercase tracking-wider">
+                        {stripEmojis(activeCategory)}
+                        {activeSubCategory && (
+                          <span className="text-[var(--accent)]">
+                            {" "}
+                            / {activeSubCategory}
+                          </span>
+                        )}
+                        <span className="ml-2 text-[var(--text-1)]">
+                          ({smartSorted.length})
+                        </span>
+                      </h3>
+                      <motion.div
+                        variants={containerVariants}
+                        initial="hidden"
+                        animate="visible"
+                        className={
+                          categoryView === "grid"
+                            ? "grid grid-cols-1 sm:grid-cols-2 gap-3"
+                            : "space-y-3"
+                        }
+                      >
+                        {smartSorted.map((item) => (
+                          <MenuItemCard
+                            key={item.id}
+                            item={item}
+                            restaurantId={restaurant.id}
+                            restaurantSlug={restaurant.slug}
+                            restaurantCurrency={cur}
+                            onSelect={(d) => setSelectedDish(d)}
+                            surgeMultiplier={surgeMultiplier}
+                          />
+                        ))}
+                      </motion.div>
+                    </div>
+                  ) : (
+                    /* All items — grouped by category */
+                    <div key="grouped" className="space-y-6">
+                      {categories.map((cat) => {
+                        const childCats = allCategories.filter(
+                          (c) => c.parentId === cat.id,
+                        );
+                        const childCatNames = childCats.map((c) => c.name);
+                        const catItems = smartSorted.filter(
+                          (item) =>
+                            item.category.name === cat.name ||
+                            childCatNames.includes(item.category.name),
+                        );
+                        if (catItems.length === 0) return null;
+                        return (
+                          <div key={cat.id} className="space-y-3">
+                            <div className="flex items-center gap-3">
+                              <h3 className="text-sm font-bold text-[var(--text-1)]">
+                                {stripEmojis(cat.name)}
+                              </h3>
+                              <span className="text-[11px] font-semibold text-[var(--text-3)]">
+                                {catItems.length}{" "}
+                                {catItems.length === 1 ? "item" : "items"}
+                              </span>
+                              <div className="flex-1 h-px bg-[var(--surface)]" />
+                            </div>
+                            <motion.div
+                              variants={containerVariants}
+                              initial="hidden"
+                              animate="visible"
+                              className={
+                                categoryView === "grid"
+                                  ? "grid grid-cols-2 gap-3"
+                                  : "space-y-3"
+                              }
+                            >
+                              {catItems.map((item) => (
+                                <MenuItemCard
+                                  key={item.id}
+                                  item={item}
+                                  restaurantId={restaurant.id}
+                                  restaurantSlug={restaurant.slug}
+                                  restaurantCurrency={cur}
+                                  onSelect={(d) => setSelectedDish(d)}
+                                  surgeMultiplier={surgeMultiplier}
+                                />
+                              ))}
+                            </motion.div>
                           </div>
+                        );
+                      })}
+                      {smartSorted.filter(
+                        (item) =>
+                          !categories.some(
+                            (c) => c.name === item.category.name,
+                          ),
+                      ).length > 0 && (
+                        <div className="space-y-3">
+                          <h3 className="text-sm font-bold text-[var(--text-3)] uppercase tracking-wider">
+                            Other
+                          </h3>
                           <motion.div
                             variants={containerVariants}
                             initial="hidden"
                             animate="visible"
-                            className={categoryView === "grid"
-                              ? "grid grid-cols-2 gap-3"
-                              : "space-y-3"
-                            }
+                            className="space-y-3"
                           >
-                            {catItems.map((item) => (
-                              <MenuItemCard
-                                key={item.id}
-                                item={item}
-                                restaurantId={restaurant.id}
-                                restaurantSlug={restaurant.slug}
-                                restaurantCurrency={cur}
-                                onSelect={(d) => setSelectedDish(d)}
-                                surgeMultiplier={surgeMultiplier}
-                              />
-                            ))}
+                            {smartSorted
+                              .filter(
+                                (item) =>
+                                  !categories.some(
+                                    (c) => c.name === item.category.name,
+                                  ),
+                              )
+                              .map((item) => (
+                                <MenuItemCard
+                                  key={item.id}
+                                  item={item}
+                                  restaurantId={restaurant.id}
+                                  restaurantSlug={restaurant.slug}
+                                  restaurantCurrency={cur}
+                                  onSelect={(d) => setSelectedDish(d)}
+                                  surgeMultiplier={surgeMultiplier}
+                                />
+                              ))}
                           </motion.div>
                         </div>
-                      );
-                    })}
-                    {smartSorted.filter(
-                      (item) => !categories.some((c) => c.name === item.category.name),
-                    ).length > 0 && (
-                      <div className="space-y-3">
-                        <h3 className="text-sm font-bold text-[var(--text-3)] uppercase tracking-wider">
-                          Other
-                        </h3>
-                        <motion.div
-                          variants={containerVariants}
-                          initial="hidden"
-                          animate="visible"
-                          className="space-y-3"
-                        >
-                          {smartSorted
-                            .filter(
-                              (item) => !categories.some((c) => c.name === item.category.name),
-                            )
-                            .map((item) => (
-                              <MenuItemCard
-                                key={item.id}
-                                item={item}
-                                restaurantId={restaurant.id}
-                                restaurantSlug={restaurant.slug}
-                                restaurantCurrency={cur}
-                                onSelect={(d) => setSelectedDish(d)}
-                                surgeMultiplier={surgeMultiplier}
-                              />
-                            ))}
-                        </motion.div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </AnimatePresence>
+                      )}
+                    </div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
-          </div>
 
-          <div className="hidden md:block w-[280px] lg:w-[320px] shrink-0">
-            <div className="sticky top-[100px]">
-              <DesktopCartPreview
-                currency={cur}
-                onProceed={handleProceedToCheckout}
-                onOpenFull={() => setCartOpen(true)}
-              />
+            <div className="hidden md:block w-[280px] lg:w-[320px] shrink-0">
+              <div className="sticky top-[100px]">
+                <DesktopCartPreview
+                  currency={cur}
+                  onProceed={handleProceedToCheckout}
+                  onOpenFull={() => setCartOpen(true)}
+                />
+              </div>
             </div>
           </div>
         </div>
-      </div>
       </div>
 
       {/* Mobile cart bar — must sit above BottomNav (z-50) */}
@@ -2141,7 +2409,9 @@ function MenuPageContent() {
       {/* Floating "Track Order" button — shown when order is active but overlay is closed */}
       {activeOrder &&
         !showOrder &&
-        !["DELIVERED", "CANCELLED", "REJECTED"].includes(activeOrder.status) && (
+        !["DELIVERED", "CANCELLED", "REJECTED"].includes(
+          activeOrder.status,
+        ) && (
           <button
             onClick={() => setShowOrder(true)}
             className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 rounded-full bg-[var(--text-1)] px-5 py-3 text-sm font-bold text-white shadow-xl shadow-[var(--text-1)]/30 hover:bg-[#2d1508] active:scale-95 transition-all"
@@ -2159,7 +2429,13 @@ function MenuPageContent() {
           tableNo={tableNo}
           roomNo={roomNo}
           senderRole="CUSTOMER"
-          senderName={tableNo ? `Table ${tableNo}` : roomNo ? `Room ${roomNo}` : "Customer"}
+          senderName={
+            tableNo
+              ? `Table ${tableNo}`
+              : roomNo
+                ? `Room ${roomNo}`
+                : "Customer"
+          }
         />
       )}
 
@@ -2172,7 +2448,9 @@ function MenuPageContent() {
 
       {restaurant.footerText && (
         <div className="border-t border-[var(--border-soft)] px-6 py-4 text-center">
-          <p className="text-xs text-[var(--text-3)]">{restaurant.footerText}</p>
+          <p className="text-xs text-[var(--text-3)]">
+            {restaurant.footerText}
+          </p>
         </div>
       )}
     </div>
@@ -2190,13 +2468,29 @@ interface HistoryOrder {
 }
 
 const H_STATUS: Record<string, { label: string; color: string; bg: string }> = {
-  PENDING:   { label: "Pending",   color: "text-[var(--accent-text)]",  bg: "bg-[var(--accent-muted)]" },
-  ACCEPTED:  { label: "Accepted",  color: "text-blue-700",   bg: "bg-blue-50" },
-  PREPARING: { label: "Preparing", color: "text-purple-700", bg: "bg-purple-50" },
-  READY:     { label: "Ready",     color: "text-[var(--accent-text)]",bg: "bg-[var(--accent-muted)]" },
-  DELIVERED: { label: "Delivered", color: "text-[var(--accent-text)]",  bg: "bg-[var(--accent-muted)]" },
-  CANCELLED: { label: "Cancelled", color: "text-red-700",    bg: "bg-red-50" },
-  REJECTED:  { label: "Rejected",  color: "text-red-700",    bg: "bg-red-50" },
+  PENDING: {
+    label: "Pending",
+    color: "text-[var(--accent-text)]",
+    bg: "bg-[var(--accent-muted)]",
+  },
+  ACCEPTED: { label: "Accepted", color: "text-blue-700", bg: "bg-blue-50" },
+  PREPARING: {
+    label: "Preparing",
+    color: "text-purple-700",
+    bg: "bg-purple-50",
+  },
+  READY: {
+    label: "Ready",
+    color: "text-[var(--accent-text)]",
+    bg: "bg-[var(--accent-muted)]",
+  },
+  DELIVERED: {
+    label: "Delivered",
+    color: "text-[var(--accent-text)]",
+    bg: "bg-[var(--accent-muted)]",
+  },
+  CANCELLED: { label: "Cancelled", color: "text-red-700", bg: "bg-red-50" },
+  REJECTED: { label: "Rejected", color: "text-red-700", bg: "bg-red-50" },
 };
 
 function OrderHistorySheet({
@@ -2245,9 +2539,14 @@ function OrderHistorySheet({
             <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-soft)] shrink-0">
               <div className="flex items-center gap-2">
                 <History className="h-5 w-5 text-[var(--accent)]" />
-                <h3 className="text-base font-bold text-[var(--text-1)]">My Orders Here</h3>
+                <h3 className="text-base font-bold text-[var(--text-1)]">
+                  My Orders Here
+                </h3>
               </div>
-              <button onClick={onClose} className="rounded-full p-2 text-[var(--text-3)] hover:bg-[var(--surface)] transition-colors">
+              <button
+                onClick={onClose}
+                className="rounded-full p-2 text-[var(--text-3)] hover:bg-[var(--surface)] transition-colors"
+              >
                 <X className="h-4 w-4" />
               </button>
             </div>
@@ -2260,27 +2559,42 @@ function OrderHistorySheet({
               ) : orders.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 text-[var(--text-3)]">
                   <Receipt className="h-12 w-12 mb-3 opacity-30" />
-                  <p className="text-sm font-semibold text-[var(--text-2)]">No orders yet</p>
-                  <p className="text-xs text-[var(--text-3)] mt-1">Your orders at this place will appear here</p>
+                  <p className="text-sm font-semibold text-[var(--text-2)]">
+                    No orders yet
+                  </p>
+                  <p className="text-xs text-[var(--text-3)] mt-1">
+                    Your orders at this place will appear here
+                  </p>
                 </div>
               ) : (
                 orders.map((order) => {
                   const meta = H_STATUS[order.status] || H_STATUS.PENDING;
                   const expanded = expandedId === order.id;
                   return (
-                    <div key={order.id} className="rounded-2xl border border-[var(--border-soft)] bg-[var(--canvas)] shadow-sm overflow-hidden">
+                    <div
+                      key={order.id}
+                      className="rounded-2xl border border-[var(--border-soft)] bg-[var(--canvas)] shadow-sm overflow-hidden"
+                    >
                       <button
-                        onClick={() => setExpandedId(expanded ? null : order.id)}
+                        onClick={() =>
+                          setExpandedId(expanded ? null : order.id)
+                        }
                         className="w-full p-4 text-left"
                       >
                         <div className="flex items-center justify-between mb-1">
-                          <p className="text-sm font-bold text-[var(--text-1)]">#{order.orderNo}</p>
-                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${meta.bg} ${meta.color}`}>
+                          <p className="text-sm font-bold text-[var(--text-1)]">
+                            #{order.orderNo}
+                          </p>
+                          <span
+                            className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${meta.bg} ${meta.color}`}
+                          >
                             {meta.label}
                           </span>
                         </div>
                         <p className="text-xs text-[var(--text-3)]">
-                          {order.items.map((i) => `${i.quantity}x ${i.name}`).join(", ")}
+                          {order.items
+                            .map((i) => `${i.quantity}x ${i.name}`)
+                            .join(", ")}
                         </p>
                         <div className="flex items-center justify-between mt-2">
                           <p className="text-sm font-bold text-[var(--text-1)]">
@@ -2288,9 +2602,14 @@ function OrderHistorySheet({
                           </p>
                           <div className="flex items-center gap-1.5">
                             <p className="text-[10px] text-[var(--text-3)]">
-                              {new Date(order.createdAt).toLocaleDateString("en-NP", { month: "short", day: "numeric" })}
+                              {new Date(order.createdAt).toLocaleDateString(
+                                "en-NP",
+                                { month: "short", day: "numeric" },
+                              )}
                             </p>
-                            <ChevronDown className={`h-3.5 w-3.5 text-[var(--text-3)] transition-transform ${expanded ? "rotate-180" : ""}`} />
+                            <ChevronDown
+                              className={`h-3.5 w-3.5 text-[var(--text-3)] transition-transform ${expanded ? "rotate-180" : ""}`}
+                            />
                           </div>
                         </div>
                       </button>
@@ -2306,16 +2625,28 @@ function OrderHistorySheet({
                           >
                             <div className="border-t border-[var(--border-soft)] px-4 py-3 space-y-2">
                               {order.items.map((item) => (
-                                <div key={item.id} className="flex items-center justify-between">
-                                  <span className="text-xs text-[var(--text-2)]">{item.quantity}x {item.name}</span>
+                                <div
+                                  key={item.id}
+                                  className="flex items-center justify-between"
+                                >
+                                  <span className="text-xs text-[var(--text-2)]">
+                                    {item.quantity}x {item.name}
+                                  </span>
                                   <span className="text-xs font-medium text-[var(--text-2)]">
-                                    {formatPrice(item.price * item.quantity, currency)}
+                                    {formatPrice(
+                                      item.price * item.quantity,
+                                      currency,
+                                    )}
                                   </span>
                                 </div>
                               ))}
                               <div className="border-t border-dashed border-[var(--border)] pt-2 flex justify-between">
-                                <span className="text-xs font-bold text-[var(--text-1)]">Total</span>
-                                <span className="text-xs font-bold text-[var(--text-1)]">{formatPrice(order.total, currency)}</span>
+                                <span className="text-xs font-bold text-[var(--text-1)]">
+                                  Total
+                                </span>
+                                <span className="text-xs font-bold text-[var(--text-1)]">
+                                  {formatPrice(order.total, currency)}
+                                </span>
                               </div>
                               {order.payment && (
                                 <p className="text-[10px] text-[var(--text-3)]">

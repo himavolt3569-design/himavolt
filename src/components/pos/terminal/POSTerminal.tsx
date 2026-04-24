@@ -4,12 +4,18 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence } from "framer-motion";
 import { Loader2 } from "lucide-react";
+import dynamic from "next/dynamic";
 import POSTerminalHeader from "./POSTerminalHeader";
 import POSTerminalNav, { type POSView } from "./POSTerminalNav";
 import POSPaymentQROverlay from "./POSPaymentQROverlay";
-import POSCustomerMode from "./POSCustomerMode";
 import POSRegister from "@/components/pos/staff/POSRegister";
-import POSTables3DView from "./POSTables3DView";
+
+const POSCustomerMode = dynamic(() => import("./POSCustomerMode"), {
+  ssr: false,
+});
+const POSTables3DView = dynamic(() => import("./POSTables3DView"), {
+  ssr: false,
+});
 import POSActiveOrders from "@/components/pos/staff/POSActiveOrders";
 import POSBilling from "@/components/pos/staff/POSBilling";
 import POSHeldOrders from "@/components/pos/staff/POSHeldOrders";

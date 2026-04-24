@@ -28,20 +28,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
 
-  /* Fetch DB role whenever session changes */
   useEffect(() => {
     if (!session) {
       setUserRole(null);
       return;
     }
+
+    const CACHE_KEY = "hh_me_cache";
+    const CACHE_TTL = 5 * 60 * 1000;
+
+    try {
+      const raw = sessionStorage.getItem(CACHE_KEY);
+      if (raw) {
+        const cached = JSON.parse(raw);
+        if (Date.now() - cached.ts < CACHE_TTL) {
+          setUserRole(cached.role ?? "CUSTOMER");
+        }
+      }
+    } catch {}
+
     fetch("/api/me")
       .then((r) => {
         if (!r.ok) throw new Error(`/api/me returned ${r.status}`);
         return r.json();
       })
-      .then((d) => setUserRole(d.role ?? "CUSTOMER"))
+      .then((d) => {
+        const role = d.role ?? "CUSTOMER";
+        setUserRole(role);
+        try {
+          sessionStorage.setItem(
+            CACHE_KEY,
+            JSON.stringify({ role, ts: Date.now() }),
+          );
+        } catch {}
+      })
       .catch(() => {
-        // Fallback: check Supabase user_metadata for intended_role (set by callback)
         const metaRole = session.user?.user_metadata?.intended_role;
         setUserRole(metaRole === "OWNER" ? "OWNER" : "CUSTOMER");
       });
@@ -60,7 +81,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
     initSession();
 
-    // Listen for auth state changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(

@@ -10,13 +10,11 @@ function createPrismaClient() {
   if (!connectionString) {
     throw new Error("DATABASE_URL is not set");
   }
-  // In serverless environments (Vercel) each function instance has its own
-  // connection pool. Limit to 1-2 connections to avoid exhausting Supabase limits.
   const isServerless =
     !!process.env.VERCEL || process.env.NODE_ENV === "production";
   const adapter = new PrismaPg({
     connectionString,
-    max: 2, // keep low in all environments — Supabase Session mode pool is limited
+    max: isServerless ? 3 : 5,
     ssl: isServerless ? { rejectUnauthorized: false } : undefined,
   });
   return new PrismaClient({ adapter });

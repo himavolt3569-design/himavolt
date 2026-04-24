@@ -2,20 +2,40 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
+import dynamic from "next/dynamic";
 import Navbar from "@/components/layout/Navbar";
 import LandingHero from "@/components/home/LandingHero";
-import FoodCategories from "@/components/home/FoodCategories";
-import PopularFoods from "@/components/home/PopularFoods";
-import FeaturesSection from "@/components/home/FeaturesSection";
-import TopPlaces from "@/components/home/TopPlaces";
-import DealsSection from "@/components/home/DealsSection";
 import TrustMarquee from "@/components/home/TrustMarquee";
-import Testimonials from "@/components/home/Testimonials";
-import Footer from "@/components/layout/Footer";
-import CartSidebar from "@/components/cart/CartSidebar";
-import FloatingCart from "@/components/shared/FloatingCart";
 import LocationBar from "@/components/home/LocationBar";
+import FloatingCart from "@/components/shared/FloatingCart";
 import { LocationProvider } from "@/context/LocationContext";
+
+const FoodCategories = dynamic(
+  () => import("@/components/home/FoodCategories"),
+  { ssr: false },
+);
+const PopularFoods = dynamic(() => import("@/components/home/PopularFoods"), {
+  ssr: false,
+});
+const FeaturesSection = dynamic(
+  () => import("@/components/home/FeaturesSection"),
+  { ssr: false },
+);
+const TopPlaces = dynamic(() => import("@/components/home/TopPlaces"), {
+  ssr: false,
+});
+const DealsSection = dynamic(() => import("@/components/home/DealsSection"), {
+  ssr: false,
+});
+const Testimonials = dynamic(() => import("@/components/home/Testimonials"), {
+  ssr: false,
+});
+const Footer = dynamic(() => import("@/components/layout/Footer"), {
+  ssr: false,
+});
+const CartSidebar = dynamic(() => import("@/components/cart/CartSidebar"), {
+  ssr: false,
+});
 
 export default function Home() {
   const [cartOpen, setCartOpen] = useState(false);

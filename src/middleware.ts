@@ -55,7 +55,11 @@ const PUBLIC_ROUTES = [
   /^\/pos\/(?!staff)(.*)/,
 ];
 
-const STAFF_ONLY_ROUTES = [/^\/kitchen(\/|$)/, /^\/counter(\/|$)/, /^\/pos\/staff(\/|$)/];
+const STAFF_ONLY_ROUTES = [
+  /^\/kitchen(\/|$)/,
+  /^\/counter(\/|$)/,
+  /^\/pos\/staff(\/|$)/,
+];
 
 function isPublicRoute(pathname: string) {
   return PUBLIC_ROUTES.some((r) => r.test(pathname));
@@ -92,7 +96,6 @@ async function verifyMasterAdminJwt(req: NextRequest): Promise<boolean> {
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Staff-only routes: require valid staff JWT
   if (isStaffRoute(pathname)) {
     const valid = await verifyStaffJwt(req);
     if (!valid) {
@@ -103,12 +106,10 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // Public routes: pass through, but refresh Supabase session cookies
   if (isPublicRoute(pathname)) {
     return refreshSupabaseSession(req);
   }
 
-  // Protected routes: check master admin JWT first (bypasses Supabase auth)
   const masterAdminValid = await verifyMasterAdminJwt(req);
   if (masterAdminValid) return NextResponse.next();
 
@@ -139,18 +140,24 @@ export async function middleware(req: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    // API routes: return 401
     if (pathname.startsWith("/api/")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    // Page routes: redirect to sign-in
     return NextResponse.redirect(new URL("/sign-in", req.url));
   }
 
   return res;
 }
 
+function hasSupabaseAuthCookies(req: NextRequest): boolean {
+  return req.cookies.getAll().some((c) => c.name.startsWith("sb-"));
+}
+
 async function refreshSupabaseSession(req: NextRequest) {
+  if (!hasSupabaseAuthCookies(req)) {
+    return NextResponse.next();
+  }
+
   const res = NextResponse.next();
 
   const supabase = createServerClient(
@@ -170,9 +177,6 @@ async function refreshSupabaseSession(req: NextRequest) {
     },
   );
 
-  // Calling getUser() triggers token refresh if the access token has expired.
-  // Without this, public routes never refresh the session and auth cookies
-  // go stale, causing route handlers that call getOrCreateUser() to get 401s.
   await supabase.auth.getUser();
 
   return res;

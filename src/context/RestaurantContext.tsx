@@ -6,6 +6,7 @@ import {
   useState,
   useCallback,
   useEffect,
+  useRef,
   type ReactNode,
 } from "react";
 import { useAuth } from "@/context/AuthContext";
@@ -15,7 +16,7 @@ export interface StaffMember {
   id: string;
   pin: string;
   role: string;
-  staffType: string; // "FULL_TIME" | "SHIFT_BASED"
+  staffType: string;
   isActive: boolean;
   createdAt: string;
   userId: string;
@@ -74,6 +75,7 @@ interface RestaurantContextType {
   selectedRestaurant: Restaurant | null;
   loading: boolean;
   fetchRestaurants: () => Promise<void>;
+  fetchIfNeeded: () => Promise<void>;
   createRestaurant: (data: {
     name: string;
     phone: string;
@@ -98,7 +100,9 @@ interface RestaurantContextType {
       role: string;
       pin: string;
     },
-  ) => Promise<StaffMember & { _generatedPin?: string; _restaurantCode?: string }>;
+  ) => Promise<
+    StaffMember & { _generatedPin?: string; _restaurantCode?: string }
+  >;
   removeStaff: (restaurantId: string, staffId: string) => Promise<void>;
   toggleStaffActive: (restaurantId: string, staffId: string) => Promise<void>;
 }
@@ -110,7 +114,8 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [selectedRestaurant, setSelectedRestaurant] =
     useState<Restaurant | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const hasFetchedRef = useRef(false);
 
   const fetchRestaurants = useCallback(async () => {
     if (!isSignedIn) {
@@ -121,6 +126,7 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
     try {
       const data = await apiFetch<Restaurant[]>("/api/restaurants");
       setRestaurants(data);
+      hasFetchedRef.current = true;
       setSelectedRestaurant((prev) => {
         if (!prev) return null;
         return data.find((r) => r.id === prev.id) ?? null;
@@ -132,11 +138,17 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
     }
   }, [isSignedIn]);
 
+  const fetchIfNeeded = useCallback(async () => {
+    if (hasFetchedRef.current || !isLoaded || !isSignedIn) return;
+    await fetchRestaurants();
+  }, [isLoaded, isSignedIn, fetchRestaurants]);
+
   useEffect(() => {
-    if (isLoaded) {
-      fetchRestaurants();
+    if (!isSignedIn) {
+      hasFetchedRef.current = false;
+      setRestaurants([]);
     }
-  }, [isLoaded, fetchRestaurants]);
+  }, [isSignedIn]);
 
   const createRestaurant = useCallback(
     async (data: {
@@ -194,10 +206,12 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
         pin: string;
       },
     ) => {
-      const res = await apiFetch<StaffMember & { _generatedPin?: string; _restaurantCode?: string }>(
-        `/api/restaurants/${restaurantId}/staff`,
-        { method: "POST", body: data },
-      );
+      const res = await apiFetch<
+        StaffMember & { _generatedPin?: string; _restaurantCode?: string }
+      >(`/api/restaurants/${restaurantId}/staff`, {
+        method: "POST",
+        body: data,
+      });
       await fetchRestaurants();
       return res;
     },
@@ -235,6 +249,7 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
         selectedRestaurant,
         loading,
         fetchRestaurants,
+        fetchIfNeeded,
         createRestaurant,
         deleteRestaurant,
         updateRestaurant,
@@ -254,5 +269,10 @@ export function useRestaurant() {
   const ctx = useContext(RestaurantContext);
   if (!ctx)
     throw new Error("useRestaurant must be used inside RestaurantProvider");
+
+  useEffect(() => {
+    ctx.fetchIfNeeded();
+  }, [ctx.fetchIfNeeded]); // eslint-disable-line react-hooks/exhaustive-deps
+
   return ctx;
 }
