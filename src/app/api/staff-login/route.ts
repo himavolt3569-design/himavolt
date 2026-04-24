@@ -5,6 +5,7 @@ import { safeHandler } from "@/lib/api-helpers";
 import { staffLoginSchema } from "@/lib/validations";
 import { logAudit, getClientIp } from "@/lib/audit";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
+import { checkStaffShift, shiftReasonToMessage } from "@/lib/staff-shifts";
 
 function getJwtSecret() {
   const raw = process.env.JWT_SECRET;
@@ -51,6 +52,25 @@ export const POST = safeHandler(
       return NextResponse.json(
         { error: "Invalid PIN or inactive account" },
         { status: 401 },
+      );
+    }
+
+    // 1b. Shift gate — SHIFT_BASED staff only get in during their window.
+    const shiftCheck = await checkStaffShift({
+      id: staffMember.id,
+      staffType: staffMember.staffType,
+      role: staffMember.role,
+      restaurantId: restaurant.id,
+    });
+
+    if (!shiftCheck.allowed) {
+      return NextResponse.json(
+        {
+          error: shiftReasonToMessage(shiftCheck.reason),
+          reason: shiftCheck.reason,
+          nextShiftStartsAt: shiftCheck.nextShiftStartsAt?.toISOString(),
+        },
+        { status: 403 },
       );
     }
 

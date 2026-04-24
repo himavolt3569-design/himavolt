@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Canvas } from "@react-three/fiber";
+import FoodParticles from "@/components/three/FoodParticles";
 import {
   Search,
   X,
@@ -132,8 +134,28 @@ export default function POSCustomerMode({
 
   return (
     <div className="relative flex h-full flex-col overflow-hidden bg-gradient-to-br from-[var(--canvas-sub)] via-[var(--canvas)] to-[var(--canvas-sub)]">
+      {/* Ambient 3D particles layer — decorative only, pointer-events none */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 z-0 opacity-60 mix-blend-screen"
+      >
+        <Canvas
+          camera={{ position: [0, 0, 10], fov: 50 }}
+          gl={{ antialias: true, alpha: true }}
+          style={{ background: "transparent" }}
+          dpr={[1, 1.5]}
+        >
+          <Suspense fallback={null}>
+            <ambientLight intensity={0.8} color="#fff5ee" />
+            <pointLight position={[4, 4, 6]} intensity={1.4} color="#eaa94d" />
+            <pointLight position={[-6, -2, 4]} intensity={0.8} color="#e58f2a" />
+            <FoodParticles count={60} />
+          </Suspense>
+        </Canvas>
+      </div>
+
       {/* Top bar — minimal, no billing / no staff info */}
-      <div className="flex shrink-0 items-center justify-between border-b border-[var(--border)] bg-[var(--canvas)]/90 px-6 py-4 backdrop-blur-md">
+      <div className="relative z-10 flex shrink-0 items-center justify-between border-b border-[var(--border)] bg-[var(--canvas)]/90 px-6 py-4 backdrop-blur-md">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--accent)]">
             Browse the menu
@@ -162,7 +184,7 @@ export default function POSCustomerMode({
       </div>
 
       {/* Search + categories */}
-      <div className="shrink-0 space-y-3 border-b border-[var(--border)] bg-[var(--canvas)] px-6 pb-4 pt-3">
+      <div className="relative z-10 shrink-0 space-y-3 border-b border-[var(--border)] bg-[var(--canvas)]/95 px-6 pb-4 pt-3 backdrop-blur-md">
         <div className="relative">
           <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-3)]" />
           <input
@@ -200,7 +222,7 @@ export default function POSCustomerMode({
       </div>
 
       {/* Grid */}
-      <div className="flex-1 overflow-y-auto px-6 pb-12 pt-5 scrollbar-slim">
+      <div className="relative z-10 flex-1 overflow-y-auto px-6 pb-12 pt-5 scrollbar-slim">
         {filteredItems.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
             <UtensilsCrossed className="h-12 w-12 text-[var(--text-3)]" />
@@ -223,7 +245,7 @@ export default function POSCustomerMode({
       </div>
 
       {/* Footer strip reassuring customer */}
-      <div className="flex shrink-0 items-center justify-center gap-2 border-t border-[var(--border)] bg-[var(--canvas)]/80 px-6 py-3 text-[11px] text-[var(--text-3)] backdrop-blur-sm">
+      <div className="relative z-10 flex shrink-0 items-center justify-center gap-2 border-t border-[var(--border)] bg-[var(--canvas)]/80 px-6 py-3 text-[11px] text-[var(--text-3)] backdrop-blur-sm">
         <Info className="h-3.5 w-3.5" />
         <span className="font-medium">
           Ask any staff to place your order for{" "}

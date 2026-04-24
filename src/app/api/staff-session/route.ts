@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getStaffSession } from "@/lib/staff-auth";
 import { safeHandler, unauthorized } from "@/lib/api-helpers";
 import { db } from "@/lib/db";
+import { checkStaffShift, shiftReasonToMessage } from "@/lib/staff-shifts";
 
 export const GET = safeHandler(async (req) => {
   const session = await getStaffSession(req);
@@ -13,7 +14,7 @@ export const GET = safeHandler(async (req) => {
   const [staffMember, restaurant] = await Promise.all([
     db.staffMember.findUnique({
       where: { id: session.staffId },
-      select: { role: true, isActive: true },
+      select: { role: true, isActive: true, staffType: true },
     }),
     db.restaurant.findUnique({
       where: { id: session.restaurantId },
@@ -27,6 +28,24 @@ export const GET = safeHandler(async (req) => {
   ]);
 
   if (!staffMember?.isActive) return unauthorized("Account deactivated");
+
+  const shiftCheck = await checkStaffShift({
+    id: session.staffId,
+    staffType: staffMember.staffType,
+    role: staffMember.role,
+    restaurantId: session.restaurantId,
+  });
+
+  if (!shiftCheck.allowed) {
+    return NextResponse.json(
+      {
+        error: shiftReasonToMessage(shiftCheck.reason),
+        reason: shiftCheck.reason,
+        nextShiftStartsAt: shiftCheck.nextShiftStartsAt?.toISOString(),
+      },
+      { status: 403 },
+    );
+  }
 
   return NextResponse.json({
     staffId: session.staffId,

@@ -9,7 +9,7 @@ import POSTerminalNav, { type POSView } from "./POSTerminalNav";
 import POSPaymentQROverlay from "./POSPaymentQROverlay";
 import POSCustomerMode from "./POSCustomerMode";
 import POSRegister from "@/components/pos/staff/POSRegister";
-import POSTableView from "@/components/pos/staff/POSTableView";
+import POSTables3DView from "./POSTables3DView";
 import POSActiveOrders from "@/components/pos/staff/POSActiveOrders";
 import POSBilling from "@/components/pos/staff/POSBilling";
 import POSHeldOrders from "@/components/pos/staff/POSHeldOrders";
@@ -341,7 +341,7 @@ export default function POSTerminal() {
           )}
 
           {activeView === "tables" && (
-            <POSTableView
+            <POSTables3DView
               restaurantId={session.restaurantId}
               currency={session.currency}
               onTableSelect={(tableNo) => {
