@@ -20,7 +20,7 @@ export default function PWAInstallPrompt() {
 
   useEffect(() => {
     // Check if already dismissed in this session
-    if (sessionStorage.getItem("pwaPromptDismissed")) {
+    if (localStorage.getItem("pwaPromptDismissed")) {
       return;
     }
 
@@ -54,11 +54,12 @@ export default function PWAInstallPrompt() {
     // We've used the prompt, and can't use it again, throw it away
     setDeferredPrompt(null);
     setShowPrompt(false);
+    localStorage.setItem("pwaPromptDismissed", "true");
   };
 
   const handleDismiss = () => {
     setShowPrompt(false);
-    sessionStorage.setItem("pwaPromptDismissed", "true");
+    localStorage.setItem("pwaPromptDismissed", "true");
   };
 
   return (
