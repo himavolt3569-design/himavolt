@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import {
   Search, DollarSign, Wallet, Banknote,
-  CheckCircle2, Receipt, Tag, SplitSquareHorizontal,
+  CheckCircle2, Receipt, Tag, SplitSquareHorizontal, QrCode,
 } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
 import { useToast } from "@/context/ToastContext";
@@ -26,6 +26,8 @@ interface Props {
   orders: POSOrder[];
   onSplitBill: (orderId: string, orderNo: string, total: number) => void;
   onOptimisticUpdate: (orderId: string, patch: Partial<POSOrder>) => void;
+  /** Optional: open a full-screen payment QR overlay for the customer. */
+  onShowPaymentQR?: (amount: number) => void;
 }
 
 const BILLABLE_STATUSES = new Set(["PENDING", "ACCEPTED", "PREPARING", "READY", "DELIVERED"]);
@@ -46,7 +48,7 @@ async function staffFetch<T = unknown>(url: string, opts?: RequestInit): Promise
   return res.json();
 }
 
-export default function POSBilling({ restaurantId, currency, orders, onSplitBill, onOptimisticUpdate }: Props) {
+export default function POSBilling({ restaurantId, currency, orders, onSplitBill, onOptimisticUpdate, onShowPaymentQR }: Props) {
   const { showToast } = useToast();
   const [search, setSearch] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<POSOrder | null>(null);
@@ -54,23 +56,28 @@ export default function POSBilling({ restaurantId, currency, orders, onSplitBill
   const [discountAmount, setDiscountAmount] = useState("");
   const [filter, setFilter] = useState<"unpaid" | "paid" | "all">("unpaid");
 
-  const fetchBillMap = useCallback(async () => {
-    try {
-      const data = await staffFetch<Array<{ id: string; bill: BillDetails | null }>>(
-        `/api/restaurants/${restaurantId}/billing?filter=all`,
-      );
-      if (Array.isArray(data)) {
+  const fetchBillMap = useCallback(() => {
+    let active = true;
+    staffFetch<Array<{ id: string; bill: BillDetails | null }>>(
+      `/api/restaurants/${restaurantId}/billing?filter=all`,
+    )
+      .then((data) => {
+        if (!active || !Array.isArray(data)) return;
         const map: Record<string, BillDetails> = {};
-        data.forEach((o) => { if (o.bill) map[o.id] = o.bill; });
+        data.forEach((o) => {
+          if (o.bill) map[o.id] = o.bill;
+        });
         setBillMap(map);
-      }
-    } catch {
-      // silent
-    }
+      })
+      .catch(() => {
+        // silent
+      });
+    return () => {
+      active = false;
+    };
   }, [restaurantId]);
 
-  useEffect(() => { fetchBillMap(); }, [fetchBillMap]);
-  useEffect(() => { setDiscountAmount(""); }, [selectedOrder?.id]);
+  useEffect(() => fetchBillMap(), [fetchBillMap]);
 
   const billable = orders.filter((o) => BILLABLE_STATUSES.has(o.status));
   const filtered = billable.filter((o) => {
@@ -163,7 +170,10 @@ export default function POSBilling({ restaurantId, currency, orders, onSplitBill
                 return (
                   <button
                     key={order.id}
-                    onClick={() => setSelectedOrder(order)}
+                    onClick={() => {
+                      setSelectedOrder(order);
+                      setDiscountAmount("");
+                    }}
                     className={`w-full text-left px-4 py-3.5 transition-colors ${
                       isSelected
                         ? "bg-amber-50 border-l-2 border-l-amber-500"
@@ -327,13 +337,24 @@ export default function POSBilling({ restaurantId, currency, orders, onSplitBill
                       );
                     })}
                   </div>
-                  <button
-                    onClick={() => onSplitBill(selectedOrder.id, selectedOrder.orderNo, bill?.total ?? selectedOrder.total)}
-                    className="w-full flex items-center justify-center gap-2.5 rounded-xl border border-[var(--border)] bg-[var(--canvas)] p-3.5 text-sm font-semibold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] active:scale-95 transition-all"
-                  >
-                    <SplitSquareHorizontal className="h-4 w-4" />
-                    Split Bill
-                  </button>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => onSplitBill(selectedOrder.id, selectedOrder.orderNo, bill?.total ?? selectedOrder.total)}
+                      className="flex items-center justify-center gap-2.5 rounded-xl border border-[var(--border)] bg-[var(--canvas)] p-3.5 text-sm font-semibold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] active:scale-95 transition-all"
+                    >
+                      <SplitSquareHorizontal className="h-4 w-4" />
+                      Split Bill
+                    </button>
+                    {onShowPaymentQR && (
+                      <button
+                        onClick={() => onShowPaymentQR(bill?.total ?? selectedOrder.total)}
+                        className="flex items-center justify-center gap-2.5 rounded-xl border border-[var(--accent-border)] bg-[var(--accent-muted)] p-3.5 text-sm font-bold text-[var(--accent-text)] hover:bg-[var(--accent)]/20 active:scale-95 transition-all"
+                      >
+                        <QrCode className="h-4 w-4" />
+                        Show QR
+                      </button>
+                    )}
+                  </div>
                 </div>
               )}
 
