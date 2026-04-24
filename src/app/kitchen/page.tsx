@@ -33,6 +33,7 @@ import {
   Receipt,
   Camera,
   GalleryHorizontalEnd,
+  Monitor,
 } from "lucide-react";
 import BillingTab from "@/components/billing/BillingTab";
 import StoryManager from "@/components/stories/StoryManager";
@@ -88,7 +89,7 @@ const STAFF_FEATURE_COMPONENTS: Record<FeatureTabId, React.ComponentType> = {
   "quick-counter": QuickCounterTab,
   "combo-meals": ComboMealsTab,
   "rush-hour": RushHourTab,
-  "takeaway": TakeawayTab,
+  takeaway: TakeawayTab,
   "room-service": RoomServiceTab,
   "multi-outlet": MultiOutletTab,
   "event-catering": EventCateringTab,
@@ -111,7 +112,7 @@ const STAFF_FEATURE_COMPONENTS: Record<FeatureTabId, React.ComponentType> = {
   "seasonal-menu": SeasonalMenuTab,
   "brunch-mode": BrunchModeTab,
   "table-reservations": TableReservationsTab,
-  "waitlist": WaitlistTab,
+  waitlist: WaitlistTab,
   "private-dining": PrivateDiningTab,
   "wifi-settings": WifiSettingsTab,
   "guest-checkin": GuestCheckInTab,
@@ -119,7 +120,6 @@ const STAFF_FEATURE_COMPONENTS: Record<FeatureTabId, React.ComponentType> = {
   "hotel-bookings": HotelBookingsTab,
   "hotel-qr": HotelQRTab,
 };
-
 
 interface StaffSession {
   userId: string;
@@ -136,6 +136,7 @@ interface StaffSession {
   taxEnabled: boolean;
   featuresEnabled?: string[];
   featuresDisabled?: string[];
+  posEnabled?: boolean;
 }
 
 interface OrderItem {
@@ -199,7 +200,18 @@ interface ChatRoom {
   }[];
 }
 
-type TabId = "orders" | "menu" | "chat" | "inventory" | "billing" | "stories" | "media" | "tables" | "manual" | "waiter-order" | FeatureTabId;
+type TabId =
+  | "orders"
+  | "menu"
+  | "chat"
+  | "inventory"
+  | "billing"
+  | "stories"
+  | "media"
+  | "tables"
+  | "manual"
+  | "waiter-order"
+  | FeatureTabId;
 
 const ALL_TABS: {
   id: TabId;
@@ -274,8 +286,10 @@ const STATUS_COLORS: Record<string, string> = {
   PENDING: "bg-orange-50 text-orange-700 border-orange-200",
   ACCEPTED: "bg-blue-50 text-blue-700 border-blue-200",
   PREPARING: "bg-amber-50 text-amber-700 border-amber-200",
-  READY: "bg-[var(--accent-muted)] text-[#b25c1c] border-[var(--accent-border)]",
-  DELIVERED: "bg-[var(--canvas-sub)] text-[var(--text-2)] border-[var(--border)]",
+  READY:
+    "bg-[var(--accent-muted)] text-[#b25c1c] border-[var(--accent-border)]",
+  DELIVERED:
+    "bg-[var(--canvas-sub)] text-[var(--text-2)] border-[var(--border)]",
   CANCELLED: "bg-red-50 text-red-600 border-red-200",
   REJECTED: "bg-red-50 text-red-600 border-red-200",
 };
@@ -320,7 +334,6 @@ const ROLE_CONFIG: Record<
   },
 };
 
-
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
@@ -340,12 +353,13 @@ async function staffFetch(url: string, opts?: RequestInit) {
     try {
       const body = await res.json();
       if (body?.error) msg = body.error;
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     throw new Error(msg);
   }
   return res.json();
 }
-
 
 function playAlertSound() {
   try {
@@ -370,7 +384,13 @@ function playAlertSound() {
   }
 }
 
-function OrdersTab({ restaurantId, currency }: { restaurantId: string; currency: string }) {
+function OrdersTab({
+  restaurantId,
+  currency,
+}: {
+  restaurantId: string;
+  currency: string;
+}) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("active");
@@ -467,7 +487,10 @@ function OrdersTab({ restaurantId, currency }: { restaurantId: string; currency:
       setEstTime("15");
       showToast("Order accepted!", "success");
     } catch (err) {
-      showToast(err instanceof Error ? err.message : "Cannot accept order", "error");
+      showToast(
+        err instanceof Error ? err.message : "Cannot accept order",
+        "error",
+      );
     }
   };
 
@@ -476,7 +499,10 @@ function OrdersTab({ restaurantId, currency }: { restaurantId: string; currency:
       await updateStatus(orderId, "REJECTED");
       showToast("Order rejected", "info");
     } catch (err) {
-      showToast(err instanceof Error ? err.message : "Failed to reject order", "error");
+      showToast(
+        err instanceof Error ? err.message : "Failed to reject order",
+        "error",
+      );
     }
   };
 
@@ -608,203 +634,265 @@ function OrdersTab({ restaurantId, currency }: { restaurantId: string; currency:
               <div className="mt-2 flex items-center gap-1.5 text-[10px]">
                 <CreditCard className="h-3 w-3 text-[var(--text-3)]" />
                 <span className="font-bold text-[var(--text-2)]">
-                  {order.payment.method === "ESEWA" ? "eSewa" :
-                   order.payment.method === "KHALTI" ? "Khalti" :
-                   order.payment.method === "BANK" ? "Bank" :
-                   order.payment.method === "COUNTER" ? "Counter" :
-                   order.payment.method === "DIRECT" ? "Direct" : "Cash"}
+                  {order.payment.method === "ESEWA"
+                    ? "eSewa"
+                    : order.payment.method === "KHALTI"
+                      ? "Khalti"
+                      : order.payment.method === "BANK"
+                        ? "Bank"
+                        : order.payment.method === "COUNTER"
+                          ? "Counter"
+                          : order.payment.method === "DIRECT"
+                            ? "Direct"
+                            : "Cash"}
                 </span>
                 <span
                   className={`rounded-full px-1.5 py-0.5 font-bold ${
                     order.payment.status === "COMPLETED"
                       ? "bg-[var(--accent-muted)] text-[#b25c1c]"
-                      : order.payment.status === "FAILED" || order.payment.status === "EXPIRED" || order.payment.status === "CANCELLED"
-                      ? "bg-red-50 text-red-600"
-                      : order.payment.status === "AWAITING_VERIFICATION"
-                      ? "bg-blue-50 text-blue-600"
-                      : "bg-amber-50 text-amber-600"
+                      : order.payment.status === "FAILED" ||
+                          order.payment.status === "EXPIRED" ||
+                          order.payment.status === "CANCELLED"
+                        ? "bg-red-50 text-red-600"
+                        : order.payment.status === "AWAITING_VERIFICATION"
+                          ? "bg-blue-50 text-blue-600"
+                          : "bg-amber-50 text-amber-600"
                   }`}
                 >
-                  {order.payment.status === "COMPLETED" ? "Paid" :
-                   order.payment.status === "FAILED" ? "Failed" :
-                   order.payment.status === "EXPIRED" ? "Expired" :
-                   order.payment.status === "CANCELLED" ? "Cancelled" :
-                   order.payment.status === "AWAITING_VERIFICATION" ? "Verifying" : "Pending"}
+                  {order.payment.status === "COMPLETED"
+                    ? "Paid"
+                    : order.payment.status === "FAILED"
+                      ? "Failed"
+                      : order.payment.status === "EXPIRED"
+                        ? "Expired"
+                        : order.payment.status === "CANCELLED"
+                          ? "Cancelled"
+                          : order.payment.status === "AWAITING_VERIFICATION"
+                            ? "Verifying"
+                            : "Pending"}
                 </span>
               </div>
             )}
 
-            {order.status === "PENDING" && (() => {
-              const isUnpaid =
-                order.payment &&
-                order.payment.status !== "COMPLETED";
-              const methodLabels: Record<string, string> = {
-                ESEWA: "eSewa", KHALTI: "Khalti", BANK: "Bank Transfer",
-                CASH: "Cash", COUNTER: "Counter", DIRECT: "Direct",
-              };
-              const methodLabel = methodLabels[order.payment?.method ?? ""] ?? order.payment?.method ?? "";
-              const statusLabel =
-                order.payment?.status === "AWAITING_VERIFICATION" ? "Verification Pending" :
-                order.payment?.status === "FAILED" ? "Payment Failed" :
-                order.payment?.status === "EXPIRED" ? "Payment Expired" :
-                order.payment?.status === "CANCELLED" ? "Payment Cancelled" :
-                "Payment Pending";
+            {order.status === "PENDING" &&
+              (() => {
+                const isUnpaid =
+                  order.payment && order.payment.status !== "COMPLETED";
+                const methodLabels: Record<string, string> = {
+                  ESEWA: "eSewa",
+                  KHALTI: "Khalti",
+                  BANK: "Bank Transfer",
+                  CASH: "Cash",
+                  COUNTER: "Counter",
+                  DIRECT: "Direct",
+                };
+                const methodLabel =
+                  methodLabels[order.payment?.method ?? ""] ??
+                  order.payment?.method ??
+                  "";
+                const statusLabel =
+                  order.payment?.status === "AWAITING_VERIFICATION"
+                    ? "Verification Pending"
+                    : order.payment?.status === "FAILED"
+                      ? "Payment Failed"
+                      : order.payment?.status === "EXPIRED"
+                        ? "Payment Expired"
+                        : order.payment?.status === "CANCELLED"
+                          ? "Payment Cancelled"
+                          : "Payment Pending";
 
-              return isUnpaid ? (
-                <div className="mt-3 space-y-2">
-                  <div className={`rounded-xl p-3 ${
-                    order.payment?.status === "AWAITING_VERIFICATION"
-                      ? "bg-blue-50 border border-blue-200"
-                      : order.payment?.status === "FAILED" || order.payment?.status === "EXPIRED" || order.payment?.status === "CANCELLED"
-                      ? "bg-red-50 border border-red-200"
-                      : "bg-amber-50 border border-amber-200"
-                  }`}>
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <span className="relative flex h-2 w-2">
-                        <span className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-75 ${
-                          order.payment?.status === "AWAITING_VERIFICATION" ? "bg-blue-400" :
-                          order.payment?.status === "FAILED" || order.payment?.status === "EXPIRED" || order.payment?.status === "CANCELLED" ? "bg-red-400" : "bg-amber-400"
-                        }`} />
-                        <span className={`relative inline-flex h-2 w-2 rounded-full ${
-                          order.payment?.status === "AWAITING_VERIFICATION" ? "bg-blue-500" :
-                          order.payment?.status === "FAILED" || order.payment?.status === "EXPIRED" || order.payment?.status === "CANCELLED" ? "bg-red-500" : "bg-amber-500"
-                        }`} />
-                      </span>
-                      <span className={`text-[11px] font-bold ${
-                        order.payment?.status === "AWAITING_VERIFICATION" ? "text-blue-700" :
-                        order.payment?.status === "FAILED" || order.payment?.status === "EXPIRED" || order.payment?.status === "CANCELLED" ? "text-red-700" : "text-amber-700"
-                      }`}>
-                        {statusLabel} — {methodLabel}
-                      </span>
-                    </div>
-                    <p className={`text-[10px] ${
-                      order.payment?.status === "AWAITING_VERIFICATION" ? "text-blue-600" :
-                      order.payment?.status === "FAILED" || order.payment?.status === "EXPIRED" || order.payment?.status === "CANCELLED" ? "text-red-600" : "text-amber-600"
-                    }`}>
-                      {order.payment?.status === "AWAITING_VERIFICATION"
-                        ? "Customer uploaded proof. Biller must verify before kitchen can accept."
-                        : order.payment?.status === "FAILED" || order.payment?.status === "EXPIRED" || order.payment?.status === "CANCELLED"
-                        ? "Payment was not successful. Order cannot be accepted."
-                        : "Payment not yet confirmed. Biller must mark as paid or customer must complete payment."}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => handleReject(order.id)}
-                    className="w-full flex items-center justify-center gap-1 rounded-xl bg-red-50 px-4 py-2.5 text-xs font-bold text-red-600 hover:bg-red-100 transition-all"
-                  >
-                    <X className="h-3.5 w-3.5" /> Reject Order
-                  </button>
-                </div>
-              ) : (
-                <div className="mt-3 space-y-2">
-                  <AnimatePresence>
-                    {acceptingId === order.id ? (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="overflow-hidden"
+                return isUnpaid ? (
+                  <div className="mt-3 space-y-2">
+                    <div
+                      className={`rounded-xl p-3 ${
+                        order.payment?.status === "AWAITING_VERIFICATION"
+                          ? "bg-blue-50 border border-blue-200"
+                          : order.payment?.status === "FAILED" ||
+                              order.payment?.status === "EXPIRED" ||
+                              order.payment?.status === "CANCELLED"
+                            ? "bg-red-50 border border-red-200"
+                            : "bg-amber-50 border border-amber-200"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <span className="relative flex h-2 w-2">
+                          <span
+                            className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-75 ${
+                              order.payment?.status === "AWAITING_VERIFICATION"
+                                ? "bg-blue-400"
+                                : order.payment?.status === "FAILED" ||
+                                    order.payment?.status === "EXPIRED" ||
+                                    order.payment?.status === "CANCELLED"
+                                  ? "bg-red-400"
+                                  : "bg-amber-400"
+                            }`}
+                          />
+                          <span
+                            className={`relative inline-flex h-2 w-2 rounded-full ${
+                              order.payment?.status === "AWAITING_VERIFICATION"
+                                ? "bg-blue-500"
+                                : order.payment?.status === "FAILED" ||
+                                    order.payment?.status === "EXPIRED" ||
+                                    order.payment?.status === "CANCELLED"
+                                  ? "bg-red-500"
+                                  : "bg-amber-500"
+                            }`}
+                          />
+                        </span>
+                        <span
+                          className={`text-[11px] font-bold ${
+                            order.payment?.status === "AWAITING_VERIFICATION"
+                              ? "text-blue-700"
+                              : order.payment?.status === "FAILED" ||
+                                  order.payment?.status === "EXPIRED" ||
+                                  order.payment?.status === "CANCELLED"
+                                ? "text-red-700"
+                                : "text-amber-700"
+                          }`}
+                        >
+                          {statusLabel} — {methodLabel}
+                        </span>
+                      </div>
+                      <p
+                        className={`text-[10px] ${
+                          order.payment?.status === "AWAITING_VERIFICATION"
+                            ? "text-blue-600"
+                            : order.payment?.status === "FAILED" ||
+                                order.payment?.status === "EXPIRED" ||
+                                order.payment?.status === "CANCELLED"
+                              ? "text-red-600"
+                              : "text-amber-600"
+                        }`}
                       >
-                        <div className="rounded-xl bg-brand-50 p-3 space-y-2">
-                          <label className="text-[11px] font-bold text-brand-700">
-                            Estimated prep time (minutes)
-                          </label>
-                          <div className="flex items-center gap-2">
-                            <div className="flex items-center gap-1 flex-1">
-                              <button
-                                onClick={() =>
-                                  setEstTime((v) =>
-                                    String(
-                                      Math.max(1, parseInt(v || "0", 10) - 5),
-                                    ),
-                                  )
-                                }
-                                className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--canvas)] border border-[var(--border)] text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors"
-                              >
-                                <Minus className="h-3.5 w-3.5" />
-                              </button>
-                              <div className="relative flex-1">
-                                <Clock className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-brand-400" />
-                                <input
-                                  type="number"
-                                  min="1"
-                                  max="120"
-                                  value={estTime}
-                                  onChange={(e) => setEstTime(e.target.value)}
-                                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--canvas)] py-2 pl-8 pr-3 text-center text-sm font-bold text-[var(--text-1)] outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400/20"
-                                />
+                        {order.payment?.status === "AWAITING_VERIFICATION"
+                          ? "Customer uploaded proof. Biller must verify before kitchen can accept."
+                          : order.payment?.status === "FAILED" ||
+                              order.payment?.status === "EXPIRED" ||
+                              order.payment?.status === "CANCELLED"
+                            ? "Payment was not successful. Order cannot be accepted."
+                            : "Payment not yet confirmed. Biller must mark as paid or customer must complete payment."}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleReject(order.id)}
+                      className="w-full flex items-center justify-center gap-1 rounded-xl bg-red-50 px-4 py-2.5 text-xs font-bold text-red-600 hover:bg-red-100 transition-all"
+                    >
+                      <X className="h-3.5 w-3.5" /> Reject Order
+                    </button>
+                  </div>
+                ) : (
+                  <div className="mt-3 space-y-2">
+                    <AnimatePresence>
+                      {acceptingId === order.id ? (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="rounded-xl bg-brand-50 p-3 space-y-2">
+                            <label className="text-[11px] font-bold text-brand-700">
+                              Estimated prep time (minutes)
+                            </label>
+                            <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-1 flex-1">
+                                <button
+                                  onClick={() =>
+                                    setEstTime((v) =>
+                                      String(
+                                        Math.max(1, parseInt(v || "0", 10) - 5),
+                                      ),
+                                    )
+                                  }
+                                  className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--canvas)] border border-[var(--border)] text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors"
+                                >
+                                  <Minus className="h-3.5 w-3.5" />
+                                </button>
+                                <div className="relative flex-1">
+                                  <Clock className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-brand-400" />
+                                  <input
+                                    type="number"
+                                    min="1"
+                                    max="120"
+                                    value={estTime}
+                                    onChange={(e) => setEstTime(e.target.value)}
+                                    className="w-full rounded-lg border border-[var(--border)] bg-[var(--canvas)] py-2 pl-8 pr-3 text-center text-sm font-bold text-[var(--text-1)] outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400/20"
+                                  />
+                                </div>
+                                <button
+                                  onClick={() =>
+                                    setEstTime((v) =>
+                                      String(
+                                        Math.min(
+                                          120,
+                                          parseInt(v || "0", 10) + 5,
+                                        ),
+                                      ),
+                                    )
+                                  }
+                                  className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--canvas)] border border-[var(--border)] text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors"
+                                >
+                                  <Plus className="h-3.5 w-3.5" />
+                                </button>
                               </div>
+                              <span className="text-xs font-bold text-[var(--text-3)]">
+                                min
+                              </span>
+                            </div>
+                            <div className="flex gap-2 pt-1">
+                              {[10, 15, 20, 30, 45].map((t) => (
+                                <button
+                                  key={t}
+                                  onClick={() => setEstTime(String(t))}
+                                  className={`flex-1 rounded-lg py-1.5 text-[10px] font-bold transition-all ${
+                                    estTime === String(t)
+                                      ? "bg-brand-400 text-white"
+                                      : "bg-[var(--canvas)] border border-[var(--border)] text-[var(--text-2)] hover:border-brand-400 hover:text-brand-400"
+                                  }`}
+                                >
+                                  {t}m
+                                </button>
+                              ))}
+                            </div>
+                            <div className="flex gap-2 pt-1">
                               <button
-                                onClick={() =>
-                                  setEstTime((v) =>
-                                    String(
-                                      Math.min(120, parseInt(v || "0", 10) + 5),
-                                    ),
-                                  )
-                                }
-                                className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--canvas)] border border-[var(--border)] text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors"
+                                onClick={() => handleAccept(order.id)}
+                                className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-brand-400 py-2.5 text-xs font-bold text-white hover:bg-brand-500 transition-all shadow-sm shadow-brand-400/20"
                               >
-                                <Plus className="h-3.5 w-3.5" />
+                                <Check className="h-3.5 w-3.5" /> Confirm Accept
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setAcceptingId(null);
+                                  setEstTime("15");
+                                }}
+                                className="rounded-xl bg-[var(--surface)] px-3 py-2.5 text-xs font-bold text-[var(--text-2)] hover:bg-gray-200 transition-all"
+                              >
+                                Cancel
                               </button>
                             </div>
-                            <span className="text-xs font-bold text-[var(--text-3)]">
-                              min
-                            </span>
                           </div>
-                          <div className="flex gap-2 pt-1">
-                            {[10, 15, 20, 30, 45].map((t) => (
-                              <button
-                                key={t}
-                                onClick={() => setEstTime(String(t))}
-                                className={`flex-1 rounded-lg py-1.5 text-[10px] font-bold transition-all ${
-                                  estTime === String(t)
-                                    ? "bg-brand-400 text-white"
-                                    : "bg-[var(--canvas)] border border-[var(--border)] text-[var(--text-2)] hover:border-brand-400 hover:text-brand-400"
-                                }`}
-                              >
-                                {t}m
-                              </button>
-                            ))}
-                          </div>
-                          <div className="flex gap-2 pt-1">
-                            <button
-                              onClick={() => handleAccept(order.id)}
-                              className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-brand-400 py-2.5 text-xs font-bold text-white hover:bg-brand-500 transition-all shadow-sm shadow-brand-400/20"
-                            >
-                              <Check className="h-3.5 w-3.5" /> Confirm Accept
-                            </button>
-                            <button
-                              onClick={() => {
-                                setAcceptingId(null);
-                                setEstTime("15");
-                              }}
-                              className="rounded-xl bg-[var(--surface)] px-3 py-2.5 text-xs font-bold text-[var(--text-2)] hover:bg-gray-200 transition-all"
-                            >
-                              Cancel
-                            </button>
-                          </div>
+                        </motion.div>
+                      ) : (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => setAcceptingId(order.id)}
+                            className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-brand-400 py-2.5 text-xs font-bold text-white hover:bg-brand-500 transition-all shadow-sm shadow-brand-400/20"
+                          >
+                            <Check className="h-3.5 w-3.5" /> Accept
+                          </button>
+                          <button
+                            onClick={() => handleReject(order.id)}
+                            className="flex items-center justify-center gap-1 rounded-xl bg-red-50 px-4 py-2.5 text-xs font-bold text-red-600 hover:bg-red-100 transition-all"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
                         </div>
-                      </motion.div>
-                    ) : (
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => setAcceptingId(order.id)}
-                          className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-brand-400 py-2.5 text-xs font-bold text-white hover:bg-brand-500 transition-all shadow-sm shadow-brand-400/20"
-                        >
-                          <Check className="h-3.5 w-3.5" /> Accept
-                        </button>
-                        <button
-                          onClick={() => handleReject(order.id)}
-                          className="flex items-center justify-center gap-1 rounded-xl bg-red-50 px-4 py-2.5 text-xs font-bold text-red-600 hover:bg-red-100 transition-all"
-                        >
-                          <X className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              );
-            })()}
+                      )}
+                    </AnimatePresence>
+                  </div>
+                );
+              })()}
             {order.status === "ACCEPTED" && (
               <button
                 onClick={() => updateStatus(order.id, "PREPARING")}
@@ -836,8 +924,13 @@ function OrdersTab({ restaurantId, currency }: { restaurantId: string; currency:
   );
 }
 
-
-function MenuTab({ restaurantId, currency }: { restaurantId: string; currency: string }) {
+function MenuTab({
+  restaurantId,
+  currency,
+}: {
+  restaurantId: string;
+  currency: string;
+}) {
   const [items, setItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -955,7 +1048,6 @@ function MenuTab({ restaurantId, currency }: { restaurantId: string; currency: s
     </div>
   );
 }
-
 
 function ChatTab({
   restaurantId,
@@ -1392,8 +1484,13 @@ function ChatTab({
   );
 }
 
-
-function InventoryTab({ restaurantId, currency }: { restaurantId: string; currency: string }) {
+function InventoryTab({
+  restaurantId,
+  currency,
+}: {
+  restaurantId: string;
+  currency: string;
+}) {
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
@@ -1535,7 +1632,9 @@ function InventoryTab({ restaurantId, currency }: { restaurantId: string; curren
             exit={{ opacity: 0, height: 0 }}
             className="rounded-2xl bg-[var(--canvas)] border border-[var(--border-soft)] p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] space-y-4 overflow-hidden"
           >
-            <h4 className="text-sm font-bold text-[var(--text-1)]">Add Stock Item</h4>
+            <h4 className="text-sm font-bold text-[var(--text-1)]">
+              Add Stock Item
+            </h4>
             <div className="grid grid-cols-2 gap-3">
               <div className="col-span-2">
                 <label className="block text-[11px] font-bold text-[var(--text-2)] uppercase tracking-wider mb-1.5">
@@ -1733,7 +1832,6 @@ function InventoryTab({ restaurantId, currency }: { restaurantId: string; curren
   );
 }
 
-
 export default function KitchenPage() {
   const router = useRouter();
   const { showToast } = useToast();
@@ -1832,7 +1930,9 @@ export default function KitchenPage() {
       <div className="dark min-h-screen bg-[#0a0a0a] flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="h-8 w-8 text-brand-400 animate-spin" />
-          <p className="text-sm font-medium text-[var(--text-2)]">Loading portal...</p>
+          <p className="text-sm font-medium text-[var(--text-2)]">
+            Loading portal...
+          </p>
         </div>
       </div>
     );
@@ -1850,10 +1950,13 @@ export default function KitchenPage() {
   // - SUPER_ADMIN / MANAGER: all feature tabs for the restaurant type
   // - CHEF / WAITER: only kitchen-safe features (order-focused, no billing)
   // - CASHIER: handled via billing tab + feature tabs for SUPER_ADMIN/MANAGER above
-  const featureTabs = getFeatureTabsForType(session.restaurantType || "RESTAURANT", {
-    featuresEnabled: session.featuresEnabled,
-    featuresDisabled: session.featuresDisabled,
-  });
+  const featureTabs = getFeatureTabsForType(
+    session.restaurantType || "RESTAURANT",
+    {
+      featuresEnabled: session.featuresEnabled,
+      featuresDisabled: session.featuresDisabled,
+    },
+  );
   const featureTabItems = (() => {
     if (roleKey === "SUPER_ADMIN" || roleKey === "MANAGER") {
       return featureTabs.map((f) => ({
@@ -1927,6 +2030,16 @@ export default function KitchenPage() {
                 <span className="hidden sm:inline">Counter</span>
               </a>
 
+              {session.posEnabled && roleKey !== "CHEF" && (
+                <a
+                  href="/pos/staff"
+                  className="flex items-center gap-1 rounded-lg border border-emerald-200 px-2.5 py-1.5 text-[10px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition-all"
+                >
+                  <Monitor className="h-3 w-3" />
+                  <span className="hidden sm:inline">POS</span>
+                </a>
+              )}
+
               <button
                 onClick={() => setShowProfile(true)}
                 className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--canvas)] px-2.5 py-1.5 text-[11px] font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] hover:border-gray-300 transition-all shadow-sm"
@@ -1981,7 +2094,9 @@ export default function KitchenPage() {
                     <h3 className="text-base font-bold text-[var(--text-1)]">
                       {session.name}
                     </h3>
-                    <p className="text-xs text-[var(--text-2)]">{config.label}</p>
+                    <p className="text-xs text-[var(--text-2)]">
+                      {config.label}
+                    </p>
                   </div>
                 </div>
 
@@ -2043,7 +2158,15 @@ export default function KitchenPage() {
         <div className="mx-auto max-w-5xl px-4 sm:px-6">
           {/* FOH / BOH group headers — only shown for roles that have both */}
           {(() => {
-            const FOH_TAB_IDS: TabId[] = ["waiter-order", "tables", "billing", "manual", "chat", "stories", "media"];
+            const FOH_TAB_IDS: TabId[] = [
+              "waiter-order",
+              "tables",
+              "billing",
+              "manual",
+              "chat",
+              "stories",
+              "media",
+            ];
             const BOH_TAB_IDS: TabId[] = ["orders", "menu", "inventory"];
             const hasFOH = TABS.some((t) => FOH_TAB_IDS.includes(t.id));
             const hasBOH = TABS.some((t) => BOH_TAB_IDS.includes(t.id));
@@ -2067,7 +2190,15 @@ export default function KitchenPage() {
             style={{ scrollbarWidth: "none" }}
           >
             {(() => {
-              const FOH_TAB_IDS: TabId[] = ["waiter-order", "tables", "billing", "manual", "chat", "stories", "media"];
+              const FOH_TAB_IDS: TabId[] = [
+                "waiter-order",
+                "tables",
+                "billing",
+                "manual",
+                "chat",
+                "stories",
+                "media",
+              ];
               const BOH_TAB_IDS: TabId[] = ["orders", "menu", "inventory"];
               const hasFOH = TABS.some((t) => FOH_TAB_IDS.includes(t.id));
               const hasBOH = TABS.some((t) => BOH_TAB_IDS.includes(t.id));
@@ -2079,13 +2210,24 @@ export default function KitchenPage() {
               TABS.forEach((tab) => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
-                const group = FOH_TAB_IDS.includes(tab.id) ? "foh"
-                  : BOH_TAB_IDS.includes(tab.id) ? "boh" : "other";
+                const group = FOH_TAB_IDS.includes(tab.id)
+                  ? "foh"
+                  : BOH_TAB_IDS.includes(tab.id)
+                    ? "boh"
+                    : "other";
 
                 // Add divider between FOH and BOH groups
-                if (showGroups && lastGroup && lastGroup !== group && group !== "other") {
+                if (
+                  showGroups &&
+                  lastGroup &&
+                  lastGroup !== group &&
+                  group !== "other"
+                ) {
                   elements.push(
-                    <div key={`divider-${tab.id}`} className="mx-1 w-px self-stretch bg-gray-200 my-1" />
+                    <div
+                      key={`divider-${tab.id}`}
+                      className="mx-1 w-px self-stretch bg-gray-200 my-1"
+                    />,
                   );
                 }
                 lastGroup = group;
@@ -2114,12 +2256,16 @@ export default function KitchenPage() {
                               ? "bg-orange-600 shadow-orange-600/20"
                               : "bg-brand-400 shadow-brand-400/20"
                         }`}
-                        transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
+                        transition={{
+                          type: "spring",
+                          bounce: 0.15,
+                          duration: 0.5,
+                        }}
                       />
                     )}
                     <Icon className="relative z-10 h-3.5 w-3.5" />
                     <span className="relative z-10">{tab.label}</span>
-                  </button>
+                  </button>,
                 );
               });
               return elements;
@@ -2138,7 +2284,10 @@ export default function KitchenPage() {
             transition={{ duration: 0.2 }}
           >
             {activeTab === "orders" && (
-              <OrdersTab restaurantId={session.restaurantId} currency={session.currency ?? "NPR"} />
+              <OrdersTab
+                restaurantId={session.restaurantId}
+                currency={session.currency ?? "NPR"}
+              />
             )}
             {activeTab === "billing" && (
               <BillingTab
@@ -2148,7 +2297,10 @@ export default function KitchenPage() {
               />
             )}
             {activeTab === "menu" && (
-              <MenuTab restaurantId={session.restaurantId} currency={session.currency ?? "NPR"} />
+              <MenuTab
+                restaurantId={session.restaurantId}
+                currency={session.currency ?? "NPR"}
+              />
             )}
             {activeTab === "chat" && (
               <ChatTab
@@ -2158,7 +2310,10 @@ export default function KitchenPage() {
               />
             )}
             {activeTab === "inventory" && (
-              <InventoryTab restaurantId={session.restaurantId} currency={session.currency ?? "NPR"} />
+              <InventoryTab
+                restaurantId={session.restaurantId}
+                currency={session.currency ?? "NPR"}
+              />
             )}
             {activeTab === "stories" && (
               <StoryManager
@@ -2166,8 +2321,15 @@ export default function KitchenPage() {
                 staffRole={session.role}
               />
             )}
-            {activeTab === "media" && <MediaTab restaurantId={session.restaurantId} />}
-            {activeTab === "tables" && <TablesTab restaurantId={session.restaurantId} currency={session.currency} />}
+            {activeTab === "media" && (
+              <MediaTab restaurantId={session.restaurantId} />
+            )}
+            {activeTab === "tables" && (
+              <TablesTab
+                restaurantId={session.restaurantId}
+                currency={session.currency}
+              />
+            )}
             {activeTab === "manual" && (
               <ManualBillingTab
                 restaurantId={session.restaurantId}
@@ -2179,12 +2341,17 @@ export default function KitchenPage() {
                 taxEnabled={session.taxEnabled}
               />
             )}
-            {activeTab === "waiter-order" && <WaiterOrderTab restaurantId={session.restaurantId} />}
+            {activeTab === "waiter-order" && (
+              <WaiterOrderTab restaurantId={session.restaurantId} />
+            )}
             {/* Type-specific feature tabs */}
             {(() => {
-              const FeatureComponent = STAFF_FEATURE_COMPONENTS[activeTab as FeatureTabId];
+              const FeatureComponent =
+                STAFF_FEATURE_COMPONENTS[activeTab as FeatureTabId];
               if (!FeatureComponent) return null;
-              const Comp = FeatureComponent as React.ComponentType<{ restaurantId?: string }>;
+              const Comp = FeatureComponent as React.ComponentType<{
+                restaurantId?: string;
+              }>;
               return <Comp restaurantId={session.restaurantId} />;
             })()}
           </motion.div>

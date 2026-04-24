@@ -84,7 +84,7 @@ const COUNTER_FEATURE_COMPONENTS: Record<FeatureTabId, React.ComponentType> = {
   "quick-counter": QuickCounterTab,
   "combo-meals": ComboMealsTab,
   "rush-hour": RushHourTab,
-  "takeaway": TakeawayTab,
+  takeaway: TakeawayTab,
   "room-service": RoomServiceTab,
   "multi-outlet": MultiOutletTab,
   "event-catering": EventCateringTab,
@@ -107,7 +107,7 @@ const COUNTER_FEATURE_COMPONENTS: Record<FeatureTabId, React.ComponentType> = {
   "seasonal-menu": SeasonalMenuTab,
   "brunch-mode": BrunchModeTab,
   "table-reservations": TableReservationsTab,
-  "waitlist": WaitlistTab,
+  waitlist: WaitlistTab,
   "private-dining": PrivateDiningTab,
   "wifi-settings": WifiSettingsTab,
   "guest-checkin": GuestCheckInTab,
@@ -115,7 +115,6 @@ const COUNTER_FEATURE_COMPONENTS: Record<FeatureTabId, React.ComponentType> = {
   "hotel-bookings": HotelBookingsTab,
   "hotel-qr": HotelQRTab,
 };
-
 
 interface StaffSession {
   userId: string;
@@ -130,6 +129,7 @@ interface StaffSession {
   restaurantPhone: string;
   taxRate: number;
   taxEnabled: boolean;
+  posEnabled?: boolean;
 }
 
 interface OrderItem {
@@ -207,7 +207,6 @@ interface SSEOrder {
   payment?: { method: string; status: string } | null;
 }
 
-
 const STATUS_COLORS: Record<string, string> = {
   PENDING: "bg-orange-100 text-orange-700",
   ACCEPTED: "bg-blue-100 text-blue-700",
@@ -217,7 +216,6 @@ const STATUS_COLORS: Record<string, string> = {
   CANCELLED: "bg-red-100 text-red-600",
   REJECTED: "bg-red-100 text-red-600",
 };
-
 
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -305,7 +303,6 @@ function playNewOrderSound() {
 }
 
 const isPaid = (o: BillOrder) => o.payment?.status === "COMPLETED";
-
 
 function TokenBoard({ orders }: { orders: SSEOrder[] }) {
   const readyOrders = orders.filter((o) => o.status === "READY");
@@ -414,7 +411,6 @@ function TokenBoard({ orders }: { orders: SSEOrder[] }) {
     </div>
   );
 }
-
 
 function SummaryCard({
   label,
@@ -559,7 +555,6 @@ function BillingPanel({
     }, 8000);
     return () => clearInterval(iv);
   }, [loadOrders, loadSummary]);
-
 
   const handleCollectPayment = async () => {
     if (!selectedOrder) return;
@@ -1043,13 +1038,16 @@ function BillingPanel({
                       Cash
                     </span>
                   ) : order.payment.method === "DIRECT" ? (
-                    <span className={`flex items-center gap-0.5 rounded-lg border px-2 py-0.5 text-[10px] font-bold ${
-                      order.payment.status === "COMPLETED"
-                        ? "bg-[var(--accent-muted)] border-[var(--accent-border)] text-[#b25c1c]"
-                        : "bg-orange-50 border-orange-200 text-orange-700"
-                    }`}>
+                    <span
+                      className={`flex items-center gap-0.5 rounded-lg border px-2 py-0.5 text-[10px] font-bold ${
+                        order.payment.status === "COMPLETED"
+                          ? "bg-[var(--accent-muted)] border-[var(--accent-border)] text-[#b25c1c]"
+                          : "bg-orange-50 border-orange-200 text-orange-700"
+                      }`}
+                    >
                       <Receipt className="h-2.5 w-2.5" />
-                      Fast Pay &middot; {order.payment.status === "COMPLETED" ? "Paid" : "Unpaid"}
+                      Fast Pay &middot;{" "}
+                      {order.payment.status === "COMPLETED" ? "Paid" : "Unpaid"}
                     </span>
                   ) : (
                     <span className="flex items-center gap-0.5 rounded-lg bg-purple-50 border border-purple-100 px-2 py-0.5 text-[10px] font-bold text-purple-700">
@@ -1117,7 +1115,10 @@ function BillingPanel({
               <div className="flex justify-between text-xs">
                 <span className="text-[var(--text-2)]">Subtotal</span>
                 <span className="font-medium">
-                  {formatPrice(order.bill?.subtotal ?? order.subtotal, currency)}
+                  {formatPrice(
+                    order.bill?.subtotal ?? order.subtotal,
+                    currency,
+                  )}
                 </span>
               </div>
               {taxEnabled && (
@@ -1140,7 +1141,9 @@ function BillingPanel({
               )}
               {order.bill && order.bill.discount > 0 && (
                 <div className="flex justify-between text-xs">
-                  <span className="text-[var(--accent-text)] font-medium">Discount</span>
+                  <span className="text-[var(--accent-text)] font-medium">
+                    Discount
+                  </span>
                   <span className="font-medium text-[var(--accent-text)]">
                     -{formatPrice(order.bill.discount, currency)}
                   </span>
@@ -1261,12 +1264,16 @@ function BillingPanel({
                   Amount Due
                 </p>
                 <p className="text-3xl font-extrabold text-[var(--text-1)]">
-                  {formatPrice(selectedOrder.bill?.total ?? selectedOrder.total, currency)}
+                  {formatPrice(
+                    selectedOrder.bill?.total ?? selectedOrder.total,
+                    currency,
+                  )}
                 </p>
                 {selectedOrder.bill?.discount &&
                   selectedOrder.bill.discount > 0 && (
                     <p className="text-xs text-[var(--accent-text)] mt-1">
-                      Discount applied: {formatPrice(selectedOrder.bill.discount, currency)}
+                      Discount applied:{" "}
+                      {formatPrice(selectedOrder.bill.discount, currency)}
                     </p>
                   )}
               </div>
@@ -1275,13 +1282,19 @@ function BillingPanel({
                 <div className="flex justify-between text-xs">
                   <span className="text-[var(--text-2)]">Subtotal</span>
                   <span>
-                    {formatPrice(selectedOrder.bill?.subtotal ?? selectedOrder.subtotal, currency)}
+                    {formatPrice(
+                      selectedOrder.bill?.subtotal ?? selectedOrder.subtotal,
+                      currency,
+                    )}
                   </span>
                 </div>
                 <div className="flex justify-between text-xs">
                   <span className="text-[var(--text-2)]">Tax ({taxRate}%)</span>
                   <span>
-                    {formatPrice(selectedOrder.bill?.tax ?? selectedOrder.tax, currency)}
+                    {formatPrice(
+                      selectedOrder.bill?.tax ?? selectedOrder.tax,
+                      currency,
+                    )}
                   </span>
                 </div>
                 {selectedOrder.bill && selectedOrder.bill.serviceCharge > 0 && (
@@ -1297,7 +1310,9 @@ function BillingPanel({
                 {selectedOrder.bill && selectedOrder.bill.discount > 0 && (
                   <div className="flex justify-between text-xs text-[var(--accent-text)]">
                     <span>Discount</span>
-                    <span>-{formatPrice(selectedOrder.bill.discount, currency)}</span>
+                    <span>
+                      -{formatPrice(selectedOrder.bill.discount, currency)}
+                    </span>
                   </div>
                 )}
               </div>
@@ -1413,15 +1428,22 @@ function BillingPanel({
 
               <div className="rounded-2xl bg-[var(--canvas-sub)] p-4 mb-5">
                 <div className="flex justify-between text-sm">
-                  <span className="text-[var(--text-2)]">Current Bill Total</span>
+                  <span className="text-[var(--text-2)]">
+                    Current Bill Total
+                  </span>
                   <span className="font-bold text-[var(--text-1)]">
-                    {formatPrice(selectedOrder.bill?.total ?? selectedOrder.total, currency)}
+                    {formatPrice(
+                      selectedOrder.bill?.total ?? selectedOrder.total,
+                      currency,
+                    )}
                   </span>
                 </div>
                 {selectedOrder.bill?.discount &&
                   selectedOrder.bill.discount > 0 && (
                     <div className="flex justify-between text-sm mt-1">
-                      <span className="text-[var(--accent-text)]">Existing Discount</span>
+                      <span className="text-[var(--accent-text)]">
+                        Existing Discount
+                      </span>
                       <span className="font-bold text-[var(--accent-text)]">
                         {formatPrice(selectedOrder.bill.discount, currency)}
                       </span>
@@ -1489,14 +1511,17 @@ function BillingPanel({
                       New Total after Discount
                     </span>
                     <span className="font-extrabold text-[var(--text-1)]">
-                      {formatPrice(Math.max(
-                        0,
-                        (selectedOrder.bill?.subtotal ??
-                          selectedOrder.subtotal) +
-                          (selectedOrder.bill?.tax ?? selectedOrder.tax) +
-                          (selectedOrder.bill?.serviceCharge ?? 0) -
-                          parseFloat(discountAmount),
-                      ), currency)}
+                      {formatPrice(
+                        Math.max(
+                          0,
+                          (selectedOrder.bill?.subtotal ??
+                            selectedOrder.subtotal) +
+                            (selectedOrder.bill?.tax ?? selectedOrder.tax) +
+                            (selectedOrder.bill?.serviceCharge ?? 0) -
+                            parseFloat(discountAmount),
+                        ),
+                        currency,
+                      )}
                     </span>
                   </div>
                 </div>
@@ -1537,8 +1562,15 @@ function BillingPanel({
   );
 }
 
-
-type ViewMode = "billing" | "board" | "split" | "stock" | "media" | "tables" | "manual" | FeatureTabId;
+type ViewMode =
+  | "billing"
+  | "board"
+  | "split"
+  | "stock"
+  | "media"
+  | "tables"
+  | "manual"
+  | FeatureTabId;
 
 export default function CounterPage() {
   const router = useRouter();
@@ -1774,6 +1806,16 @@ export default function CounterPage() {
                 <span className="hidden sm:inline">Kitchen</span>
               </a>
 
+              {session.posEnabled && session.role !== "CHEF" && (
+                <a
+                  href="/pos/staff"
+                  className="flex items-center gap-1 rounded-lg border border-emerald-200 px-2 py-1.5 text-[10px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition-all"
+                >
+                  <Monitor className="h-3 w-3" />
+                  <span className="hidden sm:inline">POS</span>
+                </a>
+              )}
+
               <div className="flex items-center gap-1 rounded-lg border border-[var(--border)] bg-[var(--canvas)] px-2 py-1.5 text-[11px] font-bold text-[var(--text-2)]">
                 <User className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">{session.name}</span>
@@ -1851,7 +1893,12 @@ export default function CounterPage() {
           </div>
         )}
 
-        {viewMode === "tables" && <TablesTab restaurantId={session.restaurantId} currency={session.currency} />}
+        {viewMode === "tables" && (
+          <TablesTab
+            restaurantId={session.restaurantId}
+            currency={session.currency}
+          />
+        )}
         {viewMode === "manual" && (
           <ManualBillingTab
             restaurantId={session.restaurantId}
@@ -1864,13 +1911,18 @@ export default function CounterPage() {
           />
         )}
         {viewMode === "stock" && <StockTab />}
-        {viewMode === "media" && <MediaTab restaurantId={session?.restaurantId} />}
+        {viewMode === "media" && (
+          <MediaTab restaurantId={session?.restaurantId} />
+        )}
 
         {/* Type-specific feature tabs */}
         {(() => {
-          const FeatureComponent = COUNTER_FEATURE_COMPONENTS[viewMode as FeatureTabId];
+          const FeatureComponent =
+            COUNTER_FEATURE_COMPONENTS[viewMode as FeatureTabId];
           if (!FeatureComponent) return null;
-          const Comp = FeatureComponent as React.ComponentType<{ restaurantId?: string }>;
+          const Comp = FeatureComponent as React.ComponentType<{
+            restaurantId?: string;
+          }>;
           return <Comp restaurantId={session?.restaurantId} />;
         })()}
       </main>

@@ -25,7 +25,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-
 const stagger: Variants = {
   hidden: { opacity: 0 },
   show: {
@@ -60,7 +59,6 @@ const shake: Variants = {
     transition: { duration: 0.5, ease: "easeInOut" },
   },
 };
-
 
 function FloatingImage({
   src,
@@ -99,7 +97,6 @@ function FloatingImage({
     </motion.div>
   );
 }
-
 
 function Orb({
   color,
@@ -141,7 +138,6 @@ function Orb({
     />
   );
 }
-
 
 function PinBox({
   digit,
@@ -213,7 +209,6 @@ function PinBox({
     </motion.div>
   );
 }
-
 
 export default function StaffLoginPage() {
   const router = useRouter();
@@ -308,31 +303,9 @@ export default function StaffLoginPage() {
       setSuccess(true);
       await new Promise((r) => setTimeout(r, 1200));
 
-      // Smart routing: POS when activated and role fits, else kitchen.
-      let destination = "/kitchen";
-      try {
-        const sessionRes = await fetch("/api/staff-session", {
-          credentials: "include",
-        });
-        if (sessionRes.ok) {
-          const s = await sessionRes.json();
-          const role = String(s.role || "").toUpperCase();
-          const posRoles = new Set([
-            "CASHIER", "WAITER", "MANAGER", "SUPER_ADMIN",
-          ]);
-          if (s.posEnabled && posRoles.has(role)) {
-            destination = "/pos/staff";
-          } else if (role === "CHEF") {
-            destination = "/kitchen";
-          } else if (s.posEnabled) {
-            destination = "/pos/staff";
-          }
-        }
-      } catch {
-        // fallback: /kitchen
-      }
-
-      router.push(destination);
+      // All staff land on /kitchen — role-based tabs handle what each role sees.
+      // POS is accessible via a dedicated button on the kitchen/counter pages.
+      router.push("/kitchen");
       router.refresh();
     } catch (err: unknown) {
       setErrorMsg(err instanceof Error ? err.message : "Invalid Code or PIN");
@@ -529,7 +502,10 @@ export default function StaffLoginPage() {
           transition={{ duration: 0.4 }}
         >
           <Link href="/" className="flex items-center gap-2">
-            <Mountain className="h-5 w-5 text-[var(--accent)]" strokeWidth={2.5} />
+            <Mountain
+              className="h-5 w-5 text-[var(--accent)]"
+              strokeWidth={2.5}
+            />
             <span className="text-lg font-extrabold text-[var(--text-1)] tracking-tight">
               Hima<span className="text-[var(--accent)]">Volt</span>
             </span>

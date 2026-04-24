@@ -65,9 +65,10 @@ export async function GET(
             where: {
               restaurantId: id,
               OR: [
-                // PENDING: only show if payment is verified (COMPLETED) or no payment record (legacy)
+                // PENDING: show if payment is verified, no payment record (legacy), or CASH (walk-in / POS)
                 { status: "PENDING", payment: { status: "COMPLETED" } },
                 { status: "PENDING", payment: { is: null } },
+                { status: "PENDING", payment: { method: "CASH" } },
                 // Active orders (already went through billing)
                 { status: { in: ["ACCEPTED", "PREPARING", "READY"] } },
                 { isHeld: true },
@@ -118,8 +119,7 @@ export async function GET(
           if (force || latestUpdate > lastUpdatedAt) {
             // Find new pending orders (for audio alert)
             const newPending = orders.filter(
-              (o) =>
-                o.status === "PENDING" && o.createdAt > lastUpdatedAt,
+              (o) => o.status === "PENDING" && o.createdAt > lastUpdatedAt,
             );
 
             lastUpdatedAt = latestUpdate;

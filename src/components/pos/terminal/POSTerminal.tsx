@@ -92,8 +92,11 @@ export default function POSTerminal() {
   const [soundOn, setSoundOn] = useState(true);
 
   // SSE stream
-  const { orders: liveOrders, connectionStatus, optimisticUpdate } =
-    usePOSOrders(session?.restaurantId ?? null);
+  const {
+    orders: liveOrders,
+    connectionStatus,
+    optimisticUpdate,
+  } = usePOSOrders(session?.restaurantId ?? null);
 
   /* ── Load staff session ────────────────────────────────────────── */
   useEffect(() => {
@@ -165,7 +168,9 @@ export default function POSTerminal() {
           : [],
       );
       setCategories(Array.isArray(cats) ? cats : []);
-      const rawTables = Array.isArray(tblData) ? tblData : tblData.tables ?? [];
+      const rawTables = Array.isArray(tblData)
+        ? tblData
+        : (tblData.tables ?? []);
       setTables(
         rawTables.map((t: { tableNo: number; label: string | null }) => ({
           tableNo: t.tableNo,
@@ -337,6 +342,8 @@ export default function POSTerminal() {
               initialItems={recalledItems ?? undefined}
               onInitialItemsConsumed={() => setRecalledItems(null)}
               onOrderCreated={loadData}
+              onNavigateToBilling={() => setActiveView("billing")}
+              onNavigateToOrders={() => setActiveView("orders")}
             />
           )}
 
@@ -374,6 +381,7 @@ export default function POSTerminal() {
                 setQRAmount(amount);
                 setQROpen(true);
               }}
+              staffRole={session.role}
             />
           )}
 

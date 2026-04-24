@@ -11,6 +11,7 @@ import {
   Wifi,
   WifiOff,
   Dot,
+  ChefHat,
 } from "lucide-react";
 import ThemeToggle from "@/components/shared/ThemeToggle";
 import type { SSEStatus } from "@/hooks/useSSE";
@@ -85,7 +86,10 @@ export default function POSTerminalHeader({
 
       <div className="mx-3 h-8 w-px bg-white/10" />
 
-      <ConnectionPill status={connectionStatus} newOrdersCount={newOrdersCount} />
+      <ConnectionPill
+        status={connectionStatus}
+        newOrdersCount={newOrdersCount}
+      />
 
       <div className="hidden items-center gap-1.5 text-[11px] font-semibold text-white/50 md:flex">
         <Dot className="h-4 w-4 text-white/40" />
@@ -122,6 +126,15 @@ export default function POSTerminalHeader({
             <VolumeX className="h-4 w-4" />
           )}
         </button>
+
+        <a
+          href="/kitchen"
+          title="Back to Kitchen"
+          className="flex h-8 items-center gap-1.5 rounded-lg bg-white/[0.06] px-2.5 text-[12px] font-bold text-white/80 ring-1 ring-white/10 transition-colors hover:bg-white/[0.12] hover:text-white"
+        >
+          <ChefHat className="h-4 w-4" />
+          <span className="hidden sm:inline">Kitchen</span>
+        </a>
 
         <ThemeToggle />
 
@@ -178,7 +191,9 @@ function HeaderButton({
       {hotkey && (
         <span
           className={`hidden items-center justify-center rounded px-1 text-[9px] font-bold md:inline-flex ${
-            tone === "primary" ? "bg-black/15 text-black/70" : "bg-white/10 text-white/50"
+            tone === "primary"
+              ? "bg-black/15 text-black/70"
+              : "bg-white/10 text-white/50"
           }`}
         >
           ⇧{hotkey}

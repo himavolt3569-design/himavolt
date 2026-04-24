@@ -2,8 +2,15 @@
 
 import { useState, useEffect, useCallback } from "react";
 import {
-  Search, DollarSign, Wallet, Banknote,
-  CheckCircle2, Receipt, Tag, SplitSquareHorizontal, QrCode,
+  Search,
+  DollarSign,
+  Wallet,
+  Banknote,
+  CheckCircle2,
+  Receipt,
+  Tag,
+  SplitSquareHorizontal,
+  QrCode,
 } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
 import { useToast } from "@/context/ToastContext";
@@ -28,19 +35,56 @@ interface Props {
   onOptimisticUpdate: (orderId: string, patch: Partial<POSOrder>) => void;
   /** Optional: open a full-screen payment QR overlay for the customer. */
   onShowPaymentQR?: (amount: number) => void;
+  /** Staff role — discount only visible to MANAGER / SUPER_ADMIN */
+  staffRole?: string;
 }
 
-const BILLABLE_STATUSES = new Set(["PENDING", "ACCEPTED", "PREPARING", "READY", "DELIVERED"]);
+const BILLABLE_STATUSES = new Set([
+  "PENDING",
+  "ACCEPTED",
+  "PREPARING",
+  "READY",
+  "DELIVERED",
+]);
 
 const PAYMENT_METHODS = [
-  { id: "CASH", label: "Cash", icon: DollarSign, color: "bg-[var(--accent-muted)] border-[var(--accent-border)] text-[#b25c1c] hover:bg-[var(--accent-muted)]" },
-  { id: "ESEWA", label: "eSewa", icon: Wallet, color: "bg-[var(--accent-muted)] border-[var(--accent-border)] text-[#b25c1c] hover:bg-[var(--accent-muted)]" },
-  { id: "KHALTI", label: "Khalti", icon: Wallet, color: "bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100" },
-  { id: "BANK", label: "Bank", icon: Banknote, color: "bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100" },
+  {
+    id: "CASH",
+    label: "Cash",
+    icon: DollarSign,
+    color:
+      "bg-[var(--accent-muted)] border-[var(--accent-border)] text-[#b25c1c] hover:bg-[var(--accent-muted)]",
+  },
+  {
+    id: "ESEWA",
+    label: "eSewa",
+    icon: Wallet,
+    color:
+      "bg-[var(--accent-muted)] border-[var(--accent-border)] text-[#b25c1c] hover:bg-[var(--accent-muted)]",
+  },
+  {
+    id: "KHALTI",
+    label: "Khalti",
+    icon: Wallet,
+    color: "bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100",
+  },
+  {
+    id: "BANK",
+    label: "Bank",
+    icon: Banknote,
+    color: "bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100",
+  },
 ];
 
-async function staffFetch<T = unknown>(url: string, opts?: RequestInit): Promise<T> {
-  const res = await fetch(url, { ...opts, credentials: "include", headers: { "Content-Type": "application/json", ...(opts?.headers || {}) } });
+async function staffFetch<T = unknown>(
+  url: string,
+  opts?: RequestInit,
+): Promise<T> {
+  const res = await fetch(url, {
+    ...opts,
+    credentials: "include",
+    headers: { "Content-Type": "application/json", ...(opts?.headers || {}) },
+  });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: "Request failed" }));
     throw new Error(err.error || "Request failed");
@@ -48,7 +92,17 @@ async function staffFetch<T = unknown>(url: string, opts?: RequestInit): Promise
   return res.json();
 }
 
-export default function POSBilling({ restaurantId, currency, orders, onSplitBill, onOptimisticUpdate, onShowPaymentQR }: Props) {
+const DISCOUNT_ROLES = new Set(["MANAGER", "SUPER_ADMIN"]);
+
+export default function POSBilling({
+  restaurantId,
+  currency,
+  orders,
+  onSplitBill,
+  onOptimisticUpdate,
+  onShowPaymentQR,
+  staffRole,
+}: Props) {
   const { showToast } = useToast();
   const [search, setSearch] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<POSOrder | null>(null);
@@ -79,6 +133,18 @@ export default function POSBilling({ restaurantId, currency, orders, onSplitBill
 
   useEffect(() => fetchBillMap(), [fetchBillMap]);
 
+  // Keep selectedOrder in sync with SSE updates and re-fetch bill data
+  useEffect(() => {
+    if (!selectedOrder) return;
+    const fresh = orders.find((o) => o.id === selectedOrder.id);
+    if (fresh && fresh.updatedAt !== selectedOrder.updatedAt) {
+      setSelectedOrder(fresh);
+      fetchBillMap();
+    }
+  }, [orders, selectedOrder, fetchBillMap]);
+
+  const canDiscount = !staffRole || DISCOUNT_ROLES.has(staffRole.toUpperCase());
+
   const billable = orders.filter((o) => BILLABLE_STATUSES.has(o.status));
   const filtered = billable.filter((o) => {
     const isPaid = o.payment?.status === "COMPLETED";
@@ -88,7 +154,7 @@ export default function POSBilling({ restaurantId, currency, orders, onSplitBill
     return (
       o.orderNo.toLowerCase().includes(search.toLowerCase()) ||
       (o.guestName?.toLowerCase().includes(search.toLowerCase()) ?? false) ||
-      (o.tableNo?.toString() === search)
+      o.tableNo?.toString() === search
     );
   });
 
@@ -127,7 +193,9 @@ export default function POSBilling({ restaurantId, currency, orders, onSplitBill
       {/* Left panel — order list */}
       <div className="flex flex-col w-80 shrink-0 border-r border-[var(--border)] bg-[var(--canvas)]">
         <div className="shrink-0 px-4 pt-4 pb-3 border-b border-[var(--border-soft)] space-y-3">
-          <h2 className="text-base font-semibold text-[var(--text-1)]">Billing</h2>
+          <h2 className="text-base font-semibold text-[var(--text-1)]">
+            Billing
+          </h2>
 
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-3)] pointer-events-none" />
@@ -181,23 +249,34 @@ export default function POSBilling({ restaurantId, currency, orders, onSplitBill
                     }`}
                   >
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-semibold text-[var(--text-1)]">#{order.orderNo}</span>
+                      <span className="text-sm font-semibold text-[var(--text-1)]">
+                        #{order.orderNo}
+                      </span>
                       <span className="text-sm font-bold text-amber-700">
-                        {formatPrice(billMap[order.id]?.total ?? order.total, currency)}
+                        {formatPrice(
+                          billMap[order.id]?.total ?? order.total,
+                          currency,
+                        )}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
                       {order.tableNo && (
-                        <span className="text-xs text-[var(--text-3)]">Table {order.tableNo}</span>
+                        <span className="text-xs text-[var(--text-3)]">
+                          Table {order.tableNo}
+                        </span>
                       )}
                       {order.guestName && (
-                        <span className="text-xs text-[var(--text-3)] truncate">{order.guestName}</span>
+                        <span className="text-xs text-[var(--text-3)] truncate">
+                          {order.guestName}
+                        </span>
                       )}
-                      <span className={`ml-auto rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-                        orderIsPaid
-                          ? "bg-[var(--accent-muted)] text-[#b25c1c]"
-                          : "bg-orange-100 text-orange-600"
-                      }`}>
+                      <span
+                        className={`ml-auto rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                          orderIsPaid
+                            ? "bg-[var(--accent-muted)] text-[#b25c1c]"
+                            : "bg-orange-100 text-orange-600"
+                        }`}
+                      >
                         {orderIsPaid ? "Paid" : "Unpaid"}
                       </span>
                     </div>
@@ -216,7 +295,9 @@ export default function POSBilling({ restaurantId, currency, orders, onSplitBill
             <div className="rounded-full bg-[var(--surface)] p-5">
               <Receipt className="h-8 w-8 opacity-50" />
             </div>
-            <p className="text-sm font-medium">Select an order to view the bill</p>
+            <p className="text-sm font-medium">
+              Select an order to view the bill
+            </p>
           </div>
         ) : (
           <div className="flex flex-col h-full overflow-y-auto">
@@ -224,15 +305,25 @@ export default function POSBilling({ restaurantId, currency, orders, onSplitBill
             <div className="shrink-0 px-6 py-4 bg-[var(--canvas)] border-b border-[var(--border)]">
               <div className="flex items-start justify-between">
                 <div>
-                  <span className="text-lg font-bold text-[var(--text-1)]">Order #{selectedOrder.orderNo}</span>
+                  <span className="text-lg font-bold text-[var(--text-1)]">
+                    Order #{selectedOrder.orderNo}
+                  </span>
                   <div className="flex items-center gap-3 mt-1 text-sm text-[var(--text-2)]">
-                    {selectedOrder.tableNo && <span>Table {selectedOrder.tableNo}</span>}
-                    {selectedOrder.guestName && <span>{selectedOrder.guestName}</span>}
+                    {selectedOrder.tableNo && (
+                      <span>Table {selectedOrder.tableNo}</span>
+                    )}
+                    {selectedOrder.guestName && (
+                      <span>{selectedOrder.guestName}</span>
+                    )}
                   </div>
                 </div>
-                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                  isPaid ? "bg-[var(--accent-muted)] text-[#b25c1c]" : "bg-orange-100 text-orange-600"
-                }`}>
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                    isPaid
+                      ? "bg-[var(--accent-muted)] text-[#b25c1c]"
+                      : "bg-orange-100 text-orange-600"
+                  }`}
+                >
                   {isPaid ? "Paid" : "Unpaid"}
                 </span>
               </div>
@@ -243,9 +334,15 @@ export default function POSBilling({ restaurantId, currency, orders, onSplitBill
               <div className="rounded-xl border border-[var(--border)] bg-[var(--canvas)] overflow-hidden shadow-sm">
                 <div className="divide-y divide-gray-50">
                   {selectedOrder.items.map((item) => (
-                    <div key={item.id} className="flex justify-between px-4 py-3">
+                    <div
+                      key={item.id}
+                      className="flex justify-between px-4 py-3"
+                    >
                       <span className="text-sm text-[var(--text-2)]">
-                        <span className="font-semibold text-[var(--text-1)]">{item.quantity}x</span> {item.name}
+                        <span className="font-semibold text-[var(--text-1)]">
+                          {item.quantity}x
+                        </span>{" "}
+                        {item.name}
                       </span>
                       <span className="text-sm font-semibold text-[var(--text-1)]">
                         {formatPrice(item.price * item.quantity, currency)}
@@ -256,43 +353,58 @@ export default function POSBilling({ restaurantId, currency, orders, onSplitBill
                 <div className="border-t border-[var(--border-soft)] bg-[var(--canvas-sub)] px-4 py-3 space-y-2">
                   <div className="flex justify-between text-sm text-[var(--text-2)]">
                     <span>Subtotal</span>
-                    <span className="font-medium">{formatPrice(selectedOrder.subtotal, currency)}</span>
+                    <span className="font-medium">
+                      {formatPrice(selectedOrder.subtotal, currency)}
+                    </span>
                   </div>
                   {selectedOrder.tax > 0 && (
                     <div className="flex justify-between text-sm text-[var(--text-2)]">
                       <span>Tax</span>
-                      <span className="font-medium">{formatPrice(selectedOrder.tax, currency)}</span>
+                      <span className="font-medium">
+                        {formatPrice(selectedOrder.tax, currency)}
+                      </span>
                     </div>
                   )}
                   {selectedOrder.deliveryFee > 0 && (
                     <div className="flex justify-between text-sm text-[var(--text-2)]">
                       <span>Delivery Fee</span>
-                      <span className="font-medium">{formatPrice(selectedOrder.deliveryFee, currency)}</span>
+                      <span className="font-medium">
+                        {formatPrice(selectedOrder.deliveryFee, currency)}
+                      </span>
                     </div>
                   )}
                   {bill?.serviceCharge ? (
                     <div className="flex justify-between text-sm text-[var(--text-2)]">
                       <span>Service Charge</span>
-                      <span className="font-medium">{formatPrice(bill.serviceCharge, currency)}</span>
+                      <span className="font-medium">
+                        {formatPrice(bill.serviceCharge, currency)}
+                      </span>
                     </div>
                   ) : null}
                   {bill?.discount ? (
                     <div className="flex justify-between text-sm text-[#b25c1c]">
                       <span>Discount</span>
-                      <span className="font-semibold">-{formatPrice(bill.discount, currency)}</span>
+                      <span className="font-semibold">
+                        -{formatPrice(bill.discount, currency)}
+                      </span>
                     </div>
                   ) : null}
                   <div className="flex justify-between items-center pt-2 border-t border-[var(--border)]">
-                    <span className="text-base font-semibold text-[var(--text-1)]">Total</span>
+                    <span className="text-base font-semibold text-[var(--text-1)]">
+                      Total
+                    </span>
                     <span className="text-base font-bold text-amber-700">
-                      {formatPrice(bill?.total ?? selectedOrder.total, currency)}
+                      {formatPrice(
+                        bill?.total ?? selectedOrder.total,
+                        currency,
+                      )}
                     </span>
                   </div>
                 </div>
               </div>
 
               {/* Discount input */}
-              {!isPaid && (
+              {!isPaid && canDiscount && (
                 <div className="rounded-xl border border-[var(--border)] bg-[var(--canvas)] p-4 shadow-sm">
                   <label className="flex items-center gap-1.5 text-xs font-semibold text-[var(--text-2)] uppercase tracking-wide mb-3">
                     <Tag className="h-3.5 w-3.5" />
@@ -321,7 +433,9 @@ export default function POSBilling({ restaurantId, currency, orders, onSplitBill
               {/* Payment collection */}
               {!isPaid && (
                 <div className="space-y-3">
-                  <p className="text-xs font-semibold text-[var(--text-2)] uppercase tracking-wide">Collect Payment</p>
+                  <p className="text-xs font-semibold text-[var(--text-2)] uppercase tracking-wide">
+                    Collect Payment
+                  </p>
                   <div className="grid grid-cols-2 gap-2">
                     {PAYMENT_METHODS.map((pm) => {
                       const Icon = pm.icon;
@@ -339,7 +453,13 @@ export default function POSBilling({ restaurantId, currency, orders, onSplitBill
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <button
-                      onClick={() => onSplitBill(selectedOrder.id, selectedOrder.orderNo, bill?.total ?? selectedOrder.total)}
+                      onClick={() =>
+                        onSplitBill(
+                          selectedOrder.id,
+                          selectedOrder.orderNo,
+                          bill?.total ?? selectedOrder.total,
+                        )
+                      }
                       className="flex items-center justify-center gap-2.5 rounded-xl border border-[var(--border)] bg-[var(--canvas)] p-3.5 text-sm font-semibold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] active:scale-95 transition-all"
                     >
                       <SplitSquareHorizontal className="h-4 w-4" />
@@ -347,7 +467,9 @@ export default function POSBilling({ restaurantId, currency, orders, onSplitBill
                     </button>
                     {onShowPaymentQR && (
                       <button
-                        onClick={() => onShowPaymentQR(bill?.total ?? selectedOrder.total)}
+                        onClick={() =>
+                          onShowPaymentQR(bill?.total ?? selectedOrder.total)
+                        }
                         className="flex items-center justify-center gap-2.5 rounded-xl border border-[var(--accent-border)] bg-[var(--accent-muted)] p-3.5 text-sm font-bold text-[var(--accent-text)] hover:bg-[var(--accent)]/20 active:scale-95 transition-all"
                       >
                         <QrCode className="h-4 w-4" />
@@ -363,9 +485,12 @@ export default function POSBilling({ restaurantId, currency, orders, onSplitBill
                 <div className="flex items-center gap-3 rounded-xl bg-[var(--accent-muted)] border border-[var(--accent-border)] p-4">
                   <CheckCircle2 className="h-5 w-5 text-[#b25c1c] shrink-0" />
                   <div>
-                    <p className="text-sm font-semibold text-[#b25c1c]">Payment Collected</p>
+                    <p className="text-sm font-semibold text-[#b25c1c]">
+                      Payment Collected
+                    </p>
                     <p className="text-xs text-[#b25c1c] mt-0.5">
-                      via {selectedOrder.payment?.method}{bill?.paidVia ? ` (${bill.paidVia})` : ""}
+                      via {selectedOrder.payment?.method}
+                      {bill?.paidVia ? ` (${bill.paidVia})` : ""}
                     </p>
                   </div>
                 </div>
