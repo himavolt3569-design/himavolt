@@ -29,10 +29,18 @@ function getCachedUser(id: string): UserCacheEntry["user"] | null {
 }
 
 function setCachedUser(user: UserCacheEntry["user"]) {
+  USER_CACHE.delete(user.id);
   USER_CACHE.set(user.id, { user, ts: Date.now() });
   if (USER_CACHE.size > USER_CACHE_MAX) {
-    const oldest = USER_CACHE.keys().next().value;
-    if (oldest) USER_CACHE.delete(oldest);
+    let oldestKey: string | undefined;
+    let oldestTs = Infinity;
+    for (const [key, entry] of USER_CACHE) {
+      if (entry.ts < oldestTs) {
+        oldestTs = entry.ts;
+        oldestKey = key;
+      }
+    }
+    if (oldestKey) USER_CACHE.delete(oldestKey);
   }
 }
 
@@ -82,9 +90,16 @@ export const getOrCreateUser = cache(async () => {
     cached &&
     cached.email === email &&
     cached.name === name &&
-    cached.imageUrl === imageUrl
+    cached.imageUrl === imageUrl &&
+    cached.phone === phone
   ) {
-    return cached;
+    const isGoogleCached = supabaseUser.app_metadata?.provider === "google";
+    const needsUpgrade =
+      cached.role === "CUSTOMER" &&
+      (intendedRole === "OWNER" || isGoogleCached);
+    if (!needsUpgrade) {
+      return cached;
+    }
   }
 
   let dbUser = await db.user.findUnique({ where: { id: supabaseUser.id } });

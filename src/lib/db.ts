@@ -14,7 +14,7 @@ function createPrismaClient() {
     !!process.env.VERCEL || process.env.NODE_ENV === "production";
   const adapter = new PrismaPg({
     connectionString,
-    max: isServerless ? 3 : 5,
+    max: isServerless ? 2 : 3,
     ssl: isServerless ? { rejectUnauthorized: false } : undefined,
   });
   return new PrismaClient({ adapter });

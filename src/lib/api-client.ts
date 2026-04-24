@@ -78,9 +78,15 @@ export async function apiFetch<T = unknown>(
 
   const data = await res.json();
 
-  if (typeof window !== "undefined" && method === "GET" && cacheTtl > 0) {
-    GET_CACHE.set(path, { data, ts: Date.now() });
-    pruneCache();
+  if (typeof window !== "undefined") {
+    if (method === "GET" && cacheTtl > 0) {
+      GET_CACHE.set(path, { data, ts: Date.now() });
+      pruneCache();
+    } else if (method !== "GET") {
+      const basePath = path.split("?")[0];
+      const segments = basePath.split("/").slice(0, 4).join("/");
+      invalidateApiCache(segments);
+    }
   }
 
   return data;

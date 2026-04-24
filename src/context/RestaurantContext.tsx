@@ -116,12 +116,15 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
     useState<Restaurant | null>(null);
   const [loading, setLoading] = useState(false);
   const hasFetchedRef = useRef(false);
+  const fetchingRef = useRef(false);
 
   const fetchRestaurants = useCallback(async () => {
     if (!isSignedIn) {
       setRestaurants([]);
       return;
     }
+    if (fetchingRef.current) return;
+    fetchingRef.current = true;
     setLoading(true);
     try {
       const data = await apiFetch<Restaurant[]>("/api/restaurants");
@@ -134,6 +137,7 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
     } catch {
       setRestaurants([]);
     } finally {
+      fetchingRef.current = false;
       setLoading(false);
     }
   }, [isSignedIn]);
@@ -146,6 +150,7 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!isSignedIn) {
       hasFetchedRef.current = false;
+      fetchingRef.current = false;
       setRestaurants([]);
     }
   }, [isSignedIn]);

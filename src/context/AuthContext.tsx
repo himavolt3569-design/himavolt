@@ -31,10 +31,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!session) {
       setUserRole(null);
+      try {
+        const keys = Object.keys(sessionStorage);
+        for (const k of keys) {
+          if (k.startsWith("hh_me_cache_")) sessionStorage.removeItem(k);
+        }
+      } catch {}
       return;
     }
 
-    const CACHE_KEY = "hh_me_cache";
+    const CACHE_KEY = `hh_me_cache_${session.user?.id ?? "anon"}`;
     const CACHE_TTL = 5 * 60 * 1000;
 
     try {
