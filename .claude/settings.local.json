@@ -66,7 +66,9 @@
       "Bash(echo \"EXIT=$?\")",
       "Bash(echo \"exit=$?\")",
       "Bash(echo \"---EXIT: $?\")",
-      "Bash(npx eslint *)"
+      "Bash(npx eslint *)",
+      "PowerShell(Set-Location D:\\\\Official_Projects\\\\himalhub; Get-Content .env | Where-Object { $_ -match '^DIRECT_URL=' } | ForEach-Object { $_ -replace '^DIRECT_URL=\"', '' -replace '\"$', '' } | ForEach-Object { $env:DATABASE_URL = $_ }; & npx prisma db push --accept-data-loss 2>&1 | Select-Object -First 80)",
+      "Bash(git rm *)"
     ],
     "additionalDirectories": [
       "d:\\Official_Projects\\himalhub\\src\\app\\api\\public\\restaurants\\[slug]"
