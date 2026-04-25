@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
+import { invalidateApiCache } from "@/lib/api-client";
 import type { User, Session, AuthChangeEvent } from "@supabase/supabase-js";
 
 interface AuthContextType {
@@ -71,8 +72,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       })
       .catch((err) => {
         if (err instanceof DOMException && err.name === "AbortError") return;
-        const metaRole = session.user?.user_metadata?.intended_role;
-        setUserRole(metaRole === "OWNER" ? "OWNER" : "CUSTOMER");
+        // /api/me failed — default to CUSTOMER. We deliberately do NOT consult
+        // user_metadata.intended_role since that field is user-writable; the
+        // server is the only source of truth for role.
+        setUserRole("CUSTOMER");
       });
 
     return () => controller.abort();
@@ -107,6 +110,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = useCallback(async () => {
     const supabase = getSupabaseBrowserClient();
     await supabase.auth.signOut();
+    // Drop any per-user data the in-memory api cache picked up.
+    invalidateApiCache();
     window.location.href = "/";
   }, []);
 

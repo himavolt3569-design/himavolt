@@ -86,7 +86,7 @@ export const getOrCreateUser = cache(async () => {
 
     dbUser = await db.user.update({
       where: { id: userByEmail.id },
-      data: { id: supabaseUser.id, name, imageUrl, phone },
+      data: { name, imageUrl, phone },
     });
   } else if (dbUser) {
     if (dbUser.role === "CUSTOMER" && safeRole === "OWNER") {

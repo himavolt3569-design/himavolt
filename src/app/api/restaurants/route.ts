@@ -25,7 +25,7 @@ export const GET = safeHandler(async () => {
   const restaurants = await db.restaurant.findMany({
     where: { ownerId: user.id },
     include: {
-      staff: { include: { user: true } },
+      staff: { omit: { pin: true }, include: { user: true } },
       _count: { select: { orders: true, menuItems: true } },
     },
     orderBy: { createdAt: "desc" },
@@ -85,7 +85,7 @@ export const POST = safeHandler(
         restaurantCode,
       },
       include: {
-        staff: { include: { user: true } },
+        staff: { omit: { pin: true }, include: { user: true } },
         _count: { select: { orders: true, menuItems: true } },
       },
     });

@@ -68,6 +68,7 @@ export async function PATCH(
     data: updateData,
     include: {
       staff: {
+        omit: { pin: true },
         include: { user: { select: { name: true, email: true } } },
       },
     },

@@ -83,8 +83,11 @@ export default function POSCustomerMode({
   // Hardware-button exit: a specific key combo only staff knows/has-on-pedal.
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
+      // The wizard collapses Cmd → ctrl when capturing on macOS, so honour
+      // either e.ctrlKey or e.metaKey when the stored combo expects ctrl.
+      const ctrlPressed = e.ctrlKey || e.metaKey;
       const match =
-        e.ctrlKey === !!exitCombo.ctrl &&
+        ctrlPressed === !!exitCombo.ctrl &&
         e.shiftKey === !!exitCombo.shift &&
         e.altKey === !!exitCombo.alt &&
         e.key.toLowerCase() === exitCombo.key.toLowerCase();
@@ -101,7 +104,7 @@ export default function POSCustomerMode({
         e.key === "Escape" ||
         e.key === "F11" ||
         (e.altKey && e.key === "F4") ||
-        (e.ctrlKey && ["w", "r", "t", "n"].includes(e.key.toLowerCase()))
+        (ctrlPressed && ["w", "r", "t", "n"].includes(e.key.toLowerCase()))
       ) {
         e.preventDefault();
         setAttemptFeedback("locked");

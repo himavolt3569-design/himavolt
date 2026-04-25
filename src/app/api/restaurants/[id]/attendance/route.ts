@@ -36,6 +36,7 @@ export async function GET(
     },
     include: {
       staff: {
+        omit: { pin: true },
         include: {
           user: {
             select: { name: true, imageUrl: true },

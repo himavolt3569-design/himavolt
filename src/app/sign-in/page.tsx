@@ -12,7 +12,6 @@ export default function SignInPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,21 +29,6 @@ export default function SignInPage() {
       setError(signInError.message);
       setLoading(false);
       return;
-    }
-
-    if (!rememberMe) {
-      try {
-        const keys = Object.keys(localStorage);
-        for (const k of keys) {
-          if (k.startsWith("sb-") && k.endsWith("-auth-token")) {
-            const val = localStorage.getItem(k);
-            if (val) {
-              sessionStorage.setItem(k, val);
-              localStorage.removeItem(k);
-            }
-          }
-        }
-      } catch {}
     }
 
     const meRes = await fetch("/api/me");
@@ -152,40 +136,6 @@ export default function SignInPage() {
                   )}
                 </button>
               </div>
-            </div>
-
-            <div className="flex items-center gap-2.5">
-              <button
-                type="button"
-                onClick={() => setRememberMe((v) => !v)}
-                className={`flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-md border transition-all ${
-                  rememberMe
-                    ? "border-[var(--accent)] bg-[var(--accent)]"
-                    : "border-[var(--border)] bg-[var(--canvas)]"
-                }`}
-              >
-                {rememberMe && (
-                  <svg
-                    className="h-3 w-3 text-white"
-                    viewBox="0 0 12 12"
-                    fill="none"
-                  >
-                    <path
-                      d="M2.5 6L5 8.5L9.5 3.5"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                )}
-              </button>
-              <span
-                onClick={() => setRememberMe((v) => !v)}
-                className="text-xs font-medium text-[var(--text-2)] cursor-pointer select-none"
-              >
-                Remember me
-              </span>
             </div>
 
             <button

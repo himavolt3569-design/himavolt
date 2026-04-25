@@ -53,6 +53,7 @@ export async function GET(
     where,
     include: {
       staff: {
+        omit: { pin: true },
         include: { user: { select: { name: true, email: true } } },
       },
     },
@@ -124,6 +125,7 @@ export async function POST(
     },
     include: {
       staff: {
+        omit: { pin: true },
         include: { user: { select: { name: true, email: true } } },
       },
     },

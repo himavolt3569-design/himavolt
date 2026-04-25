@@ -24,7 +24,15 @@ export async function PATCH(
   const data: Record<string, unknown> = {};
 
   if (body.role !== undefined) data.role = body.role;
-  if (body.pin !== undefined) data.pin = await hashPin(body.pin);
+  if (body.pin !== undefined) {
+    if (typeof body.pin !== "string" || !/^\d{4}$/.test(body.pin)) {
+      return NextResponse.json(
+        { error: "PIN must be exactly 4 digits" },
+        { status: 400 },
+      );
+    }
+    data.pin = await hashPin(body.pin);
+  }
   if (body.isActive !== undefined) data.isActive = body.isActive;
   // staffType is Owner-only — this route already enforces owner auth
   if (body.staffType !== undefined) data.staffType = body.staffType;
@@ -32,6 +40,7 @@ export async function PATCH(
   const member = await db.staffMember.update({
     where: { id: staffId },
     data,
+    omit: { pin: true },
     include: {
       user: {
         select: { name: true, email: true, phone: true, imageUrl: true },

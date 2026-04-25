@@ -19,10 +19,18 @@ export async function PATCH(req: Request) {
   const updateData: Record<string, unknown> = {};
 
   if (role !== undefined) {
-    return NextResponse.json(
-      { error: "Role cannot be changed via this endpoint" },
-      { status: 403 },
-    );
+    if (role !== "CUSTOMER" && role !== "OWNER") {
+      return NextResponse.json({ error: "Invalid role" }, { status: 400 });
+    }
+    if (user.role !== "CUSTOMER" && user.role !== role) {
+      return NextResponse.json(
+        { error: "Role cannot be changed" },
+        { status: 403 },
+      );
+    }
+    if (user.role !== role) {
+      updateData.role = role;
+    }
   }
 
   if (username !== undefined) {
@@ -47,8 +55,14 @@ export async function PATCH(req: Request) {
     updateData.username = username;
   }
 
+  // If the body referenced fields but they were all no-ops (e.g. selecting
+  // the same role you already have during onboarding), return the current
+  // state as a success rather than 400. Only reject an empty/unrecognised body.
   if (Object.keys(updateData).length === 0) {
-    return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
+    if (role === undefined && username === undefined) {
+      return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
+    }
+    return NextResponse.json({ role: user.role, username: user.username });
   }
 
   const updated = await db.user.update({

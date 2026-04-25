@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import { timingSafeEqual } from "crypto";
 
 const PIN_SALT_ROUNDS = 10;
 
@@ -13,5 +14,10 @@ export async function verifyPin(
   if (storedPin.startsWith("$2")) {
     return bcrypt.compare(inputPin, storedPin);
   }
-  return inputPin === storedPin;
+  // Legacy plaintext fallback — constant-time compare so we don't leak
+  // length or position via timing. Legacy values are rehashed on next login.
+  const a = Buffer.from(inputPin, "utf8");
+  const b = Buffer.from(storedPin, "utf8");
+  if (a.length !== b.length) return false;
+  return timingSafeEqual(a, b);
 }

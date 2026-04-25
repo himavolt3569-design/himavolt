@@ -11,9 +11,15 @@ export async function PATCH(req: NextRequest) {
   const body = await req.json();
   const { currentPin, newPin } = body;
 
-  if (!newPin || newPin.length !== 4) {
+  if (typeof newPin !== "string" || !/^\d{4}$/.test(newPin)) {
     return NextResponse.json(
-      { error: "New PIN must be 4 digits" },
+      { error: "New PIN must be exactly 4 digits" },
+      { status: 400 },
+    );
+  }
+  if (typeof currentPin !== "string") {
+    return NextResponse.json(
+      { error: "Current PIN is required" },
       { status: 400 },
     );
   }

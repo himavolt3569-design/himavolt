@@ -4,6 +4,7 @@ import { getOrCreateUser } from "@/lib/auth";
 import { safeHandler, unauthorized, forbidden } from "@/lib/api-helpers";
 import { createStaffSchema } from "@/lib/validations";
 import { logAudit } from "@/lib/audit";
+import { hashPin } from "@/lib/pin";
 
 export const GET = safeHandler(async (_req, { params }) => {
   const { id } = await params;
@@ -15,6 +16,7 @@ export const GET = safeHandler(async (_req, { params }) => {
 
   const staff = await db.staffMember.findMany({
     where: { restaurantId: id },
+    omit: { pin: true },
     include: {
       user: {
         select: { name: true, email: true, phone: true, imageUrl: true },
@@ -40,8 +42,12 @@ export const POST = safeHandler(
 
     const { name, email, phone, role } = body;
 
-    // Generate random 4-digit PIN
-    const pin = Math.floor(1000 + Math.random() * 9000).toString();
+    // Generate cryptographically random 4-digit PIN — surfaced once via _generatedPin
+    const pin = (
+      1000 +
+      ((await import("crypto")).randomInt(0, 9000))
+    ).toString();
+    const hashedPin = await hashPin(pin);
 
     // Restaurant code should already exist (generated on creation)
     // Fallback for legacy restaurants without one
@@ -71,6 +77,7 @@ export const POST = safeHandler(
       where: {
         userId_restaurantId: { userId: staffUser.id, restaurantId: id },
       },
+      omit: { pin: true },
       include: {
         user: {
           select: { name: true, email: true, phone: true, imageUrl: true },
@@ -88,7 +95,8 @@ export const POST = safeHandler(
       // Reactivate the deactivated staff member with a fresh PIN and updated role
       const reactivated = await db.staffMember.update({
         where: { id: existing.id },
-        data: { isActive: true, pin, role },
+        data: { isActive: true, pin: hashedPin, role },
+        omit: { pin: true },
         include: {
           user: {
             select: { name: true, email: true, phone: true, imageUrl: true },
@@ -112,11 +120,12 @@ export const POST = safeHandler(
 
     const member = await db.staffMember.create({
       data: {
-        pin,
+        pin: hashedPin,
         role,
         userId: staffUser.id,
         restaurantId: id,
       },
+      omit: { pin: true },
       include: {
         user: {
           select: { name: true, email: true, phone: true, imageUrl: true },

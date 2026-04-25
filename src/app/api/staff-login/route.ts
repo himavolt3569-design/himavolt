@@ -6,7 +6,7 @@ import { staffLoginSchema } from "@/lib/validations";
 import { logAudit, getClientIp } from "@/lib/audit";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
 import { checkStaffShift, shiftReasonToMessage } from "@/lib/staff-shifts";
-import { verifyPin } from "@/lib/pin";
+import { hashPin, verifyPin } from "@/lib/pin";
 
 function getJwtSecret() {
   const raw = process.env.JWT_SECRET;
@@ -50,12 +50,16 @@ export const POST = safeHandler(
       );
     }
 
-    // 2. Verify PIN against each active staff member (hashed or legacy plaintext)
+    // 2. Verify PIN against each active staff member (hashed or legacy plaintext).
+    // Iterate without an early break so timing doesn't leak which slot matched
+    // (and so a missing match doesn't return faster than a late match).
     let staffMember = null;
+    let legacyMatched = false;
     for (const member of restaurant.staff) {
-      if (await verifyPin(pin, member.pin)) {
+      const matches = await verifyPin(pin, member.pin);
+      if (matches && !staffMember) {
         staffMember = member;
-        break;
+        legacyMatched = !member.pin.startsWith("$2");
       }
     }
     if (!staffMember) {
@@ -63,6 +67,20 @@ export const POST = safeHandler(
         { error: INVALID_CREDENTIALS_MSG },
         { status: 401 },
       );
+    }
+
+    // Transparent migration: if the matched PIN was stored as legacy plaintext,
+    // rehash with bcrypt now so we drift away from plaintext over time.
+    if (legacyMatched) {
+      try {
+        const rehashed = await hashPin(pin);
+        await db.staffMember.update({
+          where: { id: staffMember.id },
+          data: { pin: rehashed },
+        });
+      } catch {
+        // best-effort migration — never block login on rehash failure
+      }
     }
 
     // 1b. Shift gate — SHIFT_BASED staff only get in during their window.

@@ -14,7 +14,6 @@ import { apiFetch } from "@/lib/api-client";
 
 export interface StaffMember {
   id: string;
-  pin: string;
   role: string;
   staffType: string;
   isActive: boolean;

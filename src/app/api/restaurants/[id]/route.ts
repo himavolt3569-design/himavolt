@@ -15,7 +15,7 @@ export async function GET(
   const restaurant = await db.restaurant.findFirst({
     where: { id, ownerId: user.id },
     include: {
-      staff: { include: { user: true } },
+      staff: { omit: { pin: true }, include: { user: true } },
       categories: { orderBy: { sortOrder: "asc" } },
       _count: { select: { orders: true, menuItems: true } },
     },

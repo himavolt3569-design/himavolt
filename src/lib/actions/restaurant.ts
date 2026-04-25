@@ -88,7 +88,7 @@ export async function getMyRestaurants() {
   return db.restaurant.findMany({
     where: { ownerId: user.id },
     include: {
-      staff: { include: { user: { select: { name: true, email: true, phone: true } } } },
+      staff: { omit: { pin: true }, include: { user: { select: { name: true, email: true, phone: true } } } },
       _count: { select: { orders: true, menuItems: true } },
     },
     orderBy: { createdAt: "desc" },

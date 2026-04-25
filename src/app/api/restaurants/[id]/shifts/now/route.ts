@@ -84,6 +84,7 @@ export async function GET(
       },
       include: {
         staff: {
+          omit: { pin: true },
           include: { user: { select: { name: true, email: true } } },
         },
       },
@@ -91,6 +92,7 @@ export async function GET(
     }),
     db.staffMember.findMany({
       where: { restaurantId: id, isActive: true },
+      omit: { pin: true },
       include: { user: { select: { name: true, email: true } } },
     }),
   ]);

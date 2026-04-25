@@ -64,6 +64,7 @@ export async function GET(
       where: { restaurantId: id, date: { gte: rangeStart, lt: rangeEnd } },
       include: {
         staff: {
+          omit: { pin: true },
           include: {
             user: { select: { name: true, email: true, phone: true } },
           },
@@ -73,6 +74,7 @@ export async function GET(
     }),
     db.staffMember.findMany({
       where: { restaurantId: id, staffType: "FULL_TIME", isActive: true },
+      omit: { pin: true },
       include: { user: { select: { name: true, email: true, phone: true } } },
     }),
     db.order.findMany({

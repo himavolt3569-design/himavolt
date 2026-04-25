@@ -44,6 +44,7 @@ export async function addStaffMember(
       userId: staffUser.id,
       restaurantId,
     },
+    omit: { pin: true },
     include: {
       user: {
         select: { name: true, email: true, phone: true, imageUrl: true },
@@ -79,6 +80,7 @@ export async function toggleStaffActive(restaurantId: string, staffId: string) {
   const updated = await db.staffMember.update({
     where: { id: staffId },
     data: { isActive: !member.isActive },
+    omit: { pin: true },
     include: {
       user: {
         select: { name: true, email: true, phone: true, imageUrl: true },
