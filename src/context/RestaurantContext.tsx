@@ -66,6 +66,12 @@ export interface Restaurant {
   posOpeningCash?: number;
   posWelcomeSeenAt?: string | null;
   posCustomerModeEnabled?: boolean;
+  posCustomerExitCombo?: {
+    ctrl: boolean;
+    shift: boolean;
+    alt: boolean;
+    key: string;
+  } | null;
   staff: StaffMember[];
   _count: { orders: number; menuItems: number };
 }

@@ -41,6 +41,12 @@ interface StaffSession {
   posEnabled: boolean;
   posTerminalName: string | null;
   posCustomerModeEnabled: boolean;
+  posCustomerExitCombo?: {
+    ctrl: boolean;
+    shift: boolean;
+    alt: boolean;
+    key: string;
+  } | null;
 }
 
 interface Category {
@@ -299,6 +305,7 @@ export default function POSTerminal() {
         menuItems={menuItems}
         categories={categories}
         currency={session.currency}
+        exitCombo={session.posCustomerExitCombo ?? undefined}
         onRequestExit={() => setCustomerMode(false)}
       />
     );

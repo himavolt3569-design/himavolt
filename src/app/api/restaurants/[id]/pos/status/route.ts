@@ -25,6 +25,7 @@ export async function GET(
       posOpeningCash: true,
       posWelcomeSeenAt: true,
       posCustomerModeEnabled: true,
+      posCustomerExitCombo: true,
       taxRate: true,
       taxEnabled: true,
       serviceChargeRate: true,

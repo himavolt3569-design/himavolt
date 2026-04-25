@@ -4,6 +4,17 @@ import { db } from "@/lib/db";
 import { getOrCreateUser } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
 
+const exitComboSchema = z.object({
+  ctrl: z.boolean(),
+  shift: z.boolean(),
+  alt: z.boolean(),
+  key: z
+    .string()
+    .min(1)
+    .max(20)
+    .regex(/^[a-z0-9]+$/i, "Key must be a single letter or digit"),
+});
+
 const activateSchema = z.object({
   terminalName: z
     .string()
@@ -16,6 +27,7 @@ const activateSchema = z.object({
   serviceChargeRate: z.number().min(0).max(100).optional(),
   serviceChargeEnabled: z.boolean().optional(),
   customerModeEnabled: z.boolean().optional(),
+  customerExitCombo: exitComboSchema.optional(),
 });
 
 export async function POST(
@@ -57,6 +69,16 @@ export async function POST(
       posTerminalName: data.terminalName,
       posOpeningCash: data.openingCash,
       posCustomerModeEnabled: data.customerModeEnabled ?? true,
+      ...(data.customerExitCombo
+        ? {
+            posCustomerExitCombo: {
+              ctrl: data.customerExitCombo.ctrl,
+              shift: data.customerExitCombo.shift,
+              alt: data.customerExitCombo.alt,
+              key: data.customerExitCombo.key.toLowerCase(),
+            },
+          }
+        : {}),
       ...(data.taxRate !== undefined ? { taxRate: data.taxRate } : {}),
       ...(data.taxEnabled !== undefined ? { taxEnabled: data.taxEnabled } : {}),
       ...(data.serviceChargeRate !== undefined

@@ -79,6 +79,7 @@ import { useLiveOrders } from "@/context/LiveOrdersContext";
 import { useRestaurant } from "@/context/RestaurantContext";
 import POSActivationGate from "@/components/pos/activation/POSActivationGate";
 import POSLauncher from "@/components/pos/activation/POSLauncher";
+import OnShiftWidget from "@/components/dashboard/OnShiftWidget";
 import {
   getTypeLabel,
   getFeatureTabsForType,
@@ -1183,6 +1184,12 @@ function OverviewTab({
           </motion.div>
         ))}
       </div>
+
+      {/* ── Live shift status ─────────────────────────────────── */}
+      <OnShiftWidget
+        restaurantId={current?.id}
+        onOpenShifts={() => setTab("shifts" as DashTab)}
+      />
 
       {/* ── Order Pipeline ───────────────────────────────────── */}
       {todayOrders.length > 0 && statusDistribution.length > 0 && (

@@ -88,6 +88,10 @@ model Restaurant {
   posOpeningCash    Float     @default(0) // default cash drawer opening balance (NPR)
   posWelcomeSeenAt  DateTime? // when the owner dismissed the first-time welcome guide
   posCustomerModeEnabled Boolean @default(true) // allow staff to flip into customer-facing kiosk mode
+  // Customer-mode hardware-button exit combo. JSON shape:
+  //   { "ctrl": true, "shift": true, "alt": false, "key": "x" }
+  // Default (Ctrl+Shift+X) applied at the API layer when null.
+  posCustomerExitCombo Json?
 
   // Hotel / Resort / Guest House booking advance config
   hotelAdvanceType  String @default("PERCENTAGE") // "PERCENTAGE" or "FIXED"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Users,
@@ -242,8 +242,8 @@ function OnShiftRow({
   ending: boolean;
   onEnd: () => void;
 }) {
-  const since = useRelative(shift.startsAt);
-  const until = useRelativeCountdown(shift.effectiveEndsAt);
+  const since = relativeSince(shift.startsAt);
+  const until = relativeUntil(shift.effectiveEndsAt);
 
   return (
     <div className="flex items-center gap-3 rounded-xl border border-[var(--accent-border)] bg-[var(--accent-muted)] p-3">
@@ -311,7 +311,7 @@ function UpcomingBlock({ shifts }: { shifts: ShiftShape[] }) {
       </p>
       <div className="space-y-1.5">
         {shifts.map((s) => {
-          const countdown = useRelativeCountdown(s.startsAt);
+          const countdown = relativeUntil(s.startsAt);
           return (
             <div
               key={s.id}
@@ -373,13 +373,13 @@ function initials(name: string) {
 }
 
 /** Returns a short "Xh Ym" / "Xm" string comparing `from` to now. */
-function useRelative(fromIso: string): string {
+function relativeSince(fromIso: string): string {
   const diff = Math.max(0, Date.now() - new Date(fromIso).getTime());
   return formatDuration(diff);
 }
 
 /** Returns "Xh Ym" or "Xm" until `untilIso`. Clamps at 0. */
-function useRelativeCountdown(untilIso: string): string {
+function relativeUntil(untilIso: string): string {
   const diff = Math.max(0, new Date(untilIso).getTime() - Date.now());
   return formatDuration(diff);
 }

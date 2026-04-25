@@ -22,7 +22,7 @@ export const GET = safeHandler(async (req) => {
         type: true, currency: true, name: true, address: true, phone: true,
         taxRate: true, taxEnabled: true, slug: true,
         featuresEnabled: true, featuresDisabled: true,
-        posEnabled: true, posTerminalName: true, posCustomerModeEnabled: true,
+        posEnabled: true, posTerminalName: true, posCustomerModeEnabled: true, posCustomerExitCombo: true,
       },
     }),
   ]);
@@ -66,8 +66,32 @@ export const GET = safeHandler(async (req) => {
     posEnabled: restaurant?.posEnabled ?? false,
     posTerminalName: restaurant?.posTerminalName ?? null,
     posCustomerModeEnabled: restaurant?.posCustomerModeEnabled ?? true,
+    posCustomerExitCombo: normalizeExitCombo(restaurant?.posCustomerExitCombo),
   });
 });
+
+/**
+ * Coerce the JSON-stored exit combo into a strict shape, falling back
+ * to the default Ctrl+Shift+X if the stored value is missing or invalid.
+ */
+function normalizeExitCombo(raw: unknown): {
+  ctrl: boolean;
+  shift: boolean;
+  alt: boolean;
+  key: string;
+} {
+  const fallback = { ctrl: true, shift: true, alt: false, key: "x" };
+  if (!raw || typeof raw !== "object") return fallback;
+  const r = raw as Record<string, unknown>;
+  const key = typeof r.key === "string" ? r.key.toLowerCase() : "";
+  if (!key || !/^[a-z0-9]+$/.test(key)) return fallback;
+  return {
+    ctrl: !!r.ctrl,
+    shift: !!r.shift,
+    alt: !!r.alt,
+    key,
+  };
+}
 
 // Logout — clear the cookie
 export async function DELETE() {

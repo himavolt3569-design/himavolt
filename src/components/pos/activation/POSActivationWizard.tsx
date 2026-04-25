@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -32,6 +32,12 @@ interface Props {
     serviceChargeRate?: number;
     serviceChargeEnabled?: boolean;
     customerModeEnabled?: boolean;
+    customerExitCombo?: {
+      ctrl: boolean;
+      shift: boolean;
+      alt: boolean;
+      key: string;
+    } | null;
   };
   alreadyActive?: boolean;
   onClose: () => void;
@@ -76,6 +82,15 @@ export default function POSActivationWizard({
   );
   const [serviceRate, setServiceRate] = useState(initial?.serviceChargeRate ?? 10);
   const [openingCash, setOpeningCash] = useState(initial?.openingCash ?? 2000);
+  const [exitCombo, setExitCombo] = useState(
+    initial?.customerExitCombo ?? {
+      ctrl: true,
+      shift: true,
+      alt: false,
+      key: "x",
+    },
+  );
+  const [capturing, setCapturing] = useState(false);
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -125,6 +140,7 @@ export default function POSActivationWizard({
           serviceChargeRate: serviceRate,
           serviceChargeEnabled: serviceEnabled,
           customerModeEnabled,
+          customerExitCombo: customerModeEnabled ? exitCombo : undefined,
         }),
       });
       if (!res.ok) {
@@ -273,6 +289,27 @@ export default function POSActivationWizard({
                     </p>
                   </div>
                 </label>
+
+                {customerModeEnabled && (
+                  <ExitComboCapture
+                    combo={exitCombo}
+                    capturing={capturing}
+                    onStartCapture={() => setCapturing(true)}
+                    onCancelCapture={() => setCapturing(false)}
+                    onCapture={(combo) => {
+                      setExitCombo(combo);
+                      setCapturing(false);
+                    }}
+                    onReset={() =>
+                      setExitCombo({
+                        ctrl: true,
+                        shift: true,
+                        alt: false,
+                        key: "x",
+                      })
+                    }
+                  />
+                )}
               </motion.div>
             )}
 
@@ -390,6 +427,12 @@ export default function POSActivationWizard({
                     label="Customer mode"
                     value={customerModeEnabled ? "Enabled" : "Disabled"}
                   />
+                  {customerModeEnabled && (
+                    <ReviewRow
+                      label="Exit combo"
+                      value={comboLabel(exitCombo)}
+                    />
+                  )}
                   <ReviewRow
                     label="Tax"
                     value={taxEnabled ? `${taxRate}%` : "Off"}
@@ -580,4 +623,153 @@ function ReviewRow({ label, value }: { label: string; value: string }) {
       <span className="text-sm font-semibold text-[var(--text-1)]">{value}</span>
     </div>
   );
+}
+
+interface ExitCombo {
+  ctrl: boolean;
+  shift: boolean;
+  alt: boolean;
+  key: string;
+}
+
+function comboLabel(c: ExitCombo): string {
+  const parts: string[] = [];
+  if (c.ctrl) parts.push("Ctrl");
+  if (c.shift) parts.push("Shift");
+  if (c.alt) parts.push("Alt");
+  parts.push(c.key.toUpperCase());
+  return parts.join(" + ");
+}
+
+function isValidCombo(c: ExitCombo): boolean {
+  // Require at least one modifier so a customer can't accidentally exit by
+  // tapping a single letter on a touch keyboard.
+  if (!c.ctrl && !c.shift && !c.alt) return false;
+  if (!c.key) return false;
+  return /^[a-z0-9]$/i.test(c.key);
+}
+
+function ExitComboCapture({
+  combo,
+  capturing,
+  onStartCapture,
+  onCancelCapture,
+  onCapture,
+  onReset,
+}: {
+  combo: ExitCombo;
+  capturing: boolean;
+  onStartCapture: () => void;
+  onCancelCapture: () => void;
+  onCapture: (c: ExitCombo) => void;
+  onReset: () => void;
+}) {
+  const valid = isValidCombo(combo);
+
+  // Listen for the next valid keypress while capturing.
+  useCaptureKey(capturing, (e) => {
+    if (e.key === "Escape") {
+      onCancelCapture();
+      return;
+    }
+    const k = e.key.toLowerCase();
+    if (!/^[a-z0-9]$/.test(k)) return; // wait for a "key" key, ignore modifiers alone
+    onCapture({
+      ctrl: e.ctrlKey || e.metaKey,
+      shift: e.shiftKey,
+      alt: e.altKey,
+      key: k,
+    });
+  });
+
+  return (
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] p-4">
+      <div className="mb-2 flex items-center justify-between">
+        <p className="text-xs font-semibold uppercase tracking-wider text-[var(--text-3)]">
+          Hardware-button exit
+        </p>
+        <button
+          type="button"
+          onClick={onReset}
+          className="text-[11px] font-semibold text-[var(--text-3)] hover:text-[var(--accent)]"
+        >
+          Reset to default
+        </button>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <div
+          className={`flex flex-1 items-center justify-center gap-1 rounded-lg border px-3 py-3 text-sm font-bold tracking-wide transition-colors ${
+            capturing
+              ? "border-[var(--accent)] bg-[var(--accent-muted)] text-[var(--accent-text)]"
+              : valid
+              ? "border-[var(--border)] bg-[var(--canvas)] text-[var(--text-1)]"
+              : "border-red-300 bg-red-50 text-red-600 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400"
+          }`}
+        >
+          {capturing ? (
+            <span className="animate-pulse">Press any key combination…</span>
+          ) : (
+            <span>{comboLabel(combo)}</span>
+          )}
+        </div>
+
+        {capturing ? (
+          <button
+            type="button"
+            onClick={onCancelCapture}
+            className="rounded-lg border border-[var(--border)] px-3 py-3 text-xs font-semibold text-[var(--text-2)] hover:bg-[var(--canvas)]"
+          >
+            Cancel
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={onStartCapture}
+            className="rounded-lg bg-[var(--accent)] px-3 py-3 text-xs font-bold text-white hover:bg-[var(--accent-hover)]"
+          >
+            Set new
+          </button>
+        )}
+      </div>
+
+      <p className="mt-2 text-[11px] leading-relaxed text-[var(--text-3)]">
+        Pair this combo with a foot pedal, stream-deck, or stick a sticker on
+        the keyboard. Customer mode will only exit when this exact key
+        combination fires. Esc, F-keys and Ctrl+W are always blocked.
+      </p>
+      {!valid && !capturing && (
+        <p className="mt-1.5 text-[11px] font-semibold text-red-600 dark:text-red-400">
+          Pick a combo with at least one modifier (Ctrl, Shift or Alt).
+        </p>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Subscribe to keydown events while `active` is true. The handler is
+ * stored in a ref so callers don't need to memoize it. Captured at the
+ * window level so the wizard's focused inputs don't swallow keystrokes.
+ */
+function useCaptureKey(active: boolean, handler: (e: KeyboardEvent) => void) {
+  const handlerRef = useRef(handler);
+
+  // Keep the latest handler in the ref without re-subscribing the listener.
+  useEffect(() => {
+    handlerRef.current = handler;
+  });
+
+  useEffect(() => {
+    if (!active) return;
+    function listener(e: KeyboardEvent) {
+      e.preventDefault();
+      e.stopPropagation();
+      handlerRef.current(e);
+    }
+    window.addEventListener("keydown", listener, { capture: true });
+    return () => {
+      window.removeEventListener("keydown", listener, { capture: true });
+    };
+  }, [active]);
 }

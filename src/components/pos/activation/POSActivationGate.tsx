@@ -93,6 +93,7 @@ export default function POSActivationGate({
           serviceChargeRate: restaurant.serviceChargeRate ?? 10,
           serviceChargeEnabled: restaurant.serviceChargeEnabled ?? true,
           customerModeEnabled: restaurant.posCustomerModeEnabled ?? true,
+          customerExitCombo: restaurant.posCustomerExitCombo ?? null,
         }}
         onClose={() => {
           setDismissedRestaurantId(restaurant.id);
