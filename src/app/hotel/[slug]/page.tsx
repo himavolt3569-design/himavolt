@@ -41,7 +41,7 @@ import {
 } from "lucide-react";
 import QRCode from "react-qr-code";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 
 interface Room {
   id: string;
@@ -987,6 +987,10 @@ type View = "browse" | "booking";
 export default function HotelPublicPage() {
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  // Deep-link from a Room QR / room landing page: ?roomId=<cuid> preselects
+  // that room and skips the room-selection step in the wizard.
+  const deepRoomId = searchParams.get("roomId");
   const [hotel, setHotel] = useState<Hotel | null>(null);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [grouped, setGrouped] = useState<Record<string, Room[]>>({});
@@ -1076,15 +1080,31 @@ export default function HotelPublicPage() {
     return () => clearInterval(t);
   }, [hotel?.heroSlides?.length]);
 
+  /* Deep-link from a Room QR — preselect the room and jump into the wizard.
+     Runs once after rooms are loaded; ignores stale roomIds. */
+  useEffect(() => {
+    if (!deepRoomId || !rooms.length) return;
+    const match = rooms.find((r) => r.id === deepRoomId);
+    if (!match) return;
+    setSelectedRoom(match);
+    setView("booking");
+    setStep("dates");
+  }, [deepRoomId, rooms]);
+
   /* Auto-submit eSewa form when data arrives */
   useEffect(() => {
     if (esewaData && esewaFormRef.current) esewaFormRef.current.submit();
   }, [esewaData]);
 
+  // True when the user arrived from a Room QR (or a "Book this room" deep link).
+  // We skip the room-selection step but still let the user open it via "Change room".
+  const isDeepLinkedRoom =
+    !!deepRoomId && !!selectedRoom && selectedRoom.id === deepRoomId;
+
   const startBooking = (room?: Room) => {
     if (room) setSelectedRoom(room);
     setView("booking");
-    setStep(room ? "dates" : "dates");
+    setStep("dates");
     setSubmitError("");
   };
 
@@ -1372,7 +1392,10 @@ export default function HotelPublicPage() {
                       if (v.adults !== undefined) setAdults(v.adults);
                       if (v.kids !== undefined) setKids(v.kids);
                     }}
-                    onNext={() => setStep("room")}
+                    // Skip the room-selection step when a room was deep-linked
+                    // (e.g. customer scanned that room's QR). They can still
+                    // change rooms from the guest step's "Change room" link.
+                    onNext={() => setStep(isDeepLinkedRoom ? "guest" : "room")}
                   />
                 )}
                 {step === "room" && (
@@ -1396,7 +1419,8 @@ export default function HotelPublicPage() {
                     key="s-guest"
                     form={guest}
                     onChange={(v) => setGuest((g) => ({ ...g, ...v }))}
-                    onBack={() => setStep("room")}
+                    // Mirror the forward skip on the way back.
+                    onBack={() => setStep(isDeepLinkedRoom ? "dates" : "room")}
                     onNext={() => setStep("payment")}
                   />
                 )}

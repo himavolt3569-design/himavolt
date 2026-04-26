@@ -484,16 +484,35 @@ export const POST = safeHandler(
       return Math.max(max, mins);
     }, 15);
 
+    // Fast Pay (DIRECT) is a counter sale: the customer is at the till, the
+    // food is being handed over right now, the staff just bills it. The order
+    // should NOT enter the kitchen / live-orders queue — it's already done.
+    // We jump straight to DELIVERED and stamp every stage timestamp so reports
+    // & billing keep working consistently.
+    const isFastPayCounterSale =
+      staffAuthorisedAutoAccept && paymentMethod === "DIRECT";
+
+    const orderTimestamp = new Date();
+
     // Build order data. Only include columns that exist in all DB versions.
     // Newer columns are moved to extendedData and dropped on retry.
     const baseOrderData = {
       orderNo,
-      // Fast Pay orders skip the PENDING queue and go directly to kitchen.
-      // Only honored when a staff session is authenticated for this restaurant —
-      // a customer can't pass autoAccept:true to bypass owner approval.
-      ...(autoAccept && staffAuthorisedAutoAccept
-        ? { status: "ACCEPTED" as const }
-        : {}),
+      // Status priority:
+      //   1. Fast Pay counter sale  → DELIVERED (skip kitchen entirely)
+      //   2. Staff autoAccept       → ACCEPTED   (skip PENDING; queue in kitchen)
+      //   3. Default                → PENDING    (await staff/owner accept)
+      ...(isFastPayCounterSale
+        ? {
+            status: "DELIVERED" as const,
+            acceptedAt: orderTimestamp,
+            preparingAt: orderTimestamp,
+            readyAt: orderTimestamp,
+            deliveredAt: orderTimestamp,
+          }
+        : autoAccept && staffAuthorisedAutoAccept
+          ? { status: "ACCEPTED" as const, acceptedAt: orderTimestamp }
+          : {}),
       tableNo:
         orderType === "DINE_IN" && tableNo && !isNaN(parseInt(String(tableNo), 10))
           ? parseInt(String(tableNo), 10)
@@ -625,15 +644,19 @@ export const POST = safeHandler(
       data: { totalOrders: { increment: 1 } },
     });
 
-    notifyKitchenNewOrder(
-      id,
-      orderNo,
-      total,
-      tableNo ? parseInt(String(tableNo), 10) : null,
-      restaurant.currency ?? "NPR",
-    ).catch((err: unknown) => {
-      console.error("[Orders] Failed to send kitchen notification:", err);
-    });
+    // Fast Pay sales never enter the kitchen workflow, so skip the push
+    // notification too — it would just create noise on staff devices.
+    if (!isFastPayCounterSale) {
+      notifyKitchenNewOrder(
+        id,
+        orderNo,
+        total,
+        tableNo ? parseInt(String(tableNo), 10) : null,
+        restaurant.currency ?? "NPR",
+      ).catch((err: unknown) => {
+        console.error("[Orders] Failed to send kitchen notification:", err);
+      });
+    }
 
     let fullOrder;
     try {

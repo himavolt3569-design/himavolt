@@ -29,6 +29,7 @@ interface Room {
   type: string;
   floor: number;
   price: number;
+  maxGuests: number;
   bedType: string | null;
   bedCount: number;
   imageUrls: string[];
@@ -79,7 +80,11 @@ function RoomQRCard({
   const qrRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const roomUrl = `${APP_URL}/hotel/${slug}?room=${room.id}`;
+  // Per-room QR points at the dedicated room landing page. The page lets the
+  // guest either book the room (deep-links to /hotel/[slug]?roomId=…) or
+  // jump into in-stay ordering (/menu/[slug]?room=<roomNumber>) — covers the
+  // two real reasons a guest would scan an in-room QR.
+  const roomUrl = `${APP_URL}/hotel/${slug}/room/${encodeURIComponent(room.roomNumber)}`;
   const roomLabel = room.name || `Room ${room.roomNumber}`;
 
   const handleDownload = async () => {
@@ -137,7 +142,7 @@ function RoomQRCard({
     ctx.textAlign = "center";
     const details: string[] = [];
     if (room.bedType) details.push(`${room.bedCount > 1 ? `${room.bedCount}x ` : ""}${room.bedType}`);
-    details.push(`Up to guests`);
+    if (room.maxGuests) details.push(`Up to ${room.maxGuests} guest${room.maxGuests === 1 ? "" : "s"}`);
     if (details.length) ctx.fillText(details.join(" · "), CARD_W / 2, 336);
     ctx.fillText(formatPrice(room.price, currency) + "/night", CARD_W / 2, 354);
 
@@ -153,7 +158,7 @@ function RoomQRCard({
     ctx.fillText("Powered by HimaVolt", CARD_W / 2, 390);
     ctx.fillStyle = "#a16207";
     ctx.font = "10px system-ui, sans-serif";
-    ctx.fillText("Scan to book this room online", CARD_W / 2, 406);
+    ctx.fillText("Scan to view, book, or order to this room", CARD_W / 2, 406);
 
     const link = document.createElement("a");
     link.download = `room-${room.roomNumber}-qr.png`;
@@ -256,7 +261,7 @@ export default function RoomQRTab() {
       <div>
         <h2 className="text-[20px] font-black text-[var(--text-1)]">Room QR Codes</h2>
         <p className="text-[12px] text-[var(--text-2)] mt-0.5">
-          Each QR links directly to that room on the hotel booking page. Print and place in rooms.
+          Each QR opens the room&apos;s landing page. Walk-up guests can book online; check-ins can order food and drinks straight to their room.
         </p>
       </div>
 

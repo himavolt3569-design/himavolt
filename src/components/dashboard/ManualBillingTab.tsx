@@ -396,11 +396,13 @@ export default function ManualBillingTab({
 
 
   if (success) {
-    /* Fast Pay success — order is already in kitchen, collect payment separately */
+    /* Fast Pay success — counter sale: the server creates the order at
+       DELIVERED, so it never enters Kitchen / Live Orders. Staff collect
+       payment separately via the button below. */
     if (payMethod === "DIRECT") {
       return (
         <div className="flex flex-col items-center justify-center py-10 gap-4 max-w-sm mx-auto text-center">
-          {/* Kitchen confirmation — bold and instant */}
+          {/* Counter-sale confirmation — bold and instant */}
           <motion.div
             initial={{ scale: 0.7, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -417,7 +419,7 @@ export default function ManualBillingTab({
               transition={{ delay: 0.1 }}
               className="text-2xl font-black text-[var(--text-1)] tracking-tight"
             >
-              {hasDrinks && hasFood ? "Kitchen & Bar" : hasDrinks ? "Sent to Bar" : "Sent to Kitchen"}
+              Sale recorded
             </motion.h3>
             <motion.p
               initial={{ opacity: 0 }}
@@ -426,7 +428,7 @@ export default function ManualBillingTab({
               className="text-sm text-[var(--text-2)] mt-1"
             >
               {orderNo && <span className="font-semibold">#{orderNo} &middot; </span>}
-              {tableNo ? `Table ${tableNo}` : "No table"}
+              {tableNo ? `Table ${tableNo}` : "Counter sale"}
               {guestName.trim() && <> &middot; {guestName.trim()}</>}
             </motion.p>
             <motion.p
@@ -437,13 +439,21 @@ export default function ManualBillingTab({
             >
               {formatPrice(total, currency)}
             </motion.p>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.26 }}
+              className="mt-1.5 text-[11px] text-[var(--text-3)]"
+            >
+              Counter sale — won&apos;t appear in Live Orders or the kitchen queue.
+            </motion.p>
           </div>
 
-          {/* Drink/bar indicator */}
+          {/* Drink/bar indicator — paper BOT slip is the only signal to the bar */}
           {hasDrinks && (
             <div className="w-full rounded-xl bg-blue-50 border border-blue-200 px-4 py-2.5 flex items-center gap-2 text-sm text-blue-700">
               <Wine className="h-4 w-4 flex-shrink-0" />
-              <span className="font-semibold">Bar items included — BOT sent to bar</span>
+              <span className="font-semibold">Bar items included — print BOT for the bar</span>
             </div>
           )}
 
