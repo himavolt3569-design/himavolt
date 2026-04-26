@@ -272,9 +272,16 @@ export default function CheckoutSheet({
     setCouponLoading(true);
     setCouponError("");
     try {
-      const res = await apiFetch<{ discount: number; message?: string }>(
+      const res = await apiFetch<{ discount: number; subtotal: number; message?: string }>(
         `/api/public/restaurants/${slug}/coupons/validate`,
-        { method: "POST", body: { code: couponCode.trim(), orderTotal: subtotal } },
+        {
+          method: "POST",
+          // Send the cart so the server can recompute the subtotal authoritatively.
+          body: {
+            code: couponCode.trim(),
+            items: items.map((i) => ({ menuItemId: i.id, quantity: i.quantity })),
+          },
+        },
       );
       setCouponDiscount(res.discount);
       setCouponApplied(true);
@@ -503,51 +510,45 @@ export default function CheckoutSheet({
           body: { orderId: order.id, method: "ESEWA" },
         });
 
-        // Build a temporary form in a new window to submit to eSewa
+        // Build the form in a new window using DOM construction (createElement
+        // + setAttribute) instead of `doc.write` string concatenation. Any
+        // `'`, `<`, or `</script>` in the gateway formData is treated as text,
+        // not HTML — closing the XSS hole the previous implementation had.
         const w = window.open("about:blank", "_blank");
         if (w) {
           paymentWindowRef.current = w;
           const doc = w.document;
+          // Reset the about:blank document to a known empty body.
           doc.open();
-          doc.write(
-            "<html><body><form id='f' method='POST' action='" +
-              paymentRes.gateway.url +
-              "'>",
-          );
-          Object.entries(paymentRes.gateway.formData).forEach(
-            ([key, value]) => {
-              doc.write(
-                "<input type='hidden' name='" +
-                  key +
-                  "' value='" +
-                  value +
-                  "' />",
-              );
-            },
-          );
-          doc.write(
-            "</form><p style='font-family:sans-serif;text-align:center;margin-top:40px'>Redirecting to eSewa...</p>",
-          );
-          doc.write(
-            "<script>document.getElementById('f').submit();<\/script></body></html>",
-          );
           doc.close();
-        } else {
-          // Fallback: submit form in same window if popup blocked
-          const form = document.createElement("form");
+          const form = doc.createElement("form");
           form.method = "POST";
           form.action = paymentRes.gateway.url;
           Object.entries(paymentRes.gateway.formData).forEach(
             ([key, value]) => {
-              const input = document.createElement("input");
+              const input = doc.createElement("input");
               input.type = "hidden";
-              input.name = key;
-              input.value = value;
+              input.name = String(key);
+              input.value = String(value);
               form.appendChild(input);
             },
           );
-          document.body.appendChild(form);
+          const status = doc.createElement("p");
+          status.style.fontFamily = "sans-serif";
+          status.style.textAlign = "center";
+          status.style.marginTop = "40px";
+          status.textContent = "Redirecting to eSewa…";
+          doc.body.appendChild(status);
+          doc.body.appendChild(form);
           form.submit();
+        } else {
+          // Popup blocked — we can't poll a same-window submit, so surface a
+          // clear inline error rather than silently dropping the order into
+          // a half-paid state.
+          setLoading(false);
+          setPaymentError(
+            "Please allow pop-ups for eSewa to complete payment, then try again.",
+          );
           return;
         }
 

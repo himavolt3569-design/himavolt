@@ -105,13 +105,14 @@ export type UpdatePaymentConfigInput = z.infer<
   typeof updatePaymentConfigSchema
 >;
 
+// Server is the source of truth for prices. We accept name/menuItemId/quantity
+// from the client, but `price` is always re-derived from the menu (or rejected
+// for ad-hoc lines). `prepTime` was dropped — server reads it from menu metadata.
 const orderItemSchema = z.object({
-  name: z.string().min(1),
-  quantity: z.number().int().positive(),
-  price: z.number().positive(),
-  menuItemId: z.string().optional(),
-  prepTime: z.string().optional(),
-  addOns: z.string().optional(),
+  name: z.string().min(1).max(120),
+  quantity: z.number().int().positive().max(99),
+  menuItemId: z.string().min(1),
+  addOns: z.string().max(500).optional(),
 });
 
 export const createOrderSchema = z.object({
@@ -121,13 +122,15 @@ export const createOrderSchema = z.object({
     .nullable(),
   roomNo: z.string().max(20).optional().nullable(),
   guestName: z.string().max(100).optional().nullable(),
-  items: z.array(orderItemSchema).min(1, "At least one item required"),
+  items: z.array(orderItemSchema).min(1, "At least one item required").max(50),
   note: z.string().max(500).optional().nullable(),
   type: z
     .enum(["DINE_IN", "TAKEAWAY", "DELIVERY"])
     .optional()
     .default("DINE_IN"),
-  paymentMethod: z.string().optional(),
+  paymentMethod: z
+    .enum(["ESEWA", "KHALTI", "BANK", "CASH", "COUNTER", "DIRECT"])
+    .optional(),
   addToOrderId: z.string().optional().nullable(), // existing order ID for cash add-on
   tableSessionId: z.string().optional().nullable(), // link to table session
   deliveryAddress: z.string().max(300).optional().nullable(),
@@ -136,7 +139,9 @@ export const createOrderSchema = z.object({
   deliveryPhone: phoneSchema.optional().nullable(),
   deliveryNote: z.string().max(300).optional().nullable(),
   couponCode: z.string().max(50).optional().nullable(), // optional coupon code
-  autoAccept: z.boolean().optional(), // Fast Pay: skip PENDING, go directly to kitchen
+  // Fast Pay: server only honors this when a staff session is present for the
+  // restaurant. Customer-direct callers cannot bypass the PENDING queue.
+  autoAccept: z.boolean().optional(),
 });
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
 

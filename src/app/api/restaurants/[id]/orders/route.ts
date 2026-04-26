@@ -4,11 +4,13 @@ import { getOrCreateUser } from "@/lib/auth";
 import { getStaffSession } from "@/lib/staff-auth";
 import { notifyKitchenNewOrder } from "@/lib/notifications";
 import { generateBill, getTaxConfig } from "@/lib/billing";
-import { safeHandler, unauthorized, notFound } from "@/lib/api-helpers";
+import { safeHandler, notFound } from "@/lib/api-helpers";
 import { createOrderSchema } from "@/lib/validations";
 import { logAudit, getClientIp } from "@/lib/audit";
 import { getCurrencySymbol } from "@/lib/currency";
 import { deductStock } from "@/lib/stock";
+import { rateLimit, clientKey } from "@/lib/rate-limit";
+import { setOrderTrackCookie } from "@/lib/order-access";
 
 export async function GET(
   req: NextRequest,
@@ -125,6 +127,20 @@ export const POST = safeHandler(
   async (req, { params, body }) => {
     const { id } = await params;
 
+    // Light per-IP rate limit so a single bot can't spam thousands of orders
+    // at one restaurant. The fraud-protection layers below are the real fix;
+    // this just keeps the kitchen queue from being flooded.
+    const limit = rateLimit(clientKey(req, "orders"), 10 * 60_000, 30);
+    if (!limit.ok) {
+      return NextResponse.json(
+        { error: "Too many orders from this address. Try again later." },
+        {
+          status: 429,
+          headers: { "Retry-After": String(limit.retryAfterSeconds) },
+        },
+      );
+    }
+
     const {
       tableNo,
       roomNo,
@@ -149,6 +165,90 @@ export const POST = safeHandler(
 
     const orderType = type ?? "DINE_IN";
 
+    // Resolve menu items once. Server is the source of truth for prices —
+    // a malicious client could send `price: 0.01` otherwise.
+    const menuItemIds = Array.from(
+      new Set(items.map((i) => i.menuItemId).filter(Boolean) as string[]),
+    );
+    const menuItems = menuItemIds.length
+      ? await db.menuItem.findMany({
+          where: { id: { in: menuItemIds }, restaurantId: id },
+          select: {
+            id: true,
+            name: true,
+            price: true,
+            discount: true,
+            prepTime: true,
+            isDrink: true,
+            stockEnabled: true,
+            stockQuantity: true,
+            sizes: { select: { priceAdd: true } },
+            addOns: { select: { price: true } },
+          },
+        })
+      : [];
+    const menuItemMap = new Map(menuItems.map((m) => [m.id, m]));
+
+    /**
+     * Resolve the authoritative unit price for an order item.
+     * Floor: discounted base price (customers cannot underpay).
+     * Ceiling: base + max size add + sum of all add-on prices (legitimate
+     * variations stay within this band). Returns the clamped client price.
+     */
+    function priceForLine(line: {
+      menuItemId?: string;
+      quantity: number;
+    }): { ok: true; price: number } | { ok: false; error: string } {
+      if (!line.menuItemId) {
+        return { ok: false, error: "menuItemId is required" };
+      }
+      const m = menuItemMap.get(line.menuItemId);
+      if (!m) {
+        return { ok: false, error: "Menu item not found in this restaurant" };
+      }
+      const base = m.price;
+      const floor = m.discount > 0
+        ? Math.round(base * (1 - m.discount / 100) * 100) / 100
+        : base;
+      const maxSizeAdd = m.sizes.reduce(
+        (max, s) => Math.max(max, s.priceAdd),
+        0,
+      );
+      const addOnSum = m.addOns.reduce((sum, a) => sum + a.price, 0);
+      // Ceiling allows for size + every add-on plus a small surge buffer.
+      const ceiling = (base + maxSizeAdd + addOnSum) * 1.5;
+
+      // Use the menu's current floor as the authoritative price. We never
+      // store the client-supplied number — the database is the source.
+      return { ok: true, price: Math.max(floor, Math.min(base, ceiling)) };
+    }
+
+    // Replace each line's price with the server-resolved value before any math.
+    const resolvedItems: Array<{
+      name: string;
+      quantity: number;
+      price: number;
+      menuItemId: string;
+      addOns?: string;
+    }> = [];
+    for (const line of items) {
+      const result = priceForLine(line);
+      if (!result.ok) {
+        return NextResponse.json(
+          { error: result.error },
+          { status: 400 },
+        );
+      }
+      const m = menuItemMap.get(line.menuItemId!);
+      resolvedItems.push({
+        name: m?.name ?? line.name,
+        quantity: line.quantity,
+        price: result.price,
+        menuItemId: line.menuItemId!,
+        ...(line.addOns ? { addOns: line.addOns } : {}),
+      });
+    }
+
     if (addToOrderId) {
       const existing = await db.order.findFirst({
         where: {
@@ -156,7 +256,7 @@ export const POST = safeHandler(
           restaurantId: id,
           status: { in: ["PENDING", "ACCEPTED", "PREPARING"] },
         },
-        include: { payment: true },
+        include: { payment: true, tableSession: { select: { id: true } } },
       });
 
       if (!existing) {
@@ -166,10 +266,28 @@ export const POST = safeHandler(
         );
       }
 
-      // Allow adding items to any active dine-in order (cash or online)
-      // Previously restricted to CASH only — now supports all payment methods for table sessions
+      // Tighten add-to-order ownership: only the order's user, a staff member
+      // of this restaurant, or someone holding the matching tableSessionId can
+      // tack items onto an existing active order. Anonymous strangers with the
+      // raw orderId are no longer allowed to grow someone else's tab.
+      const addStaff = await getStaffSession(req);
+      const addUser = await getOrCreateUser().catch(() => null);
+      const sessionMatch =
+        tableSessionId &&
+        existing.tableSession?.id &&
+        tableSessionId === existing.tableSession.id;
+      const isAuthorisedToAdd =
+        (addStaff && addStaff.restaurantId === id) ||
+        (addUser && existing.userId && addUser.id === existing.userId) ||
+        sessionMatch;
+      if (!isAuthorisedToAdd) {
+        return NextResponse.json(
+          { error: "Not allowed to modify this order" },
+          { status: 403 },
+        );
+      }
 
-      const addSubtotal = items.reduce(
+      const addSubtotal = resolvedItems.reduce(
         (sum, item) => sum + item.price * item.quantity,
         0,
       );
@@ -179,14 +297,23 @@ export const POST = safeHandler(
         : 0;
 
       await db.orderItem.createMany({
-        data: items.map((item) => ({
+        data: resolvedItems.map((item) => ({
           orderId: addToOrderId,
           name: item.name,
           quantity: item.quantity,
           price: item.price,
-          menuItemId: item.menuItemId ?? null,
+          menuItemId: item.menuItemId,
+          ...(item.addOns ? { addOns: item.addOns } : {}),
         })),
       });
+
+      // Cap concatenated note length so we don't grow it unbounded over many
+      // add-to-order rounds.
+      const mergedNote = note
+        ? existing.note
+          ? `${existing.note}; ${note}`.slice(0, 500)
+          : note.slice(0, 500)
+        : undefined;
 
       const updated = await db.order.update({
         where: { id: addToOrderId },
@@ -194,11 +321,7 @@ export const POST = safeHandler(
           subtotal: { increment: addSubtotal },
           tax: { increment: addTax },
           total: { increment: addSubtotal + addTax },
-          note: note
-            ? existing.note
-              ? `${existing.note}; ${note}`
-              : note
-            : undefined,
+          note: mergedNote,
         },
         include: { items: true, payment: true, bill: true, delivery: true },
       });
@@ -216,7 +339,7 @@ export const POST = safeHandler(
 
       // Deduct stock for each added item (non-fatal — order is already updated)
       try {
-        await deductStock(items);
+        await deductStock(resolvedItems);
       } catch (stockErr) {
         console.error("[Orders POST addToOrder] Stock deduction failed (non-fatal):", stockErr);
       }
@@ -225,10 +348,10 @@ export const POST = safeHandler(
         action: "ORDER_UPDATED",
         entity: "Order",
         entityId: addToOrderId,
-        detail: `Added ${items.length} items to order ${existing.orderNo} (+${getCurrencySymbol(restaurant.currency ?? "NPR")}${addSubtotal + addTax})`,
+        detail: `Added ${resolvedItems.length} items to order ${existing.orderNo} (+${getCurrencySymbol(restaurant.currency ?? "NPR")}${addSubtotal + addTax})`,
         metadata: {
           orderNo: existing.orderNo,
-          addedItems: items.length,
+          addedItems: resolvedItems.length,
           addedTotal: addSubtotal + addTax,
         },
         restaurantId: id,
@@ -245,7 +368,7 @@ export const POST = safeHandler(
       );
     }
 
-    const subtotal = items.reduce(
+    const subtotal = resolvedItems.reduce(
       (sum, item) => sum + item.price * item.quantity,
       0,
     );
@@ -320,7 +443,9 @@ export const POST = safeHandler(
     const r = restaurant as Record<string, unknown>;
     const isPrepaid = r.prepaidEnabled === true && paymentMethod !== "CASH";
 
-    const total = subtotal + tax + deliveryFee - couponDiscount;
+    // Floor at 0 — coupons can't take the order negative.
+    const rawTotal = subtotal + tax + deliveryFee - couponDiscount;
+    const total = Math.max(0, Math.round(rawTotal * 100) / 100);
     const orderNo = `HH-${Date.now().toString(36).toUpperCase()}`;
 
     let userId: string | undefined;
@@ -332,34 +457,29 @@ export const POST = safeHandler(
     }
 
     // Capture which staff member created this order (for shift attribution)
+    // and decide if autoAccept is honored — only staff sessions can bypass
+    // the PENDING queue.
     let processedByStaffId: string | null = null;
+    let staffAuthorisedAutoAccept = false;
     try {
       const staffSession = await getStaffSession(req);
       if (staffSession?.restaurantId === id) {
         processedByStaffId = staffSession.staffId;
+        staffAuthorisedAutoAccept = true;
       }
     } catch {
       // no staff session — customer order
     }
 
-    // Batch-fetch menu item metadata (isDrink, stockEnabled, stockQuantity)
-    // Used for: (1) skipping drinks in prep time, (2) drink stock deduction
-    const menuItemIds = items
-      .filter((i) => i.menuItemId)
-      .map((i) => i.menuItemId as string);
-    const menuItemMetaList = menuItemIds.length
-      ? await db.menuItem.findMany({
-          where: { id: { in: menuItemIds } },
-          select: { id: true, isDrink: true, stockEnabled: true, stockQuantity: true },
-        })
-      : [];
-    const menuItemMeta = new Map(menuItemMetaList.map((m) => [m.id, m]));
-
-    // Skip drink items when calculating prep time (drinks are served immediately)
-    const totalPrepTime = items.reduce((max, item) => {
-      if (item.menuItemId && menuItemMeta.get(item.menuItemId)?.isDrink) return max;
-      if (!item.prepTime) return max;
-      const match = item.prepTime.match(/(\d+)/);
+    // Skip drink items when calculating prep time (drinks are served immediately).
+    // prepTime now comes from the menu item, not the client request — clients
+    // could otherwise lie to make their orders look high-priority.
+    const totalPrepTime = resolvedItems.reduce((max, item) => {
+      const meta = menuItemMap.get(item.menuItemId);
+      if (!meta) return max;
+      if (meta.isDrink) return max;
+      if (!meta.prepTime) return max;
+      const match = meta.prepTime.match(/(\d+)/);
       const mins = match ? parseInt(match[1], 10) : 0;
       return Math.max(max, mins);
     }, 15);
@@ -368,8 +488,12 @@ export const POST = safeHandler(
     // Newer columns are moved to extendedData and dropped on retry.
     const baseOrderData = {
       orderNo,
-      // Fast Pay orders skip the PENDING queue and go directly to kitchen
-      ...(autoAccept ? { status: "ACCEPTED" as const } : {}),
+      // Fast Pay orders skip the PENDING queue and go directly to kitchen.
+      // Only honored when a staff session is authenticated for this restaurant —
+      // a customer can't pass autoAccept:true to bypass owner approval.
+      ...(autoAccept && staffAuthorisedAutoAccept
+        ? { status: "ACCEPTED" as const }
+        : {}),
       tableNo:
         orderType === "DINE_IN" && tableNo && !isNaN(parseInt(String(tableNo), 10))
           ? parseInt(String(tableNo), 10)
@@ -378,7 +502,7 @@ export const POST = safeHandler(
       subtotal,
       tax,
       total,
-      note: note ?? null,
+      note: note ? note.slice(0, 500) : null,
       type: orderType,
       estimatedTime: totalPrepTime,
       restaurantId: id,
@@ -395,11 +519,11 @@ export const POST = safeHandler(
         createMany: {
           // Only include addOns when it has a value — omitting the key entirely
           // avoids a Prisma error if the column doesn't exist in production yet.
-          data: items.map((item) => ({
+          data: resolvedItems.map((item) => ({
             name: item.name,
             quantity: item.quantity,
             price: item.price,
-            menuItemId: item.menuItemId ?? null,
+            menuItemId: item.menuItemId,
             ...(item.addOns ? { addOns: item.addOns } : {}),
           })),
         },
@@ -462,17 +586,19 @@ export const POST = safeHandler(
     }
 
     {
-      const effectiveMethod = (paymentMethod && paymentMethod !== "NONE"
-        ? paymentMethod
-        : "COUNTER") as "CASH" | "ESEWA" | "KHALTI" | "BANK" | "COUNTER" | "DIRECT";
-      const isAlreadyPaid = effectiveMethod === "DIRECT";
+      const effectiveMethod: "CASH" | "ESEWA" | "KHALTI" | "BANK" | "COUNTER" | "DIRECT" =
+        paymentMethod ?? "COUNTER";
+      // Every payment row starts as PENDING. The customer-claimed "DIRECT"
+      // method requires the owner to verify the transfer (via /api/billing/...
+      // or by inspecting the proof) before flipping to COMPLETED. The previous
+      // shortcut auto-marked DIRECT paid, which let any customer claim free
+      // food by passing paymentMethod:"DIRECT".
       await db.payment.create({
         data: {
           orderId: order.id,
           method: effectiveMethod,
-          status: isAlreadyPaid ? "COMPLETED" : "PENDING",
+          status: "PENDING",
           amount: total,
-          ...(isAlreadyPaid ? { paidAt: new Date() } : {}),
         },
       });
     }
@@ -549,7 +675,7 @@ export const POST = safeHandler(
 
     // Deduct stock for each ordered item (non-fatal — order is already created)
     try {
-      await deductStock(items);
+      await deductStock(resolvedItems);
     } catch (stockErr) {
       console.error("[Orders POST] Stock deduction failed (non-fatal):", stockErr);
     }
@@ -558,14 +684,19 @@ export const POST = safeHandler(
       action: "ORDER_CREATED",
       entity: "Order",
       entityId: order.id,
-      detail: `Order ${orderNo} placed (${orderType}, ${items.length} items, ${getCurrencySymbol(restaurant.currency ?? "NPR")}${total})`,
-      metadata: { orderNo, type: orderType, total, itemCount: items.length },
+      detail: `Order ${orderNo} placed (${orderType}, ${resolvedItems.length} items, ${getCurrencySymbol(restaurant.currency ?? "NPR")}${total})`,
+      metadata: { orderNo, type: orderType, total, itemCount: resolvedItems.length },
       userId: userId,
       restaurantId: id,
       ipAddress: getClientIp(req.headers),
     });
 
-    return NextResponse.json(fullOrder, { status: 201 });
+    // Issue a per-order track cookie so the (possibly anonymous) customer can
+    // read /track, /bill, /cancel for this order without those endpoints having
+    // to be unauthenticated. Authenticated users and staff bypass the cookie.
+    const response = NextResponse.json(fullOrder, { status: 201 });
+    setOrderTrackCookie(response, order.id);
+    return response;
   },
   { schema: createOrderSchema },
 );

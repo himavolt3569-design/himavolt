@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { canAccessOrder } from "@/lib/order-access";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -29,6 +30,18 @@ export async function GET(req: NextRequest) {
 
   if (!order) {
     return NextResponse.json({ error: "Order not found" }, { status: 404 });
+  }
+
+  // Reject anyone who can't prove they placed (or are serving) this order.
+  // Previously this endpoint was wide open — anyone with the orderId or
+  // (timestamp-derived) orderNo could read the customer's order.
+  const allowed = await canAccessOrder(req, {
+    id: order.id,
+    userId: order.userId,
+    restaurantId: order.restaurantId,
+  });
+  if (!allowed) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   return NextResponse.json(order);

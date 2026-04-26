@@ -2,8 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireStaffForRestaurant } from "@/lib/staff-auth";
 import { getAuthUser } from "@/lib/auth";
+import { rateLimit, clientKey } from "@/lib/rate-limit";
 
 type Params = { params: Promise<{ id: string }> };
+
+const COMMENT_MAX = 1000;
+const NAME_MAX = 60;
 
 /**
  * POST /api/restaurants/[id]/feedback
@@ -12,6 +16,19 @@ type Params = { params: Promise<{ id: string }> };
  */
 export async function POST(req: NextRequest, { params }: Params) {
   const { id: restaurantId } = await params;
+
+  // 5 reviews per minute per IP keeps spam-bombs out without blocking
+  // legitimate small groups submitting feedback at the end of a meal.
+  const limit = rateLimit(clientKey(req, "feedback"), 60_000, 5);
+  if (!limit.ok) {
+    return NextResponse.json(
+      { error: "Too many feedback submissions. Try again shortly." },
+      {
+        status: 429,
+        headers: { "Retry-After": String(limit.retryAfterSeconds) },
+      },
+    );
+  }
 
   const restaurant = await db.restaurant.findUnique({
     where: { id: restaurantId },
@@ -26,10 +43,36 @@ export async function POST(req: NextRequest, { params }: Params) {
     return NextResponse.json({ error: "Rating must be 1–5" }, { status: 400 });
   }
 
-  // Verify orderId belongs to this restaurant (if provided)
+  if (comment !== undefined && comment !== null && typeof comment !== "string") {
+    return NextResponse.json({ error: "comment must be a string" }, { status: 400 });
+  }
+  if (typeof comment === "string" && comment.length > COMMENT_MAX) {
+    return NextResponse.json(
+      { error: `comment is too long (max ${COMMENT_MAX} characters)` },
+      { status: 400 },
+    );
+  }
+  if (name !== undefined && name !== null && typeof name !== "string") {
+    return NextResponse.json({ error: "name must be a string" }, { status: 400 });
+  }
+  if (typeof name === "string" && name.length > NAME_MAX) {
+    return NextResponse.json(
+      { error: `name is too long (max ${NAME_MAX} characters)` },
+      { status: 400 },
+    );
+  }
+
+  // Verify orderId belongs to this restaurant and hasn't already been reviewed.
   if (orderId) {
     const order = await db.order.findFirst({ where: { id: orderId, restaurantId } });
     if (!order) return NextResponse.json({ error: "Order not found" }, { status: 404 });
+    const existing = await db.feedback.findFirst({ where: { orderId } });
+    if (existing) {
+      return NextResponse.json(
+        { error: "This order already has feedback" },
+        { status: 409 },
+      );
+    }
   }
 
   const feedback = await db.feedback.create({
@@ -37,8 +80,12 @@ export async function POST(req: NextRequest, { params }: Params) {
       restaurantId,
       orderId: orderId ?? null,
       rating: rating ?? null,
-      comment: comment?.trim() ?? null,
-      name: isAnonymous ? null : (name?.trim() ?? null),
+      comment: typeof comment === "string" ? comment.trim().slice(0, COMMENT_MAX) : null,
+      name: isAnonymous
+        ? null
+        : typeof name === "string"
+          ? name.trim().slice(0, NAME_MAX) || null
+          : null,
       isAnonymous,
     },
   });

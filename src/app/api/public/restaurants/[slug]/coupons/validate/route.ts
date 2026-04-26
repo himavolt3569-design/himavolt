@@ -3,9 +3,13 @@ import { db } from "@/lib/db";
 
 /**
  * POST /api/public/restaurants/[slug]/coupons/validate
- * Validate a coupon code for a given order total.
- * Body: { code: string, orderTotal: number }
- * Returns the calculated discount amount or an error message.
+ * Validate a coupon code for an order. The server recomputes the subtotal
+ * from the menu — clients can no longer claim an inflated `orderTotal` to
+ * pretend they qualify for a coupon they don't.
+ *
+ * Body: { code: string, items: { menuItemId: string, quantity: number }[] }
+ *   (legacy `orderTotal` numeric is accepted as a fallback but ignored when
+ *    `items` is present.)
  */
 export async function POST(
   req: NextRequest,
@@ -23,14 +27,64 @@ export async function POST(
     }
 
     const body = await req.json();
-    const { code, orderTotal } = body;
+    const { code, items } = body as {
+      code?: unknown;
+      items?: unknown;
+    };
 
     if (!code || typeof code !== "string") {
       return NextResponse.json({ error: "Coupon code is required" }, { status: 400 });
     }
-    if (typeof orderTotal !== "number" || orderTotal <= 0) {
-      return NextResponse.json({ error: "A valid order total is required" }, { status: 400 });
+
+    // Recompute the subtotal from the menu. Any item without a valid
+    // menuItemId or any unknown id is rejected — we won't trust client prices.
+    if (!Array.isArray(items) || items.length === 0) {
+      return NextResponse.json(
+        { error: "items[] is required to validate a coupon" },
+        { status: 400 },
+      );
     }
+    type Line = { menuItemId: string; quantity: number };
+    const lines: Line[] = [];
+    for (const raw of items as unknown[]) {
+      if (!raw || typeof raw !== "object") continue;
+      const r = raw as Record<string, unknown>;
+      if (typeof r.menuItemId !== "string") continue;
+      if (typeof r.quantity !== "number" || !Number.isInteger(r.quantity) || r.quantity <= 0) continue;
+      lines.push({ menuItemId: r.menuItemId, quantity: Math.min(r.quantity, 99) });
+    }
+    if (lines.length === 0) {
+      return NextResponse.json(
+        { error: "items[] must contain {menuItemId, quantity}" },
+        { status: 400 },
+      );
+    }
+
+    const ids = Array.from(new Set(lines.map((l) => l.menuItemId)));
+    const menu = await db.menuItem.findMany({
+      where: { id: { in: ids }, restaurantId: restaurant.id },
+      select: { id: true, price: true, discount: true },
+    });
+    const priceMap = new Map(
+      menu.map((m) => [
+        m.id,
+        m.discount > 0
+          ? Math.round(m.price * (1 - m.discount / 100) * 100) / 100
+          : m.price,
+      ]),
+    );
+    let subtotal = 0;
+    for (const line of lines) {
+      const p = priceMap.get(line.menuItemId);
+      if (p === undefined) {
+        return NextResponse.json(
+          { error: `Menu item ${line.menuItemId} not found in this restaurant` },
+          { status: 400 },
+        );
+      }
+      subtotal += p * line.quantity;
+    }
+    subtotal = Math.round(subtotal * 100) / 100;
 
     const coupon = await db.coupon.findUnique({
       where: {
@@ -62,7 +116,7 @@ export async function POST(
       return NextResponse.json({ error: "This coupon has reached its usage limit" }, { status: 400 });
     }
 
-    if (orderTotal < coupon.minOrder) {
+    if (subtotal < coupon.minOrder) {
       return NextResponse.json(
         { error: `Minimum order of ${coupon.minOrder} required for this coupon` },
         { status: 400 },
@@ -71,7 +125,7 @@ export async function POST(
 
     let discount: number;
     if (coupon.type === "PERCENTAGE") {
-      discount = Math.round((orderTotal * coupon.value) / 100 * 100) / 100;
+      discount = Math.round((subtotal * coupon.value) / 100 * 100) / 100;
       // Apply max discount cap if set
       if (coupon.maxDiscount !== null && discount > coupon.maxDiscount) {
         discount = coupon.maxDiscount;
@@ -80,9 +134,9 @@ export async function POST(
       discount = coupon.value;
     }
 
-    // Discount should never exceed order total
-    if (discount > orderTotal) {
-      discount = orderTotal;
+    // Discount should never exceed the (server-computed) subtotal
+    if (discount > subtotal) {
+      discount = subtotal;
     }
 
     return NextResponse.json({
@@ -91,6 +145,7 @@ export async function POST(
       code: coupon.code,
       type: coupon.type,
       value: coupon.value,
+      subtotal,
       discount,
       description: coupon.description,
     });

@@ -96,10 +96,9 @@ export default function SignUpPage() {
     setError("");
     setLoading(true);
 
-    if (role) {
-      document.cookie = `intended_role=${role}; path=/; max-age=86400; SameSite=Lax`;
-    }
-
+    // Don't set an `intended_role` cookie — the server no longer trusts it
+    // for role decisions. The auth callback uses the URL `?role=...` query
+    // param (passed via emailRedirectTo) instead.
     if (role === "OWNER" && !/^\d{10}$/.test(phone)) {
       setError("Phone number must be exactly 10 digits");
       setLoading(false);
@@ -133,7 +132,8 @@ export default function SignUpPage() {
 
   const handleGoogleSignUp = async () => {
     if (!role) return;
-    document.cookie = `intended_role=${role}; path=/; max-age=600; SameSite=Lax`;
+    // Role is passed through the OAuth `redirectTo` URL — the server reads it
+    // off the auth callback's query string. No need for a parallel cookie.
     const supabase = getSupabaseBrowserClient();
     await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -487,9 +487,9 @@ export default function SignUpPage() {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
-                        minLength={6}
+                        minLength={8}
                         className={inputClass}
-                        placeholder="Min 6 characters"
+                        placeholder="Min 8 characters"
                       />
                     </div>
                   </div>

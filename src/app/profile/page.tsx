@@ -56,12 +56,13 @@ export default function ProfilePage() {
       .catch(() => {});
   }, [isSignedIn]);
 
-  // Fetch basic stats (total orders count)
+  // Fetch basic stats (total orders count) via a dedicated count endpoint —
+  // /api/orders?limit=100 was capping at 100 even for very-active users.
   useEffect(() => {
     if (!isSignedIn) return;
-    apiFetch<{ id: string }[]>("/api/orders?limit=100")
-      .then((orders) => {
-        setStats({ totalOrders: orders.length });
+    apiFetch<{ count: number }>("/api/me/orders/count")
+      .then((data) => {
+        setStats({ totalOrders: data.count ?? 0 });
       })
       .catch(() => {
         /* ignore */

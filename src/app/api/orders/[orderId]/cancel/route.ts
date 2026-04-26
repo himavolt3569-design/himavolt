@@ -3,21 +3,14 @@ import { db } from "@/lib/db";
 import { getOrCreateUser } from "@/lib/auth";
 import { logAudit, getClientIp } from "@/lib/audit";
 import { sendNotificationToRestaurantStaff } from "@/lib/notifications";
+import { canAccessOrder } from "@/lib/order-access";
+import { restoreStock } from "@/lib/stock";
 
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ orderId: string }> }
 ) {
   const { orderId } = await params;
-
-  // Try to get the authenticated user (optional — guests can also cancel by knowing the orderId)
-  let userId: string | undefined;
-  try {
-    const user = await getOrCreateUser();
-    if (user) userId = user.id;
-  } catch {
-    // guest
-  }
 
   const order = await db.order.findUnique({
     where: { id: orderId },
@@ -28,9 +21,16 @@ export async function POST(
     return NextResponse.json({ error: "Order not found" }, { status: 404 });
   }
 
-  // If the order has a userId, ensure the caller is that user
-  if (order.userId && userId !== order.userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+  // Same gate as /track and /bill: signed-in owner, restaurant staff, or the
+  // track cookie issued at order POST. Previously anyone with the orderId
+  // could cancel a guest order — vandalism vector.
+  const allowed = await canAccessOrder(req, {
+    id: order.id,
+    userId: order.userId,
+    restaurantId: order.restaurantId,
+  });
+  if (!allowed) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   // Only allow cancellation of PENDING orders (before kitchen has started)
@@ -41,51 +41,39 @@ export async function POST(
     );
   }
 
-  await db.order.update({
-    where: { id: orderId },
+  // Atomic flip + payment cancel. We use updateMany with the PENDING guard so
+  // a concurrent retry can't double-restock: the second call sees count = 0
+  // and skips the stock restore step.
+  const flip = await db.order.updateMany({
+    where: { id: orderId, status: "PENDING" },
     data: { status: "CANCELLED" },
   });
 
-  // Restore stock (ingredient-based + drink direct stock)
-  for (const item of order.items) {
-    if (!item.menuItemId) continue;
-
-    const ingredients = await db.menuItemIngredient.findMany({
-      where: { menuItemId: item.menuItemId },
-    });
-    for (const ing of ingredients) {
-      await db.inventoryItem.update({
-        where: { id: ing.inventoryItemId },
-        data: { quantity: { increment: ing.quantityUsed * item.quantity } },
-      });
-      const dependents = await db.menuItemIngredient.findMany({
-        where: { inventoryItemId: ing.inventoryItemId },
-      });
-      for (const dep of dependents) {
-        await db.menuItem.update({
-          where: { id: dep.menuItemId },
-          data: { isAvailable: true },
-        });
-      }
-    }
-
-    const menuItem = await db.menuItem.findUnique({
-      where: { id: item.menuItemId },
-      select: { isDrink: true, stockEnabled: true },
-    });
-    if (menuItem?.isDrink && menuItem.stockEnabled) {
-      await db.menuItem.update({
-        where: { id: item.menuItemId },
-        data: { stockQuantity: { increment: item.quantity } },
-      });
-    }
+  if (flip.count === 0) {
+    // Someone else already moved the order out of PENDING — nothing to do.
+    return NextResponse.json({ success: true, orderId, status: "CANCELLED" });
   }
 
-  // Cancel any pending/awaiting-verification payments
-  await db.payment.updateMany({
-    where: { orderId, status: { in: ["PENDING", "AWAITING_VERIFICATION"] } },
-    data: { status: "CANCELLED" },
-  });
+  // Cancel any pending/awaiting-verification payments and restore stock in
+  // parallel. Both are non-fatal — losing them doesn't undo the cancellation.
+  await Promise.all([
+    db.payment.updateMany({
+      where: { orderId, status: { in: ["PENDING", "AWAITING_VERIFICATION"] } },
+      data: { status: "CANCELLED" },
+    }),
+    restoreStock(order.items).catch((err: unknown) => {
+      console.error("[Orders cancel] restoreStock failed:", err);
+    }),
+  ]);
+
+  // Resolve the actor (best-effort) for the audit log.
+  let actorUserId: string | undefined;
+  try {
+    const user = await getOrCreateUser();
+    if (user) actorUserId = user.id;
+  } catch {
+    // guest cancel via track cookie
+  }
 
   // Notify kitchen staff about the cancellation
   sendNotificationToRestaurantStaff(order.restaurantId, {
@@ -105,7 +93,7 @@ export async function POST(
     entity: "Order",
     entityId: orderId,
     detail: `Order ${order.orderNo} cancelled by customer`,
-    userId,
+    userId: actorUserId,
     restaurantId: order.restaurantId,
     ipAddress: getClientIp(req.headers),
   });

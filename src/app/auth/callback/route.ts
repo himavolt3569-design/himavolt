@@ -124,11 +124,9 @@ export async function GET(req: NextRequest) {
     return safeRole;
   })();
 
-  // Persist the determined role in Supabase user_metadata so future sign-ins
-  // can reliably read it even if cookies/query params are lost.
-  if (finalRole === "OWNER") {
-    await supabase.auth.updateUser({ data: { intended_role: "OWNER" } });
-  }
+  // We deliberately do NOT mirror the role into supabase user_metadata —
+  // that field is user-writable and the server treats it as untrusted, so
+  // writing back into it would only confuse future readers.
 
   if (isAccountLink && existingUserByEmail) {
     // Same email exists under a different ID — update the existing record

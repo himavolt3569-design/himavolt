@@ -16,6 +16,11 @@ const NotificationSetup = dynamic(
   { ssr: false },
 );
 
+const PresenceTracker = dynamic(
+  () => import("@/components/shared/PresenceTracker"),
+  { ssr: false },
+);
+
 export default function Providers({ children }: { children: ReactNode }) {
   useEffect(() => {
     registerServiceWorker();
@@ -31,6 +36,7 @@ export default function Providers({ children }: { children: ReactNode }) {
                 <ToastProvider>
                   {children}
                   <NotificationSetup />
+                  <PresenceTracker />
                 </ToastProvider>
               </LiveOrdersProvider>
             </OrderProvider>

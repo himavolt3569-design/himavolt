@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
+import { canAccessOrder } from "@/lib/order-access";
 
 /**
  * GET /api/track/stream?orderId=xxx
@@ -11,6 +12,20 @@ export async function GET(req: NextRequest) {
 
   if (!orderId) {
     return new Response("orderId is required", { status: 400 });
+  }
+
+  // Confirm the requester is allowed to read this order before opening the
+  // stream. Previously anyone with an orderId could subscribe to live updates.
+  const lookup = await db.order.findUnique({
+    where: { id: orderId },
+    select: { id: true, userId: true, restaurantId: true },
+  });
+  if (!lookup) {
+    return new Response("Order not found", { status: 404 });
+  }
+  const allowed = await canAccessOrder(req, lookup);
+  if (!allowed) {
+    return new Response("Unauthorized", { status: 401 });
   }
 
   const encoder = new TextEncoder();

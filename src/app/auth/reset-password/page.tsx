@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { Mountain, Loader2, Check, Eye, EyeOff } from "lucide-react";
@@ -21,6 +21,23 @@ function ResetPasswordForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // Guard against React state writes after the user navigates away mid-flight.
+  // exchangeCodeForSession is a network call; the redirect timer below also
+  // needs to be cleared so we don't push() on an unmounted component.
+  const mountedRef = useRef(true);
+  const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      if (redirectTimerRef.current) {
+        clearTimeout(redirectTimerRef.current);
+        redirectTimerRef.current = null;
+      }
+    };
+  }, []);
+
   useEffect(() => {
     const code = searchParams.get("code");
     if (!code) { setStatus("invalid"); return; }
@@ -28,6 +45,7 @@ function ResetPasswordForm() {
     const supabase = getSupabaseBrowserClient();
     supabase.auth.exchangeCodeForSession(code).then(
       (result: Awaited<ReturnType<typeof supabase.auth.exchangeCodeForSession>>) => {
+        if (!mountedRef.current) return;
         setStatus(result.error ? "invalid" : "ready");
       }
     );
@@ -43,10 +61,14 @@ function ResetPasswordForm() {
     const supabase = getSupabaseBrowserClient();
     const { error: updateError } = await supabase.auth.updateUser({ password });
 
+    if (!mountedRef.current) return;
     if (updateError) { setError(updateError.message); setLoading(false); return; }
 
     setStatus("done");
-    setTimeout(() => router.push("/sign-in"), 2500);
+    redirectTimerRef.current = setTimeout(() => {
+      redirectTimerRef.current = null;
+      router.push("/sign-in");
+    }, 2500);
   };
 
   if (status === "loading") {

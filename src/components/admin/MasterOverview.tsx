@@ -45,6 +45,18 @@ interface Stats {
   }[];
 }
 
+interface Presence {
+  total: number;
+  signedInCustomers: number;
+  anonymousCustomers: number;
+  customers: number;
+  owners: number;
+  staff: number;
+  admins: number;
+  generatedAt: string;
+  ttlSeconds: number;
+}
+
 function StatCard({
   label,
   value,
@@ -95,14 +107,21 @@ export default function MasterOverview({
   onNavigate: (tab: string) => void;
 }) {
   const [stats, setStats] = useState<Stats | null>(null);
+  const [presence, setPresence] = useState<Presence | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchStats = useCallback(async () => {
     try {
-      const res = await fetch("/api/admin/stats");
-      if (!res.ok) throw new Error("Failed to load stats");
-      setStats(await res.json());
+      const [statsRes, presenceRes] = await Promise.all([
+        fetch("/api/admin/stats"),
+        fetch("/api/admin/presence"),
+      ]);
+      if (!statsRes.ok) throw new Error("Failed to load stats");
+      setStats(await statsRes.json());
+      // Presence is best-effort — if the in-memory store hasn't seen any
+      // pings yet (e.g. fresh deploy) just leave the cards at zero.
+      if (presenceRes.ok) setPresence(await presenceRes.json());
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load stats");
@@ -148,6 +167,60 @@ export default function MasterOverview({
           <RefreshCw className="h-3.5 w-3.5" />
           Refresh
         </button>
+      </div>
+
+      {/* ── Live presence ───────────────────────────────────────── */}
+      <div className="rounded-2xl border border-[var(--accent-border)] bg-[var(--canvas)] p-5 shadow-sm">
+        <div className="mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--accent)] opacity-60" />
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[var(--accent)]" />
+            </span>
+            <h3 className="text-sm font-bold text-[var(--text-1)]">
+              Live Right Now
+            </h3>
+            <span className="text-xs font-medium text-[var(--text-3)]">
+              {presence ? `${presence.total.toLocaleString()} online` : "—"}
+            </span>
+          </div>
+          {presence && (
+            <span className="text-[11px] text-[var(--text-3)]">
+              window: {Math.round(presence.ttlSeconds / 60)}m
+            </span>
+          )}
+        </div>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <StatCard
+            label="Live Customers"
+            value={presence ? presence.customers.toLocaleString() : "—"}
+            sub={
+              presence
+                ? `${presence.signedInCustomers} signed in · ${presence.anonymousCustomers} guest`
+                : undefined
+            }
+            icon={Users}
+            color="text-blue-600 bg-blue-50"
+          />
+          <StatCard
+            label="Live Owners"
+            value={presence ? presence.owners.toLocaleString() : "—"}
+            icon={Store}
+            color="text-[var(--accent)] bg-[var(--accent-muted)]"
+          />
+          <StatCard
+            label="Live Staff"
+            value={presence ? presence.staff.toLocaleString() : "—"}
+            icon={Users}
+            color="text-purple-600 bg-purple-50"
+          />
+          <StatCard
+            label="Live Admins"
+            value={presence ? presence.admins.toLocaleString() : "—"}
+            icon={Activity}
+            color="text-pink-600 bg-pink-50"
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">

@@ -44,7 +44,9 @@ export default function SignInPage() {
   };
 
   const handleGoogleSignIn = async () => {
-    document.cookie = `intended_role=OWNER; path=/; max-age=600; SameSite=Lax`;
+    // Role flows through the OAuth `redirectTo` query string on the callback.
+    // The cookie was previously set in parallel — now removed since the
+    // server only reads the URL param.
     const supabase = getSupabaseBrowserClient();
     await supabase.auth.signInWithOAuth({
       provider: "google",
