@@ -168,6 +168,39 @@ function GrainSVG({ uid, suffix }: { uid: string; suffix: string }) {
   );
 }
 
+function DetailsSkeleton() {
+  return (
+    <div className="space-y-4 p-5 animate-pulse">
+      <div className="flex items-center gap-2">
+        <div className="h-4 w-4 rounded-sm bg-[var(--surface)]" />
+        <div className="h-3 w-16 rounded-full bg-[var(--surface)]" />
+        <div className="h-4 w-24 rounded-full bg-[var(--surface)]" />
+      </div>
+      <div className="space-y-2">
+        <div className="h-2.5 w-20 rounded-full bg-[var(--surface)]" />
+        <div className="h-5 w-3/5 rounded-full bg-[var(--surface)]" />
+        <div className="h-3 w-full rounded-full bg-[var(--surface)] mt-2" />
+        <div className="h-3 w-11/12 rounded-full bg-[var(--surface)]" />
+        <div className="h-3 w-4/5 rounded-full bg-[var(--surface)]" />
+      </div>
+      <div className="flex flex-wrap gap-2 pt-1">
+        <div className="h-7 w-24 rounded-full bg-[var(--surface)]" />
+        <div className="h-7 w-20 rounded-full bg-[var(--surface)]" />
+        <div className="h-7 w-28 rounded-full bg-[var(--surface)]" />
+      </div>
+      <div className="h-px bg-[var(--surface)]" />
+      <div className="flex items-center justify-between gap-4">
+        <div className="space-y-2">
+          <div className="h-2.5 w-12 rounded-full bg-[var(--surface)]" />
+          <div className="h-7 w-28 rounded-full bg-[var(--surface)]" />
+        </div>
+        <div className="h-12 w-32 rounded-2xl bg-[var(--surface)]" />
+      </div>
+      <div className="h-14 w-full rounded-2xl bg-[var(--surface)]" />
+    </div>
+  );
+}
+
 /* ── Animation variants ───────────────────────────────────────────────────── */
 
 const backdropVariants = {
@@ -583,7 +616,7 @@ export default function FoodDetailPopup({
 
   /* The full details body — used for mobile scrollable area */
   function renderDetailsBody() {
-    if (fetchState === "loading") return null;
+    if (fetchState === "loading") return <DetailsSkeleton />;
     if (fetchState === "error")
       return (
         <div className="flex flex-col items-center justify-center py-16 text-center px-5">
@@ -940,7 +973,7 @@ export default function FoodDetailPopup({
 
   /* Desktop details body (without category/name since those are in the sticky header) */
   function renderDetailsBodyDesktop() {
-    if (fetchState === "loading") return null;
+    if (fetchState === "loading") return <DetailsSkeleton />;
     if (fetchState === "error")
       return (
         <div className="flex flex-col items-center justify-center py-12 text-center px-5">
@@ -1294,7 +1327,7 @@ export default function FoodDetailPopup({
 
             {/* Image header */}
             <div className="relative aspect-[4/3] w-full shrink-0 overflow-hidden bg-[var(--surface)]">
-              {item && (
+              {item ? (
                 <motion.img
                   key={currentItemId}
                   src={imgSrc(item.imageUrl)}
@@ -1304,6 +1337,8 @@ export default function FoodDetailPopup({
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ duration: 0.45 }}
                 />
+              ) : (
+                <div className="absolute inset-0 bg-gradient-to-br from-[var(--surface)] to-[var(--canvas-sub)] animate-pulse" />
               )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-black/30" />
 
@@ -1432,7 +1467,7 @@ export default function FoodDetailPopup({
 
               {/* Left: sticky image column */}
               <div className="relative w-[340px] shrink-0 self-stretch overflow-hidden bg-[var(--surface)]">
-                {item && (
+                {item ? (
                   <motion.img
                     key={currentItemId}
                     src={imgSrc(item.imageUrl)}
@@ -1442,6 +1477,8 @@ export default function FoodDetailPopup({
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ duration: 0.45 }}
                   />
+                ) : (
+                  <div className="absolute inset-0 bg-gradient-to-br from-[var(--surface)] to-[var(--canvas-sub)] animate-pulse" />
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
 
@@ -1541,7 +1578,12 @@ export default function FoodDetailPopup({
                           {item.name}
                         </h2>
                       </>
-                    ) : null}
+                    ) : (
+                      <div className="space-y-1.5 py-0.5">
+                        <div className="h-2.5 w-20 rounded-full bg-[var(--surface)] animate-pulse" />
+                        <div className="h-4 w-48 rounded-full bg-[var(--surface)] animate-pulse" />
+                      </div>
+                    )}
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
                     <button
