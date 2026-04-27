@@ -7,11 +7,13 @@ import { getCurrencySymbol } from "@/lib/currency";
 import { getAuthUser } from "@/lib/auth";
 import { touchOrderUpdatedAt } from "@/lib/order-sync";
 import { STAFF_BILLING_ROLES } from "@/lib/staff-roles";
+import { notifyKitchenNewOrder } from "@/lib/notifications";
 
 async function verifyStaffAccess(req: NextRequest, restaurantId: string) {
   const staff = await requireStaffForRestaurant(req, restaurantId);
   if (!staff) return null;
-  if (!(STAFF_BILLING_ROLES as readonly string[]).includes(staff.role)) return null;
+  if (!(STAFF_BILLING_ROLES as readonly string[]).includes(staff.role))
+    return null;
   return staff;
 }
 
@@ -82,7 +84,10 @@ export async function POST(
     // Run separately so a missing endedAt column (schema drift) doesn't
     // abort the payment response — the session is still marked inactive.
     db.tableSession
-      .updateMany({ where: { orderId, isActive: true }, data: { isActive: false } })
+      .updateMany({
+        where: { orderId, isActive: true },
+        data: { isActive: false },
+      })
       .catch(() => {});
 
     // Tag the order with the staff who collected payment (for shift attribution)
@@ -94,6 +99,24 @@ export async function POST(
           data: { processedByStaffId: staff.staffId },
         })
         .catch(() => {});
+    }
+
+    // Payment collected → order is now visible in Live Orders.
+    // Notify the kitchen so staff hears the new-order sound.
+    if (order.status === "PENDING") {
+      const restaurant = await db.restaurant.findUnique({
+        where: { id },
+        select: { currency: true },
+      });
+      notifyKitchenNewOrder(
+        id,
+        order.orderNo,
+        order.total,
+        order.tableNo,
+        restaurant?.currency ?? "NPR",
+      ).catch((err: unknown) => {
+        console.error("[Billing Collect] Kitchen notification failed:", err);
+      });
     }
 
     logAudit({

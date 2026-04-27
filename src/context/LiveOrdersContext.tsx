@@ -81,12 +81,15 @@ export function LiveOrdersProvider({ children }: { children: ReactNode }) {
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
   const isFirstMessage = useRef(true);
 
-  const sseUrl = restaurantId ? `/api/restaurants/${restaurantId}/orders/stream` : null;
+  const sseUrl = restaurantId
+    ? `/api/restaurants/${restaurantId}/orders/stream`
+    : null;
   const { data: streamData } = useSSE<StreamMessage>(sseUrl);
 
   // Process incoming SSE messages
   useEffect(() => {
-    if (!streamData || streamData.type !== "orders" || !streamData.orders) return;
+    if (!streamData || streamData.type !== "orders" || !streamData.orders)
+      return;
     const incoming = streamData.orders;
 
     if (!isFirstMessage.current && (streamData.newPendingCount ?? 0) > 0) {
@@ -95,18 +98,9 @@ export function LiveOrdersProvider({ children }: { children: ReactNode }) {
     isFirstMessage.current = false;
     setOrders(incoming);
 
-    // Auto-reject PENDING orders older than 30 minutes
-    const now = Date.now();
-    const rid = restaurantId;
-    if (!rid) return;
-    incoming
-      .filter((o) => o.status === "PENDING" && now - new Date(o.createdAt).getTime() >= 30 * 60 * 1000)
-      .forEach((stale) => {
-        apiFetch(`/api/restaurants/${rid}/orders/${stale.id}`, {
-          method: "PATCH",
-          body: { status: "REJECTED" },
-        }).catch(() => {});
-      });
+    // Stale order cleanup is handled server-side via
+    // POST /api/restaurants/[id]/orders/cleanup (triggered from the
+    // StaleOrdersBanner in LiveOrdersTab). No client-side auto-reject.
   }, [streamData]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Reset when restaurant changes
@@ -135,7 +129,11 @@ export function LiveOrdersProvider({ children }: { children: ReactNode }) {
   }, [fetchOrders]);
 
   const updateStatus = useCallback(
-    async (orderId: string, status: string, extra?: Record<string, unknown>) => {
+    async (
+      orderId: string,
+      status: string,
+      extra?: Record<string, unknown>,
+    ) => {
       if (!restaurantId) return;
 
       // Optimistic update — instantly reflect the new status in UI
@@ -169,15 +167,25 @@ export function LiveOrdersProvider({ children }: { children: ReactNode }) {
 
   const acceptOrder = useCallback(
     (id: string, estimatedTime?: number) =>
-      updateStatus(id, "ACCEPTED", estimatedTime ? { estimatedTime } : undefined),
+      updateStatus(
+        id,
+        "ACCEPTED",
+        estimatedTime ? { estimatedTime } : undefined,
+      ),
     [updateStatus],
   );
-  const rejectOrder = useCallback((id: string) => updateStatus(id, "REJECTED"), [updateStatus]);
+  const rejectOrder = useCallback(
+    (id: string) => updateStatus(id, "REJECTED"),
+    [updateStatus],
+  );
   const markPreparing = useCallback(
     (id: string) => updateStatus(id, "PREPARING"),
     [updateStatus],
   );
-  const markReady = useCallback((id: string) => updateStatus(id, "READY"), [updateStatus]);
+  const markReady = useCallback(
+    (id: string) => updateStatus(id, "READY"),
+    [updateStatus],
+  );
   const markDelivered = useCallback(
     (id: string) => updateStatus(id, "DELIVERED"),
     [updateStatus],
@@ -206,6 +214,7 @@ export function LiveOrdersProvider({ children }: { children: ReactNode }) {
 
 export function useLiveOrders() {
   const ctx = useContext(LiveOrdersContext);
-  if (!ctx) throw new Error("useLiveOrders must be used inside LiveOrdersProvider");
+  if (!ctx)
+    throw new Error("useLiveOrders must be used inside LiveOrdersProvider");
   return ctx;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Clock,
@@ -17,25 +17,68 @@ import {
   DollarSign,
   ExternalLink,
   AlertTriangle,
+  Trash2,
+  Zap,
+  ShieldAlert,
 } from "lucide-react";
-import { useLiveOrders, type LiveOrder, type LiveOrderStatus } from "@/context/LiveOrdersContext";
+import {
+  useLiveOrders,
+  type LiveOrder,
+  type LiveOrderStatus,
+} from "@/context/LiveOrdersContext";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { formatPrice } from "@/lib/currency";
 import DineInRequestModal from "@/components/modals/DineInRequestModal";
 import { SkeletonOrderCard } from "@/components/shared/Skeleton";
+import { apiFetch } from "@/lib/api-client";
 import gsap from "gsap";
 
 const STATUS_CONFIG: Record<
   LiveOrderStatus,
   { label: string; bg: string; text: string; icon: typeof Clock }
 > = {
-  PENDING: { label: "New", bg: "bg-[var(--accent)]", text: "text-[var(--accent)]", icon: Clock },
-  ACCEPTED: { label: "Accepted", bg: "bg-blue-100", text: "text-blue-700", icon: CheckCircle2 },
-  PREPARING: { label: "Preparing", bg: "bg-[var(--accent-muted)]", text: "text-[var(--accent-text)]", icon: ChefHat },
-  READY: { label: "Ready", bg: "bg-[var(--accent-muted)]", text: "text-[var(--accent-text)]", icon: PackageCheck },
-  DELIVERED: { label: "Delivered", bg: "bg-[var(--surface)]", text: "text-[var(--text-2)]", icon: Truck },
-  CANCELLED: { label: "Cancelled", bg: "bg-red-100", text: "text-red-600", icon: XCircle },
-  REJECTED: { label: "Rejected", bg: "bg-red-100", text: "text-red-600", icon: XCircle },
+  PENDING: {
+    label: "New",
+    bg: "bg-[var(--accent)]",
+    text: "text-[var(--accent)]",
+    icon: Clock,
+  },
+  ACCEPTED: {
+    label: "Accepted",
+    bg: "bg-blue-100",
+    text: "text-blue-700",
+    icon: CheckCircle2,
+  },
+  PREPARING: {
+    label: "Preparing",
+    bg: "bg-[var(--accent-muted)]",
+    text: "text-[var(--accent-text)]",
+    icon: ChefHat,
+  },
+  READY: {
+    label: "Ready",
+    bg: "bg-[var(--accent-muted)]",
+    text: "text-[var(--accent-text)]",
+    icon: PackageCheck,
+  },
+  DELIVERED: {
+    label: "Delivered",
+    bg: "bg-[var(--surface)]",
+    text: "text-[var(--text-2)]",
+    icon: Truck,
+  },
+  CANCELLED: {
+    label: "Cancelled",
+    bg: "bg-red-100",
+    text: "text-red-600",
+    icon: XCircle,
+  },
+  REJECTED: {
+    label: "Rejected",
+    bg: "bg-red-100",
+    text: "text-red-600",
+    icon: XCircle,
+  },
 };
 
 const FILTER_OPTIONS: { value: LiveOrderStatus | "ALL"; label: string }[] = [
@@ -82,8 +125,14 @@ function StatusBadge({ status }: { status: LiveOrderStatus }) {
   const cfg = STATUS_CONFIG[status];
   const Icon = cfg.icon;
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold ${cfg.bg} ${cfg.text}`}>
-      {status === "PREPARING" ? <PreparingClock /> : <Icon className="h-3 w-3" />}
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold ${cfg.bg} ${cfg.text}`}
+    >
+      {status === "PREPARING" ? (
+        <PreparingClock />
+      ) : (
+        <Icon className="h-3 w-3" />
+      )}
       {cfg.label}
     </span>
   );
@@ -91,10 +140,20 @@ function StatusBadge({ status }: { status: LiveOrderStatus }) {
 
 function TimeAgo({ ts }: { ts: string }) {
   const secs = Math.floor((Date.now() - new Date(ts).getTime()) / 1000);
-  if (secs < 60) return <span className="text-[11px] text-[var(--text-3)]">{secs}s ago</span>;
+  if (secs < 60)
+    return (
+      <span className="text-[11px] text-[var(--text-3)]">{secs}s ago</span>
+    );
   const mins = Math.floor(secs / 60);
-  if (mins < 60) return <span className="text-[11px] text-[var(--text-3)]">{mins}m ago</span>;
-  return <span className="text-[11px] text-[var(--text-3)]">{Math.floor(mins / 60)}h ago</span>;
+  if (mins < 60)
+    return (
+      <span className="text-[11px] text-[var(--text-3)]">{mins}m ago</span>
+    );
+  return (
+    <span className="text-[11px] text-[var(--text-3)]">
+      {Math.floor(mins / 60)}h ago
+    </span>
+  );
 }
 
 function PendingExpiryBadge({ createdAt }: { createdAt: string }) {
@@ -104,8 +163,168 @@ function PendingExpiryBadge({ createdAt }: { createdAt: string }) {
   const remaining = 30 - ageMins;
   return (
     <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-600 animate-pulse">
-      <AlertTriangle className="h-3 w-3" /> {remaining <= 0 ? "Expiring..." : `${remaining}m left`}
+      <AlertTriangle className="h-3 w-3" />{" "}
+      {remaining <= 0 ? "Expiring..." : `${remaining}m left`}
     </span>
+  );
+}
+
+function OrderAgeBadge({ createdAt }: { createdAt: string }) {
+  const ageMs = Date.now() - new Date(createdAt).getTime();
+  const ageMins = Math.floor(ageMs / 60000);
+  const ageHrs = Math.floor(ageMins / 60);
+
+  let color = "bg-emerald-100 text-emerald-700";
+  let label = `${ageMins}m`;
+
+  if (ageMins >= 120) {
+    color = "bg-red-100 text-red-700 animate-pulse";
+    label =
+      ageHrs >= 24
+        ? `${Math.floor(ageHrs / 24)}d ${ageHrs % 24}h`
+        : `${ageHrs}h ${ageMins % 60}m`;
+  } else if (ageMins >= 60) {
+    color = "bg-orange-100 text-orange-700";
+    label = `${ageHrs}h ${ageMins % 60}m`;
+  } else if (ageMins >= 30) {
+    color = "bg-amber-100 text-amber-700";
+    label = `${ageMins}m`;
+  }
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${color}`}
+    >
+      <Clock className="h-2.5 w-2.5" />
+      {label}
+    </span>
+  );
+}
+
+function StaleOrdersBanner({
+  restaurantId,
+}: {
+  restaurantId: string | undefined;
+}) {
+  const [staleData, setStaleData] = useState<{
+    total: number;
+    pending: number;
+    accepted: number;
+    preparing: number;
+    ready: number;
+  } | null>(null);
+  const [cleaning, setCleaning] = useState(false);
+  const [result, setResult] = useState<{ total: number } | null>(null);
+  const { refresh } = useLiveOrders();
+
+  const fetchStale = useCallback(async () => {
+    if (!restaurantId) return;
+    try {
+      const data = await apiFetch<{
+        stale: {
+          total: number;
+          pending: number;
+          accepted: number;
+          preparing: number;
+          ready: number;
+        };
+      }>(`/api/restaurants/${restaurantId}/orders/cleanup`);
+      setStaleData(data.stale);
+    } catch {
+      /* ignore */
+    }
+  }, [restaurantId]);
+
+  useEffect(() => {
+    fetchStale();
+    const iv = setInterval(fetchStale, 60000);
+    return () => clearInterval(iv);
+  }, [fetchStale]);
+
+  const handleCleanup = async () => {
+    if (!restaurantId || cleaning) return;
+    setCleaning(true);
+    try {
+      const data = await apiFetch<{
+        counts: {
+          pendingRejected: number;
+          acceptedCancelled: number;
+          preparingMarkedReady: number;
+          readyMarkedDelivered: number;
+        };
+      }>(`/api/restaurants/${restaurantId}/orders/cleanup`, { method: "POST" });
+      const total =
+        data.counts.pendingRejected +
+        data.counts.acceptedCancelled +
+        data.counts.preparingMarkedReady +
+        data.counts.readyMarkedDelivered;
+      setResult({ total });
+      await refresh();
+      await fetchStale();
+      setTimeout(() => setResult(null), 5000);
+    } catch {
+      /* ignore */
+    } finally {
+      setCleaning(false);
+    }
+  };
+
+  if (!staleData || staleData.total === 0) {
+    if (result) {
+      return (
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0 }}
+          className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 flex items-center gap-3"
+        >
+          <Zap className="h-4 w-4 text-emerald-600" />
+          <span className="text-sm font-bold text-emerald-700">
+            Cleaned up {result.total} stale order{result.total !== 1 ? "s" : ""}
+          </span>
+        </motion.div>
+      );
+    }
+    return null;
+  }
+
+  const parts: string[] = [];
+  if (staleData.pending > 0) parts.push(`${staleData.pending} pending`);
+  if (staleData.accepted > 0) parts.push(`${staleData.accepted} accepted`);
+  if (staleData.preparing > 0) parts.push(`${staleData.preparing} preparing`);
+  if (staleData.ready > 0) parts.push(`${staleData.ready} ready`);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="rounded-xl border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2"
+    >
+      <div className="flex items-center gap-3">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100">
+          <ShieldAlert className="h-4 w-4 text-amber-600" />
+        </div>
+        <div>
+          <p className="text-sm font-bold text-amber-800">
+            {staleData.total} stale order{staleData.total !== 1 ? "s" : ""} need
+            attention
+          </p>
+          <p className="text-[11px] text-amber-600">{parts.join(" \u2022 ")}</p>
+        </div>
+      </div>
+      <button
+        onClick={handleCleanup}
+        disabled={cleaning}
+        className="flex items-center gap-1.5 rounded-lg bg-amber-600 px-4 py-2 text-[12px] font-bold text-white shadow-sm transition-all hover:bg-amber-700 active:scale-95 disabled:opacity-60 disabled:cursor-wait"
+      >
+        {cleaning ? (
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        ) : (
+          <Trash2 className="h-3.5 w-3.5" />
+        )}
+        {cleaning ? "Cleaning..." : "Auto-Clean All"}
+      </button>
+    </motion.div>
   );
 }
 
@@ -137,8 +356,8 @@ function PaymentBadge({ method, status }: { method: string; status: string }) {
         isPaid
           ? "bg-[var(--accent-muted)] text-[var(--accent-text)]"
           : isDirectPay
-          ? "bg-teal-100 text-teal-700"
-          : "bg-[var(--accent-muted)] text-[var(--accent-text)]"
+            ? "bg-teal-100 text-teal-700"
+            : "bg-[var(--accent-muted)] text-[var(--accent-text)]"
       }`}
     >
       <Icon className="h-2.5 w-2.5" />
@@ -151,9 +370,21 @@ function PaymentBadge({ method, status }: { method: string; status: string }) {
 export default function LiveOrdersTab() {
   const { selectedRestaurant } = useRestaurant();
   const cur = selectedRestaurant?.currency ?? "NPR";
-  const { orders, loading, updatingIds, refresh, acceptOrder, rejectOrder, markPreparing, markReady, markDelivered } = useLiveOrders();
+  const {
+    orders,
+    loading,
+    updatingIds,
+    refresh,
+    acceptOrder,
+    rejectOrder,
+    markPreparing,
+    markReady,
+    markDelivered,
+  } = useLiveOrders();
   const [selectedOrder, setSelectedOrder] = useState<LiveOrder | null>(null);
-  const [filterStatus, setFilterStatus] = useState<LiveOrderStatus | "ALL">("ALL");
+  const [filterStatus, setFilterStatus] = useState<LiveOrderStatus | "ALL">(
+    "ALL",
+  );
 
   const filtered = orders.filter(
     (o) => filterStatus === "ALL" || o.status === filterStatus,
@@ -164,16 +395,22 @@ export default function LiveOrdersTab() {
   if (loading && orders.length === 0) {
     return (
       <div className="space-y-3">
-        {Array.from({ length: 3 }).map((_, i) => <SkeletonOrderCard key={i} />)}
+        {Array.from({ length: 3 }).map((_, i) => (
+          <SkeletonOrderCard key={i} />
+        ))}
       </div>
     );
   }
 
   return (
     <div className="space-y-5">
+      <StaleOrdersBanner restaurantId={selectedRestaurant?.id} />
+
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
         <div>
-          <h2 className="text-xl font-extrabold text-[var(--text-1)] tracking-tight">Live Orders</h2>
+          <h2 className="text-xl font-extrabold text-[var(--text-1)] tracking-tight">
+            Live Orders
+          </h2>
           <p className="text-sm text-[var(--text-2)] mt-1 font-medium">
             {newCount > 0 ? (
               <span className="font-bold text-[var(--accent)] flex items-center gap-1.5">
@@ -194,10 +431,18 @@ export default function LiveOrdersTab() {
               <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-[var(--accent)] opacity-75" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--accent)]" />
             </div>
-            <span className="text-[11px] font-bold text-[var(--accent-text)] uppercase tracking-wider">Live Sync</span>
+            <span className="text-[11px] font-bold text-[var(--accent-text)] uppercase tracking-wider">
+              Live Sync
+            </span>
           </div>
-          <button onClick={() => refresh()} className="rounded-full bg-[var(--canvas)]/80 p-2 shadow-sm border border-[var(--border-soft)] hover:bg-[var(--canvas)] hover:shadow-md transition-all active:scale-95">
-            <RefreshCw className={`h-4 w-4 text-[var(--text-2)] ${loading ? "animate-spin text-[var(--accent)]" : ""}`} style={{ animationDuration: "1s" }} />
+          <button
+            onClick={() => refresh()}
+            className="rounded-full bg-[var(--canvas)]/80 p-2 shadow-sm border border-[var(--border-soft)] hover:bg-[var(--canvas)] hover:shadow-md transition-all active:scale-95"
+          >
+            <RefreshCw
+              className={`h-4 w-4 text-[var(--text-2)] ${loading ? "animate-spin text-[var(--accent)]" : ""}`}
+              style={{ animationDuration: "1s" }}
+            />
           </button>
         </div>
       </div>
@@ -215,7 +460,9 @@ export default function LiveOrdersTab() {
           >
             {opt.label}
             {opt.value === "PENDING" && newCount > 0 && (
-              <span className={`ml-2 rounded-full px-2 py-0.5 text-[10px] shadow-sm ${filterStatus === opt.value ? "bg-[var(--canvas)]/20 text-white" : "bg-[var(--accent)] text-white"}`}>
+              <span
+                className={`ml-2 rounded-full px-2 py-0.5 text-[10px] shadow-sm ${filterStatus === opt.value ? "bg-[var(--canvas)]/20 text-white" : "bg-[var(--accent)] text-white"}`}
+              >
                 {newCount}
               </span>
             )}
@@ -259,7 +506,10 @@ export default function LiveOrdersTab() {
               <AnimatePresence>
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="py-20 text-center text-sm font-medium text-[var(--text-3)]">
+                    <td
+                      colSpan={8}
+                      className="py-20 text-center text-sm font-medium text-[var(--text-3)]"
+                    >
                       <div className="flex flex-col items-center justify-center gap-3">
                         <div className="h-12 w-12 rounded-full bg-[var(--canvas-sub)] flex items-center justify-center border border-[var(--border-soft)]">
                           <PackageCheck className="h-5 w-5 text-[var(--text-3)]" />
@@ -279,11 +529,15 @@ export default function LiveOrdersTab() {
                       transition={{ duration: 0.2 }}
                       onClick={() => setSelectedOrder(order)}
                       className={`border-b border-[var(--border-soft)] transition-all hover:bg-[var(--canvas)]/80 last:border-b-0 cursor-pointer ${
-                        order.status === "PENDING" ? "bg-[var(--accent-muted)]" : ""
+                        order.status === "PENDING"
+                          ? "bg-[var(--accent-muted)]"
+                          : ""
                       }`}
                     >
                       <td className="px-5 py-4">
-                        <span className="font-extrabold text-[var(--text-1)]">{order.orderNo}</span>
+                        <span className="font-extrabold text-[var(--text-1)]">
+                          {order.orderNo}
+                        </span>
                         {order.note && (
                           <p className="text-[10px] text-[var(--text-3)] mt-0.5 italic">
                             &ldquo;{order.note}&rdquo;
@@ -299,11 +553,16 @@ export default function LiveOrdersTab() {
                         <div className="text-xs text-[var(--text-2)] space-y-0.5">
                           {order.items.slice(0, 2).map((item, i) => (
                             <div key={i}>
-                              <span className="font-semibold">{item.quantity}×</span> {item.name}
+                              <span className="font-semibold">
+                                {item.quantity}×
+                              </span>{" "}
+                              {item.name}
                             </div>
                           ))}
                           {order.items.length > 2 && (
-                            <span className="text-[var(--text-3)]">+{order.items.length - 2} more</span>
+                            <span className="text-[var(--text-3)]">
+                              +{order.items.length - 2} more
+                            </span>
                           )}
                         </div>
                       </td>
@@ -312,9 +571,14 @@ export default function LiveOrdersTab() {
                       </td>
                       <td className="px-4 py-4">
                         {order.payment ? (
-                          <PaymentBadge method={order.payment.method} status={order.payment.status} />
+                          <PaymentBadge
+                            method={order.payment.method}
+                            status={order.payment.status}
+                          />
                         ) : (
-                          <span className="text-[10px] text-[var(--text-3)]">—</span>
+                          <span className="text-[10px] text-[var(--text-3)]">
+                            —
+                          </span>
                         )}
                       </td>
                       <td className="px-4 py-4">
@@ -322,8 +586,10 @@ export default function LiveOrdersTab() {
                       </td>
                       <td className="px-4 py-4">
                         <div className="flex flex-col gap-1">
-                          <TimeAgo ts={order.createdAt} />
-                          {order.status === "PENDING" && <PendingExpiryBadge createdAt={order.createdAt} />}
+                          <OrderAgeBadge createdAt={order.createdAt} />
+                          {order.status === "PENDING" && (
+                            <PendingExpiryBadge createdAt={order.createdAt} />
+                          )}
                         </div>
                       </td>
                       <td className="px-5 py-4">
@@ -364,23 +630,34 @@ export default function LiveOrdersTab() {
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-extrabold text-[var(--text-1)]">{order.orderNo}</span>
+                      <span className="text-sm font-extrabold text-[var(--text-1)]">
+                        {order.orderNo}
+                      </span>
                       <StatusBadge status={order.status} />
                     </div>
                     <div className="flex items-center gap-2 mt-1.5">
                       <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent-muted)] text-sm font-black text-[var(--accent-text)] ring-2 ring-[var(--accent-border)]/60">
                         {order.tableNo ?? "–"}
                       </span>
-                      <span className="text-xs font-bold text-[var(--accent-text)]">Table {order.tableNo ?? "–"}</span>
-                      <TimeAgo ts={order.createdAt} />
-                      {order.status === "PENDING" && <PendingExpiryBadge createdAt={order.createdAt} />}
+                      <span className="text-xs font-bold text-[var(--accent-text)]">
+                        Table {order.tableNo ?? "–"}
+                      </span>
+                      <OrderAgeBadge createdAt={order.createdAt} />
+                      {order.status === "PENDING" && (
+                        <PendingExpiryBadge createdAt={order.createdAt} />
+                      )}
                     </div>
                   </div>
-                  <span className="text-sm font-extrabold text-[var(--text-1)]">{formatPrice(order.total, cur)}</span>
+                  <span className="text-sm font-extrabold text-[var(--text-1)]">
+                    {formatPrice(order.total, cur)}
+                  </span>
                 </div>
                 {order.payment && (
                   <div className="mb-2">
-                    <PaymentBadge method={order.payment.method} status={order.payment.status} />
+                    <PaymentBadge
+                      method={order.payment.method}
+                      status={order.payment.status}
+                    />
                   </div>
                 )}
                 <div className="text-xs text-[var(--text-2)] mb-3 space-y-0.5">
@@ -409,8 +686,14 @@ export default function LiveOrdersTab() {
       <DineInRequestModal
         order={selectedOrder}
         onClose={() => setSelectedOrder(null)}
-        onAccept={(id) => { acceptOrder(id); setSelectedOrder(null); }}
-        onReject={(id) => { rejectOrder(id); setSelectedOrder(null); }}
+        onAccept={(id) => {
+          acceptOrder(id);
+          setSelectedOrder(null);
+        }}
+        onReject={(id) => {
+          rejectOrder(id);
+          setSelectedOrder(null);
+        }}
       />
     </div>
   );
@@ -436,10 +719,18 @@ function ActionButton({
       onClick={onClick}
       disabled={disabled || busy}
       className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-bold transition-all active:scale-95 ${className} ${
-        busy ? "opacity-70 cursor-wait" : disabled ? "opacity-50 cursor-not-allowed" : ""
+        busy
+          ? "opacity-70 cursor-wait"
+          : disabled
+            ? "opacity-50 cursor-not-allowed"
+            : ""
       }`}
     >
-      {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Icon className="h-3 w-3" />}
+      {busy ? (
+        <Loader2 className="h-3 w-3 animate-spin" />
+      ) : (
+        <Icon className="h-3 w-3" />
+      )}
       {busy ? "Updating…" : label}
     </button>
   );
@@ -473,7 +764,10 @@ function OrderActions({
   if (order.status === "PENDING") {
     if (showTimeInput) {
       return (
-        <div className="flex items-center gap-2 flex-wrap" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="flex items-center gap-2 flex-wrap"
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] px-2 py-1">
             <Clock className="h-3 w-3 text-[var(--text-3)]" />
             <input
@@ -501,7 +795,10 @@ function OrderActions({
     return (
       <div className="flex items-center gap-2 flex-wrap">
         <ActionButton
-          onClick={(e) => { e.stopPropagation(); setShowTimeInput(true); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowTimeInput(true);
+          }}
           disabled={busy}
           icon={CheckCircle2}
           label="Accept"

@@ -69,11 +69,10 @@ export async function GET(
             where: {
               restaurantId: id,
               OR: [
-                // PENDING: show if payment is verified, no payment record (legacy), or CASH (walk-in / POS)
+                // PENDING: only after billing marks payment COMPLETED (all methods)
                 { status: "PENDING", payment: { status: "COMPLETED" } },
                 { status: "PENDING", payment: { is: null } },
-                { status: "PENDING", payment: { method: "CASH" } },
-                // Active orders (already went through billing)
+                // Active orders (already went through billing gate)
                 { status: { in: ["ACCEPTED", "PREPARING", "READY"] } },
                 { isHeld: true },
                 // Recently completed
