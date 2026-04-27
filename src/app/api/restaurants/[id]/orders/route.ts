@@ -43,11 +43,17 @@ export async function GET(
   const liveMode = searchParams.get("live") === "1";
   if (liveMode) {
     const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
-    // When in live mode, override any status filter with the OR clause
+    // When in live mode, override any status filter with the OR clause.
+    // Fast Pay (DIRECT) orders are counter sales that skip the kitchen entirely —
+    // they are immediately DELIVERED on creation and must never appear here.
     delete where.status;
     where.OR = [
       { status: { in: ["PENDING", "ACCEPTED", "PREPARING", "READY"] } },
-      { status: { in: ["DELIVERED", "CANCELLED", "REJECTED"] }, createdAt: { gte: twoHoursAgo } },
+      {
+        status: { in: ["DELIVERED", "CANCELLED", "REJECTED"] },
+        createdAt: { gte: twoHoursAgo },
+        NOT: { payment: { method: "DIRECT" } },
+      },
     ];
   }
 

@@ -627,12 +627,16 @@ export default function CheckoutSheet({
   };
 
   const handleContinueToPayment = () => {
-    // eSewa/Khalti use their own payment gateway — skip the QR scan step to avoid double payment
-    if (selectedPayment === "ESEWA" || selectedPayment === "KHALTI") {
+    // These methods either use their own gateway or pay physically — skip the QR scan step
+    if (
+      selectedPayment === "ESEWA" ||
+      selectedPayment === "KHALTI" ||
+      selectedPayment === "COUNTER"
+    ) {
       handlePlaceOrder();
       return;
     }
-    // For cash/counter/direct/bank: show restaurant QR images so customer can pay before ordering
+    // For cash/direct/bank: show restaurant QR images so customer can pay before ordering
     if (paymentQRs.length > 0) {
       setStep("scan-qr");
     } else {
@@ -1301,7 +1305,7 @@ export default function CheckoutSheet({
                     })}
                   </div>
 
-                  {paymentQRs.length > 0 && selectedPayment !== "DIRECT" && (
+                  {paymentQRs.length > 0 && selectedPayment !== "DIRECT" && selectedPayment !== "COUNTER" && (
                     <div className="flex items-start gap-2 rounded-xl bg-blue-50 border border-blue-200 px-4 py-3">
                       <QrCode className="h-4 w-4 text-blue-500 mt-0.5 shrink-0" />
                       <p className="text-[11px] text-blue-700">
@@ -1495,7 +1499,7 @@ export default function CheckoutSheet({
                         <Loader2 className="h-4 w-4 animate-spin" />
                         Processing...
                       </>
-                    ) : paymentQRs.length > 0 && selectedPayment !== "ESEWA" && selectedPayment !== "KHALTI" ? (
+                    ) : paymentQRs.length > 0 && selectedPayment !== "ESEWA" && selectedPayment !== "KHALTI" && selectedPayment !== "COUNTER" ? (
                       <>
                         Scan & Pay &middot; {formatPrice(total, currency)}
                         <ChevronRight className="h-4 w-4" />
