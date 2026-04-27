@@ -7,9 +7,10 @@ import type { StaffRole } from "@/generated/prisma";
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: Promise<{ slug: string }> }
+  { params }: { params: Promise<{ slug: string }> },
 ) {
-  const { slug } = await params;
+  const { slug: encodedSlug } = await params;
+  const slug = decodeURIComponent(encodedSlug);
 
   const restaurant = await db.restaurant.findUnique({ where: { slug } });
   if (!restaurant) {
@@ -42,6 +43,9 @@ export async function PATCH(
     return NextResponse.json({ error: "coverUrl required" }, { status: 400 });
   }
 
-  await db.restaurant.update({ where: { id: restaurant.id }, data: { coverUrl } });
+  await db.restaurant.update({
+    where: { id: restaurant.id },
+    data: { coverUrl },
+  });
   return NextResponse.json({ ok: true });
 }

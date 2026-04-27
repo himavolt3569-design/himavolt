@@ -3,9 +3,10 @@ import { db } from "@/lib/db";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ slug: string }> }
+  { params }: { params: Promise<{ slug: string }> },
 ) {
-  const { slug } = await params;
+  const { slug: encodedSlug } = await params;
+  const slug = decodeURIComponent(encodedSlug);
   const { searchParams } = new URL(req.url);
   const categorySlug = searchParams.get("category");
   const search = searchParams.get("q");
@@ -16,7 +17,10 @@ export async function GET(
   });
 
   if (!restaurant) {
-    return NextResponse.json({ error: "Restaurant not found" }, { status: 404 });
+    return NextResponse.json(
+      { error: "Restaurant not found" },
+      { status: 404 },
+    );
   }
 
   const isDrink = searchParams.get("isDrink");
@@ -58,7 +62,15 @@ export async function GET(
     include: {
       sizes: true,
       addOns: true,
-      category: { select: { id: true, name: true, slug: true, parentId: true, icon: true } },
+      category: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          parentId: true,
+          icon: true,
+        },
+      },
     },
     orderBy: [{ sortOrder: "asc" }, { rating: "desc" }],
   });
@@ -67,12 +79,14 @@ export async function GET(
   const enrichedItems = items.map((item) => {
     const i = item as Record<string, unknown>;
     const stockEnabled = i.stockEnabled === true;
-    const stockQty = typeof i.stockQuantity === "number" ? i.stockQuantity : null;
+    const stockQty =
+      typeof i.stockQuantity === "number" ? i.stockQuantity : null;
     return {
       ...item,
       isDrink: i.isDrink === true,
       drinkCategory: (i.drinkCategory as string) ?? null,
-      lowStock: stockEnabled && stockQty !== null && stockQty <= 5 && stockQty > 0,
+      lowStock:
+        stockEnabled && stockQty !== null && stockQty <= 5 && stockQty > 0,
       outOfStock: stockEnabled && stockQty !== null && stockQty <= 0,
     };
   });

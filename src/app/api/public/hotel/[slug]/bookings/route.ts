@@ -21,7 +21,13 @@ const bookingSchema = z.object({
   guestEmail: z.string().email().max(120).optional().nullable(),
   guestAddress: z.string().trim().max(200).optional().nullable(),
   guestIdType: z
-    .enum(["CITIZENSHIP", "PASSPORT", "DRIVING_LICENSE", "NATIONAL_ID", "OTHER"])
+    .enum([
+      "CITIZENSHIP",
+      "PASSPORT",
+      "DRIVING_LICENSE",
+      "NATIONAL_ID",
+      "OTHER",
+    ])
     .optional()
     .nullable(),
   guestIdNumber: z.string().trim().max(50).optional().nullable(),
@@ -55,7 +61,8 @@ export async function POST(
     );
   }
 
-  const { slug } = await params;
+  const { slug: encodedSlug } = await params;
+  const slug = decodeURIComponent(encodedSlug);
   const raw = await req.json().catch(() => null);
   const parsed = bookingSchema.safeParse(raw);
   if (!parsed.success) {

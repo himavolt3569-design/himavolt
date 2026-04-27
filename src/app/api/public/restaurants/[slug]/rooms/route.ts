@@ -6,7 +6,8 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ slug: string }> },
 ) {
-  const { slug } = await params;
+  const { slug: encodedSlug } = await params;
+  const slug = decodeURIComponent(encodedSlug);
 
   const restaurant = await db.restaurant.findUnique({
     where: { slug },
@@ -52,7 +53,11 @@ export async function GET(
     const checkIn = new Date(checkInParam);
     const checkOut = new Date(checkOutParam);
 
-    if (isNaN(checkIn.getTime()) || isNaN(checkOut.getTime()) || checkOut <= checkIn) {
+    if (
+      isNaN(checkIn.getTime()) ||
+      isNaN(checkOut.getTime()) ||
+      checkOut <= checkIn
+    ) {
       return NextResponse.json(
         { error: "Invalid date range" },
         { status: 400 },

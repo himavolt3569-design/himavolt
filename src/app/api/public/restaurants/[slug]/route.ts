@@ -5,7 +5,8 @@ export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ slug: string }> },
 ) {
-  const { slug } = await params;
+  const { slug: encodedSlug } = await params;
+  const slug = decodeURIComponent(encodedSlug);
 
   let restaurant;
   try {
@@ -15,7 +16,13 @@ export async function GET(
         categories: {
           where: { isActive: true },
           orderBy: { sortOrder: "asc" },
-          select: { id: true, name: true, slug: true, parentId: true, icon: true },
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            parentId: true,
+            icon: true,
+          },
         },
         paymentQRs: {
           where: { isActive: true },
@@ -30,7 +37,10 @@ export async function GET(
     });
   } catch (err) {
     console.error("[Public Restaurant GET]", err);
-    return NextResponse.json({ error: "Failed to load restaurant" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to load restaurant" },
+      { status: 500 },
+    );
   }
 
   if (!restaurant) {
@@ -41,48 +51,52 @@ export async function GET(
   const r = restaurant as Record<string, unknown>;
   return NextResponse.json(
     {
-    id: restaurant.id,
-    name: restaurant.name,
-    slug: restaurant.slug,
-    phone: restaurant.phone,
-    type: restaurant.type,
-    address: restaurant.address,
-    city: restaurant.city,
-    imageUrl: restaurant.imageUrl,
-    coverUrl: restaurant.coverUrl,
-    rating: restaurant.rating,
-    openingTime: restaurant.openingTime,
-    closingTime: restaurant.closingTime,
-    tableCount: restaurant.tableCount,
-    roomCount: r.roomCount ?? 0,
-    wifiName: restaurant.wifiName,
-    wifiPassword: restaurant.wifiPassword,
-    currency: restaurant.currency,
-    taxRate: restaurant.taxRate,
-    taxEnabled: restaurant.taxEnabled,
-    serviceChargeRate: r.serviceChargeRate ?? 0,
-    serviceChargeEnabled: r.serviceChargeEnabled ?? false,
-    counterPayEnabled: r.counterPayEnabled ?? true,
-    directPayEnabled: r.directPayEnabled ?? false,
-    prepaidEnabled: r.prepaidEnabled ?? false,
-    isOpen: r.isOpen ?? true,
-    deliveryEnabled: r.deliveryEnabled ?? false,
-    categories: restaurant.categories,
-    paymentQRs: restaurant.paymentQRs,
-    tables: restaurant.tables,
-    primaryColor: r.primaryColor ?? null,
-    secondaryColor: r.secondaryColor ?? null,
-    accentColor: r.accentColor ?? null,
-    fontFamily: r.fontFamily ?? null,
-    menuLayout: r.menuLayout ?? "grid",
-    footerText: r.footerText ?? null,
-    showStories: r.showStories ?? true,
-    showReviews: r.showReviews ?? true,
-    featuresEnabled: Array.isArray(r.featuresEnabled) ? (r.featuresEnabled as string[]) : [],
-    featuresDisabled: Array.isArray(r.featuresDisabled) ? (r.featuresDisabled as string[]) : [],
-    posEnabled: r.posEnabled ?? false,
-    posCustomerModeEnabled: r.posCustomerModeEnabled ?? true,
-  },
+      id: restaurant.id,
+      name: restaurant.name,
+      slug: restaurant.slug,
+      phone: restaurant.phone,
+      type: restaurant.type,
+      address: restaurant.address,
+      city: restaurant.city,
+      imageUrl: restaurant.imageUrl,
+      coverUrl: restaurant.coverUrl,
+      rating: restaurant.rating,
+      openingTime: restaurant.openingTime,
+      closingTime: restaurant.closingTime,
+      tableCount: restaurant.tableCount,
+      roomCount: r.roomCount ?? 0,
+      wifiName: restaurant.wifiName,
+      wifiPassword: restaurant.wifiPassword,
+      currency: restaurant.currency,
+      taxRate: restaurant.taxRate,
+      taxEnabled: restaurant.taxEnabled,
+      serviceChargeRate: r.serviceChargeRate ?? 0,
+      serviceChargeEnabled: r.serviceChargeEnabled ?? false,
+      counterPayEnabled: r.counterPayEnabled ?? true,
+      directPayEnabled: r.directPayEnabled ?? false,
+      prepaidEnabled: r.prepaidEnabled ?? false,
+      isOpen: r.isOpen ?? true,
+      deliveryEnabled: r.deliveryEnabled ?? false,
+      categories: restaurant.categories,
+      paymentQRs: restaurant.paymentQRs,
+      tables: restaurant.tables,
+      primaryColor: r.primaryColor ?? null,
+      secondaryColor: r.secondaryColor ?? null,
+      accentColor: r.accentColor ?? null,
+      fontFamily: r.fontFamily ?? null,
+      menuLayout: r.menuLayout ?? "grid",
+      footerText: r.footerText ?? null,
+      showStories: r.showStories ?? true,
+      showReviews: r.showReviews ?? true,
+      featuresEnabled: Array.isArray(r.featuresEnabled)
+        ? (r.featuresEnabled as string[])
+        : [],
+      featuresDisabled: Array.isArray(r.featuresDisabled)
+        ? (r.featuresDisabled as string[])
+        : [],
+      posEnabled: r.posEnabled ?? false,
+      posCustomerModeEnabled: r.posCustomerModeEnabled ?? true,
+    },
     {
       headers: {
         "Cache-Control": "public, s-maxage=30, stale-while-revalidate=120",

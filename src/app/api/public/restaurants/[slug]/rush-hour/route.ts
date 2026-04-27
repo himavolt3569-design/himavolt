@@ -3,19 +3,33 @@ import { db } from "@/lib/db";
 
 // GET /api/public/restaurants/[slug]/rush-hour
 // Returns rush hour config + whether it is currently active
-export async function GET(_req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
+export async function GET(
+  _req: NextRequest,
+  { params }: { params: Promise<{ slug: string }> },
+) {
+  const { slug: encodedSlug } = await params;
+  const slug = decodeURIComponent(encodedSlug);
 
-  const restaurant = await db.restaurant.findUnique({ where: { slug }, select: { id: true } });
-  if (!restaurant) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const restaurant = await db.restaurant.findUnique({
+    where: { slug },
+    select: { id: true },
+  });
+  if (!restaurant)
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const config = await db.rushHourConfig.findUnique({
     where: { restaurantId: restaurant.id },
-    include: { slots: { where: { isActive: true }, orderBy: { startTime: "asc" } } },
+    include: {
+      slots: { where: { isActive: true }, orderBy: { startTime: "asc" } },
+    },
   });
 
   if (!config || !config.isEnabled) {
-    return NextResponse.json({ isEnabled: false, isRushNow: false, surgePercent: 0 });
+    return NextResponse.json({
+      isEnabled: false,
+      isRushNow: false,
+      surgePercent: 0,
+    });
   }
 
   // Determine if current time falls in any active slot

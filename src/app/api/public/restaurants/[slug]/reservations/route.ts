@@ -30,7 +30,8 @@ export async function POST(
   { params }: { params: Promise<{ slug: string }> },
 ) {
   try {
-    const { slug } = await params;
+    const { slug: encodedSlug } = await params;
+    const slug = decodeURIComponent(encodedSlug);
 
     // 5 reservations per hour per IP — enough for legitimate group bookings,
     // tight enough to stop a spammer filling every slot for every date.
@@ -50,7 +51,10 @@ export async function POST(
       select: { id: true, type: true },
     });
     if (!restaurant) {
-      return NextResponse.json({ error: "Restaurant not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Restaurant not found" },
+        { status: 404 },
+      );
     }
 
     const raw = await req.json().catch(() => null);
@@ -112,7 +116,8 @@ export async function GET(
   { params }: { params: Promise<{ slug: string }> },
 ) {
   try {
-    const { slug } = await params;
+    const { slug: encodedSlug } = await params;
+    const slug = decodeURIComponent(encodedSlug);
     const { searchParams } = new URL(req.url);
     const dateStr = searchParams.get("date");
     if (!dateStr) {
@@ -123,10 +128,18 @@ export async function GET(
     }
     const restaurant = await db.restaurant.findUnique({
       where: { slug },
-      select: { id: true, openingTime: true, closingTime: true, tableCount: true },
+      select: {
+        id: true,
+        openingTime: true,
+        closingTime: true,
+        tableCount: true,
+      },
     });
     if (!restaurant) {
-      return NextResponse.json({ error: "Restaurant not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Restaurant not found" },
+        { status: 404 },
+      );
     }
 
     const start = new Date(dateStr);

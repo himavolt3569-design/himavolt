@@ -16,14 +16,18 @@ export async function POST(
   { params }: { params: Promise<{ slug: string }> },
 ) {
   try {
-    const { slug } = await params;
+    const { slug: encodedSlug } = await params;
+    const slug = decodeURIComponent(encodedSlug);
 
     const restaurant = await db.restaurant.findUnique({
       where: { slug },
       select: { id: true },
     });
     if (!restaurant) {
-      return NextResponse.json({ error: "Restaurant not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Restaurant not found" },
+        { status: 404 },
+      );
     }
 
     const body = await req.json();
@@ -33,7 +37,10 @@ export async function POST(
     };
 
     if (!code || typeof code !== "string") {
-      return NextResponse.json({ error: "Coupon code is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Coupon code is required" },
+        { status: 400 },
+      );
     }
 
     // Recompute the subtotal from the menu. Any item without a valid
@@ -50,8 +57,16 @@ export async function POST(
       if (!raw || typeof raw !== "object") continue;
       const r = raw as Record<string, unknown>;
       if (typeof r.menuItemId !== "string") continue;
-      if (typeof r.quantity !== "number" || !Number.isInteger(r.quantity) || r.quantity <= 0) continue;
-      lines.push({ menuItemId: r.menuItemId, quantity: Math.min(r.quantity, 99) });
+      if (
+        typeof r.quantity !== "number" ||
+        !Number.isInteger(r.quantity) ||
+        r.quantity <= 0
+      )
+        continue;
+      lines.push({
+        menuItemId: r.menuItemId,
+        quantity: Math.min(r.quantity, 99),
+      });
     }
     if (lines.length === 0) {
       return NextResponse.json(
@@ -78,7 +93,9 @@ export async function POST(
       const p = priceMap.get(line.menuItemId);
       if (p === undefined) {
         return NextResponse.json(
-          { error: `Menu item ${line.menuItemId} not found in this restaurant` },
+          {
+            error: `Menu item ${line.menuItemId} not found in this restaurant`,
+          },
           { status: 400 },
         );
       }
@@ -96,36 +113,53 @@ export async function POST(
     });
 
     if (!coupon) {
-      return NextResponse.json({ error: "Invalid coupon code" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Invalid coupon code" },
+        { status: 404 },
+      );
     }
 
     // Check if coupon is active
     if (!coupon.isActive) {
-      return NextResponse.json({ error: "This coupon is no longer active" }, { status: 400 });
+      return NextResponse.json(
+        { error: "This coupon is no longer active" },
+        { status: 400 },
+      );
     }
 
     const now = new Date();
     if (coupon.startsAt && now < coupon.startsAt) {
-      return NextResponse.json({ error: "This coupon is not yet valid" }, { status: 400 });
+      return NextResponse.json(
+        { error: "This coupon is not yet valid" },
+        { status: 400 },
+      );
     }
     if (coupon.expiresAt && now > coupon.expiresAt) {
-      return NextResponse.json({ error: "This coupon has expired" }, { status: 400 });
+      return NextResponse.json(
+        { error: "This coupon has expired" },
+        { status: 400 },
+      );
     }
 
     if (coupon.maxUses !== null && coupon.usedCount >= coupon.maxUses) {
-      return NextResponse.json({ error: "This coupon has reached its usage limit" }, { status: 400 });
+      return NextResponse.json(
+        { error: "This coupon has reached its usage limit" },
+        { status: 400 },
+      );
     }
 
     if (subtotal < coupon.minOrder) {
       return NextResponse.json(
-        { error: `Minimum order of ${coupon.minOrder} required for this coupon` },
+        {
+          error: `Minimum order of ${coupon.minOrder} required for this coupon`,
+        },
         { status: 400 },
       );
     }
 
     let discount: number;
     if (coupon.type === "PERCENTAGE") {
-      discount = Math.round((subtotal * coupon.value) / 100 * 100) / 100;
+      discount = Math.round(((subtotal * coupon.value) / 100) * 100) / 100;
       // Apply max discount cap if set
       if (coupon.maxDiscount !== null && discount > coupon.maxDiscount) {
         discount = coupon.maxDiscount;

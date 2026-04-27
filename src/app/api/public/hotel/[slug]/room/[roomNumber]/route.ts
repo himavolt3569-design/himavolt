@@ -15,10 +15,14 @@ export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ slug: string; roomNumber: string }> },
 ) {
-  const { slug, roomNumber } = await params;
+  const { slug: encodedSlug, roomNumber } = await params;
+  const slug = decodeURIComponent(encodedSlug);
 
   if (!slug || !roomNumber) {
-    return NextResponse.json({ error: "Missing slug/roomNumber" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Missing slug/roomNumber" },
+      { status: 400 },
+    );
   }
 
   const restaurant = await db.restaurant.findUnique({
@@ -105,7 +109,10 @@ export async function GET(
       isAvailable: room.isAvailable && !liveBooking,
     },
     liveBooking: liveBooking
-      ? { until: liveBooking.checkOut.toISOString(), status: liveBooking.status }
+      ? {
+          until: liveBooking.checkOut.toISOString(),
+          status: liveBooking.status,
+        }
       : null,
   });
 }

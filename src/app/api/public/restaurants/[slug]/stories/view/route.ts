@@ -13,12 +13,16 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ slug: string }> },
 ) {
-  const { slug } = await params;
+  const { slug: encodedSlug } = await params;
+  const slug = decodeURIComponent(encodedSlug);
   const { searchParams } = new URL(req.url);
   const storyId = searchParams.get("id");
 
   if (!storyId || !STORY_ID_RE.test(storyId)) {
-    return NextResponse.json({ error: "Missing or invalid id" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Missing or invalid id" },
+      { status: 400 },
+    );
   }
 
   // Verify the story belongs to this restaurant

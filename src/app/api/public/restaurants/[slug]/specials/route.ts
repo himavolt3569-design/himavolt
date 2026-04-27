@@ -11,14 +11,18 @@ export async function GET(
   { params }: { params: Promise<{ slug: string }> },
 ) {
   try {
-    const { slug } = await params;
+    const { slug: encodedSlug } = await params;
+    const slug = decodeURIComponent(encodedSlug);
 
     const restaurant = await db.restaurant.findUnique({
       where: { slug },
       select: { id: true },
     });
     if (!restaurant) {
-      return NextResponse.json({ error: "Restaurant not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Restaurant not found" },
+        { status: 404 },
+      );
     }
 
     const items = await db.menuItem.findMany({

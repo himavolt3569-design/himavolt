@@ -4,11 +4,9 @@ import { db } from "@/lib/db";
 type Params = { params: Promise<{ slug: string; roomId: string }> };
 
 // GET /api/public/restaurants/[slug]/rooms/[roomId] — public single room detail
-export async function GET(
-  req: NextRequest,
-  { params }: Params,
-) {
-  const { slug, roomId } = await params;
+export async function GET(req: NextRequest, { params }: Params) {
+  const { slug: encodedSlug, roomId } = await params;
+  const slug = decodeURIComponent(encodedSlug);
 
   const restaurant = await db.restaurant.findUnique({
     where: { slug },

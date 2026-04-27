@@ -7,7 +7,8 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ slug: string }> },
 ) {
-  const { slug } = await params;
+  const { slug: encodedSlug } = await params;
+  const slug = decodeURIComponent(encodedSlug);
   const { searchParams } = new URL(req.url);
   const checkInParam = searchParams.get("checkIn");
   const checkOutParam = searchParams.get("checkOut");
@@ -93,10 +94,7 @@ export async function GET(
     where: {
       restaurantId: restaurant.id,
       status: { in: ["PENDING", "CONFIRMED", "CHECKED_IN"] },
-      AND: [
-        { checkIn: { lt: windowEnd } },
-        { checkOut: { gt: windowStart } },
-      ],
+      AND: [{ checkIn: { lt: windowEnd } }, { checkOut: { gt: windowStart } }],
     },
     select: { roomId: true },
   });
@@ -114,5 +112,9 @@ export async function GET(
     grouped[room.type].push(room);
   }
 
-  return NextResponse.json({ hotel: restaurant, rooms: roomsWithAvailability, grouped });
+  return NextResponse.json({
+    hotel: restaurant,
+    rooms: roomsWithAvailability,
+    grouped,
+  });
 }

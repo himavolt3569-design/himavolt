@@ -3,9 +3,10 @@ import { db } from "@/lib/db";
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: Promise<{ slug: string }> }
+  { params }: { params: Promise<{ slug: string }> },
 ) {
-  const { slug } = await params;
+  const { slug: encodedSlug } = await params;
+  const slug = decodeURIComponent(encodedSlug);
 
   const restaurant = await db.restaurant.findUnique({
     where: { slug },
@@ -13,7 +14,10 @@ export async function GET(
   });
 
   if (!restaurant) {
-    return NextResponse.json({ error: "Restaurant not found" }, { status: 404 });
+    return NextResponse.json(
+      { error: "Restaurant not found" },
+      { status: 404 },
+    );
   }
 
   const [config, items] = await Promise.all([
@@ -28,7 +32,11 @@ export async function GET(
 
   // If display counter is not enabled, return empty
   if (!config?.isEnabled) {
-    return NextResponse.json({ enabled: false, items: [], currency: restaurant.currency });
+    return NextResponse.json({
+      enabled: false,
+      items: [],
+      currency: restaurant.currency,
+    });
   }
 
   // Filter out sold-out items if auto-hide is on
