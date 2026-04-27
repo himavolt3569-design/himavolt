@@ -39,16 +39,23 @@ export async function GET(
   const where: Record<string, unknown> = { restaurantId: id };
   if (status) where.status = status;
 
-  // For live-orders view: exclude terminal orders older than 2 hours
+  // For live-orders view: only show paid orders in the kitchen queue
   const liveMode = searchParams.get("live") === "1";
   if (liveMode) {
     const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
-    // When in live mode, override any status filter with the OR clause.
-    // Fast Pay (DIRECT) orders are counter sales that skip the kitchen entirely —
-    // they are immediately DELIVERED on creation and must never appear here.
+    // Payment-gated: PENDING orders only appear after billing marks
+    // payment COMPLETED. This applies to ALL payment methods (CASH,
+    // ESEWA, KHALTI, BANK, COUNTER) — no exceptions.
+    // Fast Pay (DIRECT) orders skip live-orders entirely (counter sales).
     delete where.status;
     where.OR = [
-      { status: { in: ["PENDING", "ACCEPTED", "PREPARING", "READY"] } },
+      // PENDING: only after payment verified (all methods)
+      { status: "PENDING", payment: { status: "COMPLETED" } },
+      // Legacy orders without a payment record
+      { status: "PENDING", payment: { is: null } },
+      // Active orders (already passed through payment gate when accepted)
+      { status: { in: ["ACCEPTED", "PREPARING", "READY"] } },
+      // Recently completed (for kitchen history)
       {
         status: { in: ["DELIVERED", "CANCELLED", "REJECTED"] },
         createdAt: { gte: twoHoursAgo },
@@ -213,9 +220,10 @@ export const POST = safeHandler(
         return { ok: false, error: "Menu item not found in this restaurant" };
       }
       const base = m.price;
-      const floor = m.discount > 0
-        ? Math.round(base * (1 - m.discount / 100) * 100) / 100
-        : base;
+      const floor =
+        m.discount > 0
+          ? Math.round(base * (1 - m.discount / 100) * 100) / 100
+          : base;
       const maxSizeAdd = m.sizes.reduce(
         (max, s) => Math.max(max, s.priceAdd),
         0,
@@ -240,10 +248,7 @@ export const POST = safeHandler(
     for (const line of items) {
       const result = priceForLine(line);
       if (!result.ok) {
-        return NextResponse.json(
-          { error: result.error },
-          { status: 400 },
-        );
+        return NextResponse.json({ error: result.error }, { status: 400 });
       }
       const m = menuItemMap.get(line.menuItemId!);
       resolvedItems.push({
@@ -347,7 +352,10 @@ export const POST = safeHandler(
       try {
         await deductStock(resolvedItems);
       } catch (stockErr) {
-        console.error("[Orders POST addToOrder] Stock deduction failed (non-fatal):", stockErr);
+        console.error(
+          "[Orders POST addToOrder] Stock deduction failed (non-fatal):",
+          stockErr,
+        );
       }
 
       logAudit({
@@ -409,10 +417,7 @@ export const POST = safeHandler(
               code: couponCode.toUpperCase(),
               isActive: true,
               startsAt: { lte: new Date() },
-              OR: [
-                { expiresAt: null },
-                { expiresAt: { gte: new Date() } },
-              ],
+              OR: [{ expiresAt: null }, { expiresAt: { gte: new Date() } }],
             },
           });
           if (!coupon) return { error: "Invalid or expired coupon code" };
@@ -420,7 +425,9 @@ export const POST = safeHandler(
             return { error: "Coupon usage limit reached" };
           }
           if (subtotal < coupon.minOrder) {
-            return { error: `Minimum order of ${coupon.minOrder} required for this coupon` };
+            return {
+              error: `Minimum order of ${coupon.minOrder} required for this coupon`,
+            };
           }
           let discount = 0;
           if (coupon.type === "PERCENTAGE") {
@@ -432,11 +439,17 @@ export const POST = safeHandler(
             discount = Math.min(coupon.value, subtotal);
           }
           // Increment usage count atomically within the transaction
-          await tx.coupon.update({ where: { id: coupon.id }, data: { usedCount: { increment: 1 } } });
+          await tx.coupon.update({
+            where: { id: coupon.id },
+            data: { usedCount: { increment: 1 } },
+          });
           return { couponId: coupon.id, discount };
         });
         if ("error" in couponResult) {
-          return NextResponse.json({ error: couponResult.error }, { status: 400 });
+          return NextResponse.json(
+            { error: couponResult.error },
+            { status: 400 },
+          );
         }
         couponDiscount = couponResult.discount;
         couponId = couponResult.couponId;
@@ -520,7 +533,9 @@ export const POST = safeHandler(
           ? { status: "ACCEPTED" as const, acceptedAt: orderTimestamp }
           : {}),
       tableNo:
-        orderType === "DINE_IN" && tableNo && !isNaN(parseInt(String(tableNo), 10))
+        orderType === "DINE_IN" &&
+        tableNo &&
+        !isNaN(parseInt(String(tableNo), 10))
           ? parseInt(String(tableNo), 10)
           : null,
       roomNo: roomNo ?? null,
@@ -536,8 +551,7 @@ export const POST = safeHandler(
         orderType === "DELIVERY" ? (deliveryAddress ?? null) : null,
       deliveryLat: orderType === "DELIVERY" ? (deliveryLat ?? null) : null,
       deliveryLng: orderType === "DELIVERY" ? (deliveryLng ?? null) : null,
-      deliveryPhone:
-        orderType === "DELIVERY" ? (deliveryPhone ?? null) : null,
+      deliveryPhone: orderType === "DELIVERY" ? (deliveryPhone ?? null) : null,
       deliveryNote: orderType === "DELIVERY" ? (deliveryNote ?? null) : null,
       deliveryFee,
       items: {
@@ -573,7 +587,10 @@ export const POST = safeHandler(
       });
     } catch (createErr) {
       // Retry without newer columns if they don't exist in the database
-      console.warn("[Orders POST] Retrying create without extended columns:", createErr);
+      console.warn(
+        "[Orders POST] Retrying create without extended columns:",
+        createErr,
+      );
       order = await db.order.create({
         data: baseOrderData,
         include: { items: true },
@@ -611,8 +628,13 @@ export const POST = safeHandler(
     }
 
     {
-      const effectiveMethod: "CASH" | "ESEWA" | "KHALTI" | "BANK" | "COUNTER" | "DIRECT" =
-        paymentMethod ?? "COUNTER";
+      const effectiveMethod:
+        | "CASH"
+        | "ESEWA"
+        | "KHALTI"
+        | "BANK"
+        | "COUNTER"
+        | "DIRECT" = paymentMethod ?? "COUNTER";
       // Every payment row starts as PENDING. The customer-claimed "DIRECT"
       // method requires the owner to verify the transfer (via /api/billing/...
       // or by inspecting the proof) before flipping to COMPLETED. The previous
@@ -630,12 +652,14 @@ export const POST = safeHandler(
 
     // Link to table session if provided
     if (tableSessionId) {
-      await db.tableSession.update({
-        where: { id: tableSessionId },
-        data: { orderId: order.id },
-      }).catch(() => {
-        // Session might not exist or already linked — non-critical
-      });
+      await db.tableSession
+        .update({
+          where: { id: tableSessionId },
+          data: { orderId: order.id },
+        })
+        .catch(() => {
+          // Session might not exist or already linked — non-critical
+        });
     }
 
     try {
@@ -706,7 +730,10 @@ export const POST = safeHandler(
     try {
       await deductStock(resolvedItems);
     } catch (stockErr) {
-      console.error("[Orders POST] Stock deduction failed (non-fatal):", stockErr);
+      console.error(
+        "[Orders POST] Stock deduction failed (non-fatal):",
+        stockErr,
+      );
     }
 
     logAudit({
@@ -714,7 +741,12 @@ export const POST = safeHandler(
       entity: "Order",
       entityId: order.id,
       detail: `Order ${orderNo} placed (${orderType}, ${resolvedItems.length} items, ${getCurrencySymbol(restaurant.currency ?? "NPR")}${total})`,
-      metadata: { orderNo, type: orderType, total, itemCount: resolvedItems.length },
+      metadata: {
+        orderNo,
+        type: orderType,
+        total,
+        itemCount: resolvedItems.length,
+      },
       userId: userId,
       restaurantId: id,
       ipAddress: getClientIp(req.headers),
