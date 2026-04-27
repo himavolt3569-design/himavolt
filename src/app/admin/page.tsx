@@ -24,6 +24,7 @@ import {
   BedDouble,
   LayoutTemplate,
   UserX,
+  Image,
 } from "lucide-react";
 import Link from "next/link";
 import MasterOverview from "@/components/admin/MasterOverview";
@@ -37,6 +38,7 @@ import AuditTab from "@/components/admin/AuditTab";
 import AllBookingsTab from "@/components/admin/AllBookingsTab";
 import FooterSettingsTab from "@/components/admin/FooterSettingsTab";
 import InactiveUsersTab from "@/components/admin/InactiveUsersTab";
+import HeroSettingsTab from "@/components/admin/HeroSettingsTab";
 
 /* ═══════════════════════════════════════════════════════════════════
    Types & Constants
@@ -53,20 +55,62 @@ type AdminTab =
   | "deliveries"
   | "bookings"
   | "audit"
-  | "footer-settings";
+  | "footer-settings"
+  | "hero-settings";
 
-const TABS: { id: AdminTab; label: string; icon: typeof Activity; mobileLabel?: string }[] = [
+const TABS: {
+  id: AdminTab;
+  label: string;
+  icon: typeof Activity;
+  mobileLabel?: string;
+}[] = [
   { id: "overview", label: "Overview", icon: Activity, mobileLabel: "Home" },
-  { id: "orders", label: "All Orders", icon: ShoppingBag, mobileLabel: "Orders" },
-  { id: "restaurants", label: "Restaurants", icon: Store, mobileLabel: "Restaurants" },
+  {
+    id: "orders",
+    label: "All Orders",
+    icon: ShoppingBag,
+    mobileLabel: "Orders",
+  },
+  {
+    id: "restaurants",
+    label: "Restaurants",
+    icon: Store,
+    mobileLabel: "Restaurants",
+  },
   { id: "users", label: "Users", icon: Users, mobileLabel: "Users" },
-  { id: "inactive-users", label: "Inactive Users", icon: UserX, mobileLabel: "Inactive" },
+  {
+    id: "inactive-users",
+    label: "Inactive Users",
+    icon: UserX,
+    mobileLabel: "Inactive",
+  },
   { id: "chats", label: "Chats", icon: MessageCircle, mobileLabel: "Chats" },
   { id: "payments", label: "Payments", icon: CreditCard, mobileLabel: "Pay" },
-  { id: "deliveries", label: "Deliveries", icon: Truck, mobileLabel: "Delivery" },
+  {
+    id: "deliveries",
+    label: "Deliveries",
+    icon: Truck,
+    mobileLabel: "Delivery",
+  },
   { id: "audit", label: "Live Audit", icon: Zap, mobileLabel: "Audit" },
-  { id: "bookings", label: "Hotel Bookings", icon: BedDouble, mobileLabel: "Bookings" },
-  { id: "footer-settings", label: "Footer", icon: LayoutTemplate, mobileLabel: "Footer" },
+  {
+    id: "bookings",
+    label: "Hotel Bookings",
+    icon: BedDouble,
+    mobileLabel: "Bookings",
+  },
+  {
+    id: "footer-settings",
+    label: "Footer",
+    icon: LayoutTemplate,
+    mobileLabel: "Footer",
+  },
+  {
+    id: "hero-settings",
+    label: "Hero",
+    icon: Image,
+    mobileLabel: "Hero",
+  },
 ];
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -130,7 +174,9 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
             <Shield className="h-8 w-8 text-white" />
           </motion.div>
           <h1 className="text-2xl font-bold text-[#1A2744]">Master Admin</h1>
-          <p className="mt-1 text-sm text-slate-400">HimaVolt System Control Panel</p>
+          <p className="mt-1 text-sm text-slate-400">
+            HimaVolt System Control Panel
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -172,7 +218,11 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
                   onClick={() => setShowPassword((p) => !p)}
                   className="text-slate-300 hover:text-slate-500 transition-colors"
                 >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
                 </button>
               </div>
             </div>
@@ -280,7 +330,9 @@ export default function MasterAdminPage() {
             </div>
             <div>
               <h1 className="text-lg font-bold text-[#1A2744]">Master Admin</h1>
-              <p className="text-[11px] text-slate-400">HimaVolt System Control</p>
+              <p className="text-[11px] text-slate-400">
+                HimaVolt System Control
+              </p>
             </div>
           </div>
 
@@ -289,7 +341,11 @@ export default function MasterAdminPage() {
               onClick={() => setMobileMenuOpen((p) => !p)}
               className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 sm:hidden transition-colors"
             >
-              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {mobileMenuOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
             </button>
 
             <Link
@@ -319,7 +375,9 @@ export default function MasterAdminPage() {
                 key={t.id}
                 onClick={() => handleSetTab(t.id)}
                 className={`relative flex items-center gap-2 whitespace-nowrap px-4 py-3 text-sm font-medium transition-all ${
-                  tab === t.id ? "text-blue-500" : "text-slate-400 hover:text-slate-600"
+                  tab === t.id
+                    ? "text-blue-500"
+                    : "text-slate-400 hover:text-slate-600"
                 }`}
               >
                 <t.icon className="h-4 w-4" />
@@ -360,7 +418,9 @@ export default function MasterAdminPage() {
                   }`}
                 >
                   <t.icon className="h-5 w-5" />
-                  <span className="text-[10px] font-medium">{t.mobileLabel || t.label}</span>
+                  <span className="text-[10px] font-medium">
+                    {t.mobileLabel || t.label}
+                  </span>
                 </button>
               ))}
             </div>
@@ -380,13 +440,17 @@ export default function MasterAdminPage() {
               }`}
             >
               <t.icon className="h-4.5 w-4.5" />
-              <span className="text-[9px] font-medium">{t.mobileLabel || t.label}</span>
+              <span className="text-[9px] font-medium">
+                {t.mobileLabel || t.label}
+              </span>
             </button>
           ))}
           <button
             onClick={() => setMobileMenuOpen((p) => !p)}
             className={`flex flex-1 flex-col items-center gap-0.5 rounded-lg py-1.5 transition-all ${
-              TABS.slice(5).some((t) => t.id === tab) ? "text-blue-500" : "text-slate-400"
+              TABS.slice(5).some((t) => t.id === tab)
+                ? "text-blue-500"
+                : "text-slate-400"
             }`}
           >
             <Menu className="h-4.5 w-4.5" />
@@ -405,7 +469,9 @@ export default function MasterAdminPage() {
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.15 }}
           >
-            {tab === "overview" && <MasterOverview onNavigate={(t) => handleSetTab(t as AdminTab)} />}
+            {tab === "overview" && (
+              <MasterOverview onNavigate={(t) => handleSetTab(t as AdminTab)} />
+            )}
             {tab === "orders" && <AllOrdersTab />}
             {tab === "restaurants" && <AllRestaurantsTab />}
             {tab === "users" && <AllUsersTab />}
@@ -416,6 +482,7 @@ export default function MasterAdminPage() {
             {tab === "audit" && <AuditTab />}
             {tab === "bookings" && <AllBookingsTab />}
             {tab === "footer-settings" && <FooterSettingsTab />}
+            {tab === "hero-settings" && <HeroSettingsTab />}
           </motion.div>
         </AnimatePresence>
       </main>

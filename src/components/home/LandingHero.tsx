@@ -2,11 +2,25 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, QrCode, Truck, MapPin, Clock, Star } from "lucide-react";
+import { MapPin, Clock, Star } from "lucide-react";
 
 import Link from "next/link";
 
 const ANIMATED_WORDS = ["Delicious", "Fresh", "Fast", "Spicy", "Healthy"];
+
+interface HeroSettings {
+  images: { id: string; url: string; order: number }[];
+  autoplay: boolean;
+  interval: number;
+  overlayOpacity: number;
+}
+
+const DEFAULT_HERO_SETTINGS: HeroSettings = {
+  images: [],
+  autoplay: true,
+  interval: 5000,
+  overlayOpacity: 40,
+};
 
 const liveOrders = [
   {
@@ -157,10 +171,23 @@ const stats = [
 
 export default function LandingHero() {
   const [wordIdx, setWordIdx] = useState(0);
-  // mounted defers the AnimatePresence until after hydration so SSR and
-  // the first client render produce identical HTML (no React #418 error).
   const [mounted, setMounted] = useState(false);
+  const [heroSettings, setHeroSettings] = useState<HeroSettings>(
+    DEFAULT_HERO_SETTINGS,
+  );
+  const [currentSlide, setCurrentSlide] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const slideTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Fetch hero settings
+  useEffect(() => {
+    fetch("/api/admin/hero-settings")
+      .then((r) => r.json())
+      .then((data) => {
+        setHeroSettings({ ...DEFAULT_HERO_SETTINGS, ...data });
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     setMounted(true);
@@ -172,30 +199,64 @@ export default function LandingHero() {
     };
   }, []);
 
+  // Hero carousel auto-slide
+  useEffect(() => {
+    if (!heroSettings.autoplay || heroSettings.images.length <= 1) return;
+
+    slideTimerRef.current = setInterval(() => {
+      setCurrentSlide((i) => (i + 1) % heroSettings.images.length);
+    }, heroSettings.interval);
+
+    return () => {
+      if (slideTimerRef.current) clearInterval(slideTimerRef.current);
+    };
+  }, [
+    heroSettings.autoplay,
+    heroSettings.interval,
+    heroSettings.images.length,
+  ]);
+
+  const hasHeroImages = heroSettings.images.length > 0;
+
   return (
-    <section className="relative bg-[var(--canvas)] overflow-hidden">
-      <div
-        className="absolute top-0 left-0 right-0 h-[500px] pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(ellipse 70% 55% at 50% -5%, rgba(234,169,77,0.08) 0%, transparent 100%)",
-        }}
-      />
+    <section className="relative bg-[var(--canvas)] overflow-hidden min-h-[600px] md:min-h-[700px]">
+      {/* Hero Background Carousel */}
+      <div className="absolute inset-0">
+        {hasHeroImages ? (
+          <>
+            <AnimatePresence mode="wait">
+              <motion.img
+                key={heroSettings.images[currentSlide]?.id || "none"}
+                initial={{ opacity: 0, scale: 1.05 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.8, ease: "easeInOut" }}
+                src={heroSettings.images[currentSlide]?.url}
+                alt="Hero"
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            </AnimatePresence>
+            {/* Dark Overlay */}
+            <div
+              className="absolute inset-0 bg-black transition-opacity duration-500"
+              style={{ opacity: heroSettings.overlayOpacity / 100 }}
+            />
+          </>
+        ) : (
+          /* Default Gradient Background */
+          <div
+            className="absolute top-0 left-0 right-0 h-[500px] pointer-events-none"
+            style={{
+              background:
+                "radial-gradient(ellipse 70% 55% at 50% -5%, rgba(234,169,77,0.08) 0%, transparent 100%)",
+            }}
+          />
+        )}
+      </div>
 
       <div className="relative z-10 mx-auto max-w-7xl px-4 md:px-8 lg:px-12 pt-20 md:pt-28 lg:pt-32 pb-10">
         <div className="text-center max-w-2xl mx-auto">
-          {/* FREE badge */}
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-          >
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-3.5 py-1 text-[10px] font-bold text-emerald-700 uppercase tracking-wider dark:bg-emerald-950/30 dark:border-emerald-800/40 dark:text-emerald-400">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              100% Free to use
-            </span>
-          </motion.div>
-          {/* Headline */}
+          {/* Headline - Simplified */}
           <motion.h1
             initial={{ opacity: 0, y: 22 }}
             animate={{ opacity: 1, y: 0 }}
@@ -204,10 +265,13 @@ export default function LandingHero() {
               delay: 0.08,
               ease: [0.16, 1, 0.3, 1],
             }}
-            className="mt-5 text-[2.75rem] leading-[1.05] sm:text-5xl md:text-6xl lg:text-[4rem] font-black tracking-tight text-[var(--text-1)]"
+            className={`text-[2.75rem] leading-[1.05] sm:text-5xl md:text-6xl lg:text-[4rem] font-black tracking-tight ${
+              hasHeroImages
+                ? "text-white drop-shadow-lg"
+                : "text-[var(--text-1)]"
+            }`}
           >
-            Scan. Order.
-            <br />
+            <span className="block">Scan. Order.</span>
             <span className="inline-block min-w-[1ch]">
               {mounted ? (
                 <AnimatePresence mode="wait">
@@ -217,7 +281,11 @@ export default function LandingHero() {
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: -28, opacity: 0 }}
                     transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
-                    className="inline-block text-[var(--accent)]"
+                    className={`inline-block ${
+                      hasHeroImages
+                        ? "text-[var(--accent)]"
+                        : "text-[var(--accent)]"
+                    }`}
                   >
                     {ANIMATED_WORDS[wordIdx]}.
                   </motion.span>
@@ -229,59 +297,60 @@ export default function LandingHero() {
               )}
             </span>
           </motion.h1>
-          {/* Subheadline */}
-          <motion.p
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.16, ease: [0.16, 1, 0.3, 1] }}
-            className="mt-4 text-base md:text-lg text-[var(--text-2)] leading-relaxed"
-          >
-            Scan your table QR to dine-in, or get delivery straight to your door
-            - live-tracked from kitchen to doorstep.
-          </motion.p>
-          {/* CTAs */}
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.24, ease: [0.16, 1, 0.3, 1] }}
-            className="mt-8 flex flex-col items-center gap-3"
-          >
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full">
-              <Link
-                href="/menu"
-                className="group w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-6 py-3 text-sm font-bold text-white shadow-md shadow-[var(--accent)]/20 hover:bg-[var(--accent-hover)] active:scale-[0.97] transition-colors"
-              >
-                <Truck className="h-4 w-4" />
-                Order Delivery
-                <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-              </Link>
-              <Link
-                href="/scan"
-                className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] px-6 py-3 text-sm font-bold text-[var(--canvas)] hover:opacity-80 active:scale-[0.97] transition-all"
-              >
-                <QrCode className="h-4 w-4" />
-                Scan Table QR
-              </Link>
-            </div>
-            <p className="text-[11px] text-[var(--text-3)]">
-              No credit card required. Free for restaurants.
-            </p>
-          </motion.div>
+
+          {/* Slide Indicators - Only show when multiple images */}
+          {hasHeroImages && heroSettings.images.length > 1 && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="mt-8 flex items-center justify-center gap-2"
+            >
+              {heroSettings.images.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCurrentSlide(i)}
+                  className={`h-1.5 rounded-full transition-all ${
+                    i === currentSlide
+                      ? "w-6 bg-white"
+                      : "w-1.5 bg-white/50 hover:bg-white/75"
+                  }`}
+                />
+              ))}
+            </motion.div>
+          )}
+
           {/* Stats */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.38 }}
-            className="mt-10 flex items-center justify-center gap-5 md:gap-8"
+            className={`mt-10 flex items-center justify-center gap-5 md:gap-8 ${
+              hasHeroImages ? "text-white" : ""
+            }`}
           >
             {stats.map((s, i) => (
               <div key={s.label} className="flex items-center gap-5 md:gap-8">
-                {i > 0 && <div className="h-5 w-px bg-[var(--border)]" />}
+                {i > 0 && (
+                  <div
+                    className={`h-5 w-px ${hasHeroImages ? "bg-white/30" : "bg-[var(--border)]"}`}
+                  />
+                )}
                 <div className="text-center">
-                  <p className="text-lg font-black text-[var(--text-1)] leading-none tabular-nums">
+                  <p
+                    className={`text-lg font-black leading-none tabular-nums ${
+                      hasHeroImages
+                        ? "text-white drop-shadow-md"
+                        : "text-[var(--text-1)]"
+                    }`}
+                  >
                     {s.value}
                   </p>
-                  <p className="text-[10px] text-[var(--text-3)] uppercase tracking-wider mt-0.5">
+                  <p
+                    className={`text-[10px] uppercase tracking-wider mt-0.5 ${
+                      hasHeroImages ? "text-white/80" : "text-[var(--text-3)]"
+                    }`}
+                  >
                     {s.label}
                   </p>
                 </div>
