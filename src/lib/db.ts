@@ -12,9 +12,14 @@ function createPrismaClient() {
   }
   const isServerless =
     !!process.env.VERCEL || process.env.NODE_ENV === "production";
+  // Pool sized so routes that fan out 3-4 queries via Promise.all (e.g. the
+  // food-detail endpoint, admin stats) actually run them in parallel instead
+  // of serializing on connection acquisition. 5 is comfortable for a single
+  // Vercel function instance against Supabase pgbouncer; ramp up if connection
+  // pressure shows up in `pg_stat_activity`.
   const adapter = new PrismaPg({
     connectionString,
-    max: isServerless ? 2 : 3,
+    max: isServerless ? 5 : 5,
     ssl: isServerless ? { rejectUnauthorized: false } : undefined,
   });
   return new PrismaClient({ adapter });

@@ -14,6 +14,10 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
+import {
+  SkeletonGrid,
+  SkeletonTable,
+} from "@/components/shared/Skeleton";
 
 /* Lazy-load each sub-tab so the initial hub render stays lean */
 const RoomManagementTab = lazy(() => import("./RoomManagementTab"));
@@ -102,18 +106,31 @@ const HUB_TABS: HubTabDef[] = [
   },
 ];
 
+// Each sub-tab gets a layout-matched skeleton so switching tabs paints
+// instantly and the user sees what's coming, not a centered spinner.
+function HubFallback({ active }: { active: HubTabId }) {
+  switch (active) {
+    case "rooms":
+    case "hotel-qr":
+    case "room-qr":
+    case "hero":
+      return <SkeletonGrid rows={2} cols={3} cardClass="h-44 rounded-2xl" />;
+    case "bookings":
+    case "checkins":
+    case "room-service":
+    case "guest-billing":
+      return <SkeletonTable rows={6} />;
+    default:
+      return <SkeletonTable rows={4} />;
+  }
+}
+
 function SubTabPanel({ active }: { active: HubTabId }) {
   const tab = HUB_TABS.find((t) => t.id === active);
   if (!tab) return null;
   const Comp = tab.component;
   return (
-    <Suspense
-      fallback={
-        <div className="flex h-64 items-center justify-center">
-          <Loader2 className="h-5 w-5 animate-spin text-[var(--accent)]" />
-        </div>
-      }
-    >
+    <Suspense fallback={<HubFallback active={active} />}>
       <Comp />
     </Suspense>
   );

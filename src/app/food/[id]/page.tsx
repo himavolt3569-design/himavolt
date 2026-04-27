@@ -26,6 +26,7 @@ import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 import { useToast } from "@/context/ToastContext";
 import { formatPrice } from "@/lib/currency";
+import { apiFetch } from "@/lib/api-client";
 import RatingInput from "@/components/menu/RatingInput";
 import OfferCountdown from "@/components/menu/OfferCountdown";
 
@@ -205,11 +206,14 @@ export default function FoodDetailsPage() {
     setSizeIdx(0);
     setSelectedAddOns(new Set());
 
-    fetch(`/api/public/menu-items/${params.id}`)
-      .then((r) => {
-        if (!r.ok) throw new Error();
-        return r.json();
-      })
+    // apiFetch picks up the in-memory GET cache (60s TTL) so navigating
+    // back-and-forth between food items doesn't re-hit the API.
+    apiFetch<{
+      item: MenuItemData;
+      related: MenuItemData[];
+      topRated: MenuItemData[];
+      trending: MenuItemData[];
+    }>(`/api/public/menu-items/${params.id}`)
       .then((data) => {
         setFood(data.item);
 

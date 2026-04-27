@@ -3,11 +3,15 @@ import { db } from "@/lib/db";
 import { getStaffSession } from "@/lib/staff-auth";
 import { getOrCreateUser } from "@/lib/auth";
 
+// 5 s instead of 3 s. Each connected kitchen / live-orders client used to fan
+// out a `findMany(50)` every 3 s — at N staff devices that's a steady DB
+// thrash. Bumping to 5 s cuts DB load ~40 % with no perceptible UX hit.
+const POLL_MS = 5000;
+
 /**
  * GET /api/restaurants/[id]/orders/stream
  * SSE stream for real-time kitchen order updates.
  * Authenticated via staff JWT or Supabase session (owner).
- * Polls every 3 seconds and pushes new/changed orders.
  */
 export async function GET(
   req: NextRequest,
@@ -143,14 +147,14 @@ export async function GET(
         }
 
         if (!closed) {
-          setTimeout(fetchAndSend, 3000);
+          setTimeout(fetchAndSend, POLL_MS);
         }
       };
 
       await fetchAndSend(true);
 
       if (!closed) {
-        setTimeout(fetchAndSend, 3000);
+        setTimeout(fetchAndSend, POLL_MS);
       }
     },
     cancel() {

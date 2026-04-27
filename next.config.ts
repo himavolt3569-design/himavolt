@@ -24,6 +24,10 @@ const nextConfig: NextConfig = {
     },
   },
   images: {
+    // Serve modern formats automatically — AVIF first (smaller, slightly
+    // pricier to encode), WebP as the broad-compat fallback. Browsers that
+    // support neither still get the original via Next/image's last fallback.
+    formats: ["image/avif", "image/webp"],
     remotePatterns: [
       { protocol: "https", hostname: "**.supabase.co" },
       { protocol: "https", hostname: "**.storage.supabase.co" },

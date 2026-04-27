@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
+// Menu data changes rarely. Cache for 60s on the edge with a 5-minute SWR
+// window — combined with the Promise.all parallelism below this turns the
+// 4-sequential-query stall (~10s on a cold pool) into a sub-second response.
+export const revalidate = 60;
+
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -32,66 +37,62 @@ export async function GET(
       return NextResponse.json({ error: "Item not found" }, { status: 404 });
     }
 
-    const commonInclude = {
+    // Suggestion lists don't render restaurant address/phone — slim the
+    // payload so we don't ship 3 × N copies of the parent restaurant.
+    const suggestionInclude = {
       category: { select: { name: true, slug: true } },
       sizes: true,
       addOns: true,
       restaurant: {
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          phone: true,
-          address: true,
-          imageUrl: true,
-        },
+        select: { id: true, name: true, slug: true, imageUrl: true },
       },
     };
 
-    // Get related items: same category, excluding current
-    const related = await db.menuItem.findMany({
-      where: {
-        categoryId: item.categoryId,
-        id: { not: item.id },
-        isAvailable: true,
-      },
-      include: commonInclude,
-      orderBy: [{ isFeatured: "desc" }, { rating: "desc" }],
-      take: 8,
-    });
+    // Three sibling queries are independent — fan them out in parallel.
+    const [related, topRated, trending] = await Promise.all([
+      db.menuItem.findMany({
+        where: {
+          categoryId: item.categoryId,
+          id: { not: item.id },
+          isAvailable: true,
+        },
+        include: suggestionInclude,
+        orderBy: [{ isFeatured: "desc" }, { rating: "desc" }],
+        take: 8,
+      }),
+      db.menuItem.findMany({
+        where: {
+          restaurantId: item.restaurantId,
+          id: { not: item.id },
+          isAvailable: true,
+          rating: { gte: 3.5 },
+        },
+        include: suggestionInclude,
+        orderBy: { rating: "desc" },
+        take: 6,
+      }),
+      db.menuItem.findMany({
+        where: {
+          restaurantId: item.restaurantId,
+          id: { not: item.id },
+          isAvailable: true,
+          OR: [{ isFeatured: true }, { badge: "Bestseller" }],
+        },
+        include: suggestionInclude,
+        orderBy: { rating: "desc" },
+        take: 6,
+      }),
+    ]);
 
-    // Top rated items across the same restaurant
-    const topRated = await db.menuItem.findMany({
-      where: {
-        restaurantId: item.restaurantId,
-        id: { not: item.id },
-        isAvailable: true,
-        rating: { gte: 3.5 },
+    return NextResponse.json(
+      { item, related, topRated, trending },
+      {
+        headers: {
+          "Cache-Control":
+            "public, s-maxage=60, stale-while-revalidate=300",
+        },
       },
-      include: commonInclude,
-      orderBy: { rating: "desc" },
-      take: 6,
-    });
-
-    // Trending = featured or bestseller items
-    const trending = await db.menuItem.findMany({
-      where: {
-        restaurantId: item.restaurantId,
-        id: { not: item.id },
-        isAvailable: true,
-        OR: [{ isFeatured: true }, { badge: "Bestseller" }],
-      },
-      include: commonInclude,
-      orderBy: { rating: "desc" },
-      take: 6,
-    });
-
-    return NextResponse.json({
-      item,
-      related,
-      topRated,
-      trending,
-    });
+    );
   } catch {
     return NextResponse.json(
       { error: "Failed to fetch menu item" },

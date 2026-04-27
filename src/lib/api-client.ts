@@ -8,15 +8,19 @@ interface CacheEntry<T = unknown> {
   data: T;
   ts: number;
 }
+// Map preserves insertion order — re-inserting on hit gives us O(1) LRU
+// without a sort. The previous sort-based eviction was O(n log n) on every
+// cache miss past 100 entries.
 const GET_CACHE = new Map<string, CacheEntry>();
-const DEFAULT_CACHE_TTL = 30_000;
-const MAX_CACHE_ENTRIES = 100;
+const DEFAULT_CACHE_TTL = 60_000;
+const MAX_CACHE_ENTRIES = 200;
 
 function pruneCache() {
-  if (GET_CACHE.size <= MAX_CACHE_ENTRIES) return;
-  const sorted = [...GET_CACHE.entries()].sort((a, b) => a[1].ts - b[1].ts);
-  const toRemove = sorted.slice(0, sorted.length - MAX_CACHE_ENTRIES);
-  for (const [key] of toRemove) GET_CACHE.delete(key);
+  while (GET_CACHE.size > MAX_CACHE_ENTRIES) {
+    const oldest = GET_CACHE.keys().next().value;
+    if (!oldest) break;
+    GET_CACHE.delete(oldest);
+  }
 }
 
 export function invalidateApiCache(pathPrefix?: string) {
@@ -52,6 +56,9 @@ export async function apiFetch<T = unknown>(
   if (typeof window !== "undefined" && method === "GET" && cacheTtl > 0) {
     const cached = GET_CACHE.get(path);
     if (cached && Date.now() - cached.ts < cacheTtl) {
+      // Refresh insertion order so this entry isn't the next eviction victim.
+      GET_CACHE.delete(path);
+      GET_CACHE.set(path, cached);
       return cached.data as T;
     }
   }

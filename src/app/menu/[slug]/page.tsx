@@ -65,7 +65,16 @@ import { useCart } from "@/context/CartContext";
 import { useToast } from "@/context/ToastContext";
 import { useOrder } from "@/context/OrderContext";
 import { apiFetch } from "@/lib/api-client";
-import gsap from "gsap";
+// GSAP is heavy (~98 KB gzip) and only needed for two small button/price
+// bounce animations. Import it dynamically the first time those animations
+// fire so it never lands in the initial menu-page bundle.
+let _gsapPromise: Promise<typeof import("gsap").default> | null = null;
+function loadGsap() {
+  if (!_gsapPromise) {
+    _gsapPromise = import("gsap").then((m) => m.default);
+  }
+  return _gsapPromise;
+}
 import Link from "next/link";
 import FoodDetailPopup, {
   type PopupMenuItem,
@@ -624,11 +633,14 @@ function MenuItemCard({
     );
     showToast(`${item.name} added!`);
     if (btnRef.current) {
-      gsap.fromTo(
-        btnRef.current,
-        { scale: 1.35 },
-        { scale: 1, duration: 0.3, ease: "back.out(3)" },
-      );
+      const target = btnRef.current;
+      loadGsap().then((gsap) => {
+        gsap.fromTo(
+          target,
+          { scale: 1.35 },
+          { scale: 1, duration: 0.3, ease: "back.out(3)" },
+        );
+      });
     }
   };
 
@@ -784,11 +796,14 @@ function HeroDish({
 
   useEffect(() => {
     if (priceRef.current) {
-      gsap.fromTo(
-        priceRef.current,
-        { y: 20, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.5, ease: "back.out(2)" },
-      );
+      const target = priceRef.current;
+      loadGsap().then((gsap) => {
+        gsap.fromTo(
+          target,
+          { y: 20, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.5, ease: "back.out(2)" },
+        );
+      });
     }
   }, [dish.id]);
 

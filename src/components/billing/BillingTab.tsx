@@ -33,6 +33,32 @@ import {
 } from "lucide-react";
 import { formatPrice, getCurrencySymbol } from "@/lib/currency";
 import { useToast } from "@/context/ToastContext";
+import Skeleton, {
+  SkeletonStatGrid,
+  SkeletonOrderCard,
+} from "@/components/shared/Skeleton";
+
+function BillingTabSkeleton() {
+  return (
+    <div className="space-y-5">
+      <div className="flex items-center justify-between">
+        <Skeleton className="h-6 w-32 rounded" />
+        <Skeleton className="h-9 w-9 rounded-full" />
+      </div>
+      <SkeletonStatGrid count={4} />
+      <div className="flex gap-2 overflow-x-auto pb-2">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} className="h-9 w-28 shrink-0 rounded-full" />
+        ))}
+      </div>
+      <div className="space-y-3">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <SkeletonOrderCard key={i} />
+        ))}
+      </div>
+    </div>
+  );
+}
 
 /* Types */
 
@@ -584,7 +610,9 @@ export default function BillingTab({
   const cashCount = orders.filter(isCashOrder).length;
   const onlineCount = orders.filter((o) => !!isOnlineOrder(o)).length;
 
-  if (loading) return null;
+  if (loading) {
+    return <BillingTabSkeleton />;
+  }
 
   return (
     <div className="space-y-5">

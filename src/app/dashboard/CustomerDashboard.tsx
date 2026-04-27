@@ -46,6 +46,10 @@ import {
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { formatPrice } from "@/lib/currency";
+import Skeleton, {
+  SkeletonOrderCard,
+  SkeletonStatGrid,
+} from "@/components/shared/Skeleton";
 
 const BRAND = "#eaa94d";
 
@@ -303,12 +307,36 @@ export default function CustomerDashboard() {
   ];
 
   if (loading) {
+    // Render the same shell that the populated dashboard uses so the user
+    // sees structure (header, greeting, stat cards, order list) instantly
+    // instead of a centered spinner while six endpoints fan out.
     return (
-      <div className="flex h-screen items-center justify-center bg-[#fdf9f3]">
-        <div className="text-center">
-          <div className="mx-auto h-8 w-8 rounded-full border-2 border-[var(--accent-border)] border-t-[#eaa94d] animate-spin" />
-          <p className="mt-3 text-sm text-[var(--text-3)]">Loading your dashboard…</p>
-        </div>
+      <div className="flex min-h-screen flex-col bg-[#fdf9f3]">
+        <header className="sticky top-0 z-40 bg-[var(--canvas)]/95 backdrop-blur-xl border-b border-[var(--accent)]/10 shadow-[0_1px_6px_rgba(234,169,77,0.06)]">
+          <div className="mx-auto flex h-14 max-w-lg items-center justify-between px-4">
+            <div className="flex items-center gap-2">
+              <Mountain className="h-5 w-5 text-[var(--accent)]" strokeWidth={2.5} />
+              <span className="text-base font-extrabold tracking-tight text-[var(--text-1)]">
+                Hima<span className="text-[var(--accent)]">Volt</span>
+              </span>
+            </div>
+            <Skeleton className="h-7 w-7 rounded-full" />
+          </div>
+        </header>
+        <main className="mx-auto w-full max-w-lg space-y-5 px-4 py-6">
+          {/* Greeting card */}
+          <div className="rounded-3xl bg-[var(--canvas)] p-5 ring-1 ring-[var(--accent)]/10 space-y-3">
+            <Skeleton className="h-5 w-2/3 rounded" />
+            <Skeleton className="h-3 w-1/2 rounded" />
+          </div>
+          <SkeletonStatGrid count={2} className="grid-cols-2 sm:grid-cols-2 lg:grid-cols-2" />
+          <div className="space-y-3">
+            <Skeleton className="h-5 w-32 rounded" />
+            {Array.from({ length: 3 }).map((_, i) => (
+              <SkeletonOrderCard key={i} />
+            ))}
+          </div>
+        </main>
       </div>
     );
   }

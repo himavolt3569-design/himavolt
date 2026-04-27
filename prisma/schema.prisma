@@ -407,6 +407,15 @@ model MenuItem {
 
   @@index([restaurantId])
   @@index([categoryId])
+  // Composite indexes for the hottest list queries:
+  //   • menu listing per restaurant filters on isAvailable
+  //   • food-detail "related" query filters on (categoryId, isAvailable)
+  //   • food-detail "trending" query filters on (restaurantId, isFeatured)
+  //   • landing-page top-rated filters on (restaurantId, rating)
+  @@index([restaurantId, isAvailable])
+  @@index([categoryId, isAvailable])
+  @@index([restaurantId, isFeatured])
+  @@index([restaurantId, rating])
   @@map("menu_items")
 }
 
@@ -500,6 +509,11 @@ model Order {
   @@index([status])
   @@index([createdAt])
   @@index([processedByStaffId])
+  // Hot composite for the kitchen / live-orders SSE stream which filters on
+  // (restaurantId, status) and orders by createdAt every poll.
+  @@index([restaurantId, status, createdAt])
+  // Customer-side "my orders" view filters by (userId, createdAt desc).
+  @@index([userId, createdAt])
   @@map("orders")
 }
 
