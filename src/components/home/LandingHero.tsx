@@ -162,12 +162,12 @@ const shelfItems = [
   },
 ];
 
-const stats = [
-  { value: "58K+", label: "Orders" },
-  { value: "4.8", label: "Rating" },
-  { value: "22 min", label: "Avg Delivery" },
-  { value: "150+", label: "Restaurants" },
-];
+// const stats = [
+//   { value: "58K+", label: "Orders" },
+//   { value: "4.8", label: "Rating" },
+//   { value: "22 min", label: "Avg Delivery" },
+//   { value: "150+", label: "Restaurants" },
+// ];
 
 export default function LandingHero() {
   const [wordIdx, setWordIdx] = useState(0);
@@ -321,7 +321,7 @@ export default function LandingHero() {
           )}
 
           {/* Stats */}
-          <motion.div
+          {/* <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.38 }}
@@ -356,7 +356,7 @@ export default function LandingHero() {
                 </div>
               </div>
             ))}
-          </motion.div>
+          </motion.div> */}
         </div>
 
         {/* Food shelf */}

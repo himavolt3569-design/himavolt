@@ -15,10 +15,17 @@ const TYPEWRITER_WORDS = [
   "Special?",
 ];
 
-function useTypewriter(words: string[], typingSpeed = 80, pauseMs = 1800, deletingSpeed = 50) {
+function useTypewriter(
+  words: string[],
+  typingSpeed = 80,
+  pauseMs = 1800,
+  deletingSpeed = 50,
+) {
   const [display, setDisplay] = useState("");
   const [wordIdx, setWordIdx] = useState(0);
-  const [phase, setPhase] = useState<"typing" | "pausing" | "deleting">("typing");
+  const [phase, setPhase] = useState<"typing" | "pausing" | "deleting">(
+    "typing",
+  );
   const [charIdx, setCharIdx] = useState(0);
 
   useEffect(() => {
@@ -159,7 +166,10 @@ export default function Hero() {
           >
             <span className="block">Craving something</span>
             <span className="block min-h-[1.15em]">
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--accent)] via-[#e58f2a] to-[var(--accent)]" style={{ backgroundSize: "200% 200%" }}>
+              <span
+                className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--accent)] via-[#e58f2a] to-[var(--accent)]"
+                style={{ backgroundSize: "200% 200%" }}
+              >
                 {typedWord}
               </span>
               <span
@@ -180,7 +190,6 @@ export default function Hero() {
             Discover the best food around you. Order to your table or get it
             delivered in minutes.
           </motion.p>
-
         </div>
       </div>
 
