@@ -15,9 +15,36 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "HimaVolt -- Scan. Order. Stay.",
+  metadataBase: new URL("https://himavolt.com"),
+  title: {
+    default: "HimaVolt - QR Table Ordering & Food Delivery in Nepal",
+    template: "%s | HimaVolt",
+  },
   description:
-    "Scan. Order. Enjoy. -- Nepal's premium QR table ordering and food delivery platform.",
+    "Scan. Order. Enjoy. - Nepal's premium QR table ordering and food delivery platform.",
+  keywords: ["QR Ordering", "Food Delivery Nepal", "HimaVolt", "Restaurant Pos", "Table Ordering", "Nepal Food Delivery"],
+  authors: [{ name: "HimaVolt" }],
+  creator: "HimaVolt",
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://himavolt.com",
+    title: "HimaVolt - QR Table Ordering & Food Delivery in Nepal",
+    description: "Scan. Order. Enjoy. - Nepal's premium QR table ordering and food delivery platform.",
+    siteName: "HimaVolt",
+    images: [{
+      url: "/icons/icon-512x512.png",
+      width: 512,
+      height: 512,
+      alt: "HimaVolt Logo",
+    }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "HimaVolt - QR Table Ordering.",
+    description: "Scan. Order. Enjoy. - Nepal's premium QR table ordering and food delivery platform.",
+    images: ["/icons/icon-512x512.png"],
+  },
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
