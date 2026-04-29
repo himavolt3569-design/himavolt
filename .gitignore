@@ -43,6 +43,7 @@ next-env.d.ts
 
 /src/generated/prisma
 
-SECURITY_AUDIT.md
-review.md
-.windsurf
+
+.vscode
+.idea
+scripts
