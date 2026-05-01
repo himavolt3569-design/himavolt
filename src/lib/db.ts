@@ -1,3 +1,4 @@
+import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@/generated/prisma";
 
@@ -5,24 +6,71 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
+// Retry extension for transient connection drops
+const withRetry = (client: PrismaClient) => {
+  return client.$extends({
+    query: {
+      $allOperations({ operation, args, query }) {
+        return (async () => {
+          const maxRetries = 3;
+          let retries = 0;
+          while (true) {
+            try {
+              return await query(args);
+            } catch (error: any) {
+              const isTransientError =
+                error?.code === "P2024" || // Connection timeout
+                error?.code === "P2010" || // Raw query failed
+                error?.message?.includes("fetch failed") ||
+                error?.message?.includes("Connection terminated") ||
+                error?.message?.includes("read ECONNRESET");
+
+              if (isTransientError && retries < maxRetries) {
+                retries++;
+                const backoff = Math.min(1000 * 2 ** retries, 10000);
+                console.warn(
+                  `[Prisma Retry] Transient error on ${operation}, retrying in ${backoff}ms... (Attempt ${retries}/${maxRetries})`,
+                );
+                await new Promise((resolve) => setTimeout(resolve, backoff));
+                continue;
+              }
+              throw error;
+            }
+          }
+        })();
+      },
+    },
+  });
+};
+
 function createPrismaClient() {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) {
     throw new Error("DATABASE_URL is not set");
   }
+
   const isServerless =
     !!process.env.VERCEL || process.env.NODE_ENV === "production";
-  // Pool sized so routes that fan out 3-4 queries via Promise.all (e.g. the
-  // food-detail endpoint, admin stats) actually run them in parallel instead
-  // of serializing on connection acquisition. 5 is comfortable for a single
-  // Vercel function instance against Supabase pgbouncer; ramp up if connection
-  // pressure shows up in `pg_stat_activity`.
-  const adapter = new PrismaPg({
+
+  // Explicitly configure pg.Pool to prevent dead connections from piling up
+  const pool = new Pool({
     connectionString,
     max: isServerless ? 5 : 5,
     ssl: isServerless ? { rejectUnauthorized: false } : undefined,
+    idleTimeoutMillis: 30000, // Close idle connections after 30 seconds
+    connectionTimeoutMillis: 5000, // Fail fast on connection attempt
   });
-  return new PrismaClient({ adapter });
+
+  // Attach pool events for debugging (optional but good for tracking drops)
+  pool.on("error", (err) => {
+    console.error("Unexpected error on idle database client", err);
+  });
+
+  const adapter = new PrismaPg(pool);
+
+  // Create client, cast it, and extend it
+  const baseClient = new PrismaClient({ adapter });
+  return withRetry(baseClient) as unknown as PrismaClient;
 }
 
 export function getDb() {
