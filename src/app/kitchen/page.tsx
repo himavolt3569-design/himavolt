@@ -1927,7 +1927,7 @@ export default function KitchenPage() {
 
   if (loading) {
     return (
-      <div className="dark min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+      <div className="min-h-screen bg-[var(--canvas)] flex items-center justify-center transition-colors">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="h-8 w-8 text-brand-400 animate-spin" />
           <p className="text-sm font-medium text-[var(--text-2)]">
@@ -1985,8 +1985,8 @@ export default function KitchenPage() {
   const defaultTab = roleKey === "CASHIER" ? "billing" : "orders";
 
   return (
-    <div className="dark min-h-screen bg-[#0a0a0a]">
-      <header className="sticky top-0 z-50 bg-[#111111]/90 backdrop-blur-2xl shadow-[0_1px_12px_rgba(0,0,0,0.4)] border-b border-[#1f1f1f]">
+    <div className="min-h-screen bg-[var(--canvas)] text-[var(--text-1)] transition-colors">
+      <header className="sticky top-0 z-50 bg-[var(--surface)]/90 backdrop-blur-2xl shadow-sm border-b border-[var(--border)]">
         <div className="mx-auto max-w-5xl px-4 sm:px-6">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-2">
@@ -2154,39 +2154,10 @@ export default function KitchenPage() {
         )}
       </AnimatePresence>
 
-      <div className="sticky top-16 z-40 bg-[var(--canvas)]/80 backdrop-blur-xl border-b border-brand-100/60">
+      <div className="sticky top-16 z-40 bg-[var(--canvas)]/80 backdrop-blur-2xl border-b border-[var(--border)] pt-3 pb-2 shadow-sm">
         <div className="mx-auto max-w-5xl px-4 sm:px-6">
-          {/* FOH / BOH group headers — only shown for roles that have both */}
-          {(() => {
-            const FOH_TAB_IDS: TabId[] = [
-              "waiter-order",
-              "tables",
-              "billing",
-              "manual",
-              "chat",
-              "stories",
-              "media",
-            ];
-            const BOH_TAB_IDS: TabId[] = ["orders", "menu", "inventory"];
-            const hasFOH = TABS.some((t) => FOH_TAB_IDS.includes(t.id));
-            const hasBOH = TABS.some((t) => BOH_TAB_IDS.includes(t.id));
-            if (!hasFOH || !hasBOH) return null;
-            return (
-              <div className="flex gap-4 pt-2 text-[10px] font-black uppercase tracking-widest">
-                <span className="flex items-center gap-1 text-[#b25c1c]">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#eaa94d] inline-block" />
-                  Front of House
-                </span>
-                <span className="text-gray-300">·</span>
-                <span className="flex items-center gap-1 text-orange-600">
-                  <span className="h-1.5 w-1.5 rounded-full bg-orange-400 inline-block" />
-                  Back of House
-                </span>
-              </div>
-            );
-          })()}
           <div
-            className="flex gap-1 overflow-x-auto py-2.5"
+            className="flex gap-2 overflow-x-auto pb-1"
             style={{ scrollbarWidth: "none" }}
           >
             {(() => {
@@ -2216,18 +2187,15 @@ export default function KitchenPage() {
                     ? "boh"
                     : "other";
 
-                // Add divider between FOH and BOH groups
-                if (
-                  showGroups &&
-                  lastGroup &&
-                  lastGroup !== group &&
-                  group !== "other"
-                ) {
+                // Category Dividers
+                if (showGroups && lastGroup && lastGroup !== group && group !== "other") {
                   elements.push(
                     <div
                       key={`divider-${tab.id}`}
-                      className="mx-1 w-px self-stretch bg-gray-200 my-1"
-                    />,
+                      className="mx-2 flex shrink-0 items-center justify-center flex-col gap-1"
+                    >
+                      <div className="h-4 w-px bg-[var(--border)] rounded-full" />
+                    </div>
                   );
                 }
                 lastGroup = group;
@@ -2236,36 +2204,26 @@ export default function KitchenPage() {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`relative flex items-center gap-1.5 shrink-0 rounded-xl px-4 py-2.5 text-xs font-bold transition-all ${
+                    className={`relative flex items-center gap-2 shrink-0 rounded-full px-5 py-2.5 text-[13px] font-semibold tracking-wide transition-all duration-300 ${
                       isActive
                         ? "text-white"
-                        : showGroups && group === "foh"
-                          ? "text-[#b25c1c] hover:bg-[var(--accent-muted)]"
-                          : showGroups && group === "boh"
-                            ? "text-orange-600 hover:bg-orange-50"
-                            : "text-[var(--text-2)] hover:bg-[var(--surface)] hover:text-[var(--text-2)]"
+                        : "text-[var(--text-2)] hover:text-[var(--text-1)] hover:bg-[var(--surface)]"
                     }`}
                   >
                     {isActive && (
                       <motion.div
-                        layoutId="kitchen-tab-pill"
-                        className={`absolute inset-0 rounded-xl shadow-md ${
-                          showGroups && group === "foh"
-                            ? "bg-[#eaa94d] shadow-[var(--accent)]/20"
-                            : showGroups && group === "boh"
-                              ? "bg-orange-600 shadow-orange-600/20"
-                              : "bg-brand-400 shadow-brand-400/20"
-                        }`}
+                        layoutId="kitchen-tab-pill-revamped"
+                        className="absolute inset-0 rounded-full bg-[var(--accent)] shadow-lg shadow-[var(--accent)]/30 border border-white/10 dark:border-white/5"
                         transition={{
                           type: "spring",
-                          bounce: 0.15,
-                          duration: 0.5,
+                          stiffness: 400,
+                          damping: 30,
                         }}
                       />
                     )}
-                    <Icon className="relative z-10 h-3.5 w-3.5" />
-                    <span className="relative z-10">{tab.label}</span>
-                  </button>,
+                    <Icon className={`relative z-10 h-4 w-4 ${isActive ? 'opacity-100' : 'opacity-70'}`} />
+                    <span className="relative z-10 whitespace-nowrap">{tab.label}</span>
+                  </button>
                 );
               });
               return elements;

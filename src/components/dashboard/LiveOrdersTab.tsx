@@ -357,12 +357,12 @@ function PaymentBadge({ method, status }: { method: string; status: string }) {
           ? "bg-[var(--accent-muted)] text-[var(--accent-text)]"
           : isDirectPay
             ? "bg-teal-100 text-teal-700"
-            : "bg-[var(--accent-muted)] text-[var(--accent-text)]"
+            : "bg-red-100 text-red-700 ring-1 ring-inset ring-red-600/20"
       }`}
     >
       <Icon className="h-2.5 w-2.5" />
       {label}
-      {isPaid ? " Paid" : isDirectPay ? " → Counter" : " Due"}
+      {isPaid ? " Paid" : isDirectPay ? " → Counter" : " UNPAID"}
     </span>
   );
 }

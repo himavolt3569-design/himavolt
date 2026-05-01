@@ -20,6 +20,15 @@ import {
 } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
 
+function getGreeting() {
+  const h = new Date().getHours();
+  if (h < 5) return "Good night";
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  if (h < 21) return "Good evening";
+  return "Good night";
+}
+
 interface Stats {
   users: { total: number };
   restaurants: { total: number; active: number };
@@ -159,10 +168,15 @@ export default function MasterOverview({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-bold text-[var(--text-1)]">System Overview</h2>
+        <div>
+          <h2 className="text-xl font-bold tracking-tight text-[var(--text-1)]">
+            {getGreeting()}, Admin 👋
+          </h2>
+          <p className="mt-1 text-sm text-[var(--text-2)]">Here&apos;s your system overview</p>
+        </div>
         <button
           onClick={fetchStats}
-          className="flex items-center gap-1.5 text-xs text-[var(--text-2)] hover:text-[var(--accent)] transition-colors"
+          className="flex items-center gap-1.5 text-xs font-medium text-[var(--text-2)] hover:text-[var(--accent)] transition-colors bg-[var(--surface)] px-3 py-1.5 rounded-lg border border-[var(--border)]"
         >
           <RefreshCw className="h-3.5 w-3.5" />
           Refresh

@@ -758,7 +758,7 @@ export default function BillingTab({
         </div>
       )}
 
-      <div className="flex rounded-2xl bg-[var(--surface)] backdrop-blur-sm p-1 gap-1 border border-black/5 shadow-inner">
+      <div className="flex rounded-full bg-[var(--surface)] p-1.5 gap-1 border border-[var(--border)] shadow-sm">
         {[
           {
             key: "all" as PayType,
@@ -785,41 +785,34 @@ export default function BillingTab({
             <button
               key={t.key}
               onClick={() => setPayType(t.key)}
-              className={`flex-1 flex items-center justify-center gap-1.5 rounded-xl px-3 py-3 text-xs font-bold transition-all ${
+              className={`relative flex-1 flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-[13px] font-semibold tracking-wide transition-colors duration-300 ${
                 isActive
-                  ? t.key === "cash"
-                    ? "bg-[var(--canvas)] text-[var(--accent-text)] shadow-[0_4px_12px_-4px_rgba(16,185,129,0.3)] ring-1 ring-[var(--accent-border)]"
-                    : t.key === "online"
-                      ? "bg-[var(--canvas)] text-purple-700 shadow-[0_4px_12px_-4px_rgba(168,85,247,0.3)] ring-1 ring-purple-100"
-                      : "bg-[var(--canvas)] text-[var(--text-1)] shadow-[0_4px_12px_-4px_rgba(0,0,0,0.1)] ring-1 ring-[var(--border)]"
-                  : "text-[var(--text-2)] hover:text-[var(--text-2)] hover:bg-[var(--canvas)]/50"
+                  ? "text-white"
+                  : "text-[var(--text-2)] hover:text-[var(--text-1)]"
               }`}
             >
+              {isActive && (
+                <motion.div
+                  layoutId="billing-segmented-tab"
+                  className="absolute inset-0 rounded-full bg-[var(--accent)] shadow-md shadow-[var(--accent)]/30 border border-white/10 dark:border-white/5"
+                  transition={{ type: "spring", stiffness: 450, damping: 30 }}
+                />
+              )}
               <Icon
-                className={`h-4 w-4 ${
-                  isActive
-                    ? t.key === "cash"
-                      ? "text-[var(--accent-hover)]"
-                      : t.key === "online"
-                        ? "text-purple-500"
-                        : "text-[var(--text-1)]"
-                    : "text-[var(--text-3)]"
+                className={`relative z-10 h-4 w-4 ${
+                  isActive ? "opacity-100" : "opacity-70"
                 }`}
               />
-              <span className="hidden sm:inline tracking-wide">{t.label}</span>
-              <span className="sm:hidden tracking-wide">
+              <span className="relative z-10 hidden sm:inline">{t.label}</span>
+              <span className="relative z-10 sm:hidden">
                 {t.key === "all" ? "All" : t.key === "cash" ? "Cash" : "Online"}
               </span>
               {t.count > 0 && (
                 <span
-                  className={`inline-flex h-4 min-w-[16px] items-center justify-center rounded-full px-1.5 text-[10px] font-black ${
+                  className={`relative z-10 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] font-bold ${
                     isActive
-                      ? t.key === "cash"
-                        ? "bg-[var(--accent-muted)]/80 text-[var(--accent-text)]"
-                        : t.key === "online"
-                          ? "bg-purple-100/80 text-purple-700"
-                          : "bg-[var(--surface)] text-[var(--text-1)]"
-                      : "bg-[var(--surface-alt)]/50 text-[var(--text-2)]"
+                      ? "bg-white/20 text-white"
+                      : "bg-[var(--border)] text-[var(--text-2)]"
                   }`}
                 >
                   {t.count}
@@ -1004,8 +997,8 @@ export default function BillingTab({
 
       {activeTab === "orders" && (
       <>{/* Filter + Search */}
-      <div className="flex flex-col sm:flex-row gap-2">
-        <div className="flex gap-1.5 flex-wrap">
+      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+        <div className="flex bg-[var(--surface)] p-1 rounded-full border border-[var(--border)] w-full lg:w-auto shadow-sm">
           {[
             { key: "unpaid", label: "Unpaid", count: summary?.unpaidOrders },
             { key: "paid", label: "Paid", count: summary?.paidOrders },
@@ -1017,19 +1010,26 @@ export default function BillingTab({
                 setFilter(f.key);
                 setLoading(true);
               }}
-              className={`flex items-center gap-1 rounded-xl px-3.5 py-2 text-xs font-bold transition-all ${
+              className={`relative flex-1 lg:flex-none flex items-center justify-center gap-1.5 rounded-full px-5 py-2 text-xs font-bold transition-colors duration-300 ${
                 filter === f.key
-                  ? "bg-[var(--text-1)] text-white shadow-sm"
-                  : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
+                  ? "text-white"
+                  : "text-[var(--text-2)] hover:text-[var(--text-1)]"
               }`}
             >
-              <Filter className="h-3 w-3" />
-              {f.label}
+              {filter === f.key && (
+                <motion.div
+                  layoutId="billing-filter-pill"
+                  className="absolute inset-0 rounded-full bg-[var(--text-1)] shadow-md border border-white/5"
+                  transition={{ type: "spring", stiffness: 450, damping: 30 }}
+                />
+              )}
+              <Filter className={`relative z-10 h-3.5 w-3.5 ${filter === f.key ? 'opacity-100' : 'opacity-70'}`} />
+              <span className="relative z-10">{f.label}</span>
               {f.count !== undefined && f.count > 0 && (
                 <span
-                  className={`ml-1 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[9px] font-bold ${
+                  className={`relative z-10 ml-1 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full px-1.5 text-[9px] font-black ${
                     filter === f.key
-                      ? "bg-[var(--canvas)]/20 text-white"
+                      ? "bg-white/20 text-white"
                       : "bg-[var(--border)] text-[var(--text-2)]"
                   }`}
                 >
@@ -1039,13 +1039,13 @@ export default function BillingTab({
             </button>
           ))}
         </div>
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-3)]" />
+        <div className="relative w-full lg:max-w-xs">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-3)]" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search order #, customer, table..."
-            className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] pl-10 pr-4 py-2.5 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/10 transition-all"
+            className="w-full rounded-2xl border border-[var(--border)] bg-[var(--surface-alt)] pl-10 pr-4 py-2.5 text-sm font-medium text-[var(--text-1)] placeholder:text-[var(--text-3)] outline-none focus:border-[var(--accent)] focus:bg-[var(--canvas)] focus:ring-4 focus:ring-[var(--accent)]/10 transition-all shadow-sm"
           />
         </div>
       </div>

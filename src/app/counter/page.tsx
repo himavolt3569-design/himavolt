@@ -1705,7 +1705,7 @@ export default function CounterPage() {
 
   if (loading) {
     return (
-      <div className="dark min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+      <div className="min-h-screen bg-[var(--canvas)] flex items-center justify-center transition-colors">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="h-8 w-8 text-brand-400 animate-spin" />
           <p className="text-sm font-medium text-[var(--text-2)]">
@@ -1719,8 +1719,8 @@ export default function CounterPage() {
   if (!session) return null;
 
   return (
-    <div className="dark min-h-screen bg-[#0a0a0a]">
-      <header className="sticky top-0 z-50 bg-[#111111]/90 backdrop-blur-2xl shadow-[0_1px_12px_rgba(0,0,0,0.4)] border-b border-[#1f1f1f]">
+    <div className="min-h-screen bg-[var(--canvas)] text-[var(--text-1)] transition-colors">
+      <header className="sticky top-0 z-50 bg-[var(--surface)]/90 backdrop-blur-2xl shadow-sm border-b border-[var(--border)]">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="flex h-14 items-center justify-between">
             <div className="flex items-center gap-2">

@@ -18,17 +18,23 @@ export async function GET(
 ) {
   const { id } = await params;
 
+  const restaurant = await db.restaurant.findUnique({
+    where: { id },
+  });
+  if (!restaurant) {
+    return NextResponse.json({ error: "Not Found" }, { status: 404 });
+  }
+
   // Accept staff JWT or owner session
   const staff = await getStaffSession(req);
   if (!staff || staff.restaurantId !== id) {
     const user = await getOrCreateUser();
-    if (!user)
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    const restaurant = await db.restaurant.findFirst({
-      where: { id, ownerId: user.id },
-    });
-    if (!restaurant)
+    }
+    if (restaurant.ownerId !== user.id) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
   }
 
   const { searchParams } = new URL(req.url);
@@ -48,7 +54,8 @@ export async function GET(
     // ESEWA, KHALTI, BANK, COUNTER) — no exceptions.
     // Fast Pay (DIRECT) orders skip live-orders entirely (counter sales).
     delete where.status;
-    where.OR = [
+
+    const liveConditions: any[] = [
       // PENDING: only after payment verified (all methods)
       { status: "PENDING", payment: { status: "COMPLETED" } },
       // Legacy orders without a payment record
@@ -62,6 +69,17 @@ export async function GET(
         NOT: { payment: { method: "DIRECT" } },
       },
     ];
+
+    // If prepaid is NOT forced, allow DINE_IN orders to skip the payment gate
+    if (restaurant.prepaidEnabled === false) {
+      liveConditions.push({
+        status: "PENDING",
+        payment: { status: "PENDING" },
+        type: "DINE_IN",
+      });
+    }
+
+    where.OR = liveConditions;
   }
 
   // Use explicit select to avoid pulling columns that may not exist in the
