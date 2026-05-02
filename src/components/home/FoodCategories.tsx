@@ -5,12 +5,18 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { categories } from "@/lib/data";
 import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
+import { apiFetch } from "@/lib/api-client";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
+
+type Category = {
+  id: string;
+  name: string;
+  image: string;
+};
 
 export default function FoodCategories({
   onCategoryChange,
@@ -22,7 +28,20 @@ export default function FoodCategories({
   const headingRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
-  const [activeId, setActiveId] = useState(1);
+  const [activeId, setActiveId] = useState<string>("all");
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    apiFetch<Category[]>("/api/public/categories")
+      .then((data) => {
+        setCategories(data);
+        setLoading(false);
+      })
+      .catch(() => {
+        setLoading(false);
+      });
+  }, []);
 
   const checkScroll = useCallback(() => {
     const el = scrollRef.current;
@@ -41,11 +60,11 @@ export default function FoodCategories({
       el.removeEventListener("scroll", checkScroll);
       window.removeEventListener("resize", checkScroll);
     };
-  }, [checkScroll]);
+  }, [checkScroll, categories]);
 
   useGSAP(
     () => {
-      if (!containerRef.current) return;
+      if (!containerRef.current || loading) return;
 
       if (headingRef.current) {
         const els = headingRef.current.querySelectorAll(".heading-el");
@@ -94,7 +113,7 @@ export default function FoodCategories({
         },
       );
     },
-    { scope: containerRef },
+    { scope: containerRef, dependencies: [loading] },
   );
 
   const scroll = (dir: "left" | "right") => {
@@ -106,13 +125,17 @@ export default function FoodCategories({
     });
   };
 
-  const handleClick = (cat: (typeof categories)[0]) => {
+  const handleClick = (cat: Category) => {
     setActiveId(cat.id);
     onCategoryChange?.(cat.name);
   };
 
   return (
-    <section ref={containerRef} className="relative bg-[var(--canvas)] overflow-hidden">
+    <section
+      id="explore-cuisines"
+      ref={containerRef}
+      className="relative bg-[var(--canvas)] overflow-hidden"
+    >
       <div className="h-px bg-linear-to-r from-transparent via-[var(--accent-border)] to-transparent" />
 
       <div className="mx-auto max-w-[1440px] px-4 md:px-8 lg:px-12 pt-12 md:pt-16 pb-10 md:pb-14">

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, Clock, Star } from "lucide-react";
+import { MapPin, Clock, Star, ArrowRight, Sparkles } from "lucide-react";
 
 import Link from "next/link";
 
@@ -94,9 +94,9 @@ function LiveOrderFeed() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.96 }}
             transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="flex items-center gap-2.5 rounded-2xl bg-[var(--canvas)] border border-[var(--border)] pl-1.5 pr-4 py-1.5 shadow-lg shadow-black/[0.06] max-w-[260px]"
+            className="flex items-center gap-2.5 rounded-2xl bg-[var(--canvas)]/80 backdrop-blur-md border border-[var(--border)] pl-1.5 pr-4 py-1.5 shadow-xl shadow-black/[0.04] max-w-[260px]"
           >
-            <div className="h-9 w-9 rounded-xl overflow-hidden shrink-0">
+            <div className="h-9 w-9 rounded-xl overflow-hidden shrink-0 ring-1 ring-black/[0.05]">
               <img
                 src={order.img}
                 alt=""
@@ -105,16 +105,19 @@ function LiveOrderFeed() {
             </div>
             <div className="min-w-0">
               <p className="text-[11px] font-bold text-[var(--text-1)] truncate">
-                {order.name} ordered{" "}
-                <span className="text-[var(--accent-hover)]">{order.item}</span>
+                {order.name}{" "}
+                <span className="text-[var(--text-3)] font-medium">
+                  ordered
+                </span>{" "}
+                <span className="text-[var(--accent)]">{order.item}</span>
               </p>
               <p className="text-[10px] text-[var(--text-3)] flex items-center gap-1 mt-0.5">
-                <MapPin className="h-2.5 w-2.5" />
+                <MapPin className="h-2.5 w-2.5 opacity-70" />
                 {order.area} · {order.time}
               </p>
             </div>
-            <span className="relative flex h-1.5 w-1.5 shrink-0">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--accent)]/60" />
+            <span className="relative flex h-1.5 w-1.5 shrink-0 ml-1">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--accent)]/40" />
               <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
             </span>
           </motion.div>
@@ -161,13 +164,6 @@ const shelfItems = [
     img: "https://images.unsplash.com/photo-1547592180-85f173990554?w=320&h=320&fit=crop",
   },
 ];
-
-// const stats = [
-//   { value: "58K+", label: "Orders" },
-//   { value: "4.8", label: "Rating" },
-//   { value: "22 min", label: "Avg Delivery" },
-//   { value: "150+", label: "Restaurants" },
-// ];
 
 export default function LandingHero() {
   const [wordIdx, setWordIdx] = useState(0);
@@ -219,185 +215,257 @@ export default function LandingHero() {
   const hasHeroImages = heroSettings.images.length > 0;
 
   return (
-    <section className="relative bg-[var(--canvas)] overflow-hidden min-h-[600px] md:min-h-[700px]">
-      {/* Hero Background Carousel */}
-      <div className="absolute inset-0">
-        {hasHeroImages ? (
-          <>
-            <AnimatePresence mode="wait">
-              <motion.img
-                key={heroSettings.images[currentSlide]?.id || "none"}
-                initial={{ opacity: 0, scale: 1.05 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.8, ease: "easeInOut" }}
-                src={heroSettings.images[currentSlide]?.url}
-                alt="Hero"
-                className="absolute inset-0 h-full w-full object-cover"
-              />
-            </AnimatePresence>
-            {/* Dark Overlay */}
-            <div
-              className="absolute inset-0 bg-black transition-opacity duration-500"
-              style={{ opacity: heroSettings.overlayOpacity / 100 }}
-            />
-          </>
-        ) : (
-          /* Default Gradient Background */
-          <div
-            className="absolute top-0 left-0 right-0 h-[500px] pointer-events-none"
-            style={{
-              background:
-                "radial-gradient(ellipse 70% 55% at 50% -5%, rgba(234,169,77,0.08) 0%, transparent 100%)",
-            }}
-          />
-        )}
+    <section className="relative bg-[var(--canvas)] overflow-hidden min-h-[700px] md:min-h-[800px] flex items-center">
+      {/* Decorative Background Elements */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-0 right-0 -mr-32 -mt-32 h-[600px] w-[600px] rounded-full bg-[var(--accent)]/[0.05] blur-3xl" />
+        <div className="absolute bottom-0 left-0 -ml-32 -mb-32 h-[600px] w-[600px] rounded-full bg-[#e58f2a]/[0.05] blur-3xl" />
       </div>
 
-      <div className="relative z-10 mx-auto max-w-7xl px-4 md:px-8 lg:px-12 pt-20 md:pt-28 lg:pt-32 pb-10">
-        <div className="text-center max-w-2xl mx-auto">
-          {/* Headline - Simplified */}
-          <motion.h1
-            initial={{ opacity: 0, y: 22 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{
-              duration: 0.65,
-              delay: 0.08,
-              ease: [0.16, 1, 0.3, 1],
-            }}
-            className={`text-[2.75rem] leading-[1.05] sm:text-5xl md:text-6xl lg:text-[4rem] font-black tracking-tight ${
-              hasHeroImages
-                ? "text-white drop-shadow-lg"
-                : "text-[var(--text-1)]"
-            }`}
-          >
-            <span className="block">Scan. Order.</span>
-            <span className="inline-block min-w-[1ch]">
-              {mounted ? (
-                <AnimatePresence mode="wait">
-                  <motion.span
-                    key={ANIMATED_WORDS[wordIdx]}
-                    initial={{ y: 36, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: -28, opacity: 0 }}
-                    transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
-                    className={`inline-block ${
-                      hasHeroImages
-                        ? "text-[var(--accent)]"
-                        : "text-[var(--accent)]"
-                    }`}
-                  >
-                    {ANIMATED_WORDS[wordIdx]}.
-                  </motion.span>
-                </AnimatePresence>
-              ) : (
-                <span className="inline-block text-[var(--accent)]">
-                  {ANIMATED_WORDS[0]}.
-                </span>
-              )}
-            </span>
-          </motion.h1>
+      {/* Floating Elements (Visible on Desktop) */}
+      <div className="absolute inset-0 pointer-events-none hidden lg:block overflow-hidden">
+        <motion.img
+          animate={{ y: [0, -20, 0], rotate: [0, 5, 0] }}
+          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+          src="https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=120&h=120&fit=crop"
+          className="absolute top-[15%] left-[5%] w-24 h-24 rounded-full object-cover shadow-2xl opacity-40 blur-[1px]"
+        />
+        <motion.img
+          animate={{ y: [0, 20, 0], rotate: [0, -5, 0] }}
+          transition={{
+            duration: 6,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 1,
+          }}
+          src="https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=120&h=120&fit=crop"
+          className="absolute bottom-[20%] left-[8%] w-20 h-20 rounded-full object-cover shadow-2xl opacity-30 blur-[2px]"
+        />
+        <motion.div
+          animate={{ x: [0, 15, 0], y: [0, 10, 0] }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-[10%] right-[35%] h-4 w-4 rounded-full bg-[var(--accent)]/20 blur-sm"
+        />
+      </div>
 
-          {/* Slide Indicators - Only show when multiple images */}
-          {hasHeroImages && heroSettings.images.length > 1 && (
+      <div className="relative z-10 mx-auto max-w-7xl px-4 md:px-8 lg:px-12 w-full pt-24 md:pt-32 pb-16">
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          {/* Left: Content */}
+          <div className="text-center lg:text-left">
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              className="mt-8 flex items-center justify-center gap-2"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--accent)]/10 border border-[var(--accent)]/20 mb-6"
             >
-              {heroSettings.images.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setCurrentSlide(i)}
-                  className={`h-1.5 rounded-full transition-all ${
-                    i === currentSlide
-                      ? "w-6 bg-white"
-                      : "w-1.5 bg-white/50 hover:bg-white/75"
-                  }`}
-                />
-              ))}
+              <span className="text-xs font-black text-[var(--accent)] uppercase tracking-wider">
+                Nepal&apos;s Premium Food Destination
+              </span>
             </motion.div>
-          )}
 
-          {/* Stats */}
-          {/* <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.38 }}
-            className={`mt-10 flex items-center justify-center gap-5 md:gap-8 ${
-              hasHeroImages ? "text-white" : ""
-            }`}
-          >
-            {stats.map((s, i) => (
-              <div key={s.label} className="flex items-center gap-5 md:gap-8">
-                {i > 0 && (
-                  <div
-                    className={`h-5 w-px ${hasHeroImages ? "bg-white/30" : "bg-[var(--border)]"}`}
-                  />
+            <motion.h1
+              initial={{ opacity: 0, y: 22 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                duration: 0.65,
+                delay: 0.08,
+                ease: [0.16, 1, 0.3, 1],
+              }}
+              className="text-[clamp(2.75rem,10vw,4.5rem)] leading-[1.02] font-black tracking-tighter text-[var(--text-1)]"
+            >
+              Scan. Order.
+              <br />
+              <span className="inline-block min-w-[1ch]">
+                {mounted ? (
+                  <AnimatePresence mode="wait">
+                    <motion.span
+                      key={ANIMATED_WORDS[wordIdx]}
+                      initial={{ y: 36, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      exit={{ y: -28, opacity: 0 }}
+                      transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
+                      className="inline-block text-[var(--accent)]"
+                    >
+                      {ANIMATED_WORDS[wordIdx]}.
+                    </motion.span>
+                  </AnimatePresence>
+                ) : (
+                  <span className="inline-block text-[var(--accent)]">
+                    {ANIMATED_WORDS[0]}.
+                  </span>
                 )}
-                <div className="text-center">
-                  <p
-                    className={`text-lg font-black leading-none tabular-nums ${
-                      hasHeroImages
-                        ? "text-white drop-shadow-md"
-                        : "text-[var(--text-1)]"
-                    }`}
-                  >
-                    {s.value}
+              </span>
+            </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="mt-6 text-base md:text-lg text-[var(--text-2)] max-w-lg mx-auto lg:mx-0 leading-relaxed font-medium"
+            >
+              Experience the finest flavors of Nepal delivered to your doorstep
+              or served at your table with a simple scan.
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                duration: 0.6,
+                delay: 0.25,
+                ease: [0.16, 1, 0.3, 1],
+              }}
+              className="mt-10 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4"
+            >
+              <Link href="/menu" className="w-full sm:w-auto">
+                <motion.button
+                  whileHover={{ scale: 1.05, translateY: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="w-full sm:px-10 py-4.5 rounded-[2rem] bg-[var(--accent)] text-white font-black text-base shadow-2xl shadow-[var(--accent)]/30 flex items-center justify-center gap-2 hover:bg-[var(--accent-hover)] transition-all group"
+                >
+                  Order Now
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </motion.button>
+              </Link>
+              <button
+                onClick={() => {
+                  document
+                    .getElementById("explore-cuisines")
+                    ?.scrollIntoView({ behavior: "smooth" });
+                }}
+                className="w-full sm:w-auto"
+              >
+                <motion.div
+                  whileHover={{ scale: 1.05, translateY: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="w-full sm:px-10 py-4.5 rounded-[2rem] font-black text-base border-2 border-[var(--border)] text-[var(--text-1)] hover:bg-[var(--surface)] transition-all flex items-center justify-center"
+                >
+                  Explore Menu
+                </motion.div>
+              </button>
+            </motion.div>
+
+            {/* Why Himavolt / Mobile Visual */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="mt-12 lg:hidden"
+            >
+              <div className="relative aspect-[16/9] w-full rounded-3xl overflow-hidden shadow-2xl">
+                <img
+                  src="https://images.unsplash.com/photo-1547592180-85f173990554?w=800&h=450&fit=crop"
+                  alt="Himavolt Experience"
+                  className="h-full w-full object-cover"
+                />
+                <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-6 text-left">
+                  <p className="text-[var(--accent)] font-black text-xs uppercase tracking-widest mb-1">
+                    Why Himavolt?
                   </p>
-                  <p
-                    className={`text-[10px] uppercase tracking-wider mt-0.5 ${
-                      hasHeroImages ? "text-white/80" : "text-[var(--text-3)]"
-                    }`}
-                  >
-                    {s.label}
+                  <h4 className="text-white font-black text-xl mb-2">
+                    Nepal&apos;s First Smart Ordering
+                  </h4>
+                  <p className="text-white/80 text-xs font-medium max-w-[280px]">
+                    Scan QR at your table to order instantly. No waiting, just
+                    pure flavors.
                   </p>
                 </div>
               </div>
-            ))}
-          </motion.div> */}
+            </motion.div>
+          </div>
+
+          {/* Right: Visual Image */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, rotate: 5 }}
+            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+            transition={{ duration: 1, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            className="relative hidden lg:block"
+          >
+            <div className="relative aspect-square max-w-[540px] ml-auto">
+              {/* Main Circular Image */}
+              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[var(--accent)]/20 to-transparent blur-2xl animate-pulse" />
+              <div className="relative h-full w-full rounded-[4rem] overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] group">
+                <motion.img
+                  animate={{ scale: [1, 1.05, 1] }}
+                  transition={{
+                    duration: 20,
+                    repeat: Infinity,
+                    ease: "linear",
+                  }}
+                  src="https://images.unsplash.com/photo-1547592180-85f173990554?w=800&h=800&fit=crop"
+                  alt="Premium Food"
+                  className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+
+              {/* Decorative "Overlapping" Badges */}
+              <motion.div
+                initial={{ x: 40, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.8, duration: 0.6 }}
+                className="absolute -right-8 top-1/4 bg-white/90 backdrop-blur-xl p-4 rounded-3xl shadow-2xl border border-white/20"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-green-500/10 flex items-center justify-center">
+                    <Star className="h-5 w-5 text-green-500 fill-green-500" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-black text-slate-900">
+                      Top Rated
+                    </p>
+                    <p className="text-[10px] font-bold text-slate-500">
+                      4.9/5 Service
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ x: -40, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 1, duration: 0.6 }}
+                className="absolute -left-12 bottom-1/4 bg-white/90 backdrop-blur-xl p-4 rounded-3xl shadow-2xl border border-white/20"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-[var(--accent)]/10 flex items-center justify-center text-[var(--accent)]">
+                    <Clock className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-black text-slate-900">
+                      Fast Delivery
+                    </p>
+                    <p className="text-[10px] font-bold text-slate-500">
+                      Under 20 Mins
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          </motion.div>
         </div>
 
-        {/* Food shelf */}
+        {/* Quick Food Shelf */}
         <motion.div
           initial={{ opacity: 0, y: 36 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.75, delay: 0.32, ease: [0.16, 1, 0.3, 1] }}
-          className="mt-14 md:mt-16"
+          transition={{ duration: 0.75, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          className="mt-20"
         >
-          {/* Mobile: horizontal scroll */}
-          <div
-            className="flex gap-3.5 overflow-x-auto pb-4 -mx-4 px-4 md:hidden"
-            style={{ scrollbarWidth: "none" }}
-          >
-            {shelfItems.map((item) => (
-              <Link
-                key={item.name}
-                href="/menu"
-                className="shrink-0 w-[150px] group"
-              >
-                <div className="aspect-square rounded-2xl overflow-hidden bg-[var(--surface)]">
-                  <img
-                    src={item.img}
-                    alt={item.name}
-                    loading="lazy"
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                </div>
-                <p className="mt-2 text-[13px] font-bold text-[var(--text-1)] truncate">
-                  {item.name}
-                </p>
-                <p className="text-[11px] text-[var(--text-3)] flex items-center gap-1 mt-0.5">
-                  <Clock className="h-2.5 w-2.5" />
-                  {item.time}
-                </p>
-              </Link>
-            ))}
+          <div className="flex items-center justify-between mb-8">
+            <h3 className="text-lg font-black text-[var(--text-1)]">
+              Trending Now
+            </h3>
+            <Link
+              href="/menu"
+              className="text-xs font-bold text-[var(--accent)] hover:underline"
+            >
+              View Full Menu
+            </Link>
           </div>
 
-          {/* Desktop: even grid */}
-          <div className="hidden md:grid grid-cols-5 gap-5">
+          {/* Desktop Grid */}
+          <div className="hidden md:grid grid-cols-5 gap-6">
             {shelfItems.map((item, i) => (
               <motion.div
                 key={item.name}
@@ -405,37 +473,73 @@ export default function LandingHero() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{
                   duration: 0.55,
-                  delay: 0.38 + i * 0.07,
+                  delay: 0.6 + i * 0.07,
                   ease: [0.16, 1, 0.3, 1],
                 }}
               >
                 <Link href="/menu" className="group block">
-                  <div className="aspect-square rounded-2xl overflow-hidden bg-[var(--surface)] relative">
+                  <div className="aspect-square rounded-[2rem] overflow-hidden bg-[var(--surface)] relative shadow-sm transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-black/10 group-hover:-translate-y-1">
                     <img
                       src={item.img}
                       alt={item.name}
                       loading="lazy"
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
-                    <div className="absolute top-2 right-2 flex items-center gap-1 bg-[var(--canvas)]/90 backdrop-blur-sm px-1.5 py-0.5 rounded-md">
-                      <Star className="h-2.5 w-2.5 fill-[var(--accent)] text-[var(--accent)]" />
-                      <span className="text-[10px] font-bold text-[var(--text-1)]">
+                    <div className="absolute top-3 right-3 flex items-center gap-1 bg-white/90 backdrop-blur-md px-2 py-1 rounded-xl shadow-sm">
+                      <Star className="h-3 w-3 fill-[var(--accent)] text-[var(--accent)]" />
+                      <span className="text-[11px] font-black text-slate-900">
                         {item.rating}
                       </span>
                     </div>
                   </div>
-                  <p className="mt-2.5 text-[13px] font-bold text-[var(--text-1)] truncate group-hover:text-[var(--accent)] transition-colors">
-                    {item.name}
-                  </p>
-                  <p className="text-[11px] text-[var(--text-3)] mt-0.5 truncate">
-                    {item.restaurant}
-                  </p>
-                  <p className="text-[11px] text-[var(--text-3)] flex items-center gap-1 mt-0.5">
-                    <Clock className="h-2.5 w-2.5" />
-                    {item.time}
-                  </p>
+                  <div className="mt-4">
+                    <p className="text-sm font-black text-[var(--text-1)] truncate group-hover:text-[var(--accent)] transition-colors">
+                      {item.name}
+                    </p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-[11px] text-[var(--text-3)] font-medium">
+                        {item.restaurant}
+                      </span>
+                      <div className="h-1 w-1 rounded-full bg-[var(--border)]" />
+                      <span className="text-[11px] text-[var(--accent)] font-bold">
+                        {item.time}
+                      </span>
+                    </div>
+                  </div>
                 </Link>
               </motion.div>
+            ))}
+          </div>
+
+          {/* Mobile Scroll */}
+          <div className="flex gap-4 overflow-x-auto pb-6 -mx-4 px-4 md:hidden scrollbar-none">
+            {shelfItems.map((item) => (
+              <Link
+                key={item.name}
+                href="/menu"
+                className="shrink-0 w-[180px] group"
+              >
+                <div className="aspect-square rounded-[2rem] overflow-hidden bg-[var(--surface)] relative shadow-sm">
+                  <img
+                    src={item.img}
+                    alt={item.name}
+                    className="h-full w-full object-cover"
+                  />
+                  <div className="absolute top-2.5 right-2.5 bg-white/90 backdrop-blur-md px-1.5 py-0.5 rounded-lg">
+                    <span className="text-[10px] font-black">
+                      ★ {item.rating}
+                    </span>
+                  </div>
+                </div>
+                <div className="mt-3">
+                  <p className="text-sm font-black text-[var(--text-1)] truncate">
+                    {item.name}
+                  </p>
+                  <p className="text-[11px] text-[var(--text-3)] mt-0.5">
+                    {item.restaurant} · {item.time}
+                  </p>
+                </div>
+              </Link>
             ))}
           </div>
         </motion.div>

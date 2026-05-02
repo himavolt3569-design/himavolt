@@ -1,287 +1,103 @@
-﻿"use client";
+"use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   motion,
   AnimatePresence,
-  useMotionValue,
-  useTransform,
-  useSpring,
-  type Variants,
 } from "framer-motion";
 import {
   Mountain,
   Building2,
   Loader2,
   ArrowRight,
-  AlertTriangle,
   ShieldCheck,
-  ChefHat,
   CheckCircle2,
-  Utensils,
-  Coffee,
-  Flame,
+  KeyRound,
+  Lock,
 } from "lucide-react";
 import Link from "next/link";
 
-const stagger: Variants = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: { staggerChildren: 0.08, delayChildren: 0.2 },
-  },
-};
+// ─── Sophisticated Background Components ───────────────────────────
 
-const fadeUp: Variants = {
-  hidden: { opacity: 0, y: 20, filter: "blur(8px)" },
-  show: {
-    opacity: 1,
-    y: 0,
-    filter: "blur(0px)",
-    transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] },
-  },
-};
-
-const scaleIn: Variants = {
-  hidden: { opacity: 0, scale: 0.8 },
-  show: {
-    opacity: 1,
-    scale: 1,
-    transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] },
-  },
-};
-
-const shake: Variants = {
-  idle: { x: 0 },
-  error: {
-    x: [0, -12, 12, -8, 8, -4, 4, 0],
-    transition: { duration: 0.5, ease: "easeInOut" },
-  },
-};
-
-function FloatingImage({
-  src,
-  className,
-  delay,
-  duration,
-}: {
-  src: string;
-  className: string;
-  delay: number;
-  duration: number;
-}) {
+function TechGrid() {
   return (
-    <motion.div
-      className={`absolute overflow-hidden rounded-2xl shadow-2xl shadow-[var(--accent)]/20/50 pointer-events-none ${className}`}
-      initial={{ opacity: 0, scale: 0.6, rotate: -10 }}
-      animate={{ opacity: 1, scale: 1, rotate: 0 }}
-      transition={{ delay, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-    >
-      <motion.div
-        animate={{ y: [0, -12, 0] }}
-        transition={{
-          duration,
-          repeat: Infinity,
-          ease: "easeInOut",
-          delay: delay + 0.3,
+    <div className="absolute inset-0 pointer-events-none opacity-[0.03] overflow-hidden">
+      <div 
+        className="absolute inset-0"
+        style={{
+          backgroundImage: `linear-gradient(to right, #000 1px, transparent 1px), linear-gradient(to bottom, #000 1px, transparent 1px)`,
+          backgroundSize: '32px 32px'
         }}
-      >
-        <img
-          src={src}
-          alt=""
-          className="h-full w-full object-cover"
-          loading="eager"
-        />
-      </motion.div>
-    </motion.div>
+      />
+    </div>
   );
 }
 
-function Orb({
-  color,
-  size,
-  x,
-  y,
-  delay,
-}: {
-  color: string;
-  size: number;
-  x: string;
-  y: string;
-  delay: number;
-}) {
+function AmbientGlow() {
   return (
-    <motion.div
-      className="absolute rounded-full pointer-events-none"
-      style={{
-        width: size,
-        height: size,
-        left: x,
-        top: y,
-        background: color,
-        filter: `blur(${size * 0.6}px)`,
-      }}
-      initial={{ opacity: 0, scale: 0.5 }}
-      animate={{
-        opacity: [0, 0.6, 0.3, 0.6, 0],
-        scale: [0.5, 1.2, 0.8, 1.1, 0.5],
-        x: [0, 30, -20, 15, 0],
-        y: [0, -25, 15, -10, 0],
-      }}
-      transition={{
-        duration: 12,
-        repeat: Infinity,
-        ease: "easeInOut",
-        delay,
-      }}
-    />
+    <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      <div className="absolute -top-1/4 -right-1/4 w-[800px] h-[800px] bg-[var(--accent)]/[0.04] rounded-full blur-[120px]" />
+      <div className="absolute -bottom-1/4 -left-1/4 w-[600px] h-[600px] bg-slate-400/[0.04] rounded-full blur-[100px]" />
+    </div>
   );
 }
 
-function PinBox({
-  digit,
-  index,
-  focused,
-  inputRef,
-  onChange,
-  onKeyDown,
-}: {
-  digit: string;
-  index: number;
-  focused: boolean;
-  inputRef: (el: HTMLInputElement | null) => void;
-  onChange: (i: number, v: string) => void;
-  onKeyDown: (i: number, e: React.KeyboardEvent) => void;
-}) {
-  return (
-    <motion.div
-      className="relative flex-1 max-w-[72px]"
-      initial={{ opacity: 0, y: 20, scale: 0.8 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{
-        delay: 0.5 + index * 0.08,
-        duration: 0.5,
-        ease: [0.16, 1, 0.3, 1],
-      }}
-    >
-      <AnimatePresence>
-        {focused && (
-          <motion.div
-            className="absolute -inset-1 rounded-2xl bg-[var(--accent)]/20"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            transition={{ duration: 0.2 }}
-          />
-        )}
-      </AnimatePresence>
+// ─── PIN Interaction ───────────────────────────────────────────────
 
+function PinSlot({ filled, active }: { filled: boolean; active: boolean }) {
+  return (
+    <div className="relative flex-1 max-w-[56px] h-14">
+      <motion.div
+        className={`absolute inset-0 rounded-xl border transition-colors duration-300 ${
+          active 
+            ? "border-[var(--accent)] bg-white shadow-sm shadow-[var(--accent)]/10" 
+            : filled 
+            ? "border-slate-300 bg-slate-50" 
+            : "border-slate-200 bg-slate-50/50"
+        }`}
+      />
       <AnimatePresence>
-        {digit && (
+        {filled && (
           <motion.div
-            className="absolute -top-1 -right-1 z-10 h-3 w-3 rounded-full bg-[var(--accent)] border-2 border-[var(--border-soft)]"
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 500, damping: 25 }}
-          />
+            className="absolute inset-0 flex items-center justify-center"
+          >
+            <div className="h-2 w-2 rounded-full bg-slate-900" />
+          </motion.div>
         )}
       </AnimatePresence>
-
-      <motion.input
-        ref={inputRef}
-        type="password"
-        inputMode="numeric"
-        maxLength={1}
-        value={digit}
-        onChange={(e) => onChange(index, e.target.value)}
-        onKeyDown={(e) => onKeyDown(index, e)}
-        animate={
-          digit
-            ? { scale: [1, 1.08, 1], borderColor: "rgba(234,169,77,0.4)" }
-            : { scale: 1, borderColor: "rgba(62,30,12,0.10)" }
-        }
-        transition={{ duration: 0.2 }}
-        className="relative z-[1] h-14 w-full text-center text-xl font-bold bg-[var(--canvas)] border border-brand-200/60 rounded-xl text-[var(--text-1)] shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] focus:border-[var(--accent)]/50 transition-colors font-mono"
-        aria-label={`PIN digit ${index + 1}`}
-      />
-    </motion.div>
+      {active && (
+        <motion.div
+          layoutId="pin-cursor"
+          className="absolute bottom-3 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-[var(--accent)] rounded-full"
+          animate={{ opacity: [1, 0, 1] }}
+          transition={{ duration: 1, repeat: Infinity }}
+        />
+      )}
+    </div>
   );
 }
 
 export default function StaffLoginPage() {
   const router = useRouter();
   const [code, setCode] = useState("");
-  const [pinDigits, setPinDigits] = useState(["", "", "", ""]);
-  const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
-  const [success, setSuccess] = useState(false);
-  const [focusedPin, setFocusedPin] = useState(-1);
-  const [formShake, setFormShake] = useState(false);
+  const [pin, setPin] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
-  const pinRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [formShake, setFormShake] = useState(false);
+  
+  const hiddenInputRef = useRef<HTMLInputElement>(null);
 
-  // Mouse parallax for left panel
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-  const springX = useSpring(mouseX, { stiffness: 50, damping: 20 });
-  const springY = useSpring(mouseY, { stiffness: 50, damping: 20 });
-  const imgX = useTransform(springX, [0, 1], [-15, 15]);
-  const imgY = useTransform(springY, [0, 1], [-10, 10]);
-
-  const pin = pinDigits.join("");
-
-  useEffect(() => {
-    const t = setTimeout(() => pinRefs.current[0]?.focus(), 400);
-    return () => clearTimeout(t);
-  }, []);
-
-  const handleMouseMove = useCallback(
-    (e: React.MouseEvent) => {
-      const rect = e.currentTarget.getBoundingClientRect();
-      mouseX.set((e.clientX - rect.left) / rect.width);
-      mouseY.set((e.clientY - rect.top) / rect.height);
-    },
-    [mouseX, mouseY],
-  );
-
-  const handlePinChange = useCallback(
-    (index: number, value: string) => {
-      const digit = value.replace(/\D/g, "").slice(-1);
-      const next = [...pinDigits];
-      next[index] = digit;
-      setPinDigits(next);
-      setErrorMsg("");
-
-      if (digit && index < 3) {
-        pinRefs.current[index + 1]?.focus();
-      }
-    },
-    [pinDigits],
-  );
-
-  const handlePinKeyDown = useCallback(
-    (index: number, e: React.KeyboardEvent) => {
-      if (e.key === "Backspace" && !pinDigits[index] && index > 0) {
-        pinRefs.current[index - 1]?.focus();
-      }
-    },
-    [pinDigits],
-  );
-
-  const handlePinPaste = useCallback((e: React.ClipboardEvent) => {
-    e.preventDefault();
-    const pasted = e.clipboardData
-      .getData("text")
-      .replace(/\D/g, "")
-      .slice(0, 4);
-    const next = ["", "", "", ""];
-    pasted.split("").forEach((ch, i) => (next[i] = ch));
-    setPinDigits(next);
-    const focusIdx = Math.min(pasted.length, 3);
-    pinRefs.current[focusIdx]?.focus();
-  }, []);
+  const handlePinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.replace(/\D/g, "").slice(0, 4);
+    setPin(val);
+    setErrorMsg("");
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -292,596 +108,200 @@ export default function StaffLoginPage() {
       const res = await fetch("/api/staff-login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          restaurantCode: code.toUpperCase(),
-          pin,
-          rememberMe,
-        }),
+        body: JSON.stringify({ restaurantCode: code.toUpperCase(), pin, rememberMe }),
       });
 
       const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Login failed");
-      }
+      if (!res.ok) throw new Error(data.error || "Authentication Failed");
 
       setSuccess(true);
-      await new Promise((r) => setTimeout(r, 1200));
-
-      // All staff land on /kitchen — role-based tabs handle what each role sees.
-      // POS is accessible via a dedicated button on the kitchen/counter pages.
+      await new Promise(r => setTimeout(r, 1200));
       router.push("/kitchen");
       router.refresh();
-    } catch (err: unknown) {
-      setErrorMsg(err instanceof Error ? err.message : "Invalid Code or PIN");
-      setPinDigits(["", "", "", ""]);
+    } catch (err: any) {
+      setErrorMsg(err.message);
+      setPin("");
       setFormShake(true);
-      setTimeout(() => setFormShake(false), 600);
-      pinRefs.current[0]?.focus();
+      setTimeout(() => setFormShake(false), 500);
+      hiddenInputRef.current?.focus();
     } finally {
       setLoading(false);
     }
   };
 
-  const isReady = code.length > 0 && pin.length === 4 && !loading;
+  const isReady = code.length >= 4 && pin.length === 4 && !loading;
 
   return (
-    <div className="min-h-screen flex bg-[#fefcf6]">
-      {/* ── Left panel — animated food imagery ── */}
-      <div
-        className="hidden lg:flex lg:w-[45%] xl:w-[50%] relative overflow-hidden bg-[var(--text-1)]"
-        onMouseMove={handleMouseMove}
+    <div className="min-h-screen bg-[#fcfcfc] flex flex-col items-center justify-center p-6 relative overflow-hidden">
+      <TechGrid />
+      <AmbientGlow />
+
+      {/* ── Top Header ── */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-10 relative z-10 flex flex-col items-center"
       >
-        <motion.img
-          src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1200&h=1600&fit=crop"
-          alt=""
-          className="absolute inset-0 h-full w-full object-cover opacity-30"
-          style={{ x: imgX, y: imgY, scale: 1.1 }}
-        />
-
-        <div className="absolute inset-0 bg-linear-to-t from-[var(--accent)] via-brand-950/60 to-transparent" />
-        <div className="absolute inset-0 bg-linear-to-r from-transparent to-[var(--accent-hover)]/80" />
-
-        <Orb
-          color="rgba(234,169,77,0.18)"
-          size={200}
-          x="20%"
-          y="30%"
-          delay={0}
-        />
-        <Orb
-          color="rgba(214,118,32,0.14)"
-          size={160}
-          x="60%"
-          y="60%"
-          delay={3}
-        />
-        <Orb
-          color="rgba(244,214,154,0.10)"
-          size={120}
-          x="40%"
-          y="15%"
-          delay={6}
-        />
-
-        <FloatingImage
-          src="https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=200&h=200&fit=crop"
-          className="top-[12%] right-[15%] h-24 w-24 xl:h-28 xl:w-28 rotate-6"
-          delay={0.4}
-          duration={4}
-        />
-        <FloatingImage
-          src="https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=200&h=200&fit=crop"
-          className="bottom-[22%] right-[25%] h-20 w-20 xl:h-24 xl:w-24 -rotate-3"
-          delay={0.7}
-          duration={5}
-        />
-        <FloatingImage
-          src="https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=200&h=200&fit=crop"
-          className="top-[45%] right-[8%] h-16 w-16 xl:h-20 xl:w-20 rotate-12"
-          delay={1.0}
-          duration={4.5}
-        />
-
-        <div
-          className="absolute inset-0 opacity-[0.04] pointer-events-none"
-          style={{
-            backgroundImage:
-              "url(\"data:image/svg+xml,%3Csvg width='6' height='6' viewBox='0 0 6 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23fff' fill-opacity='1'%3E%3Ccircle cx='1' cy='1' r='0.6'/%3E%3C/g%3E%3C/svg%3E\")",
-          }}
-        />
-
-        <div className="relative z-10 flex flex-col justify-between p-12 xl:p-16 w-full">
-          {/* Top — brand with animated entry */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2, duration: 0.6 }}
-          >
-            <Link href="/" className="flex items-center gap-2.5 group">
-              <motion.div
-                animate={{ rotate: [0, -5, 5, 0] }}
-                transition={{
-                  duration: 4,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              >
-                <Mountain
-                  className="h-6 w-6 text-[var(--accent)]"
-                  strokeWidth={2.5}
-                />
-              </motion.div>
-              <span className="text-xl font-extrabold text-white tracking-tight">
-                Hima<span className="text-[var(--accent)]">Volt</span>
-              </span>
-            </Link>
-          </motion.div>
-
-          {/* Bottom — animated icons & messaging */}
-          <motion.div variants={stagger} initial="hidden" animate="show">
-            <motion.div
-              variants={fadeUp}
-              className="flex items-center gap-3 mb-6"
-            >
-              {[
-                { Icon: ChefHat, color: "text-[var(--accent)]" },
-                { Icon: Utensils, color: "text-[var(--accent-hover)]" },
-                { Icon: Coffee, color: "text-[var(--accent)]" },
-                { Icon: Flame, color: "text-[var(--accent)]" },
-              ].map(({ Icon, color }, i) => (
-                <motion.div
-                  key={i}
-                  className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--accent)]/10 border border-[var(--accent)]/15"
-                  whileHover={{ scale: 1.15, rotate: -5 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 15 }}
-                >
-                  <Icon className={`h-5 w-5 ${color}`} />
-                </motion.div>
-              ))}
-            </motion.div>
-
-            <motion.h1
-              variants={fadeUp}
-              className="text-3xl xl:text-4xl font-extrabold text-white tracking-tight leading-[1.15] mb-3"
-            >
-              Kitchen & POS
-              <br />
-              <span className="text-transparent bg-clip-text bg-linear-to-r from-[var(--accent)] to-[var(--accent-hover)]">
-                Command Centre.
-              </span>
-            </motion.h1>
-
-            <motion.p
-              variants={fadeUp}
-              className="text-sm text-brand-200/60 max-w-sm leading-relaxed"
-            >
-              Manage orders, update menus, and track everything in real-time
-              from one secure portal.
-            </motion.p>
-
-            <motion.div variants={fadeUp} className="flex flex-wrap gap-2 mt-6">
-              {["Live Orders", "Menu Editor", "POS", "Reports"].map(
-                (label, i) => (
-                  <motion.span
-                    key={label}
-                    className="rounded-full bg-[var(--accent)]/10 border border-[var(--accent)]/15 px-3 py-1.5 text-[11px] font-semibold text-brand-200/70"
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{
-                      delay: 0.8 + i * 0.1,
-                      duration: 0.4,
-                      ease: [0.16, 1, 0.3, 1],
-                    }}
-                  >
-                    {label}
-                  </motion.span>
-                ),
-              )}
-            </motion.div>
-          </motion.div>
+        <Link href="/" className="flex items-center gap-2.5 group">
+          <Mountain className="h-6 w-6 text-slate-900" strokeWidth={2.5} />
+          <span className="text-xl font-bold tracking-tighter uppercase text-slate-900">
+            Hima<span className="text-[var(--accent)]">Volt</span>
+          </span>
+        </Link>
+        <div className="mt-4 flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">
+           <ShieldCheck className="h-3 w-3 text-green-500" />
+           Secure Enterprise Node
         </div>
-      </div>
+      </motion.div>
 
-      {/* ── Right panel — animated login form ── */}
-      <div className="flex-1 flex flex-col bg-[#fefcf6] lg:bg-[var(--accent-muted)] relative overflow-hidden">
-        <Orb
-          color="rgba(234,169,77,0.08)"
-          size={300}
-          x="70%"
-          y="20%"
-          delay={2}
-        />
-        <Orb
-          color="rgba(214,118,32,0.06)"
-          size={250}
-          x="10%"
-          y="70%"
-          delay={5}
-        />
-
-        <motion.div
-          className="lg:hidden flex items-center justify-between p-5"
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
+      {/* ── Main Auth Card ── */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.98, y: 10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        className="w-full max-w-[400px] relative z-10"
+      >
+        <motion.div 
+          animate={formShake ? { x: [-8, 8, -4, 4, 0] } : {}}
+          className="bg-white border border-slate-200 p-8 md:p-10 rounded-[2rem] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.05)] overflow-hidden"
         >
-          <Link href="/" className="flex items-center gap-2">
-            <Mountain
-              className="h-5 w-5 text-[var(--accent)]"
-              strokeWidth={2.5}
-            />
-            <span className="text-lg font-extrabold text-[var(--text-1)] tracking-tight">
-              Hima<span className="text-[var(--accent)]">Volt</span>
-            </span>
-          </Link>
-          <Link
-            href="/"
-            className="text-xs font-medium text-[var(--accent-hover)] hover:text-[var(--accent-hover)] transition-colors"
-          >
-            &larr; Back to App
-          </Link>
-        </motion.div>
+          <div className="mb-10 text-center">
+            <h2 className="text-2xl font-bold tracking-tight text-slate-900 mb-2">Staff Authentication</h2>
+            <p className="text-slate-400 text-[11px] font-medium leading-relaxed">Enter your credentials to access the operational portal.</p>
+          </div>
 
-        {/* Form container — centered */}
-        <div className="flex-1 flex items-center justify-center px-5 py-12 sm:px-8 relative z-10">
-          <AnimatePresence mode="wait">
-            {success ? (
-              <motion.div
-                key="success"
-                className="flex flex-col items-center text-center"
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{
-                  duration: 0.5,
-                  ease: [0.16, 1, 0.3, 1],
-                }}
+          <form onSubmit={handleSubmit} className="space-y-8">
+            {/* Terminal ID */}
+            <div className="space-y-2.5">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-1">Terminal ID</label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <Building2 className="h-4 w-4 text-slate-300 group-focus-within:text-slate-900 transition-colors" />
+                </div>
+                <input
+                  type="text"
+                  required
+                  value={code}
+                  onChange={(e) => { setCode(e.target.value.toUpperCase()); setErrorMsg(""); }}
+                  className="w-full pl-11 pr-4 py-3.5 bg-slate-50/50 border border-slate-200 rounded-xl text-slate-900 font-mono text-sm tracking-widest focus:outline-none focus:border-slate-400 focus:bg-white transition-all placeholder:tracking-normal placeholder:font-sans placeholder:text-slate-300 uppercase"
+                  placeholder="HH-NODE-001"
+                />
+              </div>
+            </div>
+
+            {/* PIN Entry */}
+            <div className="space-y-2.5">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-1">Secure PIN</label>
+              <div 
+                className="flex justify-between gap-3 cursor-pointer"
+                onClick={() => hiddenInputRef.current?.focus()}
               >
-                <motion.div
-                  className="relative mb-6"
-                  initial={{ scale: 0, rotate: -180 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 200,
-                    damping: 15,
-                    delay: 0.1,
-                  }}
-                >
-                  <motion.div
-                    className="absolute inset-0 rounded-full bg-[#34D399]/20"
-                    animate={{ scale: [1, 1.8, 1], opacity: [0.5, 0, 0.5] }}
-                    transition={{
-                      duration: 1.5,
-                      repeat: Infinity,
-                      ease: "easeOut",
-                    }}
-                    style={{
-                      width: 80,
-                      height: 80,
-                      left: -8,
-                      top: -8,
-                    }}
-                  />
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#34D399]/10 border border-[#34D399]/20">
-                    <CheckCircle2 className="h-8 w-8 text-[#34D399]" />
-                  </div>
-                </motion.div>
-                <motion.h3
-                  className="text-xl font-extrabold text-[var(--text-1)] mb-2"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                >
-                  Welcome back!
-                </motion.h3>
-                <motion.p
-                  className="text-sm text-[var(--accent-text)]/70"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.5 }}
-                >
-                  Redirecting to your portal...
-                </motion.p>
+                {[0, 1, 2, 3].map((i) => (
+                  <PinSlot key={i} filled={pin.length > i} active={pin.length === i} />
+                ))}
+              </div>
+              <input
+                ref={hiddenInputRef}
+                type="password"
+                inputMode="numeric"
+                value={pin}
+                onChange={handlePinChange}
+                className="absolute opacity-0 pointer-events-none"
+              />
+            </div>
 
-                <motion.div
-                  className="flex gap-1.5 mt-4"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.6 }}
-                >
-                  {[0, 1, 2].map((i) => (
-                    <motion.div
-                      key={i}
-                      className="h-1.5 w-1.5 rounded-full bg-[#34D399]"
-                      animate={{ opacity: [0.3, 1, 0.3] }}
-                      transition={{
-                        duration: 1,
-                        repeat: Infinity,
-                        delay: i * 0.2,
-                      }}
-                    />
-                  ))}
-                </motion.div>
+            {/* Remember Me Sleek Checkbox */}
+            <div className="flex items-center gap-3 px-1">
+              <button
+                type="button"
+                onClick={() => setRememberMe(!rememberMe)}
+                className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${
+                  rememberMe ? "bg-slate-900 border-slate-900" : "bg-white border-slate-300"
+                }`}
+              >
+                {rememberMe && <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-1.5 h-1.5 rounded-full bg-white" />}
+              </button>
+              <span 
+                className="text-[11px] font-semibold text-slate-500 cursor-pointer select-none"
+                onClick={() => setRememberMe(!rememberMe)}
+              >
+                Remember me for 30 days
+              </span>
+            </div>
+
+            {errorMsg && (
+              <motion.div 
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="p-3 rounded-lg bg-red-50 border border-red-100 flex items-center gap-2.5 text-red-600"
+              >
+                <Lock className="h-3.5 w-3.5" />
+                <span className="text-[10px] font-bold uppercase tracking-wider">{errorMsg}</span>
               </motion.div>
-            ) : (
+            )}
+
+            {/* Action Button */}
+            <motion.button
+              type="submit"
+              disabled={!isReady}
+              whileHover={isReady ? { scale: 1.01 } : {}}
+              whileTap={isReady ? { scale: 0.99 } : {}}
+              className={`w-full py-4 rounded-xl font-bold uppercase tracking-[0.2em] text-[10px] transition-all flex items-center justify-center gap-2 ${
+                isReady 
+                  ? "bg-slate-900 text-white shadow-lg shadow-slate-900/10" 
+                  : "bg-slate-100 text-slate-300 cursor-not-allowed"
+              }`}
+            >
+              {loading ? (
+                <Loader2 className="h-4 w-4 animate-spin text-white" />
+              ) : (
+                <>
+                  Authenticate
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </>
+              )}
+            </motion.button>
+          </form>
+
+          {/* Success Overlay */}
+          <AnimatePresence>
+            {success && (
               <motion.div
-                key="form"
-                variants={shake}
-                animate={formShake ? "error" : "idle"}
-                className="w-full max-w-sm bg-[var(--canvas)]/70 backdrop-blur-sm rounded-2xl p-8 shadow-xl shadow-[var(--accent)]/20/20 border border-[var(--accent-border)]"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="absolute inset-0 z-50 bg-white flex flex-col items-center justify-center text-center p-8"
               >
-                <motion.div variants={stagger} initial="hidden" animate="show">
-                  <motion.div variants={fadeUp} className="mb-9">
-                    <motion.div
-                      className="inline-flex items-center gap-1.5 rounded-full bg-[var(--accent-muted)] backdrop-blur-sm px-3.5 py-1.5 text-[11px] font-bold text-[var(--accent-text)] uppercase tracking-wider border border-brand-200/60 mb-5"
-                      variants={scaleIn}
-                    >
-                      <motion.div
-                        animate={{
-                          scale: [1, 1.2, 1],
-                          opacity: [0.7, 1, 0.7],
-                        }}
-                        transition={{
-                          duration: 2,
-                          repeat: Infinity,
-                          ease: "easeInOut",
-                        }}
-                      >
-                        <ShieldCheck className="h-3 w-3 text-[var(--accent)]" />
-                      </motion.div>
-                      Secure staff access
-                    </motion.div>
-                    <h2 className="text-2xl sm:text-3xl font-extrabold text-[var(--text-1)] tracking-tight">
-                      Staff Portal
-                    </h2>
-                    <p className="mt-2 text-sm text-[var(--accent-text)]/70">
-                      Enter your restaurant code and PIN to continue.
-                    </p>
-                  </motion.div>
-
-                  <form className="space-y-7" onSubmit={handleSubmit}>
-                    <motion.div variants={fadeUp}>
-                      <label
-                        htmlFor="code"
-                        className="block text-[11px] font-bold text-brand-800/60 uppercase tracking-wider mb-2.5"
-                      >
-                        Restaurant Code
-                      </label>
-                      <div className="relative group">
-                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                          <Building2 className="h-4 w-4 text-[var(--accent)] group-focus-within:text-[var(--accent)] transition-colors" />
-                        </div>
-                        <motion.input
-                          id="code"
-                          type="text"
-                          required
-                          value={code}
-                          onChange={(e) => {
-                            setCode(e.target.value.toUpperCase());
-                            setErrorMsg("");
-                          }}
-                          whileFocus={{ scale: 1.01 }}
-                          transition={{ duration: 0.15 }}
-                          className="block w-full pl-11 pr-4 py-3.5 bg-[var(--canvas)] border border-brand-200/60 rounded-xl text-[var(--text-1)] font-mono tracking-widest text-sm shadow-sm placeholder:tracking-normal placeholder:font-sans placeholder:text-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] focus:border-[var(--accent)]/50 transition-all"
-                          placeholder="e.g. HH-1A2B"
-                        />
-                        <AnimatePresence>
-                          {code.length >= 4 && (
-                            <motion.div
-                              className="absolute inset-y-0 right-3 flex items-center"
-                              initial={{ opacity: 0, scale: 0 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              exit={{ opacity: 0, scale: 0 }}
-                              transition={{
-                                type: "spring",
-                                stiffness: 500,
-                                damping: 25,
-                              }}
-                            >
-                              <CheckCircle2 className="h-4 w-4 text-[#34D399]" />
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </div>
-                    </motion.div>
-
-                    {/* 4-Digit PIN — animated individual boxes */}
-                    <motion.div variants={fadeUp}>
-                      <label className="block text-[11px] font-bold text-brand-800/60 uppercase tracking-wider mb-2.5">
-                        4-Digit PIN
-                      </label>
-                      <div className="flex gap-3" onPaste={handlePinPaste}>
-                        {pinDigits.map((digit, i) => (
-                          <PinBox
-                            key={i}
-                            digit={digit}
-                            index={i}
-                            focused={focusedPin === i}
-                            inputRef={(el) => {
-                              pinRefs.current[i] = el;
-                              if (el) {
-                                el.onfocus = () => setFocusedPin(i);
-                                el.onblur = () => setFocusedPin(-1);
-                              }
-                            }}
-                            onChange={handlePinChange}
-                            onKeyDown={handlePinKeyDown}
-                          />
-                        ))}
-                      </div>
-
-                      <div className="mt-3 h-1 rounded-full bg-[var(--accent-muted)] overflow-hidden">
-                        <motion.div
-                          className="h-full rounded-full bg-linear-to-r from-[var(--accent)] to-[var(--accent-hover)]"
-                          initial={{ width: "0%" }}
-                          animate={{
-                            width: `${(pin.length / 4) * 100}%`,
-                          }}
-                          transition={{
-                            duration: 0.3,
-                            ease: [0.16, 1, 0.3, 1],
-                          }}
-                        />
-                      </div>
-                    </motion.div>
-
-                    <motion.div
-                      variants={fadeUp}
-                      className="flex items-center gap-2.5"
-                    >
-                      <button
-                        type="button"
-                        onClick={() => setRememberMe((v) => !v)}
-                        className={`flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-md border transition-all ${
-                          rememberMe
-                            ? "border-[var(--accent)] bg-[var(--accent)]"
-                            : "border-brand-200/60 bg-[var(--canvas)]"
-                        }`}
-                      >
-                        {rememberMe && (
-                          <motion.svg
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{
-                              type: "spring",
-                              stiffness: 500,
-                              damping: 30,
-                            }}
-                            className="h-3 w-3 text-white"
-                            viewBox="0 0 12 12"
-                            fill="none"
-                          >
-                            <path
-                              d="M2.5 6L5 8.5L9.5 3.5"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </motion.svg>
-                        )}
-                      </button>
-                      <span
-                        onClick={() => setRememberMe((v) => !v)}
-                        className="text-xs font-medium text-[var(--text-2)] cursor-pointer select-none"
-                      >
-                        Remember me for 30 days
-                      </span>
-                    </motion.div>
-
-                    <AnimatePresence>
-                      {errorMsg && (
-                        <motion.div
-                          initial={{
-                            opacity: 0,
-                            y: -8,
-                            height: 0,
-                            filter: "blur(8px)",
-                          }}
-                          animate={{
-                            opacity: 1,
-                            y: 0,
-                            height: "auto",
-                            filter: "blur(0px)",
-                          }}
-                          exit={{
-                            opacity: 0,
-                            y: -8,
-                            height: 0,
-                            filter: "blur(8px)",
-                          }}
-                          transition={{ duration: 0.3 }}
-                          className="flex items-center gap-2.5 p-3.5 rounded-xl bg-[var(--accent-muted)] border border-[var(--accent)]/20 text-[#e58f2a]"
-                        >
-                          <motion.div
-                            animate={{ rotate: [0, -10, 10, -5, 5, 0] }}
-                            transition={{ duration: 0.5, delay: 0.1 }}
-                          >
-                            <AlertTriangle className="h-4 w-4 shrink-0" />
-                          </motion.div>
-                          <span className="text-sm font-medium">
-                            {errorMsg}
-                          </span>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-
-                    {/* Submit — animated button */}
-                    <motion.div variants={fadeUp}>
-                      <motion.button
-                        type="submit"
-                        disabled={loading || !code || pin.length !== 4}
-                        className="relative w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl text-sm font-bold transition-colors cursor-pointer disabled:cursor-not-allowed bg-linear-to-br from-[var(--accent)] to-[var(--accent-hover)] text-white shadow-lg shadow-[var(--accent)]/20/25 disabled:from-gray-300 disabled:to-gray-300 disabled:text-[var(--text-2)] disabled:shadow-none overflow-hidden"
-                        whileHover={
-                          isReady
-                            ? {
-                                scale: 1.02,
-                                boxShadow:
-                                  "0 20px 40px -12px rgba(234,169,77,0.4)",
-                              }
-                            : {}
-                        }
-                        whileTap={isReady ? { scale: 0.98 } : {}}
-                        transition={{
-                          type: "spring",
-                          stiffness: 400,
-                          damping: 20,
-                        }}
-                      >
-                        {isReady && (
-                          <motion.div
-                            className="absolute inset-0 bg-linear-to-r from-transparent via-white/10 to-transparent"
-                            initial={{ x: "-100%" }}
-                            animate={{ x: "200%" }}
-                            transition={{
-                              duration: 2,
-                              repeat: Infinity,
-                              repeatDelay: 3,
-                              ease: "easeInOut",
-                            }}
-                          />
-                        )}
-                        <span className="relative z-[1] flex items-center gap-2">
-                          {loading ? (
-                            <Loader2 className="w-5 h-5 animate-spin" />
-                          ) : (
-                            <>
-                              Enter Portal
-                              <motion.span
-                                animate={isReady ? { x: [0, 4, 0] } : { x: 0 }}
-                                transition={{
-                                  duration: 1.2,
-                                  repeat: Infinity,
-                                  ease: "easeInOut",
-                                }}
-                              >
-                                <ArrowRight className="w-4 h-4" />
-                              </motion.span>
-                            </>
-                          )}
-                        </span>
-                      </motion.button>
-                    </motion.div>
-                  </form>
-
-                  <motion.div
-                    variants={fadeUp}
-                    className="hidden lg:block mt-8 pt-6 border-t border-brand-200/40"
-                  >
-                    <Link
-                      href="/"
-                      className="text-sm font-medium text-[var(--accent-hover)] hover:text-[var(--accent-hover)] transition-colors flex items-center justify-center gap-1.5"
-                    >
-                      &larr; Back to App
-                    </Link>
-                  </motion.div>
+                <motion.div
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  className="h-16 w-16 rounded-full bg-slate-900 flex items-center justify-center mb-6"
+                >
+                  <CheckCircle2 className="h-8 w-8 text-white" />
                 </motion.div>
+                <h3 className="text-xl font-bold text-slate-900 uppercase tracking-tight">Verified</h3>
+                <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-2">Connecting to Command Center...</p>
               </motion.div>
             )}
           </AnimatePresence>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
+
+      {/* ── Footer ── */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1 }}
+        className="mt-12 relative z-10"
+      >
+        <Link 
+          href="/" 
+          className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.3em] text-slate-400 hover:text-slate-900 transition-colors"
+        >
+          <KeyRound className="h-3 w-3" />
+          Return to Platform
+        </Link>
+      </motion.div>
     </div>
   );
 }

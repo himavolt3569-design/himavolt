@@ -1,169 +1,252 @@
 "use client";
 
-import { useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
-import { ArrowRight, Percent, Timer, Gift, Sparkles } from "lucide-react";
+import { useRef, useState, MouseEvent } from "react";
+import { motion, useScroll, useTransform, AnimatePresence, useMotionValue, useSpring } from "framer-motion";
+import { ArrowRight, Percent, Timer, Trophy, Zap, Heart, Sparkles } from "lucide-react";
 import Link from "next/link";
 
-const deals = [
+const BENTO_DEALS = [
   {
     id: 1,
     title: "50% Off First Order",
-    subtitle: "Use code NAMASTE50 at checkout",
-    Icon: Percent,
-    gradient: "from-[var(--accent)] to-[var(--accent-hover)]",
+    desc: "Welcome to Himavolt family",
+    code: "NAMASTE50",
+    icon: Percent,
+    color: "bg-orange-500",
+    size: "large",
+    img: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=800&h=600&fit=crop",
   },
   {
     id: 2,
-    title: "Free Delivery Weekend",
-    subtitle: "Every Saturday & Sunday, no minimum order",
-    Icon: Timer,
-    gradient: "from-[#e58f2a] to-[#b25c1c]",
+    title: "Free Delivery",
+    desc: "Saturdays are for feasting",
+    icon: Timer,
+    color: "bg-blue-500",
+    size: "small",
+    img: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400&h=400&fit=crop",
   },
   {
     id: 3,
-    title: "Dine-in Rewards",
-    subtitle: "Earn points on every meal you scan & order",
-    Icon: Gift,
-    gradient: "from-[#d67620] to-[#8e491e]",
+    title: "Loyalty Points",
+    desc: "Earn while you eat",
+    icon: Trophy,
+    color: "bg-yellow-500",
+    size: "small",
+    img: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=400&h=400&fit=crop",
+  },
+  {
+    id: 4,
+    title: "BOGOF Deals",
+    desc: "Two is better than one",
+    icon: Zap,
+    color: "bg-purple-500",
+    size: "small",
+    img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=400&fit=crop",
+  },
+  {
+    id: 5,
+    title: "Student Specials",
+    desc: "Fuel for your studies",
+    icon: Heart,
+    color: "bg-red-500",
+    size: "small",
+    img: "https://images.unsplash.com/photo-1547592180-85f173990554?w=400&h=400&fit=crop",
   },
 ];
 
-export default function DealsSection() {
-  const sectionRef = useRef<HTMLDivElement>(null);
+function BentoCard({ deal, index }: { deal: (typeof BENTO_DEALS)[0]; index: number }) {
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
 
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start end", "end start"],
-  });
+  const mouseXSpring = useSpring(x);
+  const mouseYSpring = useSpring(y);
 
-  const img1Y = useTransform(scrollYProgress, [0, 1], [40, -40]);
-  const img2Y = useTransform(scrollYProgress, [0, 1], [20, -60]);
-  const img3Y = useTransform(scrollYProgress, [0, 1], [60, -20]);
+  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["7.5deg", "-7.5deg"]);
+  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-7.5deg", "7.5deg"]);
+
+  const [hovered, setHovered] = useState(false);
+
+  const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    const xPct = mouseX / width - 0.5;
+    const yPct = mouseY / height - 0.5;
+    x.set(xPct);
+    y.set(yPct);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+    setHovered(false);
+  };
 
   return (
-    <section ref={sectionRef} className="bg-[var(--canvas)]">
-      <div className="mx-auto max-w-[1440px] px-4 md:px-8 lg:px-12 py-16 md:py-24">
-        {/* Hero banner */}
-        <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-[var(--accent)] via-[#e58f2a] to-[var(--accent-hover)] p-8 md:p-12 lg:p-16 mb-10">
-          <div className="absolute right-0 top-0 bottom-0 w-[45%] hidden md:block pointer-events-none">
-            <motion.div
-              style={{ y: img1Y }}
-              className="absolute top-6 right-8 h-28 w-28 lg:h-36 lg:w-36 overflow-hidden rounded-2xl rotate-6 shadow-2xl shadow-black/30"
-            >
-              <img
-                src="https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=300&h=300&fit=crop"
-                alt=""
-                className="h-full w-full object-cover"
-              />
-            </motion.div>
-            <motion.div
-              style={{ y: img2Y }}
-              className="absolute bottom-8 right-20 lg:right-28 h-24 w-24 lg:h-32 lg:w-32 overflow-hidden rounded-2xl -rotate-3 shadow-2xl shadow-black/30"
-            >
-              <img
-                src="https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=300&h=300&fit=crop"
-                alt=""
-                className="h-full w-full object-cover"
-              />
-            </motion.div>
-            <motion.div
-              style={{ y: img3Y }}
-              className="absolute top-1/2 -translate-y-1/2 right-44 lg:right-56 h-20 w-20 lg:h-28 lg:w-28 overflow-hidden rounded-2xl rotate-12 shadow-2xl shadow-black/30"
-            >
-              <img
-                src="https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=300&h=300&fit=crop"
-                alt=""
-                className="h-full w-full object-cover"
-              />
-            </motion.div>
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.7, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={handleMouseLeave}
+      style={{
+        rotateX: deal.size === "large" ? rotateX : 0,
+        rotateY: deal.size === "large" ? rotateY : 0,
+        transformStyle: "preserve-3d",
+      }}
+      className={`group relative overflow-hidden rounded-[2.5rem] bg-[var(--surface)] border border-[var(--border)] p-8 flex flex-col justify-between transition-colors duration-500 hover:border-[var(--accent)]/40 ${
+        deal.size === "large" ? "md:col-span-2 md:row-span-2 shadow-xl" : "md:col-span-1 md:row-span-1 shadow-sm"
+      } hover:shadow-2xl hover:shadow-[var(--accent)]/10`}
+    >
+      {/* 3D Content Container */}
+      <div style={{ transform: "translateZ(50px)", transformStyle: "preserve-3d" }} className="relative z-10 h-full flex flex-col justify-between">
+        <div>
+          <div className={`inline-flex h-12 w-12 items-center justify-center rounded-2xl ${deal.color} text-white shadow-lg mb-6 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500`}>
+            <deal.icon className="h-6 w-6" />
           </div>
-
-          <div
-            className="absolute inset-0 opacity-[0.05] pointer-events-none"
-            style={{
-              backgroundImage:
-                "url(\"data:image/svg+xml,%3Csvg width='4' height='4' viewBox='0 0 4 4' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23000' fill-opacity='1'%3E%3Ccircle cx='1' cy='1' r='0.5'/%3E%3C/g%3E%3C/svg%3E\")",
-            }}
-          />
-
-          <div className="relative z-10 max-w-lg">
-            <motion.div
-              initial={{ opacity: 0, y: 20, filter: "blur(4px)" }}
-              whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-              className="inline-flex items-center gap-2 rounded-full bg-[var(--canvas)]/80 backdrop-blur-sm px-4 py-2 text-[10px] font-bold text-white/90 uppercase tracking-wider border border-white/10 mb-5"
-            >
-              <Sparkles className="h-3.5 w-3.5" />
-              Limited time offers
-            </motion.div>
-            <motion.h3
-              initial={{ opacity: 0, y: 20, filter: "blur(4px)" }}
-              whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.7, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
-              className="text-2xl sm:text-3xl md:text-4xl font-bold text-white tracking-tight leading-[1.1] mb-3"
-            >
-              Deals that make
-              <br />
-              <span className="text-white/70">your wallet smile.</span>
-            </motion.h3>
-            <motion.p
-              initial={{ opacity: 0, y: 20, filter: "blur(4px)" }}
-              whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.7, delay: 0.16, ease: [0.16, 1, 0.3, 1] }}
-              className="text-sm text-white/60 font-medium mb-6 max-w-md"
-            >
-              Save big on your favourite meals. New deals every week across 100+
-              restaurants in Kathmandu.
-            </motion.p>
-            <motion.div
-              initial={{ opacity: 0, y: 20, filter: "blur(4px)" }}
-              whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.7, delay: 0.24, ease: [0.16, 1, 0.3, 1] }}
-            >
-              <Link
-                href="/offers"
-                className="group inline-flex items-center gap-2.5 rounded-xl bg-[var(--canvas)] px-6 py-3 text-sm font-bold text-[var(--text-1)] shadow-lg shadow-black/20 transition-all hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0"
-              >
-                View All Offers
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-              </Link>
-            </motion.div>
-          </div>
+          <h4 className={`font-black text-[var(--text-1)] tracking-tight mb-2 ${deal.size === "large" ? "text-3xl md:text-5xl" : "text-xl"}`}>
+            {deal.title}
+          </h4>
+          <p className="text-[var(--text-3)] font-medium text-sm max-w-[200px]">
+            {deal.desc}
+          </p>
         </div>
 
-        {/* Deal cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {deals.map((deal, i) => (
+        <div className="mt-8 flex items-end justify-between">
+          {deal.code && (
+            <div className="px-4 py-2 rounded-xl bg-[var(--accent)]/10 border border-[var(--accent)]/20 text-[var(--accent)] font-black text-xs tracking-widest uppercase backdrop-blur-sm">
+              Code: {deal.code}
+            </div>
+          )}
+          <motion.div
+            whileHover={{ scale: 1.1, x: 4 }}
+            whileTap={{ scale: 0.95 }}
+            className="h-10 w-10 rounded-full bg-[var(--accent)] flex items-center justify-center text-white shadow-lg shadow-[var(--accent)]/30 transition-all"
+          >
+            <ArrowRight className="h-5 w-5" />
+          </motion.div>
+        </div>
+      </div>
+
+      {/* Background with Parallax */}
+      <div className="absolute inset-0 z-0">
+        <motion.img
+          animate={{ 
+            scale: hovered ? 1.15 : 1.05, 
+            opacity: hovered ? 0.35 : 0.1,
+            x: hovered && deal.size === "large" ? 10 : 0,
+            y: hovered && deal.size === "large" ? 10 : 0,
+          }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          src={deal.img}
+          alt=""
+          className="h-full w-full object-cover grayscale opacity-20 group-hover:grayscale-0 transition-all duration-700"
+        />
+        <div className={`absolute inset-0 bg-linear-to-t from-[var(--surface)] via-[var(--surface)]/80 to-transparent ${hovered ? "opacity-60" : "opacity-100"} transition-opacity duration-500`} />
+      </div>
+
+      {/* Glossy Overlay for Large Cards */}
+      {deal.size === "large" && (
+        <div className="absolute inset-0 z-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-700">
+          <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_var(--mouse-x,50%)_var(--mouse-y,50%),rgba(255,255,255,0.15),transparent_60%)]" />
+        </div>
+      )}
+
+      {/* Animated Shine */}
+      <AnimatePresence>
+        {hovered && (
+          <motion.div
+            initial={{ x: "-100%", opacity: 0 }}
+            animate={{ x: "100%", opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1, ease: "easeInOut" }}
+            className="absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent -skew-x-20 z-20 pointer-events-none"
+          />
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+}
+
+export default function DealsSection() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  
+  return (
+    <section ref={containerRef} className="relative bg-[var(--canvas)] overflow-hidden">
+      {/* Abstract Background Shapes */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-1/4 -left-20 w-96 h-96 bg-[var(--accent)]/5 rounded-full blur-[100px] animate-pulse" />
+        <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-orange-500/5 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: "2s" }} />
+      </div>
+
+      <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-12 py-24 md:py-32">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-10">
+          <div className="max-w-2xl">
             <motion.div
-              key={deal.id}
-              initial={{ opacity: 0, y: 30, scale: 0.95 }}
-              whileInView={{ opacity: 1, y: 0, scale: 1 }}
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: i * 0.1, ease: [0.16, 1, 0.3, 1] }}
-              whileHover={{ y: -6, transition: { type: "spring", stiffness: 300, damping: 18 } }}
-              className="group relative rounded-2xl border border-[var(--border)] bg-[var(--canvas)] p-6 hover:border-[var(--accent-border)] transition-colors duration-300 cursor-pointer"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--accent)]/10 border border-[var(--accent)]/20 mb-6"
             >
-              <motion.div
-                whileHover={{ scale: 1.1, rotate: -6 }}
-                transition={{ type: "spring", stiffness: 300, damping: 15 }}
-                className={`flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-br ${deal.gradient} shadow-md mb-4`}
-              >
-                <deal.Icon className="h-5 w-5 text-white" strokeWidth={2} />
-              </motion.div>
-              <h4 className="text-[15px] font-semibold text-[var(--text-1)] mb-1 tracking-tight">
-                {deal.title}
-              </h4>
-              <p className="text-sm text-[var(--text-2)] leading-relaxed">
-                {deal.subtitle}
-              </p>
+              <Sparkles className="h-4 w-4 text-[var(--accent)]" />
+              <span className="text-xs font-black text-[var(--accent)] uppercase tracking-wider">Exclusive Offers</span>
             </motion.div>
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-5xl md:text-7xl font-black text-[var(--text-1)] tracking-tighter leading-[0.9] mb-4"
+            >
+              Deals that make <br />
+              <span className="relative inline-block">
+                your wallet smile
+                <motion.span 
+                  initial={{ width: 0 }}
+                  whileInView={{ width: "100%" }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.5, duration: 0.8 }}
+                  className="absolute -bottom-2 left-0 h-2 bg-[var(--accent)]/30 rounded-full -z-10"
+                />
+              </span>
+            </motion.h2>
+          </div>
+          
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="flex flex-col items-start md:items-end text-left md:text-right"
+          >
+            <p className="text-[var(--text-3)] font-medium mb-8 max-w-xs leading-relaxed">
+              Curated flash deals from Kathmandu&apos;s most loved kitchens. Don&apos;t miss out.
+            </p>
+            <Link href="/offers">
+              <motion.button
+                whileHover={{ scale: 1.05, x: 4 }}
+                whileTap={{ scale: 0.95 }}
+                className="group px-10 py-5 rounded-[2rem] bg-[var(--text-1)] text-[var(--canvas)] font-black text-base shadow-2xl shadow-black/20 flex items-center gap-3"
+              >
+                View All Deals
+                <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+              </motion.button>
+            </Link>
+          </motion.div>
+        </div>
+
+        {/* Bento Grid Layout */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 auto-rows-[260px]">
+          {BENTO_DEALS.map((deal, i) => (
+            <BentoCard key={deal.id} deal={deal} index={i} />
           ))}
         </div>
+      </div>
+
+      <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-12">
+        <div className="h-px bg-linear-to-r from-transparent via-[var(--border)] to-transparent opacity-50" />
       </div>
     </section>
   );

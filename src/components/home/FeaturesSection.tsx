@@ -1,123 +1,203 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { QrCode, Truck, Gift } from "lucide-react";
+import { QrCode, Truck, Gift, ShieldCheck } from "lucide-react";
+import Link from "next/link";
 
-const features = [
+const RESONANCE_FEATURES = [
   {
-    num: "01",
-    title: "Scan & Dine",
-    headline: "Your table, your menu, your pace.",
-    description:
-      "Walk in, scan the QR code at your table, and start browsing the full digital menu. No waiting, no waving down staff. Customize every dish and order when you are ready.",
-    badge: "Dine-In",
-    Icon: QrCode,
+    id: "scan",
+    title: "Smart Dining",
+    headline: "The future of service.",
+    desc: "Scan the QR at your table to explore a rich, interactive menu. Order at your pace and enjoy seamless service.",
+    icon: QrCode,
+    img: "https://images.unsplash.com/photo-1590846406792-0adc7f938f1d?w=800&h=1200&fit=crop", 
     accent: "var(--accent)",
   },
   {
-    num: "02",
-    title: "Order & Track",
-    headline: "From kitchen to door, live.",
-    description:
-      "Place your order from anywhere and watch it move in real time. Live tracking from prep to pickup to your doorstep, so you always know exactly where your food is.",
-    badge: "Delivery",
-    Icon: Truck,
-    accent: "var(--accent-hover)",
+    id: "track",
+    title: "Precision Tracking",
+    headline: "Live every step.",
+    desc: "Monitor your order in real-time. From the kitchen's first toss to your doorstep, experience absolute transparency.",
+    icon: Truck,
+    img: "https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=800&h=1200&fit=crop",
+    accent: "#0088ff",
   },
   {
-    num: "03",
-    title: "Earn & Save",
-    headline: "Every order earns you more.",
-    description:
-      "Collect loyalty points on every order, unlock exclusive deals, and get rewarded just for eating the food you love. Points never expire.",
-    badge: "Rewards",
-    Icon: Gift,
-    accent: "var(--accent-text)",
+    id: "earn",
+    title: "Elite Rewards",
+    headline: "Loyalty redefined.",
+    desc: "Earn exclusive points on every scan. Unlock premium benefits and hidden menus across Kathmandu's finest.",
+    icon: Gift,
+    img: "https://images.unsplash.com/photo-1556742044-3c52d6e88c62?w=800&h=1200&fit=crop", 
+    accent: "#a200ff",
   },
 ];
 
-const containerVariants = {
-  hidden: {},
-  visible: {
-    transition: { staggerChildren: 0.12, delayChildren: 0.05 },
-  },
-};
+function FeatureCard({ feature, index }: { feature: typeof RESONANCE_FEATURES[0], index: number }) {
+  const [isHovered, setIsHovered] = useState(false);
 
-const cardVariants = {
-  hidden: { opacity: 0, y: 32 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] },
-  },
-};
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-100px" }}
+      transition={{ duration: 0.8, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className="group relative h-[500px] md:h-[650px] rounded-[3rem] overflow-hidden bg-[var(--surface)] border border-[var(--border)] select-none"
+    >
+      {/* Background Image - B&W to Color Transition */}
+      <div className="absolute inset-0 z-0">
+        <motion.img 
+          src={feature.img} 
+          alt="" 
+          initial={{ filter: "grayscale(100%)", opacity: 0.3, scale: 1 }}
+          whileInView={{ 
+            filter: "grayscale(0%)", 
+            opacity: 0.6,
+            transition: { duration: 1.2, delay: index * 0.1 }
+          }}
+          animate={{ 
+            scale: isHovered ? 1.05 : 1,
+            filter: isHovered ? "grayscale(0%)" : undefined,
+            opacity: isHovered ? 0.7 : undefined
+          }}
+          viewport={{ amount: 0.6 }} // Trigger when 60% of the card is in view
+          className="h-full w-full object-cover transition-transform duration-700"
+        />
+        
+        {/* Subtle Darkening Overlay */}
+        <div className="absolute inset-0 bg-black/40" />
+      </div>
+
+      {/* Content Layer */}
+      <div className="absolute inset-0 p-10 md:p-12 flex flex-col justify-end z-10">
+        <motion.div
+          animate={{ 
+            y: isHovered ? -8 : 0,
+            backgroundColor: isHovered ? feature.accent : "rgba(255,255,255,0.1)"
+          }}
+          className="mb-8 h-14 w-14 rounded-2xl backdrop-blur-xl border border-white/20 flex items-center justify-center text-white transition-colors duration-500 shadow-xl"
+        >
+          <feature.icon className="h-7 w-7" />
+        </motion.div>
+
+        <motion.div
+          animate={{ y: isHovered ? -4 : 0 }}
+          className="transition-transform duration-500"
+        >
+          <h3 className="text-3xl md:text-4xl font-black text-white tracking-tighter mb-3 leading-none">
+            {feature.title}
+          </h3>
+          <p className="text-white/60 font-bold uppercase tracking-widest text-[10px] mb-6">
+            {feature.headline}
+          </p>
+          
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ 
+              height: isHovered ? "auto" : 0, 
+              opacity: isHovered ? 1 : 0 
+            }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            className="overflow-hidden"
+          >
+            <p className="text-sm text-white/80 leading-relaxed max-w-[280px] mb-8">
+              {feature.desc}
+            </p>
+            <Link href="/menu">
+              <button className="text-white font-black uppercase tracking-widest text-[11px] border-b-2 border-white/20 hover:border-white transition-colors pb-1">
+                Explore More
+              </button>
+            </Link>
+          </motion.div>
+        </motion.div>
+      </div>
+
+      {/* Premium Border Highlight on View */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ amount: 0.8 }}
+        className="absolute inset-0 border-2 border-white/10 rounded-[3rem] pointer-events-none z-30"
+      />
+    </motion.div>
+  );
+}
 
 export default function FeaturesSection() {
   return (
-    <section className="bg-[var(--canvas-sub)] py-16 md:py-24">
-      <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-12">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-40px" }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="text-center mb-12 md:mb-16"
-        >
-          <span className="inline-flex items-center rounded-full bg-[var(--accent-muted)] border border-[var(--accent-border)] px-3 py-1 text-[10px] font-bold text-[var(--accent-text)] uppercase tracking-wider mb-4">
-            Why HimaVolt
-          </span>
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-[var(--text-1)] leading-[1.1]">
-            Built for Nepal.
-            <br />
-            <span className="text-[var(--text-3)]">Designed for now.</span>
-          </h2>
-        </motion.div>
+    <section className="relative bg-[var(--canvas)] py-24 md:py-32 overflow-hidden">
+      {/* Background Ambient */}
+      <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+        <div className="absolute top-[10%] left-[5%] w-[500px] h-[500px] bg-[var(--accent)]/5 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[10%] right-[5%] w-[500px] h-[500px] bg-purple-500/5 rounded-full blur-[120px]" />
+      </div>
 
-        {/* Cards */}
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-60px" }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6"
-        >
-          {features.map((f) => (
-            <motion.div
-              key={f.num}
-              variants={cardVariants}
-              className="relative rounded-2xl border border-[var(--border)] bg-[var(--canvas)] p-7 md:p-8 overflow-hidden group hover:border-[var(--accent-border)] transition-colors duration-300"
-            >
-              <span className="absolute top-4 right-6 text-[72px] font-black leading-none text-[var(--text-1)]/[0.03] select-none pointer-events-none">
-                {f.num}
-              </span>
+      <div className="relative z-10 mx-auto max-w-7xl px-4 md:px-8 lg:px-12">
+        {/* Professional Header */}
+        <div className="flex flex-col items-center text-center mb-20 md:mb-28">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--accent)]/10 border border-[var(--accent)]/20 mb-8"
+          >
+            <ShieldCheck className="h-4 w-4 text-[var(--accent)]" />
+            <span className="text-xs font-black text-[var(--accent)] uppercase tracking-widest">Why Himavolt?</span>
+          </motion.div>
+          
+          <motion.h2 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-5xl md:text-7xl lg:text-8xl font-black text-[var(--text-1)] tracking-tighter leading-[0.9] mb-8"
+          >
+            Sophisticated Dining. <br />
+            <span className="text-[var(--text-3)]">Evolved for Nepal.</span>
+          </motion.h2>
+          
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+            className="text-lg md:text-xl text-[var(--text-3)] font-medium max-w-2xl leading-relaxed mx-auto"
+          >
+            Discover a world where cutting-edge technology meets the rich flavors of our heritage.
+          </motion.p>
+        </div>
 
-              <div className="flex items-center gap-3 mb-6">
-                <div
-                  className="flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--accent-border)] bg-[var(--accent-muted)]"
-                >
-                  <f.Icon
-                    className="h-5 w-5 text-[var(--accent)]"
-                    strokeWidth={1.8}
-                  />
-                </div>
-                <span className="inline-flex items-center rounded-md bg-[var(--accent-muted)] border border-[var(--accent-border)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[var(--accent-text)]">
-                  {f.badge}
-                </span>
-              </div>
-
-              <h3 className="text-[15px] font-semibold text-[var(--text-1)] tracking-tight mb-1.5">
-                {f.title}
-              </h3>
-              <p className="text-sm font-semibold text-[var(--text-2)] mb-3">
-                {f.headline}
-              </p>
-              <p className="text-sm leading-relaxed text-[var(--text-2)]">
-                {f.description}
-              </p>
-            </motion.div>
+        {/* Feature Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {RESONANCE_FEATURES.map((feature, i) => (
+            <FeatureCard key={feature.id} feature={feature} index={i} />
           ))}
-        </motion.div>
+        </div>
+
+        {/* Trust Footer */}
+        <div className="mt-28 flex flex-col md:flex-row items-center justify-between border-t border-[var(--border)] pt-16 gap-10">
+          <div className="flex items-center gap-6">
+            <div className="flex -space-x-3">
+              {[1,2,3,4].map(n => (
+                <div key={n} className="h-12 w-12 rounded-full border-2 border-[var(--canvas)] bg-[var(--surface)] overflow-hidden shadow-lg">
+                  <img src={`https://i.pravatar.cc/150?u=${n + 200}`} alt="" />
+                </div>
+              ))}
+            </div>
+            <div>
+              <p className="text-[15px] font-black text-[var(--text-1)] tracking-tight">125+ Premium Partners</p>
+              <p className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider">Trusted by the Valley&apos;s finest</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4 px-6 py-3 rounded-2xl bg-[var(--surface)] border border-[var(--border)]">
+             <div className="h-2 w-2 rounded-full bg-[var(--accent)] animate-pulse" />
+             <span className="text-[10px] font-black text-[var(--text-1)] uppercase tracking-widest">Live Across Kathmandu Valley</span>
+          </div>
+        </div>
       </div>
     </section>
   );

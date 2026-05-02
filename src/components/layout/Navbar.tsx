@@ -4,13 +4,12 @@ import { useState, useRef, useEffect } from "react";
 import {
   Mountain,
   ShoppingBag,
-  Store,
-  KeyRound,
   Search,
   LogOut,
   X,
   User,
   LayoutDashboard,
+  KeyRound,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/context/CartContext";
@@ -20,26 +19,38 @@ import Link from "next/link";
 
 export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
   const { totalItems } = useCart();
-  const { isSignedIn, isLoaded, user, userRole, signOut } = useAuth();
-  const isOwnerOrAdmin = userRole === "OWNER" || userRole === "ADMIN";
+  const { isSignedIn, isLoaded, user, signOut } = useAuth();
 
   const [scrolled, setScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
+  // ─── High Performance Scroll Tracking & Height Sync ───
   useEffect(() => {
-    const handler = () => setScrolled(window.scrollY > 20);
+    const handler = () => {
+      const isPastLimit = window.scrollY > 40;
+      setScrolled(isPastLimit);
+      
+      // Update dynamic height variable for LocationBar sync
+      const height = isPastLimit ? 56 : (window.innerWidth >= 768 ? 72 : 64);
+      document.documentElement.style.setProperty('--nav-height', `${height}px`);
+    };
+    
     window.addEventListener("scroll", handler, { passive: true });
-    handler();
-    return () => window.removeEventListener("scroll", handler);
+    window.addEventListener("resize", handler);
+    handler(); // Initial sync
+    
+    return () => {
+      window.removeEventListener("scroll", handler);
+      window.removeEventListener("resize", handler);
+    };
   }, []);
 
-  useEffect(() => {
-    if (searchOpen) searchRef.current?.focus();
-  }, [searchOpen]);
+  useEffect(() => { if (searchOpen) searchRef.current?.focus(); }, [searchOpen]);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -52,245 +63,208 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
   }, [profileMenuOpen]);
 
   const userInitials = (() => {
-    const name =
-      user?.user_metadata?.full_name ||
-      user?.user_metadata?.name ||
-      user?.email ||
-      "";
+    const name = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email || "";
     const parts = name.trim().split(/\s+/);
-    if (parts.length >= 2)
-      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
     return name.slice(0, 2).toUpperCase();
   })();
 
   return (
     <>
       <nav
-        className={`sticky top-0 z-50 w-full transition-all duration-300 ${
-          scrolled
-            ? "bg-[var(--canvas)]/90 backdrop-blur-xl border-b border-[var(--border)]"
-            : "bg-transparent"
+        className={`sticky top-0 z-50 w-full bg-white transition-all duration-300 ${
+          scrolled 
+            ? "bg-white/90 backdrop-blur-xl border-b border-slate-200 shadow-sm" 
+            : "border-b border-transparent"
         }`}
       >
-        <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-12">
-          <div className="flex h-14 items-center justify-between">
-            {/* Logo */}
-            <Link href="/" className="flex shrink-0 items-center gap-1.5 group">
+        <div className={`mx-auto max-w-7xl px-4 md:px-8 lg:px-12 flex items-center justify-between transition-all duration-500 ease-[0.16,1,0.3,1] ${
+          scrolled ? "h-14" : "h-16 md:h-18"
+        }`}>
+          
+          {/* Logo Area */}
+          <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
+            <motion.div
+              whileHover={{ scale: 1.1, rotate: -5 }}
+              className={`h-9 w-9 rounded-xl transition-all duration-500 flex items-center justify-center shadow-lg ${scrolled ? 'bg-slate-900 text-white' : 'bg-[var(--accent)] text-white'}`}
+            >
+              <Mountain className="h-5 w-5" strokeWidth={2.5} />
+            </motion.div>
+            <span className={`text-xl font-black tracking-tighter text-slate-900 transition-all duration-300 ${scrolled ? 'hidden sm:block opacity-100' : 'block opacity-100'}`}>
+              Hima<span className="text-[var(--accent)]">Volt</span>
+            </span>
+          </Link>
+
+          {/* Mobile Scrolled Search (Middle) */}
+          <AnimatePresence>
+            {scrolled && (
               <motion.div
-                whileHover={{ rotate: -12 }}
-                transition={{ type: "spring", stiffness: 300, damping: 15 }}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="absolute left-1/2 -translate-x-1/2 w-full max-w-[160px] sm:hidden pointer-events-none"
               >
-                <Mountain className="h-5 w-5 text-[var(--accent)]" strokeWidth={2.5} />
+                <button 
+                  onClick={() => setSearchOpen(true)}
+                  className="pointer-events-auto w-full flex items-center gap-2 bg-slate-50 border border-slate-100 h-9 px-3 rounded-full shadow-inner"
+                >
+                  <Search className="h-3.5 w-3.5 text-slate-400" />
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate">Explore</span>
+                </button>
               </motion.div>
-              <span className="text-base font-black tracking-tight text-[var(--text-1)]">
-                Hima<span className="text-[var(--accent)]">Volt</span>
-              </span>
-            </Link>
+            )}
+          </AnimatePresence>
 
-            {/* Actions */}
-            <div className="flex items-center gap-1">
-              {/* Search */}
-              <button
-                onClick={() => setSearchOpen(true)}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-3)] hover:text-[var(--text-1)] hover:bg-[var(--surface)] transition-colors"
+          {/* Desktop/Default Actions Area */}
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+            
+            {!scrolled && (
+              <Link 
+                href="/staff-login"
+                className="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 hover:bg-slate-50 transition-all"
               >
-                <Search className="h-4 w-4" />
-              </button>
+                <KeyRound className="h-3.5 w-3.5" />
+                Staff
+              </Link>
+            )}
 
-              {/* Theme toggle */}
-              <ThemeToggle />
+            {/* Desktop Search Trigger */}
+            <button
+              onClick={() => setSearchOpen(true)}
+              className={`hidden sm:flex h-10 w-10 items-center justify-center rounded-xl text-slate-400 hover:text-slate-900 hover:bg-slate-50 transition-all ${scrolled ? 'scale-90' : 'scale-100'}`}
+            >
+              <Search className="h-5 w-5" />
+            </button>
 
-              {isLoaded && isSignedIn && isOwnerOrAdmin && (
-                <Link
-                  href="/manage-restaurants"
-                  className="hidden md:flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-[var(--text-2)] hover:text-[var(--text-1)] hover:bg-[var(--surface)] transition-colors"
+            <ThemeToggle />
+
+            {/* Cart Button */}
+            <button
+              onClick={onCartClick}
+              className={`relative h-10 w-10 flex items-center justify-center rounded-xl transition-all ${
+                scrolled ? "bg-slate-900 text-white shadow-lg scale-90" : "text-slate-400 hover:text-slate-900 hover:bg-slate-50"
+              }`}
+            >
+              <ShoppingBag className="h-5 w-5" />
+              {totalItems > 0 && (
+                <motion.span
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="absolute -top-1 -right-1 flex h-4.5 w-4.5 items-center justify-center rounded-full bg-[var(--accent)] text-white text-[9px] font-black shadow-lg"
                 >
-                  <Store className="h-3.5 w-3.5" />
-                  Restaurants
-                </Link>
+                  {totalItems}
+                </motion.span>
               )}
+            </button>
 
-              {isLoaded && !isSignedIn && (
-                <Link
-                  href="/staff-login"
-                  className="hidden md:flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[11px] font-medium text-[var(--text-3)] hover:text-[var(--text-2)] transition-colors"
-                >
-                  <KeyRound className="h-3 w-3" />
-                  Staff
-                </Link>
-              )}
-
-              {/* Cart */}
-              <button
-                onClick={onCartClick}
-                className="relative flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-3)] hover:text-[var(--text-1)] hover:bg-[var(--surface)] transition-colors"
-              >
-                <ShoppingBag className="h-4 w-4" />
-                <AnimatePresence>
-                  {totalItems > 0 && (
-                    <motion.span
-                      key={totalItems}
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      exit={{ scale: 0 }}
-                      transition={{ type: "spring", stiffness: 500, damping: 15 }}
-                      className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--accent)] text-[8px] font-bold text-white"
+            {/* Auth Area */}
+            {isLoaded && (
+              <>
+                {isSignedIn ? (
+                  <div className="relative flex items-center" ref={profileMenuRef}>
+                    <button
+                      onClick={() => setProfileMenuOpen((v) => !v)}
+                      className={`flex items-center justify-center rounded-xl overflow-hidden transition-all duration-300 ${scrolled ? 'h-9 w-9 ring-1 ring-slate-100' : 'h-10 w-10'} hover:ring-2 hover:ring-[var(--accent)]`}
                     >
-                      {totalItems}
-                    </motion.span>
-                  )}
-                </AnimatePresence>
+                      {user?.user_metadata?.avatar_url ? (
+                        <img src={user.user_metadata.avatar_url} alt="" className="h-full w-full object-cover" />
+                      ) : (
+                        <span className="flex h-full w-full items-center justify-center bg-slate-100 text-[10px] font-black text-slate-900 uppercase">
+                          {userInitials}
+                        </span>
+                      )}
+                    </button>
+                    
+                    <AnimatePresence>
+                      {profileMenuOpen && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                          className="absolute right-0 top-full mt-4 w-52 rounded-3xl bg-white border border-slate-200 shadow-2xl overflow-hidden z-70 p-2"
+                        >
+                          <div className="px-4 py-4 border-b border-slate-50 mb-1">
+                            <p className="text-[11px] font-black text-slate-900 truncate uppercase tracking-tighter">
+                              {user?.user_metadata?.full_name || "Profile"}
+                            </p>
+                          </div>
+                          <div className="space-y-0.5">
+                            <Link href="/profile" className="flex items-center gap-3 px-4 py-3 text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-2xl transition-colors">
+                              <User className="h-4 w-4 opacity-30" /> Profile
+                            </Link>
+                            <Link href="/dashboard" className="flex items-center gap-3 px-4 py-3 text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-2xl transition-colors">
+                              <LayoutDashboard className="h-4 w-4 opacity-30" /> Dashboard
+                            </Link>
+                            <button onClick={signOut} className="flex w-full items-center gap-3 px-4 py-3 text-xs font-bold text-red-500 hover:bg-red-50 rounded-2xl transition-colors">
+                              <LogOut className="h-4 w-4 opacity-30" /> Sign Out
+                            </button>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 ml-1">
+                    <Link href="/sign-in" className="hidden sm:block text-xs font-bold text-slate-500 hover:text-slate-900 px-3 py-2">
+                      Login
+                    </Link>
+                    <Link href="/sign-up" className={`rounded-xl bg-slate-900 px-5 py-2 text-xs font-black text-white hover:bg-slate-800 transition-all ${scrolled ? 'hidden' : 'block'}`}>
+                      Join
+                    </Link>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Mobile Search Trigger (Not Scrolled) */}
+            {!scrolled && (
+              <button 
+                onClick={() => setSearchOpen(true)}
+                className="sm:hidden h-10 w-10 flex items-center justify-center bg-slate-50 rounded-xl text-slate-400"
+              >
+                <Search className="h-5 w-5" />
               </button>
-
-              {/* Auth */}
-              {isLoaded && (
-                <>
-                  {isSignedIn ? (
-                    <div className="relative flex items-center gap-0.5" ref={profileMenuRef}>
-                      <button
-                        onClick={() => setProfileMenuOpen((v) => !v)}
-                        className="flex h-8 w-8 items-center justify-center rounded-lg overflow-hidden hover:ring-2 hover:ring-[var(--accent-border)] transition-all"
-                        aria-label="Account menu"
-                      >
-                        {user?.user_metadata?.avatar_url ? (
-                          <img
-                            src={user.user_metadata.avatar_url}
-                            alt="Profile"
-                            className="h-8 w-8 rounded-lg object-cover"
-                          />
-                        ) : (
-                          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent-muted)] text-[10px] font-bold text-[var(--accent-text)]">
-                            {userInitials}
-                          </span>
-                        )}
-                      </button>
-
-                      <button
-                        onClick={signOut}
-                        className="hidden md:flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-3)] hover:text-red-500 hover:bg-red-50/50 transition-colors"
-                        aria-label="Sign Out"
-                      >
-                        <LogOut className="h-3.5 w-3.5" />
-                      </button>
-
-                      <AnimatePresence>
-                        {profileMenuOpen && (
-                          <motion.div
-                            initial={{ opacity: 0, scale: 0.95, y: -6 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95, y: -6 }}
-                            transition={{ duration: 0.15 }}
-                            className="absolute right-0 top-full mt-2 w-48 rounded-2xl bg-[var(--canvas)] border border-[var(--border)] shadow-xl overflow-hidden z-70"
-                          >
-                            <div className="px-4 py-3 border-b border-[var(--border)]">
-                              <p className="text-xs font-bold text-[var(--text-1)] truncate">
-                                {user?.user_metadata?.full_name || user?.user_metadata?.name || "Account"}
-                              </p>
-                              <p className="text-[10px] text-[var(--text-3)] truncate">{user?.email}</p>
-                            </div>
-                            <div className="py-1">
-                              <Link
-                                href="/profile"
-                                onClick={() => setProfileMenuOpen(false)}
-                                className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-[var(--text-1)] hover:bg-[var(--surface)] transition-colors"
-                              >
-                                <User className="h-3.5 w-3.5 text-[var(--text-3)]" />
-                                View Profile
-                              </Link>
-                              <Link
-                                href="/dashboard"
-                                onClick={() => setProfileMenuOpen(false)}
-                                className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-[var(--text-1)] hover:bg-[var(--surface)] transition-colors"
-                              >
-                                <LayoutDashboard className="h-3.5 w-3.5 text-[var(--text-3)]" />
-                                Dashboard
-                              </Link>
-                              {isOwnerOrAdmin && (
-                                <Link
-                                  href="/manage-restaurants"
-                                  onClick={() => setProfileMenuOpen(false)}
-                                  className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-[var(--text-1)] hover:bg-[var(--surface)] transition-colors"
-                                >
-                                  <Store className="h-3.5 w-3.5 text-[var(--text-3)]" />
-                                  My Restaurants
-                                </Link>
-                              )}
-                              <div className="border-t border-[var(--border)] mt-1 pt-1">
-                                <button
-                                  onClick={() => { setProfileMenuOpen(false); signOut(); }}
-                                  className="flex w-full items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-red-500 hover:bg-red-50 transition-colors"
-                                >
-                                  <LogOut className="h-3.5 w-3.5" />
-                                  Sign Out
-                                </button>
-                              </div>
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-1 ml-1">
-                      <Link
-                        href="/sign-in"
-                        className="rounded-lg px-3 py-1.5 text-xs font-semibold text-[var(--text-2)] hover:text-[var(--text-1)] hover:bg-[var(--surface)] transition-colors"
-                      >
-                        Login
-                      </Link>
-                      <Link
-                        href="/sign-up"
-                        className="rounded-xl bg-[var(--text-1)] px-4 py-1.5 text-xs font-bold text-[var(--canvas)] hover:opacity-80 active:scale-[0.97] transition-all"
-                      >
-                        Sign Up
-                      </Link>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
+            )}
           </div>
         </div>
       </nav>
 
-      {/* Search overlay */}
+      {/* ── Precise Search Overlay ── */}
       <AnimatePresence>
         {searchOpen && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-            className="fixed inset-0 z-[60] bg-black/20 backdrop-blur-sm"
+            className="fixed inset-0 z-[100] bg-white/60 backdrop-blur-3xl flex items-start justify-center pt-24 md:pt-32 px-4"
             onClick={() => { setSearchOpen(false); setSearchValue(""); }}
           >
             <motion.div
-              initial={{ opacity: 0, y: -20, scale: 0.98 }}
+              initial={{ opacity: 0, y: -40, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -20, scale: 0.98 }}
-              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              className="mx-auto max-w-xl px-4 pt-24 sm:pt-28"
+              exit={{ opacity: 0, y: -40, scale: 0.95 }}
+              className="w-full max-w-2xl bg-white border border-slate-200 rounded-[2.5rem] shadow-2xl p-2"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="relative flex items-center rounded-2xl bg-[var(--canvas)] border border-[var(--border)] shadow-2xl">
-                <Search className="absolute left-4 h-5 w-5 text-[var(--text-3)] pointer-events-none" />
+              <div className="relative flex items-center">
+                <div className="absolute left-6 h-10 w-10 rounded-2xl bg-slate-50 flex items-center justify-center">
+                  <Search className="h-5 w-5 text-slate-400" />
+                </div>
                 <input
                   ref={searchRef}
                   type="text"
                   value={searchValue}
                   onChange={(e) => setSearchValue(e.target.value)}
-                  placeholder="Search food, restaurants, cuisines..."
-                  className="w-full bg-transparent py-4 pl-12 pr-12 text-base text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:outline-none rounded-2xl"
+                  placeholder="What are you craving today?"
+                  className="w-full bg-transparent py-7 pl-20 pr-16 text-lg font-bold text-slate-900 placeholder:text-slate-200 outline-none"
                 />
-                <button
-                  onClick={() => { setSearchOpen(false); setSearchValue(""); }}
-                  className="absolute right-3 flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-3)] hover:bg-[var(--surface)] transition-colors"
+                <button 
+                  onClick={() => { setSearchOpen(false); setSearchValue(""); }} 
+                  className="absolute right-4 h-10 w-10 rounded-2xl hover:bg-slate-50 flex items-center justify-center text-slate-400"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-5 w-5" />
                 </button>
               </div>
-              <p className="mt-3 text-center text-[11px] text-[var(--text-3)] font-medium">
-                Press ESC to close
-              </p>
             </motion.div>
           </motion.div>
         )}

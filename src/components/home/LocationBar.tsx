@@ -22,8 +22,8 @@ export default function LocationBar() {
   const { status } = location;
 
   return (
-    <div className="sticky top-[56px] z-40 bg-[var(--canvas)]/95 backdrop-blur-sm border-b border-[var(--border-soft)]">
-      <div className="mx-auto max-w-[1440px] px-4 md:px-8 lg:px-12 py-2 flex items-center gap-2">
+    <div className="sticky top-[var(--nav-height,56px)] z-40 bg-[var(--canvas)]/95 backdrop-blur-sm border-b border-[var(--border-soft)] transition-all duration-500">
+      <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-12 py-2 flex items-center gap-2">
         <MapPin className="h-3.5 w-3.5 text-[var(--accent)] shrink-0" />
 
         {status === "detecting" && (
