@@ -68,6 +68,13 @@ export async function GET(
         createdAt: { gte: twoHoursAgo },
         NOT: { payment: { method: "DIRECT" } },
       },
+      // QR customer orders with physical payment (CASH / COUNTER / BANK):
+      // kitchen starts immediately; billing tab handles collection separately.
+      // Digital transfers (ESEWA, KHALTI) stay gated — verify before cooking.
+      {
+        status: "PENDING",
+        payment: { method: { in: ["CASH", "COUNTER", "BANK"] }, status: "PENDING" },
+      },
     ];
 
     // If prepaid is NOT forced, allow DINE_IN orders to skip the payment gate
