@@ -79,6 +79,7 @@ interface RestaurantContextType {
   restaurants: Restaurant[];
   selectedRestaurant: Restaurant | null;
   loading: boolean;
+  hasFetched: boolean;
   fetchRestaurants: () => Promise<void>;
   fetchIfNeeded: () => Promise<void>;
   createRestaurant: (data: {
@@ -120,6 +121,7 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
   const [selectedRestaurant, setSelectedRestaurant] =
     useState<Restaurant | null>(null);
   const [loading, setLoading] = useState(false);
+  const [hasFetched, setHasFetched] = useState(false);
   const hasFetchedRef = useRef(false);
   const fetchingRef = useRef(false);
 
@@ -135,12 +137,14 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
       const data = await apiFetch<Restaurant[]>("/api/restaurants");
       setRestaurants(data);
       hasFetchedRef.current = true;
+      setHasFetched(true);
       setSelectedRestaurant((prev) => {
         if (!prev) return null;
         return data.find((r) => r.id === prev.id) ?? null;
       });
     } catch {
       setRestaurants([]);
+      setHasFetched(true);
     } finally {
       fetchingRef.current = false;
       setLoading(false);
@@ -258,6 +262,7 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
         restaurants,
         selectedRestaurant,
         loading,
+        hasFetched,
         fetchRestaurants,
         fetchIfNeeded,
         createRestaurant,

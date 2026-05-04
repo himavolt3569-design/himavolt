@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Shield,
+  ShieldCheck,
   Activity,
   Users,
   Store,
@@ -25,6 +26,8 @@ import {
   LayoutTemplate,
   UserX,
   Image,
+  Loader2,
+  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
 import MasterOverview from "@/components/admin/MasterOverview";
@@ -123,6 +126,7 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -142,7 +146,8 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
         return;
       }
 
-      onSuccess();
+      setSuccess(true);
+      setTimeout(onSuccess, 1500);
     } catch {
       setError("Network error. Please try again.");
     } finally {
@@ -151,119 +156,149 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-[#EFF6FF] via-[#F5F8FF] to-[#EDF2FF] p-4">
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 h-96 w-96 rounded-full bg-blue-100/70 blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 h-96 w-96 rounded-full bg-indigo-100/60 blur-3xl" />
+    <div className="flex min-h-screen items-center justify-center bg-[#F8FAFC] p-4 overflow-hidden relative">
+      {/* ── Technical Background ── */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: `linear-gradient(to right, #000 1px, transparent 1px), linear-gradient(to bottom, #000 1px, transparent 1px)`, backgroundSize: '40px 40px' }} />
+        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-blue-500/[0.03] rounded-full blur-[120px] -mr-64 -mt-64" />
+        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-indigo-500/[0.03] rounded-full blur-[100px] -ml-32 -mb-32" />
       </div>
 
       <motion.div
-        initial={{ opacity: 0, y: 20, scale: 0.95 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
-        className="relative w-full max-w-sm"
+        initial={{ opacity: 0, scale: 0.98, y: 10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        className="relative w-full max-w-[420px] z-10"
       >
-        {/* Logo/Header */}
-        <div className="mb-8 text-center">
-          <motion.div
-            initial={{ scale: 0.5, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
-            className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-linear-to-br from-blue-500 to-indigo-500 shadow-lg shadow-blue-200/60"
-          >
-            <Shield className="h-8 w-8 text-white" />
-          </motion.div>
-          <h1 className="text-2xl font-bold text-[#1A2744]">Master Admin</h1>
-          <p className="mt-1 text-sm text-slate-400">
-            HimaVolt System Control Panel
-          </p>
-        </div>
+        <div className="bg-white border border-slate-200 p-8 md:p-12 rounded-[3rem] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.06)] relative overflow-hidden">
+          
+          {/* Top Status Bar */}
+          <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-transparent via-blue-500/20 to-transparent" />
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="overflow-hidden rounded-2xl border border-blue-100 bg-[var(--canvas)]/90 shadow-xl shadow-blue-100/40 backdrop-blur-sm">
-            <div className="border-b border-slate-100 p-4">
-              <label className="mb-1.5 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
-                <KeyRound className="h-3.5 w-3.5" />
-                Admin ID
-              </label>
-              <input
-                type="text"
-                value={adminId}
-                onChange={(e) => setAdminId(e.target.value)}
-                placeholder="Enter admin ID"
-                required
-                autoFocus
-                autoComplete="off"
-                className="w-full bg-transparent text-sm font-medium text-slate-800 placeholder:text-slate-300 focus:outline-none"
-              />
-            </div>
-
-            <div className="p-4">
-              <label className="mb-1.5 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
-                <Lock className="h-3.5 w-3.5" />
-                Password
-              </label>
-              <div className="flex items-center gap-2">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter password"
-                  required
-                  autoComplete="off"
-                  className="flex-1 bg-transparent text-sm font-medium text-slate-800 placeholder:text-slate-300 focus:outline-none"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((p) => !p)}
-                  className="text-slate-300 hover:text-slate-500 transition-colors"
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <AnimatePresence>
-            {error && (
+          <AnimatePresence mode="wait">
+            {success ? (
               <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                className="flex items-center gap-2 rounded-xl bg-red-50 border border-red-100 px-4 py-2.5 text-xs text-red-500"
+                key="success"
+                initial={{ opacity: 0, filter: "blur(10px)" }}
+                animate={{ opacity: 1, filter: "blur(0px)" }}
+                className="flex flex-col items-center text-center py-10"
               >
-                <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
-                {error}
+                <motion.div
+                  initial={{ scale: 0.5 }}
+                  animate={{ scale: 1 }}
+                  className="h-20 w-20 rounded-full bg-slate-900 flex items-center justify-center mb-8 shadow-2xl"
+                >
+                  <ShieldCheck className="h-10 w-10 text-white" />
+                </motion.div>
+                <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tighter mb-2">Verified</h2>
+                <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Master Node Sequence Initiated</p>
               </motion.div>
+            ) : (
+              <div key="form">
+                {/* Header */}
+                <div className="mb-12 text-center">
+                  <motion.div
+                    whileHover={{ rotate: 360 }}
+                    transition={{ duration: 0.7 }}
+                    className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-900 shadow-xl"
+                  >
+                    <Shield className="h-8 w-8 text-white" />
+                  </motion.div>
+                  <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tighter">Master Access</h1>
+                  <div className="mt-4 flex items-center justify-center gap-2">
+                    <div className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">HimaVolt Control Node</span>
+                  </div>
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-8">
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Identity Node</label>
+                    <div className="relative group">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <KeyRound className="h-4 w-4 text-slate-300 group-focus-within:text-blue-500 transition-colors" />
+                      </div>
+                      <input
+                        type="text"
+                        value={adminId}
+                        onChange={(e) => { setAdminId(e.target.value); setError(""); }}
+                        placeholder="ADMIN-NODE-01"
+                        required
+                        className="w-full pl-11 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-mono tracking-widest focus:outline-none focus:border-blue-500 focus:bg-white transition-all placeholder:tracking-normal placeholder:font-sans placeholder:text-slate-300 uppercase"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Secure Key</label>
+                    <div className="relative group">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <Lock className="h-4 w-4 text-slate-300 group-focus-within:text-blue-500 transition-colors" />
+                      </div>
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        value={password}
+                        onChange={(e) => { setPassword(e.target.value); setError(""); }}
+                        placeholder="••••••••"
+                        required
+                        className="w-full pl-11 pr-12 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-mono tracking-widest focus:outline-none focus:border-blue-500 focus:bg-white transition-all placeholder:text-slate-300"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 h-8 w-8 flex items-center justify-center text-slate-300 hover:text-slate-600 transition-colors"
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {error && (
+                    <motion.div
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className="flex items-center gap-3 p-4 rounded-2xl bg-red-50 border border-red-100 text-red-500"
+                    >
+                      <AlertCircle className="h-4 w-4 shrink-0" />
+                      <span className="text-[10px] font-black uppercase tracking-wider">{error}</span>
+                    </motion.div>
+                  )}
+
+                  <motion.button
+                    type="submit"
+                    disabled={loading || !adminId || !password}
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                    className={`w-full py-4.5 rounded-2xl font-black uppercase tracking-[0.2em] text-[11px] transition-all flex items-center justify-center gap-3 shadow-xl ${
+                      loading || !adminId || !password 
+                        ? "bg-slate-100 text-slate-300 cursor-not-allowed" 
+                        : "bg-slate-900 text-white shadow-slate-900/10"
+                    }`}
+                  >
+                    {loading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <>
+                        Authorize node
+                        <ArrowUpRight className="h-4 w-4" />
+                      </>
+                    )}
+                  </motion.button>
+                </form>
+              </div>
             )}
           </AnimatePresence>
+        </div>
 
-          <button
-            type="submit"
-            disabled={loading || !adminId || !password}
-            className="w-full rounded-xl bg-linear-to-r from-blue-500 to-indigo-500 py-3 text-sm font-bold text-white shadow-md shadow-blue-200/60 transition-all hover:from-blue-600 hover:to-indigo-600 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+        {/* Footer Link */}
+        <div className="mt-10 text-center">
+          <Link 
+            href="/" 
+            className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 hover:text-slate-900 transition-colors"
           >
-            {loading ? (
-              <div className="flex items-center justify-center gap-2">
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                Authenticating...
-              </div>
-            ) : (
-              <div className="flex items-center justify-center gap-2">
-                <Lock className="h-4 w-4" />
-                Access Admin Panel
-              </div>
-            )}
-          </button>
-        </form>
-
-        <p className="mt-6 text-center text-[11px] text-slate-300">
-          Authorized personnel only. All actions are logged.
-        </p>
+            &larr; Exit Control Node
+          </Link>
+        </div>
       </motion.div>
     </div>
   );
@@ -320,172 +355,180 @@ export default function MasterAdminPage() {
 
   // Authenticated — show dashboard
   return (
-    <div className="min-h-screen bg-[#F5F8FF]">
-      {/* ── Header ──────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-40 border-b border-blue-100/80 bg-[var(--canvas)]/90 backdrop-blur-xl shadow-sm shadow-blue-50/60">
-        <div className="mx-auto flex max-w-[1400px] items-center justify-between px-4 py-3 sm:px-6">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-linear-to-br from-blue-500 to-indigo-500 shadow-sm shadow-blue-200/50">
+    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 selection:bg-blue-500/10">
+      {/* ── High-Precision Global Header ────────────────────────── */}
+      <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-[1600px] items-center justify-between px-4 py-4 md:px-8">
+          <div className="flex items-center gap-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 shadow-lg shadow-slate-900/10">
               <Shield className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-[#1A2744]">Master Admin</h1>
-              <p className="text-[11px] text-slate-400">
-                HimaVolt System Control
-              </p>
+              <h1 className="text-sm font-black uppercase tracking-[0.2em] text-slate-900 leading-none">Control Node</h1>
+              <div className="mt-1.5 flex items-center gap-2">
+                <div className="h-1 w-1 rounded-full bg-emerald-500" />
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Alpha-HH-7</span>
+              </div>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => setMobileMenuOpen((p) => !p)}
-              className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 sm:hidden transition-colors"
-            >
-              {mobileMenuOpen ? (
-                <X className="h-5 w-5" />
-              ) : (
-                <Menu className="h-5 w-5" />
-              )}
-            </button>
-
             <Link
-              href="/dashboard"
-              className="hidden rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-600 transition-all hover:bg-slate-100 sm:inline-flex sm:items-center sm:gap-1"
+              href="/"
+              className="hidden md:flex h-10 px-4 items-center gap-2 rounded-xl border border-slate-200 text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-all"
             >
-              Dashboard <ArrowUpRight className="h-3 w-3" />
+              Public <ArrowUpRight className="h-3 w-3 opacity-40" />
             </Link>
 
             <button
               onClick={handleLogout}
-              className="flex items-center gap-1.5 rounded-lg border border-red-100 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-400 transition-all hover:bg-red-100"
+              className="h-10 px-5 rounded-xl bg-slate-100 text-slate-900 text-[10px] font-bold uppercase tracking-widest hover:bg-slate-200 transition-all active:scale-[0.98]"
             >
-              <LogOut className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Logout</span>
+              Terminate Session
+            </button>
+
+            <button
+              onClick={() => setMobileMenuOpen((p) => !p)}
+              className="md:hidden h-10 w-10 flex items-center justify-center rounded-xl bg-slate-50 text-slate-500 border border-slate-200"
+            >
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
           </div>
         </div>
       </header>
 
-      {/* ── Desktop Tab Bar ────────────────────────────────────── */}
-      <div className="sticky top-[57px] z-30 hidden border-b border-blue-100/80 bg-[var(--canvas)]/90 backdrop-blur-xl shadow-sm sm:block">
-        <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
-          <div className="flex gap-0 overflow-x-auto scrollbar-none">
+      {/* ── Precision Ribbon Navigation (Desktop) ───────────────── */}
+      <div className="sticky top-[73px] z-40 hidden md:block border-b border-slate-200 bg-white/60 backdrop-blur-lg">
+        <div className="mx-auto max-w-[1600px] px-8 py-3">
+          <div className="flex gap-1 overflow-x-auto scrollbar-none">
             {TABS.map((t) => (
               <button
                 key={t.id}
                 onClick={() => handleSetTab(t.id)}
-                className={`relative flex items-center gap-2 whitespace-nowrap px-4 py-3 text-sm font-medium transition-all ${
+                className={`relative px-5 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${
                   tab === t.id
-                    ? "text-blue-500"
-                    : "text-slate-400 hover:text-slate-600"
+                    ? "bg-slate-900 text-white shadow-md"
+                    : "text-slate-400 hover:text-slate-700 hover:bg-slate-50"
                 }`}
               >
-                <t.icon className="h-4 w-4" />
                 {t.label}
-                {tab === t.id && (
-                  <motion.div
-                    layoutId="master-admin-tab"
-                    className="absolute inset-x-0 -bottom-px h-0.5 bg-linear-to-r from-blue-500 to-indigo-500 rounded-full"
-                  />
-                )}
               </button>
             ))}
           </div>
         </div>
       </div>
 
-      {/* ── Mobile Tab Menu (Dropdown) ─────────────────────────── */}
+      {/* ── Enterprise Mobile Overlay ─────────────────────────── */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden border-b border-blue-100/80 bg-[var(--canvas)]/95 sm:hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[60] bg-slate-900/40 backdrop-blur-md flex items-end sm:items-center justify-center p-4 sm:p-6"
+            onClick={() => setMobileMenuOpen(false)}
           >
-            <div className="grid grid-cols-4 gap-1 p-3">
-              {TABS.map((t) => (
-                <button
-                  key={t.id}
-                  onClick={() => {
-                    handleSetTab(t.id);
-                    setMobileMenuOpen(false);
-                  }}
-                  className={`flex flex-col items-center gap-1 rounded-xl p-2.5 text-center transition-all ${
-                    tab === t.id
-                      ? "bg-blue-50 text-blue-500"
-                      : "text-slate-400 hover:bg-slate-50"
-                  }`}
-                >
-                  <t.icon className="h-5 w-5" />
-                  <span className="text-[10px] font-medium">
-                    {t.mobileLabel || t.label}
-                  </span>
-                </button>
-              ))}
-            </div>
+             <motion.div
+               initial={{ y: 100 }}
+               animate={{ y: 0 }}
+               exit={{ y: 100 }}
+               className="w-full max-w-lg bg-white rounded-[2.5rem] p-8 shadow-2xl overflow-hidden"
+               onClick={(e) => e.stopPropagation()}
+             >
+                <div className="flex items-center justify-between mb-8">
+                   <h2 className="text-xl font-black tracking-tight text-slate-900 uppercase">Directory</h2>
+                   <button onClick={() => setMobileMenuOpen(false)} className="h-10 w-10 flex items-center justify-center rounded-xl bg-slate-50 text-slate-400">
+                      <X className="h-5 w-5" />
+                   </button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                   {TABS.map((t) => (
+                      <button
+                        key={t.id}
+                        onClick={() => { handleSetTab(t.id); setMobileMenuOpen(false); }}
+                        className={`flex items-center gap-3 p-4 rounded-2xl transition-all ${
+                          tab === t.id ? "bg-slate-900 text-white" : "bg-slate-50 hover:bg-slate-100"
+                        }`}
+                      >
+                         <t.icon className={`h-4 w-4 ${tab === t.id ? "text-white" : "text-slate-400"}`} />
+                         <span className="text-[10px] font-bold uppercase tracking-widest">{t.label}</span>
+                      </button>
+                   ))}
+                </div>
+             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* ── Mobile Bottom Tab Bar ──────────────────────────────── */}
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-blue-100/80 bg-[var(--canvas)]/95 backdrop-blur-lg sm:hidden">
-        <div className="flex items-center justify-around px-1 py-1">
-          {TABS.slice(0, 5).map((t) => (
-            <button
-              key={t.id}
-              onClick={() => handleSetTab(t.id)}
-              className={`flex flex-1 flex-col items-center gap-0.5 rounded-lg py-1.5 transition-all ${
-                tab === t.id ? "text-blue-500" : "text-slate-400"
-              }`}
-            >
-              <t.icon className="h-4.5 w-4.5" />
-              <span className="text-[9px] font-medium">
-                {t.mobileLabel || t.label}
-              </span>
-            </button>
-          ))}
-          <button
-            onClick={() => setMobileMenuOpen((p) => !p)}
-            className={`flex flex-1 flex-col items-center gap-0.5 rounded-lg py-1.5 transition-all ${
-              TABS.slice(5).some((t) => t.id === tab)
-                ? "text-blue-500"
-                : "text-slate-400"
-            }`}
-          >
-            <Menu className="h-4.5 w-4.5" />
-            <span className="text-[9px] font-medium">More</span>
-          </button>
-        </div>
-      </div>
-
-      {/* ── Tab Content ────────────────────────────────────────── */}
-      <main className="mx-auto max-w-[1400px] px-4 py-6 pb-24 sm:px-6 sm:pb-6">
+      {/* ── Main Command Canvas ────────────────────────────────── */}
+      <main className="mx-auto max-w-[1600px] px-4 py-8 md:px-8 md:py-12 pb-24 md:pb-12">
         <AnimatePresence mode="wait">
           <motion.div
             key={tab}
-            initial={{ opacity: 0, y: 8 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.15 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
           >
             {tab === "overview" && (
               <MasterOverview onNavigate={(t) => handleSetTab(t as AdminTab)} />
             )}
-            {tab === "orders" && <AllOrdersTab />}
-            {tab === "restaurants" && <AllRestaurantsTab />}
-            {tab === "users" && <AllUsersTab />}
-            {tab === "inactive-users" && <InactiveUsersTab />}
-            {tab === "chats" && <AllChatsTab />}
-            {tab === "payments" && <AllPaymentsTab />}
-            {tab === "deliveries" && <AllDeliveriesTab />}
-            {tab === "audit" && <AuditTab />}
-            {tab === "bookings" && <AllBookingsTab />}
-            {tab === "footer-settings" && <FooterSettingsTab />}
-            {tab === "hero-settings" && <HeroSettingsTab />}
+            <div className={`${tab === "overview" ? "hidden" : "block"}`}>
+               <section className="rounded-[2rem] bg-white border border-slate-200 p-8 md:p-12 shadow-sm min-h-[600px]">
+                  <header className="mb-10 flex items-center justify-between">
+                     <div>
+                        <div className="flex items-center gap-2 mb-2">
+                           <div className="h-1.5 w-1.5 rounded-full bg-slate-900" />
+                           <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-slate-400">Node Cluster Active</span>
+                        </div>
+                        <h2 className="text-4xl font-black text-slate-900 tracking-tighter uppercase leading-none">
+                           {TABS.find(t => t.id === tab)?.label}
+                        </h2>
+                     </div>
+                  </header>
+
+                  <div className="grid gap-8">
+                     {tab === "orders" && <AllOrdersTab />}
+                     {tab === "restaurants" && <AllRestaurantsTab />}
+                     {tab === "users" && <AllUsersTab />}
+                     {tab === "inactive-users" && <InactiveUsersTab />}
+                     {tab === "chats" && <AllChatsTab />}
+                     {tab === "payments" && <AllPaymentsTab />}
+                     {tab === "deliveries" && <AllDeliveriesTab />}
+                     {tab === "audit" && <AuditTab />}
+                     {tab === "bookings" && <AllBookingsTab />}
+                     {tab === "footer-settings" && <FooterSettingsTab />}
+                     {tab === "hero-settings" && <HeroSettingsTab />}
+                  </div>
+               </section>
+            </div>
           </motion.div>
         </AnimatePresence>
       </main>
+
+      {/* ── Discrete Mobile Dock ───────────────────────────────── */}
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 md:hidden w-[90vw] max-w-[400px]">
+         <div className="bg-white border border-slate-200 rounded-3xl p-1.5 flex items-center justify-around shadow-2xl">
+            {TABS.slice(0, 4).map((t) => (
+              <button
+                key={t.id}
+                onClick={() => handleSetTab(t.id)}
+                className={`flex h-12 w-12 items-center justify-center rounded-2xl transition-all ${
+                  tab === t.id ? "bg-slate-900 text-white shadow-lg" : "text-slate-400 hover:bg-slate-50"
+                }`}
+              >
+                <t.icon className="h-5 w-5" />
+              </button>
+            ))}
+            <button
+              onClick={() => setMobileMenuOpen(true)}
+              className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-50 text-slate-900 border border-slate-100"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+         </div>
+      </div>
     </div>
   );
 }

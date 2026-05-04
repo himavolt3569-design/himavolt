@@ -1,27 +1,34 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Store,
   Search,
-  Filter,
   RefreshCw,
   ChevronLeft,
   ChevronRight,
   ChevronDown,
-  X,
   Star,
   MapPin,
-  Users,
   ShoppingBag,
   ToggleLeft,
   ToggleRight,
   ExternalLink,
   Trash2,
-  CheckSquare,
   Zap,
+  Rocket,
+  LayoutGrid,
 } from "lucide-react";
+import {
+  BarChart,
+  Bar,
+  ResponsiveContainer,
+  XAxis,
+  Tooltip,
+  Cell,
+} from "recharts";
+import Link from "next/link";
 import DeleteConfirmDialog from "@/components/admin/DeleteConfirmDialog";
 import RestaurantFeatureOverridesModal from "@/components/admin/RestaurantFeatureOverridesModal";
 
@@ -65,58 +72,44 @@ export default function AllRestaurantsTab() {
   const [typeFilter, setTypeFilter] = useState("All");
   const [activeFilter, setActiveFilter] = useState("");
   const [page, setPage] = useState(1);
-  const [showFilters, setShowFilters] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [toggling, setToggling] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Restaurant | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [featuresTarget, setFeaturesTarget] = useState<Restaurant | null>(null);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
-
-  const allSelected = restaurants.length > 0 && selectedIds.size === restaurants.length;
-
-  const toggleSelect = (id: string) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-  };
-
-  const toggleSelectAll = () => {
-    setSelectedIds(allSelected ? new Set() : new Set(restaurants.map((r) => r.id)));
-  };
 
   const fetchRestaurants = useCallback(
     async (p = page) => {
       setLoading(true);
-      setSelectedIds(new Set());
       try {
         const params = new URLSearchParams({ page: String(p), limit: "30" });
         if (search) params.set("search", search);
         if (typeFilter !== "All") params.set("type", typeFilter);
         if (activeFilter) params.set("isActive", activeFilter);
         const res = await fetch(`/api/admin/restaurants?${params}`);
-        if (!res.ok) throw new Error("Failed");
         const data = await res.json();
-        setRestaurants(data.restaurants);
+        setRestaurants(data.restaurants || []);
         setPagination(data.pagination);
-      } catch { /* silent */ }
-      finally { setLoading(false); }
+      } catch {} finally { setLoading(false); }
     },
     [page, search, typeFilter, activeFilter],
   );
 
-  useEffect(() => { fetchRestaurants(1); /* eslint-disable-next-line */ }, []);
-  useEffect(() => { if (!loading) fetchRestaurants(page); /* eslint-disable-next-line */ }, [page, typeFilter, activeFilter]);
-  useEffect(() => {
+  useEffect(() => { fetchRestaurants(1); }, []);
+  useEffect(() => { if (!loading) fetchRestaurants(page); }, [page, typeFilter, activeFilter]);
+
+  const handleSearchChange = (val: string) => {
+    setSearch(val);
     if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
-    searchTimeoutRef.current = setTimeout(() => { setPage(1); fetchRestaurants(1); }, 400);
-    return () => { if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search]);
+    searchTimeoutRef.current = setTimeout(() => fetchRestaurants(1), 500);
+  };
+
+  // Chart Data: Orders by top 5 restaurants
+  const chartData = useMemo(() => 
+    restaurants.slice(0, 6).map(r => ({ name: r.name.split(' ')[0], orders: r.totalOrders })), 
+    [restaurants]
+  );
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -135,23 +128,6 @@ export default function AllRestaurantsTab() {
     finally { setDeleting(false); setDeleteTarget(null); }
   };
 
-  const handleBulkDelete = async () => {
-    setDeleting(true);
-    try {
-      const res = await fetch("/api/admin/restaurants", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ids: Array.from(selectedIds) }),
-      });
-      if (res.ok) {
-        setRestaurants((prev) => prev.filter((r) => !selectedIds.has(r.id)));
-        if (pagination) setPagination((p) => p ? { ...p, total: p.total - selectedIds.size } : p);
-        setSelectedIds(new Set());
-      }
-    } catch { /* silent */ }
-    finally { setDeleting(false); setBulkDeleteOpen(false); }
-  };
-
   const toggleActive = async (id: string, current: boolean) => {
     setToggling(id);
     try {
@@ -160,237 +136,242 @@ export default function AllRestaurantsTab() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ restaurantId: id, isActive: !current }),
       });
-      if (res.ok) setRestaurants((prev) => prev.map((r) => (r.id === id ? { ...r, isActive: !current } : r)));
-    } catch { /* silent */ }
-    finally { setToggling(null); }
+      if (res.ok) fetchRestaurants(page);
+    } catch {} finally { setToggling(null); }
   };
 
   return (
-    <div className="space-y-4">
-      <AnimatePresence>
-        {selectedIds.size > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            className="flex items-center gap-3 rounded-xl bg-red-50 px-4 py-2.5 ring-1 ring-red-100"
-          >
-            <CheckSquare className="h-4 w-4 text-red-500 shrink-0" />
-            <span className="text-sm font-semibold text-red-600">{selectedIds.size} selected</span>
-            <button onClick={() => setSelectedIds(new Set())} className="text-xs text-[var(--text-2)] hover:text-[var(--text-2)] underline underline-offset-2">
-              Deselect all
-            </button>
-            <button
-              onClick={() => setBulkDeleteOpen(true)}
-              className="ml-auto flex items-center gap-1.5 rounded-lg bg-red-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-600 transition-colors"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-              Delete {selectedIds.size}
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="relative flex-1 sm:max-w-xs">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-3)]" />
-          <input
-            type="text"
-            placeholder="Search restaurants, owners, cities..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] py-2 pl-9 pr-3 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
-          />
-          {search && (
-            <button onClick={() => setSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--text-3)] hover:text-[var(--accent)]">
-              <X className="h-3.5 w-3.5" />
-            </button>
-          )}
-        </div>
-        <button
-          onClick={() => setShowFilters((p) => !p)}
-          className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-medium transition-all ${
-            showFilters || typeFilter !== "All" || activeFilter
-              ? "border-[var(--accent)] bg-[var(--accent)]/5 text-[var(--accent)]"
-              : "border-[var(--border)] text-[var(--text-2)] hover:bg-[var(--accent-muted)]"
-          }`}
-        >
-          <Filter className="h-3.5 w-3.5" />
-          Filter
-        </button>
-        <button
-          onClick={() => fetchRestaurants(page)}
-          className="flex items-center gap-1.5 rounded-xl border border-[var(--border)] px-3 py-2 text-xs font-medium text-[var(--text-2)] hover:bg-[var(--accent-muted)]"
-        >
-          <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
-        </button>
-        {pagination && <span className="ml-auto text-xs text-[var(--text-3)]">{pagination.total} restaurants</span>}
-      </div>
-
-      <AnimatePresence>
-        {showFilters && (
-          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-            <div className="space-y-2 pb-2">
-              <div>
-                <p className="mb-1 text-[11px] font-medium text-[var(--text-3)] uppercase">Type</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {RESTAURANT_TYPES.map((t) => (
-                    <button key={t} onClick={() => { setTypeFilter(t); setPage(1); }}
-                      className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-all ${typeFilter === t ? "bg-[var(--text-1)] text-white" : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--accent-muted)]"}`}>
-                      {t === "All" ? "All Types" : t.replace(/_/g, " ")}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <p className="mb-1 text-[11px] font-medium text-[var(--text-3)] uppercase">Status</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {["", "true", "false"].map((v) => (
-                    <button key={v} onClick={() => { setActiveFilter(v); setPage(1); }}
-                      className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-all ${activeFilter === v ? "bg-[var(--text-1)] text-white" : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--accent-muted)]"}`}>
-                      {v === "" ? "All" : v === "true" ? "Active" : "Inactive"}
-                    </button>
-                  ))}
-                </div>
-              </div>
+    <div className="space-y-10">
+      {/* ── Kitchen Performance Visualizer ── */}
+      <section className="grid lg:grid-cols-3 gap-8">
+         <div className="lg:col-span-2 rounded-[2.5rem] bg-slate-900 p-10 text-white shadow-2xl relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-8 opacity-5">
+               <Rocket className="h-48 w-48" />
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            <div className="relative z-10 h-full flex flex-col">
+               <div className="flex items-center gap-3 mb-8">
+                  <div className="h-2 w-2 rounded-full bg-orange-500 animate-pulse" />
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">Market Presence</span>
+               </div>
+               <div className="flex-1 min-h-[200px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                     <BarChart data={chartData}>
+                        <Bar dataKey="orders" fill="#eaa94d" radius={[10, 10, 0, 0]}>
+                           {chartData.map((_, index) => (
+                              <Cell key={`cell-${index}`} fillOpacity={0.8} />
+                           ))}
+                        </Bar>
+                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10 }} />
+                        <Tooltip cursor={{ fill: 'rgba(255,255,255,0.05)' }} contentStyle={{ backgroundColor: '#0f172a', border: 'none', borderRadius: '12px' }} />
+                     </BarChart>
+                  </ResponsiveContainer>
+               </div>
+            </div>
+         </div>
 
-      <div className="overflow-hidden rounded-2xl border border-[var(--accent-muted)] bg-[var(--canvas)] shadow-sm">
-        <div className="flex items-center gap-3 border-b border-[var(--accent-muted)] px-4 py-2.5">
-          <input
-            type="checkbox"
-            checked={allSelected}
-            onChange={toggleSelectAll}
-            className="h-4 w-4 rounded border-[var(--border)] accent-red-500 cursor-pointer"
-            title="Select all"
-          />
-          <Store className="h-4 w-4 text-[var(--accent)]" />
-          <span className="text-xs font-semibold text-[var(--text-2)]">All Restaurants</span>
-        </div>
-
-        {loading && restaurants.length === 0 ? (
-          <div className="flex items-center justify-center py-16">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" />
-          </div>
-        ) : restaurants.length === 0 ? (
-          <div className="py-16 text-center">
-            <Store className="mx-auto mb-2 h-8 w-8 text-[var(--text-3)]" />
-            <p className="text-sm text-[var(--text-3)]">No restaurants found</p>
-          </div>
-        ) : (
-          <div className="divide-y divide-[var(--border)]">
-            {restaurants.map((r) => {
-              const isExpanded = expandedId === r.id;
-              const isSelected = selectedIds.has(r.id);
-              return (
-                <div key={r.id} className={`transition-all ${isSelected ? "bg-red-50/60" : "hover:bg-[var(--accent-muted)]/40"}`}>
-                  <div className="flex w-full items-center gap-3 px-4 py-3">
-                    <input
-                      type="checkbox"
-                      checked={isSelected}
-                      onChange={() => toggleSelect(r.id)}
-                      className="h-4 w-4 shrink-0 rounded border-[var(--border)] accent-red-500 cursor-pointer"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setExpandedId(isExpanded ? null : r.id)}
-                      className="flex flex-1 items-center gap-3 text-left min-w-0"
-                    >
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--accent-muted)] overflow-hidden">
-                        {r.imageUrl ? (
-                          <img src={r.imageUrl} alt={r.name} className="h-10 w-10 object-cover" />
-                        ) : (
-                          <Store className="h-5 w-5 text-[var(--accent)]" />
-                        )}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-bold text-[var(--text-1)] truncate">{r.name}</span>
-                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${r.isActive ? "bg-[var(--accent-muted)] text-[var(--accent-text)]" : "bg-red-100 text-red-700"}`}>
-                            {r.isActive ? "Active" : "Inactive"}
-                          </span>
-                          <span className="rounded-full bg-[var(--surface)] px-2 py-0.5 text-[10px] font-medium text-[var(--text-2)]">
-                            {r.type.replace(/_/g, " ")}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-3 text-xs text-[var(--text-2)]">
-                          <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{r.city}</span>
-                          <span className="flex items-center gap-1"><ShoppingBag className="h-3 w-3" />{r._count.orders}</span>
-                          <span className="flex items-center gap-1"><Users className="h-3 w-3" />{r._count.staff}</span>
-                          {r.rating > 0 && <span className="flex items-center gap-0.5"><Star className="h-3 w-3 fill-[var(--accent)] text-[var(--accent)]" />{r.rating.toFixed(1)}</span>}
-                        </div>
-                      </div>
-                      <div className="hidden shrink-0 text-right sm:block">
-                        <p className="text-xs font-medium text-[var(--text-2)]">{r.owner.name}</p>
-                        <p className="text-[11px] text-[var(--text-3)]">{r.owner.email}</p>
-                      </div>
-                      <ChevronDown className={`h-3.5 w-3.5 shrink-0 text-[var(--text-3)] transition-transform ${isExpanded ? "rotate-180" : ""}`} />
-                    </button>
+         <div className="rounded-[2.5rem] bg-white border border-slate-100 p-10 shadow-xl flex flex-col justify-between">
+            <div>
+               <h3 className="text-xl font-black tracking-tighter text-slate-900 mb-2 uppercase italic">Registry Filter</h3>
+               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-8">Manage active nodes</p>
+               
+               <div className="space-y-6">
+                  <div className="relative">
+                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300" />
+                     <input 
+                        type="text" 
+                        placeholder="Search City, Owner..."
+                        value={search}
+                        onChange={(e) => handleSearchChange(e.target.value)}
+                        className="w-full bg-slate-50 border-none rounded-2xl py-4 pl-12 pr-4 text-sm font-black focus:ring-2 focus:ring-[var(--accent)] transition-all"
+                     />
                   </div>
-
-                  <AnimatePresence>
-                    {isExpanded && (
-                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                        <div className="border-t border-[var(--accent-muted)] bg-[var(--accent-muted)]/30 px-4 py-3 space-y-3">
-                          <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-xs sm:grid-cols-4">
-                            <div><span className="text-[var(--text-3)]">Slug</span><p className="font-mono text-[var(--text-1)]">{r.slug}</p></div>
-                            <div><span className="text-[var(--text-3)]">Code</span><p className="font-mono text-[var(--text-1)]">{r.restaurantCode}</p></div>
-                            <div><span className="text-[var(--text-3)]">Phone</span><p className="font-medium text-[var(--text-1)]">{r.phone}</p></div>
-                            <div><span className="text-[var(--text-3)]">Currency</span><p className="font-medium text-[var(--text-1)]">{r.currency}</p></div>
-                            <div><span className="text-[var(--text-3)]">Menu Items</span><p className="font-medium text-[var(--text-1)]">{r._count.menuItems}</p></div>
-                            <div><span className="text-[var(--text-3)]">Reviews</span><p className="font-medium text-[var(--text-1)]">{r._count.reviews}</p></div>
-                            <div><span className="text-[var(--text-3)]">Total Orders</span><p className="font-bold text-[var(--text-1)]">{r.totalOrders}</p></div>
-                            <div><span className="text-[var(--text-3)]">Created</span><p className="font-medium text-[var(--text-1)]">{new Date(r.createdAt).toLocaleDateString()}</p></div>
-                            <div className="col-span-2 sm:col-span-4"><span className="text-[var(--text-3)]">Address</span><p className="font-medium text-[var(--text-1)]">{r.address}</p></div>
-                            <div className="col-span-2 sm:col-span-4"><span className="text-[var(--text-3)]">Owner</span><p className="font-medium text-[var(--text-1)]">{r.owner.name} ({r.owner.email})</p></div>
-                          </div>
-                          <div className="flex items-center gap-2 pt-1">
-                            <button onClick={() => toggleActive(r.id, r.isActive)} disabled={toggling === r.id}
-                              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all disabled:opacity-50 ${r.isActive ? "bg-red-100 text-red-600 hover:bg-red-200" : "bg-[var(--accent-muted)] text-[var(--accent-text)] hover:bg-[#fde9ba]"}`}>
-                              {r.isActive ? <ToggleRight className="h-3.5 w-3.5" /> : <ToggleLeft className="h-3.5 w-3.5" />}
-                              {toggling === r.id ? "Updating..." : r.isActive ? "Deactivate" : "Activate"}
-                            </button>
-                            <a href={`/menu/${r.slug}`} target="_blank" rel="noopener noreferrer"
-                              className="flex items-center gap-1.5 rounded-lg bg-[var(--accent-muted)] px-3 py-1.5 text-xs font-medium text-[var(--accent-hover)] hover:bg-[var(--accent-muted)]">
-                              <ExternalLink className="h-3.5 w-3.5" />View Menu
-                            </a>
-                            <button onClick={() => setFeaturesTarget(r)}
-                              className="flex items-center gap-1.5 rounded-lg bg-violet-50 px-3 py-1.5 text-xs font-medium text-violet-700 hover:bg-violet-100 transition-all">
-                              <Zap className="h-3.5 w-3.5" />Features
-                            </button>
-                            <button onClick={() => setDeleteTarget(r)}
-                              className="ml-auto flex items-center gap-1.5 rounded-lg bg-red-50 px-3 py-1.5 text-xs font-medium text-red-500 hover:bg-red-100 transition-all">
-                              <Trash2 className="h-3.5 w-3.5" />Delete
-                            </button>
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {pagination && pagination.totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-[var(--border-soft)] px-4 py-2.5">
-            <span className="text-xs text-[var(--text-3)]">Page {pagination.page} of {pagination.totalPages}</span>
-            <div className="flex gap-1.5">
-              <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-2)] hover:bg-[var(--accent-muted)] disabled:opacity-40"><ChevronLeft className="h-3.5 w-3.5" /></button>
-              <button disabled={page >= pagination.totalPages} onClick={() => setPage((p) => p + 1)} className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-2)] hover:bg-[var(--accent-muted)] disabled:opacity-40"><ChevronRight className="h-3.5 w-3.5" /></button>
+                  <div className="flex flex-wrap gap-2">
+                     {RESTAURANT_TYPES.slice(0, 5).map(t => (
+                        <button 
+                           key={t}
+                           onClick={() => setTypeFilter(t)}
+                           className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${typeFilter === t ? 'bg-slate-900 text-white shadow-lg' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'}`}
+                        >
+                           {t === 'All' ? 'All' : t.split('_')[0]}
+                        </button>
+                     ))}
+                  </div>
+               </div>
             </div>
-          </div>
-        )}
+            
+            <button 
+               onClick={() => fetchRestaurants(page)}
+               className="w-full py-4 rounded-2xl bg-[var(--accent)] text-white font-black uppercase tracking-[0.2em] text-[10px] shadow-xl shadow-orange-200 flex items-center justify-center gap-3 active:scale-[0.98] transition-all"
+            >
+               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+               Update Registry
+            </button>
+         </div>
+      </section>
+
+      {/* ── The Kitchen Gallery ── */}
+      <div className="space-y-4">
+         <div className="flex items-center justify-between px-6">
+            <h3 className="text-sm font-black uppercase tracking-[0.3em] text-slate-400">Node Directory</h3>
+            <div className="flex items-center gap-4 text-[10px] font-bold text-slate-400">
+               <span>Total: {pagination?.total || 0}</span>
+               <div className="h-1 w-1 rounded-full bg-slate-200" />
+               <LayoutGrid className="h-4 w-4 opacity-40" />
+            </div>
+         </div>
+
+         <div className="grid gap-6">
+            {restaurants.map((r, i) => {
+               const isExpanded = expandedId === r.id;
+               
+               return (
+                  <motion.div
+                     key={r.id}
+                     initial={{ opacity: 0, y: 20 }}
+                     animate={{ opacity: 1, y: 0 }}
+                     transition={{ delay: i * 0.05 }}
+                     className={`relative overflow-hidden rounded-[2.5rem] bg-white border border-slate-100 transition-all duration-500 hover:shadow-2xl hover:shadow-slate-200/50 ${isExpanded ? 'ring-2 ring-[var(--accent)]' : ''}`}
+                  >
+                     <div 
+                        onClick={() => setExpandedId(isExpanded ? null : r.id)}
+                        className="flex flex-col md:flex-row md:items-center gap-8 p-6 md:p-10 cursor-pointer"
+                     >
+                        {/* Image Node */}
+                        <div className="h-20 w-20 shrink-0 rounded-3xl overflow-hidden shadow-xl border-4 border-white">
+                           {r.imageUrl ? (
+                              <img src={r.imageUrl} alt="" className="h-full w-full object-cover" />
+                           ) : (
+                              <div className="h-full w-full bg-slate-50 flex items-center justify-center text-slate-300">
+                                 <Store className="h-8 w-8" />
+                              </div>
+                           )}
+                        </div>
+
+                        {/* Primary Info */}
+                        <div className="flex-1 min-w-0">
+                           <div className="flex items-center gap-4 mb-2">
+                              <h4 className="text-2xl font-black text-slate-900 tracking-tighter">{r.name}</h4>
+                              <div className={`px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${r.isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-500'}`}>
+                                 {r.isActive ? 'Active' : 'Offline'}
+                              </div>
+                           </div>
+                           <div className="flex items-center gap-6 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                              <span className="flex items-center gap-2"><MapPin className="h-3.5 w-3.5 opacity-40 text-[var(--accent)]" /> {r.city}</span>
+                              <span className="flex items-center gap-2"><ShoppingBag className="h-3.5 w-3.5 opacity-40 text-[var(--accent)]" /> {r.totalOrders} Global Orders</span>
+                              <span className="flex items-center gap-2"><Star className="h-3.5 w-3.5 fill-[var(--accent)] text-[var(--accent)]" /> {r.rating.toFixed(1)}</span>
+                           </div>
+                        </div>
+
+                        {/* Actions & Chevron */}
+                        <div className="flex items-center gap-12 shrink-0">
+                           <div className="hidden lg:block text-right">
+                              <p className="text-xs font-black text-slate-900 uppercase tracking-tighter">{r.owner.name}</p>
+                              <p className="text-[10px] font-bold text-slate-400 uppercase truncate max-w-[120px]">{r.owner.email}</p>
+                           </div>
+                           <ChevronDown className={`h-6 w-6 text-slate-200 transition-transform duration-500 ${isExpanded ? 'rotate-180 text-[var(--accent)]' : ''}`} />
+                        </div>
+                     </div>
+
+                     <AnimatePresence>
+                        {isExpanded && (
+                           <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              className="border-t border-slate-50 bg-slate-50/20 overflow-hidden"
+                           >
+                              <div className="p-10 md:p-14 space-y-12">
+                                 <div className="grid md:grid-cols-3 gap-12">
+                                    {/* Tech Metadata */}
+                                    <div className="space-y-8 col-span-2">
+                                       <h5 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Node Configuration</h5>
+                                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-8">
+                                          {[
+                                             { label: "Internal Slug", val: r.slug, mono: true },
+                                             { label: "Access Code", val: r.restaurantCode, mono: true },
+                                             { label: "Currency", val: r.currency },
+                                             { label: "Staff Pool", val: r._count.staff },
+                                             { label: "Catalog Size", val: r._count.menuItems },
+                                             { label: "Review Count", val: r._count.reviews },
+                                          ].map(meta => (
+                                             <div key={meta.label}>
+                                                <p className="text-[9px] font-black text-slate-400 uppercase mb-1 tracking-widest">{meta.label}</p>
+                                                <p className={`text-sm font-black text-slate-900 ${meta.mono ? 'font-mono tracking-tighter' : ''}`}>{meta.val}</p>
+                                             </div>
+                                          ))}
+                                       </div>
+                                       <div className="pt-8">
+                                          <p className="text-[9px] font-black text-slate-400 uppercase mb-2 tracking-widest">Physical Origin</p>
+                                          <p className="text-sm font-black text-slate-900">{r.address}</p>
+                                       </div>
+                                    </div>
+
+                                    {/* Action Command Hub */}
+                                    <div className="bg-white p-8 rounded-[3rem] shadow-xl border border-slate-100 flex flex-col justify-between gap-4">
+                                       <button 
+                                          onClick={() => toggleActive(r.id, r.isActive)}
+                                          className={`w-full py-4 rounded-2xl flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-widest transition-all ${r.isActive ? 'bg-red-50 text-red-500 hover:bg-red-100' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'}`}
+                                       >
+                                          {r.isActive ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
+                                          {r.isActive ? 'Deactivate Node' : 'Initialize Node'}
+                                       </button>
+                                       
+                                       <Link href={`/menu/${r.slug}`} target="_blank" className="w-full py-4 rounded-2xl bg-slate-50 text-slate-400 hover:text-slate-900 flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-widest transition-all">
+                                          <ExternalLink className="h-4 w-4" /> View Interface
+                                       </Link>
+                                       
+                                       <button 
+                                          onClick={() => setFeaturesTarget(r)}
+                                          className="w-full py-4 rounded-2xl bg-violet-50 text-violet-600 hover:bg-violet-100 flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-widest transition-all"
+                                       >
+                                          <Zap className="h-4 w-4" /> Feature Overrides
+                                       </button>
+
+                                       <button 
+                                          onClick={() => setDeleteTarget(r)}
+                                          className="w-full py-4 rounded-2xl bg-red-500 text-white shadow-xl shadow-red-200 hover:bg-red-600 flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-widest transition-all"
+                                       >
+                                          <Trash2 className="h-4 w-4" /> Wipe Node
+                                       </button>
+                                    </div>
+                                 </div>
+                              </div>
+                           </motion.div>
+                        )}
+                     </AnimatePresence>
+                  </motion.div>
+               );
+            })}
+         </div>
+
+         {/* Pagination Flow */}
+         {pagination && pagination.totalPages > 1 && (
+            <div className="flex items-center justify-center gap-4 pt-12">
+               <button 
+                  disabled={page <= 1}
+                  onClick={() => setPage(p => p - 1)}
+                  className="h-14 w-14 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-900 disabled:opacity-30 transition-all"
+               >
+                  <ChevronLeft className="h-6 w-6" />
+               </button>
+               <span className="text-[10px] font-black text-slate-900 uppercase tracking-widest px-10 py-4 bg-white rounded-full border border-slate-100 shadow-sm">
+                  {page} of {pagination.totalPages}
+               </span>
+               <button 
+                  disabled={page >= pagination.totalPages}
+                  onClick={() => setPage(p => p + 1)}
+                  className="h-14 w-14 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-900 disabled:opacity-30 transition-all"
+               >
+                  <ChevronRight className="h-6 w-6" />
+               </button>
+            </div>
+         )}
       </div>
 
       <DeleteConfirmDialog
         open={!!deleteTarget}
-        title={`Delete "${deleteTarget?.name}"?`}
-        description="This will permanently delete the restaurant and all its orders, menu, staff, and data. This cannot be undone."
+        title={`Wipe Node "${deleteTarget?.name}"?`}
+        description="This will permanently delete the restaurant and all its associated data clusters. This action is irreversible."
         loading={deleting}
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
@@ -404,15 +385,6 @@ export default function AllRestaurantsTab() {
           onClose={() => setFeaturesTarget(null)}
         />
       )}
-
-      <DeleteConfirmDialog
-        open={bulkDeleteOpen}
-        title={`Delete ${selectedIds.size} restaurant${selectedIds.size > 1 ? "s" : ""}?`}
-        description={`This will permanently delete ${selectedIds.size} restaurant${selectedIds.size > 1 ? "s" : ""} and ALL their data (orders, menus, staff, reviews). This cannot be undone.`}
-        loading={deleting}
-        onConfirm={handleBulkDelete}
-        onCancel={() => setBulkDeleteOpen(false)}
-      />
     </div>
   );
 }

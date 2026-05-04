@@ -1480,7 +1480,7 @@ export default function DashboardPage() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [posWizardOpen, setPosWizardOpen] = useState(false);
   const { orders, setRestaurantId } = useLiveOrders();
-  const { restaurants, selectedRestaurant, selectRestaurant, loading: resLoading, fetchRestaurants } = useRestaurant();
+  const { restaurants, selectedRestaurant, selectRestaurant, loading: resLoading, hasFetched: resHasFetched, fetchRestaurants } = useRestaurant();
   const { user, isLoaded, userRole } = useAuth();
   const dashRouter = useRouter();
   const newOrderCount = orders.filter((o) => o.status === "PENDING").length;
@@ -1572,12 +1572,12 @@ export default function DashboardPage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  /* Redirect OWNER with no restaurants to onboarding */
+  /* Redirect OWNER with no restaurants to onboarding — only after fetch completes */
   useEffect(() => {
-    if (userRole === "OWNER" && !resLoading && restaurants.length === 0) {
+    if (userRole === "OWNER" && resHasFetched && !resLoading && restaurants.length === 0) {
       dashRouter.replace("/onboarding");
     }
-  }, [userRole, dashRouter, resLoading, restaurants.length]);
+  }, [userRole, dashRouter, resHasFetched, resLoading, restaurants.length]);
 
   // Route customers away once auth resolves — no full-screen gate
   if (isLoaded && userRole === "CUSTOMER") {

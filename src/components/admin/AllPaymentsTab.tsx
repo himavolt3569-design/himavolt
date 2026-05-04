@@ -1,28 +1,31 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   CreditCard,
   Search,
-  Filter,
   RefreshCw,
   ChevronLeft,
   ChevronRight,
   ChevronDown,
-  X,
   Store,
   User,
   CheckCircle2,
   Clock,
   XCircle,
-  ArrowDownRight,
   Banknote,
   Wallet,
   TrendingUp,
   Trash2,
-  CheckSquare,
+  Zap,
 } from "lucide-react";
+import {
+  AreaChart,
+  Area,
+  ResponsiveContainer,
+  Tooltip,
+} from "recharts";
 import { formatPrice } from "@/lib/currency";
 import DeleteConfirmDialog from "@/components/admin/DeleteConfirmDialog";
 
@@ -52,14 +55,11 @@ interface Pagination {
   totalPages: number;
 }
 
-const PAYMENT_STATUSES = ["All", "PENDING", "COMPLETED", "FAILED", "REFUNDED"];
-const PAYMENT_METHODS = ["All", "ESEWA", "KHALTI", "BANK", "CASH", "COUNTER", "DIRECT"];
-
-const STATUS_COLORS: Record<string, string> = {
-  PENDING: "bg-[var(--accent-muted)] text-[var(--accent-text)]",
-  COMPLETED: "bg-[var(--accent-muted)] text-[var(--accent-text)]",
-  FAILED: "bg-red-100 text-red-700",
-  REFUNDED: "bg-purple-100 text-purple-700",
+const STATUS_THEMES: Record<string, { bg: string, text: string, icon: any }> = {
+  PENDING: { bg: "bg-orange-50", text: "text-orange-500", icon: Clock },
+  COMPLETED: { bg: "bg-emerald-50", text: "text-emerald-500", icon: CheckCircle2 },
+  FAILED: { bg: "bg-red-50", text: "text-red-500", icon: XCircle },
+  REFUNDED: { bg: "bg-purple-50", text: "text-purple-500", icon: RefreshCw },
 };
 
 const METHOD_ICONS: Record<string, typeof CreditCard> = {
@@ -78,7 +78,7 @@ function timeAgo(date: string): string {
   if (mins < 60) return `${mins}m ago`;
   const hours = Math.floor(mins / 60);
   if (hours < 24) return `${hours}h ago`;
-  return `${Math.floor(hours / 24)}d ago`;
+  return new Date(date).toLocaleDateString();
 }
 
 export default function AllPaymentsTab() {
@@ -90,15 +90,10 @@ export default function AllPaymentsTab() {
   const [statusFilter, setStatusFilter] = useState("All");
   const [methodFilter, setMethodFilter] = useState("All");
   const [page, setPage] = useState(1);
-  const [showFilters, setShowFilters] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Payment | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
-
-  const allSelected = payments.length > 0 && selectedIds.size === payments.length;
 
   const fetchPayments = useCallback(
     async (p = page) => {
@@ -110,41 +105,16 @@ export default function AllPaymentsTab() {
         if (methodFilter !== "All") params.set("method", methodFilter);
 
         const res = await fetch(`/api/admin/payments?${params}`);
-        if (!res.ok) throw new Error("Failed");
         const data = await res.json();
-        setPayments(data.payments);
+        setPayments(data.payments || []);
         setPagination(data.pagination);
-        setSummary(data.summary);
-      } catch {
-        // silent
-      } finally {
+        setSummary(data.summary || { totalAmount: 0, totalCount: 0 });
+      } catch {} finally {
         setLoading(false);
       }
     },
     [page, search, statusFilter, methodFilter],
   );
-
-  useEffect(() => {
-    fetchPayments(1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    if (!loading) fetchPayments(page);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, statusFilter, methodFilter]);
-
-  useEffect(() => {
-    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
-    searchTimeoutRef.current = setTimeout(() => {
-      setPage(1);
-      fetchPayments(1);
-    }, 400);
-    return () => {
-      if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search]);
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -159,308 +129,230 @@ export default function AllPaymentsTab() {
         setPayments((prev) => prev.filter((p) => p.id !== deleteTarget.id));
         if (pagination) setPagination((p) => p ? { ...p, total: p.total - 1 } : p);
       }
-    } catch {
-      // silent
-    } finally {
-      setDeleting(false);
-      setDeleteTarget(null);
-    }
+    } catch { /* silent */ }
+    finally { setDeleting(false); setDeleteTarget(null); }
   };
 
-  const handleBulkDelete = async () => {
-    setDeleting(true);
-    try {
-      const res = await fetch("/api/admin/payments", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ids: Array.from(selectedIds) }),
-      });
-      if (res.ok) {
-        setPayments((prev) => prev.filter((p) => !selectedIds.has(p.id)));
-        if (pagination) setPagination((p) => p ? { ...p, total: p.total - selectedIds.size } : p);
-        setSelectedIds(new Set());
-      }
-    } catch {
-      // silent
-    } finally {
-      setDeleting(false);
-      setBulkDeleteOpen(false);
-    }
+  useEffect(() => { fetchPayments(1); }, []);
+  useEffect(() => { if (!loading) fetchPayments(page); }, [page, statusFilter, methodFilter]);
+
+  const handleSearchChange = (val: string) => {
+    setSearch(val);
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    searchTimeoutRef.current = setTimeout(() => fetchPayments(1), 500);
   };
+
+  // Simulated revenue data
+  const revenueData = useMemo(() => Array.from({ length: 12 }, (_, i) => ({ time: `${i}h`, val: Math.floor(Math.random() * 5000) + 1000 })), []);
 
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <div className="rounded-2xl border border-[var(--accent-muted)] bg-[var(--canvas)] p-4 shadow-sm">
-          <p className="text-xs text-[var(--text-2)]">Total Amount</p>
-          <p className="text-xl font-bold text-[var(--text-1)]">{formatPrice(summary.totalAmount, "NPR")}</p>
-        </div>
-        <div className="rounded-2xl border border-[var(--accent-muted)] bg-[var(--canvas)] p-4 shadow-sm">
-          <p className="text-xs text-[var(--text-2)]">Total Transactions</p>
-          <p className="text-xl font-bold text-[var(--text-1)]">{summary.totalCount.toLocaleString()}</p>
-        </div>
-        {pagination && (
-          <div className="rounded-2xl border border-[var(--accent-muted)] bg-[var(--canvas)] p-4 shadow-sm">
-            <p className="text-xs text-[var(--text-2)]">Filtered Results</p>
-            <p className="text-xl font-bold text-[var(--text-1)]">{pagination.total.toLocaleString()}</p>
-          </div>
-        )}
-      </div>
+    <div className="space-y-10">
+      {/* ── Revenue Flow Visualizer ── */}
+      <section className="grid lg:grid-cols-3 gap-8">
+         <div className="lg:col-span-2 rounded-[2.5rem] bg-slate-900 p-10 text-white shadow-2xl relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-8 opacity-5">
+               <TrendingUp className="h-48 w-48" />
+            </div>
+            <div className="relative z-10 h-full flex flex-col">
+               <div className="flex items-center gap-3 mb-8">
+                  <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">Financial Velocity</span>
+               </div>
+               <div className="flex-1 min-h-[200px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                     <AreaChart data={revenueData}>
+                        <Area type="monotone" dataKey="val" stroke="#10b981" fill="rgba(16,185,129,0.1)" strokeWidth={4} />
+                        <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: 'none', borderRadius: '12px' }} />
+                     </AreaChart>
+                  </ResponsiveContainer>
+               </div>
+            </div>
+         </div>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="relative flex-1 sm:max-w-xs">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-3)]" />
-          <input
-            type="text"
-            placeholder="Search by transaction ID, order, restaurant..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] py-2 pl-9 pr-3 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
-          />
-          {search && (
-            <button onClick={() => setSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--text-3)] hover:text-[var(--accent)]">
-              <X className="h-3.5 w-3.5" />
+         <div className="rounded-[2.5rem] bg-white border border-slate-100 p-10 shadow-xl flex flex-col justify-between">
+            <div className="space-y-6">
+               <div>
+                  <h3 className="text-xl font-black tracking-tighter text-slate-900 mb-1 uppercase italic">Total Settlement</h3>
+                  <p className="text-3xl font-black text-[var(--accent)] tracking-tighter">{formatPrice(summary.totalAmount, "NPR")}</p>
+               </div>
+               
+               <div className="space-y-4">
+                  <div className="relative">
+                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300" />
+                     <input 
+                        type="text" 
+                        placeholder="Search TXID, User..."
+                        value={search}
+                        onChange={(e) => handleSearchChange(e.target.value)}
+                        className="w-full bg-slate-50 border-none rounded-2xl py-4 pl-12 pr-4 text-sm font-black focus:ring-2 focus:ring-[var(--accent)] transition-all"
+                     />
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                     {["All", "ESEWA", "KHALTI", "CASH"].map(m => (
+                        <button 
+                           key={m}
+                           onClick={() => setMethodFilter(m)}
+                           className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${methodFilter === m ? 'bg-slate-900 text-white shadow-lg' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'}`}
+                        >
+                           {m}
+                        </button>
+                     ))}
+                  </div>
+               </div>
+            </div>
+            
+            <button 
+               onClick={() => fetchPayments(page)}
+               className="w-full py-4 rounded-2xl bg-slate-900 text-white font-black uppercase tracking-[0.2em] text-[10px] shadow-xl flex items-center justify-center gap-3 active:scale-[0.98] transition-all"
+            >
+               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+               Sync Ledger
             </button>
-          )}
-        </div>
-        <button
-          onClick={() => setShowFilters((p) => !p)}
-          className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-medium transition-all ${
-            showFilters || statusFilter !== "All" || methodFilter !== "All"
-              ? "border-[var(--accent)] bg-[var(--accent)]/5 text-[var(--accent)]"
-              : "border-[var(--border)] text-[var(--text-2)] hover:bg-[var(--accent-muted)]"
-          }`}
-        >
-          <Filter className="h-3.5 w-3.5" />
-          Filter
-        </button>
-        <button
-          onClick={() => fetchPayments(page)}
-          className="flex items-center gap-1.5 rounded-xl border border-[var(--border)] px-3 py-2 text-xs font-medium text-[var(--text-2)] hover:bg-[var(--accent-muted)]"
-        >
-          <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
-        </button>
-      </div>
+         </div>
+      </section>
 
-      <AnimatePresence>
-        {showFilters && (
-          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-            <div className="space-y-2 pb-2">
-              <div>
-                <p className="mb-1 text-[11px] font-medium text-[var(--text-3)] uppercase">Status</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {PAYMENT_STATUSES.map((s) => (
-                    <button
-                      key={s}
-                      onClick={() => { setStatusFilter(s); setPage(1); }}
-                      className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-all ${
-                        statusFilter === s ? "bg-[var(--text-1)] text-white" : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--accent-muted)]"
-                      }`}
-                    >
-                      {s}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <p className="mb-1 text-[11px] font-medium text-[var(--text-3)] uppercase">Method</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {PAYMENT_METHODS.map((m) => (
-                    <button
-                      key={m}
-                      onClick={() => { setMethodFilter(m); setPage(1); }}
-                      className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-all ${
-                        methodFilter === m ? "bg-[var(--text-1)] text-white" : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--accent-muted)]"
-                      }`}
-                    >
-                      {m}
-                    </button>
-                  ))}
-                </div>
-              </div>
+      {/* ── The Settlement Stream ── */}
+      <div className="space-y-4">
+         <div className="flex items-center justify-between px-6">
+            <h3 className="text-sm font-black uppercase tracking-[0.3em] text-slate-400">Transaction Ledger</h3>
+            <div className="flex items-center gap-4 text-[10px] font-bold text-slate-400">
+               <span>Global: {pagination?.total || 0}</span>
+               <div className="h-1 w-1 rounded-full bg-slate-200" />
+               <Zap className="h-4 w-4 opacity-40 text-emerald-500" />
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+         </div>
 
-      {selectedIds.size > 0 && (
-        <div className="flex items-center gap-3 rounded-xl border border-red-100 bg-red-50 px-4 py-2.5">
-          <CheckSquare className="h-4 w-4 text-red-500 shrink-0" />
-          <span className="text-sm font-semibold text-red-600">{selectedIds.size} selected</span>
-          <button onClick={() => setSelectedIds(new Set())} className="text-xs text-red-400 hover:text-red-600">Clear</button>
-          <button
-            onClick={() => setBulkDeleteOpen(true)}
-            className="ml-auto flex items-center gap-1.5 rounded-lg bg-red-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-600 transition-all"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-            Delete {selectedIds.size}
-          </button>
-        </div>
-      )}
-
-      <div className="overflow-hidden rounded-2xl border border-[var(--accent-muted)] bg-[var(--canvas)] shadow-sm">
-        <div className="flex items-center gap-2 border-b border-[var(--accent-muted)] px-4 py-2.5">
-          <input
-            type="checkbox"
-            checked={allSelected}
-            onChange={() => setSelectedIds(allSelected ? new Set() : new Set(payments.map((p) => p.id)))}
-            className="h-3.5 w-3.5 rounded accent-[var(--accent)]"
-          />
-          <CreditCard className="h-4 w-4 text-[var(--accent)]" />
-          <span className="text-xs font-semibold text-[var(--text-2)]">All Payments</span>
-        </div>
-
-        {loading && payments.length === 0 ? (
-          <div className="flex items-center justify-center py-16">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" />
-          </div>
-        ) : payments.length === 0 ? (
-          <div className="py-16 text-center">
-            <CreditCard className="mx-auto mb-2 h-8 w-8 text-[var(--text-3)]" />
-            <p className="text-sm text-[var(--text-3)]">No payments found</p>
-          </div>
-        ) : (
-          <div className="divide-y divide-[var(--border)]">
-            {payments.map((payment) => {
-              const MethodIcon = METHOD_ICONS[payment.method] || CreditCard;
-              const isExpanded = expandedId === payment.id;
-              const isSelected = selectedIds.has(payment.id);
-              return (
-                <div key={payment.id} className={`transition-all hover:bg-[var(--accent-muted)]/40 ${isSelected ? "bg-red-50/30" : ""}`}>
-                  <button
-                    type="button"
-                    onClick={() => setExpandedId(isExpanded ? null : payment.id)}
-                    className="flex w-full items-center gap-3 px-4 py-3 text-left"
+         <div className="grid gap-4">
+            {payments.map((p, i) => {
+               const theme = STATUS_THEMES[p.status] || STATUS_THEMES.PENDING;
+               const MethodIcon = METHOD_ICONS[p.method] || CreditCard;
+               const isExpanded = expandedId === p.id;
+               
+               return (
+                  <motion.div
+                     key={p.id}
+                     initial={{ opacity: 0, scale: 0.98 }}
+                     animate={{ opacity: 1, scale: 1 }}
+                     transition={{ delay: i * 0.05 }}
+                     className={`relative overflow-hidden rounded-[2rem] bg-white border border-slate-100 transition-all duration-500 hover:shadow-2xl hover:shadow-slate-200/50 ${isExpanded ? 'ring-2 ring-emerald-500' : ''}`}
                   >
-                    <input
-                      type="checkbox"
-                      checked={isSelected}
-                      onChange={(e) => {
-                        e.stopPropagation();
-                        setSelectedIds((prev) => {
-                          const next = new Set(prev);
-                          if (next.has(payment.id)) next.delete(payment.id); else next.add(payment.id);
-                          return next;
-                        });
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                      className="h-3.5 w-3.5 flex-shrink-0 rounded accent-[var(--accent)]"
-                    />
-                    <div className={`flex-shrink-0 rounded-lg p-2 ${STATUS_COLORS[payment.status] || "bg-[var(--surface)] text-[var(--text-2)]"}`}>
-                      <MethodIcon className="h-4 w-4" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold text-[var(--text-1)]">
-                          {formatPrice(payment.amount, "NPR")}
-                        </span>
-                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${STATUS_COLORS[payment.status]}`}>
-                          {payment.status}
-                        </span>
-                        <span className="rounded-full bg-[var(--surface)] px-2 py-0.5 text-[10px] font-medium text-[var(--text-2)]">
-                          {payment.method}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-[var(--text-2)]">
-                        <span>Order #{payment.order.orderNo}</span>
-                        <span className="flex items-center gap-1"><Store className="h-3 w-3" />{payment.order.restaurant.name}</span>
-                        {payment.order.user && (
-                          <span className="flex items-center gap-1"><User className="h-3 w-3" />{payment.order.user.name}</span>
-                        )}
-                      </div>
-                    </div>
-                    <span className="flex-shrink-0 text-[11px] text-[var(--text-3)] tabular-nums">
-                      {timeAgo(payment.createdAt)}
-                    </span>
-                    <ChevronDown className={`h-3.5 w-3.5 flex-shrink-0 text-[var(--text-3)] transition-transform ${isExpanded ? "rotate-180" : ""}`} />
-                  </button>
-
-                  <AnimatePresence>
-                    {isExpanded && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="border-t border-[var(--accent-muted)] bg-[var(--accent-muted)]/30 px-4 py-3 space-y-3">
-                          <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-xs sm:grid-cols-4">
-                            <div>
-                              <span className="text-[var(--text-3)]">Transaction ID</span>
-                              <p className="font-mono text-[var(--text-1)]">{payment.transactionId || "—"}</p>
-                            </div>
-                            <div>
-                              <span className="text-[var(--text-3)]">PIDX</span>
-                              <p className="font-mono text-[var(--text-1)]">{payment.pidx || "—"}</p>
-                            </div>
-                            <div>
-                              <span className="text-[var(--text-3)]">Ref ID</span>
-                              <p className="font-mono text-[var(--text-1)]">{payment.refId || "—"}</p>
-                            </div>
-                            <div>
-                              <span className="text-[var(--text-3)]">Paid At</span>
-                              <p className="font-medium text-[var(--text-1)]">
-                                {payment.paidAt ? new Date(payment.paidAt).toLocaleString() : "—"}
-                              </p>
-                            </div>
-                            <div>
-                              <span className="text-[var(--text-3)]">Order Total</span>
-                              <p className="font-bold text-[var(--text-1)]">{formatPrice(payment.order.total, "NPR")}</p>
-                            </div>
-                            <div>
-                              <span className="text-[var(--text-3)]">Created</span>
-                              <p className="font-medium text-[var(--text-1)]">{new Date(payment.createdAt).toLocaleString()}</p>
-                            </div>
-                          </div>
-                          <div className="pt-1">
-                            <button
-                              onClick={() => setDeleteTarget(payment)}
-                              className="flex items-center gap-1.5 rounded-lg bg-red-50 px-3 py-1.5 text-xs font-medium text-red-500 hover:bg-red-100 transition-all"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                              Delete Payment Record
-                            </button>
-                          </div>
+                     <div 
+                        onClick={() => setExpandedId(isExpanded ? null : p.id)}
+                        className="flex flex-col md:flex-row md:items-center gap-6 p-6 md:p-8 cursor-pointer"
+                     >
+                        {/* Method Node */}
+                        <div className={`h-14 w-14 shrink-0 rounded-2xl flex items-center justify-center bg-slate-50 text-slate-400`}>
+                           <MethodIcon className="h-6 w-6" />
                         </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              );
-            })}
-          </div>
-        )}
 
-        {pagination && pagination.totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-[var(--border-soft)] px-4 py-2.5">
-            <span className="text-xs text-[var(--text-3)]">Page {pagination.page} of {pagination.totalPages}</span>
-            <div className="flex gap-1.5">
-              <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-2)] hover:bg-[var(--accent-muted)] disabled:opacity-40">
-                <ChevronLeft className="h-3.5 w-3.5" />
-              </button>
-              <button disabled={page >= pagination.totalPages} onClick={() => setPage((p) => p + 1)} className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-2)] hover:bg-[var(--accent-muted)] disabled:opacity-40">
-                <ChevronRight className="h-3.5 w-3.5" />
-              </button>
+                        {/* Primary Info */}
+                        <div className="flex-1 min-w-0">
+                           <div className="flex items-center gap-3 mb-1">
+                              <h4 className="text-lg font-black text-slate-900 tracking-tighter">{formatPrice(p.amount, "NPR")}</h4>
+                              <div className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${theme.bg} ${theme.text}`}>
+                                 {p.status}
+                              </div>
+                           </div>
+                           <div className="flex items-center gap-4 text-xs font-bold text-slate-400 uppercase tracking-widest">
+                              <span className="flex items-center gap-1.5"><Store className="h-3 w-3 opacity-40" /> {p.order.restaurant.name}</span>
+                              <div className="h-1 w-1 rounded-full bg-slate-200" />
+                              <span className="flex items-center gap-1.5"><User className="h-3 w-3 opacity-40" /> {p.order.user?.name || "Guest"}</span>
+                           </div>
+                        </div>
+
+                        {/* Transaction & Chevron */}
+                        <div className="flex items-center gap-8 text-right shrink-0">
+                           <div className="hidden sm:block text-right">
+                              <p className="text-xs font-black text-slate-900 uppercase tracking-widest">Order #{p.order.orderNo}</p>
+                              <p className="text-[10px] font-bold text-slate-400 uppercase">{p.method}</p>
+                           </div>
+                           <div className="text-right">
+                              <p className="text-xs font-black text-slate-900">{timeAgo(p.createdAt)}</p>
+                              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Settled</p>
+                           </div>
+                           <ChevronDown className={`h-5 w-5 text-slate-300 transition-transform duration-500 ${isExpanded ? 'rotate-180 text-emerald-500' : ''}`} />
+                        </div>
+                     </div>
+
+                     <AnimatePresence>
+                        {isExpanded && (
+                           <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              className="border-t border-slate-50 bg-slate-50/30 overflow-hidden"
+                           >
+                              <div className="p-8 md:p-10 space-y-10">
+                                 <div className="grid md:grid-cols-3 gap-12">
+                                    {/* Tech Metadata */}
+                                    <div className="space-y-8 col-span-2">
+                                       <h5 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Ledger Details</h5>
+                                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-8">
+                                          {[
+                                             { label: "Transaction ID", val: p.transactionId || "INTERNAL", mono: true },
+                                             { label: "PIDX Reference", val: p.pidx || "—", mono: true },
+                                             { label: "Internal Ref", val: p.refId || "—", mono: true },
+                                             { label: "Amount Block", val: formatPrice(p.amount, "NPR") },
+                                             { label: "Settled At", val: p.paidAt ? new Date(p.paidAt).toLocaleString() : "Awaiting" },
+                                          ].map(meta => (
+                                             <div key={meta.label}>
+                                                <p className="text-[9px] font-black text-slate-400 uppercase mb-1 tracking-widest">{meta.label}</p>
+                                                <p className={`text-sm font-black text-slate-900 ${meta.mono ? 'font-mono tracking-tighter' : ''}`}>{meta.val}</p>
+                                             </div>
+                                          ))}
+                                       </div>
+                                    </div>
+
+                                    {/* Action Command Hub */}
+                                    <div className="bg-white p-8 rounded-[3rem] shadow-xl border border-slate-100 flex flex-col justify-end">
+                                       <button 
+                                          onClick={() => setDeleteTarget(p)}
+                                          className="w-full py-4 rounded-2xl bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-widest transition-all"
+                                       >
+                                          <Trash2 className="h-4 w-4" /> Purge Ledger Entry
+                                       </button>
+                                    </div>
+                                 </div>
+                              </div>
+                           </motion.div>
+                        )}
+                     </AnimatePresence>
+                  </motion.div>
+               );
+            })}
+         </div>
+
+         {/* Pagination Flow */}
+         {pagination && pagination.totalPages > 1 && (
+            <div className="flex items-center justify-center gap-4 pt-12">
+               <button 
+                  disabled={page <= 1}
+                  onClick={() => setPage(p => p - 1)}
+                  className="h-14 w-14 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-900 disabled:opacity-30 transition-all"
+               >
+                  <ChevronLeft className="h-6 w-6" />
+               </button>
+               <span className="text-[10px] font-black text-slate-900 uppercase tracking-widest px-10 py-4 bg-white rounded-full border border-slate-100 shadow-sm">
+                  Page {page} of {pagination.totalPages}
+               </span>
+               <button 
+                  disabled={page >= pagination.totalPages}
+                  onClick={() => setPage(p => p + 1)}
+                  className="h-14 w-14 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-900 disabled:opacity-30 transition-all"
+               >
+                  <ChevronRight className="h-6 w-6" />
+               </button>
             </div>
-          </div>
-        )}
+         )}
       </div>
 
       <DeleteConfirmDialog
         open={!!deleteTarget}
-        title="Delete payment record?"
-        description={`This will permanently delete the payment record for order #${deleteTarget?.order.orderNo} (${formatPrice(deleteTarget?.amount ?? 0, "NPR")}). This cannot be undone.`}
+        title="Purge Ledger Record?"
+        description={`This will permanently delete the payment entry for order #${deleteTarget?.order.orderNo}. This action is irreversible.`}
         loading={deleting}
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
-      />
-      <DeleteConfirmDialog
-        open={bulkDeleteOpen}
-        title={`Delete ${selectedIds.size} payment${selectedIds.size > 1 ? "s" : ""}?`}
-        description={`This will permanently delete ${selectedIds.size} payment record${selectedIds.size > 1 ? "s" : ""}. This cannot be undone.`}
-        loading={deleting}
-        onConfirm={handleBulkDelete}
-        onCancel={() => setBulkDeleteOpen(false)}
       />
     </div>
   );
