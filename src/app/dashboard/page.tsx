@@ -269,6 +269,7 @@ const FEATURE_ICONS: Record<FeatureTabId, typeof Zap> = {
   "room-qr-codes": QrCode,
   "hotel-bookings": CalendarCheck,
   "hotel-qr": QrCode,
+  rooms: BedDouble,
 };
 
 /* ── Features that are fully implemented (not coming soon) ─────────── */
