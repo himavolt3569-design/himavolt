@@ -13,6 +13,11 @@ export async function GET() {
         id: true,
         name: true,
         icon: true,
+        items: {
+          where: { isAvailable: true, imageUrl: { not: null } },
+          select: { imageUrl: true },
+          take: 1,
+        }
       },
       distinct: ["name"],
       orderBy: { sortOrder: "asc" },
@@ -30,6 +35,10 @@ export async function GET() {
       Nepali: "https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=200&h=200&fit=crop",
       Chinese: "https://images.unsplash.com/photo-1585032226651-759b368d7246?w=200&h=200&fit=crop",
       Bakery: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=200&h=200&fit=crop",
+      Drinks: "https://images.unsplash.com/photo-1544145945-f90425340c7e?w=200&h=200&fit=crop",
+      Dessert: "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=200&h=200&fit=crop",
+      Snacks: "https://images.unsplash.com/photo-1599490659213-e2b9527bd08c?w=200&h=200&fit=crop",
+      Breakfast: "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=200&h=200&fit=crop",
     };
 
     const formattedCategories = [
@@ -41,7 +50,7 @@ export async function GET() {
       ...categories.map((cat) => ({
         id: cat.id,
         name: cat.name,
-        image: imageMap[cat.name] || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200&h=200&fit=crop",
+        image: cat.items[0]?.imageUrl || imageMap[cat.name] || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200&h=200&fit=crop",
       })),
     ];
 

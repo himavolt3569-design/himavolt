@@ -171,7 +171,8 @@ export type FeatureTabId =
   | "wifi-settings"
   | "room-qr-codes"
   | "hotel-bookings"
-  | "hotel-qr";
+  | "hotel-qr"
+  | "rooms";
 
 export interface FeatureTabDef {
   id: FeatureTabId;
@@ -192,6 +193,7 @@ export const TYPE_FEATURE_TABS: Record<string, FeatureTabDef[]> = {
     { id: "wifi-settings", label: "WiFi", desc: "Share WiFi credentials with customers", iconHint: "Wifi" },
   ],
   RESORT: [
+    { id: "rooms", label: "Rooms", desc: "Add, edit and manage rooms", iconHint: "BedDouble" },
     { id: "room-service", label: "Room Service", desc: "Deliver directly to guest rooms", iconHint: "BedDouble" },
     { id: "multi-outlet", label: "Multi-Outlet", desc: "Pool bar, restaurant, lounge menus", iconHint: "LayoutGrid" },
     { id: "event-catering", label: "Event Catering", desc: "Weddings, conferences, parties", iconHint: "PartyPopper" },
@@ -204,6 +206,7 @@ export const TYPE_FEATURE_TABS: Record<string, FeatureTabDef[]> = {
     { id: "wifi-settings", label: "WiFi", desc: "Share WiFi credentials with guests", iconHint: "Wifi" },
   ],
   HOTEL: [
+    { id: "rooms", label: "Rooms", desc: "Add, edit and manage rooms", iconHint: "BedDouble" },
     { id: "room-service", label: "Room Service", desc: "Round-the-clock kitchen operations", iconHint: "BedDouble" },
     { id: "buffet-manager", label: "Buffet Manager", desc: "Buffet item tracking & rotation", iconHint: "ChefHat" },
     { id: "event-catering", label: "Conference Catering", desc: "Corporate events & meetings", iconHint: "PartyPopper" },
@@ -267,6 +270,7 @@ export const TYPE_FEATURE_TABS: Record<string, FeatureTabDef[]> = {
     { id: "wifi-settings", label: "WiFi", desc: "Share WiFi credentials with customers", iconHint: "Wifi" },
   ],
   GUEST_HOUSE: [
+    { id: "rooms", label: "Rooms", desc: "Add, edit and manage rooms", iconHint: "BedDouble" },
     { id: "guest-checkin", label: "Guest Check-In", desc: "Record guest details & room assignment", iconHint: "ClipboardList" },
     { id: "room-service", label: "Room Service", desc: "Food & drinks delivered to rooms", iconHint: "BedDouble" },
     { id: "guest-billing", label: "Guest Billing", desc: "Integrated room charge system", iconHint: "CreditCard" },

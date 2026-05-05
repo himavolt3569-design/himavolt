@@ -256,8 +256,9 @@ export default function LandingHero() {
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--accent)]/10 border border-[var(--accent)]/20 mb-6"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-[var(--accent)]/20 to-[var(--accent)]/5 border border-[var(--accent)]/30 backdrop-blur-md mb-6 shadow-[0_4px_12px_rgba(0,0,0,0.05)]"
             >
+              <Sparkles className="h-4 w-4 text-[var(--accent)] animate-pulse" />
               <span className="text-xs font-black text-[var(--accent)] uppercase tracking-wider">
                 Nepal&apos;s Premium Food Destination
               </span>
@@ -284,13 +285,13 @@ export default function LandingHero() {
                       animate={{ y: 0, opacity: 1 }}
                       exit={{ y: -28, opacity: 0 }}
                       transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
-                      className="inline-block text-[var(--accent)]"
+                      className="inline-block text-transparent bg-clip-text bg-gradient-to-r from-[var(--accent)] to-orange-400"
                     >
                       {ANIMATED_WORDS[wordIdx]}.
                     </motion.span>
                   </AnimatePresence>
                 ) : (
-                  <span className="inline-block text-[var(--accent)]">
+                  <span className="inline-block text-transparent bg-clip-text bg-gradient-to-r from-[var(--accent)] to-orange-400">
                     {ANIMATED_WORDS[0]}.
                   </span>
                 )}
@@ -321,7 +322,7 @@ export default function LandingHero() {
                 <motion.button
                   whileHover={{ scale: 1.05, translateY: -2 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full sm:px-10 py-4.5 rounded-[2rem] bg-[var(--accent)] text-white font-black text-base shadow-2xl shadow-[var(--accent)]/30 flex items-center justify-center gap-2 hover:bg-[var(--accent-hover)] transition-all group"
+                  className="w-full sm:px-10 py-4.5 rounded-[2rem] bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] text-white font-black text-base shadow-2xl shadow-[var(--accent)]/40 flex items-center justify-center gap-2 hover:shadow-[var(--accent)]/50 transition-all group border border-white/10"
                 >
                   Order Now
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -338,7 +339,7 @@ export default function LandingHero() {
                 <motion.div
                   whileHover={{ scale: 1.05, translateY: -2 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full sm:px-10 py-4.5 rounded-[2rem] font-black text-base border-2 border-[var(--border)] text-[var(--text-1)] hover:bg-[var(--surface)] transition-all flex items-center justify-center"
+                  className="w-full sm:px-10 py-4.5 rounded-[2rem] font-black text-base border-2 border-[var(--border)] bg-[var(--canvas)]/50 backdrop-blur-sm text-[var(--text-1)] hover:bg-[var(--surface)] hover:border-[var(--accent)]/30 transition-all flex items-center justify-center shadow-lg shadow-black/5"
                 >
                   Explore Menu
                 </motion.div>
@@ -549,3 +550,4 @@ export default function LandingHero() {
     </section>
   );
 }
+// Force Next.js HMR recompile

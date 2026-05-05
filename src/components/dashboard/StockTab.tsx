@@ -569,14 +569,14 @@ function AddEditModal({
       const body = {
         name: name.trim(),
         unit,
-        quantity: Number(quantity) || 0,
-        minStock: Number(minStock) || 5,
-        costPerUnit: Number(costPerUnit) || 0,
+        quantity: quantity === "" ? 0 : Number(quantity),
+        minStock: minStock === "" ? 5 : Number(minStock),
+        costPerUnit: costPerUnit === "" ? 0 : Number(costPerUnit),
         category,
         notes: notes.trim() || null,
         isDrink,
         drinkCategory: isDrink ? (drinkCategory || null) : null,
-        sellingPrice: sellingPrice ? Number(sellingPrice) : null,
+        sellingPrice: sellingPrice === "" ? null : Number(sellingPrice),
         showOnMenu,
       };
       if (item) {

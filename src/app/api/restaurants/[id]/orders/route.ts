@@ -49,11 +49,16 @@ export async function GET(
   const liveMode = searchParams.get("live") === "1";
   if (liveMode) {
     const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
-    // Payment-gated: PENDING orders only appear after billing marks
-    // payment COMPLETED. This applies to ALL payment methods (CASH,
-    // ESEWA, KHALTI, BANK, COUNTER) — no exceptions.
-    // Fast Pay (DIRECT) orders skip live-orders entirely (counter sales).
     delete where.status;
+
+    // Exclude Manual Pay (COUNTER) and Fast Pay (DIRECT) entirely from Live Orders
+    where.NOT = {
+      payment: {
+        method: {
+          in: ["DIRECT", "COUNTER"]
+        }
+      }
+    };
 
     const liveConditions: any[] = [
       // PENDING: only after payment verified (all methods)
@@ -66,14 +71,11 @@ export async function GET(
       {
         status: { in: ["DELIVERED", "CANCELLED", "REJECTED"] },
         createdAt: { gte: twoHoursAgo },
-        NOT: { payment: { method: "DIRECT" } },
       },
-      // QR customer orders with physical payment (CASH / COUNTER / BANK):
-      // kitchen starts immediately; billing tab handles collection separately.
-      // Digital transfers (ESEWA, KHALTI) stay gated — verify before cooking.
+      // QR customer orders with physical payment (CASH / BANK):
       {
         status: "PENDING",
-        payment: { method: { in: ["CASH", "COUNTER", "BANK"] }, status: "PENDING" },
+        payment: { method: { in: ["CASH", "BANK"] }, status: "PENDING" },
       },
     ];
 

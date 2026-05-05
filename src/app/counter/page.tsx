@@ -35,6 +35,7 @@ import {
   Settings,
   Package,
   GalleryHorizontalEnd,
+  BedDouble,
 } from "lucide-react";
 import { useToast } from "@/context/ToastContext";
 import { formatPrice } from "@/lib/currency";
@@ -79,6 +80,7 @@ import ManualBillingTab from "@/components/dashboard/ManualBillingTab";
 import HotelBookingsTab from "@/components/dashboard/HotelBookingsTab";
 import HotelQRTab from "@/components/dashboard/HotelQRTab";
 import RoomQRTab from "@/components/dashboard/RoomQRTab";
+import RoomManagementTab from "@/components/dashboard/RoomManagementTab";
 
 const COUNTER_FEATURE_COMPONENTS: Record<FeatureTabId, React.ComponentType> = {
   "quick-counter": QuickCounterTab,
@@ -114,6 +116,7 @@ const COUNTER_FEATURE_COMPONENTS: Record<FeatureTabId, React.ComponentType> = {
   "room-qr-codes": RoomQRTab,
   "hotel-bookings": HotelBookingsTab,
   "hotel-qr": HotelQRTab,
+  "rooms": RoomManagementTab,
 };
 
 interface StaffSession {
@@ -1734,7 +1737,7 @@ export default function CounterPage() {
             </div>
 
             <div className="flex items-center gap-1.5 sm:gap-2">
-              <div className="hidden sm:flex items-center gap-1 rounded-lg border border-brand-100 p-0.5 bg-[var(--canvas)]">
+              <div className="hidden lg:flex items-center gap-1 rounded-lg border border-brand-100 p-0.5 bg-[var(--canvas)]">
                 {(
                   [
                     { id: "billing", icon: Receipt, label: "Billing" },
@@ -1744,6 +1747,7 @@ export default function CounterPage() {
                     { id: "split", icon: GalleryHorizontalEnd, label: "Split" },
                     { id: "stock", icon: Package, label: "Stock" },
                     { id: "media", icon: GalleryHorizontalEnd, label: "Media" },
+                    ...( ["HOTEL", "RESORT", "GUEST_HOUSE"].includes(session.restaurantType) ? [{ id: "rooms", icon: BedDouble, label: "Rooms" }] : [] )
                   ] as { id: ViewMode; icon: typeof Monitor; label: string }[]
                 ).map((v) => (
                   <button
@@ -1836,7 +1840,7 @@ export default function CounterPage() {
       </header>
 
       <div className="sm:hidden sticky top-14 z-40 bg-[var(--canvas)]/80 backdrop-blur-xl border-b border-brand-100/60 px-4 py-2">
-        <div className="flex items-center gap-1 rounded-lg border border-brand-100 p-0.5 bg-[var(--canvas)]">
+        <div className="flex items-center gap-1 rounded-lg border border-brand-100 p-0.5 bg-[var(--canvas)] overflow-x-auto scrollbar-slim">
           {(
             [
               { id: "billing", icon: Receipt, label: "Billing" },
@@ -1845,6 +1849,7 @@ export default function CounterPage() {
               { id: "board", icon: Monitor, label: "Board" },
               { id: "split", icon: GalleryHorizontalEnd, label: "Split" },
               { id: "stock", icon: Package, label: "Stock" },
+              ...( ["HOTEL", "RESORT", "GUEST_HOUSE"].includes(session.restaurantType) ? [{ id: "rooms", icon: BedDouble, label: "Rooms" }] : [] )
             ] as { id: ViewMode; icon: typeof Monitor; label: string }[]
           ).map((v) => (
             <button
