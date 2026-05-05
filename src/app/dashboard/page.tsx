@@ -343,6 +343,7 @@ const FEATURE_COMPONENTS: Record<FeatureTabId, React.ComponentType> = {
   "room-qr-codes": RoomQRTab,
   "hotel-bookings": HotelBookingsTab,
   "hotel-qr": HotelQRTab,
+  rooms: HotelHubTab,
 };
 
 function AnimatedNumber({
