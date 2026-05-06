@@ -15,11 +15,21 @@ import {
   Eye,
   ImageIcon,
   Upload,
+  QrCode,
+  Copy,
+  ExternalLink,
+  Download,
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { formatPrice } from "@/lib/currency";
 import { apiFetch } from "@/lib/api-client";
 import { uploadFile } from "@/lib/upload";
+import QRCode from "react-qr-code";
+
+const APP_URL =
+  typeof window !== "undefined"
+    ? window.location.origin
+    : process.env.NEXT_PUBLIC_APP_URL || "";
 
 /*  Types                                                              */
 
@@ -167,7 +177,7 @@ export default function RoomManagementTab() {
       </div>
 
       {activeTab === "rooms" ? (
-        <RoomsView restaurantId={restaurant.id} currency={restaurant.currency} />
+        <RoomsView restaurantId={restaurant.id} currency={restaurant.currency} slug={restaurant.slug ?? ""} hotelName={restaurant.name} />
       ) : (
         <BookingsView restaurantId={restaurant.id} currency={restaurant.currency} />
       )}
@@ -177,7 +187,7 @@ export default function RoomManagementTab() {
 
 /*  Rooms View                                                         */
 
-function RoomsView({ restaurantId, currency }: { restaurantId: string; currency: string }) {
+function RoomsView({ restaurantId, currency, slug, hotelName }: { restaurantId: string; currency: string; slug: string; hotelName: string }) {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -186,6 +196,7 @@ function RoomsView({ restaurantId, currency }: { restaurantId: string; currency:
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
+  const [showQrId, setShowQrId] = useState<string | null>(null);
 
   const fetchRooms = useCallback(async () => {
     try {
@@ -349,18 +360,24 @@ function RoomsView({ restaurantId, currency }: { restaurantId: string; currency:
         </div>
       ) : (
         <div className="space-y-3">
-          <AnimatePresence mode="popLayout">
-            {rooms.map((room, i) => {
+          {rooms.map((room, i) => {
               const typeColors = ROOM_TYPE_COLORS[room.type];
+              const isQrOpen = showQrId === room.id;
               return (
+              <div
+                key={room.id}
+                className={`rounded-2xl overflow-hidden border transition-all ${
+                  isQrOpen
+                    ? "border-[var(--accent-border)] shadow-[0_4px_20px_-4px_rgba(0,0,0,0.08)]"
+                    : "border-[var(--border-soft)] shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)]"
+                }`}
+              >
                 <motion.div
-                  key={room.id}
                   layout
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
                   transition={{ delay: i * 0.03 }}
-                  className="group flex items-center gap-4 rounded-2xl bg-[var(--canvas)]/90 backdrop-blur-xl border border-[var(--border-soft)] p-4 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] transition-all hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.08)] hover:-translate-y-0.5"
+                  className="group flex items-center gap-4 bg-[var(--canvas)]/90 backdrop-blur-xl p-4"
                 >
                   <div className={`h-12 w-12 shrink-0 rounded-2xl overflow-hidden ${typeColors.bg}`}>
                     {room.imageUrls?.length > 0 ? (
@@ -437,31 +454,63 @@ function RoomsView({ restaurantId, currency }: { restaurantId: string; currency:
                     )}
                   </div>
 
-                  <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex items-center gap-1.5 shrink-0">
                     <button
-                      onClick={() => openEdit(room)}
-                      className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent-muted)] text-[var(--accent-text)] hover:bg-[var(--accent-muted)] transition-all"
-                      title="Edit"
+                      onClick={() => setShowQrId(isQrOpen ? null : room.id)}
+                      title="Room QR code"
+                      className={`flex h-8 w-8 items-center justify-center rounded-lg transition-all ${
+                        isQrOpen
+                          ? "bg-[var(--accent)] text-white"
+                          : "bg-[var(--accent-muted)] text-[var(--accent-text)] hover:opacity-80"
+                      }`}
                     >
-                      <Edit2 className="h-3.5 w-3.5" />
+                      <QrCode className="h-3.5 w-3.5" />
                     </button>
-                    <button
-                      onClick={() => handleDelete(room.id)}
-                      disabled={deletingId === room.id}
-                      className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--status-error-bg)] text-[var(--status-error-text)] hover:brightness-110 transition-all disabled:opacity-40"
-                      title="Delete"
-                    >
-                      {deletingId === room.id ? (
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      ) : (
-                        <Trash2 className="h-3.5 w-3.5" />
-                      )}
-                    </button>
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => openEdit(room)}
+                        className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent-muted)] text-[var(--accent-text)] hover:bg-[var(--accent-muted)] transition-all"
+                        title="Edit"
+                      >
+                        <Edit2 className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(room.id)}
+                        disabled={deletingId === room.id}
+                        className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--status-error-bg)] text-[var(--status-error-text)] hover:brightness-110 transition-all disabled:opacity-40"
+                        title="Delete"
+                      >
+                        {deletingId === room.id ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-3.5 w-3.5" />
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </motion.div>
-              );
-            })}
-          </AnimatePresence>
+
+                <AnimatePresence>
+                  {isQrOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden border-t border-[var(--accent-border)] bg-[var(--accent-muted)]/20"
+                    >
+                      <RoomQRInline
+                        room={room}
+                        slug={slug}
+                        hotelName={hotelName}
+                        currency={currency}
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            );
+          })}
         </div>
       )}
 
@@ -1425,4 +1474,188 @@ function BookingFormModal({
       )}
     </AnimatePresence>
   );
+}
+
+/*  Room QR Inline Panel                                               */
+
+function RoomQRInline({
+  room,
+  slug,
+  hotelName,
+  currency,
+}: {
+  room: Room;
+  slug: string;
+  hotelName: string;
+  currency: string;
+}) {
+  const [copied, setCopied] = useState(false);
+  const [downloaded, setDownloaded] = useState(false);
+  const qrRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  const roomUrl = `${APP_URL}/hotel/${slug}/room/${encodeURIComponent(room.roomNumber)}`;
+  const roomLabel = room.name || `Room ${room.roomNumber}`;
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(roomUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleDownload = async () => {
+    const svg = qrRef.current?.querySelector("svg");
+    if (!svg || !canvasRef.current) return;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d")!;
+    const CARD_W = 360, CARD_H = 480;
+    canvas.width = CARD_W;
+    canvas.height = CARD_H;
+
+    ctx.fillStyle = "#FFFBF0";
+    roundRect(ctx, 0, 0, CARD_W, CARD_H, 20);
+    ctx.fill();
+
+    const grad = ctx.createLinearGradient(0, 0, CARD_W, 0);
+    grad.addColorStop(0, "#f59e0b");
+    grad.addColorStop(1, "#ea580c");
+    ctx.fillStyle = grad;
+    roundRect(ctx, 0, 0, CARD_W, 64, { tl: 20, tr: 20, bl: 0, br: 0 });
+    ctx.fill();
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 14px system-ui, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(hotelName, CARD_W / 2, 24);
+    ctx.font = "bold 18px system-ui, sans-serif";
+    ctx.fillText(roomLabel, CARD_W / 2, 46);
+    ctx.font = "11px system-ui, sans-serif";
+    ctx.fillStyle = "rgba(255,255,255,0.75)";
+    ctx.fillText(`Room #${room.roomNumber} · Floor ${room.floor} · ${room.type}`, CARD_W / 2, 60);
+
+    const svgData = new XMLSerializer().serializeToString(svg);
+    const img = new Image();
+    await new Promise<void>((resolve) => {
+      img.onload = () => resolve();
+      img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgData);
+    });
+    const QR_SIZE = 190;
+    const qrX = (CARD_W - QR_SIZE) / 2;
+    ctx.fillStyle = "#ffffff";
+    roundRect(ctx, qrX - 14, 76, QR_SIZE + 28, QR_SIZE + 28, 14);
+    ctx.fill();
+    ctx.drawImage(img, qrX, 90, QR_SIZE, QR_SIZE);
+
+    ctx.fillStyle = "#92400e";
+    ctx.font = "bold 11px system-ui, sans-serif";
+    ctx.textAlign = "center";
+    const details: string[] = [];
+    if (room.bedType) details.push(`${room.bedCount > 1 ? `${room.bedCount}x ` : ""}${room.bedType}`);
+    if (room.maxGuests) details.push(`Up to ${room.maxGuests} guest${room.maxGuests === 1 ? "" : "s"}`);
+    if (details.length) ctx.fillText(details.join(" · "), CARD_W / 2, 336);
+    ctx.fillText(formatPrice(room.price, currency) + "/night", CARD_W / 2, 354);
+
+    ctx.strokeStyle = "#fde68a";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(36, 370);
+    ctx.lineTo(CARD_W - 36, 370);
+    ctx.stroke();
+
+    ctx.fillStyle = "#d97706";
+    ctx.font = "bold 10px system-ui, sans-serif";
+    ctx.fillText("Powered by HimaVolt", CARD_W / 2, 390);
+    ctx.fillStyle = "#a16207";
+    ctx.font = "10px system-ui, sans-serif";
+    ctx.fillText("Scan to view, book, or order to this room", CARD_W / 2, 406);
+
+    const link = document.createElement("a");
+    link.download = `room-${room.roomNumber}-qr.png`;
+    link.href = canvas.toDataURL("image/png", 1.0);
+    link.click();
+    setDownloaded(true);
+    setTimeout(() => setDownloaded(false), 2500);
+  };
+
+  return (
+    <div className="flex flex-col sm:flex-row gap-4 px-4 pb-4 pt-3">
+      <div className="flex flex-col items-center gap-1.5 shrink-0">
+        <div ref={qrRef} className="rounded-xl bg-white p-2.5 ring-1 ring-[var(--accent-border)] shadow-sm">
+          {slug ? (
+            <QRCode value={roomUrl} size={110} level="M" />
+          ) : (
+            <div className="flex h-[110px] w-[110px] items-center justify-center">
+              <QrCode className="h-10 w-10 text-[var(--text-3)]" />
+            </div>
+          )}
+        </div>
+        <span className="text-[9px] font-semibold text-[var(--text-3)]">Room {room.roomNumber}</span>
+      </div>
+
+      <div className="flex-1 space-y-2 py-0.5">
+        <p className="text-[13px] font-bold text-[var(--text-1)]">{roomLabel}</p>
+        <p className="text-[10px] font-mono text-[var(--text-3)] break-all">
+          {roomUrl.replace(/^https?:\/\//, "")}
+        </p>
+        <p className="text-[11px] text-[var(--text-2)]">
+          Guests scan to browse this room, book it, or order food &amp; drinks during their stay.
+        </p>
+        <div className="flex flex-wrap gap-2 pt-0.5">
+          <button
+            onClick={handleDownload}
+            className="flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] px-3 py-1.5 text-[11px] font-bold text-white hover:opacity-90 active:scale-[0.97] transition-all"
+          >
+            {downloaded ? (
+              <><Check className="h-3 w-3" /> Downloaded!</>
+            ) : (
+              <><Download className="h-3 w-3" /> Download PNG</>
+            )}
+          </button>
+          <button
+            onClick={handleCopy}
+            className="flex items-center gap-1.5 rounded-lg bg-[var(--canvas)] ring-1 ring-[var(--border)] px-3 py-1.5 text-[11px] font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-all"
+          >
+            {copied ? (
+              <><Check className="h-3 w-3 text-[var(--accent-text)]" /> Copied!</>
+            ) : (
+              <><Copy className="h-3 w-3" /> Copy URL</>
+            )}
+          </button>
+          <a
+            href={roomUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 rounded-lg bg-[var(--status-info-bg)] ring-1 ring-[var(--status-info-border)] px-3 py-1.5 text-[11px] font-bold text-[var(--status-info-text)] hover:brightness-110 transition-all"
+          >
+            <ExternalLink className="h-3 w-3" /> Preview
+          </a>
+        </div>
+      </div>
+      <canvas ref={canvasRef} className="hidden" />
+    </div>
+  );
+}
+
+/*  Canvas helper                                                      */
+
+function roundRect(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number | { tl: number; tr: number; bl: number; br: number },
+) {
+  const radii = typeof r === "number" ? { tl: r, tr: r, bl: r, br: r } : r;
+  ctx.beginPath();
+  ctx.moveTo(x + radii.tl, y);
+  ctx.lineTo(x + w - radii.tr, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + radii.tr);
+  ctx.lineTo(x + w, y + h - radii.br);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - radii.br, y + h);
+  ctx.lineTo(x + radii.bl, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - radii.bl);
+  ctx.lineTo(x, y + radii.tl);
+  ctx.quadraticCurveTo(x, y, x + radii.tl, y);
+  ctx.closePath();
 }

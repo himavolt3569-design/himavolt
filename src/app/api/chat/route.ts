@@ -22,7 +22,8 @@ export const POST = safeHandler(
         where: { id: orderId, restaurantId },
         select: { id: true },
       });
-      if (!order) return NextResponse.json({ error: "Order not found" }, { status: 404 });
+      if (!order)
+        return NextResponse.json({ error: "Order not found" }, { status: 404 });
 
       const existing = await db.chatRoom.findUnique({ where: { orderId } });
       if (existing) return NextResponse.json(existing);
@@ -73,7 +74,10 @@ export const POST = safeHandler(
       return NextResponse.json(room, { status: 201 });
     }
 
-    return NextResponse.json({ error: "orderId, tableNo, or roomNo is required" }, { status: 400 });
+    return NextResponse.json(
+      { error: "orderId, tableNo, or roomNo is required" },
+      { status: 400 },
+    );
   },
   { schema: createChatRoomSchema },
 );
@@ -140,7 +144,7 @@ export const GET = safeHandler(async (req) => {
     const filtered = rooms.filter(
       (r) =>
         (r.type === "CUSTOMER" && r.order) ||
-        (r.type === "TABLE_CHAT" && r.messages.length > 0)
+        (r.type === "TABLE_CHAT" && r.messages.length > 0),
     );
     return NextResponse.json(filtered);
   }
