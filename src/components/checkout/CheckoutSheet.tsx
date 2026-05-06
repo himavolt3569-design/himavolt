@@ -169,8 +169,10 @@ export default function CheckoutSheet({
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<
-    "review" | "payment" | "scan-qr" | "waiting" | "bank-details"
+    "review" | "payment" | "scan-qr" | "waiting" | "bank-details" | "proof-upload"
   >("review");
+  const [proofOrderId, setProofOrderId] = useState<string | null>(null);
+  const [proofUploading, setProofUploading] = useState(false);
   const [bankDetails, setBankDetails] = useState<{
     bankName: string;
     accountName: string;
@@ -617,6 +619,17 @@ export default function CheckoutSheet({
         return;
       }
 
+      // Physical methods (non-prepaid): order is live in kitchen immediately.
+      // Show optional proof upload — customer can skip and pay at counter.
+      if (selectedPayment === "COUNTER" || selectedPayment === "DIRECT") {
+        setBankTotal(total);
+        clearCart();
+        setProofOrderId(order.id);
+        setStep("proof-upload");
+        setLoading(false);
+        return;
+      }
+
       clearCart();
       onClose();
       onOrderPlaced(order.id);
@@ -674,7 +687,9 @@ export default function CheckoutSheet({
                         ? "Completing Payment"
                         : step === "bank-details"
                           ? "Bank Transfer"
-                          : "Payment"}
+                          : step === "proof-upload"
+                            ? "Payment Proof"
+                            : "Payment"}
                 </h2>
               </div>
               <button
@@ -1121,6 +1136,67 @@ export default function CheckoutSheet({
                     </div>
                   </div>
                 ) : null
+              ) : step === "proof-upload" ? (
+                /* ── Proof Upload step: order already live, proof optional ── */
+                <div className="px-6 py-6 space-y-5">
+                  <div className="text-center">
+                    <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-green-50 mb-3">
+                      <UtensilsCrossed className="h-7 w-7 text-green-600" />
+                    </div>
+                    <h3 className="text-lg font-bold text-[var(--text-1)]">Order is Live!</h3>
+                    <p className="text-sm text-[var(--text-2)] mt-1">Kitchen has your order. Upload payment proof now or at the counter.</p>
+                  </div>
+
+                  <div className="rounded-xl bg-[var(--canvas-sub)] p-4">
+                    <div className="flex justify-between">
+                      <span className="text-xs text-[var(--text-2)]">Amount to Pay</span>
+                      <span className="text-lg font-extrabold text-[var(--accent)]">{formatPrice(bankTotal, currency)}</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-xs font-bold text-[var(--text-1)]">
+                      Upload Payment Proof <span className="text-[var(--text-3)] font-normal">(optional)</span>
+                    </label>
+                    <input
+                      type="file"
+                      accept="image/*,.pdf"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file || !proofOrderId) return;
+                        setProofUploading(true);
+                        try {
+                          const { uploadFile } = await import("@/lib/upload");
+                          const proofUrl = await uploadFile(file, "payment-proofs");
+                          await apiFetch("/api/payments/bank-proof", {
+                            method: "POST",
+                            body: { orderId: proofOrderId, proofUrl },
+                          });
+                          onOrderPlaced(proofOrderId);
+                          onClose();
+                        } catch {
+                          // Upload failed — user can skip instead
+                        }
+                        setProofUploading(false);
+                      }}
+                      disabled={proofUploading}
+                      className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm text-[var(--text-2)] file:mr-3 file:rounded-lg file:border-0 file:bg-green-50 file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-green-700 hover:file:bg-green-100"
+                    />
+                    {proofUploading && (
+                      <div className="flex items-center gap-2 text-xs text-green-600">
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        Uploading proof...
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex items-start gap-2 rounded-xl bg-[var(--accent-muted)] border border-[var(--accent-border)] px-4 py-3">
+                    <Shield className="h-4 w-4 text-[var(--accent)] mt-0.5 shrink-0" />
+                    <p className="text-[10px] text-[var(--accent-text)]">
+                      Your order is already with the kitchen. Uploading proof helps billing verify your payment faster.
+                    </p>
+                  </div>
+                </div>
               ) : step === "waiting" ? (
                 /* ── Waiting for payment step ── */
                 <div className="px-6 py-10 space-y-6 text-center">
@@ -1447,6 +1523,19 @@ export default function CheckoutSheet({
                     className="w-full rounded-xl border border-[var(--border)] py-3 text-sm font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors"
                   >
                     Skip &amp; Show Proof at Counter
+                  </button>
+                </div>
+              ) : step === "proof-upload" ? (
+                <div className="space-y-2">
+                  <button
+                    onClick={() => {
+                      if (proofOrderId) onOrderPlaced(proofOrderId);
+                      onClose();
+                    }}
+                    disabled={proofUploading}
+                    className="w-full rounded-xl border border-[var(--border)] py-3 text-sm font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors disabled:opacity-50"
+                  >
+                    Skip — Pay at Counter
                   </button>
                 </div>
               ) : step === "waiting" ? (

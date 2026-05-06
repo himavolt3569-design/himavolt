@@ -40,6 +40,8 @@ export async function canAcceptOrder(orderId: string): Promise<{
     select: {
       id: true,
       status: true,
+      isPrepaid: true,
+      processedByStaffId: true,
       payment: {
         select: {
           method: true,
@@ -51,6 +53,12 @@ export async function canAcceptOrder(orderId: string): Promise<{
 
   if (!order) {
     return { allowed: false, reason: "Order not found" };
+  }
+
+  // Customer QR/self-service orders (no staff session) bypass the gate when not
+  // prepaid — kitchen accepts immediately, billing reconciles payment async.
+  if (!order.processedByStaffId && !order.isPrepaid) {
+    return { allowed: true };
   }
 
   // No payment record — allow (legacy orders or manual flow)
