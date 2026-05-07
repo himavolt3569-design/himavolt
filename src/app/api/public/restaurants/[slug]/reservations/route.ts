@@ -35,7 +35,7 @@ export async function POST(
 
     // 5 reservations per hour per IP — enough for legitimate group bookings,
     // tight enough to stop a spammer filling every slot for every date.
-    const limit = rateLimit(clientKey(req, "reservations"), 60 * 60_000, 5);
+    const limit = await rateLimit(clientKey(req, "reservations"), 60 * 60_000, 5);
     if (!limit.ok) {
       return NextResponse.json(
         { error: "Too many reservation requests. Try again later." },

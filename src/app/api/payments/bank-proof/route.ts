@@ -4,6 +4,16 @@ import { logAudit, getClientIp } from "@/lib/audit";
 import { sendNotificationToRestaurantStaff } from "@/lib/notifications";
 import { touchOrderUpdatedAt } from "@/lib/order-sync";
 import { canAccessOrder } from "@/lib/order-access";
+import { z } from "zod";
+import { rateLimit, clientKey } from "@/lib/rate-limit";
+
+const bankProofSchema = z.object({
+  orderId: z.string().min(1).max(100),
+  proofUrl: z.string().url().max(500).refine(
+    (u) => u.startsWith("https://") || u.startsWith("http://"),
+    { message: "proofUrl must be an http(s) URL" },
+  ),
+});
 
 /**
  * POST /api/payments/bank-proof
@@ -12,38 +22,22 @@ import { canAccessOrder } from "@/lib/order-access";
  * Body: { orderId: string, proofUrl: string }
  */
 export async function POST(req: NextRequest) {
-  const body = await req.json();
-  const { orderId, proofUrl } = body;
-
-  if (!orderId || !proofUrl) {
+  const rl = await rateLimit(clientKey(req, "bank-proof"), 15 * 60_000, 10);
+  if (!rl.ok) {
     return NextResponse.json(
-      { error: "orderId and proofUrl are required" },
-      { status: 400 },
+      { error: "Too many requests. Please wait before trying again." },
+      { status: 429, headers: { "Retry-After": String(rl.retryAfterSeconds) } },
     );
   }
 
-  // Validate proofUrl: must be an absolute https URL ≤ 500 chars. Reject
-  // javascript:/data: and other tricks before we even hit the DB.
-  if (typeof proofUrl !== "string" || proofUrl.length > 500) {
+  const parsed = bankProofSchema.safeParse(await req.json());
+  if (!parsed.success) {
     return NextResponse.json(
-      { error: "proofUrl must be a string up to 500 characters" },
+      { error: parsed.error.issues[0]?.message ?? "Invalid request" },
       { status: 400 },
     );
   }
-  try {
-    const u = new URL(proofUrl);
-    if (u.protocol !== "https:" && u.protocol !== "http:") {
-      return NextResponse.json(
-        { error: "proofUrl must be an http(s) URL" },
-        { status: 400 },
-      );
-    }
-  } catch {
-    return NextResponse.json(
-      { error: "proofUrl is not a valid URL" },
-      { status: 400 },
-    );
-  }
+  const { orderId, proofUrl } = parsed.data;
 
   // Find the payment for this order
   const payment = await db.payment.findUnique({

@@ -1,10 +1,11 @@
-// In-memory sliding-window rate limiter.
-// Caveat: on serverless (Vercel), each cold-start instance gets a fresh Map,
-// so the effective limit scales with the number of warm instances. Still
-// provides meaningful brute-force resistance on login/payment endpoints.
-// For stronger guarantees, swap for Upstash or Redis with the same signature.
+// Rate limiter with Upstash Redis backend when env vars are present,
+// falling back to an in-memory sliding window for local dev / single instances.
+//
+// Set UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN for distributed
+// deployments where in-memory state resets on every cold start.
 
-const buckets = new Map<string, number[]>();
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
 
 export interface RateLimitResult {
   ok: boolean;
@@ -12,7 +13,60 @@ export interface RateLimitResult {
   retryAfterSeconds: number;
 }
 
-export function rateLimit(
+// ── Upstash path ─────────────────────────────────────────────────────────────
+
+let redis: Redis | null = null;
+const upstashLimiters = new Map<string, Ratelimit>();
+
+function getRedis(): Redis | null {
+  if (redis) return redis;
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!url || !token) return null;
+  redis = new Redis({ url, token });
+  return redis;
+}
+
+function msToUpstashWindow(ms: number): `${number} ${"ms" | "s" | "m" | "h" | "d"}` {
+  if (ms < 1_000) return `${ms} ms`;
+  if (ms < 60_000) return `${Math.round(ms / 1_000)} s`;
+  if (ms < 3_600_000) return `${Math.round(ms / 60_000)} m`;
+  if (ms < 86_400_000) return `${Math.round(ms / 3_600_000)} h`;
+  return `${Math.round(ms / 86_400_000)} d`;
+}
+
+function getUpstashLimiter(windowMs: number, max: number): Ratelimit {
+  const cacheKey = `${windowMs}:${max}`;
+  let limiter = upstashLimiters.get(cacheKey);
+  if (!limiter) {
+    limiter = new Ratelimit({
+      redis: redis!,
+      limiter: Ratelimit.slidingWindow(max, msToUpstashWindow(windowMs)),
+      analytics: false,
+    });
+    upstashLimiters.set(cacheKey, limiter);
+  }
+  return limiter;
+}
+
+async function upstashRateLimit(
+  key: string,
+  windowMs: number,
+  max: number,
+): Promise<RateLimitResult> {
+  const limiter = getUpstashLimiter(windowMs, max);
+  const { success, remaining, reset } = await limiter.limit(key);
+  const retryAfterSeconds = success
+    ? 0
+    : Math.max(1, Math.ceil((reset - Date.now()) / 1000));
+  return { ok: success, remaining, retryAfterSeconds };
+}
+
+// ── In-memory fallback ────────────────────────────────────────────────────────
+
+const buckets = new Map<string, number[]>();
+
+function inMemoryRateLimit(
   key: string,
   windowMs: number,
   max: number,
@@ -35,7 +89,6 @@ export function rateLimit(
   recent.push(now);
   buckets.set(key, recent);
 
-  // Occasional cleanup so the Map doesn't grow unbounded in long-lived instances
   if (buckets.size > 10_000) {
     for (const [k, v] of buckets) {
       if (v[v.length - 1] < cutoff) buckets.delete(k);
@@ -43,6 +96,18 @@ export function rateLimit(
   }
 
   return { ok: true, remaining: max - recent.length, retryAfterSeconds: 0 };
+}
+
+// ── Public API ────────────────────────────────────────────────────────────────
+
+export async function rateLimit(
+  key: string,
+  windowMs: number,
+  max: number,
+): Promise<RateLimitResult> {
+  const r = getRedis();
+  if (r) return upstashRateLimit(key, windowMs, max);
+  return inMemoryRateLimit(key, windowMs, max);
 }
 
 export function clientKey(req: Request, prefix: string): string {

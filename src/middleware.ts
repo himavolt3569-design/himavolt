@@ -93,8 +93,26 @@ async function verifyMasterAdminJwt(req: NextRequest): Promise<boolean> {
   }
 }
 
+const BODY_SIZE_LIMIT = 1 * 1024 * 1024; // 1 MB for API JSON payloads
+const UPLOAD_PATHS = ["/api/upload"];
+
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
+  // Reject oversized payloads before they hit route handlers.
+  // Upload routes handle their own size limits internally.
+  if (
+    ["POST", "PUT", "PATCH"].includes(req.method) &&
+    !UPLOAD_PATHS.some((p) => pathname.startsWith(p))
+  ) {
+    const contentLength = Number(req.headers.get("content-length") ?? 0);
+    if (contentLength > BODY_SIZE_LIMIT) {
+      return NextResponse.json(
+        { error: "Payload too large. Maximum 1 MB." },
+        { status: 413 },
+      );
+    }
+  }
 
   if (isStaffRoute(pathname)) {
     const valid = await verifyStaffJwt(req);

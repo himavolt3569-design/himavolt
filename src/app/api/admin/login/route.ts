@@ -1,13 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SignJWT } from "jose";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
+import { z } from "zod";
+import { timingSafeEqual } from "crypto";
+
+const adminLoginSchema = z.object({
+  adminId: z.string().min(1).max(100),
+  password: z.string().min(1).max(200),
+});
 
 /**
  * POST /api/admin/login
  * Verify master admin credentials and issue a signed JWT cookie.
  */
 export async function POST(req: NextRequest) {
-  const limit = rateLimit(clientKey(req, "admin-login"), 15 * 60_000, 5);
+  const limit = await rateLimit(clientKey(req, "admin-login"), 15 * 60_000, 5);
   if (!limit.ok) {
     return NextResponse.json(
       { error: "Too many attempts. Try again later." },
@@ -18,7 +25,11 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { adminId, password } = await req.json();
+  const parsed = adminLoginSchema.safeParse(await req.json());
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+  }
+  const { adminId, password } = parsed.data;
 
   const expectedId = process.env.MASTER_ADMIN_ID;
   const expectedPassword = process.env.MASTER_ADMIN_PASSWORD;
@@ -31,7 +42,10 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  if (adminId !== expectedId || password !== expectedPassword) {
+  // Constant-time comparison prevents timing-based credential enumeration.
+  const idMatch = timingSafeEqual(Buffer.from(adminId), Buffer.from(expectedId));
+  const pwMatch = timingSafeEqual(Buffer.from(password), Buffer.from(expectedPassword));
+  if (!idMatch || !pwMatch) {
     return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
   }
 

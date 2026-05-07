@@ -3,15 +3,39 @@ import Anthropic from "@anthropic-ai/sdk";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
+// Only fetch images from trusted storage origins (SSRF guard).
+// Supabase storage URLs contain the project ref — derive from env at runtime.
+function isAllowedImageUrl(url: string): boolean {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+  const allowed = [
+    supabaseUrl + "/storage/",
+    "https://lh3.googleusercontent.com/",
+  ];
+  return (
+    typeof url === "string" &&
+    url.length <= 1000 &&
+    allowed.some((prefix) => prefix && url.startsWith(prefix))
+  );
+}
+
 export async function POST(req: NextRequest) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     return NextResponse.json({ error: "OCR not configured" }, { status: 503 });
   }
 
-  const { imageUrl } = await req.json();
+  const body = await req.json();
+  const { imageUrl } = body ?? {};
+
   if (!imageUrl) {
     return NextResponse.json({ error: "imageUrl is required" }, { status: 400 });
+  }
+
+  if (!isAllowedImageUrl(imageUrl)) {
+    return NextResponse.json(
+      { error: "Image URL must be from an allowed storage provider" },
+      { status: 400 },
+    );
   }
 
   try {

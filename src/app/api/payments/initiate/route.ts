@@ -7,9 +7,18 @@ import { initiatePaymentSchema } from "@/lib/validations";
 import { logAudit } from "@/lib/audit";
 import { getCurrencySymbol } from "@/lib/currency";
 import { decryptIfPresent } from "@/lib/encryption";
+import { rateLimit, clientKey } from "@/lib/rate-limit";
 
 export const POST = safeHandler(
   async (_req, { body }) => {
+    const rl = await rateLimit(clientKey(_req, "pay-initiate"), 15 * 60_000, 20);
+    if (!rl.ok) {
+      return NextResponse.json(
+        { error: "Too many requests. Please wait before trying again." },
+        { status: 429, headers: { "Retry-After": String(rl.retryAfterSeconds) } },
+      );
+    }
+
     const { orderId, method } = body;
 
     const order = await db.order.findUnique({

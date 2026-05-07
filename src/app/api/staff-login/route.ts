@@ -17,7 +17,7 @@ function getJwtSecret() {
 
 export const POST = safeHandler(
   async (_req, { body }) => {
-    const limit = rateLimit(clientKey(_req, "staff-login"), 15 * 60_000, 10);
+    const limit = await rateLimit(clientKey(_req, "staff-login"), 15 * 60_000, 5);
     if (!limit.ok) {
       return NextResponse.json(
         { error: "Too many attempts. Try again later." },

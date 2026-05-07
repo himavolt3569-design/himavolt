@@ -27,7 +27,7 @@ function newAnonId(): string {
  */
 export async function POST(req: NextRequest) {
   // Rate-limit so a runaway tab can't spam thousands of pings/min.
-  const limit = rateLimit(clientKey(req, "presence-ping"), 60_000, 30);
+  const limit = await rateLimit(clientKey(req, "presence-ping"), 60_000, 30);
   if (!limit.ok) {
     return NextResponse.json(
       { ok: false, error: "Too many pings" },

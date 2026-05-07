@@ -50,7 +50,7 @@ export async function POST(
 ) {
   // 5 booking attempts per hour per IP — enough for legitimate retry but
   // keeps a bot from blocking every room across every hotel.
-  const limit = rateLimit(clientKey(req, "hotel-booking"), 60 * 60_000, 5);
+  const limit = await rateLimit(clientKey(req, "hotel-booking"), 60 * 60_000, 5);
   if (!limit.ok) {
     return NextResponse.json(
       { error: "Too many booking attempts. Try again later." },

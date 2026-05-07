@@ -170,7 +170,7 @@ export const POST = safeHandler(
     // Light per-IP rate limit so a single bot can't spam thousands of orders
     // at one restaurant. The fraud-protection layers below are the real fix;
     // this just keeps the kitchen queue from being flooded.
-    const limit = rateLimit(clientKey(req, "orders"), 10 * 60_000, 30);
+    const limit = await rateLimit(clientKey(req, "orders"), 10 * 60_000, 30);
     if (!limit.ok) {
       return NextResponse.json(
         { error: "Too many orders from this address. Try again later." },

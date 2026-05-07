@@ -104,7 +104,7 @@ async function searchWikimedia(query: string, perPage: number) {
 }
 
 export async function GET(req: NextRequest) {
-  const limit = rateLimit(clientKey(req, "image-search"), 60_000, 30);
+  const limit = await rateLimit(clientKey(req, "image-search"), 60_000, 30);
   if (!limit.ok) {
     return NextResponse.json(
       { error: "Too many searches. Slow down." },

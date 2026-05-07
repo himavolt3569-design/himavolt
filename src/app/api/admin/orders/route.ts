@@ -96,16 +96,17 @@ export async function GET(req: NextRequest) {
 
     // Fallback: try a minimal query without any potentially missing columns
     try {
+      const offset = (page - 1) * limit;
       const [orders, total] = await Promise.all([
-        db.$queryRawUnsafe<unknown[]>(
-          `SELECT o.id, o."orderNo", o."tableNo", o."roomNo", o.status, o.type,
-                  o.subtotal, o.tax, o.total, o."deliveryFee", o."deliveryAddress",
-                  o."createdAt", o."updatedAt", o."userId", o."restaurantId",
-                  o."acceptedAt", o."preparingAt", o."readyAt", o."deliveredAt"
-           FROM orders o
-           ORDER BY o."createdAt" DESC
-           LIMIT ${limit} OFFSET ${(page - 1) * limit}`,
-        ),
+        db.$queryRaw<unknown[]>`
+          SELECT o.id, o."orderNo", o."tableNo", o."roomNo", o.status, o.type,
+                 o.subtotal, o.tax, o.total, o."deliveryFee", o."deliveryAddress",
+                 o."createdAt", o."updatedAt", o."userId", o."restaurantId",
+                 o."acceptedAt", o."preparingAt", o."readyAt", o."deliveredAt"
+          FROM orders o
+          ORDER BY o."createdAt" DESC
+          LIMIT ${limit} OFFSET ${offset}
+        `,
         db.order.count({ where: {} }),
       ]);
 

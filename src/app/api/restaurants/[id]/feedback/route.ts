@@ -19,7 +19,7 @@ export async function POST(req: NextRequest, { params }: Params) {
 
   // 5 reviews per minute per IP keeps spam-bombs out without blocking
   // legitimate small groups submitting feedback at the end of a meal.
-  const limit = rateLimit(clientKey(req, "feedback"), 60_000, 5);
+  const limit = await rateLimit(clientKey(req, "feedback"), 60_000, 5);
   if (!limit.ok) {
     return NextResponse.json(
       { error: "Too many feedback submissions. Try again shortly." },

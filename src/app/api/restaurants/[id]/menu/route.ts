@@ -3,6 +3,40 @@ import { db } from "@/lib/db";
 import { getOrCreateUser } from "@/lib/auth";
 import { logAudit, getClientIp } from "@/lib/audit";
 import { getCurrencySymbol } from "@/lib/currency";
+import { z } from "zod";
+
+const menuItemSchema = z.object({
+  name: z.string().min(1).max(200),
+  description: z.string().max(2000).optional(),
+  price: z.number().positive().max(1_000_000),
+  imageUrl: z.string().url().max(500).optional().nullable(),
+  prepTime: z.string().max(50).optional(),
+  isVeg: z.boolean().optional(),
+  hasEgg: z.boolean().optional(),
+  hasOnionGarlic: z.boolean().optional(),
+  badge: z.string().max(50).optional().nullable(),
+  tags: z.array(z.string().max(50)).max(20).optional(),
+  categoryId: z.string().min(1).max(100),
+  discount: z.number().min(0).max(100).optional(),
+  discountLabel: z.string().max(100).optional().nullable(),
+  isFeatured: z.boolean().optional(),
+  spiceLevel: z.number().int().min(0).max(5).optional(),
+  calories: z.number().int().min(0).max(10_000).optional().nullable(),
+  allergens: z.array(z.string().max(50)).max(20).optional(),
+  isDrink: z.boolean().optional(),
+  drinkCategory: z.string().max(50).optional().nullable(),
+  stockEnabled: z.boolean().optional(),
+  stockQuantity: z.number().int().min(0).max(100_000).optional(),
+  sizes: z.array(z.object({
+    label: z.string().min(1).max(50),
+    grams: z.string().max(20),
+    priceAdd: z.number().min(0).max(1_000_000),
+  })).max(10).optional(),
+  addOns: z.array(z.object({
+    name: z.string().min(1).max(100),
+    price: z.number().min(0).max(1_000_000),
+  })).max(20).optional(),
+});
 
 export async function GET(
   req: NextRequest,
@@ -51,7 +85,13 @@ export async function POST(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const body = await req.json();
+  const parsed = menuItemSchema.safeParse(await req.json());
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: parsed.error.issues[0]?.message ?? "Invalid menu item data" },
+      { status: 400 },
+    );
+  }
   const {
     name, description, price, imageUrl, prepTime,
     isVeg, hasEgg, hasOnionGarlic, badge, tags,
@@ -59,11 +99,7 @@ export async function POST(
     discount, discountLabel, isFeatured,
     spiceLevel, calories, allergens,
     isDrink, drinkCategory, stockEnabled, stockQuantity,
-  } = body;
-
-  if (!name || !price || !categoryId) {
-    return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-  }
+  } = parsed.data;
 
   const item = await db.menuItem.create({
     data: {

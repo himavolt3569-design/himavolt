@@ -13,6 +13,29 @@ const securityHeaders = [
     key: "Permissions-Policy",
     value: "camera=(self), microphone=(), geolocation=(self)",
   },
+  {
+    key: "Content-Security-Policy",
+    value: [
+      "default-src 'self'",
+      // Next.js requires unsafe-inline for hydration scripts + style injection
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      "style-src 'self' 'unsafe-inline'",
+      // Images from Supabase storage + Google profile pics + data URIs
+      "img-src 'self' data: blob: https://*.supabase.co https://*.storage.supabase.co https://lh3.googleusercontent.com",
+      "font-src 'self' data:",
+      "media-src 'self' blob: https://*.supabase.co https://*.storage.supabase.co",
+      // API calls: self + Supabase (auth + realtime)
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.supabase.in",
+      // No Flash / plugins
+      "object-src 'none'",
+      // Prevent <base> tag injection
+      "base-uri 'self'",
+      // Forms: self + payment gateways (eSewa, Khalti)
+      "form-action 'self' https://rc-epay.esewa.com.np https://epay.esewa.com.np https://a.khalti.com",
+      // Stronger than X-Frame-Options
+      "frame-ancestors 'self'",
+    ].join("; "),
+  },
 ];
 
 const nextConfig: NextConfig = {
