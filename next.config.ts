@@ -21,7 +21,7 @@ const securityHeaders = [
       "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
       "style-src 'self' 'unsafe-inline'",
       // Images from Supabase storage + Google profile pics + data URIs
-      "img-src 'self' data: blob: https://*.supabase.co https://*.storage.supabase.co https://lh3.googleusercontent.com",
+      "img-src 'self' data: blob: https://*.supabase.co https://*.storage.supabase.co https://lh3.googleusercontent.com https://images.unsplash.com",
       "font-src 'self' data:",
       "media-src 'self' blob: https://*.supabase.co https://*.storage.supabase.co",
       // API calls: self + Supabase (auth + realtime)
@@ -55,6 +55,7 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "**.supabase.co" },
       { protocol: "https", hostname: "**.storage.supabase.co" },
       { protocol: "https", hostname: "lh3.googleusercontent.com" },
+      { protocol: "https", hostname: "images.unsplash.com" },
     ],
   },
   async headers() {
