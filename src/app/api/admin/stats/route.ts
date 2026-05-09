@@ -3,6 +3,15 @@ import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/require-admin";
 import { unauthorized } from "@/lib/api-helpers";
 
+const STATS_CACHE_TTL_MS = 15_000;
+
+let cachedStats:
+  | {
+      data: unknown;
+      expiresAt: number;
+    }
+  | null = null;
+
 /**
  * GET /api/admin/stats
  * System-wide statistics for the admin dashboard.
@@ -10,6 +19,12 @@ import { unauthorized } from "@/lib/api-helpers";
 export async function GET() {
   const admin = await requireAdmin();
   if (!admin) return unauthorized("Admin access required");
+
+  if (cachedStats && cachedStats.expiresAt > Date.now()) {
+    return NextResponse.json(cachedStats.data, {
+      headers: { "Cache-Control": "private, max-age=15" },
+    });
+  }
 
   const now = new Date();
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -72,7 +87,7 @@ export async function GET() {
     ordersByStatus.map((s) => [s.status, s._count.status]),
   );
 
-  return NextResponse.json({
+  const data = {
     users: { total: totalUsers },
     restaurants: {
       total: totalRestaurants,
@@ -94,5 +109,14 @@ export async function GET() {
     payments: { completed: totalPayments },
     audit: { today: recentAuditCount },
     topRestaurants,
+  };
+
+  cachedStats = {
+    data,
+    expiresAt: Date.now() + STATS_CACHE_TTL_MS,
+  };
+
+  return NextResponse.json(data, {
+    headers: { "Cache-Control": "private, max-age=15" },
   });
 }

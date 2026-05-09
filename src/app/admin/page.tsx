@@ -30,18 +30,59 @@ import {
   Sparkles,
 } from "lucide-react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import MasterOverview from "@/components/admin/MasterOverview";
-import AllOrdersTab from "@/components/admin/AllOrdersTab";
-import AllRestaurantsTab from "@/components/admin/AllRestaurantsTab";
-import AllUsersTab from "@/components/admin/AllUsersTab";
-import AllChatsTab from "@/components/admin/AllChatsTab";
-import AllPaymentsTab from "@/components/admin/AllPaymentsTab";
-import AllDeliveriesTab from "@/components/admin/AllDeliveriesTab";
-import AuditTab from "@/components/admin/AuditTab";
-import AllBookingsTab from "@/components/admin/AllBookingsTab";
-import FooterSettingsTab from "@/components/admin/FooterSettingsTab";
-import InactiveUsersTab from "@/components/admin/InactiveUsersTab";
-import HeroSettingsTab from "@/components/admin/HeroSettingsTab";
+
+const AdminTabLoader = () => (
+  <div className="flex min-h-[320px] items-center justify-center">
+    <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-slate-900" />
+  </div>
+);
+
+const AllOrdersTab = dynamic(() => import("@/components/admin/AllOrdersTab"), {
+  loading: AdminTabLoader,
+  ssr: false,
+});
+const AllRestaurantsTab = dynamic(
+  () => import("@/components/admin/AllRestaurantsTab"),
+  { loading: AdminTabLoader, ssr: false },
+);
+const AllUsersTab = dynamic(() => import("@/components/admin/AllUsersTab"), {
+  loading: AdminTabLoader,
+  ssr: false,
+});
+const InactiveUsersTab = dynamic(
+  () => import("@/components/admin/InactiveUsersTab"),
+  { loading: AdminTabLoader, ssr: false },
+);
+const AllChatsTab = dynamic(() => import("@/components/admin/AllChatsTab"), {
+  loading: AdminTabLoader,
+  ssr: false,
+});
+const AllPaymentsTab = dynamic(
+  () => import("@/components/admin/AllPaymentsTab"),
+  { loading: AdminTabLoader, ssr: false },
+);
+const AllDeliveriesTab = dynamic(
+  () => import("@/components/admin/AllDeliveriesTab"),
+  { loading: AdminTabLoader, ssr: false },
+);
+const AuditTab = dynamic(() => import("@/components/admin/AuditTab"), {
+  loading: AdminTabLoader,
+  ssr: false,
+});
+const AllBookingsTab = dynamic(
+  () => import("@/components/admin/AllBookingsTab"),
+  { loading: AdminTabLoader, ssr: false },
+);
+const FooterSettingsTab = dynamic(
+  () => import("@/components/admin/FooterSettingsTab"),
+  { loading: AdminTabLoader, ssr: false },
+);
+const HeroSettingsTab = dynamic(
+  () => import("@/components/admin/HeroSettingsTab"),
+  { loading: AdminTabLoader, ssr: false },
+);
 
 /* ═══════════════════════════════════════════════════════════════════
    Types & Constants

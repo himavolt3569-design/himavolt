@@ -12,6 +12,7 @@ interface CacheEntry<T = unknown> {
 // without a sort. The previous sort-based eviction was O(n log n) on every
 // cache miss past 100 entries.
 const GET_CACHE = new Map<string, CacheEntry>();
+const IN_FLIGHT_GETS = new Map<string, Promise<unknown>>();
 const DEFAULT_CACHE_TTL = 60_000;
 const MAX_CACHE_ENTRIES = 200;
 
@@ -61,40 +62,55 @@ export async function apiFetch<T = unknown>(
       GET_CACHE.set(path, cached);
       return cached.data as T;
     }
+
+    const inFlight = IN_FLIGHT_GETS.get(path);
+    if (inFlight) return inFlight as Promise<T>;
   }
 
-  const res = await fetch(`${BASE}${path}`, {
-    method,
-    cache,
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...headers,
-    },
-    body: body ? JSON.stringify(body) : undefined,
-  });
+  const request = (async () => {
+    const res = await fetch(`${BASE}${path}`, {
+      method,
+      cache,
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        ...headers,
+      },
+      body: body ? JSON.stringify(body) : undefined,
+    });
 
-  if (!res.ok) {
-    const error = await res.json().catch(() => ({ error: "Request failed" }));
-    const msg = error.error || `API error: ${res.status}`;
-    if (error.issues) {
-      console.error(`[API ${res.status}] ${msg}`, error.issues);
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({ error: "Request failed" }));
+      const msg = error.error || `API error: ${res.status}`;
+      if (error.issues) {
+        console.error(`[API ${res.status}] ${msg}`, error.issues);
+      }
+      throw new Error(msg);
     }
-    throw new Error(msg);
-  }
 
-  const data = await res.json();
+    const data = await res.json();
 
-  if (typeof window !== "undefined") {
-    if (method === "GET" && cacheTtl > 0) {
-      GET_CACHE.set(path, { data, ts: Date.now() });
-      pruneCache();
-    } else if (method !== "GET") {
-      const basePath = path.split("?")[0];
-      const segments = basePath.split("/").slice(0, 4).join("/");
-      invalidateApiCache(segments);
+    if (typeof window !== "undefined") {
+      if (method === "GET" && cacheTtl > 0) {
+        GET_CACHE.set(path, { data, ts: Date.now() });
+        pruneCache();
+      } else if (method !== "GET") {
+        const basePath = path.split("?")[0];
+        const segments = basePath.split("/").slice(0, 4).join("/");
+        invalidateApiCache(segments);
+      }
     }
+
+    return data as T;
+  })();
+
+  if (typeof window !== "undefined" && method === "GET" && cacheTtl > 0) {
+    IN_FLIGHT_GETS.set(path, request);
+    request.then(
+      () => IN_FLIGHT_GETS.delete(path),
+      () => IN_FLIGHT_GETS.delete(path),
+    );
   }
 
-  return data;
+  return request;
 }

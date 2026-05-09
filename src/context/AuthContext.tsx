@@ -44,15 +44,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const CACHE_KEY = `hh_me_cache_${session.user?.id ?? "anon"}`;
     const CACHE_TTL = 5 * 60 * 1000;
 
+    let hasFreshCachedRole = false;
+
     try {
       const raw = sessionStorage.getItem(CACHE_KEY);
       if (raw) {
         const cached = JSON.parse(raw);
         if (Date.now() - cached.ts < CACHE_TTL) {
           setUserRole(cached.role ?? "CUSTOMER");
+          hasFreshCachedRole = true;
         }
       }
     } catch {}
+
+    if (hasFreshCachedRole) return;
 
     const controller = new AbortController();
     fetch("/api/me", { signal: controller.signal })

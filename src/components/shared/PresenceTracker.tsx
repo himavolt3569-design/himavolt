@@ -10,13 +10,16 @@ import { useEffect } from "react";
  * so the count reflects the user's return.
  */
 const PING_INTERVAL_MS = 60_000;
+const FIRST_PING_DELAY_MS = 15_000;
 
 export default function PresenceTracker() {
   useEffect(() => {
     let cancelled = false;
+    let firstPingTimer: ReturnType<typeof setTimeout> | null = null;
 
     const ping = () => {
       if (cancelled) return;
+      if (document.visibilityState !== "visible") return;
       // credentials:"include" so cookies (master/admin/staff/Supabase) ride
       // along — the server reads them to determine scope.
       fetch("/api/presence/ping", {
@@ -28,7 +31,7 @@ export default function PresenceTracker() {
       });
     };
 
-    ping();
+    firstPingTimer = setTimeout(ping, FIRST_PING_DELAY_MS);
     const intervalId = setInterval(ping, PING_INTERVAL_MS);
 
     const onVisibility = () => {
@@ -38,6 +41,7 @@ export default function PresenceTracker() {
 
     return () => {
       cancelled = true;
+      if (firstPingTimer) clearTimeout(firstPingTimer);
       clearInterval(intervalId);
       document.removeEventListener("visibilitychange", onVisibility);
     };

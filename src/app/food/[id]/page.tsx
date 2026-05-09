@@ -280,6 +280,32 @@ export default function FoodDetailsPage() {
     setTimeout(() => setAdded(false), 2200);
   }, [food, qty, unitPrice, addItem]);
 
+  if (loading && !food) {
+    return (
+      <div className="min-h-screen bg-[#f7f7f7]">
+        <div className="h-[44vh] sm:h-[52vh] animate-pulse bg-[var(--surface-alt)]" />
+        <div className="relative -mt-5 mx-auto max-w-2xl px-3 sm:px-4">
+          <div className="rounded-3xl bg-[var(--canvas)] p-5 shadow-xl shadow-black/[0.06] sm:p-6">
+            <div className="space-y-5 animate-pulse">
+              <div className="h-5 w-24 rounded-full bg-[var(--surface)]" />
+              <div className="h-8 w-3/4 rounded-full bg-[var(--surface)]" />
+              <div className="space-y-2">
+                <div className="h-4 w-full rounded-full bg-[var(--surface)]" />
+                <div className="h-4 w-5/6 rounded-full bg-[var(--surface)]" />
+              </div>
+              <div className="flex gap-2">
+                <div className="h-8 w-24 rounded-full bg-[var(--surface)]" />
+                <div className="h-8 w-20 rounded-full bg-[var(--surface)]" />
+                <div className="h-8 w-28 rounded-full bg-[var(--surface)]" />
+              </div>
+              <div className="h-14 rounded-2xl bg-[var(--surface)]" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   /* ── Error ── */
   if (error || !food) {
     return (

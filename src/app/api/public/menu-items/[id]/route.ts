@@ -37,14 +37,42 @@ export async function GET(
       return NextResponse.json({ error: "Item not found" }, { status: 404 });
     }
 
-    // Suggestion lists don't render restaurant address/phone — slim the
-    // payload so we don't ship 3 × N copies of the parent restaurant.
-    const suggestionInclude = {
+    // Suggested cards only need display metadata. Avoid returning full
+    // customization relations for every suggestion; clicking a suggestion
+    // fetches the full item separately.
+    const suggestionSelect = {
+      id: true,
+      name: true,
+      description: true,
+      price: true,
+      imageUrl: true,
+      rating: true,
+      prepTime: true,
+      isVeg: true,
+      hasEgg: true,
+      hasOnionGarlic: true,
+      tags: true,
+      discount: true,
+      discountLabel: true,
+      isFeatured: true,
+      badge: true,
+      offerExpiresAt: true,
+      offerStartedAt: true,
+      calories: true,
+      allergens: true,
+      spiceLevel: true,
+      isDrink: true,
+      drinkCategory: true,
+      restaurantId: true,
       category: { select: { name: true, slug: true } },
-      sizes: true,
-      addOns: true,
       restaurant: {
-        select: { id: true, name: true, slug: true, imageUrl: true },
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          imageUrl: true,
+          currency: true,
+        },
       },
     };
 
@@ -56,9 +84,9 @@ export async function GET(
           id: { not: item.id },
           isAvailable: true,
         },
-        include: suggestionInclude,
+        select: suggestionSelect,
         orderBy: [{ isFeatured: "desc" }, { rating: "desc" }],
-        take: 8,
+        take: 6,
       }),
       db.menuItem.findMany({
         where: {
@@ -67,9 +95,9 @@ export async function GET(
           isAvailable: true,
           rating: { gte: 3.5 },
         },
-        include: suggestionInclude,
+        select: suggestionSelect,
         orderBy: { rating: "desc" },
-        take: 6,
+        take: 4,
       }),
       db.menuItem.findMany({
         where: {
@@ -78,9 +106,9 @@ export async function GET(
           isAvailable: true,
           OR: [{ isFeatured: true }, { badge: "Bestseller" }],
         },
-        include: suggestionInclude,
+        select: suggestionSelect,
         orderBy: { rating: "desc" },
-        take: 6,
+        take: 4,
       }),
     ]);
 

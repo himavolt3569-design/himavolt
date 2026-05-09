@@ -34,6 +34,7 @@ import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 import { useToast } from "@/context/ToastContext";
 import { formatPrice } from "@/lib/currency";
+import { apiFetch } from "@/lib/api-client";
 import RatingInput from "@/components/menu/RatingInput";
 import OfferCountdown from "@/components/menu/OfferCountdown";
 
@@ -373,14 +374,18 @@ export default function FoodDetailPopup({
       return;
     }
 
-    // API fetch
+    // API fetch. Use the shared GET cache/in-flight de-duper so StrictMode,
+    // quick reopen, and chained related clicks don't create duplicate requests.
+    let cancelled = false;
     setFetchState("loading");
-    fetch(`/api/public/menu-items/${currentItemId}`)
-      .then((r) => {
-        if (!r.ok) throw new Error();
-        return r.json();
-      })
+    apiFetch<{
+      item: PopupMenuItem;
+      related?: PopupMenuItem[];
+      topRated?: PopupMenuItem[];
+      trending?: PopupMenuItem[];
+    }>(`/api/public/menu-items/${currentItemId}`)
       .then((data) => {
+        if (cancelled) return;
         setItem(data.item);
 
         let rel: PopupMenuItem[] = [];
@@ -428,7 +433,12 @@ export default function FoodDetailPopup({
         setRelated(rel);
         setFetchState("idle");
       })
-      .catch(() => setFetchState("error"));
+      .catch(() => {
+        if (!cancelled) setFetchState("error");
+      });
+    return () => {
+      cancelled = true;
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentItemId]);
 
