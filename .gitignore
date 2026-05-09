@@ -46,3 +46,16 @@ next-env.d.ts
 .idea
 scripts
 .vscode
+.codex
+.graphify-pkgs
+.claude
+graphify-out
+.graphify_analysis.json
+.graphify_detect.json
+.graphify_ast.json
+.graphify_extract.json
+.graphify_labels.json
+.graphify_semantic.json
+.graphifyignore
+AGENTS.md
+CLAUDE.md
