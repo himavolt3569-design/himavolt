@@ -6,7 +6,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/context/CartContext";
 import { formatPrice } from "@/lib/currency";
 import { useLocation } from "@/context/LocationContext";
-import FoodDetailPopup from "@/components/food/FoodDetailPopup";
+import FoodDetailPopup, {
+  type PopupMenuItem,
+} from "@/components/food/FoodDetailPopup";
 
 interface FoodItem {
   id: string;
@@ -27,15 +29,36 @@ interface FoodItem {
 interface ApiMenuItem {
   id: string;
   name: string;
+  description: string;
   imageUrl: string | null;
   price: number;
   rating: number;
   prepTime: string;
   isVeg: boolean;
+  hasEgg?: boolean;
+  hasOnionGarlic?: boolean | null;
+  isAvailable?: boolean;
+  badge: string | null;
   tags: string[];
+  discount: number;
   discountLabel: string | null;
-  category: { name: string } | null;
-  restaurant: { id: string; name: string; slug: string } | null;
+  isFeatured: boolean;
+  offerExpiresAt: string | null;
+  offerStartedAt?: string | null;
+  calories?: number | null;
+  allergens?: string[];
+  spiceLevel?: number;
+  isDrink?: boolean;
+  drinkCategory?: string | null;
+  restaurantId: string;
+  category: { name: string; slug?: string | null } | null;
+  restaurant: {
+    id: string;
+    name: string;
+    slug: string;
+    imageUrl?: string | null;
+    currency?: string;
+  } | null;
 }
 
 function apiToFoodItem(item: ApiMenuItem): FoodItem {
@@ -53,6 +76,48 @@ function apiToFoodItem(item: ApiMenuItem): FoodItem {
     restaurantId: item.restaurant?.id || "home",
     restaurantSlug: item.restaurant?.slug || "home",
     restaurantName: item.restaurant?.name || "",
+  };
+}
+
+function apiToPopupMenuItem(item: ApiMenuItem): PopupMenuItem {
+  return {
+    id: item.id,
+    name: item.name,
+    description: item.description ?? "",
+    price: item.price,
+    imageUrl: item.imageUrl,
+    rating: item.rating,
+    prepTime: item.prepTime,
+    isVeg: item.isVeg,
+    hasEgg: item.hasEgg,
+    hasOnionGarlic: item.hasOnionGarlic,
+    isAvailable: item.isAvailable,
+    badge: item.badge,
+    tags: item.tags,
+    discount: item.discount,
+    discountLabel: item.discountLabel,
+    isFeatured: item.isFeatured,
+    offerExpiresAt: item.offerExpiresAt,
+    offerStartedAt: item.offerStartedAt,
+    calories: item.calories,
+    allergens: item.allergens ?? [],
+    spiceLevel: item.spiceLevel,
+    isDrink: item.isDrink,
+    drinkCategory: item.drinkCategory,
+    restaurantId: item.restaurantId || item.restaurant?.id || "home",
+    restaurant: {
+      id: item.restaurant?.id || item.restaurantId || "home",
+      name: item.restaurant?.name || "",
+      slug: item.restaurant?.slug || "home",
+      imageUrl: item.restaurant?.imageUrl,
+      currency: item.restaurant?.currency ?? "NPR",
+    },
+    category: {
+      name: item.category?.name || "Nepali",
+      slug: item.category?.slug || item.category?.name || "nepali",
+    },
+    sizes: [],
+    addOns: [],
   };
 }
 
@@ -176,6 +241,7 @@ export default function PopularFoods({
 }) {
   const { location } = useLocation();
   const [foods, setFoods] = useState<FoodItem[]>([]);
+  const [popupItems, setPopupItems] = useState<PopupMenuItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeFilters, setActiveFilters] = useState<Set<string>>(new Set());
   const [showAll, setShowAll] = useState(false);
@@ -186,7 +252,10 @@ export default function PopularFoods({
       const res = await fetch("/api/public/menu-items?limit=120");
       if (!res.ok) return;
       const data = await res.json();
-      if (data.items) setFoods(data.items.map(apiToFoodItem));
+      if (data.items) {
+        setFoods(data.items.map(apiToFoodItem));
+        setPopupItems(data.items.map(apiToPopupMenuItem));
+      }
     } catch {} finally {
       setIsLoading(false);
     }
@@ -222,6 +291,20 @@ export default function PopularFoods({
 
   const VISIBLE = 8;
   const displayed = showAll ? filtered : filtered.slice(0, VISIBLE);
+  const popupItemsById = useMemo(
+    () => new Map(popupItems.map((item) => [item.id, item])),
+    [popupItems],
+  );
+  const filteredPopupItems = useMemo(
+    () =>
+      filtered
+        .map((item) => popupItemsById.get(item.id))
+        .filter((item): item is PopupMenuItem => Boolean(item)),
+    [filtered, popupItemsById],
+  );
+  const selectedPopupItem = popupItemId
+    ? popupItemsById.get(popupItemId)
+    : undefined;
 
   return (
     <section className="bg-[var(--canvas)] section-focus overflow-hidden">
@@ -296,7 +379,9 @@ export default function PopularFoods({
         {popupItemId && (
           <FoodDetailPopup
             itemId={popupItemId}
+            initialItem={selectedPopupItem}
             context="landing"
+            allMenuItems={filteredPopupItems.length > 0 ? filteredPopupItems : popupItems}
             updateUrl={true}
             onClose={() => setPopupItemId(null)}
             onSelectRelated={(rel) => setPopupItemId(rel.id)}

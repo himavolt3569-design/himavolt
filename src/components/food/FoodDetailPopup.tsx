@@ -344,40 +344,29 @@ export default function FoodDetailPopup({
     setSizeIdx(0);
     setSelectedAddOns(new Set());
 
-    // Fast path: menu context with pre-loaded data for the initial item
-    if (
-      context === "menu" &&
-      currentItemId === itemId &&
-      initialItem &&
-      allMenuItems
-    ) {
-      setItem(initialItem);
-      const catSlug = initialItem.category?.slug;
-      const sameCat = allMenuItems
-        .filter(
-          (m) =>
-            m.id !== currentItemId &&
-            m.category?.slug === catSlug &&
-            m.isAvailable !== false,
-        )
-        .sort((a, b) => b.rating - a.rating);
-      const otherTop = allMenuItems
-        .filter(
-          (m) =>
-            m.id !== currentItemId &&
-            m.category?.slug !== catSlug &&
-            m.isAvailable !== false,
-        )
-        .sort((a, b) => b.rating - a.rating);
-      setRelated([...sameCat, ...otherTop].slice(0, 10));
+    const localItem =
+      (currentItemId === itemId ? initialItem : undefined) ??
+      allMenuItems?.find((m) => m.id === currentItemId);
+    const localRelated = allMenuItems
+      ? buildRelatedFromItems(allMenuItems, currentItemId, localItem)
+      : [];
+
+    if (localItem) {
+      setItem(localItem);
+      setRelated(localRelated);
       setFetchState("idle");
+    }
+
+    // Menu pages already pass complete item data. Landing previews are lighter,
+    // so keep fetching the full item details in the background.
+    if (context === "menu" && localItem && allMenuItems) {
       return;
     }
 
     // API fetch. Use the shared GET cache/in-flight de-duper so StrictMode,
     // quick reopen, and chained related clicks don't create duplicate requests.
     let cancelled = false;
-    setFetchState("loading");
+    if (!localItem) setFetchState("loading");
     apiFetch<{
       item: PopupMenuItem;
       related?: PopupMenuItem[];
@@ -392,26 +381,8 @@ export default function FoodDetailPopup({
 
         if (context === "menu" && allMenuItems) {
           // For a chained item inside menu context, compute from allMenuItems
-          const found = allMenuItems.find((m) => m.id === currentItemId);
-          if (found) {
-            const catSlug = found.category?.slug;
-            const sameCat = allMenuItems
-              .filter(
-                (m) =>
-                  m.id !== currentItemId &&
-                  m.category?.slug === catSlug &&
-                  m.isAvailable !== false,
-              )
-              .sort((a, b) => b.rating - a.rating);
-            const otherTop = allMenuItems
-              .filter(
-                (m) =>
-                  m.id !== currentItemId &&
-                  m.category?.slug !== catSlug &&
-                  m.isAvailable !== false,
-              )
-              .sort((a, b) => b.rating - a.rating);
-            rel = [...sameCat, ...otherTop].slice(0, 10);
+          if (localRelated.length > 0) {
+            rel = localRelated;
           } else {
             rel = dedup(
               [...(data.topRated ?? []), ...(data.trending ?? [])],
@@ -419,9 +390,11 @@ export default function FoodDetailPopup({
             ).slice(0, 10);
           }
         } else {
-          // Landing context: use `related` (cross-restaurant same category) as primary
+          // Landing context: show already-loaded landing items first, then fold
+          // in API suggestions from the selected item's restaurant/category.
           rel = dedup(
             [
+              ...localRelated,
               ...(data.related ?? []),
               ...(data.topRated ?? []),
               ...(data.trending ?? []),
@@ -434,7 +407,7 @@ export default function FoodDetailPopup({
         setFetchState("idle");
       })
       .catch(() => {
-        if (!cancelled) setFetchState("error");
+        if (!cancelled && !localItem) setFetchState("error");
       });
     return () => {
       cancelled = true;
@@ -1659,6 +1632,31 @@ export default function FoodDetailPopup({
 }
 
 /* ── Utility ──────────────────────────────────────────────────────────────── */
+
+function buildRelatedFromItems(
+  items: PopupMenuItem[],
+  excludeId: string,
+  currentItem?: PopupMenuItem,
+): PopupMenuItem[] {
+  const current = currentItem ?? items.find((item) => item.id === excludeId);
+  const categorySlug = current?.category?.slug;
+  const categoryName = current?.category?.name;
+  const available = items.filter(
+    (item) => item.id !== excludeId && item.isAvailable !== false,
+  );
+  const isSameCategory = (item: PopupMenuItem) =>
+    categorySlug
+      ? item.category?.slug === categorySlug
+      : item.category?.name === categoryName;
+  const sameCategory = available
+    .filter(isSameCategory)
+    .sort((a, b) => b.rating - a.rating);
+  const otherTop = available
+    .filter((item) => !isSameCategory(item))
+    .sort((a, b) => b.rating - a.rating);
+
+  return dedup([...sameCategory, ...otherTop], excludeId).slice(0, 10);
+}
 
 function dedup(items: PopupMenuItem[], excludeId: string): PopupMenuItem[] {
   const seen = new Set<string>();
