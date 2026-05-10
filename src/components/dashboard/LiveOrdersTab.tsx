@@ -162,7 +162,7 @@ function PendingExpiryBadge({ createdAt }: { createdAt: string }) {
   if (ageMins < 25) return null;
   const remaining = 30 - ageMins;
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-600 animate-pulse">
+    <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-600">
       <AlertTriangle className="h-3 w-3" />{" "}
       {remaining <= 0 ? "Expiring..." : `${remaining}m left`}
     </span>
@@ -178,7 +178,7 @@ function OrderAgeBadge({ createdAt }: { createdAt: string }) {
   let label = `${ageMins}m`;
 
   if (ageMins >= 120) {
-    color = "bg-red-100 text-red-700 animate-pulse";
+    color = "bg-red-100 text-red-700";
     label =
       ageHrs >= 24
         ? `${Math.floor(ageHrs / 24)}d ${ageHrs % 24}h`
@@ -415,7 +415,6 @@ export default function LiveOrdersTab() {
             {newCount > 0 ? (
               <span className="font-bold text-[var(--accent)] flex items-center gap-1.5">
                 <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--accent)] opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--accent)]"></span>
                 </span>
                 {newCount} new order{newCount > 1 ? "s" : ""} waiting
@@ -428,7 +427,6 @@ export default function LiveOrdersTab() {
         <div className="flex items-center gap-2.5">
           <div className="flex items-center gap-2 bg-[#fef9ef]/80 border border-[var(--accent-border)]/50 px-3 py-1.5 rounded-full shadow-sm backdrop-blur-sm">
             <div className="flex h-2 w-2 items-center justify-center">
-              <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-[var(--accent)] opacity-75" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--accent)]" />
             </div>
             <span className="text-[11px] font-bold text-[var(--accent-text)] uppercase tracking-wider">

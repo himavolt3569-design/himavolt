@@ -48,20 +48,20 @@ function FeatureCard({ feature, index }: { feature: typeof RESONANCE_FEATURES[0]
       onMouseLeave={() => setIsHovered(false)}
       className="group relative h-[500px] md:h-[650px] rounded-[3rem] overflow-hidden bg-[var(--surface)] border border-[var(--border)] select-none"
     >
-      {/* Background Image - B&W to Color Transition */}
+      {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <motion.img 
           src={feature.img} 
           alt="" 
-          initial={{ filter: "grayscale(100%)", opacity: 0.3, scale: 1 }}
+          loading="lazy"
+          decoding="async"
+          initial={{ opacity: 0.35, scale: 1 }}
           whileInView={{ 
-            filter: "grayscale(0%)", 
             opacity: 0.6,
-            transition: { duration: 1.2, delay: index * 0.1 }
+            transition: { duration: 0.5, delay: index * 0.06 }
           }}
           animate={{ 
             scale: isHovered ? 1.05 : 1,
-            filter: isHovered ? "grayscale(0%)" : undefined,
             opacity: isHovered ? 0.7 : undefined
           }}
           viewport={{ amount: 0.6 }} // Trigger when 60% of the card is in view
@@ -132,8 +132,8 @@ export default function FeaturesSection() {
     <section className="relative bg-[var(--canvas)] py-24 md:py-32 overflow-hidden">
       {/* Background Ambient */}
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
-        <div className="absolute top-[10%] left-[5%] w-[500px] h-[500px] bg-[var(--accent)]/5 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[10%] right-[5%] w-[500px] h-[500px] bg-purple-500/5 rounded-full blur-[120px]" />
+        <div className="absolute top-[10%] left-[5%] w-[500px] h-[500px] bg-[var(--accent)]/[0.03] rounded-full" />
+        <div className="absolute bottom-[10%] right-[5%] w-[500px] h-[500px] bg-purple-500/[0.03] rounded-full" />
       </div>
 
       <div className="relative z-10 mx-auto max-w-7xl px-4 md:px-8 lg:px-12">
@@ -183,7 +183,7 @@ export default function FeaturesSection() {
             <div className="flex -space-x-3">
               {[1,2,3,4].map(n => (
                 <div key={n} className="h-12 w-12 rounded-full border-2 border-[var(--canvas)] bg-[var(--surface)] overflow-hidden shadow-lg">
-                  <img src={`https://i.pravatar.cc/150?u=${n + 200}`} alt="" />
+                  <img src={`https://i.pravatar.cc/150?u=${n + 200}`} alt="" loading="lazy" decoding="async" />
                 </div>
               ))}
             </div>
@@ -194,7 +194,7 @@ export default function FeaturesSection() {
           </div>
 
           <div className="flex items-center gap-4 px-6 py-3 rounded-2xl bg-[var(--surface)] border border-[var(--border)]">
-             <div className="h-2 w-2 rounded-full bg-[var(--accent)] animate-pulse" />
+             <div className="h-2 w-2 rounded-full bg-[var(--accent)]" />
              <span className="text-[10px] font-black text-[var(--text-1)] uppercase tracking-widest">Live Across Kathmandu Valley</span>
           </div>
         </div>

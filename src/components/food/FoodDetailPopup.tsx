@@ -556,18 +556,6 @@ export default function FoodDetailPopup({
           boxShadow: `0 8px 28px ${accent}45`,
         }}
       >
-        {/* Shimmer */}
-        <motion.div
-          className="absolute inset-0 bg-linear-to-r from-transparent via-white/15 to-transparent"
-          initial={{ x: "-100%" }}
-          animate={{ x: "200%" }}
-          transition={{
-            duration: 2.5,
-            repeat: Infinity,
-            repeatDelay: 3,
-            ease: "easeInOut",
-          }}
-        />
         <AnimatePresence mode="wait">
           {added ? (
             <motion.span

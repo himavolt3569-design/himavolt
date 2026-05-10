@@ -720,17 +720,6 @@ export default function FoodDetailsPage() {
               whileHover={{ y: -1 }}
               className="relative w-full flex items-center justify-center gap-2.5 rounded-2xl bg-[var(--accent)] py-4 text-base font-bold text-white shadow-lg shadow-[var(--accent)]/25 overflow-hidden transition-colors hover:bg-[var(--accent-hover)]"
             >
-              <motion.div
-                className="absolute inset-0 bg-linear-to-r from-transparent via-white/15 to-transparent"
-                initial={{ x: "-100%" }}
-                animate={{ x: "200%" }}
-                transition={{
-                  duration: 2.5,
-                  repeat: Infinity,
-                  repeatDelay: 3,
-                  ease: "easeInOut",
-                }}
-              />
               <AnimatePresence mode="wait">
                 {added ? (
                   <motion.span

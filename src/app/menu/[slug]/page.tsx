@@ -14,13 +14,12 @@ const containerVariants = {
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 20, filter: "blur(4px)" },
+  hidden: { opacity: 0, y: 16 },
   visible: {
     opacity: 1,
     y: 0,
-    filter: "blur(0px)",
     transition: {
-      duration: 0.4,
+      duration: 0.28,
       ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
     },
   },
@@ -982,17 +981,6 @@ function DesktopCartPreview({
               whileTap={{ scale: 0.97 }}
               className="relative w-full rounded-xl bg-[var(--accent)] py-3.5 text-sm font-bold text-white overflow-hidden shadow-md shadow-[var(--accent)]/25"
             >
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent"
-                initial={{ x: "-100%" }}
-                animate={{ x: "200%" }}
-                transition={{
-                  duration: 2.5,
-                  repeat: Infinity,
-                  repeatDelay: 5,
-                  ease: "easeInOut",
-                }}
-              />
               <span className="relative z-[1]">Proceed to Order</span>
             </motion.button>
           </div>
@@ -2358,16 +2346,7 @@ function MenuPageContent() {
               </div>
               <div className="flex items-center gap-1 text-sm font-bold">
                 View Cart
-                <motion.div
-                  animate={{ x: [0, 4, 0] }}
-                  transition={{
-                    duration: 1.5,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </motion.div>
+                <ChevronRight className="h-4 w-4" />
               </div>
             </motion.button>
           </motion.div>

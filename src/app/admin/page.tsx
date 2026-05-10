@@ -220,8 +220,8 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
             {success ? (
               <motion.div
                 key="success"
-                initial={{ opacity: 0, filter: "blur(10px)" }}
-                animate={{ opacity: 1, filter: "blur(0px)" }}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
                 className="flex flex-col items-center text-center py-10"
               >
                 <motion.div
@@ -247,7 +247,7 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
                   </motion.div>
                   <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tighter">Master Access</h1>
                   <div className="mt-4 flex items-center justify-center gap-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
+                    <div className="h-1.5 w-1.5 rounded-full bg-blue-500" />
                     <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">HimaVolt Control Node</span>
                   </div>
                 </div>

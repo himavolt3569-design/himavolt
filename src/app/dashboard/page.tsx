@@ -348,34 +348,11 @@ const FEATURE_COMPONENTS: Record<FeatureTabId, React.ComponentType> = {
 
 function AnimatedNumber({
   value,
-  duration = 800,
 }: {
   value: number;
   duration?: number;
 }) {
-  const [displayed, setDisplayed] = useState(0);
-
-  useEffect(() => {
-    let raf: number;
-    if (value === 0) {
-      raf = requestAnimationFrame(() => setDisplayed(0));
-      return () => cancelAnimationFrame(raf);
-    }
-    const startTime = performance.now();
-
-    function animate(now: number) {
-      const elapsed = now - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setDisplayed(Math.round(eased * value));
-      if (progress < 1) raf = requestAnimationFrame(animate);
-    }
-
-    raf = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(raf);
-  }, [value, duration]);
-
-  return <>{displayed.toLocaleString()}</>;
+  return <>{value.toLocaleString()}</>;
 }
 
 function RestaurantSwitcher({ onNavigate }: { onNavigate?: () => void }) {
@@ -426,7 +403,7 @@ function RestaurantSwitcher({ onNavigate }: { onNavigate?: () => void }) {
             {current.name}
           </p>
           <div className="flex items-center gap-1.5 mt-0.5">
-            <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] animate-pulse" />
+            <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
             <p className="text-[10px] text-[var(--text-3)]">Active</p>
           </div>
         </div>
@@ -613,7 +590,6 @@ function NavSection({
               )}
               {item.badge === "live" && newOrderCount === 0 && (
                 <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--accent)] opacity-50" />
                   <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--accent)]" />
                 </span>
               )}
@@ -890,7 +866,7 @@ function StatCard({
       className="relative rounded-3xl bg-[var(--canvas)]/70 backdrop-blur-md border border-[var(--border-soft)]/50 p-6 cursor-default overflow-hidden group shadow-[0_4px_24px_-4px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.08)] transition-all"
     >
       <div
-        className="absolute -top-12 -right-12 h-32 w-32 rounded-full opacity-0 group-hover:opacity-20 transition-opacity duration-500 blur-3xl"
+        className="absolute -top-12 -right-12 h-32 w-32 rounded-full opacity-0 group-hover:opacity-10 transition-opacity duration-300"
         style={{ background: accent }}
       />
       <div className="relative flex items-start justify-between">
@@ -1685,7 +1661,7 @@ export default function DashboardPage() {
             <div className="hidden lg:block h-4 w-px bg-[var(--border)]" />
 
             <div className="hidden sm:flex items-center gap-1.5 rounded-full bg-[var(--accent-muted)] px-2.5 py-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] animate-pulse" />
+              <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
               <span className="text-[11px] font-semibold text-[var(--accent-text)]">
                 Live
               </span>

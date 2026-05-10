@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import dynamic from "next/dynamic";
 import {
   LogOut,
   ChefHat,
@@ -35,9 +36,6 @@ import {
   GalleryHorizontalEnd,
   Monitor,
 } from "lucide-react";
-import BillingTab from "@/components/billing/BillingTab";
-import StoryManager from "@/components/stories/StoryManager";
-import ThemeToggle from "@/components/shared/ThemeToggle";
 import { useToast } from "@/context/ToastContext";
 import { formatPrice } from "@/lib/currency";
 import {
@@ -46,45 +44,131 @@ import {
 } from "@/lib/restaurant-types";
 import { KITCHEN_VISIBLE_FEATURES } from "@/lib/staff-roles";
 
-import QuickCounterTab from "@/components/dashboard/features/QuickCounterTab";
-import ComboMealsTab from "@/components/dashboard/features/ComboMealsTab";
-import RushHourTab from "@/components/dashboard/features/RushHourTab";
-import TakeawayTab from "@/components/dashboard/features/TakeawayTab";
-import RoomServiceTab from "@/components/dashboard/features/RoomServiceTab";
-import MultiOutletTab from "@/components/dashboard/features/MultiOutletTab";
-import EventCateringTab from "@/components/dashboard/features/EventCateringTab";
-import GuestBillingTab from "@/components/dashboard/features/GuestBillingTab";
-import BuffetManagerTab from "@/components/dashboard/features/BuffetManagerTab";
-import PreOrdersTab from "@/components/dashboard/features/PreOrdersTab";
-import CustomCakesTab from "@/components/dashboard/features/CustomCakesTab";
-import DailySpecialsTab from "@/components/dashboard/features/DailySpecialsTab";
-import DisplayCounterTab from "@/components/dashboard/features/DisplayCounterTab";
-import DeliveryOpsTab from "@/components/dashboard/features/DeliveryOpsTab";
-import MultiBrandTab from "@/components/dashboard/features/MultiBrandTab";
-import DeliveryZonesTab from "@/components/dashboard/features/DeliveryZonesTab";
-import PackageTrackingTab from "@/components/dashboard/features/PackageTrackingTab";
-import HappyHoursTab from "@/components/dashboard/features/HappyHoursTab";
-import TabManagementTab from "@/components/dashboard/features/TabManagementTab";
-import CocktailMenuTab from "@/components/dashboard/features/CocktailMenuTab";
-import LiveEventsTab from "@/components/dashboard/features/LiveEventsTab";
-import LoyaltyRewardsTab from "@/components/dashboard/features/LoyaltyRewardsTab";
-import WifiSeatingTab from "@/components/dashboard/features/WifiSeatingTab";
-import SeasonalMenuTab from "@/components/dashboard/features/SeasonalMenuTab";
-import BrunchModeTab from "@/components/dashboard/features/BrunchModeTab";
-import TableReservationsTab from "@/components/dashboard/features/TableReservationsTab";
-import WaitlistTab from "@/components/dashboard/features/WaitlistTab";
-import PrivateDiningTab from "@/components/dashboard/features/PrivateDiningTab";
-import WifiSettingsTab from "@/components/dashboard/features/WifiSettingsTab";
-import GuestCheckInTab from "@/components/dashboard/GuestCheckInTab";
-import MediaTab from "@/components/dashboard/MediaTab";
-import TablesTab from "@/components/dashboard/TablesTab";
-import ManualBillingTab from "@/components/dashboard/ManualBillingTab";
-import HotelBookingsTab from "@/components/dashboard/HotelBookingsTab";
-import HotelQRTab from "@/components/dashboard/HotelQRTab";
-import RoomQRTab from "@/components/dashboard/RoomQRTab";
-import RoomManagementTab from "@/components/dashboard/RoomManagementTab";
-import WaiterOrderTab from "@/components/dashboard/WaiterOrderTab";
-import GlobalChatButton from "@/components/chat/GlobalChatButton";
+const StaffTabLoader = () => (
+  <div className="flex min-h-[260px] items-center justify-center">
+    <Loader2 className="h-6 w-6 animate-spin text-brand-400" />
+  </div>
+);
+
+const lazyStaffTab = <T,>(
+  loader: () => Promise<{ default: React.ComponentType<T> }>,
+) => dynamic(loader, { loading: StaffTabLoader, ssr: false });
+
+const BillingTab = lazyStaffTab(() => import("@/components/billing/BillingTab"));
+const StoryManager = lazyStaffTab(() => import("@/components/stories/StoryManager"));
+const ThemeToggle = dynamic(() => import("@/components/shared/ThemeToggle"), {
+  ssr: false,
+});
+const GlobalChatButton = dynamic(
+  () => import("@/components/chat/GlobalChatButton"),
+  { ssr: false },
+);
+const MediaTab = lazyStaffTab(() => import("@/components/dashboard/MediaTab"));
+const TablesTab = lazyStaffTab(() => import("@/components/dashboard/TablesTab"));
+const ManualBillingTab = lazyStaffTab(
+  () => import("@/components/dashboard/ManualBillingTab"),
+);
+const WaiterOrderTab = lazyStaffTab(
+  () => import("@/components/dashboard/WaiterOrderTab"),
+);
+const RoomManagementTab = lazyStaffTab(
+  () => import("@/components/dashboard/RoomManagementTab"),
+);
+const HotelBookingsTab = lazyStaffTab(
+  () => import("@/components/dashboard/HotelBookingsTab"),
+);
+const HotelQRTab = lazyStaffTab(() => import("@/components/dashboard/HotelQRTab"));
+const RoomQRTab = lazyStaffTab(() => import("@/components/dashboard/RoomQRTab"));
+const GuestCheckInTab = lazyStaffTab(
+  () => import("@/components/dashboard/GuestCheckInTab"),
+);
+const QuickCounterTab = lazyStaffTab(
+  () => import("@/components/dashboard/features/QuickCounterTab"),
+);
+const ComboMealsTab = lazyStaffTab(
+  () => import("@/components/dashboard/features/ComboMealsTab"),
+);
+const RushHourTab = lazyStaffTab(
+  () => import("@/components/dashboard/features/RushHourTab"),
+);
+const TakeawayTab = lazyStaffTab(
+  () => import("@/components/dashboard/features/TakeawayTab"),
+);
+const RoomServiceTab = lazyStaffTab(
+  () => import("@/components/dashboard/features/RoomServiceTab"),
+);
+const MultiOutletTab = lazyStaffTab(
+  () => import("@/components/dashboard/features/MultiOutletTab"),
+);
+const EventCateringTab = lazyStaffTab(
+  () => import("@/components/dashboard/features/EventCateringTab"),
+);
+const GuestBillingTab = lazyStaffTab(
+  () => import("@/components/dashboard/features/GuestBillingTab"),
+);
+const BuffetManagerTab = lazyStaffTab(
+  () => import("@/components/dashboard/features/BuffetManagerTab"),
+);
+const PreOrdersTab = lazyStaffTab(
+  () => import("@/components/dashboard/features/PreOrdersTab"),
+);
+const CustomCakesTab = lazyStaffTab(
+  () => import("@/components/dashboard/features/CustomCakesTab"),
+);
+const DailySpecialsTab = lazyStaffTab(
+  () => import("@/components/dashboard/features/DailySpecialsTab"),
+);
+const DisplayCounterTab = lazyStaffTab(
+  () => import("@/components/dashboard/features/DisplayCounterTab"),
+);
+const DeliveryOpsTab = lazyStaffTab(
+  () => import("@/components/dashboard/features/DeliveryOpsTab"),
+);
+const MultiBrandTab = lazyStaffTab(
+  () => import("@/components/dashboard/features/MultiBrandTab"),
+);
+const DeliveryZonesTab = lazyStaffTab(
+  () => import("@/components/dashboard/features/DeliveryZonesTab"),
+);
+const PackageTrackingTab = lazyStaffTab(
+  () => import("@/components/dashboard/features/PackageTrackingTab"),
+);
+const HappyHoursTab = lazyStaffTab(
+  () => import("@/components/dashboard/features/HappyHoursTab"),
+);
+const TabManagementTab = lazyStaffTab(
+  () => import("@/components/dashboard/features/TabManagementTab"),
+);
+const CocktailMenuTab = lazyStaffTab(
+  () => import("@/components/dashboard/features/CocktailMenuTab"),
+);
+const LiveEventsTab = lazyStaffTab(
+  () => import("@/components/dashboard/features/LiveEventsTab"),
+);
+const LoyaltyRewardsTab = lazyStaffTab(
+  () => import("@/components/dashboard/features/LoyaltyRewardsTab"),
+);
+const WifiSeatingTab = lazyStaffTab(
+  () => import("@/components/dashboard/features/WifiSeatingTab"),
+);
+const SeasonalMenuTab = lazyStaffTab(
+  () => import("@/components/dashboard/features/SeasonalMenuTab"),
+);
+const BrunchModeTab = lazyStaffTab(
+  () => import("@/components/dashboard/features/BrunchModeTab"),
+);
+const TableReservationsTab = lazyStaffTab(
+  () => import("@/components/dashboard/features/TableReservationsTab"),
+);
+const WaitlistTab = lazyStaffTab(
+  () => import("@/components/dashboard/features/WaitlistTab"),
+);
+const PrivateDiningTab = lazyStaffTab(
+  () => import("@/components/dashboard/features/PrivateDiningTab"),
+);
+const WifiSettingsTab = lazyStaffTab(
+  () => import("@/components/dashboard/features/WifiSettingsTab"),
+);
 
 const STAFF_FEATURE_COMPONENTS: Record<FeatureTabId, React.ComponentType> = {
   "quick-counter": QuickCounterTab,

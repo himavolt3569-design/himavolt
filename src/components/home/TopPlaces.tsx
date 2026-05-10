@@ -35,13 +35,12 @@ const containerVariants: Variants = {
 };
 
 const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 30, filter: "blur(12px)" },
+  hidden: { opacity: 0, y: 18 },
   visible: {
     opacity: 1,
     y: 0,
-    filter: "blur(0px)",
     transition: {
-      duration: 0.8,
+      duration: 0.35,
       ease: [0.16, 1, 0.3, 1],
     },
   },
@@ -55,6 +54,7 @@ function RestaurantImage({ restaurant }: { restaurant: Restaurant }) {
         src={src}
         alt={restaurant.name}
         loading="lazy"
+        decoding="async"
         className="h-full w-full object-cover transition-transform duration-[2s] group-hover:scale-105"
       />
       <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent opacity-60 transition-opacity duration-500 group-hover:opacity-40" />
@@ -146,7 +146,7 @@ function DesktopCard({ restaurant }: { restaurant: Restaurant }) {
               {restaurant.name}
             </h3>
             <div className="flex items-center gap-1.5 shrink-0 mt-1">
-              <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" title="Live" />
+              <div className="h-1.5 w-1.5 rounded-full bg-green-500" title="Live" />
               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                 {restaurant.totalOrders}
               </span>

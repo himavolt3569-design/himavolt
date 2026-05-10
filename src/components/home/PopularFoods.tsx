@@ -146,12 +146,7 @@ function FoodCard({ item, onOpenPopup }: { item: FoodItem; onOpenPopup: (id: str
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      className="group"
-    >
+    <div className="group">
       <div className="relative overflow-hidden rounded-[2rem] bg-white border border-slate-100 shadow-sm transition-all duration-500 hover:shadow-focus hover:-translate-y-1">
         {/* Image & Badges */}
         <div 
@@ -161,6 +156,8 @@ function FoodCard({ item, onOpenPopup }: { item: FoodItem; onOpenPopup: (id: str
           <img
             src={item.image}
             alt={item.name}
+            loading="lazy"
+            decoding="async"
             className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
           <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent opacity-60" />
@@ -230,7 +227,7 @@ function FoodCard({ item, onOpenPopup }: { item: FoodItem; onOpenPopup: (id: str
           </motion.button>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
 

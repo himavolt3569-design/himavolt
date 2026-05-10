@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, MouseEvent } from "react";
-import { motion, useScroll, useTransform, AnimatePresence, useMotionValue, useSpring } from "framer-motion";
+import { motion, useTransform, AnimatePresence, useMotionValue, useSpring } from "framer-motion";
 import { ArrowRight, Percent, Timer, Trophy, Zap, Heart, Sparkles } from "lucide-react";
 import Link from "next/link";
 
@@ -144,7 +144,9 @@ function BentoCard({ deal, index }: { deal: (typeof BENTO_DEALS)[0]; index: numb
           transition={{ duration: 0.8, ease: "easeOut" }}
           src={deal.img}
           alt=""
-          className="h-full w-full object-cover grayscale opacity-20 group-hover:grayscale-0 transition-all duration-700"
+          loading="lazy"
+          decoding="async"
+          className="h-full w-full object-cover opacity-20 transition-opacity duration-700"
         />
         <div className={`absolute inset-0 bg-linear-to-t from-[var(--surface)] via-[var(--surface)]/80 to-transparent ${hovered ? "opacity-60" : "opacity-100"} transition-opacity duration-500`} />
       </div>
@@ -179,8 +181,8 @@ export default function DealsSection() {
     <section ref={containerRef} className="relative bg-[var(--canvas)] overflow-hidden">
       {/* Abstract Background Shapes */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/4 -left-20 w-96 h-96 bg-[var(--accent)]/5 rounded-full blur-[100px] animate-pulse" />
-        <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-orange-500/5 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: "2s" }} />
+        <div className="absolute top-1/4 -left-20 w-96 h-96 bg-[var(--accent)]/[0.03] rounded-full" />
+        <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-orange-500/[0.03] rounded-full" />
       </div>
 
       <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-12 py-24 md:py-32">

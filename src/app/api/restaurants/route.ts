@@ -6,6 +6,24 @@ import { createRestaurantSchema } from "@/lib/validations";
 import { logAudit } from "@/lib/audit";
 import crypto from "crypto";
 
+const staffSelect = {
+  id: true,
+  role: true,
+  staffType: true,
+  isActive: true,
+  createdAt: true,
+  userId: true,
+  restaurantId: true,
+  user: {
+    select: {
+      name: true,
+      email: true,
+      phone: true,
+      imageUrl: true,
+    },
+  },
+} as const;
+
 async function generateUniqueCode(): Promise<string> {
   for (let i = 0; i < 10; i++) {
     const code = `HH-${crypto.randomBytes(2).toString("hex").toUpperCase()}`;
@@ -25,7 +43,7 @@ export const GET = safeHandler(async () => {
   const restaurants = await db.restaurant.findMany({
     where: { ownerId: user.id },
     include: {
-      staff: { omit: { pin: true }, include: { user: true } },
+      staff: { select: staffSelect },
       _count: { select: { orders: true, menuItems: true } },
     },
     orderBy: { createdAt: "desc" },
@@ -85,7 +103,7 @@ export const POST = safeHandler(
         restaurantCode,
       },
       include: {
-        staff: { omit: { pin: true }, include: { user: true } },
+        staff: { select: staffSelect },
         _count: { select: { orders: true, menuItems: true } },
       },
     });

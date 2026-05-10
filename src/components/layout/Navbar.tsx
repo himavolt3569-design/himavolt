@@ -28,23 +28,37 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
   
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
+  const scrolledRef = useRef(false);
+  const navHeightRef = useRef<number | null>(null);
 
   // ─── High Performance Scroll Tracking & Height Sync ───
   useEffect(() => {
+    let raf: number | null = null;
+
     const handler = () => {
-      const isPastLimit = window.scrollY > 40;
-      setScrolled(isPastLimit);
-      
-      // Update dynamic height variable for LocationBar sync
-      const height = isPastLimit ? 56 : (window.innerWidth >= 768 ? 72 : 64);
-      document.documentElement.style.setProperty('--nav-height', `${height}px`);
+      if (raf != null) return;
+      raf = window.requestAnimationFrame(() => {
+        raf = null;
+        const isPastLimit = window.scrollY > 40;
+        if (scrolledRef.current !== isPastLimit) {
+          scrolledRef.current = isPastLimit;
+          setScrolled(isPastLimit);
+        }
+
+        const height = isPastLimit ? 56 : window.innerWidth >= 768 ? 72 : 64;
+        if (navHeightRef.current !== height) {
+          navHeightRef.current = height;
+          document.documentElement.style.setProperty("--nav-height", `${height}px`);
+        }
+      });
     };
-    
+
     window.addEventListener("scroll", handler, { passive: true });
     window.addEventListener("resize", handler);
-    handler(); // Initial sync
-    
+    handler();
+
     return () => {
+      if (raf != null) window.cancelAnimationFrame(raf);
       window.removeEventListener("scroll", handler);
       window.removeEventListener("resize", handler);
     };

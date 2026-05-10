@@ -2,15 +2,8 @@
 
 import { useRef, useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useGSAP } from "@gsap/react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { apiFetch } from "@/lib/api-client";
-
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
-}
 
 type Category = {
   id: string;
@@ -26,6 +19,8 @@ export default function FoodCategories({
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const headingRef = useRef<HTMLDivElement>(null);
+  const scrollStateRef = useRef({ left: false, right: true });
+  const scrollRafRef = useRef<number | null>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
   const [activeId, setActiveId] = useState<string>("all");
@@ -46,8 +41,21 @@ export default function FoodCategories({
   const checkScroll = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
-    setCanScrollLeft(el.scrollLeft > 2);
-    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 2);
+    if (scrollRafRef.current != null) return;
+    scrollRafRef.current = window.requestAnimationFrame(() => {
+      scrollRafRef.current = null;
+      const next = {
+        left: el.scrollLeft > 2,
+        right: el.scrollLeft < el.scrollWidth - el.clientWidth - 2,
+      };
+      if (scrollStateRef.current.left !== next.left) {
+        setCanScrollLeft(next.left);
+      }
+      if (scrollStateRef.current.right !== next.right) {
+        setCanScrollRight(next.right);
+      }
+      scrollStateRef.current = next;
+    });
   }, []);
 
   useEffect(() => {
@@ -57,64 +65,13 @@ export default function FoodCategories({
     el.addEventListener("scroll", checkScroll, { passive: true });
     window.addEventListener("resize", checkScroll);
     return () => {
+      if (scrollRafRef.current != null) {
+        window.cancelAnimationFrame(scrollRafRef.current);
+      }
       el.removeEventListener("scroll", checkScroll);
       window.removeEventListener("resize", checkScroll);
     };
   }, [checkScroll, categories]);
-
-  useGSAP(
-    () => {
-      if (!containerRef.current || loading) return;
-
-      if (headingRef.current) {
-        const els = headingRef.current.querySelectorAll(".heading-el");
-        gsap.fromTo(
-          els,
-          { opacity: 0, y: 24, filter: "blur(6px)" },
-          {
-            opacity: 1,
-            y: 0,
-            filter: "blur(0px)",
-            duration: 0.6,
-            stagger: 0.06,
-            ease: "power3.out",
-            scrollTrigger: {
-              trigger: containerRef.current,
-              start: "top 85%",
-              toggleActions: "play none none none",
-            },
-          },
-        );
-      }
-
-      const items = gsap.utils.toArray<HTMLElement>(".cat-circle");
-      const mid = Math.floor(items.length / 2);
-      const sorted = [...items].sort(
-        (a, b) =>
-          Math.abs(items.indexOf(a) - mid) - Math.abs(items.indexOf(b) - mid),
-      );
-
-      gsap.fromTo(
-        sorted,
-        { opacity: 0, y: 50, scale: 0.7, rotation: -5 },
-        {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          rotation: 0,
-          duration: 0.6,
-          stagger: 0.035,
-          ease: "back.out(1.7)",
-          scrollTrigger: {
-            trigger: containerRef.current,
-            start: "top 78%",
-            toggleActions: "play none none none",
-          },
-        },
-      );
-    },
-    { scope: containerRef, dependencies: [loading] },
-  );
 
   const scroll = (dir: "left" | "right") => {
     if (!scrollRef.current) return;

@@ -38,23 +38,15 @@ const fadeUp = {
 };
 
 export default function ProfilePage() {
-  const { user, isSignedIn, isLoaded, signOut } = useAuth();
+  const { user, isSignedIn, isLoaded, signOut, userRole } = useAuth();
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [stats, setStats] = useState<QuickStats>({ totalOrders: 0 });
   const [signingOut, setSigningOut] = useState(false);
-  const [dbRole, setDbRole] = useState<string | null>(null);
 
   // Load sound preference from localStorage
   useEffect(() => {
     setSoundEnabled(getStoredSoundPref());
   }, []);
-
-  useEffect(() => {
-    if (!isSignedIn) return;
-    apiFetch<{ role: string | null }>("/api/me")
-      .then((data) => setDbRole(data.role))
-      .catch(() => {});
-  }, [isSignedIn]);
 
   // Fetch basic stats (total orders count) via a dedicated count endpoint —
   // /api/orders?limit=100 was capping at 100 even for very-active users.
@@ -170,15 +162,15 @@ export default function ProfilePage() {
               <p className="text-sm text-[var(--text-2)] truncate">
                 {user.email || ""}
               </p>
-              {dbRole && (
+              {userRole && (
                 <span className={`mt-1.5 inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
-                  dbRole === "OWNER"
+                  userRole === "OWNER"
                     ? "bg-[var(--accent-muted)] text-[var(--accent-text)]"
-                    : dbRole === "ADMIN"
+                    : userRole === "ADMIN"
                     ? "bg-purple-100 text-purple-700"
                     : "bg-[var(--accent-muted)] text-[var(--accent)]"
                 }`}>
-                  {dbRole === "OWNER" ? "Restaurant Owner" : dbRole === "ADMIN" ? "Admin" : "Food Lover"}
+                  {userRole === "OWNER" ? "Restaurant Owner" : userRole === "ADMIN" ? "Admin" : "Food Lover"}
                 </span>
               )}
             </div>

@@ -46,6 +46,7 @@ import {
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { formatPrice } from "@/lib/currency";
+import { apiFetch } from "@/lib/api-client";
 import Skeleton, {
   SkeletonOrderCard,
   SkeletonStatGrid,
@@ -267,24 +268,31 @@ export default function CustomerDashboard() {
   const [loyaltyAccounts, setLoyaltyAccounts] = useState<LoyaltyAccount[]>([]);
   const [loading, setLoading]         = useState(true);
 
-  const fetchAll = useCallback(async () => {
-    setLoading(true);
-    const [ordersRes, statsRes, favsRes, reviewsRes, hotelRes, loyaltyRes] = await Promise.allSettled([
-      fetch("/api/orders?limit=100").then((r) => r.json()),
-      fetch("/api/me/stats").then((r) => r.json()),
-      fetch("/api/me/favourites").then((r) => r.json()),
-      fetch("/api/me/reviews").then((r) => r.json()),
-      fetch("/api/me/hotel-bookings").then((r) => r.json()),
-      fetch("/api/me/loyalty").then((r) => r.json()),
+  const fetchSecondaryData = useCallback(async () => {
+    const [favsRes, reviewsRes, hotelRes, loyaltyRes] = await Promise.allSettled([
+      apiFetch<Favourite[]>("/api/me/favourites"),
+      apiFetch<Review[]>("/api/me/reviews"),
+      apiFetch<HotelBooking[]>("/api/me/hotel-bookings"),
+      apiFetch<{ accounts?: LoyaltyAccount[] }>("/api/me/loyalty"),
     ]);
-    if (ordersRes.status === "fulfilled") setOrders(Array.isArray(ordersRes.value) ? ordersRes.value : []);
-    if (statsRes.status === "fulfilled") setStats(statsRes.value);
+
     if (favsRes.status === "fulfilled" && Array.isArray(favsRes.value)) setFavourites(favsRes.value);
     if (reviewsRes.status === "fulfilled" && Array.isArray(reviewsRes.value)) setReviews(reviewsRes.value);
     if (hotelRes.status === "fulfilled" && Array.isArray(hotelRes.value)) setHotelBookings(hotelRes.value);
     if (loyaltyRes.status === "fulfilled" && Array.isArray(loyaltyRes.value?.accounts)) setLoyaltyAccounts(loyaltyRes.value.accounts);
-    setLoading(false);
   }, []);
+
+  const fetchAll = useCallback(async () => {
+    setLoading(true);
+    const [ordersRes, statsRes] = await Promise.allSettled([
+      apiFetch<Order[]>("/api/orders?limit=100"),
+      apiFetch<Stats>("/api/me/stats"),
+    ]);
+    if (ordersRes.status === "fulfilled") setOrders(Array.isArray(ordersRes.value) ? ordersRes.value : []);
+    if (statsRes.status === "fulfilled") setStats(statsRes.value);
+    setLoading(false);
+    window.setTimeout(fetchSecondaryData, 250);
+  }, [fetchSecondaryData]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 

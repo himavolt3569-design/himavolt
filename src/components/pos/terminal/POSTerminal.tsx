@@ -16,13 +16,38 @@ const POSCustomerMode = dynamic(() => import("./POSCustomerMode"), {
 const POSTables3DView = dynamic(() => import("./POSTables3DView"), {
   ssr: false,
 });
-import POSActiveOrders from "@/components/pos/staff/POSActiveOrders";
-import POSBilling from "@/components/pos/staff/POSBilling";
-import POSHeldOrders from "@/components/pos/staff/POSHeldOrders";
-import POSDailySummary from "@/components/pos/staff/POSDailySummary";
-import POSSplitBill from "@/components/pos/staff/POSSplitBill";
-import POSInactiveScreen from "@/components/pos/staff/POSInactiveScreen";
 import { usePOSOrders } from "@/hooks/usePOSOrders";
+
+const POSPanelLoader = () => (
+  <div className="flex min-h-[320px] items-center justify-center">
+    <Loader2 className="h-7 w-7 animate-spin text-[var(--accent)]" />
+  </div>
+);
+
+const POSActiveOrders = dynamic(
+  () => import("@/components/pos/staff/POSActiveOrders"),
+  { loading: POSPanelLoader, ssr: false },
+);
+const POSBilling = dynamic(() => import("@/components/pos/staff/POSBilling"), {
+  loading: POSPanelLoader,
+  ssr: false,
+});
+const POSHeldOrders = dynamic(
+  () => import("@/components/pos/staff/POSHeldOrders"),
+  { loading: POSPanelLoader, ssr: false },
+);
+const POSDailySummary = dynamic(
+  () => import("@/components/pos/staff/POSDailySummary"),
+  { loading: POSPanelLoader, ssr: false },
+);
+const POSSplitBill = dynamic(
+  () => import("@/components/pos/staff/POSSplitBill"),
+  { loading: POSPanelLoader, ssr: false },
+);
+const POSInactiveScreen = dynamic(
+  () => import("@/components/pos/staff/POSInactiveScreen"),
+  { loading: POSPanelLoader, ssr: false },
+);
 
 interface StaffSession {
   userId: string;

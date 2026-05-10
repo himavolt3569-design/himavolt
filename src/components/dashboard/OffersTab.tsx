@@ -405,12 +405,8 @@ export default function OffersTab() {
               Live Offers ({activeOffers.length})
             </span>
           </div>
-          <div className="overflow-hidden">
-            <motion.div
-              className="flex gap-4 px-3 pb-3"
-              animate={activeOffers.length > 1 ? { x: ["0%", `-${(activeOffers.length - 1) * 50}%`, "0%"] } : {}}
-              transition={activeOffers.length > 1 ? { duration: activeOffers.length * 5, repeat: Infinity, ease: "linear" } : {}}
-            >
+          <div className="overflow-x-auto pb-3">
+            <div className="flex gap-4 px-3">
               {activeOffers.map((offer) => (
                 <div
                   key={offer.id}
@@ -440,7 +436,7 @@ export default function OffersTab() {
                   </div>
                 </div>
               ))}
-            </motion.div>
+            </div>
           </div>
         </div>
       )}

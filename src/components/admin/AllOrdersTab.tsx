@@ -199,7 +199,7 @@ export default function AllOrdersTab() {
             </div>
             <div className="relative z-10 h-full flex flex-col">
                <div className="flex items-center gap-3 mb-8">
-                  <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <div className="h-2 w-2 rounded-full bg-emerald-500" />
                   <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">Order Velocity</span>
                </div>
                <div className="flex-1 min-h-[200px]">

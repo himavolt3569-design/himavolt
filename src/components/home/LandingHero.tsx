@@ -72,14 +72,18 @@ function LiveOrderFeed() {
   const [visible, setVisible] = useState(true);
 
   useEffect(() => {
+    let timeout: ReturnType<typeof setTimeout> | null = null;
     const interval = setInterval(() => {
       setVisible(false);
-      setTimeout(() => {
+      timeout = setTimeout(() => {
         setCurrent((prev) => (prev + 1) % liveOrders.length);
         setVisible(true);
       }, 350);
     }, 3500);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      if (timeout) clearTimeout(timeout);
+    };
   }, []);
 
   const order = liveOrders[current];
@@ -100,6 +104,8 @@ function LiveOrderFeed() {
               <img
                 src={order.img}
                 alt=""
+                loading="lazy"
+                decoding="async"
                 className="h-full w-full object-cover"
               />
             </div>
@@ -117,7 +123,6 @@ function LiveOrderFeed() {
               </p>
             </div>
             <span className="relative flex h-1.5 w-1.5 shrink-0 ml-1">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--accent)]/40" />
               <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
             </span>
           </motion.div>
@@ -218,34 +223,27 @@ export default function LandingHero() {
     <section className="relative bg-[var(--canvas)] overflow-hidden min-h-[700px] md:min-h-[800px] flex items-center">
       {/* Decorative Background Elements */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 right-0 -mr-32 -mt-32 h-[600px] w-[600px] rounded-full bg-[var(--accent)]/[0.05] blur-3xl" />
-        <div className="absolute bottom-0 left-0 -ml-32 -mb-32 h-[600px] w-[600px] rounded-full bg-[#e58f2a]/[0.05] blur-3xl" />
+        <div className="absolute top-0 right-0 -mr-32 -mt-32 h-[600px] w-[600px] rounded-full bg-[var(--accent)]/[0.04]" />
+        <div className="absolute bottom-0 left-0 -ml-32 -mb-32 h-[600px] w-[600px] rounded-full bg-[#e58f2a]/[0.04]" />
       </div>
 
       {/* Floating Elements (Visible on Desktop) */}
       <div className="absolute inset-0 pointer-events-none hidden lg:block overflow-hidden">
-        <motion.img
-          animate={{ y: [0, -20, 0], rotate: [0, 5, 0] }}
-          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+        <img
           src="https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=120&h=120&fit=crop"
-          className="absolute top-[15%] left-[5%] w-24 h-24 rounded-full object-cover shadow-2xl opacity-40 blur-[1px]"
+          alt=""
+          loading="lazy"
+          decoding="async"
+          className="absolute top-[15%] left-[5%] w-24 h-24 rounded-full object-cover shadow-2xl opacity-35"
         />
-        <motion.img
-          animate={{ y: [0, 20, 0], rotate: [0, -5, 0] }}
-          transition={{
-            duration: 6,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 1,
-          }}
+        <img
           src="https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=120&h=120&fit=crop"
-          className="absolute bottom-[20%] left-[8%] w-20 h-20 rounded-full object-cover shadow-2xl opacity-30 blur-[2px]"
+          alt=""
+          loading="lazy"
+          decoding="async"
+          className="absolute bottom-[20%] left-[8%] w-20 h-20 rounded-full object-cover shadow-2xl opacity-30"
         />
-        <motion.div
-          animate={{ x: [0, 15, 0], y: [0, 10, 0] }}
-          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-[10%] right-[35%] h-4 w-4 rounded-full bg-[var(--accent)]/20 blur-sm"
-        />
+        <div className="absolute top-[10%] right-[35%] h-4 w-4 rounded-full bg-[var(--accent)]/20" />
       </div>
 
       <div className="relative z-10 mx-auto max-w-7xl px-4 md:px-8 lg:px-12 w-full pt-24 md:pt-32 pb-16">
@@ -258,7 +256,7 @@ export default function LandingHero() {
               transition={{ duration: 0.5 }}
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-[var(--accent)]/20 to-[var(--accent)]/5 border border-[var(--accent)]/30 backdrop-blur-md mb-6 shadow-[0_4px_12px_rgba(0,0,0,0.05)]"
             >
-              <Sparkles className="h-4 w-4 text-[var(--accent)] animate-pulse" />
+              <Sparkles className="h-4 w-4 text-[var(--accent)]" />
               <span className="text-xs font-black text-[var(--accent)] uppercase tracking-wider">
                 Nepal&apos;s Premium Food Destination
               </span>
@@ -357,6 +355,8 @@ export default function LandingHero() {
                 <img
                   src="https://images.unsplash.com/photo-1547592180-85f173990554?w=800&h=450&fit=crop"
                   alt="Himavolt Experience"
+                  loading="lazy"
+                  decoding="async"
                   className="h-full w-full object-cover"
                 />
                 <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-6 text-left">
@@ -384,17 +384,12 @@ export default function LandingHero() {
           >
             <div className="relative aspect-square max-w-[540px] ml-auto">
               {/* Main Circular Image */}
-              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[var(--accent)]/20 to-transparent blur-2xl animate-pulse" />
+              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[var(--accent)]/10 to-transparent" />
               <div className="relative h-full w-full rounded-[4rem] overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] group">
-                <motion.img
-                  animate={{ scale: [1, 1.05, 1] }}
-                  transition={{
-                    duration: 20,
-                    repeat: Infinity,
-                    ease: "linear",
-                  }}
+                <img
                   src="https://images.unsplash.com/photo-1547592180-85f173990554?w=800&h=800&fit=crop"
                   alt="Premium Food"
+                  decoding="async"
                   className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -484,6 +479,7 @@ export default function LandingHero() {
                       src={item.img}
                       alt={item.name}
                       loading="lazy"
+                      decoding="async"
                       className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
                     <div className="absolute top-3 right-3 flex items-center gap-1 bg-white/90 backdrop-blur-md px-2 py-1 rounded-xl shadow-sm">
@@ -524,6 +520,8 @@ export default function LandingHero() {
                   <img
                     src={item.img}
                     alt={item.name}
+                    loading="lazy"
+                    decoding="async"
                     className="h-full w-full object-cover"
                   />
                   <div className="absolute top-2.5 right-2.5 bg-white/90 backdrop-blur-md px-1.5 py-0.5 rounded-lg">

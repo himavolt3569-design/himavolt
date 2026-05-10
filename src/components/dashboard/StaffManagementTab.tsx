@@ -334,7 +334,7 @@ function StaffCard({
           >
             {member.isActive ? (
               <>
-                <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] animate-pulse" />
+                <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
                 Active
               </>
             ) : (
@@ -716,7 +716,7 @@ function AttendanceLogsView({ restaurantId }: { restaurantId: string }) {
           <div className="flex items-center gap-3">
             {presentCount > 0 && (
               <span className="flex items-center gap-1.5 rounded-lg bg-[var(--accent-muted)] border border-[var(--accent-border)] px-2.5 py-1 text-[11px] font-bold text-[var(--accent-text)]">
-                <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] animate-pulse" />
+                <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
                 {presentCount} on shift
               </span>
             )}
@@ -827,7 +827,7 @@ function AttendanceLogsView({ restaurantId }: { restaurantId: string }) {
                           </span>
                         ) : (
                           <span className="flex items-center gap-1 text-[11px] font-bold text-[var(--accent-text)]">
-                            <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] animate-pulse" />
+                            <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
                             On shift
                           </span>
                         )}

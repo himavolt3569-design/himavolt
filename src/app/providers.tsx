@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, useEffect } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { AuthProvider } from "@/context/AuthContext";
 import { CartProvider } from "@/context/CartContext";
@@ -21,9 +21,26 @@ const PresenceTracker = dynamic(
   { ssr: false },
 );
 
+const SERVICE_WORKER_DELAY_MS = 3_000;
+const BACKGROUND_EFFECTS_DELAY_MS = 8_000;
+
 export default function Providers({ children }: { children: ReactNode }) {
+  const [backgroundEffectsReady, setBackgroundEffectsReady] = useState(false);
+
   useEffect(() => {
-    registerServiceWorker();
+    const timer = window.setTimeout(
+      registerServiceWorker,
+      SERVICE_WORKER_DELAY_MS,
+    );
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setTimeout(
+      () => setBackgroundEffectsReady(true),
+      BACKGROUND_EFFECTS_DELAY_MS,
+    );
+    return () => window.clearTimeout(timer);
   }, []);
 
   return (
@@ -35,8 +52,12 @@ export default function Providers({ children }: { children: ReactNode }) {
               <LiveOrdersProvider>
                 <ToastProvider>
                   {children}
-                  <NotificationSetup />
-                  <PresenceTracker />
+                  {backgroundEffectsReady && (
+                    <>
+                      <NotificationSetup />
+                      <PresenceTracker />
+                    </>
+                  )}
                 </ToastProvider>
               </LiveOrdersProvider>
             </OrderProvider>
