@@ -405,7 +405,7 @@ export default function DashboardSidebar({
                   }`}
                 >
                   <Icon className="h-4 w-4" />
-                  {item.badge === "live" && newOrderCount > 0 && (
+                  {"badge" in item && item.badge === "live" && newOrderCount > 0 && (
                     <span className="absolute -top-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[var(--accent)] text-[7px] font-bold text-white">
                       {newOrderCount}
                     </span>
