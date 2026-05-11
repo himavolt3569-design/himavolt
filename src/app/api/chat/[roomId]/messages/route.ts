@@ -6,6 +6,7 @@ import {
 } from "@/lib/notifications";
 import { safeHandler, notFound } from "@/lib/api-helpers";
 import { sendMessageSchema } from "@/lib/validations";
+import { rateLimit, clientKey } from "@/lib/rate-limit";
 
 export const GET = safeHandler(async (_req, { params }) => {
   const { roomId } = await params;
@@ -28,7 +29,15 @@ export const GET = safeHandler(async (_req, { params }) => {
 });
 
 export const POST = safeHandler(
-  async (_req, { params, body }) => {
+  async (req, { params, body }) => {
+    const rl = await rateLimit(clientKey(req, "chat:msg"), 60_000, 30);
+    if (!rl.ok) {
+      return NextResponse.json(
+        { error: "Sending too fast. Slow down." },
+        { status: 429, headers: { "Retry-After": String(rl.retryAfterSeconds) } },
+      );
+    }
+
     const { roomId } = await params;
     const { content, sender, senderName, userId } = body;
 

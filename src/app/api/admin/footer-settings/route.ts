@@ -21,13 +21,13 @@ const DEFAULTS: FooterSettings = {
 const ALLOWED_KEYS = ["phone", "email", "address", "description"] as const;
 
 async function ensureTable() {
-  await db.$executeRawUnsafe(`
+  await db.$executeRaw`
     CREATE TABLE IF NOT EXISTS site_settings (
       key   TEXT PRIMARY KEY,
       value TEXT NOT NULL,
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
-  `);
+  `;
 }
 
 async function readSettings(): Promise<FooterSettings> {
@@ -73,13 +73,12 @@ export async function PATCH(req: NextRequest) {
   for (const key of ALLOWED_KEYS) {
     if (body[key] !== undefined) {
       const dbKey = `footer_${key}`;
-      await db.$executeRawUnsafe(
-        `INSERT INTO site_settings (key, value, updated_at)
-         VALUES ($1, $2, NOW())
-         ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()`,
-        dbKey,
-        String(body[key]),
-      );
+      const val = String(body[key]);
+      await db.$executeRaw`
+        INSERT INTO site_settings (key, value, updated_at)
+        VALUES (${dbKey}, ${val}, NOW())
+        ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()
+      `;
     }
   }
 

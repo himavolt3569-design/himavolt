@@ -3,6 +3,7 @@ import { getOrCreateUser } from "@/lib/auth";
 import { supabaseAdmin, FOOD_IMAGES_BUCKET } from "@/lib/supabase";
 import { v4 as uuid } from "uuid";
 import { getStaffSession } from "@/lib/staff-auth";
+import { rateLimit, clientKey } from "@/lib/rate-limit";
 
 async function getAnyAuthUser(req: NextRequest): Promise<boolean> {
   const session = await getStaffSession(req);
@@ -22,6 +23,14 @@ export async function POST(req: NextRequest) {
   const authed = await getAnyAuthUser(req);
   if (!authed) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const rl = await rateLimit(clientKey(req, "upload"), 15 * 60_000, 20);
+  if (!rl.ok) {
+    return NextResponse.json(
+      { error: "Too many uploads. Please wait." },
+      { status: 429, headers: { "Retry-After": String(rl.retryAfterSeconds) } },
+    );
   }
 
   try {

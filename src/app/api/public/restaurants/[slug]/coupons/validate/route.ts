@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { rateLimit, clientKey } from "@/lib/rate-limit";
 
 /**
  * POST /api/public/restaurants/[slug]/coupons/validate
@@ -16,6 +17,14 @@ export async function POST(
   { params }: { params: Promise<{ slug: string }> },
 ) {
   try {
+    const rl = await rateLimit(clientKey(req, "coupon:validate"), 15 * 60_000, 20);
+    if (!rl.ok) {
+      return NextResponse.json(
+        { error: "Too many coupon attempts. Please wait." },
+        { status: 429, headers: { "Retry-After": String(rl.retryAfterSeconds) } },
+      );
+    }
+
     const { slug: encodedSlug } = await params;
     const slug = decodeURIComponent(encodedSlug);
 

@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getOrCreateUser } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { rateLimit, clientKey } from "@/lib/rate-limit";
 
 export async function GET() {
   try {
@@ -13,7 +14,15 @@ export async function GET() {
   }
 }
 
-export async function PATCH(req: Request) {
+export async function PATCH(req: NextRequest) {
+  const rl = await rateLimit(clientKey(req, "me:patch"), 15 * 60_000, 10);
+  if (!rl.ok) {
+    return NextResponse.json(
+      { error: "Too many update requests. Please slow down." },
+      { status: 429, headers: { "Retry-After": String(rl.retryAfterSeconds) } },
+    );
+  }
+
   const user = await getAuthUser();
   if (!user)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -112,7 +121,15 @@ export async function PATCH(req: Request) {
   });
 }
 
-export async function DELETE() {
+export async function DELETE(req: NextRequest) {
+  const rl = await rateLimit(clientKey(req, "me:delete"), 15 * 60_000, 3);
+  if (!rl.ok) {
+    return NextResponse.json(
+      { error: "Too many requests." },
+      { status: 429, headers: { "Retry-After": String(rl.retryAfterSeconds) } },
+    );
+  }
+
   const user = await getAuthUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

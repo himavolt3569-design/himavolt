@@ -7,7 +7,9 @@
       "Bash(Sort-Object)",
       "PowerShell(Get-Content *)",
       "PowerShell(Test-Path *)",
-      "Bash(xargs grep -l \"getAuthUser\\\\|supabase\\\\.auth\")"
+      "Bash(xargs grep -l \"getAuthUser\\\\|supabase\\\\.auth\")",
+      "Bash(Sort-Object -Unique)",
+      "Bash(xargs grep \"NEXT_PUBLIC_\")"
     ]
   }
 }
