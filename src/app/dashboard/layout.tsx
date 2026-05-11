@@ -46,9 +46,7 @@ export default function DashboardLayout({
   const [currentTime, setCurrentTime] = useState(new Date());
   const [posWizardOpen, setPosWizardOpen] = useState(false);
 
-  // Preload the most-visited tab chunks in the background so they're cached
-  // by the time the user clicks them. Delayed to avoid competing with the
-  // current tab's own data fetching and initial render.
+  // Wave 1 — most-visited tabs cached at 1.5s.
   useEffect(() => {
     const t = setTimeout(() => {
       import("@/components/billing/BillingTab");
@@ -61,6 +59,60 @@ export default function DashboardLayout({
       import("@/components/dashboard/ManualBillingTab");
       import("@/components/dashboard/StockTab");
     }, 1500);
+    return () => clearTimeout(t);
+  }, []);
+
+  // Wave 2 — remaining tabs cached at 4s (after wave 1 and current tab settle).
+  useEffect(() => {
+    const t = setTimeout(() => {
+      import("@/components/dashboard/ShiftsTab");
+      import("@/components/dashboard/QRCodesTab");
+      import("@/components/dashboard/TablesTab");
+      import("@/components/stories/StoryManager");
+      import("@/components/dashboard/PaymentQRTab");
+      import("@/components/dashboard/PaymentSettingsTab");
+      import("@/components/dashboard/TaxChargesTab");
+      import("@/components/dashboard/OffersTab");
+      import("@/components/dashboard/HeroSlidesManager");
+      import("@/components/dashboard/DrinksTab");
+      import("@/components/dashboard/GuestCheckInTab");
+      import("@/components/dashboard/MediaTab");
+      import("@/components/dashboard/CouponManagementTab");
+      import("@/components/dashboard/HotelBookingsTab");
+      import("@/components/dashboard/HotelQRTab");
+      import("@/components/dashboard/RoomQRTab");
+      import("@/components/dashboard/HotelHubTab");
+      import("@/components/dashboard/OwnerControlPanel");
+      import("@/components/dashboard/features/QuickCounterTab");
+      import("@/components/dashboard/features/ComboMealsTab");
+      import("@/components/dashboard/features/RushHourTab");
+      import("@/components/dashboard/features/TakeawayTab");
+      import("@/components/dashboard/features/RoomServiceTab");
+      import("@/components/dashboard/features/MultiOutletTab");
+      import("@/components/dashboard/features/EventCateringTab");
+      import("@/components/dashboard/features/GuestBillingTab");
+      import("@/components/dashboard/features/BuffetManagerTab");
+      import("@/components/dashboard/features/PreOrdersTab");
+      import("@/components/dashboard/features/CustomCakesTab");
+      import("@/components/dashboard/features/DailySpecialsTab");
+      import("@/components/dashboard/features/DisplayCounterTab");
+      import("@/components/dashboard/features/DeliveryOpsTab");
+      import("@/components/dashboard/features/MultiBrandTab");
+      import("@/components/dashboard/features/DeliveryZonesTab");
+      import("@/components/dashboard/features/PackageTrackingTab");
+      import("@/components/dashboard/features/HappyHoursTab");
+      import("@/components/dashboard/features/TabManagementTab");
+      import("@/components/dashboard/features/CocktailMenuTab");
+      import("@/components/dashboard/features/LiveEventsTab");
+      import("@/components/dashboard/features/LoyaltyRewardsTab");
+      import("@/components/dashboard/features/WifiSeatingTab");
+      import("@/components/dashboard/features/SeasonalMenuTab");
+      import("@/components/dashboard/features/BrunchModeTab");
+      import("@/components/dashboard/features/TableReservationsTab");
+      import("@/components/dashboard/features/WaitlistTab");
+      import("@/components/dashboard/features/PrivateDiningTab");
+      import("@/components/dashboard/features/WifiSettingsTab");
+    }, 4000);
     return () => clearTimeout(t);
   }, []);
 

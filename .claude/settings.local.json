@@ -2,7 +2,11 @@
   "permissions": {
     "allow": [
       "mcp__plugin_claude-mem_mcp-search__get_observations",
-      "Bash(npx prisma *)"
+      "Bash(npx prisma *)",
+      "Bash(Get-ChildItem -Path \"D:\\\\Official_Projects\\\\himalhub\\\\src\\\\app\" -Recurse -Filter \"page.tsx\" -o Name)",
+      "Bash(Sort-Object)",
+      "PowerShell(Get-Content *)",
+      "PowerShell(Test-Path *)"
     ]
   }
 }

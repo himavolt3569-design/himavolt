@@ -75,15 +75,17 @@ function loadGsap() {
   return _gsapPromise;
 }
 import Link from "next/link";
-import FoodDetailPopup, {
-  type PopupMenuItem,
-} from "@/components/food/FoodDetailPopup";
+import type { PopupMenuItem } from "@/components/food/FoodDetailPopup";
 import OrderStatus from "@/components/shared/OrderStatus";
 import CartSidebar from "@/components/cart/CartSidebar";
 import FoodSlider from "@/components/menu/FoodSlider";
 import MenuStories from "@/components/stories/MenuStories";
 
 import dynamic from "next/dynamic";
+const FoodDetailPopup = dynamic(
+  () => import("@/components/food/FoodDetailPopup"),
+  { ssr: false },
+);
 const CheckoutSheet = dynamic(
   () => import("@/components/checkout/CheckoutSheet"),
   { ssr: false },
@@ -1070,6 +1072,16 @@ function MenuPageContent() {
     // Only run when restaurantId becomes available — not on every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [restaurantId]);
+
+  // Preload popup and checkout chunks so they're cached before first interaction.
+  useEffect(() => {
+    const t = setTimeout(() => {
+      import("@/components/food/FoodDetailPopup");
+      import("@/components/checkout/CheckoutSheet");
+    }, 1500);
+    return () => clearTimeout(t);
+  }, []);
+
   const surgeMultiplier =
     rushHour.isRushNow && rushHour.surgeEnabled
       ? 1 + rushHour.surgePercent / 100
