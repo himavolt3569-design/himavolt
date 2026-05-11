@@ -83,113 +83,88 @@ export async function GET(req: NextRequest) {
 
   const isGoogleUser = user.app_metadata?.provider === "google";
 
-  // Look up existing user by Supabase ID first, then fall back to email
-  // (Google OAuth can create a new user ID even for an existing email account)
-  const existingUserById = await db.user.findUnique({ where: { id: user.id } });
-  const existingUserByEmail = !existingUserById && email
-    ? await db.user.findFirst({ where: { email } })
-    : null;
-  const existingUser = existingUserById ?? existingUserByEmail;
-  const isNewUser = !existingUser;
-  // True when same email exists in DB under a different auth provider/ID
-  const isAccountLink = !existingUserById && !!existingUserByEmail;
-
-  // Determine role: URL param > cookie > existing DB role > metadata (email sign-up) > Google default (OWNER)
-  // Never allow ADMIN to be self-assigned.
-  const metadataRole = user.user_metadata?.intended_role as SafeRole | undefined;
-  const dbRole = existingUser?.role;
-
-  // The explicit intended role from signup flow (query param or cookie)
-  const explicitRole: SafeRole | undefined =
-    (roleParam === "OWNER" || roleParam === "CUSTOMER" ? roleParam : undefined) ??
-    (roleCookie === "OWNER" || roleCookie === "CUSTOMER" ? roleCookie : undefined);
-
-  // For returning users, we generally want to keep their existing role.
-  // We only upgrade CUSTOMER -> OWNER if explicitly requested or metadata says so.
-  const finalRole: SafeRole = (() => {
-    // 1. If existing user is already privileged, keep it
-    if (dbRole === "OWNER" || dbRole === "ADMIN") return "OWNER";
-    
-    // 2. If explicit role is provided (from signup/signin buttons), use it
-    if (explicitRole === "OWNER") return "OWNER";
-    if (explicitRole === "CUSTOMER") return "CUSTOMER";
-
-    // 3. Check metadata (set during Email/Password signUp)
-    if (metadataRole === "OWNER") return "OWNER";
-    if (metadataRole === "CUSTOMER") return "CUSTOMER";
-
-    // 4. Default to customer
-    return "CUSTOMER";
-  })();
-
-  // We deliberately do NOT mirror the role into supabase user_metadata —
-  // that field is user-writable and the server treats it as untrusted, so
-  // writing back into it would only confuse future readers.
-
-  if (isAccountLink && existingUserByEmail) {
-    // Same email exists under a different ID — update the existing record
-    // instead of creating a new one (which would violate `email @unique`).
-    await db.user.update({
-      where: { email },
-      data: {
-        name, imageUrl,
-        ...(phone ? { phone } : {}),
-        ...(finalRole === "OWNER" ? { role: "OWNER" } : {}),
-      },
-    });
-  } else {
-    await db.user.upsert({
-      where: { id: user.id },
-      update: {
-        email, name, imageUrl,
-        ...(phone ? { phone } : {}),
-        // Upgrade to OWNER if intended, but never downgrade
-        ...(finalRole === "OWNER" ? { role: "OWNER" } : {}),
-      },
-      create: {
-        id: user.id, email, name, imageUrl, phone,
-        role: finalRole,
-        username: usernameFromMeta,
-      },
-    });
-  }
-
-  // Check if this owner already has restaurants (to decide onboarding vs dashboard)
-  let ownerHasRestaurant = false;
-  if (finalRole === "OWNER") {
-    // Check by the current auth user ID
-    const restaurantCount = await db.restaurant.count({
-      where: { ownerId: user.id },
-    });
-    // Also check by linked email account ID
-    if (restaurantCount === 0 && isAccountLink && existingUserByEmail) {
-      const linkedCount = await db.restaurant.count({
-        where: { ownerId: existingUserByEmail.id },
-      });
-      ownerHasRestaurant = linkedCount > 0;
-    } else {
-      ownerHasRestaurant = restaurantCount > 0;
-    }
-  }
-
   let redirectTo = next;
 
-  // Rule 1: Google users without username must complete profile
-  const dbUser = await db.user.findUnique({ where: { id: user.id } })
-    ?? (isAccountLink && email ? await db.user.findFirst({ where: { email } }) : null);
-  const hasUsername = !!dbUser?.username;
+  try {
+    // Look up existing user by Supabase ID first, then fall back to email
+    // (Google OAuth can create a new user ID even for an existing email account)
+    const existingUserById = await db.user.findUnique({ where: { id: user.id } });
+    const existingUserByEmail = !existingUserById && email
+      ? await db.user.findFirst({ where: { email } })
+      : null;
+    const existingUser = existingUserById ?? existingUserByEmail;
+    // True when same email exists in DB under a different auth provider/ID
+    const isAccountLink = !existingUserById && !!existingUserByEmail;
 
-  if (isGoogleUser && !hasUsername) {
-    const roleQ = finalRole === "OWNER" ? `?role=OWNER` : "";
-    redirectTo = `/auth/complete-profile${roleQ}`;
-  } 
-  // Rule 2: Food Lovers (CUSTOMER) -> Dashboard (shows customer view)
-  else if (finalRole === "CUSTOMER") {
+    // Determine role: URL param > cookie > existing DB role > metadata (email sign-up) > Google default (OWNER)
+    // Never allow ADMIN to be self-assigned.
+    const metadataRole = user.user_metadata?.intended_role as SafeRole | undefined;
+    const dbRole = existingUser?.role;
+
+    const explicitRole: SafeRole | undefined =
+      (roleParam === "OWNER" || roleParam === "CUSTOMER" ? roleParam : undefined) ??
+      (roleCookie === "OWNER" || roleCookie === "CUSTOMER" ? roleCookie : undefined);
+
+    const finalRole: SafeRole = (() => {
+      if (dbRole === "OWNER" || dbRole === "ADMIN") return "OWNER";
+      if (explicitRole === "OWNER") return "OWNER";
+      if (explicitRole === "CUSTOMER") return "CUSTOMER";
+      if (metadataRole === "OWNER") return "OWNER";
+      if (metadataRole === "CUSTOMER") return "CUSTOMER";
+      return "CUSTOMER";
+    })();
+
+    if (isAccountLink && existingUserByEmail) {
+      await db.user.update({
+        where: { email },
+        data: {
+          name, imageUrl,
+          ...(phone ? { phone } : {}),
+          ...(finalRole === "OWNER" ? { role: "OWNER" } : {}),
+        },
+      });
+    } else {
+      await db.user.upsert({
+        where: { id: user.id },
+        update: {
+          email, name, imageUrl,
+          ...(phone ? { phone } : {}),
+          ...(finalRole === "OWNER" ? { role: "OWNER" } : {}),
+        },
+        create: {
+          id: user.id, email, name, imageUrl, phone,
+          role: finalRole,
+          username: usernameFromMeta,
+        },
+      });
+    }
+
+    let ownerHasRestaurant = false;
+    if (finalRole === "OWNER") {
+      const restaurantCount = await db.restaurant.count({ where: { ownerId: user.id } });
+      if (restaurantCount === 0 && isAccountLink && existingUserByEmail) {
+        const linkedCount = await db.restaurant.count({ where: { ownerId: existingUserByEmail.id } });
+        ownerHasRestaurant = linkedCount > 0;
+      } else {
+        ownerHasRestaurant = restaurantCount > 0;
+      }
+    }
+
+    const dbUser = await db.user.findUnique({ where: { id: user.id } })
+      ?? (isAccountLink && email ? await db.user.findFirst({ where: { email } }) : null);
+    const hasUsername = !!dbUser?.username;
+
+    if (isGoogleUser && !hasUsername) {
+      redirectTo = `/auth/complete-profile${finalRole === "OWNER" ? "?role=OWNER" : ""}`;
+    } else if (finalRole === "CUSTOMER") {
+      redirectTo = "/dashboard";
+    } else if (finalRole === "OWNER" || dbRole === "OWNER" || dbRole === "ADMIN") {
+      redirectTo = ownerHasRestaurant ? "/dashboard" : "/manage-restaurants";
+    }
+  } catch (err: any) {
+    console.error("[/auth/callback] DB error:", err?.message ?? err);
+    // Session cookies are still valid — redirect to dashboard and let it recover
     redirectTo = "/dashboard";
-  }
-  // Rule 3: Owners -> Manage Restaurants (if no restaurants) or Dashboard
-  else if (finalRole === "OWNER" || dbRole === "OWNER" || dbRole === "ADMIN") {
-    redirectTo = ownerHasRestaurant ? "/dashboard" : "/manage-restaurants";
   }
 
   // Build final redirect response and attach all session cookies

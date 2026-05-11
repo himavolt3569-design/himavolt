@@ -3,9 +3,14 @@ import { getAuthUser, getOrCreateUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 
 export async function GET() {
-  const user = await getOrCreateUser();
-  if (!user) return NextResponse.json({ role: null, username: null });
-  return NextResponse.json({ role: user.role, username: user.username });
+  try {
+    const user = await getOrCreateUser();
+    if (!user) return NextResponse.json({ role: null, username: null });
+    return NextResponse.json({ role: user.role, username: user.username });
+  } catch (err: any) {
+    console.error("[GET /api/me]", err?.message ?? err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
 }
 
 export async function PATCH(req: Request) {
@@ -14,7 +19,13 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json().catch(() => ({}));
-  const { role, username } = body as { role?: string; username?: string };
+  const { role, username, name, phone, imageUrl } = body as {
+    role?: string;
+    username?: string;
+    name?: string;
+    phone?: string;
+    imageUrl?: string;
+  };
 
   const updateData: Record<string, unknown> = {};
 
@@ -55,19 +66,68 @@ export async function PATCH(req: Request) {
     updateData.username = username;
   }
 
-  // If the body referenced fields but they were all no-ops (e.g. selecting
-  // the same role you already have during onboarding), return the current
-  // state as a success rather than 400. Only reject an empty/unrecognised body.
+  if (name !== undefined) {
+    if (name.trim().length < 2) {
+      return NextResponse.json({ error: "Name too short" }, { status: 400 });
+    }
+    updateData.name = name.trim();
+  }
+
+  if (phone !== undefined) {
+    updateData.phone = phone.trim();
+  }
+
+  if (imageUrl !== undefined) {
+    updateData.imageUrl = imageUrl;
+  }
+
   if (Object.keys(updateData).length === 0) {
-    if (role === undefined && username === undefined) {
+    if (
+      role === undefined &&
+      username === undefined &&
+      name === undefined &&
+      phone === undefined &&
+      imageUrl === undefined
+    ) {
       return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
     }
-    return NextResponse.json({ role: user.role, username: user.username });
+    return NextResponse.json({
+      role: user.role,
+      username: user.username,
+      name: user.name,
+      imageUrl: user.imageUrl,
+    });
   }
 
   const updated = await db.user.update({
     where: { id: user.id },
     data: updateData,
   });
-  return NextResponse.json({ role: updated.role, username: updated.username });
+
+  return NextResponse.json({
+    role: updated.role,
+    username: updated.username,
+    name: updated.name,
+    imageUrl: updated.imageUrl,
+  });
+}
+
+export async function DELETE() {
+  const user = await getAuthUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    // SECURITY: Mark as deleted but keep record to prevent immediate re-signup with same ID/Email
+    await db.user.update({
+      where: { id: user.id },
+      data: { isDeleted: true },
+    });
+  } catch (err: any) {
+    console.error("[DELETE /api/me] DB error:", err?.message ?? err);
+    return NextResponse.json({ error: "Failed to delete account" }, { status: 500 });
+  }
+
+  return NextResponse.json({ success: true });
 }

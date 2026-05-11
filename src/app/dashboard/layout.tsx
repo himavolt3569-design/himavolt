@@ -1,17 +1,263 @@
-import type { Metadata } from "next";
+"use client";
 
-export const dynamic = "force-dynamic";
-
-export const metadata: Metadata = {
-  title: "Dashboard | HimaVolt",
-  description:
-    "Manage your restaurants, orders, staff, and analytics from the HimaVolt owner dashboard.",
-};
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Menu,
+  ChevronRight,
+  Search,
+  Clock,
+  User,
+} from "lucide-react";
+import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
+import { useLiveOrders } from "@/context/LiveOrdersContext";
+import { useRestaurant } from "@/context/RestaurantContext";
+import DashboardSidebar from "@/components/dashboard/layout/DashboardSidebar";
+import NotificationBell from "@/components/dashboard/NotificationBell";
+import ThemeToggle from "@/components/shared/ThemeToggle";
+import GlobalChatButton from "@/components/chat/GlobalChatButton";
+import POSActivationGate from "@/components/pos/activation/POSActivationGate";
+import CustomerDashboard from "@/app/dashboard/CustomerDashboard";
+import { ALL_NAV, FEATURE_ICONS } from "@/lib/dashboard-nav";
+import { getFeatureTabsForType, type FeatureTabId } from "@/lib/restaurant-types";
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return children;
+  const { user, isLoaded, userRole } = useAuth();
+  const { orders, setRestaurantId } = useLiveOrders();
+  const { 
+    restaurants, 
+    selectedRestaurant, 
+    selectRestaurant, 
+    loading: resLoading, 
+    hasFetched: resHasFetched, 
+    fetchRestaurants 
+  } = useRestaurant();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [posWizardOpen, setPosWizardOpen] = useState(false);
+
+  const newOrderCount = orders.filter((o) => o.status === "PENDING").length;
+
+  // Active tab info for breadcrumbs
+  const pathSegments = pathname.split("/").filter(Boolean);
+  const activeTabId = pathSegments.length > 1 ? pathSegments[pathSegments.length - 1] : "overview";
+  
+  const activeTab = ALL_NAV.find(n => n.id === activeTabId) 
+    || getFeatureTabsForType(selectedRestaurant?.type || "", {
+         featuresEnabled: selectedRestaurant?.featuresEnabled,
+         featuresDisabled: selectedRestaurant?.featuresDisabled
+       }).find(f => f.id === activeTabId);
+
+  const activeLabel = activeTab?.label || "Overview";
+  const ActiveIcon =
+    (activeTab && "icon" in activeTab ? (activeTab as { icon: any }).icon : null) ||
+    FEATURE_ICONS[activeTabId as FeatureTabId] ||
+    User;
+
+  useEffect(() => {
+    if (!selectedRestaurant && restaurants.length > 0) {
+      selectRestaurant(restaurants[0].id);
+    }
+  }, [selectedRestaurant, restaurants, selectRestaurant]);
+
+  useEffect(() => {
+    setRestaurantId(selectedRestaurant?.id ?? null);
+  }, [selectedRestaurant?.id, setRestaurantId]);
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Redirect OWNER with no restaurants
+  useEffect(() => {
+    if (userRole === "OWNER" && resHasFetched && !resLoading && restaurants.length === 0) {
+      router.replace("/manage-restaurants");
+    }
+  }, [userRole, router, resHasFetched, resLoading, restaurants.length]);
+
+  // Route customers away once auth resolves — no full-screen gate
+  if (isLoaded && userRole === "CUSTOMER") {
+    return <CustomerDashboard />;
+  }
+
+  const isActuallyLoaded = isLoaded && !!user;
+
+  return (
+    <div className="flex h-screen overflow-hidden bg-[var(--canvas-sub)] font-sans text-[var(--text-1)]">
+      {/* ── Desktop sidebar ───────────────────────────────────── */}
+      <div className={`hidden lg:block shrink-0 h-full transition-all duration-300 ${sidebarCollapsed ? "w-14" : "w-56"}`}>
+        {!isActuallyLoaded ? (
+          <div className="h-full w-full bg-[var(--canvas)] border-r border-[var(--border)]/50 animate-pulse" />
+        ) : (
+          <DashboardSidebar
+            newOrderCount={newOrderCount}
+            isCollapsed={sidebarCollapsed}
+            onToggleCollapse={() => setSidebarCollapsed((c) => !c)}
+            onRequestPOSActivate={() => setPosWizardOpen(true)}
+          />
+        )}
+      </div>
+
+      {/* ── Mobile sidebar overlay ────────────────────────────── */}
+      <AnimatePresence>
+        {mobileSidebarOpen && isActuallyLoaded && (
+          <>
+            <motion.div
+              key="overlay"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMobileSidebarOpen(false)}
+              className="fixed inset-0 z-40 bg-black/40 lg:hidden"
+            />
+            <motion.div
+              key="drawer"
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", damping: 28, stiffness: 260 }}
+              className="fixed top-0 left-0 bottom-0 z-50 w-56 lg:hidden"
+            >
+              <DashboardSidebar
+                newOrderCount={newOrderCount}
+                onClose={() => setMobileSidebarOpen(false)}
+                onRequestPOSActivate={() => {
+                  setPosWizardOpen(true);
+                  setMobileSidebarOpen(false);
+                }}
+              />
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* ── Main area ─────────────────────────────────────────── */}
+      <div className="relative flex flex-1 flex-col overflow-hidden">
+        <header className="flex items-center justify-between border-b border-[var(--border)]/50 bg-[var(--canvas)]/70 backdrop-blur-xl shadow-sm px-5 lg:px-8 py-3.5 shrink-0 z-30">
+          {!isActuallyLoaded ? (
+            <div className="w-full h-8 flex items-center justify-between animate-pulse">
+               <div className="h-6 w-32 bg-[var(--surface)] rounded-lg" />
+               <div className="flex gap-2">
+                 <div className="h-8 w-8 rounded-full bg-[var(--surface)]" />
+                 <div className="h-8 w-8 rounded-full bg-[var(--surface)]" />
+               </div>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setMobileSidebarOpen(true)}
+                  className="rounded-lg p-2 text-[var(--text-2)] hover:bg-[var(--surface)] transition-colors lg:hidden"
+                >
+                  <Menu className="h-5 w-5" />
+                </button>
+
+                <div className="hidden sm:flex items-center gap-1.5 text-[13px]">
+                  <span className="text-[var(--text-3)]">Dashboard</span>
+                  <ChevronRight className="h-3 w-3 text-[var(--text-3)]" />
+                  <span className="flex items-center gap-1.5 font-semibold text-[var(--text-1)]">
+                    <ActiveIcon className="h-3.5 w-3.5 text-[var(--accent)]" />
+                    {activeLabel}
+                  </span>
+                </div>
+
+                <div className="hidden md:flex items-center gap-2 ml-4 rounded-lg bg-[var(--canvas-sub)] px-3.5 py-2 text-[var(--text-3)] ring-1 ring-[var(--border)] focus-within:ring-[var(--accent)] focus-within:bg-[var(--canvas)] transition-colors">
+                  <Search className="h-3.5 w-3.5 shrink-0" />
+                  <input
+                    type="text"
+                    placeholder="Search..."
+                    className="w-36 bg-transparent text-[13px] outline-none placeholder:text-[var(--text-3)] text-[var(--text-1)]"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2.5">
+                <div className="hidden lg:flex items-center gap-1.5 text-[11px] text-[var(--text-3)]">
+                  <Clock className="h-3 w-3" />
+                  <span className="font-medium tabular-nums">
+                    {currentTime.toLocaleTimeString("en-US", {
+                      hour: "numeric",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                </div>
+
+                <div className="hidden lg:block h-4 w-px bg-[var(--border)]" />
+
+                <div className="hidden sm:flex items-center gap-1.5 rounded-full bg-[var(--accent-muted)] px-2.5 py-1">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
+                  <span className="text-[11px] font-semibold text-[var(--accent-text)]">
+                    Live
+                  </span>
+                </div>
+
+                <NotificationBell onNavigateToOrders={() => router.push("/dashboard/orders")} />
+
+                <ThemeToggle />
+
+                <div className="hidden sm:block h-6 w-px bg-[var(--border)]" />
+
+                <Link
+                  href="/profile"
+                  className="flex h-8 w-8 items-center justify-center rounded-full ring-2 ring-[var(--border)] hover:ring-[var(--accent)] transition-colors overflow-hidden bg-[var(--accent-muted)]"
+                >
+                  {user?.user_metadata?.avatar_url ? (
+                    <img
+                      src={user.user_metadata.avatar_url}
+                      alt="Profile"
+                      className="h-8 w-8 object-cover"
+                    />
+                  ) : (
+                    <User className="h-4 w-4 text-[var(--accent)]" />
+                  )}
+                </Link>
+              </div>
+            </>
+          )}
+        </header>
+
+        <main className="flex-1 overflow-y-auto px-5 lg:px-8 pt-6 pb-8">
+          {!isActuallyLoaded ? (
+             <div className="w-full space-y-6 animate-pulse">
+               <div className="h-40 w-full rounded-[2.5rem] bg-[var(--surface)]" />
+               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                 {[1,2,3,4].map(i => <div key={i} className="h-24 rounded-3xl bg-[var(--surface)]" />)}
+               </div>
+               <div className="h-64 w-full rounded-3xl bg-[var(--surface)] opacity-60" />
+             </div>
+          ) : children}
+        </main>
+      </div>
+
+      {/* Global floating chat for owner/admin — only when not on chat tab */}
+      {isActuallyLoaded && selectedRestaurant && user && activeTabId !== "chat" && (
+        <GlobalChatButton
+          restaurantId={selectedRestaurant.id}
+          staffRole={userRole ?? "OWNER"}
+          staffName={user.user_metadata?.name ?? user.email ?? "Owner"}
+        />
+      )}
+
+      {/* POS welcome tour + activation wizard */}
+      {isActuallyLoaded && (
+        <POSActivationGate
+          restaurant={selectedRestaurant}
+          openWizard={posWizardOpen}
+          onWizardClose={() => setPosWizardOpen(false)}
+          onActivated={fetchRestaurants}
+        />
+      )}
+    </div>
+  );
 }

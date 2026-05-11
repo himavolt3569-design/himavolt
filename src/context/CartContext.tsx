@@ -9,6 +9,7 @@ import {
   useRef,
   type ReactNode,
 } from "react";
+import { useToast } from "@/context/ToastContext";
 
 export interface CartItem {
   id: string;
@@ -40,6 +41,8 @@ interface CartContextType {
   increaseQty: (id: string) => void;
   decreaseQty: (id: string) => void;
   getItemQty: (id: string) => number;
+  /** Returns the quantity of an item across ALL saved carts, not just the active one. */
+  getGlobalItemQty: (id: string) => number;
   totalItems: number;
   subtotal: number;
   clearCart: () => void;
@@ -50,6 +53,19 @@ interface CartContextType {
 // Per-restaurant key keeps carts from different restaurants from overwriting each other.
 function cartKey(restaurantId: string) {
   return `hh_cart_${restaurantId}`;
+}
+
+// Helper to find all restaurant cart keys in localStorage
+function getAllCartKeys(): string[] {
+  if (typeof window === "undefined") return [];
+  const keys = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key?.startsWith("hh_cart_")) {
+      keys.push(key);
+    }
+  }
+  return keys;
 }
 
 // Legacy global key (kept for backward-compat read-on-first-load only).
@@ -105,6 +121,7 @@ function emptyState(): CartState {
 const CartContext = createContext<CartContextType | null>(null);
 
 export function CartProvider({ children }: { children: ReactNode }) {
+  const { showToast } = useToast();
   const [items, setItems] = useState<CartItem[]>([]);
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
   const [restaurantSlug, setRestaurantSlug] = useState<string | null>(null);
@@ -170,8 +187,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       restSlug: string,
       cur?: string,
     ) => {
-      // Switching to a different restaurant — save the current cart first,
-      // then check for a saved cart for the new restaurant.
+      // Switching to a different restaurant
       if (restaurantId && restaurantId !== restId) {
         // Current cart is already persisted; start fresh for the new restaurant.
         const savedForNew = loadCartForRestaurant(restId);
@@ -185,12 +201,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
           }
           return [...existingItems, { ...item, quantity: 1 }];
         })();
+
         setItems(updated);
         setRestaurantId(restId);
         setRestaurantSlug(restSlug);
         if (cur) setCurrency(cur);
+
+        showToast(`Switched cart to ${restSlug}`, "success");
         return;
       }
+
       setRestaurantId(restId);
       setRestaurantSlug(restSlug);
       if (cur) setCurrency(cur);
@@ -204,7 +224,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         return [...prev, { ...item, quantity: 1 }];
       });
     },
-    [restaurantId],
+    [restaurantId, showToast],
   );
 
   const removeItem = useCallback(
@@ -232,6 +252,25 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const getItemQty = useCallback(
     (id: string) => items.find((i) => i.id === id)?.quantity ?? 0,
+    [items],
+  );
+
+  const getGlobalItemQty = useCallback(
+    (id: string) => {
+      // 1. Check active items first (fast path)
+      const activeQty = items.find((i) => i.id === id)?.quantity;
+      if (activeQty !== undefined) return activeQty;
+
+      // 2. Check other saved carts in localStorage
+      if (typeof window === "undefined") return 0;
+      const keys = getAllCartKeys();
+      for (const key of keys) {
+        const state = parseCartState(localStorage.getItem(key));
+        const found = state?.items.find((i) => i.id === id);
+        if (found) return found.quantity;
+      }
+      return 0;
+    },
     [items],
   );
 
@@ -267,6 +306,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         increaseQty,
         decreaseQty,
         getItemQty,
+        getGlobalItemQty,
         totalItems,
         subtotal,
         clearCart,

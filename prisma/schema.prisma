@@ -10,15 +10,17 @@ datasource db {
 // ─── Users ─────────────────────────────────────────────────────────
 
 model User {
-  id        String   @id
-  email     String   @unique
-  name      String
-  username  String?  @unique
-  phone     String?
-  imageUrl  String?
-  role      UserRole @default(CUSTOMER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String   @id
+  email         String   @unique
+  name          String
+  username      String?  @unique
+  phone         String?
+  imageUrl      String?
+  role          UserRole @default(CUSTOMER)
+  isDeleted     Boolean  @default(false) @map("is_deleted")
+  isBlacklisted Boolean  @default(false) @map("is_blacklisted")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   ownedRestaurants Restaurant[]
   staffMemberships StaffMember[]
@@ -82,16 +84,16 @@ model Restaurant {
   directPayEnabled  Boolean @default(false) // direct bank/wallet pay
 
   // POS activation (Phase 1)
-  posEnabled        Boolean   @default(false) // master switch: when true, /pos/staff & kiosk are accessible
-  posActivatedAt    DateTime? // when POS was first activated
-  posTerminalName   String? // friendly label shown on POS header, e.g. "Front Counter"
-  posOpeningCash    Float     @default(0) // default cash drawer opening balance (NPR)
-  posWelcomeSeenAt  DateTime? // when the owner dismissed the first-time welcome guide
-  posCustomerModeEnabled Boolean @default(true) // allow staff to flip into customer-facing kiosk mode
+  posEnabled             Boolean   @default(false) // master switch: when true, /pos/staff & kiosk are accessible
+  posActivatedAt         DateTime? // when POS was first activated
+  posTerminalName        String? // friendly label shown on POS header, e.g. "Front Counter"
+  posOpeningCash         Float     @default(0) // default cash drawer opening balance (NPR)
+  posWelcomeSeenAt       DateTime? // when the owner dismissed the first-time welcome guide
+  posCustomerModeEnabled Boolean   @default(true) // allow staff to flip into customer-facing kiosk mode
   // Customer-mode hardware-button exit combo. JSON shape:
   //   { "ctrl": true, "shift": true, "alt": false, "key": "x" }
   // Default (Ctrl+Shift+X) applied at the API layer when null.
-  posCustomerExitCombo Json?
+  posCustomerExitCombo   Json?
 
   // Hotel / Resort / Guest House booking advance config
   hotelAdvanceType  String @default("PERCENTAGE") // "PERCENTAGE" or "FIXED"
@@ -1423,4 +1425,12 @@ model LoyaltyAccount {
   @@index([restaurantId])
   @@index([userId])
   @@map("loyalty_accounts")
+}
+
+model SiteSetting {
+  key        String   @id
+  value      String
+  updated_at DateTime @updatedAt
+
+  @@map("site_settings")
 }

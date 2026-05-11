@@ -114,10 +114,10 @@ export default function CompleteProfilePage() {
       try {
         const restRes = await fetch("/api/restaurants");
         const restData = await restRes.json().catch(() => []);
-        router.push(Array.isArray(restData) && restData.length > 0 ? "/dashboard" : "/onboarding");
-      } catch { router.push("/onboarding"); }
+        router.push(Array.isArray(restData) && restData.length > 0 ? "/dashboard" : "/manage-restaurants");
+      } catch { router.push("/manage-restaurants"); }
     } else {
-      router.push("/");
+      router.push("/dashboard");
     }
   };
 

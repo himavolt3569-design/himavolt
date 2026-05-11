@@ -73,13 +73,14 @@ function apiToFoodItem(item: ApiMenuItem): FoodItem {
     offer: item.discountLabel || undefined,
     isVeg: item.isVeg,
     category: item.category?.name || "Nepali",
-    restaurantId: item.restaurant?.id || "home",
-    restaurantSlug: item.restaurant?.slug || "home",
-    restaurantName: item.restaurant?.name || "",
+    restaurantId: item.restaurant?.id || "",
+    restaurantSlug: item.restaurant?.slug || "",
+    restaurantName: item.restaurant?.name || "Chef's Special",
   };
 }
 
 function apiToPopupMenuItem(item: ApiMenuItem): PopupMenuItem {
+  const r = item.restaurant;
   return {
     id: item.id,
     name: item.name,
@@ -104,13 +105,13 @@ function apiToPopupMenuItem(item: ApiMenuItem): PopupMenuItem {
     spiceLevel: item.spiceLevel,
     isDrink: item.isDrink,
     drinkCategory: item.drinkCategory,
-    restaurantId: item.restaurantId || item.restaurant?.id || "home",
+    restaurantId: r?.id || "",
     restaurant: {
-      id: item.restaurant?.id || item.restaurantId || "home",
-      name: item.restaurant?.name || "",
-      slug: item.restaurant?.slug || "home",
-      imageUrl: item.restaurant?.imageUrl,
-      currency: item.restaurant?.currency ?? "NPR",
+      id: r?.id || "",
+      name: r?.name || "",
+      slug: r?.slug || "",
+      imageUrl: r?.imageUrl,
+      currency: r?.currency ?? "NPR",
     },
     category: {
       name: item.category?.name || "Nepali",
@@ -130,13 +131,21 @@ const FILTERS = [
 ];
 
 function FoodCard({ item, index, onOpenPopup }: { item: FoodItem; index: number; onOpenPopup: (id: string) => void }) {
-  const { addItem, getItemQty } = useCart();
+  const { addItem, increaseQty, decreaseQty, getGlobalItemQty } = useCart();
   const [isAdding, setIsAdding] = useState(false);
-  const qty = getItemQty ? getItemQty(item.id) : 0;
+  
+  // Use global qty so the badge/selector stays correct even if active cart is for another restaurant
+  const qty = getGlobalItemQty(item.id);
 
   const handleAdd = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+
+    if (!item.restaurantId || !item.restaurantSlug) {
+      console.error("Missing restaurant data for item:", item.name);
+      return;
+    }
+
     setIsAdding(true);
     addItem(
       { id: item.id, name: item.name, price: item.price, image: item.image },
@@ -144,6 +153,18 @@ function FoodCard({ item, index, onOpenPopup }: { item: FoodItem; index: number;
       item.restaurantSlug
     );
     setTimeout(() => setIsAdding(false), 800);
+  };
+
+  const handleIncrease = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    increaseQty(item.id);
+  };
+
+  const handleDecrease = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    decreaseQty(item.id);
   };
 
   const isLong = (index + 1) % 5 === 0;
@@ -188,14 +209,21 @@ function FoodCard({ item, index, onOpenPopup }: { item: FoodItem; index: number;
                 </div>
              </div>
              
-             <div className="flex flex-col items-end gap-2 pointer-events-auto">
-                <div className="bg-[#0f172a] text-white px-4 py-2 sm:px-5 sm:py-2.5 rounded-2xl flex items-center gap-2 shadow-xl shadow-[#0f172a]/20 hover:bg-[#1e293b] active:scale-95 transition-all" onClick={handleAdd}>
+             <div className="flex flex-col items-end gap-2 pointer-events-auto" onClick={(e) => e.stopPropagation()}>
+                <div className="bg-[#0f172a] text-white px-4 py-2 sm:px-5 sm:py-2.5 rounded-2xl flex items-center gap-2 shadow-xl shadow-[#0f172a]/20 hover:bg-[#1e293b] active:scale-95 transition-all">
                    <span className="text-[14px] sm:text-[16px] font-black mr-1">{formatPrice(item.price, "NPR")}</span>
                    <div className="h-4 w-[1px] bg-white/20" />
-                   {isAdding ? (
-                     <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider ml-1 text-green-400">Added</span>
+                   
+                   {qty > 0 ? (
+                     <div className="flex items-center gap-3 ml-1">
+                       <button onClick={handleDecrease} className="hover:text-[var(--accent)] transition-colors w-4 text-center">-</button>
+                       <span className="text-sm font-black w-4 text-center">{qty}</span>
+                       <button onClick={handleIncrease} className="hover:text-[var(--accent)] transition-colors w-4 text-center">+</button>
+                     </div>
                    ) : (
-                     <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider ml-1">Add</span>
+                     <button onClick={handleAdd} className="text-[11px] sm:text-xs font-bold uppercase tracking-wider ml-1">
+                       {isAdding ? "Added" : "Add"}
+                     </button>
                    )}
                 </div>
              </div>
@@ -255,16 +283,28 @@ function FoodCard({ item, index, onOpenPopup }: { item: FoodItem; index: number;
             </div>
 
             <div className="shrink-0 ml-2" onClick={(e) => e.stopPropagation()}>
-               <button
-                 onClick={handleAdd}
-                 className={`uppercase px-4 py-1.5 rounded-xl text-[11px] sm:text-[12px] font-bold tracking-wider transition-all ${
-                   isAdding 
-                     ? "bg-green-50 text-green-600 border border-green-200"
-                     : "bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-500 hover:text-white"
-                 }`}
-               >
-                 {isAdding ? "Added" : "Add"}
-               </button>
+               {qty > 0 ? (
+                 <div className="flex items-center gap-2 bg-orange-500 text-white rounded-xl px-2 py-1.5 shadow-md">
+                    <button onClick={handleDecrease} className="h-6 w-6 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors">
+                      <span className="text-lg font-black leading-none">−</span>
+                    </button>
+                    <span className="text-xs font-black w-4 text-center">{qty}</span>
+                    <button onClick={handleIncrease} className="h-6 w-6 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors">
+                      <span className="text-lg font-black leading-none">+</span>
+                    </button>
+                 </div>
+               ) : (
+                 <button
+                   onClick={handleAdd}
+                   className={`uppercase px-4 py-1.5 rounded-xl text-[11px] sm:text-[12px] font-bold tracking-wider transition-all ${
+                     isAdding 
+                       ? "bg-green-50 text-green-600 border border-green-200"
+                       : "bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-500 hover:text-white"
+                   }`}
+                 >
+                   {isAdding ? "Added" : "Add"}
+                 </button>
+               )}
             </div>
          </div>
        </div>

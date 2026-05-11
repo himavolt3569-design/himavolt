@@ -32,13 +32,14 @@ export default function SignInPage() {
     }
 
     const meRes = await fetch("/api/me");
-    const meData = await meRes.json().catch(() => ({}));
-    const userRole = meData.role ?? "CUSTOMER";
+    const meData = meRes.ok ? await meRes.json().catch(() => ({})) : {};
+    const userRole: string | null = meData.role ?? null;
 
-    if (userRole === "OWNER" || userRole === "ADMIN") {
-      router.push("/dashboard");
-    } else {
+    if (userRole === "CUSTOMER") {
       router.push("/");
+    } else {
+      // OWNER, ADMIN, or unknown (API failure) → dashboard; let it handle role routing
+      router.push("/dashboard");
     }
     router.refresh();
   };

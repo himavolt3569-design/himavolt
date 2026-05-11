@@ -9,6 +9,8 @@ export default defineConfig({
     path: "prisma/migrations",
   },
   datasource: {
-    url: process.env["DATABASE_URL"],
+    // Use the direct connection (non-pooled) so migrate/generate CLI commands work.
+    // The app runtime uses DATABASE_URL (PgBouncer pooler) via db.ts.
+    url: process.env["DIRECT_URL"] ?? process.env["DATABASE_URL"],
   },
 });

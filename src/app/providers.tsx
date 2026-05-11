@@ -45,12 +45,12 @@ export default function Providers({ children }: { children: ReactNode }) {
 
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <RestaurantProvider>
-          <CartProvider>
-            <OrderProvider>
-              <LiveOrdersProvider>
-                <ToastProvider>
+      <ToastProvider>
+        <AuthProvider>
+          <RestaurantProvider>
+            <CartProvider>
+              <OrderProvider>
+                <LiveOrdersProvider>
                   {children}
                   {backgroundEffectsReady && (
                     <>
@@ -58,12 +58,12 @@ export default function Providers({ children }: { children: ReactNode }) {
                       <PresenceTracker />
                     </>
                   )}
-                </ToastProvider>
-              </LiveOrdersProvider>
-            </OrderProvider>
-          </CartProvider>
-        </RestaurantProvider>
-      </AuthProvider>
+                </LiveOrdersProvider>
+              </OrderProvider>
+            </CartProvider>
+          </RestaurantProvider>
+        </AuthProvider>
+      </ToastProvider>
     </ThemeProvider>
   );
 }

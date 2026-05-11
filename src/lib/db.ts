@@ -27,7 +27,7 @@ const withRetry = (client: PrismaClient) => {
 
               if (isTransientError && retries < maxRetries) {
                 retries++;
-                const backoff = Math.min(1000 * 2 ** retries, 10000);
+                const backoff = Math.min(500 * 2 ** retries, 5000);
                 console.warn(
                   `[Prisma Retry] Transient error on ${operation}, retrying in ${backoff}ms... (Attempt ${retries}/${maxRetries})`,
                 );
@@ -52,13 +52,13 @@ function createPrismaClient() {
   const isServerless =
     !!process.env.VERCEL || process.env.NODE_ENV === "production";
 
-  // Explicitly configure pg.Pool to prevent dead connections from piling up
+  // Slightly larger pool to handle bursts
   const pool = new Pool({
     connectionString,
-    max: isServerless ? 5 : 5,
+    max: isServerless ? 10 : 10,
     ssl: isServerless ? { rejectUnauthorized: false } : undefined,
-    idleTimeoutMillis: 30000, // Close idle connections after 30 seconds
-    connectionTimeoutMillis: 5000, // Fail fast on connection attempt
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 10000, // Wait up to 10s for a connection
   });
 
   // Attach pool events for debugging (optional but good for tracking drops)

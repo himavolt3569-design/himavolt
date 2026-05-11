@@ -18,14 +18,15 @@ const securityHeaders = [
     value: [
       "default-src 'self'",
       // Next.js requires unsafe-inline for hydration scripts + style injection
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      // va.vercel-scripts.com = Vercel Speed Insights; gstatic.com = Firebase SDK (service worker)
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://www.gstatic.com https://www.googleapis.com",
       "style-src 'self' 'unsafe-inline'",
       // Images from Supabase storage + Google profile pics + data URIs
       "img-src 'self' data: blob: https://*.supabase.co https://*.storage.supabase.co https://lh3.googleusercontent.com https://images.unsplash.com",
       "font-src 'self' data:",
       "media-src 'self' blob: https://*.supabase.co https://*.storage.supabase.co",
-      // API calls: self + Supabase (auth + realtime)
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.supabase.in",
+      // API calls: self + Supabase (auth + realtime) + Vercel Speed Insights telemetry
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.supabase.in https://vitals.vercel-insights.com",
       // No Flash / plugins
       "object-src 'none'",
       // Prevent <base> tag injection
@@ -79,3 +80,5 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+// Force Next.js to reload and pick up the newly generated Prisma Client
+

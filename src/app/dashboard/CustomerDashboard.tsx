@@ -296,9 +296,9 @@ export default function CustomerDashboard() {
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
-  const displayName  = user?.user_metadata?.full_name || user?.user_metadata?.name || "there";
+  const displayName  = user?.name || user?.user_metadata?.full_name || user?.user_metadata?.name || "there";
   const firstName    = displayName.split(" ")[0];
-  const avatarUrl    = user?.user_metadata?.avatar_url;
+  const avatarUrl    = user?.imageUrl || user?.user_metadata?.avatar_url;
   const memberSince  = user?.created_at
     ? new Date(user.created_at).toLocaleDateString("en-US", { month: "long", year: "numeric" })
     : "";
