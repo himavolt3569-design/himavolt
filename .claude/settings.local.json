@@ -6,7 +6,8 @@
       "Bash(Get-ChildItem -Path \"D:\\\\Official_Projects\\\\himalhub\\\\src\\\\app\" -Recurse -Filter \"page.tsx\" -o Name)",
       "Bash(Sort-Object)",
       "PowerShell(Get-Content *)",
-      "PowerShell(Test-Path *)"
+      "PowerShell(Test-Path *)",
+      "Bash(xargs grep -l \"getAuthUser\\\\|supabase\\\\.auth\")"
     ]
   }
 }

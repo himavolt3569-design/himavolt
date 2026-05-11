@@ -8,7 +8,7 @@ export default function DashboardPage() {
 
   return (
     <OverviewTab
-      userName={user?.user_metadata?.full_name ?? user?.name ?? undefined}
+      userName={user?.user_metadata?.full_name ?? user?.user_metadata?.name ?? undefined}
     />
   );
 }

@@ -75,7 +75,7 @@ export default function ProfilePage() {
   // Sync initial values
   useEffect(() => {
     if (user) {
-      setName(user.user_metadata?.full_name ?? user.user_metadata?.name ?? user.name ?? "");
+      setName(user.user_metadata?.full_name ?? user.user_metadata?.name ?? "");
       setPhone(user.phone ?? "");
     }
   }, [user]);
@@ -211,11 +211,9 @@ export default function ProfilePage() {
   const displayName =
     user.user_metadata?.full_name ??
     user.user_metadata?.name ??
-    user.name ??
     user.email?.split("@")[0] ??
     "User";
   const avatarUrl =
-    user.imageUrl ||
     user.user_metadata?.avatar_url ||
     user.user_metadata?.picture ||
     null;
