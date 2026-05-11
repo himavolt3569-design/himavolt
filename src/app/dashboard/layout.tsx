@@ -46,6 +46,24 @@ export default function DashboardLayout({
   const [currentTime, setCurrentTime] = useState(new Date());
   const [posWizardOpen, setPosWizardOpen] = useState(false);
 
+  // Preload the most-visited tab chunks in the background so they're cached
+  // by the time the user clicks them. Delayed to avoid competing with the
+  // current tab's own data fetching and initial render.
+  useEffect(() => {
+    const t = setTimeout(() => {
+      import("@/components/billing/BillingTab");
+      import("@/components/dashboard/LiveOrdersTab");
+      import("@/components/dashboard/MenuManagementTab");
+      import("@/components/dashboard/OverviewTab");
+      import("@/components/dashboard/StaffManagementTab");
+      import("@/components/dashboard/ReportsTab");
+      import("@/components/dashboard/ChatTab");
+      import("@/components/dashboard/ManualBillingTab");
+      import("@/components/dashboard/StockTab");
+    }, 1500);
+    return () => clearTimeout(t);
+  }, []);
+
   const newOrderCount = orders.filter((o) => o.status === "PENDING").length;
 
   // Active tab info for breadcrumbs
