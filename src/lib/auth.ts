@@ -34,33 +34,35 @@ export const getOrCreateUser = cache(async () => {
     supabaseUser.user_metadata?.avatar_url ??
     supabaseUser.user_metadata?.picture ??
     null;
-  const phone = supabaseUser.phone ?? null;
-
+  const phone = supabaseUser.user_metadata?.phone ?? supabaseUser.phone ?? null;
   const username = supabaseUser.user_metadata?.username as string | undefined;
+
+  // Role discovery: metadata > provider default (default to CUSTOMER)
+  const metadataRole = supabaseUser.user_metadata?.intended_role?.toUpperCase();
+  
+  // Default to CUSTOMER unless explicitly requested as OWNER in metadata
+  const intendedRole = metadataRole === "OWNER" ? "OWNER" : "CUSTOMER";
 
   let dbUser = await db.user.findUnique({ where: { id: supabaseUser.id } });
 
+  // Early return if user exists and hasn't changed
   if (
     dbUser &&
     dbUser.email === email &&
     dbUser.name === name &&
     dbUser.imageUrl === imageUrl &&
-    dbUser.phone === phone
+    dbUser.phone === phone &&
+    (dbUser.role !== "CUSTOMER" || intendedRole === "CUSTOMER")
   ) {
-    const isGoogleUser = supabaseUser.app_metadata?.provider === "google";
-    const needsRoleUpgrade = dbUser.role === "CUSTOMER" && isGoogleUser;
-    if (!needsRoleUpgrade) {
-      return dbUser;
-    }
+    return dbUser;
   }
 
   const userByEmail =
     !dbUser && email ? await db.user.findFirst({ where: { email } }) : null;
 
-  const isGoogleUser = supabaseUser.app_metadata?.provider === "google";
   const existingRole = (dbUser ?? userByEmail)?.role;
   const safeRole =
-    existingRole === "OWNER" || existingRole === "ADMIN" || isGoogleUser
+    existingRole === "OWNER" || existingRole === "ADMIN" || intendedRole === "OWNER"
       ? "OWNER"
       : "CUSTOMER";
 

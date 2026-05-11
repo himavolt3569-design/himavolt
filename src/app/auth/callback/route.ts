@@ -96,7 +96,6 @@ export async function GET(req: NextRequest) {
 
   // Determine role: URL param > cookie > existing DB role > metadata (email sign-up) > Google default (OWNER)
   // Never allow ADMIN to be self-assigned.
-  // Google sign-in is exclusively for restaurant owners — always defaults to OWNER.
   const metadataRole = user.user_metadata?.intended_role as SafeRole | undefined;
   const dbRole = existingUser?.role;
 
@@ -105,23 +104,22 @@ export async function GET(req: NextRequest) {
     (roleParam === "OWNER" || roleParam === "CUSTOMER" ? roleParam : undefined) ??
     (roleCookie === "OWNER" || roleCookie === "CUSTOMER" ? roleCookie : undefined);
 
-  const intendedRole: SafeRole | undefined =
-    explicitRole ??
-    (dbRole === "OWNER" || dbRole === "ADMIN" ? "OWNER" as SafeRole : undefined) ??
-    metadataRole ??
-    (isGoogleUser ? "OWNER" as SafeRole : undefined); // Google sign-in = OWNER by default
-  const safeRole: SafeRole = intendedRole === "OWNER" ? "OWNER" : "CUSTOMER";
-
-  // For account linking: the explicit signup role should take priority over
-  // the inherited DB role. An existing CUSTOMER upgrading to OWNER via Google
-  // signup should become OWNER, not stay CUSTOMER.
+  // For returning users, we generally want to keep their existing role.
+  // We only upgrade CUSTOMER -> OWNER if explicitly requested or metadata says so.
   const finalRole: SafeRole = (() => {
+    // 1. If existing user is already privileged, keep it
+    if (dbRole === "OWNER" || dbRole === "ADMIN") return "OWNER";
+    
+    // 2. If explicit role is provided (from signup/signin buttons), use it
     if (explicitRole === "OWNER") return "OWNER";
-    if (isAccountLink && existingUserByEmail) {
-      const inherited = existingUserByEmail.role;
-      if (inherited === "OWNER" || inherited === "ADMIN") return "OWNER";
-    }
-    return safeRole;
+    if (explicitRole === "CUSTOMER") return "CUSTOMER";
+
+    // 3. Check metadata (set during Email/Password signUp)
+    if (metadataRole === "OWNER") return "OWNER";
+    if (metadataRole === "CUSTOMER") return "CUSTOMER";
+
+    // 4. Default to customer
+    return "CUSTOMER";
   })();
 
   // We deliberately do NOT mirror the role into supabase user_metadata —
@@ -176,33 +174,22 @@ export async function GET(req: NextRequest) {
 
   let redirectTo = next;
 
-  if (isNewUser || (isAccountLink && isGoogleUser)) {
-    if (isGoogleUser) {
-      // Check if this user already has a username (from linked account)
-      const dbUser = await db.user.findUnique({ where: { id: user.id } })
-        ?? (isAccountLink && email ? await db.user.findFirst({ where: { email } }) : null);
-      const hasUsername = !!dbUser?.username;
+  // Rule 1: Google users without username must complete profile
+  const dbUser = await db.user.findUnique({ where: { id: user.id } })
+    ?? (isAccountLink && email ? await db.user.findFirst({ where: { email } }) : null);
+  const hasUsername = !!dbUser?.username;
 
-      if (!hasUsername) {
-        // Google users need to complete their profile (pick a username)
-        const roleQ = finalRole === "OWNER" ? `?role=OWNER` : "";
-        redirectTo = `/auth/complete-profile${roleQ}`;
-      } else if (finalRole === "OWNER") {
-        // Has username already — go to onboarding or dashboard
-        redirectTo = ownerHasRestaurant ? "/dashboard" : "/onboarding";
-      } else {
-        redirectTo = "/";
-      }
-    } else if (finalRole === "OWNER") {
-      // New owner via email — send to restaurant setup wizard
-      redirectTo = ownerHasRestaurant ? "/dashboard" : "/onboarding";
-    }
-    // New customer via email → fall through to `next` (default "/")
-  } else if (next === "/" || next === "") {
-    // Returning user — redirect based on their effective role
-    if (finalRole === "OWNER" || dbRole === "OWNER" || dbRole === "ADMIN") {
-      redirectTo = ownerHasRestaurant ? "/dashboard" : "/onboarding";
-    }
+  if (isGoogleUser && !hasUsername) {
+    const roleQ = finalRole === "OWNER" ? `?role=OWNER` : "";
+    redirectTo = `/auth/complete-profile${roleQ}`;
+  } 
+  // Rule 2: Food Lovers (CUSTOMER) -> Dashboard (shows customer view)
+  else if (finalRole === "CUSTOMER") {
+    redirectTo = "/dashboard";
+  }
+  // Rule 3: Owners -> Manage Restaurants (if no restaurants) or Dashboard
+  else if (finalRole === "OWNER" || dbRole === "OWNER" || dbRole === "ADMIN") {
+    redirectTo = ownerHasRestaurant ? "/dashboard" : "/manage-restaurants";
   }
 
   // Build final redirect response and attach all session cookies

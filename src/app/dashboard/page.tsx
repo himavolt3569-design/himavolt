@@ -1550,10 +1550,10 @@ export default function DashboardPage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  /* Redirect OWNER with no restaurants to onboarding — only after fetch completes */
+  /* Redirect OWNER with no restaurants to manage-restaurants — only after fetch completes */
   useEffect(() => {
     if (userRole === "OWNER" && resHasFetched && !resLoading && restaurants.length === 0) {
-      dashRouter.replace("/onboarding");
+      dashRouter.replace("/manage-restaurants");
     }
   }, [userRole, dashRouter, resHasFetched, resLoading, restaurants.length]);
 

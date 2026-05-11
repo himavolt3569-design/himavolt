@@ -177,6 +177,7 @@ async function refreshSupabaseSession(req: NextRequest) {
   }
 
   const res = NextResponse.next();
+  const { pathname } = req.nextUrl;
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -195,7 +196,12 @@ async function refreshSupabaseSession(req: NextRequest) {
     },
   );
 
-  await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // If already logged in, don't allow hitting sign-in/sign-up
+  if (user && (pathname === "/sign-in" || pathname === "/sign-up")) {
+    return NextResponse.redirect(new URL("/dashboard", req.url));
+  }
 
   return res;
 }

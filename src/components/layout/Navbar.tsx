@@ -10,6 +10,7 @@ import {
   User,
   LayoutDashboard,
   KeyRound,
+  Building2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/context/CartContext";
@@ -19,7 +20,7 @@ import Link from "next/link";
 
 export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
   const { totalItems } = useCart();
-  const { isSignedIn, isLoaded, user, signOut } = useAuth();
+  const { isSignedIn, isLoaded, user, userRole, signOut } = useAuth();
 
   const [scrolled, setScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -206,9 +207,17 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
                             <Link href="/profile" className="flex items-center gap-3 px-4 py-3 text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-2xl transition-colors">
                               <User className="h-4 w-4 opacity-30" /> Profile
                             </Link>
+                            
+                            {userRole === "OWNER" && (
+                              <Link href="/manage-restaurants" className="flex items-center gap-3 px-4 py-3 text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-2xl transition-colors">
+                                <Building2 className="h-4 w-4 opacity-30" /> My Restaurants
+                              </Link>
+                            )}
+
                             <Link href="/dashboard" className="flex items-center gap-3 px-4 py-3 text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-2xl transition-colors">
-                              <LayoutDashboard className="h-4 w-4 opacity-30" /> Dashboard
+                              <LayoutDashboard className="h-4 w-4 opacity-30" /> {userRole === "CUSTOMER" ? "My Dashboard" : "Dashboard"}
                             </Link>
+
                             <button onClick={signOut} className="flex w-full items-center gap-3 px-4 py-3 text-xs font-bold text-red-500 hover:bg-red-50 rounded-2xl transition-colors">
                               <LogOut className="h-4 w-4 opacity-30" /> Sign Out
                             </button>
