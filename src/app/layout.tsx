@@ -5,6 +5,7 @@ import Providers from "./providers";
 import PWAInstallPrompt from "@/components/shared/PWAInstallPrompt";
 import BottomNav from "@/components/layout/BottomNav";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Analytics } from "@vercel/analytics/next";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -83,6 +84,7 @@ export default function RootLayout({
           <PWAInstallPrompt />
         </Providers>
         <SpeedInsights />
+        <Analytics />
       </body>
     </html>
   );
