@@ -161,7 +161,7 @@ export default function ProfilePage() {
     try {
       await apiFetch("/api/me", { method: "DELETE" });
       await signOut();
-      showToast("Account deleted successfully", "success");
+      showToast("Account scheduled for deletion. You have 30 days to restore it.", "success");
     } catch (err: any) {
       showToast(err.message || "Failed to delete account", "error");
       setIsDeleting(false);
@@ -588,14 +588,12 @@ export default function ProfilePage() {
               </div>
 
               <h2 className="text-xl font-black text-slate-900 tracking-tight mb-2">
-                Irreversible Action
+                Schedule Account Deletion
               </h2>
               <p className="text-sm text-slate-500 mb-6 font-medium leading-relaxed">
-                Deleting your account is permanent. You will lose all your data,
-                rewards, and order history.
+                Your account will be scheduled for deletion. You have 30 days to log back in to restore your account data, rewards, and order history.
                 <span className="block mt-2 font-black text-red-600">
-                  Note: You will NOT be able to recreate an account with this
-                  email/ID again.
+                  Note: After 30 days, your data will be permanently removed.
                 </span>
               </p>
 
