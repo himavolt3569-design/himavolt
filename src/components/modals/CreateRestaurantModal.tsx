@@ -388,6 +388,7 @@ function ModalBody({
   const [phoneScanMessage, setPhoneScanMessage] = useState("");
   const locationRef = useRef<HTMLDivElement>(null);
   const phoneScanInputRef = useRef<HTMLInputElement>(null);
+  const locationSourceRef = useRef<"map" | "search-preview" | "selected" | "locate">("map");
 
   /* Close dropdown on outside click */
   useEffect(() => {
@@ -421,6 +422,18 @@ function ModalBody({
         const data: NominatimResult[] = await res.json();
         setLocationResults(data);
         setShowResults(true);
+        const first = data[0];
+        if (first) {
+          const nextCoords = {
+            lat: parseFloat(first.lat),
+            lon: parseFloat(first.lon),
+          };
+
+          locationSourceRef.current = "search-preview";
+          setAddress(compactAddress(first.display_name, nextCoords));
+          setCity(cityFromAddress(first.address));
+          setCoords(nextCoords);
+        }
       } catch {
         /* silent fail */
       }
@@ -428,7 +441,7 @@ function ModalBody({
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [locationQuery]);
+  }, [locationQuery, setAddress, setCity, setCoords]);
 
   /* Select a location from search results */
   const handleSelectLocation = (result: NominatimResult) => {
@@ -438,6 +451,7 @@ function ModalBody({
     };
     const shortAddr = compactAddress(result.display_name, nextCoords);
 
+    locationSourceRef.current = "selected";
     setAddress(shortAddr);
     setCity(cityFromAddress(result.address));
     setLocationQuery(shortAddr);
@@ -460,12 +474,16 @@ function ModalBody({
         const nextAddress = compactAddress(data.display_name, coords);
         setAddress(nextAddress);
         setCity(cityFromAddress(data.address));
-        setLocationQuery(nextAddress);
+        if (locationSourceRef.current !== "search-preview") {
+          setLocationQuery(nextAddress);
+        }
       } catch {
         const fallback = compactAddress(undefined, coords);
         setAddress(fallback);
         setCity("Kathmandu");
-        setLocationQuery(fallback);
+        if (locationSourceRef.current !== "search-preview") {
+          setLocationQuery(fallback);
+        }
       } finally {
         setReverseSearching(false);
       }
@@ -492,6 +510,7 @@ function ModalBody({
             lon: pos.coords.longitude,
           };
           const addr = compactAddress(data.display_name, nextCoords);
+          locationSourceRef.current = "locate";
           setAddress(addr);
           setCity(cityFromAddress(data.address));
           setLocationQuery(addr);
@@ -772,6 +791,7 @@ function ModalBody({
                   type="text"
                   value={locationQuery}
                   onChange={(e) => {
+                    locationSourceRef.current = "search-preview";
                     setLocationQuery(e.target.value);
                     if (e.target.value !== address) {
                       setAddress("");
@@ -832,7 +852,10 @@ function ModalBody({
             <div className="mt-2.5">
               <OsmPinpointMap
                 coords={coords ?? DEFAULT_MAP_COORDS}
-                onChange={(nextCoords) => setCoords(nextCoords)}
+                onChange={(nextCoords) => {
+                  locationSourceRef.current = "map";
+                  setCoords(nextCoords);
+                }}
                 label={address}
                 city={city}
                 loadingLabel={reverseSearching || locatingMe}

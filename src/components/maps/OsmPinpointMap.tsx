@@ -44,6 +44,7 @@ export default function OsmPinpointMap({
   const mapRef = useRef<LeafletMap | null>(null);
   const onChangeRef = useRef(onChange);
   const disabledRef = useRef(disabled);
+  const suppressNextMoveRef = useRef(false);
 
   useEffect(() => {
     onChangeRef.current = onChange;
@@ -100,6 +101,10 @@ export default function OsmPinpointMap({
       });
 
       map.on("moveend", () => {
+        if (suppressNextMoveRef.current) {
+          suppressNextMoveRef.current = false;
+          return;
+        }
         if (disabledRef.current) return;
         const center = map.getCenter();
         onChangeRef.current({ lat: center.lat, lon: center.lng });
@@ -131,6 +136,7 @@ export default function OsmPinpointMap({
       return;
     }
 
+    suppressNextMoveRef.current = true;
     map.setView([coords.lat, coords.lon], Math.max(map.getZoom(), 16), {
       animate: true,
     });
