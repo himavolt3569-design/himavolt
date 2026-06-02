@@ -8,6 +8,7 @@ import {
   Banknote, CheckCircle2, Zap, Wine, Coffee, GlassWater,
 } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
+import { SkeletonGrid } from "@/components/shared/Skeleton";
 
 async function staffFetch<T = unknown>(url: string, opts?: RequestInit): Promise<T> {
   const res = await fetch(url, {
@@ -631,8 +632,8 @@ export default function ManualBillingTab({
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-5 w-5 animate-spin text-[var(--accent)]" />
+          <div className="py-6">
+            <SkeletonGrid rows={2} cols={3} cardClass="h-28 rounded-xl" />
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-[60vh] overflow-y-auto pr-1">
