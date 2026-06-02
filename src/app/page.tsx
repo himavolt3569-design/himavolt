@@ -57,8 +57,6 @@ export default function Home() {
 
         <TrustMarquee />
 
-        <FoodCategories onCategoryChange={setActiveCategory} />
-
         <PopularFoods activeCategory={activeCategory} />
 
         <FeaturesSection />

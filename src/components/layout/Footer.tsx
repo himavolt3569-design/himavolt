@@ -46,7 +46,7 @@ function SocialIcon({ label, path }: { label: string; path: string }) {
       href="#"
       whileHover={{ scale: 1.15, y: -2 }}
       whileTap={{ scale: 0.9 }}
-      className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--canvas)]/80 text-white/30 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 border border-white/4 hover:border-[var(--accent)]/20 transition-colors duration-300"
+      className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/5 text-white/30 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 border border-white/4 hover:border-[var(--accent)]/20 transition-colors duration-300"
       aria-label={label}
     >
       <svg
@@ -127,7 +127,7 @@ export default function Footer() {
                 href={`tel:${settings.phone.replace(/\s+/g, "")}`}
                 className="group flex items-center gap-3 text-[13px] text-white/30 hover:text-[var(--accent)] transition-colors duration-300"
               >
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--canvas)]/80 group-hover:bg-[var(--accent)]/10 transition-colors duration-300">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/5 group-hover:bg-[var(--accent)]/10 transition-colors duration-300">
                   <Phone className="h-3.5 w-3.5" />
                 </span>
                 {settings.phone}
@@ -136,13 +136,13 @@ export default function Footer() {
                 href={`mailto:${settings.email}`}
                 className="group flex items-center gap-3 text-[13px] text-white/30 hover:text-[var(--accent)] transition-colors duration-300"
               >
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--canvas)]/80 group-hover:bg-[var(--accent)]/10 transition-colors duration-300">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/5 group-hover:bg-[var(--accent)]/10 transition-colors duration-300">
                   <Mail className="h-3.5 w-3.5" />
                 </span>
                 {settings.email}
               </a>
               <span className="flex items-center gap-3 text-[13px] text-white/30">
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--canvas)]/80">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/5">
                   <MapPin className="h-3.5 w-3.5" />
                 </span>
                 {settings.address}
@@ -205,7 +205,7 @@ export default function Footer() {
             <p className="text-xs text-white/25">
               &copy; {new Date().getFullYear()} HimaVolt
             </p>
-            <span className="h-3 w-px bg-[var(--canvas)]/80" />
+            <span className="h-3 w-px bg-white/10" />
             <p className="text-xs text-[var(--accent)]/40 font-medium">
               Made for Nepal.
             </p>
@@ -226,7 +226,7 @@ export default function Footer() {
             className="group flex items-center gap-2 text-xs text-white/25 hover:text-[var(--accent)] transition-colors duration-300"
           >
             Back to top
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--canvas)]/80 group-hover:bg-[var(--accent)]/10 border border-white/4 group-hover:border-[var(--accent)]/20 transition-all duration-300">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/5 group-hover:bg-[var(--accent)]/10 border border-white/4 group-hover:border-[var(--accent)]/20 transition-all duration-300">
               <ArrowUp className="h-3.5 w-3.5" />
             </span>
           </motion.button>
