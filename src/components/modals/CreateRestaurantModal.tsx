@@ -7,7 +7,6 @@ import {
   AlertCircle,
   X,
   ChevronDown,
-  LocateFixed,
   Store,
   Phone,
   MapPin,
@@ -763,8 +762,7 @@ function ModalBody({
             <label className="block text-[13px] font-semibold text-[var(--text-2)] mb-1.5">
               Address <span className="text-[var(--accent)]">*</span>
             </label>
-            <div className="flex gap-2">
-              <div className="relative flex-1" ref={locationRef}>
+            <div className="relative" ref={locationRef}>
                 {searchingLocation || reverseSearching ? (
                   <Loader2 className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--accent)] animate-spin" />
                 ) : (
@@ -829,26 +827,17 @@ function ModalBody({
                     </motion.div>
                   )}
                 </AnimatePresence>
-              </div>
-
-              <button
-                onClick={handleLocateMe}
-                disabled={locatingMe}
-                className="flex h-11.5 w-11.5 shrink-0 items-center justify-center rounded-xl bg-[var(--canvas-sub)] text-[var(--text-3)] ring-1 ring-[var(--border)]/80 hover:bg-[var(--accent-muted)] hover:text-[var(--accent)] hover:ring-[var(--accent-border)] transition-all disabled:opacity-50"
-                title="Use my location"
-              >
-                {locatingMe ? (
-                  <Loader2 className="h-4 w-4 animate-spin text-[var(--accent)]" />
-                ) : (
-                  <LocateFixed className="h-4 w-4" />
-                )}
-              </button>
             </div>
 
             <div className="mt-2.5">
               <OsmPinpointMap
                 coords={coords ?? DEFAULT_MAP_COORDS}
                 onChange={(nextCoords) => setCoords(nextCoords)}
+                label={address}
+                city={city}
+                loadingLabel={reverseSearching || locatingMe}
+                onLocate={handleLocateMe}
+                locating={locatingMe}
                 disabled={saving}
               />
             </div>
@@ -856,7 +845,7 @@ function ModalBody({
               <p className="flex min-w-0 items-center gap-1">
                 <MapPin className="h-2.5 w-2.5 shrink-0" />
                 <span className="truncate">
-                  {address || "No map point selected"}
+                  {address || "Move the map or search to choose the restaurant point"}
                 </span>
               </p>
               {coords && (
