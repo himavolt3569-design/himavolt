@@ -4,8 +4,10 @@ import { useEffect, useRef } from "react";
 import type {
   LeafletMouseEvent,
   Map as LeafletMap,
+  TileLayer,
 } from "leaflet";
 import { LocateFixed, MapPin } from "lucide-react";
+import { useTheme } from "@/context/ThemeContext";
 
 export interface MapCoords {
   lat: number;
@@ -42,9 +44,20 @@ export default function OsmPinpointMap({
 }: OsmPinpointMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LeafletMap | null>(null);
+  const tileLayerRef = useRef<TileLayer | null>(null);
   const onChangeRef = useRef(onChange);
   const disabledRef = useRef(disabled);
   const suppressNextMoveRef = useRef(false);
+  const { theme } = useTheme();
+
+  useEffect(() => {
+    const url = theme === "dark"
+      ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+      : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
+    if (tileLayerRef.current) {
+      tileLayerRef.current.setUrl(url);
+    }
+  }, [theme]);
 
   useEffect(() => {
     onChangeRef.current = onChange;
@@ -87,10 +100,14 @@ export default function OsmPinpointMap({
         scrollWheelZoom: true,
       });
 
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 19,
+      const initialUrl = theme === "dark"
+        ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+        : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
+
+      tileLayerRef.current = L.tileLayer(initialUrl, {
+        maxZoom: 20,
         attribution:
-          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
       }).addTo(map);
 
       map.on("click", (event: LeafletMouseEvent) => {
@@ -149,7 +166,7 @@ export default function OsmPinpointMap({
   return (
     <div
       className="relative h-72 w-full overflow-hidden rounded-xl bg-[#dce7d7] ring-1 ring-[var(--border)]/80"
-      aria-label="Interactive OpenStreetMap location picker"
+      aria-label="Interactive location picker"
     >
       <div ref={containerRef} className="h-full w-full" />
 
@@ -179,7 +196,7 @@ export default function OsmPinpointMap({
               )}
             </div>
             <p className="mt-0.5 line-clamp-2 text-[10px] leading-snug text-[var(--text-3)]">
-              {loadingLabel ? "Reading the OpenStreetMap address" : subtitle}
+              {loadingLabel ? "Reading the location address" : subtitle}
             </p>
           </div>
         </div>
