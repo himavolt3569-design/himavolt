@@ -1,18 +1,10 @@
-import {
-  SkeletonDetailHero,
-  SkeletonGrid,
-} from "@/components/shared/Skeleton";
+import { Loader2 } from "lucide-react";
 
-export default function FoodDetailLoading() {
+export default function Loading() {
   return (
-    <div className="min-h-screen bg-[var(--canvas-sub)] pb-24">
-      <div className="mx-auto max-w-3xl space-y-6 px-4 py-6 sm:px-6">
-        <SkeletonDetailHero />
-        <div className="space-y-3">
-          <div className="h-5 w-40 rounded-md bg-[var(--surface)] animate-pulse" />
-          <SkeletonGrid rows={2} cols={3} cardClass="h-44 rounded-2xl" />
-        </div>
-      </div>
+    <div className="flex min-h-[50vh] w-full flex-col items-center justify-center opacity-0" style={{ animation: "appleFadeIn 0.4s ease-out 0.2s forwards" }}>
+      <Loader2 className="h-5 w-5 animate-spin text-[var(--text-3)]" />
+      <style>{`@keyframes appleFadeIn { to { opacity: 1; } }`}</style>
     </div>
   );
 }

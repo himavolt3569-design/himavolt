@@ -15,7 +15,7 @@ import {
 import { Sparkles } from "lucide-react";
 
 const TabLoader = () => (
-  <div className="w-full space-y-4 animate-pulse pt-2">
+  <div className="w-full space-y-4 pt-2 opacity-0" style={{ animation: "appleFadeIn 0.4s ease-out 0.1s forwards" }}>
     <div className="h-32 w-full rounded-3xl bg-[var(--surface)]" />
     <div className="grid grid-cols-2 gap-4">
       <div className="h-24 rounded-3xl bg-[var(--surface)]" />

@@ -11,9 +11,10 @@ function Skeleton({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "animate-pulse rounded-xl bg-[var(--surface)]",
+        "rounded-xl bg-[var(--surface-alt)] opacity-0",
         className,
       )}
+      style={{ animation: "appleFadeIn 0.4s ease-out 0.1s forwards" }}
     />
   );
 }

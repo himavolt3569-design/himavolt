@@ -215,7 +215,7 @@ export default function TopPlaces() {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="aspect-[1.1] rounded-[2.5rem] bg-slate-50 animate-pulse" />
+              <div key={i} className="aspect-[1.1] rounded-[2.5rem] bg-slate-50 opacity-0" style={{ animation: "appleFadeIn 0.4s ease-out 0.1s forwards" }} />
             ))}
           </div>
         ) : restaurants.length === 0 ? (

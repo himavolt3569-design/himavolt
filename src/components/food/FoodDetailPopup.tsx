@@ -171,7 +171,7 @@ function GrainSVG({ uid, suffix }: { uid: string; suffix: string }) {
 
 function DetailsSkeleton() {
   return (
-    <div className="space-y-4 p-5 animate-pulse">
+    <div className="space-y-4 p-5 opacity-0" style={{ animation: "appleFadeIn 0.4s ease-out 0.1s forwards" }}>
       <div className="flex items-center gap-2">
         <div className="h-4 w-4 rounded-sm bg-[var(--surface)]" />
         <div className="h-3 w-16 rounded-full bg-[var(--surface)]" />
@@ -1309,7 +1309,7 @@ export default function FoodDetailPopup({
                   transition={{ duration: 0.45 }}
                 />
               ) : (
-                <div className="absolute inset-0 bg-gradient-to-br from-[var(--surface)] to-[var(--canvas-sub)] animate-pulse" />
+                <div className="absolute inset-0 bg-gradient-to-br from-[var(--surface)] to-[var(--canvas-sub)] opacity-0" style={{ animation: "appleFadeIn 0.4s ease-out 0.1s forwards" }} />
               )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-black/30" />
 
@@ -1449,7 +1449,7 @@ export default function FoodDetailPopup({
                     transition={{ duration: 0.45 }}
                   />
                 ) : (
-                  <div className="absolute inset-0 bg-gradient-to-br from-[var(--surface)] to-[var(--canvas-sub)] animate-pulse" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-[var(--surface)] to-[var(--canvas-sub)] opacity-0" style={{ animation: "appleFadeIn 0.4s ease-out 0.1s forwards" }} />
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
 

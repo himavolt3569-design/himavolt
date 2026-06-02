@@ -168,7 +168,7 @@ export default function DashboardLayout({
       {/* ── Desktop sidebar ───────────────────────────────────── */}
       <div className={`hidden lg:block shrink-0 h-full transition-all duration-300 ${sidebarCollapsed ? "w-14" : "w-56"}`}>
         {!isActuallyLoaded ? (
-          <div className="h-full w-full bg-[var(--canvas)] border-r border-[var(--border)]/50 animate-pulse" />
+          <div className="h-full w-full bg-[var(--canvas)] border-r border-[var(--border)]/50 opacity-0" style={{ animation: "appleFadeIn 0.4s ease-out 0.1s forwards" }} />
         ) : (
           <DashboardSidebar
             newOrderCount={newOrderCount}
@@ -216,7 +216,7 @@ export default function DashboardLayout({
       <div className="relative flex flex-1 flex-col overflow-hidden">
         <header className="flex items-center justify-between border-b border-[var(--border)]/50 bg-[var(--canvas)]/70 backdrop-blur-xl shadow-sm px-5 lg:px-8 py-3.5 shrink-0 z-30">
           {!isActuallyLoaded ? (
-            <div className="w-full h-8 flex items-center justify-between animate-pulse">
+            <div className="w-full h-8 flex items-center justify-between opacity-0" style={{ animation: "appleFadeIn 0.4s ease-out 0.1s forwards" }}>
                <div className="h-6 w-32 bg-[var(--surface)] rounded-lg" />
                <div className="flex gap-2">
                  <div className="h-8 w-8 rounded-full bg-[var(--surface)]" />
@@ -299,7 +299,7 @@ export default function DashboardLayout({
 
         <main className="flex-1 overflow-y-auto px-5 lg:px-8 pt-6 pb-8">
           {!isActuallyLoaded ? (
-             <div className="w-full space-y-6 animate-pulse">
+             <div className="w-full space-y-6 opacity-0" style={{ animation: "appleFadeIn 0.4s ease-out 0.1s forwards" }}>
                <div className="h-40 w-full rounded-[2.5rem] bg-[var(--surface)]" />
                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                  {[1,2,3,4].map(i => <div key={i} className="h-24 rounded-3xl bg-[var(--surface)]" />)}

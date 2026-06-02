@@ -283,10 +283,10 @@ export default function FoodDetailsPage() {
   if (loading && !food) {
     return (
       <div className="min-h-screen bg-[#f7f7f7]">
-        <div className="h-[44vh] sm:h-[52vh] animate-pulse bg-[var(--surface-alt)]" />
+        <div className="h-[44vh] sm:h-[52vh] bg-[var(--surface-alt)] opacity-0" style={{ animation: "appleFadeIn 0.4s ease-out 0.1s forwards" }} />
         <div className="relative -mt-5 mx-auto max-w-2xl px-3 sm:px-4">
           <div className="rounded-3xl bg-[var(--canvas)] p-5 shadow-xl shadow-black/[0.06] sm:p-6">
-            <div className="space-y-5 animate-pulse">
+            <div className="space-y-5 opacity-0" style={{ animation: "appleFadeIn 0.4s ease-out 0.1s forwards" }}>
               <div className="h-5 w-24 rounded-full bg-[var(--surface)]" />
               <div className="h-8 w-3/4 rounded-full bg-[var(--surface)]" />
               <div className="space-y-2">

@@ -1,7 +1,10 @@
-export default function GlobalLoading() {
+import { Loader2 } from "lucide-react";
+
+export default function Loading() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--canvas)]">
-      <div className="h-8 w-8 rounded-full border-2 border-[var(--accent)] border-t-transparent animate-spin" />
+    <div className="flex min-h-screen w-full flex-col items-center justify-center opacity-0 bg-[var(--canvas)]" style={{ animation: "appleFadeIn 0.4s ease-out 0.2s forwards" }}>
+      <Loader2 className="h-5 w-5 animate-spin text-[var(--text-3)]" />
+      <style>{`@keyframes appleFadeIn { to { opacity: 1; } }`}</style>
     </div>
   );
 }
