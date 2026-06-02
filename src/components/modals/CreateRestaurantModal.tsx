@@ -793,11 +793,6 @@ function ModalBody({
                   onChange={(e) => {
                     locationSourceRef.current = "search-preview";
                     setLocationQuery(e.target.value);
-                    if (e.target.value !== address) {
-                      setAddress("");
-                      setCity("");
-                      setCoords(null);
-                    }
                   }}
                   onFocus={() => {
                     if (locationResults.length > 0) setShowResults(true);
@@ -813,7 +808,7 @@ function ModalBody({
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -4 }}
                       transition={{ duration: 0.15 }}
-                      className="absolute left-0 right-0 top-full mt-1.5 z-30 rounded-xl bg-[var(--canvas)] ring-1 ring-[var(--border)] shadow-xl overflow-hidden"
+                      className="absolute left-0 right-0 top-full mt-1.5 z-[1000] rounded-xl bg-[var(--canvas)] ring-1 ring-[var(--border)] shadow-xl overflow-hidden"
                     >
                       {locationResults.map((result) => {
                         const parts = result.display_name.split(",");
