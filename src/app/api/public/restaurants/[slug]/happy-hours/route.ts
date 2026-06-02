@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
+const dayMap = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+
+const toMin = (t: string) => {
+  const [h, m] = t.split(":").map((n) => parseInt(n, 10));
+  return (isNaN(h) ? 0 : h) * 60 + (isNaN(m) ? 0 : m);
+};
+
 /**
  * GET /api/public/restaurants/[slug]/happy-hours
  * Returns active happy-hour configurations + a computed `isHappyNow` flag
@@ -32,14 +39,8 @@ export async function GET(
     });
 
     const now = new Date();
-    const dayMap = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
     const today = dayMap[now.getDay()];
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
-
-    const toMin = (t: string) => {
-      const [h, m] = t.split(":").map((n) => parseInt(n, 10));
-      return (isNaN(h) ? 0 : h) * 60 + (isNaN(m) ? 0 : m);
-    };
 
     const activeHours = hours.filter((h) => {
       if (h.days.length > 0 && !h.days.includes(today)) return false;

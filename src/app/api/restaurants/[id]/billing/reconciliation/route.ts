@@ -3,6 +3,8 @@ import { db } from "@/lib/db";
 import { requireStaffForRestaurant } from "@/lib/staff-auth";
 import { getAuthUser } from "@/lib/auth";
 
+const ACTIVE_ORDER_STATUSES = new Set(["DELIVERED", "READY", "ACCEPTED", "PREPARING"]);
+
 /**
  * GET /api/restaurants/[id]/billing/reconciliation?date=2026-04-09
  * Daily reconciliation report: payment method breakdown, verified vs pending, discrepancies.
@@ -141,7 +143,7 @@ export async function GET(
 
     // Discrepancy: order delivered/ready but payment not completed (any method)
     if (
-      ["DELIVERED", "READY", "ACCEPTED", "PREPARING"].includes(order.status) &&
+      ACTIVE_ORDER_STATUSES.has(order.status) &&
       p.status !== "COMPLETED"
     ) {
       discrepancies.push({

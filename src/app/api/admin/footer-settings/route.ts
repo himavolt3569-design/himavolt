@@ -19,6 +19,7 @@ const DEFAULTS: FooterSettings = {
 };
 
 const ALLOWED_KEYS = ["phone", "email", "address", "description"] as const;
+const ALLOWED_KEYS_SET = new Set<string>(ALLOWED_KEYS);
 
 async function ensureTable() {
   await db.$executeRaw`
@@ -38,7 +39,7 @@ async function readSettings(): Promise<FooterSettings> {
   const result = { ...DEFAULTS };
   for (const row of rows) {
     const field = row.key.replace("footer_", "") as keyof FooterSettings;
-    if (ALLOWED_KEYS.includes(field as (typeof ALLOWED_KEYS)[number])) {
+    if (ALLOWED_KEYS_SET.has(field)) {
       result[field] = row.value;
     }
   }

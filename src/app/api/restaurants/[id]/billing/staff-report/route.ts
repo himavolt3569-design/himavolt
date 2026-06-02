@@ -3,6 +3,8 @@ import { db } from "@/lib/db";
 import { requireStaffForRestaurant } from "@/lib/staff-auth";
 import { getAuthUser } from "@/lib/auth";
 
+const PAYMENT_METHODS = ["CASH", "ESEWA", "KHALTI", "BANK", "COUNTER", "DIRECT"];
+
 /**
  * GET /api/restaurants/[id]/billing/staff-report?date=2026-04-12
  * Payment collection report grouped by staff member.
@@ -81,8 +83,6 @@ export async function GET(
     },
     orderBy: { createdAt: "asc" },
   });
-
-  const PAYMENT_METHODS = ["CASH", "ESEWA", "KHALTI", "BANK", "COUNTER", "DIRECT"];
 
   // Group by processedByStaffId
   const staffMap = new Map<

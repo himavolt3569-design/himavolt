@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -537,6 +537,9 @@ function SummaryCard({
 
 /* ── Billing Panel (Orders + Payment Collection + Discounts) ───── */
 
+const isCashOrder = (o: BillOrder) => !o.payment || o.payment.method === "CASH";
+const isOnlineOrder = (o: BillOrder) => o.payment && o.payment.method !== "CASH";
+
 function BillingPanel({
   restaurantId,
   staffRole,
@@ -693,11 +696,6 @@ function BillingPanel({
     }
     setActionLoading(false);
   };
-
-  const isCashOrder = (o: BillOrder) =>
-    !o.payment || o.payment.method === "CASH";
-  const isOnlineOrder = (o: BillOrder) =>
-    o.payment && o.payment.method !== "CASH";
 
   const filtered = orders.filter((o) => {
     if (payType === "cash" && !isCashOrder(o)) return false;

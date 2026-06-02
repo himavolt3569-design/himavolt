@@ -7,6 +7,8 @@ import { logAudit, getClientIp } from "@/lib/audit";
 import { getCurrencySymbol } from "@/lib/currency";
 import { STAFF_BILLING_ROLES } from "@/lib/staff-roles";
 
+const VALID_METHODS = new Set(["CASH", "ESEWA", "KHALTI", "BANK", "COUNTER", "DIRECT"]);
+
 async function verifyBillingAccess(req: NextRequest, restaurantId: string) {
   const staff = await requireStaffForRestaurant(req, restaurantId);
   if (staff && (STAFF_BILLING_ROLES as readonly string[]).includes(staff.role)) {
@@ -47,9 +49,8 @@ export async function POST(
     );
   }
 
-  const validMethods = ["CASH", "ESEWA", "KHALTI", "BANK", "COUNTER", "DIRECT"];
   for (const split of splits) {
-    if (!split.method || !validMethods.includes(split.method)) {
+    if (!split.method || !VALID_METHODS.has(split.method)) {
       return NextResponse.json({ error: `Invalid payment method: ${split.method}` }, { status: 400 });
     }
     if (typeof split.amount !== "number" || split.amount <= 0) {

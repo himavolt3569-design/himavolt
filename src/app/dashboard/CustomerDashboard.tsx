@@ -937,9 +937,10 @@ function MiniOrderCard({ order, showAddress }: { order: Order; showAddress?: boo
   );
 }
 
+const fmtDate = (d: string) =>
+  new Date(d).toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
+
 function MiniStayCard({ booking }: { booking: HotelBooking }) {
-  const fmtDate = (d: string) =>
-    new Date(d).toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
   return (
     <div className="flex items-center gap-3 rounded-xl border border-[var(--border-soft)] bg-[var(--canvas)] p-3 shadow-sm">
       {booking.room.imageUrls[0] ? (
