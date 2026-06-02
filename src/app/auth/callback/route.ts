@@ -11,9 +11,8 @@ export async function GET(req: NextRequest) {
   const type = searchParams.get("type") as string | null;
   const next = searchParams.get("next") ?? "/";
 
-  // Role source priority: URL query param > cookie (set before OAuth redirect) > Supabase metadata
+  // Role source priority: URL query param > Supabase metadata > default CUSTOMER
   const roleParam = searchParams.get("role")?.toUpperCase() as SafeRole | null;
-  const roleCookie = req.cookies.get("intended_role")?.value?.toUpperCase() as SafeRole | null;
 
   if (!code && !tokenHash) {
     return NextResponse.redirect(new URL("/sign-in", req.url));
@@ -96,14 +95,13 @@ export async function GET(req: NextRequest) {
     // True when same email exists in DB under a different auth provider/ID
     const isAccountLink = !existingUserById && !!existingUserByEmail;
 
-    // Determine role: URL param > cookie > existing DB role > metadata (email sign-up) > Google default (OWNER)
+    // Determine role: URL param > existing DB role > metadata (email sign-up) > default CUSTOMER
     // Never allow ADMIN to be self-assigned.
     const metadataRole = user.user_metadata?.intended_role as SafeRole | undefined;
     const dbRole = existingUser?.role;
 
     const explicitRole: SafeRole | undefined =
-      (roleParam === "OWNER" || roleParam === "CUSTOMER" ? roleParam : undefined) ??
-      (roleCookie === "OWNER" || roleCookie === "CUSTOMER" ? roleCookie : undefined);
+      roleParam === "OWNER" || roleParam === "CUSTOMER" ? roleParam : undefined;
 
     const finalRole: SafeRole = (() => {
       if (dbRole === "OWNER" || dbRole === "ADMIN") return "OWNER";
@@ -172,7 +170,6 @@ export async function GET(req: NextRequest) {
   pendingCookies.forEach(({ name, value, options }) => {
     res.cookies.set(name, value, options as Parameters<typeof res.cookies.set>[2]);
   });
-  // Clear the intended_role cookie now that we've consumed it
-  res.cookies.set("intended_role", "", { path: "/", maxAge: 0 });
+
   return res;
 }

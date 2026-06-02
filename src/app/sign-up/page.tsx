@@ -95,10 +95,6 @@ export default function SignUpPage() {
     if (usernameStatus !== "available") return;
     setError("");
     setLoading(true);
-
-    // Don't set an `intended_role` cookie — the server no longer trusts it
-    // for role decisions. The auth callback uses the URL `?role=...` query
-    // param (passed via emailRedirectTo) instead.
     if (role === "OWNER" && !/^\d{10}$/.test(phone)) {
       setError("Phone number must be exactly 10 digits");
       setLoading(false);
@@ -131,13 +127,11 @@ export default function SignUpPage() {
   };
 
   const handleGoogleSignUp = async () => {
-    if (!role) return;
-    // Role is passed through the OAuth `redirectTo` URL — the server reads it
-    // off the auth callback's query string. No need for a parallel cookie.
+    // Google OAuth is exclusively for restaurant owners.
     const supabase = getSupabaseBrowserClient();
     await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback?role=${role}` },
+      options: { redirectTo: `${window.location.origin}/auth/callback?role=OWNER` },
     });
   };
 

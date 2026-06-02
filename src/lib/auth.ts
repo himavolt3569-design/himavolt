@@ -100,7 +100,18 @@ export const getOrCreateUser = cache(async () => {
     return dbUser;
   }
 
-  // Truly new user
+  // Truly new user — for Google OAuth, the auth callback route (/auth/callback)
+  // is the authoritative handler that reads the ?role= URL param and creates the
+  // user with the correct role. If we reach here for a Google OAuth user without
+  // intended_role metadata, the callback should handle creation instead.
+  const isOAuthWithoutRole =
+    supabaseUser.app_metadata?.provider === "google" &&
+    !supabaseUser.user_metadata?.intended_role;
+
+  if (isOAuthWithoutRole) {
+    return null;
+  }
+
   dbUser = await db.user.create({
     data: {
       id: supabaseUser.id,
