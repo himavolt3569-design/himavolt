@@ -1,8 +1,11 @@
 "use client";
 
-/* eslint-disable @next/next/no-img-element */
-import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
-import { MapPinned } from "lucide-react";
+import { useEffect, useRef } from "react";
+import type {
+  LeafletMouseEvent,
+  Map as LeafletMap,
+  Marker as LeafletMarker,
+} from "leaflet";
 
 export interface MapCoords {
   lat: number;
@@ -15,37 +18,10 @@ interface OsmPinpointMapProps {
   disabled?: boolean;
 }
 
-const TILE_SIZE = 256;
-const ZOOM = 16;
-const MAX_LAT = 85.05112878;
-
-function clamp(value: number, min: number, max: number) {
-  return Math.min(max, Math.max(min, value));
-}
-
-function latLonToWorld({ lat, lon }: MapCoords, zoom: number) {
-  const scale = TILE_SIZE * 2 ** zoom;
-  const safeLat = clamp(lat, -MAX_LAT, MAX_LAT);
-  const sinLat = Math.sin((safeLat * Math.PI) / 180);
-
+function toCoords(event: LeafletMouseEvent): MapCoords {
   return {
-    x: ((lon + 180) / 360) * scale,
-    y:
-      (0.5 -
-        Math.log((1 + sinLat) / (1 - sinLat)) / (4 * Math.PI)) *
-      scale,
-  };
-}
-
-function worldToLatLon(x: number, y: number, zoom: number): MapCoords {
-  const scale = TILE_SIZE * 2 ** zoom;
-  const lon = (x / scale) * 360 - 180;
-  const n = Math.PI - (2 * Math.PI * y) / scale;
-  const lat = (180 / Math.PI) * Math.atan(Math.sinh(n));
-
-  return {
-    lat: clamp(lat, -MAX_LAT, MAX_LAT),
-    lon: clamp(lon, -180, 180),
+    lat: event.latlng.lat,
+    lon: event.latlng.lng,
   };
 }
 
@@ -55,129 +31,141 @@ export default function OsmPinpointMap({
   disabled = false,
 }: OsmPinpointMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [size, setSize] = useState({ width: 0, height: 0 });
+  const mapRef = useRef<LeafletMap | null>(null);
+  const markerRef = useRef<LeafletMarker | null>(null);
+  const onChangeRef = useRef(onChange);
+  const disabledRef = useRef(disabled);
 
   useEffect(() => {
-    const element = containerRef.current;
-    if (!element) return;
+    onChangeRef.current = onChange;
+  }, [onChange]);
 
-    const observer = new ResizeObserver(([entry]) => {
-      const { width, height } = entry.contentRect;
-      setSize({ width, height });
-    });
+  useEffect(() => {
+    disabledRef.current = disabled;
 
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, []);
+    const map = mapRef.current;
+    const marker = markerRef.current;
+    if (!map || !marker) return;
 
-  const centerWorld = useMemo(() => latLonToWorld(coords, ZOOM), [coords]);
+    if (disabled) {
+      map.dragging.disable();
+      map.touchZoom.disable();
+      map.doubleClickZoom.disable();
+      map.scrollWheelZoom.disable();
+      marker.dragging?.disable();
+    } else {
+      map.dragging.enable();
+      map.touchZoom.enable();
+      map.doubleClickZoom.enable();
+      map.scrollWheelZoom.enable();
+      marker.dragging?.enable();
+    }
+  }, [disabled]);
 
-  const tiles = useMemo(() => {
-    if (size.width === 0 || size.height === 0) return [];
+  useEffect(() => {
+    let cancelled = false;
 
-    const minX = Math.floor((centerWorld.x - size.width / 2) / TILE_SIZE);
-    const maxX = Math.floor((centerWorld.x + size.width / 2) / TILE_SIZE);
-    const minY = Math.floor((centerWorld.y - size.height / 2) / TILE_SIZE);
-    const maxY = Math.floor((centerWorld.y + size.height / 2) / TILE_SIZE);
-    const tileCount = 2 ** ZOOM;
-    const nextTiles: Array<{
-      key: string;
-      x: number;
-      y: number;
-      left: number;
-      top: number;
-    }> = [];
+    async function mountMap() {
+      const element = containerRef.current;
+      if (!element || mapRef.current) return;
 
-    for (let x = minX; x <= maxX; x++) {
-      for (let y = minY; y <= maxY; y++) {
-        if (y < 0 || y >= tileCount) continue;
-        const wrappedX = ((x % tileCount) + tileCount) % tileCount;
-        nextTiles.push({
-          key: `${wrappedX}-${y}`,
-          x: wrappedX,
-          y,
-          left: x * TILE_SIZE - (centerWorld.x - size.width / 2),
-          top: y * TILE_SIZE - (centerWorld.y - size.height / 2),
-        });
-      }
+      const L = await import("leaflet");
+      if (cancelled || !containerRef.current) return;
+
+      const map = L.map(element, {
+        center: [coords.lat, coords.lon],
+        zoom: 16,
+        zoomControl: true,
+        attributionControl: true,
+        scrollWheelZoom: true,
+      });
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      }).addTo(map);
+
+      const marker = L.marker([coords.lat, coords.lon], {
+        draggable: !disabledRef.current,
+        icon: L.divIcon({
+          className: "",
+          iconSize: [38, 46],
+          iconAnchor: [19, 46],
+          html: `
+            <div style="display:flex;flex-direction:column;align-items:center;filter:drop-shadow(0 8px 12px rgba(15,18,25,.28));">
+              <div style="height:36px;width:36px;border-radius:9999px;background:#eaa94d;border:3px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/>
+                  <circle cx="12" cy="10" r="3"/>
+                </svg>
+              </div>
+              <div style="height:8px;width:8px;margin-top:-1px;border-radius:9999px;background:#eaa94d;border:2px solid #fff;"></div>
+            </div>
+          `,
+        }),
+      }).addTo(map);
+
+      map.on("click", (event: LeafletMouseEvent) => {
+        if (disabledRef.current) return;
+        const next = toCoords(event);
+        marker.setLatLng([next.lat, next.lon]);
+        map.panTo([next.lat, next.lon], { animate: true });
+        onChangeRef.current(next);
+      });
+
+      marker.on("dragend", () => {
+        if (disabledRef.current) return;
+        const nextLatLng = marker.getLatLng();
+        const next = { lat: nextLatLng.lat, lon: nextLatLng.lng };
+        map.panTo([next.lat, next.lon], { animate: true });
+        onChangeRef.current(next);
+      });
+
+      mapRef.current = map;
+      markerRef.current = marker;
+
+      window.setTimeout(() => map.invalidateSize(), 80);
     }
 
-    return nextTiles;
-  }, [centerWorld, size]);
+    mountMap();
 
-  const coordsFromPointer = (event: PointerEvent<HTMLDivElement>) => {
-    const element = containerRef.current;
-    if (!element) return null;
+    return () => {
+      cancelled = true;
+      markerRef.current = null;
+      mapRef.current?.remove();
+      mapRef.current = null;
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const rect = element.getBoundingClientRect();
-    const offsetX = event.clientX - rect.left - rect.width / 2;
-    const offsetY = event.clientY - rect.top - rect.height / 2;
+  useEffect(() => {
+    const map = mapRef.current;
+    const marker = markerRef.current;
+    if (!map || !marker) return;
 
-    return worldToLatLon(centerWorld.x + offsetX, centerWorld.y + offsetY, ZOOM);
-  };
-
-  const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
-    if (disabled) return;
-
-    const nextCoords = coordsFromPointer(event);
-    if (!nextCoords) return;
-
-    onChange(nextCoords);
-    event.currentTarget.setPointerCapture(event.pointerId);
-  };
-
-  const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
-    if (disabled || !event.currentTarget.hasPointerCapture(event.pointerId)) {
+    const current = marker.getLatLng();
+    if (
+      Math.abs(current.lat - coords.lat) < 0.000001 &&
+      Math.abs(current.lng - coords.lon) < 0.000001
+    ) {
       return;
     }
 
-    const nextCoords = coordsFromPointer(event);
-    if (nextCoords) onChange(nextCoords);
-  };
-
-  const handlePointerUp = (event: PointerEvent<HTMLDivElement>) => {
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    }
-  };
+    marker.setLatLng([coords.lat, coords.lon]);
+    map.setView([coords.lat, coords.lon], Math.max(map.getZoom(), 16), {
+      animate: true,
+    });
+  }, [coords]);
 
   return (
     <div
-      ref={containerRef}
-      className="relative h-44 w-full overflow-hidden rounded-xl bg-[#dce7d7] ring-1 ring-[var(--border)]/80"
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      onPointerCancel={handlePointerUp}
-      role="application"
-      aria-label="Restaurant location map"
+      className="relative h-52 w-full overflow-hidden rounded-xl bg-[#dce7d7] ring-1 ring-[var(--border)]/80"
+      aria-label="Interactive OpenStreetMap location picker"
     >
-      {tiles.map((tile) => (
-        <img
-          key={tile.key}
-          alt=""
-          src={`https://tile.openstreetmap.org/${ZOOM}/${tile.x}/${tile.y}.png`}
-          draggable={false}
-          className="absolute h-64 w-64 select-none"
-          style={{ left: tile.left, top: tile.top }}
-        />
-      ))}
-
-      <div className="pointer-events-none absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-full flex-col items-center">
-        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--accent)] text-white shadow-lg ring-2 ring-white">
-          <MapPinned className="h-5 w-5" />
-        </div>
-        <div className="h-2 w-2 rounded-full bg-[var(--accent)] shadow ring-2 ring-white" />
+      <div ref={containerRef} className="h-full w-full" />
+      <div className="pointer-events-none absolute left-3 top-3 rounded-md bg-white/95 px-2.5 py-1.5 text-[10px] font-semibold text-[var(--text-2)] shadow-sm ring-1 ring-black/5">
+        Click or drag the marker
       </div>
-
-      <a
-        href="https://www.openstreetmap.org/copyright"
-        target="_blank"
-        rel="noreferrer"
-        className="absolute bottom-1 right-1 rounded bg-white/90 px-1.5 py-0.5 text-[9px] font-medium text-[#2f5f8f] shadow-sm"
-      >
-        © OpenStreetMap contributors
-      </a>
     </div>
   );
 }
