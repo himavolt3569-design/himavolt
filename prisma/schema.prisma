@@ -17,10 +17,11 @@ model User {
   phone         String?
   imageUrl      String?
   role          UserRole @default(CUSTOMER)
-  isDeleted     Boolean  @default(false) @map("is_deleted")
-  isBlacklisted Boolean  @default(false) @map("is_blacklisted")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  isDeleted     Boolean   @default(false) @map("is_deleted")
+  deletedAt     DateTime? @map("deleted_at")
+  isBlacklisted Boolean   @default(false) @map("is_blacklisted")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   ownedRestaurants Restaurant[]
   staffMemberships StaffMember[]

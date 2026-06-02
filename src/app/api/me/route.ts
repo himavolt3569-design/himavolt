@@ -139,7 +139,7 @@ export async function DELETE(req: NextRequest) {
     // SECURITY: Mark as deleted but keep record to prevent immediate re-signup with same ID/Email
     await db.user.update({
       where: { id: user.id },
-      data: { isDeleted: true },
+      data: { isDeleted: true, deletedAt: new Date() },
     });
   } catch (err: any) {
     console.error("[DELETE /api/me] DB error:", err?.message ?? err);

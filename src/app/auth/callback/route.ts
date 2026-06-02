@@ -87,10 +87,27 @@ export async function GET(req: NextRequest) {
   try {
     // Look up existing user by Supabase ID first, then fall back to email
     // (Google OAuth can create a new user ID even for an existing email account)
-    const existingUserById = await db.user.findUnique({ where: { id: user.id } });
-    const existingUserByEmail = !existingUserById && email
+    let existingUserById = await db.user.findUnique({ where: { id: user.id } });
+    let existingUserByEmail = !existingUserById && email
       ? await db.user.findFirst({ where: { email } })
       : null;
+
+    // Handle 30-day soft deletion logic
+    if (existingUserById?.isDeleted) {
+      const daysSinceDelete = existingUserById.deletedAt ? (Date.now() - existingUserById.deletedAt.getTime()) / (1000 * 60 * 60 * 24) : 31;
+      if (daysSinceDelete > 30) {
+        try { await db.user.delete({ where: { id: existingUserById.id } }); } catch (e) {}
+        existingUserById = null;
+      }
+    }
+    if (existingUserByEmail?.isDeleted) {
+      const daysSinceDelete = existingUserByEmail.deletedAt ? (Date.now() - existingUserByEmail.deletedAt.getTime()) / (1000 * 60 * 60 * 24) : 31;
+      if (daysSinceDelete > 30) {
+        try { await db.user.delete({ where: { id: existingUserByEmail.id } }); } catch (e) {}
+        existingUserByEmail = null;
+      }
+    }
+
     const existingUser = existingUserById ?? existingUserByEmail;
     // True when same email exists in DB under a different auth provider/ID
     const isAccountLink = !existingUserById && !!existingUserByEmail;
@@ -117,6 +134,7 @@ export async function GET(req: NextRequest) {
         where: { email },
         data: {
           name, imageUrl,
+          isDeleted: false, deletedAt: null,
           ...(phone ? { phone } : {}),
           ...(finalRole === "OWNER" ? { role: "OWNER" } : {}),
         },
@@ -126,6 +144,7 @@ export async function GET(req: NextRequest) {
         where: { id: user.id },
         update: {
           email, name, imageUrl,
+          isDeleted: false, deletedAt: null,
           ...(phone ? { phone } : {}),
           ...(finalRole === "OWNER" ? { role: "OWNER" } : {}),
         },

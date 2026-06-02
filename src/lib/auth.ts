@@ -17,7 +17,27 @@ export const getAuthUser = cache(async () => {
     user = await db.user.findFirst({ where: { email: supabaseUser.email } });
   }
 
-  if (user && (user.isDeleted || user.isBlacklisted)) {
+  if (user && user.isDeleted) {
+    const daysSinceDelete = user.deletedAt
+      ? (Date.now() - user.deletedAt.getTime()) / (1000 * 60 * 60 * 24)
+      : 31; // Legacy accounts without deletedAt are treated as > 30 days old
+
+    if (daysSinceDelete <= 30) {
+      // Within 30 days -> Restore the account
+      user = await db.user.update({
+        where: { id: user.id },
+        data: { isDeleted: false, deletedAt: null },
+      });
+    } else {
+      // Over 30 days -> Hard delete the old record
+      try {
+        await db.user.delete({ where: { id: user.id } });
+      } catch (e) {}
+      return null;
+    }
+  }
+
+  if (user && user.isBlacklisted) {
     return null;
   }
 
@@ -50,34 +70,66 @@ export const getOrCreateUser = cache(async () => {
 
   let dbUser = await db.user.findUnique({ where: { id: supabaseUser.id } });
 
-  // If already found by exact ID, just sync metadata and return
+  // If already found by exact ID, check deletion and sync metadata
   if (dbUser) {
-    // Check for role upgrade if they own restaurants but are still CUSTOMER
-    if (dbUser.role === "CUSTOMER") {
-      const ownsRestaurants = await db.restaurant.count({ where: { ownerId: dbUser.id } });
-      if (ownsRestaurants > 0) {
+    if (dbUser.isDeleted) {
+      const daysSinceDelete = dbUser.deletedAt ? (Date.now() - dbUser.deletedAt.getTime()) / (1000 * 60 * 60 * 24) : 31;
+      if (daysSinceDelete <= 30) {
         dbUser = await db.user.update({
           where: { id: dbUser.id },
-          data: { role: "OWNER" },
+          data: { isDeleted: false, deletedAt: null },
         });
+      } else {
+        try { await db.user.delete({ where: { id: dbUser.id } }); } catch (e) {}
+        dbUser = null;
       }
     }
 
-    // Sync basic info if changed
-    if (dbUser.email !== email || dbUser.name !== name || dbUser.imageUrl !== imageUrl || dbUser.phone !== phone) {
-      dbUser = await db.user.update({
-        where: { id: dbUser.id },
-        data: { email, name, imageUrl, phone },
-      });
+    if (dbUser) {
+      // Check for role upgrade if they own restaurants but are still CUSTOMER
+      if (dbUser.role === "CUSTOMER") {
+        const ownsRestaurants = await db.restaurant.count({ where: { ownerId: dbUser.id } });
+        if (ownsRestaurants > 0) {
+          dbUser = await db.user.update({
+            where: { id: dbUser.id },
+            data: { role: "OWNER" },
+          });
+        }
+      }
+
+      // Sync basic info if changed
+      if (dbUser.email !== email || dbUser.name !== name || dbUser.imageUrl !== imageUrl || dbUser.phone !== phone) {
+        dbUser = await db.user.update({
+          where: { id: dbUser.id },
+          data: { email, name, imageUrl, phone },
+        });
+      }
+      return dbUser;
     }
-    return dbUser;
   }
 
   // Not found by ID — check by email for linking
-  const userByEmail = email ? await db.user.findFirst({ where: { email } }) : null;
+  let userByEmail = email ? await db.user.findFirst({ where: { email } }) : null;
 
   if (userByEmail) {
-    if (userByEmail.isDeleted || userByEmail.isBlacklisted) return null;
+    if (userByEmail.isBlacklisted) return null;
+
+    if (userByEmail.isDeleted) {
+      const daysSinceDelete = userByEmail.deletedAt ? (Date.now() - userByEmail.deletedAt.getTime()) / (1000 * 60 * 60 * 24) : 31;
+      if (daysSinceDelete <= 30) {
+        await db.user.update({
+          where: { id: userByEmail.id },
+          data: { isDeleted: false, deletedAt: null },
+        });
+        userByEmail.isDeleted = false;
+        userByEmail.deletedAt = null;
+      } else {
+        try { await db.user.delete({ where: { id: userByEmail.id } }); } catch (e) {}
+        userByEmail = null;
+      }
+    }
+
+    if (userByEmail) {
 
     // Link the new Supabase ID to the existing account IF AND ONLY IF the existing account
     // isn't already using a different Supabase ID that has active data (rare edge case).
@@ -93,11 +145,12 @@ export const getOrCreateUser = cache(async () => {
       if (ownsRestaurants > 0) safeRole = "OWNER";
     }
 
-    dbUser = await db.user.update({
-      where: { id: userByEmail.id },
-      data: { name, imageUrl, phone, role: safeRole },
-    });
-    return dbUser;
+      dbUser = await db.user.update({
+        where: { id: userByEmail.id },
+        data: { name, imageUrl, phone, role: safeRole },
+      });
+      return dbUser;
+    }
   }
 
   // Truly new user — for Google OAuth, the auth callback route (/auth/callback)
