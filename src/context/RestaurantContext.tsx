@@ -37,6 +37,8 @@ export interface Restaurant {
   type: string;
   address: string;
   city: string;
+  latitude: number | null;
+  longitude: number | null;
   restaurantCode: string | null;
   imageUrl: string | null;
   coverUrl: string | null;
@@ -89,6 +91,9 @@ interface RestaurantContextType {
     type: string;
     address?: string;
     city?: string;
+    latitude: number;
+    longitude: number;
+    phoneOwnershipConfirmed: true;
   }) => Promise<Restaurant>;
   deleteRestaurant: (id: string) => Promise<void>;
   updateRestaurant: (
@@ -172,6 +177,9 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
       type: string;
       address?: string;
       city?: string;
+      latitude: number;
+      longitude: number;
+      phoneOwnershipConfirmed: true;
     }) => {
       const restaurant = await apiFetch<Restaurant>("/api/restaurants", {
         method: "POST",

@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { motion, AnimatePresence } from "framer-motion";
 import {
+  AlertCircle,
   X,
   ChevronDown,
   LocateFixed,
@@ -11,33 +12,45 @@ import {
   Phone,
   MapPin,
   Building2,
-  Cloud,
-  Wine,
   Coffee,
   UtensilsCrossed,
   Flame,
-  Cake,
-  Umbrella,
   Loader2,
   Search,
   Sparkles,
   CheckCircle2,
+  ScanLine,
+  ShieldCheck,
+  Sandwich,
+  Hotel,
+  ChefHat,
+  Beer,
+  Soup,
+  Candy,
+  Croissant,
+  Sun,
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
+import OsmPinpointMap, { type MapCoords } from "@/components/maps/OsmPinpointMap";
 import {
   RESTAURANT_TYPE_OPTIONS,
   TYPE_FEATURES,
 } from "@/lib/restaurant-types";
+import { extractNepalMobile, isValidNepalMobile, normalizeNepalPhone } from "@/lib/phone";
 
 const TYPE_ICONS: Record<string, typeof Flame> = {
-  FAST_FOOD: Flame,
-  RESORT: Umbrella,
-  HOTEL: Building2,
-  BAKERY: Cake,
-  CLOUD_KITCHEN: Cloud,
-  BAR: Wine,
+  FAST_FOOD: Sandwich,
+  RESORT: Sun,
+  HOTEL: Hotel,
+  BAKERY: Croissant,
+  CLOUD_KITCHEN: ChefHat,
+  BAR: Beer,
   CAFE: Coffee,
   RESTAURANT: UtensilsCrossed,
+  MO_MO_SHOP: Soup,
+  TANDOORI: Flame,
+  GUEST_HOUSE: Building2,
+  SWEETS: Candy,
 };
 
 /* Accent colors for each type (warm, calming palette) */
@@ -66,6 +79,30 @@ interface NominatimResult {
     state?: string;
     country?: string;
   };
+}
+
+interface NominatimReverseResult {
+  display_name?: string;
+  address?: NominatimResult["address"];
+}
+
+const DEFAULT_MAP_COORDS: MapCoords = { lat: 27.7172, lon: 85.324 };
+
+function cityFromAddress(address: NominatimResult["address"] | undefined) {
+  return (
+    address?.city ||
+    address?.town ||
+    address?.village ||
+    address?.suburb ||
+    "Kathmandu"
+  );
+}
+
+function compactAddress(displayName: string | undefined, fallback: MapCoords) {
+  return (
+    displayName?.split(",").slice(0, 3).join(",").trim() ||
+    `${fallback.lat.toFixed(5)}, ${fallback.lon.toFixed(5)}`
+  );
 }
 
 const backdrop = {
@@ -130,6 +167,10 @@ export default function CreateRestaurantModal({ open, onOpenChange }: Props) {
   const [countryCode] = useState("+977");
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [address, setAddress] = useState("");
+  const [city, setCity] = useState("");
+  const [coords, setCoords] = useState<MapCoords | null>(null);
+  const [phoneOwnershipConfirmed, setPhoneOwnershipConfirmed] = useState(false);
+  const [submitError, setSubmitError] = useState("");
   const [saving, setSaving] = useState(false);
 
   const reset = useCallback(() => {
@@ -137,23 +178,59 @@ export default function CreateRestaurantModal({ open, onOpenChange }: Props) {
     setPhone("");
     setSelectedType(null);
     setAddress("");
+    setCity("");
+    setCoords(null);
+    setPhoneOwnershipConfirmed(false);
+    setSubmitError("");
   }, []);
 
   const handleSave = async () => {
-    if (!name.trim() || !phone.trim() || !selectedType || saving) return;
+    const normalizedPhone = normalizeNepalPhone(phone);
+
+    if (saving) return;
+    if (name.trim().length < 2) {
+      setSubmitError("Restaurant name must be at least 2 characters.");
+      return;
+    }
+    if (!isValidNepalMobile(normalizedPhone)) {
+      setSubmitError("Enter a real Nepal mobile number starting with 96, 97, or 98.");
+      return;
+    }
+    if (!selectedType) {
+      setSubmitError("Choose a restaurant type.");
+      return;
+    }
+    if (!address.trim() || !city.trim() || !coords) {
+      setSubmitError("Select an exact map location before creating the restaurant.");
+      return;
+    }
+    if (!phoneOwnershipConfirmed) {
+      setSubmitError("Confirm this is your own active phone number.");
+      return;
+    }
+
     setSaving(true);
+    setSubmitError("");
     try {
       await createRestaurant({
         name: name.trim(),
-        phone: phone.trim(),
+        phone: normalizedPhone,
         countryCode,
         type: selectedType,
         address: address.trim(),
+        city: city.trim(),
+        latitude: coords.lat,
+        longitude: coords.lon,
+        phoneOwnershipConfirmed: true,
       });
       reset();
       onOpenChange(false);
-    } catch {
-      /* toast error in future */
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "Could not create restaurant. Check the form and try again.",
+      );
     } finally {
       setSaving(false);
     }
@@ -191,11 +268,17 @@ export default function CreateRestaurantModal({ open, onOpenChange }: Props) {
                     setName={setName}
                     phone={phone}
                     setPhone={setPhone}
-                    countryCode={countryCode}
                     selectedType={selectedType}
                     setSelectedType={setSelectedType}
                     address={address}
                     setAddress={setAddress}
+                    city={city}
+                    setCity={setCity}
+                    coords={coords}
+                    setCoords={setCoords}
+                    phoneOwnershipConfirmed={phoneOwnershipConfirmed}
+                    setPhoneOwnershipConfirmed={setPhoneOwnershipConfirmed}
+                    submitError={submitError}
                     onReset={reset}
                     onSave={handleSave}
                     onClose={() => onOpenChange(false)}
@@ -216,11 +299,17 @@ export default function CreateRestaurantModal({ open, onOpenChange }: Props) {
                     setName={setName}
                     phone={phone}
                     setPhone={setPhone}
-                    countryCode={countryCode}
                     selectedType={selectedType}
                     setSelectedType={setSelectedType}
                     address={address}
                     setAddress={setAddress}
+                    city={city}
+                    setCity={setCity}
+                    coords={coords}
+                    setCoords={setCoords}
+                    phoneOwnershipConfirmed={phoneOwnershipConfirmed}
+                    setPhoneOwnershipConfirmed={setPhoneOwnershipConfirmed}
+                    submitError={submitError}
                     onReset={reset}
                     onSave={handleSave}
                     onClose={() => onOpenChange(false)}
@@ -241,11 +330,17 @@ function ModalBody({
   setName,
   phone,
   setPhone,
-  countryCode,
   selectedType,
   setSelectedType,
   address,
   setAddress,
+  city,
+  setCity,
+  coords,
+  setCoords,
+  phoneOwnershipConfirmed,
+  setPhoneOwnershipConfirmed,
+  submitError,
   onReset,
   onSave,
   onClose,
@@ -255,29 +350,45 @@ function ModalBody({
   setName: (v: string) => void;
   phone: string;
   setPhone: (v: string) => void;
-  countryCode: string;
   selectedType: string | null;
   setSelectedType: (v: string) => void;
   address: string;
   setAddress: (v: string) => void;
+  city: string;
+  setCity: (v: string) => void;
+  coords: MapCoords | null;
+  setCoords: (v: MapCoords | null) => void;
+  phoneOwnershipConfirmed: boolean;
+  setPhoneOwnershipConfirmed: (v: boolean) => void;
+  submitError: string;
   onReset: () => void;
   onSave: () => void;
   onClose: () => void;
   saving: boolean;
 }) {
-  const isValid = name.trim() && phone.trim() && selectedType;
+  const normalizedPhone = normalizeNepalPhone(phone);
+  const phoneValid = isValidNepalMobile(normalizedPhone);
+  const isValid = Boolean(
+    name.trim().length >= 2 &&
+    phoneValid &&
+    selectedType &&
+    address.trim().length >= 4 &&
+    city.trim().length >= 2 &&
+    coords &&
+    phoneOwnershipConfirmed,
+  );
 
   /* ── Location search state (local to ModalBody) ─────────────────── */
   const [locationQuery, setLocationQuery] = useState("");
   const [locationResults, setLocationResults] = useState<NominatimResult[]>([]);
   const [searchingLocation, setSearchingLocation] = useState(false);
   const [showResults, setShowResults] = useState(false);
-  const [selectedCoords, setSelectedCoords] = useState<{
-    lat: number;
-    lon: number;
-  } | null>(null);
   const [locatingMe, setLocatingMe] = useState(false);
+  const [reverseSearching, setReverseSearching] = useState(false);
+  const [phoneScanning, setPhoneScanning] = useState(false);
+  const [phoneScanMessage, setPhoneScanMessage] = useState("");
   const locationRef = useRef<HTMLDivElement>(null);
+  const phoneScanInputRef = useRef<HTMLInputElement>(null);
 
   /* Close dropdown on outside click */
   useEffect(() => {
@@ -322,24 +433,47 @@ function ModalBody({
 
   /* Select a location from search results */
   const handleSelectLocation = (result: NominatimResult) => {
-    const city =
-      result.address?.city ||
-      result.address?.town ||
-      result.address?.village ||
-      "";
-    const shortAddr = city
-      ? `${result.display_name.split(",").slice(0, 3).join(",").trim()}`
-      : result.display_name.split(",").slice(0, 3).join(",").trim();
-
-    setAddress(shortAddr);
-    setLocationQuery(shortAddr);
-    setSelectedCoords({
+    const nextCoords = {
       lat: parseFloat(result.lat),
       lon: parseFloat(result.lon),
-    });
+    };
+    const shortAddr = compactAddress(result.display_name, nextCoords);
+
+    setAddress(shortAddr);
+    setCity(cityFromAddress(result.address));
+    setLocationQuery(shortAddr);
+    setCoords(nextCoords);
     setShowResults(false);
     setLocationResults([]);
   };
+
+  useEffect(() => {
+    if (!coords) return;
+
+    const timer = setTimeout(async () => {
+      setReverseSearching(true);
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.lat}&lon=${coords.lon}&addressdetails=1`,
+          { headers: { "Accept-Language": "en" } },
+        );
+        const data: NominatimReverseResult = await res.json();
+        const nextAddress = compactAddress(data.display_name, coords);
+        setAddress(nextAddress);
+        setCity(cityFromAddress(data.address));
+        setLocationQuery(nextAddress);
+      } catch {
+        const fallback = compactAddress(undefined, coords);
+        setAddress(fallback);
+        setCity("Kathmandu");
+        setLocationQuery(fallback);
+      } finally {
+        setReverseSearching(false);
+      }
+    }, 650);
+
+    return () => clearTimeout(timer);
+  }, [coords, setAddress, setCity]);
 
   /* Use my location — browser Geolocation + Nominatim reverse */
   const handleLocateMe = () => {
@@ -350,19 +484,19 @@ function ModalBody({
       async (pos) => {
         try {
           const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`,
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&addressdetails=1`,
             { headers: { "Accept-Language": "en" } },
           );
-          const data = await res.json();
-          const addr =
-            data.display_name?.split(",").slice(0, 3).join(",").trim() ||
-            `${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
-          setAddress(addr);
-          setLocationQuery(addr);
-          setSelectedCoords({
+          const data: NominatimReverseResult = await res.json();
+          const nextCoords = {
             lat: pos.coords.latitude,
             lon: pos.coords.longitude,
-          });
+          };
+          const addr = compactAddress(data.display_name, nextCoords);
+          setAddress(addr);
+          setCity(cityFromAddress(data.address));
+          setLocationQuery(addr);
+          setCoords(nextCoords);
           setLocationResults([]);
           setShowResults(false);
         } catch {
@@ -373,6 +507,39 @@ function ModalBody({
       () => setLocatingMe(false),
       { enableHighAccuracy: true, timeout: 10000 },
     );
+  };
+
+  const handlePhoneScan = async (file: File | null) => {
+    if (!file || phoneScanning) return;
+
+    setPhoneScanning(true);
+    setPhoneScanMessage("");
+    try {
+      const { recognize } = await import("tesseract.js");
+      const result = await recognize(file, "eng");
+      const scannedPhone = extractNepalMobile(result.data.text);
+
+      if (!scannedPhone) {
+        setPhoneScanMessage("No Nepal mobile number found in the image.");
+        return;
+      }
+
+      setPhone(scannedPhone);
+      setPhoneScanMessage("Phone number scanned.");
+    } catch {
+      setPhoneScanMessage("Phone scan failed. Enter the number manually.");
+    } finally {
+      setPhoneScanning(false);
+      if (phoneScanInputRef.current) phoneScanInputRef.current.value = "";
+    }
+  };
+
+  const handleReset = () => {
+    setLocationQuery("");
+    setLocationResults([]);
+    setShowResults(false);
+    setPhoneScanMessage("");
+    onReset();
   };
 
   /* Type features for the selected type */
@@ -445,7 +612,10 @@ function ModalBody({
                 <input
                   type="tel"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                  onChange={(e) => {
+                    setPhone(e.target.value.replace(/\D/g, "").slice(0, 10));
+                    setPhoneScanMessage("");
+                  }}
                   required
                   maxLength={10}
                   minLength={10}
@@ -453,10 +623,60 @@ function ModalBody({
                   inputMode="numeric"
                   title="Enter exactly 10 digits"
                   placeholder="98XXXXXXXX"
-                  className="w-full rounded-xl bg-[var(--canvas-sub)] pl-10 pr-3.5 py-3 text-sm text-[var(--text-1)] placeholder-gray-400 outline-none ring-1 ring-[var(--border)]/80 transition-all focus:bg-[var(--canvas)] focus:ring-[var(--accent)]"
+                  className={`w-full rounded-xl bg-[var(--canvas-sub)] pl-10 pr-12 py-3 text-sm text-[var(--text-1)] placeholder-gray-400 outline-none ring-1 transition-all focus:bg-[var(--canvas)] ${
+                    phone.length > 0 && !phoneValid
+                      ? "ring-red-300 focus:ring-red-400"
+                      : "ring-[var(--border)]/80 focus:ring-[var(--accent)]"
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => phoneScanInputRef.current?.click()}
+                  disabled={phoneScanning}
+                  className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-[var(--text-3)] transition-all hover:bg-[var(--accent-muted)] hover:text-[var(--accent)] disabled:opacity-50"
+                  title="Scan phone number from image"
+                >
+                  {phoneScanning ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <ScanLine className="h-4 w-4" />
+                  )}
+                </button>
+                <input
+                  ref={phoneScanInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => handlePhoneScan(e.target.files?.[0] ?? null)}
                 />
               </div>
             </div>
+            {(phoneScanMessage || (phone.length > 0 && !phoneValid)) && (
+              <p
+                className={`mt-1.5 flex items-center gap-1 text-[11px] ${
+                  phoneValid ? "text-emerald-600" : "text-red-500"
+                }`}
+              >
+                {phoneValid ? (
+                  <ShieldCheck className="h-3 w-3" />
+                ) : (
+                  <AlertCircle className="h-3 w-3" />
+                )}
+                {phoneScanMessage ||
+                  "Use a 10 digit Nepal mobile starting with 96, 97, or 98."}
+              </p>
+            )}
+            <label className="mt-2.5 flex items-start gap-2 rounded-xl bg-[var(--canvas-sub)] px-3 py-2.5 ring-1 ring-[var(--border)]/70">
+              <input
+                type="checkbox"
+                checked={phoneOwnershipConfirmed}
+                onChange={(e) => setPhoneOwnershipConfirmed(e.target.checked)}
+                className="mt-0.5 h-4 w-4 accent-[var(--accent)]"
+              />
+              <span className="text-[11px] font-medium leading-snug text-[var(--text-2)]">
+                This is my own active phone number.
+              </span>
+            </label>
           </div>
 
           {/* ── Type Selection ───────────────────────────────────── */}
@@ -541,11 +761,11 @@ function ModalBody({
           {/* ── Address with Nominatim Search ────────────────────── */}
           <div>
             <label className="block text-[13px] font-semibold text-[var(--text-2)] mb-1.5">
-              Address
+              Address <span className="text-[var(--accent)]">*</span>
             </label>
             <div className="flex gap-2">
               <div className="relative flex-1" ref={locationRef}>
-                {searchingLocation ? (
+                {searchingLocation || reverseSearching ? (
                   <Loader2 className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--accent)] animate-spin" />
                 ) : (
                   <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-3)]" />
@@ -556,7 +776,9 @@ function ModalBody({
                   onChange={(e) => {
                     setLocationQuery(e.target.value);
                     if (e.target.value !== address) {
-                      setSelectedCoords(null);
+                      setAddress("");
+                      setCity("");
+                      setCoords(null);
                     }
                   }}
                   onFocus={() => {
@@ -623,38 +845,41 @@ function ModalBody({
               </button>
             </div>
 
-            <AnimatePresence>
-              {selectedCoords && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="overflow-hidden"
-                >
-                  <div className="mt-2.5 rounded-xl overflow-hidden ring-1 ring-[var(--border)]/80">
-                    <iframe
-                      src={`https://www.openstreetmap.org/export/embed.html?bbox=${selectedCoords.lon - 0.006},${selectedCoords.lat - 0.004},${selectedCoords.lon + 0.006},${selectedCoords.lat + 0.004}&layer=mapnik&marker=${selectedCoords.lat},${selectedCoords.lon}`}
-                      className="w-full h-36 border-0"
-                      loading="lazy"
-                      title="Selected location"
-                    />
-                  </div>
-                  <p className="text-[10px] text-[var(--text-3)] mt-1.5 flex items-center gap-1">
-                    <MapPin className="h-2.5 w-2.5" />
-                    {address}
-                  </p>
-                </motion.div>
+            <div className="mt-2.5">
+              <OsmPinpointMap
+                coords={coords ?? DEFAULT_MAP_COORDS}
+                onChange={(nextCoords) => setCoords(nextCoords)}
+                disabled={saving}
+              />
+            </div>
+            <div className="mt-1.5 flex items-start justify-between gap-3 text-[10px] text-[var(--text-3)]">
+              <p className="flex min-w-0 items-center gap-1">
+                <MapPin className="h-2.5 w-2.5 shrink-0" />
+                <span className="truncate">
+                  {address || "No map point selected"}
+                </span>
+              </p>
+              {coords && (
+                <span className="shrink-0 font-mono">
+                  {coords.lat.toFixed(5)}, {coords.lon.toFixed(5)}
+                </span>
               )}
-            </AnimatePresence>
+            </div>
           </div>
         </div>
 
         <div className="mt-7 mb-5 h-px bg-[var(--surface)]" />
 
+        {submitError && (
+          <div className="mb-4 flex items-start gap-2 rounded-xl bg-red-50 px-3.5 py-3 text-[12px] font-medium text-red-700 ring-1 ring-red-100">
+            <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+            <span>{submitError}</span>
+          </div>
+        )}
+
         <div className="flex items-center justify-end gap-2.5">
           <button
-            onClick={onReset}
+            onClick={handleReset}
             className="rounded-xl px-5 py-2.5 text-[13px] font-medium text-[var(--text-2)] hover:text-[var(--text-2)] hover:bg-[var(--canvas-sub)] ring-1 ring-transparent hover:ring-[var(--border)] transition-all"
           >
             Reset

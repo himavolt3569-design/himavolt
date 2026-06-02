@@ -54,6 +54,8 @@ model Restaurant {
   type           RestaurantType
   address        String
   city           String         @default("Kathmandu")
+  latitude       Float?
+  longitude      Float?
   imageUrl       String?
   coverUrl       String?
   isActive       Boolean        @default(true)

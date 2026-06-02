@@ -4,6 +4,7 @@ import { getOrCreateUser } from "@/lib/auth";
 import { safeHandler, unauthorized } from "@/lib/api-helpers";
 import { createRestaurantSchema } from "@/lib/validations";
 import { logAudit } from "@/lib/audit";
+import { isValidNepalMobile, normalizeNepalPhone } from "@/lib/phone";
 import crypto from "crypto";
 
 const staffSelect = {
@@ -73,6 +74,17 @@ export const POST = safeHandler(
     const user = await getOrCreateUser();
     if (!user) return unauthorized();
 
+    const accountPhone = normalizeNepalPhone(user.phone);
+    if (isValidNepalMobile(accountPhone) && accountPhone !== body.phone) {
+      return NextResponse.json(
+        {
+          error:
+            "Use the phone number attached to your account, or update your account phone first.",
+        },
+        { status: 400 },
+      );
+    }
+
     const slug =
       body.name
         .toLowerCase()
@@ -99,6 +111,8 @@ export const POST = safeHandler(
         type: body.type,
         address: body.address,
         city: body.city,
+        latitude: body.latitude,
+        longitude: body.longitude,
         ownerId: user.id,
         restaurantCode,
       },
@@ -113,7 +127,13 @@ export const POST = safeHandler(
       entity: "Restaurant",
       entityId: restaurant.id,
       detail: `Restaurant "${body.name}" created`,
-      metadata: { name: body.name, type: body.type, city: body.city },
+      metadata: {
+        name: body.name,
+        type: body.type,
+        city: body.city,
+        latitude: body.latitude,
+        longitude: body.longitude,
+      },
       userId: user.id,
       restaurantId: restaurant.id,
     });

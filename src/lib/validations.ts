@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isValidNepalMobile, normalizeNepalPhone } from "@/lib/phone";
 
 export const phoneSchema = z
   .string()
@@ -6,10 +7,19 @@ export const phoneSchema = z
   .length(10, "Phone number must be exactly 10 digits")
   .regex(/^\d{10}$/, "Phone number must contain only digits");
 
+export const nepalMobilePhoneSchema = z
+  .string()
+  .trim()
+  .transform((value) => normalizeNepalPhone(value))
+  .refine(
+    (value) => isValidNepalMobile(value),
+    "Enter a real Nepal mobile number starting with 96, 97, or 98",
+  );
+
 export const createRestaurantSchema = z.object({
-  name: z.string().trim().min(1, "Name is required").max(100),
-  phone: phoneSchema,
-  countryCode: z.string().default("+977"),
+  name: z.string().trim().min(2, "Name must be at least 2 characters").max(100),
+  phone: nepalMobilePhoneSchema,
+  countryCode: z.literal("+977").default("+977"),
   type: z.enum([
     "FAST_FOOD",
     "RESORT",
@@ -24,8 +34,13 @@ export const createRestaurantSchema = z.object({
     "GUEST_HOUSE",
     "SWEETS",
   ]),
-  address: z.string().max(200).optional().default(""),
-  city: z.string().max(50).optional().default("Kathmandu"),
+  address: z.string().trim().min(4, "Address is required").max(200),
+  city: z.string().trim().min(2, "City is required").max(50),
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+  phoneOwnershipConfirmed: z.literal(true, {
+    error: "Confirm this is your own active phone number",
+  }),
 });
 export type CreateRestaurantInput = z.infer<typeof createRestaurantSchema>;
 

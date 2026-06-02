@@ -1,15 +1,15 @@
 export const RESTAURANT_TYPE_OPTIONS = [
-  { value: "FAST_FOOD",    label: "Fast Food",     iconName: "Zap" },
+  { value: "FAST_FOOD",    label: "Fast Food",     iconName: "Sandwich" },
   { value: "RESORT",       label: "Resort",         iconName: "Sun" },
-  { value: "HOTEL",        label: "Hotel",          iconName: "Building2" },
-  { value: "BAKERY",       label: "Bakery",         iconName: "Cake" },
-  { value: "CLOUD_KITCHEN",label: "Cloud Kitchen",  iconName: "Cloud" },
-  { value: "BAR",          label: "Bar",            iconName: "Wine" },
+  { value: "HOTEL",        label: "Hotel",          iconName: "Hotel" },
+  { value: "BAKERY",       label: "Bakery",         iconName: "Croissant" },
+  { value: "CLOUD_KITCHEN",label: "Cloud Kitchen",  iconName: "ChefHat" },
+  { value: "BAR",          label: "Bar",            iconName: "Beer" },
   { value: "CAFE",         label: "Cafe",           iconName: "Coffee" },
   { value: "RESTAURANT",   label: "Restaurant",     iconName: "UtensilsCrossed" },
-  { value: "MO_MO_SHOP",   label: "Momo Shop",      iconName: "Utensils" },
+  { value: "MO_MO_SHOP",   label: "Momo Shop",      iconName: "Soup" },
   { value: "TANDOORI",     label: "Tandoori",       iconName: "Flame" },
-  { value: "GUEST_HOUSE",  label: "Guest House",    iconName: "Home" },
+  { value: "GUEST_HOUSE",  label: "Guest House",    iconName: "Building2" },
   { value: "SWEETS",       label: "Sweets Shop",    iconName: "Candy" },
 ] as const;
 

@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronLeft, Search, Plus, MapPin, UsersRound, ArrowRight,
   Loader2, ChevronRight, Building2, Monitor,
-  UtensilsCrossed, Coffee, Zap, Cake, Cloud, Wine, Utensils, Flame, Home, Sun,
+  UtensilsCrossed, Coffee, Sandwich, ChefHat, Beer, Soup, Flame, Sun,
+  Candy, Croissant, Hotel,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -14,9 +15,9 @@ import CreateRestaurantModal from "@/components/modals/CreateRestaurantModal";
 import { getTypeLabel } from "@/lib/restaurant-types";
 
 const TYPE_ICON: Record<string, React.ComponentType<{ className?: string }>> = {
-  RESTAURANT: UtensilsCrossed, CAFE: Coffee, FAST_FOOD: Zap, BAKERY: Cake,
-  CLOUD_KITCHEN: Cloud, BAR: Wine, HOTEL: Building2, RESORT: Sun,
-  MO_MO_SHOP: Utensils, TANDOORI: Flame, GUEST_HOUSE: Home,
+  RESTAURANT: UtensilsCrossed, CAFE: Coffee, FAST_FOOD: Sandwich, BAKERY: Croissant,
+  CLOUD_KITCHEN: ChefHat, BAR: Beer, HOTEL: Hotel, RESORT: Sun,
+  MO_MO_SHOP: Soup, TANDOORI: Flame, GUEST_HOUSE: Building2, SWEETS: Candy,
 };
 
 export default function ManageRestaurantsPage() {

@@ -10,8 +10,10 @@ export async function createRestaurant(formData: {
   phone: string;
   countryCode?: string;
   type: RestaurantType;
-  address?: string;
-  city?: string;
+  address: string;
+  city: string;
+  latitude: number;
+  longitude: number;
 }) {
   const user = await getOrCreateUser();
   if (!user) throw new Error("Unauthorized");
@@ -38,8 +40,10 @@ export async function createRestaurant(formData: {
       phone: formData.phone,
       countryCode: formData.countryCode || "+977",
       type: formData.type,
-      address: formData.address || "",
-      city: formData.city || "Kathmandu",
+      address: formData.address,
+      city: formData.city,
+      latitude: formData.latitude,
+      longitude: formData.longitude,
       ownerId: user.id,
     },
   });
