@@ -93,21 +93,21 @@ export default function POSCFD() {
   return (
     <div className="relative flex h-screen w-full flex-col overflow-hidden bg-[var(--canvas-sub)] font-sans">
       {/* Background ambient particles */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 z-0 opacity-60 mix-blend-screen">
+      <div aria-hidden className="pointer-events-none absolute inset-0 z-0 opacity-40">
         <Canvas camera={{ position: [0, 0, 10], fov: 50 }} gl={{ antialias: true, alpha: true }} style={{ background: "transparent" }}>
           <Suspense fallback={null}>
-            <ambientLight intensity={0.8} color="#fff5ee" />
-            <pointLight position={[4, 4, 6]} intensity={1.4} color="#eaa94d" />
-            <pointLight position={[-6, -2, 4]} intensity={0.8} color="#e58f2a" />
+            <ambientLight intensity={1.5} color="#fff" />
+            <pointLight position={[4, 4, 6]} intensity={1.0} color="#eaa94d" />
+            <pointLight position={[-6, -2, 4]} intensity={0.5} color="#e58f2a" />
             <FoodParticles count={40} />
           </Suspense>
         </Canvas>
       </div>
 
       {/* Header */}
-      <header className="relative z-10 flex shrink-0 items-center justify-between border-b border-[var(--border)] bg-[var(--surface)] px-8 py-5 shadow-sm">
+      <header className="relative z-10 flex shrink-0 items-center justify-between border-b border-[var(--border)] bg-[var(--surface)] px-10 py-6 shadow-[0_4px_30px_rgba(0,0,0,0.03)]">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-600">
+          <p className="text-[11px] font-black uppercase tracking-[0.25em] text-[var(--accent)]">
             Welcome to
           </p>
           <h1 className="mt-1 text-3xl font-black tracking-tight text-[var(--text-1)]">
@@ -115,12 +115,12 @@ export default function POSCFD() {
           </h1>
         </div>
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 rounded-full bg-indigo-50 px-5 py-2.5 ring-1 ring-indigo-200 shadow-inner">
-            <span className="relative flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-indigo-500"></span>
+          <div className="flex items-center gap-2.5 rounded-2xl bg-[var(--canvas)] px-6 py-3 ring-1 ring-[var(--border)] shadow-sm">
+            <span className="relative flex h-3.5 w-3.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--accent)] opacity-60"></span>
+              <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-[var(--accent)]"></span>
             </span>
-            <span className="text-sm font-bold tracking-wide text-indigo-700 uppercase">
+            <span className="text-[13px] font-bold tracking-widest text-[var(--text-2)] uppercase">
               Customer Display
             </span>
           </div>
@@ -133,54 +133,66 @@ export default function POSCFD() {
           {cartItems.length > 0 ? (
             <motion.div
               key="cart"
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              initial={{ opacity: 0, scale: 0.98, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: -20 }}
-              className="w-full max-w-2xl flex flex-col bg-[var(--canvas)] rounded-3xl shadow-2xl border border-[var(--border)] overflow-hidden"
+              exit={{ opacity: 0, scale: 0.98, y: -15 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="w-full max-w-2xl flex flex-col bg-[var(--surface)] rounded-[2rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] border border-[var(--border)] overflow-hidden"
             >
-              <div className="bg-amber-50 px-8 py-5 flex items-center gap-3 border-b border-amber-100">
-                <ShoppingBag className="h-6 w-6 text-amber-600" />
-                <h2 className="text-xl font-bold text-amber-900">Your Current Order</h2>
+              <div className="bg-[var(--accent)] px-8 py-6 flex items-center gap-4 border-b border-[var(--accent-border)]">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 text-white shadow-inner">
+                  <ShoppingBag className="h-6 w-6" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-black text-white">Your Current Order</h2>
+                  <p className="text-sm font-semibold text-white/80">Please review your items below</p>
+                </div>
               </div>
               
-              <div className="flex-1 overflow-y-auto max-h-[50vh] p-8">
-                <div className="divide-y divide-gray-100">
-                  {cartItems.map((item) => (
-                    <div key={item.id} className="flex justify-between items-center py-4 first:pt-0 last:pb-0">
-                      <div className="flex items-center gap-4">
-                        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--canvas-sub)] font-bold text-[var(--text-2)]">
-                          {item.quantity}
+              <div className="flex-1 overflow-y-auto max-h-[55vh] p-2">
+                <div className="divide-y divide-[var(--border)] px-6">
+                  {cartItems.map((item, index) => (
+                    <motion.div 
+                      key={item.id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      className="flex justify-between items-center py-5"
+                    >
+                      <div className="flex items-center gap-5">
+                        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--canvas-sub)] font-black text-[var(--accent)] border border-[var(--border)] shadow-sm">
+                          {item.quantity}x
                         </span>
-                        <span className="text-lg font-semibold text-[var(--text-1)]">{item.name}</span>
+                        <span className="text-[17px] font-bold text-[var(--text-1)]">{item.name}</span>
                       </div>
-                      <span className="text-lg font-bold text-[var(--text-1)]">
+                      <span className="text-[17px] font-black text-[var(--text-1)]">
                         {formatPrice(item.price * item.quantity, session.currency)}
                       </span>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
               </div>
 
-              <div className="bg-[var(--canvas-sub)] p-8 border-t border-[var(--border)]">
-                <div className="space-y-3 mb-6">
-                  <div className="flex justify-between text-base font-medium text-[var(--text-2)]">
+              <div className="bg-[var(--canvas-sub)] p-8 border-t border-[var(--border)] shadow-[0_-10px_40px_rgba(0,0,0,0.02)]">
+                <div className="space-y-4 mb-8">
+                  <div className="flex justify-between text-lg font-semibold text-[var(--text-3)]">
                     <span>Subtotal</span>
                     <span>{formatPrice(subtotal, session.currency)}</span>
                   </div>
                   {tax > 0 && (
-                    <div className="flex justify-between text-base font-medium text-[var(--text-2)]">
+                    <div className="flex justify-between text-lg font-semibold text-[var(--text-3)]">
                       <span>Tax</span>
                       <span>{formatPrice(tax, session.currency)}</span>
                     </div>
                   )}
-                  <div className="flex justify-between text-2xl font-black text-amber-700 pt-4 border-t border-[var(--border)]">
+                  <div className="flex justify-between text-3xl font-black text-[var(--text-1)] pt-5 border-t border-[var(--border)]">
                     <span>Total</span>
-                    <span>{formatPrice(total, session.currency)}</span>
+                    <span className="text-[var(--accent)]">{formatPrice(total, session.currency)}</span>
                   </div>
                 </div>
                 
-                <div className="flex items-center justify-center gap-2 text-sm font-semibold text-gray-500 bg-white/50 py-3 rounded-xl border border-gray-100">
-                  <Info className="h-4 w-4" />
+                <div className="flex items-center justify-center gap-2.5 text-[13px] font-bold uppercase tracking-wider text-[var(--text-3)] bg-[var(--surface)] py-4 rounded-2xl border border-[var(--border)] shadow-sm">
+                  <Info className="h-4 w-4 text-[var(--accent)]" />
                   Review your order before the staff confirms it
                 </div>
               </div>
@@ -188,19 +200,21 @@ export default function POSCFD() {
           ) : (
             <motion.div
               key="idle"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="flex flex-col items-center text-center max-w-md"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ delay: 0.1, type: "spring", stiffness: 300, damping: 30 }}
+              className="flex flex-col items-center text-center max-w-lg"
             >
-              <div className="rounded-full bg-white/50 p-8 shadow-sm backdrop-blur-md border border-white/40 mb-6">
-                <UtensilsCrossed className="h-20 w-20 text-amber-500/50" />
+              <div className="relative mb-10 flex h-32 w-32 items-center justify-center rounded-full bg-[var(--surface)] shadow-[0_10px_40px_rgba(0,0,0,0.06)] border border-[var(--border)]">
+                <div className="absolute inset-0 rounded-full border-2 border-[var(--accent)] opacity-20 animate-ping" />
+                <UtensilsCrossed className="h-12 w-12 text-[var(--accent)]" />
               </div>
-              <h2 className="text-4xl font-black tracking-tight text-[var(--text-1)] mb-4">
+              <h2 className="text-5xl font-black tracking-tight text-[var(--text-1)] mb-5">
                 Ready to Order?
               </h2>
-              <p className="text-lg font-medium text-[var(--text-3)] leading-relaxed">
-                Let the staff know what you'd like. Your items will appear right here as they are added.
+              <p className="text-xl font-medium text-[var(--text-3)] leading-relaxed">
+                Please let our staff know what you'd like. Your items will appear right here as they are added.
               </p>
             </motion.div>
           )}
