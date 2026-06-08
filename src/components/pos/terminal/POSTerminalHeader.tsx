@@ -13,7 +13,6 @@ import {
   Dot,
   ChefHat,
 } from "lucide-react";
-import ThemeToggle from "@/components/shared/ThemeToggle";
 import type { SSEStatus } from "@/hooks/useSSE";
 
 interface Props {
@@ -135,8 +134,6 @@ export default function POSTerminalHeader({
           <ChefHat className="h-4 w-4" />
           <span className="hidden sm:inline">Kitchen</span>
         </a>
-
-        <ThemeToggle />
 
         <div className="mx-1 h-6 w-px bg-white/10" />
 

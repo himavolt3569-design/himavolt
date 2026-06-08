@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { getOrCreateUser } from "@/lib/auth";
 import { logAudit, getClientIp } from "@/lib/audit";
 import { getCurrencySymbol } from "@/lib/currency";
+import { getStaffSession } from "@/lib/staff-auth";
 import { z } from "zod";
 
 const menuItemSchema = z.object({
@@ -73,16 +74,33 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const user = await getOrCreateUser();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  let userIdForAudit = "STAFF";
+  let currency = "NPR";
+  const staff = await getStaffSession(req);
+  let authorized = staff?.restaurantId === id;
+
+  if (staff) {
+    userIdForAudit = staff.userId || `staff-${staff.staffId}`;
+    const r = await db.restaurant.findUnique({ where: { id }, select: { currency: true } });
+    if (r) currency = r.currency ?? "NPR";
+  } else {
+    const user = await getOrCreateUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const restaurant = await db.restaurant.findFirst({
+      where: { id, ownerId: user.id },
+    });
+    if (!restaurant) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+    authorized = true;
+    userIdForAudit = user.id;
+    currency = restaurant.currency ?? "NPR";
   }
 
-  const restaurant = await db.restaurant.findFirst({
-    where: { id, ownerId: user.id },
-  });
-  if (!restaurant) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!authorized) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const parsed = menuItemSchema.safeParse(await req.json());
@@ -139,9 +157,9 @@ export async function POST(
     action: "MENU_ITEM_CREATED",
     entity: "MenuItem",
     entityId: item.id,
-    detail: `Menu item "${name}" added (${getCurrencySymbol(restaurant.currency ?? "NPR")}${price})`,
+    detail: `Menu item "${name}" added (${getCurrencySymbol(currency)}${price})`,
     metadata: { name, price, categoryId },
-    userId: user.id,
+    userId: userIdForAudit,
     restaurantId: id,
     ipAddress: getClientIp(req.headers),
   });

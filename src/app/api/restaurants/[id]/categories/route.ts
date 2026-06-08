@@ -43,16 +43,15 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const user = await getOrCreateUser();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const staff = await getStaffSession(req);
+  let authorized = staff?.restaurantId === id;
 
-  const restaurant = await db.restaurant.findFirst({
-    where: { id, ownerId: user.id },
-  });
-  if (!restaurant) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!authorized) {
+    const user = await getOrCreateUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const restaurant = await db.restaurant.findFirst({ where: { id, ownerId: user.id } });
+    if (!restaurant) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    authorized = true;
   }
 
   const body = await req.json();

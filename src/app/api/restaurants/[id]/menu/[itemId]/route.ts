@@ -1,22 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getOrCreateUser } from "@/lib/auth";
+import { getStaffSession } from "@/lib/staff-auth";
 
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string; itemId: string }> }
 ) {
   const { id, itemId } = await params;
-  const user = await getOrCreateUser();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const staff = await getStaffSession(req);
+  let authorized = staff?.restaurantId === id;
 
-  const restaurant = await db.restaurant.findFirst({
-    where: { id, ownerId: user.id },
-  });
-  if (!restaurant) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!authorized) {
+    const user = await getOrCreateUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const restaurant = await db.restaurant.findFirst({ where: { id, ownerId: user.id } });
+    if (!restaurant) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    authorized = true;
   }
 
   const body = await req.json();
@@ -71,20 +71,19 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string; itemId: string }> }
 ) {
   const { id, itemId } = await params;
-  const user = await getOrCreateUser();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const staff = await getStaffSession(req);
+  let authorized = staff?.restaurantId === id;
 
-  const restaurant = await db.restaurant.findFirst({
-    where: { id, ownerId: user.id },
-  });
-  if (!restaurant) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!authorized) {
+    const user = await getOrCreateUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const restaurant = await db.restaurant.findFirst({ where: { id, ownerId: user.id } });
+    if (!restaurant) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    authorized = true;
   }
 
   await db.menuItem.delete({ where: { id: itemId } });

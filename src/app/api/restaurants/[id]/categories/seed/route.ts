@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getOrCreateUser } from "@/lib/auth";
+import { getStaffSession } from "@/lib/staff-auth";
 
 // ─── Per-type category templates ─────────────────────────────────────────────
 
@@ -146,24 +147,31 @@ function toSlug(name: string) {
 }
 
 export async function POST(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const user = await getOrCreateUser();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const staff = await getStaffSession(req);
+  let authorized = staff?.restaurantId === id;
+
+  if (!authorized) {
+    const user = await getOrCreateUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const restaurant = await db.restaurant.findFirst({
+      where: { id, ownerId: user.id },
+      select: { id: true, type: true },
+    });
+    if (!restaurant) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    authorized = true;
   }
 
-  const restaurant = await db.restaurant.findFirst({
-    where: { id, ownerId: user.id },
-    select: { id: true, type: true },
+  const restaurantData = await db.restaurant.findUnique({
+    where: { id },
+    select: { type: true },
   });
-  if (!restaurant) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
-  }
+  if (!restaurantData) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const templates = CATEGORIES_BY_TYPE[restaurant.type] ?? DEFAULT_CATEGORIES;
+  const templates = CATEGORIES_BY_TYPE[restaurantData.type] ?? DEFAULT_CATEGORIES;
 
   try {
     // Use create-if-not-exists (by slug) so existing categories and their
@@ -232,8 +240,8 @@ export async function POST(
 
     return NextResponse.json({
       message: created.length > 0
-        ? `Added ${created.length} new categories for ${restaurant.type}`
-        : `All categories already exist for ${restaurant.type}`,
+        ? `Added ${created.length} new categories for ${restaurantData.type}`
+        : `All categories already exist for ${restaurantData.type}`,
       categories: created,
     });
   } catch (err) {

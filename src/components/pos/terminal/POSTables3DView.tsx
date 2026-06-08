@@ -2,7 +2,7 @@
 
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { RoundedBox, Text, Billboard, Environment } from "@react-three/drei";
+import { RoundedBox, Billboard, Html } from "@react-three/drei";
 import * as THREE from "three";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -237,18 +237,19 @@ function Table3D({
         </group>
       ))}
 
-      {/* Table number label (billboarded) */}
+      {/* Table number label (HTML overlay) */}
       <Billboard position={[0, 1.55, 0]}>
-        <Text
-          fontSize={0.48}
-          color="#ffffff"
-          outlineWidth={0.02}
-          outlineColor="#000"
-          anchorX="center"
-          anchorY="middle"
-        >
-          {tableNo}
-        </Text>
+        <Html transform center pointerEvents="none">
+          <div
+            className="flex items-center justify-center font-black text-white"
+            style={{
+              fontSize: "24px",
+              textShadow: "0px 2px 4px rgba(0,0,0,0.8), 0px 0px 2px rgba(0,0,0,1)",
+            }}
+          >
+            {tableNo}
+          </div>
+        </Html>
       </Billboard>
     </group>
   );
