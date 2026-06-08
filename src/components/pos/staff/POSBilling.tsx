@@ -107,9 +107,11 @@ export default function POSBilling({
 }: Props) {
   const { showToast } = useToast();
   const [search, setSearch] = useState("");
+  const [discountAmount, setDiscountAmount] = useState("");
+  const [verificationMethod, setVerificationMethod] = useState<string | null>(null);
+  const [transactionId, setTransactionId] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<POSOrder | null>(null);
   const [billMap, setBillMap] = useState<Record<string, BillDetails>>({});
-  const [discountAmount, setDiscountAmount] = useState("");
   const [filter, setFilter] = useState<"unpaid" | "paid" | "all">("unpaid");
 
   const fetchBillMap = useCallback(() => {
@@ -173,15 +175,15 @@ export default function POSBilling({
       .catch(() => showToast("Failed to apply discount", "error"));
   };
 
-  const collectPayment = (method: string) => {
+  const collectPayment = (method: string, txId?: string) => {
     if (!selectedOrder) return;
     const orderId = selectedOrder.id;
     // Optimistic: mark as paid instantly and close detail panel
-    onOptimisticUpdate(orderId, { payment: { method, status: "COMPLETED" } });
+    onOptimisticUpdate(orderId, { payment: { method, status: "COMPLETED", transactionId: txId } });
     setSelectedOrder(null);
     staffFetch(`/api/restaurants/${restaurantId}/billing/collect`, {
       method: "POST",
-      body: JSON.stringify({ orderId, method }),
+      body: JSON.stringify({ orderId, method, transactionId: txId }),
     })
       .then(() => fetchBillMap())
       .catch(() => showToast("Failed to collect payment", "error"));
@@ -479,7 +481,14 @@ export default function POSBilling({
                       return (
                         <button
                           key={pm.id}
-                          onClick={() => collectPayment(pm.id)}
+                          onClick={() => {
+                            if (["ESEWA", "KHALTI", "BANK"].includes(pm.id)) {
+                              setVerificationMethod(pm.id);
+                              setTransactionId("");
+                            } else {
+                              collectPayment(pm.id);
+                            }
+                          }}
                           className={`flex items-center gap-2.5 rounded-xl border p-3.5 text-sm font-semibold active:scale-95 transition-all ${pm.color}`}
                         >
                           <Icon className="h-4 w-4 shrink-0" />
@@ -514,6 +523,37 @@ export default function POSBilling({
                       </button>
                     )}
                   </div>
+
+                  {verificationMethod && (
+                    <div className="mt-4 rounded-xl border border-[var(--accent-border)] bg-[var(--accent-muted)] p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-semibold text-[var(--accent-text)]">
+                          Verify {verificationMethod} Payment
+                        </p>
+                        <button
+                          onClick={() => setVerificationMethod(null)}
+                          className="text-xs font-medium text-[var(--text-3)] hover:text-[var(--text-1)]"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                      <input
+                        value={transactionId}
+                        onChange={(e) => setTransactionId(e.target.value)}
+                        placeholder="Transaction ID (Optional)"
+                        className="w-full rounded-lg border border-[var(--border)] bg-[var(--canvas)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent transition-all"
+                      />
+                      <button
+                        onClick={() => {
+                          collectPayment(verificationMethod, transactionId);
+                          setVerificationMethod(null);
+                        }}
+                        className="w-full rounded-lg bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold text-white hover:bg-amber-500 active:scale-95 transition-all"
+                      >
+                        Confirm Payment
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
 
