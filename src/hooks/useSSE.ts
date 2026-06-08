@@ -98,21 +98,8 @@ export function useSSE<T = unknown>(url: string | null): UseSSEResult<T> {
     };
   }, [url]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => {
-    if (typeof document === "undefined") return;
-    const handleVisibility = () => {
-      if (document.hidden) {
-        closeES();
-        setStatus("disconnected");
-      } else if (urlRef.current && mountedRef.current) {
-        retryCountRef.current = 0;
-        connect();
-      }
-    };
-    document.addEventListener("visibilitychange", handleVisibility);
-    return () =>
-      document.removeEventListener("visibilitychange", handleVisibility);
-  }, [connect]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Removed visibilitychange listener: The user requested the SSE connection to remain
+  // alive in the background while switching tabs to avoid "Connecting" states.
 
   const reconnect = useCallback(() => {
     retryCountRef.current = 0;

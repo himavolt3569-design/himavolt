@@ -157,16 +157,17 @@ export default function POSRegister({
 
   const clearAll = () => setOrderItems([]);
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const sendToKitchen = (
     type: "DINE_IN" | "TAKEAWAY",
     tableNo: number | null,
     guestName: string,
     note: string,
   ) => {
-    if (orderItems.length === 0) return;
-    const snapshot = orderItems;
-    // Clear cart instantly — feels immediate
-    setOrderItems([]);
+    if (orderItems.length === 0 || isSubmitting) return;
+    setIsSubmitting(true);
+
     staffFetch(`/api/restaurants/${restaurantId}/orders`, {
       method: "POST",
       body: JSON.stringify({
@@ -175,7 +176,7 @@ export default function POSRegister({
         tableNo: tableNo ?? undefined,
         guestName: guestName || undefined,
         note: note || undefined,
-        items: snapshot.map((i) => ({
+        items: orderItems.map((i) => ({
           menuItemId: i.menuItemId,
           name: i.name,
           price: i.price,
@@ -184,17 +185,19 @@ export default function POSRegister({
       }),
     })
       .then(() => {
+        setOrderItems([]);
         showToast("Order sent to kitchen", "success");
         onOrderCreated();
         onNavigateToOrders?.();
       })
       .catch((err) => {
-        // Restore items on failure
-        setOrderItems(snapshot);
         showToast(
           err instanceof Error ? err.message : "Failed to create order",
           "error",
         );
+      })
+      .finally(() => {
+        setIsSubmitting(false);
       });
   };
 

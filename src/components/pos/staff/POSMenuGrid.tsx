@@ -108,13 +108,28 @@ export default function POSMenuGrid({ items, categories, currency, onItemTap }: 
                 onClick={() => onItemTap(item)}
                 className="relative flex flex-col rounded-xl border border-[var(--border)] bg-[var(--canvas)] p-3 text-left shadow-sm hover:shadow-md hover:border-amber-300 hover:bg-amber-50/60 transition-all group"
               >
-                {item.isVeg && (
-                  <span className="absolute top-2.5 right-2.5 h-2 w-2 rounded-full bg-[#eaa94d] ring-2 ring-white" />
-                )}
-                <p className="text-xs font-semibold text-gray-800 line-clamp-2 leading-snug mb-2.5 pr-3 group-hover:text-amber-900 transition-colors">
-                  {item.name}
-                </p>
-                <p className="text-sm font-bold text-amber-700 mt-auto">{formatPrice(item.price, currency)}</p>
+                <div className="relative aspect-[4/3] w-full rounded-lg overflow-hidden bg-gray-100 mb-2.5 shrink-0">
+                  {item.imageUrl ? (
+                    <img 
+                      src={item.imageUrl} 
+                      alt={item.name} 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-amber-50">
+                      <span className="text-amber-200 font-bold text-2xl">{item.name.charAt(0)}</span>
+                    </div>
+                  )}
+                  {item.isVeg && (
+                    <span className="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-[#eaa94d] ring-2 ring-white shadow-sm" />
+                  )}
+                </div>
+                <div className="flex flex-col flex-1">
+                  <p className="text-xs font-semibold text-gray-800 line-clamp-2 leading-snug mb-1 pr-3 group-hover:text-amber-900 transition-colors">
+                    {item.name}
+                  </p>
+                  <p className="text-sm font-bold text-amber-700 mt-auto">{formatPrice(item.price, currency)}</p>
+                </div>
               </motion.button>
             ))}
           </div>
