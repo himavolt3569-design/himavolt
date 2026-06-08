@@ -177,7 +177,7 @@ export default function POSWelcomeTour({
               className="p-7 pt-8"
             >
               <div className="text-center">
-                <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 to-[var(--accent)] shadow-lg shadow-[var(--accent)]/30">
+                <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--accent)] shadow-lg shadow-[var(--accent)]/30">
                   <Rocket className="h-8 w-8 text-white" strokeWidth={2} />
                 </div>
                 <h2 className="text-2xl font-bold tracking-tight text-[var(--text-1)]">

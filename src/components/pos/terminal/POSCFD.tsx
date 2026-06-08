@@ -91,7 +91,7 @@ export default function POSCFD() {
   if (!session) return null;
 
   return (
-    <div className="relative flex h-screen w-full flex-col overflow-hidden bg-gradient-to-br from-[var(--canvas-sub)] via-[var(--canvas)] to-[var(--canvas-sub)]">
+    <div className="relative flex h-screen w-full flex-col overflow-hidden bg-[var(--canvas-sub)] font-sans">
       {/* Background ambient particles */}
       <div aria-hidden className="pointer-events-none absolute inset-0 z-0 opacity-60 mix-blend-screen">
         <Canvas camera={{ position: [0, 0, 10], fov: 50 }} gl={{ antialias: true, alpha: true }} style={{ background: "transparent" }}>
@@ -105,7 +105,7 @@ export default function POSCFD() {
       </div>
 
       {/* Header */}
-      <div className="relative z-10 flex shrink-0 items-center justify-between border-b border-[var(--border)] bg-[var(--canvas)]/90 px-8 py-5 backdrop-blur-md shadow-sm">
+      <header className="relative z-10 flex shrink-0 items-center justify-between border-b border-[var(--border)] bg-[var(--surface)] px-8 py-5 shadow-sm">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-600">
             Welcome to
@@ -125,7 +125,7 @@ export default function POSCFD() {
             </span>
           </div>
         </div>
-      </div>
+      </header>
 
       {/* Main Content Area */}
       <div className="relative z-10 flex-1 flex items-center justify-center p-8">

@@ -130,6 +130,7 @@ export default function POSTerminal() {
   // Shell overlays / modes
   const [qrOpen, setQROpen] = useState(false);
   const [qrAmount, setQRAmount] = useState<number | null>(null);
+  const [qrOrder, setQROrder] = useState<any | null>(null);
   const [customerMode, setCustomerMode] = useState(false);
   const [soundOn, setSoundOn] = useState(true);
 
@@ -147,7 +148,7 @@ export default function POSTerminal() {
     if (qrOpen && qrAmount !== null) {
       broadcast({ 
         type: "SHOW_QR", 
-        payload: { amount: qrAmount, terminalName: session?.posTerminalName || "Counter" } 
+        payload: { amount: qrAmount, terminalName: session?.posTerminalName || "Counter", order: qrOrder } 
       });
     } else {
       broadcast({ type: "HIDE_QR" });
@@ -320,7 +321,7 @@ export default function POSTerminal() {
   /* ── Loading + activation gate ─────────────────────────────────── */
   if (loading) {
     return (
-      <div className="dark flex min-h-screen items-center justify-center bg-[#0a0a0a]">
+      <div className="flex min-h-screen items-center justify-center bg-[var(--canvas-sub)]">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
           <p className="text-sm font-medium text-white/50">Loading POS…</p>
@@ -357,7 +358,7 @@ export default function POSTerminal() {
 
   /* ── Main terminal layout ──────────────────────────────────────── */
   return (
-    <div className="dark flex h-screen select-none flex-col overflow-hidden bg-[#0a0a0a] text-white">
+    <div className="flex h-screen select-none flex-col overflow-hidden bg-[var(--canvas)] text-[var(--text-1)]">
       <POSTerminalHeader
         terminalName={session.posTerminalName ?? "Front Counter"}
         restaurantName={session.restaurantName}
@@ -437,8 +438,9 @@ export default function POSTerminal() {
                 setSplitOrder({ id, orderNo, total });
               }}
               onOptimisticUpdate={optimisticUpdate}
-              onShowPaymentQR={(amount) => {
+              onShowPaymentQR={(amount, order) => {
                 setQRAmount(amount);
+                setQROrder(order || null);
                 setQROpen(true);
               }}
               staffRole={session.role}

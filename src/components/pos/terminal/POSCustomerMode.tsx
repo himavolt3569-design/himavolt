@@ -136,7 +136,7 @@ export default function POSCustomerMode({
   const exitLabel = comboLabel(exitCombo);
 
   return (
-    <div className="relative flex h-full flex-col overflow-hidden bg-gradient-to-br from-[var(--canvas-sub)] via-[var(--canvas)] to-[var(--canvas-sub)]">
+    <div className="relative flex h-full flex-col overflow-hidden bg-[var(--canvas-sub)] font-sans">
       {/* Ambient 3D particles layer — decorative only, pointer-events none */}
       <div
         aria-hidden
@@ -157,8 +157,7 @@ export default function POSCustomerMode({
         </Canvas>
       </div>
 
-      {/* Top bar — minimal, no billing / no staff info */}
-      <div className="relative z-10 flex shrink-0 items-center justify-between border-b border-[var(--border)] bg-[var(--canvas)]/90 px-6 py-4 backdrop-blur-md">
+      <div className="relative z-10 flex shrink-0 items-center justify-between border-b border-[var(--border)] bg-[var(--surface)] px-6 py-4 shadow-sm">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--accent)]">
             Browse the menu

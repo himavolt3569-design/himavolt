@@ -64,7 +64,7 @@ export default function KioskMenuGrid({ items, cart, currency, onItemTap, onQuic
               {item.imageUrl ? (
                 <img src={item.imageUrl} alt={item.name} className="h-full w-full object-cover" />
               ) : (
-                <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-[var(--accent)] to-[var(--accent-hover)]">
+                <div className="h-full w-full flex items-center justify-center bg-[var(--accent)] text-[var(--canvas)]">
                   <Utensils className="h-10 w-10 text-[var(--accent)]" />
                 </div>
               )}

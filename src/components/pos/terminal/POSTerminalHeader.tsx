@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   LogOut,
   QrCode,
@@ -69,30 +70,33 @@ export default function POSTerminalHeader({
   }
 
   return (
-    <header className="flex h-14 shrink-0 items-center gap-3 border-b border-white/10 bg-gradient-to-b from-[#141414] to-[#0f0f0f] px-4 text-white">
+    <header className="flex h-14 shrink-0 items-center gap-3 border-b border-[var(--border)] bg-[var(--surface)] px-4 text-[var(--text-1)]">
       <div className="flex min-w-0 items-center gap-3">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500 shadow-sm shadow-amber-500/30">
-          <span className="text-[11px] font-black text-black">POS</span>
-        </div>
+        <Link
+          href="/dashboard"
+          className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--canvas)] text-[var(--text-2)] hover:bg-[var(--canvas-sub)] hover:text-[var(--text-1)] active:scale-95 transition-all"
+        >
+          <span className="text-[11px] font-black">POS</span>
+        </Link>
         <div className="min-w-0">
           <p className="truncate text-[13px] font-bold leading-tight">
             {terminalName}
           </p>
-          <p className="truncate text-[10px] leading-tight text-white/50">
+          <p className="truncate text-[10px] leading-tight text-[var(--text-3)]">
             {restaurantName}
           </p>
         </div>
       </div>
 
-      <div className="mx-3 h-8 w-px bg-white/10" />
+      <div className="mx-3 h-8 w-px bg-[var(--border)]" />
 
       <ConnectionPill
         status={connectionStatus}
         newOrdersCount={newOrdersCount}
       />
 
-      <div className="hidden items-center gap-1.5 text-[11px] font-semibold text-white/50 md:flex">
-        <Dot className="h-4 w-4 text-white/40" />
+      <div className="hidden items-center gap-1.5 text-[11px] font-semibold text-[var(--text-3)] md:flex">
+        <Dot className="h-4 w-4 text-[var(--text-4)]" />
         <span className="tabular-nums">{clock}</span>
       </div>
 
@@ -120,7 +124,7 @@ export default function POSTerminalHeader({
           target="_blank"
           rel="noopener noreferrer"
           title="Open Customer Facing Display"
-          className="flex h-8 items-center gap-1.5 rounded-lg bg-indigo-500/10 px-2.5 text-[12px] font-bold text-indigo-300 ring-1 ring-indigo-500/30 transition-colors hover:bg-indigo-500/20 hover:text-indigo-200"
+          className="flex h-8 items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--canvas)] px-2.5 text-[12px] font-bold text-[var(--text-2)] transition-colors hover:bg-[var(--canvas-sub)] hover:text-[var(--text-1)] active:scale-95"
         >
           <MonitorPlay className="h-4 w-4" />
           <span className="hidden sm:inline">CFD Display</span>
@@ -129,7 +133,9 @@ export default function POSTerminalHeader({
         <button
           onClick={() => onToggleSound(!soundOn)}
           title={soundOn ? "Mute new-order sound" : "Enable new-order sound"}
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-white/60 transition-colors hover:bg-white/10 hover:text-white"
+          className={`relative flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--canvas)] text-[var(--text-2)] transition-colors hover:bg-[var(--canvas-sub)] hover:text-[var(--text-1)] active:scale-95 ${
+            !soundOn ? "text-amber-600" : ""
+          }`}
         >
           {soundOn ? (
             <Volume2 className="h-4 w-4" />
@@ -141,21 +147,21 @@ export default function POSTerminalHeader({
         <a
           href="/kitchen"
           title="Back to Kitchen"
-          className="flex h-8 items-center gap-1.5 rounded-lg bg-white/[0.06] px-2.5 text-[12px] font-bold text-white/80 ring-1 ring-white/10 transition-colors hover:bg-white/[0.12] hover:text-white"
+          className="flex h-8 items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--canvas)] px-2.5 text-[12px] font-bold text-[var(--text-2)] transition-colors hover:bg-[var(--canvas-sub)] hover:text-[var(--text-1)] active:scale-95"
         >
           <ChefHat className="h-4 w-4" />
           <span className="hidden sm:inline">Kitchen</span>
         </a>
 
-        <div className="mx-1 h-6 w-px bg-white/10" />
+        <div className="mx-1 h-6 w-px bg-[var(--border)]" />
 
-        <div className="hidden items-center gap-2 rounded-lg bg-white/[0.04] px-2.5 py-1 ring-1 ring-white/5 sm:flex">
-          <div className="flex h-6 w-6 items-center justify-center rounded-md bg-amber-500/20 text-[10px] font-bold text-amber-300">
+        <div className="hidden items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--canvas)] px-2.5 py-1 sm:flex">
+          <div className="flex h-6 w-6 items-center justify-center rounded-md bg-[var(--accent-muted)] text-[10px] font-bold text-[var(--accent-text)]">
             {initial(staffName)}
           </div>
           <div className="text-right leading-tight">
-            <p className="text-[11px] font-semibold">{staffName}</p>
-            <p className="text-[9px] uppercase tracking-wider text-white/40">
+            <p className="text-[11px] font-semibold text-[var(--text-1)]">{staffName}</p>
+            <p className="text-[9px] uppercase tracking-wider text-[var(--text-3)]">
               {staffRole}
             </p>
           </div>
@@ -165,7 +171,7 @@ export default function POSTerminalHeader({
           onClick={logout}
           disabled={loggingOut}
           title="Sign out"
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-white/60 transition-colors hover:bg-red-500/15 hover:text-red-400 disabled:opacity-50"
+          className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--canvas)] text-[var(--text-2)] transition-colors hover:bg-red-50 hover:text-red-600 hover:border-red-200 active:scale-95 disabled:opacity-50"
         >
           <LogOut className="h-4 w-4" />
         </button>

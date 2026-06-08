@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-@custom-variant dark (&:is(.dark *));
+
 
 @theme {
   --font-sans: var(--font-inter);
@@ -35,18 +35,18 @@
 
 @layer base {
   :root {
-    /* Surfaces — Precision Materials */
-    --canvas:      #ffffff;
-    --canvas-sub:  #f8fafc;
-    --surface:     #ffffff;
-    --surface-alt: #f1f5f9;
-    --border:      #e2e8f0;
-    --border-soft: #f1f5f9;
+    /* Surfaces — Premium Warm Light Materials */
+    --canvas:      #fcfaf8; /* Warm off-white */
+    --canvas-sub:  #f5f0e6; /* Warmer cream */
+    --surface:     #ffffff; /* Pure white for depth */
+    --surface-alt: #faf6f0; /* Soft warm surface */
+    --border:      #e6d5c3; /* Warm soft border */
+    --border-soft: #f0e6d8; /* Very soft border */
 
     /* Text — High-End Contrast */
-    --text-1: #0f172a;
-    --text-2: #475569;
-    --text-3: #94a3b8;
+    --text-1: #2c1a0e; /* Deep warm brown/black */
+    --text-2: #5c4131; /* Mid warm brown */
+    --text-3: #9e8576; /* Light warm brown */
 
     /* Brand accent — Focused Flame */
     --accent:        #eaa94d;
@@ -54,46 +54,24 @@
     --accent-text:   #b25c1c;
     --accent-muted:  #fef9ef;
     --accent-border: rgba(234, 169, 77, 0.2);
-  }
 
-  .dark {
-    /* Surfaces — Warm Midnight Materials */
-    --canvas:      #020617; /* Deepest Navy */
-    --canvas-sub:  #0f172a; /* Slate 900 */
-    --surface:     #1e293b; /* Slate 800 */
-    --surface-alt: #334155; /* Slate 700 */
-    --border:      #1e293b; 
-    --border-soft: #0f172a;
-
-    /* Text — High-Trust Neutral */
-    --text-1: #f8fafc; /* Slate 50 */
-    --text-2: #cbd5e1; /* Slate 300 */
-    --text-3: #64748b; /* Slate 500 */
-
-    /* Brand accent — Glowing Amber */
-    --accent:        #fbbf24; /* Amber 400 - warmer and friendlier in dark */
-    --accent-hover:  #f59e0b; /* Amber 500 */
-    --accent-text:   #fbbf24;
-    --accent-muted:  rgba(251, 191, 36, 0.12);
-    --accent-border: rgba(251, 191, 36, 0.25);
-
-    /* Status — Balanced & Friendly */
-    --status-pending-bg:     rgba(251, 191, 36, 0.15);
-    --status-pending-text:   #fbbf24;
-    --status-preparing-bg:   rgba(249, 115, 22, 0.15);
-    --status-preparing-text: #fb923c;
-    --status-ready-bg:       rgba(234, 169, 77, 0.15);
-    --status-ready-text:     #fbbf24;
-    --status-done-bg:        rgba(100, 116, 139, 0.2);
-    --status-done-text:      #cbd5e1;
-    --status-error-bg:       rgba(239, 68, 68, 0.15);
-    --status-error-text:     #fca5a5;
-    --status-info-bg:        rgba(59, 130, 246, 0.2);
-    --status-info-text:      #93c5fd;
-    --status-info-border:    rgba(59, 130, 246, 0.3);
-    --status-success-bg:     rgba(16, 185, 129, 0.2);
-    --status-success-text:   #6ee7b7;
-    --status-success-border: rgba(16, 185, 129, 0.3);
+    /* Status — Balanced & Friendly (Warm/Light variants) */
+    --status-pending-bg:     #fef3c7; /* Amber 100 */
+    --status-pending-text:   #d97706; /* Amber 600 */
+    --status-preparing-bg:   #ffedd5; /* Orange 100 */
+    --status-preparing-text: #ea580c; /* Orange 600 */
+    --status-ready-bg:       #fef9ef; /* Custom soft amber */
+    --status-ready-text:     #b25c1c; /* Brand accent text */
+    --status-done-bg:        #e2e8f0; /* Slate 200 */
+    --status-done-text:      #475569; /* Slate 600 */
+    --status-error-bg:       #fee2e2; /* Red 100 */
+    --status-error-text:     #dc2626; /* Red 600 */
+    --status-info-bg:        #dbeafe; /* Blue 100 */
+    --status-info-text:      #2563eb; /* Blue 600 */
+    --status-info-border:    #bfdbfe; /* Blue 200 */
+    --status-success-bg:     #d1fae5; /* Emerald 100 */
+    --status-success-text:   #059669; /* Emerald 600 */
+    --status-success-border: #a7f3d0; /* Emerald 200 */
   }
 
   html {
@@ -118,9 +96,6 @@
   /* Dynamic Focus Shadows */
   .shadow-focus {
     box-shadow: 0 0 0 1px rgba(0,0,0,0.05), 0 20px 50px -12px rgba(0,0,0,0.12);
-  }
-  .dark .shadow-focus {
-    box-shadow: 0 0 0 1px rgba(255,255,255,0.05), 0 20px 50px -12px rgba(0,0,0,0.5);
   }
 
   /* Fluid Section Spacing */
@@ -160,12 +135,6 @@
   .scrollbar-slim:hover::-webkit-scrollbar-thumb,
   .scrollbar-slim::-webkit-scrollbar-thumb:hover {
     background: var(--accent);
-  }
-  .dark .scrollbar-slim {
-    scrollbar-color: rgba(113, 113, 122, 0.4) transparent;
-  }
-  .dark .scrollbar-slim::-webkit-scrollbar-thumb {
-    background: rgba(113, 113, 122, 0.4);
   }
 
   /* Typewriter cursor blink */

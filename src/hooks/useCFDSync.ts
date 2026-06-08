@@ -5,7 +5,7 @@ import type { POSOrderItem } from "@/hooks/usePOSOrders";
 
 export type CFDMessage =
   | { type: "SYNC_CART"; payload: { items: POSOrderItem[]; subtotal: number; tax: number; total: number; currency: string } }
-  | { type: "SHOW_QR"; payload: { amount: number; terminalName?: string } }
+  | { type: "SHOW_QR"; payload: { amount: number; terminalName?: string; order?: any } }
   | { type: "HIDE_QR" }
   | { type: "CLEAR_CART" };
 

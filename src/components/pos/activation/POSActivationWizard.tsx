@@ -518,7 +518,7 @@ export default function POSActivationWizard({
           </AnimatePresence>
 
           {error && current !== "done" && (
-            <div className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-xs font-medium text-red-600 dark:bg-red-950/40 dark:text-red-400">
+            <div className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-xs font-medium text-red-600">
               {error}
             </div>
           )}
@@ -704,7 +704,7 @@ function ExitComboCapture({
               ? "border-[var(--accent)] bg-[var(--accent-muted)] text-[var(--accent-text)]"
               : valid
               ? "border-[var(--border)] bg-[var(--canvas)] text-[var(--text-1)]"
-              : "border-red-300 bg-red-50 text-red-600 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400"
+              : "border-red-300 bg-red-50 text-red-600"
           }`}
         >
           {capturing ? (
@@ -739,7 +739,7 @@ function ExitComboCapture({
         combination fires. Esc, F-keys and Ctrl+W are always blocked.
       </p>
       {!valid && !capturing && (
-        <p className="mt-1.5 text-[11px] font-semibold text-red-600 dark:text-red-400">
+        <p className="mt-1.5 text-[11px] font-semibold text-red-600">
           Pick a combo with at least one modifier (Ctrl, Shift or Alt).
         </p>
       )}

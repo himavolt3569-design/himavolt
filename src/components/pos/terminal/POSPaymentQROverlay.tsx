@@ -18,6 +18,7 @@ interface Props {
   amount?: number | null;
   currency?: string;
   onClose: () => void;
+  inline?: boolean;
 }
 
 export default function POSPaymentQROverlay({
@@ -27,6 +28,7 @@ export default function POSPaymentQROverlay({
   amount,
   currency = "NPR",
   onClose,
+  inline = false,
 }: Props) {
   const [qrs, setQrs] = useState<PaymentQR[]>([]);
   const [loading, setLoading] = useState(false);
@@ -100,27 +102,33 @@ export default function POSPaymentQROverlay({
 
   if (typeof document === "undefined") return null;
 
-  return createPortal(
+  const content = (
     <AnimatePresence>
       {open && (
         <motion.div
-          key="backdrop"
+          key={inline ? "panel-inline" : "backdrop"}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.18 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 p-6 backdrop-blur-md"
+          className={
+            inline
+              ? "flex w-full flex-col items-center justify-center h-full"
+              : "fixed inset-0 z-[100] flex items-center justify-center bg-black/85 p-6 backdrop-blur-md"
+          }
           onMouseDown={(e) => {
-            if (e.target === e.currentTarget) onClose();
+            if (!inline && e.target === e.currentTarget) onClose();
           }}
         >
-          <button
-            onClick={onClose}
-            className="absolute right-5 top-5 rounded-full bg-white/10 p-2 text-white transition-colors hover:bg-white/20"
-            aria-label="Close"
-          >
-            <X className="h-5 w-5" />
-          </button>
+          {!inline && (
+            <button
+              onClick={onClose}
+              className="absolute right-5 top-5 rounded-full bg-white/10 p-2 text-white transition-colors hover:bg-white/20"
+              aria-label="Close"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          )}
 
           <motion.div
             key="panel"
@@ -128,23 +136,25 @@ export default function POSPaymentQROverlay({
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.96, opacity: 0 }}
             transition={{ duration: 0.22 }}
-            className="flex w-full max-w-[640px] flex-col items-center gap-4 text-center text-white"
+            className={`flex w-full max-w-[640px] flex-col items-center gap-4 text-center ${
+              inline ? "text-[var(--text-1)]" : "text-white"
+            }`}
           >
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-amber-400">
+              <p className={`text-[11px] font-bold uppercase tracking-[0.25em] ${inline ? "text-amber-600" : "text-amber-400"}`}>
                 Scan to pay
               </p>
               <h2 className="mt-1 text-3xl font-black tracking-tight sm:text-4xl">
                 {restaurantName}
               </h2>
               {amountLabel && (
-                <p className="mt-2 text-lg font-bold text-amber-300">
+                <p className={`mt-2 text-lg font-bold ${inline ? "text-amber-700" : "text-amber-300"}`}>
                   {amountLabel}
                 </p>
               )}
             </div>
 
-            <div className="relative flex aspect-square w-full max-w-[420px] items-center justify-center overflow-hidden rounded-3xl border border-white/10 bg-white p-6 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.5)]">
+            <div className={`relative flex aspect-square w-full max-w-[420px] items-center justify-center overflow-hidden rounded-3xl border bg-white p-6 ${inline ? "border-[var(--border)] shadow-xl" : "border-white/10 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.5)]"}`}>
               {loading && (
                 <div className="flex flex-col items-center gap-3 text-black/60">
                   <Loader2 className="h-8 w-8 animate-spin" />
@@ -217,7 +227,9 @@ export default function POSPaymentQROverlay({
                     className={`rounded-full px-4 py-1.5 text-[12px] font-bold transition-colors ${
                       i === activeIdx
                         ? "bg-amber-400 text-black shadow-sm shadow-amber-400/30"
-                        : "bg-white/5 text-white/70 ring-1 ring-white/10 hover:bg-white/10"
+                        : inline 
+                          ? "bg-[var(--canvas-sub)] text-[var(--text-2)] border border-[var(--border)] hover:bg-[var(--canvas)]"
+                          : "bg-white/5 text-white/70 ring-1 ring-white/10 hover:bg-white/10"
                     }`}
                   >
                     {q.label}
@@ -226,15 +238,18 @@ export default function POSPaymentQROverlay({
               </div>
             )}
 
-            <p className="mt-2 text-[11px] text-white/50">
-              Press <kbd className="rounded bg-white/10 px-1.5 py-0.5 text-white/80">Esc</kbd>{" "}
-              to close · <kbd className="rounded bg-white/10 px-1.5 py-0.5 text-white/80">←</kbd>/<kbd className="rounded bg-white/10 px-1.5 py-0.5 text-white/80">→</kbd>{" "}
-              to switch
-            </p>
+            {!inline && (
+              <p className="mt-2 text-[11px] text-white/50">
+                Press <kbd className="rounded bg-white/10 px-1.5 py-0.5 text-white/80">Esc</kbd>{" "}
+                to close · <kbd className="rounded bg-white/10 px-1.5 py-0.5 text-white/80">←</kbd>/<kbd className="rounded bg-white/10 px-1.5 py-0.5 text-white/80">→</kbd>{" "}
+                to switch
+              </p>
+            )}
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>,
-    document.body,
+    </AnimatePresence>
   );
+
+  return inline ? content : createPortal(content, document.body);
 }

@@ -44,7 +44,7 @@ export default function POSLauncher({
       <div className="mx-3 mb-3">
         <button
           onClick={() => router.push("/pos/staff")}
-          className="group flex w-full items-center gap-3 overflow-hidden rounded-xl bg-gradient-to-br from-[var(--accent)] to-[var(--accent-hover)] p-3 text-left text-white shadow-sm shadow-[var(--accent)]/20 transition-all hover:shadow-md hover:shadow-[var(--accent)]/30 active:scale-[0.98]"
+          className="group flex w-full items-center gap-3 overflow-hidden rounded-xl bg-[var(--accent)] p-3 text-left text-white shadow-sm shadow-[var(--accent)]/20 transition-all hover:opacity-90 hover:shadow-md hover:shadow-[var(--accent)]/30 active:scale-[0.98]"
         >
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/15 ring-1 ring-white/25">
             <Zap className="h-4 w-4" />

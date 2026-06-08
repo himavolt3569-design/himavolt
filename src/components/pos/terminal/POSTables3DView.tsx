@@ -499,23 +499,23 @@ export default function POSTables3DView({
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: 40, opacity: 0 }}
             transition={{ type: "spring", stiffness: 240, damping: 28 }}
-            className="relative flex w-[340px] shrink-0 flex-col border-l border-white/10 bg-gradient-to-b from-[#141414] to-[#0d0d0d]"
+            className="relative flex w-[340px] shrink-0 flex-col border-l border-[var(--border)] bg-[var(--canvas-sub)]"
           >
-            <div className="flex items-start justify-between border-b border-white/10 p-5">
+            <div className="flex items-start justify-between border-b border-[var(--border)] p-5">
               <div>
-                <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-white/40">
+                <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--text-3)]">
                   Table
                 </p>
-                <h3 className="mt-1 text-4xl font-black tracking-tight text-white">
+                <h3 className="mt-1 text-4xl font-black tracking-tight text-[var(--text-1)]">
                   {selected.tableNo}
                 </h3>
                 {selected.label && (
-                  <p className="mt-1 text-xs text-white/60">{selected.label}</p>
+                  <p className="mt-1 text-xs text-[var(--text-2)]">{selected.label}</p>
                 )}
               </div>
               <button
                 onClick={() => setSelectedId(null)}
-                className="rounded-full p-1.5 text-white/50 transition-colors hover:bg-white/5 hover:text-white"
+                className="rounded-full p-1.5 text-[var(--text-3)] transition-colors hover:bg-[var(--canvas)] hover:text-[var(--text-1)]"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -546,24 +546,24 @@ export default function POSTables3DView({
               </div>
 
               {selected.session?.order && (
-                <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                <div className="rounded-2xl border border-[var(--border)] bg-[var(--canvas)] p-4">
                   <div className="mb-2 flex items-center justify-between">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-white/45">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-3)]">
                       Current order
                     </span>
-                    <span className="rounded-md bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold uppercase text-amber-300 ring-1 ring-amber-500/25">
+                    <span className="rounded-md bg-[var(--accent)]/10 px-2 py-0.5 text-[10px] font-bold uppercase text-[var(--accent)] ring-1 ring-[var(--accent)]/20">
                       {selected.session.order.status}
                     </span>
                   </div>
-                  <p className="text-sm font-bold text-white">
+                  <p className="text-sm font-bold text-[var(--text-1)]">
                     #{selected.session.order.orderNo}
                   </p>
                   {selected.session.order.guestName && (
-                    <p className="mt-1 text-xs text-white/60">
+                    <p className="mt-1 text-xs text-[var(--text-2)]">
                       {selected.session.order.guestName}
                     </p>
                   )}
-                  <p className="mt-3 text-2xl font-black text-amber-400">
+                  <p className="mt-3 text-2xl font-black text-[var(--accent)]">
                     {formatPrice(selected.session.order.total, currency)}
                   </p>
                 </div>
@@ -571,7 +571,7 @@ export default function POSTables3DView({
 
               <button
                 onClick={() => onTableSelect(selected.tableNo)}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-amber-500 px-4 py-3.5 text-sm font-bold text-black shadow-sm shadow-amber-500/30 transition-colors hover:bg-amber-400"
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[var(--accent)] px-4 py-3.5 text-sm font-bold text-[var(--canvas)] shadow-sm transition-opacity hover:opacity-90"
               >
                 Take order for table {selected.tableNo}
                 <ArrowRight className="h-4 w-4" />
@@ -587,10 +587,10 @@ export default function POSTables3DView({
 function Legend({ status, count }: { status: TableStatus; count: number }) {
   const meta = STATUS_META[status];
   return (
-    <div className="flex items-center gap-2 text-[11px] font-semibold text-white/80">
-      <span className={`h-2 w-2 rounded-full ${meta.dot} ring-2 ring-white/10`} />
+    <div className="flex items-center gap-2 text-[11px] font-semibold text-[var(--text-2)]">
+      <span className={`h-2 w-2 rounded-full ${meta.dot}`} />
       <span>{meta.label}</span>
-      <span className="rounded-md bg-white/10 px-1.5 py-0.5 text-[10px] font-bold">
+      <span className="rounded-md bg-[var(--canvas)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--text-3)]">
         {count}
       </span>
     </div>
@@ -605,7 +605,6 @@ function StatusBadge({ status }: { status: TableStatus }) {
       style={{
         backgroundColor: `${meta.glow}15`,
         color: meta.glow,
-        boxShadow: `inset 0 0 0 1px ${meta.glow}40`,
       }}
     >
       <span className={`h-2 w-2 rounded-full ${meta.dot} animate-pulse`} />
@@ -621,15 +620,17 @@ function Stat({
 }: {
   icon: React.ReactNode;
   label: string;
-  value: string;
+  value: React.ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.02] p-3">
-      <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-white/45">
-        {icon}
-        {label}
+    <div className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--canvas)] p-3">
+      <div className="text-[var(--text-3)]">{icon}</div>
+      <div>
+        <p className="text-[10px] uppercase tracking-wider text-[var(--text-3)]">
+          {label}
+        </p>
+        <p className="text-sm font-bold text-[var(--text-1)]">{value}</p>
       </div>
-      <p className="mt-1.5 text-lg font-black text-white">{value}</p>
     </div>
   );
 }

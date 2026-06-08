@@ -36,7 +36,7 @@ interface Props {
   onSplitBill: (orderId: string, orderNo: string, total: number) => void;
   onOptimisticUpdate: (orderId: string, patch: Partial<POSOrder>) => void;
   /** Optional: open a full-screen payment QR overlay for the customer. */
-  onShowPaymentQR?: (amount: number) => void;
+  onShowPaymentQR?: (amount: number, order?: POSOrder) => void;
   /** Staff role — discount only visible to MANAGER / SUPER_ADMIN */
   staffRole?: string;
 }
@@ -514,7 +514,7 @@ export default function POSBilling({
                     {onShowPaymentQR && (
                       <button
                         onClick={() =>
-                          onShowPaymentQR(bill?.total ?? selectedOrder.total)
+                          onShowPaymentQR(bill?.total ?? selectedOrder.total, selectedOrder)
                         }
                         className="flex items-center justify-center gap-2.5 rounded-xl border border-[var(--accent-border)] bg-[var(--accent-muted)] p-3.5 text-sm font-bold text-[var(--accent-text)] hover:bg-[var(--accent)]/20 active:scale-95 transition-all"
                       >
