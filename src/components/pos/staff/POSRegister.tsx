@@ -56,7 +56,7 @@ interface Props {
     quantity: number;
   }[];
   onInitialItemsConsumed?: () => void;
-  onOrderCreated: () => void;
+  onOrderCreated: (order?: any) => void;
   onNavigateToBilling?: () => void;
   onNavigateToOrders?: () => void;
 }
@@ -96,6 +96,19 @@ export default function POSRegister({
   const { showToast } = useToast();
   const { broadcast } = useCFDSync();
   const [orderItems, setOrderItems] = useState<OrderLineItem[]>([]);
+
+  useEffect(() => {
+    if (orderItems.length > 0) {
+      const subtotal = orderItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+      const tax = taxEnabled ? subtotal * (taxRate / 100) : 0;
+      broadcast({
+        type: "SYNC_CART",
+        payload: { items: orderItems, subtotal, tax, total: subtotal + tax, currency }
+      });
+    } else {
+      broadcast({ type: "CLEAR_CART" });
+    }
+  }, [orderItems, taxRate, taxEnabled, currency, broadcast]);
 
   // Pre-select table when arriving from the Tables view
   const [preselectedTable, setPreselectedTable] = useState<number | null>(null);
@@ -186,10 +199,10 @@ export default function POSRegister({
         })),
       }),
     })
-      .then(() => {
+      .then((order: any) => {
         setOrderItems([]);
         showToast("Order sent to kitchen", "success");
-        onOrderCreated();
+        onOrderCreated(order);
         onNavigateToOrders?.();
       })
       .catch((err) => {

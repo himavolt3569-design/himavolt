@@ -138,6 +138,7 @@ export default function POSTerminal() {
     orders: liveOrders,
     connectionStatus,
     optimisticUpdate,
+    addOptimisticOrder,
   } = usePOSOrders(session?.restaurantId ?? null);
 
   const { broadcast } = useCFDSync();
@@ -397,7 +398,10 @@ export default function POSTerminal() {
               onTableNoConsumed={() => setSelectedTableNo(null)}
               initialItems={recalledItems ?? undefined}
               onInitialItemsConsumed={() => setRecalledItems(null)}
-              onOrderCreated={loadData}
+              onOrderCreated={(order) => {
+                loadData();
+                if (order) addOptimisticOrder(order);
+              }}
               onNavigateToBilling={() => setActiveView("billing")}
               onNavigateToOrders={() => setActiveView("orders")}
             />

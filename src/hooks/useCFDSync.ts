@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useRef } from "react";
 import type { POSOrderItem } from "@/hooks/usePOSOrders";
 
 export type CFDMessage =
@@ -12,6 +12,11 @@ export type CFDMessage =
 export function useCFDSync(onMessage?: (msg: CFDMessage) => void) {
   // Use a stable channel name for the whole POS
   const channelName = "himalhub-cfd";
+  const onMessageRef = useRef(onMessage);
+
+  useEffect(() => {
+    onMessageRef.current = onMessage;
+  }, [onMessage]);
 
   const broadcast = useCallback((msg: CFDMessage) => {
     if (typeof window === "undefined" || !window.BroadcastChannel) return;
@@ -21,12 +26,12 @@ export function useCFDSync(onMessage?: (msg: CFDMessage) => void) {
   }, [channelName]);
 
   useEffect(() => {
-    if (typeof window === "undefined" || !window.BroadcastChannel || !onMessage) return;
+    if (typeof window === "undefined" || !window.BroadcastChannel) return;
     
     const channel = new BroadcastChannel(channelName);
     
     const handleMessage = (event: MessageEvent<CFDMessage>) => {
-      onMessage(event.data);
+      onMessageRef.current?.(event.data);
     };
 
     channel.addEventListener("message", handleMessage);
@@ -35,7 +40,7 @@ export function useCFDSync(onMessage?: (msg: CFDMessage) => void) {
       channel.removeEventListener("message", handleMessage);
       channel.close();
     };
-  }, [channelName, onMessage]);
+  }, [channelName]);
 
   return { broadcast };
 }

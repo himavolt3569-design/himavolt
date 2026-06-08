@@ -52,6 +52,7 @@ interface UsePOSOrdersResult {
   connectionStatus: SSEStatus;
   reconnect: () => void;
   optimisticUpdate: (orderId: string, patch: Partial<POSOrder>) => void;
+  addOptimisticOrder: (order: POSOrder) => void;
 }
 
 /**
@@ -84,5 +85,13 @@ export function usePOSOrders(restaurantId: string | null): UsePOSOrdersResult {
     setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, ...patch } : o)));
   }, []);
 
-  return { orders, connectionStatus: status, reconnect, optimisticUpdate };
+  /** Add a brand new order to local state immediately — SSE will reconcile. */
+  const addOptimisticOrder = useCallback((order: POSOrder) => {
+    setOrders((prev) => {
+      if (prev.some(o => o.id === order.id)) return prev;
+      return [order, ...prev];
+    });
+  }, []);
+
+  return { orders, connectionStatus: status, reconnect, optimisticUpdate, addOptimisticOrder };
 }
