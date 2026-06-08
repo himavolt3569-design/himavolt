@@ -11,6 +11,8 @@ import {
   Tag,
   SplitSquareHorizontal,
   QrCode,
+  Printer,
+  Mail,
 } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
 import { useToast } from "@/context/ToastContext";
@@ -188,8 +190,43 @@ export default function POSBilling({
   const bill = selectedOrder ? billMap[selectedOrder.id] : null;
   const isPaid = selectedOrder?.payment?.status === "COMPLETED";
 
+  const generateReceiptText = () => {
+    if (!selectedOrder) return "";
+    let text = `Receipt for Order #${selectedOrder.orderNo}\n`;
+    text += `--------------------------------\n`;
+    selectedOrder.items.forEach(item => {
+      text += `${item.quantity}x ${item.name} - ${formatPrice(item.price * item.quantity, currency)}\n`;
+    });
+    text += `--------------------------------\n`;
+    text += `Subtotal: ${formatPrice(selectedOrder.subtotal, currency)}\n`;
+    if (selectedOrder.tax > 0) text += `Tax: ${formatPrice(selectedOrder.tax, currency)}\n`;
+    if (selectedOrder.deliveryFee > 0) text += `Delivery Fee: ${formatPrice(selectedOrder.deliveryFee, currency)}\n`;
+    if (bill?.serviceCharge) text += `Service Charge: ${formatPrice(bill.serviceCharge, currency)}\n`;
+    if (bill?.discount) text += `Discount: -${formatPrice(bill.discount, currency)}\n`;
+    text += `--------------------------------\n`;
+    text += `Total: ${formatPrice(bill?.total ?? selectedOrder.total, currency)}\n`;
+    text += `Paid via: ${selectedOrder.payment?.method || "Unknown"}\n`;
+    text += `Thank you!\n`;
+    return text;
+  };
+
+  const handleEmailReceipt = () => {
+    const text = generateReceiptText();
+    const subject = encodeURIComponent(`Receipt for Order #${selectedOrder?.orderNo}`);
+    const body = encodeURIComponent(text);
+    window.location.href = `mailto:?subject=${subject}&body=${body}`;
+  };
+
   return (
-    <div className="flex h-full">
+    <>
+      <style dangerouslySetInnerHTML={{ __html: `
+        @media print {
+          body * { visibility: hidden; }
+          #printable-receipt, #printable-receipt * { visibility: visible; }
+          #printable-receipt { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; }
+        }
+      `}} />
+      <div className="flex h-full">
       {/* Left panel — order list */}
       <div className="flex flex-col w-80 shrink-0 border-r border-[var(--border)] bg-[var(--canvas)]">
         <div className="shrink-0 px-4 pt-4 pb-3 border-b border-[var(--border-soft)] space-y-3">
@@ -482,16 +519,35 @@ export default function POSBilling({
 
               {/* Paid confirmation */}
               {isPaid && (
-                <div className="flex items-center gap-3 rounded-xl bg-[var(--accent-muted)] border border-[var(--accent-border)] p-4">
-                  <CheckCircle2 className="h-5 w-5 text-[#b25c1c] shrink-0" />
-                  <div>
-                    <p className="text-sm font-semibold text-[#b25c1c]">
-                      Payment Collected
-                    </p>
-                    <p className="text-xs text-[#b25c1c] mt-0.5">
-                      via {selectedOrder.payment?.method}
-                      {bill?.paidVia ? ` (${bill.paidVia})` : ""}
-                    </p>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 rounded-xl bg-[var(--accent-muted)] border border-[var(--accent-border)] p-4">
+                    <CheckCircle2 className="h-5 w-5 text-[#b25c1c] shrink-0" />
+                    <div>
+                      <p className="text-sm font-semibold text-[#b25c1c]">
+                        Payment Collected
+                      </p>
+                      <p className="text-xs text-[#b25c1c] mt-0.5">
+                        via {selectedOrder.payment?.method}
+                        {bill?.paidVia ? ` (${bill.paidVia})` : ""}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => window.print()}
+                      className="flex items-center justify-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--canvas)] p-3 text-sm font-semibold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] active:scale-95 transition-all"
+                    >
+                      <Printer className="h-4 w-4" />
+                      Print Bill
+                    </button>
+                    <button
+                      onClick={handleEmailReceipt}
+                      className="flex items-center justify-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--canvas)] p-3 text-sm font-semibold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] active:scale-95 transition-all"
+                    >
+                      <Mail className="h-4 w-4" />
+                      Email Bill
+                    </button>
                   </div>
                 </div>
               )}
@@ -500,5 +556,67 @@ export default function POSBilling({
         )}
       </div>
     </div>
+
+      {/* Printable Receipt (Hidden on screen) */}
+      {selectedOrder && (
+        <div id="printable-receipt" className="hidden print:block text-black bg-white font-mono text-sm max-w-[300px]">
+          <h2 className="text-xl font-bold mb-4 text-center">Receipt</h2>
+          <p className="mb-2">Order: #{selectedOrder.orderNo}</p>
+          <p className="mb-4">Date: {new Date(selectedOrder.createdAt).toLocaleString()}</p>
+          
+          <div className="border-t border-black border-dashed pt-4 mb-4">
+            {selectedOrder.items.map(item => (
+              <div key={item.id} className="flex justify-between mb-1">
+                <span>{item.quantity}x {item.name}</span>
+                <span>{formatPrice(item.price * item.quantity, currency)}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="border-t border-black border-dashed pt-4 mb-4 space-y-1">
+            <div className="flex justify-between">
+              <span>Subtotal</span>
+              <span>{formatPrice(selectedOrder.subtotal, currency)}</span>
+            </div>
+            {selectedOrder.tax > 0 && (
+              <div className="flex justify-between">
+                <span>Tax</span>
+                <span>{formatPrice(selectedOrder.tax, currency)}</span>
+              </div>
+            )}
+            {selectedOrder.deliveryFee > 0 && (
+              <div className="flex justify-between">
+                <span>Delivery Fee</span>
+                <span>{formatPrice(selectedOrder.deliveryFee, currency)}</span>
+              </div>
+            )}
+            {!!bill?.serviceCharge && (
+              <div className="flex justify-between">
+                <span>Service Charge</span>
+                <span>{formatPrice(bill.serviceCharge, currency)}</span>
+              </div>
+            )}
+            {!!bill?.discount && (
+              <div className="flex justify-between">
+                <span>Discount</span>
+                <span>-{formatPrice(bill.discount, currency)}</span>
+              </div>
+            )}
+            <div className="flex justify-between font-bold text-base pt-2">
+              <span>Total</span>
+              <span>{formatPrice(bill?.total ?? selectedOrder.total, currency)}</span>
+            </div>
+          </div>
+
+          {isPaid && (
+            <div className="border-t border-black border-dashed pt-4 text-center">
+              <p>Paid via {selectedOrder.payment?.method}</p>
+            </div>
+          )}
+          
+          <p className="mt-8 text-center text-xs">Thank you for your visit!</p>
+        </div>
+      )}
+    </>
   );
 }

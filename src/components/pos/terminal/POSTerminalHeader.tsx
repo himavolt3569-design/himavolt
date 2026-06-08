@@ -12,6 +12,7 @@ import {
   WifiOff,
   Dot,
   ChefHat,
+  MonitorPlay,
 } from "lucide-react";
 import type { SSEStatus } from "@/hooks/useSSE";
 
@@ -113,6 +114,17 @@ export default function POSTerminalHeader({
             hotkey="C"
           />
         )}
+
+        <a
+          href="/pos/cfd"
+          target="_blank"
+          rel="noopener noreferrer"
+          title="Open Customer Facing Display"
+          className="flex h-8 items-center gap-1.5 rounded-lg bg-indigo-500/10 px-2.5 text-[12px] font-bold text-indigo-300 ring-1 ring-indigo-500/30 transition-colors hover:bg-indigo-500/20 hover:text-indigo-200"
+        >
+          <MonitorPlay className="h-4 w-4" />
+          <span className="hidden sm:inline">CFD Display</span>
+        </a>
 
         <button
           onClick={() => onToggleSound(!soundOn)}

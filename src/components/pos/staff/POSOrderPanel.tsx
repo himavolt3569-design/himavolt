@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus, Minus, Trash2, Send, PauseCircle, CreditCard,
-  UtensilsCrossed, ShoppingBag, ChevronDown, User, StickyNote, Hash,
+  UtensilsCrossed, ShoppingBag, ChevronDown, User, StickyNote, Hash, Loader2
 } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
 
@@ -34,11 +34,12 @@ interface Props {
   onSendToKitchen: (type: "DINE_IN" | "TAKEAWAY", tableNo: number | null, guestName: string, note: string) => void;
   onHoldOrder: (guestName: string, note: string) => void;
   onSettle: () => void;
+  isSubmitting?: boolean;
 }
 
 export default function POSOrderPanel({
   items, tables, currency, taxRate, taxEnabled, initialTableNo,
-  onUpdateQty, onVoidItem, onClear, onSendToKitchen, onHoldOrder, onSettle,
+  onUpdateQty, onVoidItem, onClear, onSendToKitchen, onHoldOrder, onSettle, isSubmitting
 }: Props) {
   const [orderType, setOrderType] = useState<"DINE_IN" | "TAKEAWAY">("DINE_IN");
   const [selectedTable, setSelectedTable] = useState<number | null>(null);
@@ -276,10 +277,20 @@ export default function POSOrderPanel({
             </button>
             <button
               onClick={() => onSendToKitchen(orderType, orderType === "DINE_IN" ? selectedTable : null, guestName.trim(), note.trim())}
-              className="flex items-center justify-center gap-2 rounded-xl bg-amber-600 py-3 text-sm font-semibold text-white hover:bg-amber-500 active:scale-95 transition-all shadow-sm"
+              disabled={isSubmitting}
+              className="flex items-center justify-center gap-2 rounded-xl bg-amber-600 py-3 text-sm font-semibold text-white hover:bg-amber-500 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 transition-all shadow-sm"
             >
-              <Send className="h-4 w-4" />
-              Send to Kitchen
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <Send className="h-4 w-4" />
+                  Send to Kitchen
+                </>
+              )}
             </button>
           </div>
 

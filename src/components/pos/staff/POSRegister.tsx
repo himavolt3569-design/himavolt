@@ -5,6 +5,7 @@ import { useToast } from "@/context/ToastContext";
 import { formatPrice } from "@/lib/currency";
 import POSMenuGrid from "./POSMenuGrid";
 import POSOrderPanel from "./POSOrderPanel";
+import { useCFDSync } from "@/hooks/useCFDSync";
 
 interface Category {
   id: string;
@@ -93,6 +94,7 @@ export default function POSRegister({
   onNavigateToOrders,
 }: Props) {
   const { showToast } = useToast();
+  const { broadcast } = useCFDSync();
   const [orderItems, setOrderItems] = useState<OrderLineItem[]>([]);
 
   // Pre-select table when arriving from the Tables view
@@ -272,6 +274,7 @@ export default function POSRegister({
           onSendToKitchen={sendToKitchen}
           onHoldOrder={holdOrder}
           onSettle={handleSettle}
+          isSubmitting={isSubmitting}
         />
       </div>
     </div>

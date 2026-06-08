@@ -17,6 +17,7 @@ const POSTables3DView = dynamic(() => import("./POSTables3DView"), {
   ssr: false,
 });
 import { usePOSOrders } from "@/hooks/usePOSOrders";
+import { useCFDSync } from "@/hooks/useCFDSync";
 
 const POSPanelLoader = () => (
   <div className="flex min-h-[320px] items-center justify-center">
@@ -138,6 +139,19 @@ export default function POSTerminal() {
     connectionStatus,
     optimisticUpdate,
   } = usePOSOrders(session?.restaurantId ?? null);
+
+  const { broadcast } = useCFDSync();
+
+  useEffect(() => {
+    if (qrOpen && qrAmount !== null) {
+      broadcast({ 
+        type: "SHOW_QR", 
+        payload: { amount: qrAmount, terminalName: session?.posTerminalName || "Counter" } 
+      });
+    } else {
+      broadcast({ type: "HIDE_QR" });
+    }
+  }, [qrOpen, qrAmount, broadcast, session]);
 
   /* ── Load staff session ────────────────────────────────────────── */
   useEffect(() => {

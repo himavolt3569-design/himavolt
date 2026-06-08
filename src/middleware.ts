@@ -59,6 +59,7 @@ const STAFF_ONLY_ROUTES = [
   /^\/kitchen(\/|$)/,
   /^\/counter(\/|$)/,
   /^\/pos\/staff(\/|$)/,
+  /^\/pos\/cfd(\/|$)/,
 ];
 
 function isPublicRoute(pathname: string) {
