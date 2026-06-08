@@ -109,7 +109,6 @@ interface RestaurantContextType {
       email: string;
       phone?: string;
       role: string;
-      pin: string;
     },
   ) => Promise<
     StaffMember & { _generatedPin?: string; _restaurantCode?: string }
@@ -225,7 +224,6 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
         email: string;
         phone?: string;
         role: string;
-        pin: string;
       },
     ) => {
       const res = await apiFetch<

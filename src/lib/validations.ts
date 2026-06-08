@@ -83,7 +83,12 @@ export type CreateMenuItemInput = z.infer<typeof createMenuItemSchema>;
 export const createStaffSchema = z.object({
   name: z.string().trim().min(1).max(60),
   email: z.string().email(),
-  phone: phoneSchema,
+  phone: z
+    .string()
+    .trim()
+    .transform((v) => (v === "" ? undefined : v))
+    .pipe(phoneSchema.optional())
+    .optional(),
   role: z.enum(["SUPER_ADMIN", "MANAGER", "CHEF", "WAITER", "CASHIER"]),
 });
 export type CreateStaffInput = z.infer<typeof createStaffSchema>;

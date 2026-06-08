@@ -358,7 +358,7 @@ function StaffCard({
           />
         </div>
 
-        {/* Staff type classification — Owner-only */}
+        {/* Staff type classification â€” Owner-only */}
         <div className="mt-2.5 flex items-center gap-2 flex-wrap">
           <span className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider">
             Type:
@@ -438,7 +438,7 @@ function StaffCard({
           ) : (
             <div className="flex items-center gap-2 flex-1">
               <span className="font-mono text-sm font-bold text-[var(--text-2)] bg-[var(--canvas-sub)] rounded-lg px-2.5 py-1 tracking-widest border border-[var(--border-soft)]">
-                ••••
+                â€¢â€¢â€¢â€¢
               </span>
               <button
                 onClick={() => {
@@ -541,7 +541,7 @@ function StaffDirectoryView({
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by name or email…"
+            placeholder="Search by name or emailâ€¦"
             className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] py-2.5 pl-10 pr-4 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 shadow-sm"
           />
         </div>
@@ -635,7 +635,7 @@ function AttendanceLogsView({ restaurantId }: { restaurantId: string }) {
     return (
       <div className="flex items-center justify-center py-20 gap-2 text-[var(--text-3)]">
         <Loader2 className="h-5 w-5 animate-spin" />
-        <span className="text-sm font-medium">Loading attendance…</span>
+        <span className="text-sm font-medium">Loading attendanceâ€¦</span>
       </div>
     );
   }
@@ -662,7 +662,7 @@ function AttendanceLogsView({ restaurantId }: { restaurantId: string }) {
   }
 
   function formatDur(mins: number): string {
-    if (mins <= 0) return "—";
+    if (mins <= 0) return "â€”";
     if (mins < 60) return `${mins}m`;
     return `${Math.floor(mins / 60)}h ${mins % 60}m`;
   }
@@ -897,9 +897,8 @@ function AddStaffModal({
       const result = await addStaff(restaurantId, {
         name: name.trim(),
         email: email.trim(),
-        phone: phone.trim(),
+        ...(phone.trim() ? { phone: phone.trim() } : {}),
         role,
-        pin: "auto",
       });
       if (result?._generatedPin) {
         setSuccessData({
@@ -1114,7 +1113,7 @@ function AddStaffModal({
                     ) : (
                       <UserPlus className="h-4 w-4" />
                     )}
-                    {saving ? "Adding…" : "Add Staff"}
+                    {saving ? "Addingâ€¦" : "Add Staff"}
                   </button>
                 </div>
               </>
@@ -1149,7 +1148,7 @@ export default function StaffManagementTab() {
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-12">
-      {/* ── Header ──────────────────────────────────────────────── */}
+      {/* â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <div className="flex items-center gap-3 flex-wrap">
@@ -1185,7 +1184,7 @@ export default function StaffManagementTab() {
         </button>
       </div>
 
-      {/* ── Tab bar ─────────────────────────────────────────────── */}
+      {/* â”€â”€ Tab bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div className="flex items-center gap-1 rounded-xl bg-[var(--surface)] p-1 w-fit">
         {tabs.map(({ id, label, icon: Icon }) => (
           <button
@@ -1203,7 +1202,7 @@ export default function StaffManagementTab() {
         ))}
       </div>
 
-      {/* ── Content ─────────────────────────────────────────────── */}
+      {/* â”€â”€ Content â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <AnimatePresence mode="wait">
         <motion.div
           key={activeTab}
@@ -1224,7 +1223,7 @@ export default function StaffManagementTab() {
         </motion.div>
       </AnimatePresence>
 
-      {/* ── Add Staff Modal ──────────────────────────────────────── */}
+      {/* â”€â”€ Add Staff Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <AddStaffModal
         open={showModal}
         onClose={() => setShowModal(false)}
