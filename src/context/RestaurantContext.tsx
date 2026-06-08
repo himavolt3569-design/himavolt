@@ -297,3 +297,11 @@ export function useRestaurant() {
 
   return ctx;
 }
+
+export function useOptionalRestaurant() {
+  const ctx = useContext(RestaurantContext);
+  useEffect(() => {
+    if (ctx) ctx.fetchIfNeeded();
+  }, [ctx]); // eslint-disable-line react-hooks/exhaustive-deps
+  return ctx;
+}

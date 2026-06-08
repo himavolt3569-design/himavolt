@@ -443,7 +443,6 @@ export default function POSTables3DView({
             dpr={[1, 1.5]}
           >
             <Suspense fallback={null}>
-              <Environment preset="warehouse" />
               <Scene
                 tables={positioned}
                 selectedId={selectedId}

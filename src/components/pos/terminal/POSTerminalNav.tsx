@@ -15,7 +15,8 @@ export type POSView =
   | "tables"
   | "billing"
   | "held"
-  | "summary";
+  | "summary"
+  | "menu";
 
 interface NavDef {
   id: POSView;
@@ -32,6 +33,7 @@ const NAV: NavDef[] = [
   { id: "billing", label: "Billing", icon: Receipt, hotkey: "4", badgeKey: "billing" },
   { id: "held", label: "Held", icon: PauseCircle, hotkey: "5", badgeKey: "held" },
   { id: "summary", label: "Summary", icon: BarChart3, hotkey: "6" },
+  { id: "menu", label: "Menu", icon: ClipboardList, hotkey: "7" },
 ];
 
 interface Props {

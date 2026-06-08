@@ -48,6 +48,10 @@ const POSInactiveScreen = dynamic(
   () => import("@/components/pos/staff/POSInactiveScreen"),
   { loading: POSPanelLoader, ssr: false },
 );
+const MenuManagementTab = dynamic(
+  () => import("@/components/dashboard/MenuManagementTab"),
+  { loading: POSPanelLoader, ssr: false },
+);
 
 interface StaffSession {
   userId: string;
@@ -441,6 +445,15 @@ export default function POSTerminal() {
               restaurantId={session.restaurantId}
               currency={session.currency}
             />
+          )}
+
+          {activeView === "menu" && (
+            <div className="h-full overflow-y-auto bg-[var(--canvas-sub)]">
+              <MenuManagementTab
+                overrideRestaurantId={session.restaurantId}
+                overrideCurrency={session.currency}
+              />
+            </div>
           )}
         </main>
       </div>

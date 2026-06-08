@@ -39,7 +39,7 @@ import {
   ShieldAlert,
   Info,
 } from "lucide-react";
-import { useRestaurant } from "@/context/RestaurantContext";
+import { useRestaurant, useOptionalRestaurant } from "@/context/RestaurantContext";
 import { apiFetch } from "@/lib/api-client";
 import { useToast } from "@/context/ToastContext";
 import { formatPrice, getCurrencySymbol } from "@/lib/currency";
@@ -1265,9 +1265,16 @@ function AddSubCategoryInline({
 }
 
 
-export default function MenuManagementTab() {
-  const { selectedRestaurant } = useRestaurant();
-  const cur = selectedRestaurant?.currency ?? "NPR";
+export default function MenuManagementTab({
+  overrideRestaurantId,
+  overrideCurrency,
+}: {
+  overrideRestaurantId?: string;
+  overrideCurrency?: string;
+} = {}) {
+  const ctx = useOptionalRestaurant();
+  const restaurantId = overrideRestaurantId || ctx?.selectedRestaurant?.id;
+  const cur = overrideCurrency || ctx?.selectedRestaurant?.currency || "NPR";
   const curSymbol = getCurrencySymbol(cur);
   const { showToast } = useToast();
   const [items, setItems] = useState<MenuItem[]>([]);
@@ -1289,8 +1296,6 @@ export default function MenuManagementTab() {
     subcategories: number;
   } | null>(null);
   const newCatInputRef = useRef<HTMLInputElement>(null);
-
-  const restaurantId = selectedRestaurant?.id;
 
   const [isOpen, setIsOpen] = useState(true);
   const [deliveryEnabled, setDeliveryEnabled] = useState(false);
