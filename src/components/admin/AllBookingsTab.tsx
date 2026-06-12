@@ -80,7 +80,7 @@ export default function AllBookingsTab() {
   const fetchBookings = async (showRefreshing = false) => {
     if (showRefreshing) setRefreshing(true); else setLoading(true);
     try {
-      const res = await fetch("/api/admin/bookings?limit=200");
+      const res = await fetch("/api/admin/bookings?limit=200", { cache: "no-store" });
       const data = await res.json();
       setBookings(Array.isArray(data.bookings) ? data.bookings : []);
     } finally {

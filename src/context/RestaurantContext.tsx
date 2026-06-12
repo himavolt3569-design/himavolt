@@ -120,7 +120,7 @@ interface RestaurantContextType {
 const RestaurantContext = createContext<RestaurantContextType | null>(null);
 
 export function RestaurantProvider({ children }: { children: ReactNode }) {
-  const { isSignedIn, isLoaded } = useAuth();
+  const { isSignedIn, isLoaded, refreshRole } = useAuth();
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [selectedRestaurant, setSelectedRestaurant] =
     useState<Restaurant | null>(null);
@@ -185,9 +185,13 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
         body: data,
       });
       await fetchRestaurants();
+      // Creating a restaurant upgrades a CUSTOMER to OWNER server-side; refresh
+      // the cached role so the owner UI (dashboard, "My Restaurants") appears
+      // immediately instead of after the 5-minute role cache expires.
+      await refreshRole();
       return restaurant;
     },
-    [fetchRestaurants],
+    [fetchRestaurants, refreshRole],
   );
 
   const deleteRestaurant = useCallback(

@@ -70,6 +70,13 @@ export default function RootLayout({
   return (
     <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
       <head>
+        {/* Apply the stored theme before paint to avoid a flash of the wrong
+            theme on load. Mirrors the logic in ThemeContext. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{if(localStorage.getItem('theme')==='dark'){document.documentElement.classList.add('dark');}}catch(e){}})();`,
+          }}
+        />
         <link
           rel="apple-touch-icon"
           sizes="180x180"

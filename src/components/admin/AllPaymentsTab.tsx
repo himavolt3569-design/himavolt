@@ -104,7 +104,7 @@ export default function AllPaymentsTab() {
         if (statusFilter !== "All") params.set("status", statusFilter);
         if (methodFilter !== "All") params.set("method", methodFilter);
 
-        const res = await fetch(`/api/admin/payments?${params}`);
+        const res = await fetch(`/api/admin/payments?${params}`, { cache: "no-store" });
         const data = await res.json();
         setPayments(data.payments || []);
         setPagination(data.pagination);

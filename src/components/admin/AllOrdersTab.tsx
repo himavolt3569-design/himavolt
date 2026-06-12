@@ -116,7 +116,7 @@ export default function AllOrdersTab() {
         if (statusFilter !== "All") params.set("status", statusFilter);
         if (typeFilter !== "All") params.set("type", typeFilter);
 
-        const res = await fetch(`/api/admin/orders?${params}`);
+        const res = await fetch(`/api/admin/orders?${params}`, { cache: "no-store" });
         const data = await res.json();
         setOrders(data.orders ?? []);
         setPagination(data.pagination);

@@ -87,7 +87,7 @@ export default function AllRestaurantsTab() {
         if (search) params.set("search", search);
         if (typeFilter !== "All") params.set("type", typeFilter);
         if (activeFilter) params.set("isActive", activeFilter);
-        const res = await fetch(`/api/admin/restaurants?${params}`);
+        const res = await fetch(`/api/admin/restaurants?${params}`, { cache: "no-store" });
         const data = await res.json();
         setRestaurants(data.restaurants || []);
         setPagination(data.pagination);
