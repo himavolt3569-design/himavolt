@@ -107,8 +107,8 @@ export default function MasterOverview({
   const fetchStats = useCallback(async () => {
     try {
       const [sRes, pRes] = await Promise.all([
-        fetch("/api/admin/stats"),
-        fetch("/api/admin/presence"),
+        fetch("/api/admin/stats", { cache: "no-store" }),
+        fetch("/api/admin/presence", { cache: "no-store" }),
       ]);
       setStats(await sRes.json());
       if (pRes.ok) setPresence(await pRes.json());

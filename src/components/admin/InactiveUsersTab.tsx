@@ -82,7 +82,7 @@ export default function InactiveUsersTab() {
         const params = new URLSearchParams({ page: String(p), limit: "30" });
         if (search) params.set("search", search);
 
-        const res = await fetch(`/api/admin/inactive-users?${params}`);
+        const res = await fetch(`/api/admin/inactive-users?${params}`, { cache: "no-store" });
         if (!res.ok) throw new Error("Failed");
         const data = await res.json();
         setUsers(data.users);

@@ -113,7 +113,7 @@ export default function AllDeliveriesTab() {
         const params = new URLSearchParams({ page: String(p), limit: "30" });
         if (statusFilter !== "All") params.set("status", statusFilter);
 
-        const res = await fetch(`/api/admin/deliveries?${params}`);
+        const res = await fetch(`/api/admin/deliveries?${params}`, { cache: "no-store" });
         if (!res.ok) throw new Error("Failed");
         const data = await res.json();
         setDeliveries(data.deliveries);

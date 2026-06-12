@@ -1,6 +1,9 @@
 @import "tailwindcss";
 
-
+/* Wire Tailwind v4's `dark:` variant to the `.dark` class on <html>
+   (set by ThemeContext). Without this, `dark:` utilities only respond to the
+   OS `prefers-color-scheme` and the manual theme toggle does nothing. */
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
   --font-sans: var(--font-inter);
@@ -72,6 +75,52 @@
     --status-success-bg:     #d1fae5; /* Emerald 100 */
     --status-success-text:   #059669; /* Emerald 600 */
     --status-success-border: #a7f3d0; /* Emerald 200 */
+  }
+
+  /* ── Dark theme ──
+     Activated by the `.dark` class on <html> (toggled in ThemeContext).
+     Overrides the same CSS custom properties with a warm dark palette so any
+     surface built on var(--canvas/-surface/-text/...) flips automatically. */
+  .dark {
+    color-scheme: dark;
+
+    /* Surfaces — Warm dark materials */
+    --canvas:      #17110b; /* Deep warm near-black */
+    --canvas-sub:  #100b07; /* Darkest base */
+    --surface:     #221810; /* Raised warm surface */
+    --surface-alt: #2b2015; /* Soft raised surface */
+    --border:      #3a2c1e; /* Warm border */
+    --border-soft: #2a2015; /* Very soft border */
+
+    /* Text — Warm high-contrast on dark */
+    --text-1: #f6efe6; /* Near-white warm */
+    --text-2: #d7c5b3; /* Mid warm */
+    --text-3: #9c8975; /* Muted warm */
+
+    /* Brand accent — Flame stays vivid on dark */
+    --accent:        #eaa94d;
+    --accent-hover:  #f1c980;
+    --accent-text:   #f1c980;
+    --accent-muted:  #2a1d10;
+    --accent-border: rgba(234, 169, 77, 0.28);
+
+    /* Status — Dark-surface variants */
+    --status-pending-bg:     #3a2406;
+    --status-pending-text:   #fbbf24;
+    --status-preparing-bg:   #3a1908;
+    --status-preparing-text: #fb923c;
+    --status-ready-bg:       #2a1d10;
+    --status-ready-text:     #f1c980;
+    --status-done-bg:        #1e293b;
+    --status-done-text:      #94a3b8;
+    --status-error-bg:       #3f1212;
+    --status-error-text:     #f87171;
+    --status-info-bg:        #16233f;
+    --status-info-text:      #60a5fa;
+    --status-info-border:    #1e3a8a;
+    --status-success-bg:     #0c2a1a;
+    --status-success-text:   #34d399;
+    --status-success-border: #065f46;
   }
 
   html {

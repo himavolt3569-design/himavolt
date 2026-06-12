@@ -107,7 +107,7 @@ export default function AllChatsTab() {
         const params = new URLSearchParams({ page: String(p), limit: "20" });
         if (activeFilter) params.set("isActive", activeFilter);
 
-        const res = await fetch(`/api/admin/chats?${params}`);
+        const res = await fetch(`/api/admin/chats?${params}`, { cache: "no-store" });
         if (!res.ok) throw new Error("Failed");
         const data = await res.json();
         setRooms(data.rooms);

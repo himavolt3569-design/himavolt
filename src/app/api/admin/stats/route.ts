@@ -22,7 +22,7 @@ export async function GET() {
 
   if (cachedStats && cachedStats.expiresAt > Date.now()) {
     return NextResponse.json(cachedStats.data, {
-      headers: { "Cache-Control": "private, max-age=15" },
+      headers: { "Cache-Control": "no-store" },
     });
   }
 

@@ -75,7 +75,7 @@ export default function AllUsersTab() {
         if (search) params.set("search", search);
         if (roleFilter !== "All") params.set("role", roleFilter);
 
-        const res = await fetch(`/api/admin/users?${params}`);
+        const res = await fetch(`/api/admin/users?${params}`, { cache: "no-store" });
         if (!res.ok) return;
         const data = await res.json();
         setUsers(data.users || []);

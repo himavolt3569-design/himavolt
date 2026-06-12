@@ -18,8 +18,12 @@ interface AuthContextType {
   isLoaded: boolean;
   isSignedIn: boolean;
   userRole: string | null;
+  refreshRole: () => Promise<void>;
   signOut: () => Promise<void>;
 }
+
+const ROLE_CACHE_PREFIX = "hh_me_cache_";
+const ROLE_CACHE_TTL = 5 * 60 * 1000;
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
@@ -29,62 +33,89 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
 
+  // Fetch the authoritative role from the server. `force` skips the
+  // sessionStorage cache (used after events that can change the role, e.g.
+  // creating a first restaurant upgrades CUSTOMER -> OWNER).
+  const fetchRole = useCallback(
+    async (force = false, signal?: AbortSignal, attempt = 0) => {
+      const uid = session?.user?.id;
+      if (!uid) return;
+      const cacheKey = `${ROLE_CACHE_PREFIX}${uid}`;
+
+      if (!force) {
+        try {
+          const raw = sessionStorage.getItem(cacheKey);
+          if (raw) {
+            const cached = JSON.parse(raw);
+            if (cached.role && Date.now() - cached.ts < ROLE_CACHE_TTL) {
+              setUserRole(cached.role);
+              return;
+            }
+          }
+        } catch {}
+      }
+
+      // Retry an unresolved role a couple of times before giving up. The role
+      // may be momentarily unknown right after OAuth while /auth/callback is
+      // still provisioning the DB record, or on a transient /api/me failure.
+      const retry = () => {
+        if (signal?.aborted || attempt >= 2) return;
+        setTimeout(() => {
+          if (!signal?.aborted) fetchRole(true, signal, attempt + 1);
+        }, 1500 * (attempt + 1));
+      };
+
+      try {
+        const r = await fetch("/api/me", { signal, cache: "no-store" });
+        if (!r.ok) throw new Error(`/api/me returned ${r.status}`);
+        const d = await r.json();
+        const role: string | null = d.role ?? null;
+        setUserRole(role);
+        // Only cache a real role. A null/unknown role (transient server error,
+        // OAuth account still being provisioned by /auth/callback, etc.) must
+        // NOT be persisted — otherwise a genuine OWNER gets pinned to the
+        // customer experience for the cache TTL and never sees their pages.
+        if (role) {
+          try {
+            sessionStorage.setItem(
+              cacheKey,
+              JSON.stringify({ role, ts: Date.now() }),
+            );
+          } catch {}
+        } else {
+          retry();
+        }
+      } catch (err) {
+        if (err instanceof DOMException && err.name === "AbortError") return;
+        // Leave the role unresolved (null) so consumers keep showing a loading
+        // state rather than mislabeling the user, and retry. We deliberately do
+        // NOT consult user_metadata.intended_role since that field is
+        // user-writable; the server is the source of truth for role.
+        setUserRole(null);
+        retry();
+      }
+    },
+    [session],
+  );
+
+  const refreshRole = useCallback(() => fetchRole(true), [fetchRole]);
+
   useEffect(() => {
     if (!session) {
       setUserRole(null);
       try {
         const keys = Object.keys(sessionStorage);
         for (const k of keys) {
-          if (k.startsWith("hh_me_cache_")) sessionStorage.removeItem(k);
+          if (k.startsWith(ROLE_CACHE_PREFIX)) sessionStorage.removeItem(k);
         }
       } catch {}
       return;
     }
 
-    const CACHE_KEY = `hh_me_cache_${session.user?.id ?? "anon"}`;
-    const CACHE_TTL = 5 * 60 * 1000;
-
-    let hasFreshCachedRole = false;
-
-    try {
-      const raw = sessionStorage.getItem(CACHE_KEY);
-      if (raw) {
-        const cached = JSON.parse(raw);
-        if (Date.now() - cached.ts < CACHE_TTL) {
-          setUserRole(cached.role ?? "CUSTOMER");
-          hasFreshCachedRole = true;
-        }
-      }
-    } catch {}
-
-    if (hasFreshCachedRole) return;
-
     const controller = new AbortController();
-    fetch("/api/me", { signal: controller.signal })
-      .then((r) => {
-        if (!r.ok) throw new Error(`/api/me returned ${r.status}`);
-        return r.json();
-      })
-      .then((d) => {
-        const role = d.role ?? "CUSTOMER";
-        setUserRole(role);
-        try {
-          sessionStorage.setItem(
-            CACHE_KEY,
-            JSON.stringify({ role, ts: Date.now() }),
-          );
-        } catch {}
-      })
-      .catch((err) => {
-        if (err instanceof DOMException && err.name === "AbortError") return;
-        // /api/me failed — default to CUSTOMER. We deliberately do NOT consult
-        // user_metadata.intended_role since that field is user-writable; the
-        // server is the only source of truth for role.
-        setUserRole("CUSTOMER");
-      });
-
+    fetchRole(false, controller.signal);
     return () => controller.abort();
-  }, [session]);
+  }, [session, fetchRole]);
 
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
@@ -128,6 +159,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isLoaded,
         isSignedIn: !!session,
         userRole,
+        refreshRole,
         signOut,
       }}
     >
