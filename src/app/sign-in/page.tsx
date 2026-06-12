@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
+import { rememberIntendedRole, clearIntendedRole } from "@/lib/intended-role";
 import { Mountain, Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -45,9 +46,10 @@ export default function SignInPage() {
   };
 
   const handleGoogleSignIn = async () => {
-    // Role flows through the OAuth `redirectTo` query string on the callback.
     // Generic login doesn't pass a role, allowing the callback to use the
-    // existing DB role or default to CUSTOMER.
+    // existing DB role or default to CUSTOMER. Clear any stale intended-role
+    // hint from a previous abandoned owner sign-up so it can't leak in here.
+    clearIntendedRole();
     const supabase = getSupabaseBrowserClient();
     await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -173,6 +175,7 @@ export default function SignInPage() {
           <h3 className="text-white font-bold text-sm mb-4 leading-snug px-4">Manage your restaurant or join as a partner</h3>
           <button
             onClick={() => {
+              rememberIntendedRole("OWNER");
               const supabase = getSupabaseBrowserClient();
               supabase.auth.signInWithOAuth({
                 provider: "google",
