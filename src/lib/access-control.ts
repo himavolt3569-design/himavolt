@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
 import { getOrCreateUser } from "@/lib/auth";
 import { getStaffSession, StaffPayload } from "@/lib/staff-auth";
-import { STAFF_MANAGER_ROLES } from "@/lib/staff-roles";
+import { STAFF_MANAGER_ROLES, STAFF_BILLING_ROLES } from "@/lib/staff-roles";
 
 export type AccessContext =
   | { kind: "owner"; userId: string }
@@ -34,6 +34,25 @@ export async function requireOwnerOrStaffManager(
   if (!access) return null;
   if (access.kind === "staff") {
     if (!(STAFF_MANAGER_ROLES as readonly string[]).includes(access.staff.role)) {
+      return null;
+    }
+  }
+  return access;
+}
+
+/**
+ * Owner, or staff in a billing role (SUPER_ADMIN, MANAGER, CASHIER).
+ * Used for booking, guest check-in and advance-payment actions — the
+ * front-desk/cashier surface. Waiters and chefs are rejected.
+ */
+export async function requireOwnerOrStaffBilling(
+  req: NextRequest,
+  restaurantId: string,
+): Promise<AccessContext | null> {
+  const access = await getRestaurantAccess(req, restaurantId);
+  if (!access) return null;
+  if (access.kind === "staff") {
+    if (!(STAFF_BILLING_ROLES as readonly string[]).includes(access.staff.role)) {
       return null;
     }
   }

@@ -25,8 +25,20 @@ const TabLoader = () => (
   </div>
 );
 
-const lazyTab = (loader: () => Promise<{ default: React.ComponentType<any> }>) =>
-  dynamic(loader, { loading: TabLoader, ssr: false });
+type PreloadableComponent = React.ComponentType<any> & {
+  preload?: () => Promise<unknown>;
+};
+
+// Attach the raw import loader to the dynamic component so we can warm its JS
+// chunk ahead of time (on nav hover/focus). Without this, switching tabs first
+// downloads the chunk on click — showing TabLoader — before anything renders.
+const lazyTab = (
+  loader: () => Promise<{ default: React.ComponentType<any> }>,
+): PreloadableComponent => {
+  const Comp = dynamic(loader, { loading: TabLoader, ssr: false }) as PreloadableComponent;
+  Comp.preload = loader;
+  return Comp;
+};
 
 const OverviewTab = lazyTab(() => import("@/components/dashboard/OverviewTab"));
 const MenuManagementTab = lazyTab(() => import("@/components/dashboard/MenuManagementTab"));
@@ -146,6 +158,15 @@ const COMPONENTS: Record<string, React.ComponentType<any>> = {
   "hotel-bookings": HotelBookingsTab,
   "hotel-qr": HotelQRTab,
 };
+
+/**
+ * Warm a dashboard tab's lazy JS chunk before the user clicks it (called on nav
+ * hover/focus). No-ops for unknown tabs and swallows network errors.
+ */
+export function preloadTab(tab: string): void {
+  const Component = COMPONENTS[tab] as PreloadableComponent | undefined;
+  Component?.preload?.().catch(() => {});
+}
 
 export default function DynamicDashboardTab({ params }: { params: Promise<{ tab: string }> }) {
   const { tab } = use(params);

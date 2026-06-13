@@ -1,23 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getOrCreateUser } from "@/lib/auth";
-import { getStaffSession } from "@/lib/staff-auth";
+import { requireOwnerOrStaffBilling } from "@/lib/access-control";
 
 type Params = { params: Promise<{ id: string; checkInId: string }> };
 
-async function canAccess(req: NextRequest, restaurantId: string) {
-  const staffSession = await getStaffSession(req);
-  if (staffSession && staffSession.restaurantId === restaurantId) return true;
-  const user = await getOrCreateUser();
-  if (!user) return false;
-  const rest = await db.restaurant.findFirst({ where: { id: restaurantId, ownerId: user.id } });
-  return !!rest;
-}
-
 export async function PATCH(req: NextRequest, { params }: Params) {
   const { id: restaurantId, checkInId } = await params;
-  if (!(await canAccess(req, restaurantId))) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!(await requireOwnerOrStaffBilling(req, restaurantId))) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  // Ensure the check-in belongs to this restaurant before mutating it.
+  const existing = await db.guestCheckIn.findFirst({
+    where: { id: checkInId, restaurantId },
+    select: { id: true },
+  });
+  if (!existing) {
+    return NextResponse.json({ error: "Check-in not found" }, { status: 404 });
   }
 
   const body = await req.json();
@@ -47,10 +46,17 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
 export async function DELETE(req: NextRequest, { params }: Params) {
   const { id: restaurantId, checkInId } = await params;
-  if (!(await canAccess(req, restaurantId))) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!(await requireOwnerOrStaffBilling(req, restaurantId))) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  await db.guestCheckIn.delete({ where: { id: checkInId } });
+  // Scope the delete to this restaurant so a foreign id can't be removed.
+  const { count } = await db.guestCheckIn.deleteMany({
+    where: { id: checkInId, restaurantId },
+  });
+  if (count === 0) {
+    return NextResponse.json({ error: "Check-in not found" }, { status: 404 });
+  }
+
   return NextResponse.json({ success: true });
 }

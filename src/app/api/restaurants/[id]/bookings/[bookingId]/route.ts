@@ -1,28 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getOrCreateUser } from "@/lib/auth";
-import { getStaffSession } from "@/lib/staff-auth";
+import {
+  getRestaurantAccess,
+  requireOwnerOrStaffBilling,
+  requireOwnerOrStaffManager,
+} from "@/lib/access-control";
 
 type Params = { params: Promise<{ id: string; bookingId: string }> };
 
-async function canAccess(req: NextRequest, restaurantId: string) {
-  const staff = await getStaffSession(req);
-  if (staff && staff.restaurantId === restaurantId) return true;
-  const user = await getOrCreateUser();
-  if (!user) return false;
-  const rest = await db.restaurant.findFirst({
-    where: { id: restaurantId, ownerId: user.id },
-  });
-  return !!rest;
-}
-
-// GET /api/restaurants/[id]/bookings/[bookingId] — get booking details
+// GET /api/restaurants/[id]/bookings/[bookingId] — get booking details (any staff or owner)
 export async function GET(
   req: NextRequest,
   { params }: Params,
 ) {
   const { id, bookingId } = await params;
-  if (!(await canAccess(req, id))) {
+  if (!(await getRestaurantAccess(req, id))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -51,14 +43,14 @@ export async function GET(
   return NextResponse.json(booking);
 }
 
-// PATCH /api/restaurants/[id]/bookings/[bookingId] — update booking status / advance payment
+// PATCH /api/restaurants/[id]/bookings/[bookingId] — update status / check-in / advance (owner or billing staff)
 export async function PATCH(
   req: NextRequest,
   { params }: Params,
 ) {
   const { id, bookingId } = await params;
-  if (!(await canAccess(req, id))) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!(await requireOwnerOrStaffBilling(req, id))) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const existing = await db.roomBooking.findFirst({
@@ -116,14 +108,14 @@ export async function PATCH(
   return NextResponse.json(booking);
 }
 
-// DELETE /api/restaurants/[id]/bookings/[bookingId] — delete a booking
+// DELETE /api/restaurants/[id]/bookings/[bookingId] — delete a booking (owner or manager)
 export async function DELETE(
   req: NextRequest,
   { params }: Params,
 ) {
   const { id, bookingId } = await params;
-  if (!(await canAccess(req, id))) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!(await requireOwnerOrStaffManager(req, id))) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const existing = await db.roomBooking.findFirst({

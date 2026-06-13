@@ -1,26 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getOrCreateUser } from "@/lib/auth";
-import { getStaffSession } from "@/lib/staff-auth";
+import {
+  getRestaurantAccess,
+  requireOwnerOrStaffManager,
+} from "@/lib/access-control";
 
-async function canAccess(req: NextRequest, restaurantId: string) {
-  const staff = await getStaffSession(req);
-  if (staff && staff.restaurantId === restaurantId) return true;
-  const user = await getOrCreateUser();
-  if (!user) return false;
-  const rest = await db.restaurant.findFirst({
-    where: { id: restaurantId, ownerId: user.id },
-  });
-  return !!rest;
-}
-
-// GET /api/restaurants/[id]/hotel-config
+// GET /api/restaurants/[id]/hotel-config (any staff or owner)
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  if (!(await canAccess(req, id))) {
+  if (!(await getRestaurantAccess(req, id))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -40,21 +31,13 @@ export async function GET(
   return NextResponse.json(restaurant);
 }
 
-// PATCH /api/restaurants/[id]/hotel-config
+// PATCH /api/restaurants/[id]/hotel-config — advance config (owner or manager)
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  // Only owner can change this, not arbitrary staff
-  const user = await getOrCreateUser();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  const rest = await db.restaurant.findFirst({
-    where: { id, ownerId: user.id },
-  });
-  if (!rest) {
+  if (!(await requireOwnerOrStaffManager(req, id))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
