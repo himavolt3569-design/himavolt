@@ -94,13 +94,18 @@ export const HOTEL_HUB_NAV_ITEM = {
 
 export const ROOM_ENABLED_TYPES = new Set(["HOTEL", "RESORT", "GUEST_HOUSE"]);
 
+/**
+ * Feature ids that have been folded into the consolidated Hotel Hub.
+ * For hotel-type venues these are never shown as standalone nav items —
+ * they live inside the Hub. `room-service` and `guest-billing` are NOT
+ * here: they remain standalone food-ops features.
+ */
 export const HUB_FEATURE_IDS = new Set<FeatureTabId>([
+  "rooms",
   "hotel-bookings",
   "hotel-qr",
   "room-qr-codes",
   "guest-checkin",
-  "room-service",
-  "guest-billing",
 ]);
 
 export const NAV_MANAGE: typeof NAV_MAIN = [
@@ -160,6 +165,7 @@ export const FEATURE_ICONS: Record<FeatureTabId, any> = {
   "room-qr-codes": QrCode,
   "hotel-bookings": CalendarCheck,
   "hotel-qr": QrCode,
+  "hotel-hub": BedDouble,
   rooms: BedDouble,
 };
 
@@ -197,6 +203,7 @@ export const LIVE_FEATURES = new Set<FeatureTabId>([
   "room-qr-codes",
   "hotel-bookings",
   "hotel-qr",
+  "hotel-hub",
 ]);
 
 export const SHORTCUTS: Record<string, DashTab> = {

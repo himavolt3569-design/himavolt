@@ -1,25 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getOrCreateUser } from "@/lib/auth";
-import { getStaffSession } from "@/lib/staff-auth";
+import {
+  getRestaurantAccess,
+  requireOwnerOrStaffBilling,
+} from "@/lib/access-control";
 
 type Params = { params: Promise<{ id: string }> };
 
-async function canAccess(req: NextRequest, restaurantId: string) {
-  const staff = await getStaffSession(req);
-  if (staff && staff.restaurantId === restaurantId) return true;
-  const user = await getOrCreateUser();
-  if (!user) return false;
-  const rest = await db.restaurant.findFirst({
-    where: { id: restaurantId, ownerId: user.id },
-  });
-  return !!rest;
-}
-
-// GET /api/restaurants/[id]/bookings — list all bookings
+// GET /api/restaurants/[id]/bookings — list all bookings (any staff or owner)
 export async function GET(req: NextRequest, { params }: Params) {
   const { id } = await params;
-  if (!(await canAccess(req, id))) {
+  if (!(await getRestaurantAccess(req, id))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -51,11 +42,11 @@ export async function GET(req: NextRequest, { params }: Params) {
   return NextResponse.json({ bookings, total, limit, offset });
 }
 
-// POST /api/restaurants/[id]/bookings — create a booking (staff-created)
+// POST /api/restaurants/[id]/bookings — create a booking (owner or billing staff)
 export async function POST(req: NextRequest, { params }: Params) {
   const { id } = await params;
-  if (!(await canAccess(req, id))) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!(await requireOwnerOrStaffBilling(req, id))) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const body = await req.json();

@@ -3,6 +3,8 @@ import { db } from "@/lib/db";
 import { getEsewaPaymentUrl } from "@/lib/payments/esewa";
 import { initiateKhaltiPayment } from "@/lib/payments/khalti";
 import { decryptIfPresent } from "@/lib/encryption";
+import { getStaffSession } from "@/lib/staff-auth";
+import { STAFF_BILLING_ROLES } from "@/lib/staff-roles";
 
 const APP_URL =
   process.env.NEXT_PUBLIC_APP_URL ||
@@ -42,9 +44,30 @@ export async function POST(req: NextRequest) {
   const amount = booking.advanceAmount;
 
   if (method === "CASH") {
+    // Cash settlement is a front-desk action — only billing-role staff of THIS
+    // hotel may mark a cash advance as collected. Customers cannot self-confirm
+    // a cash payment (the online gateways below are open for that instead).
+    const staff = await getStaffSession(req);
+    const isBillingStaff =
+      !!staff &&
+      staff.restaurantId === booking.restaurantId &&
+      (STAFF_BILLING_ROLES as readonly string[]).includes(staff.role);
+    if (!isBillingStaff) {
+      return NextResponse.json(
+        { error: "Cash payment can only be recorded by hotel staff" },
+        { status: 403 },
+      );
+    }
+
     await db.roomBooking.update({
       where: { id: bookingId },
-      data: { paymentMethod: "CASH", paymentStatus: "PAID", advancePaid: true, paidAt: new Date() },
+      data: {
+        paymentMethod: "CASH",
+        paymentStatus: "PAID",
+        advancePaid: true,
+        paidAt: new Date(),
+        status: "CONFIRMED",
+      },
     });
     return NextResponse.json({ success: true, method: "CASH" });
   }

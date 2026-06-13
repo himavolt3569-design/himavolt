@@ -21,6 +21,7 @@ import POSLauncher from "@/components/pos/activation/POSLauncher";
 import {
   getTypeLabel,
   getFeatureTabsForType,
+  isFeatureAvailable,
 } from "@/lib/restaurant-types";
 import {
   DashTab,
@@ -33,6 +34,7 @@ import {
   FEATURE_ICONS,
   ALL_NAV,
 } from "@/lib/dashboard-nav";
+import { preloadTab } from "@/app/dashboard/[tab]/page";
 
 function RestaurantSwitcher({ onNavigate }: { onNavigate?: () => void }) {
   const router = useRouter();
@@ -249,6 +251,8 @@ function NavSection({
                     key={item.id}
                     href={href}
                     onClick={() => onClose?.()}
+                    onMouseEnter={() => preloadTab(item.id)}
+                    onFocus={() => preloadTab(item.id)}
                     className={`group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-semibold transition-colors cursor-pointer ${
                       isActive
                         ? "bg-[var(--accent-muted)] text-[var(--accent-text)] border-l-2 border-[var(--accent)]"
@@ -341,6 +345,9 @@ export default function DashboardSidebar({
     });
     const isHotelType = ROOM_ENABLED_TYPES.has(restaurantType);
     return features
+      // Hotel Hub has a dedicated nav entry; the rest of the folded cluster is
+      // never shown standalone for hotel-type venues.
+      .filter((f) => f.id !== "hotel-hub")
       .filter((f) => !(isHotelType && HUB_FEATURE_IDS.has(f.id)))
       .map((f) => ({
         id: f.id as DashTab,
@@ -349,16 +356,29 @@ export default function DashboardSidebar({
       }));
   }, [restaurantType, featuresEnabled, featuresDisabled]);
 
+  // Hotel Hub is shown when the venue's effective feature set includes it —
+  // i.e. a hotel-type venue whose owner hasn't force-disabled it (or any venue
+  // that force-enabled it via Owner Controls).
+  const showHotelHub = useMemo(
+    () =>
+      restaurantType
+        ? isFeatureAvailable(restaurantType, "hotel-hub", {
+            featuresEnabled,
+            featuresDisabled,
+          })
+        : false,
+    [restaurantType, featuresEnabled, featuresDisabled],
+  );
+
   const manageNavItems = useMemo(() => {
-    const showHotel = restaurantType ? ROOM_ENABLED_TYPES.has(restaurantType) : false;
-    if (!showHotel) return NAV_MANAGE;
+    if (!showHotelHub) return NAV_MANAGE;
     const insertAt = Math.max(0, NAV_MANAGE.length - 1);
     return [
       ...NAV_MANAGE.slice(0, insertAt),
       HOTEL_HUB_NAV_ITEM,
       ...NAV_MANAGE.slice(insertAt),
     ];
-  }, [restaurantType]);
+  }, [showHotelHub]);
 
   const typeLabel = restaurantType ? getTypeLabel(restaurantType) : "";
 
@@ -384,10 +404,7 @@ export default function DashboardSidebar({
         />
         <div className="flex-1 flex flex-col items-center gap-1 mt-2 overflow-y-auto w-full px-2 scrollbar-slim">
           {ALL_NAV
-            .filter((item) =>
-              item.id !== "hotel-hub" ||
-              (restaurantType ? ROOM_ENABLED_TYPES.has(restaurantType) : false),
-            )
+            .filter((item) => item.id !== "hotel-hub" || showHotelHub)
             .map((item) => {
               const Icon = item.icon;
               const isActive = active === item.id || (active === "dashboard" && item.id === "overview");
@@ -398,6 +415,8 @@ export default function DashboardSidebar({
                   key={item.id}
                   href={href}
                   title={item.label}
+                  onMouseEnter={() => preloadTab(item.id)}
+                  onFocus={() => preloadTab(item.id)}
                   className={`relative flex h-9 w-9 items-center justify-center rounded-xl transition-colors ${
                     isActive
                       ? "bg-[var(--accent-muted)] text-[var(--accent)] border border-[var(--accent-border)]"
