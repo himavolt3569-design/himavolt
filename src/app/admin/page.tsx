@@ -136,7 +136,7 @@ const TABS: {
     icon: Truck,
     mobileLabel: "Delivery",
   },
-  { id: "audit", label: "Live Audit", icon: Zap, mobileLabel: "Audit" },
+  { id: "audit", label: "Activity Log", icon: Zap, mobileLabel: "Activity" },
   {
     id: "bookings",
     label: "Hotel Bookings",
@@ -151,9 +151,9 @@ const TABS: {
   },
   {
     id: "hero-settings",
-    label: "Hero",
+    label: "Homepage Banner",
     icon: Image,
-    mobileLabel: "Hero",
+    mobileLabel: "Banner",
   },
 ];
 
@@ -231,8 +231,8 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
                 >
                   <ShieldCheck className="h-10 w-10 text-white" />
                 </motion.div>
-                <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tighter mb-2">Verified</h2>
-                <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Master Node Sequence Initiated</p>
+                <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tighter mb-2">Signed In</h2>
+                <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Welcome back</p>
               </motion.div>
             ) : (
               <div key="form">
@@ -245,16 +245,16 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
                   >
                     <Shield className="h-8 w-8 text-white" />
                   </motion.div>
-                  <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tighter">Master Access</h1>
+                  <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tighter">Admin Login</h1>
                   <div className="mt-4 flex items-center justify-center gap-2">
                     <div className="h-1.5 w-1.5 rounded-full bg-blue-500" />
-                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">HimaVolt Control Node</span>
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">HimaVolt Admin</span>
                   </div>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-8">
                   <div className="space-y-3">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Identity Node</label>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Admin ID</label>
                     <div className="relative group">
                       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <KeyRound className="h-4 w-4 text-slate-300 group-focus-within:text-blue-500 transition-colors" />
@@ -263,7 +263,7 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
                         type="text"
                         value={adminId}
                         onChange={(e) => { setAdminId(e.target.value); setError(""); }}
-                        placeholder="ADMIN-NODE-01"
+                        placeholder="Your admin ID"
                         required
                         className="w-full pl-11 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-mono tracking-widest focus:outline-none focus:border-blue-500 focus:bg-white transition-all placeholder:tracking-normal placeholder:font-sans placeholder:text-slate-300 uppercase"
                       />
@@ -271,7 +271,7 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
                   </div>
 
                   <div className="space-y-3">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Secure Key</label>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Password</label>
                     <div className="relative group">
                       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <Lock className="h-4 w-4 text-slate-300 group-focus-within:text-blue-500 transition-colors" />
@@ -320,7 +320,7 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
                       <>
-                        Authorize node
+                        Sign In
                         <ArrowUpRight className="h-4 w-4" />
                       </>
                     )}
@@ -337,7 +337,7 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
             href="/" 
             className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 hover:text-slate-900 transition-colors"
           >
-            &larr; Exit Control Node
+            &larr; Back to website
           </Link>
         </div>
       </motion.div>
@@ -405,10 +405,10 @@ export default function MasterAdminPage() {
               <Shield className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h1 className="text-sm font-black uppercase tracking-[0.2em] text-slate-900 leading-none">Control Node</h1>
+              <h1 className="text-sm font-black uppercase tracking-[0.2em] text-slate-900 leading-none">HimaVolt Admin</h1>
               <div className="mt-1.5 flex items-center gap-2">
                 <div className="h-1 w-1 rounded-full bg-emerald-500" />
-                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Alpha-HH-7</span>
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Live</span>
               </div>
             </div>
           </div>
@@ -418,14 +418,14 @@ export default function MasterAdminPage() {
               href="/"
               className="hidden md:flex h-10 px-4 items-center gap-2 rounded-xl border border-slate-200 text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-all"
             >
-              Public <ArrowUpRight className="h-3 w-3 opacity-40" />
+              View Site <ArrowUpRight className="h-3 w-3 opacity-40" />
             </Link>
 
             <button
               onClick={handleLogout}
               className="h-10 px-5 rounded-xl bg-slate-100 text-slate-900 text-[10px] font-bold uppercase tracking-widest hover:bg-slate-200 transition-all active:scale-[0.98]"
             >
-              Terminate Session
+              Sign Out
             </button>
 
             <button
@@ -477,7 +477,7 @@ export default function MasterAdminPage() {
                onClick={(e) => e.stopPropagation()}
              >
                 <div className="flex items-center justify-between mb-8">
-                   <h2 className="text-xl font-black tracking-tight text-slate-900 uppercase">Directory</h2>
+                   <h2 className="text-xl font-black tracking-tight text-slate-900 uppercase">Menu</h2>
                    <button onClick={() => setMobileMenuOpen(false)} className="h-10 w-10 flex items-center justify-center rounded-xl bg-slate-50 text-slate-400">
                       <X className="h-5 w-5" />
                    </button>
@@ -521,7 +521,7 @@ export default function MasterAdminPage() {
                      <div>
                         <div className="flex items-center gap-2 mb-2">
                            <div className="h-1.5 w-1.5 rounded-full bg-slate-900" />
-                           <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-slate-400">Node Cluster Active</span>
+                           <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-slate-400">HimaVolt Admin</span>
                         </div>
                         <h2 className="text-4xl font-black text-slate-900 tracking-tighter uppercase leading-none">
                            {TABS.find(t => t.id === tab)?.label}

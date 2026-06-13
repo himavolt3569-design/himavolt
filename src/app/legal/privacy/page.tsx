@@ -60,7 +60,7 @@ const sections = [
     icon: Trash2,
     title: "7. Data Retention",
     content:
-      "We retain your personal information for as long as your account is active or as needed to provide services. Order history and transaction records are retained for a minimum of 5 years for legal and accounting purposes. If you request account deletion, we will remove your personal information within 30 days, except where retention is required by law. Anonymized data may be retained indefinitely for analytics purposes.",
+      "We retain your personal information for as long as your account is active or as needed to provide services. When you delete your account, your personal information is removed immediately and you are free to sign up again with the same email at any time. Order and transaction records are kept in anonymized form for a minimum of 5 years for legal and accounting purposes, and anonymized data may be retained indefinitely for analytics purposes.",
   },
   {
     icon: Bell,

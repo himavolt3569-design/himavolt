@@ -98,20 +98,15 @@ export async function GET(req: NextRequest) {
       ? await db.user.findFirst({ where: { email } })
       : null;
 
-    // Handle 30-day soft deletion logic
+    // Any leftover "scheduled deletion" record is treated as gone — remove it
+    // and let this sign-in provision a fresh account.
     if (existingUserById?.isDeleted) {
-      const daysSinceDelete = existingUserById.deletedAt ? (Date.now() - existingUserById.deletedAt.getTime()) / (1000 * 60 * 60 * 24) : 31;
-      if (daysSinceDelete > 30) {
-        try { await db.user.delete({ where: { id: existingUserById.id } }); } catch (e) {}
-        existingUserById = null;
-      }
+      try { await db.user.delete({ where: { id: existingUserById.id } }); } catch (e) {}
+      existingUserById = null;
     }
     if (existingUserByEmail?.isDeleted) {
-      const daysSinceDelete = existingUserByEmail.deletedAt ? (Date.now() - existingUserByEmail.deletedAt.getTime()) / (1000 * 60 * 60 * 24) : 31;
-      if (daysSinceDelete > 30) {
-        try { await db.user.delete({ where: { id: existingUserByEmail.id } }); } catch (e) {}
-        existingUserByEmail = null;
-      }
+      try { await db.user.delete({ where: { id: existingUserByEmail.id } }); } catch (e) {}
+      existingUserByEmail = null;
     }
 
     const existingUser = existingUserById ?? existingUserByEmail;

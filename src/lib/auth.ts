@@ -20,23 +20,12 @@ export const getAuthUser = cache(async () => {
   }
 
   if (user && user.isDeleted) {
-    const daysSinceDelete = user.deletedAt
-      ? (Date.now() - user.deletedAt.getTime()) / (1000 * 60 * 60 * 24)
-      : 31; // Legacy accounts without deletedAt are treated as > 30 days old
-
-    if (daysSinceDelete <= 30) {
-      // Within 30 days -> Restore the account
-      user = await db.user.update({
-        where: { id: user.id },
-        data: { isDeleted: false, deletedAt: null },
-      });
-    } else {
-      // Over 30 days -> Hard delete the old record
-      try {
-        await db.user.delete({ where: { id: user.id } });
-      } catch (e) {}
-      return null;
-    }
+    // Deleted accounts are gone for good. (This only ever matches leftover
+    // records from the old "scheduled deletion" behaviour — clean them up.)
+    try {
+      await db.user.delete({ where: { id: user.id } });
+    } catch (e) {}
+    return null;
   }
 
   if (user && user.isBlacklisted) {
@@ -82,16 +71,10 @@ export const getOrCreateUser = cache(async () => {
   // If already found by exact ID, check deletion and sync metadata
   if (dbUser) {
     if (dbUser.isDeleted) {
-      const daysSinceDelete = dbUser.deletedAt ? (Date.now() - dbUser.deletedAt.getTime()) / (1000 * 60 * 60 * 24) : 31;
-      if (daysSinceDelete <= 30) {
-        dbUser = await db.user.update({
-          where: { id: dbUser.id },
-          data: { isDeleted: false, deletedAt: null },
-        });
-      } else {
-        try { await db.user.delete({ where: { id: dbUser.id } }); } catch (e) {}
-        dbUser = null;
-      }
+      // Leftover record from the old "scheduled deletion" flow — remove it and
+      // provision a fresh account below, as if this were a brand-new sign-up.
+      try { await db.user.delete({ where: { id: dbUser.id } }); } catch (e) {}
+      dbUser = null;
     }
 
     if (dbUser) {
@@ -124,18 +107,10 @@ export const getOrCreateUser = cache(async () => {
     if (userByEmail.isBlacklisted) return null;
 
     if (userByEmail.isDeleted) {
-      const daysSinceDelete = userByEmail.deletedAt ? (Date.now() - userByEmail.deletedAt.getTime()) / (1000 * 60 * 60 * 24) : 31;
-      if (daysSinceDelete <= 30) {
-        await db.user.update({
-          where: { id: userByEmail.id },
-          data: { isDeleted: false, deletedAt: null },
-        });
-        userByEmail.isDeleted = false;
-        userByEmail.deletedAt = null;
-      } else {
-        try { await db.user.delete({ where: { id: userByEmail.id } }); } catch (e) {}
-        userByEmail = null;
-      }
+      // Leftover record from the old "scheduled deletion" flow — remove it so
+      // this email is treated as a clean, brand-new sign-up below.
+      try { await db.user.delete({ where: { id: userByEmail.id } }); } catch (e) {}
+      userByEmail = null;
     }
 
     if (userByEmail) {
