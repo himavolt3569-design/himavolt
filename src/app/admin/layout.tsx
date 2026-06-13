@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import AdminThemeLock from "./AdminThemeLock";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +22,7 @@ export default function AdminLayout({
         minHeight: "100vh",
       }}
     >
+      <AdminThemeLock />
       {children}
     </div>
   );

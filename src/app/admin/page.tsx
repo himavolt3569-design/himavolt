@@ -17,7 +17,6 @@ import {
   Menu,
   X,
   Lock,
-  LogOut,
   Eye,
   EyeOff,
   AlertCircle,
@@ -27,7 +26,6 @@ import {
   UserX,
   Image,
   Loader2,
-  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -211,9 +209,9 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
         className="relative w-full max-w-[420px] z-10"
       >
-        <div className="bg-white border border-slate-200 p-8 md:p-12 rounded-[3rem] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.06)] relative overflow-hidden">
-          
-          {/* Top Status Bar */}
+        <div className="bg-white border border-slate-200 p-8 md:p-10 rounded-3xl shadow-[0_24px_48px_-16px_rgba(0,0,0,0.08)] relative overflow-hidden">
+
+          {/* Top accent bar */}
           <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-transparent via-blue-500/20 to-transparent" />
 
           <AnimatePresence mode="wait">
@@ -231,8 +229,8 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
                 >
                   <ShieldCheck className="h-10 w-10 text-white" />
                 </motion.div>
-                <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tighter mb-2">Signed In</h2>
-                <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Welcome back</p>
+                <h2 className="text-2xl font-bold text-slate-900 tracking-tight mb-2">Signed in</h2>
+                <p className="text-slate-500 text-sm">Taking you to the dashboard…</p>
               </motion.div>
             ) : (
               <div key="form">
@@ -245,16 +243,16 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
                   >
                     <Shield className="h-8 w-8 text-white" />
                   </motion.div>
-                  <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tighter">Admin Login</h1>
-                  <div className="mt-4 flex items-center justify-center gap-2">
+                  <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Admin sign in</h1>
+                  <div className="mt-3 flex items-center justify-center gap-2">
                     <div className="h-1.5 w-1.5 rounded-full bg-blue-500" />
-                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">HimaVolt Admin</span>
+                    <span className="text-xs font-semibold text-slate-400 tracking-wide">HimaVolt Admin</span>
                   </div>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-8">
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Admin ID</label>
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-slate-600 ml-1">Admin ID</label>
                     <div className="relative group">
                       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <KeyRound className="h-4 w-4 text-slate-300 group-focus-within:text-blue-500 transition-colors" />
@@ -265,13 +263,13 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
                         onChange={(e) => { setAdminId(e.target.value); setError(""); }}
                         placeholder="Your admin ID"
                         required
-                        className="w-full pl-11 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-mono tracking-widest focus:outline-none focus:border-blue-500 focus:bg-white transition-all placeholder:tracking-normal placeholder:font-sans placeholder:text-slate-300 uppercase"
+                        className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all placeholder:text-slate-400"
                       />
                     </div>
                   </div>
 
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Password</label>
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-slate-600 ml-1">Password</label>
                     <div className="relative group">
                       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <Lock className="h-4 w-4 text-slate-300 group-focus-within:text-blue-500 transition-colors" />
@@ -280,9 +278,9 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
                         type={showPassword ? "text" : "password"}
                         value={password}
                         onChange={(e) => { setPassword(e.target.value); setError(""); }}
-                        placeholder="••••••••"
+                        placeholder="Your password"
                         required
-                        className="w-full pl-11 pr-12 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-mono tracking-widest focus:outline-none focus:border-blue-500 focus:bg-white transition-all placeholder:text-slate-300"
+                        className="w-full pl-11 pr-12 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all placeholder:text-slate-400"
                       />
                       <button
                         type="button"
@@ -298,10 +296,10 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
                     <motion.div
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
-                      className="flex items-center gap-3 p-4 rounded-2xl bg-red-50 border border-red-100 text-red-500"
+                      className="flex items-center gap-2.5 p-3.5 rounded-xl bg-red-50 border border-red-100 text-red-600"
                     >
                       <AlertCircle className="h-4 w-4 shrink-0" />
-                      <span className="text-[10px] font-black uppercase tracking-wider">{error}</span>
+                      <span className="text-sm font-medium">{error}</span>
                     </motion.div>
                   )}
 
@@ -310,17 +308,17 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
                     disabled={loading || !adminId || !password}
                     whileHover={{ scale: 1.01 }}
                     whileTap={{ scale: 0.99 }}
-                    className={`w-full py-4.5 rounded-2xl font-black uppercase tracking-[0.2em] text-[11px] transition-all flex items-center justify-center gap-3 shadow-xl ${
-                      loading || !adminId || !password 
-                        ? "bg-slate-100 text-slate-300 cursor-not-allowed" 
-                        : "bg-slate-900 text-white shadow-slate-900/10"
+                    className={`w-full py-3.5 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 shadow-lg ${
+                      loading || !adminId || !password
+                        ? "bg-slate-100 text-slate-300 cursor-not-allowed"
+                        : "bg-slate-900 text-white shadow-slate-900/10 hover:bg-slate-800"
                     }`}
                   >
                     {loading ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
                       <>
-                        Sign In
+                        Sign in
                         <ArrowUpRight className="h-4 w-4" />
                       </>
                     )}
@@ -335,7 +333,7 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
         <div className="mt-10 text-center">
           <Link 
             href="/" 
-            className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 hover:text-slate-900 transition-colors"
+            className="text-sm font-medium text-slate-400 hover:text-slate-900 transition-colors"
           >
             &larr; Back to website
           </Link>
@@ -354,7 +352,13 @@ const ADMIN_TAB_KEY = "hh_admin_tab";
 export default function MasterAdminPage() {
   const [authenticated, setAuthenticated] = useState(false);
   const [checking, setChecking] = useState(true);
-  const [tab, setTab] = useState<AdminTab>("overview");
+  // Restore the last-viewed tab from localStorage. Safe as a lazy initializer:
+  // the tab-dependent UI isn't rendered until the async `checking` state
+  // resolves, so there's no SSR/hydration mismatch on first paint.
+  const [tab, setTab] = useState<AdminTab>(() => {
+    if (typeof window === "undefined") return "overview";
+    return (localStorage.getItem(ADMIN_TAB_KEY) as AdminTab | null) ?? "overview";
+  });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleSetTab = (t: AdminTab) => {
@@ -362,10 +366,8 @@ export default function MasterAdminPage() {
     localStorage.setItem(ADMIN_TAB_KEY, t);
   };
 
-  // Check for existing admin session on mount
+  // Check for an existing admin session on mount.
   useEffect(() => {
-    const saved = localStorage.getItem(ADMIN_TAB_KEY) as AdminTab | null;
-    if (saved) setTab(saved);
     fetch("/api/admin/verify")
       .then((res) => {
         if (res.ok) setAuthenticated(true);
@@ -516,17 +518,12 @@ export default function MasterAdminPage() {
               <MasterOverview onNavigate={(t) => handleSetTab(t as AdminTab)} />
             )}
             <div className={`${tab === "overview" ? "hidden" : "block"}`}>
-               <section className="rounded-[2rem] bg-white border border-slate-200 p-8 md:p-12 shadow-sm min-h-[600px]">
-                  <header className="mb-10 flex items-center justify-between">
-                     <div>
-                        <div className="flex items-center gap-2 mb-2">
-                           <div className="h-1.5 w-1.5 rounded-full bg-slate-900" />
-                           <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-slate-400">HimaVolt Admin</span>
-                        </div>
-                        <h2 className="text-4xl font-black text-slate-900 tracking-tighter uppercase leading-none">
-                           {TABS.find(t => t.id === tab)?.label}
-                        </h2>
-                     </div>
+               <section className="rounded-3xl bg-white border border-slate-200 p-6 md:p-8 shadow-sm min-h-[600px]">
+                  <header className="mb-8">
+                     <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">HimaVolt Admin</span>
+                     <h2 className="mt-1 text-2xl font-bold text-slate-900 tracking-tight">
+                        {TABS.find(t => t.id === tab)?.label}
+                     </h2>
                   </header>
 
                   <div className="grid gap-8">
