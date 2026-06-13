@@ -24,15 +24,26 @@ export async function GET(req: NextRequest, { params }: Params) {
   if (available === "true") where.isAvailable = true;
   if (available === "false") where.isAvailable = false;
 
-  const rooms = await db.room.findMany({
-    where,
-    include: {
-      _count: { select: { bookings: true } },
-    },
-    orderBy: [{ sortOrder: "asc" }, { roomNumber: "asc" }],
-  });
+  // Prod runs a 1-connection Prisma pool and the Hotel Hub polls this endpoint.
+  // Degrade gracefully on transient pool/DB errors with a 503 instead of letting
+  // them surface as a raw 500 — mirrors the /tables endpoint.
+  try {
+    const rooms = await db.room.findMany({
+      where,
+      include: {
+        _count: { select: { bookings: true } },
+      },
+      orderBy: [{ sortOrder: "asc" }, { roomNumber: "asc" }],
+    });
 
-  return NextResponse.json(rooms);
+    return NextResponse.json(rooms);
+  } catch (err) {
+    console.error("[rooms] GET failed", err);
+    return NextResponse.json(
+      { error: "Could not load rooms. Please try again." },
+      { status: 503 },
+    );
+  }
 }
 
 // POST /api/restaurants/[id]/rooms — create a new room (owner or MANAGER+)
