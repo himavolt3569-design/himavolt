@@ -1,6 +1,8 @@
 import { cache } from "react";
+import { cookies } from "next/headers";
 import { db } from "./db";
 import { getSupabaseServerClient } from "./supabase-server";
+import { INTENDED_ROLE_COOKIE, normalizeIntendedRole } from "./intended-role";
 
 export const getAuthUser = cache(async () => {
   const supabase = await getSupabaseServerClient();
@@ -18,23 +20,12 @@ export const getAuthUser = cache(async () => {
   }
 
   if (user && user.isDeleted) {
-    const daysSinceDelete = user.deletedAt
-      ? (Date.now() - user.deletedAt.getTime()) / (1000 * 60 * 60 * 24)
-      : 31; // Legacy accounts without deletedAt are treated as > 30 days old
-
-    if (daysSinceDelete <= 30) {
-      // Within 30 days -> Restore the account
-      user = await db.user.update({
-        where: { id: user.id },
-        data: { isDeleted: false, deletedAt: null },
-      });
-    } else {
-      // Over 30 days -> Hard delete the old record
-      try {
-        await db.user.delete({ where: { id: user.id } });
-      } catch (e) {}
-      return null;
-    }
+    // Deleted accounts are gone for good. (This only ever matches leftover
+    // records from the old "scheduled deletion" behaviour — clean them up.)
+    try {
+      await db.user.delete({ where: { id: user.id } });
+    } catch (e) {}
+    return null;
   }
 
   if (user && user.isBlacklisted) {
@@ -64,25 +55,26 @@ export const getOrCreateUser = cache(async () => {
   const phone = supabaseUser.user_metadata?.phone ?? supabaseUser.phone ?? null;
   const username = supabaseUser.user_metadata?.username as string | undefined;
 
-  // Determine role: metadata > existing DB role
-  const metadataRole = supabaseUser.user_metadata?.intended_role?.toUpperCase();
-  const intendedRole = metadataRole === "OWNER" ? "OWNER" : "CUSTOMER";
+  // Determine the role to use when provisioning a NEW account. Priority:
+  // Supabase metadata (email sign-up) > first-party intended-role cookie
+  // (set before OAuth, survives the redirect when the query param is dropped)
+  // > default CUSTOMER. Existing accounts keep their DB role (handled below).
+  const cookieRole = await readIntendedRoleCookie();
+  const metadataRole = normalizeIntendedRole(
+    supabaseUser.user_metadata?.intended_role,
+  );
+  const intendedRole: "OWNER" | "CUSTOMER" =
+    metadataRole ?? cookieRole ?? "CUSTOMER";
 
   let dbUser = await db.user.findUnique({ where: { id: supabaseUser.id } });
 
   // If already found by exact ID, check deletion and sync metadata
   if (dbUser) {
     if (dbUser.isDeleted) {
-      const daysSinceDelete = dbUser.deletedAt ? (Date.now() - dbUser.deletedAt.getTime()) / (1000 * 60 * 60 * 24) : 31;
-      if (daysSinceDelete <= 30) {
-        dbUser = await db.user.update({
-          where: { id: dbUser.id },
-          data: { isDeleted: false, deletedAt: null },
-        });
-      } else {
-        try { await db.user.delete({ where: { id: dbUser.id } }); } catch (e) {}
-        dbUser = null;
-      }
+      // Leftover record from the old "scheduled deletion" flow — remove it and
+      // provision a fresh account below, as if this were a brand-new sign-up.
+      try { await db.user.delete({ where: { id: dbUser.id } }); } catch (e) {}
+      dbUser = null;
     }
 
     if (dbUser) {
@@ -115,18 +107,10 @@ export const getOrCreateUser = cache(async () => {
     if (userByEmail.isBlacklisted) return null;
 
     if (userByEmail.isDeleted) {
-      const daysSinceDelete = userByEmail.deletedAt ? (Date.now() - userByEmail.deletedAt.getTime()) / (1000 * 60 * 60 * 24) : 31;
-      if (daysSinceDelete <= 30) {
-        await db.user.update({
-          where: { id: userByEmail.id },
-          data: { isDeleted: false, deletedAt: null },
-        });
-        userByEmail.isDeleted = false;
-        userByEmail.deletedAt = null;
-      } else {
-        try { await db.user.delete({ where: { id: userByEmail.id } }); } catch (e) {}
-        userByEmail = null;
-      }
+      // Leftover record from the old "scheduled deletion" flow — remove it so
+      // this email is treated as a clean, brand-new sign-up below.
+      try { await db.user.delete({ where: { id: userByEmail.id } }); } catch (e) {}
+      userByEmail = null;
     }
 
     if (userByEmail) {
@@ -153,18 +137,11 @@ export const getOrCreateUser = cache(async () => {
     }
   }
 
-  // Truly new user — for Google OAuth, the auth callback route (/auth/callback)
-  // is the authoritative handler that reads the ?role= URL param and creates the
-  // user with the correct role. If we reach here for a Google OAuth user without
-  // intended_role metadata, the callback should handle creation instead.
-  const isOAuthWithoutRole =
-    supabaseUser.app_metadata?.provider === "google" &&
-    !supabaseUser.user_metadata?.intended_role;
-
-  if (isOAuthWithoutRole) {
-    return null;
-  }
-
+  // Truly new user. Provision them here as a safety net so an account is NEVER
+  // left role-less (which the client would then treat as CUSTOMER). The
+  // /auth/callback route is the primary creator for OAuth, but if the role/code
+  // round-trip ever misses it, this guarantees the user still gets the role
+  // they intended (from metadata or the intended-role cookie).
   dbUser = await db.user.create({
     data: {
       id: supabaseUser.id,
@@ -172,13 +149,26 @@ export const getOrCreateUser = cache(async () => {
       name,
       imageUrl,
       phone,
-      role: intendedRole === "OWNER" ? "OWNER" : "CUSTOMER",
+      role: intendedRole,
       username: username ?? null,
     },
   });
 
   return dbUser;
 });
+
+/**
+ * Read the short-lived intended-role cookie set by the client right before an
+ * OAuth redirect. Returns undefined if absent/unreadable.
+ */
+async function readIntendedRoleCookie(): Promise<"OWNER" | "CUSTOMER" | undefined> {
+  try {
+    const store = await cookies();
+    return normalizeIntendedRole(store.get(INTENDED_ROLE_COOKIE)?.value);
+  } catch {
+    return undefined;
+  }
+}
 export async function requireAuth() {
   const user = await getAuthUser();
   if (!user) throw new Error("Unauthorized");

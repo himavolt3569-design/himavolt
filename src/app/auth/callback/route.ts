@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { db } from "@/lib/db";
+import { INTENDED_ROLE_COOKIE, normalizeIntendedRole } from "@/lib/intended-role";
 
 type SafeRole = "CUSTOMER" | "OWNER";
 
@@ -11,8 +12,13 @@ export async function GET(req: NextRequest) {
   const type = searchParams.get("type") as string | null;
   const next = searchParams.get("next") ?? "/";
 
-  // Role source priority: URL query param > Supabase metadata > default CUSTOMER
-  const roleParam = searchParams.get("role")?.toUpperCase() as SafeRole | null;
+  // Role source priority: URL query param > first-party cookie hint (survives
+  // the OAuth redirect when the query param is dropped) > Supabase metadata >
+  // default CUSTOMER.
+  const roleParam =
+    normalizeIntendedRole(searchParams.get("role")) ??
+    normalizeIntendedRole(req.cookies.get(INTENDED_ROLE_COOKIE)?.value) ??
+    null;
 
   if (!code && !tokenHash) {
     return NextResponse.redirect(new URL("/sign-in", req.url));
@@ -92,20 +98,15 @@ export async function GET(req: NextRequest) {
       ? await db.user.findFirst({ where: { email } })
       : null;
 
-    // Handle 30-day soft deletion logic
+    // Any leftover "scheduled deletion" record is treated as gone — remove it
+    // and let this sign-in provision a fresh account.
     if (existingUserById?.isDeleted) {
-      const daysSinceDelete = existingUserById.deletedAt ? (Date.now() - existingUserById.deletedAt.getTime()) / (1000 * 60 * 60 * 24) : 31;
-      if (daysSinceDelete > 30) {
-        try { await db.user.delete({ where: { id: existingUserById.id } }); } catch (e) {}
-        existingUserById = null;
-      }
+      try { await db.user.delete({ where: { id: existingUserById.id } }); } catch (e) {}
+      existingUserById = null;
     }
     if (existingUserByEmail?.isDeleted) {
-      const daysSinceDelete = existingUserByEmail.deletedAt ? (Date.now() - existingUserByEmail.deletedAt.getTime()) / (1000 * 60 * 60 * 24) : 31;
-      if (daysSinceDelete > 30) {
-        try { await db.user.delete({ where: { id: existingUserByEmail.id } }); } catch (e) {}
-        existingUserByEmail = null;
-      }
+      try { await db.user.delete({ where: { id: existingUserByEmail.id } }); } catch (e) {}
+      existingUserByEmail = null;
     }
 
     const existingUser = existingUserById ?? existingUserByEmail;
@@ -189,6 +190,8 @@ export async function GET(req: NextRequest) {
   pendingCookies.forEach(({ name, value, options }) => {
     res.cookies.set(name, value, options as Parameters<typeof res.cookies.set>[2]);
   });
+  // The intended-role hint has done its job — drop it.
+  res.cookies.set(INTENDED_ROLE_COOKIE, "", { path: "/", maxAge: 0 });
 
   return res;
 }

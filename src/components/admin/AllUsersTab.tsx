@@ -35,6 +35,8 @@ interface UserRecord {
   imageUrl: string | null;
   role: string;
   createdAt: string;
+  pending?: boolean; // in Supabase Auth but not yet provisioned in the app DB
+  emailConfirmed?: boolean;
   _count: { orders: number; ownedRestaurants: number; reviews: number };
 }
 
@@ -311,6 +313,11 @@ export default function AllUsersTab() {
                               <div className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${theme.bg} ${theme.text}`}>
                                  {user.role}
                               </div>
+                              {user.pending && (
+                                 <div className="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest bg-amber-50 text-amber-600" title={user.emailConfirmed ? "Signed up — not yet active in app" : "Awaiting email confirmation"}>
+                                    {user.emailConfirmed ? "New" : "Unconfirmed"}
+                                 </div>
+                              )}
                            </div>
                            <div className="flex items-center gap-4 text-xs font-bold text-slate-400 uppercase tracking-widest truncate">
                               <span className="flex items-center gap-1.5"><Mail className="h-3 w-3 opacity-40" /> {user.email}</span>

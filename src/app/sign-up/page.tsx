@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
+import { rememberIntendedRole } from "@/lib/intended-role";
 import {
   Mountain,
   Loader2,
@@ -127,7 +128,10 @@ export default function SignUpPage() {
   };
 
   const handleGoogleSignUp = async () => {
-    // Google OAuth is exclusively for restaurant owners.
+    // Google OAuth is exclusively for restaurant owners. Stash the role in a
+    // first-party cookie too, since the `?role=OWNER` query param can be lost
+    // across the OAuth redirect chain.
+    rememberIntendedRole("OWNER");
     const supabase = getSupabaseBrowserClient();
     await supabase.auth.signInWithOAuth({
       provider: "google",
