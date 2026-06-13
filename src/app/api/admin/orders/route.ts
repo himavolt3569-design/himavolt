@@ -110,32 +110,62 @@ export async function GET(req: NextRequest) {
         db.order.count({ where: {} }),
       ]);
 
-      // Enrich with relations via separate queries
-      const enriched = await Promise.all(
-        (orders as Array<Record<string, unknown>>).map(async (o) => {
-          const [items, payment, restaurant, user] = await Promise.all([
-            db.orderItem.findMany({
-              where: { orderId: o.id as string },
-              select: { id: true, name: true, quantity: true, price: true },
-            }),
-            db.payment.findFirst({
-              where: { orderId: o.id as string },
-              select: { method: true, status: true, paidAt: true, amount: true },
-            }),
-            db.restaurant.findUnique({
-              where: { id: o.restaurantId as string },
-              select: { id: true, name: true, slug: true, currency: true },
-            }),
-            o.userId
-              ? db.user.findUnique({
-                  where: { id: o.userId as string },
-                  select: { id: true, name: true, email: true, imageUrl: true },
-                })
-              : null,
-          ]);
-          return { ...o, items, payment, restaurant, user };
-        }),
-      );
+      // Enrich with relations using BATCHED queries (one per relation via
+      // `IN`), not a per-row fan-out. The production pool is capped at a single
+      // connection (see src/lib/db.ts), so the old N×4 unbounded Promise.all
+      // here queued queries until they tripped the 3s connection timeout and
+      // 500'd this fallback. We also run the batches sequentially to never hold
+      // more than one query against that single connection at a time.
+      const rows = orders as Array<Record<string, unknown>>;
+      const orderIds = rows.map((o) => o.id as string);
+      const restaurantIds = [
+        ...new Set(rows.map((o) => o.restaurantId as string).filter(Boolean)),
+      ];
+      const userIds = [
+        ...new Set(rows.map((o) => o.userId as string).filter(Boolean)),
+      ];
+
+      const items = await db.orderItem.findMany({
+        where: { orderId: { in: orderIds } },
+        select: { id: true, name: true, quantity: true, price: true, orderId: true },
+      });
+      const payments = await db.payment.findMany({
+        where: { orderId: { in: orderIds } },
+        select: { method: true, status: true, paidAt: true, amount: true, orderId: true },
+      });
+      const restaurants = restaurantIds.length
+        ? await db.restaurant.findMany({
+            where: { id: { in: restaurantIds } },
+            select: { id: true, name: true, slug: true, currency: true },
+          })
+        : [];
+      const users = userIds.length
+        ? await db.user.findMany({
+            where: { id: { in: userIds } },
+            select: { id: true, name: true, email: true, imageUrl: true },
+          })
+        : [];
+
+      const itemsByOrder = new Map<string, typeof items>();
+      for (const it of items) {
+        const list = itemsByOrder.get(it.orderId) ?? [];
+        list.push(it);
+        itemsByOrder.set(it.orderId, list);
+      }
+      const paymentByOrder = new Map<string, (typeof payments)[number]>();
+      for (const p of payments) {
+        if (!paymentByOrder.has(p.orderId)) paymentByOrder.set(p.orderId, p);
+      }
+      const restaurantById = new Map(restaurants.map((r) => [r.id, r]));
+      const userById = new Map(users.map((u) => [u.id, u]));
+
+      const enriched = rows.map((o) => ({
+        ...o,
+        items: itemsByOrder.get(o.id as string) ?? [],
+        payment: paymentByOrder.get(o.id as string) ?? null,
+        restaurant: restaurantById.get(o.restaurantId as string) ?? null,
+        user: o.userId ? userById.get(o.userId as string) ?? null : null,
+      }));
 
       return NextResponse.json({
         orders: enriched,
