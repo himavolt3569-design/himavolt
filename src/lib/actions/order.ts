@@ -3,6 +3,7 @@
 import { db } from "@/lib/db";
 import { getOrCreateUser } from "@/lib/auth";
 import { generateBill, getTaxConfig } from "@/lib/billing";
+import { notifyOrderChanged, notifyRestaurantOrders } from "@/lib/realtime";
 import { revalidatePath } from "next/cache";
 
 export async function placeOrder(data: {
@@ -158,6 +159,10 @@ export async function placeOrder(data: {
   });
 
   revalidatePath("/dashboard");
+
+  // Wake the kitchen/dashboard instantly over WebSocket (SSE is the fallback).
+  notifyRestaurantOrders(data.restaurantId, { reason: "new-order" });
+
   return order;
 }
 
@@ -194,6 +199,7 @@ export async function updateOrderStatus(
       tax: true,
       total: true,
       createdAt: true,
+      restaurantId: true,
       items: true,
       payment: true,
     },
@@ -205,6 +211,9 @@ export async function updateOrderStatus(
   // cashier collects payment at the counter.
 
   revalidatePath("/dashboard");
+
+  notifyOrderChanged(orderId, order.restaurantId, { status });
+
   return order;
 }
 

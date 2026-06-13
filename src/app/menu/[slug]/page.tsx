@@ -1393,6 +1393,29 @@ function MenuPageContent() {
     return a.sortOrder - b.sortOrder;
   });
 
+  // Group items under their top-level category (parent + its sub-categories)
+  // for the "All" view. Matching is by category ID — matching by name caused
+  // sub-category items to be rendered twice (once under their parent group and
+  // again in the catch-all "Other" bucket). Each item is placed in exactly one
+  // group, and "Other" collects anything not already rendered above.
+  const renderedItemIds = new Set<string>();
+  const categoryGroups = categories
+    .map((cat) => {
+      const childIds = allCategories
+        .filter((c) => c.parentId === cat.id)
+        .map((c) => c.id);
+      const catItems = smartSorted.filter(
+        (item) =>
+          item.categoryId === cat.id || childIds.includes(item.categoryId),
+      );
+      catItems.forEach((i) => renderedItemIds.add(i.id));
+      return { cat, items: catItems };
+    })
+    .filter((group) => group.items.length > 0);
+  const otherItems = smartSorted.filter(
+    (item) => !renderedItemIds.has(item.id),
+  );
+
   // Don't hijack the page with order tracking while checkout is open —
   // digital payment flows (Bank details, eSewa/Khalti gateway) run inside
   // the CheckoutSheet which is rendered in the main JSX below.
@@ -2222,60 +2245,43 @@ function MenuPageContent() {
                   ) : (
                     /* All items — grouped by category */
                     <div key="grouped" className="space-y-6">
-                      {categories.map((cat) => {
-                        const childCats = allCategories.filter(
-                          (c) => c.parentId === cat.id,
-                        );
-                        const childCatNames = childCats.map((c) => c.name);
-                        const catItems = smartSorted.filter(
-                          (item) =>
-                            item.category.name === cat.name ||
-                            childCatNames.includes(item.category.name),
-                        );
-                        if (catItems.length === 0) return null;
-                        return (
-                          <div key={cat.id} className="space-y-3">
-                            <div className="flex items-center gap-3">
-                              <h3 className="text-sm font-bold text-[var(--text-1)]">
-                                {stripEmojis(cat.name)}
-                              </h3>
-                              <span className="text-[11px] font-semibold text-[var(--text-3)]">
-                                {catItems.length}{" "}
-                                {catItems.length === 1 ? "item" : "items"}
-                              </span>
-                              <div className="flex-1 h-px bg-[var(--surface)]" />
-                            </div>
-                            <motion.div
-                              variants={containerVariants}
-                              initial="hidden"
-                              animate="visible"
-                              className={
-                                categoryView === "grid"
-                                  ? "grid grid-cols-2 gap-3"
-                                  : "space-y-3"
-                              }
-                            >
-                              {catItems.map((item) => (
-                                <MenuItemCard
-                                  key={item.id}
-                                  item={item}
-                                  restaurantId={restaurant.id}
-                                  restaurantSlug={restaurant.slug}
-                                  restaurantCurrency={cur}
-                                  onSelect={(d) => setSelectedDish(d)}
-                                  surgeMultiplier={surgeMultiplier}
-                                />
-                              ))}
-                            </motion.div>
+                      {categoryGroups.map(({ cat, items: catItems }) => (
+                        <div key={cat.id} className="space-y-3">
+                          <div className="flex items-center gap-3">
+                            <h3 className="text-sm font-bold text-[var(--text-1)]">
+                              {stripEmojis(cat.name)}
+                            </h3>
+                            <span className="text-[11px] font-semibold text-[var(--text-3)]">
+                              {catItems.length}{" "}
+                              {catItems.length === 1 ? "item" : "items"}
+                            </span>
+                            <div className="flex-1 h-px bg-[var(--surface)]" />
                           </div>
-                        );
-                      })}
-                      {smartSorted.filter(
-                        (item) =>
-                          !categories.some(
-                            (c) => c.name === item.category.name,
-                          ),
-                      ).length > 0 && (
+                          <motion.div
+                            variants={containerVariants}
+                            initial="hidden"
+                            animate="visible"
+                            className={
+                              categoryView === "grid"
+                                ? "grid grid-cols-2 gap-3"
+                                : "space-y-3"
+                            }
+                          >
+                            {catItems.map((item) => (
+                              <MenuItemCard
+                                key={item.id}
+                                item={item}
+                                restaurantId={restaurant.id}
+                                restaurantSlug={restaurant.slug}
+                                restaurantCurrency={cur}
+                                onSelect={(d) => setSelectedDish(d)}
+                                surgeMultiplier={surgeMultiplier}
+                              />
+                            ))}
+                          </motion.div>
+                        </div>
+                      ))}
+                      {otherItems.length > 0 && (
                         <div className="space-y-3">
                           <h3 className="text-sm font-bold text-[var(--text-3)] uppercase tracking-wider">
                             Other
@@ -2286,24 +2292,17 @@ function MenuPageContent() {
                             animate="visible"
                             className="space-y-3"
                           >
-                            {smartSorted
-                              .filter(
-                                (item) =>
-                                  !categories.some(
-                                    (c) => c.name === item.category.name,
-                                  ),
-                              )
-                              .map((item) => (
-                                <MenuItemCard
-                                  key={item.id}
-                                  item={item}
-                                  restaurantId={restaurant.id}
-                                  restaurantSlug={restaurant.slug}
-                                  restaurantCurrency={cur}
-                                  onSelect={(d) => setSelectedDish(d)}
-                                  surgeMultiplier={surgeMultiplier}
-                                />
-                              ))}
+                            {otherItems.map((item) => (
+                              <MenuItemCard
+                                key={item.id}
+                                item={item}
+                                restaurantId={restaurant.id}
+                                restaurantSlug={restaurant.slug}
+                                restaurantCurrency={cur}
+                                onSelect={(d) => setSelectedDish(d)}
+                                surgeMultiplier={surgeMultiplier}
+                              />
+                            ))}
                           </motion.div>
                         </div>
                       )}

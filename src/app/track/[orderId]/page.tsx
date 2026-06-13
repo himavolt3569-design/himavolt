@@ -25,6 +25,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api-client";
+import { useRealtimeSignal } from "@/hooks/useRealtimeSignal";
+import { orderTopic } from "@/lib/realtime-topics";
 import { formatPrice } from "@/lib/currency";
 import ChatWidget from "@/components/chat/ChatWidget";
 import TrackingCrossSell from "@/components/tracking/TrackingCrossSell";
@@ -343,6 +345,7 @@ export default function TrackOrderPage() {
     try {
       const data = await apiFetch<TrackingOrder>(
         `/api/track?orderId=${orderId}`,
+        { cacheTtl: 0 },
       );
       setOrder(data);
       setError(null);
@@ -402,6 +405,10 @@ export default function TrackOrderPage() {
       if (fallbackInterval) clearInterval(fallbackInterval);
     };
   }, [orderId, fetchOrder]);
+
+  // Instant WebSocket push (Supabase Realtime): the moment staff change status
+  // or a payment is confirmed, re-pull the order. SSE above remains the fallback.
+  useRealtimeSignal(orderId ? orderTopic(orderId) : null, fetchOrder);
 
   // Fetch payment QRs once order is loaded
   useEffect(() => {

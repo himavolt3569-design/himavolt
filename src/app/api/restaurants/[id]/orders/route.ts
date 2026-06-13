@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { getOrCreateUser } from "@/lib/auth";
 import { getStaffSession } from "@/lib/staff-auth";
 import { notifyKitchenNewOrder } from "@/lib/notifications";
+import { notifyOrderChanged, notifyRestaurantOrders } from "@/lib/realtime";
 import { generateBill, getTaxConfig } from "@/lib/billing";
 import { safeHandler, notFound } from "@/lib/api-helpers";
 import { createOrderSchema } from "@/lib/validations";
@@ -399,6 +400,8 @@ export const POST = safeHandler(
         ipAddress: getClientIp(req.headers),
       });
 
+      notifyOrderChanged(addToOrderId, id, { reason: "items-added" });
+
       return NextResponse.json(updated, { status: 200 });
     }
 
@@ -782,6 +785,9 @@ export const POST = safeHandler(
     // Issue a per-order track cookie so the (possibly anonymous) customer can
     // read /track, /bill, /cancel for this order without those endpoints having
     // to be unauthenticated. Authenticated users and staff bypass the cookie.
+    // Push to the kitchen/dashboard live feed instantly over WebSocket.
+    notifyRestaurantOrders(id, { reason: "new-order", orderId: order.id });
+
     const response = NextResponse.json(fullOrder, { status: 201 });
     setOrderTrackCookie(response, order.id);
     return response;

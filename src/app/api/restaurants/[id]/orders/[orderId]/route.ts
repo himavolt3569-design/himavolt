@@ -7,6 +7,7 @@ import {
   notifyCounterOrderReady,
 } from "@/lib/notifications";
 import { logAudit, getClientIp, type AuditAction } from "@/lib/audit";
+import { notifyOrderChanged } from "@/lib/realtime";
 import { canAcceptOrder } from "@/lib/payment-gate";
 import { z } from "zod";
 import { restoreStock } from "@/lib/stock";
@@ -272,6 +273,9 @@ export async function PATCH(
       console.error("[Orders] Failed to send customer notification:", err);
     });
   }
+
+  // Push the status change to the customer tracker + dashboard over WebSocket.
+  notifyOrderChanged(orderId, id, { status });
 
   return NextResponse.json(order);
 }

@@ -4,6 +4,7 @@ import { verifyKhaltiPayment } from "@/lib/payments/khalti";
 import { decryptIfPresent } from "@/lib/encryption";
 import { touchOrderUpdatedAt } from "@/lib/order-sync";
 import { sendNotificationToRestaurantStaff } from "@/lib/notifications";
+import { notifyOrderChanged } from "@/lib/realtime";
 
 async function logWebhook(
   event: string,
@@ -98,6 +99,8 @@ export async function GET(req: NextRequest) {
       });
       await touchOrderUpdatedAt(orderId);
       await logWebhook("payment.success", orderId, rawPayload, 302, pidx);
+
+      notifyOrderChanged(orderId, order?.restaurantId, { payment: "COMPLETED" });
 
       // Notify kitchen that payment is confirmed
       if (order) {

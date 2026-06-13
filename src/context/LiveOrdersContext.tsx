@@ -12,6 +12,8 @@ import {
 import { apiFetch } from "@/lib/api-client";
 import { playSound } from "@/lib/sounds";
 import { useSSE } from "@/hooks/useSSE";
+import { useRealtimeSignal } from "@/hooks/useRealtimeSignal";
+import { restaurantOrdersTopic } from "@/lib/realtime-topics";
 
 export type LiveOrderStatus =
   | "PENDING"
@@ -127,6 +129,15 @@ export function LiveOrdersProvider({ children }: { children: ReactNode }) {
     await fetchOrders();
     setLoading(false);
   }, [fetchOrders]);
+
+  // Instant WebSocket push via Supabase Realtime. Any order/payment change at
+  // this restaurant fires a signal and we re-pull the live feed immediately —
+  // no 3s wait. The SSE stream above stays connected as a fallback (and still
+  // drives the new-order sound), so nothing breaks if Realtime is unavailable.
+  useRealtimeSignal(
+    restaurantId ? restaurantOrdersTopic(restaurantId) : null,
+    fetchOrders,
+  );
 
   const updateStatus = useCallback(
     async (
