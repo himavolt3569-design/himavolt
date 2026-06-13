@@ -67,6 +67,32 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+// Safely cache a response. Streaming responses (SSE / event-stream), opaque
+// cross-origin responses, and partial (206) responses are not cacheable and make
+// Cache.put() reject with "encountered a network error". Skip those and swallow
+// any residual error so caching stays best-effort and never throws uncaught.
+function safePut(cacheName, request, response) {
+  if (
+    !response ||
+    !response.ok ||
+    response.status === 206 ||
+    response.type === "opaque" ||
+    response.type === "opaqueredirect"
+  ) {
+    return;
+  }
+  const contentType = response.headers.get("Content-Type") || "";
+  if (contentType.includes("text/event-stream")) return;
+
+  const clone = response.clone();
+  caches
+    .open(cacheName)
+    .then((cache) => cache.put(request, clone))
+    .catch(() => {
+      /* caching is best-effort — ignore put failures */
+    });
+}
+
 function isNavigationRequest(request) {
   return request.mode === "navigate";
 }
@@ -90,12 +116,7 @@ function handleNavigationRequest(event) {
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        if (response.ok && response.status !== 206) {
-          const clone = response.clone();
-          caches
-            .open(DYNAMIC_CACHE)
-            .then((cache) => cache.put(event.request, clone));
-        }
+        safePut(DYNAMIC_CACHE, event.request, response);
         return response;
       })
       .catch(() =>
@@ -112,12 +133,7 @@ function handleStaticAsset(event) {
     caches.match(event.request).then((cached) => {
       if (cached) return cached;
       return fetch(event.request).then((response) => {
-        if (response.ok && response.status !== 206) {
-          const clone = response.clone();
-          caches
-            .open(STATIC_CACHE)
-            .then((cache) => cache.put(event.request, clone));
-        }
+        safePut(STATIC_CACHE, event.request, response);
         return response;
       });
     }),
@@ -129,12 +145,7 @@ function handleNextInternal(event) {
   event.respondWith(
     caches.match(event.request).then((cached) => {
       const networkFetch = fetch(event.request).then((response) => {
-        if (response.ok && response.status !== 206) {
-          const clone = response.clone();
-          caches
-            .open(STATIC_CACHE)
-            .then((cache) => cache.put(event.request, clone));
-        }
+        safePut(STATIC_CACHE, event.request, response);
         return response;
       });
       return cached || networkFetch;
@@ -150,12 +161,7 @@ function handleApiRequest(event) {
         if (response.redirected && !response.url.startsWith(self.location.origin)) {
           return response;
         }
-        if (response.ok && response.status !== 206) {
-          const clone = response.clone();
-          caches
-            .open(DYNAMIC_CACHE)
-            .then((cache) => cache.put(event.request, clone));
-        }
+        safePut(DYNAMIC_CACHE, event.request, response);
         return response;
       })
       .catch(() =>
@@ -188,12 +194,7 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       fetch(event.request)
         .then((response) => {
-          if (response.ok && response.status !== 206) {
-            const clone = response.clone();
-            caches
-              .open(DYNAMIC_CACHE)
-              .then((cache) => cache.put(event.request, clone));
-          }
+          safePut(DYNAMIC_CACHE, event.request, response);
           return response;
         })
         .catch(() =>
