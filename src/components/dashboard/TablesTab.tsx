@@ -2,14 +2,16 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import QRCode from "react-qr-code";
 import {
   Utensils, Plus, Trash2, Edit2, Check, X, Loader2,
   Users, Clock, CreditCard, RefreshCw, TableProperties,
-  User as UserIcon, ChevronRight,
+  User as UserIcon, ChevronRight, QrCode, Search, Download, Printer, Copy,
 } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
 import { SkeletonCard } from "@/components/shared/Skeleton";
 import { useToast } from "@/context/ToastContext";
+import { buildQRCanvas } from "@/components/dashboard/qr/qrCanvas";
 
 
 interface TableData {
@@ -34,6 +36,8 @@ interface TableData {
   } | null;
 }
 
+type TableStatus = "free" | "occupied" | "paid";
+
 const STATUS_COLOR: Record<string, string> = {
   PENDING:   "bg-[var(--accent)] text-[var(--accent)]",
   ACCEPTED:  "bg-blue-100 text-blue-700",
@@ -42,11 +46,143 @@ const STATUS_COLOR: Record<string, string> = {
   DELIVERED: "bg-[var(--surface)] text-[var(--text-2)]",
 };
 
+/** Staff-chosen name is the identity; the numeric handle is only a fallback. */
+function tableName(t: { label: string | null; tableNo: number }) {
+  return t.label?.trim() || `Table ${t.tableNo}`;
+}
+
+function statusOf(t: TableData): TableStatus {
+  if (!t.isOccupied) return "free";
+  return t.session?.order?.payment?.status === "COMPLETED" ? "paid" : "occupied";
+}
+
+const STATUS_DOT: Record<TableStatus, string> = {
+  free: "bg-emerald-500",
+  occupied: "bg-amber-500",
+  paid: "bg-sky-500",
+};
+
 function elapsed(iso: string) {
   const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
   if (mins < 1) return "just now";
   if (mins < 60) return `${mins}m`;
   return `${Math.floor(mins / 60)}h ${mins % 60}m`;
+}
+
+
+// ── Per-table QR modal (quick view / download without leaving the Tables tab) ──
+function TableQRModal({
+  table, slug, restaurantName, onClose,
+}: {
+  table: TableData;
+  slug: string;
+  restaurantName: string;
+  onClose: () => void;
+}) {
+  const { showToast } = useToast();
+  const qrRef = useRef<HTMLDivElement>(null);
+  const [busy, setBusy] = useState(false);
+  const name = tableName(table);
+  const tableUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/menu/${slug}?table=${table.tableNo}`;
+
+  const download = async () => {
+    if (!qrRef.current) return;
+    setBusy(true);
+    try {
+      const canvas = await buildQRCanvas(qrRef.current, table.tableNo, restaurantName, slug, "classic", 3, table.label);
+      const link = document.createElement("a");
+      link.href = canvas.toDataURL("image/png");
+      link.download = `${slug || "table"}-${table.tableNo}-qr.png`;
+      link.click();
+      showToast(`QR for ${name} downloaded!`, "success");
+    } catch {
+      showToast("Failed to download QR code", "error");
+    }
+    setBusy(false);
+  };
+
+  const print = async () => {
+    if (!qrRef.current) return;
+    setBusy(true);
+    try {
+      const canvas = await buildQRCanvas(qrRef.current, table.tableNo, restaurantName, slug, "classic", 4, table.label);
+      const image = canvas.toDataURL("image/png");
+      const w = window.open("", "_blank");
+      if (w) {
+        w.document.write(`
+          <html><head><title>${name} QR Code</title>
+          <style>
+            @media print { @page { margin: 0; } body { margin: 0; } }
+            body { margin:0; display:flex; align-items:center; justify-content:center; min-height:100vh; background:#f9fafb; }
+            img { width: 340px; height: auto; box-shadow: 0 4px 24px rgba(0,0,0,0.12); }
+          </style></head>
+          <body><img src="${image}" onload="window.print();" /></body></html>`);
+        w.document.close();
+      }
+    } catch {
+      showToast("Failed to print QR code", "error");
+    }
+    setBusy(false);
+  };
+
+  const copy = () => {
+    navigator.clipboard.writeText(tableUrl);
+    showToast("Table link copied!", "success");
+  };
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={onClose}>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-xs rounded-3xl bg-[var(--canvas)] p-6 shadow-2xl"
+      >
+        <div className="flex items-center justify-between mb-4">
+          <div className="min-w-0">
+            <h3 className="truncate text-lg font-extrabold text-[var(--text-1)]" title={name}>{name}</h3>
+            <p className="text-[10px] text-[var(--text-3)]">Scan to order · #{table.tableNo}</p>
+          </div>
+          <button onClick={onClose} className="rounded-full bg-[var(--surface)] p-2 hover:bg-[var(--surface-alt)]">
+            <X className="h-4 w-4 text-[var(--text-2)]" />
+          </button>
+        </div>
+
+        <div className="flex justify-center mb-5">
+          <div ref={qrRef} className="relative flex h-[200px] w-[200px] items-center justify-center rounded-2xl border border-[var(--border-soft)] bg-white p-4 shadow-sm">
+            <QRCode value={tableUrl} size={256} style={{ height: "100%", maxWidth: "100%", width: "100%" }} fgColor="#3e1e0c" bgColor="transparent" level="M" />
+          </div>
+        </div>
+
+        <div className="flex gap-2">
+          <button
+            onClick={download}
+            disabled={busy}
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[var(--text-1)] py-2.5 text-xs font-bold text-white hover:bg-[#2d1508] transition-all disabled:opacity-50"
+          >
+            {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+            Download
+          </button>
+          <button
+            onClick={print}
+            disabled={busy}
+            className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-colors disabled:opacity-50"
+            title="Print"
+          >
+            <Printer className="h-3.5 w-3.5" />
+          </button>
+          <button
+            onClick={copy}
+            className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent-muted)] text-[var(--accent-text)] hover:bg-[var(--accent)] hover:text-white transition-all"
+            title="Copy link"
+          >
+            <Copy className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
 }
 
 
@@ -58,13 +194,18 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
   const abortRef = useRef<AbortController | null>(null);
 
   const [tables,   setTables]   = useState<TableData[]>([]);
+  const [meta,     setMeta]     = useState<{ slug: string; name: string } | null>(null);
   const [loading,  setLoading]  = useState(true);
   const [selected, setSelected] = useState<TableData | null>(null);
+  const [qrTable,  setQrTable]  = useState<TableData | null>(null);
   const [clearingId, setClearingId] = useState<string | null>(null);
 
-  // Add-table form
+  // Search & filter
+  const [query,  setQuery]  = useState("");
+  const [filter, setFilter] = useState<"all" | TableStatus>("all");
+
+  // Add-table form — name-first (number is auto-assigned by the backend)
   const [showAdd,   setShowAdd]   = useState(false);
-  const [addNo,     setAddNo]     = useState("");
   const [addLabel,  setAddLabel]  = useState("");
   const [addCap,    setAddCap]    = useState("4");
   const [addSaving, setAddSaving] = useState(false);
@@ -94,6 +235,7 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
       if (!res.ok) throw new Error();
       const data = await res.json();
       setTables(data.tables ?? []);
+      if (data.restaurant) setMeta({ slug: data.restaurant.slug ?? "", name: data.restaurant.name ?? "" });
     } catch (err) {
       if (err instanceof Error && err.name === "AbortError") return;
       // silent on poll failures — table data is non-critical background refresh
@@ -116,21 +258,22 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
       showToast("Restaurant not loaded — please refresh", "error");
       return;
     }
-    if (!addNo) return;
     setAddSaving(true);
     try {
       const res = await fetch(`/api/restaurants/${rid}/tables`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tableNo: parseInt(addNo), label: addLabel || null, capacity: parseInt(addCap) || 4 }),
+        // No tableNo — backend auto-assigns the next free number.
+        body: JSON.stringify({ label: addLabel.trim() || null, capacity: parseInt(addCap) || 4 }),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         showToast(body.error ?? "Failed to create table", "error");
         return;
       }
-      setShowAdd(false); setAddNo(""); setAddLabel(""); setAddCap("4");
+      setShowAdd(false); setAddLabel(""); setAddCap("4");
+      showToast("Table added", "success");
       load();
     } catch { /* ignore */ }
     setAddSaving(false);
@@ -144,7 +287,7 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
         method: "PATCH",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ label: editLabel || null, capacity: parseInt(editCap) || 4 }),
+        body: JSON.stringify({ label: editLabel.trim() || null, capacity: parseInt(editCap) || 4 }),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
@@ -244,8 +387,24 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
     }
   };
 
-  const occupied  = tables.filter((t) => t.isOccupied).length;
-  const available = tables.filter((t) => !t.isOccupied).length;
+  const freeCount     = tables.filter((t) => statusOf(t) === "free").length;
+  const occupiedCount = tables.filter((t) => statusOf(t) === "occupied").length;
+  const paidCount     = tables.filter((t) => statusOf(t) === "paid").length;
+
+  const q = query.trim().toLowerCase();
+  const filtered = tables.filter((t) => {
+    const matchesQuery =
+      !q || tableName(t).toLowerCase().includes(q) || String(t.tableNo).includes(q);
+    const matchesFilter = filter === "all" || statusOf(t) === filter;
+    return matchesQuery && matchesFilter;
+  });
+
+  const FILTERS: { key: "all" | TableStatus; label: string; count: number }[] = [
+    { key: "all",      label: "All",      count: tables.length },
+    { key: "free",     label: "Free",     count: freeCount },
+    { key: "occupied", label: "Occupied", count: occupiedCount },
+    { key: "paid",     label: "Paid",     count: paidCount },
+  ];
 
   return (
     <div className="space-y-5">
@@ -258,13 +417,14 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
           <div>
             <h2 className="text-base font-extrabold text-[var(--text-1)]">Table Management</h2>
             <p className="text-xs text-[var(--text-3)]">
-              {tables.length} tables · <span className="text-[var(--accent-text)] font-semibold">{available} free</span>
-              {occupied > 0 && <> · <span className="text-[var(--accent)] font-semibold">{occupied} occupied</span></>}
+              {tables.length} tables · <span className="text-emerald-600 font-semibold">{freeCount} free</span>
+              {occupiedCount > 0 && <> · <span className="text-amber-600 font-semibold">{occupiedCount} occupied</span></>}
+              {paidCount > 0 && <> · <span className="text-sky-600 font-semibold">{paidCount} paid</span></>}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={load} className="rounded-xl p-2 text-[var(--text-3)] hover:bg-[var(--surface)] transition-colors">
+          <button onClick={load} className="rounded-xl p-2 text-[var(--text-3)] hover:bg-[var(--surface)] transition-colors" title="Refresh">
             <RefreshCw className="h-4 w-4" />
           </button>
           {canManage && (
@@ -286,17 +446,37 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
         </div>
       </div>
 
-      <div className="flex items-center gap-4 text-xs text-[var(--text-2)]">
-        <span className="flex items-center gap-1.5">
-          <span className="h-3 w-3 rounded-full bg-[var(--accent)] inline-block" />Available
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="h-3 w-3 rounded-full bg-[var(--accent)] inline-block" />Occupied
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="h-3 w-3 rounded-full bg-[var(--accent)] inline-block" />Paid
-        </span>
-      </div>
+      {/* ── Search + status filters ───────────────────────────────── */}
+      {tables.length > 0 && (
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="relative flex-1 max-w-xs">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-3)]" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search by name or number…"
+              className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
+            />
+          </div>
+          <div className="flex flex-wrap items-center gap-1.5">
+            {FILTERS.map((f) => (
+              <button
+                key={f.key}
+                onClick={() => setFilter(f.key)}
+                className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition-colors ${
+                  filter === f.key
+                    ? "bg-[var(--text-1)] text-white"
+                    : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
+                }`}
+              >
+                {f.key !== "all" && <span className={`h-2 w-2 rounded-full ${STATUS_DOT[f.key]}`} />}
+                {f.label}
+                <span className={filter === f.key ? "opacity-80" : "text-[var(--text-3)]"}>{f.count}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -315,16 +495,24 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
             </button>
           )}
         </div>
+      ) : filtered.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-12 text-[var(--text-3)] gap-2">
+          <Search className="h-8 w-8 opacity-30" />
+          <p className="text-sm font-semibold">No tables match your search</p>
+          <button onClick={() => { setQuery(""); setFilter("all"); }} className="text-xs font-bold text-[var(--accent-text)] hover:underline">
+            Clear filters
+          </button>
+        </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-          {tables.map((table) => {
-            const isPaid = table.session?.order?.payment?.status === "COMPLETED";
-            const bgClass = !table.isOccupied
+          {filtered.map((table) => {
+            const status = statusOf(table);
+            const bgClass = status === "free"
               ? "bg-[var(--accent-muted)] border-[var(--accent-border)] hover:border-[var(--accent)]"
-              : isPaid
+              : status === "paid"
                 ? "bg-[var(--accent-muted)] border-[var(--accent)] hover:border-[var(--accent)]"
                 : "bg-[var(--accent)] border-[var(--accent-border)] hover:border-[var(--accent-border)]";
-            const dotClass = !table.isOccupied ? "bg-[var(--accent)]" : isPaid ? "bg-[var(--accent)]" : "bg-[var(--accent)]";
+            const name = tableName(table);
 
             return (
               <motion.button
@@ -338,7 +526,7 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
                     <input
                       value={editLabel}
                       onChange={(e) => setEditLabel(e.target.value)}
-                      placeholder="Label (optional)"
+                      placeholder="Table name"
                       className="w-full rounded-lg border border-[var(--border)] px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-[var(--accent-border)]"
                     />
                     <div className="flex items-center gap-1">
@@ -369,28 +557,37 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
                   </div>
                 ) : (
                   <>
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
+                    <div className="flex items-start justify-between mb-2 gap-1">
+                      <div className="min-w-0">
                         <div className="flex items-center gap-1.5 mb-0.5">
-                          <span className={`h-2 w-2 rounded-full ${dotClass}`} />
-                          <span className="text-xs font-bold text-[var(--text-2)] uppercase tracking-wider">T{table.tableNo}</span>
+                          <span className={`h-2 w-2 rounded-full shrink-0 ${STATUS_DOT[status]}`} />
+                          <span className="text-sm font-extrabold text-[var(--text-1)] truncate" title={name}>{name}</span>
                         </div>
-                        {table.label && (
-                          <p className="text-[10px] text-[var(--text-3)] truncate max-w-[80px]">{table.label}</p>
-                        )}
+                        <p className="text-[10px] text-[var(--text-3)]">#{table.tableNo}</p>
                       </div>
                       {canManage && (
-                        <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                        <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
                              onClick={(e) => e.stopPropagation()}>
+                          {meta?.slug && (
+                            <button
+                              onClick={() => setQrTable(table)}
+                              className="rounded-md p-1 hover:bg-[var(--canvas)]/60"
+                              title="View QR code"
+                            >
+                              <QrCode className="h-2.5 w-2.5 text-[var(--text-3)]" />
+                            </button>
+                          )}
                           <button
                             onClick={() => { setEditId(table.id); setEditLabel(table.label ?? ""); setEditCap(String(table.capacity)); }}
                             className="rounded-md p-1 hover:bg-[var(--canvas)]/60"
+                            title="Edit"
                           >
                             <Edit2 className="h-2.5 w-2.5 text-[var(--text-3)]" />
                           </button>
                           <button
                             onClick={() => handleDelete(table.id)}
                             className="rounded-md p-1 hover:bg-red-50"
+                            title="Delete"
                           >
                             <Trash2 className="h-2.5 w-2.5 text-red-400" />
                           </button>
@@ -420,7 +617,7 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
                         </div>
                       </div>
                     ) : (
-                      <p className="text-xs font-semibold text-[var(--accent-text)]">Available</p>
+                      <p className="text-xs font-semibold text-emerald-600">Available</p>
                     )}
 
                     <ChevronRight className="absolute bottom-3 right-3 h-3 w-3 text-[var(--text-3)]" />
@@ -445,18 +642,29 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
               className="w-full max-w-sm rounded-3xl bg-[var(--canvas)] p-6 shadow-2xl"
             >
               <div className="flex items-center justify-between mb-5">
-                <div>
-                  <h3 className="text-lg font-extrabold text-[var(--text-1)]">
-                    Table {selected.tableNo}
-                    {selected.label && <span className="text-sm font-normal text-[var(--text-3)] ml-1">· {selected.label}</span>}
+                <div className="min-w-0">
+                  <h3 className="text-lg font-extrabold text-[var(--text-1)] truncate" title={tableName(selected)}>
+                    {tableName(selected)}
                   </h3>
-                  <p className="text-xs text-[var(--text-3)] flex items-center gap-1">
-                    <Users className="h-3 w-3" /> {selected.capacity} seats
+                  <p className="text-xs text-[var(--text-3)] flex items-center gap-2">
+                    <span className="flex items-center gap-1"><Users className="h-3 w-3" /> {selected.capacity} seats</span>
+                    <span>· #{selected.tableNo}</span>
                   </p>
                 </div>
-                <button onClick={() => setSelected(null)} className="rounded-full bg-[var(--surface)] p-2 hover:bg-[var(--surface-alt)]">
-                  <X className="h-4 w-4 text-[var(--text-2)]" />
-                </button>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {meta?.slug && (
+                    <button
+                      onClick={() => setQrTable(selected)}
+                      className="rounded-full bg-[var(--accent-muted)] p-2 text-[var(--accent-text)] hover:bg-[var(--accent)] hover:text-white transition-colors"
+                      title="View QR code"
+                    >
+                      <QrCode className="h-4 w-4" />
+                    </button>
+                  )}
+                  <button onClick={() => setSelected(null)} className="rounded-full bg-[var(--surface)] p-2 hover:bg-[var(--surface-alt)]">
+                    <X className="h-4 w-4 text-[var(--text-2)]" />
+                  </button>
+                </div>
               </div>
 
               {!selected.isOccupied ? (
@@ -464,7 +672,7 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
                   <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--accent-muted)]">
                     <Utensils className="h-7 w-7 text-[var(--accent-text)]" />
                   </div>
-                  <p className="text-sm font-bold text-[var(--accent-text)]">Table is Available</p>
+                  <p className="text-sm font-bold text-emerald-600">Table is Available</p>
                   <p className="text-xs text-[var(--text-3)] text-center">
                     Customer can scan the QR code or staff can create a manual order for this table.
                   </p>
@@ -498,7 +706,7 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
                         <div className="flex items-center gap-1.5 text-[10px]">
                           <CreditCard className="h-3 w-3 text-[var(--text-3)]" />
                           <span className="text-[var(--text-2)]">{order.payment.method}</span>
-                          <span className={`rounded-md px-1.5 py-0.5 font-bold ${isPaid ? "bg-[var(--accent-muted)] text-[var(--accent-text)]" : "bg-[var(--accent-muted)] text-[var(--accent-text)]"}`}>
+                          <span className={`rounded-md px-1.5 py-0.5 font-bold ${isPaid ? "bg-sky-100 text-sky-700" : "bg-amber-100 text-amber-700"}`}>
                             {isPaid ? "PAID" : "PENDING"}
                           </span>
                         </div>
@@ -542,6 +750,18 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
         )}
       </AnimatePresence>
 
+      {/* ── Per-table QR modal ─────────────────────────────────────── */}
+      <AnimatePresence>
+        {qrTable && meta?.slug && (
+          <TableQRModal
+            table={qrTable}
+            slug={meta.slug}
+            restaurantName={meta.name || "HimaVolt"}
+            onClose={() => setQrTable(null)}
+          />
+        )}
+      </AnimatePresence>
+
       {/* ── Add Table Modal ───────────────────────────────────────── */}
       <AnimatePresence>
         {showAdd && (
@@ -563,20 +783,15 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
 
               <div className="space-y-3 mb-5">
                 <div>
-                  <label className="text-xs font-bold text-[var(--text-2)] uppercase tracking-wider mb-1 block">Table Number *</label>
-                  <input
-                    type="number" value={addNo} onChange={(e) => setAddNo(e.target.value)}
-                    placeholder="e.g. 1" min={1}
-                    className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-[var(--text-2)] uppercase tracking-wider mb-1 block">Label (optional)</label>
+                  <label className="text-xs font-bold text-[var(--text-2)] uppercase tracking-wider mb-1 block">Table Name</label>
                   <input
                     value={addLabel} onChange={(e) => setAddLabel(e.target.value)}
-                    placeholder="e.g. Window Seat, VIP 1"
+                    placeholder="e.g. Garden Table, Window Seat, VIP 1"
+                    autoFocus
+                    onKeyDown={(e) => { if (e.key === "Enter" && !addSaving) handleAdd(); }}
                     className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                   />
+                  <p className="text-[10px] text-[var(--text-3)] mt-1">Leave blank to name it by number automatically.</p>
                 </div>
                 <div>
                   <label className="text-xs font-bold text-[var(--text-2)] uppercase tracking-wider mb-1 block">Capacity (seats)</label>
@@ -593,7 +808,7 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
                   className="flex-1 rounded-xl border border-[var(--border)] py-3 text-sm font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)]">
                   Cancel
                 </button>
-                <button onClick={handleAdd} disabled={!addNo || addSaving}
+                <button onClick={handleAdd} disabled={addSaving}
                   className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] py-3 text-sm font-bold text-white hover:bg-[#2d1508] disabled:opacity-40">
                   {addSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
                   Add Table
@@ -619,7 +834,7 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
               <div className="flex items-center justify-between mb-5">
                 <div>
                   <h3 className="text-lg font-extrabold text-[var(--text-1)]">Bulk Create Tables</h3>
-                  <p className="text-xs text-[var(--text-3)] mt-0.5">Create multiple tables with QR codes at once</p>
+                  <p className="text-xs text-[var(--text-3)] mt-0.5">Quickly create a numbered range — rename any of them later</p>
                 </div>
                 <button onClick={() => !bulkSaving && setShowBulk(false)} className="rounded-full bg-[var(--surface)] p-2 hover:bg-[var(--surface-alt)]">
                   <X className="h-4 w-4 text-[var(--text-2)]" />
@@ -655,7 +870,7 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
                 </div>
                 {parseInt(bulkFrom) > 0 && parseInt(bulkTo) >= parseInt(bulkFrom) && (
                   <div className="rounded-xl bg-[var(--accent-muted)] border border-[var(--accent-border)] px-4 py-2.5 text-xs text-[var(--accent-text)] font-semibold">
-                    Will create {parseInt(bulkTo) - parseInt(bulkFrom) + 1} tables (T{bulkFrom} to T{bulkTo})
+                    Will create {parseInt(bulkTo) - parseInt(bulkFrom) + 1} tables (Table {bulkFrom} to Table {bulkTo})
                   </div>
                 )}
                 {bulkSaving && bulkProgress > 0 && (
@@ -675,7 +890,7 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
               </div>
 
               <p className="text-xs text-[var(--text-3)] mb-4">
-                QR codes are auto-generated when a customer scans. Duplicate table numbers are skipped.
+                QR codes are auto-generated for each table. Duplicate numbers are skipped.
               </p>
 
               <div className="flex gap-2">

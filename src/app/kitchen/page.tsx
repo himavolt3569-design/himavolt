@@ -37,6 +37,8 @@ import {
   Monitor,
 } from "lucide-react";
 import { useToast } from "@/context/ToastContext";
+import { useRealtimeSignal } from "@/hooks/useRealtimeSignal";
+import { restaurantOrdersTopic } from "@/lib/realtime-topics";
 import { formatPrice } from "@/lib/currency";
 import {
   getFeatureTabsForType,
@@ -170,7 +172,13 @@ const WifiSettingsTab = lazyStaffTab(
   () => import("@/components/dashboard/features/WifiSettingsTab"),
 );
 
-const STAFF_FEATURE_COMPONENTS: Record<FeatureTabId, React.ComponentType> = {
+// Granular feature tabs surfaced in the staff kitchen portal. The consolidated
+// `hotel-hub` tab is an owner-dashboard concept only — staff get the individual
+// hotel sub-features (rooms, bookings, QR, etc.) — so it is intentionally absent
+// here. The lookup below guards the missing-key case with `if (!FeatureComponent)`.
+const STAFF_FEATURE_COMPONENTS: Partial<
+  Record<FeatureTabId, React.ComponentType>
+> = {
   "quick-counter": QuickCounterTab,
   "combo-meals": ComboMealsTab,
   "rush-hour": RushHourTab,
@@ -547,6 +555,13 @@ function OrdersTab({
       if (fallbackInterval) clearInterval(fallbackInterval);
     };
   }, [restaurantId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Instant WebSocket push (Supabase Realtime) — refetch the queue the moment an
+  // order/payment changes. SSE above stays as the fallback + new-order sound.
+  useRealtimeSignal(
+    restaurantId ? restaurantOrdersTopic(restaurantId) : null,
+    load,
+  );
 
   const updateStatus = async (
     orderId: string,

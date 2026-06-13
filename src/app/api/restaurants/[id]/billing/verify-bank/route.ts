@@ -5,6 +5,7 @@ import { logAudit, getClientIp } from "@/lib/audit";
 import { getAuthUser } from "@/lib/auth";
 import { touchOrderUpdatedAt } from "@/lib/order-sync";
 import { notifyCustomerOrderUpdate } from "@/lib/notifications";
+import { notifyOrderChanged } from "@/lib/realtime";
 import { STAFF_BILLING_ROLES } from "@/lib/staff-roles";
 
 async function verifyStaffAccess(req: NextRequest, restaurantId: string) {
@@ -133,6 +134,8 @@ export async function POST(
       ).catch(() => { /* non-fatal */ });
     }
 
+    notifyOrderChanged(payment.orderId, id, { payment: "COMPLETED" });
+
     return NextResponse.json({ success: true, payment: updated });
   }
 
@@ -168,6 +171,8 @@ export async function POST(
       payment.order.restaurant.name,
     ).catch(() => { /* non-fatal */ });
   }
+
+  notifyOrderChanged(payment.orderId, id, { payment: "FAILED" });
 
   return NextResponse.json({ success: true, payment: updated });
 }

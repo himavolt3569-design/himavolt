@@ -5,6 +5,7 @@ import { logAudit, getClientIp } from "@/lib/audit";
 import { sendNotificationToRestaurantStaff } from "@/lib/notifications";
 import { canAccessOrder } from "@/lib/order-access";
 import { restoreStock } from "@/lib/stock";
+import { notifyOrderChanged } from "@/lib/realtime";
 
 export async function POST(
   req: NextRequest,
@@ -97,6 +98,8 @@ export async function POST(
     restaurantId: order.restaurantId,
     ipAddress: getClientIp(req.headers),
   });
+
+  notifyOrderChanged(orderId, order.restaurantId, { status: "CANCELLED" });
 
   return NextResponse.json({ success: true, orderId, status: "CANCELLED" });
 }

@@ -22,16 +22,20 @@ export async function GET(req: NextRequest, { params }: Params) {
   const access = await verifyAccess(req, restaurantId);
   if (!access) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const [restaurant, tables, activeSessions] = await Promise.all([
-    db.restaurant.findUnique({
+  // Prod runs a 1-connection Prisma pool, and this endpoint is polled every 30s
+  // by every open dashboard. Run the queries sequentially — a parallel Promise.all
+  // here saturates the pool and the connection-acquire times out, which surfaced
+  // as intermittent 5xx errors on /tables.
+  try {
+    const restaurant = await db.restaurant.findUnique({
       where: { id: restaurantId },
       select: { slug: true, name: true },
-    }),
-    db.table.findMany({
+    });
+    const tables = await db.table.findMany({
       where: { restaurantId, isActive: true },
       orderBy: { tableNo: "asc" },
-    }),
-    db.tableSession.findMany({
+    });
+    const activeSessions = await db.tableSession.findMany({
       where: { restaurantId, isActive: true },
       include: {
         order: {
@@ -42,21 +46,29 @@ export async function GET(req: NextRequest, { params }: Params) {
           },
         },
       },
-    }),
-  ]);
+    });
 
-  const sessionByTable = new Map(activeSessions.map((s) => [s.tableNo, s]));
+    const sessionByTable = new Map(activeSessions.map((s) => [s.tableNo, s]));
 
-  const result = tables.map((t) => {
-    const session = sessionByTable.get(t.tableNo);
-    return {
-      ...t,
-      isOccupied: !!session,
-      session: session ?? null,
-    };
-  });
+    const result = tables.map((t) => {
+      const session = sessionByTable.get(t.tableNo);
+      return {
+        ...t,
+        isOccupied: !!session,
+        session: session ?? null,
+      };
+    });
 
-  return NextResponse.json({ tables: result, restaurant });
+    return NextResponse.json({ tables: result, restaurant });
+  } catch (err) {
+    // Degrade gracefully on transient DB/pool errors so the polling client
+    // treats it as a skippable refresh instead of crashing the function.
+    console.error("[tables] GET failed", err);
+    return NextResponse.json(
+      { error: "Could not load tables. Please try again." },
+      { status: 503 },
+    );
+  }
 }
 
 /** POST /api/restaurants/[id]/tables — create a table */

@@ -39,6 +39,8 @@ import {
   BedDouble,
 } from "lucide-react";
 import { useToast } from "@/context/ToastContext";
+import { useRealtimeSignal } from "@/hooks/useRealtimeSignal";
+import { restaurantOrdersTopic } from "@/lib/realtime-topics";
 import { formatPrice } from "@/lib/currency";
 import { type FeatureTabId } from "@/lib/restaurant-types";
 
@@ -164,7 +166,13 @@ const WifiSettingsTab = lazyCounterTab(
   () => import("@/components/dashboard/features/WifiSettingsTab"),
 );
 
-const COUNTER_FEATURE_COMPONENTS: Record<FeatureTabId, React.ComponentType> = {
+// Granular feature tabs surfaced in the staff counter portal. The consolidated
+// `hotel-hub` tab is an owner-dashboard concept only — staff get the individual
+// hotel sub-features (rooms, bookings, QR, etc.) — so it is intentionally absent
+// here. The lookup below guards the missing-key case with `if (!FeatureComponent)`.
+const COUNTER_FEATURE_COMPONENTS: Partial<
+  Record<FeatureTabId, React.ComponentType>
+> = {
   "quick-counter": QuickCounterTab,
   "combo-meals": ComboMealsTab,
   "rush-hour": RushHourTab,
@@ -1763,6 +1771,13 @@ export default function CounterPage() {
       if (fallbackInterval) clearInterval(fallbackInterval);
     };
   }, [session]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Instant WebSocket push (Supabase Realtime) for the token board. SSE above
+  // remains the fallback and keeps driving the ready/new-order sounds.
+  useRealtimeSignal(
+    session ? restaurantOrdersTopic(session.restaurantId) : null,
+    loadOrders,
+  );
 
   const handlePunch = async () => {
     setAttendanceLoading(true);

@@ -4,6 +4,7 @@ import { verifyEsewaPayment } from "@/lib/payments/esewa";
 import { decryptIfPresent } from "@/lib/encryption";
 import { touchOrderUpdatedAt } from "@/lib/order-sync";
 import { sendNotificationToRestaurantStaff } from "@/lib/notifications";
+import { notifyOrderChanged } from "@/lib/realtime";
 
 // Derive the app origin from the incoming request so redirects always
 // point to the correct domain regardless of deployment environment.
@@ -128,6 +129,8 @@ export async function GET(req: NextRequest) {
         });
         await touchOrderUpdatedAt(orderId);
         await logWebhook("payment.success", orderId, rawPayload, 302, transactionUuid);
+
+        notifyOrderChanged(orderId, order?.restaurantId, { payment: "COMPLETED" });
 
         // Notify kitchen that payment is confirmed
         if (order) {
