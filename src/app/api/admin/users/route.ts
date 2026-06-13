@@ -272,6 +272,51 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "Cannot change your own role" }, { status: 400 });
   }
 
+  // The Users list merges live Supabase Auth accounts with the app DB, so the
+  // admin can act on brand-new sign-ups that are still "pending" (auth-only and
+  // not yet provisioned into our `User` table). Updating those would throw, so
+  // provision a minimal record first, then the role assignment always succeeds.
+  const existing = await db.user.findUnique({
+    where: { id: userId },
+    select: { id: true },
+  });
+
+  if (!existing) {
+    try {
+      const { data, error } = await getSupabaseAdminClient().auth.admin.getUserById(userId);
+      if (error || !data?.user) {
+        return NextResponse.json({ error: "User not found" }, { status: 404 });
+      }
+      const au = data.user;
+      const meta = (au.user_metadata ?? {}) as Record<string, unknown>;
+      const email = au.email ?? "";
+      const created = await db.user.create({
+        data: {
+          id: au.id,
+          email,
+          name:
+            metaStr(meta, "full_name") ??
+            metaStr(meta, "name") ??
+            email.split("@")[0] ??
+            "User",
+          username: metaStr(meta, "username") ?? null,
+          phone: au.phone ?? metaStr(meta, "phone") ?? null,
+          imageUrl:
+            metaStr(meta, "avatar_url") ?? metaStr(meta, "picture") ?? null,
+          role,
+        },
+        select: { id: true, name: true, email: true, role: true },
+      });
+      return NextResponse.json(created);
+    } catch (err) {
+      console.error("[Admin Users] role change provisioning failed:", err);
+      return NextResponse.json(
+        { error: "Could not update this user's role" },
+        { status: 500 },
+      );
+    }
+  }
+
   const user = await db.user.update({
     where: { id: userId },
     data: { role },

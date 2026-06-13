@@ -158,10 +158,14 @@ export default function MasterOverview({
 
   const fetchStats = useCallback(async () => {
     setRefreshing(true);
+    // Guard against a slow or stalled request leaving the dashboard stuck on a
+    // spinner forever — abort after 12s so we surface the retry card instead.
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 12_000);
     try {
       const [sRes, pRes] = await Promise.all([
-        fetch("/api/admin/stats", { cache: "no-store" }),
-        fetch("/api/admin/presence", { cache: "no-store" }),
+        fetch("/api/admin/stats", { cache: "no-store", signal: controller.signal }),
+        fetch("/api/admin/presence", { cache: "no-store", signal: controller.signal }),
       ]);
       if (sRes.ok) {
         setStats(await sRes.json());
@@ -173,6 +177,7 @@ export default function MasterOverview({
     } catch {
       setError(true);
     } finally {
+      clearTimeout(timeout);
       setLoading(false);
       setRefreshing(false);
     }
