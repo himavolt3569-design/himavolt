@@ -53,6 +53,13 @@ const DRINK_CAT_CONFIG = {
   ALCOHOL: { label: "Alcohol",     icon: Wine,       color: "purple" },
 } as const;
 
+// Full literal class strings per drink-category color (Tailwind v4 can't see interpolated names)
+const DRINK_CAT_BADGE_STYLES: Record<string, string> = {
+  blue: "bg-blue-50 text-blue-600",
+  amber: "bg-amber-50 text-amber-600",
+  purple: "bg-purple-50 text-purple-600",
+};
+
 const BLANK_FORM = {
   name: "",
   description: "",
@@ -426,7 +433,7 @@ export default function DrinksTab() {
                       <span className="text-xs text-[var(--text-2)] font-semibold">
                         {formatPrice(item.price, "NPR")}
                       </span>
-                      <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold bg-${cfg.color}-50 text-${cfg.color}-600`}>
+                      <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${DRINK_CAT_BADGE_STYLES[cfg.color]}`}>
                         {cfg.label}
                       </span>
                       {isLowStock && (

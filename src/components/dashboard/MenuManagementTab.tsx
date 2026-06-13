@@ -1323,20 +1323,23 @@ export default function MenuManagementTab({
     }
   };
 
-  const fetchData = useCallback(async () => {
+  // `silent` reconciles state in the background without blanking the grid with
+  // a loading skeleton. Mutations update local state optimistically (instant),
+  // then call fetchData(true) to sync canonical data (real IDs, item counts).
+  const fetchData = useCallback(async (silent = false) => {
     if (!restaurantId) return;
-    setLoading(true);
+    if (!silent) setLoading(true);
     try {
       const [menuRes, catRes] = await Promise.all([
-        apiFetch<MenuItem[]>(`/api/restaurants/${restaurantId}/menu`),
-        apiFetch<MenuCategory[]>(`/api/restaurants/${restaurantId}/categories`),
+        apiFetch<MenuItem[]>(`/api/restaurants/${restaurantId}/menu`, { cacheTtl: 0 }),
+        apiFetch<MenuCategory[]>(`/api/restaurants/${restaurantId}/categories`, { cacheTtl: 0 }),
       ]);
       setItems(Array.isArray(menuRes) ? menuRes : []);
       setCategories(Array.isArray(catRes) ? catRes : []);
     } catch (err) {
-      showToast(err instanceof Error ? err.message : "Failed to load menu data");
+      if (!silent) showToast(err instanceof Error ? err.message : "Failed to load menu data");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [restaurantId, showToast]);
 
@@ -1375,7 +1378,7 @@ export default function MenuManagementTab({
       showToast(`"${catName}" created!`);
       if (!name) { setNewCatName(""); setShowNewCat(false); }
       setAddSubParentId(null);
-      await fetchData();
+      await fetchData(true);
     } catch (err) {
       showToast(err instanceof Error ? err.message : "Failed to create category");
     } finally {
@@ -1392,7 +1395,7 @@ export default function MenuManagementTab({
         { method: "POST" }
       );
       showToast(result.message || `${result.categories.length} categories added!`);
-      await fetchData();
+      await fetchData(true);
     } catch {
       showToast("Failed to seed categories");
     } finally {
@@ -1423,7 +1426,7 @@ export default function MenuManagementTab({
       showToast(`"${deleteCatConfirm.name}" deleted`);
       if (selectedCatId === deleteCatConfirm.categoryId) setSelectedCatId("All");
       setDeleteCatConfirm(null);
-      await fetchData();
+      await fetchData(true);
     } catch {
       showToast("Failed to delete category");
     }
@@ -1447,21 +1450,29 @@ export default function MenuManagementTab({
 
   const updateItem = async (id: string, patch: Record<string, unknown>) => {
     if (!restaurantId) return;
+    // Optimistic — reflect the change instantly, reconcile in the background.
+    const snapshot = items;
+    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, ...patch } : i)));
     try {
       await apiFetch(`/api/restaurants/${restaurantId}/menu/${id}`, { method: "PATCH", body: patch });
-      await fetchData();
+      fetchData(true);
     } catch {
+      setItems(snapshot);
       showToast("Failed to update item");
     }
   };
 
   const deleteItem = async (id: string) => {
     if (!restaurantId) return;
+    // Optimistic removal — no full-grid reload.
+    const snapshot = items;
+    setItems((prev) => prev.filter((i) => i.id !== id));
+    showToast("Item deleted");
     try {
       await apiFetch(`/api/restaurants/${restaurantId}/menu/${id}`, { method: "DELETE" });
-      showToast("Item deleted");
-      await fetchData();
+      fetchData(true);
     } catch {
+      setItems(snapshot);
       showToast("Failed to delete item");
     }
   };
@@ -1472,6 +1483,48 @@ export default function MenuManagementTab({
 
   const addItem = async (formData: DishFormData) => {
     if (!restaurantId) return;
+
+    // Optimistic insert — render the new dish immediately, then reconcile with
+    // the server's canonical row (real id, defaults) in the background.
+    const cat = flatCategories.find((c) => c.id === formData.categoryId);
+    const tempId = `temp-${Date.now()}`;
+    const discountNum = Number(formData.discount) || 0;
+    const optimistic: MenuItem = {
+      id: tempId,
+      name: formData.name.trim(),
+      description: formData.description.trim() || null,
+      price: Number(formData.price),
+      imageUrl: formData.imageUrl || null,
+      rating: 0,
+      prepTime: formData.prepTime || "15-20 min",
+      isVeg: formData.isVeg,
+      hasEgg: formData.hasEgg,
+      hasOnionGarlic: formData.hasOnionGarlic,
+      isAvailable: true,
+      badge: formData.badge || null,
+      tags: formData.tags,
+      sortOrder: items.length,
+      categoryId: formData.categoryId,
+      category: cat
+        ? { id: cat.id, name: cat.name, slug: cat.slug, parentId: cat.parentId }
+        : { id: formData.categoryId, name: "", slug: "", parentId: null },
+      sizes: formData.sizes
+        .filter((s) => s.label.trim())
+        .map((s, i) => ({ id: `${tempId}-s${i}`, label: s.label, grams: s.grams, priceAdd: Number(s.priceAdd) || 0 })),
+      addOns: formData.addOns
+        .filter((a) => a.name.trim())
+        .map((a, i) => ({ id: `${tempId}-a${i}`, name: a.name, price: Number(a.price) || 0 })),
+      discount: discountNum,
+      discountLabel: formData.discountLabel || null,
+      isFeatured: formData.isFeatured,
+      spiceLevel: formData.spiceLevel,
+      calories: formData.calories ? Number(formData.calories) : null,
+      allergens: formData.allergens,
+    };
+    setItems((prev) => [...prev, optimistic]);
+    setShowAddForm(false);
+    showToast("New dish added!");
+
     try {
       await apiFetch(`/api/restaurants/${restaurantId}/menu`, {
         method: "POST",
@@ -1497,18 +1550,62 @@ export default function MenuManagementTab({
           addOns: formData.addOns.filter((a) => a.name.trim()).map((a) => ({ name: a.name, price: Number(a.price) || 0 })),
         },
       });
-      setShowAddForm(false);
-      showToast("New dish added!");
-      await fetchData();
+      // Reconcile silently — swaps the temp row for the canonical one, fixes counts.
+      fetchData(true);
     } catch (err) {
+      setItems((prev) => prev.filter((i) => i.id !== tempId));
+      setShowAddForm(true);
       showToast(err instanceof Error ? err.message : "Failed to add dish");
     }
   };
 
   const editItem = async (formData: DishFormData) => {
     if (!restaurantId || !editingItem) return;
+
+    // Optimistic edit — apply the change to the visible card instantly.
+    const targetId = editingItem.id;
+    const snapshot = items;
+    const cat = flatCategories.find((c) => c.id === formData.categoryId);
+    setItems((prev) =>
+      prev.map((i) =>
+        i.id === targetId
+          ? {
+              ...i,
+              name: formData.name.trim(),
+              description: formData.description.trim() || null,
+              price: Number(formData.price),
+              categoryId: formData.categoryId,
+              category: cat
+                ? { id: cat.id, name: cat.name, slug: cat.slug, parentId: cat.parentId }
+                : i.category,
+              imageUrl: formData.imageUrl || null,
+              isVeg: formData.isVeg,
+              hasEgg: formData.hasEgg,
+              hasOnionGarlic: formData.hasOnionGarlic,
+              prepTime: formData.prepTime || "15-20 min",
+              badge: formData.badge || null,
+              tags: formData.tags,
+              spiceLevel: formData.spiceLevel,
+              calories: formData.calories ? Number(formData.calories) : null,
+              allergens: formData.allergens,
+              isFeatured: formData.isFeatured,
+              discount: Number(formData.discount) || 0,
+              discountLabel: formData.discountLabel || null,
+              sizes: formData.sizes
+                .filter((s) => s.label.trim())
+                .map((s, idx) => ({ id: `${targetId}-s${idx}`, label: s.label, grams: s.grams, priceAdd: Number(s.priceAdd) || 0 })),
+              addOns: formData.addOns
+                .filter((a) => a.name.trim())
+                .map((a, idx) => ({ id: `${targetId}-a${idx}`, name: a.name, price: Number(a.price) || 0 })),
+            }
+          : i,
+      ),
+    );
+    setEditingItem(null);
+    showToast("Dish updated!");
+
     try {
-      await apiFetch(`/api/restaurants/${restaurantId}/menu/${editingItem.id}`, {
+      await apiFetch(`/api/restaurants/${restaurantId}/menu/${targetId}`, {
         method: "PATCH",
         body: {
           name: formData.name.trim(),
@@ -1532,16 +1629,19 @@ export default function MenuManagementTab({
           addOns: formData.addOns.filter((a) => a.name.trim()).map((a) => ({ name: a.name, price: Number(a.price) || 0 })),
         },
       });
-      setEditingItem(null);
-      showToast("Dish updated!");
-      await fetchData();
+      fetchData(true);
     } catch {
+      setItems(snapshot);
       showToast("Failed to update dish");
     }
   };
 
   const duplicateItem = async (item: MenuItem) => {
     if (!restaurantId) return;
+    // Optimistic clone — show the copy instantly, reconcile for the real id.
+    const tempId = `temp-${Date.now()}`;
+    setItems((prev) => [...prev, { ...item, id: tempId, name: `${item.name} (Copy)` }]);
+    showToast("Item duplicated!");
     try {
       await apiFetch(`/api/restaurants/${restaurantId}/menu`, {
         method: "POST",
@@ -1564,9 +1664,9 @@ export default function MenuManagementTab({
           addOns: item.addOns.map((a) => ({ name: a.name, price: a.price })),
         },
       });
-      showToast("Item duplicated!");
-      await fetchData();
+      fetchData(true);
     } catch {
+      setItems((prev) => prev.filter((i) => i.id !== tempId));
       showToast("Failed to duplicate item");
     }
   };

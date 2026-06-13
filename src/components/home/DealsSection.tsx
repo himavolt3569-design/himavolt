@@ -201,7 +201,7 @@ export default function DealsSection() {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="text-5xl md:text-7xl font-black text-[var(--text-1)] tracking-tighter leading-[0.9] mb-4"
+              className="text-4xl sm:text-5xl md:text-7xl font-black text-[var(--text-1)] tracking-tighter leading-[0.9] mb-4"
             >
               Deals that make <br />
               <span className="relative inline-block">

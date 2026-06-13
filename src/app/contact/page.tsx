@@ -156,7 +156,7 @@ export default function ContactPage() {
               <MessageSquare className="h-4 w-4" />
               Get in Touch
             </div>
-            <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl leading-[1.1] mb-5">
+            <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl md:text-5xl lg:text-6xl leading-[1.1] mb-5">
               We would love to{" "}
               <span className="text-[var(--accent)]">hear from you</span>
             </h1>
@@ -253,7 +253,7 @@ export default function ContactPage() {
                         value={form.name}
                         onChange={set("name")}
                         placeholder="Rajan Shrestha"
-                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-3.5 text-sm font-medium text-[var(--text-1)] placeholder-gray-300 outline-none transition-all focus:border-[var(--accent)]/40 focus:ring-2 focus:ring-[var(--accent)]/15 focus:bg-[var(--canvas)]"
+                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-3.5 text-base sm:text-sm font-medium text-[var(--text-1)] placeholder-gray-300 outline-none transition-all focus:border-[var(--accent)]/40 focus:ring-2 focus:ring-[var(--accent)]/15 focus:bg-[var(--canvas)]"
                       />
                     </div>
                     <div className="space-y-2">
@@ -266,7 +266,7 @@ export default function ContactPage() {
                         value={form.email}
                         onChange={set("email")}
                         placeholder="rajan@example.com"
-                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-3.5 text-sm font-medium text-[var(--text-1)] placeholder-gray-300 outline-none transition-all focus:border-[var(--accent)]/40 focus:ring-2 focus:ring-[var(--accent)]/15 focus:bg-[var(--canvas)]"
+                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-3.5 text-base sm:text-sm font-medium text-[var(--text-1)] placeholder-gray-300 outline-none transition-all focus:border-[var(--accent)]/40 focus:ring-2 focus:ring-[var(--accent)]/15 focus:bg-[var(--canvas)]"
                       />
                     </div>
                   </div>
@@ -292,7 +292,7 @@ export default function ContactPage() {
                         inputMode="numeric"
                         title="Enter exactly 10 digits"
                         placeholder="98XXXXXXXX"
-                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-3.5 text-sm font-medium text-[var(--text-1)] placeholder-gray-300 outline-none transition-all focus:border-[var(--accent)]/40 focus:ring-2 focus:ring-[var(--accent)]/15 focus:bg-[var(--canvas)]"
+                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-3.5 text-base sm:text-sm font-medium text-[var(--text-1)] placeholder-gray-300 outline-none transition-all focus:border-[var(--accent)]/40 focus:ring-2 focus:ring-[var(--accent)]/15 focus:bg-[var(--canvas)]"
                       />
                     </div>
                     <div className="space-y-2">
@@ -303,7 +303,7 @@ export default function ContactPage() {
                         value={form.subject}
                         onChange={set("subject")}
                         required
-                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-3.5 text-sm font-medium text-[var(--text-1)] outline-none transition-all focus:border-[var(--accent)]/40 focus:ring-2 focus:ring-[var(--accent)]/15 focus:bg-[var(--canvas)] appearance-none"
+                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-3.5 text-base sm:text-sm font-medium text-[var(--text-1)] outline-none transition-all focus:border-[var(--accent)]/40 focus:ring-2 focus:ring-[var(--accent)]/15 focus:bg-[var(--canvas)] appearance-none"
                       >
                         <option value="" disabled>Select a topic</option>
                         <option value="general">General Inquiry</option>
@@ -326,7 +326,7 @@ export default function ContactPage() {
                       value={form.message}
                       onChange={set("message")}
                       placeholder="Tell us how we can help..."
-                      className="w-full resize-none rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-3.5 text-sm font-medium text-[var(--text-1)] placeholder-gray-300 outline-none transition-all focus:border-[var(--accent)]/40 focus:ring-2 focus:ring-[var(--accent)]/15 focus:bg-[var(--canvas)]"
+                      className="w-full resize-none rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-3.5 text-base sm:text-sm font-medium text-[var(--text-1)] placeholder-gray-300 outline-none transition-all focus:border-[var(--accent)]/40 focus:ring-2 focus:ring-[var(--accent)]/15 focus:bg-[var(--canvas)]"
                     />
                   </div>
 

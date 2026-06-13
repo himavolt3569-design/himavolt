@@ -405,7 +405,7 @@ export default function FoodDetailsPage() {
                   <OfferCountdown expiresAt={food.offerExpiresAt} compact />
                 )}
               </div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-white leading-tight truncate">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white leading-tight truncate">
                 {food.name}
               </h1>
               <p className="text-xs text-white/60 mt-0.5 flex items-center gap-1">
@@ -574,7 +574,7 @@ export default function FoodDetailsPage() {
                 <p className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider mb-3">
                   Choose Size
                 </p>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {food.sizes.map((s, i) => (
                     <button
                       key={s.id}

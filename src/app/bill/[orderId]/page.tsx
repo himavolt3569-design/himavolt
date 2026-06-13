@@ -232,7 +232,7 @@ export default function BillPage() {
     <div className="min-h-screen bg-gradient-to-b from-gray-100 to-gray-50 print:bg-[var(--canvas)] print:from-white print:to-white">
       {/* Action bar — hidden on print */}
       <div className="sticky top-0 z-30 bg-[var(--canvas)]/80 backdrop-blur-xl border-b border-[var(--border-soft)] print:hidden">
-        <div className="mx-auto max-w-2xl flex items-center justify-between px-4 py-3">
+        <div className="mx-auto max-w-2xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-4 py-3">
           <Link
             href={`/track/${order.id}`}
             className="flex items-center gap-2 text-sm font-bold text-[var(--text-2)] hover:text-[var(--text-1)] transition-colors"

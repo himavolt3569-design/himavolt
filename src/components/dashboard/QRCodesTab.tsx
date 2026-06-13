@@ -6,291 +6,8 @@ import QRCode from "react-qr-code";
 import { Download, Printer, Share2, Check, Palette, TableProperties } from "lucide-react";
 import { useToast } from "@/context/ToastContext";
 import { useRestaurant } from "@/context/RestaurantContext";
+import { STYLES, buildQRCanvas, type CardStyle } from "@/components/dashboard/qr/qrCanvas";
 import gsap from "gsap";
-
-
-export type CardStyle = "classic" | "modern" | "minimal";
-
-interface StyleConfig {
-  label: string;
-  bg: string;
-  headerBg: string;
-  headerText: string;
-  accent: string;
-  qrFg: string;
-  textPrimary: string;
-  textSecondary: string;
-  border: string;
-  cornerAccent: boolean;
-  roundedHeader: boolean;
-}
-
-const STYLES: Record<CardStyle, StyleConfig> = {
-  classic: {
-    label: "Classic",
-    bg: "#FFFDF7",
-    headerBg: "#3e1e0c",
-    headerText: "#FFFFFF",
-    accent: "#eaa94d",
-    qrFg: "#3e1e0c",
-    textPrimary: "#3e1e0c",
-    textSecondary: "#5a7a72",
-    border: "#3e1e0c",
-    cornerAccent: true,
-    roundedHeader: false,
-  },
-  modern: {
-    label: "Modern",
-    bg: "#111827",
-    headerBg: "#eaa94d",
-    headerText: "#111827",
-    accent: "#eaa94d",
-    qrFg: "#F9FAFB",
-    textPrimary: "#F9FAFB",
-    textSecondary: "#9CA3AF",
-    border: "#374151",
-    cornerAccent: false,
-    roundedHeader: true,
-  },
-  minimal: {
-    label: "Minimal",
-    bg: "#FFFFFF",
-    headerBg: "#FFFFFF",
-    headerText: "#111827",
-    accent: "#111827",
-    qrFg: "#111827",
-    textPrimary: "#111827",
-    textSecondary: "#6B7280",
-    border: "#E5E7EB",
-    cornerAccent: false,
-    roundedHeader: false,
-  },
-};
-
-// Produces a beautifully branded print card using only Canvas 2D API.
-// No html2canvas → no CSS color parsing → no lab() errors.
-
-async function buildQRCanvas(
-  container: HTMLElement,
-  tableNo: number,
-  restaurantName: string,
-  slug: string,
-  style: CardStyle,
-  scale = 3,
-): Promise<HTMLCanvasElement> {
-  const svg = container.querySelector("svg");
-  if (!svg) throw new Error("SVG not found");
-
-  const cfg = STYLES[style];
-
-  // Card dimensions (logical px before scale)
-  const W = 340;
-  const H = 480;
-  const cW = W * scale;
-  const cH = H * scale;
-
-  const qrSize = 170;
-  const qrX = (W - qrSize) / 2;
-  const qrY = 120;
-
-  // Load QR SVG as image
-  const cloned = svg.cloneNode(true) as SVGElement;
-  cloned.setAttribute("width", String(qrSize));
-  cloned.setAttribute("height", String(qrSize));
-  // Replace QR foreground color to match style
-  cloned.querySelectorAll("path, rect").forEach((el) => {
-    const fill = el.getAttribute("fill");
-    if (fill && fill !== "none" && fill !== "transparent" && fill !== "#ffffff" && fill !== "white") {
-      el.setAttribute("fill", cfg.qrFg);
-    }
-  });
-
-  const qrBlobUrl = URL.createObjectURL(
-    new Blob([new XMLSerializer().serializeToString(cloned)], {
-      type: "image/svg+xml;charset=utf-8",
-    }),
-  );
-
-  const qrImg = await new Promise<HTMLImageElement>((res, rej) => {
-    const img = new Image();
-    img.onload = () => res(img);
-    img.onerror = rej;
-    img.src = qrBlobUrl;
-  });
-  URL.revokeObjectURL(qrBlobUrl);
-
-  const canvas = document.createElement("canvas");
-  canvas.width = cW;
-  canvas.height = cH;
-  const ctx = canvas.getContext("2d")!;
-  ctx.scale(scale, scale);
-
-  if (style === "modern") {
-    const grad = ctx.createLinearGradient(0, 0, 0, H);
-    grad.addColorStop(0, "#1a2537");
-    grad.addColorStop(1, "#0d1117");
-    ctx.fillStyle = grad;
-  } else {
-    ctx.fillStyle = cfg.bg;
-  }
-  ctx.fillRect(0, 0, W, H);
-
-  if (style === "classic" || style === "minimal") {
-    ctx.strokeStyle = cfg.border;
-    ctx.lineWidth = style === "classic" ? 2.5 : 1;
-    const bInset = style === "classic" ? 5 : 0;
-    ctx.strokeRect(bInset, bInset, W - bInset * 2, H - bInset * 2);
-  }
-
-  // ── Corner accents (classic only) ───────────
-  if (cfg.cornerAccent) {
-    const cornerLen = 18;
-    const cornerInset = 10;
-    ctx.strokeStyle = cfg.accent;
-    ctx.lineWidth = 3;
-    const corners = [
-      // top-left
-      [[cornerInset, cornerInset + cornerLen], [cornerInset, cornerInset], [cornerInset + cornerLen, cornerInset]],
-      // top-right
-      [[W - cornerInset - cornerLen, cornerInset], [W - cornerInset, cornerInset], [W - cornerInset, cornerInset + cornerLen]],
-      // bottom-left
-      [[cornerInset, H - cornerInset - cornerLen], [cornerInset, H - cornerInset], [cornerInset + cornerLen, H - cornerInset]],
-      // bottom-right
-      [[W - cornerInset - cornerLen, H - cornerInset], [W - cornerInset, H - cornerInset], [W - cornerInset, H - cornerInset - cornerLen]],
-    ] as [number, number][][];
-    for (const pts of corners) {
-      ctx.beginPath();
-      ctx.moveTo(pts[0][0], pts[0][1]);
-      ctx.lineTo(pts[1][0], pts[1][1]);
-      ctx.lineTo(pts[2][0], pts[2][1]);
-      ctx.stroke();
-    }
-  }
-
-  const headerH = 72;
-  if (cfg.roundedHeader) {
-    // Pill-style header for Modern
-    const r = 14;
-    const hx = 16, hy = 16, hw = W - 32, hh = headerH - 8;
-    ctx.fillStyle = cfg.headerBg;
-    ctx.beginPath();
-    ctx.moveTo(hx + r, hy);
-    ctx.lineTo(hx + hw - r, hy);
-    ctx.arcTo(hx + hw, hy, hx + hw, hy + r, r);
-    ctx.lineTo(hx + hw, hy + hh - r);
-    ctx.arcTo(hx + hw, hy + hh, hx + hw - r, hy + hh, r);
-    ctx.lineTo(hx + r, hy + hh);
-    ctx.arcTo(hx, hy + hh, hx, hy + hh - r, r);
-    ctx.lineTo(hx, hy + r);
-    ctx.arcTo(hx, hy, hx + r, hy, r);
-    ctx.closePath();
-    ctx.fill();
-  } else if (style === "classic") {
-    ctx.fillStyle = cfg.headerBg;
-    ctx.fillRect(5, 5, W - 10, headerH);
-  }
-  // Minimal has no header block — just text
-
-  ctx.textAlign = "center";
-  ctx.fillStyle = style === "minimal" ? cfg.textSecondary : cfg.headerText;
-  ctx.font = `bold ${style === "minimal" ? 11 : 12}px sans-serif`;
-  const nameY = style === "modern" ? 54 : style === "minimal" ? 28 : 34;
-  ctx.fillText(restaurantName.toUpperCase(), W / 2, nameY);
-
-  // Restaurant initials badge in header
-  if (style !== "minimal") {
-    const initials = restaurantName.split(/\s+/).map(w => w[0]).join("").toUpperCase().slice(0, 3);
-    const badgeW = Math.max(24, initials.length * 9 + 10);
-    const badgeX = W / 2 - badgeW / 2;
-    const badgeY = (style === "modern" ? 22 : 10);
-    const br = 3;
-    ctx.fillStyle = cfg.accent;
-    ctx.beginPath();
-    ctx.moveTo(badgeX + br, badgeY);
-    ctx.lineTo(badgeX + badgeW - br, badgeY);
-    ctx.arcTo(badgeX + badgeW, badgeY, badgeX + badgeW, badgeY + br, br);
-    ctx.lineTo(badgeX + badgeW, badgeY + 14 - br);
-    ctx.arcTo(badgeX + badgeW, badgeY + 14, badgeX + badgeW - br, badgeY + 14, br);
-    ctx.lineTo(badgeX + br, badgeY + 14);
-    ctx.arcTo(badgeX, badgeY + 14, badgeX, badgeY + 14 - br, br);
-    ctx.lineTo(badgeX, badgeY + br);
-    ctx.arcTo(badgeX, badgeY, badgeX + br, badgeY, br);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = style === "modern" ? "#111827" : "#ffffff";
-    ctx.font = `bold 8px sans-serif`;
-    ctx.fillText(initials, W / 2, badgeY + 10);
-  }
-
-  if (style === "classic") {
-    ctx.strokeStyle = cfg.accent;
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(30, headerH + 5 + 5);
-    ctx.lineTo(W - 30, headerH + 5 + 5);
-    ctx.stroke();
-  }
-
-  // ── "TABLE" label ────────────────────────────
-  const tableLabelY = style === "minimal" ? 50 : style === "modern" ? 115 : 100;
-  ctx.fillStyle = cfg.textSecondary;
-  ctx.font = `600 10px sans-serif`;
-  ctx.textAlign = "center";
-  ctx.letterSpacing = "3px";
-  ctx.fillText("TABLE", W / 2, tableLabelY);
-  ctx.letterSpacing = "0px";
-
-  ctx.fillStyle = style === "modern" ? cfg.accent : cfg.textPrimary;
-  ctx.font = `900 56px sans-serif`;
-  ctx.fillText(String(tableNo), W / 2, tableLabelY + 60);
-
-  // Draw background behind QR for contrast
-  if (style === "modern") {
-    const bx = qrX - 10, by = qrY - 10, bw = qrSize + 20, bh = qrSize + 20, br = 12;
-    ctx.fillStyle = "#1a2537";
-    ctx.beginPath();
-    ctx.moveTo(bx + br, by);
-    ctx.lineTo(bx + bw - br, by);
-    ctx.arcTo(bx + bw, by, bx + bw, by + br, br);
-    ctx.lineTo(bx + bw, by + bh - br);
-    ctx.arcTo(bx + bw, by + bh, bx + bw - br, by + bh, br);
-    ctx.lineTo(bx + br, by + bh);
-    ctx.arcTo(bx, by + bh, bx, by + bh - br, br);
-    ctx.lineTo(bx, by + br);
-    ctx.arcTo(bx, by, bx + br, by, br);
-    ctx.closePath();
-    ctx.fill();
-  } else {
-    ctx.fillStyle = cfg.bg;
-    ctx.fillRect(qrX - 6, qrY - 6, qrSize + 12, qrSize + 12);
-  }
-  ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
-
-  ctx.fillStyle = style === "modern" ? cfg.accent : cfg.textPrimary;
-  ctx.font = `bold 13px sans-serif`;
-  ctx.textAlign = "center";
-  ctx.fillText("Scan to Order", W / 2, qrY + qrSize + 28);
-
-  ctx.fillStyle = cfg.textSecondary;
-  ctx.font = `11px sans-serif`;
-  ctx.fillText("No app needed, just scan and order!", W / 2, qrY + qrSize + 46);
-
-  ctx.fillStyle = cfg.textSecondary;
-  ctx.font = `9px sans-serif`;
-  ctx.textAlign = "center";
-  ctx.fillText("Powered by HimaVolt", W / 2, H - 20);
-
-  // ── Bottom accent bar (Classic / Modern) ─────
-  if (style === "classic") {
-    ctx.fillStyle = cfg.accent;
-    ctx.fillRect(5, H - 9, W - 10, 4);
-  } else if (style === "modern") {
-    ctx.fillStyle = cfg.accent;
-    ctx.fillRect(W / 2 - 30, H - 12, 60, 3);
-  }
-
-  return canvas;
-}
 
 
 interface Particle {
@@ -339,11 +56,13 @@ function ConfettiBurst({ active, origin }: { active: boolean; origin: { x: numbe
 
 function QRCard({
   tableNo,
+  label,
   slug,
   restaurantName,
   cardStyle,
 }: {
   tableNo: number;
+  label: string | null;
   slug: string;
   restaurantName: string;
   cardStyle: CardStyle;
@@ -355,6 +74,7 @@ function QRCard({
   const downloadRef = useRef<HTMLButtonElement>(null);
   const qrRef = useRef<HTMLDivElement>(null);
 
+  const displayName = label?.trim() || `Table ${tableNo}`;
   const tableUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/menu/${slug}?table=${tableNo}`;
 
   const handleShare = useCallback(
@@ -362,46 +82,46 @@ function QRCard({
       const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
       setConfettiOrigin({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
       setConfetti(true);
-      showToast(`Table ${tableNo} link copied!`);
+      showToast(`${displayName} link copied!`);
       if (shareRef.current) {
         gsap.fromTo(shareRef.current, { scale: 1 }, { scale: 1.25, yoyo: true, repeat: 1, duration: 0.15, ease: "power1.inOut" });
       }
       navigator.clipboard.writeText(tableUrl);
       setTimeout(() => setConfetti(false), 800);
     },
-    [tableNo, tableUrl, showToast],
+    [displayName, tableUrl, showToast],
   );
 
   const handleDownload = async () => {
     if (!qrRef.current) return;
     try {
-      const canvas = await buildQRCanvas(qrRef.current, tableNo, restaurantName, slug, cardStyle, 3);
+      const canvas = await buildQRCanvas(qrRef.current, tableNo, restaurantName, slug, cardStyle, 3, label);
       const link = document.createElement("a");
       link.href = canvas.toDataURL("image/png");
       link.download = `${slug}-table-${tableNo}-qr.png`;
       link.click();
-      showToast(`QR for Table ${tableNo} downloaded!`);
+      showToast(`QR for ${displayName} downloaded!`);
       if (downloadRef.current) {
         gsap.fromTo(downloadRef.current, { scale: 1.2, color: "#eaa94d" }, { scale: 1, color: "", duration: 0.3, ease: "back.out(2)" });
       }
     } catch (error) {
       console.error(error);
-      showToast(`Failed to download QR code for Table ${tableNo}`);
+      showToast(`Failed to download QR code for ${displayName}`);
     }
   };
 
   const handlePrint = async () => {
     if (!qrRef.current) return;
     try {
-      showToast(`Preparing print for Table ${tableNo}...`);
-      const canvas = await buildQRCanvas(qrRef.current, tableNo, restaurantName, slug, cardStyle, 4);
+      showToast(`Preparing print for ${displayName}...`);
+      const canvas = await buildQRCanvas(qrRef.current, tableNo, restaurantName, slug, cardStyle, 4, label);
       const image = canvas.toDataURL("image/png");
       const printWindow = window.open("", "_blank");
       if (printWindow) {
         printWindow.document.write(`
           <html>
             <head>
-              <title>Table ${tableNo} QR Code</title>
+              <title>${displayName} QR Code</title>
               <style>
                 @media print { @page { margin: 0; } body { margin: 0; } }
                 body { margin:0; display:flex; align-items:center; justify-content:center; min-height:100vh; background:#f9fafb; }
@@ -416,7 +136,7 @@ function QRCard({
       }
     } catch (error) {
       console.error(error);
-      showToast(`Failed to print QR code for Table ${tableNo}`);
+      showToast(`Failed to print QR code for ${displayName}`);
     }
   };
 
@@ -430,14 +150,14 @@ function QRCard({
         className="group relative flex flex-col items-center rounded-3xl border border-[var(--border-soft)]/60 bg-[var(--canvas)]/80 backdrop-blur-md p-6 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.08)] transition-all hover:-translate-y-1"
       >
         <div ref={qrRef} id={`qr-printable-${tableNo}`} className="w-full flex flex-col items-center bg-[var(--canvas)] pb-4 rounded-xl">
-          <div className="mb-4 flex w-full items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--text-1)]/10 text-xs font-bold text-[var(--text-1)]">
+          <div className="mb-4 flex w-full items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[var(--text-1)]/10 text-xs font-bold text-[var(--text-1)]">
                 {tableNo}
               </span>
-              <span className="text-sm font-bold text-[var(--text-1)]">Table {tableNo}</span>
+              <span className="truncate text-sm font-bold text-[var(--text-1)]" title={displayName}>{displayName}</span>
             </div>
-            <span className="rounded-full bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-bold text-[var(--accent-text)]">Active</span>
+            <span className="shrink-0 rounded-full bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-bold text-[var(--accent-text)]">Active</span>
           </div>
 
           <div className="relative w-[180px] h-[180px] max-w-full flex items-center justify-center rounded-xl bg-[var(--canvas)] p-4 mb-4 border border-[var(--border-soft)] shadow-sm">
@@ -445,7 +165,7 @@ function QRCard({
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="rounded-sm bg-[var(--canvas)] flex items-center justify-center border border-[var(--border-soft)] px-1.5 py-1 shadow-sm">
                 <span className="text-[9px] font-black text-[var(--accent)] leading-none">
-                  {restaurantName.split(/\s+/).map(w => w[0]).join("").toUpperCase().slice(0, 3)}
+                  {restaurantName.split(/\s+/).map((w) => w[0]).join("").toUpperCase().slice(0, 3)}
                 </span>
               </div>
             </div>
@@ -547,7 +267,7 @@ export default function QRCodesTab() {
           row = 0;
         }
 
-        const canvas = await buildQRCanvas(el, tableNo, restaurantName, restaurant?.slug ?? "", cardStyle, 2);
+        const canvas = await buildQRCanvas(el, tableNo, restaurantName, restaurant?.slug ?? "", cardStyle, 2, tables[i].label);
         const imgData = canvas.toDataURL("image/png");
         const x = margin + col * (cardW + colSpacing);
         const y = margin + row * (cardH + rowSpacing);
@@ -604,7 +324,7 @@ export default function QRCodesTab() {
         <div className="flex-1 flex items-start gap-3 rounded-2xl bg-[var(--accent-muted)] backdrop-blur-sm border border-[var(--accent-border)]/50 px-5 py-4 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.02)]">
           <Check className="h-5 w-5 text-[var(--accent-text)] mt-0.5 shrink-0" />
           <p className="text-sm font-medium text-[var(--accent-text)]/80 leading-relaxed">
-            Each QR links to your menu with the table number pre-selected. Customers scan and order instantly — <strong className="font-bold text-[var(--accent-text)]">no app needed.</strong>
+            Each QR links to your menu with the table pre-selected. Customers scan and order instantly — <strong className="font-bold text-[var(--accent-text)]">no app needed.</strong>
           </p>
         </div>
 
@@ -656,6 +376,7 @@ export default function QRCodesTab() {
             <QRCard
               key={t.id}
               tableNo={t.tableNo}
+              label={t.label}
               slug={restaurant?.slug ?? ""}
               restaurantName={restaurantName}
               cardStyle={cardStyle}

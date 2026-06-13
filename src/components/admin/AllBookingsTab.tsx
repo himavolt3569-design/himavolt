@@ -66,6 +66,14 @@ const STATUS_ICONS: Record<string, typeof CheckCircle> = {
   CANCELLED:   XCircle,
 };
 
+// Full literal class strings per stat-tile color (Tailwind v4 can't see interpolated names)
+const STAT_COLOR_STYLES: Record<string, { tile: string; value: string; label: string }> = {
+  gray: { tile: "bg-gray-50 ring-gray-100", value: "text-gray-700", label: "text-gray-600" },
+  amber: { tile: "bg-amber-50 ring-amber-100", value: "text-amber-700", label: "text-amber-600" },
+  blue: { tile: "bg-blue-50 ring-blue-100", value: "text-blue-700", label: "text-blue-600" },
+  emerald: { tile: "bg-emerald-50 ring-emerald-100", value: "text-emerald-700", label: "text-emerald-600" },
+};
+
 export default function AllBookingsTab() {
   const [bookings, setBookings] = useState<AdminBooking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -184,9 +192,9 @@ export default function AllBookingsTab() {
           { label: "Checked In", value: stats.active, color: "blue" },
           { label: "Advance Collected", value: `NPR ${stats.revenue.toLocaleString()}`, color: "emerald", isText: true },
         ].map((s) => (
-          <div key={s.label} className={`rounded-2xl bg-${s.color}-50 ring-1 ring-${s.color}-100 p-4`}>
-            <p className={`text-[${s.isText ? "14" : "22"}px] font-black text-${s.color}-700`}>{s.value}</p>
-            <p className={`text-[11px] font-semibold text-${s.color}-600`}>{s.label}</p>
+          <div key={s.label} className={`rounded-2xl ring-1 p-4 ${STAT_COLOR_STYLES[s.color].tile}`}>
+            <p className={`${s.isText ? "text-[14px]" : "text-[22px]"} font-black ${STAT_COLOR_STYLES[s.color].value}`}>{s.value}</p>
+            <p className={`text-[11px] font-semibold ${STAT_COLOR_STYLES[s.color].label}`}>{s.label}</p>
           </div>
         ))}
       </div>

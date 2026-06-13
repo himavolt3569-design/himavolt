@@ -76,6 +76,22 @@ const PAY_STATUS_STYLES: Record<string, string> = {
   FAILED: "bg-[var(--status-error-bg)] text-[var(--status-error-text)]",
 };
 
+// Full literal class strings per action color (Tailwind v4 can't see interpolated names)
+const ACTION_COLOR_STYLES: Record<string, string> = {
+  emerald: "hover:bg-emerald-50 text-emerald-700",
+  rose: "hover:bg-rose-50 text-rose-700",
+  blue: "hover:bg-blue-50 text-blue-700",
+  gray: "hover:bg-gray-50 text-gray-700",
+};
+
+// Full literal class strings per stat-tile color
+const STAT_COLOR_STYLES: Record<string, { tile: string; value: string; label: string }> = {
+  amber: { tile: "bg-amber-50 ring-amber-100", value: "text-amber-700", label: "text-amber-600" },
+  emerald: { tile: "bg-emerald-50 ring-emerald-100", value: "text-emerald-700", label: "text-emerald-600" },
+  blue: { tile: "bg-blue-50 ring-blue-100", value: "text-blue-700", label: "text-blue-600" },
+  gray: { tile: "bg-gray-50 ring-gray-100", value: "text-gray-700", label: "text-gray-600" },
+};
+
 function BookingRow({
   booking,
   currency,
@@ -174,7 +190,7 @@ function BookingRow({
                         <button
                           key={a.status}
                           onClick={() => { onStatusChange(booking.id, a.status); setOpen(false); }}
-                          className={`flex w-full items-center gap-2 px-3 py-2.5 text-[12px] font-semibold hover:bg-${a.color}-50 transition-colors text-${a.color}-700`}
+                          className={`flex w-full items-center gap-2 px-3 py-2.5 text-[12px] font-semibold transition-colors ${ACTION_COLOR_STYLES[a.color]}`}
                         >
                           <Icon className="h-3.5 w-3.5" />
                           {a.label}
@@ -587,9 +603,9 @@ export default function HotelBookingsTab() {
           { label: "Checked In", value: stats.checkedIn, color: "blue" },
           { label: "Total", value: stats.total, color: "gray" },
         ].map((s) => (
-          <div key={s.label} className={`rounded-2xl bg-${s.color}-50 ring-1 ring-${s.color}-100 p-4`}>
-            <p className={`text-[22px] font-black text-${s.color}-700`}>{s.value}</p>
-            <p className={`text-[11px] font-semibold text-${s.color}-600`}>{s.label}</p>
+          <div key={s.label} className={`rounded-2xl ring-1 p-4 ${STAT_COLOR_STYLES[s.color].tile}`}>
+            <p className={`text-[22px] font-black ${STAT_COLOR_STYLES[s.color].value}`}>{s.value}</p>
+            <p className={`text-[11px] font-semibold ${STAT_COLOR_STYLES[s.color].label}`}>{s.label}</p>
           </div>
         ))}
       </div>
