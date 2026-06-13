@@ -79,11 +79,14 @@ export async function POST(
   const staff = await getStaffSession(req);
   let authorized = staff?.restaurantId === id;
 
-  if (staff) {
+  if (authorized && staff) {
+    // Staff member of this restaurant.
     userIdForAudit = staff.userId || `staff-${staff.staffId}`;
     const r = await db.restaurant.findUnique({ where: { id }, select: { currency: true } });
     if (r) currency = r.currency ?? "NPR";
   } else {
+    // No staff session, or a staff session for a *different* restaurant
+    // (e.g. owner with a lingering POS cookie) — fall back to owner check.
     const user = await getOrCreateUser();
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -92,7 +95,7 @@ export async function POST(
       where: { id, ownerId: user.id },
     });
     if (!restaurant) {
-      return NextResponse.json({ error: "Not found" }, { status: 404 });
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
     authorized = true;
     userIdForAudit = user.id;
