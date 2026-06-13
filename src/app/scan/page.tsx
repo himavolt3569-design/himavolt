@@ -257,7 +257,7 @@ function ScanPageContent() {
 
         {/* Camera / Viewfinder box */}
         <div
-          className={`relative mx-auto flex h-64 w-64 items-center justify-center rounded-3xl border-2 transition-all duration-500 overflow-hidden ${
+          className={`relative mx-auto flex h-56 w-56 items-center justify-center rounded-3xl border-2 transition-all duration-500 overflow-hidden sm:h-64 sm:w-64 ${
             scanSuccess
               ? "border-[#3e1e0c] bg-[var(--text-1)]/10 shadow-2xl shadow-[var(--text-1)]/20"
               : cameraActive
@@ -464,7 +464,7 @@ function ScanPageContent() {
                 }}
                 onKeyDown={(e) => e.key === "Enter" && handleTableSubmit()}
                 placeholder={inputMode === "table" ? "e.g. 07" : "e.g. 101"}
-                className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] py-3.5 pl-11 pr-4 text-center text-lg font-bold text-[var(--text-1)] placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] focus:border-[var(--accent-border)] focus:bg-[var(--canvas)] transition-all tracking-[0.3em]"
+                className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] py-3.5 pl-11 pr-4 text-center text-lg font-bold text-[var(--text-1)] placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] focus:border-[var(--accent-border)] focus:bg-[var(--canvas)] transition-all tracking-[0.15em] sm:tracking-[0.3em]"
               />
             </div>
             <button

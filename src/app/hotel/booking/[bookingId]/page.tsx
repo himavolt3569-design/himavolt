@@ -56,12 +56,50 @@ interface BookingDetail {
   };
 }
 
-const STATUS_CONFIG: Record<string, { label: string; color: string; icon: typeof CheckCircle }> = {
-  PENDING: { label: "Awaiting Confirmation", color: "amber", icon: Clock },
-  CONFIRMED: { label: "Booking Confirmed", color: "emerald", icon: CheckCircle },
-  CHECKED_IN: { label: "Checked In", color: "blue", icon: CheckCircle },
-  CHECKED_OUT: { label: "Checked Out", color: "gray", icon: CheckCircle },
-  CANCELLED: { label: "Cancelled", color: "red", icon: XCircle },
+const STATUS_CONFIG: Record<
+  string,
+  { label: string; card: string; iconWrap: string; icon: string; labelColor: string; Icon: typeof CheckCircle }
+> = {
+  PENDING: {
+    label: "Awaiting Confirmation",
+    card: "bg-amber-50 ring-amber-100",
+    iconWrap: "bg-amber-100",
+    icon: "text-amber-600",
+    labelColor: "text-amber-700",
+    Icon: Clock,
+  },
+  CONFIRMED: {
+    label: "Booking Confirmed",
+    card: "bg-emerald-50 ring-emerald-100",
+    iconWrap: "bg-emerald-100",
+    icon: "text-emerald-600",
+    labelColor: "text-emerald-700",
+    Icon: CheckCircle,
+  },
+  CHECKED_IN: {
+    label: "Checked In",
+    card: "bg-blue-50 ring-blue-100",
+    iconWrap: "bg-blue-100",
+    icon: "text-blue-600",
+    labelColor: "text-blue-700",
+    Icon: CheckCircle,
+  },
+  CHECKED_OUT: {
+    label: "Checked Out",
+    card: "bg-gray-50 ring-gray-100",
+    iconWrap: "bg-gray-100",
+    icon: "text-gray-600",
+    labelColor: "text-gray-700",
+    Icon: CheckCircle,
+  },
+  CANCELLED: {
+    label: "Cancelled",
+    card: "bg-red-50 ring-red-100",
+    iconWrap: "bg-red-100",
+    icon: "text-red-600",
+    labelColor: "text-red-700",
+    Icon: XCircle,
+  },
 };
 
 export default function BookingConfirmationPage() {
@@ -103,7 +141,7 @@ export default function BookingConfirmationPage() {
 
   const cur = booking.restaurant.currency === "USD" ? "$" : booking.restaurant.currency === "INR" ? "₹" : "Rs.";
   const statusCfg = STATUS_CONFIG[booking.status] ?? STATUS_CONFIG.PENDING;
-  const StatusIcon = statusCfg.icon;
+  const StatusIcon = statusCfg.Icon;
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans">
@@ -150,17 +188,17 @@ export default function BookingConfirmationPage() {
           </motion.div>
         )}
 
-        <div className={`rounded-3xl p-6 text-center bg-${statusCfg.color}-50 ring-1 ring-${statusCfg.color}-100`}>
-          <div className={`mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-${statusCfg.color}-100`}>
-            <StatusIcon className={`h-7 w-7 text-${statusCfg.color}-600`} />
+        <div className={`rounded-3xl p-6 text-center ring-1 ${statusCfg.card}`}>
+          <div className={`mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full ${statusCfg.iconWrap}`}>
+            <StatusIcon className={`h-7 w-7 ${statusCfg.icon}`} />
           </div>
-          <p className={`text-[16px] font-bold text-${statusCfg.color}-700`}>{statusCfg.label}</p>
+          <p className={`text-[16px] font-bold ${statusCfg.labelColor}`}>{statusCfg.label}</p>
           <p className="mt-1 text-[11px] text-[var(--text-2)]">Booking #{bookingId.slice(-8).toUpperCase()}</p>
         </div>
 
         <div className="rounded-2xl bg-[var(--canvas)] ring-1 ring-[var(--border)] overflow-hidden shadow-sm">
           {booking.room.imageUrls[0] && (
-            <img src={booking.room.imageUrls[0]} alt="Room" className="h-44 w-full object-cover" />
+            <img src={booking.room.imageUrls[0]} alt="Room" className="h-36 w-full object-cover sm:h-44" />
           )}
           <div className="p-5 space-y-3">
             <div className="flex items-center justify-between">

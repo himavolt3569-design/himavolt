@@ -267,7 +267,7 @@ export default function ProfilePage() {
         <motion.div
           {...fadeUp}
           transition={{ duration: 0.3 }}
-          className="rounded-[2.5rem] border border-[var(--border)] bg-[var(--canvas)] p-8 shadow-sm relative overflow-hidden"
+          className="rounded-[2.5rem] border border-[var(--border)] bg-[var(--canvas)] p-6 sm:p-8 shadow-sm relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 p-8 opacity-5">
             <User className="h-32 w-32" />
@@ -275,7 +275,7 @@ export default function ProfilePage() {
 
           <div className="flex flex-col items-center text-center">
             <div className="relative group mb-6">
-              <div className="h-28 w-28 rounded-full overflow-hidden ring-4 ring-[var(--accent-border)] ring-offset-4 bg-[var(--surface)] relative">
+              <div className="h-24 w-24 sm:h-28 sm:w-28 rounded-full overflow-hidden ring-4 ring-[var(--accent-border)] ring-offset-4 bg-[var(--surface)] relative">
                 {avatarUrl ? (
                   <Image
                     src={avatarUrl}
@@ -389,7 +389,7 @@ export default function ProfilePage() {
             <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[var(--accent-muted)] mb-4 transition-transform group-hover:scale-110">
               <ShoppingBag className="h-5 w-5 text-[var(--accent)]" />
             </div>
-            <p className="text-3xl font-black text-[var(--text-1)] tracking-tighter">
+            <p className="text-2xl sm:text-3xl font-black text-[var(--text-1)] tracking-tighter">
               {stats.totalOrders}
             </p>
             <p className="text-[10px] text-[var(--text-3)] font-black uppercase tracking-[0.1em] mt-1">
@@ -583,7 +583,7 @@ export default function ProfilePage() {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative w-full max-w-sm rounded-[2.5rem] bg-white p-8 shadow-2xl overflow-hidden"
+              className="relative w-full max-w-sm rounded-[2.5rem] bg-white p-6 sm:p-8 shadow-2xl overflow-hidden"
             >
               <div className="absolute top-0 right-0 p-6 opacity-5">
                 <AlertTriangle className="h-24 w-24 text-red-600" />

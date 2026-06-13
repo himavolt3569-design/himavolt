@@ -46,7 +46,7 @@ function CountdownTimer({
 
   return (
     <div className="flex flex-col items-center">
-      <div className="relative h-24 w-24">
+      <div className="relative h-20 w-20 sm:h-24 sm:w-24">
         <svg className="h-full w-full -rotate-90" viewBox="0 0 100 100">
           <circle cx="50" cy="50" r="42" fill="none" stroke="#f3f4f6" strokeWidth="6" />
           <motion.circle
@@ -241,7 +241,7 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
                       backgroundColor: isActive ? "#3e1e0c" : "#f3f4f6",
                     }}
                     transition={{ type: "spring", damping: 20 }}
-                    className="flex h-9 w-9 items-center justify-center rounded-full"
+                    className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full"
                   >
                     <Icon
                       className={`h-4 w-4 ${isActive ? "text-white" : "text-[var(--text-3)]"}`}

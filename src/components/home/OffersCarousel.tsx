@@ -97,7 +97,7 @@ export default function OffersCarousel() {
                 }}
               />
 
-              <div className="relative z-10 flex h-full flex-col justify-center p-8 md:p-12 lg:p-16 max-w-[60%] sm:max-w-[55%]">
+              <div className="relative z-10 flex h-full flex-col justify-center p-6 sm:p-8 md:p-12 lg:p-16 max-w-[60%] sm:max-w-[55%]">
                 <motion.div
                   initial={{ opacity: 0, x: -12 }}
                   animate={{ opacity: 1, x: 0 }}

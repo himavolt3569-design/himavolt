@@ -105,13 +105,13 @@ function ImageGallery({ images, alt }: { images: string[]; alt: string }) {
   const [idx, setIdx] = useState(0);
   if (!images.length) {
     return (
-      <div className="flex h-72 w-full items-center justify-center bg-gradient-to-br from-[var(--accent)] to-[var(--accent-hover)] sm:h-96">
+      <div className="flex h-52 w-full items-center justify-center bg-gradient-to-br from-[var(--accent)] to-[var(--accent-hover)] sm:h-72 lg:h-96">
         <BedDouble className="h-16 w-16 text-white/60" />
       </div>
     );
   }
   return (
-    <div className="relative h-72 w-full overflow-hidden bg-black sm:h-96">
+    <div className="relative h-52 w-full overflow-hidden bg-black sm:h-72 lg:h-96">
       <AnimatePresence mode="wait" initial={false}>
         <motion.img
           key={idx}

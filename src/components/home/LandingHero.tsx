@@ -220,7 +220,7 @@ export default function LandingHero() {
   const hasHeroImages = heroSettings.images.length > 0;
 
   return (
-    <section className="relative bg-[var(--canvas)] overflow-hidden min-h-[700px] md:min-h-[800px] flex items-center">
+    <section className="relative bg-[var(--canvas)] overflow-hidden min-h-[85vh] md:min-h-[800px] flex items-center">
       {/* Decorative Background Elements */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-0 right-0 -mr-32 -mt-32 h-[600px] w-[600px] rounded-full bg-[var(--accent)]/[0.04]" />

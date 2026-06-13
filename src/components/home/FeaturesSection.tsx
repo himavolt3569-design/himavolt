@@ -153,7 +153,7 @@ export default function FeaturesSection() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-5xl md:text-7xl lg:text-8xl font-black text-[var(--text-1)] tracking-tighter leading-[0.9] mb-8"
+            className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black text-[var(--text-1)] tracking-tighter leading-[0.9] mb-8"
           >
             Sophisticated Dining. <br />
             <span className="text-[var(--text-3)]">Evolved for Nepal.</span>

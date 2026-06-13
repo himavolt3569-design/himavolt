@@ -82,7 +82,7 @@ export default function RefundPage() {
               </span>
             </Link>
           </div>
-          <div className="flex items-center gap-2 text-xs text-[var(--text-3)]">
+          <div className="flex items-center gap-2 text-xs sm:text-sm text-[var(--text-3)]">
             <Link
               href="/legal/terms"
               className="font-bold hover:text-[var(--accent)] transition-colors"

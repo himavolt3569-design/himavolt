@@ -549,7 +549,7 @@ function MessageBubble({
         <Icon className="h-3.5 w-3.5 text-white" />
       </div>
       <div
-        className={`max-w-[75%] rounded-2xl px-3.5 py-2 ${
+        className={`max-w-[85%] sm:max-w-[75%] rounded-2xl px-3.5 py-2 ${
           isMine
             ? "bg-[var(--text-1)] text-white rounded-br-md"
             : "bg-[var(--surface)] text-[var(--text-1)] rounded-bl-md"
