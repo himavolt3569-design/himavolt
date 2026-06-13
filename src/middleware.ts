@@ -135,7 +135,7 @@ export async function middleware(req: NextRequest) {
   const staffValid = await verifyStaffJwt(req);
   if (staffValid) return NextResponse.next();
 
-  let res = NextResponse.next();
+  let res = NextResponse.next({ request: req });
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -146,9 +146,18 @@ export async function middleware(req: NextRequest) {
           return req.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            res.cookies.set(name, value, options);
-          });
+          // Write refreshed tokens onto BOTH the request and the response.
+          // Request: so the downstream route handler (getSupabaseServerClient)
+          // reads the NEW access token instead of re-refreshing with a refresh
+          // token this middleware already rotated — which would fail and 401.
+          // Response: so the browser persists the rotated session.
+          cookiesToSet.forEach(({ name, value }) =>
+            req.cookies.set(name, value),
+          );
+          res = NextResponse.next({ request: req });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            res.cookies.set(name, value, options),
+          );
         },
       },
     },
@@ -177,7 +186,7 @@ async function refreshSupabaseSession(req: NextRequest) {
     return NextResponse.next();
   }
 
-  const res = NextResponse.next();
+  let res = NextResponse.next({ request: req });
   const { pathname } = req.nextUrl;
 
   const supabase = createServerClient(
@@ -189,9 +198,15 @@ async function refreshSupabaseSession(req: NextRequest) {
           return req.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            res.cookies.set(name, value, options);
-          });
+          // Mirror refreshed tokens onto the request so downstream handlers see
+          // the rotated session, then onto the response for the browser.
+          cookiesToSet.forEach(({ name, value }) =>
+            req.cookies.set(name, value),
+          );
+          res = NextResponse.next({ request: req });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            res.cookies.set(name, value, options),
+          );
         },
       },
     },
