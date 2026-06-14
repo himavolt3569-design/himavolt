@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { formatPrice } from "@/lib/currency";
+import { SkeletonLine, SkeletonStatGrid, SkeletonTable } from "@/components/shared/Skeleton";
 
 interface UsedInMenuItem {
   id: string;
@@ -108,7 +109,21 @@ export default function StockTab() {
     return () => clearInterval(interval);
   }, [restaurant, fetchItems]);
 
-  if (!restaurant) return null;
+  if (!restaurant || (loading && items.length === 0)) {
+    return (
+      <div className="space-y-6 max-w-5xl mx-auto pb-12">
+        <div className="flex items-center justify-between gap-4">
+          <div className="space-y-2">
+            <SkeletonLine width="w-52" height="h-7" />
+            <SkeletonLine width="w-64" height="h-3" />
+          </div>
+          <SkeletonLine width="w-28" height="h-10" className="rounded-xl" />
+        </div>
+        <SkeletonStatGrid count={4} />
+        <SkeletonTable rows={6} />
+      </div>
+    );
+  }
 
   const filtered = items.filter((item) => {
     if (search && !item.name.toLowerCase().includes(search.toLowerCase()))

@@ -32,6 +32,7 @@ import {
   type StaffMember,
 } from "@/context/RestaurantContext";
 import { apiFetch } from "@/lib/api-client";
+import { SkeletonLine, SkeletonGrid } from "@/components/shared/Skeleton";
 
 type StaffRole = "SUPER_ADMIN" | "MANAGER" | "CHEF" | "WAITER" | "CASHIER";
 
@@ -1139,7 +1140,21 @@ export default function StaffManagementTab() {
   );
   const [showModal, setShowModal] = useState(false);
 
-  if (!restaurant) return null;
+  if (!restaurant) {
+    return (
+      <div className="space-y-6 max-w-5xl mx-auto pb-12">
+        <div className="flex items-center justify-between gap-4">
+          <div className="space-y-2">
+            <SkeletonLine width="w-56" height="h-7" />
+            <SkeletonLine width="w-48" height="h-3" />
+          </div>
+          <SkeletonLine width="w-28" height="h-10" className="rounded-xl" />
+        </div>
+        <SkeletonLine width="w-64" height="h-10" className="rounded-xl" />
+        <SkeletonGrid rows={2} cols={3} cardClass="h-40 rounded-2xl" />
+      </div>
+    );
+  }
 
   const tabs = [
     { id: "directory" as const, label: "Team Directory", icon: Users },

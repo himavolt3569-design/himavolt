@@ -44,7 +44,11 @@ import { apiFetch } from "@/lib/api-client";
 import { useToast } from "@/context/ToastContext";
 import { formatPrice, getCurrencySymbol } from "@/lib/currency";
 import ImagePicker from "@/components/shared/ImagePicker";
-import { SkeletonCard } from "@/components/shared/Skeleton";
+import {
+  SkeletonStatGrid,
+  SkeletonGrid,
+  SkeletonLine,
+} from "@/components/shared/Skeleton";
 
 
 interface MenuCategory {
@@ -1327,7 +1331,11 @@ export default function MenuManagementTab({
   // a loading skeleton. Mutations update local state optimistically (instant),
   // then call fetchData(true) to sync canonical data (real IDs, item counts).
   const fetchData = useCallback(async (silent = false) => {
-    if (!restaurantId) return;
+    if (!restaurantId) {
+      // No restaurant resolved yet — don't sit in a blank loading state.
+      if (!silent) setLoading(false);
+      return;
+    }
     if (!silent) setLoading(true);
     try {
       const [menuRes, catRes] = await Promise.all([
@@ -1673,7 +1681,25 @@ export default function MenuManagementTab({
 
   const addSubParent = addSubParentId ? flatCategories.find((c) => c.id === addSubParentId) : null;
 
-  if (loading && items.length === 0) return null;
+  if (loading && items.length === 0) {
+    return (
+      <div className="space-y-5">
+        <div className="flex items-center justify-between gap-3">
+          <div className="space-y-2">
+            <SkeletonLine width="w-48" height="h-6" />
+            <SkeletonLine width="w-64" height="h-3" />
+          </div>
+          <SkeletonLine width="w-28" height="h-9" className="rounded-xl" />
+        </div>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <SkeletonLine width="w-full" height="h-16" className="rounded-2xl" />
+          <SkeletonLine width="w-full" height="h-16" className="rounded-2xl" />
+        </div>
+        <SkeletonStatGrid count={6} />
+        <SkeletonGrid rows={2} cols={4} cardClass="h-64 rounded-2xl" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">

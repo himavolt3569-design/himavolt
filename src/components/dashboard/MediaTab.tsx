@@ -16,7 +16,9 @@ import {
   Plus,
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
+import { SkeletonLine, SkeletonGrid } from "@/components/shared/Skeleton";
 import { useToast } from "@/context/ToastContext";
+import { apiFetch } from "@/lib/api-client";
 import { uploadFile } from "@/lib/upload";
 
 interface MediaItem {
@@ -47,9 +49,13 @@ export default function MediaTab({ restaurantId: propRestaurantId }: { restauran
     setLoading(true);
     try {
       const qs = filter !== "ALL" ? `?type=${filter}` : "";
-      const res = await fetch(`/api/restaurants/${restaurantId}/media${qs}`);
-      const data = await res.json();
+      const data = await apiFetch<{ media: MediaItem[] }>(
+        `/api/restaurants/${restaurantId}/media${qs}`,
+        { cacheTtl: 0 },
+      );
       setMedia(data.media ?? []);
+    } catch {
+      // leave existing media in place on transient failure
     } finally {
       setLoading(false);
     }
@@ -102,7 +108,18 @@ export default function MediaTab({ restaurantId: propRestaurantId }: { restauran
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
-  if (!restaurantId) return null;
+  if (!restaurantId) {
+    return (
+      <div className="space-y-6">
+        <div className="space-y-2">
+          <SkeletonLine width="w-44" height="h-6" />
+          <SkeletonLine width="w-60" height="h-3" />
+        </div>
+        <SkeletonLine width="w-full" height="h-28" className="rounded-2xl" />
+        <SkeletonGrid rows={2} cols={4} cardClass="aspect-square rounded-xl" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -166,9 +183,7 @@ export default function MediaTab({ restaurantId: propRestaurantId }: { restauran
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-6 w-6 animate-spin text-[var(--accent)]" />
-        </div>
+        <SkeletonGrid rows={2} cols={4} cardClass="aspect-square rounded-xl" />
       ) : media.length === 0 ? (
         <div className="rounded-2xl bg-[var(--canvas-sub)] py-16 text-center">
           <Film className="mx-auto h-10 w-10 text-[var(--text-3)] mb-3" />

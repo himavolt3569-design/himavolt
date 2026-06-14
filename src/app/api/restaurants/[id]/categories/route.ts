@@ -32,8 +32,8 @@ export async function GET(
   } catch (err) {
     console.error("[Categories GET]", err);
     return NextResponse.json(
-      { error: "Failed to load categories" },
-      { status: 500 },
+      { error: "Could not load categories. Please try again." },
+      { status: 503 },
     );
   }
 }

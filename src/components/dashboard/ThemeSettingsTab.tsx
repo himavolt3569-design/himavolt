@@ -17,6 +17,7 @@ import {
 import { useRestaurant } from "@/context/RestaurantContext";
 import { apiFetch } from "@/lib/api-client";
 import { useToast } from "@/context/ToastContext";
+import { SkeletonLine, SkeletonGrid } from "@/components/shared/Skeleton";
 
 interface ThemeConfig {
   primaryColor: string | null;
@@ -170,7 +171,17 @@ export default function ThemeSettingsTab() {
     );
   }
 
-  if (loading) return null;
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="space-y-2">
+          <SkeletonLine width="w-40" height="h-6" />
+          <SkeletonLine width="w-64" height="h-3" />
+        </div>
+        <SkeletonGrid rows={2} cols={3} cardClass="h-40 rounded-2xl" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
