@@ -6,7 +6,6 @@ import {
   QrCode,
   Download,
   BedDouble,
-  Loader2,
   X,
   Check,
   ChevronLeft,
@@ -14,6 +13,7 @@ import {
 } from "lucide-react";
 import QRCode from "react-qr-code";
 import { useRestaurant } from "@/context/RestaurantContext";
+import { SkeletonLine, SkeletonGrid } from "@/components/shared/Skeleton";
 import { apiFetch } from "@/lib/api-client";
 import { formatPrice } from "@/lib/currency";
 
@@ -250,7 +250,17 @@ export default function RoomQRTab() {
     fetchRooms();
   }, [fetchRooms]);
 
-  if (!restaurant) return null;
+  if (!restaurant) {
+    return (
+      <div className="space-y-6">
+        <div className="space-y-2">
+          <SkeletonLine width="w-44" height="h-6" />
+          <SkeletonLine width="w-80" height="h-3" />
+        </div>
+        <SkeletonGrid rows={2} cols={3} cardClass="h-56 rounded-2xl" />
+      </div>
+    );
+  }
 
   const slug = restaurant.slug ?? "";
   const totalPages = Math.ceil(rooms.length / PER_PAGE);
@@ -266,10 +276,7 @@ export default function RoomQRTab() {
       </div>
 
       {loading ? (
-        <div className="flex flex-col items-center py-20">
-          <Loader2 className="h-6 w-6 animate-spin text-[var(--accent)] mb-3" />
-          <p className="text-sm text-[var(--text-3)]">Loading rooms...</p>
-        </div>
+        <SkeletonGrid rows={2} cols={3} cardClass="h-56 rounded-2xl" />
       ) : rooms.length === 0 ? (
         <div className="flex flex-col items-center py-20 text-center">
           <BedDouble className="h-12 w-12 text-[var(--text-3)] mb-3" />

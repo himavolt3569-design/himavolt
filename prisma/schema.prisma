@@ -956,6 +956,11 @@ model Feedback {
   isAnonymous Boolean  @default(false)
   createdAt   DateTime @default(now())
 
+  // Owner/manager reply shown back to the guest
+  reply     String?
+  repliedAt DateTime?
+  repliedBy String? // display name of the staff/owner who replied
+
   restaurantId String
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
   orderId      String?

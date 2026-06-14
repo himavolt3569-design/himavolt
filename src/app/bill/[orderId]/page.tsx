@@ -20,6 +20,11 @@ import {
   Loader2,
   AlertCircle,
   Star,
+  Settings2,
+  QrCode,
+  Image as ImageIcon,
+  Check,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import { formatPrice } from "@/lib/currency";
@@ -70,6 +75,7 @@ interface BillData {
       address: string;
       phone: string;
       currency?: string;
+      imageUrl?: string | null;
     };
     user: {
       name: string | null;
@@ -80,6 +86,14 @@ interface BillData {
   };
 }
 
+
+interface OrderFeedback {
+  rating: number | null;
+  comment: string | null;
+  reply: string | null;
+  repliedAt: string | null;
+  repliedBy: string | null;
+}
 
 function formatDate(date: string) {
   return new Date(date).toLocaleDateString("en-NP", {
@@ -120,11 +134,249 @@ function statusColor(status: string) {
   return "bg-[var(--accent-muted)] text-[var(--accent-text)] border-[var(--accent-border)]";
 }
 
-/* ── Print & Download ───────────────────────────────────────────── */
+/* ── Receipt print settings (per-device, per-restaurant) ─────────── */
 
-function handlePrint() {
-  window.print();
+interface ReceiptSettings {
+  paperWidth: 58 | 80; // physical roll width in mm
+  showLogo: boolean;
+  showQR: boolean;
+  configured: boolean; // false until an actor saves once
 }
+
+const DEFAULT_RECEIPT_SETTINGS: ReceiptSettings = {
+  paperWidth: 80,
+  showLogo: true,
+  showQR: true,
+  configured: false,
+};
+
+function receiptKey(restaurantId: string) {
+  return `himavolt:receipt:${restaurantId}`;
+}
+
+function loadReceiptSettings(restaurantId: string): ReceiptSettings {
+  if (typeof window === "undefined") return DEFAULT_RECEIPT_SETTINGS;
+  try {
+    const raw = window.localStorage.getItem(receiptKey(restaurantId));
+    if (!raw) return DEFAULT_RECEIPT_SETTINGS;
+    return { ...DEFAULT_RECEIPT_SETTINGS, ...JSON.parse(raw) };
+  } catch {
+    return DEFAULT_RECEIPT_SETTINGS;
+  }
+}
+
+function saveReceiptSettings(restaurantId: string, settings: ReceiptSettings) {
+  try {
+    window.localStorage.setItem(receiptKey(restaurantId), JSON.stringify(settings));
+  } catch {
+    /* ignore quota / privacy-mode errors — printing still works with defaults */
+  }
+}
+
+/* ── Receipt settings modal ──────────────────────────────────────── */
+
+function ReceiptSettingsModal({
+  open,
+  initial,
+  hasLogo,
+  onClose,
+  onSave,
+}: {
+  open: boolean;
+  initial: ReceiptSettings;
+  hasLogo: boolean;
+  onClose: () => void;
+  onSave: (next: ReceiptSettings, thenPrint: boolean) => void;
+}) {
+  // The sheet mounts only while open, so it starts each time from the saved
+  // settings without needing an effect to re-sync.
+  return (
+    <AnimatePresence>
+      {open && (
+        <ReceiptSettingsSheet
+          initial={initial}
+          hasLogo={hasLogo}
+          onClose={onClose}
+          onSave={onSave}
+        />
+      )}
+    </AnimatePresence>
+  );
+}
+
+function ReceiptSettingsSheet({
+  initial,
+  hasLogo,
+  onClose,
+  onSave,
+}: {
+  initial: ReceiptSettings;
+  hasLogo: boolean;
+  onClose: () => void;
+  onSave: (next: ReceiptSettings, thenPrint: boolean) => void;
+}) {
+  const [draft, setDraft] = useState<ReceiptSettings>(initial);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-0 sm:p-4 print:hidden"
+      onClick={onClose}
+    >
+          <motion.div
+            initial={{ opacity: 0, y: 40, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 40, scale: 0.98 }}
+            transition={{ type: "spring", damping: 26, stiffness: 280 }}
+            onClick={(e) => e.stopPropagation()}
+            className="w-full sm:max-w-md bg-[var(--canvas)] rounded-t-3xl sm:rounded-3xl shadow-2xl border border-[var(--border-soft)] overflow-hidden"
+          >
+            {/* Header */}
+            <div className="flex items-start justify-between px-6 pt-6 pb-4 border-b border-[var(--border-soft)]">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--accent-muted)]">
+                  <Settings2 className="h-5 w-5 text-[var(--accent)]" />
+                </div>
+                <div>
+                  <h2 className="text-base font-extrabold text-[var(--text-1)]">
+                    Receipt Settings
+                  </h2>
+                  <p className="text-[12px] text-[var(--text-3)]">
+                    Set once for this printer — change anytime.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={onClose}
+                className="rounded-lg p-1.5 text-[var(--text-3)] hover:bg-[var(--canvas-sub)] hover:text-[var(--text-1)] transition-colors"
+                aria-label="Close"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="px-6 py-5 space-y-5">
+              {/* Paper width */}
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-widest text-[var(--text-3)] mb-2">
+                  Paper width
+                </p>
+                <div className="grid grid-cols-2 gap-2.5">
+                  {([58, 80] as const).map((w) => {
+                    const active = draft.paperWidth === w;
+                    return (
+                      <button
+                        key={w}
+                        onClick={() => setDraft((d) => ({ ...d, paperWidth: w }))}
+                        className={`flex flex-col items-center gap-0.5 rounded-2xl border-2 px-3 py-3 transition-all ${
+                          active
+                            ? "border-[var(--accent)] bg-[var(--accent-muted)]"
+                            : "border-[var(--border)] hover:border-[var(--accent)]/30"
+                        }`}
+                      >
+                        <span className="text-lg font-extrabold text-[var(--text-1)]">
+                          {w}mm
+                        </span>
+                        <span className="text-[11px] text-[var(--text-3)]">
+                          {w === 58 ? "Compact roll" : "Standard roll"}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Toggles */}
+              <div className="space-y-2.5">
+                <ToggleRow
+                  icon={<ImageIcon className="h-4 w-4" />}
+                  label="Print logo"
+                  hint={hasLogo ? "Shows your saved logo at the top" : "No logo uploaded yet"}
+                  checked={draft.showLogo && hasLogo}
+                  disabled={!hasLogo}
+                  onChange={(v) => setDraft((d) => ({ ...d, showLogo: v }))}
+                />
+                <ToggleRow
+                  icon={<QrCode className="h-4 w-4" />}
+                  label="Print feedback QR"
+                  hint="Guests scan to rate their experience"
+                  checked={draft.showQR}
+                  onChange={(v) => setDraft((d) => ({ ...d, showQR: v }))}
+                />
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="flex gap-2.5 px-6 py-4 border-t border-[var(--border-soft)] bg-[var(--canvas-sub)]">
+              <button
+                onClick={() => onSave(draft, false)}
+                className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-[var(--border)] px-4 py-3 text-sm font-bold text-[var(--text-2)] hover:bg-[var(--canvas)] transition-colors"
+              >
+                <Check className="h-4 w-4" /> Save
+              </button>
+              <button
+                onClick={() => onSave(draft, true)}
+                className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-3 text-sm font-bold text-white hover:bg-[var(--accent-hover)] transition-colors shadow-sm shadow-[var(--accent)]/20"
+              >
+                <Printer className="h-4 w-4" /> Save &amp; Print
+              </button>
+            </div>
+          </motion.div>
+    </motion.div>
+  );
+}
+
+function ToggleRow({
+  icon,
+  label,
+  hint,
+  checked,
+  disabled,
+  onChange,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  hint: string;
+  checked: boolean;
+  disabled?: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <div
+      className={`flex items-center gap-3 rounded-2xl border border-[var(--border-soft)] px-3.5 py-3 ${
+        disabled ? "opacity-50" : ""
+      }`}
+    >
+      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--canvas-sub)] text-[var(--accent)]">
+        {icon}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[13px] font-bold text-[var(--text-1)]">{label}</p>
+        <p className="text-[11px] text-[var(--text-3)] truncate">{hint}</p>
+      </div>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        disabled={disabled}
+        onClick={() => onChange(!checked)}
+        className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
+          checked ? "bg-[var(--accent)]" : "bg-[var(--border)]"
+        } ${disabled ? "cursor-not-allowed" : ""}`}
+      >
+        <span
+          className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+            checked ? "translate-x-[22px]" : "translate-x-0.5"
+          }`}
+        />
+      </button>
+    </div>
+  );
+}
+
+/* ── Print & Download ───────────────────────────────────────────── */
 
 async function handleDownload(
   billRef: React.RefObject<HTMLDivElement | null>,
@@ -164,6 +416,9 @@ export default function BillPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
+  const [settings, setSettings] = useState<ReceiptSettings>(DEFAULT_RECEIPT_SETTINGS);
+  const [showSettings, setShowSettings] = useState(false);
+  const [feedback, setFeedback] = useState<OrderFeedback | null>(null);
   const billRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -181,6 +436,49 @@ export default function BillPage() {
     }
     load();
   }, [params.orderId]);
+
+  // Load this restaurant's saved receipt settings once the bill arrives.
+  const restaurantId = bill?.order.restaurantId;
+  useEffect(() => {
+    if (restaurantId) setSettings(loadReceiptSettings(restaurantId));
+  }, [restaurantId]);
+
+  // Pull any review left for this order so we can show the venue's reply.
+  useEffect(() => {
+    if (!bill) return;
+    let active = true;
+    fetch(`/api/public/feedback/${params.orderId}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (active) setFeedback(d.feedback ?? null);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [bill, params.orderId]);
+
+  // Persist + apply settings, then optionally print straight away.
+  const saveSettings = useCallback(
+    (next: ReceiptSettings, thenPrint = false) => {
+      if (!restaurantId) return;
+      const configured = { ...next, configured: true };
+      setSettings(configured);
+      saveReceiptSettings(restaurantId, configured);
+      setShowSettings(false);
+      if (thenPrint) requestAnimationFrame(() => window.print());
+    },
+    [restaurantId],
+  );
+
+  // First print on this device opens the one-time setup; afterwards it prints.
+  const requestPrint = useCallback(() => {
+    if (!settings.configured) {
+      setShowSettings(true);
+      return;
+    }
+    window.print();
+  }, [settings.configured]);
 
   const onDownload = useCallback(async () => {
     if (!bill) return;
@@ -248,6 +546,19 @@ export default function BillPage() {
               </span>
             )}
             <button
+              onClick={() => setShowSettings(true)}
+              className="flex items-center gap-2 rounded-xl border border-[var(--border)] px-3 py-2.5 text-xs font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] hover:border-[var(--accent)]/20 hover:text-[var(--accent)] transition-all"
+              title="Receipt & printer settings"
+            >
+              <Settings2 className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Receipt Settings</span>
+              <span className="rounded-md bg-[var(--canvas-sub)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--text-2)]">
+                {settings.paperWidth}mm
+                {settings.showQR ? " · QR" : ""}
+                {settings.configured ? "" : " · setup"}
+              </span>
+            </button>
+            <button
               onClick={onDownload}
               disabled={downloading || !isPaid}
               title={!isPaid ? "Bill can only be downloaded after payment is collected" : undefined}
@@ -261,7 +572,7 @@ export default function BillPage() {
               {downloading ? "Generating…" : downloadLabel}
             </button>
             <button
-              onClick={handlePrint}
+              onClick={requestPrint}
               className="flex items-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-2.5 text-xs font-bold text-white hover:bg-[var(--accent-hover)] transition-all shadow-sm shadow-[var(--accent)]/20"
             >
               <Printer className="h-3.5 w-3.5" />
@@ -277,7 +588,7 @@ export default function BillPage() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="bg-[var(--canvas)] rounded-3xl shadow-2xl shadow-black/5 border border-[var(--border-soft)]/50 overflow-hidden print:shadow-none print:border-none print:rounded-none"
+          className="bg-[var(--canvas)] rounded-3xl shadow-2xl shadow-black/5 border border-[var(--border-soft)]/50 overflow-hidden print:hidden"
         >
           {/* ── Header ─────────────────────────────── */}
           <div className="relative px-6 pt-8 pb-6 sm:px-8 bg-gradient-to-br from-[#3e1e0c] to-[#5a3118] text-white print:bg-black print:from-black print:to-black">
@@ -531,7 +842,7 @@ export default function BillPage() {
               <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-3)] mb-1">
                 Order Note
               </p>
-              <p className="text-[13px] text-[var(--text-2)] italic">"{order.note}"</p>
+              <p className="text-[13px] text-[var(--text-2)] italic">&ldquo;{order.note}&rdquo;</p>
             </div>
           )}
 
@@ -550,6 +861,134 @@ export default function BillPage() {
             </p>
           </div>
         </motion.div>
+
+        {/* ── Thermal receipt layout — only rendered when printing ── */}
+        <div className="thermal-receipt" data-width={settings.paperWidth} aria-hidden>
+          {settings.showLogo && order.restaurant.imageUrl && (
+            <div className="tr-center tr-logo-wrap">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img className="tr-logo" src={order.restaurant.imageUrl} alt="" />
+            </div>
+          )}
+          <div className="tr-center tr-brand">{order.restaurant.name}</div>
+          {order.restaurant.address && (
+            <div className="tr-center tr-muted">{order.restaurant.address}</div>
+          )}
+          {order.restaurant.phone && (
+            <div className="tr-center tr-muted">Tel: {order.restaurant.phone}</div>
+          )}
+
+          <div className="tr-divider" />
+
+          <div className="tr-center tr-doc">{docLabel.toUpperCase()}</div>
+          <div className="tr-center tr-billno">{bill.billNo}</div>
+          <div className="tr-center tr-muted">{formatDateTime(bill.createdAt)}</div>
+
+          <div className="tr-meta">
+            <span>Order #{order.orderNo}</span>
+            {order.tableNo ? <span>Table {order.tableNo}</span> : <span />}
+          </div>
+          <div className="tr-meta">
+            <span>{order.type.replace("_", " ")}</span>
+            <span>{isPaid ? "PAID" : "UNPAID"}</span>
+          </div>
+          {order.user?.name && (
+            <div className="tr-meta">
+              <span>Guest</span>
+              <span>{order.user.name}</span>
+            </div>
+          )}
+
+          <div className="tr-divider" />
+
+          {order.items.map((item) => (
+            <div className="tr-item" key={item.id}>
+              <div className="tr-item-name">{item.name}</div>
+              {item.addOns && <div className="tr-item-add">+ {item.addOns}</div>}
+              <div className="tr-item-line">
+                <span>
+                  {formatPrice(item.price, cur)} &times; {item.quantity}
+                </span>
+                <span>{formatPrice(item.price * item.quantity, cur)}</span>
+              </div>
+            </div>
+          ))}
+
+          <div className="tr-divider" />
+
+          <div className="tr-row">
+            <span>Subtotal</span>
+            <span>{formatPrice(bill.subtotal, cur)}</span>
+          </div>
+          {bill.tax > 0 && (
+            <div className="tr-row">
+              <span>Tax</span>
+              <span>{formatPrice(bill.tax, cur)}</span>
+            </div>
+          )}
+          {bill.serviceCharge > 0 && (
+            <div className="tr-row">
+              <span>Service Charge</span>
+              <span>{formatPrice(bill.serviceCharge, cur)}</span>
+            </div>
+          )}
+          {order.deliveryFee > 0 && (
+            <div className="tr-row">
+              <span>Delivery Fee</span>
+              <span>{formatPrice(order.deliveryFee, cur)}</span>
+            </div>
+          )}
+          {bill.discount > 0 && (
+            <div className="tr-row">
+              <span>Discount</span>
+              <span>-{formatPrice(bill.discount, cur)}</span>
+            </div>
+          )}
+
+          <div className="tr-divider tr-divider-bold" />
+          <div className="tr-total">
+            <span>GRAND TOTAL</span>
+            <span>{formatPrice(bill.total, cur)}</span>
+          </div>
+          <div className="tr-divider tr-divider-bold" />
+
+          {order.payment && (
+            <div className="tr-center tr-pay">
+              Paid via {paymentLabel(order.payment.method)} &middot;{" "}
+              {order.payment.status}
+            </div>
+          )}
+          {order.payment?.transactionId && (
+            <div className="tr-center tr-muted tr-txn">
+              Txn: {order.payment.transactionId}
+            </div>
+          )}
+          {order.note && <div className="tr-center tr-note">&ldquo;{order.note}&rdquo;</div>}
+
+          {settings.showQR && (
+            <div className="tr-center tr-qr-wrap">
+              <div className="tr-qr">
+                <QRCode
+                  value={`${typeof window !== "undefined" ? window.location.origin : ""}/feedback/${order.restaurantId}?order=${order.id}`}
+                  size={132}
+                  fgColor="#000000"
+                  bgColor="#ffffff"
+                />
+              </div>
+              <div className="tr-qr-cap">Scan to rate your experience</div>
+            </div>
+          )}
+
+          <div className="tr-dots" />
+          <div className="tr-center tr-thanks">
+            &#9829; Thank you for dining with us! &#9829;
+          </div>
+          <div className="tr-center tr-muted tr-fine">
+            Computer-generated {docLabel.toLowerCase()} &middot; No signature
+            required
+          </div>
+          <div className="tr-center tr-muted tr-power">Powered by HimaVolt</div>
+        </div>
 
         {/* ── Action buttons below bill (hidden on print) ── */}
         <motion.div
@@ -572,7 +1011,7 @@ export default function BillPage() {
             {downloading ? "Generating PDF…" : downloadLabel}
           </button>
           <button
-            onClick={handlePrint}
+            onClick={requestPrint}
             className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[var(--accent)] to-[#e58f2a] px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-[var(--accent)]/20 hover:shadow-xl hover:-translate-y-0.5 transition-all"
           >
             <Printer className="h-4 w-4" />
@@ -580,44 +1019,118 @@ export default function BillPage() {
           </button>
         </motion.div>
 
-        {/* ── Feedback QR (shown after payment) ─── */}
+        {/* ── Feedback (shown after payment) ─── */}
         {isPaid && (
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className="mt-6 rounded-2xl border border-[var(--accent-border)] bg-[var(--accent-muted)] p-5 text-center print:hidden"
+            className="mt-6 rounded-2xl border border-[var(--accent-border)] bg-[var(--accent-muted)] p-5 print:hidden"
           >
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <Star className="h-4 w-4 text-[var(--accent)]" />
-              <span className="text-sm font-bold text-[var(--text-1)]">Share your feedback</span>
-            </div>
-            <p className="text-xs text-[var(--text-2)] mb-4">
-              Scan the QR below or tap the link to rate your experience
-            </p>
-            <div className="flex justify-center mb-3">
-              <div className="rounded-xl bg-[var(--canvas)] p-3 border border-[var(--accent-border)] shadow-sm inline-block">
-                <QRCode
-                  value={`${typeof window !== "undefined" ? window.location.origin : ""}/feedback/${order.restaurantId}?order=${order.id}`}
-                  size={100}
-                  fgColor="#3e1e0c"
-                />
+            {feedback ? (
+              /* Already reviewed — show their rating + the venue's reply. */
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-bold text-[var(--text-1)]">
+                    Your feedback
+                  </span>
+                  {feedback.rating != null && (
+                    <span className="flex items-center gap-0.5">
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <Star
+                          key={s}
+                          className={`h-3.5 w-3.5 ${
+                            s <= feedback.rating!
+                              ? "text-[var(--accent)] fill-current"
+                              : "text-[var(--text-3)] fill-current"
+                          }`}
+                        />
+                      ))}
+                    </span>
+                  )}
+                </div>
+                {feedback.comment && (
+                  <p className="text-[13px] italic text-[var(--text-2)]">
+                    &ldquo;{feedback.comment}&rdquo;
+                  </p>
+                )}
+                {feedback.reply ? (
+                  <div className="rounded-xl border border-[var(--accent-border)] bg-[var(--canvas)] p-3">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Star className="h-3 w-3 text-[var(--accent)]" />
+                      <span className="text-[11px] font-bold text-[var(--accent-text)]">
+                        {feedback.repliedBy || order.restaurant.name} replied
+                      </span>
+                      {feedback.repliedAt && (
+                        <span className="text-[10px] text-[var(--text-3)]">
+                          · {formatDate(feedback.repliedAt)}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[13px] text-[var(--text-1)]">{feedback.reply}</p>
+                  </div>
+                ) : (
+                  <p className="text-[11px] text-[var(--text-3)]">
+                    Thanks for the feedback — the team will reply soon.
+                  </p>
+                )}
               </div>
-            </div>
-            <Link
-              href={`/feedback/${order.restaurantId}?order=${order.id}`}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-[var(--accent)] px-4 py-2 text-xs font-bold text-white hover:bg-[var(--accent-hover)] transition-colors"
-            >
-              <Star className="h-3.5 w-3.5" /> Leave a Review
-            </Link>
+            ) : (
+              /* Not yet reviewed — invite them to. */
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <Star className="h-4 w-4 text-[var(--accent)]" />
+                  <span className="text-sm font-bold text-[var(--text-1)]">
+                    Share your feedback
+                  </span>
+                </div>
+                <p className="text-xs text-[var(--text-2)] mb-4">
+                  Scan the QR below or tap the link to rate your experience
+                </p>
+                <div className="flex justify-center mb-3">
+                  <div className="rounded-xl bg-[var(--canvas)] p-3 border border-[var(--accent-border)] shadow-sm inline-block">
+                    <QRCode
+                      value={`${typeof window !== "undefined" ? window.location.origin : ""}/feedback/${order.restaurantId}?order=${order.id}`}
+                      size={100}
+                      fgColor="#3e1e0c"
+                    />
+                  </div>
+                </div>
+                <Link
+                  href={`/feedback/${order.restaurantId}?order=${order.id}`}
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-[var(--accent)] px-4 py-2 text-xs font-bold text-white hover:bg-[var(--accent-hover)] transition-colors"
+                >
+                  <Star className="h-3.5 w-3.5" /> Leave a Review
+                </Link>
+              </div>
+            )}
           </motion.div>
         )}
       </div>
 
-      {/* ── Print styles ───────────────────────────── */}
+      {/* ── Receipt settings (one-time setup, editable anytime) ── */}
+      <ReceiptSettingsModal
+        open={showSettings}
+        initial={settings}
+        hasLogo={Boolean(order.restaurant.imageUrl)}
+        onClose={() => setShowSettings(false)}
+        onSave={saveSettings}
+      />
+
+      {/* ── Thermal receipt print styles ───────────────────────────── */}
       <style jsx global>{`
+        /* The thermal receipt is print-only — never shown on screen */
+        .thermal-receipt {
+          display: none;
+        }
+
         @media print {
+          @page {
+            margin: 0;
+          }
+          html,
           body {
+            background: #fff !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
@@ -626,46 +1139,193 @@ export default function BillPage() {
           .print\\:hidden {
             display: none !important;
           }
-          .print\\:bg-[var(--canvas)] {
-            background: white !important;
+
+          /* Receipt root — sized for an 80mm thermal roll, crisp black on white */
+          .thermal-receipt {
+            display: block !important;
+            width: 80mm;
+            max-width: 80mm;
+            margin: 0 auto;
+            padding: 5mm 5mm 7mm;
+            box-sizing: border-box;
+            color: #000;
+            background: #fff;
+            font-family: "Cascadia Mono", "DejaVu Sans Mono", Consolas,
+              "Courier New", monospace;
+            font-size: 12px;
+            line-height: 1.45;
+            -webkit-font-smoothing: none;
           }
-          .print\\:from-white {
-            --tw-gradient-from: white !important;
+          .thermal-receipt * {
+            color: #000 !important;
           }
-          .print\\:to-white {
-            --tw-gradient-to: white !important;
+
+          .tr-center {
+            text-align: center;
           }
-          .print\\:shadow-none {
-            box-shadow: none !important;
+          .tr-brand {
+            font-size: 19px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 2px;
           }
-          .print\\:border-none {
-            border: none !important;
+          .tr-muted {
+            font-size: 11px;
           }
-          .print\\:rounded-none {
-            border-radius: 0 !important;
+          .tr-doc {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            margin-top: 3px;
           }
-          .print\\:bg-black {
-            background: #3e1e0c !important;
+          .tr-billno {
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 1px;
           }
-          .print\\:from-black {
-            --tw-gradient-from: #3e1e0c !important;
+
+          .tr-divider {
+            border-top: 1px dashed #000;
+            margin: 6px 0;
           }
-          .print\\:to-black {
-            --tw-gradient-to: #5a3118 !important;
+          .tr-divider-bold {
+            border-top: 2px solid #000;
+            margin: 5px 0;
           }
-          .print\\:py-0 {
-            padding-top: 0 !important;
-            padding-bottom: 0 !important;
+          .tr-dots {
+            border-top: 1px dotted #000;
+            margin: 7px 0;
           }
-          .print\\:px-0 {
-            padding-left: 0 !important;
-            padding-right: 0 !important;
+
+          .tr-meta {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            font-size: 11px;
+            margin-top: 1px;
           }
-          .print\\:max-w-none {
-            max-width: none !important;
+
+          .tr-item {
+            margin-bottom: 5px;
           }
-          .print\\:bg-[var(--canvas-sub)] {
-            background: #f9fafb !important;
+          .tr-item-name {
+            font-weight: 700;
+            font-size: 12.5px;
+          }
+          .tr-item-add {
+            font-size: 10.5px;
+            padding-left: 8px;
+          }
+          .tr-item-line {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            font-size: 11.5px;
+          }
+
+          .tr-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            font-size: 12px;
+            margin: 1px 0;
+          }
+          .tr-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 8px;
+            font-size: 16px;
+            font-weight: 800;
+            margin: 3px 0;
+          }
+          .tr-pay {
+            font-weight: 700;
+            font-size: 12px;
+            margin-top: 5px;
+          }
+          .tr-txn {
+            word-break: break-all;
+            margin-top: 2px;
+          }
+          .tr-note {
+            font-style: italic;
+            font-size: 11px;
+            margin-top: 5px;
+          }
+          .tr-thanks {
+            font-size: 13px;
+            font-weight: 700;
+            margin: 4px 0 2px;
+          }
+          .tr-fine {
+            font-size: 9.5px;
+            margin-top: 3px;
+          }
+          .tr-power {
+            font-size: 9.5px;
+            letter-spacing: 1px;
+            margin-top: 2px;
+          }
+
+          /* Logo */
+          .tr-logo-wrap {
+            margin-bottom: 4px;
+          }
+          .tr-logo {
+            max-height: 18mm;
+            max-width: 60%;
+            object-fit: contain;
+            filter: grayscale(1) contrast(1.3);
+          }
+
+          /* Feedback QR — crisp black squares print perfectly on thermal */
+          .tr-qr-wrap {
+            margin: 8px 0 2px;
+          }
+          .tr-qr {
+            display: inline-block;
+            padding: 2mm;
+            background: #fff;
+          }
+          .tr-qr svg {
+            display: block;
+            width: 28mm;
+            height: 28mm;
+          }
+          .tr-qr-cap {
+            font-size: 10px;
+            margin-top: 3px;
+          }
+
+          /* ── 58mm roll overrides — tighter type so nothing clips ── */
+          .thermal-receipt[data-width="58"] {
+            width: 58mm;
+            max-width: 58mm;
+            padding: 4mm 3.5mm 6mm;
+            font-size: 10.5px;
+            line-height: 1.4;
+          }
+          .thermal-receipt[data-width="58"] .tr-brand {
+            font-size: 15px;
+          }
+          .thermal-receipt[data-width="58"] .tr-billno {
+            font-size: 13px;
+          }
+          .thermal-receipt[data-width="58"] .tr-total {
+            font-size: 14px;
+          }
+          .thermal-receipt[data-width="58"] .tr-item-name {
+            font-size: 11px;
+          }
+          .thermal-receipt[data-width="58"] .tr-item-line,
+          .thermal-receipt[data-width="58"] .tr-row {
+            font-size: 10.5px;
+          }
+          .thermal-receipt[data-width="58"] .tr-qr svg {
+            width: 24mm;
+            height: 24mm;
           }
         }
       `}</style>

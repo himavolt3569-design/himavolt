@@ -22,13 +22,22 @@ export async function GET(
   if (!(await assertAccess(req, id)))
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const restaurant = await db.restaurant.findUnique({
-    where: { id },
-    select: { isOpen: true, deliveryEnabled: true },
-  });
-  if (!restaurant) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  // Degrade gracefully on transient pool/DB errors with a 503 (client retries).
+  try {
+    const restaurant = await db.restaurant.findUnique({
+      where: { id },
+      select: { isOpen: true, deliveryEnabled: true },
+    });
+    if (!restaurant) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  return NextResponse.json(restaurant);
+    return NextResponse.json(restaurant);
+  } catch (err) {
+    console.error("[status] GET failed", err);
+    return NextResponse.json(
+      { error: "Could not load status. Please try again." },
+      { status: 503 },
+    );
+  }
 }
 
 // PATCH /api/restaurants/[id]/status

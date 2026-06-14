@@ -53,20 +53,30 @@ export async function GET(
   if (isDrinkParam === "true") where.isDrink = true;
   if (isDrinkParam === "false") where.isDrink = false;
 
-  const items = await db.menuItem.findMany({
-    where,
-    include: {
-      sizes: true,
-      addOns: true,
-      category: true,
-    },
-    orderBy: { sortOrder: "asc" },
-    take: 500,
-  });
+  // Prod runs a 1-connection Prisma pool — degrade gracefully on transient
+  // pool/DB errors with a 503 (which the client retries) instead of a raw 500.
+  try {
+    const items = await db.menuItem.findMany({
+      where,
+      include: {
+        sizes: true,
+        addOns: true,
+        category: true,
+      },
+      orderBy: { sortOrder: "asc" },
+      take: 500,
+    });
 
-  return NextResponse.json(items, {
-    headers: { "Cache-Control": "private, no-store" },
-  });
+    return NextResponse.json(items, {
+      headers: { "Cache-Control": "private, no-store" },
+    });
+  } catch (err) {
+    console.error("[menu] GET failed", err);
+    return NextResponse.json(
+      { error: "Could not load menu. Please try again." },
+      { status: 503 },
+    );
+  }
 }
 
 export async function POST(

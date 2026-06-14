@@ -78,9 +78,11 @@ export async function POST(req: NextRequest, { params }: Params) {
     );
   }
 
+  const trimmedRoomNumber = roomNumber.trim();
+
   // Check for duplicate room number in this restaurant
   const existing = await db.room.findUnique({
-    where: { restaurantId_roomNumber: { restaurantId: id, roomNumber: roomNumber.trim() } },
+    where: { restaurantId_roomNumber: { restaurantId: id, roomNumber: trimmedRoomNumber } },
   });
   if (existing) {
     return NextResponse.json(
@@ -89,9 +91,20 @@ export async function POST(req: NextRequest, { params }: Params) {
     );
   }
 
+  // Build a stable, restaurant-specific QR target. Stored as a relative path so
+  // it stays correct across domains/previews; the client prefixes the origin.
+  // Uniqueness is guaranteed by slug (one per restaurant) + room number.
+  const restaurant = await db.restaurant.findUnique({
+    where: { id },
+    select: { slug: true },
+  });
+  const qrUrl = restaurant?.slug
+    ? `/hotel/${restaurant.slug}/room/${encodeURIComponent(trimmedRoomNumber)}`
+    : null;
+
   const room = await db.room.create({
     data: {
-      roomNumber: roomNumber.trim(),
+      roomNumber: trimmedRoomNumber,
       name: name?.trim() || null,
       type: type || "STANDARD",
       floor: floor ?? 1,
@@ -104,6 +117,7 @@ export async function POST(req: NextRequest, { params }: Params) {
       bedType: bedType?.trim() || null,
       bedCount: bedCount ?? 1,
       sortOrder: sortOrder ?? 0,
+      qrUrl,
       restaurantId: id,
     },
   });

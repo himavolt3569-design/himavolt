@@ -14,6 +14,7 @@ import {
 import { useRestaurant } from "@/context/RestaurantContext";
 import { apiFetch } from "@/lib/api-client";
 import ChatWidget from "@/components/chat/ChatWidget";
+import { SkeletonLine, SkeletonCard } from "@/components/shared/Skeleton";
 
 interface ChatRoomPreview {
   id: string;
@@ -75,7 +76,18 @@ export default function ChatTab() {
     return () => clearInterval(interval);
   }, [fetchRooms]);
 
-  if (loading && rooms.length === 0) return null;
+  if (loading && rooms.length === 0) {
+    return (
+      <div className="space-y-4">
+        <SkeletonLine width="w-40" height="h-6" />
+        <div className="space-y-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <SkeletonCard key={i} />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   if (selectedRoom) {
     const isBroadcast = selectedRoom.type === "BROADCAST" || selectedRoom.type === "TABLE_CHAT";

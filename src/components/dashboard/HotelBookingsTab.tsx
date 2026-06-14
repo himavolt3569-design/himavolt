@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { formatPrice } from "@/lib/currency";
+import { SkeletonLine, SkeletonStatGrid, SkeletonTable } from "@/components/shared/Skeleton";
 
 interface Booking {
   id: string;
@@ -566,7 +567,18 @@ export default function HotelBookingsTab() {
     total: bookings.length,
   };
 
-  if (loading) return null;
+  if (loading) {
+    return (
+      <div className="space-y-5">
+        <div className="space-y-2">
+          <SkeletonLine width="w-44" height="h-6" />
+          <SkeletonLine width="w-72" height="h-3" />
+        </div>
+        <SkeletonStatGrid count={4} />
+        <SkeletonTable rows={5} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">

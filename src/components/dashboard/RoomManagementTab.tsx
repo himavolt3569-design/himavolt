@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { formatPrice } from "@/lib/currency";
+import { SkeletonLine, SkeletonGrid } from "@/components/shared/Skeleton";
 import { apiFetch } from "@/lib/api-client";
 import { uploadFile } from "@/lib/upload";
 import QRCode from "react-qr-code";
@@ -33,7 +34,7 @@ const APP_URL =
 
 /*  Types                                                              */
 
-type RoomType = "STANDARD" | "DELUXE" | "SUITE";
+type RoomType = "STANDARD" | "DELUXE" | "SUITE" | "DORMITORY";
 type BookingStatus = "CONFIRMED" | "CHECKED_IN" | "CHECKED_OUT" | "CANCELLED";
 
 interface Room {
@@ -47,9 +48,11 @@ interface Room {
   description: string | null;
   amenities: string[];
   imageUrls: string[];
+  videoUrl: string | null;
   bedType: string | null;
   bedCount: number;
   isAvailable: boolean;
+  qrUrl: string | null;
   createdAt: string;
 }
 
@@ -72,12 +75,13 @@ interface Booking {
 
 /*  Constants                                                          */
 
-const ROOM_TYPES: RoomType[] = ["STANDARD", "DELUXE", "SUITE"];
+const ROOM_TYPES: RoomType[] = ["STANDARD", "DELUXE", "SUITE", "DORMITORY"];
 
 const ROOM_TYPE_COLORS: Record<RoomType, { bg: string; text: string; border: string }> = {
   STANDARD: { bg: "bg-[var(--canvas-sub)]", text: "text-[var(--text-2)]", border: "border-[var(--border)]" },
   DELUXE: { bg: "bg-[var(--accent-muted)]", text: "text-[var(--accent-text)]", border: "border-[var(--accent-border)]" },
   SUITE: { bg: "bg-[var(--accent-muted)]", text: "text-[var(--accent-text)]", border: "border-[var(--accent-border)]" },
+  DORMITORY: { bg: "bg-[var(--status-info-bg)]", text: "text-[var(--status-info-text)]", border: "border-[var(--status-info-border)]" },
 };
 
 const BOOKING_STATUSES: BookingStatus[] = ["CONFIRMED", "CHECKED_IN", "CHECKED_OUT", "CANCELLED"];
@@ -98,6 +102,17 @@ const BOOKING_STATUS_LABELS: Record<BookingStatus, string> = {
 
 const BED_TYPES = ["King", "Queen", "Twin", "Single", "Double", "Bunk Bed"];
 
+// Curated amenities grouped by category for the quick-pick selector. Owners can
+// still type any custom amenity that isn't listed here.
+const AMENITY_CATALOG: { group: string; items: string[] }[] = [
+  { group: "Comfort", items: ["WiFi", "Air Conditioning", "Heating", "TV", "Smart TV", "Mini Bar", "Work Desk", "Wardrobe", "Sofa", "Balcony"] },
+  { group: "Bathroom", items: ["Private Bathroom", "Hot Water", "Bathtub", "Hair Dryer", "Toiletries", "Towels"] },
+  { group: "Services", items: ["Room Service", "Daily Housekeeping", "Laundry", "Breakfast Included", "Airport Pickup", "Safe Locker"] },
+  { group: "Views & Extras", items: ["Mountain View", "City View", "Garden View", "Lake View", "Pool Access", "Kitchenette", "Coffee Maker", "Pet Friendly", "Wheelchair Accessible", "Non-Smoking"] },
+];
+
+const ALL_AMENITIES = AMENITY_CATALOG.flatMap((g) => g.items);
+
 const BLANK_ROOM = {
   roomNumber: "",
   name: "",
@@ -106,8 +121,9 @@ const BLANK_ROOM = {
   price: 0,
   maxGuests: 2,
   description: "",
-  amenities: "",
+  amenities: [] as string[],
   imageUrls: [] as string[],
+  videoUrl: "",
   bedType: "",
   bedCount: 1,
   isAvailable: true,
@@ -133,7 +149,18 @@ export default function RoomManagementTab() {
   const restaurant = selectedRestaurant ?? restaurants[0];
   const [activeTab, setActiveTab] = useState<"rooms" | "bookings">("rooms");
 
-  if (!restaurant) return null;
+  if (!restaurant) {
+    return (
+      <div className="space-y-6 max-w-5xl mx-auto pb-12">
+        <div className="space-y-2">
+          <SkeletonLine width="w-56" height="h-7" />
+          <SkeletonLine width="w-72" height="h-3" />
+        </div>
+        <SkeletonLine width="w-48" height="h-9" />
+        <SkeletonGrid rows={2} cols={3} cardClass="h-56 rounded-2xl" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-12">
@@ -230,8 +257,9 @@ function RoomsView({ restaurantId, currency, slug, hotelName }: { restaurantId: 
       price: room.price,
       maxGuests: room.maxGuests,
       description: room.description ?? "",
-      amenities: room.amenities.join(", "),
+      amenities: room.amenities ?? [],
       imageUrls: room.imageUrls ?? [],
+      videoUrl: room.videoUrl ?? "",
       bedType: room.bedType ?? "",
       bedCount: room.bedCount ?? 1,
       isAvailable: room.isAvailable,
@@ -263,11 +291,9 @@ function RoomsView({ restaurantId, currency, slug, hotelName }: { restaurantId: 
       price: form.price,
       maxGuests: form.maxGuests,
       description: form.description.trim() || null,
-      amenities: form.amenities
-        .split(",")
-        .map((a) => a.trim())
-        .filter(Boolean),
+      amenities: form.amenities.map((a) => a.trim()).filter(Boolean),
       imageUrls: form.imageUrls,
+      videoUrl: form.videoUrl.trim() || null,
       bedType: form.bedType.trim() || null,
       bedCount: form.bedCount,
       isAvailable: form.isAvailable,
@@ -275,18 +301,21 @@ function RoomsView({ restaurantId, currency, slug, hotelName }: { restaurantId: 
 
     try {
       if (editingRoom) {
-        await apiFetch(`/api/restaurants/${restaurantId}/rooms/${editingRoom.id}`, {
-          method: "PATCH",
-          body: payload,
-        });
+        const updated = await apiFetch<Room>(
+          `/api/restaurants/${restaurantId}/rooms/${editingRoom.id}`,
+          { method: "PATCH", body: payload },
+        );
+        // Instant: swap the updated room in place, no refetch round-trip.
+        setRooms((prev) => prev.map((r) => (r.id === updated.id ? { ...r, ...updated } : r)));
       } else {
-        await apiFetch(`/api/restaurants/${restaurantId}/rooms`, {
-          method: "POST",
-          body: payload,
-        });
+        const created = await apiFetch<Room>(
+          `/api/restaurants/${restaurantId}/rooms`,
+          { method: "POST", body: payload },
+        );
+        // Instant: prepend the new room (with its unique QR ready) immediately.
+        setRooms((prev) => [created, ...prev]);
       }
       closeForm();
-      await fetchRooms();
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : "Failed to save room");
     } finally {
@@ -550,7 +579,30 @@ function RoomFormModal({
   isEditing: boolean;
 }) {
   const [uploadingImg, setUploadingImg] = useState(false);
+  const [customAmenity, setCustomAmenity] = useState("");
   const imgInputRef = useRef<HTMLInputElement>(null);
+
+  const toggleAmenity = (amenity: string) => {
+    setForm((f) =>
+      f.amenities.includes(amenity)
+        ? { ...f, amenities: f.amenities.filter((a) => a !== amenity) }
+        : { ...f, amenities: [...f.amenities, amenity] },
+    );
+  };
+
+  const addCustomAmenity = () => {
+    const value = customAmenity.trim();
+    if (!value) return;
+    setForm((f) =>
+      f.amenities.some((a) => a.toLowerCase() === value.toLowerCase())
+        ? f
+        : { ...f, amenities: [...f.amenities, value] },
+    );
+    setCustomAmenity("");
+  };
+
+  // Custom amenities the owner typed that aren't part of the curated catalog.
+  const extraAmenities = form.amenities.filter((a) => !ALL_AMENITIES.includes(a));
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -731,18 +783,95 @@ function RoomFormModal({
                 />
               </div>
 
+              {/* Amenities — categorized quick-pick + custom add */}
               <div>
-                <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">
-                  Amenities{" "}
-                  <span className="text-xs font-normal text-[var(--text-3)]">(comma-separated)</span>
-                </label>
-                <input
-                  type="text"
-                  value={form.amenities}
-                  onChange={(e) => setForm((f) => ({ ...f, amenities: e.target.value }))}
-                  placeholder="e.g. WiFi, AC, TV, Mini Bar"
-                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
-                />
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-bold text-[var(--text-1)]">
+                    Amenities &amp; Features
+                  </label>
+                  {form.amenities.length > 0 && (
+                    <span className="text-[11px] font-bold text-[var(--accent-text)]">
+                      {form.amenities.length} selected
+                    </span>
+                  )}
+                </div>
+                <div className="space-y-3 rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)]/40 p-3">
+                  {AMENITY_CATALOG.map((group) => (
+                    <div key={group.group}>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-3)] mb-1.5">
+                        {group.group}
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {group.items.map((item) => {
+                          const active = form.amenities.includes(item);
+                          return (
+                            <button
+                              key={item}
+                              type="button"
+                              onClick={() => toggleAmenity(item)}
+                              className={`flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-all ${
+                                active
+                                  ? "border-[var(--accent-border)] bg-[var(--accent-muted)] text-[var(--accent-text)]"
+                                  : "border-[var(--border)] bg-[var(--canvas)] text-[var(--text-2)] hover:border-[var(--accent-border)] hover:text-[var(--accent-text)]"
+                              }`}
+                            >
+                              {active && <Check className="h-3 w-3" strokeWidth={3} />}
+                              {item}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Custom amenities the owner added */}
+                  {extraAmenities.length > 0 && (
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-3)] mb-1.5">
+                        Custom
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {extraAmenities.map((item) => (
+                          <button
+                            key={item}
+                            type="button"
+                            onClick={() => toggleAmenity(item)}
+                            className="flex items-center gap-1 rounded-lg border border-[var(--accent-border)] bg-[var(--accent-muted)] px-2.5 py-1.5 text-xs font-semibold text-[var(--accent-text)] transition-all"
+                          >
+                            {item}
+                            <X className="h-3 w-3" strokeWidth={3} />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Add a custom amenity */}
+                  <div className="flex items-center gap-2 pt-1">
+                    <input
+                      type="text"
+                      value={customAmenity}
+                      onChange={(e) => setCustomAmenity(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          addCustomAmenity();
+                        }
+                      }}
+                      placeholder="Add a custom amenity…"
+                      className="flex-1 rounded-lg border border-[var(--border)] bg-[var(--canvas)] px-3 py-2 text-xs font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
+                    />
+                    <button
+                      type="button"
+                      onClick={addCustomAmenity}
+                      disabled={!customAmenity.trim()}
+                      className="flex items-center gap-1 rounded-lg bg-[var(--text-1)] px-3 py-2 text-xs font-bold text-white transition-all hover:opacity-90 disabled:opacity-40"
+                    >
+                      <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
+                      Add
+                    </button>
+                  </div>
+                </div>
               </div>
 
               {/* Room Images */}
@@ -788,6 +917,21 @@ function RoomFormModal({
                     <><Upload className="h-4 w-4" /> Add Photo</>
                   )}
                 </button>
+              </div>
+
+              {/* Room video (optional) */}
+              <div>
+                <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">
+                  Video Tour URL{" "}
+                  <span className="text-xs font-normal text-[var(--text-3)]">(optional)</span>
+                </label>
+                <input
+                  type="url"
+                  value={form.videoUrl}
+                  onChange={(e) => setForm((f) => ({ ...f, videoUrl: e.target.value }))}
+                  placeholder="https://youtube.com/…"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
+                />
               </div>
 
               <div className="flex items-center gap-3">
@@ -1494,7 +1638,11 @@ function RoomQRInline({
   const qrRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const roomUrl = `${APP_URL}/hotel/${slug}/room/${encodeURIComponent(room.roomNumber)}`;
+  // Prefer the server-persisted unique path; fall back to computing it. Both are
+  // restaurant-specific (slug) + room-specific (roomNumber).
+  const roomPath =
+    room.qrUrl || (slug ? `/hotel/${slug}/room/${encodeURIComponent(room.roomNumber)}` : "");
+  const roomUrl = roomPath ? `${APP_URL}${roomPath}` : "";
   const roomLabel = room.name || `Room ${room.roomNumber}`;
 
   const handleCopy = async () => {
@@ -1581,7 +1729,7 @@ function RoomQRInline({
     <div className="flex flex-col sm:flex-row gap-4 px-4 pb-4 pt-3">
       <div className="flex flex-col items-center gap-1.5 shrink-0">
         <div ref={qrRef} className="rounded-xl bg-white p-2.5 ring-1 ring-[var(--accent-border)] shadow-sm">
-          {slug ? (
+          {roomUrl ? (
             <QRCode value={roomUrl} size={110} level="M" />
           ) : (
             <div className="flex h-[110px] w-[110px] items-center justify-center">

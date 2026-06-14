@@ -68,6 +68,9 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     sortOrder,
   } = body;
 
+  // Recompute the QR target only when the room number actually changes, so the
+  // stored unique link stays in sync without an extra query on every edit.
+  let qrUrl: string | null | undefined;
   if (roomNumber && roomNumber.trim() !== existing.roomNumber) {
     const duplicate = await db.room.findUnique({
       where: {
@@ -83,11 +86,19 @@ export async function PATCH(req: NextRequest, { params }: Params) {
         { status: 409 },
       );
     }
+    const restaurant = await db.restaurant.findUnique({
+      where: { id },
+      select: { slug: true },
+    });
+    qrUrl = restaurant?.slug
+      ? `/hotel/${restaurant.slug}/room/${encodeURIComponent(roomNumber.trim())}`
+      : null;
   }
 
   const room = await db.room.update({
     where: { id: roomId },
     data: {
+      ...(qrUrl !== undefined && { qrUrl }),
       ...(roomNumber !== undefined && { roomNumber: roomNumber.trim() }),
       ...(name !== undefined && { name: name?.trim() || null }),
       ...(type !== undefined && { type }),
