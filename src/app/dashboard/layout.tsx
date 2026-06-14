@@ -83,6 +83,7 @@ export default function DashboardLayout({
       import("@/components/dashboard/RoomQRTab");
       import("@/components/dashboard/HotelHubTab");
       import("@/components/dashboard/OwnerControlPanel");
+      import("@/components/dashboard/FeedbackTab");
       import("@/components/dashboard/features/QuickCounterTab");
       import("@/components/dashboard/features/ComboMealsTab");
       import("@/components/dashboard/features/RushHourTab");

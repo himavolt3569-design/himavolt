@@ -5,7 +5,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Star, Send, Check, Loader2, EyeOff, Eye, User, MessageSquare,
-  ChevronLeft,
+  ChevronLeft, CornerDownRight, Clock,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -17,9 +17,135 @@ interface Restaurant {
   slug: string;
 }
 
+interface ExistingFeedback {
+  rating: number | null;
+  comment: string | null;
+  name: string | null;
+  isAnonymous: boolean;
+  createdAt: string;
+  reply: string | null;
+  repliedAt: string | null;
+  repliedBy: string | null;
+}
+
+function fmtDate(iso: string) {
+  return new Date(iso).toLocaleDateString("en-NP", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
 const STAR_LABELS = ["", "Poor", "Fair", "Good", "Very Good", "Excellent"];
 const STAR_COLORS = ["", "text-red-400", "text-[var(--accent)]", "text-[var(--accent)]", "text-lime-500", "text-[var(--accent-hover)]"];
 
+
+function ReviewDisplay({
+  restaurant,
+  fb,
+}: {
+  restaurant: Restaurant;
+  fb: ExistingFeedback;
+}) {
+  const who = fb.repliedBy || restaurant.name;
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-[var(--accent)]0/40 to-white flex flex-col items-center px-4 py-10">
+      <div className="w-full max-w-md mb-6">
+        <Link
+          href={`/menu/${restaurant.slug}`}
+          className="flex items-center gap-1.5 text-sm text-[var(--text-3)] hover:text-[var(--text-1)] transition-colors"
+        >
+          <ChevronLeft className="h-4 w-4" /> Back to menu
+        </Link>
+      </div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-md rounded-3xl bg-[var(--canvas)] shadow-2xl shadow-black/5 border border-[var(--border-soft)] overflow-hidden"
+      >
+        <div className="bg-gradient-to-br from-[#3e1e0c] to-[#5a3118] px-6 py-8 text-white text-center">
+          {restaurant.imageUrl && (
+            <img
+              src={restaurant.imageUrl}
+              alt={restaurant.name}
+              className="h-16 w-16 rounded-2xl object-cover mx-auto mb-3 ring-2 ring-white/20"
+            />
+          )}
+          <h1 className="text-xl font-extrabold">{restaurant.name}</h1>
+          <p className="text-sm text-[var(--accent)]/80 mt-1">Your review</p>
+        </div>
+
+        <div className="p-6 space-y-5">
+          <div className="text-center">
+            <div className="flex justify-center gap-1.5 mb-2">
+              {[1, 2, 3, 4, 5].map((s) => (
+                <Star
+                  key={s}
+                  className={`h-7 w-7 ${
+                    fb.rating && s <= fb.rating
+                      ? "text-[var(--accent)] fill-current"
+                      : "text-[var(--text-3)] fill-current"
+                  }`}
+                />
+              ))}
+            </div>
+            {fb.rating != null && (
+              <p className="text-sm font-bold text-[var(--text-2)]">
+                {STAR_LABELS[fb.rating]}
+              </p>
+            )}
+            <p className="text-[11px] text-[var(--text-3)] mt-1">
+              Submitted {fmtDate(fb.createdAt)}
+              {!fb.isAnonymous && fb.name ? ` · ${fb.name}` : ""}
+            </p>
+          </div>
+
+          {fb.comment && (
+            <div className="rounded-2xl bg-[var(--canvas-sub)] border border-[var(--border-soft)] p-4">
+              <p className="text-[13px] leading-relaxed text-[var(--text-2)] italic">
+                &ldquo;{fb.comment}&rdquo;
+              </p>
+            </div>
+          )}
+
+          {fb.reply ? (
+            <div className="rounded-2xl border border-[var(--accent-border)] bg-[var(--accent-muted)] p-4">
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <CornerDownRight className="h-3.5 w-3.5 text-[var(--accent-text)]" />
+                <span className="text-[12px] font-bold text-[var(--accent-text)]">
+                  {who} replied
+                </span>
+                {fb.repliedAt && (
+                  <span className="text-[11px] text-[var(--accent-text)]/70">
+                    · {fmtDate(fb.repliedAt)}
+                  </span>
+                )}
+              </div>
+              <p className="text-[13px] leading-relaxed text-[var(--text-1)]">
+                {fb.reply}
+              </p>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center gap-2 rounded-2xl border border-dashed border-[var(--border)] py-3 text-[12px] text-[var(--text-3)]">
+              <Clock className="h-3.5 w-3.5" />
+              The team hasn&rsquo;t replied yet — check back soon.
+            </div>
+          )}
+
+          <Link
+            href={`/menu/${restaurant.slug}`}
+            className="block w-full rounded-xl bg-[var(--text-1)] py-3 text-center text-sm font-bold text-white hover:bg-[#2d1508] transition-colors"
+          >
+            Back to Menu
+          </Link>
+        </div>
+      </motion.div>
+
+      <p className="mt-6 text-xs text-[var(--text-3)]">Powered by HimaVolt</p>
+    </div>
+  );
+}
 
 export default function FeedbackPage() {
   const { restaurantId } = useParams<{ restaurantId: string }>();
@@ -28,6 +154,8 @@ export default function FeedbackPage() {
 
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [loadingR,   setLoadingR]   = useState(true);
+  const [existing,   setExisting]   = useState<ExistingFeedback | null>(null);
+  const [checkingFb, setCheckingFb] = useState(!!orderId);
 
   const [step,        setStep]        = useState<"name" | "review" | "done">("name");
   const [name,        setName]        = useState("");
@@ -44,6 +172,17 @@ export default function FeedbackPage() {
       .catch(() => {})
       .finally(() => setLoadingR(false));
   }, [restaurantId]);
+
+  // If this visit is tied to an order, see whether it was already reviewed —
+  // if so we show that review (and any reply) instead of the form.
+  useEffect(() => {
+    if (!orderId) return;
+    fetch(`/api/public/feedback/${orderId}`)
+      .then((r) => r.json())
+      .then((d) => setExisting(d.feedback ?? null))
+      .catch(() => {})
+      .finally(() => setCheckingFb(false));
+  }, [orderId]);
 
   const handleSubmit = useCallback(async () => {
     if (rating === 0 && !comment.trim()) return;
@@ -65,11 +204,15 @@ export default function FeedbackPage() {
     setSubmitting(false);
   }, [rating, comment, isAnon, name, restaurantId, orderId]);
 
-  if (loadingR) return null;
+  if (loadingR || checkingFb) return null;
 
   if (!restaurant) return (
     <div className="min-h-screen flex items-center justify-center text-[var(--text-3)] text-sm">Restaurant not found.</div>
   );
+
+  // Already reviewed (e.g. guest re-scanning the bill QR) — show their review
+  // and the venue's reply instead of letting them submit again.
+  if (existing) return <ReviewDisplay restaurant={restaurant} fb={existing} />;
 
   const displayStar = hovered || rating;
 

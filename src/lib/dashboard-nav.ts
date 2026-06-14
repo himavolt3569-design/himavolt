@@ -41,6 +41,7 @@ import {
   DoorOpen,
   Sparkles,
   UsersRound,
+  Star,
 } from "lucide-react";
 import { type FeatureTabId } from "./restaurant-types";
 
@@ -69,6 +70,7 @@ export type DashTab =
   | "tables"
   | "owner-control"
   | "shifts"
+  | "feedback"
   | FeatureTabId;
 
 export const NAV_MAIN: {
@@ -125,6 +127,7 @@ export const NAV_MANAGE: typeof NAV_MAIN = [
 
 export const NAV_MORE: typeof NAV_MAIN = [
   { id: "reports", label: "Reports", icon: BarChart3 },
+  { id: "feedback", label: "Feedback", icon: Star },
   { id: "media", label: "Media Library", icon: ImageIcon },
   { id: "stories", label: "Stories", icon: Camera },
 ];

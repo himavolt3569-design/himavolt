@@ -96,6 +96,7 @@ const HotelQRTab = lazyTab(() => import("@/components/dashboard/HotelQRTab"));
 const RoomQRTab = lazyTab(() => import("@/components/dashboard/RoomQRTab"));
 const HotelHubTab = lazyTab(() => import("@/components/dashboard/HotelHubTab"));
 const OwnerControlPanel = lazyTab(() => import("@/components/dashboard/OwnerControlPanel"));
+const FeedbackTab = lazyTab(() => import("@/components/dashboard/FeedbackTab"));
 
 const COMPONENTS: Record<string, React.ComponentType<any>> = {
   overview: OverviewTab,
@@ -122,7 +123,8 @@ const COMPONENTS: Record<string, React.ComponentType<any>> = {
   stories: StoryManager,
   drinks: DrinksTab,
   "manual-billing": ManualBillingTab,
-  
+  feedback: FeedbackTab,
+
   // Feature tabs
   "quick-counter": QuickCounterTab,
   "combo-meals": ComboMealsTab,

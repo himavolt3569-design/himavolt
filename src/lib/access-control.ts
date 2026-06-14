@@ -8,14 +8,15 @@ export type AccessContext =
   | { kind: "owner"; userId: string }
   | { kind: "staff"; staff: StaffPayload };
 
-export async function getRestaurantAccess(
-  req: NextRequest,
+/**
+ * Resolve the logged-in Supabase user as the owner of this restaurant, if they
+ * are. Independent of any staff cookie — used as a fallback so an owner carrying
+ * a lingering/low-privilege POS staff cookie is never denied access to their own
+ * restaurant.
+ */
+async function getOwnerAccess(
   restaurantId: string,
 ): Promise<AccessContext | null> {
-  const staff = await getStaffSession(req);
-  if (staff && staff.restaurantId === restaurantId) {
-    return { kind: "staff", staff };
-  }
   const user = await getOrCreateUser();
   if (!user) return null;
   const restaurant = await db.restaurant.findFirst({
@@ -26,6 +27,17 @@ export async function getRestaurantAccess(
   return { kind: "owner", userId: user.id };
 }
 
+export async function getRestaurantAccess(
+  req: NextRequest,
+  restaurantId: string,
+): Promise<AccessContext | null> {
+  const staff = await getStaffSession(req);
+  if (staff && staff.restaurantId === restaurantId) {
+    return { kind: "staff", staff };
+  }
+  return getOwnerAccess(restaurantId);
+}
+
 export async function requireOwnerOrStaffManager(
   req: NextRequest,
   restaurantId: string,
@@ -34,7 +46,9 @@ export async function requireOwnerOrStaffManager(
   if (!access) return null;
   if (access.kind === "staff") {
     if (!(STAFF_MANAGER_ROLES as readonly string[]).includes(access.staff.role)) {
-      return null;
+      // Staff role is too low — but the caller might be the OWNER carrying a
+      // stray POS staff cookie. Fall back to an ownership check before denying.
+      return getOwnerAccess(restaurantId);
     }
   }
   return access;
@@ -53,7 +67,9 @@ export async function requireOwnerOrStaffBilling(
   if (!access) return null;
   if (access.kind === "staff") {
     if (!(STAFF_BILLING_ROLES as readonly string[]).includes(access.staff.role)) {
-      return null;
+      // Staff role is too low — fall back to an ownership check so an owner with
+      // a stray low-privilege POS staff cookie isn't locked out.
+      return getOwnerAccess(restaurantId);
     }
   }
   return access;
