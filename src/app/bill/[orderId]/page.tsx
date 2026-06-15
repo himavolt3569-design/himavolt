@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   Download,
   Printer,
@@ -20,14 +20,10 @@ import {
   Loader2,
   AlertCircle,
   Star,
-  Settings2,
-  QrCode,
-  Image as ImageIcon,
-  Check,
-  X,
 } from "lucide-react";
 import Link from "next/link";
 import { formatPrice } from "@/lib/currency";
+import { resolvePrintSettings } from "@/lib/print-settings";
 import QRCode from "react-qr-code";
 
 
@@ -76,6 +72,9 @@ interface BillData {
       phone: string;
       currency?: string;
       imageUrl?: string | null;
+      printCounterWidth?: number | null;
+      printShowLogo?: boolean | null;
+      printShowFeedbackQR?: boolean | null;
     };
     user: {
       name: string | null;
@@ -134,248 +133,6 @@ function statusColor(status: string) {
   return "bg-[var(--accent-muted)] text-[var(--accent-text)] border-[var(--accent-border)]";
 }
 
-/* ── Receipt print settings (per-device, per-restaurant) ─────────── */
-
-interface ReceiptSettings {
-  paperWidth: 58 | 80; // physical roll width in mm
-  showLogo: boolean;
-  showQR: boolean;
-  configured: boolean; // false until an actor saves once
-}
-
-const DEFAULT_RECEIPT_SETTINGS: ReceiptSettings = {
-  paperWidth: 80,
-  showLogo: true,
-  showQR: true,
-  configured: false,
-};
-
-function receiptKey(restaurantId: string) {
-  return `himavolt:receipt:${restaurantId}`;
-}
-
-function loadReceiptSettings(restaurantId: string): ReceiptSettings {
-  if (typeof window === "undefined") return DEFAULT_RECEIPT_SETTINGS;
-  try {
-    const raw = window.localStorage.getItem(receiptKey(restaurantId));
-    if (!raw) return DEFAULT_RECEIPT_SETTINGS;
-    return { ...DEFAULT_RECEIPT_SETTINGS, ...JSON.parse(raw) };
-  } catch {
-    return DEFAULT_RECEIPT_SETTINGS;
-  }
-}
-
-function saveReceiptSettings(restaurantId: string, settings: ReceiptSettings) {
-  try {
-    window.localStorage.setItem(receiptKey(restaurantId), JSON.stringify(settings));
-  } catch {
-    /* ignore quota / privacy-mode errors — printing still works with defaults */
-  }
-}
-
-/* ── Receipt settings modal ──────────────────────────────────────── */
-
-function ReceiptSettingsModal({
-  open,
-  initial,
-  hasLogo,
-  onClose,
-  onSave,
-}: {
-  open: boolean;
-  initial: ReceiptSettings;
-  hasLogo: boolean;
-  onClose: () => void;
-  onSave: (next: ReceiptSettings, thenPrint: boolean) => void;
-}) {
-  // The sheet mounts only while open, so it starts each time from the saved
-  // settings without needing an effect to re-sync.
-  return (
-    <AnimatePresence>
-      {open && (
-        <ReceiptSettingsSheet
-          initial={initial}
-          hasLogo={hasLogo}
-          onClose={onClose}
-          onSave={onSave}
-        />
-      )}
-    </AnimatePresence>
-  );
-}
-
-function ReceiptSettingsSheet({
-  initial,
-  hasLogo,
-  onClose,
-  onSave,
-}: {
-  initial: ReceiptSettings;
-  hasLogo: boolean;
-  onClose: () => void;
-  onSave: (next: ReceiptSettings, thenPrint: boolean) => void;
-}) {
-  const [draft, setDraft] = useState<ReceiptSettings>(initial);
-
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-0 sm:p-4 print:hidden"
-      onClick={onClose}
-    >
-          <motion.div
-            initial={{ opacity: 0, y: 40, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 40, scale: 0.98 }}
-            transition={{ type: "spring", damping: 26, stiffness: 280 }}
-            onClick={(e) => e.stopPropagation()}
-            className="w-full sm:max-w-md bg-[var(--canvas)] rounded-t-3xl sm:rounded-3xl shadow-2xl border border-[var(--border-soft)] overflow-hidden"
-          >
-            {/* Header */}
-            <div className="flex items-start justify-between px-6 pt-6 pb-4 border-b border-[var(--border-soft)]">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--accent-muted)]">
-                  <Settings2 className="h-5 w-5 text-[var(--accent)]" />
-                </div>
-                <div>
-                  <h2 className="text-base font-extrabold text-[var(--text-1)]">
-                    Receipt Settings
-                  </h2>
-                  <p className="text-[12px] text-[var(--text-3)]">
-                    Set once for this printer — change anytime.
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={onClose}
-                className="rounded-lg p-1.5 text-[var(--text-3)] hover:bg-[var(--canvas-sub)] hover:text-[var(--text-1)] transition-colors"
-                aria-label="Close"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-
-            <div className="px-6 py-5 space-y-5">
-              {/* Paper width */}
-              <div>
-                <p className="text-[11px] font-bold uppercase tracking-widest text-[var(--text-3)] mb-2">
-                  Paper width
-                </p>
-                <div className="grid grid-cols-2 gap-2.5">
-                  {([58, 80] as const).map((w) => {
-                    const active = draft.paperWidth === w;
-                    return (
-                      <button
-                        key={w}
-                        onClick={() => setDraft((d) => ({ ...d, paperWidth: w }))}
-                        className={`flex flex-col items-center gap-0.5 rounded-2xl border-2 px-3 py-3 transition-all ${
-                          active
-                            ? "border-[var(--accent)] bg-[var(--accent-muted)]"
-                            : "border-[var(--border)] hover:border-[var(--accent)]/30"
-                        }`}
-                      >
-                        <span className="text-lg font-extrabold text-[var(--text-1)]">
-                          {w}mm
-                        </span>
-                        <span className="text-[11px] text-[var(--text-3)]">
-                          {w === 58 ? "Compact roll" : "Standard roll"}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Toggles */}
-              <div className="space-y-2.5">
-                <ToggleRow
-                  icon={<ImageIcon className="h-4 w-4" />}
-                  label="Print logo"
-                  hint={hasLogo ? "Shows your saved logo at the top" : "No logo uploaded yet"}
-                  checked={draft.showLogo && hasLogo}
-                  disabled={!hasLogo}
-                  onChange={(v) => setDraft((d) => ({ ...d, showLogo: v }))}
-                />
-                <ToggleRow
-                  icon={<QrCode className="h-4 w-4" />}
-                  label="Print feedback QR"
-                  hint="Guests scan to rate their experience"
-                  checked={draft.showQR}
-                  onChange={(v) => setDraft((d) => ({ ...d, showQR: v }))}
-                />
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="flex gap-2.5 px-6 py-4 border-t border-[var(--border-soft)] bg-[var(--canvas-sub)]">
-              <button
-                onClick={() => onSave(draft, false)}
-                className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-[var(--border)] px-4 py-3 text-sm font-bold text-[var(--text-2)] hover:bg-[var(--canvas)] transition-colors"
-              >
-                <Check className="h-4 w-4" /> Save
-              </button>
-              <button
-                onClick={() => onSave(draft, true)}
-                className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-3 text-sm font-bold text-white hover:bg-[var(--accent-hover)] transition-colors shadow-sm shadow-[var(--accent)]/20"
-              >
-                <Printer className="h-4 w-4" /> Save &amp; Print
-              </button>
-            </div>
-          </motion.div>
-    </motion.div>
-  );
-}
-
-function ToggleRow({
-  icon,
-  label,
-  hint,
-  checked,
-  disabled,
-  onChange,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  hint: string;
-  checked: boolean;
-  disabled?: boolean;
-  onChange: (v: boolean) => void;
-}) {
-  return (
-    <div
-      className={`flex items-center gap-3 rounded-2xl border border-[var(--border-soft)] px-3.5 py-3 ${
-        disabled ? "opacity-50" : ""
-      }`}
-    >
-      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--canvas-sub)] text-[var(--accent)]">
-        {icon}
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-[13px] font-bold text-[var(--text-1)]">{label}</p>
-        <p className="text-[11px] text-[var(--text-3)] truncate">{hint}</p>
-      </div>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        disabled={disabled}
-        onClick={() => onChange(!checked)}
-        className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
-          checked ? "bg-[var(--accent)]" : "bg-[var(--border)]"
-        } ${disabled ? "cursor-not-allowed" : ""}`}
-      >
-        <span
-          className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
-            checked ? "translate-x-[22px]" : "translate-x-0.5"
-          }`}
-        />
-      </button>
-    </div>
-  );
-}
-
 /* ── Print & Download ───────────────────────────────────────────── */
 
 async function handleDownload(
@@ -416,8 +173,6 @@ export default function BillPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
-  const [settings, setSettings] = useState<ReceiptSettings>(DEFAULT_RECEIPT_SETTINGS);
-  const [showSettings, setShowSettings] = useState(false);
   const [feedback, setFeedback] = useState<OrderFeedback | null>(null);
   const billRef = useRef<HTMLDivElement>(null);
 
@@ -437,12 +192,6 @@ export default function BillPage() {
     load();
   }, [params.orderId]);
 
-  // Load this restaurant's saved receipt settings once the bill arrives.
-  const restaurantId = bill?.order.restaurantId;
-  useEffect(() => {
-    if (restaurantId) setSettings(loadReceiptSettings(restaurantId));
-  }, [restaurantId]);
-
   // Pull any review left for this order so we can show the venue's reply.
   useEffect(() => {
     if (!bill) return;
@@ -457,28 +206,6 @@ export default function BillPage() {
       active = false;
     };
   }, [bill, params.orderId]);
-
-  // Persist + apply settings, then optionally print straight away.
-  const saveSettings = useCallback(
-    (next: ReceiptSettings, thenPrint = false) => {
-      if (!restaurantId) return;
-      const configured = { ...next, configured: true };
-      setSettings(configured);
-      saveReceiptSettings(restaurantId, configured);
-      setShowSettings(false);
-      if (thenPrint) requestAnimationFrame(() => window.print());
-    },
-    [restaurantId],
-  );
-
-  // First print on this device opens the one-time setup; afterwards it prints.
-  const requestPrint = useCallback(() => {
-    if (!settings.configured) {
-      setShowSettings(true);
-      return;
-    }
-    window.print();
-  }, [settings.configured]);
 
   const onDownload = useCallback(async () => {
     if (!bill) return;
@@ -518,6 +245,7 @@ export default function BillPage() {
 
   const { order } = bill;
   const cur = order.restaurant.currency ?? "NPR";
+  const printSettings = resolvePrintSettings(order.restaurant);
   const isPaid = order.payment?.status === "COMPLETED";
   const isOnlinePayment = order.payment && order.payment.method !== "CASH";
   const docLabel = isOnlinePayment ? "Payment Receipt" : "Invoice";
@@ -546,19 +274,6 @@ export default function BillPage() {
               </span>
             )}
             <button
-              onClick={() => setShowSettings(true)}
-              className="flex items-center gap-2 rounded-xl border border-[var(--border)] px-3 py-2.5 text-xs font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] hover:border-[var(--accent)]/20 hover:text-[var(--accent)] transition-all"
-              title="Receipt & printer settings"
-            >
-              <Settings2 className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Receipt Settings</span>
-              <span className="rounded-md bg-[var(--canvas-sub)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--text-2)]">
-                {settings.paperWidth}mm
-                {settings.showQR ? " · QR" : ""}
-                {settings.configured ? "" : " · setup"}
-              </span>
-            </button>
-            <button
               onClick={onDownload}
               disabled={downloading || !isPaid}
               title={!isPaid ? "Bill can only be downloaded after payment is collected" : undefined}
@@ -572,7 +287,7 @@ export default function BillPage() {
               {downloading ? "Generating…" : downloadLabel}
             </button>
             <button
-              onClick={requestPrint}
+              onClick={() => window.print()}
               className="flex items-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-2.5 text-xs font-bold text-white hover:bg-[var(--accent-hover)] transition-all shadow-sm shadow-[var(--accent)]/20"
             >
               <Printer className="h-3.5 w-3.5" />
@@ -863,8 +578,8 @@ export default function BillPage() {
         </motion.div>
 
         {/* ── Thermal receipt layout — only rendered when printing ── */}
-        <div className="thermal-receipt" data-width={settings.paperWidth} aria-hidden>
-          {settings.showLogo && order.restaurant.imageUrl && (
+        <div className="thermal-receipt" data-width={printSettings.counterWidth} aria-hidden>
+          {printSettings.showLogo && order.restaurant.imageUrl && (
             <div className="tr-center tr-logo-wrap">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img className="tr-logo" src={order.restaurant.imageUrl} alt="" />
@@ -965,7 +680,7 @@ export default function BillPage() {
           )}
           {order.note && <div className="tr-center tr-note">&ldquo;{order.note}&rdquo;</div>}
 
-          {settings.showQR && (
+          {printSettings.showFeedbackQR && (
             <div className="tr-center tr-qr-wrap">
               <div className="tr-qr">
                 <QRCode
@@ -1011,7 +726,7 @@ export default function BillPage() {
             {downloading ? "Generating PDF…" : downloadLabel}
           </button>
           <button
-            onClick={requestPrint}
+            onClick={() => window.print()}
             className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[var(--accent)] to-[#e58f2a] px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-[var(--accent)]/20 hover:shadow-xl hover:-translate-y-0.5 transition-all"
           >
             <Printer className="h-4 w-4" />
@@ -1107,15 +822,6 @@ export default function BillPage() {
           </motion.div>
         )}
       </div>
-
-      {/* ── Receipt settings (one-time setup, editable anytime) ── */}
-      <ReceiptSettingsModal
-        open={showSettings}
-        initial={settings}
-        hasLogo={Boolean(order.restaurant.imageUrl)}
-        onClose={() => setShowSettings(false)}
-        onSave={saveSettings}
-      />
 
       {/* ── Thermal receipt print styles ───────────────────────────── */}
       <style jsx global>{`

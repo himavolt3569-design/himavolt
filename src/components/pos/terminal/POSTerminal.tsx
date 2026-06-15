@@ -77,6 +77,7 @@ interface StaffSession {
     alt: boolean;
     key: string;
   } | null;
+  printCounterWidth?: number;
 }
 
 interface Category {
@@ -433,6 +434,7 @@ export default function POSTerminal() {
             <POSBilling
               restaurantId={session.restaurantId}
               currency={session.currency}
+              counterWidth={session.printCounterWidth ?? 80}
               orders={liveOrders}
               onSplitBill={(id, orderNo, total) => {
                 setSplitOrder({ id, orderNo, total });

@@ -53,19 +53,43 @@ export async function GET(
   if (isDrinkParam === "true") where.isDrink = true;
   if (isDrinkParam === "false") where.isDrink = false;
 
+  // `light=1` returns a slim projection for screens that only need to list
+  // items (e.g. Fast Billing / POS): no sizes/addOns relation joins and only
+  // the columns those screens render. Smaller payload + fewer round-trips on
+  // the 1-connection prod pool. Full payload remains the default for editors.
+  const light = searchParams.get("light") === "1";
+
   // Prod runs a 1-connection Prisma pool — degrade gracefully on transient
   // pool/DB errors with a 503 (which the client retries) instead of a raw 500.
   try {
-    const items = await db.menuItem.findMany({
-      where,
-      include: {
-        sizes: true,
-        addOns: true,
-        category: true,
-      },
-      orderBy: { sortOrder: "asc" },
-      take: 500,
-    });
+    const items = light
+      ? await db.menuItem.findMany({
+          where,
+          select: {
+            id: true,
+            name: true,
+            price: true,
+            categoryId: true,
+            isAvailable: true,
+            imageUrl: true,
+            isDrink: true,
+            drinkCategory: true,
+            sortOrder: true,
+            category: { select: { name: true } },
+          },
+          orderBy: { sortOrder: "asc" },
+          take: 500,
+        })
+      : await db.menuItem.findMany({
+          where,
+          include: {
+            sizes: true,
+            addOns: true,
+            category: true,
+          },
+          orderBy: { sortOrder: "asc" },
+          take: 500,
+        });
 
     return NextResponse.json(items, {
       headers: { "Cache-Control": "private, no-store" },

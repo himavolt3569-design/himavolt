@@ -93,7 +93,7 @@ export async function getBillByOrderId(orderId: string) {
       order: {
         include: {
           items: true,
-          restaurant: { select: { name: true, address: true, phone: true, currency: true, imageUrl: true } },
+          restaurant: { select: { name: true, address: true, phone: true, currency: true, imageUrl: true, printCounterWidth: true, printShowLogo: true, printShowFeedbackQR: true } },
           user: { select: { name: true, email: true, phone: true } },
           payment: true,
         },

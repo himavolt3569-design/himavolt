@@ -97,6 +97,7 @@ const RoomQRTab = lazyTab(() => import("@/components/dashboard/RoomQRTab"));
 const HotelHubTab = lazyTab(() => import("@/components/dashboard/HotelHubTab"));
 const OwnerControlPanel = lazyTab(() => import("@/components/dashboard/OwnerControlPanel"));
 const FeedbackTab = lazyTab(() => import("@/components/dashboard/FeedbackTab"));
+const PrintingSettingsTab = lazyTab(() => import("@/components/dashboard/PrintingSettingsTab"));
 
 const COMPONENTS: Record<string, React.ComponentType<any>> = {
   overview: OverviewTab,
@@ -124,6 +125,7 @@ const COMPONENTS: Record<string, React.ComponentType<any>> = {
   drinks: DrinksTab,
   "manual-billing": ManualBillingTab,
   feedback: FeedbackTab,
+  printing: PrintingSettingsTab,
 
   // Feature tabs
   "quick-counter": QuickCounterTab,
@@ -214,6 +216,8 @@ export default function DynamicDashboardTab({ params }: { params: Promise<{ tab:
     props.restaurantPhone = selectedRestaurant?.phone ?? "";
     props.taxRate = selectedRestaurant?.taxRate ?? 13;
     props.taxEnabled = selectedRestaurant?.taxEnabled ?? true;
+    props.counterWidth = selectedRestaurant?.printCounterWidth ?? 80;
+    props.kitchenWidth = selectedRestaurant?.printKitchenWidth ?? 80;
   }
 
   if (tab === "stories" && selectedRestaurant) {

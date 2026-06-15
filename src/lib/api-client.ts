@@ -35,6 +35,23 @@ function pruneCache() {
   }
 }
 
+/**
+ * Synchronously read a GET response from the in-memory cache without firing a
+ * request. Lets a component seed its initial state on mount so a re-opened tab
+ * paints instantly (no loading skeleton) while apiFetch revalidates in the
+ * background. `maxAgeMs` bounds how stale the painted data may be — generous by
+ * default since the follow-up apiFetch refreshes it.
+ */
+export function peekApiCache<T = unknown>(
+  path: string,
+  maxAgeMs = 10 * 60_000,
+): T | undefined {
+  if (typeof window === "undefined") return undefined;
+  const cached = GET_CACHE.get(path);
+  if (cached && Date.now() - cached.ts < maxAgeMs) return cached.data as T;
+  return undefined;
+}
+
 export function invalidateApiCache(pathPrefix?: string) {
   if (!pathPrefix) {
     GET_CACHE.clear();

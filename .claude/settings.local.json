@@ -9,7 +9,10 @@
       "PowerShell(Test-Path *)",
       "Bash(xargs grep -l \"getAuthUser\\\\|supabase\\\\.auth\")",
       "Bash(Sort-Object -Unique)",
-      "Bash(xargs grep \"NEXT_PUBLIC_\")"
+      "Bash(xargs grep \"NEXT_PUBLIC_\")",
+      "PowerShell(gh pr view 12 --json url,number,state 2>&1)",
+      "PowerShell(\"---UNPUSHED---\")",
+      "PowerShell(\"---PR12---\")"
     ]
   }
 }

@@ -23,6 +23,7 @@ export const GET = safeHandler(async (req) => {
         taxRate: true, taxEnabled: true, slug: true,
         featuresEnabled: true, featuresDisabled: true,
         posEnabled: true, posTerminalName: true, posCustomerModeEnabled: true, posCustomerExitCombo: true,
+        printCounterWidth: true,
       },
     }),
   ]);
@@ -67,6 +68,7 @@ export const GET = safeHandler(async (req) => {
     posTerminalName: restaurant?.posTerminalName ?? null,
     posCustomerModeEnabled: restaurant?.posCustomerModeEnabled ?? true,
     posCustomerExitCombo: normalizeExitCombo(restaurant?.posCustomerExitCombo),
+    printCounterWidth: restaurant?.printCounterWidth ?? 80,
   });
 });
 
