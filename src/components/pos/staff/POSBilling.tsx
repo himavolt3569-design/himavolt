@@ -32,6 +32,8 @@ interface BillDetails {
 interface Props {
   restaurantId: string;
   currency: string;
+  /** Counter paper width in mm (from account print settings). */
+  counterWidth?: number;
   orders: POSOrder[];
   onSplitBill: (orderId: string, orderNo: string, total: number) => void;
   onOptimisticUpdate: (orderId: string, patch: Partial<POSOrder>) => void;
@@ -99,12 +101,14 @@ const DISCOUNT_ROLES = new Set(["MANAGER", "SUPER_ADMIN"]);
 export default function POSBilling({
   restaurantId,
   currency,
+  counterWidth = 80,
   orders,
   onSplitBill,
   onOptimisticUpdate,
   onShowPaymentQR,
   staffRole,
 }: Props) {
+  const receiptWidthMm = counterWidth === 58 ? 58 : 80;
   const { showToast } = useToast();
   const [search, setSearch] = useState("");
   const [discountAmount, setDiscountAmount] = useState("");
@@ -223,9 +227,15 @@ export default function POSBilling({
     <>
       <style dangerouslySetInnerHTML={{ __html: `
         @media print {
+          @page { size: ${receiptWidthMm}mm auto; margin: 0; }
           body * { visibility: hidden; }
           #printable-receipt, #printable-receipt * { visibility: visible; }
-          #printable-receipt { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; }
+          #printable-receipt {
+            position: absolute; left: 0; top: 0;
+            width: ${receiptWidthMm}mm; max-width: ${receiptWidthMm}mm;
+            padding: ${receiptWidthMm === 58 ? "4mm" : "5mm"};
+            box-sizing: border-box;
+          }
         }
       `}} />
       <div className="flex h-full">

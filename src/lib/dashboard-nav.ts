@@ -42,6 +42,7 @@ import {
   Sparkles,
   UsersRound,
   Star,
+  Printer,
 } from "lucide-react";
 import { type FeatureTabId } from "./restaurant-types";
 
@@ -71,6 +72,7 @@ export type DashTab =
   | "owner-control"
   | "shifts"
   | "feedback"
+  | "printing"
   | FeatureTabId;
 
 export const NAV_MAIN: {
@@ -117,6 +119,7 @@ export const NAV_MANAGE: typeof NAV_MAIN = [
   { id: "stock", label: "Stock", icon: Package },
   { id: "qr", label: "QR Codes", icon: QrCode },
   { id: "tax-charges", label: "Tax & Charges", icon: Receipt },
+  { id: "printing", label: "Printing & Receipts", icon: Printer },
   { id: "payment-settings", label: "Payment Settings", icon: Settings },
   { id: "payment-qr", label: "Payment QR", icon: Wallet },
   { id: "coupons", label: "Coupons", icon: Tag },

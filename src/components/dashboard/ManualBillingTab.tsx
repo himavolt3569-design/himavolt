@@ -9,19 +9,7 @@ import {
 } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
 import { SkeletonGrid } from "@/components/shared/Skeleton";
-
-async function staffFetch<T = unknown>(url: string, opts?: RequestInit): Promise<T> {
-  const res = await fetch(url, {
-    ...opts,
-    headers: { "Content-Type": "application/json", ...(opts?.headers || {}) },
-    credentials: "include",
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: "Request failed" }));
-    throw new Error(err.error || `Request failed (${res.status})`);
-  }
-  return res.json();
-}
+import { apiFetch, peekApiCache } from "@/lib/api-client";
 
 
 interface MenuItem {
@@ -64,6 +52,8 @@ export default function ManualBillingTab({
   restaurantPhone = "",
   taxRate: taxRateProp = 13,
   taxEnabled: taxEnabledProp = true,
+  counterWidth = 80,
+  kitchenWidth = 80,
 }: {
   restaurantId: string;
   currency?: string;
@@ -72,12 +62,22 @@ export default function ManualBillingTab({
   restaurantPhone?: string;
   taxRate?: number;
   taxEnabled?: boolean;
+  counterWidth?: number;
+  kitchenWidth?: number;
 }) {
   const rid      = restaurantId;
+  // Paper widths from account print settings — bill uses the counter roll,
+  // KOT/BOT use the kitchen roll.
+  const billWidthMm = counterWidth === 58 ? 58 : 80;
+  const kitchenWidthMm = kitchenWidth === 58 ? 58 : 80;
+  const menuPath   = rid ? `/api/restaurants/${rid}/menu?light=1` : "";
+  const tablesPath = rid ? `/api/restaurants/${rid}/tables` : "";
 
-  const [menuItems,   setMenuItems]   = useState<MenuItem[]>([]);
-  const [tables,      setTables]      = useState<TableOption[]>([]);
-  const [loading,     setLoading]     = useState(true);
+  // Seed from the warm GET cache so re-opening the tab paints instantly — no
+  // skeleton — while the effect below revalidates in the background.
+  const [menuItems,   setMenuItems]   = useState<MenuItem[]>(() => peekApiCache<MenuItem[]>(menuPath) ?? []);
+  const [tables,      setTables]      = useState<TableOption[]>(() => peekApiCache<{ tables?: TableOption[] }>(tablesPath)?.tables ?? []);
+  const [loading,     setLoading]     = useState(() => !peekApiCache(menuPath));
   const [search,      setSearch]      = useState("");
   const [tableNo,     setTableNo]     = useState<number | "">("");
   const [guestName,   setGuestName]   = useState("");
@@ -92,20 +92,23 @@ export default function ManualBillingTab({
   const [payMethod,     setPayMethod]     = useState<"COUNTER" | "DIRECT">("COUNTER");
   const printRef = useRef<HTMLDivElement>(null);
 
-  // Fetch menu items and available tables
+  // Fetch menu items and available tables. apiFetch adds an in-memory cache,
+  // in-flight dedup, and automatic retry on the 503s prod's 1-connection pool
+  // throws — so a transient hiccup no longer leaves the tab blank.
   useEffect(() => {
     if (!rid) return;
-    setLoading(true);
+    // Only show the skeleton on a cold cache; a warm tab already painted.
+    if (!peekApiCache(menuPath)) setLoading(true);
     Promise.all([
-      staffFetch<{ items?: MenuItem[]; menuItems?: MenuItem[] } | MenuItem[]>(`/api/restaurants/${rid}/menu`),
-      staffFetch<{ tables?: TableOption[] }>(`/api/restaurants/${rid}/tables`).catch(() => ({ tables: [] })),
+      apiFetch<{ items?: MenuItem[]; menuItems?: MenuItem[] } | MenuItem[]>(menuPath, { cacheTtl: 120_000 }),
+      apiFetch<{ tables?: TableOption[] }>(tablesPath, { cacheTtl: 60_000 }).catch(() => ({ tables: [] })),
     ]).then(([menuData, tableData]) => {
       const md = menuData as { items?: MenuItem[]; menuItems?: MenuItem[] } | MenuItem[];
       const items = Array.isArray(md) ? md : md.items ?? md.menuItems ?? [];
       setMenuItems(items as MenuItem[]);
       setTables((tableData.tables ?? []) as TableOption[]);
     }).catch(() => {}).finally(() => setLoading(false));
-  }, [rid]);
+  }, [rid]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const availableTables = tables.filter((t) => !t.isOccupied);
 
@@ -144,11 +147,11 @@ export default function ManualBillingTab({
     if (!rid || billItems.length === 0) return null;
     setSubmitting(true);
     try {
-      const order = await staffFetch<{ id: string; orderNo: string }>(
+      const order = await apiFetch<{ id: string; orderNo: string }>(
         `/api/restaurants/${rid}/orders`,
         {
           method: "POST",
-          body: JSON.stringify({
+          body: {
             tableNo: tableNo ? Number(tableNo) : undefined,
             guestName: guestName.trim() || undefined,
             items: billItems.map((b) => ({
@@ -162,7 +165,7 @@ export default function ManualBillingTab({
             // Fast Pay: skip PENDING queue, go directly to kitchen
             ...(payMethod === "DIRECT" ? { autoAccept: true } : {}),
             note: `Counter order${tableNo ? ` - Table ${tableNo}` : ""}${guestName.trim() ? ` - ${guestName.trim()}` : ""}`,
-          }),
+          },
         },
       );
       setOrderId(order.id);
@@ -196,9 +199,9 @@ export default function ManualBillingTab({
     setMarkingPaid(true);
     setIsPaid(true); // optimistic — instant UI feedback
     try {
-      await staffFetch(`/api/restaurants/${rid}/billing/collect`, {
+      await apiFetch(`/api/restaurants/${rid}/billing/collect`, {
         method: "POST",
-        body: JSON.stringify({ orderId, method: "DIRECT" }),
+        body: { orderId, method: "DIRECT" },
       });
     } catch {
       setIsPaid(false); // revert on failure
@@ -223,7 +226,8 @@ export default function ManualBillingTab({
       <html><head><title>Tax Invoice</title>
       <style>
         * { box-sizing:border-box; }
-        body { font-family:Arial,sans-serif; max-width:300px; margin:0 auto; padding:16px; color:#111; }
+        @page { size:${billWidthMm}mm auto; margin:0; }
+        body { font-family:Arial,sans-serif; width:${billWidthMm}mm; max-width:${billWidthMm}mm; margin:0 auto; padding:${billWidthMm === 58 ? "4mm" : "5mm"}; color:#111; }
         .center { text-align:center; }
         .divider { border-top:1px dashed #999; margin:8px 0; }
         .row { display:flex; justify-content:space-between; align-items:center; padding:3px 0; font-size:12px; }
@@ -238,9 +242,7 @@ export default function ManualBillingTab({
         .item-unit { font-size:10px; color:#888; }
         .item-tot  { font-size:12px; font-weight:bold; white-space:nowrap; }
         .tot-row   { font-size:14px; font-weight:bold; }
-        .pay-badge { background:#d1fae5; color:#065f46; border:1px solid #6ee7b7; border-radius:4px; padding:2px 8px; font-size:11px; font-weight:bold; }
-        @media print { body { margin:0; padding:10px; } }
-      </style></head><body>
+        .pay-badge { background:#d1fae5; color:#065f46; border:1px solid #6ee7b7; border-radius:4px; padding:2px 8px; font-size:11px; font-weight:bold; }      </style></head><body>
       <div class="center">
         <h2>${restaurantName || "Restaurant"}</h2>
         ${restaurantAddress ? `<p style="font-size:11px;margin:2px 0;color:#555">${restaurantAddress}</p>` : ""}
@@ -291,7 +293,8 @@ export default function ManualBillingTab({
     pw.document.write(`
       <html><head><title>KOT</title>
       <style>
-        body { font-family:'Courier New',monospace; max-width:300px; margin:0 auto; padding:16px; }
+        @page { size:${kitchenWidthMm}mm auto; margin:0; }
+        body { font-family:'Courier New',monospace; width:${kitchenWidthMm}mm; max-width:${kitchenWidthMm}mm; margin:0 auto; padding:${kitchenWidthMm === 58 ? "4mm" : "5mm"}; box-sizing:border-box; }
         .center { text-align:center; }
         .divider { border-top:1px dashed #333; margin:8px 0; }
         .row { display:flex; justify-content:space-between; padding:2px 0; font-size:13px; }
@@ -299,7 +302,6 @@ export default function ManualBillingTab({
         h2 { margin:0 0 2px; font-size:14px; }
         .kot-lbl { font-size:18px; font-weight:900; letter-spacing:3px; margin:4px 0 0; }
         .item { padding:3px 0; font-size:14px; font-weight:bold; }
-        @media print { body { margin:0; padding:10px; } }
       </style></head><body>
       <div class="center">
         <div class="kot-lbl">*** KOT ***</div>
@@ -339,7 +341,8 @@ export default function ManualBillingTab({
     pw.document.write(`
       <html><head><title>BOT</title>
       <style>
-        body { font-family:'Courier New',monospace; max-width:300px; margin:0 auto; padding:16px; background:#fff; }
+        @page { size:${kitchenWidthMm}mm auto; margin:0; }
+        body { font-family:'Courier New',monospace; width:${kitchenWidthMm}mm; max-width:${kitchenWidthMm}mm; margin:0 auto; padding:${kitchenWidthMm === 58 ? "4mm" : "5mm"}; box-sizing:border-box; background:#fff; }
         .center { text-align:center; }
         .divider { border-top:2px dashed #1e3a5f; margin:8px 0; }
         .thin { border-top:1px dashed #93c5fd; margin:6px 0; }
@@ -350,9 +353,7 @@ export default function ManualBillingTab({
         .item { padding:3px 0; font-size:15px; font-weight:bold; color:#1e3a5f; }
         .item-sub { font-size:10px; color:#64748b; padding-left:16px; }
         .meta { font-size:11px; color:#555; }
-        .badge { display:inline-block; background:#1e3a5f; color:#fff; font-size:10px; font-weight:bold; padding:1px 6px; border-radius:3px; letter-spacing:1px; }
-        @media print { body { margin:0; padding:10px; } }
-      </style></head><body>
+        .badge { display:inline-block; background:#1e3a5f; color:#fff; font-size:10px; font-weight:bold; padding:1px 6px; border-radius:3px; letter-spacing:1px; }      </style></head><body>
       <div class="center">
         <div class="bot-lbl">*** BOT ***</div>
         <h2 style="margin-top:4px">${restaurantName || "Restaurant"}</h2>

@@ -56,6 +56,10 @@ export interface Restaurant {
   taxEnabled: boolean;
   serviceChargeRate?: number;
   serviceChargeEnabled?: boolean;
+  printCounterWidth?: number;
+  printKitchenWidth?: number;
+  printShowLogo?: boolean;
+  printShowFeedbackQR?: boolean;
   counterPayEnabled: boolean;
   directPayEnabled: boolean;
   prepaidEnabled: boolean;

@@ -77,6 +77,12 @@ model Restaurant {
   serviceChargeRate    Float   @default(10) // percentage, e.g. 10 = 10%
   serviceChargeEnabled Boolean @default(true)
 
+  // Printing & receipts — set once in the dashboard, applied to every printout
+  printCounterWidth   Int     @default(80) // mm — customer bill + POS counter receipt
+  printKitchenWidth   Int     @default(80) // mm — KOT + BOT (kitchen/bar tickets)
+  printShowLogo       Boolean @default(true) // show logo on the customer bill
+  printShowFeedbackQR Boolean @default(true) // show feedback QR on the customer bill
+
   // Operational status (staff-controllable)
   isOpen          Boolean @default(true) // when false, hidden from landing page & ordering disabled
   deliveryEnabled Boolean @default(false) // when true, delivery option shown in checkout

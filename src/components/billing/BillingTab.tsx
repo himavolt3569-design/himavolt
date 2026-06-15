@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import { formatPrice, getCurrencySymbol } from "@/lib/currency";
 import { useToast } from "@/context/ToastContext";
+import { apiFetch, peekApiCache } from "@/lib/api-client";
 import Skeleton, {
   SkeletonStatGrid,
   SkeletonOrderCard,
@@ -210,23 +211,6 @@ function paymentMethodIcon(method: string) {
   }
 }
 
-async function staffFetch(url: string, opts?: RequestInit) {
-  const res = await fetch(url, {
-    ...opts,
-    headers: { "Content-Type": "application/json", ...(opts?.headers || {}) },
-    credentials: "include",
-  });
-  if (!res.ok) {
-    let msg = "Request failed";
-    try {
-      const body = await res.json();
-      if (body?.error) msg = body.error;
-    } catch { /* ignore */ }
-    throw new Error(msg);
-  }
-  return res.json();
-}
-
 const STATUS_COLORS: Record<string, string> = {
   PENDING: "bg-[var(--accent)] text-[var(--accent)]",
   ACCEPTED: "bg-blue-100 text-blue-700",
@@ -271,9 +255,13 @@ export default function BillingTab({
 }: BillingTabProps) {
   const { showToast } = useToast();
   const cur = currency;
-  const [orders, setOrders] = useState<BillOrder[]>([]);
-  const [summary, setSummary] = useState<DailySummary | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Seed from the warm GET cache so re-opening Billing paints instantly — no
+  // skeleton — while the effects below revalidate in the background.
+  const initialOrdersPath = restaurantId ? `/api/restaurants/${restaurantId}/billing?filter=unpaid` : "";
+  const summaryPath = restaurantId ? `/api/restaurants/${restaurantId}/billing/summary` : "";
+  const [orders, setOrders] = useState<BillOrder[]>(() => peekApiCache<BillOrder[]>(initialOrdersPath) ?? []);
+  const [summary, setSummary] = useState<DailySummary | null>(() => peekApiCache<DailySummary>(summaryPath) ?? null);
+  const [loading, setLoading] = useState(() => !peekApiCache(initialOrdersPath));
   const [filter, setFilter] = useState<string>("unpaid");
   const [payType, setPayType] = useState<PayType>("all");
   const [search, setSearch] = useState("");
@@ -318,10 +306,15 @@ export default function BillingTab({
   const canDiscount =
     staffRole === "MANAGER" || staffRole === "SUPER_ADMIN" || !staffRole;
 
+  // apiFetch adds an in-memory cache, in-flight dedup, and automatic retry on
+  // the 503s prod's 1-connection pool throws — billing lists no longer blank
+  // out on a transient hiccup, and any mutation (collect/discount/split)
+  // invalidates these caches so the next load is fresh.
   const loadOrders = useCallback(async () => {
     try {
-      const data = await staffFetch(
+      const data = await apiFetch<BillOrder[] | { orders?: BillOrder[] }>(
         `/api/restaurants/${restaurantId}/billing?filter=${filter}`,
+        { cacheTtl: 15_000 },
       );
       // API returns an array directly; fall back to .orders wrapper for safety
       const fetched: BillOrder[] = Array.isArray(data)
@@ -332,12 +325,13 @@ export default function BillingTab({
       showToast("Failed to load billing orders", "error");
     }
     setLoading(false);
-  }, [restaurantId, filter]);
+  }, [restaurantId, filter]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadSummary = useCallback(async () => {
     try {
-      const data = await staffFetch(
+      const data = await apiFetch<DailySummary>(
         `/api/restaurants/${restaurantId}/billing/summary`,
+        { cacheTtl: 15_000 },
       );
       setSummary(data);
     } catch {
@@ -348,8 +342,9 @@ export default function BillingTab({
   const loadStaffReport = useCallback(async (date: string) => {
     setStaffReportLoading(true);
     try {
-      const data = await staffFetch(
+      const data = await apiFetch<StaffReportData>(
         `/api/restaurants/${restaurantId}/billing/staff-report?date=${date}`,
+        { cacheTtl: 15_000 },
       );
       setStaffReport(data);
     } catch {
@@ -358,11 +353,14 @@ export default function BillingTab({
     setStaffReportLoading(false);
   }, [restaurantId, showToast]);
 
-  // Reload orders when filter or restaurantId changes (loadOrders deps cover both)
+  // Reload orders when filter or restaurantId changes (loadOrders deps cover
+  // both). Only force the skeleton on a cold cache — a warm tab already painted.
   useEffect(() => {
-    setLoading(true);
+    if (!peekApiCache(`/api/restaurants/${restaurantId}/billing?filter=${filter}`)) {
+      setLoading(true);
+    }
     loadOrders();
-  }, [loadOrders]);
+  }, [loadOrders]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load summary + tax config once per restaurant
   useEffect(() => {
@@ -371,20 +369,18 @@ export default function BillingTab({
     isFirstSSE.current = true;
     knownOrderIds.current = new Set();
     knownPaymentStatuses.current = new Map();
-    staffFetch(`/api/restaurants/${restaurantId}/tax-config`)
-      .then(
-        (cfg: {
-          taxRate: number;
-          taxEnabled: boolean;
-          serviceChargeRate: number;
-          serviceChargeEnabled: boolean;
-        }) => {
-          setTaxRate(cfg.taxRate);
-          setTaxEnabled(cfg.taxEnabled);
-          setScRate(cfg.serviceChargeRate);
-          setScEnabled(cfg.serviceChargeEnabled);
-        },
-      )
+    apiFetch<{
+      taxRate: number;
+      taxEnabled: boolean;
+      serviceChargeRate: number;
+      serviceChargeEnabled: boolean;
+    }>(`/api/restaurants/${restaurantId}/tax-config`, { cacheTtl: 300_000 })
+      .then((cfg) => {
+        setTaxRate(cfg.taxRate);
+        setTaxEnabled(cfg.taxEnabled);
+        setScRate(cfg.serviceChargeRate);
+        setScEnabled(cfg.serviceChargeEnabled);
+      })
       .catch(() => {});
   }, [restaurantId]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -462,13 +458,13 @@ export default function BillingTab({
     if (!selectedOrder) return;
     setActionLoading(true);
     try {
-      await staffFetch(`/api/restaurants/${restaurantId}/billing/collect`, {
+      await apiFetch(`/api/restaurants/${restaurantId}/billing/collect`, {
         method: "POST",
-        body: JSON.stringify({
+        body: {
           orderId: selectedOrder.id,
           method: collectMethod,
           transactionId: collectTxn || undefined,
-        }),
+        },
       });
       showToast(`Payment collected for Order #${selectedOrder.orderNo}`, "success");
       setShowCollect(false);
@@ -486,12 +482,12 @@ export default function BillingTab({
     if (!order.payment) return;
     setActionLoading(true);
     try {
-      await staffFetch(`/api/restaurants/${restaurantId}/billing/verify-bank`, {
+      await apiFetch(`/api/restaurants/${restaurantId}/billing/verify-bank`, {
         method: "POST",
-        body: JSON.stringify({
+        body: {
           paymentId: order.payment.id,
           action,
-        }),
+        },
       });
       showToast(
         action === "VERIFY"
@@ -513,13 +509,13 @@ export default function BillingTab({
     if (isNaN(amount) || amount <= 0) return;
     setActionLoading(true);
     try {
-      await staffFetch(`/api/restaurants/${restaurantId}/billing/discount`, {
+      await apiFetch(`/api/restaurants/${restaurantId}/billing/discount`, {
         method: "POST",
-        body: JSON.stringify({
+        body: {
           orderId: selectedOrder.id,
           amount,
           reason: discountReason || undefined,
-        }),
+        },
       });
       showToast(`Discount of ${formatPrice(amount, cur)} applied to Order #${selectedOrder.orderNo}`, "success");
       setShowDiscount(false);
@@ -552,12 +548,12 @@ export default function BillingTab({
     }
     setActionLoading(true);
     try {
-      await staffFetch(`/api/restaurants/${restaurantId}/billing/split`, {
+      await apiFetch(`/api/restaurants/${restaurantId}/billing/split`, {
         method: "POST",
-        body: JSON.stringify({
+        body: {
           orderId: selectedOrder.id,
           splits: active.map((e) => ({ method: e.method, amount: parseFloat(e.amount) })),
-        }),
+        },
       });
       showToast(`Split payment collected for Order #${selectedOrder.orderNo}`, "success");
       setShowSplit(false);
@@ -575,11 +571,11 @@ export default function BillingTab({
     if (!order.tableNo) return;
     setClearingOrderId(order.id);
     try {
-      await staffFetch(
+      await apiFetch(
         `/api/restaurants/${restaurantId}/table-session/clear`,
         {
           method: "POST",
-          body: JSON.stringify({ orderId: order.id, tableNo: order.tableNo }),
+          body: { orderId: order.id, tableNo: order.tableNo },
         },
       );
       loadOrders();
@@ -726,8 +722,14 @@ export default function BillingTab({
             onClick={async () => {
               try {
                 const today = new Date().toISOString().split("T")[0];
-                const data = await staffFetch(
+                const data = await apiFetch<{
+                  date: string;
+                  summary: { totalOrders: number; paidOrders: number; unpaidOrders: number; totalRevenue: number };
+                  byMethod: Record<string, unknown>;
+                  discrepancies: unknown[];
+                }>(
                   `/api/restaurants/${restaurantId}/billing/reconciliation?date=${today}`,
+                  { cacheTtl: 0 },
                 );
                 const lines = [
                   `Reconciliation Report — ${data.date}`,
