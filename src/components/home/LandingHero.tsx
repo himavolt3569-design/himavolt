@@ -254,10 +254,10 @@ export default function LandingHero() {
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5 }}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-orange-500/20 to-pink-500/20 border border-[var(--accent)]/30 backdrop-blur-md mb-6 shadow-[0_4px_12px_rgba(0,0,0,0.05)] animate-bouncy"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[var(--accent-muted)] border border-[var(--accent)]/30 backdrop-blur-md mb-6 shadow-[0_4px_12px_rgba(0,0,0,0.05)] animate-bouncy"
             >
-              <Sparkles className="h-4 w-4 text-orange-500" />
-              <span className="text-xs font-black text-orange-600 uppercase tracking-widest font-syne">
+              <Sparkles className="h-4 w-4 text-[var(--accent)]" />
+              <span className="text-xs font-black text-[var(--accent-text)] uppercase tracking-widest font-syne">
                 Nepal&apos;s Tastiest Stay
               </span>
             </motion.div>
@@ -283,17 +283,13 @@ export default function LandingHero() {
                       animate={{ y: 0, opacity: 1, scale: 1, rotate: 0 }}
                       exit={{ y: -28, opacity: 0, scale: 0.9, rotate: 2 }}
                       transition={{ type: "spring", damping: 12, stiffness: 200 }}
-                      className={`inline-block text-transparent bg-clip-text bg-gradient-to-r ${
-                        wordIdx % 3 === 0 ? "from-orange-500 to-pink-500" : 
-                        wordIdx % 3 === 1 ? "from-green-500 to-emerald-500" : 
-                        "from-blue-500 to-indigo-500"
-                      }`}
+                      className="inline-block text-[var(--accent)]"
                     >
                       {ANIMATED_WORDS[wordIdx]}.
                     </motion.span>
                   </AnimatePresence>
                 ) : (
-                  <span className="inline-block text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-pink-500">
+                  <span className="inline-block text-[var(--accent)]">
                     {ANIMATED_WORDS[0]}.
                   </span>
                 )}
@@ -324,7 +320,7 @@ export default function LandingHero() {
                 <motion.button
                   whileHover={{ scale: 1.05, translateY: -2 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full sm:px-10 py-4.5 rounded-[2rem] bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] text-white font-black text-base shadow-2xl shadow-[var(--accent)]/40 flex items-center justify-center gap-2 hover:shadow-[var(--accent)]/50 transition-all group border border-white/10"
+                  className="w-full sm:px-10 py-4.5 rounded-[2rem] bg-[var(--accent)] text-white font-black text-base shadow-2xl shadow-[var(--accent)]/40 flex items-center justify-center gap-2 hover:bg-[var(--accent-hover)] transition-all group border border-white/10"
                 >
                   Order Now
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -388,7 +384,7 @@ export default function LandingHero() {
           >
             <div className="relative aspect-square max-w-[540px] ml-auto">
               {/* Main Circular Image */}
-              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-orange-500/20 to-pink-500/20 animate-orb-drift" />
+              <div className="absolute inset-0 rounded-full bg-[var(--accent)]/10 animate-orb-drift" />
               <div className="relative h-full w-full rounded-[4rem] overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] group border-8 border-white">
                 <img
                   src="https://images.unsplash.com/photo-1547592180-85f173990554?w=800&h=800&fit=crop"
