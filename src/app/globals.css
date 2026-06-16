@@ -7,6 +7,11 @@
 
 @theme {
   --font-sans: var(--font-inter);
+  --font-serif: var(--font-fraunces);
+  --font-display: var(--font-syne);
+  --font-fraunces: var(--font-fraunces);
+  --font-syne: var(--font-syne);
+  --font-poppins: var(--font-poppins);
   --font-mono: var(--font-geist-mono);
 
   /* ── Brand palette (new-orleans) ── */
@@ -132,6 +137,21 @@
     background-color: var(--canvas);
     color: var(--text-1);
     letter-spacing: -0.011em; /* Precision typography */
+    font-family: var(--font-inter), sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-fraunces), serif;
+    letter-spacing: -0.03em;
+    font-weight: 700;
+  }
+
+  /* Fun accent highlights */
+  .text-fun {
+    font-family: var(--font-syne), sans-serif;
+    letter-spacing: -0.05em;
+    font-weight: 800;
+    text-transform: uppercase;
   }
 
   /* Focus Outlines */
@@ -271,6 +291,13 @@ canvas[data-engine] {
     66%       { transform: translate(-20px, 15px) scale(0.97); }
   }
   .animate-orb-drift { animation: orb-drift 12s ease-in-out infinite; }
+
+  /* Bouncy float animation */
+  @keyframes bouncy-float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-10px) rotate(2deg); }
+  }
+  .animate-bouncy { animation: bouncy-float 4s ease-in-out infinite; }
 
   /* Testimonial marquee rows */
   @keyframes marquee-left {

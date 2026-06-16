@@ -384,7 +384,7 @@ export default function DashboardSidebar({
 
   if (isCollapsed) {
     return (
-      <aside className="flex h-full w-full flex-col items-center bg-[var(--canvas)]/60 backdrop-blur-3xl border-r border-[var(--border)]/50 shadow-[4px_0_24px_rgba(0,0,0,0.02)] py-4 gap-2">
+      <aside className="flex h-full w-full flex-col items-center bg-[var(--canvas)]/60 backdrop-blur-3xl border-r border-[var(--border)]/50 shadow-[4px_0_24px_rgba(0,0,0,0.02)] py-4 gap-2 font-poppins">
         <Link href="/" className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent)] shadow-sm mb-2">
           <Mountain className="h-4 w-4 text-white" strokeWidth={2.5} />
         </Link>
@@ -438,7 +438,7 @@ export default function DashboardSidebar({
   }
 
   return (
-    <aside className="flex h-full w-full flex-col bg-[var(--canvas)]/60 backdrop-blur-3xl border-r border-[var(--border)]/50 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+    <aside className="flex h-full w-full flex-col bg-[var(--canvas)]/60 backdrop-blur-3xl border-r border-[var(--border)]/50 shadow-[4px_0_24px_rgba(0,0,0,0.02)] font-poppins">
       <div className="flex items-center justify-between px-5 pt-6 pb-5">
         <Link href="/" className="group flex items-center gap-2.5">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent)] shadow-sm">

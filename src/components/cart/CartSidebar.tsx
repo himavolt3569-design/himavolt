@@ -53,7 +53,7 @@ export default function CartSidebar({
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="fixed top-0 right-0 bottom-0 z-95 w-full max-w-[420px] bg-[var(--canvas)] shadow-2xl flex flex-col md:border-l md:border-[var(--border)]"
+            className="fixed top-0 right-0 bottom-0 z-95 w-full max-w-[420px] bg-[var(--canvas)] shadow-2xl flex flex-col md:border-l md:border-[var(--border)] font-poppins"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-5 border-b border-[var(--border)]">

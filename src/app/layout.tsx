@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Poppins, Fraunces, Syne } from "next/font/google";
 import "leaflet/dist/leaflet.css";
 import "./globals.css";
 import Providers from "./providers";
@@ -14,6 +14,27 @@ const inter = Inter({
   weight: ["400", "500", "600", "700", "800", "900"],
   display: "swap",
   preload: true,
+});
+
+const poppins = Poppins({
+  variable: "--font-poppins",
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  display: "swap",
+});
+
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800", "900"],
+  display: "swap",
+});
+
+const syne = Syne({
+  variable: "--font-syne",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -84,7 +105,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${inter.variable} antialiased selection:bg-[var(--accent)] selection:text-white`}
+        className={`${inter.variable} ${poppins.variable} ${fraunces.variable} ${syne.variable} antialiased selection:bg-[var(--accent)] selection:text-white`}
       >
         <Providers>
           {children}
