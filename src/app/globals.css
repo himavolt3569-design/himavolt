@@ -266,6 +266,7 @@ canvas[data-engine] {
     filter: none !important;
   }
   .animate-orb-drift,
+  .animate-bouncy,
   .animate-marquee-left,
   .animate-marquee-right {
     animation: none !important;

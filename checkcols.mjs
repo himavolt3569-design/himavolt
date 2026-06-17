@@ -2,6 +2,10 @@ import fs from 'node:fs';
 import { PrismaClient } from './src/generated/prisma/index.js';
 
 // Minimal .env loader (no dep) so this read-only check uses the prod DB.
+if (!fs.existsSync('.env')) {
+  console.error('ERROR: .env file not found');
+  process.exit(1);
+}
 for (const line of fs.readFileSync('.env', 'utf8').split('\n')) {
   const m = line.match(/^([A-Z_]+)=(.*)$/);
   if (m && !process.env[m[1]]) process.env[m[1]] = m[2].replace(/^["']|["']$/g, '');
@@ -16,5 +20,5 @@ try {
   const total = await db.restaurant.count();
   console.log('TOTAL RESTAURANTS:', total);
 } catch (e) {
-  console.log('QUERY ERROR:', e.message);
+  console.error('QUERY ERROR:', e);
 } finally { await db.$disconnect(); }
