@@ -387,13 +387,7 @@ export default function FeedbackTab() {
   };
 
   if (loading) {
-    return (
-      <div className="space-y-4">
-        <div className="h-28 rounded-3xl bg-[var(--surface)] animate-pulse" />
-        <div className="h-32 rounded-3xl bg-[var(--surface)] animate-pulse" />
-        <div className="h-32 rounded-3xl bg-[var(--surface)] animate-pulse opacity-60" />
-      </div>
-    );
+    return null;
   }
 
   return (

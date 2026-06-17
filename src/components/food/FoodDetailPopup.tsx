@@ -1549,12 +1549,7 @@ export default function FoodDetailPopup({
                           {item.name}
                         </h2>
                       </>
-                    ) : (
-                      <div className="space-y-1.5 py-0.5">
-                        <div className="h-2.5 w-20 rounded-full bg-[var(--surface)] animate-pulse" />
-                        <div className="h-4 w-48 rounded-full bg-[var(--surface)] animate-pulse" />
-                      </div>
-                    )}
+                    ) : null}
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
                     <button

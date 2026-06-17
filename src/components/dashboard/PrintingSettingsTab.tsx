@@ -245,13 +245,7 @@ export default function PrintingSettingsTab() {
   const { selectedRestaurant, fetchRestaurants } = useRestaurant();
 
   if (!selectedRestaurant) {
-    return (
-      <div className="space-y-4 max-w-2xl">
-        <div className="h-20 rounded-3xl bg-[var(--surface)] animate-pulse" />
-        <div className="h-40 rounded-3xl bg-[var(--surface)] animate-pulse" />
-        <div className="h-40 rounded-3xl bg-[var(--surface)] animate-pulse opacity-60" />
-      </div>
-    );
+    return null;
   }
 
   return (

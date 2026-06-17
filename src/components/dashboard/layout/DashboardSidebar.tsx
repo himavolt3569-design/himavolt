@@ -250,6 +250,7 @@ function NavSection({
                   <Link
                     key={item.id}
                     href={href}
+                    prefetch={false}
                     onClick={() => onClose?.()}
                     onMouseEnter={() => preloadTab(item.id)}
                     onFocus={() => preloadTab(item.id)}
@@ -415,6 +416,7 @@ export default function DashboardSidebar({
                   key={item.id}
                   href={href}
                   title={item.label}
+                  prefetch={false}
                   onMouseEnter={() => preloadTab(item.id)}
                   onFocus={() => preloadTab(item.id)}
                   className={`relative flex h-9 w-9 items-center justify-center rounded-xl transition-colors ${
