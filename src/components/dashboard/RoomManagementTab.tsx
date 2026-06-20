@@ -47,6 +47,8 @@ interface Room {
   maxGuests: number;
   description: string | null;
   amenities: string[];
+  offerings: string[];
+  locationNote: string | null;
   imageUrls: string[];
   videoUrl: string | null;
   bedType: string | null;
@@ -122,6 +124,8 @@ const BLANK_ROOM = {
   maxGuests: 2,
   description: "",
   amenities: [] as string[],
+  offerings: [] as string[],
+  locationNote: "",
   imageUrls: [] as string[],
   videoUrl: "",
   bedType: "",
@@ -258,6 +262,8 @@ function RoomsView({ restaurantId, currency, slug, hotelName }: { restaurantId: 
       maxGuests: room.maxGuests,
       description: room.description ?? "",
       amenities: room.amenities ?? [],
+      offerings: room.offerings ?? [],
+      locationNote: room.locationNote ?? "",
       imageUrls: room.imageUrls ?? [],
       videoUrl: room.videoUrl ?? "",
       bedType: room.bedType ?? "",
@@ -292,6 +298,8 @@ function RoomsView({ restaurantId, currency, slug, hotelName }: { restaurantId: 
       maxGuests: form.maxGuests,
       description: form.description.trim() || null,
       amenities: form.amenities.map((a) => a.trim()).filter(Boolean),
+      offerings: form.offerings.map((o) => o.trim()).filter(Boolean),
+      locationNote: form.locationNote.trim() || null,
       imageUrls: form.imageUrls,
       videoUrl: form.videoUrl.trim() || null,
       bedType: form.bedType.trim() || null,
@@ -780,6 +788,35 @@ function RoomFormModal({
                   placeholder="A brief description of the room..."
                   rows={2}
                   className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15 resize-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">Exact location</label>
+                <input
+                  type="text"
+                  value={form.locationNote}
+                  onChange={(e) => setForm((f) => ({ ...f, locationNote: e.target.value }))}
+                  placeholder="e.g. 3rd floor, sea-facing wing"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">
+                  Offerings <span className="font-normal text-[var(--text-3)]">(comma separated)</span>
+                </label>
+                <input
+                  type="text"
+                  value={form.offerings.join(", ")}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      offerings: e.target.value.split(",").map((o) => o.trimStart()),
+                    }))
+                  }
+                  placeholder="e.g. 2 BHK, Kitchen, Private balcony"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
                 />
               </div>
 
