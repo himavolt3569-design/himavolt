@@ -33,6 +33,8 @@ export async function GET(
       rating: true,
       hotelAdvanceType: true,
       hotelAdvanceValue: true,
+      roomServiceEnabled: true,
+      roomServiceCharge: true,
       isActive: true,
       heroSlides: {
         where: { isActive: true },
@@ -68,6 +70,8 @@ export async function GET(
       bedCount: true,
       description: true,
       amenities: true,
+      offerings: true,
+      locationNote: true,
       imageUrls: true,
       videoUrl: true,
       isAvailable: true,

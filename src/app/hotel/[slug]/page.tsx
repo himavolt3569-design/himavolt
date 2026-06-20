@@ -76,6 +76,8 @@ interface Hotel {
   closingTime: string;
   hotelAdvanceType: string;
   hotelAdvanceValue: number;
+  roomServiceEnabled?: boolean;
+  roomServiceCharge?: number;
   heroSlides: { id: string; imageUrl: string; title?: string; subtitle?: string }[];
 }
 
@@ -669,6 +671,8 @@ function PaymentStep({
   guest,
   payMethod,
   onPayMethod,
+  roomServiceSelected,
+  onToggleRoomService,
   onBack,
   onConfirm,
   loading,
@@ -686,6 +690,8 @@ function PaymentStep({
   guest: { guestName: string; guestPhone: string; guestEmail: string };
   payMethod: "ESEWA" | "KHALTI" | "CASH";
   onPayMethod: (m: "ESEWA" | "KHALTI" | "CASH") => void;
+  roomServiceSelected: boolean;
+  onToggleRoomService: (v: boolean) => void;
   onBack: () => void;
   onConfirm: () => void;
   loading: boolean;
@@ -694,7 +700,9 @@ function PaymentStep({
   esewaData: Record<string, string> | null;
 }) {
   const cur = hotel.currency === "USD" ? "$" : hotel.currency === "INR" ? "₹" : "Rs.";
-  const total = room.price * nights;
+  const roomServiceAvailable = !!hotel.roomServiceEnabled && (hotel.roomServiceCharge ?? 0) > 0;
+  const roomServiceFee = roomServiceAvailable && roomServiceSelected ? hotel.roomServiceCharge ?? 0 : 0;
+  const total = room.price * nights + roomServiceFee;
   const advance =
     hotel.hotelAdvanceType === "PERCENTAGE"
       ? Math.round((total * hotel.hotelAdvanceValue) / 100)
@@ -738,11 +746,35 @@ function PaymentStep({
             <InfoCell label="Lead guest" value={guest.guestName} />
           </div>
 
+          {/* Optional paid room-service add-on */}
+          {roomServiceAvailable && (
+            <label className="flex items-center justify-between gap-3 rounded-xl bg-[var(--canvas-sub)] p-3 cursor-pointer">
+              <span className="min-w-0">
+                <span className="block text-[13px] font-semibold text-[var(--text-1)]">Add room service</span>
+                <span className="block text-[11px] text-[var(--text-3)]">
+                  In-room service add-on · {cur}{(hotel.roomServiceCharge ?? 0).toLocaleString()}
+                </span>
+              </span>
+              <input
+                type="checkbox"
+                checked={roomServiceSelected}
+                onChange={(e) => onToggleRoomService(e.target.checked)}
+                className="h-5 w-5 accent-[var(--accent)]"
+              />
+            </label>
+          )}
+
           <div className="rounded-xl bg-[var(--canvas-sub)] p-3 space-y-1.5 text-[12px]">
             <div className="flex justify-between text-[var(--text-2)]">
               <span>{cur}{room.price.toLocaleString()} × {nights} night{nights > 1 ? "s" : ""}</span>
-              <span>{cur}{total.toLocaleString()}</span>
+              <span>{cur}{(room.price * nights).toLocaleString()}</span>
             </div>
+            {roomServiceFee > 0 && (
+              <div className="flex justify-between text-[var(--text-2)]">
+                <span>Room service</span>
+                <span>{cur}{roomServiceFee.toLocaleString()}</span>
+              </div>
+            )}
             <div className="flex justify-between font-semibold text-[var(--text-1)] border-t border-[var(--border-soft)] pt-1.5">
               <span>Total</span>
               <span>{cur}{total.toLocaleString()}</span>
@@ -1026,6 +1058,7 @@ export default function HotelPublicPage() {
     notes: "",
   });
   const [payMethod, setPayMethod] = useState<"ESEWA" | "KHALTI" | "CASH">("ESEWA");
+  const [roomServiceSelected, setRoomServiceSelected] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const esewaFormRef = useRef<HTMLFormElement>(null);
@@ -1134,6 +1167,7 @@ export default function HotelPublicPage() {
           children: kids,
           checkIn,
           checkOut,
+          roomServiceSelected,
           notes: guest.notes.trim() || undefined,
         }),
       });
@@ -1437,6 +1471,8 @@ export default function HotelPublicPage() {
                     guest={guest}
                     payMethod={payMethod}
                     onPayMethod={setPayMethod}
+                    roomServiceSelected={roomServiceSelected}
+                    onToggleRoomService={setRoomServiceSelected}
                     onBack={() => setStep("guest")}
                     onConfirm={handleConfirm}
                     loading={submitting}

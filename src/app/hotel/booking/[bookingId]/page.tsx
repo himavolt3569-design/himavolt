@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   CheckCircle,
@@ -15,9 +15,12 @@ import {
   Loader2,
   CreditCard,
   ArrowLeft,
+  Upload,
+  Ban,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
+import { uploadFile } from "@/lib/upload";
 
 interface BookingDetail {
   id: string;
@@ -36,6 +39,11 @@ interface BookingDetail {
   adults: number;
   children: number;
   notes: string | null;
+  receiptUrl: string | null;
+  cancelReason: string | null;
+  cancelRequestedAt: string | null;
+  cancelledBy: string | null;
+  refundStatus: string | null;
   room: {
     roomNumber: string;
     name: string | null;
@@ -109,16 +117,72 @@ export default function BookingConfirmationPage() {
 
   const [booking, setBooking] = useState<BookingDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [uploadingReceipt, setUploadingReceipt] = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+  const [cancelling, setCancelling] = useState(false);
+  const [actionMsg, setActionMsg] = useState("");
+  const receiptInputRef = useRef<HTMLInputElement>(null);
+
+  const loadBooking = useCallback(async () => {
+    try {
+      const r = await fetch(`/api/public/hotel/booking/${bookingId}`);
+      const d = await r.json();
+      setBooking(d.booking ?? null);
+    } finally {
+      setLoading(false);
+    }
+  }, [bookingId]);
 
   useEffect(() => {
-    fetch(`/api/public/hotel/booking/${bookingId}`)
-      .then((r) => r.json())
-      .then((d) => {
-        setBooking(d.booking ?? null);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, [bookingId]);
+    loadBooking();
+  }, [loadBooking]);
+
+  const handleReceiptUpload = async (file: File | null) => {
+    if (!file || uploadingReceipt) return;
+    setUploadingReceipt(true);
+    setActionMsg("");
+    try {
+      const url = await uploadFile(file, "booking-receipts");
+      await fetch(`/api/public/hotel/booking/${bookingId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "receipt", receiptUrl: url }),
+      });
+      await loadBooking();
+      setActionMsg("Receipt uploaded — the hotel will verify your payment shortly.");
+    } catch {
+      setActionMsg("Could not upload receipt. Please try again.");
+    } finally {
+      setUploadingReceipt(false);
+      if (receiptInputRef.current) receiptInputRef.current.value = "";
+    }
+  };
+
+  const handleCancelRequest = async () => {
+    if (!cancelReason.trim() || cancelling) return;
+    setCancelling(true);
+    setActionMsg("");
+    try {
+      const res = await fetch(`/api/public/hotel/booking/${bookingId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "cancel-request", reason: cancelReason.trim() }),
+      });
+      if (!res.ok) {
+        const e = await res.json().catch(() => ({}));
+        throw new Error(e.error || "Failed");
+      }
+      await loadBooking();
+      setCancelOpen(false);
+      setCancelReason("");
+      setActionMsg("Cancellation requested — the hotel will review and respond.");
+    } catch (err) {
+      setActionMsg(err instanceof Error ? err.message : "Could not request cancellation.");
+    } finally {
+      setCancelling(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -265,6 +329,90 @@ export default function BookingConfirmationPage() {
           <div className="rounded-2xl bg-blue-50 ring-1 ring-blue-100 p-4">
             <p className="text-[11px] font-semibold text-blue-600 mb-1">Special Requests</p>
             <p className="text-[12px] text-blue-800">{booking.notes}</p>
+          </div>
+        )}
+
+        {actionMsg && (
+          <div className="rounded-2xl bg-[var(--accent-muted)] ring-1 ring-[var(--accent)]/30 p-3 text-[12px] font-medium text-[var(--accent-text)]">
+            {actionMsg}
+          </div>
+        )}
+
+        {/* Payment receipt — send proof so the hotel can confirm your payment */}
+        {!booking.advancePaid && booking.status !== "CANCELLED" && (
+          <div className="rounded-2xl bg-[var(--canvas)] ring-1 ring-[var(--border)] p-5 shadow-sm space-y-3">
+            <div>
+              <h4 className="text-[13px] font-bold text-[var(--text-1)]">Payment receipt</h4>
+              <p className="text-[11px] text-[var(--text-2)] mt-0.5">
+                Paid by QR, eSewa or Khalti? Upload your receipt so the hotel can verify and confirm your booking.
+              </p>
+            </div>
+            {booking.receiptUrl && (
+              <a href={booking.receiptUrl} target="_blank" rel="noopener noreferrer">
+                <img src={booking.receiptUrl} alt="Receipt" className="max-h-40 w-full rounded-xl object-contain ring-1 ring-[var(--border)] bg-[var(--canvas-sub)]" />
+              </a>
+            )}
+            <button
+              onClick={() => receiptInputRef.current?.click()}
+              disabled={uploadingReceipt}
+              className="flex items-center justify-center gap-2 w-full rounded-xl bg-[var(--accent)] py-2.5 text-[13px] font-bold text-white hover:bg-[var(--accent-hover)] transition-colors disabled:opacity-50"
+            >
+              {uploadingReceipt ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+              {booking.receiptUrl ? "Replace receipt" : "Upload receipt"}
+            </button>
+            <input
+              ref={receiptInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => handleReceiptUpload(e.target.files?.[0] ?? null)}
+            />
+          </div>
+        )}
+
+        {/* Cancellation — request with a reason; the hotel reviews and accepts */}
+        {["PENDING", "CONFIRMED"].includes(booking.status) && (
+          <div className="rounded-2xl bg-[var(--canvas)] ring-1 ring-[var(--border)] p-5 shadow-sm">
+            {booking.cancelReason && booking.cancelledBy === "CUSTOMER" ? (
+              <p className="text-[12px] text-[var(--text-2)]">
+                <span className="font-bold text-[var(--text-1)]">Cancellation requested.</span> The hotel will review your request and respond.
+              </p>
+            ) : !cancelOpen ? (
+              <button
+                onClick={() => setCancelOpen(true)}
+                className="flex items-center gap-2 text-[13px] font-semibold text-rose-600 hover:text-rose-700 transition-colors"
+              >
+                <Ban className="h-4 w-4" />
+                Request cancellation
+              </button>
+            ) : (
+              <div className="space-y-2.5">
+                <p className="text-[13px] font-bold text-[var(--text-1)]">Request cancellation</p>
+                <textarea
+                  value={cancelReason}
+                  onChange={(e) => setCancelReason(e.target.value)}
+                  placeholder="Please tell the hotel why you need to cancel…"
+                  rows={3}
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-3.5 py-2.5 text-[13px] text-[var(--text-1)] outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15 resize-none"
+                />
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleCancelRequest}
+                    disabled={!cancelReason.trim() || cancelling}
+                    className="flex items-center gap-1.5 rounded-xl bg-rose-600 px-4 py-2 text-[12px] font-bold text-white hover:bg-rose-700 transition-colors disabled:opacity-50"
+                  >
+                    {cancelling ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+                    Submit request
+                  </button>
+                  <button
+                    onClick={() => { setCancelOpen(false); setCancelReason(""); }}
+                    className="rounded-xl px-4 py-2 text-[12px] font-semibold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors"
+                  >
+                    Never mind
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </main>
