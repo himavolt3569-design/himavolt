@@ -125,7 +125,6 @@ export default function BottomNav() {
     ];
   }, [activeSession, isSignedIn, avatarUrl, userInitials, userRole]);
 
-  if (pathname === "/manage-restaurants") return null;
   if (pathname === "/scan" && !activeSession) return null;
   if (pathname === "/kitchen" || pathname === "/counter") return null;
   if (pathname === "/dashboard") return null;

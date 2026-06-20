@@ -20,6 +20,7 @@ import ThemeToggle from "@/components/shared/ThemeToggle";
 import GlobalChatButton from "@/components/chat/GlobalChatButton";
 import POSActivationGate from "@/components/pos/activation/POSActivationGate";
 import CustomerDashboard from "@/app/dashboard/CustomerDashboard";
+import CreateRestaurantModal from "@/components/modals/CreateRestaurantModal";
 import { ALL_NAV, FEATURE_ICONS } from "@/lib/dashboard-nav";
 import { getFeatureTabsForType, type FeatureTabId } from "@/lib/restaurant-types";
 
@@ -30,13 +31,12 @@ export default function DashboardLayout({
 }) {
   const { user, isLoaded, userRole } = useAuth();
   const { orders, setRestaurantId } = useLiveOrders();
-  const { 
-    restaurants, 
-    selectedRestaurant, 
-    selectRestaurant, 
-    loading: resLoading, 
-    hasFetched: resHasFetched, 
-    fetchRestaurants 
+  const {
+    restaurants,
+    selectedRestaurant,
+    loading: resLoading,
+    hasFetched: resHasFetched,
+    fetchRestaurants
   } = useRestaurant();
   const router = useRouter();
   const pathname = usePathname();
@@ -45,6 +45,7 @@ export default function DashboardLayout({
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [posWizardOpen, setPosWizardOpen] = useState(false);
+  const [createRestaurantOpen, setCreateRestaurantOpen] = useState(false);
 
   // Wave 1 — most-visited tabs warmed almost immediately so a click lands on a
   // ready chunk (no skeleton, instant render).
@@ -137,27 +138,24 @@ export default function DashboardLayout({
     FEATURE_ICONS[activeTabId as FeatureTabId] ||
     User;
 
-  useEffect(() => {
-    if (!selectedRestaurant && restaurants.length > 0) {
-      selectRestaurant(restaurants[0].id);
-    }
-  }, [selectedRestaurant, restaurants, selectRestaurant]);
-
+  // Selection is restored by RestaurantContext on fetch (last-selected, then
+  // first), so no fallback auto-select is needed here.
   useEffect(() => {
     setRestaurantId(selectedRestaurant?.id ?? null);
   }, [selectedRestaurant?.id, setRestaurantId]);
+
+  // An owner with no restaurants must create one — open the modal inline (the
+  // old /manage-restaurants route is gone) and keep it open until they do.
+  const needsRestaurant =
+    userRole === "OWNER" && resHasFetched && !resLoading && restaurants.length === 0;
+  useEffect(() => {
+    if (needsRestaurant) setCreateRestaurantOpen(true);
+  }, [needsRestaurant]);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
-
-  // Redirect OWNER with no restaurants
-  useEffect(() => {
-    if (userRole === "OWNER" && resHasFetched && !resLoading && restaurants.length === 0) {
-      router.replace("/manage-restaurants");
-    }
-  }, [userRole, router, resHasFetched, resLoading, restaurants.length]);
 
   // Route customers away once auth resolves — no full-screen gate
   if (isLoaded && userRole === "CUSTOMER") {
@@ -176,6 +174,7 @@ export default function DashboardLayout({
             isCollapsed={sidebarCollapsed}
             onToggleCollapse={() => setSidebarCollapsed((c) => !c)}
             onRequestPOSActivate={() => setPosWizardOpen(true)}
+            onRequestCreateRestaurant={() => setCreateRestaurantOpen(true)}
           />
         )}
       </div>
@@ -205,6 +204,10 @@ export default function DashboardLayout({
                 onClose={() => setMobileSidebarOpen(false)}
                 onRequestPOSActivate={() => {
                   setPosWizardOpen(true);
+                  setMobileSidebarOpen(false);
+                }}
+                onRequestCreateRestaurant={() => {
+                  setCreateRestaurantOpen(true);
                   setMobileSidebarOpen(false);
                 }}
               />
@@ -303,6 +306,16 @@ export default function DashboardLayout({
           staffName={user.user_metadata?.name ?? user.email ?? "Owner"}
         />
       )}
+
+      {/* Create-restaurant modal — opened from the sidebar "New" button, or
+          forced open for an owner who has no restaurants yet. */}
+      <CreateRestaurantModal
+        open={createRestaurantOpen}
+        onOpenChange={(v) => {
+          if (!v && needsRestaurant) return; // can't dismiss until one exists
+          setCreateRestaurantOpen(v);
+        }}
+      />
 
       {/* POS welcome tour + activation wizard */}
       {isActuallyLoaded && (

@@ -48,7 +48,7 @@ export async function createRestaurant(formData: {
     },
   });
 
-  revalidatePath("/manage-restaurants");
+  revalidatePath("/dashboard");
   return restaurant;
 }
 
@@ -69,7 +69,7 @@ export async function updateRestaurant(
     data,
   });
 
-  revalidatePath("/manage-restaurants");
+  revalidatePath("/dashboard");
   revalidatePath(`/dashboard`);
   return restaurant;
 }
@@ -82,7 +82,7 @@ export async function deleteRestaurant(id: string) {
     where: { id },
   });
 
-  revalidatePath("/manage-restaurants");
+  revalidatePath("/dashboard");
 }
 
 export async function getMyRestaurants() {

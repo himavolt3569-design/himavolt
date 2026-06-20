@@ -15,7 +15,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useRestaurant } from "@/context/RestaurantContext";
 import POSLauncher from "@/components/pos/activation/POSLauncher";
 import {
@@ -36,8 +36,13 @@ import {
 } from "@/lib/dashboard-nav";
 import { preloadTab } from "@/app/dashboard/[tab]/page";
 
-function RestaurantSwitcher({ onNavigate }: { onNavigate?: () => void }) {
-  const router = useRouter();
+function RestaurantSwitcher({
+  onNavigate,
+  onCreate,
+}: {
+  onNavigate?: () => void;
+  onCreate?: () => void;
+}) {
   const { restaurants, selectedRestaurant, selectRestaurant } = useRestaurant();
   const [open, setOpen] = useState(false);
   const [slugCopied, setSlugCopied] = useState(false);
@@ -172,27 +177,17 @@ function RestaurantSwitcher({ onNavigate }: { onNavigate?: () => void }) {
               </div>
             )}
 
-            <div className="flex items-center p-2 gap-2">
-              <Link
-                href="/manage-restaurants"
-                onClick={() => {
-                  setOpen(false);
-                  onNavigate?.();
-                }}
-                className="flex-1 text-center text-[12px] font-semibold text-[var(--accent-text)] hover:text-[var(--accent)] transition-colors py-2 rounded-lg hover:bg-[var(--accent-muted)]"
-              >
-                Manage All
-              </Link>
+            <div className="p-2">
               <button
                 onClick={() => {
                   setOpen(false);
                   onNavigate?.();
-                  router.push("/manage-restaurants");
+                  onCreate?.();
                 }}
-                className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-[var(--accent)] py-2 text-[12px] font-bold text-white hover:bg-[var(--accent-hover)] transition-colors active:scale-[0.97]"
+                className="w-full flex items-center justify-center gap-1.5 rounded-lg bg-[var(--accent)] py-2 text-[12px] font-bold text-white hover:bg-[var(--accent-hover)] transition-colors active:scale-[0.97]"
               >
                 <Plus className="h-3 w-3" />
-                New
+                New Restaurant
               </button>
             </div>
           </motion.div>
@@ -323,12 +318,14 @@ export default function DashboardSidebar({
   isCollapsed,
   onToggleCollapse,
   onRequestPOSActivate,
+  onRequestCreateRestaurant,
 }: {
   newOrderCount: number;
   onClose?: () => void;
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
   onRequestPOSActivate: () => void;
+  onRequestCreateRestaurant?: () => void;
 }) {
   const pathname = usePathname();
   const { selectedRestaurant } = useRestaurant();
@@ -471,7 +468,7 @@ export default function DashboardSidebar({
         </div>
       </div>
 
-      <RestaurantSwitcher onNavigate={onClose} />
+      <RestaurantSwitcher onNavigate={onClose} onCreate={onRequestCreateRestaurant} />
       <SlugCopyStrip />
       <POSLauncher
         restaurant={selectedRestaurant}

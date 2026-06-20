@@ -123,6 +123,27 @@ interface RestaurantContextType {
 
 const RestaurantContext = createContext<RestaurantContextType | null>(null);
 
+// Persist the owner's last-selected restaurant so a reload re-opens it instead
+// of always falling back to the first restaurant in the list.
+const SELECTED_KEY = "himavolt:selectedRestaurantId";
+function readStoredRestaurantId(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.localStorage.getItem(SELECTED_KEY);
+  } catch {
+    return null;
+  }
+}
+function writeStoredRestaurantId(id: string | null) {
+  if (typeof window === "undefined") return;
+  try {
+    if (id) window.localStorage.setItem(SELECTED_KEY, id);
+    else window.localStorage.removeItem(SELECTED_KEY);
+  } catch {
+    /* ignore quota / privacy-mode errors */
+  }
+}
+
 export function RestaurantProvider({ children }: { children: ReactNode }) {
   const { isSignedIn, isLoaded, refreshRole } = useAuth();
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
@@ -147,8 +168,15 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
       hasFetchedRef.current = true;
       setHasFetched(true);
       setSelectedRestaurant((prev) => {
-        if (!prev) return null;
-        return data.find((r) => r.id === prev.id) ?? null;
+        // Keep the current selection if it still exists…
+        if (prev) return data.find((r) => r.id === prev.id) ?? null;
+        // …otherwise restore the last-selected restaurant (fallback: first).
+        const storedId = readStoredRestaurantId();
+        return (
+          (storedId ? data.find((r) => r.id === storedId) : undefined) ??
+          data[0] ??
+          null
+        );
       });
     } catch {
       setRestaurants([]);
@@ -208,6 +236,7 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
           : [...prev, restaurant],
       );
       setSelectedRestaurant(restaurant);
+      writeStoredRestaurantId(restaurant.id);
       // Creating a restaurant upgrades a CUSTOMER to OWNER server-side; refresh
       // the cached role in the background so the owner UI appears without
       // blocking the create flow on an extra round-trip.
@@ -248,12 +277,18 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
   const selectRestaurant = useCallback(
     (id: string) => {
       const found = restaurants.find((r) => r.id === id);
-      if (found) setSelectedRestaurant(found);
+      if (found) {
+        setSelectedRestaurant(found);
+        writeStoredRestaurantId(found.id);
+      }
     },
     [restaurants],
   );
 
-  const clearSelection = useCallback(() => setSelectedRestaurant(null), []);
+  const clearSelection = useCallback(() => {
+    setSelectedRestaurant(null);
+    writeStoredRestaurantId(null);
+  }, []);
 
   const addStaff = useCallback(
     async (

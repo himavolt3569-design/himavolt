@@ -209,7 +209,7 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
                             </Link>
                             
                             {userRole === "OWNER" && (
-                              <Link href="/manage-restaurants" className="flex items-center gap-3 px-4 py-3 text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-2xl transition-colors">
+                              <Link href="/dashboard" className="flex items-center gap-3 px-4 py-3 text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-2xl transition-colors">
                                 <Building2 className="h-4 w-4 opacity-30" /> My Restaurants
                               </Link>
                             )}

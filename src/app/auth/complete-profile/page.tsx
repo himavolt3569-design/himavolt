@@ -109,16 +109,10 @@ export default function CompleteProfilePage() {
       return;
     }
 
-    const { role } = await res.json();
-    if (role === "OWNER") {
-      try {
-        const restRes = await fetch("/api/restaurants");
-        const restData = await restRes.json().catch(() => []);
-        router.push(Array.isArray(restData) && restData.length > 0 ? "/dashboard" : "/manage-restaurants");
-      } catch { router.push("/manage-restaurants"); }
-    } else {
-      router.push("/dashboard");
-    }
+    await res.json();
+    // Owners and customers both land on the dashboard; an owner with no
+    // restaurant yet gets the create-restaurant modal opened inline there.
+    router.push("/dashboard");
   };
 
   if (!sessionReady) {
