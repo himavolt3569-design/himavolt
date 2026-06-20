@@ -61,7 +61,17 @@ export async function PATCH(
   }
 
   const body = await req.json();
-  const { status, advancePaid, advanceAmount, notes } = body;
+  const {
+    status,
+    advancePaid,
+    advanceAmount,
+    notes,
+    paymentStatus,
+    refundStatus,
+    cancelReason,
+    cancelledBy,
+    receiptUrl,
+  } = body;
 
   const VALID_STATUSES = [
     "PENDING",
@@ -90,14 +100,39 @@ export async function PATCH(
     });
   }
 
+  const data: Record<string, unknown> = {};
+  if (status !== undefined) data.status = status;
+  if (advanceAmount !== undefined) data.advanceAmount = advanceAmount;
+  if (notes !== undefined) data.notes = notes?.trim() || null;
+  if (receiptUrl !== undefined) data.receiptUrl = receiptUrl || null;
+  if (paymentStatus !== undefined) data.paymentStatus = paymentStatus;
+  if (refundStatus !== undefined) data.refundStatus = refundStatus;
+  if (cancelReason !== undefined) data.cancelReason = cancelReason?.trim() || null;
+
+  // Staff marks the advance as paid → confirm the reservation and record the
+  // payment instantly so the room shows as paid/reserved in real time.
+  if (advancePaid !== undefined) {
+    data.advancePaid = advancePaid;
+    if (advancePaid && !existing.advancePaid) {
+      data.paymentStatus = "PAID";
+      data.paidAt = new Date();
+      if (existing.status === "PENDING") data.status = "CONFIRMED";
+    }
+  }
+
+  // Cancelling: stamp who/why, and flag a refund when money had been collected.
+  if (status === "CANCELLED") {
+    data.cancelledBy = cancelledBy ?? "HOTEL";
+    data.cancelRequestedAt = existing.cancelRequestedAt ?? new Date();
+    const wasPaid = existing.paymentStatus === "PAID" || existing.advancePaid;
+    if (wasPaid && refundStatus === undefined && existing.refundStatus === "NONE") {
+      data.refundStatus = "REQUESTED";
+    }
+  }
+
   const booking = await db.roomBooking.update({
     where: { id: bookingId },
-    data: {
-      ...(status !== undefined && { status }),
-      ...(advancePaid !== undefined && { advancePaid }),
-      ...(advanceAmount !== undefined && { advanceAmount }),
-      ...(notes !== undefined && { notes: notes?.trim() || null }),
-    },
+    data,
     include: {
       room: {
         select: { id: true, roomNumber: true, name: true, type: true, price: true },

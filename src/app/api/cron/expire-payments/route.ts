@@ -4,6 +4,8 @@ import { logAudit } from "@/lib/audit";
 import { touchOrderUpdatedAt } from "@/lib/order-sync";
 
 const GATEWAY_TIMEOUT_MINUTES = 30;
+// Unpaid room reservations are held for 3 hours, then auto-released.
+const RESERVE_HOLD_MINUTES = 180;
 
 /**
  * GET /api/cron/expire-payments
@@ -75,10 +77,45 @@ export async function GET(req: NextRequest) {
     });
   }
 
+  // ── Release unpaid room reservations held longer than the hold window ──
+  const reserveCutoff = new Date(Date.now() - RESERVE_HOLD_MINUTES * 60 * 1000);
+  const staleHolds = await db.roomBooking.findMany({
+    where: {
+      status: "PENDING",
+      advancePaid: false,
+      paymentStatus: "UNPAID",
+      createdAt: { lt: reserveCutoff },
+    },
+    select: { id: true, restaurantId: true, roomId: true },
+  });
+
+  let releasedHolds = 0;
+  for (const hold of staleHolds) {
+    await db.roomBooking.update({
+      where: { id: hold.id },
+      data: {
+        status: "CANCELLED",
+        cancelledBy: "SYSTEM",
+        cancelReason: "Reservation hold expired — payment not completed in time",
+        cancelRequestedAt: new Date(),
+      },
+    });
+    releasedHolds++;
+    logAudit({
+      action: "BOOKING_HOLD_EXPIRED",
+      entity: "RoomBooking",
+      entityId: hold.id,
+      detail: `Unpaid room reservation released after ${RESERVE_HOLD_MINUTES}min`,
+      metadata: { roomId: hold.roomId },
+      restaurantId: hold.restaurantId,
+    });
+  }
+
   return NextResponse.json({
     success: true,
     expiredPayments: expiredCount,
     cancelledOrders: cancelledCount,
+    releasedHolds,
     checkedAt: new Date().toISOString(),
   });
 }
