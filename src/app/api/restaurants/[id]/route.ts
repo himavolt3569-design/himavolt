@@ -52,6 +52,8 @@ export async function PATCH(
     "wifiName", "wifiPassword",
     "counterPayEnabled", "directPayEnabled", "prepaidEnabled",
     "taxEnabled", "taxRate",
+    "hotelAdvanceType", "hotelAdvanceValue",
+    "roomServiceEnabled", "roomServiceCharge",
   ];
 
   const data: Record<string, unknown> = {};

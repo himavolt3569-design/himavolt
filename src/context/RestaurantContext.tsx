@@ -63,6 +63,10 @@ export interface Restaurant {
   counterPayEnabled: boolean;
   directPayEnabled: boolean;
   prepaidEnabled: boolean;
+  hotelAdvanceType?: string;
+  hotelAdvanceValue?: number;
+  roomServiceEnabled?: boolean;
+  roomServiceCharge?: number;
   featuresEnabled?: string[];
   featuresDisabled?: string[];
   posEnabled?: boolean;
