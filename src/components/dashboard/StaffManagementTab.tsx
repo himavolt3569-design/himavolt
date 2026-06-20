@@ -40,6 +40,7 @@ const ROLE_META: Record<
   StaffRole,
   {
     label: string;
+    description: string;
     icon: typeof Shield;
     gradient: string;
     text: string;
@@ -48,6 +49,7 @@ const ROLE_META: Record<
 > = {
   SUPER_ADMIN: {
     label: "Super Admin",
+    description: "Full access — manage staff, menu, billing, tables, stock & settings, just like the owner.",
     icon: Shield,
     gradient: "from-purple-500 to-violet-600",
     text: "text-purple-700",
@@ -55,34 +57,38 @@ const ROLE_META: Record<
   },
   MANAGER: {
     label: "Manager",
+    description: "Run daily operations — staff, menu, tables, stock, billing & reports. No owner-only settings.",
     icon: UserCheck,
     gradient: "from-blue-500 to-indigo-600",
     text: "text-blue-700",
     badge: "bg-blue-50 text-blue-700 border-blue-200",
   },
+  CASHIER: {
+    label: "Cashier",
+    description: "Billing & payments — take orders, collect bills, accept payments and run Fast Pay.",
+    icon: UserCheck,
+    gradient: "from-[var(--accent)] to-[var(--accent-hover)]",
+    text: "text-[var(--accent-text)]",
+    badge:
+      "bg-[var(--accent-muted)] text-[var(--accent-text)] border-[var(--accent-border)]",
+  },
+  WAITER: {
+    label: "Waiter",
+    description: "Take table orders and send them to the kitchen. No billing or settings access.",
+    icon: UserCheck,
+    gradient: "from-[var(--accent)] to-[var(--accent-hover)]",
+    text: "text-[var(--accent-text)]",
+    badge:
+      "bg-[var(--accent-muted)] text-[var(--accent-text)] border-[var(--accent-border)]",
+  },
   CHEF: {
     label: "Chef",
+    description: "Kitchen display — view incoming orders and update cooking/ready status. No billing.",
     icon: ChefHat,
     gradient: "from-[var(--accent)] to-[var(--accent-hover)]",
     text: "text-[var(--accent)]",
     badge:
       "bg-[var(--accent)] text-[var(--accent)] border-[var(--accent-border)]",
-  },
-  WAITER: {
-    label: "Waiter",
-    icon: UserCheck,
-    gradient: "from-[var(--accent)] to-[var(--accent-hover)]",
-    text: "text-[var(--accent-text)]",
-    badge:
-      "bg-[var(--accent-muted)] text-[var(--accent-text)] border-[var(--accent-border)]",
-  },
-  CASHIER: {
-    label: "Cashier",
-    icon: UserCheck,
-    gradient: "from-[var(--accent)] to-[var(--accent-hover)]",
-    text: "text-[var(--accent-text)]",
-    badge:
-      "bg-[var(--accent-muted)] text-[var(--accent-text)] border-[var(--accent-border)]",
   },
 };
 
@@ -446,10 +452,11 @@ function StaffCard({
                   setEditingPin(true);
                   setNewPin("");
                 }}
-                className="flex h-7 w-7 items-center justify-center rounded-lg text-[var(--text-3)] hover:text-[var(--accent-text)] hover:bg-[var(--accent-muted)] transition-all"
+                className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-bold text-[var(--text-3)] hover:text-[var(--accent-text)] hover:bg-[var(--accent-muted)] transition-all"
                 title="Change PIN"
               >
-                <Pencil className="h-3.5 w-3.5" />
+                <Pencil className="h-3 w-3" />
+                Edit
               </button>
             </div>
           )}
@@ -1081,6 +1088,21 @@ function AddStaffModal({
                         );
                       })}
                     </div>
+                    {/* Explain what the chosen role can actually do. */}
+                    {(() => {
+                      const RoleIcon = ROLE_META[role].icon;
+                      return (
+                        <p className="mt-2 flex items-start gap-2 rounded-xl bg-[var(--canvas-sub)] px-3 py-2.5 text-[12px] leading-snug text-[var(--text-2)] ring-1 ring-[var(--border-soft)]">
+                          <RoleIcon className="h-3.5 w-3.5 shrink-0 mt-0.5 text-[var(--accent)]" />
+                          <span>
+                            <strong className="font-bold text-[var(--text-1)]">
+                              {ROLE_META[role].label}:
+                            </strong>{" "}
+                            {ROLE_META[role].description}
+                          </span>
+                        </p>
+                      );
+                    })()}
                   </div>
                 </div>
 
