@@ -26,7 +26,8 @@ import {
 import {
   DashTab,
   NAV_MAIN,
-  NAV_MANAGE,
+  NAV_CATALOG,
+  NAV_PEOPLE,
   NAV_MORE,
   HOTEL_HUB_NAV_ITEM,
   ROOM_ENABLED_TYPES,
@@ -368,16 +369,6 @@ export default function DashboardSidebar({
     [restaurantType, featuresEnabled, featuresDisabled],
   );
 
-  const manageNavItems = useMemo(() => {
-    if (!showHotelHub) return NAV_MANAGE;
-    const insertAt = Math.max(0, NAV_MANAGE.length - 1);
-    return [
-      ...NAV_MANAGE.slice(0, insertAt),
-      HOTEL_HUB_NAV_ITEM,
-      ...NAV_MANAGE.slice(insertAt),
-    ];
-  }, [showHotelHub]);
-
   const typeLabel = restaurantType ? getTypeLabel(restaurantType) : "";
 
   if (isCollapsed) {
@@ -488,6 +479,17 @@ export default function DashboardSidebar({
           defaultOpen={true}
         />
 
+        {showHotelHub && (
+          <NavSection
+            label="Hotel"
+            items={[HOTEL_HUB_NAV_ITEM]}
+            active={active}
+            newOrderCount={newOrderCount}
+            onClose={onClose}
+            defaultOpen={true}
+          />
+        )}
+
         {featureNavItems.length > 0 && (
           <NavSection
             label={`${typeLabel} Features`}
@@ -500,8 +502,16 @@ export default function DashboardSidebar({
         )}
 
         <NavSection
-          label="Manage"
-          items={manageNavItems}
+          label="Catalog"
+          items={NAV_CATALOG}
+          active={active}
+          newOrderCount={newOrderCount}
+          onClose={onClose}
+          defaultOpen={false}
+        />
+        <NavSection
+          label="Team"
+          items={NAV_PEOPLE}
           active={active}
           newOrderCount={newOrderCount}
           onClose={onClose}

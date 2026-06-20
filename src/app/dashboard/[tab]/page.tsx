@@ -89,6 +89,7 @@ const HotelHubTab = lazyTab(() => import("@/components/dashboard/HotelHubTab"));
 const OwnerControlPanel = lazyTab(() => import("@/components/dashboard/OwnerControlPanel"));
 const FeedbackTab = lazyTab(() => import("@/components/dashboard/FeedbackTab"));
 const PrintingSettingsTab = lazyTab(() => import("@/components/dashboard/PrintingSettingsTab"));
+const SettingsTab = lazyTab(() => import("@/components/dashboard/SettingsTab"));
 
 const COMPONENTS: Record<string, React.ComponentType<any>> = {
   overview: OverviewTab,
@@ -117,6 +118,7 @@ const COMPONENTS: Record<string, React.ComponentType<any>> = {
   "manual-billing": ManualBillingTab,
   feedback: FeedbackTab,
   printing: PrintingSettingsTab,
+  settings: SettingsTab,
 
   // Feature tabs
   "quick-counter": QuickCounterTab,

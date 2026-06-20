@@ -7,11 +7,8 @@ import {
   Receipt,
   MessageCircle,
   Settings,
-  Wallet,
   Tag,
   Package,
-  Image as ImageIcon,
-  Crown,
   Camera,
   Zap,
   Layers,
@@ -42,7 +39,6 @@ import {
   Sparkles,
   UsersRound,
   Star,
-  Printer,
 } from "lucide-react";
 import { type FeatureTabId } from "./restaurant-types";
 
@@ -73,6 +69,7 @@ export type DashTab =
   | "shifts"
   | "feedback"
   | "printing"
+  | "settings"
   | FeatureTabId;
 
 export const NAV_MAIN: {
@@ -86,7 +83,6 @@ export const NAV_MAIN: {
   { id: "billing", label: "Billing", icon: Receipt },
   { id: "manual-billing", label: "Fast Billing", icon: Receipt },
   { id: "tables", label: "Tables", icon: LayoutGrid },
-  { id: "offers", label: "Offers", icon: Tag },
   { id: "chat", label: "Chats", icon: MessageCircle },
 ];
 
@@ -112,30 +108,39 @@ export const HUB_FEATURE_IDS = new Set<FeatureTabId>([
   "guest-checkin",
 ]);
 
-export const NAV_MANAGE: typeof NAV_MAIN = [
+// Catalog / day-to-day operations.
+export const NAV_CATALOG: typeof NAV_MAIN = [
   { id: "menu", label: "Menu", icon: UtensilsCrossed },
-  { id: "staff", label: "Staff", icon: UsersRound },
-  { id: "shifts", label: "Shifts", icon: Clock },
   { id: "stock", label: "Stock", icon: Package },
-  { id: "qr", label: "QR Codes", icon: QrCode },
-  { id: "tax-charges", label: "Tax & Charges", icon: Receipt },
-  { id: "printing", label: "Printing & Receipts", icon: Printer },
-  { id: "payment-settings", label: "Payment Settings", icon: Settings },
-  { id: "payment-qr", label: "Payment QR", icon: Wallet },
+  { id: "offers", label: "Offers", icon: Tag },
   { id: "coupons", label: "Coupons", icon: Tag },
   { id: "drinks", label: "Drinks", icon: Package },
-  { id: "hero-slides", label: "Hero Slides", icon: ImageIcon },
-  { id: "owner-control", label: "Owner Control", icon: Crown },
+  { id: "qr", label: "QR Codes", icon: QrCode },
 ];
 
+// Team management.
+export const NAV_PEOPLE: typeof NAV_MAIN = [
+  { id: "staff", label: "Staff", icon: UsersRound },
+  { id: "shifts", label: "Shifts", icon: Clock },
+];
+
+// Everything else, including the consolidated Settings entry. Payment QR,
+// payment settings, tax, printing, owner controls, hero slides and media now
+// live as sections inside the Settings tab rather than top-level nav items.
 export const NAV_MORE: typeof NAV_MAIN = [
   { id: "reports", label: "Reports", icon: BarChart3 },
   { id: "feedback", label: "Feedback", icon: Star },
-  { id: "media", label: "Media Library", icon: ImageIcon },
   { id: "stories", label: "Stories", icon: Camera },
+  { id: "settings", label: "Settings", icon: Settings },
 ];
 
-export const ALL_NAV = [...NAV_MAIN, ...NAV_MANAGE, HOTEL_HUB_NAV_ITEM, ...NAV_MORE];
+export const ALL_NAV = [
+  ...NAV_MAIN,
+  ...NAV_CATALOG,
+  ...NAV_PEOPLE,
+  HOTEL_HUB_NAV_ITEM,
+  ...NAV_MORE,
+];
 
 export const FEATURE_ICONS: Record<FeatureTabId, any> = {
   "quick-counter": Zap,

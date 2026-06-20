@@ -87,6 +87,7 @@ export default function DashboardLayout({
       import("@/components/dashboard/OwnerControlPanel");
       import("@/components/dashboard/FeedbackTab");
       import("@/components/dashboard/PrintingSettingsTab");
+      import("@/components/dashboard/SettingsTab");
       import("@/components/dashboard/features/QuickCounterTab");
       import("@/components/dashboard/features/ComboMealsTab");
       import("@/components/dashboard/features/RushHourTab");
