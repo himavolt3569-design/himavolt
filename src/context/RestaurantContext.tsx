@@ -172,6 +172,18 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
     }
   }, [isSignedIn]);
 
+  // Patch a single restaurant in both the list and the current selection so a
+  // mutation reflects on click without a full refetch round-trip.
+  const patchRestaurant = useCallback(
+    (id: string, fn: (r: Restaurant) => Restaurant) => {
+      setRestaurants((prev) => prev.map((r) => (r.id === id ? fn(r) : r)));
+      setSelectedRestaurant((prev) =>
+        prev && prev.id === id ? fn(prev) : prev,
+      );
+    },
+    [],
+  );
+
   const createRestaurant = useCallback(
     async (data: {
       name: string;
@@ -188,30 +200,49 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
         method: "POST",
         body: data,
       });
-      await fetchRestaurants();
+      // The POST returns the full shape (staff + _count) — merge it straight
+      // into state and select it instead of refetching the whole list.
+      setRestaurants((prev) =>
+        prev.some((r) => r.id === restaurant.id)
+          ? prev.map((r) => (r.id === restaurant.id ? restaurant : r))
+          : [...prev, restaurant],
+      );
+      setSelectedRestaurant(restaurant);
       // Creating a restaurant upgrades a CUSTOMER to OWNER server-side; refresh
-      // the cached role so the owner UI (dashboard, "My Restaurants") appears
-      // immediately instead of after the 5-minute role cache expires.
-      await refreshRole();
+      // the cached role in the background so the owner UI appears without
+      // blocking the create flow on an extra round-trip.
+      void refreshRole();
       return restaurant;
     },
-    [fetchRestaurants, refreshRole],
+    [refreshRole],
   );
 
   const deleteRestaurant = useCallback(
     async (id: string) => {
-      await apiFetch(`/api/restaurants/${id}`, { method: "DELETE" });
-      await fetchRestaurants();
+      const snapshot = restaurants;
+      setRestaurants((prev) => prev.filter((r) => r.id !== id));
+      setSelectedRestaurant((prev) => (prev?.id === id ? null : prev));
+      try {
+        await apiFetch(`/api/restaurants/${id}`, { method: "DELETE" });
+      } catch (err) {
+        setRestaurants(snapshot); // rollback
+        throw err;
+      }
     },
-    [fetchRestaurants],
+    [restaurants],
   );
 
   const updateRestaurant = useCallback(
     async (id: string, data: Record<string, unknown>) => {
-      await apiFetch(`/api/restaurants/${id}`, { method: "PATCH", body: data });
-      await fetchRestaurants();
+      patchRestaurant(id, (r) => ({ ...r, ...(data as Partial<Restaurant>) }));
+      try {
+        await apiFetch(`/api/restaurants/${id}`, { method: "PATCH", body: data });
+      } catch (err) {
+        await fetchRestaurants(); // reconcile from server on failure
+        throw err;
+      }
     },
-    [fetchRestaurants],
+    [patchRestaurant, fetchRestaurants],
   );
 
   const selectRestaurant = useCallback(
@@ -240,20 +271,39 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
         method: "POST",
         body: data,
       });
-      await fetchRestaurants();
+      // Strip the one-time PIN/code metadata before merging into the directory;
+      // upsert handles the reactivated-member case (same id returned).
+      const { _generatedPin, _restaurantCode, ...member } = res;
+      void _generatedPin;
+      void _restaurantCode;
+      const m = member as StaffMember;
+      patchRestaurant(restaurantId, (r) => ({
+        ...r,
+        staff: r.staff.some((s) => s.id === m.id)
+          ? r.staff.map((s) => (s.id === m.id ? m : s))
+          : [...r.staff, m],
+      }));
       return res;
     },
-    [fetchRestaurants],
+    [patchRestaurant],
   );
 
   const removeStaff = useCallback(
     async (restaurantId: string, staffId: string) => {
-      await apiFetch(`/api/restaurants/${restaurantId}/staff/${staffId}`, {
-        method: "DELETE",
-      });
-      await fetchRestaurants();
+      patchRestaurant(restaurantId, (r) => ({
+        ...r,
+        staff: r.staff.filter((s) => s.id !== staffId),
+      }));
+      try {
+        await apiFetch(`/api/restaurants/${restaurantId}/staff/${staffId}`, {
+          method: "DELETE",
+        });
+      } catch (err) {
+        await fetchRestaurants();
+        throw err;
+      }
     },
-    [fetchRestaurants],
+    [patchRestaurant, fetchRestaurants],
   );
 
   const toggleStaffActive = useCallback(
@@ -261,13 +311,24 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
       const restaurant = restaurants.find((r) => r.id === restaurantId);
       const member = restaurant?.staff.find((s) => s.id === staffId);
       if (!member) return;
-      await apiFetch(`/api/restaurants/${restaurantId}/staff/${staffId}`, {
-        method: "PATCH",
-        body: { isActive: !member.isActive },
-      });
-      await fetchRestaurants();
+      const nextActive = !member.isActive;
+      patchRestaurant(restaurantId, (r) => ({
+        ...r,
+        staff: r.staff.map((s) =>
+          s.id === staffId ? { ...s, isActive: nextActive } : s,
+        ),
+      }));
+      try {
+        await apiFetch(`/api/restaurants/${restaurantId}/staff/${staffId}`, {
+          method: "PATCH",
+          body: { isActive: nextActive },
+        });
+      } catch (err) {
+        await fetchRestaurants();
+        throw err;
+      }
     },
-    [restaurants, fetchRestaurants],
+    [restaurants, patchRestaurant, fetchRestaurants],
   );
 
   return (

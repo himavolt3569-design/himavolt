@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { formatPrice } from "@/lib/currency";
-import { SkeletonLine, SkeletonStatGrid, SkeletonTable } from "@/components/shared/Skeleton";
+import { apiFetch, peekApiCache } from "@/lib/api-client";
 
 interface UsedInMenuItem {
   id: string;
@@ -59,22 +59,15 @@ const CATEGORIES = [
 ];
 const DRINK_CATEGORIES = ["Soft Drinks", "Hard Drinks", "Alcohol", "Juices", "Water", "Hot Beverages"];
 
-async function apiFetch(url: string, opts?: RequestInit) {
-  const res = await fetch(url, {
-    ...opts,
-    headers: { "Content-Type": "application/json", ...(opts?.headers || {}) },
-    credentials: "include",
-  });
-  if (!res.ok) throw new Error("Request failed");
-  return res.json();
-}
-
 export default function StockTab() {
   const { selectedRestaurant, restaurants } = useRestaurant();
   const restaurant = selectedRestaurant ?? restaurants[0];
   const cur = selectedRestaurant?.currency ?? "NPR";
-  const [items, setItems] = useState<InventoryItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const invPath = restaurant ? `/api/restaurants/${restaurant.id}/inventory` : "";
+  // Seed from the in-memory API cache so a re-opened tab paints instantly.
+  const [items, setItems] = useState<InventoryItem[]>(
+    () => peekApiCache<InventoryItem[]>(invPath) ?? [],
+  );
   const [search, setSearch] = useState("");
   const [filterCat, setFilterCat] = useState("all");
   const [filterStatus, setFilterStatus] = useState<"all" | "low" | "ok">("all");
@@ -82,17 +75,16 @@ export default function StockTab() {
   const [editItem, setEditItem] = useState<InventoryItem | null>(null);
   const [filterType, setFilterType] = useState<"all" | "drinks" | "ingredients">("all");
 
-  const fetchItems = useCallback(async () => {
+  const fetchItems = useCallback(async (fresh = false) => {
     if (!restaurant) return;
     try {
-      const data = await apiFetch(
+      const data = await apiFetch<InventoryItem[]>(
         `/api/restaurants/${restaurant.id}/inventory`,
+        { cacheTtl: fresh ? 0 : 30_000 },
       );
-      setItems(data);
+      setItems(Array.isArray(data) ? data : []);
     } catch {
-      // ignore
-    } finally {
-      setLoading(false);
+      // ignore — keep last-known items rather than blanking the grid
     }
   }, [restaurant]);
 
@@ -100,30 +92,16 @@ export default function StockTab() {
     fetchItems();
   }, [fetchItems]);
 
-  // 30-second polling for auto-refresh of stock levels
+  // 30-second polling for auto-refresh of stock levels (always fresh).
   useEffect(() => {
     if (!restaurant) return;
     const interval = setInterval(() => {
-      fetchItems();
+      fetchItems(true);
     }, 30000);
     return () => clearInterval(interval);
   }, [restaurant, fetchItems]);
 
-  if (!restaurant || (loading && items.length === 0)) {
-    return (
-      <div className="space-y-6 max-w-5xl mx-auto pb-12">
-        <div className="flex items-center justify-between gap-4">
-          <div className="space-y-2">
-            <SkeletonLine width="w-52" height="h-7" />
-            <SkeletonLine width="w-64" height="h-3" />
-          </div>
-          <SkeletonLine width="w-28" height="h-10" className="rounded-xl" />
-        </div>
-        <SkeletonStatGrid count={4} />
-        <SkeletonTable rows={6} />
-      </div>
-    );
-  }
+  if (!restaurant) return null;
 
   const filtered = items.filter((item) => {
     if (search && !item.name.toLowerCase().includes(search.toLowerCase()))
@@ -267,11 +245,7 @@ export default function StockTab() {
         </select>
       </div>
 
-      {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-6 w-6 animate-spin text-[var(--text-3)]" />
-        </div>
-      ) : filtered.length === 0 ? (
+      {filtered.length === 0 ? (
         <div className="flex flex-col items-center py-16 text-center">
           <Package className="h-10 w-10 text-[var(--text-3)] mb-3" />
           <p className="font-bold text-[var(--text-2)]">
@@ -447,7 +421,7 @@ function QuickAdjust({
     try {
       await apiFetch(`/api/restaurants/${restaurantId}/inventory/${item.id}`, {
         method: "PATCH",
-        body: JSON.stringify({ quantity: newQty }),
+        body: { quantity: newQty },
       });
       onUpdate();
       setAdjusting(false);
@@ -597,12 +571,12 @@ function AddEditModal({
       if (item) {
         await apiFetch(
           `/api/restaurants/${restaurantId}/inventory/${item.id}`,
-          { method: "PATCH", body: JSON.stringify(body) },
+          { method: "PATCH", body },
         );
       } else {
         await apiFetch(`/api/restaurants/${restaurantId}/inventory`, {
           method: "POST",
-          body: JSON.stringify(body),
+          body,
         });
       }
       onSaved();

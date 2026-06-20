@@ -40,7 +40,7 @@ import {
   Info,
 } from "lucide-react";
 import { useRestaurant, useOptionalRestaurant } from "@/context/RestaurantContext";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, peekApiCache } from "@/lib/api-client";
 import { useToast } from "@/context/ToastContext";
 import { formatPrice, getCurrencySymbol } from "@/lib/currency";
 import ImagePicker from "@/components/shared/ImagePicker";
@@ -1281,9 +1281,17 @@ export default function MenuManagementTab({
   const cur = overrideCurrency || ctx?.selectedRestaurant?.currency || "NPR";
   const curSymbol = getCurrencySymbol(cur);
   const { showToast } = useToast();
-  const [items, setItems] = useState<MenuItem[]>([]);
-  const [categories, setCategories] = useState<MenuCategory[]>([]);
-  const [loading, setLoading] = useState(true);
+  const menuPath = restaurantId ? `/api/restaurants/${restaurantId}/menu` : "";
+  const catPath = restaurantId ? `/api/restaurants/${restaurantId}/categories` : "";
+  // Seed from the in-memory API cache so a re-opened tab paints instantly, then
+  // revalidate in the background (stale-while-revalidate).
+  const [items, setItems] = useState<MenuItem[]>(
+    () => peekApiCache<MenuItem[]>(menuPath) ?? [],
+  );
+  const [categories, setCategories] = useState<MenuCategory[]>(
+    () => peekApiCache<MenuCategory[]>(catPath) ?? [],
+  );
+  const [loading, setLoading] = useState(() => !peekApiCache(menuPath));
   const [search, setSearch] = useState("");
   const [selectedCatId, setSelectedCatId] = useState("All");
   const [showAddForm, setShowAddForm] = useState(false);
@@ -1338,9 +1346,11 @@ export default function MenuManagementTab({
     }
     if (!silent) setLoading(true);
     try {
+      // Cache the lists so a re-opened tab serves them instantly; mutations
+      // invalidate this prefix in api-client, so reconciliation stays correct.
       const [menuRes, catRes] = await Promise.all([
-        apiFetch<MenuItem[]>(`/api/restaurants/${restaurantId}/menu`, { cacheTtl: 0 }),
-        apiFetch<MenuCategory[]>(`/api/restaurants/${restaurantId}/categories`, { cacheTtl: 0 }),
+        apiFetch<MenuItem[]>(`/api/restaurants/${restaurantId}/menu`, { cacheTtl: 120_000 }),
+        apiFetch<MenuCategory[]>(`/api/restaurants/${restaurantId}/categories`, { cacheTtl: 120_000 }),
       ]);
       setItems(Array.isArray(menuRes) ? menuRes : []);
       setCategories(Array.isArray(catRes) ? catRes : []);
@@ -1351,7 +1361,8 @@ export default function MenuManagementTab({
     }
   }, [restaurantId, showToast]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  // If we already painted cached data, refresh silently so the grid never blanks.
+  useEffect(() => { fetchData(!!peekApiCache(menuPath)); }, [fetchData, menuPath]);
 
   useEffect(() => {
     if (showNewCat && newCatInputRef.current) newCatInputRef.current.focus();

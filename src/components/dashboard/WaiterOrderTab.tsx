@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { apiFetch, peekApiCache } from "@/lib/api-client";
 import {
   Utensils,
   Search,
@@ -72,10 +73,17 @@ type DeliveryMode = "kitchen" | "direct";
 export default function WaiterOrderTab({ restaurantId }: { restaurantId: string }) {
   const { showToast } = useToast();
 
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
-  const [categories, setCategories] = useState<MenuCategory[]>([]);
+  const menuPath = `/api/restaurants/${restaurantId}/menu`;
+  const catPath = `/api/restaurants/${restaurantId}/categories`;
+  // Seed from the in-memory API cache so the item grid paints instantly on open.
+  const [menuItems, setMenuItems] = useState<MenuItem[]>(
+    () => (peekApiCache<MenuItem[]>(menuPath) ?? []).filter((i) => i.isAvailable),
+  );
+  const [categories, setCategories] = useState<MenuCategory[]>(
+    () => peekApiCache<MenuCategory[]>(catPath) ?? [],
+  );
   const [tables, setTables] = useState<TableRecord[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => !peekApiCache(menuPath));
 
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | "ALL">("ALL");
@@ -88,28 +96,30 @@ export default function WaiterOrderTab({ restaurantId }: { restaurantId: string 
   const [createdOrder, setCreatedOrder] = useState<{ order: CreatedOrder; mode: DeliveryMode } | null>(null);
   const [showTablePicker, setShowTablePicker] = useState(false);
 
-  const fetchData = useCallback(async () => {
-    setLoading(true);
+  const fetchData = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
+      // Cached GETs: a re-opened order screen serves items instantly, then
+      // revalidates. Menu mutations elsewhere invalidate this prefix.
       const [itemsData, catsData, tablesData] = await Promise.all([
-        staffFetch<MenuItem[]>(`/api/restaurants/${restaurantId}/menu`),
-        staffFetch<MenuCategory[]>(`/api/restaurants/${restaurantId}/categories`),
-        staffFetch<unknown>(`/api/restaurants/${restaurantId}/tables`),
+        apiFetch<MenuItem[]>(`/api/restaurants/${restaurantId}/menu`, { cacheTtl: 120_000 }),
+        apiFetch<MenuCategory[]>(`/api/restaurants/${restaurantId}/categories`, { cacheTtl: 120_000 }),
+        apiFetch<unknown>(`/api/restaurants/${restaurantId}/tables`, { cacheTtl: 60_000 }),
       ]);
       setMenuItems(Array.isArray(itemsData) ? itemsData.filter((i) => i.isAvailable) : []);
       setCategories(Array.isArray(catsData) ? catsData : []);
       const rawTables = tablesData as { tables?: TableRecord[] } | TableRecord[];
       setTables(Array.isArray(rawTables) ? rawTables : rawTables.tables ?? []);
     } catch {
-      showToast("Failed to load menu", "error");
+      if (!silent) showToast("Failed to load menu", "error");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
-  }, [restaurantId]);
+  }, [restaurantId, showToast]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    fetchData(!!peekApiCache(menuPath));
+  }, [fetchData, menuPath]);
 
   const addToCart = (item: MenuItem) => {
     setCart((prev) => {
