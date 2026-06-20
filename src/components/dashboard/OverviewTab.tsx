@@ -23,6 +23,7 @@ import {
   UsersRound,
   ClipboardList,
   LayoutDashboard,
+  type LucideIcon,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -50,7 +51,7 @@ interface StatCardProps {
   value: string;
   sub: string;
   accent: string;
-  icon: any;
+  icon: LucideIcon;
 }
 
 function StatCard({ label, value, sub, accent, icon: Icon }: StatCardProps) {
@@ -119,7 +120,7 @@ const STATUS_META: Record<string, { label: string; color: string; order: number 
 
 type Segment = "overview" | "finance" | "order";
 
-const SEGMENTS: { id: Segment; label: string; icon: any }[] = [
+const SEGMENTS: { id: Segment; label: string; icon: LucideIcon }[] = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "finance", label: "Finance", icon: Receipt },
   { id: "order", label: "Order", icon: ShoppingBag },

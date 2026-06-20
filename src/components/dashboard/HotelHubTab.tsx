@@ -96,9 +96,10 @@ function RoomServicePanel() {
   const save = async () => {
     setSaving(true);
     try {
+      const parsedCharge = Number(charge);
       await updateRestaurant(r.id, {
         roomServiceEnabled: enabled,
-        roomServiceCharge: Math.max(0, Number(charge) || 0),
+        roomServiceCharge: Number.isFinite(parsedCharge) ? Math.max(0, parsedCharge) : 0,
       });
       showToast("Room service settings saved", "success");
     } catch {

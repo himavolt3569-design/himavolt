@@ -77,6 +77,11 @@ export async function PATCH(
     if (!receiptUrl) {
       return NextResponse.json({ error: "Receipt image is required" }, { status: 400 });
     }
+    try {
+      new URL(receiptUrl);
+    } catch {
+      return NextResponse.json({ error: "Invalid receipt URL" }, { status: 400 });
+    }
     data.receiptUrl = receiptUrl;
     if (body.paymentMethod) data.paymentMethod = String(body.paymentMethod);
     // Leave paymentStatus UNPAID — staff verify the receipt and mark it paid.

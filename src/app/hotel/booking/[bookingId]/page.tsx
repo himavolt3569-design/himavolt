@@ -144,11 +144,15 @@ export default function BookingConfirmationPage() {
     setActionMsg("");
     try {
       const url = await uploadFile(file, "booking-receipts");
-      await fetch(`/api/public/hotel/booking/${bookingId}`, {
+      const res = await fetch(`/api/public/hotel/booking/${bookingId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "receipt", receiptUrl: url }),
       });
+      if (!res.ok) {
+        const e = await res.json().catch(() => ({}));
+        throw new Error(e.error || "Could not save receipt.");
+      }
       await loadBooking();
       setActionMsg("Receipt uploaded — the hotel will verify your payment shortly.");
     } catch {

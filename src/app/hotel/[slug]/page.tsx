@@ -38,10 +38,12 @@ import {
   Home,
   FileText,
   Sparkles,
+  ScanLine,
 } from "lucide-react";
 import QRCode from "react-qr-code";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { uploadFile } from "@/lib/upload";
 
 interface Room {
   id: string;
@@ -55,6 +57,8 @@ interface Room {
   bedCount: number;
   description: string | null;
   amenities: string[];
+  offerings: string[];
+  locationNote: string | null;
   imageUrls: string[];
   videoUrl: string | null;
   isAvailable: boolean;
@@ -569,6 +573,7 @@ function GuestStep({
     guestAddress: string;
     guestIdType: string;
     guestIdNumber: string;
+    guestIdImageUrl: string;
     notes: string;
   };
   onChange: (v: Partial<typeof form>) => void;
@@ -576,6 +581,51 @@ function GuestStep({
   onNext: () => void;
 }) {
   const valid = form.guestName.trim().length >= 2 && form.guestPhone.trim().length >= 6;
+  const [idUploading, setIdUploading] = useState(false);
+  const [idOcrRunning, setIdOcrRunning] = useState(false);
+  const [idMsg, setIdMsg] = useState("");
+  const idInputRef = useRef<HTMLInputElement>(null);
+
+  const handleIdUpload = async (file: File | null) => {
+    if (!file) return;
+    setIdMsg("");
+    setIdUploading(true);
+    let url = "";
+    try {
+      url = await uploadFile(file, "booking-ids");
+      onChange({ guestIdImageUrl: url });
+    } catch {
+      setIdMsg("Upload failed — you can still type your details manually.");
+      setIdUploading(false);
+      return;
+    }
+    setIdUploading(false);
+
+    // Best-effort client-side OCR autofill — never blocks; all fields stay editable.
+    setIdOcrRunning(true);
+    try {
+      const { createWorker } = await import("tesseract.js");
+      const worker = await createWorker("eng");
+      const { data } = await worker.recognize(file);
+      await worker.terminate();
+      const text = data.text || "";
+      const patch: Partial<typeof form> = {};
+      const idMatch = text.match(/([A-Z0-9][A-Z0-9\-/]{5,})/i);
+      if (idMatch && !form.guestIdNumber.trim()) patch.guestIdNumber = idMatch[1];
+      const nameMatch = text.match(/name[\s:]+([A-Za-z][A-Za-z .]{2,40})/i);
+      if (nameMatch && !form.guestName.trim()) patch.guestName = nameMatch[1].trim();
+      if (Object.keys(patch).length) onChange(patch);
+      setIdMsg(
+        Object.keys(patch).length
+          ? "Details auto-filled from your ID — please verify them."
+          : "ID uploaded. Couldn't read the details — please type them in.",
+      );
+    } catch {
+      setIdMsg("ID uploaded. Couldn't read the details — please type them in.");
+    } finally {
+      setIdOcrRunning(false);
+    }
+  };
 
   const fields: {
     key: keyof typeof form;
@@ -623,6 +673,47 @@ function GuestStep({
             </div>
           </div>
         ))}
+
+        {/* ID proof upload with best-effort OCR autofill */}
+        <div>
+          <label className="block text-[11px] font-semibold uppercase tracking-wide text-[var(--text-2)] mb-1.5">
+            ID Proof (optional)
+          </label>
+          {form.guestIdImageUrl && (
+            <img
+              src={form.guestIdImageUrl}
+              alt="ID proof"
+              className="mb-2 max-h-32 w-full rounded-xl object-contain ring-1 ring-[var(--border)] bg-[var(--canvas-sub)]"
+            />
+          )}
+          <button
+            type="button"
+            onClick={() => idInputRef.current?.click()}
+            disabled={idUploading || idOcrRunning}
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-[var(--accent-border)] bg-[var(--canvas-sub)] py-3 text-[13px] font-semibold text-[var(--accent-text)] hover:bg-[var(--accent-muted)] transition-colors disabled:opacity-50"
+          >
+            {idUploading || idOcrRunning ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <ScanLine className="h-4 w-4" />
+            )}
+            {idUploading
+              ? "Uploading…"
+              : idOcrRunning
+                ? "Reading your ID…"
+                : form.guestIdImageUrl
+                  ? "Replace ID photo"
+                  : "Scan / upload ID photo"}
+          </button>
+          <input
+            ref={idInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => handleIdUpload(e.target.files?.[0] ?? null)}
+          />
+          {idMsg && <p className="mt-1.5 text-[11px] text-[var(--text-3)]">{idMsg}</p>}
+        </div>
 
         <div>
           <label className="block text-[11px] font-semibold uppercase tracking-wide text-[var(--text-2)] mb-1.5">
@@ -940,8 +1031,25 @@ function BrowseRoomCard({
           </span>
         </div>
 
+        {room.locationNote && (
+          <p className="flex items-center gap-1 text-[11px] text-[var(--text-3)] mb-1.5">
+            <MapPin className="h-3 w-3 text-[var(--accent)] shrink-0" />
+            {room.locationNote}
+          </p>
+        )}
+
         {room.description && (
           <p className="text-[12px] text-[var(--text-2)] mb-3 line-clamp-2">{room.description}</p>
+        )}
+
+        {room.offerings.length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-2.5">
+            {room.offerings.slice(0, 4).map((o) => (
+              <span key={o} className="rounded-full bg-[var(--accent-muted)] px-2.5 py-1 text-[11px] font-semibold text-[var(--accent-text)]">
+                {o}
+              </span>
+            ))}
+          </div>
         )}
 
         {room.amenities.length > 0 && (
@@ -1055,6 +1163,7 @@ export default function HotelPublicPage() {
     guestAddress: "",
     guestIdType: "",
     guestIdNumber: "",
+    guestIdImageUrl: "",
     notes: "",
   });
   const [payMethod, setPayMethod] = useState<"ESEWA" | "KHALTI" | "CASH">("ESEWA");
@@ -1163,6 +1272,7 @@ export default function HotelPublicPage() {
           guestEmail: guest.guestEmail.trim() || undefined,
           guestAddress: guest.guestAddress.trim() || undefined,
           guestIdNumber: guest.guestIdNumber.trim() || undefined,
+          guestIdImageUrl: guest.guestIdImageUrl || undefined,
           adults,
           children: kids,
           checkIn,

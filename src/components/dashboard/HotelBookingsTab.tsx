@@ -611,11 +611,12 @@ export default function HotelBookingsTab() {
 
   const handleRefund = async (id: string) => {
     if (!restaurantId) return;
-    await fetch(`/api/restaurants/${restaurantId}/bookings/${id}`, {
+    const res = await fetch(`/api/restaurants/${restaurantId}/bookings/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ refundStatus: "REFUNDED" }),
     });
+    if (!res.ok) return;
     fetchBookings(true);
     setViewBooking(null);
   };

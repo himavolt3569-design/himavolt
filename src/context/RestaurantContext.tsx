@@ -254,6 +254,7 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
   const deleteRestaurant = useCallback(
     async (id: string) => {
       const snapshot = restaurants;
+      const selectedSnapshot = selectedRestaurant;
       const remaining = snapshot.filter((r) => r.id !== id);
       setRestaurants(remaining);
       // If the active restaurant was deleted, fall back to the next one that
@@ -266,7 +267,10 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
       try {
         await apiFetch(`/api/restaurants/${id}`, { method: "DELETE" });
       } catch (err) {
-        setRestaurants(snapshot); // rollback
+        // Full rollback — restore list, active selection, and persisted id.
+        setRestaurants(snapshot);
+        setSelectedRestaurant(selectedSnapshot);
+        writeStoredRestaurantId(selectedSnapshot?.id ?? null);
         throw err;
       }
     },

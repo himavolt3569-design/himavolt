@@ -78,9 +78,10 @@ export async function deleteRestaurant(id: string) {
   const user = await getOrCreateUser();
   if (!user) throw new Error("Unauthorized");
 
-  await db.restaurant.delete({
-    where: { id },
+  const result = await db.restaurant.deleteMany({
+    where: { id, ownerId: user.id },
   });
+  if (result.count === 0) throw new Error("Not found");
 
   revalidatePath("/dashboard");
 }
