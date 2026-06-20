@@ -27,7 +27,6 @@ import {
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { formatPrice } from "@/lib/currency";
-import { SkeletonLine, SkeletonStatGrid, SkeletonTable } from "@/components/shared/Skeleton";
 
 interface Booking {
   id: string;
@@ -47,6 +46,12 @@ interface Booking {
   status: string;
   notes: string | null;
   createdAt: string;
+  receiptUrl?: string | null;
+  cancelReason?: string | null;
+  cancelRequestedAt?: string | null;
+  cancelledBy?: string | null;
+  refundStatus?: string | null;
+  roomServiceSelected?: boolean;
   room: {
     roomNumber: string;
     name: string | null;
@@ -214,11 +219,13 @@ function BookingDetailModal({
   currency,
   onClose,
   onStatusChange,
+  onRefund,
 }: {
   booking: Booking;
   currency: string;
   onClose: () => void;
   onStatusChange: (id: string, status: string, advancePaid?: boolean) => void;
+  onRefund: (id: string) => void;
 }) {
   const fmtDate = (d: string) =>
     new Date(d).toLocaleString("en-GB", {
@@ -331,6 +338,60 @@ function BookingDetailModal({
               )}
             </div>
           </div>
+
+          {booking.roomServiceSelected && (
+            <div className="flex items-center gap-2 rounded-xl bg-[var(--canvas-sub)] px-3 py-2 text-[12px] text-[var(--text-2)]">
+              <CheckCircle className="h-3.5 w-3.5 text-[var(--accent)]" />
+              Room service add-on included
+            </div>
+          )}
+
+          {/* Guest-uploaded payment receipt */}
+          {booking.receiptUrl && (
+            <div className="space-y-1.5">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-[var(--text-3)]">Payment Receipt</p>
+              <a href={booking.receiptUrl} target="_blank" rel="noopener noreferrer" className="block">
+                <img
+                  src={booking.receiptUrl}
+                  alt="Payment receipt"
+                  className="max-h-48 w-full rounded-xl object-contain ring-1 ring-[var(--border)] bg-[var(--canvas-sub)]"
+                />
+              </a>
+            </div>
+          )}
+
+          {/* Customer cancellation request — hotel accepts or ignores */}
+          {booking.cancelReason && booking.status !== "CANCELLED" && (
+            <div className="rounded-xl bg-[var(--status-error-bg)] ring-1 ring-[var(--status-error-bg)] p-3 space-y-2">
+              <p className="text-[11px] font-bold text-[var(--status-error-text)]">
+                Cancellation requested{booking.cancelledBy === "CUSTOMER" ? " by guest" : ""}
+              </p>
+              <p className="text-[12px] text-[var(--status-error-text)]">{booking.cancelReason}</p>
+              <button
+                onClick={() => { onStatusChange(booking.id, "CANCELLED"); onClose(); }}
+                className="rounded-lg bg-[var(--status-error-text)] px-3 py-1.5 text-[11px] font-bold text-white hover:brightness-110 transition-all"
+              >
+                Accept &amp; cancel booking
+              </button>
+            </div>
+          )}
+
+          {/* Refund workflow once a paid booking is cancelled */}
+          {booking.status === "CANCELLED" && booking.refundStatus && booking.refundStatus !== "NONE" && (
+            <div className="flex items-center justify-between rounded-xl bg-[var(--canvas-sub)] ring-1 ring-[var(--border)] p-3">
+              <span className="text-[12px] font-semibold text-[var(--text-2)]">
+                Refund: {booking.refundStatus === "REFUNDED" ? "Completed" : "Pending"}
+              </span>
+              {booking.refundStatus === "REQUESTED" && (
+                <button
+                  onClick={() => { onRefund(booking.id); onClose(); }}
+                  className="rounded-lg bg-[var(--accent)] px-3 py-1.5 text-[11px] font-bold text-white hover:bg-[var(--accent-hover)] transition-colors"
+                >
+                  Mark refunded
+                </button>
+              )}
+            </div>
+          )}
 
           {booking.notes && (
             <div className="rounded-xl bg-[var(--status-info-bg)] ring-1 ring-[var(--status-info-border)] p-3">
@@ -548,6 +609,17 @@ export default function HotelBookingsTab() {
     setViewBooking(null);
   };
 
+  const handleRefund = async (id: string) => {
+    if (!restaurantId) return;
+    await fetch(`/api/restaurants/${restaurantId}/bookings/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refundStatus: "REFUNDED" }),
+    });
+    fetchBookings(true);
+    setViewBooking(null);
+  };
+
   const filtered = bookings.filter((b) => {
     if (search) {
       const q = search.toLowerCase();
@@ -567,18 +639,8 @@ export default function HotelBookingsTab() {
     total: bookings.length,
   };
 
-  if (loading) {
-    return (
-      <div className="space-y-5">
-        <div className="space-y-2">
-          <SkeletonLine width="w-44" height="h-6" />
-          <SkeletonLine width="w-72" height="h-3" />
-        </div>
-        <SkeletonStatGrid count={4} />
-        <SkeletonTable rows={5} />
-      </div>
-    );
-  }
+  // No skeleton — paint nothing until the first list resolves (near-instant).
+  if (loading && bookings.length === 0) return null;
 
   return (
     <div className="space-y-5">
@@ -703,6 +765,7 @@ export default function HotelBookingsTab() {
             currency={currency}
             onClose={() => setViewBooking(null)}
             onStatusChange={handleStatusChange}
+            onRefund={handleRefund}
           />
         )}
       </AnimatePresence>
