@@ -168,11 +168,12 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
       hasFetchedRef.current = true;
       setHasFetched(true);
       setSelectedRestaurant((prev) => {
-        // Keep the current selection if it still exists…
-        if (prev) return data.find((r) => r.id === prev.id) ?? null;
-        // …otherwise restore the last-selected restaurant (fallback: first).
+        // Prefer the current selection, then the last-selected (localStorage),
+        // then the first restaurant — so we never land on a blank dashboard
+        // when any restaurant exists (e.g. the selected one was deleted).
         const storedId = readStoredRestaurantId();
         return (
+          (prev ? data.find((r) => r.id === prev.id) : undefined) ??
           (storedId ? data.find((r) => r.id === storedId) : undefined) ??
           data[0] ??
           null
@@ -249,8 +250,15 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
   const deleteRestaurant = useCallback(
     async (id: string) => {
       const snapshot = restaurants;
-      setRestaurants((prev) => prev.filter((r) => r.id !== id));
-      setSelectedRestaurant((prev) => (prev?.id === id ? null : prev));
+      const remaining = snapshot.filter((r) => r.id !== id);
+      setRestaurants(remaining);
+      // If the active restaurant was deleted, fall back to the next one that
+      // still exists (not null) so the dashboard doesn't go blank.
+      if (selectedRestaurant?.id === id) {
+        const next = remaining[0] ?? null;
+        setSelectedRestaurant(next);
+        writeStoredRestaurantId(next?.id ?? null);
+      }
       try {
         await apiFetch(`/api/restaurants/${id}`, { method: "DELETE" });
       } catch (err) {
@@ -258,7 +266,7 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
         throw err;
       }
     },
-    [restaurants],
+    [restaurants, selectedRestaurant],
   );
 
   const updateRestaurant = useCallback(
