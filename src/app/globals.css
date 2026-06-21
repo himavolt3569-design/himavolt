@@ -89,25 +89,25 @@
   .dark {
     color-scheme: dark;
 
-    /* Surfaces — Warm dark materials */
-    --canvas:      #17110b; /* Deep warm near-black */
-    --canvas-sub:  #100b07; /* Darkest base */
-    --surface:     #221810; /* Raised warm surface */
-    --surface-alt: #2b2015; /* Soft raised surface */
-    --border:      #3a2c1e; /* Warm border */
-    --border-soft: #2a2015; /* Very soft border */
+    /* Surfaces — Premium neutral charcoal (no warm/brown tint) */
+    --canvas:      #0c0d10; /* Deep neutral near-black */
+    --canvas-sub:  #08090b; /* Darkest base */
+    --surface:     #16181d; /* Raised charcoal surface */
+    --surface-alt: #1e2127; /* Soft raised surface */
+    --border:      #272b33; /* Cool border */
+    --border-soft: #1b1e24; /* Very soft border */
 
-    /* Text — Warm high-contrast on dark */
-    --text-1: #f6efe6; /* Near-white warm */
-    --text-2: #d7c5b3; /* Mid warm */
-    --text-3: #9c8975; /* Muted warm */
+    /* Text — Neutral high-contrast on charcoal */
+    --text-1: #f4f5f7; /* Near-white */
+    --text-2: #b7bcc6; /* Mid neutral */
+    --text-3: #7d828d; /* Muted neutral */
 
-    /* Brand accent — Flame stays vivid on dark */
+    /* Brand accent — Flame stays vivid on charcoal */
     --accent:        #eaa94d;
     --accent-hover:  #f1c980;
-    --accent-text:   #f1c980;
-    --accent-muted:  #2a1d10;
-    --accent-border: rgba(234, 169, 77, 0.28);
+    --accent-text:   #f3cf86;
+    --accent-muted:  #211a10; /* subtle warm-dark so amber text reads on it */
+    --accent-border: rgba(234, 169, 77, 0.26);
 
     /* Status — Dark-surface variants */
     --status-pending-bg:     #3a2406;

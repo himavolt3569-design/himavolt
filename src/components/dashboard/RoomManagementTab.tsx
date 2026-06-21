@@ -22,8 +22,7 @@ import {
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { formatPrice } from "@/lib/currency";
-import { SkeletonLine, SkeletonGrid } from "@/components/shared/Skeleton";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, peekApiCache } from "@/lib/api-client";
 import { uploadFile } from "@/lib/upload";
 import QRCode from "react-qr-code";
 
@@ -153,18 +152,7 @@ export default function RoomManagementTab() {
   const restaurant = selectedRestaurant ?? restaurants[0];
   const [activeTab, setActiveTab] = useState<"rooms" | "bookings">("rooms");
 
-  if (!restaurant) {
-    return (
-      <div className="space-y-6 max-w-5xl mx-auto pb-12">
-        <div className="space-y-2">
-          <SkeletonLine width="w-56" height="h-7" />
-          <SkeletonLine width="w-72" height="h-3" />
-        </div>
-        <SkeletonLine width="w-48" height="h-9" />
-        <SkeletonGrid rows={2} cols={3} cardClass="h-56 rounded-2xl" />
-      </div>
-    );
-  }
+  if (!restaurant) return null;
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-12">
@@ -219,8 +207,10 @@ export default function RoomManagementTab() {
 /*  Rooms View                                                         */
 
 function RoomsView({ restaurantId, currency, slug, hotelName }: { restaurantId: string; currency: string; slug: string; hotelName: string }) {
-  const [rooms, setRooms] = useState<Room[]>([]);
-  const [loading, setLoading] = useState(true);
+  const roomsPath = `/api/restaurants/${restaurantId}/rooms`;
+  // Seed from the in-memory API cache so the rooms grid paints instantly.
+  const [rooms, setRooms] = useState<Room[]>(() => peekApiCache<Room[]>(roomsPath) ?? []);
+  const [loading, setLoading] = useState(() => !peekApiCache(roomsPath));
   const [showForm, setShowForm] = useState(false);
   const [editingRoom, setEditingRoom] = useState<Room | null>(null);
   const [form, setForm] = useState(BLANK_ROOM);
@@ -349,15 +339,6 @@ function RoomsView({ restaurantId, currency, slug, hotelName }: { restaurantId: 
   const totalRooms = rooms.length;
   const availableRooms = rooms.filter((r) => r.isAvailable).length;
   const occupiedRooms = totalRooms - availableRooms;
-
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20">
-        <Loader2 className="h-6 w-6 animate-spin text-[var(--accent)] mb-3" />
-        <p className="text-sm font-bold text-[var(--text-3)]">Loading rooms...</p>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-5">
