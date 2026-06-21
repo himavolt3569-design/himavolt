@@ -27,6 +27,8 @@ import {
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { formatPrice } from "@/lib/currency";
+import { useRealtimeSignal } from "@/hooks/useRealtimeSignal";
+import { restaurantBookingsTopic } from "@/lib/realtime-topics";
 
 interface Booking {
   id: string;
@@ -595,6 +597,13 @@ export default function HotelBookingsTab() {
     fetchBookings();
     fetchConfig();
   }, [fetchBookings, fetchConfig]);
+
+  // Instant refresh when a booking changes anywhere (new booking, cancel
+  // request, receipt, staff action) — pushed via Supabase Realtime.
+  useRealtimeSignal(
+    restaurantId ? restaurantBookingsTopic(restaurantId) : null,
+    () => fetchBookings(true),
+  );
 
   const handleStatusChange = async (id: string, status: string, advancePaid?: boolean) => {
     if (!restaurantId) return;

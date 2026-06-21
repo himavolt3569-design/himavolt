@@ -3,6 +3,8 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { getOrCreateUser } from "@/lib/auth";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
+import { notifyRestaurantBookings } from "@/lib/realtime";
+import { notifyStaffBookingEvent } from "@/lib/notifications";
 
 const HOTEL_TYPES = ["HOTEL", "RESORT", "GUEST_HOUSE"];
 
@@ -220,6 +222,17 @@ export async function POST(
       room: { select: { roomNumber: true, name: true, type: true } },
     },
   });
+
+  // Live-notify the hotel: wake the bookings tab + push to owner & staff.
+  const roomLabel = booking.room.name || `Room ${booking.room.roomNumber}`;
+  notifyRestaurantBookings(restaurant.id, { bookingId: booking.id });
+  void notifyStaffBookingEvent(
+    restaurant.id,
+    "NEW_BOOKING",
+    "New Room Booking",
+    `${data.guestName} booked ${roomLabel} for ${nights} night${nights > 1 ? "s" : ""}`,
+    booking.id,
+  );
 
   return NextResponse.json({ booking }, { status: 201 });
 }

@@ -5,6 +5,7 @@ import {
   requireOwnerOrStaffBilling,
   requireOwnerOrStaffManager,
 } from "@/lib/access-control";
+import { notifyRestaurantBookings } from "@/lib/realtime";
 
 type Params = { params: Promise<{ id: string; bookingId: string }> };
 
@@ -139,6 +140,9 @@ export async function PATCH(
       },
     },
   });
+
+  // Wake other staff dashboards (and the bookings tab) instantly.
+  notifyRestaurantBookings(id, { bookingId });
 
   return NextResponse.json(booking);
 }

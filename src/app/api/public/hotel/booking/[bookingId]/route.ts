@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { notifyRestaurantBookings } from "@/lib/realtime";
+import { notifyStaffBookingEvent } from "@/lib/notifications";
 
 export async function GET(
   _req: NextRequest,
@@ -90,5 +92,26 @@ export async function PATCH(
   }
 
   const booking = await db.roomBooking.update({ where: { id: bookingId }, data });
+
+  // Live-notify the hotel staff about the customer action.
+  notifyRestaurantBookings(existing.restaurantId, { bookingId });
+  if (action === "cancel-request") {
+    void notifyStaffBookingEvent(
+      existing.restaurantId,
+      "CANCEL_REQUEST",
+      "Cancellation Requested",
+      `${existing.guestName} requested to cancel their booking`,
+      bookingId,
+    );
+  } else if (action === "receipt") {
+    void notifyStaffBookingEvent(
+      existing.restaurantId,
+      "RECEIPT_UPLOADED",
+      "Payment Receipt Uploaded",
+      `${existing.guestName} uploaded a payment receipt — please verify`,
+      bookingId,
+    );
+  }
+
   return NextResponse.json({ booking });
 }

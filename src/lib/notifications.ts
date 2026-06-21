@@ -119,6 +119,24 @@ export async function notifyCounterOrderReady(
   });
 }
 
+/**
+ * Notify owner + all active staff about a hotel booking event (new reservation,
+ * cancellation request, payment receipt). Fire-and-forget at the call site.
+ */
+export async function notifyStaffBookingEvent(
+  restaurantId: string,
+  event: "NEW_BOOKING" | "CANCEL_REQUEST" | "RECEIPT_UPLOADED",
+  title: string,
+  body: string,
+  bookingId?: string,
+) {
+  await sendNotificationToRestaurantStaff(restaurantId, {
+    title,
+    body,
+    data: { type: event, restaurantId, ...(bookingId ? { bookingId } : {}) },
+  });
+}
+
 export async function notifyCustomerOrderUpdate(
   userId: string,
   orderNo: string,

@@ -21,9 +21,10 @@ import {
   REALTIME_EVENT,
   orderTopic,
   restaurantOrdersTopic,
+  restaurantBookingsTopic,
 } from "@/lib/realtime-topics";
 
-export { REALTIME_EVENT, orderTopic, restaurantOrdersTopic };
+export { REALTIME_EVENT, orderTopic, restaurantOrdersTopic, restaurantBookingsTopic };
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -103,4 +104,16 @@ export function notifyRestaurantOrders(
   payload: Record<string, unknown> = {},
 ): void {
   void broadcast({ topic: restaurantOrdersTopic(restaurantId), payload });
+}
+
+/**
+ * Signal that a restaurant's hotel bookings changed (new booking, cancellation
+ * request, receipt upload, status/payment change). Wakes the Hotel Hub bookings
+ * tab instantly. Fire-and-forget.
+ */
+export function notifyRestaurantBookings(
+  restaurantId: string,
+  payload: Record<string, unknown> = {},
+): void {
+  void broadcast({ topic: restaurantBookingsTopic(restaurantId), payload });
 }
