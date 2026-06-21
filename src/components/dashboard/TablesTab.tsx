@@ -9,9 +9,10 @@ import {
   User as UserIcon, ChevronRight, QrCode, Search, Download, Printer, Copy,
 } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
-import { SkeletonCard } from "@/components/shared/Skeleton";
 import { useToast } from "@/context/ToastContext";
 import { buildQRCanvas } from "@/components/dashboard/qr/qrCanvas";
+import { apiFetch, peekApiCache } from "@/lib/api-client";
+import QRCodesTab from "./QRCodesTab";
 
 
 interface TableData {
@@ -186,16 +187,20 @@ function TableQRModal({
 }
 
 
-export default function TablesTab({ restaurantId, currency = "NPR" }: { restaurantId: string; currency?: string }) {
+function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string; currency?: string }) {
   const { showToast } = useToast();
   const rid  = restaurantId;
   const cur  = currency;
   const canManage = true; // staff portal — management allowed for all who have table tab access
-  const abortRef = useRef<AbortController | null>(null);
+  const tablesPath = rid ? `/api/restaurants/${rid}/tables` : "";
 
-  const [tables,   setTables]   = useState<TableData[]>([]);
-  const [meta,     setMeta]     = useState<{ slug: string; name: string } | null>(null);
-  const [loading,  setLoading]  = useState(true);
+  // Seed from the in-memory API cache so a re-opened Tables page paints instantly.
+  const seeded = peekApiCache<{ tables?: TableData[]; restaurant?: { slug?: string; name?: string } }>(tablesPath);
+  const [tables,   setTables]   = useState<TableData[]>(() => seeded?.tables ?? []);
+  const [meta,     setMeta]     = useState<{ slug: string; name: string } | null>(
+    () => seeded?.restaurant ? { slug: seeded.restaurant.slug ?? "", name: seeded.restaurant.name ?? "" } : null,
+  );
+  const [loading,  setLoading]  = useState(() => !seeded);
   const [selected, setSelected] = useState<TableData | null>(null);
   const [qrTable,  setQrTable]  = useState<TableData | null>(null);
   const [clearingId, setClearingId] = useState<string | null>(null);
@@ -223,34 +228,25 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
   const [editCap,   setEditCap]   = useState("");
   const [editSaving,setEditSaving]= useState(false);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (fresh = false) => {
     if (!rid) return;
-    abortRef.current?.abort();
-    abortRef.current = new AbortController();
     try {
-      const res = await fetch(`/api/restaurants/${rid}/tables`, {
-        credentials: "include",
-        signal: abortRef.current.signal,
-      });
-      if (!res.ok) throw new Error();
-      const data = await res.json();
+      const data = await apiFetch<{ tables?: TableData[]; restaurant?: { slug?: string; name?: string } }>(
+        `/api/restaurants/${rid}/tables`,
+        { cacheTtl: fresh ? 0 : 20_000 },
+      );
       setTables(data.tables ?? []);
       if (data.restaurant) setMeta({ slug: data.restaurant.slug ?? "", name: data.restaurant.name ?? "" });
-    } catch (err) {
-      if (err instanceof Error && err.name === "AbortError") return;
+    } catch {
       // silent on poll failures — table data is non-critical background refresh
     }
     setLoading(false);
   }, [rid]);
 
   useEffect(() => {
-    setLoading(true);
     load();
-    const iv = setInterval(load, 30000);
-    return () => {
-      clearInterval(iv);
-      abortRef.current?.abort();
-    };
+    const iv = setInterval(() => load(true), 30000);
+    return () => clearInterval(iv);
   }, [load]);
 
   const handleAdd = async () => {
@@ -274,7 +270,7 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
       }
       setShowAdd(false); setAddLabel(""); setAddCap("4");
       showToast("Table added", "success");
-      load();
+      load(true);
     } catch { /* ignore */ }
     setAddSaving(false);
   };
@@ -294,7 +290,7 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
         showToast(body.error ?? "Failed to update table", "error");
       } else {
         setEditId(null);
-        load();
+        load(true);
       }
     } catch {
       showToast("Failed to update table", "error");
@@ -312,7 +308,7 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
         return;
       }
       if (selected?.id === id) setSelected(null);
-      load();
+      load(true);
     } catch {
       showToast("Failed to delete table", "error");
     }
@@ -334,7 +330,7 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
         return;
       }
       setSelected(null);
-      await load();
+      await load(true);
     } catch {
       alert("Failed to clear table. Please try again.");
     } finally {
@@ -379,7 +375,7 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
     setBulkTo("20");
     setBulkCap("4");
     setBulkProgress(0);
-    await load();
+    await load(true);
     if (created > 0) {
       alert(`Created ${created} table(s) successfully.`);
     } else if (lastError) {
@@ -424,7 +420,7 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={load} className="rounded-xl p-2 text-[var(--text-3)] hover:bg-[var(--surface)] transition-colors" title="Refresh">
+          <button onClick={() => load(true)} className="rounded-xl p-2 text-[var(--text-3)] hover:bg-[var(--surface)] transition-colors" title="Refresh">
             <RefreshCw className="h-4 w-4" />
           </button>
           {canManage && (
@@ -478,11 +474,7 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
         </div>
       )}
 
-      {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
-        </div>
-      ) : tables.length === 0 ? (
+      {tables.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-[var(--text-3)] gap-3">
           <TableProperties className="h-10 w-10 opacity-30" />
           <p className="font-bold">No tables configured</p>
@@ -908,6 +900,51 @@ export default function TablesTab({ restaurantId, currency = "NPR" }: { restaura
           </div>
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+/**
+ * Tables page = Table management + per-table QR codes, merged into one place
+ * with a simple sub-tab switch (Restrox-style).
+ */
+export default function TablesTab({
+  restaurantId,
+  currency = "NPR",
+}: {
+  restaurantId: string;
+  currency?: string;
+}) {
+  const [view, setView] = useState<"tables" | "qr">("tables");
+
+  return (
+    <div className="space-y-5">
+      <div className="inline-flex rounded-2xl bg-[var(--canvas-sub)] p-1 ring-1 ring-[var(--border)]">
+        {(["tables", "qr"] as const).map((v) => (
+          <button
+            key={v}
+            onClick={() => setView(v)}
+            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-bold transition-colors ${
+              view === v
+                ? "bg-[var(--canvas)] text-[var(--text-1)] shadow-sm"
+                : "text-[var(--text-3)] hover:text-[var(--text-2)]"
+            }`}
+          >
+            {v === "tables" ? (
+              <TableProperties className={`h-4 w-4 ${view === v ? "text-[var(--accent)]" : ""}`} />
+            ) : (
+              <QrCode className={`h-4 w-4 ${view === v ? "text-[var(--accent)]" : ""}`} />
+            )}
+            {v === "tables" ? "Tables" : "QR Codes"}
+          </button>
+        ))}
+      </div>
+
+      {view === "tables" ? (
+        <TableManager restaurantId={restaurantId} currency={currency} />
+      ) : (
+        <QRCodesTab />
+      )}
     </div>
   );
 }
