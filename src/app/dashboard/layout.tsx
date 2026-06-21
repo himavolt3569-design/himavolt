@@ -22,6 +22,7 @@ import POSActivationGate from "@/components/pos/activation/POSActivationGate";
 import CustomerDashboard from "@/app/dashboard/CustomerDashboard";
 import CreateRestaurantModal from "@/components/modals/CreateRestaurantModal";
 import { ALL_NAV, FEATURE_ICONS } from "@/lib/dashboard-nav";
+import { apiFetch } from "@/lib/api-client";
 import { getFeatureTabsForType, type FeatureTabId } from "@/lib/restaurant-types";
 
 export default function DashboardLayout({
@@ -120,6 +121,21 @@ export default function DashboardLayout({
     }, 1200);
     return () => clearTimeout(t);
   }, []);
+
+  // Warm the data caches for the heaviest screens (menu, categories, tables) as
+  // soon as a restaurant is selected, so Fast Pay, New Orders and Tables paint
+  // from cache on first click instead of fetching on open.
+  useEffect(() => {
+    const id = selectedRestaurant?.id;
+    if (!id) return;
+    const t = setTimeout(() => {
+      apiFetch(`/api/restaurants/${id}/menu`, { cacheTtl: 120_000 }).catch(() => {});
+      apiFetch(`/api/restaurants/${id}/menu?light=1`, { cacheTtl: 120_000 }).catch(() => {});
+      apiFetch(`/api/restaurants/${id}/categories`, { cacheTtl: 120_000 }).catch(() => {});
+      apiFetch(`/api/restaurants/${id}/tables`, { cacheTtl: 60_000 }).catch(() => {});
+    }, 600);
+    return () => clearTimeout(t);
+  }, [selectedRestaurant?.id]);
 
   const newOrderCount = orders.filter((o) => o.status === "PENDING").length;
 
