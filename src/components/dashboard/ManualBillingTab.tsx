@@ -711,7 +711,7 @@ export default function ManualBillingTab({
                   initial={{ opacity: 0, y: -8 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -8 }}
-                  className="absolute z-10 mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] shadow-xl overflow-hidden"
+                  className="absolute z-30 mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] shadow-xl overflow-hidden"
                 >
                   <button
                     onClick={() => { setTableNo(""); setShowTables(false); }}

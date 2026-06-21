@@ -188,7 +188,7 @@ function BookingRow({
                     initial={{ opacity: 0, y: -4 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -4 }}
-                    className="absolute right-0 top-full mt-1 z-10 min-w-[120px] rounded-xl bg-[var(--canvas)] ring-1 ring-[var(--border)] shadow-lg overflow-hidden"
+                    className="absolute right-0 top-full mt-1 z-30 min-w-[120px] rounded-xl bg-[var(--canvas)] ring-1 ring-[var(--border)] shadow-lg overflow-hidden"
                   >
                     {actions.map((a) => {
                       const Icon = a.icon;

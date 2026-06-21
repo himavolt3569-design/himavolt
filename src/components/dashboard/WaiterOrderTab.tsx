@@ -321,7 +321,7 @@ export default function WaiterOrderTab({ restaurantId }: { restaurantId: string 
                   initial={{ opacity: 0, y: -5 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -5 }}
-                  className="absolute top-full left-0 right-0 z-10 mt-1 rounded-xl border border-[var(--border)] bg-[var(--canvas)] shadow-lg overflow-hidden max-h-52 overflow-y-auto"
+                  className="absolute top-full left-0 right-0 z-30 mt-1 rounded-xl border border-[var(--border)] bg-[var(--canvas)] shadow-lg overflow-hidden max-h-52 overflow-y-auto"
                 >
                   <button
                     onClick={() => { setSelectedTable(null); setShowTablePicker(false); }}
