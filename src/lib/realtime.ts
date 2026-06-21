@@ -22,9 +22,16 @@ import {
   orderTopic,
   restaurantOrdersTopic,
   restaurantBookingsTopic,
+  adminTopic,
 } from "@/lib/realtime-topics";
 
-export { REALTIME_EVENT, orderTopic, restaurantOrdersTopic, restaurantBookingsTopic };
+export {
+  REALTIME_EVENT,
+  orderTopic,
+  restaurantOrdersTopic,
+  restaurantBookingsTopic,
+  adminTopic,
+};
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -85,6 +92,7 @@ export function notifyOrderChanged(
 ): void {
   const messages: BroadcastMessage[] = [
     { topic: orderTopic(orderId), payload: { orderId, ...payload } },
+    { topic: adminTopic(), payload: { orderId, ...payload } },
   ];
   if (restaurantId) {
     messages.push({
@@ -103,7 +111,10 @@ export function notifyRestaurantOrders(
   restaurantId: string,
   payload: Record<string, unknown> = {},
 ): void {
-  void broadcast({ topic: restaurantOrdersTopic(restaurantId), payload });
+  void broadcast([
+    { topic: restaurantOrdersTopic(restaurantId), payload },
+    { topic: adminTopic(), payload },
+  ]);
 }
 
 /**
@@ -115,5 +126,8 @@ export function notifyRestaurantBookings(
   restaurantId: string,
   payload: Record<string, unknown> = {},
 ): void {
-  void broadcast({ topic: restaurantBookingsTopic(restaurantId), payload });
+  void broadcast([
+    { topic: restaurantBookingsTopic(restaurantId), payload },
+    { topic: adminTopic(), payload },
+  ]);
 }

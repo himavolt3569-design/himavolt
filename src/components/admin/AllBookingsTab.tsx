@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useRealtimeSignal } from "@/hooks/useRealtimeSignal";
+import { adminTopic } from "@/lib/realtime-topics";
 import {
   BedDouble,
   Calendar,
@@ -138,6 +140,8 @@ export default function AllBookingsTab() {
   };
 
   useEffect(() => { fetchBookings(); }, []);
+  // Live refresh on any booking change across all restaurants.
+  useRealtimeSignal(adminTopic(), () => fetchBookings(true));
 
   const filtered = bookings.filter((b) => {
     const matchStatus = statusFilter === "ALL" || b.status === statusFilter;

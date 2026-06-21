@@ -23,6 +23,7 @@ import {
 import { useRestaurant } from "@/context/RestaurantContext";
 import { formatPrice } from "@/lib/currency";
 import { apiFetch, peekApiCache } from "@/lib/api-client";
+import { useToast } from "@/context/ToastContext";
 import { uploadFile } from "@/lib/upload";
 import QRCode from "react-qr-code";
 
@@ -207,6 +208,7 @@ export default function RoomManagementTab() {
 /*  Rooms View                                                         */
 
 function RoomsView({ restaurantId, currency, slug, hotelName }: { restaurantId: string; currency: string; slug: string; hotelName: string }) {
+  const { showToast } = useToast();
   const roomsPath = `/api/restaurants/${restaurantId}/rooms`;
   // Seed from the in-memory API cache so the rooms grid paints instantly.
   const [rooms, setRooms] = useState<Room[]>(() => peekApiCache<Room[]>(roomsPath) ?? []);
@@ -297,39 +299,63 @@ function RoomsView({ restaurantId, currency, slug, hotelName }: { restaurantId: 
       isAvailable: form.isAvailable,
     };
 
-    try {
-      if (editingRoom) {
+    if (editingRoom) {
+      // Optimistic edit: swap in place immediately, reconcile in background.
+      const id = editingRoom.id;
+      const snapshot = rooms;
+      setRooms((prev) => prev.map((r) => (r.id === id ? ({ ...r, ...payload } as Room) : r)));
+      closeForm();
+      try {
         const updated = await apiFetch<Room>(
-          `/api/restaurants/${restaurantId}/rooms/${editingRoom.id}`,
+          `/api/restaurants/${restaurantId}/rooms/${id}`,
           { method: "PATCH", body: payload },
         );
-        // Instant: swap the updated room in place, no refetch round-trip.
-        setRooms((prev) => prev.map((r) => (r.id === updated.id ? { ...r, ...updated } : r)));
-      } else {
-        const created = await apiFetch<Room>(
-          `/api/restaurants/${restaurantId}/rooms`,
-          { method: "POST", body: payload },
-        );
-        // Instant: prepend the new room (with its unique QR ready) immediately.
-        setRooms((prev) => [created, ...prev]);
+        setRooms((prev) => prev.map((r) => (r.id === id ? { ...r, ...updated } : r)));
+      } catch (err) {
+        setRooms(snapshot); // rollback
+        showToast(err instanceof Error ? err.message : "Failed to update room", "error");
+      } finally {
+        setSaving(false);
       }
-      closeForm();
+      return;
+    }
+
+    // Optimistic create: show the room instantly with a temp id, then swap in
+    // the real one (with its server-generated QR) when the POST returns.
+    const tempId = `temp-${Date.now()}`;
+    const tempRoom = {
+      ...payload,
+      id: tempId,
+      qrUrl: null,
+      createdAt: new Date().toISOString(),
+    } as unknown as Room;
+    setRooms((prev) => [tempRoom, ...prev]);
+    closeForm();
+    try {
+      const created = await apiFetch<Room>(
+        `/api/restaurants/${restaurantId}/rooms`,
+        { method: "POST", body: payload },
+      );
+      setRooms((prev) => prev.map((r) => (r.id === tempId ? created : r)));
     } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : "Failed to save room");
+      setRooms((prev) => prev.filter((r) => r.id !== tempId)); // rollback
+      showToast(err instanceof Error ? err.message : "Failed to create room", "error");
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = async (roomId: string) => {
+    const snapshot = rooms;
+    setRooms((prev) => prev.filter((r) => r.id !== roomId)); // optimistic
     setDeletingId(roomId);
     try {
       await apiFetch(`/api/restaurants/${restaurantId}/rooms/${roomId}`, {
         method: "DELETE",
       });
-      await fetchRooms();
     } catch {
-      // silent
+      setRooms(snapshot); // rollback
+      showToast("Failed to delete room", "error");
     } finally {
       setDeletingId(null);
     }

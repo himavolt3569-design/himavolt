@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRealtimeSignal } from "@/hooks/useRealtimeSignal";
+import { adminTopic } from "@/lib/realtime-topics";
 import {
   CreditCard,
   Search,
@@ -135,6 +137,8 @@ export default function AllPaymentsTab() {
 
   useEffect(() => { fetchPayments(1); }, []);
   useEffect(() => { if (!loading) fetchPayments(page); }, [page, statusFilter, methodFilter]);
+  // Live refresh on any payment change across all restaurants.
+  useRealtimeSignal(adminTopic(), () => fetchPayments(page));
 
   const handleSearchChange = (val: string) => {
     setSearch(val);

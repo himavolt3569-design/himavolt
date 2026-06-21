@@ -254,25 +254,37 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
       showToast("Restaurant not loaded — please refresh", "error");
       return;
     }
-    setAddSaving(true);
+    const label = addLabel.trim() || null;
+    const capacity = parseInt(addCap) || 4;
+    // Optimistic: show the new table instantly and close the modal; reconcile
+    // (real id + auto-assigned number) in the background.
+    const tempId = `temp-${Date.now()}`;
+    const nextNo = tables.reduce((m, t) => Math.max(m, t.tableNo), 0) + 1;
+    setTables((prev) => [
+      ...prev,
+      { id: tempId, tableNo: nextNo, label, capacity, isActive: true, isOccupied: false, session: null },
+    ]);
+    setShowAdd(false); setAddLabel(""); setAddCap("4");
     try {
       const res = await fetch(`/api/restaurants/${rid}/tables`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         // No tableNo — backend auto-assigns the next free number.
-        body: JSON.stringify({ label: addLabel.trim() || null, capacity: parseInt(addCap) || 4 }),
+        body: JSON.stringify({ label, capacity }),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
+        setTables((prev) => prev.filter((t) => t.id !== tempId)); // rollback
         showToast(body.error ?? "Failed to create table", "error");
         return;
       }
-      setShowAdd(false); setAddLabel(""); setAddCap("4");
       showToast("Table added", "success");
-      load(true);
-    } catch { /* ignore */ }
-    setAddSaving(false);
+      load(true); // reconcile real id/number
+    } catch {
+      setTables((prev) => prev.filter((t) => t.id !== tempId)); // rollback
+      showToast("Failed to create table", "error");
+    }
   };
 
   const handleEdit = async (id: string) => {

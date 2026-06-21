@@ -17,3 +17,10 @@ export const restaurantOrdersTopic = (restaurantId: string) =>
 /** Topic for a restaurant's hotel booking feed (Hotel Hub bookings tab). */
 export const restaurantBookingsTopic = (restaurantId: string) =>
   `restaurant:${restaurantId}:bookings`;
+
+/**
+ * Global feed for the master-admin panel — every order/payment/booking change
+ * across all restaurants also signals here so admins/superadmins see live
+ * updates without subscribing to every restaurant topic.
+ */
+export const adminTopic = () => `admin:events`;
