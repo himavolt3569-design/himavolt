@@ -80,7 +80,6 @@ export const NAV_MAIN: {
   { id: "overview", label: "Dashboard", icon: LayoutDashboard },
   { id: "orders", label: "Live Orders", icon: ClipboardList, badge: "live" },
   { id: "billing", label: "Billing", icon: Receipt },
-  { id: "manual-billing", label: "Fast Billing", icon: Receipt },
   { id: "tables", label: "Tables", icon: LayoutGrid },
   { id: "chat", label: "Chats", icon: MessageCircle },
 ];

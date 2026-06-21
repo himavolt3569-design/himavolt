@@ -34,6 +34,9 @@ import {
 import { formatPrice, getCurrencySymbol } from "@/lib/currency";
 import { useToast } from "@/context/ToastContext";
 import { apiFetch, peekApiCache } from "@/lib/api-client";
+import { useRestaurant } from "@/context/RestaurantContext";
+import ManualBillingTab from "@/components/dashboard/ManualBillingTab";
+import { Zap } from "lucide-react";
 
 /* Types */
 
@@ -222,7 +225,7 @@ function playBillingAlert() {
   }
 }
 
-export default function BillingTab({
+function LiveBilling({
   restaurantId,
   staffRole,
   currency = "NPR",
@@ -1847,5 +1850,55 @@ function SummaryCard({
         </div>
       </div>
     </motion.div>
+  );
+}
+
+/**
+ * Billing page = live-orders billing + Fast/Manual pay, merged into one place
+ * with a simple sub-tab switch (Restrox-style).
+ */
+export default function BillingTab(props: BillingTabProps) {
+  const { selectedRestaurant } = useRestaurant();
+  const [view, setView] = useState<"normal" | "fast">("normal");
+  const r = selectedRestaurant;
+
+  return (
+    <div className="space-y-5">
+      <div className="inline-flex rounded-2xl bg-[var(--canvas-sub)] p-1 ring-1 ring-[var(--border)]">
+        {([
+          { id: "normal", label: "Normal Billing", icon: Receipt },
+          { id: "fast", label: "Fast Pay & Manual Pay", icon: Zap },
+        ] as const).map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            onClick={() => setView(id)}
+            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-bold transition-colors ${
+              view === id
+                ? "bg-[var(--canvas)] text-[var(--text-1)] shadow-sm"
+                : "text-[var(--text-3)] hover:text-[var(--text-2)]"
+            }`}
+          >
+            <Icon className={`h-4 w-4 ${view === id ? "text-[var(--accent)]" : ""}`} />
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {view === "normal" ? (
+        <LiveBilling {...props} />
+      ) : (
+        <ManualBillingTab
+          restaurantId={props.restaurantId}
+          currency={r?.currency ?? props.currency ?? "NPR"}
+          restaurantName={r?.name ?? ""}
+          restaurantAddress={r?.address ?? ""}
+          restaurantPhone={r?.phone ?? ""}
+          taxRate={r?.taxRate ?? 13}
+          taxEnabled={r?.taxEnabled ?? true}
+          counterWidth={r?.printCounterWidth ?? 80}
+          kitchenWidth={r?.printKitchenWidth ?? 80}
+        />
+      )}
+    </div>
   );
 }
