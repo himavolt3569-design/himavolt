@@ -743,7 +743,7 @@ function AddEditModal({
                     onClick={() => setIsDrink(!isDrink)}
                     className={`relative h-6 w-11 rounded-full transition-colors ${isDrink ? "bg-purple-500" : "bg-[var(--border)]"}`}
                   >
-                    <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-[var(--canvas)] shadow transition-all ${isDrink ? "left-[calc(100%-1.375rem)]" : "left-0.5"}`} />
+                    <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${isDrink ? "left-[calc(100%-1.375rem)]" : "left-0.5"}`} />
                   </button>
                 </div>
 
@@ -775,7 +775,7 @@ function AddEditModal({
                     onClick={() => setShowOnMenu(!showOnMenu)}
                     className={`relative h-6 w-11 rounded-full transition-colors ${showOnMenu ? "bg-[var(--accent)]" : "bg-[var(--border)]"}`}
                   >
-                    <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-[var(--canvas)] shadow transition-all ${showOnMenu ? "left-[calc(100%-1.375rem)]" : "left-0.5"}`} />
+                    <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${showOnMenu ? "left-[calc(100%-1.375rem)]" : "left-0.5"}`} />
                   </button>
                 </div>
 

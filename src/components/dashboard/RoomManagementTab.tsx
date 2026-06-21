@@ -980,7 +980,7 @@ function RoomFormModal({
                   }`}
                 >
                   <span
-                    className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-[var(--canvas)] shadow-lg transform transition duration-200 ease-in-out ${
+                    className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-lg transform transition duration-200 ease-in-out ${
                       form.isAvailable ? "translate-x-5" : "translate-x-0"
                     }`}
                   />

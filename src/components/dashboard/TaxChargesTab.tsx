@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { Loader2, Save, Receipt, Percent, Coins } from "lucide-react";
 import { CURRENCIES, formatPrice, type CurrencyCode } from "@/lib/currency";
+import Toggle from "@/components/ui/Toggle";
 
 interface TaxConfig {
   currency: string;
@@ -120,20 +121,11 @@ export default function TaxChargesTab() {
               Applied to all orders at checkout
             </p>
           </div>
-          <button
-            onClick={() =>
-              setConfig((c) => ({ ...c, taxEnabled: !c.taxEnabled }))
-            }
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-              config.taxEnabled ? "bg-[var(--text-1)]" : "bg-[var(--border)]"
-            }`}
-          >
-            <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-[var(--canvas)] shadow transition-transform ${
-                config.taxEnabled ? "translate-x-6" : "translate-x-1"
-              }`}
-            />
-          </button>
+          <Toggle
+            checked={config.taxEnabled}
+            onChange={(v) => setConfig((c) => ({ ...c, taxEnabled: v }))}
+            label="Toggle tax"
+          />
         </div>
         {config.taxEnabled && (
           <div className="flex items-center gap-3">
@@ -184,23 +176,11 @@ export default function TaxChargesTab() {
               Added to the bill at billing time
             </p>
           </div>
-          <button
-            onClick={() =>
-              setConfig((c) => ({
-                ...c,
-                serviceChargeEnabled: !c.serviceChargeEnabled,
-              }))
-            }
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-              config.serviceChargeEnabled ? "bg-[var(--text-1)]" : "bg-[var(--border)]"
-            }`}
-          >
-            <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-[var(--canvas)] shadow transition-transform ${
-                config.serviceChargeEnabled ? "translate-x-6" : "translate-x-1"
-              }`}
-            />
-          </button>
+          <Toggle
+            checked={config.serviceChargeEnabled}
+            onChange={(v) => setConfig((c) => ({ ...c, serviceChargeEnabled: v }))}
+            label="Toggle service charge"
+          />
         </div>
         {config.serviceChargeEnabled && (
           <div className="flex items-center gap-3">
