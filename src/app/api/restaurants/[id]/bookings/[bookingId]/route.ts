@@ -88,6 +88,18 @@ export async function PATCH(
     );
   }
 
+  // Allow-list the money/cancellation state fields (free-form String columns)
+  // so they can't be set to arbitrary values the UI doesn't model.
+  if (paymentStatus !== undefined && !["UNPAID", "PAID", "FAILED"].includes(paymentStatus)) {
+    return NextResponse.json({ error: "Invalid paymentStatus" }, { status: 400 });
+  }
+  if (refundStatus !== undefined && !["NONE", "REQUESTED", "REFUNDED"].includes(refundStatus)) {
+    return NextResponse.json({ error: "Invalid refundStatus" }, { status: 400 });
+  }
+  if (cancelledBy !== undefined && !["CUSTOMER", "HOTEL", "SYSTEM"].includes(cancelledBy)) {
+    return NextResponse.json({ error: "Invalid cancelledBy" }, { status: 400 });
+  }
+
   // When checking in, mark the room as unavailable; when checking out or cancelling, mark available
   if (status === "CHECKED_IN") {
     await db.room.update({

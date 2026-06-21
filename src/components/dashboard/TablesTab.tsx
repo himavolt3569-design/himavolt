@@ -250,15 +250,16 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
   }, [load]);
 
   const handleAdd = async () => {
-    if (!rid) {
-      showToast("Restaurant not loaded — please refresh", "error");
+    if (!rid || addSaving) {
+      if (!rid) showToast("Restaurant not loaded — please refresh", "error");
       return;
     }
+    setAddSaving(true);
     const label = addLabel.trim() || null;
     const capacity = parseInt(addCap) || 4;
     // Optimistic: show the new table instantly and close the modal; reconcile
     // (real id + auto-assigned number) in the background.
-    const tempId = `temp-${Date.now()}`;
+    const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2)}`;
     const nextNo = tables.reduce((m, t) => Math.max(m, t.tableNo), 0) + 1;
     setTables((prev) => [
       ...prev,
@@ -284,6 +285,8 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
     } catch {
       setTables((prev) => prev.filter((t) => t.id !== tempId)); // rollback
       showToast("Failed to create table", "error");
+    } finally {
+      setAddSaving(false);
     }
   };
 

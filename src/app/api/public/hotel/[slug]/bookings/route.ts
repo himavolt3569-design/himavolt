@@ -33,7 +33,13 @@ const bookingSchema = z.object({
     .optional()
     .nullable(),
   guestIdNumber: z.string().trim().max(50).optional().nullable(),
-  guestIdImageUrl: z.string().url().max(500).optional().nullable(),
+  guestIdImageUrl: z
+    .string()
+    .url()
+    .max(500)
+    .refine((v) => v.startsWith("https://"), "ID image URL must be https")
+    .optional()
+    .nullable(),
   adults: z.number().int().min(1).max(20).default(1),
   children: z.number().int().min(0).max(20).default(0),
   checkIn: z.string().regex(dateRe, "checkIn must be YYYY-MM-DD"),
