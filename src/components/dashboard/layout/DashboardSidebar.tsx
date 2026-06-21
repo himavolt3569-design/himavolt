@@ -198,87 +198,53 @@ function RestaurantSwitcher({
   );
 }
 
-function NavSection({
-  label,
-  items,
+// Flat sidebar item — Restrox-style simple list (no collapsible group headers).
+function NavItem({
+  item,
   active,
   newOrderCount,
   onClose,
-  defaultOpen = true,
 }: {
-  label: string;
-  items: typeof NAV_MAIN;
+  item: (typeof NAV_MAIN)[number];
   active: string;
   newOrderCount: number;
   onClose?: () => void;
-  defaultOpen?: boolean;
 }) {
-  const hasActive = items.some((i) => i.id === active || (active === "" && i.id === "overview"));
-  const [open, setOpen] = useState(defaultOpen || hasActive);
+  const Icon = item.icon;
+  const isActive =
+    active === item.id ||
+    ((active === "" || active === "dashboard") && item.id === "overview");
+  const href = item.id === "overview" ? "/dashboard" : `/dashboard/${item.id}`;
 
   return (
-    <div className="mb-2">
-      <button
-        onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center justify-between px-3 mb-1 py-1 rounded-lg hover:bg-[var(--canvas-sub)] transition-colors group"
-      >
-        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--text-2)] group-hover:text-[var(--text-2)]">
-          {label}
-        </p>
-        <ChevronDown className={`h-3 w-3 text-[var(--text-3)] transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
-      </button>
-      <AnimatePresence initial={false}>
-        {open && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="overflow-hidden"
-          >
-            <div className="space-y-0.5">
-              {items.map((item) => {
-                const Icon = item.icon;
-                const isActive = active === item.id || (active === "" && item.id === "overview");
-                const href = item.id === "overview" ? "/dashboard" : `/dashboard/${item.id}`;
+    <Link
+      href={href}
+      prefetch={false}
+      onClick={() => onClose?.()}
+      onMouseEnter={() => preloadTab(item.id)}
+      onFocus={() => preloadTab(item.id)}
+      className={`group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-semibold transition-colors cursor-pointer ${
+        isActive
+          ? "bg-[var(--accent-muted)] text-[var(--accent-text)] border-l-2 border-[var(--accent)]"
+          : "text-[var(--text-2)] hover:bg-[var(--surface)] hover:text-[var(--text-1)]"
+      }`}
+    >
+      <Icon
+        className={`h-4 w-4 shrink-0 transition-colors ${isActive ? "text-[var(--accent)]" : "text-[var(--text-3)] group-hover:text-[var(--accent)]"}`}
+      />
+      <span className="flex-1 text-left tracking-wide">{item.label}</span>
 
-                return (
-                  <Link
-                    key={item.id}
-                    href={href}
-                    prefetch={false}
-                    onClick={() => onClose?.()}
-                    onMouseEnter={() => preloadTab(item.id)}
-                    onFocus={() => preloadTab(item.id)}
-                    className={`group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-semibold transition-colors cursor-pointer ${
-                      isActive
-                        ? "bg-[var(--accent-muted)] text-[var(--accent-text)] border-l-2 border-[var(--accent)]"
-                        : "text-[var(--text-2)] hover:bg-[var(--surface)] hover:text-[var(--text-1)]"
-                    }`}
-                  >
-                    <Icon
-                      className={`h-4 w-4 shrink-0 transition-colors ${isActive ? "text-[var(--accent)]" : "text-[var(--text-3)] group-hover:text-[var(--accent)]"}`}
-                    />
-                    <span className="flex-1 text-left tracking-wide">{item.label}</span>
-
-                    {item.badge === "live" && newOrderCount > 0 && (
-                      <span className="flex h-5 min-w-5 items-center justify-center rounded-md bg-[var(--accent-muted)] px-1.5 text-[10px] font-bold text-[var(--accent-text)] ring-1 ring-[var(--accent-border)]">
-                        {newOrderCount}
-                      </span>
-                    )}
-                    {item.badge === "live" && newOrderCount === 0 && (
-                      <span className="relative flex h-2 w-2">
-                        <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--accent)]" />
-                      </span>
-                    )}
-                  </Link>
-                );
-              })}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+      {item.badge === "live" && newOrderCount > 0 && (
+        <span className="flex h-5 min-w-5 items-center justify-center rounded-md bg-[var(--accent-muted)] px-1.5 text-[10px] font-bold text-[var(--accent-text)] ring-1 ring-[var(--accent-border)]">
+          {newOrderCount}
+        </span>
+      )}
+      {item.badge === "live" && newOrderCount === 0 && (
+        <span className="relative flex h-2 w-2">
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--accent)]" />
+        </span>
+      )}
+    </Link>
   );
 }
 
@@ -368,8 +334,6 @@ export default function DashboardSidebar({
         : false,
     [restaurantType, featuresEnabled, featuresDisabled],
   );
-
-  const typeLabel = restaurantType ? getTypeLabel(restaurantType) : "";
 
   if (isCollapsed) {
     return (
@@ -469,62 +433,23 @@ export default function DashboardSidebar({
         }}
       />
 
-      <nav className="flex-1 overflow-y-auto px-3 pb-2 scrollbar-slim">
-        <NavSection
-          label="Main"
-          items={NAV_MAIN}
-          active={active}
-          newOrderCount={newOrderCount}
-          onClose={onClose}
-          defaultOpen={true}
-        />
-
-        {showHotelHub && (
-          <NavSection
-            label="Hotel"
-            items={[HOTEL_HUB_NAV_ITEM]}
+      <nav className="flex-1 overflow-y-auto px-3 pb-2 scrollbar-slim space-y-0.5">
+        {[
+          ...NAV_MAIN,
+          ...(showHotelHub ? [HOTEL_HUB_NAV_ITEM] : []),
+          ...featureNavItems,
+          ...NAV_CATALOG,
+          ...NAV_PEOPLE,
+          ...NAV_MORE,
+        ].map((item) => (
+          <NavItem
+            key={item.id}
+            item={item}
             active={active}
             newOrderCount={newOrderCount}
             onClose={onClose}
-            defaultOpen={true}
           />
-        )}
-
-        {featureNavItems.length > 0 && (
-          <NavSection
-            label={`${typeLabel} Features`}
-            items={featureNavItems}
-            active={active}
-            newOrderCount={newOrderCount}
-            onClose={onClose}
-            defaultOpen={false}
-          />
-        )}
-
-        <NavSection
-          label="Catalog"
-          items={NAV_CATALOG}
-          active={active}
-          newOrderCount={newOrderCount}
-          onClose={onClose}
-          defaultOpen={false}
-        />
-        <NavSection
-          label="Team"
-          items={NAV_PEOPLE}
-          active={active}
-          newOrderCount={newOrderCount}
-          onClose={onClose}
-          defaultOpen={false}
-        />
-        <NavSection
-          label="More"
-          items={NAV_MORE}
-          active={active}
-          newOrderCount={newOrderCount}
-          onClose={onClose}
-          defaultOpen={false}
-        />
+        ))}
       </nav>
 
       <div className="pb-4" />

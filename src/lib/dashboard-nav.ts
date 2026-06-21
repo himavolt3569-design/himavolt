@@ -9,7 +9,6 @@ import {
   Settings,
   Tag,
   Package,
-  Camera,
   Zap,
   Layers,
   Timer,
@@ -78,7 +77,7 @@ export const NAV_MAIN: {
   icon: any;
   badge?: string;
 }[] = [
-  { id: "overview", label: "Overview", icon: LayoutDashboard },
+  { id: "overview", label: "Dashboard", icon: LayoutDashboard },
   { id: "orders", label: "Live Orders", icon: ClipboardList, badge: "live" },
   { id: "billing", label: "Billing", icon: Receipt },
   { id: "manual-billing", label: "Fast Billing", icon: Receipt },
@@ -115,7 +114,6 @@ export const NAV_CATALOG: typeof NAV_MAIN = [
   { id: "offers", label: "Offers", icon: Tag },
   { id: "coupons", label: "Coupons", icon: Tag },
   { id: "drinks", label: "Drinks", icon: Package },
-  { id: "qr", label: "QR Codes", icon: QrCode },
 ];
 
 // Team management.
@@ -130,7 +128,6 @@ export const NAV_PEOPLE: typeof NAV_MAIN = [
 export const NAV_MORE: typeof NAV_MAIN = [
   { id: "reports", label: "Reports", icon: BarChart3 },
   { id: "feedback", label: "Feedback", icon: Star },
-  { id: "stories", label: "Stories", icon: Camera },
   { id: "settings", label: "Settings", icon: Settings },
 ];
 
