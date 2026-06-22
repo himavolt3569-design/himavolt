@@ -87,7 +87,7 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
   return (
     <>
       <nav
-        className={`sticky top-0 z-50 w-full bg-white transition-all duration-300 ${
+        className={`sticky top-0 z-50 w-full bg-white transition-all duration-300 font-poppins ${
           scrolled 
             ? "bg-white/90 backdrop-blur-xl border-b border-slate-200 shadow-sm" 
             : "border-b border-transparent"
@@ -105,7 +105,7 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
             >
               <Mountain className="h-5 w-5" strokeWidth={2.5} />
             </motion.div>
-            <span className={`text-xl font-black tracking-tighter text-slate-900 transition-all duration-300 ${scrolled ? 'hidden sm:block opacity-100' : 'block opacity-100'}`}>
+            <span className={`text-xl font-black tracking-tighter text-slate-900 transition-all duration-300 font-serif ${scrolled ? 'hidden sm:block opacity-100' : 'block opacity-100'}`}>
               Hima<span className="text-[var(--accent)]">Volt</span>
             </span>
           </Link>
@@ -209,7 +209,7 @@ export default function Navbar({ onCartClick }: { onCartClick: () => void }) {
                             </Link>
                             
                             {userRole === "OWNER" && (
-                              <Link href="/manage-restaurants" className="flex items-center gap-3 px-4 py-3 text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-2xl transition-colors">
+                              <Link href="/dashboard" className="flex items-center gap-3 px-4 py-3 text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-2xl transition-colors">
                                 <Building2 className="h-4 w-4 opacity-30" /> My Restaurants
                               </Link>
                             )}

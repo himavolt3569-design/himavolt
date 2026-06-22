@@ -379,7 +379,7 @@ function PaymentSection({
         >
           <motion.div
             layout
-            className="absolute top-0.5 h-6 w-6 rounded-full bg-[var(--canvas)] shadow"
+            className="absolute top-0.5 h-6 w-6 rounded-full bg-white shadow"
             style={{ left: enabled ? "calc(100% - 1.625rem)" : "0.125rem" }}
           />
         </button>

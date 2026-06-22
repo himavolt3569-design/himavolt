@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   CheckCircle,
+  Check,
   Clock,
   XCircle,
   BedDouble,
@@ -15,9 +16,15 @@ import {
   Loader2,
   CreditCard,
   ArrowLeft,
+  ArrowRight,
+  Upload,
+  Ban,
+  LogIn,
+  LogOut,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
+import { uploadFile } from "@/lib/upload";
 
 interface BookingDetail {
   id: string;
@@ -36,6 +43,11 @@ interface BookingDetail {
   adults: number;
   children: number;
   notes: string | null;
+  receiptUrl: string | null;
+  cancelReason: string | null;
+  cancelRequestedAt: string | null;
+  cancelledBy: string | null;
+  refundStatus: string | null;
   room: {
     roomNumber: string;
     name: string | null;
@@ -102,6 +114,121 @@ const STATUS_CONFIG: Record<
   },
 };
 
+const PROGRESS_STEPS = ["Booked", "Confirmed", "Checked in", "Checked out"];
+const STATUS_TO_STEP: Record<string, number> = {
+  PENDING: 0,
+  CONFIRMED: 1,
+  CHECKED_IN: 2,
+  CHECKED_OUT: 3,
+};
+
+/** Airbnb-style horizontal progress so the guest always sees where their stay is. */
+function BookingProgress({ status }: { status: string }) {
+  if (status === "CANCELLED") return null;
+  const current = STATUS_TO_STEP[status] ?? 0;
+  return (
+    <div className="rounded-3xl bg-[var(--canvas)] ring-1 ring-[var(--border)] p-5 shadow-sm">
+      <div className="flex items-start">
+        {PROGRESS_STEPS.map((label, i) => {
+          const done = i <= current;
+          return (
+            <div key={label} className="flex flex-1 items-start last:flex-none">
+              <div className="flex flex-col items-center gap-1.5 w-12">
+                <div
+                  className={`flex h-8 w-8 items-center justify-center rounded-full text-[12px] font-bold transition-colors ${
+                    done
+                      ? "bg-[var(--accent)] text-white"
+                      : "bg-[var(--canvas-sub)] text-[var(--text-3)] ring-1 ring-[var(--border)]"
+                  }`}
+                >
+                  {done ? <Check className="h-4 w-4" /> : i + 1}
+                </div>
+                <span
+                  className={`text-[10px] font-semibold text-center leading-tight ${
+                    done ? "text-[var(--text-1)]" : "text-[var(--text-3)]"
+                  }`}
+                >
+                  {label}
+                </span>
+              </div>
+              {i < PROGRESS_STEPS.length - 1 && (
+                <div
+                  className={`h-0.5 flex-1 mt-4 rounded-full ${
+                    i < current ? "bg-[var(--accent)]" : "bg-[var(--border)]"
+                  }`}
+                />
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/** Prominent check-in / check-out hero — the clearest possible "when" for the guest. */
+function StayDates({
+  checkIn,
+  checkOut,
+  nights,
+}: {
+  checkIn: string;
+  checkOut: string;
+  nights: number;
+}) {
+  const fmt = (d: string) => {
+    const date = new Date(d);
+    return {
+      weekday: date.toLocaleDateString("en-GB", { weekday: "short" }),
+      date: date.toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      }),
+    };
+  };
+  const ci = fmt(checkIn);
+  const co = fmt(checkOut);
+  return (
+    <div className="rounded-3xl bg-[var(--canvas)] ring-1 ring-[var(--border)] p-5 shadow-sm">
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+        <div>
+          <div className="flex items-center gap-1.5 text-[var(--accent-text)] mb-1">
+            <LogIn className="h-3.5 w-3.5" />
+            <span className="text-[10px] font-bold uppercase tracking-wider">
+              Check-in
+            </span>
+          </div>
+          <p className="text-[18px] font-extrabold leading-none text-[var(--text-1)]">
+            {ci.weekday}
+          </p>
+          <p className="text-[12px] text-[var(--text-2)] mt-0.5">{ci.date}</p>
+        </div>
+
+        <div className="flex flex-col items-center px-1">
+          <span className="rounded-full bg-[var(--accent-muted)] px-2.5 py-0.5 text-[10px] font-bold text-[var(--accent-text)] whitespace-nowrap">
+            {nights} night{nights > 1 ? "s" : ""}
+          </span>
+          <ArrowRight className="mt-1 h-4 w-4 text-[var(--text-3)]" />
+        </div>
+
+        <div className="text-right">
+          <div className="flex items-center justify-end gap-1.5 text-[var(--accent-text)] mb-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider">
+              Check-out
+            </span>
+            <LogOut className="h-3.5 w-3.5" />
+          </div>
+          <p className="text-[18px] font-extrabold leading-none text-[var(--text-1)]">
+            {co.weekday}
+          </p>
+          <p className="text-[12px] text-[var(--text-2)] mt-0.5">{co.date}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function BookingConfirmationPage() {
   const { bookingId } = useParams<{ bookingId: string }>();
   const searchParams = useSearchParams();
@@ -109,21 +236,88 @@ export default function BookingConfirmationPage() {
 
   const [booking, setBooking] = useState<BookingDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [uploadingReceipt, setUploadingReceipt] = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+  const [cancelling, setCancelling] = useState(false);
+  const [actionMsg, setActionMsg] = useState("");
+  const receiptInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    fetch(`/api/public/hotel/booking/${bookingId}`)
-      .then((r) => r.json())
-      .then((d) => {
-        setBooking(d.booking ?? null);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+  const loadBooking = useCallback(async () => {
+    try {
+      const r = await fetch(`/api/public/hotel/booking/${bookingId}`);
+      const d = await r.json();
+      setBooking(d.booking ?? null);
+    } finally {
+      setLoading(false);
+    }
   }, [bookingId]);
 
+  useEffect(() => {
+    loadBooking();
+  }, [loadBooking]);
+
+  const handleReceiptUpload = async (file: File | null) => {
+    if (!file || uploadingReceipt) return;
+    setUploadingReceipt(true);
+    setActionMsg("");
+    try {
+      const url = await uploadFile(file, "booking-receipts");
+      const res = await fetch(`/api/public/hotel/booking/${bookingId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "receipt", receiptUrl: url }),
+      });
+      if (!res.ok) {
+        const e = await res.json().catch(() => ({}));
+        throw new Error(e.error || "Could not save receipt.");
+      }
+      await loadBooking();
+      setActionMsg("Receipt uploaded — the hotel will verify your payment shortly.");
+    } catch {
+      setActionMsg("Could not upload receipt. Please try again.");
+    } finally {
+      setUploadingReceipt(false);
+      if (receiptInputRef.current) receiptInputRef.current.value = "";
+    }
+  };
+
+  const handleCancelRequest = async () => {
+    if (!cancelReason.trim() || cancelling) return;
+    setCancelling(true);
+    setActionMsg("");
+    try {
+      const res = await fetch(`/api/public/hotel/booking/${bookingId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "cancel-request", reason: cancelReason.trim() }),
+      });
+      if (!res.ok) {
+        const e = await res.json().catch(() => ({}));
+        throw new Error(e.error || "Failed");
+      }
+      await loadBooking();
+      setCancelOpen(false);
+      setCancelReason("");
+      setActionMsg("Cancellation requested — the hotel will review and respond.");
+    } catch (err) {
+      setActionMsg(err instanceof Error ? err.message : "Could not request cancellation.");
+    } finally {
+      setCancelling(false);
+    }
+  };
+
   if (loading) {
+    // No spinner/blank flash — paint the calm branded shell instantly while the
+    // booking loads in the background.
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50">
-        <Loader2 className="h-6 w-6 animate-spin text-[var(--accent)]" />
+      <div className="min-h-screen bg-[var(--canvas)] flex flex-col items-center justify-center gap-3">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--accent)] shadow-lg shadow-[var(--accent)]/30">
+          <Mountain className="h-6 w-6 text-white" strokeWidth={2.5} />
+        </div>
+        <span className="text-[15px] font-bold text-[var(--text-1)]">
+          Hima<span className="text-[var(--accent)]">Volt</span>
+        </span>
       </div>
     );
   }
@@ -196,6 +390,14 @@ export default function BookingConfirmationPage() {
           <p className="mt-1 text-[11px] text-[var(--text-2)]">Booking #{bookingId.slice(-8).toUpperCase()}</p>
         </div>
 
+        <BookingProgress status={booking.status} />
+
+        <StayDates
+          checkIn={booking.checkIn}
+          checkOut={booking.checkOut}
+          nights={booking.nights}
+        />
+
         <div className="rounded-2xl bg-[var(--canvas)] ring-1 ring-[var(--border)] overflow-hidden shadow-sm">
           {booking.room.imageUrls[0] && (
             <img src={booking.room.imageUrls[0]} alt="Room" className="h-36 w-full object-cover sm:h-44" />
@@ -212,8 +414,6 @@ export default function BookingConfirmationPage() {
 
             <div className="grid grid-cols-2 gap-3">
               {[
-                { icon: Calendar, label: "Check-in", value: new Date(booking.checkIn).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) },
-                { icon: Calendar, label: "Check-out", value: new Date(booking.checkOut).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) },
                 { icon: BedDouble, label: "Bed", value: booking.room.bedType ? `${booking.room.bedCount}x ${booking.room.bedType}` : `Floor ${booking.room.floor}` },
                 { icon: Users, label: "Guests", value: `${booking.adults} adults${booking.children > 0 ? `, ${booking.children} children` : ""}` },
               ].map(({ icon: Icon, label, value }) => (
@@ -265,6 +465,90 @@ export default function BookingConfirmationPage() {
           <div className="rounded-2xl bg-blue-50 ring-1 ring-blue-100 p-4">
             <p className="text-[11px] font-semibold text-blue-600 mb-1">Special Requests</p>
             <p className="text-[12px] text-blue-800">{booking.notes}</p>
+          </div>
+        )}
+
+        {actionMsg && (
+          <div className="rounded-2xl bg-[var(--accent-muted)] ring-1 ring-[var(--accent)]/30 p-3 text-[12px] font-medium text-[var(--accent-text)]">
+            {actionMsg}
+          </div>
+        )}
+
+        {/* Payment receipt — send proof so the hotel can confirm your payment */}
+        {!booking.advancePaid && booking.status !== "CANCELLED" && (
+          <div className="rounded-2xl bg-[var(--canvas)] ring-1 ring-[var(--border)] p-5 shadow-sm space-y-3">
+            <div>
+              <h4 className="text-[13px] font-bold text-[var(--text-1)]">Payment receipt</h4>
+              <p className="text-[11px] text-[var(--text-2)] mt-0.5">
+                Paid by QR, eSewa or Khalti? Upload your receipt so the hotel can verify and confirm your booking.
+              </p>
+            </div>
+            {booking.receiptUrl && (
+              <a href={booking.receiptUrl} target="_blank" rel="noopener noreferrer">
+                <img src={booking.receiptUrl} alt="Receipt" className="max-h-40 w-full rounded-xl object-contain ring-1 ring-[var(--border)] bg-[var(--canvas-sub)]" />
+              </a>
+            )}
+            <button
+              onClick={() => receiptInputRef.current?.click()}
+              disabled={uploadingReceipt}
+              className="flex items-center justify-center gap-2 w-full rounded-xl bg-[var(--accent)] py-2.5 text-[13px] font-bold text-white hover:bg-[var(--accent-hover)] transition-colors disabled:opacity-50"
+            >
+              {uploadingReceipt ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+              {booking.receiptUrl ? "Replace receipt" : "Upload receipt"}
+            </button>
+            <input
+              ref={receiptInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => handleReceiptUpload(e.target.files?.[0] ?? null)}
+            />
+          </div>
+        )}
+
+        {/* Cancellation — request with a reason; the hotel reviews and accepts */}
+        {["PENDING", "CONFIRMED"].includes(booking.status) && (
+          <div className="rounded-2xl bg-[var(--canvas)] ring-1 ring-[var(--border)] p-5 shadow-sm">
+            {booking.cancelReason && booking.cancelledBy === "CUSTOMER" ? (
+              <p className="text-[12px] text-[var(--text-2)]">
+                <span className="font-bold text-[var(--text-1)]">Cancellation requested.</span> The hotel will review your request and respond.
+              </p>
+            ) : !cancelOpen ? (
+              <button
+                onClick={() => setCancelOpen(true)}
+                className="flex items-center gap-2 text-[13px] font-semibold text-rose-600 hover:text-rose-700 transition-colors"
+              >
+                <Ban className="h-4 w-4" />
+                Request cancellation
+              </button>
+            ) : (
+              <div className="space-y-2.5">
+                <p className="text-[13px] font-bold text-[var(--text-1)]">Request cancellation</p>
+                <textarea
+                  value={cancelReason}
+                  onChange={(e) => setCancelReason(e.target.value)}
+                  placeholder="Please tell the hotel why you need to cancel…"
+                  rows={3}
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-3.5 py-2.5 text-[13px] text-[var(--text-1)] outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15 resize-none"
+                />
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleCancelRequest}
+                    disabled={!cancelReason.trim() || cancelling}
+                    className="flex items-center gap-1.5 rounded-xl bg-rose-600 px-4 py-2 text-[12px] font-bold text-white hover:bg-rose-700 transition-colors disabled:opacity-50"
+                  >
+                    {cancelling ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+                    Submit request
+                  </button>
+                  <button
+                    onClick={() => { setCancelOpen(false); setCancelReason(""); }}
+                    className="rounded-xl px-4 py-2 text-[12px] font-semibold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors"
+                  >
+                    Never mind
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </main>

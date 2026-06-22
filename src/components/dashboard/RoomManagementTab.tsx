@@ -22,8 +22,8 @@ import {
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { formatPrice } from "@/lib/currency";
-import { SkeletonLine, SkeletonGrid } from "@/components/shared/Skeleton";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, peekApiCache } from "@/lib/api-client";
+import { useToast } from "@/context/ToastContext";
 import { uploadFile } from "@/lib/upload";
 import QRCode from "react-qr-code";
 
@@ -47,6 +47,8 @@ interface Room {
   maxGuests: number;
   description: string | null;
   amenities: string[];
+  offerings: string[];
+  locationNote: string | null;
   imageUrls: string[];
   videoUrl: string | null;
   bedType: string | null;
@@ -122,6 +124,8 @@ const BLANK_ROOM = {
   maxGuests: 2,
   description: "",
   amenities: [] as string[],
+  offerings: [] as string[],
+  locationNote: "",
   imageUrls: [] as string[],
   videoUrl: "",
   bedType: "",
@@ -149,18 +153,7 @@ export default function RoomManagementTab() {
   const restaurant = selectedRestaurant ?? restaurants[0];
   const [activeTab, setActiveTab] = useState<"rooms" | "bookings">("rooms");
 
-  if (!restaurant) {
-    return (
-      <div className="space-y-6 max-w-5xl mx-auto pb-12">
-        <div className="space-y-2">
-          <SkeletonLine width="w-56" height="h-7" />
-          <SkeletonLine width="w-72" height="h-3" />
-        </div>
-        <SkeletonLine width="w-48" height="h-9" />
-        <SkeletonGrid rows={2} cols={3} cardClass="h-56 rounded-2xl" />
-      </div>
-    );
-  }
+  if (!restaurant) return null;
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-12">
@@ -215,8 +208,11 @@ export default function RoomManagementTab() {
 /*  Rooms View                                                         */
 
 function RoomsView({ restaurantId, currency, slug, hotelName }: { restaurantId: string; currency: string; slug: string; hotelName: string }) {
-  const [rooms, setRooms] = useState<Room[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { showToast } = useToast();
+  const roomsPath = `/api/restaurants/${restaurantId}/rooms`;
+  // Seed from the in-memory API cache so the rooms grid paints instantly.
+  const [rooms, setRooms] = useState<Room[]>(() => peekApiCache<Room[]>(roomsPath) ?? []);
+  const [loading, setLoading] = useState(() => !peekApiCache(roomsPath));
   const [showForm, setShowForm] = useState(false);
   const [editingRoom, setEditingRoom] = useState<Room | null>(null);
   const [form, setForm] = useState(BLANK_ROOM);
@@ -258,6 +254,8 @@ function RoomsView({ restaurantId, currency, slug, hotelName }: { restaurantId: 
       maxGuests: room.maxGuests,
       description: room.description ?? "",
       amenities: room.amenities ?? [],
+      offerings: room.offerings ?? [],
+      locationNote: room.locationNote ?? "",
       imageUrls: room.imageUrls ?? [],
       videoUrl: room.videoUrl ?? "",
       bedType: room.bedType ?? "",
@@ -292,6 +290,8 @@ function RoomsView({ restaurantId, currency, slug, hotelName }: { restaurantId: 
       maxGuests: form.maxGuests,
       description: form.description.trim() || null,
       amenities: form.amenities.map((a) => a.trim()).filter(Boolean),
+      offerings: form.offerings.map((o) => o.trim()).filter(Boolean),
+      locationNote: form.locationNote.trim() || null,
       imageUrls: form.imageUrls,
       videoUrl: form.videoUrl.trim() || null,
       bedType: form.bedType.trim() || null,
@@ -299,39 +299,63 @@ function RoomsView({ restaurantId, currency, slug, hotelName }: { restaurantId: 
       isAvailable: form.isAvailable,
     };
 
-    try {
-      if (editingRoom) {
+    if (editingRoom) {
+      // Optimistic edit: swap in place immediately, reconcile in background.
+      const id = editingRoom.id;
+      const snapshot = rooms;
+      setRooms((prev) => prev.map((r) => (r.id === id ? ({ ...r, ...payload } as Room) : r)));
+      closeForm();
+      try {
         const updated = await apiFetch<Room>(
-          `/api/restaurants/${restaurantId}/rooms/${editingRoom.id}`,
+          `/api/restaurants/${restaurantId}/rooms/${id}`,
           { method: "PATCH", body: payload },
         );
-        // Instant: swap the updated room in place, no refetch round-trip.
-        setRooms((prev) => prev.map((r) => (r.id === updated.id ? { ...r, ...updated } : r)));
-      } else {
-        const created = await apiFetch<Room>(
-          `/api/restaurants/${restaurantId}/rooms`,
-          { method: "POST", body: payload },
-        );
-        // Instant: prepend the new room (with its unique QR ready) immediately.
-        setRooms((prev) => [created, ...prev]);
+        setRooms((prev) => prev.map((r) => (r.id === id ? { ...r, ...updated } : r)));
+      } catch (err) {
+        setRooms(snapshot); // rollback
+        showToast(err instanceof Error ? err.message : "Failed to update room", "error");
+      } finally {
+        setSaving(false);
       }
-      closeForm();
+      return;
+    }
+
+    // Optimistic create: show the room instantly with a temp id, then swap in
+    // the real one (with its server-generated QR) when the POST returns.
+    const tempId = `temp-${Date.now()}`;
+    const tempRoom = {
+      ...payload,
+      id: tempId,
+      qrUrl: null,
+      createdAt: new Date().toISOString(),
+    } as unknown as Room;
+    setRooms((prev) => [tempRoom, ...prev]);
+    closeForm();
+    try {
+      const created = await apiFetch<Room>(
+        `/api/restaurants/${restaurantId}/rooms`,
+        { method: "POST", body: payload },
+      );
+      setRooms((prev) => prev.map((r) => (r.id === tempId ? created : r)));
     } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : "Failed to save room");
+      setRooms((prev) => prev.filter((r) => r.id !== tempId)); // rollback
+      showToast(err instanceof Error ? err.message : "Failed to create room", "error");
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = async (roomId: string) => {
+    const snapshot = rooms;
+    setRooms((prev) => prev.filter((r) => r.id !== roomId)); // optimistic
     setDeletingId(roomId);
     try {
       await apiFetch(`/api/restaurants/${restaurantId}/rooms/${roomId}`, {
         method: "DELETE",
       });
-      await fetchRooms();
     } catch {
-      // silent
+      setRooms(snapshot); // rollback
+      showToast("Failed to delete room", "error");
     } finally {
       setDeletingId(null);
     }
@@ -341,15 +365,6 @@ function RoomsView({ restaurantId, currency, slug, hotelName }: { restaurantId: 
   const totalRooms = rooms.length;
   const availableRooms = rooms.filter((r) => r.isAvailable).length;
   const occupiedRooms = totalRooms - availableRooms;
-
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20">
-        <Loader2 className="h-6 w-6 animate-spin text-[var(--accent)] mb-3" />
-        <p className="text-sm font-bold text-[var(--text-3)]">Loading rooms...</p>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-5">
@@ -783,6 +798,35 @@ function RoomFormModal({
                 />
               </div>
 
+              <div>
+                <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">Exact location</label>
+                <input
+                  type="text"
+                  value={form.locationNote}
+                  onChange={(e) => setForm((f) => ({ ...f, locationNote: e.target.value }))}
+                  placeholder="e.g. 3rd floor, sea-facing wing"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">
+                  Offerings <span className="font-normal text-[var(--text-3)]">(comma separated)</span>
+                </label>
+                <input
+                  type="text"
+                  value={form.offerings.join(", ")}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      offerings: e.target.value.split(",").map((o) => o.trimStart()),
+                    }))
+                  }
+                  placeholder="e.g. 2 BHK, Kitchen, Private balcony"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
+                />
+              </div>
+
               {/* Amenities — categorized quick-pick + custom add */}
               <div>
                 <div className="flex items-center justify-between mb-2">
@@ -943,7 +987,7 @@ function RoomFormModal({
                   }`}
                 >
                   <span
-                    className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-[var(--canvas)] shadow-lg transform transition duration-200 ease-in-out ${
+                    className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-lg transform transition duration-200 ease-in-out ${
                       form.isAvailable ? "translate-x-5" : "translate-x-0"
                     }`}
                   />

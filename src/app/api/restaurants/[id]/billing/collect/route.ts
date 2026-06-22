@@ -8,6 +8,7 @@ import { getAuthUser } from "@/lib/auth";
 import { touchOrderUpdatedAt } from "@/lib/order-sync";
 import { STAFF_BILLING_ROLES } from "@/lib/staff-roles";
 import { notifyKitchenNewOrder } from "@/lib/notifications";
+import { notifyOrderChanged } from "@/lib/realtime";
 
 async function verifyStaffAccess(req: NextRequest, restaurantId: string) {
   const staff = await requireStaffForRestaurant(req, restaurantId);
@@ -79,6 +80,10 @@ export async function POST(
 
     // Touch order so SSE streams detect the payment change
     await touchOrderUpdatedAt(orderId);
+
+    // Instant realtime push to the customer's track page + staff feeds, so the
+    // paid state reflects immediately instead of waiting for the SSE poll.
+    notifyOrderChanged(orderId, id, { payment: "COMPLETED" });
 
     // Auto-clear the table session so the next customer gets a fresh start.
     // Run separately so a missing endedAt column (schema drift) doesn't

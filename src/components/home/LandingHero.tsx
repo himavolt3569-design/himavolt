@@ -254,11 +254,11 @@ export default function LandingHero() {
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5 }}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-[var(--accent)]/20 to-[var(--accent)]/5 border border-[var(--accent)]/30 backdrop-blur-md mb-6 shadow-[0_4px_12px_rgba(0,0,0,0.05)]"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[var(--accent-muted)] border border-[var(--accent)]/30 backdrop-blur-md mb-6 shadow-[0_4px_12px_rgba(0,0,0,0.05)] animate-bouncy"
             >
               <Sparkles className="h-4 w-4 text-[var(--accent)]" />
-              <span className="text-xs font-black text-[var(--accent)] uppercase tracking-wider">
-                Nepal&apos;s Premium Food Destination
+              <span className="text-xs font-black text-[var(--accent-text)] uppercase tracking-widest font-syne">
+                Nepal&apos;s Tastiest Stay
               </span>
             </motion.div>
 
@@ -270,7 +270,7 @@ export default function LandingHero() {
                 delay: 0.08,
                 ease: [0.16, 1, 0.3, 1],
               }}
-              className="text-[clamp(2.75rem,10vw,4.5rem)] leading-[1.02] font-black tracking-tighter text-[var(--text-1)]"
+              className="text-[clamp(2.75rem,10vw,4.5rem)] leading-[1.02] font-black tracking-tighter text-[var(--text-1)] font-fraunces"
             >
               Scan. Order.
               <br />
@@ -279,17 +279,17 @@ export default function LandingHero() {
                   <AnimatePresence mode="wait">
                     <motion.span
                       key={ANIMATED_WORDS[wordIdx]}
-                      initial={{ y: 36, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      exit={{ y: -28, opacity: 0 }}
-                      transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
-                      className="inline-block text-transparent bg-clip-text bg-gradient-to-r from-[var(--accent)] to-orange-400"
+                      initial={{ y: 36, opacity: 0, scale: 0.9, rotate: -2 }}
+                      animate={{ y: 0, opacity: 1, scale: 1, rotate: 0 }}
+                      exit={{ y: -28, opacity: 0, scale: 0.9, rotate: 2 }}
+                      transition={{ type: "spring", damping: 12, stiffness: 200 }}
+                      className="inline-block text-[var(--accent)]"
                     >
                       {ANIMATED_WORDS[wordIdx]}.
                     </motion.span>
                   </AnimatePresence>
                 ) : (
-                  <span className="inline-block text-transparent bg-clip-text bg-gradient-to-r from-[var(--accent)] to-orange-400">
+                  <span className="inline-block text-[var(--accent)]">
                     {ANIMATED_WORDS[0]}.
                   </span>
                 )}
@@ -320,7 +320,7 @@ export default function LandingHero() {
                 <motion.button
                   whileHover={{ scale: 1.05, translateY: -2 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full sm:px-10 py-4.5 rounded-[2rem] bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] text-white font-black text-base shadow-2xl shadow-[var(--accent)]/40 flex items-center justify-center gap-2 hover:shadow-[var(--accent)]/50 transition-all group border border-white/10"
+                  className="w-full sm:px-10 py-4.5 rounded-[2rem] bg-[var(--accent)] text-white font-black text-base shadow-2xl shadow-[var(--accent)]/40 flex items-center justify-center gap-2 hover:bg-[var(--accent-hover)] transition-all group border border-white/10"
                 >
                   Order Now
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -384,15 +384,14 @@ export default function LandingHero() {
           >
             <div className="relative aspect-square max-w-[540px] ml-auto">
               {/* Main Circular Image */}
-              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[var(--accent)]/10 to-transparent" />
-              <div className="relative h-full w-full rounded-[4rem] overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] group">
+              <div className="absolute inset-0 rounded-full bg-[var(--accent)]/10 animate-orb-drift" />
+              <div className="relative h-full w-full rounded-[4rem] overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] group border-8 border-white">
                 <img
                   src="https://images.unsplash.com/photo-1547592180-85f173990554?w=800&h=800&fit=crop"
                   alt="Premium Food"
                   decoding="async"
                   className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
 
               {/* Decorative "Overlapping" Badges */}
@@ -400,7 +399,7 @@ export default function LandingHero() {
                 initial={{ x: 40, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: 0.8, duration: 0.6 }}
-                className="absolute -right-8 top-1/4 bg-white/90 backdrop-blur-xl p-4 rounded-3xl shadow-2xl border border-white/20"
+                className="absolute -right-8 top-1/4 bg-white/95 backdrop-blur-xl p-4 rounded-3xl shadow-2xl border border-white/20 animate-bouncy"
               >
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-10 rounded-full bg-green-500/10 flex items-center justify-center">
@@ -421,7 +420,7 @@ export default function LandingHero() {
                 initial={{ x: -40, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: 1, duration: 0.6 }}
-                className="absolute -left-12 bottom-1/4 bg-white/90 backdrop-blur-xl p-4 rounded-3xl shadow-2xl border border-white/20"
+                className="absolute -left-12 bottom-1/4 bg-white/95 backdrop-blur-xl p-4 rounded-3xl shadow-2xl border border-white/20 animate-bouncy [animation-delay:1s]"
               >
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-10 rounded-full bg-[var(--accent)]/10 flex items-center justify-center text-[var(--accent)]">

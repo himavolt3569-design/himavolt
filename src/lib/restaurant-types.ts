@@ -193,23 +193,13 @@ export const TYPE_FEATURE_TABS: Record<string, FeatureTabDef[]> = {
     { id: "display-counter", label: "Display Counter", desc: "Showcase items for walk-in customers", iconHint: "Monitor" },
     { id: "wifi-settings", label: "WiFi", desc: "Share WiFi credentials with customers", iconHint: "Wifi" },
   ],
+  // Hotel-type venues run everything through the consolidated Hotel Hub —
+  // rooms, bookings, guest check-in, QR codes and the room-service add-on.
   RESORT: [
-    { id: "hotel-hub", label: "Hotel Hub", desc: "Rooms, bookings, guest check-in & QR codes", iconHint: "BedDouble" },
-    { id: "room-service", label: "Room Service", desc: "Deliver directly to guest rooms", iconHint: "BedDouble" },
-    { id: "multi-outlet", label: "Multi-Outlet", desc: "Pool bar, restaurant, lounge menus", iconHint: "LayoutGrid" },
-    { id: "event-catering", label: "Event Catering", desc: "Weddings, conferences, parties", iconHint: "PartyPopper" },
-    { id: "guest-billing", label: "Guest Billing", desc: "Charge meals to room accounts", iconHint: "CreditCard" },
-    { id: "display-counter", label: "Display Counter", desc: "Showcase available items for guests", iconHint: "Monitor" },
-    { id: "wifi-settings", label: "WiFi", desc: "Share WiFi credentials with guests", iconHint: "Wifi" },
+    { id: "hotel-hub", label: "Hotel Hub", desc: "Rooms, bookings, guest check-in, QR & room service", iconHint: "BedDouble" },
   ],
   HOTEL: [
-    { id: "hotel-hub", label: "Hotel Hub", desc: "Rooms, bookings, guest check-in & QR codes", iconHint: "BedDouble" },
-    { id: "room-service", label: "Room Service", desc: "Round-the-clock kitchen operations", iconHint: "BedDouble" },
-    { id: "buffet-manager", label: "Buffet Manager", desc: "Buffet item tracking & rotation", iconHint: "ChefHat" },
-    { id: "event-catering", label: "Conference Catering", desc: "Corporate events & meetings", iconHint: "PartyPopper" },
-    { id: "guest-billing", label: "Guest Billing", desc: "Integrated room charge system", iconHint: "CreditCard" },
-    { id: "display-counter", label: "Display Counter", desc: "Showcase available items for guests", iconHint: "Monitor" },
-    { id: "wifi-settings", label: "WiFi", desc: "Share WiFi credentials with guests", iconHint: "Wifi" },
+    { id: "hotel-hub", label: "Hotel Hub", desc: "Rooms, bookings, guest check-in, QR & room service", iconHint: "BedDouble" },
   ],
   BAKERY: [
     { id: "pre-orders", label: "Pre-Orders", desc: "Schedule pickups for fresh goods", iconHint: "CalendarClock" },
@@ -263,11 +253,7 @@ export const TYPE_FEATURE_TABS: Record<string, FeatureTabDef[]> = {
     { id: "wifi-settings", label: "WiFi", desc: "Share WiFi credentials with customers", iconHint: "Wifi" },
   ],
   GUEST_HOUSE: [
-    { id: "hotel-hub", label: "Hotel Hub", desc: "Rooms, bookings, guest check-in & QR codes", iconHint: "BedDouble" },
-    { id: "room-service", label: "Room Service", desc: "Food & drinks delivered to rooms", iconHint: "BedDouble" },
-    { id: "guest-billing", label: "Guest Billing", desc: "Integrated room charge system", iconHint: "CreditCard" },
-    { id: "display-counter", label: "Display Counter", desc: "Showcase available items for guests", iconHint: "Monitor" },
-    { id: "wifi-settings", label: "WiFi", desc: "Share WiFi credentials with guests", iconHint: "Wifi" },
+    { id: "hotel-hub", label: "Hotel Hub", desc: "Rooms, bookings, guest check-in, QR & room service", iconHint: "BedDouble" },
   ],
   SWEETS: [
     { id: "display-counter", label: "Display Counter", desc: "Showcase sweets & confections for walk-ins", iconHint: "Monitor" },

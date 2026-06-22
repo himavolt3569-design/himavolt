@@ -40,10 +40,11 @@ import {
   Info,
 } from "lucide-react";
 import { useRestaurant, useOptionalRestaurant } from "@/context/RestaurantContext";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, peekApiCache } from "@/lib/api-client";
 import { useToast } from "@/context/ToastContext";
 import { formatPrice, getCurrencySymbol } from "@/lib/currency";
 import ImagePicker from "@/components/shared/ImagePicker";
+import { AnchoredMenu } from "@/components/shared/AnchoredMenu";
 import {
   SkeletonStatGrid,
   SkeletonGrid,
@@ -335,15 +336,7 @@ function MenuItemCard({
   currency: string;
 }) {
   const [showMenu, setShowMenu] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setShowMenu(false);
-    }
-    if (showMenu) document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [showMenu]);
+  const menuTriggerRef = useRef<HTMLButtonElement>(null);
 
   const discountedPrice = item.discount > 0 ? Math.round(item.price * (1 - item.discount / 100)) : item.price;
 
@@ -410,30 +403,36 @@ function MenuItemCard({
             <button onClick={onEdit} className="rounded-full bg-[var(--canvas)]/95 backdrop-blur-md p-2 text-indigo-600 shadow-lg hover:bg-[var(--canvas)] transition-all hover:scale-105 active:scale-95">
               <Pencil className="h-4 w-4" />
             </button>
-            <div className="relative" ref={menuRef}>
+            <div className="relative">
               <button
+                ref={menuTriggerRef}
                 onClick={() => setShowMenu(!showMenu)}
                 className="rounded-full bg-[var(--canvas)]/95 backdrop-blur-md p-2 text-[var(--text-2)] shadow-lg hover:bg-[var(--canvas)] transition-all hover:scale-105 active:scale-95"
               >
                 <MoreVertical className="h-4 w-4" />
               </button>
-              {showMenu && (
-                <div className="absolute right-0 top-full mt-2 w-40 rounded-xl bg-[var(--canvas)]/95 backdrop-blur-xl shadow-2xl ring-1 ring-[var(--border)]/50 z-30 py-1.5 overflow-hidden origin-bottom-right">
-                  <button
-                    onClick={() => { onDuplicate(); setShowMenu(false); }}
-                    className="flex w-full items-center gap-2.5 px-3.5 py-2 text-[13px] font-semibold text-[var(--text-2)] hover:bg-[var(--accent-muted)] hover:text-[var(--accent-text)] transition-colors"
-                  >
-                    <Copy className="h-3.5 w-3.5" /> Duplicate
-                  </button>
-                  <div className="h-px bg-[var(--surface)] my-1 mx-2"></div>
-                  <button
-                    onClick={() => { onDelete(); setShowMenu(false); }}
-                    className="flex w-full items-center gap-2.5 px-3.5 py-2 text-[13px] font-semibold text-red-600 hover:bg-red-50 transition-colors"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" /> Delete Item
-                  </button>
-                </div>
-              )}
+              <AnchoredMenu
+                anchorRef={menuTriggerRef}
+                open={showMenu}
+                onClose={() => setShowMenu(false)}
+                align="right"
+                width={160}
+                className="rounded-xl bg-[var(--canvas)]/95 backdrop-blur-xl shadow-2xl ring-1 ring-[var(--border)]/50 py-1.5 overflow-hidden"
+              >
+                <button
+                  onClick={() => { onDuplicate(); setShowMenu(false); }}
+                  className="flex w-full items-center gap-2.5 px-3.5 py-2 text-[13px] font-semibold text-[var(--text-2)] hover:bg-[var(--accent-muted)] hover:text-[var(--accent-text)] transition-colors"
+                >
+                  <Copy className="h-3.5 w-3.5" /> Duplicate
+                </button>
+                <div className="h-px bg-[var(--surface)] my-1 mx-2"></div>
+                <button
+                  onClick={() => { onDelete(); setShowMenu(false); }}
+                  className="flex w-full items-center gap-2.5 px-3.5 py-2 text-[13px] font-semibold text-red-600 hover:bg-red-50 transition-colors"
+                >
+                  <Trash2 className="h-3.5 w-3.5" /> Delete Item
+                </button>
+              </AnchoredMenu>
             </div>
           </div>
         </div>
@@ -1016,7 +1015,7 @@ function DishForm({
                   onClick={() => update({ isFeatured: !form.isFeatured })}
                   className={`relative h-5 w-9 rounded-full transition-colors ${form.isFeatured ? "bg-[var(--accent)]" : "bg-[var(--surface-alt)]"}`}
                 >
-                  <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-[var(--canvas)] shadow transition-transform ${form.isFeatured ? "translate-x-4" : "translate-x-0.5"}`} />
+                  <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${form.isFeatured ? "translate-x-4" : "translate-x-0.5"}`} />
                 </button>
                 <div>
                   <p className="text-[12px] font-semibold text-[var(--text-2)]">Featured Item</p>
@@ -1281,9 +1280,17 @@ export default function MenuManagementTab({
   const cur = overrideCurrency || ctx?.selectedRestaurant?.currency || "NPR";
   const curSymbol = getCurrencySymbol(cur);
   const { showToast } = useToast();
-  const [items, setItems] = useState<MenuItem[]>([]);
-  const [categories, setCategories] = useState<MenuCategory[]>([]);
-  const [loading, setLoading] = useState(true);
+  const menuPath = restaurantId ? `/api/restaurants/${restaurantId}/menu` : "";
+  const catPath = restaurantId ? `/api/restaurants/${restaurantId}/categories` : "";
+  // Seed from the in-memory API cache so a re-opened tab paints instantly, then
+  // revalidate in the background (stale-while-revalidate).
+  const [items, setItems] = useState<MenuItem[]>(
+    () => peekApiCache<MenuItem[]>(menuPath) ?? [],
+  );
+  const [categories, setCategories] = useState<MenuCategory[]>(
+    () => peekApiCache<MenuCategory[]>(catPath) ?? [],
+  );
+  const [loading, setLoading] = useState(() => !peekApiCache(menuPath));
   const [search, setSearch] = useState("");
   const [selectedCatId, setSelectedCatId] = useState("All");
   const [showAddForm, setShowAddForm] = useState(false);
@@ -1338,9 +1345,11 @@ export default function MenuManagementTab({
     }
     if (!silent) setLoading(true);
     try {
+      // Cache the lists so a re-opened tab serves them instantly; mutations
+      // invalidate this prefix in api-client, so reconciliation stays correct.
       const [menuRes, catRes] = await Promise.all([
-        apiFetch<MenuItem[]>(`/api/restaurants/${restaurantId}/menu`, { cacheTtl: 0 }),
-        apiFetch<MenuCategory[]>(`/api/restaurants/${restaurantId}/categories`, { cacheTtl: 0 }),
+        apiFetch<MenuItem[]>(`/api/restaurants/${restaurantId}/menu`, { cacheTtl: 120_000 }),
+        apiFetch<MenuCategory[]>(`/api/restaurants/${restaurantId}/categories`, { cacheTtl: 120_000 }),
       ]);
       setItems(Array.isArray(menuRes) ? menuRes : []);
       setCategories(Array.isArray(catRes) ? catRes : []);
@@ -1351,7 +1360,8 @@ export default function MenuManagementTab({
     }
   }, [restaurantId, showToast]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  // If we already painted cached data, refresh silently so the grid never blanks.
+  useEffect(() => { fetchData(!!peekApiCache(menuPath)); }, [fetchData, menuPath]);
 
   useEffect(() => {
     if (showNewCat && newCatInputRef.current) newCatInputRef.current.focus();
@@ -1756,7 +1766,7 @@ export default function MenuManagementTab({
             </div>
           </div>
           <div className={`relative h-6 w-11 rounded-full transition-colors ${isOpen ? "bg-[var(--accent)]" : "bg-[var(--border)]"}`}>
-            <div className={`absolute top-0.5 h-5 w-5 rounded-full bg-[var(--canvas)] shadow transition-transform ${isOpen ? "translate-x-5" : "translate-x-0.5"}`} />
+            <div className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${isOpen ? "translate-x-5" : "translate-x-0.5"}`} />
           </div>
         </button>
 
@@ -1783,7 +1793,7 @@ export default function MenuManagementTab({
             </div>
           </div>
           <div className={`relative h-6 w-11 rounded-full transition-colors ${deliveryEnabled ? "bg-blue-500" : "bg-[var(--border)]"}`}>
-            <div className={`absolute top-0.5 h-5 w-5 rounded-full bg-[var(--canvas)] shadow transition-transform ${deliveryEnabled ? "translate-x-5" : "translate-x-0.5"}`} />
+            <div className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${deliveryEnabled ? "translate-x-5" : "translate-x-0.5"}`} />
           </div>
         </button>
       </div>

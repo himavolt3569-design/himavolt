@@ -24,23 +24,32 @@ export default function DineInRequestModal({
   onClose,
   onAccept,
   onReject,
+  onPrintKOT,
   currency = "NPR",
 }: {
   order: LiveOrder | null;
   onClose: () => void;
-  onAccept: (id: string) => void;
+  /** print=true forces the kitchen ticket regardless of the auto-print setting. */
+  onAccept: (id: string, print?: boolean) => void;
   onReject: (id: string) => void;
+  /** Re-print the kitchen ticket for an already-accepted order. */
+  onPrintKOT?: () => void;
   currency?: string;
 }) {
   const { showToast } = useToast();
 
   const handlePrint = () => {
-    showToast("Sent to printer!");
+    if (onPrintKOT) {
+      onPrintKOT();
+      showToast("Sent to printer!");
+    } else {
+      showToast("Printing is not available here");
+    }
   };
 
   const handleAcceptPrint = () => {
     if (!order) return;
-    onAccept(order.id);
+    onAccept(order.id, true);
     showToast("Order accepted & sent to printer!");
   };
 

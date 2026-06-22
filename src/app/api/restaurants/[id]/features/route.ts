@@ -51,16 +51,17 @@ export async function PUT(req: NextRequest, { params }: Params) {
     );
   }
 
-  const enabled = (rawEnabled as unknown[]).filter((x): x is string => typeof x === "string");
-  const disabled = (rawDisabled as unknown[]).filter((x): x is string => typeof x === "string");
-
-  const invalid = [...enabled, ...disabled].filter((x) => !isValidFeatureId(x));
-  if (invalid.length > 0) {
-    return NextResponse.json(
-      { error: `Unknown feature ids: ${invalid.join(", ")}` },
-      { status: 400 },
-    );
-  }
+  // Keep only known feature ids. Unknown/legacy ids — e.g. pre-consolidation
+  // overrides (room-service, guest-billing, …) still persisted on a restaurant
+  // row — are dropped rather than rejected, so stale data can never 400 and
+  // lock an owner out of the feature panel. PUT rewrites the whole array, so
+  // those legacy ids self-clean on the next save.
+  const enabled = (rawEnabled as unknown[]).filter(
+    (x): x is string => typeof x === "string" && isValidFeatureId(x),
+  );
+  const disabled = (rawDisabled as unknown[]).filter(
+    (x): x is string => typeof x === "string" && isValidFeatureId(x),
+  );
 
   const dedupEnabled = Array.from(new Set(enabled));
   const dedupDisabled = Array.from(new Set(disabled));

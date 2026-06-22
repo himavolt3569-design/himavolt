@@ -6,12 +6,13 @@ import {
   CalendarCheck,
   ClipboardList,
   Settings,
-  Loader2,
   Building2,
   ChevronRight,
+  Coffee,
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
-import { SkeletonGrid, SkeletonTable } from "@/components/shared/Skeleton";
+import { useToast } from "@/context/ToastContext";
+import { formatPrice } from "@/lib/currency";
 import { STAFF_MANAGER_ROLES, STAFF_BILLING_ROLES } from "@/lib/staff-roles";
 
 const RoomManagementTab = lazy(() => import("./RoomManagementTab"));
@@ -19,7 +20,7 @@ const HotelBookingsTab = lazy(() => import("./HotelBookingsTab"));
 const GuestCheckInTab = lazy(() => import("./GuestCheckInTab"));
 const HotelQRTab = lazy(() => import("./HotelQRTab"));
 
-type HubTab = "rooms" | "bookings" | "guests" | "setup";
+type HubTab = "rooms" | "bookings" | "guests" | "service" | "setup";
 
 /**
  * Each sub-tab is gated by a permission scope (mirrors the server RBAC):
@@ -57,6 +58,13 @@ const TABS: {
     scope: "frontdesk",
   },
   {
+    id: "service",
+    label: "Room Service",
+    desc: "Paid in-room service add-on",
+    icon: Coffee,
+    scope: "manage",
+  },
+  {
     id: "setup",
     label: "Setup",
     desc: "Hotel QR card & booking config",
@@ -65,9 +73,93 @@ const TABS: {
   },
 ];
 
-function TabFallback({ tab }: { tab: HubTab }) {
-  if (tab === "rooms") return <SkeletonGrid rows={2} cols={3} cardClass="h-44 rounded-2xl" />;
-  return <SkeletonTable rows={5} />;
+/**
+ * Owner/manager config for the optional paid Room Service add-on. Guests can
+ * opt into it at booking time; the flat charge is added to the booking total.
+ */
+function RoomServicePanel() {
+  const { selectedRestaurant, updateRestaurant } = useRestaurant();
+  const { showToast } = useToast();
+  const r = selectedRestaurant;
+  const [enabled, setEnabled] = useState(r?.roomServiceEnabled ?? false);
+  const [charge, setCharge] = useState(String(r?.roomServiceCharge ?? 0));
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setEnabled(r?.roomServiceEnabled ?? false);
+    setCharge(String(r?.roomServiceCharge ?? 0));
+  }, [r?.id, r?.roomServiceEnabled, r?.roomServiceCharge]);
+
+  if (!r) return null;
+  const cur = r.currency ?? "NPR";
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      const parsedCharge = Number(charge);
+      await updateRestaurant(r.id, {
+        roomServiceEnabled: enabled,
+        roomServiceCharge: Number.isFinite(parsedCharge) ? Math.max(0, parsedCharge) : 0,
+      });
+      showToast("Room service settings saved", "success");
+    } catch {
+      showToast("Failed to save room service settings", "error");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="max-w-xl space-y-5">
+      <label className="flex items-center justify-between gap-4 rounded-2xl bg-[var(--canvas)] ring-1 ring-[var(--border)] px-4 py-3.5">
+        <span className="flex items-center gap-3">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent-muted)] text-[var(--accent)]">
+            <Coffee className="h-4 w-4" />
+          </span>
+          <span>
+            <span className="block text-[13px] font-semibold text-[var(--text-1)]">
+              Offer Room Service
+            </span>
+            <span className="block text-[11px] text-[var(--text-3)]">
+              Guests can add it when booking a room
+            </span>
+          </span>
+        </span>
+        <input
+          type="checkbox"
+          checked={enabled}
+          onChange={(e) => setEnabled(e.target.checked)}
+          className="h-5 w-5 accent-[var(--accent)]"
+        />
+      </label>
+
+      <div className={enabled ? "" : "opacity-50 pointer-events-none"}>
+        <label className="block text-[13px] font-semibold text-[var(--text-2)] mb-1.5">
+          Room service charge ({cur})
+        </label>
+        <input
+          type="number"
+          min={0}
+          value={charge}
+          onChange={(e) => setCharge(e.target.value)}
+          placeholder="0"
+          className="w-full rounded-xl bg-[var(--canvas-sub)] px-3.5 py-3 text-sm text-[var(--text-1)] outline-none ring-1 ring-[var(--border)] focus:ring-[var(--accent)]"
+        />
+        <p className="mt-1.5 text-[11px] text-[var(--text-3)]">
+          Flat amount added to a booking total when the guest opts in
+          {Number(charge) > 0 ? ` — ${formatPrice(Number(charge), cur)}` : ""}.
+        </p>
+      </div>
+
+      <button
+        onClick={save}
+        disabled={saving}
+        className="rounded-xl bg-[var(--accent)] px-5 py-2.5 text-[13px] font-bold text-white transition-colors hover:bg-[var(--accent-hover)] disabled:opacity-50"
+      >
+        {saving ? "Saving…" : "Save changes"}
+      </button>
+    </div>
+  );
 }
 
 /**
@@ -126,13 +218,7 @@ export default function HotelHubTab() {
   const effectiveActive =
     visibleTabs.find((t) => t.id === active)?.id ?? visibleTabs[0]?.id;
 
-  if (!selectedRestaurant) {
-    return (
-      <div className="flex h-64 items-center justify-center">
-        <Loader2 className="h-5 w-5 animate-spin text-[var(--accent)]" />
-      </div>
-    );
-  }
+  if (!selectedRestaurant) return null;
 
   const isHotelType = ["HOTEL", "RESORT", "GUEST_HOUSE"].includes(selectedRestaurant.type);
 
@@ -152,14 +238,8 @@ export default function HotelHubTab() {
     );
   }
 
-  // Still resolving the actor's role.
-  if (!access) {
-    return (
-      <div className="flex h-64 items-center justify-center">
-        <Loader2 className="h-5 w-5 animate-spin text-[var(--accent)]" />
-      </div>
-    );
-  }
+  // Still resolving the actor's role — paint nothing rather than a spinner.
+  if (!access) return null;
 
   // A staff member with neither manage nor front-desk scope (e.g. a waiter/chef).
   if (visibleTabs.length === 0) {
@@ -254,11 +334,12 @@ export default function HotelHubTab() {
         <span className="hidden sm:inline text-[12px] text-[var(--text-3)]">· {activeTab.desc}</span>
       </div>
 
-      {/* Panel */}
-      <Suspense fallback={<TabFallback tab={effectiveActive} />}>
+      {/* Panel — no skeleton fallback; lazy chunks resolve near-instantly */}
+      <Suspense fallback={null}>
         {effectiveActive === "rooms" && <RoomManagementTab />}
         {effectiveActive === "bookings" && <HotelBookingsTab />}
         {effectiveActive === "guests" && <GuestCheckInTab />}
+        {effectiveActive === "service" && <RoomServicePanel />}
         {effectiveActive === "setup" && <HotelQRTab />}
       </Suspense>
     </div>

@@ -288,10 +288,33 @@ export const POST = safeHandler(
       });
     }
 
-    if (addToOrderId) {
+    // One running bill per table: when the client didn't pass an explicit
+    // addToOrderId but this dine-in is tied to an active table session that
+    // already has an open, unpaid order, append to that order instead of
+    // opening a second ticket. tableSessionId is a server-issued token bound to
+    // the physical table, so a stranger can't grow someone else's tab.
+    let appendOrderId: string | undefined = addToOrderId ?? undefined;
+    if (!appendOrderId && tableSessionId) {
+      const sessionOrder = await db.order.findFirst({
+        where: {
+          restaurantId: id,
+          status: { in: ["PENDING", "ACCEPTED", "PREPARING"] },
+          tableSession: { id: tableSessionId, isActive: true },
+          OR: [
+            { payment: null },
+            { payment: { status: { notIn: ["COMPLETED", "REFUNDED"] } } },
+          ],
+        },
+        orderBy: { createdAt: "desc" },
+        select: { id: true },
+      });
+      if (sessionOrder) appendOrderId = sessionOrder.id;
+    }
+
+    if (appendOrderId) {
       const existing = await db.order.findFirst({
         where: {
-          id: addToOrderId,
+          id: appendOrderId,
           restaurantId: id,
           status: { in: ["PENDING", "ACCEPTED", "PREPARING"] },
         },
@@ -337,7 +360,7 @@ export const POST = safeHandler(
 
       await db.orderItem.createMany({
         data: resolvedItems.map((item) => ({
-          orderId: addToOrderId,
+          orderId: existing.id,
           name: item.name,
           quantity: item.quantity,
           price: item.price,
@@ -355,7 +378,7 @@ export const POST = safeHandler(
         : undefined;
 
       const updated = await db.order.update({
-        where: { id: addToOrderId },
+        where: { id: existing.id },
         data: {
           subtotal: { increment: addSubtotal },
           tax: { increment: addTax },
@@ -374,7 +397,7 @@ export const POST = safeHandler(
       }
 
       // Regenerate bill with updated totals
-      await generateBill(addToOrderId);
+      await generateBill(existing.id);
 
       // Deduct stock for each added item (non-fatal — order is already updated)
       try {
@@ -389,7 +412,7 @@ export const POST = safeHandler(
       logAudit({
         action: "ORDER_UPDATED",
         entity: "Order",
-        entityId: addToOrderId,
+        entityId: existing.id,
         detail: `Added ${resolvedItems.length} items to order ${existing.orderNo} (+${getCurrencySymbol(restaurant.currency ?? "NPR")}${addSubtotal + addTax})`,
         metadata: {
           orderNo: existing.orderNo,
@@ -400,7 +423,7 @@ export const POST = safeHandler(
         ipAddress: getClientIp(req.headers),
       });
 
-      notifyOrderChanged(addToOrderId, id, { reason: "items-added" });
+      notifyOrderChanged(existing.id, id, { reason: "items-added" });
 
       return NextResponse.json(updated, { status: 200 });
     }
@@ -410,6 +433,24 @@ export const POST = safeHandler(
         { error: "Delivery address is required" },
         { status: 400 },
       );
+    }
+
+    // Server-authoritative table number: when the order belongs to a table
+    // session, trust the session's table (which was set securely from the QR
+    // token) rather than the client-supplied tableNo — a guest editing
+    // ?table=N in the URL can no longer place orders against another table.
+    let resolvedTableNo: number | null =
+      orderType === "DINE_IN" &&
+      tableNo &&
+      !isNaN(parseInt(String(tableNo), 10))
+        ? parseInt(String(tableNo), 10)
+        : null;
+    if (tableSessionId) {
+      const sess = await db.tableSession.findFirst({
+        where: { id: tableSessionId, restaurantId: id },
+        select: { tableNo: true },
+      });
+      if (sess) resolvedTableNo = sess.tableNo;
     }
 
     const subtotal = resolvedItems.reduce(
@@ -562,12 +603,7 @@ export const POST = safeHandler(
         : autoAccept && staffAuthorisedAutoAccept
           ? { status: "ACCEPTED" as const, acceptedAt: orderTimestamp }
           : {}),
-      tableNo:
-        orderType === "DINE_IN" &&
-        tableNo &&
-        !isNaN(parseInt(String(tableNo), 10))
-          ? parseInt(String(tableNo), 10)
-          : null,
+      tableNo: resolvedTableNo,
       roomNo: roomNo ?? null,
       subtotal,
       tax,
@@ -711,7 +747,7 @@ export const POST = safeHandler(
         id,
         orderNo,
         total,
-        tableNo ? parseInt(String(tableNo), 10) : null,
+        resolvedTableNo,
         restaurant.currency ?? "NPR",
       ).catch((err: unknown) => {
         console.error("[Orders] Failed to send kitchen notification:", err);

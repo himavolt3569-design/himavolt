@@ -3,6 +3,8 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { getOrCreateUser } from "@/lib/auth";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
+import { notifyRestaurantBookings } from "@/lib/realtime";
+import { notifyStaffBookingEvent } from "@/lib/notifications";
 
 const HOTEL_TYPES = ["HOTEL", "RESORT", "GUEST_HOUSE"];
 
@@ -31,10 +33,18 @@ const bookingSchema = z.object({
     .optional()
     .nullable(),
   guestIdNumber: z.string().trim().max(50).optional().nullable(),
+  guestIdImageUrl: z
+    .string()
+    .url()
+    .max(500)
+    .refine((v) => v.startsWith("https://"), "ID image URL must be https")
+    .optional()
+    .nullable(),
   adults: z.number().int().min(1).max(20).default(1),
   children: z.number().int().min(0).max(20).default(0),
   checkIn: z.string().regex(dateRe, "checkIn must be YYYY-MM-DD"),
   checkOut: z.string().regex(dateRe, "checkOut must be YYYY-MM-DD"),
+  roomServiceSelected: z.boolean().optional().default(false),
   notes: z.string().trim().max(500).optional().nullable(),
 });
 
@@ -81,6 +91,8 @@ export async function POST(
       isActive: true,
       hotelAdvanceType: true,
       hotelAdvanceValue: true,
+      roomServiceEnabled: true,
+      roomServiceCharge: true,
     },
   });
 
@@ -136,13 +148,21 @@ export async function POST(
     );
   }
 
+  // Treat unpaid PENDING holds older than the 3h window as already expired so a
+  // stale reservation never blocks a new booking before the cron releases it.
+  const holdCutoff = new Date(Date.now() - 180 * 60 * 1000);
   const conflict = await db.roomBooking.findFirst({
     where: {
       roomId: data.roomId,
-      status: { in: ["PENDING", "CONFIRMED", "CHECKED_IN"] },
       AND: [
         { checkIn: { lt: checkOutDate } },
         { checkOut: { gt: checkInDate } },
+        {
+          OR: [
+            { status: { in: ["CONFIRMED", "CHECKED_IN"] } },
+            { status: "PENDING", createdAt: { gte: holdCutoff } },
+          ],
+        },
       ],
     },
   });
@@ -159,7 +179,10 @@ export async function POST(
       (checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24),
     ),
   );
-  const totalPrice = Math.round(room.price * nights * 100) / 100;
+  const roomCharge = room.price * nights;
+  const wantsRoomService = data.roomServiceSelected && restaurant.roomServiceEnabled;
+  const serviceCharge = wantsRoomService ? restaurant.roomServiceCharge || 0 : 0;
+  const totalPrice = Math.round((roomCharge + serviceCharge) * 100) / 100;
 
   const advanceAmount =
     restaurant.hotelAdvanceType === "PERCENTAGE"
@@ -186,12 +209,14 @@ export async function POST(
       guestAddress: data.guestAddress ?? null,
       guestIdType: data.guestIdType ?? null,
       guestIdNumber: data.guestIdNumber ?? null,
+      guestIdImageUrl: data.guestIdImageUrl ?? null,
       adults: data.adults,
       children: data.children,
       checkIn: checkInDate,
       checkOut: checkOutDate,
       nights,
       totalPrice,
+      roomServiceSelected: wantsRoomService,
       advanceAmount,
       advancePaid: false,
       paymentStatus: "UNPAID",
@@ -203,6 +228,17 @@ export async function POST(
       room: { select: { roomNumber: true, name: true, type: true } },
     },
   });
+
+  // Live-notify the hotel: wake the bookings tab + push to owner & staff.
+  const roomLabel = booking.room.name || `Room ${booking.room.roomNumber}`;
+  notifyRestaurantBookings(restaurant.id, { bookingId: booking.id });
+  void notifyStaffBookingEvent(
+    restaurant.id,
+    "NEW_BOOKING",
+    "New Room Booking",
+    `${data.guestName} booked ${roomLabel} for ${nights} night${nights > 1 ? "s" : ""}`,
+    booking.id,
+  );
 
   return NextResponse.json({ booking }, { status: 201 });
 }

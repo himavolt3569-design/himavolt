@@ -20,7 +20,9 @@ import ThemeToggle from "@/components/shared/ThemeToggle";
 import GlobalChatButton from "@/components/chat/GlobalChatButton";
 import POSActivationGate from "@/components/pos/activation/POSActivationGate";
 import CustomerDashboard from "@/app/dashboard/CustomerDashboard";
+import CreateRestaurantModal from "@/components/modals/CreateRestaurantModal";
 import { ALL_NAV, FEATURE_ICONS } from "@/lib/dashboard-nav";
+import { apiFetch } from "@/lib/api-client";
 import { getFeatureTabsForType, type FeatureTabId } from "@/lib/restaurant-types";
 
 export default function DashboardLayout({
@@ -30,13 +32,12 @@ export default function DashboardLayout({
 }) {
   const { user, isLoaded, userRole } = useAuth();
   const { orders, setRestaurantId } = useLiveOrders();
-  const { 
-    restaurants, 
-    selectedRestaurant, 
-    selectRestaurant, 
-    loading: resLoading, 
-    hasFetched: resHasFetched, 
-    fetchRestaurants 
+  const {
+    restaurants,
+    selectedRestaurant,
+    loading: resLoading,
+    hasFetched: resHasFetched,
+    fetchRestaurants
   } = useRestaurant();
   const router = useRouter();
   const pathname = usePathname();
@@ -45,8 +46,10 @@ export default function DashboardLayout({
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [posWizardOpen, setPosWizardOpen] = useState(false);
+  const [createRestaurantOpen, setCreateRestaurantOpen] = useState(false);
 
-  // Wave 1 — most-visited tabs cached at 1.5s.
+  // Wave 1 — most-visited tabs warmed almost immediately so a click lands on a
+  // ready chunk (no skeleton, instant render).
   useEffect(() => {
     const t = setTimeout(() => {
       import("@/components/billing/BillingTab");
@@ -58,11 +61,11 @@ export default function DashboardLayout({
       import("@/components/dashboard/ChatTab");
       import("@/components/dashboard/ManualBillingTab");
       import("@/components/dashboard/StockTab");
-    }, 1500);
+    }, 250);
     return () => clearTimeout(t);
   }, []);
 
-  // Wave 2 — remaining tabs cached at 4s (after wave 1 and current tab settle).
+  // Wave 2 — remaining tabs warmed shortly after wave 1 / first paint settle.
   useEffect(() => {
     const t = setTimeout(() => {
       import("@/components/dashboard/ShiftsTab");
@@ -85,6 +88,7 @@ export default function DashboardLayout({
       import("@/components/dashboard/OwnerControlPanel");
       import("@/components/dashboard/FeedbackTab");
       import("@/components/dashboard/PrintingSettingsTab");
+      import("@/components/dashboard/SettingsTab");
       import("@/components/dashboard/features/QuickCounterTab");
       import("@/components/dashboard/features/ComboMealsTab");
       import("@/components/dashboard/features/RushHourTab");
@@ -114,9 +118,24 @@ export default function DashboardLayout({
       import("@/components/dashboard/features/WaitlistTab");
       import("@/components/dashboard/features/PrivateDiningTab");
       import("@/components/dashboard/features/WifiSettingsTab");
-    }, 4000);
+    }, 1200);
     return () => clearTimeout(t);
   }, []);
+
+  // Warm the data caches for the heaviest screens (menu, categories, tables) as
+  // soon as a restaurant is selected, so Fast Pay, New Orders and Tables paint
+  // from cache on first click instead of fetching on open.
+  useEffect(() => {
+    const id = selectedRestaurant?.id;
+    if (!id) return;
+    const t = setTimeout(() => {
+      apiFetch(`/api/restaurants/${id}/menu`, { cacheTtl: 120_000 }).catch(() => {});
+      apiFetch(`/api/restaurants/${id}/menu?light=1`, { cacheTtl: 120_000 }).catch(() => {});
+      apiFetch(`/api/restaurants/${id}/categories`, { cacheTtl: 120_000 }).catch(() => {});
+      apiFetch(`/api/restaurants/${id}/tables`, { cacheTtl: 60_000 }).catch(() => {});
+    }, 600);
+    return () => clearTimeout(t);
+  }, [selectedRestaurant?.id]);
 
   const newOrderCount = orders.filter((o) => o.status === "PENDING").length;
 
@@ -136,27 +155,24 @@ export default function DashboardLayout({
     FEATURE_ICONS[activeTabId as FeatureTabId] ||
     User;
 
-  useEffect(() => {
-    if (!selectedRestaurant && restaurants.length > 0) {
-      selectRestaurant(restaurants[0].id);
-    }
-  }, [selectedRestaurant, restaurants, selectRestaurant]);
-
+  // Selection is restored by RestaurantContext on fetch (last-selected, then
+  // first), so no fallback auto-select is needed here.
   useEffect(() => {
     setRestaurantId(selectedRestaurant?.id ?? null);
   }, [selectedRestaurant?.id, setRestaurantId]);
+
+  // An owner with no restaurants must create one — open the modal inline (the
+  // old /manage-restaurants route is gone) and keep it open until they do.
+  const needsRestaurant =
+    userRole === "OWNER" && resHasFetched && !resLoading && restaurants.length === 0;
+  useEffect(() => {
+    if (needsRestaurant) setCreateRestaurantOpen(true);
+  }, [needsRestaurant]);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
-
-  // Redirect OWNER with no restaurants
-  useEffect(() => {
-    if (userRole === "OWNER" && resHasFetched && !resLoading && restaurants.length === 0) {
-      router.replace("/manage-restaurants");
-    }
-  }, [userRole, router, resHasFetched, resLoading, restaurants.length]);
 
   // Route customers away once auth resolves — no full-screen gate
   if (isLoaded && userRole === "CUSTOMER") {
@@ -169,14 +185,13 @@ export default function DashboardLayout({
     <div className="flex h-screen overflow-hidden bg-[var(--canvas-sub)] font-sans text-[var(--text-1)]">
       {/* ── Desktop sidebar ───────────────────────────────────── */}
       <div className={`hidden lg:block shrink-0 h-full transition-all duration-300 ${sidebarCollapsed ? "w-14" : "w-56"}`}>
-        {!isActuallyLoaded ? (
-          <div className="h-full w-full bg-[var(--canvas)] border-r border-[var(--border)]/50 opacity-0" style={{ animation: "appleFadeIn 0.4s ease-out 0.1s forwards" }} />
-        ) : (
+        {!isActuallyLoaded ? null : (
           <DashboardSidebar
             newOrderCount={newOrderCount}
             isCollapsed={sidebarCollapsed}
             onToggleCollapse={() => setSidebarCollapsed((c) => !c)}
             onRequestPOSActivate={() => setPosWizardOpen(true)}
+            onRequestCreateRestaurant={() => setCreateRestaurantOpen(true)}
           />
         )}
       </div>
@@ -208,6 +223,10 @@ export default function DashboardLayout({
                   setPosWizardOpen(true);
                   setMobileSidebarOpen(false);
                 }}
+                onRequestCreateRestaurant={() => {
+                  setCreateRestaurantOpen(true);
+                  setMobileSidebarOpen(false);
+                }}
               />
             </motion.div>
           </>
@@ -217,15 +236,7 @@ export default function DashboardLayout({
       {/* ── Main area ─────────────────────────────────────────── */}
       <div className="relative flex flex-1 flex-col overflow-hidden">
         <header className="flex items-center justify-between border-b border-[var(--border)]/50 bg-[var(--canvas)]/70 backdrop-blur-xl shadow-sm px-5 lg:px-8 py-3.5 shrink-0 z-30">
-          {!isActuallyLoaded ? (
-            <div className="w-full h-8 flex items-center justify-between opacity-0" style={{ animation: "appleFadeIn 0.4s ease-out 0.1s forwards" }}>
-               <div className="h-6 w-32 bg-[var(--surface)] rounded-lg" />
-               <div className="flex gap-2">
-                 <div className="h-8 w-8 rounded-full bg-[var(--surface)]" />
-                 <div className="h-8 w-8 rounded-full bg-[var(--surface)]" />
-               </div>
-            </div>
-          ) : (
+          {!isActuallyLoaded ? null : (
             <>
               <div className="flex items-center gap-3">
                 <button
@@ -300,15 +311,7 @@ export default function DashboardLayout({
         </header>
 
         <main className="flex-1 overflow-y-auto px-5 lg:px-8 pt-6 pb-8">
-          {!isActuallyLoaded ? (
-             <div className="w-full space-y-6 opacity-0" style={{ animation: "appleFadeIn 0.4s ease-out 0.1s forwards" }}>
-               <div className="h-40 w-full rounded-[2.5rem] bg-[var(--surface)]" />
-               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                 {[1,2,3,4].map(i => <div key={i} className="h-24 rounded-3xl bg-[var(--surface)]" />)}
-               </div>
-               <div className="h-64 w-full rounded-3xl bg-[var(--surface)] opacity-60" />
-             </div>
-          ) : children}
+          {!isActuallyLoaded ? null : children}
         </main>
       </div>
 
@@ -320,6 +323,16 @@ export default function DashboardLayout({
           staffName={user.user_metadata?.name ?? user.email ?? "Owner"}
         />
       )}
+
+      {/* Create-restaurant modal — opened from the sidebar "New" button, or
+          forced open for an owner who has no restaurants yet. */}
+      <CreateRestaurantModal
+        open={createRestaurantOpen}
+        onOpenChange={(v) => {
+          if (!v && needsRestaurant) return; // can't dismiss until one exists
+          setCreateRestaurantOpen(v);
+        }}
+      />
 
       {/* POS welcome tour + activation wizard */}
       {isActuallyLoaded && (

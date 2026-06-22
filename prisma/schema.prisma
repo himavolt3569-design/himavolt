@@ -82,6 +82,8 @@ model Restaurant {
   printKitchenWidth   Int     @default(80) // mm — KOT + BOT (kitchen/bar tickets)
   printShowLogo       Boolean @default(true) // show logo on the customer bill
   printShowFeedbackQR Boolean @default(true) // show feedback QR on the customer bill
+  printAutoReceipt    Boolean @default(false) // auto-print the customer receipt as soon as a bill is settled
+  printAutoKOT        Boolean @default(false) // auto-print the kitchen ticket (KOT) when staff accepts an order
 
   // Operational status (staff-controllable)
   isOpen          Boolean @default(true) // when false, hidden from landing page & ordering disabled
@@ -107,6 +109,11 @@ model Restaurant {
   // Hotel / Resort / Guest House booking advance config
   hotelAdvanceType  String @default("PERCENTAGE") // "PERCENTAGE" or "FIXED"
   hotelAdvanceValue Float  @default(30) // 30 = 30% of total, or NPR fixed amount
+
+  // Room Service add-on (Hotel Hub). Optional paid service a guest can opt into
+  // when booking; the flat charge is added to the booking total.
+  roomServiceEnabled Boolean @default(false)
+  roomServiceCharge  Float   @default(0)
 
   // Master-admin feature overrides (keyed by FeatureTabId).
   // Force-enable a feature even if the type doesn't include it by default.
@@ -938,6 +945,7 @@ model TableSession {
 model Table {
   id        String   @id @default(cuid())
   tableNo   Int
+  qrToken   String?  @unique // unguessable token encoded in the table QR so the table identity can't be spoofed via the URL
   label     String? // e.g. "Window Seat", "VIP 1"
   capacity  Int      @default(4)
   isActive  Boolean  @default(true)
@@ -1089,6 +1097,8 @@ model Room {
   bedType     String? // "King", "Queen", "Twin", "Single", "Double", "Bunk Bed"
   bedCount    Int      @default(1) // number of beds in this room
   amenities   String[] @default([]) // ["WiFi","AC","TV","Balcony"]
+  offerings   String[] @default([]) // place offerings e.g. ["2 BHK","Kitchen","Sea view"]
+  locationNote String? // exact location hint e.g. "3rd floor, sea-facing wing"
   imageUrls   String[] @default([]) // multiple room images
   videoUrl    String? // optional room video
   isAvailable Boolean  @default(true)
@@ -1119,12 +1129,14 @@ model RoomBooking {
   guestAddress  String?
   guestIdType   String? // CITIZENSHIP, PASSPORT, etc.
   guestIdNumber String?
+  guestIdImageUrl String? // uploaded ID proof (OCR source)
   adults        Int       @default(1)
   children      Int       @default(0)
   checkIn       DateTime
   checkOut      DateTime
   nights        Int       @default(1)
   totalPrice    Float     @default(0)
+  roomServiceSelected Boolean @default(false) // guest opted into the paid room-service add-on
   advanceAmount Float     @default(0) // advance payment required
   advancePaid   Boolean   @default(false)
   // Advance payment details
@@ -1133,8 +1145,16 @@ model RoomBooking {
   transactionId String?
   pidx          String? // Khalti payment idx
   refId         String? // eSewa reference id
+  receiptUrl    String? // guest-uploaded payment receipt (manual / QR pay)
   paidAt        DateTime?
-  status        String    @default("PENDING") // PENDING, CONFIRMED, CHECKED_IN, CHECKED_OUT, CANCELLED
+  // PENDING (reserved, unpaid — auto-expires), CONFIRMED, CHECKED_IN,
+  // CHECKED_OUT, CANCELLED
+  status        String    @default("PENDING")
+  // Cancellation / refund workflow
+  cancelReason     String?
+  cancelRequestedAt DateTime?
+  cancelledBy      String? // "CUSTOMER" | "HOTEL"
+  refundStatus     String  @default("NONE") // NONE, REQUESTED, REFUNDED
   notes         String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt

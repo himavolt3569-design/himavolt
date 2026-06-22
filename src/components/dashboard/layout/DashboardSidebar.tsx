@@ -15,7 +15,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useRestaurant } from "@/context/RestaurantContext";
 import POSLauncher from "@/components/pos/activation/POSLauncher";
 import {
@@ -26,7 +26,8 @@ import {
 import {
   DashTab,
   NAV_MAIN,
-  NAV_MANAGE,
+  NAV_CATALOG,
+  NAV_PEOPLE,
   NAV_MORE,
   HOTEL_HUB_NAV_ITEM,
   ROOM_ENABLED_TYPES,
@@ -36,8 +37,13 @@ import {
 } from "@/lib/dashboard-nav";
 import { preloadTab } from "@/app/dashboard/[tab]/page";
 
-function RestaurantSwitcher({ onNavigate }: { onNavigate?: () => void }) {
-  const router = useRouter();
+function RestaurantSwitcher({
+  onNavigate,
+  onCreate,
+}: {
+  onNavigate?: () => void;
+  onCreate?: () => void;
+}) {
   const { restaurants, selectedRestaurant, selectRestaurant } = useRestaurant();
   const [open, setOpen] = useState(false);
   const [slugCopied, setSlugCopied] = useState(false);
@@ -172,27 +178,17 @@ function RestaurantSwitcher({ onNavigate }: { onNavigate?: () => void }) {
               </div>
             )}
 
-            <div className="flex items-center p-2 gap-2">
-              <Link
-                href="/manage-restaurants"
-                onClick={() => {
-                  setOpen(false);
-                  onNavigate?.();
-                }}
-                className="flex-1 text-center text-[12px] font-semibold text-[var(--accent-text)] hover:text-[var(--accent)] transition-colors py-2 rounded-lg hover:bg-[var(--accent-muted)]"
-              >
-                Manage All
-              </Link>
+            <div className="p-2">
               <button
                 onClick={() => {
                   setOpen(false);
                   onNavigate?.();
-                  router.push("/manage-restaurants");
+                  onCreate?.();
                 }}
-                className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-[var(--accent)] py-2 text-[12px] font-bold text-white hover:bg-[var(--accent-hover)] transition-colors active:scale-[0.97]"
+                className="w-full flex items-center justify-center gap-1.5 rounded-lg bg-[var(--accent)] py-2 text-[12px] font-bold text-white hover:bg-[var(--accent-hover)] transition-colors active:scale-[0.97]"
               >
                 <Plus className="h-3 w-3" />
-                New
+                New Restaurant
               </button>
             </div>
           </motion.div>
@@ -202,86 +198,53 @@ function RestaurantSwitcher({ onNavigate }: { onNavigate?: () => void }) {
   );
 }
 
-function NavSection({
-  label,
-  items,
+// Flat sidebar item — Restrox-style simple list (no collapsible group headers).
+function NavItem({
+  item,
   active,
   newOrderCount,
   onClose,
-  defaultOpen = true,
 }: {
-  label: string;
-  items: typeof NAV_MAIN;
+  item: (typeof NAV_MAIN)[number];
   active: string;
   newOrderCount: number;
   onClose?: () => void;
-  defaultOpen?: boolean;
 }) {
-  const hasActive = items.some((i) => i.id === active || (active === "" && i.id === "overview"));
-  const [open, setOpen] = useState(defaultOpen || hasActive);
+  const Icon = item.icon;
+  const isActive =
+    active === item.id ||
+    ((active === "" || active === "dashboard") && item.id === "overview");
+  const href = item.id === "overview" ? "/dashboard" : `/dashboard/${item.id}`;
 
   return (
-    <div className="mb-2">
-      <button
-        onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center justify-between px-3 mb-1 py-1 rounded-lg hover:bg-[var(--canvas-sub)] transition-colors group"
-      >
-        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--text-2)] group-hover:text-[var(--text-2)]">
-          {label}
-        </p>
-        <ChevronDown className={`h-3 w-3 text-[var(--text-3)] transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
-      </button>
-      <AnimatePresence initial={false}>
-        {open && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="overflow-hidden"
-          >
-            <div className="space-y-0.5">
-              {items.map((item) => {
-                const Icon = item.icon;
-                const isActive = active === item.id || (active === "" && item.id === "overview");
-                const href = item.id === "overview" ? "/dashboard" : `/dashboard/${item.id}`;
+    <Link
+      href={href}
+      prefetch={false}
+      onClick={() => onClose?.()}
+      onMouseEnter={() => preloadTab(item.id)}
+      onFocus={() => preloadTab(item.id)}
+      className={`group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-semibold transition-colors cursor-pointer ${
+        isActive
+          ? "bg-[var(--accent-muted)] text-[var(--accent-text)] border-l-2 border-[var(--accent)]"
+          : "text-[var(--text-2)] hover:bg-[var(--surface)] hover:text-[var(--text-1)]"
+      }`}
+    >
+      <Icon
+        className={`h-4 w-4 shrink-0 transition-colors ${isActive ? "text-[var(--accent)]" : "text-[var(--text-3)] group-hover:text-[var(--accent)]"}`}
+      />
+      <span className="flex-1 text-left tracking-wide">{item.label}</span>
 
-                return (
-                  <Link
-                    key={item.id}
-                    href={href}
-                    onClick={() => onClose?.()}
-                    onMouseEnter={() => preloadTab(item.id)}
-                    onFocus={() => preloadTab(item.id)}
-                    className={`group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-semibold transition-colors cursor-pointer ${
-                      isActive
-                        ? "bg-[var(--accent-muted)] text-[var(--accent-text)] border-l-2 border-[var(--accent)]"
-                        : "text-[var(--text-2)] hover:bg-[var(--surface)] hover:text-[var(--text-1)]"
-                    }`}
-                  >
-                    <Icon
-                      className={`h-4 w-4 shrink-0 transition-colors ${isActive ? "text-[var(--accent)]" : "text-[var(--text-3)] group-hover:text-[var(--accent)]"}`}
-                    />
-                    <span className="flex-1 text-left tracking-wide">{item.label}</span>
-
-                    {item.badge === "live" && newOrderCount > 0 && (
-                      <span className="flex h-5 min-w-5 items-center justify-center rounded-md bg-[var(--accent-muted)] px-1.5 text-[10px] font-bold text-[var(--accent-text)] ring-1 ring-[var(--accent-border)]">
-                        {newOrderCount}
-                      </span>
-                    )}
-                    {item.badge === "live" && newOrderCount === 0 && (
-                      <span className="relative flex h-2 w-2">
-                        <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--accent)]" />
-                      </span>
-                    )}
-                  </Link>
-                );
-              })}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+      {item.badge === "live" && newOrderCount > 0 && (
+        <span className="flex h-5 min-w-5 items-center justify-center rounded-md bg-[var(--accent-muted)] px-1.5 text-[10px] font-bold text-[var(--accent-text)] ring-1 ring-[var(--accent-border)]">
+          {newOrderCount}
+        </span>
+      )}
+      {item.badge === "live" && newOrderCount === 0 && (
+        <span className="relative flex h-2 w-2">
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--accent)]" />
+        </span>
+      )}
+    </Link>
   );
 }
 
@@ -322,12 +285,14 @@ export default function DashboardSidebar({
   isCollapsed,
   onToggleCollapse,
   onRequestPOSActivate,
+  onRequestCreateRestaurant,
 }: {
   newOrderCount: number;
   onClose?: () => void;
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
   onRequestPOSActivate: () => void;
+  onRequestCreateRestaurant?: () => void;
 }) {
   const pathname = usePathname();
   const { selectedRestaurant } = useRestaurant();
@@ -370,21 +335,9 @@ export default function DashboardSidebar({
     [restaurantType, featuresEnabled, featuresDisabled],
   );
 
-  const manageNavItems = useMemo(() => {
-    if (!showHotelHub) return NAV_MANAGE;
-    const insertAt = Math.max(0, NAV_MANAGE.length - 1);
-    return [
-      ...NAV_MANAGE.slice(0, insertAt),
-      HOTEL_HUB_NAV_ITEM,
-      ...NAV_MANAGE.slice(insertAt),
-    ];
-  }, [showHotelHub]);
-
-  const typeLabel = restaurantType ? getTypeLabel(restaurantType) : "";
-
   if (isCollapsed) {
     return (
-      <aside className="flex h-full w-full flex-col items-center bg-[var(--canvas)]/60 backdrop-blur-3xl border-r border-[var(--border)]/50 shadow-[4px_0_24px_rgba(0,0,0,0.02)] py-4 gap-2">
+      <aside className="flex h-full w-full flex-col items-center bg-[var(--canvas)]/60 backdrop-blur-3xl border-r border-[var(--border)]/50 shadow-[4px_0_24px_rgba(0,0,0,0.02)] py-4 gap-2 font-poppins">
         <Link href="/" className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent)] shadow-sm mb-2">
           <Mountain className="h-4 w-4 text-white" strokeWidth={2.5} />
         </Link>
@@ -415,6 +368,7 @@ export default function DashboardSidebar({
                   key={item.id}
                   href={href}
                   title={item.label}
+                  prefetch={false}
                   onMouseEnter={() => preloadTab(item.id)}
                   onFocus={() => preloadTab(item.id)}
                   className={`relative flex h-9 w-9 items-center justify-center rounded-xl transition-colors ${
@@ -438,7 +392,7 @@ export default function DashboardSidebar({
   }
 
   return (
-    <aside className="flex h-full w-full flex-col bg-[var(--canvas)]/60 backdrop-blur-3xl border-r border-[var(--border)]/50 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+    <aside className="flex h-full w-full flex-col bg-[var(--canvas)]/60 backdrop-blur-3xl border-r border-[var(--border)]/50 shadow-[4px_0_24px_rgba(0,0,0,0.02)] font-poppins">
       <div className="flex items-center justify-between px-5 pt-6 pb-5">
         <Link href="/" className="group flex items-center gap-2.5">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent)] shadow-sm">
@@ -469,7 +423,7 @@ export default function DashboardSidebar({
         </div>
       </div>
 
-      <RestaurantSwitcher onNavigate={onClose} />
+      <RestaurantSwitcher onNavigate={onClose} onCreate={onRequestCreateRestaurant} />
       <SlugCopyStrip />
       <POSLauncher
         restaurant={selectedRestaurant}
@@ -479,43 +433,23 @@ export default function DashboardSidebar({
         }}
       />
 
-      <nav className="flex-1 overflow-y-auto px-3 pb-2 scrollbar-slim">
-        <NavSection
-          label="Main"
-          items={NAV_MAIN}
-          active={active}
-          newOrderCount={newOrderCount}
-          onClose={onClose}
-          defaultOpen={true}
-        />
-
-        {featureNavItems.length > 0 && (
-          <NavSection
-            label={`${typeLabel} Features`}
-            items={featureNavItems}
+      <nav className="flex-1 overflow-y-auto px-3 pb-2 scrollbar-slim space-y-0.5">
+        {[
+          ...NAV_MAIN,
+          ...(showHotelHub ? [HOTEL_HUB_NAV_ITEM] : []),
+          ...featureNavItems,
+          ...NAV_CATALOG,
+          ...NAV_PEOPLE,
+          ...NAV_MORE,
+        ].map((item) => (
+          <NavItem
+            key={item.id}
+            item={item}
             active={active}
             newOrderCount={newOrderCount}
             onClose={onClose}
-            defaultOpen={false}
           />
-        )}
-
-        <NavSection
-          label="Manage"
-          items={manageNavItems}
-          active={active}
-          newOrderCount={newOrderCount}
-          onClose={onClose}
-          defaultOpen={false}
-        />
-        <NavSection
-          label="More"
-          items={NAV_MORE}
-          active={active}
-          newOrderCount={newOrderCount}
-          onClose={onClose}
-          defaultOpen={false}
-        />
+        ))}
       </nav>
 
       <div className="pb-4" />

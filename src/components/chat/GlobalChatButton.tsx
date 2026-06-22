@@ -178,6 +178,11 @@ export default function GlobalChatButton({
     return () => clearInterval(interval);
   }, [loadRooms]);
 
+  // Close the per-room SSE if the component unmounts while a room is open
+  // (openRoom assigns sseRef but only closeRoom closes it — without this an
+  // unmount mid-room would leak the EventSource).
+  useEffect(() => () => sseRef.current?.close(), []);
+
   useEffect(() => {
     if (open) setUnreadCount(0);
   }, [open]);

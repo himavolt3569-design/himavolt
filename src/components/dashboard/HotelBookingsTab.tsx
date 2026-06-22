@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   BedDouble,
@@ -26,8 +26,10 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
+import { AnchoredMenu } from "@/components/shared/AnchoredMenu";
 import { formatPrice } from "@/lib/currency";
-import { SkeletonLine, SkeletonStatGrid, SkeletonTable } from "@/components/shared/Skeleton";
+import { useRealtimeSignal } from "@/hooks/useRealtimeSignal";
+import { restaurantBookingsTopic } from "@/lib/realtime-topics";
 
 interface Booking {
   id: string;
@@ -47,6 +49,12 @@ interface Booking {
   status: string;
   notes: string | null;
   createdAt: string;
+  receiptUrl?: string | null;
+  cancelReason?: string | null;
+  cancelRequestedAt?: string | null;
+  cancelledBy?: string | null;
+  refundStatus?: string | null;
+  roomServiceSelected?: boolean;
   room: {
     roomNumber: string;
     name: string | null;
@@ -105,6 +113,7 @@ function BookingRow({
   onView: (booking: Booking) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const actionsRef = useRef<HTMLButtonElement>(null);
 
   const NEXT_ACTIONS: Record<string, { label: string; status: string; icon: typeof Check; color: string }[]> = {
     PENDING: [
@@ -172,35 +181,34 @@ function BookingRow({
           {actions.length > 0 && (
             <div className="relative">
               <button
+                ref={actionsRef}
                 onClick={() => setOpen((o) => !o)}
                 className="flex items-center gap-1 rounded-lg bg-[var(--canvas-sub)] px-2.5 py-1.5 text-[11px] font-semibold text-[var(--text-2)] hover:bg-[var(--surface)] transition-colors"
               >
                 Actions <ChevronDown className={`h-3 w-3 transition-transform ${open ? "rotate-180" : ""}`} />
               </button>
-              <AnimatePresence>
-                {open && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -4 }}
-                    className="absolute right-0 top-full mt-1 z-10 min-w-[120px] rounded-xl bg-[var(--canvas)] ring-1 ring-[var(--border)] shadow-lg overflow-hidden"
-                  >
-                    {actions.map((a) => {
-                      const Icon = a.icon;
-                      return (
-                        <button
-                          key={a.status}
-                          onClick={() => { onStatusChange(booking.id, a.status); setOpen(false); }}
-                          className={`flex w-full items-center gap-2 px-3 py-2.5 text-[12px] font-semibold transition-colors ${ACTION_COLOR_STYLES[a.color]}`}
-                        >
-                          <Icon className="h-3.5 w-3.5" />
-                          {a.label}
-                        </button>
-                      );
-                    })}
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              <AnchoredMenu
+                anchorRef={actionsRef}
+                open={open}
+                onClose={() => setOpen(false)}
+                align="right"
+                width={140}
+                className="rounded-xl bg-[var(--canvas)] ring-1 ring-[var(--border)] shadow-lg overflow-hidden"
+              >
+                {actions.map((a) => {
+                  const Icon = a.icon;
+                  return (
+                    <button
+                      key={a.status}
+                      onClick={() => { onStatusChange(booking.id, a.status); setOpen(false); }}
+                      className={`flex w-full items-center gap-2 px-3 py-2.5 text-[12px] font-semibold transition-colors ${ACTION_COLOR_STYLES[a.color]}`}
+                    >
+                      <Icon className="h-3.5 w-3.5" />
+                      {a.label}
+                    </button>
+                  );
+                })}
+              </AnchoredMenu>
             </div>
           )}
         </div>
@@ -214,11 +222,13 @@ function BookingDetailModal({
   currency,
   onClose,
   onStatusChange,
+  onRefund,
 }: {
   booking: Booking;
   currency: string;
   onClose: () => void;
   onStatusChange: (id: string, status: string, advancePaid?: boolean) => void;
+  onRefund: (id: string) => void;
 }) {
   const fmtDate = (d: string) =>
     new Date(d).toLocaleString("en-GB", {
@@ -331,6 +341,60 @@ function BookingDetailModal({
               )}
             </div>
           </div>
+
+          {booking.roomServiceSelected && (
+            <div className="flex items-center gap-2 rounded-xl bg-[var(--canvas-sub)] px-3 py-2 text-[12px] text-[var(--text-2)]">
+              <CheckCircle className="h-3.5 w-3.5 text-[var(--accent)]" />
+              Room service add-on included
+            </div>
+          )}
+
+          {/* Guest-uploaded payment receipt */}
+          {booking.receiptUrl && (
+            <div className="space-y-1.5">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-[var(--text-3)]">Payment Receipt</p>
+              <a href={booking.receiptUrl} target="_blank" rel="noopener noreferrer" className="block">
+                <img
+                  src={booking.receiptUrl}
+                  alt="Payment receipt"
+                  className="max-h-48 w-full rounded-xl object-contain ring-1 ring-[var(--border)] bg-[var(--canvas-sub)]"
+                />
+              </a>
+            </div>
+          )}
+
+          {/* Customer cancellation request — hotel accepts or ignores */}
+          {booking.cancelReason && booking.status !== "CANCELLED" && (
+            <div className="rounded-xl bg-[var(--status-error-bg)] ring-1 ring-[var(--status-error-bg)] p-3 space-y-2">
+              <p className="text-[11px] font-bold text-[var(--status-error-text)]">
+                Cancellation requested{booking.cancelledBy === "CUSTOMER" ? " by guest" : ""}
+              </p>
+              <p className="text-[12px] text-[var(--status-error-text)]">{booking.cancelReason}</p>
+              <button
+                onClick={() => { onStatusChange(booking.id, "CANCELLED"); onClose(); }}
+                className="rounded-lg bg-[var(--status-error-text)] px-3 py-1.5 text-[11px] font-bold text-white hover:brightness-110 transition-all"
+              >
+                Accept &amp; cancel booking
+              </button>
+            </div>
+          )}
+
+          {/* Refund workflow once a paid booking is cancelled */}
+          {booking.status === "CANCELLED" && booking.refundStatus && booking.refundStatus !== "NONE" && (
+            <div className="flex items-center justify-between rounded-xl bg-[var(--canvas-sub)] ring-1 ring-[var(--border)] p-3">
+              <span className="text-[12px] font-semibold text-[var(--text-2)]">
+                Refund: {booking.refundStatus === "REFUNDED" ? "Completed" : "Pending"}
+              </span>
+              {booking.refundStatus === "REQUESTED" && (
+                <button
+                  onClick={() => { onRefund(booking.id); onClose(); }}
+                  className="rounded-lg bg-[var(--accent)] px-3 py-1.5 text-[11px] font-bold text-white hover:bg-[var(--accent-hover)] transition-colors"
+                >
+                  Mark refunded
+                </button>
+              )}
+            </div>
+          )}
 
           {booking.notes && (
             <div className="rounded-xl bg-[var(--status-info-bg)] ring-1 ring-[var(--status-info-border)] p-3">
@@ -535,6 +599,13 @@ export default function HotelBookingsTab() {
     fetchConfig();
   }, [fetchBookings, fetchConfig]);
 
+  // Instant refresh when a booking changes anywhere (new booking, cancel
+  // request, receipt, staff action) — pushed via Supabase Realtime.
+  useRealtimeSignal(
+    restaurantId ? restaurantBookingsTopic(restaurantId) : null,
+    () => fetchBookings(true),
+  );
+
   const handleStatusChange = async (id: string, status: string, advancePaid?: boolean) => {
     if (!restaurantId) return;
     const body: Record<string, unknown> = { status };
@@ -544,6 +615,18 @@ export default function HotelBookingsTab() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
+    fetchBookings(true);
+    setViewBooking(null);
+  };
+
+  const handleRefund = async (id: string) => {
+    if (!restaurantId) return;
+    const res = await fetch(`/api/restaurants/${restaurantId}/bookings/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refundStatus: "REFUNDED" }),
+    });
+    if (!res.ok) return;
     fetchBookings(true);
     setViewBooking(null);
   };
@@ -567,18 +650,8 @@ export default function HotelBookingsTab() {
     total: bookings.length,
   };
 
-  if (loading) {
-    return (
-      <div className="space-y-5">
-        <div className="space-y-2">
-          <SkeletonLine width="w-44" height="h-6" />
-          <SkeletonLine width="w-72" height="h-3" />
-        </div>
-        <SkeletonStatGrid count={4} />
-        <SkeletonTable rows={5} />
-      </div>
-    );
-  }
+  // No skeleton — paint nothing until the first list resolves (near-instant).
+  if (loading && bookings.length === 0) return null;
 
   return (
     <div className="space-y-5">
@@ -703,6 +776,7 @@ export default function HotelBookingsTab() {
             currency={currency}
             onClose={() => setViewBooking(null)}
             onStatusChange={handleStatusChange}
+            onRefund={handleRefund}
           />
         )}
       </AnimatePresence>

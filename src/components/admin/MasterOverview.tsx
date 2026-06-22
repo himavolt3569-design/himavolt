@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
+import { useRealtimeSignal } from "@/hooks/useRealtimeSignal";
+import { adminTopic } from "@/lib/realtime-topics";
 import {
   Users,
   Store,
@@ -188,6 +190,8 @@ export default function MasterOverview({
     const interval = setInterval(fetchStats, 30000);
     return () => clearInterval(interval);
   }, [fetchStats]);
+  // Live refresh on any order/payment/booking change across all restaurants.
+  useRealtimeSignal(adminTopic(), fetchStats);
 
   if (loading) {
     return (

@@ -157,17 +157,6 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    let ownerHasRestaurant = false;
-    if (finalRole === "OWNER") {
-      const restaurantCount = await db.restaurant.count({ where: { ownerId: user.id } });
-      if (restaurantCount === 0 && isAccountLink && existingUserByEmail) {
-        const linkedCount = await db.restaurant.count({ where: { ownerId: existingUserByEmail.id } });
-        ownerHasRestaurant = linkedCount > 0;
-      } else {
-        ownerHasRestaurant = restaurantCount > 0;
-      }
-    }
-
     const dbUser = await db.user.findUnique({ where: { id: user.id } })
       ?? (isAccountLink && email ? await db.user.findFirst({ where: { email } }) : null);
     const hasUsername = !!dbUser?.username;
@@ -177,7 +166,9 @@ export async function GET(req: NextRequest) {
     } else if (finalRole === "CUSTOMER") {
       redirectTo = "/dashboard";
     } else if (finalRole === "OWNER" || dbRole === "OWNER" || dbRole === "ADMIN") {
-      redirectTo = ownerHasRestaurant ? "/dashboard" : "/manage-restaurants";
+      // Owners always land on the dashboard; if they have no restaurant yet it
+      // opens the create-restaurant modal inline.
+      redirectTo = "/dashboard";
     }
   } catch (err: any) {
     console.error("[/auth/callback] DB error:", err?.message ?? err);

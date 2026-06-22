@@ -28,6 +28,8 @@ import {
 } from "@/context/LiveOrdersContext";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { formatPrice } from "@/lib/currency";
+import { resolvePrintSettings } from "@/lib/print-settings";
+import { printKOT } from "@/lib/print-kot";
 import DineInRequestModal from "@/components/modals/DineInRequestModal";
 import { SkeletonOrderCard } from "@/components/shared/Skeleton";
 import { apiFetch } from "@/lib/api-client";
@@ -683,14 +685,32 @@ export default function LiveOrdersTab() {
       {/* Dine-in modal */}
       <DineInRequestModal
         order={selectedOrder}
+        currency={cur}
         onClose={() => setSelectedOrder(null)}
-        onAccept={(id) => {
-          acceptOrder(id);
+        onAccept={(id, print) => {
+          acceptOrder(id, undefined, print);
           setSelectedOrder(null);
         }}
         onReject={(id) => {
           rejectOrder(id);
           setSelectedOrder(null);
+        }}
+        onPrintKOT={() => {
+          if (!selectedOrder) return;
+          const s = resolvePrintSettings(selectedRestaurant);
+          printKOT(
+            selectedOrder.items.map((i) => ({
+              name: i.name,
+              quantity: i.quantity,
+            })),
+            {
+              restaurantName: selectedRestaurant?.name,
+              tableNo: selectedOrder.tableNo,
+              orderNo: selectedOrder.orderNo,
+              guestName: selectedOrder.user?.name ?? null,
+              width: s.kitchenWidth,
+            },
+          );
         }}
       />
     </div>

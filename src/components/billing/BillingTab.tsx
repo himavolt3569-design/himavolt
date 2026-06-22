@@ -34,32 +34,10 @@ import {
 import { formatPrice, getCurrencySymbol } from "@/lib/currency";
 import { useToast } from "@/context/ToastContext";
 import { apiFetch, peekApiCache } from "@/lib/api-client";
-import Skeleton, {
-  SkeletonStatGrid,
-  SkeletonOrderCard,
-} from "@/components/shared/Skeleton";
-
-function BillingTabSkeleton() {
-  return (
-    <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <Skeleton className="h-6 w-32 rounded" />
-        <Skeleton className="h-9 w-9 rounded-full" />
-      </div>
-      <SkeletonStatGrid count={4} />
-      <div className="flex gap-2 overflow-x-auto pb-2">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-9 w-28 shrink-0 rounded-full" />
-        ))}
-      </div>
-      <div className="space-y-3">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <SkeletonOrderCard key={i} />
-        ))}
-      </div>
-    </div>
-  );
-}
+import { useRestaurant } from "@/context/RestaurantContext";
+import { autoPrintBill } from "@/lib/print-bill";
+import ManualBillingTab from "@/components/dashboard/ManualBillingTab";
+import { Zap } from "lucide-react";
 
 /* Types */
 
@@ -248,12 +226,13 @@ function playBillingAlert() {
   }
 }
 
-export default function BillingTab({
+function LiveBilling({
   restaurantId,
   staffRole,
   currency = "NPR",
 }: BillingTabProps) {
   const { showToast } = useToast();
+  const { selectedRestaurant } = useRestaurant();
   const cur = currency;
   // Seed from the warm GET cache so re-opening Billing paints instantly — no
   // skeleton — while the effects below revalidate in the background.
@@ -456,17 +435,19 @@ export default function BillingTab({
 
   const handleCollectPayment = async () => {
     if (!selectedOrder) return;
+    const paidOrderId = selectedOrder.id;
     setActionLoading(true);
     try {
       await apiFetch(`/api/restaurants/${restaurantId}/billing/collect`, {
         method: "POST",
         body: {
-          orderId: selectedOrder.id,
+          orderId: paidOrderId,
           method: collectMethod,
           transactionId: collectTxn || undefined,
         },
       });
       showToast(`Payment collected for Order #${selectedOrder.orderNo}`, "success");
+      if (selectedRestaurant?.printAutoReceipt) autoPrintBill(paidOrderId);
       setShowCollect(false);
       setCollectTxn("");
       setSelectedOrder(null);
@@ -546,16 +527,18 @@ export default function BillingTab({
       );
       return;
     }
+    const paidOrderId = selectedOrder.id;
     setActionLoading(true);
     try {
       await apiFetch(`/api/restaurants/${restaurantId}/billing/split`, {
         method: "POST",
         body: {
-          orderId: selectedOrder.id,
+          orderId: paidOrderId,
           splits: active.map((e) => ({ method: e.method, amount: parseFloat(e.amount) })),
         },
       });
       showToast(`Split payment collected for Order #${selectedOrder.orderNo}`, "success");
+      if (selectedRestaurant?.printAutoReceipt) autoPrintBill(paidOrderId);
       setShowSplit(false);
       setSelectedOrder(null);
       setSplitEntries([{ method: "CASH", amount: "" }, { method: "ESEWA", amount: "" }]);
@@ -605,10 +588,6 @@ export default function BillingTab({
 
   const cashCount = orders.filter(isCashOrder).length;
   const onlineCount = orders.filter((o) => !!isOnlineOrder(o)).length;
-
-  if (loading) {
-    return <BillingTabSkeleton />;
-  }
 
   return (
     <div className="space-y-5">
@@ -1877,5 +1856,55 @@ function SummaryCard({
         </div>
       </div>
     </motion.div>
+  );
+}
+
+/**
+ * Billing page = live-orders billing + Fast/Manual pay, merged into one place
+ * with a simple sub-tab switch (Restrox-style).
+ */
+export default function BillingTab(props: BillingTabProps) {
+  const { selectedRestaurant } = useRestaurant();
+  const [view, setView] = useState<"normal" | "fast">("normal");
+  const r = selectedRestaurant;
+
+  return (
+    <div className="space-y-5">
+      <div className="inline-flex rounded-2xl bg-[var(--canvas-sub)] p-1 ring-1 ring-[var(--border)]">
+        {([
+          { id: "normal", label: "Normal Billing", icon: Receipt },
+          { id: "fast", label: "Fast Pay & Manual Pay", icon: Zap },
+        ] as const).map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            onClick={() => setView(id)}
+            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-bold transition-colors ${
+              view === id
+                ? "bg-[var(--canvas)] text-[var(--text-1)] shadow-sm"
+                : "text-[var(--text-3)] hover:text-[var(--text-2)]"
+            }`}
+          >
+            <Icon className={`h-4 w-4 ${view === id ? "text-[var(--accent)]" : ""}`} />
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {view === "normal" ? (
+        <LiveBilling {...props} />
+      ) : (
+        <ManualBillingTab
+          restaurantId={props.restaurantId}
+          currency={r?.currency ?? props.currency ?? "NPR"}
+          restaurantName={r?.name ?? ""}
+          restaurantAddress={r?.address ?? ""}
+          restaurantPhone={r?.phone ?? ""}
+          taxRate={r?.taxRate ?? 13}
+          taxEnabled={r?.taxEnabled ?? true}
+          counterWidth={r?.printCounterWidth ?? 80}
+          kitchenWidth={r?.printKitchenWidth ?? 80}
+        />
+      )}
+    </div>
   );
 }

@@ -7,7 +7,25 @@ type Params = { params: Promise<{ id: string }> };
 export async function POST(req: NextRequest, { params }: Params) {
   const { id: restaurantId } = await params;
   const body = await req.json();
-  const { tableNo, sessionToken } = body;
+  const { sessionToken, qrToken } = body;
+
+  // Server-authoritative table identity: when the QR token is present we resolve
+  // the table from it, so a guest can never change the table number in the URL
+  // to order on someone else's table. Raw tableNo from the body is only honoured
+  // as a legacy fallback for QR codes printed before token-based QRs existed.
+  let tableNo: number | undefined;
+  if (typeof qrToken === "string" && qrToken) {
+    const table = await db.table.findFirst({
+      where: { qrToken, restaurantId },
+      select: { tableNo: true },
+    });
+    if (!table) {
+      return NextResponse.json({ error: "Invalid table QR" }, { status: 404 });
+    }
+    tableNo = table.tableNo;
+  } else if (typeof body.tableNo === "number" && body.tableNo >= 1) {
+    tableNo = body.tableNo;
+  }
 
   if (typeof tableNo !== "number" || tableNo < 1) {
     return NextResponse.json({ error: "Invalid table number" }, { status: 400 });

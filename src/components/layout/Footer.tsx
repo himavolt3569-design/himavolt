@@ -95,7 +95,7 @@ export default function Footer() {
   };
 
   return (
-    <footer className="relative bg-[#111111]">
+    <footer className="relative bg-[#111111] font-poppins">
       {/* Top accent line */}
       <div className="h-0.5 bg-linear-to-r from-transparent via-[var(--accent)]/30 to-transparent" />
 
@@ -114,7 +114,7 @@ export default function Footer() {
                   strokeWidth={2.5}
                 />
               </motion.div>
-              <span className="text-lg font-extrabold text-white tracking-tight">
+              <span className="text-lg font-serif font-extrabold text-white tracking-tight">
                 Hima<span className="text-[var(--accent)]">Volt</span>
               </span>
             </Link>

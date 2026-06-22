@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus,
@@ -33,6 +33,7 @@ import {
 } from "@/context/RestaurantContext";
 import { apiFetch } from "@/lib/api-client";
 import { SkeletonLine, SkeletonGrid } from "@/components/shared/Skeleton";
+import { AnchoredMenu } from "@/components/shared/AnchoredMenu";
 
 type StaffRole = "SUPER_ADMIN" | "MANAGER" | "CHEF" | "WAITER" | "CASHIER";
 
@@ -40,6 +41,7 @@ const ROLE_META: Record<
   StaffRole,
   {
     label: string;
+    description: string;
     icon: typeof Shield;
     gradient: string;
     text: string;
@@ -48,6 +50,7 @@ const ROLE_META: Record<
 > = {
   SUPER_ADMIN: {
     label: "Super Admin",
+    description: "Full access — manage staff, menu, billing, tables, stock & settings, just like the owner.",
     icon: Shield,
     gradient: "from-purple-500 to-violet-600",
     text: "text-purple-700",
@@ -55,34 +58,38 @@ const ROLE_META: Record<
   },
   MANAGER: {
     label: "Manager",
+    description: "Run daily operations — staff, menu, tables, stock, billing & reports. No owner-only settings.",
     icon: UserCheck,
     gradient: "from-blue-500 to-indigo-600",
     text: "text-blue-700",
     badge: "bg-blue-50 text-blue-700 border-blue-200",
   },
+  CASHIER: {
+    label: "Cashier",
+    description: "Billing & payments — take orders, collect bills, accept payments and run Fast Pay.",
+    icon: UserCheck,
+    gradient: "from-[var(--accent)] to-[var(--accent-hover)]",
+    text: "text-[var(--accent-text)]",
+    badge:
+      "bg-[var(--accent-muted)] text-[var(--accent-text)] border-[var(--accent-border)]",
+  },
+  WAITER: {
+    label: "Waiter",
+    description: "Take table orders and send them to the kitchen. No billing or settings access.",
+    icon: UserCheck,
+    gradient: "from-[var(--accent)] to-[var(--accent-hover)]",
+    text: "text-[var(--accent-text)]",
+    badge:
+      "bg-[var(--accent-muted)] text-[var(--accent-text)] border-[var(--accent-border)]",
+  },
   CHEF: {
     label: "Chef",
+    description: "Kitchen display — view incoming orders and update cooking/ready status. No billing.",
     icon: ChefHat,
     gradient: "from-[var(--accent)] to-[var(--accent-hover)]",
     text: "text-[var(--accent)]",
     badge:
       "bg-[var(--accent)] text-[var(--accent)] border-[var(--accent-border)]",
-  },
-  WAITER: {
-    label: "Waiter",
-    icon: UserCheck,
-    gradient: "from-[var(--accent)] to-[var(--accent-hover)]",
-    text: "text-[var(--accent-text)]",
-    badge:
-      "bg-[var(--accent-muted)] text-[var(--accent-text)] border-[var(--accent-border)]",
-  },
-  CASHIER: {
-    label: "Cashier",
-    icon: UserCheck,
-    gradient: "from-[var(--accent)] to-[var(--accent-hover)]",
-    text: "text-[var(--accent-text)]",
-    badge:
-      "bg-[var(--accent-muted)] text-[var(--accent-text)] border-[var(--accent-border)]",
   },
 };
 
@@ -146,6 +153,7 @@ function RoleDropdown({
 }) {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState<StaffRole | null>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   const handleChange = async (role: StaffRole) => {
     if (role === current) {
@@ -173,6 +181,7 @@ function RoleDropdown({
   return (
     <div className="relative">
       <button
+        ref={triggerRef}
         onClick={() => setOpen((o) => !o)}
         className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-bold transition-all hover:shadow-sm ${meta.badge}`}
       >
@@ -183,51 +192,40 @@ function RoleDropdown({
         />
       </button>
 
-      <AnimatePresence>
-        {open && (
-          <>
-            <div
-              className="fixed inset-0 z-10"
-              onClick={() => setOpen(false)}
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: -4 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: -4 }}
-              transition={{ duration: 0.12 }}
-              className="absolute left-0 top-full mt-1.5 z-20 w-44 rounded-xl border border-[var(--border-soft)] bg-[var(--canvas)] shadow-xl overflow-hidden"
+      <AnchoredMenu
+        anchorRef={triggerRef}
+        open={open}
+        onClose={() => setOpen(false)}
+        align="left"
+        width={176}
+        className="rounded-xl border border-[var(--border-soft)] bg-[var(--canvas)] shadow-xl overflow-hidden"
+      >
+        {ALL_ROLES.map((role) => {
+          const rm = ROLE_META[role];
+          const RI = rm.icon;
+          const isActive = role === current;
+          return (
+            <button
+              key={role}
+              onClick={() => handleChange(role)}
+              disabled={!!saving}
+              className={`flex w-full items-center gap-2.5 px-3 py-2.5 text-xs font-semibold transition-colors ${
+                isActive
+                  ? "bg-[var(--canvas-sub)] text-[var(--text-1)]"
+                  : "text-[var(--text-2)] hover:bg-[var(--canvas-sub)] hover:text-[var(--text-1)]"
+              }`}
             >
-              {ALL_ROLES.map((role) => {
-                const rm = ROLE_META[role];
-                const RI = rm.icon;
-                const isActive = role === current;
-                return (
-                  <button
-                    key={role}
-                    onClick={() => handleChange(role)}
-                    disabled={!!saving}
-                    className={`flex w-full items-center gap-2.5 px-3 py-2.5 text-xs font-semibold transition-colors ${
-                      isActive
-                        ? "bg-[var(--canvas-sub)] text-[var(--text-1)]"
-                        : "text-[var(--text-2)] hover:bg-[var(--canvas-sub)] hover:text-[var(--text-1)]"
-                    }`}
-                  >
-                    {saving === role ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin text-[var(--text-3)]" />
-                    ) : (
-                      <RI className={`h-3.5 w-3.5 ${rm.text}`} />
-                    )}
-                    <span className="flex-1 text-left">{rm.label}</span>
-                    {isActive && (
-                      <Check className="h-3 w-3 text-[var(--text-3)]" />
-                    )}
-                  </button>
-                );
-              })}
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+              {saving === role ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin text-[var(--text-3)]" />
+              ) : (
+                <RI className={`h-3.5 w-3.5 ${rm.text}`} />
+              )}
+              <span className="flex-1 text-left">{rm.label}</span>
+              {isActive && <Check className="h-3 w-3 text-[var(--text-3)]" />}
+            </button>
+          );
+        })}
+      </AnchoredMenu>
     </div>
   );
 }
@@ -359,7 +357,7 @@ function StaffCard({
           />
         </div>
 
-        {/* Staff type classification â€” Owner-only */}
+        {/* Staff type classification — Owner-only */}
         <div className="mt-2.5 flex items-center gap-2 flex-wrap">
           <span className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider">
             Type:
@@ -439,17 +437,18 @@ function StaffCard({
           ) : (
             <div className="flex items-center gap-2 flex-1">
               <span className="font-mono text-sm font-bold text-[var(--text-2)] bg-[var(--canvas-sub)] rounded-lg px-2.5 py-1 tracking-widest border border-[var(--border-soft)]">
-                â€¢â€¢â€¢â€¢
+                ••••
               </span>
               <button
                 onClick={() => {
                   setEditingPin(true);
                   setNewPin("");
                 }}
-                className="flex h-7 w-7 items-center justify-center rounded-lg text-[var(--text-3)] hover:text-[var(--accent-text)] hover:bg-[var(--accent-muted)] transition-all"
+                className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-bold text-[var(--text-3)] hover:text-[var(--accent-text)] hover:bg-[var(--accent-muted)] transition-all"
                 title="Change PIN"
               >
-                <Pencil className="h-3.5 w-3.5" />
+                <Pencil className="h-3 w-3" />
+                Edit
               </button>
             </div>
           )}
@@ -542,7 +541,7 @@ function StaffDirectoryView({
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by name or emailâ€¦"
+            placeholder="Search by name or email…"
             className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] py-2.5 pl-10 pr-4 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 shadow-sm"
           />
         </div>
@@ -636,7 +635,7 @@ function AttendanceLogsView({ restaurantId }: { restaurantId: string }) {
     return (
       <div className="flex items-center justify-center py-20 gap-2 text-[var(--text-3)]">
         <Loader2 className="h-5 w-5 animate-spin" />
-        <span className="text-sm font-medium">Loading attendanceâ€¦</span>
+        <span className="text-sm font-medium">Loading attendance…</span>
       </div>
     );
   }
@@ -663,7 +662,7 @@ function AttendanceLogsView({ restaurantId }: { restaurantId: string }) {
   }
 
   function formatDur(mins: number): string {
-    if (mins <= 0) return "â€”";
+    if (mins <= 0) return "—";
     if (mins < 60) return `${mins}m`;
     return `${Math.floor(mins / 60)}h ${mins % 60}m`;
   }
@@ -863,10 +862,12 @@ function AddStaffModal({
   open,
   onClose,
   restaurantId,
+  existingStaff,
 }: {
   open: boolean;
   onClose: () => void;
   restaurantId: string;
+  existingStaff: StaffMember[];
 }) {
   const { addStaff } = useRestaurant();
   const [name, setName] = useState("");
@@ -875,6 +876,13 @@ function AddStaffModal({
   const [role, setRole] = useState<StaffRole>("WAITER");
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+
+  // Instant client-side guard: flag a duplicate before the server round-trip so
+  // the owner gets immediate feedback instead of a 409 after pressing "Add".
+  const trimmedEmail = email.trim().toLowerCase();
+  const duplicate = existingStaff.find(
+    (s) => s.isActive && s.user.email.toLowerCase() === trimmedEmail,
+  );
   const [successData, setSuccessData] = useState<{
     pin: string;
     code: string;
@@ -892,6 +900,10 @@ function AddStaffModal({
 
   const handleSave = async () => {
     if (!name.trim() || !email.trim() || saving) return;
+    if (duplicate) {
+      setErrorMsg("This staff member is already active at this restaurant");
+      return;
+    }
     setSaving(true);
     setErrorMsg("");
     try {
@@ -918,7 +930,7 @@ function AddStaffModal({
     }
   };
 
-  const isValid = name.trim() && email.trim();
+  const isValid = name.trim() && email.trim() && !duplicate;
 
   return (
     <AnimatePresence>
@@ -1050,8 +1062,18 @@ function AddStaffModal({
                         value={f.value}
                         onChange={(e) => f.setter(e.target.value)}
                         placeholder={f.placeholder}
-                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
+                        className={`w-full rounded-xl border bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:ring-2 ${
+                          f.key === "email" && duplicate
+                            ? "border-red-300 focus:border-red-400 focus:ring-red-200/40"
+                            : "border-[var(--border)] focus:border-[var(--accent)] focus:ring-[var(--accent)]/15"
+                        }`}
                       />
+                      {f.key === "email" && duplicate && (
+                        <p className="mt-1.5 text-[12px] font-semibold text-red-600">
+                          {duplicate.user.name} is already active here — pick a
+                          different email.
+                        </p>
+                      )}
                     </div>
                   ))}
 
@@ -1081,6 +1103,21 @@ function AddStaffModal({
                         );
                       })}
                     </div>
+                    {/* Explain what the chosen role can actually do. */}
+                    {(() => {
+                      const RoleIcon = ROLE_META[role].icon;
+                      return (
+                        <p className="mt-2 flex items-start gap-2 rounded-xl bg-[var(--canvas-sub)] px-3 py-2.5 text-[12px] leading-snug text-[var(--text-2)] ring-1 ring-[var(--border-soft)]">
+                          <RoleIcon className="h-3.5 w-3.5 shrink-0 mt-0.5 text-[var(--accent)]" />
+                          <span>
+                            <strong className="font-bold text-[var(--text-1)]">
+                              {ROLE_META[role].label}:
+                            </strong>{" "}
+                            {ROLE_META[role].description}
+                          </span>
+                        </p>
+                      );
+                    })()}
                   </div>
                 </div>
 
@@ -1114,7 +1151,7 @@ function AddStaffModal({
                     ) : (
                       <UserPlus className="h-4 w-4" />
                     )}
-                    {saving ? "Addingâ€¦" : "Add Staff"}
+                    {saving ? "Adding…" : "Add Staff"}
                   </button>
                 </div>
               </>
@@ -1163,7 +1200,7 @@ export default function StaffManagementTab() {
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-12">
-      {/* â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Header ──────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <div className="flex items-center gap-3 flex-wrap">
@@ -1199,7 +1236,7 @@ export default function StaffManagementTab() {
         </button>
       </div>
 
-      {/* â”€â”€ Tab bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Tab bar ─────────────────────────────────────────────── */}
       <div className="flex items-center gap-1 rounded-xl bg-[var(--surface)] p-1 w-fit">
         {tabs.map(({ id, label, icon: Icon }) => (
           <button
@@ -1217,7 +1254,7 @@ export default function StaffManagementTab() {
         ))}
       </div>
 
-      {/* â”€â”€ Content â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Content ─────────────────────────────────────────────── */}
       <AnimatePresence mode="wait">
         <motion.div
           key={activeTab}
@@ -1238,11 +1275,12 @@ export default function StaffManagementTab() {
         </motion.div>
       </AnimatePresence>
 
-      {/* â”€â”€ Add Staff Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Add Staff Modal ──────────────────────────────────────── */}
       <AddStaffModal
         open={showModal}
         onClose={() => setShowModal(false)}
         restaurantId={restaurant.id}
+        existingStaff={restaurant.staff}
       />
     </div>
   );

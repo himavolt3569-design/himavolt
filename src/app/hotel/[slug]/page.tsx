@@ -6,6 +6,7 @@ import {
   BedDouble,
   Users,
   MapPin,
+  Search,
   Phone,
   Star,
   Wifi,
@@ -38,10 +39,12 @@ import {
   Home,
   FileText,
   Sparkles,
+  ScanLine,
 } from "lucide-react";
 import QRCode from "react-qr-code";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { uploadFile } from "@/lib/upload";
 
 interface Room {
   id: string;
@@ -55,6 +58,8 @@ interface Room {
   bedCount: number;
   description: string | null;
   amenities: string[];
+  offerings: string[];
+  locationNote: string | null;
   imageUrls: string[];
   videoUrl: string | null;
   isAvailable: boolean;
@@ -76,6 +81,8 @@ interface Hotel {
   closingTime: string;
   hotelAdvanceType: string;
   hotelAdvanceValue: number;
+  roomServiceEnabled?: boolean;
+  roomServiceCharge?: number;
   heroSlides: { id: string; imageUrl: string; title?: string; subtitle?: string }[];
 }
 
@@ -110,6 +117,9 @@ function AmenityChip({ label }: { label: string }) {
 
 function ImageCarousel({ images, name }: { images: string[]; name: string }) {
   const [idx, setIdx] = useState(0);
+  const multi = images.length > 1;
+  const go = (dir: number) =>
+    setIdx((i) => (i + dir + images.length) % images.length);
   if (!images.length) {
     return (
       <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[var(--accent)] to-[var(--accent-hover)]">
@@ -118,22 +128,38 @@ function ImageCarousel({ images, name }: { images: string[]; name: string }) {
     );
   }
   return (
-    <div className="relative h-full w-full group">
-      <img
-        src={images[idx]}
-        alt={name}
-        className="h-full w-full object-cover transition-all duration-500"
-      />
-      {images.length > 1 && (
+    <div className="relative h-full w-full group overflow-hidden">
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.img
+          key={idx}
+          src={images[idx]}
+          alt={name}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          // Touch swipe on mobile (arrows are hover-only on desktop).
+          drag={multi ? "x" : false}
+          dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={0.18}
+          onDragEnd={(_e, info) => {
+            if (info.offset.x < -50) go(1);
+            else if (info.offset.x > 50) go(-1);
+          }}
+          className="absolute inset-0 h-full w-full object-cover"
+          draggable={false}
+        />
+      </AnimatePresence>
+      {multi && (
         <>
           <button
-            onClick={(e) => { e.stopPropagation(); setIdx((i) => (i - 1 + images.length) % images.length); }}
+            onClick={(e) => { e.stopPropagation(); go(-1); }}
             className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-1.5 text-white opacity-0 group-hover:opacity-100 transition-opacity"
           >
             <ChevronLeft className="h-3 w-3" />
           </button>
           <button
-            onClick={(e) => { e.stopPropagation(); setIdx((i) => (i + 1) % images.length); }}
+            onClick={(e) => { e.stopPropagation(); go(1); }}
             className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-1.5 text-white opacity-0 group-hover:opacity-100 transition-opacity"
           >
             <ChevronRight className="h-3 w-3" />
@@ -409,9 +435,9 @@ function RoomStep({
       </div>
 
       {refreshing && (
-        <div className="flex items-center gap-2 text-[12px] text-[var(--text-2)]">
-          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-          Checking availability…
+        <div className="inline-flex items-center gap-1.5 rounded-full bg-[var(--accent-muted)] px-3 py-1 text-[11px] font-semibold text-[var(--accent-text)]">
+          <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] animate-pulse" />
+          Updating availability
         </div>
       )}
 
@@ -567,6 +593,7 @@ function GuestStep({
     guestAddress: string;
     guestIdType: string;
     guestIdNumber: string;
+    guestIdImageUrl: string;
     notes: string;
   };
   onChange: (v: Partial<typeof form>) => void;
@@ -574,6 +601,51 @@ function GuestStep({
   onNext: () => void;
 }) {
   const valid = form.guestName.trim().length >= 2 && form.guestPhone.trim().length >= 6;
+  const [idUploading, setIdUploading] = useState(false);
+  const [idOcrRunning, setIdOcrRunning] = useState(false);
+  const [idMsg, setIdMsg] = useState("");
+  const idInputRef = useRef<HTMLInputElement>(null);
+
+  const handleIdUpload = async (file: File | null) => {
+    if (!file) return;
+    setIdMsg("");
+    setIdUploading(true);
+    let url = "";
+    try {
+      url = await uploadFile(file, "booking-ids");
+      onChange({ guestIdImageUrl: url });
+    } catch {
+      setIdMsg("Upload failed — you can still type your details manually.");
+      setIdUploading(false);
+      return;
+    }
+    setIdUploading(false);
+
+    // Best-effort client-side OCR autofill — never blocks; all fields stay editable.
+    setIdOcrRunning(true);
+    try {
+      const { createWorker } = await import("tesseract.js");
+      const worker = await createWorker("eng");
+      const { data } = await worker.recognize(file);
+      await worker.terminate();
+      const text = data.text || "";
+      const patch: Partial<typeof form> = {};
+      const idMatch = text.match(/([A-Z0-9][A-Z0-9\-/]{5,})/i);
+      if (idMatch && !form.guestIdNumber.trim()) patch.guestIdNumber = idMatch[1];
+      const nameMatch = text.match(/name[\s:]+([A-Za-z][A-Za-z .]{2,40})/i);
+      if (nameMatch && !form.guestName.trim()) patch.guestName = nameMatch[1].trim();
+      if (Object.keys(patch).length) onChange(patch);
+      setIdMsg(
+        Object.keys(patch).length
+          ? "Details auto-filled from your ID — please verify them."
+          : "ID uploaded. Couldn't read the details — please type them in.",
+      );
+    } catch {
+      setIdMsg("ID uploaded. Couldn't read the details — please type them in.");
+    } finally {
+      setIdOcrRunning(false);
+    }
+  };
 
   const fields: {
     key: keyof typeof form;
@@ -622,6 +694,47 @@ function GuestStep({
           </div>
         ))}
 
+        {/* ID proof upload with best-effort OCR autofill */}
+        <div>
+          <label className="block text-[11px] font-semibold uppercase tracking-wide text-[var(--text-2)] mb-1.5">
+            ID Proof (optional)
+          </label>
+          {form.guestIdImageUrl && (
+            <img
+              src={form.guestIdImageUrl}
+              alt="ID proof"
+              className="mb-2 max-h-32 w-full rounded-xl object-contain ring-1 ring-[var(--border)] bg-[var(--canvas-sub)]"
+            />
+          )}
+          <button
+            type="button"
+            onClick={() => idInputRef.current?.click()}
+            disabled={idUploading || idOcrRunning}
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-[var(--accent-border)] bg-[var(--canvas-sub)] py-3 text-[13px] font-semibold text-[var(--accent-text)] hover:bg-[var(--accent-muted)] transition-colors disabled:opacity-50"
+          >
+            {idUploading || idOcrRunning ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <ScanLine className="h-4 w-4" />
+            )}
+            {idUploading
+              ? "Uploading…"
+              : idOcrRunning
+                ? "Reading your ID…"
+                : form.guestIdImageUrl
+                  ? "Replace ID photo"
+                  : "Scan / upload ID photo"}
+          </button>
+          <input
+            ref={idInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => handleIdUpload(e.target.files?.[0] ?? null)}
+          />
+          {idMsg && <p className="mt-1.5 text-[11px] text-[var(--text-3)]">{idMsg}</p>}
+        </div>
+
         <div>
           <label className="block text-[11px] font-semibold uppercase tracking-wide text-[var(--text-2)] mb-1.5">
             Special Requests
@@ -669,6 +782,8 @@ function PaymentStep({
   guest,
   payMethod,
   onPayMethod,
+  roomServiceSelected,
+  onToggleRoomService,
   onBack,
   onConfirm,
   loading,
@@ -686,6 +801,8 @@ function PaymentStep({
   guest: { guestName: string; guestPhone: string; guestEmail: string };
   payMethod: "ESEWA" | "KHALTI" | "CASH";
   onPayMethod: (m: "ESEWA" | "KHALTI" | "CASH") => void;
+  roomServiceSelected: boolean;
+  onToggleRoomService: (v: boolean) => void;
   onBack: () => void;
   onConfirm: () => void;
   loading: boolean;
@@ -694,7 +811,9 @@ function PaymentStep({
   esewaData: Record<string, string> | null;
 }) {
   const cur = hotel.currency === "USD" ? "$" : hotel.currency === "INR" ? "₹" : "Rs.";
-  const total = room.price * nights;
+  const roomServiceAvailable = !!hotel.roomServiceEnabled && (hotel.roomServiceCharge ?? 0) > 0;
+  const roomServiceFee = roomServiceAvailable && roomServiceSelected ? hotel.roomServiceCharge ?? 0 : 0;
+  const total = room.price * nights + roomServiceFee;
   const advance =
     hotel.hotelAdvanceType === "PERCENTAGE"
       ? Math.round((total * hotel.hotelAdvanceValue) / 100)
@@ -738,11 +857,35 @@ function PaymentStep({
             <InfoCell label="Lead guest" value={guest.guestName} />
           </div>
 
+          {/* Optional paid room-service add-on */}
+          {roomServiceAvailable && (
+            <label className="flex items-center justify-between gap-3 rounded-xl bg-[var(--canvas-sub)] p-3 cursor-pointer">
+              <span className="min-w-0">
+                <span className="block text-[13px] font-semibold text-[var(--text-1)]">Add room service</span>
+                <span className="block text-[11px] text-[var(--text-3)]">
+                  In-room service add-on · {cur}{(hotel.roomServiceCharge ?? 0).toLocaleString()}
+                </span>
+              </span>
+              <input
+                type="checkbox"
+                checked={roomServiceSelected}
+                onChange={(e) => onToggleRoomService(e.target.checked)}
+                className="h-5 w-5 accent-[var(--accent)]"
+              />
+            </label>
+          )}
+
           <div className="rounded-xl bg-[var(--canvas-sub)] p-3 space-y-1.5 text-[12px]">
             <div className="flex justify-between text-[var(--text-2)]">
               <span>{cur}{room.price.toLocaleString()} × {nights} night{nights > 1 ? "s" : ""}</span>
-              <span>{cur}{total.toLocaleString()}</span>
+              <span>{cur}{(room.price * nights).toLocaleString()}</span>
             </div>
+            {roomServiceFee > 0 && (
+              <div className="flex justify-between text-[var(--text-2)]">
+                <span>Room service</span>
+                <span>{cur}{roomServiceFee.toLocaleString()}</span>
+              </div>
+            )}
             <div className="flex justify-between font-semibold text-[var(--text-1)] border-t border-[var(--border-soft)] pt-1.5">
               <span>Total</span>
               <span>{cur}{total.toLocaleString()}</span>
@@ -908,8 +1051,25 @@ function BrowseRoomCard({
           </span>
         </div>
 
+        {room.locationNote && (
+          <p className="flex items-center gap-1 text-[11px] text-[var(--text-3)] mb-1.5">
+            <MapPin className="h-3 w-3 text-[var(--accent)] shrink-0" />
+            {room.locationNote}
+          </p>
+        )}
+
         {room.description && (
           <p className="text-[12px] text-[var(--text-2)] mb-3 line-clamp-2">{room.description}</p>
+        )}
+
+        {room.offerings.length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-2.5">
+            {room.offerings.slice(0, 4).map((o) => (
+              <span key={o} className="rounded-full bg-[var(--accent-muted)] px-2.5 py-1 text-[11px] font-semibold text-[var(--accent-text)]">
+                {o}
+              </span>
+            ))}
+          </div>
         )}
 
         {room.amenities.length > 0 && (
@@ -998,6 +1158,7 @@ export default function HotelPublicPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
   const [activeType, setActiveType] = useState<string>("ALL");
+  const [roomQuery, setRoomQuery] = useState("");
   const [heroIdx, setHeroIdx] = useState(0);
 
   // view: browse rooms OR pre-booking wizard
@@ -1023,9 +1184,11 @@ export default function HotelPublicPage() {
     guestAddress: "",
     guestIdType: "",
     guestIdNumber: "",
+    guestIdImageUrl: "",
     notes: "",
   });
   const [payMethod, setPayMethod] = useState<"ESEWA" | "KHALTI" | "CASH">("ESEWA");
+  const [roomServiceSelected, setRoomServiceSelected] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const esewaFormRef = useRef<HTMLFormElement>(null);
@@ -1130,10 +1293,12 @@ export default function HotelPublicPage() {
           guestEmail: guest.guestEmail.trim() || undefined,
           guestAddress: guest.guestAddress.trim() || undefined,
           guestIdNumber: guest.guestIdNumber.trim() || undefined,
+          guestIdImageUrl: guest.guestIdImageUrl || undefined,
           adults,
           children: kids,
           checkIn,
           checkOut,
+          roomServiceSelected,
           notes: guest.notes.trim() || undefined,
         }),
       });
@@ -1182,15 +1347,15 @@ export default function HotelPublicPage() {
   };
 
   if (loading) {
+    // Instant calm shell — no spinner/"Loading hotel..." flash.
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[var(--canvas-sub)]">
-        <div className="flex flex-col items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--accent)]">
-            <Mountain className="h-6 w-6 text-white" />
-          </div>
-          <Loader2 className="h-5 w-5 animate-spin text-[var(--accent)]" />
-          <p className="text-[13px] text-[var(--text-2)]">Loading hotel...</p>
+      <div className="min-h-screen bg-[var(--canvas-sub)] flex flex-col items-center justify-center gap-3">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--accent)] shadow-lg shadow-[var(--accent)]/30">
+          <Mountain className="h-6 w-6 text-white" strokeWidth={2.5} />
         </div>
+        <span className="text-[15px] font-bold text-[var(--text-1)]">
+          Hima<span className="text-[var(--accent)]">Volt</span>
+        </span>
       </div>
     );
   }
@@ -1210,7 +1375,22 @@ export default function HotelPublicPage() {
   }
 
   const roomTypes = ["ALL", ...Object.keys(grouped)];
-  const displayedRooms = activeType === "ALL" ? rooms : grouped[activeType] ?? [];
+  const byType = activeType === "ALL" ? rooms : grouped[activeType] ?? [];
+  const q = roomQuery.trim().toLowerCase();
+  const displayedRooms = q
+    ? byType.filter((r) =>
+        [
+          r.name ?? "",
+          r.roomNumber,
+          r.type,
+          ...(r.amenities ?? []),
+          ...(r.offerings ?? []),
+        ]
+          .join(" ")
+          .toLowerCase()
+          .includes(q),
+      )
+    : byType;
   const cur = hotel.currency === "USD" ? "$" : hotel.currency === "INR" ? "₹" : "Rs.";
 
   return (
@@ -1310,7 +1490,16 @@ export default function HotelPublicPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            <div className="sticky top-[57px] z-30 bg-[var(--canvas)]/90 backdrop-blur-sm border-b border-[var(--border-soft)] px-5 py-3">
+            <div className="sticky top-[57px] z-30 bg-[var(--canvas)]/90 backdrop-blur-sm border-b border-[var(--border-soft)] px-5 py-3 space-y-2.5">
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-3)]" />
+                <input
+                  value={roomQuery}
+                  onChange={(e) => setRoomQuery(e.target.value)}
+                  placeholder="Search rooms, bed type, amenities…"
+                  className="w-full rounded-full border border-[var(--border)] bg-[var(--canvas-sub)] py-2.5 pl-10 pr-4 text-[13px] text-[var(--text-1)] placeholder-[var(--text-3)] outline-none transition-all focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
+                />
+              </div>
               <div className="flex gap-2 overflow-x-auto scrollbar-hide">
                 {roomTypes.map((type) => (
                   <button
@@ -1437,6 +1626,8 @@ export default function HotelPublicPage() {
                     guest={guest}
                     payMethod={payMethod}
                     onPayMethod={setPayMethod}
+                    roomServiceSelected={roomServiceSelected}
+                    onToggleRoomService={setRoomServiceSelected}
                     onBack={() => setStep("guest")}
                     onConfirm={handleConfirm}
                     loading={submitting}

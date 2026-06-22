@@ -14,28 +14,19 @@ import {
 } from "@/lib/dashboard-nav";
 import { Sparkles } from "lucide-react";
 
-const TabLoader = () => (
-  <div className="w-full space-y-4 pt-2 opacity-0" style={{ animation: "appleFadeIn 0.4s ease-out 0.1s forwards" }}>
-    <div className="h-32 w-full rounded-3xl bg-[var(--surface)]" />
-    <div className="grid grid-cols-2 gap-4">
-      <div className="h-24 rounded-3xl bg-[var(--surface)]" />
-      <div className="h-24 rounded-3xl bg-[var(--surface)]" />
-    </div>
-    <div className="h-64 w-full rounded-3xl bg-[var(--surface)] opacity-50" />
-  </div>
-);
-
 type PreloadableComponent = React.ComponentType<any> & {
   preload?: () => Promise<unknown>;
 };
 
 // Attach the raw import loader to the dynamic component so we can warm its JS
-// chunk ahead of time (on nav hover/focus). Without this, switching tabs first
-// downloads the chunk on click — showing TabLoader — before anything renders.
+// chunk ahead of time (on nav hover/focus + idle preloading in the layout).
+// No `loading` fallback: chunks are warmed eagerly, so a tab renders the moment
+// it's clicked with no skeleton flash. If a chunk somehow isn't warm yet,
+// dynamic() renders nothing (not a skeleton) until it resolves.
 const lazyTab = (
   loader: () => Promise<{ default: React.ComponentType<any> }>,
 ): PreloadableComponent => {
-  const Comp = dynamic(loader, { loading: TabLoader, ssr: false }) as PreloadableComponent;
+  const Comp = dynamic(loader, { ssr: false }) as PreloadableComponent;
   Comp.preload = loader;
   return Comp;
 };
@@ -98,6 +89,7 @@ const HotelHubTab = lazyTab(() => import("@/components/dashboard/HotelHubTab"));
 const OwnerControlPanel = lazyTab(() => import("@/components/dashboard/OwnerControlPanel"));
 const FeedbackTab = lazyTab(() => import("@/components/dashboard/FeedbackTab"));
 const PrintingSettingsTab = lazyTab(() => import("@/components/dashboard/PrintingSettingsTab"));
+const SettingsTab = lazyTab(() => import("@/components/dashboard/SettingsTab"));
 
 const COMPONENTS: Record<string, React.ComponentType<any>> = {
   overview: OverviewTab,
@@ -126,6 +118,7 @@ const COMPONENTS: Record<string, React.ComponentType<any>> = {
   "manual-billing": ManualBillingTab,
   feedback: FeedbackTab,
   printing: PrintingSettingsTab,
+  settings: SettingsTab,
 
   // Feature tabs
   "quick-counter": QuickCounterTab,
