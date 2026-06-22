@@ -572,17 +572,36 @@ function OrdersTab({
     load,
   );
 
+  // Optimistic: move the card the instant the button is tapped, fire the PATCH
+  // in the background, reconcile via realtime/load, and roll back on failure.
+  // Returns whether the server confirmed (callers branch on it for print/toast).
   const updateStatus = async (
     orderId: string,
     status: string,
     extra?: Record<string, unknown>,
-  ) => {
-    await staffFetch(`/api/restaurants/${restaurantId}/orders/${orderId}`, {
-      method: "PATCH",
-      body: JSON.stringify({ status, ...extra }),
-    });
-    // SSE will pick up the change; also do an immediate fetch
-    load();
+  ): Promise<boolean> => {
+    const snapshot = orders;
+    setOrders((cur) =>
+      cur.map((o) =>
+        o.id === orderId ? ({ ...o, status, ...(extra ?? {}) } as Order) : o,
+      ),
+    );
+    try {
+      await staffFetch(`/api/restaurants/${restaurantId}/orders/${orderId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ status, ...extra }),
+      });
+      // Realtime will also pick this up; an immediate fetch reconciles ids/fields.
+      load();
+      return true;
+    } catch (err) {
+      setOrders(snapshot); // rollback
+      showToast(
+        err instanceof Error ? err.message : "Action failed — please retry",
+        "error",
+      );
+      return false;
+    }
   };
 
   const handleAccept = async (orderId: string) => {
@@ -591,44 +610,32 @@ function OrdersTab({
       showToast("Please enter a valid estimated time", "error");
       return;
     }
-    try {
-      const order = orders.find((o) => o.id === orderId);
-      await updateStatus(orderId, "ACCEPTED", { estimatedTime: mins });
-      setAcceptingId(null);
-      setEstTime("15");
-      showToast("Order accepted!", "success");
-      // Auto-print the kitchen ticket straight to the kitchen roll on accept.
-      if (autoPrintKOT && order) {
-        printKOT(
-          order.items.map((i) => ({ name: i.name, quantity: i.quantity })),
-          {
-            restaurantName,
-            tableNo: order.tableNo,
-            roomNo: order.roomNo,
-            orderNo: order.orderNo,
-            guestName: order.user?.name ?? null,
-            width: kitchenWidth,
-          },
-        );
-      }
-    } catch (err) {
-      showToast(
-        err instanceof Error ? err.message : "Cannot accept order",
-        "error",
+    const order = orders.find((o) => o.id === orderId);
+    // Close the accept UI instantly; the board updates optimistically too.
+    setAcceptingId(null);
+    setEstTime("15");
+    const ok = await updateStatus(orderId, "ACCEPTED", { estimatedTime: mins });
+    if (!ok) return;
+    showToast("Order accepted!", "success");
+    // Auto-print the kitchen ticket straight to the kitchen roll on accept.
+    if (autoPrintKOT && order) {
+      printKOT(
+        order.items.map((i) => ({ name: i.name, quantity: i.quantity })),
+        {
+          restaurantName,
+          tableNo: order.tableNo,
+          roomNo: order.roomNo,
+          orderNo: order.orderNo,
+          guestName: order.user?.name ?? null,
+          width: kitchenWidth,
+        },
       );
     }
   };
 
   const handleReject = async (orderId: string) => {
-    try {
-      await updateStatus(orderId, "REJECTED");
-      showToast("Order rejected", "info");
-    } catch (err) {
-      showToast(
-        err instanceof Error ? err.message : "Failed to reject order",
-        "error",
-      );
-    }
+    const ok = await updateStatus(orderId, "REJECTED");
+    if (ok) showToast("Order rejected", "info");
   };
 
   const filtered = orders.filter((o) => {

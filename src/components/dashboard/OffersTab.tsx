@@ -137,13 +137,14 @@ export default function OffersTab() {
 
   const handleDelete = async (id: string) => {
     if (!restaurant) return;
+    const snapshot = offers;
+    setOffers((prev) => prev.filter((o) => o.id !== id)); // optimistic remove
     try {
       await apiFetch(`/api/restaurants/${restaurant.id}/stories?storyId=${id}`, {
         method: "DELETE",
       });
-      setOffers((prev) => prev.filter((o) => o.id !== id));
-      showToast("Offer removed");
     } catch {
+      setOffers(snapshot); // rollback
       showToast("Failed to delete", "error");
     }
   };

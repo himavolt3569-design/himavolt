@@ -171,11 +171,12 @@ export default function DrinksTab() {
 
   const handleDelete = async (item: DrinkItem) => {
     if (!restaurant) return;
+    const snapshot = drinks;
+    setDrinks((prev) => prev.filter((d) => d.id !== item.id)); // optimistic remove
     try {
       await apiFetch(`/api/restaurants/${restaurant.id}/menu/${item.id}`, { method: "DELETE" });
-      setDrinks((prev) => prev.filter((d) => d.id !== item.id));
-      showToast(`${item.name} deleted`);
     } catch {
+      setDrinks(snapshot); // rollback
       showToast("Failed to delete", "error");
     }
   };
