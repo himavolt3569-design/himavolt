@@ -116,6 +116,9 @@ function AmenityChip({ label }: { label: string }) {
 
 function ImageCarousel({ images, name }: { images: string[]; name: string }) {
   const [idx, setIdx] = useState(0);
+  const multi = images.length > 1;
+  const go = (dir: number) =>
+    setIdx((i) => (i + dir + images.length) % images.length);
   if (!images.length) {
     return (
       <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[var(--accent)] to-[var(--accent-hover)]">
@@ -124,22 +127,38 @@ function ImageCarousel({ images, name }: { images: string[]; name: string }) {
     );
   }
   return (
-    <div className="relative h-full w-full group">
-      <img
-        src={images[idx]}
-        alt={name}
-        className="h-full w-full object-cover transition-all duration-500"
-      />
-      {images.length > 1 && (
+    <div className="relative h-full w-full group overflow-hidden">
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.img
+          key={idx}
+          src={images[idx]}
+          alt={name}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          // Touch swipe on mobile (arrows are hover-only on desktop).
+          drag={multi ? "x" : false}
+          dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={0.18}
+          onDragEnd={(_e, info) => {
+            if (info.offset.x < -50) go(1);
+            else if (info.offset.x > 50) go(-1);
+          }}
+          className="absolute inset-0 h-full w-full object-cover"
+          draggable={false}
+        />
+      </AnimatePresence>
+      {multi && (
         <>
           <button
-            onClick={(e) => { e.stopPropagation(); setIdx((i) => (i - 1 + images.length) % images.length); }}
+            onClick={(e) => { e.stopPropagation(); go(-1); }}
             className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-1.5 text-white opacity-0 group-hover:opacity-100 transition-opacity"
           >
             <ChevronLeft className="h-3 w-3" />
           </button>
           <button
-            onClick={(e) => { e.stopPropagation(); setIdx((i) => (i + 1) % images.length); }}
+            onClick={(e) => { e.stopPropagation(); go(1); }}
             className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-1.5 text-white opacity-0 group-hover:opacity-100 transition-opacity"
           >
             <ChevronRight className="h-3 w-3" />

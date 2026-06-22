@@ -34,6 +34,8 @@ import {
   PlayCircle,
   ChefHat,
   ChevronDown,
+  Maximize2,
+  X,
 } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
 
@@ -103,61 +105,171 @@ const TYPE_TINTS: Record<string, string> = {
 
 function ImageGallery({ images, alt }: { images: string[]; alt: string }) {
   const [idx, setIdx] = useState(0);
+  const [zoom, setZoom] = useState(false);
+  const multi = images.length > 1;
+  const go = useCallback(
+    (dir: number) =>
+      setIdx((i) => (i + dir + images.length) % images.length),
+    [images.length],
+  );
+
+  // Lock body scroll while the fullscreen lightbox is open + Esc to close.
+  useEffect(() => {
+    if (!zoom) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setZoom(false);
+      if (e.key === "ArrowRight") go(1);
+      if (e.key === "ArrowLeft") go(-1);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [zoom, go]);
+
   if (!images.length) {
     return (
-      <div className="flex h-52 w-full items-center justify-center bg-gradient-to-br from-[var(--accent)] to-[var(--accent-hover)] sm:h-72 lg:h-96">
+      <div className="flex h-56 w-full items-center justify-center bg-gradient-to-br from-[var(--accent)] to-[var(--accent-hover)] sm:h-72 lg:h-96">
         <BedDouble className="h-16 w-16 text-white/60" />
       </div>
     );
   }
-  return (
-    <div className="relative h-52 w-full overflow-hidden bg-black sm:h-72 lg:h-96">
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.img
-          key={idx}
-          src={images[idx]}
-          alt={alt}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.25 }}
-          className="absolute inset-0 h-full w-full object-cover"
+
+  const dots = multi && (
+    <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5">
+      {images.map((_, i) => (
+        <span
+          key={i}
+          className={`h-1.5 rounded-full transition-all ${
+            i === idx ? "w-5 bg-white" : "w-1.5 bg-white/60"
+          }`}
         />
-      </AnimatePresence>
-      {images.length > 1 && (
-        <>
-          <button
-            type="button"
-            onClick={() => setIdx((i) => (i - 1 + images.length) % images.length)}
-            className="absolute left-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur transition-all hover:bg-black/60"
-            aria-label="Previous image"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
-            onClick={() => setIdx((i) => (i + 1) % images.length)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur transition-all hover:bg-black/60"
-            aria-label="Next image"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </button>
-          <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5">
-            {images.map((_, i) => (
-              <span
-                key={i}
-                className={`h-1.5 rounded-full transition-all ${
-                  i === idx ? "w-5 bg-white" : "w-1.5 bg-white/60"
-                }`}
-              />
-            ))}
-          </div>
-          <span className="absolute right-3 top-3 rounded-full bg-black/40 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur">
-            {idx + 1} / {images.length}
-          </span>
-        </>
-      )}
+      ))}
     </div>
+  );
+
+  return (
+    <>
+      <div className="relative h-56 w-full overflow-hidden bg-black sm:h-72 lg:h-96">
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.img
+            key={idx}
+            src={images[idx]}
+            alt={alt}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.22 }}
+            // Swipe on touch; tap to open fullscreen.
+            drag={multi ? "x" : false}
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.18}
+            onDragEnd={(_e, info) => {
+              if (info.offset.x < -60) go(1);
+              else if (info.offset.x > 60) go(-1);
+            }}
+            onClick={() => setZoom(true)}
+            className="absolute inset-0 h-full w-full cursor-zoom-in object-cover"
+            draggable={false}
+          />
+        </AnimatePresence>
+
+        {multi && (
+          <>
+            <button
+              type="button"
+              onClick={() => go(-1)}
+              className="absolute left-3 top-1/2 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur transition-all hover:bg-black/60 sm:flex"
+              aria-label="Previous image"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => go(1)}
+              className="absolute right-3 top-1/2 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur transition-all hover:bg-black/60 sm:flex"
+              aria-label="Next image"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </>
+        )}
+        {dots}
+        <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-black/40 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur">
+          <Maximize2 className="h-3 w-3" />
+          {idx + 1} / {images.length}
+        </span>
+      </div>
+
+      {/* Fullscreen lightbox — Airbnb-style swipeable viewer */}
+      <AnimatePresence>
+        {zoom && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setZoom(false)}
+            className="fixed inset-0 z-[70] flex items-center justify-center bg-black"
+          >
+            <button
+              type="button"
+              onClick={() => setZoom(false)}
+              className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur transition-all hover:bg-white/25"
+              aria-label="Close"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.img
+                key={idx}
+                src={images[idx]}
+                alt={alt}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                drag={multi ? "x" : false}
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={0.2}
+                onDragEnd={(_e, info) => {
+                  if (info.offset.x < -60) go(1);
+                  else if (info.offset.x > 60) go(-1);
+                }}
+                onClick={(e) => e.stopPropagation()}
+                className="max-h-[88vh] max-w-[94vw] object-contain"
+                draggable={false}
+              />
+            </AnimatePresence>
+            {multi && (
+              <>
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); go(-1); }}
+                  className="absolute left-4 top-1/2 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur hover:bg-white/25 sm:flex"
+                  aria-label="Previous image"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); go(1); }}
+                  className="absolute right-4 top-1/2 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur hover:bg-white/25 sm:flex"
+                  aria-label="Next image"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+                <span className="absolute bottom-5 left-1/2 -translate-x-1/2 rounded-full bg-white/15 px-3 py-1 text-[12px] font-bold text-white backdrop-blur">
+                  {idx + 1} / {images.length}
+                </span>
+              </>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
 
