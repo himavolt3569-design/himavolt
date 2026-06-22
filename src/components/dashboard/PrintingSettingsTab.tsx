@@ -215,6 +215,27 @@ function PrintingForm({
         />
       </div>
 
+      {/* Automatic printing */}
+      <div className="rounded-3xl border border-[var(--border-soft)] bg-[var(--canvas)] p-5 space-y-3">
+        <h2 className="text-sm font-extrabold text-[var(--text-1)]">
+          Automatic printing
+        </h2>
+        <Toggle
+          icon={<Printer className="h-5 w-5" />}
+          label="Auto-print receipt on payment"
+          hint="As soon as a bill is settled, the customer receipt prints automatically — no extra tap."
+          checked={draft.autoPrint}
+          onChange={(autoPrint) => setDraft((d) => ({ ...d, autoPrint }))}
+        />
+        <Toggle
+          icon={<ChefHat className="h-5 w-5" />}
+          label="Auto-print kitchen ticket on accept"
+          hint="When staff accepts a new order, the kitchen ticket (KOT) prints straight to the kitchen roll."
+          checked={draft.autoPrintKOT}
+          onChange={(autoPrintKOT) => setDraft((d) => ({ ...d, autoPrintKOT }))}
+        />
+      </div>
+
       {/* Save */}
       <div className="flex items-center gap-3">
         <button

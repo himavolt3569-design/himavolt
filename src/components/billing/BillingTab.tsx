@@ -35,6 +35,7 @@ import { formatPrice, getCurrencySymbol } from "@/lib/currency";
 import { useToast } from "@/context/ToastContext";
 import { apiFetch, peekApiCache } from "@/lib/api-client";
 import { useRestaurant } from "@/context/RestaurantContext";
+import { autoPrintBill } from "@/lib/print-bill";
 import ManualBillingTab from "@/components/dashboard/ManualBillingTab";
 import { Zap } from "lucide-react";
 
@@ -231,6 +232,7 @@ function LiveBilling({
   currency = "NPR",
 }: BillingTabProps) {
   const { showToast } = useToast();
+  const { selectedRestaurant } = useRestaurant();
   const cur = currency;
   // Seed from the warm GET cache so re-opening Billing paints instantly — no
   // skeleton — while the effects below revalidate in the background.
@@ -433,17 +435,19 @@ function LiveBilling({
 
   const handleCollectPayment = async () => {
     if (!selectedOrder) return;
+    const paidOrderId = selectedOrder.id;
     setActionLoading(true);
     try {
       await apiFetch(`/api/restaurants/${restaurantId}/billing/collect`, {
         method: "POST",
         body: {
-          orderId: selectedOrder.id,
+          orderId: paidOrderId,
           method: collectMethod,
           transactionId: collectTxn || undefined,
         },
       });
       showToast(`Payment collected for Order #${selectedOrder.orderNo}`, "success");
+      if (selectedRestaurant?.printAutoReceipt) autoPrintBill(paidOrderId);
       setShowCollect(false);
       setCollectTxn("");
       setSelectedOrder(null);
@@ -523,16 +527,18 @@ function LiveBilling({
       );
       return;
     }
+    const paidOrderId = selectedOrder.id;
     setActionLoading(true);
     try {
       await apiFetch(`/api/restaurants/${restaurantId}/billing/split`, {
         method: "POST",
         body: {
-          orderId: selectedOrder.id,
+          orderId: paidOrderId,
           splits: active.map((e) => ({ method: e.method, amount: parseFloat(e.amount) })),
         },
       });
       showToast(`Split payment collected for Order #${selectedOrder.orderNo}`, "success");
+      if (selectedRestaurant?.printAutoReceipt) autoPrintBill(paidOrderId);
       setShowSplit(false);
       setSelectedOrder(null);
       setSplitEntries([{ method: "CASH", amount: "" }, { method: "ESEWA", amount: "" }]);

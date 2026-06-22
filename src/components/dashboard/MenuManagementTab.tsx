@@ -44,6 +44,7 @@ import { apiFetch, peekApiCache } from "@/lib/api-client";
 import { useToast } from "@/context/ToastContext";
 import { formatPrice, getCurrencySymbol } from "@/lib/currency";
 import ImagePicker from "@/components/shared/ImagePicker";
+import { AnchoredMenu } from "@/components/shared/AnchoredMenu";
 import {
   SkeletonStatGrid,
   SkeletonGrid,
@@ -335,15 +336,7 @@ function MenuItemCard({
   currency: string;
 }) {
   const [showMenu, setShowMenu] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setShowMenu(false);
-    }
-    if (showMenu) document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [showMenu]);
+  const menuTriggerRef = useRef<HTMLButtonElement>(null);
 
   const discountedPrice = item.discount > 0 ? Math.round(item.price * (1 - item.discount / 100)) : item.price;
 
@@ -410,30 +403,36 @@ function MenuItemCard({
             <button onClick={onEdit} className="rounded-full bg-[var(--canvas)]/95 backdrop-blur-md p-2 text-indigo-600 shadow-lg hover:bg-[var(--canvas)] transition-all hover:scale-105 active:scale-95">
               <Pencil className="h-4 w-4" />
             </button>
-            <div className="relative" ref={menuRef}>
+            <div className="relative">
               <button
+                ref={menuTriggerRef}
                 onClick={() => setShowMenu(!showMenu)}
                 className="rounded-full bg-[var(--canvas)]/95 backdrop-blur-md p-2 text-[var(--text-2)] shadow-lg hover:bg-[var(--canvas)] transition-all hover:scale-105 active:scale-95"
               >
                 <MoreVertical className="h-4 w-4" />
               </button>
-              {showMenu && (
-                <div className="absolute right-0 top-full mt-2 w-40 rounded-xl bg-[var(--canvas)]/95 backdrop-blur-xl shadow-2xl ring-1 ring-[var(--border)]/50 z-30 py-1.5 overflow-hidden origin-bottom-right">
-                  <button
-                    onClick={() => { onDuplicate(); setShowMenu(false); }}
-                    className="flex w-full items-center gap-2.5 px-3.5 py-2 text-[13px] font-semibold text-[var(--text-2)] hover:bg-[var(--accent-muted)] hover:text-[var(--accent-text)] transition-colors"
-                  >
-                    <Copy className="h-3.5 w-3.5" /> Duplicate
-                  </button>
-                  <div className="h-px bg-[var(--surface)] my-1 mx-2"></div>
-                  <button
-                    onClick={() => { onDelete(); setShowMenu(false); }}
-                    className="flex w-full items-center gap-2.5 px-3.5 py-2 text-[13px] font-semibold text-red-600 hover:bg-red-50 transition-colors"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" /> Delete Item
-                  </button>
-                </div>
-              )}
+              <AnchoredMenu
+                anchorRef={menuTriggerRef}
+                open={showMenu}
+                onClose={() => setShowMenu(false)}
+                align="right"
+                width={160}
+                className="rounded-xl bg-[var(--canvas)]/95 backdrop-blur-xl shadow-2xl ring-1 ring-[var(--border)]/50 py-1.5 overflow-hidden"
+              >
+                <button
+                  onClick={() => { onDuplicate(); setShowMenu(false); }}
+                  className="flex w-full items-center gap-2.5 px-3.5 py-2 text-[13px] font-semibold text-[var(--text-2)] hover:bg-[var(--accent-muted)] hover:text-[var(--accent-text)] transition-colors"
+                >
+                  <Copy className="h-3.5 w-3.5" /> Duplicate
+                </button>
+                <div className="h-px bg-[var(--surface)] my-1 mx-2"></div>
+                <button
+                  onClick={() => { onDelete(); setShowMenu(false); }}
+                  className="flex w-full items-center gap-2.5 px-3.5 py-2 text-[13px] font-semibold text-red-600 hover:bg-red-50 transition-colors"
+                >
+                  <Trash2 className="h-3.5 w-3.5" /> Delete Item
+                </button>
+              </AnchoredMenu>
             </div>
           </div>
         </div>

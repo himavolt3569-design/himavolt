@@ -82,6 +82,8 @@ model Restaurant {
   printKitchenWidth   Int     @default(80) // mm — KOT + BOT (kitchen/bar tickets)
   printShowLogo       Boolean @default(true) // show logo on the customer bill
   printShowFeedbackQR Boolean @default(true) // show feedback QR on the customer bill
+  printAutoReceipt    Boolean @default(false) // auto-print the customer receipt as soon as a bill is settled
+  printAutoKOT        Boolean @default(false) // auto-print the kitchen ticket (KOT) when staff accepts an order
 
   // Operational status (staff-controllable)
   isOpen          Boolean @default(true) // when false, hidden from landing page & ordering disabled
@@ -943,6 +945,7 @@ model TableSession {
 model Table {
   id        String   @id @default(cuid())
   tableNo   Int
+  qrToken   String?  @unique // unguessable token encoded in the table QR so the table identity can't be spoofed via the URL
   label     String? // e.g. "Window Seat", "VIP 1"
   capacity  Int      @default(4)
   isActive  Boolean  @default(true)

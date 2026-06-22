@@ -14,6 +14,9 @@ import { playSound } from "@/lib/sounds";
 import { useSSE } from "@/hooks/useSSE";
 import { useRealtimeSignal } from "@/hooks/useRealtimeSignal";
 import { restaurantOrdersTopic } from "@/lib/realtime-topics";
+import { useRestaurant } from "@/context/RestaurantContext";
+import { resolvePrintSettings } from "@/lib/print-settings";
+import { printKOT } from "@/lib/print-kot";
 
 export type LiveOrderStatus =
   | "PENDING"
@@ -66,7 +69,11 @@ interface LiveOrdersContextType {
   updatingIds: Set<string>;
   restaurantId: string | null;
   setRestaurantId: (id: string | null) => void;
-  acceptOrder: (id: string, estimatedTime?: number) => Promise<void>;
+  acceptOrder: (
+    id: string,
+    estimatedTime?: number,
+    forcePrint?: boolean,
+  ) => Promise<void>;
   rejectOrder: (id: string) => Promise<void>;
   markPreparing: (id: string) => Promise<void>;
   markReady: (id: string) => Promise<void>;
@@ -77,6 +84,7 @@ interface LiveOrdersContextType {
 const LiveOrdersContext = createContext<LiveOrdersContextType | null>(null);
 
 export function LiveOrdersProvider({ children }: { children: ReactNode }) {
+  const { selectedRestaurant } = useRestaurant();
   const [orders, setOrders] = useState<LiveOrder[]>([]);
   const [loading, setLoading] = useState(false);
   const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set());
@@ -155,11 +163,13 @@ export function LiveOrdersProvider({ children }: { children: ReactNode }) {
       );
       setUpdatingIds((prev) => new Set(prev).add(orderId));
 
+      let ok = false;
       try {
         await apiFetch(`/api/restaurants/${restaurantId}/orders/${orderId}`, {
           method: "PATCH",
           body: { status, ...extra },
         });
+        ok = true;
         // SSE will push updated state within ~3s; one-off fetch ensures immediate consistency
         await fetchOrders();
       } catch {
@@ -172,33 +182,63 @@ export function LiveOrdersProvider({ children }: { children: ReactNode }) {
           return next;
         });
       }
+      return ok;
     },
     [restaurantId, fetchOrders],
   );
 
   const acceptOrder = useCallback(
-    (id: string, estimatedTime?: number) =>
-      updateStatus(
+    async (id: string, estimatedTime?: number, forcePrint = false) => {
+      // Snapshot the order (with items) before it leaves the PENDING list.
+      const order = orders.find((o) => o.id === id);
+      const ok = await updateStatus(
         id,
         "ACCEPTED",
         estimatedTime ? { estimatedTime } : undefined,
-      ),
-    [updateStatus],
+      );
+      // Print the kitchen ticket only on a confirmed accept (the PATCH can be
+      // rejected by the payment gate). Still inside the click's transient
+      // activation window, so the print popup is allowed.
+      if (ok && order) {
+        const s = resolvePrintSettings(selectedRestaurant);
+        if (forcePrint || s.autoPrintKOT) {
+          printKOT(
+            order.items.map((i) => ({ name: i.name, quantity: i.quantity })),
+            {
+              restaurantName: selectedRestaurant?.name,
+              tableNo: order.tableNo,
+              orderNo: order.orderNo,
+              guestName: order.user?.name ?? null,
+              width: s.kitchenWidth,
+            },
+          );
+        }
+      }
+    },
+    [orders, updateStatus, selectedRestaurant],
   );
   const rejectOrder = useCallback(
-    (id: string) => updateStatus(id, "REJECTED"),
+    async (id: string) => {
+      await updateStatus(id, "REJECTED");
+    },
     [updateStatus],
   );
   const markPreparing = useCallback(
-    (id: string) => updateStatus(id, "PREPARING"),
+    async (id: string) => {
+      await updateStatus(id, "PREPARING");
+    },
     [updateStatus],
   );
   const markReady = useCallback(
-    (id: string) => updateStatus(id, "READY"),
+    async (id: string) => {
+      await updateStatus(id, "READY");
+    },
     [updateStatus],
   );
   const markDelivered = useCallback(
-    (id: string) => updateStatus(id, "DELIVERED"),
+    async (id: string) => {
+      await updateStatus(id, "DELIVERED");
+    },
     [updateStatus],
   );
 

@@ -15,6 +15,7 @@ import {
   Mail,
 } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
+import { autoPrintBill } from "@/lib/print-bill";
 import { useToast } from "@/context/ToastContext";
 import type { POSOrder } from "@/hooks/usePOSOrders";
 
@@ -34,6 +35,8 @@ interface Props {
   currency: string;
   /** Counter paper width in mm (from account print settings). */
   counterWidth?: number;
+  /** Auto-print the customer receipt as soon as payment is collected. */
+  autoPrint?: boolean;
   orders: POSOrder[];
   onSplitBill: (orderId: string, orderNo: string, total: number) => void;
   onOptimisticUpdate: (orderId: string, patch: Partial<POSOrder>) => void;
@@ -102,6 +105,7 @@ export default function POSBilling({
   restaurantId,
   currency,
   counterWidth = 80,
+  autoPrint = false,
   orders,
   onSplitBill,
   onOptimisticUpdate,
@@ -189,7 +193,13 @@ export default function POSBilling({
       method: "POST",
       body: JSON.stringify({ orderId, method, transactionId: txId }),
     })
-      .then(() => fetchBillMap())
+      .then(() => {
+        fetchBillMap();
+        // Print once the server has recorded the payment so the receipt shows
+        // it as paid. Still within the click's transient-activation window, so
+        // the popup is allowed.
+        if (autoPrint) autoPrintBill(orderId);
+      })
       .catch(() => showToast("Failed to collect payment", "error"));
   };
 

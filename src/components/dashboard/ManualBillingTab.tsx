@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
 import { apiFetch, peekApiCache } from "@/lib/api-client";
+import { printKOT, printBOT } from "@/lib/print-kot";
 
 
 interface MenuItem {
@@ -222,7 +223,7 @@ export default function ManualBillingTab({
     const displayNo = orderNoOverride ?? orderNo;
     const now = new Date();
     pw.document.write(`
-      <html><head><title>Tax Invoice</title>
+      <html><head><meta charset="UTF-8"><title>Tax Invoice</title>
       <style>
         * { box-sizing:border-box; }
         @page { size:${billWidthMm}mm auto; margin:0; }
@@ -257,14 +258,12 @@ export default function ManualBillingTab({
       ${hasFood ? `<div class="sec">Food</div>
         ${foodItems.map((b) => `
           <div class="item-row">
-            ${b.imageUrl ? `<img class="item-img" src="${b.imageUrl}" alt="${b.name}" onerror="this.style.display='none'"/>` : `<div class="item-ph" style="background:#f3f4f6;border-radius:4px;display:flex;align-items:center;justify-content:center"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg></div>`}
             <div class="item-info"><div class="item-name">${b.name}</div><div class="item-unit">${b.quantity} × ${formatPrice(b.price, currency)}</div></div>
             <div class="item-tot">${formatPrice(b.price * b.quantity, currency)}</div>
           </div>`).join("")}` : ""}
       ${hasDrinks ? `<div class="sec" style="color:#1d4ed8">Bar / Drinks</div>
         ${drinkItems.map((b) => `
           <div class="item-row">
-            ${b.imageUrl ? `<img class="item-img" src="${b.imageUrl}" alt="${b.name}" onerror="this.style.display='none'"/>` : `<div class="item-ph" style="background:#eff6ff;border-radius:4px;display:flex;align-items:center;justify-content:center"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 22h8"/><path d="M7 10h10"/><path d="M12 15v7"/><path d="M12 15a5 5 0 0 0 5-5c0-2-.5-4-2-8H9c-1.5 4-2 6-2 8a5 5 0 0 0 5 5Z"/></svg></div>`}
             <div class="item-info"><div class="item-name">${b.name}</div><div class="item-unit">${b.quantity} × ${formatPrice(b.price, currency)}</div></div>
             <div class="item-tot">${formatPrice(b.price * b.quantity, currency)}</div>
           </div>`).join("")}` : ""}
@@ -282,100 +281,37 @@ export default function ManualBillingTab({
     pw.document.close();
   };
 
-  // KOT — kitchen-only slip, food items only
+  // KOT — kitchen-only slip, food items only (shared implementation)
   const handlePrintKOT = (orderNoOverride?: string) => {
-    const pw = window.open("", "_blank");
-    if (!pw) return;
-    const displayNo = orderNoOverride ?? orderNo;
-    const now = new Date();
     const kotItems = foodItems.length > 0 ? foodItems : billItems; // fallback to all if no split
-    pw.document.write(`
-      <html><head><title>KOT</title>
-      <style>
-        @page { size:${kitchenWidthMm}mm auto; margin:0; }
-        body { font-family:'Courier New',monospace; width:${kitchenWidthMm}mm; max-width:${kitchenWidthMm}mm; margin:0 auto; padding:${kitchenWidthMm === 58 ? "4mm" : "5mm"}; box-sizing:border-box; }
-        .center { text-align:center; }
-        .divider { border-top:1px dashed #333; margin:8px 0; }
-        .row { display:flex; justify-content:space-between; padding:2px 0; font-size:13px; }
-        .bold { font-weight:bold; }
-        h2 { margin:0 0 2px; font-size:14px; }
-        .kot-lbl { font-size:18px; font-weight:900; letter-spacing:3px; margin:4px 0 0; }
-        .item { padding:3px 0; font-size:14px; font-weight:bold; }
-      </style></head><body>
-      <div class="center">
-        <div class="kot-lbl">*** KOT ***</div>
-        <h2 style="margin-top:4px">${restaurantName || "Restaurant"}</h2>
-        <div style="font-size:10px;color:#555">Kitchen Order Ticket</div>
-      </div>
-      <div class="divider"></div>
-      <div class="row"><span>Table: <b>${tableNo || "N/A"}</b></span></div>
-      ${displayNo ? `<div class="row"><span>Order: <b>#${displayNo}</b></span></div>` : ""}
-      ${guestName.trim() ? `<div class="row"><span>Guest: ${guestName.trim()}</span></div>` : ""}
-      <div class="divider"></div>
-      ${kotItems.map((b) => `
-        <div class="item">${b.quantity} × ${b.name}</div>
-      `).join("")}
-      <div class="divider"></div>
-      <div class="center" style="font-size:11px;margin-top:8px">— KITCHEN COPY —</div>
-      <script>window.onload=function(){window.print();window.close();};<\/script>
-      </body></html>
-    `);
-    pw.document.close();
+    printKOT(
+      kotItems.map((b) => ({ name: b.name, quantity: b.quantity })),
+      {
+        restaurantName,
+        tableNo: tableNo || null,
+        orderNo: orderNoOverride ?? orderNo,
+        guestName: guestName.trim() || null,
+        width: kitchenWidthMm,
+      },
+    );
   };
 
-  // BOT — bar-only ticket, drink items only
+  // BOT — bar-only ticket, drink items only (shared implementation)
   const handlePrintBOT = (orderNoOverride?: string) => {
-    if (drinkItems.length === 0) return;
-    const pw = window.open("", "_blank");
-    if (!pw) return;
-    const displayNo = orderNoOverride ?? orderNo;
-    const now = new Date();
-    const grouped: Record<string, BillItem[]> = {};
-    drinkItems.forEach((b) => {
-      const cat = b.drinkCategory || "OTHER";
-      if (!grouped[cat]) grouped[cat] = [];
-      grouped[cat].push(b);
-    });
-    const catLabel: Record<string, string> = { COLD: "Cold Drinks", HOT: "Hot Drinks", ALCOHOL: "Alcohol / Cocktails", OTHER: "Beverages" };
-    pw.document.write(`
-      <html><head><title>BOT</title>
-      <style>
-        @page { size:${kitchenWidthMm}mm auto; margin:0; }
-        body { font-family:'Courier New',monospace; width:${kitchenWidthMm}mm; max-width:${kitchenWidthMm}mm; margin:0 auto; padding:${kitchenWidthMm === 58 ? "4mm" : "5mm"}; box-sizing:border-box; background:#fff; }
-        .center { text-align:center; }
-        .divider { border-top:2px dashed #1e3a5f; margin:8px 0; }
-        .thin { border-top:1px dashed #93c5fd; margin:6px 0; }
-        .row { display:flex; justify-content:space-between; padding:2px 0; font-size:13px; }
-        h2 { margin:0 0 2px; font-size:13px; }
-        .bot-lbl { font-size:20px; font-weight:900; letter-spacing:4px; color:#1e3a5f; margin:4px 0 0; }
-        .cat-hdr { font-size:10px; font-weight:bold; text-transform:uppercase; letter-spacing:1.5px; color:#1d4ed8; margin:8px 0 4px; }
-        .item { padding:3px 0; font-size:15px; font-weight:bold; color:#1e3a5f; }
-        .item-sub { font-size:10px; color:#64748b; padding-left:16px; }
-        .meta { font-size:11px; color:#555; }
-        .badge { display:inline-block; background:#1e3a5f; color:#fff; font-size:10px; font-weight:bold; padding:1px 6px; border-radius:3px; letter-spacing:1px; }      </style></head><body>
-      <div class="center">
-        <div class="bot-lbl">*** BOT ***</div>
-        <h2 style="margin-top:4px">${restaurantName || "Restaurant"}</h2>
-        <span class="badge">Bar Order Ticket</span>
-      </div>
-      <div class="divider"></div>
-      <div class="row"><span class="meta">Table: <b>${tableNo || "N/A"}</b></span></div>
-      ${displayNo ? `<div class="row"><span class="meta">Order: <b>#${displayNo}</b></span><span class="meta">${now.toLocaleDateString()}</span></div>` : ""}
-      ${guestName.trim() ? `<div class="row"><span class="meta">Guest: ${guestName.trim()}</span></div>` : ""}
-      <div class="divider"></div>
-      ${Object.entries(grouped).map(([cat, items]) => `
-        <div class="cat-hdr">${catLabel[cat] || cat}</div>
-        ${items.map((b) => `
-          <div class="item">${b.quantity} × ${b.name}</div>
-          ${b.drinkCategory === "ALCOHOL" ? `<div class="item-sub" style="color:#dc2626;font-size:10px;padding-left:16px;display:flex;align-items:center;gap:3px;"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg> Verify age before serving</div>` : ""}
-        `).join("")}
-        <div class="thin"></div>
-      `).join("")}
-      <div class="center" style="font-size:11px;margin-top:8px;color:#1e3a5f;font-weight:bold">— BAR COPY —</div>
-      <script>window.onload=function(){window.print();window.close();};<\/script>
-      </body></html>
-    `);
-    pw.document.close();
+    printBOT(
+      drinkItems.map((b) => ({
+        name: b.name,
+        quantity: b.quantity,
+        drinkCategory: b.drinkCategory,
+      })),
+      {
+        restaurantName,
+        tableNo: tableNo || null,
+        orderNo: orderNoOverride ?? orderNo,
+        guestName: guestName.trim() || null,
+        width: kitchenWidthMm,
+      },
+    );
   };
 
   // Smart print dispatcher — called from buttons

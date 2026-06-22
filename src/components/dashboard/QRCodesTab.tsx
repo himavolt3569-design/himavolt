@@ -56,12 +56,14 @@ function ConfettiBurst({ active, origin }: { active: boolean; origin: { x: numbe
 
 function QRCard({
   tableNo,
+  qrToken,
   label,
   slug,
   restaurantName,
   cardStyle,
 }: {
   tableNo: number;
+  qrToken?: string | null;
   label: string | null;
   slug: string;
   restaurantName: string;
@@ -75,7 +77,8 @@ function QRCard({
   const qrRef = useRef<HTMLDivElement>(null);
 
   const displayName = label?.trim() || `Table ${tableNo}`;
-  const tableUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/menu/${slug}?table=${tableNo}`;
+  // Encode the unguessable QR token so the table can't be spoofed via the URL.
+  const tableUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/menu/${slug}?${qrToken ? `t=${qrToken}` : `table=${tableNo}`}`;
 
   const handleShare = useCallback(
     (e: React.MouseEvent) => {
@@ -206,6 +209,7 @@ function QRCard({
 interface TableRecord {
   id: string;
   tableNo: number;
+  qrToken?: string | null;
   label: string | null;
   capacity: number;
   isActive: boolean;
@@ -376,6 +380,7 @@ export default function QRCodesTab() {
             <QRCard
               key={t.id}
               tableNo={t.tableNo}
+              qrToken={t.qrToken}
               label={t.label}
               slug={restaurant?.slug ?? ""}
               restaurantName={restaurantName}

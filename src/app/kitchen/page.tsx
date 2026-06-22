@@ -40,6 +40,7 @@ import { useToast } from "@/context/ToastContext";
 import { useRealtimeSignal } from "@/hooks/useRealtimeSignal";
 import { restaurantOrdersTopic } from "@/lib/realtime-topics";
 import { formatPrice } from "@/lib/currency";
+import { printKOT } from "@/lib/print-kot";
 import {
   getFeatureTabsForType,
   type FeatureTabId,
@@ -231,6 +232,8 @@ interface StaffSession {
   featuresEnabled?: string[];
   featuresDisabled?: string[];
   posEnabled?: boolean;
+  printKitchenWidth?: number;
+  printAutoKOT?: boolean;
 }
 
 interface OrderItem {
@@ -481,9 +484,15 @@ function playAlertSound() {
 function OrdersTab({
   restaurantId,
   currency,
+  restaurantName = "",
+  kitchenWidth = 80,
+  autoPrintKOT = false,
 }: {
   restaurantId: string;
   currency: string;
+  restaurantName?: string;
+  kitchenWidth?: number;
+  autoPrintKOT?: boolean;
 }) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -583,10 +592,25 @@ function OrdersTab({
       return;
     }
     try {
+      const order = orders.find((o) => o.id === orderId);
       await updateStatus(orderId, "ACCEPTED", { estimatedTime: mins });
       setAcceptingId(null);
       setEstTime("15");
       showToast("Order accepted!", "success");
+      // Auto-print the kitchen ticket straight to the kitchen roll on accept.
+      if (autoPrintKOT && order) {
+        printKOT(
+          order.items.map((i) => ({ name: i.name, quantity: i.quantity })),
+          {
+            restaurantName,
+            tableNo: order.tableNo,
+            roomNo: order.roomNo,
+            orderNo: order.orderNo,
+            guestName: order.user?.name ?? null,
+            width: kitchenWidth,
+          },
+        );
+      }
     } catch (err) {
       showToast(
         err instanceof Error ? err.message : "Cannot accept order",
@@ -2346,6 +2370,9 @@ export default function KitchenPage() {
               <OrdersTab
                 restaurantId={session.restaurantId}
                 currency={session.currency ?? "NPR"}
+                restaurantName={session.restaurantName}
+                kitchenWidth={session.printKitchenWidth ?? 80}
+                autoPrintKOT={session.printAutoKOT ?? false}
               />
             )}
             {activeTab === "billing" && (

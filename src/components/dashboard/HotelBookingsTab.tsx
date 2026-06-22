@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   BedDouble,
@@ -26,6 +26,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
+import { AnchoredMenu } from "@/components/shared/AnchoredMenu";
 import { formatPrice } from "@/lib/currency";
 import { useRealtimeSignal } from "@/hooks/useRealtimeSignal";
 import { restaurantBookingsTopic } from "@/lib/realtime-topics";
@@ -112,6 +113,7 @@ function BookingRow({
   onView: (booking: Booking) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const actionsRef = useRef<HTMLButtonElement>(null);
 
   const NEXT_ACTIONS: Record<string, { label: string; status: string; icon: typeof Check; color: string }[]> = {
     PENDING: [
@@ -179,35 +181,34 @@ function BookingRow({
           {actions.length > 0 && (
             <div className="relative">
               <button
+                ref={actionsRef}
                 onClick={() => setOpen((o) => !o)}
                 className="flex items-center gap-1 rounded-lg bg-[var(--canvas-sub)] px-2.5 py-1.5 text-[11px] font-semibold text-[var(--text-2)] hover:bg-[var(--surface)] transition-colors"
               >
                 Actions <ChevronDown className={`h-3 w-3 transition-transform ${open ? "rotate-180" : ""}`} />
               </button>
-              <AnimatePresence>
-                {open && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -4 }}
-                    className="absolute right-0 top-full mt-1 z-30 min-w-[120px] rounded-xl bg-[var(--canvas)] ring-1 ring-[var(--border)] shadow-lg overflow-hidden"
-                  >
-                    {actions.map((a) => {
-                      const Icon = a.icon;
-                      return (
-                        <button
-                          key={a.status}
-                          onClick={() => { onStatusChange(booking.id, a.status); setOpen(false); }}
-                          className={`flex w-full items-center gap-2 px-3 py-2.5 text-[12px] font-semibold transition-colors ${ACTION_COLOR_STYLES[a.color]}`}
-                        >
-                          <Icon className="h-3.5 w-3.5" />
-                          {a.label}
-                        </button>
-                      );
-                    })}
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              <AnchoredMenu
+                anchorRef={actionsRef}
+                open={open}
+                onClose={() => setOpen(false)}
+                align="right"
+                width={140}
+                className="rounded-xl bg-[var(--canvas)] ring-1 ring-[var(--border)] shadow-lg overflow-hidden"
+              >
+                {actions.map((a) => {
+                  const Icon = a.icon;
+                  return (
+                    <button
+                      key={a.status}
+                      onClick={() => { onStatusChange(booking.id, a.status); setOpen(false); }}
+                      className={`flex w-full items-center gap-2 px-3 py-2.5 text-[12px] font-semibold transition-colors ${ACTION_COLOR_STYLES[a.color]}`}
+                    >
+                      <Icon className="h-3.5 w-3.5" />
+                      {a.label}
+                    </button>
+                  );
+                })}
+              </AnchoredMenu>
             </div>
           )}
         </div>

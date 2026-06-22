@@ -78,6 +78,7 @@ interface StaffSession {
     key: string;
   } | null;
   printCounterWidth?: number;
+  printAutoReceipt?: boolean;
 }
 
 interface Category {
@@ -435,6 +436,7 @@ export default function POSTerminal() {
               restaurantId={session.restaurantId}
               currency={session.currency}
               counterWidth={session.printCounterWidth ?? 80}
+              autoPrint={session.printAutoReceipt ?? false}
               orders={liveOrders}
               onSplitBill={(id, orderNo, total) => {
                 setSplitOrder({ id, orderNo, total });

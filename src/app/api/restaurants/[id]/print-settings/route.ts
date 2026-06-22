@@ -19,6 +19,8 @@ export async function GET(req: NextRequest, { params }: Params) {
       printKitchenWidth: true,
       printShowLogo: true,
       printShowFeedbackQR: true,
+      printAutoReceipt: true,
+      printAutoKOT: true,
     },
   });
   if (!restaurant) {
@@ -36,11 +38,20 @@ export async function PUT(req: NextRequest, { params }: Params) {
   if (!access) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const body = await req.json().catch(() => ({}));
-  const { counterWidth, kitchenWidth, showLogo, showFeedbackQR } = body as {
+  const {
+    counterWidth,
+    kitchenWidth,
+    showLogo,
+    showFeedbackQR,
+    autoPrint,
+    autoPrintKOT,
+  } = body as {
     counterWidth?: unknown;
     kitchenWidth?: unknown;
     showLogo?: unknown;
     showFeedbackQR?: unknown;
+    autoPrint?: unknown;
+    autoPrintKOT?: unknown;
   };
 
   const widthOk = (v: unknown) => v === 58 || v === 80;
@@ -56,6 +67,19 @@ export async function PUT(req: NextRequest, { params }: Params) {
       { status: 400 },
     );
   }
+  // autoPrint / autoPrintKOT are optional for backward compatibility.
+  if (autoPrint !== undefined && typeof autoPrint !== "boolean") {
+    return NextResponse.json(
+      { error: "autoPrint must be a boolean." },
+      { status: 400 },
+    );
+  }
+  if (autoPrintKOT !== undefined && typeof autoPrintKOT !== "boolean") {
+    return NextResponse.json(
+      { error: "autoPrintKOT must be a boolean." },
+      { status: 400 },
+    );
+  }
 
   const updated = await db.restaurant.update({
     where: { id: restaurantId },
@@ -64,12 +88,16 @@ export async function PUT(req: NextRequest, { params }: Params) {
       printKitchenWidth: kitchenWidth as number,
       printShowLogo: showLogo,
       printShowFeedbackQR: showFeedbackQR,
+      ...(autoPrint !== undefined ? { printAutoReceipt: autoPrint } : {}),
+      ...(autoPrintKOT !== undefined ? { printAutoKOT: autoPrintKOT } : {}),
     },
     select: {
       printCounterWidth: true,
       printKitchenWidth: true,
       printShowLogo: true,
       printShowFeedbackQR: true,
+      printAutoReceipt: true,
+      printAutoKOT: true,
     },
   });
 

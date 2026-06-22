@@ -303,12 +303,13 @@ export default function CheckoutSheet({
     setCouponError("");
   };
 
-  // Check if there's an active cash order we can add to
+  // One running bill: add to the active order whenever it's still open and not
+  // yet fully paid, regardless of payment method. (Pay-at-end means repeat
+  // rounds roll into the same unpaid order instead of opening a second ticket.)
   const canAddToExisting =
-    selectedPayment === "CASH" &&
-    activeOrder &&
+    !!activeOrder &&
     activeOrder.restaurantId === restaurantId &&
-    activeOrder.payment?.method === "CASH" &&
+    activeOrder.payment?.status !== "COMPLETED" &&
     ["PENDING", "ACCEPTED", "PREPARING"].includes(activeOrder.status);
 
   // Fetch payment QR images and enabled payment methods

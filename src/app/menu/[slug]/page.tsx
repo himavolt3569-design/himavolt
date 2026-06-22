@@ -77,6 +77,7 @@ function loadGsap() {
 import Link from "next/link";
 import type { PopupMenuItem } from "@/components/food/FoodDetailPopup";
 import OrderStatus from "@/components/shared/OrderStatus";
+import OrderPlacedPopup from "@/components/checkout/OrderPlacedPopup";
 import CartSidebar from "@/components/cart/CartSidebar";
 import FoodSlider from "@/components/menu/FoodSlider";
 import MenuStories from "@/components/stories/MenuStories";
@@ -1004,7 +1005,12 @@ function MenuPageContent() {
   const params = useParams<{ slug: string }>();
   const searchParams = useSearchParams();
   const slug = params.slug;
-  const tableNo = searchParams.get("table")
+  // Secure table identity: `?t=<qrToken>` is the unguessable token from the QR;
+  // the real table number is resolved server-side from it so a guest can't edit
+  // the URL to order on another table. `?table=N` is the legacy (spoofable) form
+  // kept working only for QR codes printed before token QRs existed.
+  const qrToken = searchParams.get("t") || null;
+  const urlTableNo = searchParams.get("table")
     ? Number(searchParams.get("table"))
     : null;
   const roomNo = searchParams.get("room") || null;
@@ -1027,6 +1033,7 @@ function MenuPageContent() {
     return localStorage.getItem(`hh_tracking_${slug}`) === "1";
   });
   const [showHistory, setShowHistory] = useState(false);
+  const [showOrderPlaced, setShowOrderPlaced] = useState(false);
   const [filterVeg, setFilterVeg] = useState(false);
   const { isSignedIn } = useAuth();
   const [filterNonVeg, setFilterNonVeg] = useState(false);
@@ -1201,7 +1208,11 @@ function MenuPageContent() {
     order: sessionOrder,
     hasActiveOrder: hasSessionOrder,
     getBill,
-  } = useTableSession(restaurantId, tableNo);
+  } = useTableSession(restaurantId, urlTableNo, qrToken);
+
+  // The authoritative table number comes from the server-resolved session (set
+  // securely from the QR token); fall back to the URL number only for legacy QRs.
+  const tableNo = tableSession?.tableNo ?? urlTableNo;
 
   // Restore active order when returning from tracking page with ?addTo=orderId
   useEffect(() => {
@@ -1237,19 +1248,23 @@ function MenuPageContent() {
     restoreFromStorage,
   ]);
 
-  // Save last visited menu for BottomNav + active table session
+  // Save last visited menu for BottomNav + active table session. Preserve the
+  // secure QR token in the return URL so re-entry stays token-based (not the
+  // spoofable ?table= form).
   useEffect(() => {
     if (slug && typeof window !== "undefined") {
-      localStorage.setItem(
-        "hh_last_menu",
-        `/menu/${slug}${tableNo ? `?table=${tableNo}` : ""}`,
-      );
+      const qs = qrToken
+        ? `?t=${qrToken}`
+        : tableNo
+          ? `?table=${tableNo}`
+          : "";
+      localStorage.setItem("hh_last_menu", `/menu/${slug}${qs}`);
 
       if (tableNo && restaurantId) {
         setActiveTableSession({ restaurantSlug: slug, tableNo, restaurantId });
       }
     }
-  }, [slug, tableNo, restaurantId]);
+  }, [slug, tableNo, qrToken, restaurantId]);
 
   // Fetch loyalty config so we can prompt guests to sign up when loyalty is active
   useEffect(() => {
@@ -1281,7 +1296,9 @@ function MenuPageContent() {
     (_orderId: string) => {
       localStorage.setItem(`hh_tracking_${slug}`, "1");
       setCheckoutOpen(false);
-      setShowOrder(true);
+      // Show the instant "Order Received" popup instead of force-opening the
+      // tracker — the guest chooses to track or keep ordering (one running bill).
+      setShowOrderPlaced(true);
       // Do NOT change the URL — preserves ?table=N so Dine-In stays available for repeat orders
     },
     [slug],
@@ -1298,14 +1315,14 @@ function MenuPageContent() {
         // Order was already done before the page was refreshed — don't reopen overlay
         localStorage.removeItem(`hh_tracking_${slug}`);
         setShowOrder(false);
-      } else if (!checkoutOpen) {
-        // Don't hijack the UI while checkout is open — digital payment flows (Bank, eSewa,
-        // Khalti) place the order first then show payment steps inside the checkout sheet.
-        // onOrderPlaced() will set showOrder once payment is confirmed.
+      } else if (!checkoutOpen && !showOrderPlaced) {
+        // Don't hijack the UI while checkout is open, or while the fresh-order
+        // "Order Received" popup is showing (the guest chooses to track there).
+        // This still auto-opens the tracker for orders restored on page reload.
         setShowOrder(true);
       }
     }
-  }, [activeOrder?.id, slug, checkoutOpen]); // only fires when the ORDER IDENTITY changes, not on every status poll
+  }, [activeOrder?.id, slug, checkoutOpen, showOrderPlaced]); // only fires when the ORDER IDENTITY changes, not on every status poll
 
   useEffect(() => {
     if (
@@ -2410,6 +2427,15 @@ function MenuPageContent() {
           onOrderPlaced={handleOrderPlaced}
         />
       )}
+
+      <OrderPlacedPopup
+        open={showOrderPlaced}
+        onClose={() => setShowOrderPlaced(false)}
+        onTrack={() => {
+          setShowOrderPlaced(false);
+          setShowOrder(true);
+        }}
+      />
 
       {/* Floating "Track Order" button — shown when order is active but overlay is closed */}
       {activeOrder &&

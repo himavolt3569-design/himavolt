@@ -34,40 +34,52 @@ interface TableSession {
   order: SessionOrder | null;
 }
 
-function storageKey(restaurantId: string, tableNo: number) {
-  return `hh_session_${restaurantId}_${tableNo}`;
+function storageKey(restaurantId: string, key: string | number) {
+  return `hh_session_${restaurantId}_${key}`;
 }
 
-export function useTableSession(restaurantId: string | null, tableNo: number | null) {
+export function useTableSession(
+  restaurantId: string | null,
+  tableNo: number | null,
+  qrToken?: string | null,
+) {
   const [session, setSession] = useState<TableSession | null>(null);
   const [loading, setLoading] = useState(false);
   const [isRestored, setIsRestored] = useState(false);
 
+  // Identity key for localStorage: prefer the secure QR token, else the table no.
+  const idKey = qrToken ? `tok_${qrToken}` : tableNo;
+
   const initSession = useCallback(async () => {
-    if (!restaurantId || !tableNo) return;
+    if (!restaurantId || (!tableNo && !qrToken)) return;
 
     setLoading(true);
     try {
       // Check localStorage for existing session token
       const savedToken =
-        typeof window !== "undefined"
-          ? localStorage.getItem(storageKey(restaurantId, tableNo))
+        typeof window !== "undefined" && idKey != null
+          ? localStorage.getItem(storageKey(restaurantId, idKey))
           : null;
 
       const data = await apiFetch<{ session: TableSession; restored: boolean }>(
         `/api/restaurants/${restaurantId}/table-session`,
         {
           method: "POST",
-          body: { tableNo, sessionToken: savedToken },
+          // Send the QR token when we have it — the server resolves the table
+          // from it so the table number can't be spoofed. Falls back to tableNo
+          // for legacy (pre-token) QR codes.
+          body: qrToken
+            ? { qrToken, sessionToken: savedToken }
+            : { tableNo, sessionToken: savedToken },
         }
       );
 
       setSession(data.session);
       setIsRestored(data.restored);
 
-      if (typeof window !== "undefined" && data.session?.sessionToken) {
+      if (typeof window !== "undefined" && idKey != null && data.session?.sessionToken) {
         localStorage.setItem(
-          storageKey(restaurantId, tableNo),
+          storageKey(restaurantId, idKey),
           data.session.sessionToken
         );
       }
@@ -76,21 +88,22 @@ export function useTableSession(restaurantId: string | null, tableNo: number | n
     } finally {
       setLoading(false);
     }
-  }, [restaurantId, tableNo]);
+  }, [restaurantId, tableNo, qrToken, idKey]);
 
   useEffect(() => {
     initSession();
   }, [initSession]);
 
   const refreshSession = useCallback(async () => {
-    if (!restaurantId || !tableNo) return;
+    const effectiveTableNo = session?.tableNo ?? tableNo;
+    if (!restaurantId || !effectiveTableNo) return;
     try {
       const savedToken =
-        typeof window !== "undefined"
-          ? localStorage.getItem(storageKey(restaurantId, tableNo))
+        typeof window !== "undefined" && idKey != null
+          ? localStorage.getItem(storageKey(restaurantId, idKey))
           : null;
       const data = await apiFetch<{ session: TableSession | null }>(
-        `/api/restaurants/${restaurantId}/table-session?tableNo=${tableNo}${savedToken ? `&token=${savedToken}` : ""}`
+        `/api/restaurants/${restaurantId}/table-session?tableNo=${effectiveTableNo}${savedToken ? `&token=${savedToken}` : ""}`
       );
       if (data.session) {
         setSession(data.session);
@@ -98,7 +111,7 @@ export function useTableSession(restaurantId: string | null, tableNo: number | n
     } catch {
       // silent
     }
-  }, [restaurantId, tableNo]);
+  }, [restaurantId, tableNo, idKey, session?.tableNo]);
 
   const getBill = useCallback(async () => {
     if (!restaurantId || !session) return null;
@@ -112,7 +125,7 @@ export function useTableSession(restaurantId: string | null, tableNo: number | n
       );
 
       if (typeof window !== "undefined") {
-        localStorage.removeItem(storageKey(restaurantId, session.tableNo));
+        if (idKey != null) localStorage.removeItem(storageKey(restaurantId, idKey));
         localStorage.removeItem(`hh_cart_${restaurantId}`);
         localStorage.removeItem(`hh_order_${restaurantId}_${session.tableNo}`);
         clearActiveTableSession();
@@ -123,7 +136,7 @@ export function useTableSession(restaurantId: string | null, tableNo: number | n
     } catch {
       return null;
     }
-  }, [restaurantId, session]);
+  }, [restaurantId, session, idKey]);
 
   return {
     session,

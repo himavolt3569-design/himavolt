@@ -18,6 +18,7 @@ import QRCodesTab from "./QRCodesTab";
 interface TableData {
   id: string;
   tableNo: number;
+  qrToken?: string | null;
   label: string | null;
   capacity: number;
   isActive: boolean;
@@ -84,7 +85,9 @@ function TableQRModal({
   const qrRef = useRef<HTMLDivElement>(null);
   const [busy, setBusy] = useState(false);
   const name = tableName(table);
-  const tableUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/menu/${slug}?table=${table.tableNo}`;
+  // Encode the unguessable QR token so the table can't be spoofed via the URL.
+  // Falls back to the legacy ?table= form only until the token backfills.
+  const tableUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/menu/${slug}?${table.qrToken ? `t=${table.qrToken}` : `table=${table.tableNo}`}`;
 
   const download = async () => {
     if (!qrRef.current) return;

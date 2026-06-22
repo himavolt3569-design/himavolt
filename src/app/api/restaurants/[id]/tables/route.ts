@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
+import { randomUUID } from "crypto";
 import { db } from "@/lib/db";
 import { requireStaffForRestaurant } from "@/lib/staff-auth";
 import { getAuthUser } from "@/lib/auth";
 import { STAFF_TABLE_MANAGE_ROLES } from "@/lib/staff-roles";
 
 type Params = { params: Promise<{ id: string }> };
+
+/** Unguessable token printed in the table QR — the table identity the client can't forge. */
+function newQrToken() {
+  return randomUUID().replace(/-/g, "");
+}
 
 async function verifyAccess(req: NextRequest, restaurantId: string) {
   const staff = await requireStaffForRestaurant(req, restaurantId);
@@ -35,6 +41,19 @@ export async function GET(req: NextRequest, { params }: Params) {
       where: { restaurantId, isActive: true },
       orderBy: { tableNo: "asc" },
     });
+
+    // Backfill secure QR tokens for any legacy tables created before token-based
+    // QRs existed. Runs once per table; the fast path skips when all have tokens.
+    const missingToken = tables.filter((t) => !t.qrToken);
+    for (const t of missingToken) {
+      const qrToken = newQrToken();
+      try {
+        await db.table.update({ where: { id: t.id }, data: { qrToken } });
+        t.qrToken = qrToken;
+      } catch {
+        /* unique race — a concurrent request set it; refetched on next load */
+      }
+    }
     const activeSessions = await db.tableSession.findMany({
       where: { restaurantId, isActive: true },
       include: {
@@ -91,7 +110,7 @@ export async function POST(req: NextRequest, { params }: Params) {
   if (explicitNo !== null) {
     try {
       const table = await db.table.create({
-        data: { tableNo: explicitNo, label, capacity, restaurantId },
+        data: { tableNo: explicitNo, label, capacity, restaurantId, qrToken: newQrToken() },
       });
       return NextResponse.json({ table }, { status: 201 });
     } catch {
@@ -109,7 +128,7 @@ export async function POST(req: NextRequest, { params }: Params) {
   for (let attempt = 0; attempt < 6; attempt++) {
     try {
       const table = await db.table.create({
-        data: { tableNo: next, label, capacity, restaurantId },
+        data: { tableNo: next, label, capacity, restaurantId, qrToken: newQrToken() },
       });
       return NextResponse.json({ table }, { status: 201 });
     } catch {

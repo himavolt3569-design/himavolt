@@ -207,6 +207,26 @@ export default function BillPage() {
     };
   }, [bill, params.orderId]);
 
+  // Auto-print: when opened with ?autoprint=1 (from a settled payment), fire the
+  // print dialog once the bill has rendered, then close the popup afterwards.
+  const autoPrinted = useRef(false);
+  useEffect(() => {
+    if (!bill || autoPrinted.current) return;
+    const wantsPrint = new URLSearchParams(window.location.search).has(
+      "autoprint",
+    );
+    if (!wantsPrint) return;
+    autoPrinted.current = true;
+    const onAfterPrint = () => window.close();
+    window.addEventListener("afterprint", onAfterPrint);
+    // Give the thermal layout + feedback QR a beat to paint before printing.
+    const t = setTimeout(() => window.print(), 600);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener("afterprint", onAfterPrint);
+    };
+  }, [bill]);
+
   const onDownload = useCallback(async () => {
     if (!bill) return;
     setDownloading(true);
