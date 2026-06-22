@@ -6,6 +6,7 @@ import {
   BedDouble,
   Users,
   MapPin,
+  Search,
   Phone,
   Star,
   Wifi,
@@ -1157,6 +1158,7 @@ export default function HotelPublicPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
   const [activeType, setActiveType] = useState<string>("ALL");
+  const [roomQuery, setRoomQuery] = useState("");
   const [heroIdx, setHeroIdx] = useState(0);
 
   // view: browse rooms OR pre-booking wizard
@@ -1373,7 +1375,22 @@ export default function HotelPublicPage() {
   }
 
   const roomTypes = ["ALL", ...Object.keys(grouped)];
-  const displayedRooms = activeType === "ALL" ? rooms : grouped[activeType] ?? [];
+  const byType = activeType === "ALL" ? rooms : grouped[activeType] ?? [];
+  const q = roomQuery.trim().toLowerCase();
+  const displayedRooms = q
+    ? byType.filter((r) =>
+        [
+          r.name ?? "",
+          r.roomNumber,
+          r.type,
+          ...(r.amenities ?? []),
+          ...(r.offerings ?? []),
+        ]
+          .join(" ")
+          .toLowerCase()
+          .includes(q),
+      )
+    : byType;
   const cur = hotel.currency === "USD" ? "$" : hotel.currency === "INR" ? "₹" : "Rs.";
 
   return (
@@ -1473,7 +1490,16 @@ export default function HotelPublicPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            <div className="sticky top-[57px] z-30 bg-[var(--canvas)]/90 backdrop-blur-sm border-b border-[var(--border-soft)] px-5 py-3">
+            <div className="sticky top-[57px] z-30 bg-[var(--canvas)]/90 backdrop-blur-sm border-b border-[var(--border-soft)] px-5 py-3 space-y-2.5">
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-3)]" />
+                <input
+                  value={roomQuery}
+                  onChange={(e) => setRoomQuery(e.target.value)}
+                  placeholder="Search rooms, bed type, amenities…"
+                  className="w-full rounded-full border border-[var(--border)] bg-[var(--canvas-sub)] py-2.5 pl-10 pr-4 text-[13px] text-[var(--text-1)] placeholder-[var(--text-3)] outline-none transition-all focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
+                />
+              </div>
               <div className="flex gap-2 overflow-x-auto scrollbar-hide">
                 {roomTypes.map((type) => (
                   <button
