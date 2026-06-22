@@ -20,7 +20,7 @@ import {
   Minus,
 } from "lucide-react";
 import { useRestaurant, type StaffMember } from "@/context/RestaurantContext";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, peekApiCache } from "@/lib/api-client";
 import {
   TYPE_FEATURE_TABS,
   type FeatureTabDef,
@@ -426,11 +426,27 @@ function FeatureOverridesSection({
   restaurantType: string;
   onSaved: () => void;
 }) {
-  const [loading, setLoading] = useState(true);
+  // Seed from the warm GET cache so re-opening the panel paints instantly.
+  const featuresPath = `/api/restaurants/${restaurantId}/features`;
+  const buildStates = (data?: {
+    restaurant?: { featuresEnabled?: string[]; featuresDisabled?: string[] };
+  }): Record<string, OverrideState> => {
+    const enabled = data?.restaurant?.featuresEnabled ?? [];
+    const disabled = data?.restaurant?.featuresDisabled ?? [];
+    const next: Record<string, OverrideState> = {};
+    FEATURE_CATALOG.forEach((f) => {
+      if (disabled.includes(f.id)) next[f.id] = "force-off";
+      else if (enabled.includes(f.id)) next[f.id] = "force-on";
+      else next[f.id] = "default";
+    });
+    return next;
+  };
+  const featuresSeed = peekApiCache<{ restaurant: { featuresEnabled: string[]; featuresDisabled: string[] } }>(featuresPath);
+  const [states, setStates] = useState<Record<string, OverrideState>>(() => featuresSeed ? buildStates(featuresSeed) : {});
+  const [loading, setLoading] = useState(() => !featuresSeed);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<number | null>(null);
-  const [states, setStates] = useState<Record<string, OverrideState>>({});
 
   const typeDefaultIds = useMemo(
     () => new Set((TYPE_FEATURE_TABS[restaurantType] ?? []).map((f) => f.id)),
@@ -440,7 +456,7 @@ function FeatureOverridesSection({
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      setLoading(true);
+      if (!peekApiCache(`/api/restaurants/${restaurantId}/features`)) setLoading(true);
       setError(null);
       try {
         const data = await apiFetch<{
@@ -450,15 +466,7 @@ function FeatureOverridesSection({
           };
         }>(`/api/restaurants/${restaurantId}/features`);
         if (cancelled) return;
-        const enabled = data.restaurant?.featuresEnabled ?? [];
-        const disabled = data.restaurant?.featuresDisabled ?? [];
-        const next: Record<string, OverrideState> = {};
-        FEATURE_CATALOG.forEach((f) => {
-          if (disabled.includes(f.id)) next[f.id] = "force-off";
-          else if (enabled.includes(f.id)) next[f.id] = "force-on";
-          else next[f.id] = "default";
-        });
-        setStates(next);
+        setStates(buildStates(data));
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load");
       } finally {

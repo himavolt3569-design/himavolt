@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { useToast } from "@/context/ToastContext";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, peekApiCache } from "@/lib/api-client";
 import { uploadFile } from "@/lib/upload";
 
 interface OfferData {
@@ -41,8 +41,13 @@ export default function OffersTab() {
   const { showToast } = useToast();
   const restaurant = selectedRestaurant ?? restaurants[0];
 
-  const [offers, setOffers] = useState<OfferData[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Seed from the warm GET cache so re-opening Offers paints instantly.
+  const offersPath = restaurant ? `/api/restaurants/${restaurant.id}/stories` : "";
+  const [offers, setOffers] = useState<OfferData[]>(() => {
+    const c = peekApiCache<{ stories: OfferData[] } | OfferData[]>(offersPath);
+    return Array.isArray(c) ? c : Array.isArray(c?.stories) ? c.stories : [];
+  });
+  const [loading, setLoading] = useState(() => !peekApiCache(offersPath));
   const [showForm, setShowForm] = useState(false);
 
   const [caption, setCaption] = useState("");
@@ -54,7 +59,7 @@ export default function OffersTab() {
 
   const fetchOffers = useCallback(async () => {
     if (!restaurant) return;
-    setLoading(true);
+    if (!peekApiCache(`/api/restaurants/${restaurant.id}/stories`)) setLoading(true);
     try {
       const data = await apiFetch<{ stories: OfferData[] } | OfferData[]>(
         `/api/restaurants/${restaurant.id}/stories`
@@ -568,7 +573,7 @@ export default function OffersTab() {
         )}
       </AnimatePresence>
 
-      {loading ? (
+      {loading && offers.length === 0 ? (
         <div className="flex items-center justify-center py-16">
           <Loader2 className="h-5 w-5 animate-spin text-[var(--accent)]" />
         </div>

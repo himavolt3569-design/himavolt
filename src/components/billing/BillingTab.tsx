@@ -290,6 +290,11 @@ function LiveBilling({
   // out on a transient hiccup, and any mutation (collect/discount/split)
   // invalidates these caches so the next load is fresh.
   const loadOrders = useCallback(async () => {
+    // RestaurantContext resolves async — on a hard reload restaurantId is briefly
+    // undefined. Firing here would hit /api/restaurants/undefined/billing (404,
+    // "Billing not found") and leave the tab stuck loading. Wait for selection;
+    // the effect re-runs once restaurantId lands.
+    if (!restaurantId) return;
     try {
       const data = await apiFetch<BillOrder[] | { orders?: BillOrder[] }>(
         `/api/restaurants/${restaurantId}/billing?filter=${filter}`,

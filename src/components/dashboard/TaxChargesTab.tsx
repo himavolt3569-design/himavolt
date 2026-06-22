@@ -5,6 +5,7 @@ import { useRestaurant } from "@/context/RestaurantContext";
 import { Loader2, Save, Receipt, Percent, Coins } from "lucide-react";
 import { CURRENCIES, formatPrice, type CurrencyCode } from "@/lib/currency";
 import Toggle from "@/components/ui/Toggle";
+import { apiFetch, peekApiCache, invalidateApiCache } from "@/lib/api-client";
 
 interface TaxConfig {
   currency: string;
@@ -26,21 +27,25 @@ async function staffFetch(url: string, opts?: RequestInit) {
 
 export default function TaxChargesTab() {
   const { selectedRestaurant } = useRestaurant();
-  const [config, setConfig] = useState<TaxConfig>({
+  // Seed from the warm GET cache (BillingTab also warms /tax-config) so this
+  // tab paints instantly on open.
+  const taxPath = selectedRestaurant ? `/api/restaurants/${selectedRestaurant.id}/tax-config` : "";
+  const [config, setConfig] = useState<TaxConfig>(() => peekApiCache<TaxConfig>(taxPath) ?? {
     currency: "NPR",
     taxRate: 13,
     taxEnabled: true,
     serviceChargeRate: 10,
     serviceChargeEnabled: true,
   });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => !peekApiCache(taxPath));
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     if (!selectedRestaurant) return;
-    setLoading(true);
-    staffFetch(`/api/restaurants/${selectedRestaurant.id}/tax-config`)
+    const path = `/api/restaurants/${selectedRestaurant.id}/tax-config`;
+    if (!peekApiCache(path)) setLoading(true);
+    apiFetch<TaxConfig>(path, { cacheTtl: 300_000 })
       .then((data: TaxConfig) => {
         setConfig(data);
         setLoading(false);
@@ -57,6 +62,8 @@ export default function TaxChargesTab() {
         { method: "PUT", body: JSON.stringify(config) },
       );
       setConfig(updated);
+      // Keep the apiFetch cache (read here and by BillingTab) coherent.
+      invalidateApiCache(`/api/restaurants/${selectedRestaurant.id}/tax-config`);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch {

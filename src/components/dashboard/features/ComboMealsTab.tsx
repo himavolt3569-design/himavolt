@@ -6,7 +6,7 @@ import {
   UtensilsCrossed, Plus, X, Percent, ToggleLeft, ToggleRight,
   Tag, Trash2, Pencil, Check, Loader2, ImageIcon, Search,
 } from "lucide-react";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, peekApiCache } from "@/lib/api-client";
 
 interface MenuItem { id: string; name: string; imageUrl: string | null; price: number }
 interface ComboItem { name: string; quantity: number; menuItemId: string | null }
@@ -17,10 +17,12 @@ interface ComboMeal {
 }
 
 export default function ComboMealsTab({ restaurantId }: { restaurantId?: string }) {
-  if (!restaurantId) return null;
-  const [combos, setCombos] = useState<ComboMeal[]>([]);
+  // Seed from the warm GET cache so re-opening (or hovering then clicking) paints
+  // instantly — no spinner — while the effect below revalidates in background.
+  const combosPath = restaurantId ? `/api/restaurants/${restaurantId}/combo-meals` : "";
+  const [combos, setCombos] = useState<ComboMeal[]>(() => peekApiCache<ComboMeal[]>(combosPath) ?? []);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => !peekApiCache(combosPath));
   const [saving, setSaving] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -71,8 +73,10 @@ export default function ComboMealsTab({ restaurantId }: { restaurantId?: string 
   }, [restaurantId]);
 
   useEffect(() => {
+    if (!restaurantId) return;
     const init = async () => {
-      setLoading(true);
+      // Only block with a spinner on a cold cache — a warm tab already painted.
+      if (!peekApiCache(combosPath)) setLoading(true);
       try {
         const [combosData] = await Promise.all([
           apiFetch<ComboMeal[]>(`/api/restaurants/${restaurantId}/combo-meals`),
@@ -83,8 +87,8 @@ export default function ComboMealsTab({ restaurantId }: { restaurantId?: string 
         setLoading(false);
       }
     };
-    if (restaurantId) init();
-  }, [restaurantId, loadMenuItems]);
+    init();
+  }, [restaurantId, loadMenuItems, combosPath]);
 
   const savings = (o: number, c: number) => o > c ? Math.round(((o - c) / o) * 100) : 0;
 
@@ -153,7 +157,8 @@ export default function ComboMealsTab({ restaurantId }: { restaurantId?: string 
     i.name.toLowerCase().includes(itemSearch.toLowerCase())
   );
 
-  if (loading) return (
+  // Only show the spinner on a genuine cold start (no cached data to paint).
+  if (loading && combos.length === 0) return (
     <div className="flex items-center justify-center py-20">
       <Loader2 className="w-6 h-6 animate-spin text-[var(--accent)]" />
     </div>

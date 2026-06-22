@@ -10,7 +10,7 @@ import {
   Loader2,
   Percent,
 } from "lucide-react";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, peekApiCache } from "@/lib/api-client";
 import { formatPrice } from "@/lib/currency";
 import { useRestaurant } from "@/context/RestaurantContext";
 import DateRangePicker from "./DateRangePicker";
@@ -60,16 +60,19 @@ export default function OverviewTab({ onOpenStaff }: Props) {
   const { selectedRestaurant } = useRestaurant();
   const cur = selectedRestaurant?.currency ?? "NPR";
   const [range, setRange] = useState(() => presetRange("last7"));
-  const [data, setData] = useState<OverviewData | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Seed from the warm GET cache so re-opening this report paints instantly.
+  const overviewPath = selectedRestaurant
+    ? `/api/restaurants/${selectedRestaurant.id}/reports/overview?from=${range.from}&to=${range.to}&granularity=day`
+    : "";
+  const [data, setData] = useState<OverviewData | null>(() => peekApiCache<OverviewData>(overviewPath) ?? null);
+  const [loading, setLoading] = useState(() => !peekApiCache(overviewPath));
 
   const load = useCallback(async () => {
     if (!selectedRestaurant) return;
-    setLoading(true);
+    const path = `/api/restaurants/${selectedRestaurant.id}/reports/overview?from=${range.from}&to=${range.to}&granularity=day`;
+    if (!peekApiCache(path)) setLoading(true);
     try {
-      const res = await apiFetch(
-        `/api/restaurants/${selectedRestaurant.id}/reports/overview?from=${range.from}&to=${range.to}&granularity=day`,
-      );
+      const res = await apiFetch(path);
       setData(res as OverviewData);
     } catch {
       /* ignore */

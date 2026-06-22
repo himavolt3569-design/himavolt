@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { useToast } from "@/context/ToastContext";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, peekApiCache } from "@/lib/api-client";
 import QRCode from "qrcode";
 import { createWorker } from "tesseract.js";
 import { uploadFile } from "@/lib/upload";
@@ -117,8 +117,10 @@ export default function GuestCheckInTab() {
   const { showToast } = useToast();
   const restaurant = selectedRestaurant ?? restaurants[0];
 
-  const [checkIns, setCheckIns] = useState<GuestCheckIn[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Seed from the warm GET cache so re-opening paints instantly.
+  const checkInsPath = restaurant ? `/api/restaurants/${restaurant.id}/guest-checkins` : "";
+  const [checkIns, setCheckIns] = useState<GuestCheckIn[]>(() => peekApiCache<GuestCheckIn[]>(checkInsPath) ?? []);
+  const [loading, setLoading] = useState(() => !peekApiCache(checkInsPath));
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(BLANK_FORM);
   const [submitting, setSubmitting] = useState(false);
@@ -133,7 +135,7 @@ export default function GuestCheckInTab() {
 
   const fetchCheckIns = useCallback(async () => {
     if (!restaurant) return;
-    setLoading(true);
+    if (!peekApiCache(`/api/restaurants/${restaurant.id}/guest-checkins`)) setLoading(true);
     try {
       const data = await apiFetch<GuestCheckIn[]>(
         `/api/restaurants/${restaurant.id}/guest-checkins`
@@ -315,7 +317,7 @@ export default function GuestCheckInTab() {
         </div>
       </div>
 
-      {loading ? (
+      {loading && checkIns.length === 0 ? (
         <div className="flex items-center justify-center py-16">
           <Loader2 className="h-6 w-6 animate-spin text-[var(--text-3)]" />
         </div>

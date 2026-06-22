@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatPrice } from "@/lib/currency";
 import { useRestaurant } from "@/context/RestaurantContext";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, peekApiCache } from "@/lib/api-client";
 import {
   Monitor,
   ChevronUp,
@@ -71,11 +71,14 @@ export default function DisplayCounterTab() {
   const cur = selectedRestaurant?.currency ?? "NPR";
   const restaurantId = selectedRestaurant?.id;
 
-  const [items, setItems] = useState<DisplayItem[]>([]);
-  const [config, setConfig] = useState<DisplayConfig>({ isEnabled: false, autoHideSoldOut: false });
+  // Seed from the warm GET cache so re-opening paints instantly.
+  const counterPath = restaurantId ? `/api/restaurants/${restaurantId}/display-counter` : "";
+  const counterSeed = peekApiCache<{ items: DisplayItem[]; config: DisplayConfig }>(counterPath);
+  const [items, setItems] = useState<DisplayItem[]>(() => counterSeed?.items ?? []);
+  const [config, setConfig] = useState<DisplayConfig>(() => counterSeed?.config ?? { isEnabled: false, autoHideSoldOut: false });
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [menuCategories, setMenuCategories] = useState<MenuCategory[]>([]);
-  const [loading, setLoading] = useState(!!restaurantId);
+  const [loading, setLoading] = useState(!!restaurantId && !counterSeed);
 
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [previewMode, setPreviewMode] = useState(false);
@@ -97,7 +100,7 @@ export default function DisplayCounterTab() {
   // Load display counter + menu data
   const loadData = useCallback(async () => {
     if (!restaurantId) { setLoading(false); return; }
-    setLoading(true);
+    if (!peekApiCache(`/api/restaurants/${restaurantId}/display-counter`)) setLoading(true);
     try {
       const [counterData, menuData, catData] = await Promise.all([
         apiFetch<{ items: DisplayItem[]; config: DisplayConfig }>(

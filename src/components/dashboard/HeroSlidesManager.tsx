@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { useToast } from "@/context/ToastContext";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, peekApiCache } from "@/lib/api-client";
 import { uploadFile } from "@/lib/upload";
 
 interface SlideData {
@@ -43,8 +43,10 @@ export default function HeroSlidesManager() {
   const { showToast } = useToast();
   const restaurant = selectedRestaurant ?? restaurants[0];
 
-  const [slides, setSlides] = useState<SlideData[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Seed from the warm GET cache so re-opening paints instantly.
+  const slidesPath = restaurant ? `/api/restaurants/${restaurant.id}/hero-slides` : "";
+  const [slides, setSlides] = useState<SlideData[]>(() => peekApiCache<{ slides: SlideData[] }>(slidesPath)?.slides ?? []);
+  const [loading, setLoading] = useState(() => !peekApiCache(slidesPath));
   const [showForm, setShowForm] = useState(false);
 
   const [formTitle, setFormTitle] = useState("");
@@ -62,7 +64,7 @@ export default function HeroSlidesManager() {
 
   const fetchSlides = useCallback(async () => {
     if (!restaurant) return;
-    setLoading(true);
+    if (!peekApiCache(`/api/restaurants/${restaurant.id}/hero-slides`)) setLoading(true);
     try {
       const data = await apiFetch<{ slides: SlideData[] }>(
         `/api/restaurants/${restaurant.id}/hero-slides`

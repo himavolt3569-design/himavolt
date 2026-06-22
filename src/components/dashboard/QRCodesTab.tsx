@@ -6,6 +6,7 @@ import QRCode from "react-qr-code";
 import { Download, Printer, Share2, Check, Palette, TableProperties } from "lucide-react";
 import { useToast } from "@/context/ToastContext";
 import { useRestaurant } from "@/context/RestaurantContext";
+import { apiFetch, peekApiCache } from "@/lib/api-client";
 import { STYLES, buildQRCanvas, type CardStyle } from "@/components/dashboard/qr/qrCanvas";
 import gsap from "gsap";
 
@@ -222,19 +223,24 @@ export default function QRCodesTab() {
   const restaurantName = restaurant?.name ?? "HimaVolt";
   const [downloading, setDownloading] = useState(false);
   const [cardStyle, setCardStyle] = useState<CardStyle>("classic");
-  const [tables, setTables] = useState<TableRecord[]>([]);
-  const [loadingTables, setLoadingTables] = useState(true);
+  // Seed from the warm GET cache (/tables is warmed by the dashboard layout) so
+  // QR codes paint instantly on open.
+  const tablesPath = restaurant?.id ? `/api/restaurants/${restaurant.id}/tables` : "";
+  const sortActive = (data: { tables?: TableRecord[] } | TableRecord[] | undefined): TableRecord[] => {
+    const list = Array.isArray(data) ? data : data?.tables ?? [];
+    return list.filter((t) => t.isActive).sort((a, b) => a.tableNo - b.tableNo);
+  };
+  const seededTables = peekApiCache<{ tables?: TableRecord[] } | TableRecord[]>(tablesPath);
+  const [tables, setTables] = useState<TableRecord[]>(() => seededTables ? sortActive(seededTables) : []);
+  const [loadingTables, setLoadingTables] = useState(() => !seededTables);
 
   // Fetch actual table records instead of relying on tableCount
   useEffect(() => {
     if (!restaurant?.id) return;
-    setLoadingTables(true);
-    fetch(`/api/restaurants/${restaurant.id}/tables`, { credentials: "include" })
-      .then((r) => r.json())
-      .then((data) => {
-        const tableList: TableRecord[] = data.tables ?? (Array.isArray(data) ? data : []);
-        setTables(tableList.filter((t) => t.isActive).sort((a, b) => a.tableNo - b.tableNo));
-      })
+    const path = `/api/restaurants/${restaurant.id}/tables`;
+    if (!peekApiCache(path)) setLoadingTables(true);
+    apiFetch<{ tables?: TableRecord[] } | TableRecord[]>(path, { cacheTtl: 60_000 })
+      .then((data) => setTables(sortActive(data)))
       .catch(() => setTables([]))
       .finally(() => setLoadingTables(false));
   }, [restaurant?.id]);

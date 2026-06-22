@@ -18,6 +18,13 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
+import { apiFetch, peekApiCache, invalidateApiCache } from "@/lib/api-client";
+
+interface FeedbackResponse {
+  feedbacks: Feedback[];
+  total: number;
+  avgRating: number | null;
+}
 
 interface Feedback {
   id: string;
@@ -324,10 +331,13 @@ export default function FeedbackTab() {
   const { selectedRestaurant } = useRestaurant();
   const restaurantId = selectedRestaurant?.id;
 
-  const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
-  const [total, setTotal] = useState(0);
-  const [avgRating, setAvgRating] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Seed from the warm GET cache so re-opening Feedback paints instantly.
+  const feedbackPath = restaurantId ? `/api/restaurants/${restaurantId}/feedback?limit=100` : "";
+  const seed = peekApiCache<FeedbackResponse>(feedbackPath);
+  const [feedbacks, setFeedbacks] = useState<Feedback[]>(() => seed?.feedbacks ?? []);
+  const [total, setTotal] = useState(() => seed?.total ?? 0);
+  const [avgRating, setAvgRating] = useState<number | null>(() => seed?.avgRating ?? null);
+  const [loading, setLoading] = useState(() => !seed);
   const [filter, setFilter] = useState<Filter>("all");
   const [starFilter, setStarFilter] = useState<number | null>(null);
 
@@ -335,10 +345,11 @@ export default function FeedbackTab() {
     if (!restaurantId) return;
     let active = true;
     (async () => {
-      setLoading(true);
+      if (!peekApiCache(`/api/restaurants/${restaurantId}/feedback?limit=100`)) setLoading(true);
       try {
-        const data = await staffFetch(
+        const data = await apiFetch<FeedbackResponse>(
           `/api/restaurants/${restaurantId}/feedback?limit=100`,
+          { cacheTtl: 20_000 },
         );
         if (!active) return;
         setFeedbacks(data.feedbacks ?? []);
@@ -379,14 +390,17 @@ export default function FeedbackTab() {
     });
   }, [feedbacks, filter, starFilter]);
 
-  const applyUpdate = (updated: Feedback) =>
+  const applyUpdate = (updated: Feedback) => {
     setFeedbacks((prev) => prev.map((f) => (f.id === updated.id ? updated : f)));
+    if (restaurantId) invalidateApiCache(`/api/restaurants/${restaurantId}/feedback`);
+  };
   const applyDelete = (id: string) => {
     setFeedbacks((prev) => prev.filter((f) => f.id !== id));
     setTotal((t) => Math.max(0, t - 1));
+    if (restaurantId) invalidateApiCache(`/api/restaurants/${restaurantId}/feedback`);
   };
 
-  if (loading) {
+  if (loading && feedbacks.length === 0) {
     return null;
   }
 
