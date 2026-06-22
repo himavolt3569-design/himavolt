@@ -415,9 +415,9 @@ function RoomStep({
       </div>
 
       {refreshing && (
-        <div className="flex items-center gap-2 text-[12px] text-[var(--text-2)]">
-          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-          Checking availability…
+        <div className="inline-flex items-center gap-1.5 rounded-full bg-[var(--accent-muted)] px-3 py-1 text-[11px] font-semibold text-[var(--accent-text)]">
+          <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] animate-pulse" />
+          Updating availability
         </div>
       )}
 
@@ -1326,15 +1326,15 @@ export default function HotelPublicPage() {
   };
 
   if (loading) {
+    // Instant calm shell — no spinner/"Loading hotel..." flash.
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[var(--canvas-sub)]">
-        <div className="flex flex-col items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--accent)]">
-            <Mountain className="h-6 w-6 text-white" />
-          </div>
-          <Loader2 className="h-5 w-5 animate-spin text-[var(--accent)]" />
-          <p className="text-[13px] text-[var(--text-2)]">Loading hotel...</p>
+      <div className="min-h-screen bg-[var(--canvas-sub)] flex flex-col items-center justify-center gap-3">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--accent)] shadow-lg shadow-[var(--accent)]/30">
+          <Mountain className="h-6 w-6 text-white" strokeWidth={2.5} />
         </div>
+        <span className="text-[15px] font-bold text-[var(--text-1)]">
+          Hima<span className="text-[var(--accent)]">Volt</span>
+        </span>
       </div>
     );
   }

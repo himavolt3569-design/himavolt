@@ -231,9 +231,15 @@ export default function RoomLandingPage() {
   }, [fetchRoom]);
 
   if (loading) {
+    // Instant calm shell — no spinner flash while the room loads.
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[var(--canvas-sub)]">
-        <Loader2 className="h-6 w-6 animate-spin text-[var(--accent)]" />
+      <div className="min-h-screen bg-[var(--canvas-sub)] flex flex-col items-center justify-center gap-3">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--accent)] shadow-lg shadow-[var(--accent)]/30">
+          <Building2 className="h-6 w-6 text-white" strokeWidth={2.5} />
+        </div>
+        <span className="text-[15px] font-bold text-[var(--text-1)]">
+          Hima<span className="text-[var(--accent)]">Volt</span>
+        </span>
       </div>
     );
   }

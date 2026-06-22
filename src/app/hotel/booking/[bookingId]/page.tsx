@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   CheckCircle,
+  Check,
   Clock,
   XCircle,
   BedDouble,
@@ -15,8 +16,11 @@ import {
   Loader2,
   CreditCard,
   ArrowLeft,
+  ArrowRight,
   Upload,
   Ban,
+  LogIn,
+  LogOut,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
@@ -110,6 +114,121 @@ const STATUS_CONFIG: Record<
   },
 };
 
+const PROGRESS_STEPS = ["Booked", "Confirmed", "Checked in", "Checked out"];
+const STATUS_TO_STEP: Record<string, number> = {
+  PENDING: 0,
+  CONFIRMED: 1,
+  CHECKED_IN: 2,
+  CHECKED_OUT: 3,
+};
+
+/** Airbnb-style horizontal progress so the guest always sees where their stay is. */
+function BookingProgress({ status }: { status: string }) {
+  if (status === "CANCELLED") return null;
+  const current = STATUS_TO_STEP[status] ?? 0;
+  return (
+    <div className="rounded-3xl bg-[var(--canvas)] ring-1 ring-[var(--border)] p-5 shadow-sm">
+      <div className="flex items-start">
+        {PROGRESS_STEPS.map((label, i) => {
+          const done = i <= current;
+          return (
+            <div key={label} className="flex flex-1 items-start last:flex-none">
+              <div className="flex flex-col items-center gap-1.5 w-12">
+                <div
+                  className={`flex h-8 w-8 items-center justify-center rounded-full text-[12px] font-bold transition-colors ${
+                    done
+                      ? "bg-[var(--accent)] text-white"
+                      : "bg-[var(--canvas-sub)] text-[var(--text-3)] ring-1 ring-[var(--border)]"
+                  }`}
+                >
+                  {done ? <Check className="h-4 w-4" /> : i + 1}
+                </div>
+                <span
+                  className={`text-[10px] font-semibold text-center leading-tight ${
+                    done ? "text-[var(--text-1)]" : "text-[var(--text-3)]"
+                  }`}
+                >
+                  {label}
+                </span>
+              </div>
+              {i < PROGRESS_STEPS.length - 1 && (
+                <div
+                  className={`h-0.5 flex-1 mt-4 rounded-full ${
+                    i < current ? "bg-[var(--accent)]" : "bg-[var(--border)]"
+                  }`}
+                />
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/** Prominent check-in / check-out hero — the clearest possible "when" for the guest. */
+function StayDates({
+  checkIn,
+  checkOut,
+  nights,
+}: {
+  checkIn: string;
+  checkOut: string;
+  nights: number;
+}) {
+  const fmt = (d: string) => {
+    const date = new Date(d);
+    return {
+      weekday: date.toLocaleDateString("en-GB", { weekday: "short" }),
+      date: date.toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      }),
+    };
+  };
+  const ci = fmt(checkIn);
+  const co = fmt(checkOut);
+  return (
+    <div className="rounded-3xl bg-[var(--canvas)] ring-1 ring-[var(--border)] p-5 shadow-sm">
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+        <div>
+          <div className="flex items-center gap-1.5 text-[var(--accent-text)] mb-1">
+            <LogIn className="h-3.5 w-3.5" />
+            <span className="text-[10px] font-bold uppercase tracking-wider">
+              Check-in
+            </span>
+          </div>
+          <p className="text-[18px] font-extrabold leading-none text-[var(--text-1)]">
+            {ci.weekday}
+          </p>
+          <p className="text-[12px] text-[var(--text-2)] mt-0.5">{ci.date}</p>
+        </div>
+
+        <div className="flex flex-col items-center px-1">
+          <span className="rounded-full bg-[var(--accent-muted)] px-2.5 py-0.5 text-[10px] font-bold text-[var(--accent-text)] whitespace-nowrap">
+            {nights} night{nights > 1 ? "s" : ""}
+          </span>
+          <ArrowRight className="mt-1 h-4 w-4 text-[var(--text-3)]" />
+        </div>
+
+        <div className="text-right">
+          <div className="flex items-center justify-end gap-1.5 text-[var(--accent-text)] mb-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider">
+              Check-out
+            </span>
+            <LogOut className="h-3.5 w-3.5" />
+          </div>
+          <p className="text-[18px] font-extrabold leading-none text-[var(--text-1)]">
+            {co.weekday}
+          </p>
+          <p className="text-[12px] text-[var(--text-2)] mt-0.5">{co.date}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function BookingConfirmationPage() {
   const { bookingId } = useParams<{ bookingId: string }>();
   const searchParams = useSearchParams();
@@ -189,9 +308,16 @@ export default function BookingConfirmationPage() {
   };
 
   if (loading) {
+    // No spinner/blank flash — paint the calm branded shell instantly while the
+    // booking loads in the background.
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50">
-        <Loader2 className="h-6 w-6 animate-spin text-[var(--accent)]" />
+      <div className="min-h-screen bg-[var(--canvas)] flex flex-col items-center justify-center gap-3">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--accent)] shadow-lg shadow-[var(--accent)]/30">
+          <Mountain className="h-6 w-6 text-white" strokeWidth={2.5} />
+        </div>
+        <span className="text-[15px] font-bold text-[var(--text-1)]">
+          Hima<span className="text-[var(--accent)]">Volt</span>
+        </span>
       </div>
     );
   }
@@ -264,6 +390,14 @@ export default function BookingConfirmationPage() {
           <p className="mt-1 text-[11px] text-[var(--text-2)]">Booking #{bookingId.slice(-8).toUpperCase()}</p>
         </div>
 
+        <BookingProgress status={booking.status} />
+
+        <StayDates
+          checkIn={booking.checkIn}
+          checkOut={booking.checkOut}
+          nights={booking.nights}
+        />
+
         <div className="rounded-2xl bg-[var(--canvas)] ring-1 ring-[var(--border)] overflow-hidden shadow-sm">
           {booking.room.imageUrls[0] && (
             <img src={booking.room.imageUrls[0]} alt="Room" className="h-36 w-full object-cover sm:h-44" />
@@ -280,8 +414,6 @@ export default function BookingConfirmationPage() {
 
             <div className="grid grid-cols-2 gap-3">
               {[
-                { icon: Calendar, label: "Check-in", value: new Date(booking.checkIn).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) },
-                { icon: Calendar, label: "Check-out", value: new Date(booking.checkOut).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) },
                 { icon: BedDouble, label: "Bed", value: booking.room.bedType ? `${booking.room.bedCount}x ${booking.room.bedType}` : `Floor ${booking.room.floor}` },
                 { icon: Users, label: "Guests", value: `${booking.adults} adults${booking.children > 0 ? `, ${booking.children} children` : ""}` },
               ].map(({ icon: Icon, label, value }) => (
