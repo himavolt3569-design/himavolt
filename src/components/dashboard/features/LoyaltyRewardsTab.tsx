@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { getCurrencySymbol } from "@/lib/currency";
 import { useRestaurant } from "@/context/RestaurantContext";
+import { apiFetch, peekApiCache, invalidateApiCache } from "@/lib/api-client";
 import {
   Gift,
   Plus,
@@ -64,10 +65,13 @@ export default function LoyaltyRewardsTab() {
   const restaurantId = selectedRestaurant?.id;
   const sym = getCurrencySymbol(selectedRestaurant?.currency ?? "NPR");
 
-  const [config, setConfig] = useState<LoyaltyConfig | null>(null);
-  const [rewards, setRewards] = useState<Reward[]>([]);
-  const [topAccounts, setTopAccounts] = useState<TopAccount[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Seed from the warm GET cache so re-opening Loyalty paints instantly.
+  const loyaltyPath = restaurantId ? `/api/restaurants/${restaurantId}/loyalty` : "";
+  const seed = peekApiCache<{ config?: LoyaltyConfig; rewards?: Reward[]; topAccounts?: TopAccount[] }>(loyaltyPath);
+  const [config, setConfig] = useState<LoyaltyConfig | null>(() => seed?.config ?? null);
+  const [rewards, setRewards] = useState<Reward[]>(() => seed?.rewards ?? []);
+  const [topAccounts, setTopAccounts] = useState<TopAccount[]>(() => seed?.topAccounts ?? []);
+  const [loading, setLoading] = useState(() => !seed);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -84,12 +88,13 @@ export default function LoyaltyRewardsTab() {
   useEffect(() => {
     if (!restaurantId) return;
     (async () => {
-      setLoading(true);
+      if (!peekApiCache(`/api/restaurants/${restaurantId}/loyalty`)) setLoading(true);
       setError(null);
       try {
-        const res = await fetch(`/api/restaurants/${restaurantId}/loyalty`);
-        if (!res.ok) throw new Error(`Failed: ${res.status}`);
-        const data = await res.json();
+        const data = await apiFetch<{ config?: LoyaltyConfig; rewards?: Reward[]; topAccounts?: TopAccount[] }>(
+          `/api/restaurants/${restaurantId}/loyalty`,
+          { cacheTtl: 30_000 },
+        );
         setConfig(
           data.config ?? {
             restaurantId,
@@ -122,6 +127,7 @@ export default function LoyaltyRewardsTab() {
       if (!res.ok) throw new Error();
       const updated = await res.json();
       setConfig(updated);
+      invalidateApiCache(`/api/restaurants/${restaurantId}/loyalty`);
     } catch {
       setError("Failed to save config");
     } finally {
@@ -148,6 +154,7 @@ export default function LoyaltyRewardsTab() {
       if (!res.ok) throw new Error();
       const created = await res.json();
       setRewards((prev) => [...prev, created]);
+      invalidateApiCache(`/api/restaurants/${restaurantId}/loyalty`);
       setNewRewardName("");
       setNewRewardPoints(50);
       setNewRewardDesc("");
@@ -239,7 +246,7 @@ export default function LoyaltyRewardsTab() {
     );
   }
 
-  if (loading) {
+  if (loading && !config) {
     return (
       <div className="flex items-center gap-2 p-6 text-sm text-[var(--text-2)]">
         <Loader2 className="w-4 h-4 animate-spin" /> Loading loyalty program…

@@ -6,7 +6,7 @@ import {
   UtensilsCrossed, Plus, X, Percent, ToggleLeft, ToggleRight,
   Tag, Trash2, Pencil, Check, Loader2, ImageIcon, Search,
 } from "lucide-react";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, peekApiCache } from "@/lib/api-client";
 
 interface MenuItem { id: string; name: string; imageUrl: string | null; price: number }
 interface ComboItem { name: string; quantity: number; menuItemId: string | null }
@@ -17,10 +17,12 @@ interface ComboMeal {
 }
 
 export default function ComboMealsTab({ restaurantId }: { restaurantId?: string }) {
-  if (!restaurantId) return null;
-  const [combos, setCombos] = useState<ComboMeal[]>([]);
+  // Seed from the warm GET cache so re-opening (or hovering then clicking) paints
+  // instantly — no spinner — while the effect below revalidates in background.
+  const combosPath = restaurantId ? `/api/restaurants/${restaurantId}/combo-meals` : "";
+  const [combos, setCombos] = useState<ComboMeal[]>(() => peekApiCache<ComboMeal[]>(combosPath) ?? []);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => !peekApiCache(combosPath));
   const [saving, setSaving] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -71,8 +73,10 @@ export default function ComboMealsTab({ restaurantId }: { restaurantId?: string 
   }, [restaurantId]);
 
   useEffect(() => {
+    if (!restaurantId) return;
     const init = async () => {
-      setLoading(true);
+      // Only block with a spinner on a cold cache — a warm tab already painted.
+      if (!peekApiCache(combosPath)) setLoading(true);
       try {
         const [combosData] = await Promise.all([
           apiFetch<ComboMeal[]>(`/api/restaurants/${restaurantId}/combo-meals`),
@@ -83,8 +87,8 @@ export default function ComboMealsTab({ restaurantId }: { restaurantId?: string 
         setLoading(false);
       }
     };
-    if (restaurantId) init();
-  }, [restaurantId, loadMenuItems]);
+    init();
+  }, [restaurantId, loadMenuItems, combosPath]);
 
   const savings = (o: number, c: number) => o > c ? Math.round(((o - c) / o) * 100) : 0;
 
@@ -117,43 +121,70 @@ export default function ComboMealsTab({ restaurantId }: { restaurantId?: string 
 
   const handleSubmit = async () => {
     if (!formName.trim() || formItems.length === 0 || !formComboPrice || !formOriginalPrice) return;
-    setSaving(true);
+    const payload = {
+      name: formName.trim(), description: formDesc.trim() || null,
+      imageUrl: formImageUrl.trim() || null,
+      comboPrice: Number(formComboPrice), originalPrice: Number(formOriginalPrice),
+      items: formItems,
+    };
+    const editing = editingId;
+    const snapshot = combos;
+    // Optimistic items for instant render; real ids/menuItem reconcile on response.
+    const optimisticItems = formItems.map((fi, i) => ({
+      id: `tmp-${i}`, menuItemId: fi.menuItemId, name: fi.name, quantity: fi.quantity, menuItem: null,
+    }));
+    const tempId = `temp-${Date.now()}`;
+    // Apply instantly and close the form — no spinner wait.
+    if (editing) {
+      setCombos((prev) => prev.map((c) => c.id === editing ? { ...c, ...payload, items: optimisticItems } as ComboMeal : c));
+    } else {
+      setCombos((prev) => [{ id: tempId, ...payload, isActive: true, items: optimisticItems } as ComboMeal, ...prev]);
+    }
+    resetForm();
     try {
-      const payload = {
-        name: formName.trim(), description: formDesc.trim() || null,
-        imageUrl: formImageUrl.trim() || null,
-        comboPrice: Number(formComboPrice), originalPrice: Number(formOriginalPrice),
-        items: formItems,
-      };
-      if (editingId) {
-        const updated = await apiFetch<ComboMeal>(`/api/restaurants/${restaurantId}/combo-meals/${editingId}`, { method: "PATCH", body: payload });
-        setCombos((prev) => prev.map((c) => c.id === editingId ? updated : c));
+      if (editing) {
+        const updated = await apiFetch<ComboMeal>(`/api/restaurants/${restaurantId}/combo-meals/${editing}`, { method: "PATCH", body: payload });
+        setCombos((prev) => prev.map((c) => c.id === editing ? updated : c));
       } else {
         const created = await apiFetch<ComboMeal>(`/api/restaurants/${restaurantId}/combo-meals`, { method: "POST", body: payload });
-        setCombos((prev) => [created, ...prev]);
+        setCombos((prev) => prev.map((c) => c.id === tempId ? created : c));
       }
-      resetForm();
-    } finally { setSaving(false); }
+    } catch {
+      setCombos(snapshot); // rollback
+    }
   };
 
   const toggleActive = async (combo: ComboMeal) => {
-    const updated = await apiFetch<ComboMeal>(`/api/restaurants/${restaurantId}/combo-meals/${combo.id}`, {
-      method: "PATCH", body: { isActive: !combo.isActive },
-    });
-    setCombos((prev) => prev.map((c) => c.id === combo.id ? updated : c));
+    const snapshot = combos;
+    // Optimistic flip; reconcile with the server's row on success.
+    setCombos((prev) => prev.map((c) => c.id === combo.id ? { ...c, isActive: !c.isActive } : c));
+    try {
+      const updated = await apiFetch<ComboMeal>(`/api/restaurants/${restaurantId}/combo-meals/${combo.id}`, {
+        method: "PATCH", body: { isActive: !combo.isActive },
+      });
+      setCombos((prev) => prev.map((c) => c.id === combo.id ? updated : c));
+    } catch {
+      setCombos(snapshot); // rollback
+    }
   };
 
   const deleteCombo = async (id: string) => {
     if (!confirm("Delete this combo deal?")) return;
-    await apiFetch(`/api/restaurants/${restaurantId}/combo-meals/${id}`, { method: "DELETE" });
-    setCombos((prev) => prev.filter((c) => c.id !== id));
+    const snapshot = combos;
+    setCombos((prev) => prev.filter((c) => c.id !== id)); // optimistic remove
+    try {
+      await apiFetch(`/api/restaurants/${restaurantId}/combo-meals/${id}`, { method: "DELETE" });
+    } catch {
+      setCombos(snapshot); // rollback
+    }
   };
 
   const filteredMenuItems = menuItems.filter((i) =>
     i.name.toLowerCase().includes(itemSearch.toLowerCase())
   );
 
-  if (loading) return (
+  // Only show the spinner on a genuine cold start (no cached data to paint).
+  if (loading && combos.length === 0) return (
     <div className="flex items-center justify-center py-20">
       <Loader2 className="w-6 h-6 animate-spin text-[var(--accent)]" />
     </div>

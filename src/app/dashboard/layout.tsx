@@ -133,6 +133,12 @@ export default function DashboardLayout({
       apiFetch(`/api/restaurants/${id}/menu?light=1`, { cacheTtl: 120_000 }).catch(() => {});
       apiFetch(`/api/restaurants/${id}/categories`, { cacheTtl: 120_000 }).catch(() => {});
       apiFetch(`/api/restaurants/${id}/tables`, { cacheTtl: 60_000 }).catch(() => {});
+      // Other daily-driver screens — warmed so Billing, Staff/Attendance and
+      // Stock paint from cache on first click instead of fetching on open.
+      apiFetch(`/api/restaurants/${id}/billing?filter=unpaid`, { cacheTtl: 30_000 }).catch(() => {});
+      apiFetch(`/api/restaurants/${id}/billing/summary`, { cacheTtl: 30_000 }).catch(() => {});
+      apiFetch(`/api/restaurants/${id}/attendance`, { cacheTtl: 30_000 }).catch(() => {});
+      apiFetch(`/api/restaurants/${id}/inventory`, { cacheTtl: 60_000 }).catch(() => {});
     }, 600);
     return () => clearTimeout(t);
   }, [selectedRestaurant?.id]);

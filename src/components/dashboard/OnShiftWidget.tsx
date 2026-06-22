@@ -12,6 +12,7 @@ import {
   LogOut,
   ChevronRight,
 } from "lucide-react";
+import { apiFetch, peekApiCache } from "@/lib/api-client";
 
 interface StaffShape {
   id: string;
@@ -55,8 +56,10 @@ const ROLE_LABEL: Record<string, string> = {
 };
 
 export default function OnShiftWidget({ restaurantId, onOpenShifts }: Props) {
-  const [data, setData] = useState<LiveResponse | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Seed from the warm GET cache so the overview widget paints instantly.
+  const shiftsNowPath = restaurantId ? `/api/restaurants/${restaurantId}/shifts/now` : "";
+  const [data, setData] = useState<LiveResponse | null>(() => peekApiCache<LiveResponse>(shiftsNowPath) ?? null);
+  const [loading, setLoading] = useState(() => !peekApiCache(shiftsNowPath));
   const [refreshing, setRefreshing] = useState(false);
   const [endingId, setEndingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -65,16 +68,19 @@ export default function OnShiftWidget({ restaurantId, onOpenShifts }: Props) {
   const load = useCallback(
     async (initial = false) => {
       if (!restaurantId) return;
-      if (initial) setLoading(true);
-      else setRefreshing(true);
+      const path = `/api/restaurants/${restaurantId}/shifts/now`;
+      // Poll (initial=false) bypasses cache via the short TTL expiring; an
+      // initial open paints from cache when warm.
+      if (initial) {
+        if (!peekApiCache(path)) setLoading(true);
+      } else {
+        setRefreshing(true);
+      }
       setError(null);
       try {
-        const res = await fetch(
-          `/api/restaurants/${restaurantId}/shifts/now`,
-          { credentials: "include" },
-        );
-        if (!res.ok) throw new Error("Failed to load shift status");
-        const json = (await res.json()) as LiveResponse;
+        const json = await apiFetch<LiveResponse>(path, {
+          cacheTtl: initial ? 30_000 : 0,
+        });
         setData(json);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load");

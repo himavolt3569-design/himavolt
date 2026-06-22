@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { useToast } from "@/context/ToastContext";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, peekApiCache } from "@/lib/api-client";
 import { uploadFile } from "@/lib/upload";
 
 interface PaymentQR {
@@ -34,8 +34,10 @@ export default function PaymentQRTab() {
   const { showToast } = useToast();
   const restaurant = selectedRestaurant ?? restaurants[0];
 
-  const [qrs, setQrs] = useState<PaymentQR[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Seed from the warm GET cache so re-opening paints instantly.
+  const qrsPath = restaurant ? `/api/restaurants/${restaurant.id}/payment-qrs` : "";
+  const [qrs, setQrs] = useState<PaymentQR[]>(() => peekApiCache<PaymentQR[]>(qrsPath) ?? []);
+  const [loading, setLoading] = useState(() => !peekApiCache(qrsPath));
   const [showAddForm, setShowAddForm] = useState(false);
   const [previewQR, setPreviewQR] = useState<PaymentQR | null>(null);
 
@@ -47,7 +49,7 @@ export default function PaymentQRTab() {
 
   const fetchQRs = useCallback(async () => {
     if (!restaurant) return;
-    setLoading(true);
+    if (!peekApiCache(`/api/restaurants/${restaurant.id}/payment-qrs`)) setLoading(true);
     try {
       const data = await apiFetch<PaymentQR[]>(
         `/api/restaurants/${restaurant.id}/payment-qrs`,
@@ -346,7 +348,7 @@ export default function PaymentQRTab() {
         )}
       </AnimatePresence>
 
-      {loading ? (
+      {loading && qrs.length === 0 ? (
         <div className="flex items-center justify-center py-16">
           <Loader2 className="h-6 w-6 animate-spin text-[var(--text-3)]" />
         </div>

@@ -31,7 +31,7 @@ import {
   type Restaurant,
   type StaffMember,
 } from "@/context/RestaurantContext";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, peekApiCache } from "@/lib/api-client";
 import { SkeletonLine, SkeletonGrid } from "@/components/shared/Skeleton";
 import { AnchoredMenu } from "@/components/shared/AnchoredMenu";
 
@@ -610,11 +610,15 @@ function StaffDirectoryView({
 }
 
 function AttendanceLogsView({ restaurantId }: { restaurantId: string }) {
-  const [logs, setLogs] = useState<AttendanceLog[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Seed from the warm GET cache (warmed on nav hover) so switching to the
+  // Attendance tab paints instantly instead of showing "Loading attendance…".
+  const logsPath = restaurantId ? `/api/restaurants/${restaurantId}/attendance` : "";
+  const [logs, setLogs] = useState<AttendanceLog[]>(() => peekApiCache<AttendanceLog[]>(logsPath) ?? []);
+  const [loading, setLoading] = useState(() => !peekApiCache(logsPath));
   const [dateFilter, setDateFilter] = useState<string>("");
 
   const loadLogs = useCallback(async () => {
+    if (!restaurantId) return;
     try {
       const data = await apiFetch<AttendanceLog[]>(
         `/api/restaurants/${restaurantId}/attendance`,
@@ -631,7 +635,7 @@ function AttendanceLogsView({ restaurantId }: { restaurantId: string }) {
     loadLogs();
   }, [loadLogs]);
 
-  if (loading) {
+  if (loading && logs.length === 0) {
     return (
       <div className="flex items-center justify-center py-20 gap-2 text-[var(--text-3)]">
         <Loader2 className="h-5 w-5 animate-spin" />

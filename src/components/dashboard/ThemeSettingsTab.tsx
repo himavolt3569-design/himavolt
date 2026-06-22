@@ -15,7 +15,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, peekApiCache } from "@/lib/api-client";
 import { useToast } from "@/context/ToastContext";
 import { SkeletonLine, SkeletonGrid } from "@/components/shared/Skeleton";
 
@@ -103,14 +103,17 @@ export default function ThemeSettingsTab() {
   const { showToast } = useToast();
   const restaurant = selectedRestaurant ?? restaurants[0];
 
-  const [theme, setTheme] = useState<ThemeConfig>(BLANK_THEME);
-  const [saved, setSaved] = useState<ThemeConfig>(BLANK_THEME);
-  const [loading, setLoading] = useState(true);
+  // Seed from the warm GET cache so re-opening Theme paints instantly.
+  const themePath = restaurant ? `/api/restaurants/${restaurant.id}/theme` : "";
+  const cachedTheme = peekApiCache<ThemeConfig>(themePath);
+  const [theme, setTheme] = useState<ThemeConfig>(() => cachedTheme ?? BLANK_THEME);
+  const [saved, setSaved] = useState<ThemeConfig>(() => cachedTheme ?? BLANK_THEME);
+  const [loading, setLoading] = useState(() => !cachedTheme);
   const [saving, setSaving] = useState(false);
 
   const fetchTheme = useCallback(async () => {
     if (!restaurant) return;
-    setLoading(true);
+    if (!peekApiCache(`/api/restaurants/${restaurant.id}/theme`)) setLoading(true);
     try {
       const data = await apiFetch<ThemeConfig>(`/api/restaurants/${restaurant.id}/theme`);
       setTheme(data);

@@ -14,7 +14,7 @@ import {
 import QRCode from "react-qr-code";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { SkeletonLine, SkeletonGrid } from "@/components/shared/Skeleton";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, peekApiCache } from "@/lib/api-client";
 import { formatPrice } from "@/lib/currency";
 
 const APP_URL =
@@ -229,8 +229,10 @@ function RoomQRCard({
 export default function RoomQRTab() {
   const { selectedRestaurant, restaurants } = useRestaurant();
   const restaurant = selectedRestaurant ?? restaurants[0];
-  const [rooms, setRooms] = useState<Room[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Seed from the warm GET cache so re-opening paints instantly.
+  const roomsPath = restaurant ? `/api/restaurants/${restaurant.id}/rooms` : "";
+  const [rooms, setRooms] = useState<Room[]>(() => peekApiCache<Room[]>(roomsPath) ?? []);
+  const [loading, setLoading] = useState(() => !peekApiCache(roomsPath));
   const [page, setPage] = useState(0);
   const PER_PAGE = 6;
 
@@ -275,7 +277,7 @@ export default function RoomQRTab() {
         </p>
       </div>
 
-      {loading ? (
+      {loading && rooms.length === 0 ? (
         <SkeletonGrid rows={2} cols={3} cardClass="h-56 rounded-2xl" />
       ) : rooms.length === 0 ? (
         <div className="flex flex-col items-center py-20 text-center">

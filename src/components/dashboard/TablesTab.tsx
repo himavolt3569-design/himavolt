@@ -295,46 +295,62 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
 
   const handleEdit = async (id: string) => {
     if (!rid) return;
-    setEditSaving(true);
+    const snapshot = tables;
+    const label = editLabel.trim() || null;
+    const capacity = parseInt(editCap) || 4;
+    // Optimistic: apply the rename/capacity and close the editor instantly.
+    setTables((prev) => prev.map((t) => (t.id === id ? { ...t, label, capacity } : t)));
+    setEditId(null);
     try {
       const res = await fetch(`/api/restaurants/${rid}/tables/${id}`, {
         method: "PATCH",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ label: editLabel.trim() || null, capacity: parseInt(editCap) || 4 }),
+        body: JSON.stringify({ label, capacity }),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
+        setTables(snapshot); // rollback
         showToast(body.error ?? "Failed to update table", "error");
-      } else {
-        setEditId(null);
-        load(true);
+        return;
       }
+      load(true);
     } catch {
+      setTables(snapshot); // rollback
       showToast("Failed to update table", "error");
     }
-    setEditSaving(false);
   };
 
   const handleDelete = async (id: string) => {
     if (!rid || !confirm("Delete this table?")) return;
+    const snapshot = tables;
+    // Optimistic: remove the table instantly.
+    setTables((prev) => prev.filter((t) => t.id !== id));
+    if (selected?.id === id) setSelected(null);
     try {
       const res = await fetch(`/api/restaurants/${rid}/tables/${id}`, { method: "DELETE", credentials: "include" });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
+        setTables(snapshot); // rollback
         showToast(body.error ?? "Failed to delete table", "error");
         return;
       }
-      if (selected?.id === id) setSelected(null);
       load(true);
     } catch {
+      setTables(snapshot); // rollback
       showToast("Failed to delete table", "error");
     }
   };
 
   const handleClearSession = async (orderId: string) => {
     if (!rid) return;
+    const snapshot = tables;
     setClearingId(orderId);
+    // Optimistic: free the table instantly.
+    setTables((prev) =>
+      prev.map((t) => (t.session?.order?.id === orderId ? { ...t, isOccupied: false, session: null } : t)),
+    );
+    setSelected(null);
     try {
       const res = await fetch(`/api/restaurants/${rid}/table-session/clear`, {
         method: "POST",
@@ -344,12 +360,13 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
+        setTables(snapshot); // rollback
         alert(err.error ?? "Failed to clear table. Check your permissions.");
         return;
       }
-      setSelected(null);
       await load(true);
     } catch {
+      setTables(snapshot); // rollback
       alert("Failed to clear table. Please try again.");
     } finally {
       setClearingId(null);

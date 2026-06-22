@@ -18,7 +18,7 @@ import {
 import { useRestaurant } from "@/context/RestaurantContext";
 import { SkeletonLine, SkeletonGrid } from "@/components/shared/Skeleton";
 import { useToast } from "@/context/ToastContext";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, peekApiCache, invalidateApiCache } from "@/lib/api-client";
 import { uploadFile } from "@/lib/upload";
 
 interface MediaItem {
@@ -35,24 +35,24 @@ interface MediaItem {
 export default function MediaTab({ restaurantId: propRestaurantId }: { restaurantId?: string }) {
   const { selectedRestaurant } = useRestaurant();
   const { showToast } = useToast();
-  const [media, setMedia] = useState<MediaItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const restaurantId = propRestaurantId ?? selectedRestaurant?.id;
+  // Seed from the warm GET cache so re-opening Media paints instantly. Mutations
+  // below run through raw fetch(), so they explicitly invalidate this cache.
+  const mediaBasePath = restaurantId ? `/api/restaurants/${restaurantId}/media` : "";
+  const [media, setMedia] = useState<MediaItem[]>(() => peekApiCache<{ media: MediaItem[] }>(mediaBasePath)?.media ?? []);
+  const [loading, setLoading] = useState(() => !peekApiCache(mediaBasePath));
   const [filter, setFilter] = useState<"ALL" | "IMAGE" | "VIDEO">("ALL");
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<MediaItem | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const restaurantId = propRestaurantId ?? selectedRestaurant?.id;
-
   const load = useCallback(async () => {
     if (!restaurantId) return;
-    setLoading(true);
+    const qs = filter !== "ALL" ? `?type=${filter}` : "";
+    const path = `/api/restaurants/${restaurantId}/media${qs}`;
+    if (!peekApiCache(path)) setLoading(true);
     try {
-      const qs = filter !== "ALL" ? `?type=${filter}` : "";
-      const data = await apiFetch<{ media: MediaItem[] }>(
-        `/api/restaurants/${restaurantId}/media${qs}`,
-        { cacheTtl: 0 },
-      );
+      const data = await apiFetch<{ media: MediaItem[] }>(path, { cacheTtl: 30_000 });
       setMedia(data.media ?? []);
     } catch {
       // leave existing media in place on transient failure
@@ -91,6 +91,7 @@ export default function MediaTab({ restaurantId: propRestaurantId }: { restauran
     }
     if (success > 0) showToast(`${success} file${success > 1 ? "s" : ""} uploaded`, "success");
     setUploading(false);
+    invalidateApiCache(`/api/restaurants/${restaurantId}/media`);
     load();
   };
 
@@ -98,6 +99,7 @@ export default function MediaTab({ restaurantId: propRestaurantId }: { restauran
     if (!restaurantId) return;
     if (!confirm(`Delete "${item.fileName || "this file"}"?`)) return;
     await fetch(`/api/restaurants/${restaurantId}/media?mediaId=${item.id}`, { method: "DELETE" });
+    invalidateApiCache(`/api/restaurants/${restaurantId}/media`);
     setMedia((m) => m.filter((x) => x.id !== item.id));
     showToast("Deleted", "success");
   };
@@ -182,7 +184,7 @@ export default function MediaTab({ restaurantId: propRestaurantId }: { restauran
         <p className="text-xs text-[var(--text-3)] mt-1">JPEG, PNG, WebP, GIF, MP4, WebM · Max 50 MB per file</p>
       </div>
 
-      {loading ? (
+      {loading && media.length === 0 ? (
         <SkeletonGrid rows={2} cols={4} cardClass="aspect-square rounded-xl" />
       ) : media.length === 0 ? (
         <div className="rounded-2xl bg-[var(--canvas-sub)] py-16 text-center">

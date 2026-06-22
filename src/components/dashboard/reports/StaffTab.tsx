@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Loader2, ArrowDown, ArrowUp, Users } from "lucide-react";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, peekApiCache } from "@/lib/api-client";
 import { formatPrice } from "@/lib/currency";
 import { useRestaurant } from "@/context/RestaurantContext";
 import DateRangePicker from "./DateRangePicker";
@@ -29,18 +29,21 @@ export default function StaffTab({ onOpenStaff }: Props) {
   const { selectedRestaurant } = useRestaurant();
   const cur = selectedRestaurant?.currency ?? "NPR";
   const [range, setRange] = useState(() => presetRange("last30"));
-  const [rows, setRows] = useState<StaffRow[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Seed from the warm GET cache so re-opening this report paints instantly.
+  const staffReportPath = selectedRestaurant
+    ? `/api/restaurants/${selectedRestaurant.id}/reports/overview?from=${range.from}&to=${range.to}&granularity=day`
+    : "";
+  const [rows, setRows] = useState<StaffRow[]>(() => peekApiCache<OverviewPayload>(staffReportPath)?.topStaff ?? []);
+  const [loading, setLoading] = useState(() => !peekApiCache(staffReportPath));
   const [sortKey, setSortKey] = useState<SortKey>("revenue");
   const [sortDesc, setSortDesc] = useState(true);
 
   const load = useCallback(async () => {
     if (!selectedRestaurant) return;
-    setLoading(true);
+    const path = `/api/restaurants/${selectedRestaurant.id}/reports/overview?from=${range.from}&to=${range.to}&granularity=day`;
+    if (!peekApiCache(path)) setLoading(true);
     try {
-      const res = (await apiFetch(
-        `/api/restaurants/${selectedRestaurant.id}/reports/overview?from=${range.from}&to=${range.to}&granularity=day`,
-      )) as OverviewPayload;
+      const res = (await apiFetch(path)) as OverviewPayload;
       setRows(res.topStaff ?? []);
     } catch {
       /* ignore */

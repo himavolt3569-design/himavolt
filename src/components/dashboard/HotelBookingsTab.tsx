@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { AnchoredMenu } from "@/components/shared/AnchoredMenu";
+import { apiFetch, peekApiCache, invalidateApiCache } from "@/lib/api-client";
 import { formatPrice } from "@/lib/currency";
 import { useRealtimeSignal } from "@/hooks/useRealtimeSignal";
 import { restaurantBookingsTopic } from "@/lib/realtime-topics";
@@ -560,8 +561,14 @@ const STATUSES = ["ALL", "PENDING", "CONFIRMED", "CHECKED_IN", "CHECKED_OUT", "C
 
 export default function HotelBookingsTab() {
   const { selectedRestaurant } = useRestaurant();
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [loading, setLoading] = useState(true);
+  const restaurantId = selectedRestaurant?.id;
+  const currency = selectedRestaurant?.currency ?? "NPR";
+
+  // Seed from the warm GET cache so re-opening Bookings paints instantly. The
+  // default (ALL) view path; realtime/manual refresh invalidates for freshness.
+  const bookingsPath = restaurantId ? `/api/restaurants/${restaurantId}/bookings?limit=100` : "";
+  const [bookings, setBookings] = useState<Booking[]>(() => peekApiCache<{ bookings?: Booking[] }>(bookingsPath)?.bookings ?? []);
+  const [loading, setLoading] = useState(() => !peekApiCache(bookingsPath));
   const [refreshing, setRefreshing] = useState(false);
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [search, setSearch] = useState("");
@@ -569,17 +576,21 @@ export default function HotelBookingsTab() {
   const [config, setConfig] = useState<HotelConfig | null>(null);
   const [showConfig, setShowConfig] = useState(false);
 
-  const restaurantId = selectedRestaurant?.id;
-  const currency = selectedRestaurant?.currency ?? "NPR";
-
   const fetchBookings = useCallback(async (showRefreshing = false) => {
     if (!restaurantId) return;
-    if (showRefreshing) setRefreshing(true); else setLoading(true);
+    const params = new URLSearchParams({ limit: "100" });
+    if (statusFilter !== "ALL") params.set("status", statusFilter);
+    const path = `/api/restaurants/${restaurantId}/bookings?${params}`;
+    // A refresh (realtime push, manual button, post-mutation) must bypass the
+    // cache; an initial open can paint from it.
+    if (showRefreshing) {
+      setRefreshing(true);
+      invalidateApiCache(`/api/restaurants/${restaurantId}/bookings`);
+    } else if (!peekApiCache(path)) {
+      setLoading(true);
+    }
     try {
-      const params = new URLSearchParams({ limit: "100" });
-      if (statusFilter !== "ALL") params.set("status", statusFilter);
-      const res = await fetch(`/api/restaurants/${restaurantId}/bookings?${params}`);
-      const data = await res.json();
+      const data = await apiFetch<{ bookings?: Booking[] }>(path, { cacheTtl: 15_000 });
       setBookings(data.bookings ?? []);
     } finally {
       setLoading(false);

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { DollarSign, ShoppingBag, Activity, Loader2, TrendingUp } from "lucide-react";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, peekApiCache } from "@/lib/api-client";
 import { formatPrice } from "@/lib/currency";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { useLiveOrders } from "@/context/LiveOrdersContext";
@@ -27,18 +27,20 @@ export default function TodayTab() {
   const { selectedRestaurant } = useRestaurant();
   const cur = selectedRestaurant?.currency ?? "NPR";
   const { orders } = useLiveOrders();
-  const [data, setData] = useState<OverviewData | null>(null);
-  const [loading, setLoading] = useState(true);
-
   const today = toYMD(new Date());
+  // Seed from the warm GET cache so re-opening Today paints instantly.
+  const todayPath = selectedRestaurant
+    ? `/api/restaurants/${selectedRestaurant.id}/reports/overview?from=${today}&to=${today}&granularity=hour`
+    : "";
+  const [data, setData] = useState<OverviewData | null>(() => peekApiCache<OverviewData>(todayPath) ?? null);
+  const [loading, setLoading] = useState(() => !peekApiCache(todayPath));
 
   const load = useCallback(async () => {
     if (!selectedRestaurant) return;
-    setLoading(true);
+    const path = `/api/restaurants/${selectedRestaurant.id}/reports/overview?from=${today}&to=${today}&granularity=hour`;
+    if (!peekApiCache(path)) setLoading(true);
     try {
-      const res = await apiFetch(
-        `/api/restaurants/${selectedRestaurant.id}/reports/overview?from=${today}&to=${today}&granularity=hour`,
-      );
+      const res = await apiFetch(path);
       setData(res as OverviewData);
     } catch {
       /* ignore */

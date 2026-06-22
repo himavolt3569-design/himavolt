@@ -7,7 +7,7 @@ import {
   Timer, TrendingUp, X, Check, AlertCircle, Activity,
   DollarSign, Loader2, Save,
 } from "lucide-react";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, peekApiCache } from "@/lib/api-client";
 
 interface RushHourSlot { id: string; label: string; startTime: string; endTime: string; days: string[]; isActive: boolean }
 interface RushHourConfig { isEnabled: boolean; surgeEnabled: boolean; surgePercent: number; slots: RushHourSlot[] }
@@ -18,19 +18,22 @@ const HOURS = Array.from({ length: 24 }, (_, i) => i);
 function timeToMins(t: string) { const [h, m] = t.split(":").map(Number); return h * 60 + m; }
 
 export default function RushHourTab({ restaurantId }: { restaurantId?: string }) {
-  if (!restaurantId) return null;
-  const [config, setConfig] = useState<RushHourConfig>({ isEnabled: false, surgeEnabled: false, surgePercent: 10, slots: [] });
-  const [loading, setLoading] = useState(true);
+  // Seed from the warm GET cache so re-opening paints instantly.
+  const cfgPath = restaurantId ? `/api/restaurants/${restaurantId}/rush-hour` : "";
+  const cachedCfg = peekApiCache<RushHourConfig>(cfgPath);
+  const [config, setConfig] = useState<RushHourConfig>(() => cachedCfg ?? { isEnabled: false, surgeEnabled: false, surgePercent: 10, slots: [] });
+  const [loading, setLoading] = useState(() => !cachedCfg);
   const [saving, setSaving] = useState(false);
   const [showAddSlot, setShowAddSlot] = useState(false);
   const [newLabel, setNewLabel] = useState("");
   const [newStart, setNewStart] = useState("11:00");
   const [newEnd, setNewEnd] = useState("13:00");
   const [newDays, setNewDays] = useState<string[]>([]);
-  const [surgeLocal, setSurgeLocal] = useState(10);
+  const [surgeLocal, setSurgeLocal] = useState(cachedCfg?.surgePercent ?? 10);
 
   const load = useCallback(async () => {
-    setLoading(true);
+    if (!restaurantId) return;
+    if (!peekApiCache(`/api/restaurants/${restaurantId}/rush-hour`)) setLoading(true);
     try {
       const data = await apiFetch<RushHourConfig>(`/api/restaurants/${restaurantId}/rush-hour`);
       setConfig(data);

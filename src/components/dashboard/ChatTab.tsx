@@ -12,7 +12,7 @@ import {
   Hash,
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, peekApiCache } from "@/lib/api-client";
 import ChatWidget from "@/components/chat/ChatWidget";
 import { SkeletonLine, SkeletonCard } from "@/components/shared/Skeleton";
 
@@ -49,12 +49,13 @@ const STATUS_COLORS: Record<string, string> = {
 
 export default function ChatTab() {
   const { selectedRestaurant } = useRestaurant();
-  const [rooms, setRooms] = useState<ChatRoomPreview[]>([]);
-  const [loading, setLoading] = useState(true);
+  const restaurantId = selectedRestaurant?.id;
+  // Seed from the warm GET cache so re-opening Chat paints instantly.
+  const roomsPath = restaurantId ? `/api/chat?restaurantId=${restaurantId}` : "";
+  const [rooms, setRooms] = useState<ChatRoomPreview[]>(() => peekApiCache<ChatRoomPreview[]>(roomsPath) ?? []);
+  const [loading, setLoading] = useState(() => !peekApiCache(roomsPath));
   const [selectedRoom, setSelectedRoom] = useState<ChatRoomPreview | null>(null);
   const [replyAs, setReplyAs] = useState<"KITCHEN" | "BILLING">("KITCHEN");
-
-  const restaurantId = selectedRestaurant?.id;
 
   const fetchRooms = useCallback(async () => {
     if (!restaurantId) return;

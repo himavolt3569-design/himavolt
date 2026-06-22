@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { useToast } from "@/context/ToastContext";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, peekApiCache } from "@/lib/api-client";
 import { formatPrice } from "@/lib/currency";
 import ImagePicker from "@/components/shared/ImagePicker";
 import { SkeletonCard } from "@/components/shared/Skeleton";
@@ -75,9 +75,13 @@ export default function DrinksTab() {
   const { showToast } = useToast();
   const restaurant = selectedRestaurant ?? restaurants[0];
 
-  const [drinks, setDrinks] = useState<DrinkItem[]>([]);
+  // Seed from the warm GET cache so re-opening Drinks paints instantly.
+  const drinksPath = restaurant ? `/api/restaurants/${restaurant.id}/menu?isDrink=true` : "";
+  const [drinks, setDrinks] = useState<DrinkItem[]>(
+    () => peekApiCache<DrinkItem[]>(drinksPath)?.filter((i) => i.isDrink) ?? [],
+  );
   const [categories, setCategories] = useState<MenuCategory[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => !peekApiCache(drinksPath));
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(BLANK_FORM);
   const [submitting, setSubmitting] = useState(false);
@@ -88,7 +92,8 @@ export default function DrinksTab() {
 
   const fetchData = useCallback(async () => {
     if (!restaurant) return;
-    setLoading(true);
+    // Only show the skeleton on a cold cache — a warm tab already painted.
+    if (!peekApiCache(`/api/restaurants/${restaurant.id}/menu?isDrink=true`)) setLoading(true);
     try {
       const [itemsData, catsData] = await Promise.all([
         apiFetch<DrinkItem[]>(`/api/restaurants/${restaurant.id}/menu?isDrink=true`),
@@ -166,11 +171,12 @@ export default function DrinksTab() {
 
   const handleDelete = async (item: DrinkItem) => {
     if (!restaurant) return;
+    const snapshot = drinks;
+    setDrinks((prev) => prev.filter((d) => d.id !== item.id)); // optimistic remove
     try {
       await apiFetch(`/api/restaurants/${restaurant.id}/menu/${item.id}`, { method: "DELETE" });
-      setDrinks((prev) => prev.filter((d) => d.id !== item.id));
-      showToast(`${item.name} deleted`);
     } catch {
+      setDrinks(snapshot); // rollback
       showToast("Failed to delete", "error");
     }
   };
@@ -396,7 +402,7 @@ export default function DrinksTab() {
         )}
       </AnimatePresence>
 
-      {loading ? (
+      {loading && drinks.length === 0 ? (
         <div className="space-y-3">
           {Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)}
         </div>

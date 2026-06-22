@@ -16,7 +16,7 @@ import {
   Check,
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, peekApiCache } from "@/lib/api-client";
 import { useToast } from "@/context/ToastContext";
 
 interface StaffRecord {
@@ -70,9 +70,12 @@ export default function ShiftsTab() {
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().slice(0, 10),
   );
-  const [shifts, setShifts] = useState<ShiftRecord[]>([]);
-  const [staffList, setStaffList] = useState<StaffRecord[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Seed from the warm GET cache so re-opening paints instantly.
+  const shiftsPath = restaurantId ? `/api/restaurants/${restaurantId}/shifts?date=${selectedDate}` : "";
+  const staffPath = restaurantId ? `/api/restaurants/${restaurantId}/staff` : "";
+  const [shifts, setShifts] = useState<ShiftRecord[]>(() => peekApiCache<ShiftRecord[]>(shiftsPath) ?? []);
+  const [staffList, setStaffList] = useState<StaffRecord[]>(() => peekApiCache<StaffRecord[]>(staffPath) ?? []);
+  const [loading, setLoading] = useState(() => !peekApiCache(shiftsPath));
   const [showAddForm, setShowAddForm] = useState(false);
   const [addForm, setAddForm] = useState({
     staffId: "",
@@ -105,7 +108,7 @@ export default function ShiftsTab() {
 
   const loadShifts = useCallback(async () => {
     if (!restaurantId) return;
-    setLoading(true);
+    if (!peekApiCache(`/api/restaurants/${restaurantId}/shifts?date=${selectedDate}`)) setLoading(true);
     try {
       const data = await apiFetch(
         `/api/restaurants/${restaurantId}/shifts?date=${selectedDate}`,
@@ -387,7 +390,7 @@ export default function ShiftsTab() {
       )}
 
       {/* Shift list */}
-      {loading ? (
+      {loading && shifts.length === 0 ? (
         <div className="flex justify-center py-10">
           <Loader2 className="h-5 w-5 animate-spin text-[var(--accent)]" />
         </div>

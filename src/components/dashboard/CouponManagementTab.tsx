@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { useToast } from "@/context/ToastContext";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, peekApiCache } from "@/lib/api-client";
 
 /*  Types                                                              */
 
@@ -70,8 +70,13 @@ export default function CouponManagementTab() {
   const { showToast } = useToast();
   const restaurant = selectedRestaurant ?? restaurants[0];
 
-  const [coupons, setCoupons] = useState<Coupon[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Seed from the warm GET cache so re-opening Coupons paints instantly.
+  const couponsPath = restaurant ? `/api/restaurants/${restaurant.id}/coupons` : "";
+  const [coupons, setCoupons] = useState<Coupon[]>(() => {
+    const c = peekApiCache<Coupon[] | { coupons: Coupon[] }>(couponsPath);
+    return Array.isArray(c) ? c : Array.isArray(c?.coupons) ? c.coupons : [];
+  });
+  const [loading, setLoading] = useState(() => !peekApiCache(couponsPath));
   const [showForm, setShowForm] = useState(false);
   const [editingCoupon, setEditingCoupon] = useState<Coupon | null>(null);
   const [form, setForm] = useState<CouponFormData>(EMPTY_FORM);
@@ -82,7 +87,7 @@ export default function CouponManagementTab() {
 
   const fetchCoupons = useCallback(async () => {
     if (!restaurant) return;
-    setLoading(true);
+    if (!peekApiCache(`/api/restaurants/${restaurant.id}/coupons`)) setLoading(true);
     try {
       const data = await apiFetch<Coupon[] | { coupons: Coupon[] }>(
         `/api/restaurants/${restaurant.id}/coupons`,

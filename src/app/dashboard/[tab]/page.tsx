@@ -7,11 +7,12 @@ import {
   type FeatureTabId, 
   getFeatureTabsForType 
 } from "@/lib/restaurant-types";
-import { 
-  FEATURE_ICONS, 
-  LIVE_FEATURES, 
-  DashTab 
+import {
+  FEATURE_ICONS,
+  LIVE_FEATURES,
+  DashTab
 } from "@/lib/dashboard-nav";
+import { apiFetch } from "@/lib/api-client";
 import { Sparkles } from "lucide-react";
 
 type PreloadableComponent = React.ComponentType<any> & {
@@ -156,13 +157,73 @@ const COMPONENTS: Record<string, React.ComponentType<any>> = {
   "hotel-qr": HotelQRTab,
 };
 
+// Primary GET endpoints each tab reads on mount. Warming them into the apiFetch
+// GET cache on nav hover means the tab seeds from cache (peekApiCache) and
+// paints instantly on click instead of firing a request behind a spinner.
+// Keyed by tab id; builder takes the selected restaurant id.
+const TAB_DATA: Record<string, (r: string) => string[]> = {
+  billing: (r) => [
+    `/api/restaurants/${r}/billing?filter=unpaid`,
+    `/api/restaurants/${r}/billing/summary`,
+  ],
+  staff: (r) => [`/api/restaurants/${r}/staff`, `/api/restaurants/${r}/attendance`],
+  shifts: (r) => [
+    `/api/restaurants/${r}/shifts?date=${new Date().toISOString().slice(0, 10)}`,
+    `/api/restaurants/${r}/staff`,
+  ],
+  stock: (r) => [`/api/restaurants/${r}/inventory`],
+  offers: (r) => [`/api/restaurants/${r}/stories`],
+  coupons: (r) => [`/api/restaurants/${r}/coupons`],
+  drinks: (r) => [`/api/restaurants/${r}/menu?isDrink=true`, `/api/restaurants/${r}/categories`],
+  feedback: (r) => [`/api/restaurants/${r}/feedback?limit=100`],
+  media: (r) => [`/api/restaurants/${r}/media`],
+  "hero-slides": (r) => [`/api/restaurants/${r}/hero-slides`],
+  "guest-checkin": (r) => [`/api/restaurants/${r}/guest-checkins`],
+  "payment-qr": (r) => [`/api/restaurants/${r}/payment-qrs`],
+  "payment-settings": (r) => [`/api/restaurants/${r}/payment-config`],
+  "tax-charges": (r) => [`/api/restaurants/${r}/tax-config`],
+  "room-qr-codes": (r) => [`/api/restaurants/${r}/rooms`],
+  "hotel-bookings": (r) => [`/api/restaurants/${r}/bookings?limit=100`],
+  "loyalty-rewards": (r) => [`/api/restaurants/${r}/loyalty`],
+  "combo-meals": (r) => [
+    `/api/restaurants/${r}/combo-meals`,
+    `/api/restaurants/${r}/menu-items/all`,
+  ],
+  "rush-hour": (r) => [`/api/restaurants/${r}/rush-hour`],
+  "display-counter": (r) => [`/api/restaurants/${r}/display-counter`],
+  qr: (r) => [`/api/restaurants/${r}/tables`],
+  menu: (r) => [`/api/restaurants/${r}/menu`, `/api/restaurants/${r}/categories`],
+  tables: (r) => [`/api/restaurants/${r}/tables`],
+};
+
+// Read the owner's selected restaurant without prop-drilling through the nav.
+// Mirrors RestaurantContext's SELECTED_KEY so hover-prefetch knows which
+// restaurant to warm data for.
+function selectedRestaurantId(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.localStorage.getItem("himavolt:selectedRestaurantId");
+  } catch {
+    return null;
+  }
+}
+
 /**
- * Warm a dashboard tab's lazy JS chunk before the user clicks it (called on nav
- * hover/focus). No-ops for unknown tabs and swallows network errors.
+ * Warm a dashboard tab's lazy JS chunk AND its primary data before the user
+ * clicks it (called on nav hover/focus). No-ops for unknown tabs and swallows
+ * network errors.
  */
 export function preloadTab(tab: string): void {
   const Component = COMPONENTS[tab] as PreloadableComponent | undefined;
   Component?.preload?.().catch(() => {});
+
+  const build = TAB_DATA[tab] as ((r: string) => string[]) | undefined;
+  if (!build) return;
+  const rid = selectedRestaurantId();
+  if (!rid) return;
+  for (const path of build(rid)) {
+    apiFetch(path, { cacheTtl: 30_000 }).catch(() => {});
+  }
 }
 
 export default function DynamicDashboardTab({ params }: { params: Promise<{ tab: string }> }) {

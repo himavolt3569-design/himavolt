@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { useToast } from "@/context/ToastContext";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, peekApiCache } from "@/lib/api-client";
 
 interface PaymentConfigData {
   cashEnabled: boolean;
@@ -58,14 +58,26 @@ export default function PaymentSettingsTab() {
   const { showToast } = useToast();
   const restaurant = selectedRestaurant ?? restaurants[0];
 
-  const [config, setConfig] = useState<PaymentConfigData>(DEFAULT_CONFIG);
-  const [loading, setLoading] = useState(true);
+  // Seed from the warm GET cache so re-opening Payment Settings paints instantly.
+  const cfgPath = restaurant ? `/api/restaurants/${restaurant.id}/payment-config` : "";
+  const cachedCfg = peekApiCache<PaymentConfigData>(cfgPath);
+  const [config, setConfig] = useState<PaymentConfigData>(() =>
+    cachedCfg
+      ? {
+          ...cachedCfg,
+          counterPayEnabled: restaurant?.counterPayEnabled ?? false,
+          directPayEnabled: restaurant?.directPayEnabled ?? false,
+          prepaidEnabled: restaurant?.prepaidEnabled ?? false,
+        }
+      : DEFAULT_CONFIG,
+  );
+  const [loading, setLoading] = useState(() => !cachedCfg);
   const [saving, setSaving] = useState(false);
   const [showSecrets, setShowSecrets] = useState<Record<string, boolean>>({});
 
   const fetchConfig = useCallback(async () => {
     if (!restaurant) return;
-    setLoading(true);
+    if (!peekApiCache(`/api/restaurants/${restaurant.id}/payment-config`)) setLoading(true);
     try {
       const data = await apiFetch<PaymentConfigData>(
         `/api/restaurants/${restaurant.id}/payment-config`,
