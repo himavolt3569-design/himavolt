@@ -34,6 +34,7 @@ import {
 import { apiFetch, peekApiCache } from "@/lib/api-client";
 import { SkeletonLine, SkeletonGrid } from "@/components/shared/Skeleton";
 import { AnchoredMenu } from "@/components/shared/AnchoredMenu";
+import ShiftsTab from "./ShiftsTab";
 
 type StaffRole = "SUPER_ADMIN" | "MANAGER" | "CHEF" | "WAITER" | "CASHIER";
 
@@ -1176,9 +1177,9 @@ export default function StaffManagementTab() {
     toggleStaffActive,
   } = useRestaurant();
   const restaurant = selectedRestaurant ?? restaurants[0];
-  const [activeTab, setActiveTab] = useState<"directory" | "attendance">(
-    "directory",
-  );
+  const [activeTab, setActiveTab] = useState<
+    "directory" | "attendance" | "shifts"
+  >("directory");
   const [showModal, setShowModal] = useState(false);
 
   if (!restaurant) {
@@ -1200,6 +1201,7 @@ export default function StaffManagementTab() {
   const tabs = [
     { id: "directory" as const, label: "Team Directory", icon: Users },
     { id: "attendance" as const, label: "Attendance", icon: Calendar },
+    { id: "shifts" as const, label: "Shifts", icon: Clock },
   ];
 
   return (
@@ -1273,8 +1275,10 @@ export default function StaffManagementTab() {
               removeStaff={removeStaff}
               toggleStaffActive={toggleStaffActive}
             />
-          ) : (
+          ) : activeTab === "attendance" ? (
             <AttendanceLogsView restaurantId={restaurant.id} />
+          ) : (
+            <ShiftsTab />
           )}
         </motion.div>
       </AnimatePresence>

@@ -115,10 +115,11 @@ export const NAV_CATALOG: typeof NAV_MAIN = [
   { id: "drinks", label: "Drinks", icon: Package },
 ];
 
-// Team management.
+// Team management. Shifts now lives as a tab inside the Staff page (Team
+// Directory · Attendance · Shifts), so it's no longer a separate nav item.
+// The /dashboard/shifts route still resolves for any existing deep links.
 export const NAV_PEOPLE: typeof NAV_MAIN = [
   { id: "staff", label: "Staff", icon: UsersRound },
-  { id: "shifts", label: "Shifts", icon: Clock },
 ];
 
 // Everything else, including the consolidated Settings entry. Payment QR,

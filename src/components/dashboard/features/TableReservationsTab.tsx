@@ -14,7 +14,7 @@ import {
   Armchair,
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, peekApiCache } from "@/lib/api-client";
 
 interface Reservation {
   id: string;
@@ -53,14 +53,18 @@ export default function TableReservationsTab() {
   const { selectedRestaurant } = useRestaurant();
   const restaurantId = selectedRestaurant?.id ?? null;
 
-  const [reservations, setReservations] = useState<Reservation[]>([]);
-  const [loading, setLoading] = useState(false);
+  // Seed from the warm GET cache so re-opening paints instantly — no loader.
+  const resvPath = restaurantId ? `/api/restaurants/${restaurantId}/reservations` : "";
+  const [reservations, setReservations] = useState<Reservation[]>(
+    () => peekApiCache<{ reservations: Reservation[] }>(resvPath)?.reservations ?? [],
+  );
+  const [loading, setLoading] = useState(() => !!resvPath && !peekApiCache(resvPath));
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
 
   const fetchReservations = async () => {
     if (!restaurantId) return;
-    setLoading(true);
+    if (!peekApiCache(`/api/restaurants/${restaurantId}/reservations`)) setLoading(true);
     try {
       const res = await apiFetch<{ reservations: Reservation[] }>(
         `/api/restaurants/${restaurantId}/reservations`,
@@ -134,10 +138,17 @@ export default function TableReservationsTab() {
         </div>
       )}
 
-      {loading && (
-        <div className="flex items-center justify-center py-8 text-zinc-400">
+      {loading && reservations.length === 0 && (
+        <div className="flex items-center justify-center py-8 text-[var(--text-3)]">
           <Loader2 className="w-5 h-5 animate-spin mr-2" />
           Loading reservations...
+        </div>
+      )}
+
+      {!loading && filtered.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-16 text-center text-[var(--text-3)]">
+          <CalendarDays className="w-10 h-10 mb-3 opacity-40" />
+          <p className="text-sm font-medium">No reservations yet</p>
         </div>
       )}
 

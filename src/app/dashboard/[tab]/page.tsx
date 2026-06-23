@@ -166,7 +166,13 @@ const TAB_DATA: Record<string, (r: string) => string[]> = {
     `/api/restaurants/${r}/billing?filter=unpaid`,
     `/api/restaurants/${r}/billing/summary`,
   ],
-  staff: (r) => [`/api/restaurants/${r}/staff`, `/api/restaurants/${r}/attendance`],
+  staff: (r) => [
+    `/api/restaurants/${r}/staff`,
+    `/api/restaurants/${r}/attendance`,
+    // Shifts is now a tab inside Staff — warm today's shifts too.
+    `/api/restaurants/${r}/shifts?date=${new Date().toISOString().slice(0, 10)}`,
+  ],
+  "table-reservations": (r) => [`/api/restaurants/${r}/reservations`],
   shifts: (r) => [
     `/api/restaurants/${r}/shifts?date=${new Date().toISOString().slice(0, 10)}`,
     `/api/restaurants/${r}/staff`,
