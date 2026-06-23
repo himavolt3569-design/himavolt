@@ -237,6 +237,17 @@ export default function BillPage() {
     }
   }, [bill]);
 
+  // While the bill is still loading, show a quiet loader — NOT the "Bill not
+  // found" state. Rendering the error during the in-flight fetch caused a
+  // false "Bill not found" to flash for a few seconds before the bill appeared.
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-gray-50 to-white">
+        <Loader2 className="h-6 w-6 animate-spin text-[var(--accent)]" />
+      </div>
+    );
+  }
+
   if (error || !bill) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-gray-50 to-white">
