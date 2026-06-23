@@ -1292,8 +1292,14 @@ function MenuPageContent() {
     setCheckoutOpen(true);
   }, []);
 
+  // Remembers the just-placed order so the auto-show effect below does NOT
+  // force-open the tracker when the guest dismisses the "Order Received" popup
+  // with "Keep browsing". (Restored-on-reload orders still auto-open.)
+  const freshOrderIdRef = useRef<string | null>(null);
+
   const handleOrderPlaced = useCallback(
-    (_orderId: string) => {
+    (orderId: string) => {
+      freshOrderIdRef.current = orderId;
       localStorage.setItem(`hh_tracking_${slug}`, "1");
       setCheckoutOpen(false);
       // Show the instant "Order Received" popup instead of force-opening the
@@ -1315,10 +1321,15 @@ function MenuPageContent() {
         // Order was already done before the page was refreshed — don't reopen overlay
         localStorage.removeItem(`hh_tracking_${slug}`);
         setShowOrder(false);
-      } else if (!checkoutOpen && !showOrderPlaced) {
-        // Don't hijack the UI while checkout is open, or while the fresh-order
-        // "Order Received" popup is showing (the guest chooses to track there).
-        // This still auto-opens the tracker for orders restored on page reload.
+      } else if (
+        !checkoutOpen &&
+        !showOrderPlaced &&
+        activeOrder.id !== freshOrderIdRef.current
+      ) {
+        // Don't hijack the UI while checkout is open, while the "Order Received"
+        // popup is showing, or for a just-placed order the guest chose to keep
+        // browsing on. This still auto-opens the tracker for orders restored on
+        // page reload (where freshOrderIdRef is null).
         setShowOrder(true);
       }
     }
