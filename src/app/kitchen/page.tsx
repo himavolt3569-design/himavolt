@@ -39,6 +39,7 @@ import {
 import { useToast } from "@/context/ToastContext";
 import { useRealtimeSignal } from "@/hooks/useRealtimeSignal";
 import { restaurantOrdersTopic } from "@/lib/realtime-topics";
+import { apiFetch } from "@/lib/api-client";
 import { formatPrice } from "@/lib/currency";
 import { printKOT } from "@/lib/print-kot";
 import {
@@ -2017,6 +2018,21 @@ export default function KitchenPage() {
       .catch(() => router.push("/staff-login"))
       .finally(() => setLoading(false));
   }, [router, loadAttendance]);
+
+  // Warm the New Order menu/categories/tables caches as soon as the terminal
+  // has a session, so opening "New Order" (WaiterOrderTab) paints from cache
+  // instead of cold-fetching the menu. The owner dashboard warms these too;
+  // the staff terminal didn't, which is why the waiter saw a blank menu.
+  useEffect(() => {
+    const rid = session?.restaurantId;
+    if (!rid) return;
+    const t = setTimeout(() => {
+      apiFetch(`/api/restaurants/${rid}/menu`, { cacheTtl: 120_000 }).catch(() => {});
+      apiFetch(`/api/restaurants/${rid}/categories`, { cacheTtl: 120_000 }).catch(() => {});
+      apiFetch(`/api/restaurants/${rid}/tables`, { cacheTtl: 60_000 }).catch(() => {});
+    }, 150);
+    return () => clearTimeout(t);
+  }, [session?.restaurantId]);
 
   const handlePunch = async () => {
     setAttendanceLoading(true);

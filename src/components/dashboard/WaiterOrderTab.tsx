@@ -9,7 +9,6 @@ import {
   Plus,
   Minus,
   Send,
-  Loader2,
   ShoppingCart,
   CheckCircle2,
   TableProperties,
@@ -92,7 +91,6 @@ export default function WaiterOrderTab({ restaurantId }: { restaurantId: string 
   const [guestName, setGuestName] = useState("");
   const [note, setNote] = useState("");
   const [deliveryMode, setDeliveryMode] = useState<DeliveryMode>("kitchen");
-  const [submitting, setSubmitting] = useState(false);
   const [createdOrder, setCreatedOrder] = useState<{ order: CreatedOrder; mode: DeliveryMode } | null>(null);
   const [showTablePicker, setShowTablePicker] = useState(false);
 
@@ -150,36 +148,46 @@ export default function WaiterOrderTab({ restaurantId }: { restaurantId: string 
 
   const handleSubmit = async (mode: DeliveryMode) => {
     if (cart.length === 0) return;
-    setSubmitting(true);
-    try {
-      const extraNote = mode === "direct" ? "[Waiter delivering directly]" : undefined;
-      const fullNote = [note.trim(), extraNote].filter(Boolean).join(" — ") || undefined;
+    const extraNote = mode === "direct" ? "[Waiter delivering directly]" : undefined;
+    const fullNote = [note.trim(), extraNote].filter(Boolean).join(" — ") || undefined;
+    const body = {
+      type: selectedTable ? "DINE_IN" : "TAKEAWAY",
+      paymentMethod: "CASH",
+      tableNo: selectedTable ?? undefined,
+      guestName: guestName.trim() || undefined,
+      note: fullNote,
+      items: cart.map((c) => ({
+        menuItemId: c.menuItemId,
+        name: c.name,
+        price: c.price,
+        quantity: c.quantity,
+      })),
+    };
 
+    // Snapshot for rollback, then show the success screen INSTANTLY (the order
+    // number fills in when the server confirms) and clear the form so the
+    // waiter can start the next order without waiting on the network.
+    const snapshot = { cart, selectedTable, guestName, note };
+    setCreatedOrder({ order: { orderNo: "…", total: cartTotal }, mode });
+    setCart([]);
+    setSelectedTable(null);
+    setGuestName("");
+    setNote("");
+
+    try {
       const created = await staffFetch<CreatedOrder>(`/api/restaurants/${restaurantId}/orders`, {
         method: "POST",
-        body: JSON.stringify({
-          type: selectedTable ? "DINE_IN" : "TAKEAWAY",
-          paymentMethod: "CASH",
-          tableNo: selectedTable ?? undefined,
-          guestName: guestName.trim() || undefined,
-          note: fullNote,
-          items: cart.map((c) => ({
-            menuItemId: c.menuItemId,
-            name: c.name,
-            price: c.price,
-            quantity: c.quantity,
-          })),
-        }),
+        body: JSON.stringify(body),
       });
-      setCreatedOrder({ order: created, mode });
-      setCart([]);
-      setSelectedTable(null);
-      setGuestName("");
-      setNote("");
+      setCreatedOrder({ order: created, mode }); // reconcile real order no/total
     } catch (err) {
+      // Rollback: restore the cart and surface the error.
+      setCreatedOrder(null);
+      setCart(snapshot.cart);
+      setSelectedTable(snapshot.selectedTable);
+      setGuestName(snapshot.guestName);
+      setNote(snapshot.note);
       showToast(err instanceof Error ? err.message : "Failed to create order", "error");
-    } finally {
-      setSubmitting(false);
     }
   };
 
@@ -430,16 +438,16 @@ export default function WaiterOrderTab({ restaurantId }: { restaurantId: string 
         <div className="space-y-2">
           <button
             onClick={() => handleSubmit("kitchen")}
-            disabled={cart.length === 0 || submitting}
+            disabled={cart.length === 0}
             className="w-full rounded-xl bg-[var(--accent-hover)] py-3.5 text-sm font-bold text-white hover:bg-[var(--accent-hover)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-[var(--accent)]/20/20"
           >
-            {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-            {submitting ? "Sending..." : `Send to Kitchen · ${formatPrice(cartTotal, "NPR")}`}
+            <Send className="h-4 w-4" />
+            {`Send to Kitchen · ${formatPrice(cartTotal, "NPR")}`}
           </button>
 
           <button
             onClick={() => handleSubmit("direct")}
-            disabled={cart.length === 0 || submitting}
+            disabled={cart.length === 0}
             className="w-full rounded-xl border-2 border-blue-200 bg-blue-50 py-3 text-sm font-bold text-blue-700 hover:bg-blue-100 hover:border-blue-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             <PersonStanding className="h-4 w-4" />
