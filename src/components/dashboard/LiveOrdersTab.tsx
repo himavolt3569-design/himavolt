@@ -735,21 +735,16 @@ function ActionButton({
   return (
     <button
       onClick={onClick}
+      // Still guard against a double-submit while the PATCH is in flight, but
+      // don't show an "Updating…" spinner — the status change is already applied
+      // optimistically, so the action should read as instant.
       disabled={disabled || busy}
       className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-bold transition-all active:scale-95 ${className} ${
-        busy
-          ? "opacity-70 cursor-wait"
-          : disabled
-            ? "opacity-50 cursor-not-allowed"
-            : ""
+        disabled ? "opacity-50 cursor-not-allowed" : ""
       }`}
     >
-      {busy ? (
-        <Loader2 className="h-3 w-3 animate-spin" />
-      ) : (
-        <Icon className="h-3 w-3" />
-      )}
-      {busy ? "Updating…" : label}
+      <Icon className="h-3 w-3" />
+      {label}
     </button>
   );
 }
