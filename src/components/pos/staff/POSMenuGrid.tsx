@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, memo } from "react";
 import { motion } from "framer-motion";
 import { Search, X } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
@@ -29,19 +29,36 @@ interface Props {
   onItemTap: (item: MenuItem) => void;
 }
 
-export default function POSMenuGrid({ items, categories, currency, onItemTap }: Props) {
+function POSMenuGrid({ items, categories, currency, onItemTap }: Props) {
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | "ALL">("ALL");
 
-  const topCats = categories.filter((c) => c.parentId === null);
+  const topCats = useMemo(() => categories.filter((c) => c.parentId === null), [categories]);
 
-  const filtered = items.filter((item) => {
-    if (!item.isAvailable) return false;
-    if (search && !item.name.toLowerCase().includes(search.toLowerCase())) return false;
-    if (activeCategory === "ALL") return true;
-    const childIds = categories.filter((c) => c.parentId === activeCategory).map((c) => c.id);
-    return item.categoryId === activeCategory || childIds.includes(item.categoryId);
-  });
+  // parentId → child category ids, built once per categories change so the
+  // per-item predicate below is O(1) instead of re-filtering all categories
+  // for every item on every render/tap.
+  const childIdsByParent = useMemo(() => {
+    const map = new Map<string, Set<string>>();
+    for (const c of categories) {
+      if (!c.parentId) continue;
+      const set = map.get(c.parentId) ?? new Set<string>();
+      set.add(c.id);
+      map.set(c.parentId, set);
+    }
+    return map;
+  }, [categories]);
+
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase();
+    return items.filter((item) => {
+      if (!item.isAvailable) return false;
+      if (q && !item.name.toLowerCase().includes(q)) return false;
+      if (activeCategory === "ALL") return true;
+      if (item.categoryId === activeCategory) return true;
+      return childIdsByParent.get(activeCategory)?.has(item.categoryId) ?? false;
+    });
+  }, [items, search, activeCategory, childIdsByParent]);
 
   return (
     <div className="flex flex-col h-full bg-[var(--canvas-sub)]">
@@ -110,9 +127,11 @@ export default function POSMenuGrid({ items, categories, currency, onItemTap }: 
               >
                 <div className="relative aspect-[4/3] w-full rounded-lg overflow-hidden bg-gray-100 mb-2.5 shrink-0">
                   {item.imageUrl ? (
-                    <img 
-                      src={item.imageUrl} 
-                      alt={item.name} 
+                    <img
+                      src={item.imageUrl}
+                      alt={item.name}
+                      loading="lazy"
+                      decoding="async"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   ) : (
@@ -138,3 +157,7 @@ export default function POSMenuGrid({ items, categories, currency, onItemTap }: 
     </div>
   );
 }
+
+// Memoized so cart-state changes in the parent register don't re-render (and
+// re-filter) the entire menu grid on every item tap.
+export default memo(POSMenuGrid);

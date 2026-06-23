@@ -1,16 +1,32 @@
 import { db } from "./db";
 
-/** Fetch tax & service charge config for a restaurant */
-export async function getTaxConfig(restaurantId: string) {
-  const r = await db.restaurant.findUnique({
-    where: { id: restaurantId },
-    select: {
-      taxRate: true,
-      taxEnabled: true,
-      serviceChargeRate: true,
-      serviceChargeEnabled: true,
-    },
-  });
+/** Fields needed to compute tax/service-charge — a structural subset of the
+ * restaurant row, so callers that already hold the full row can pass it to
+ * avoid a redundant query. */
+type TaxConfigSource = {
+  taxRate?: number | null;
+  taxEnabled?: boolean | null;
+  serviceChargeRate?: number | null;
+  serviceChargeEnabled?: boolean | null;
+};
+
+/** Fetch tax & service charge config for a restaurant. Pass `preloaded` (e.g.
+ * a restaurant row already fetched in the request) to skip the DB round-trip. */
+export async function getTaxConfig(
+  restaurantId: string,
+  preloaded?: TaxConfigSource | null,
+) {
+  const r =
+    preloaded ??
+    (await db.restaurant.findUnique({
+      where: { id: restaurantId },
+      select: {
+        taxRate: true,
+        taxEnabled: true,
+        serviceChargeRate: true,
+        serviceChargeEnabled: true,
+      },
+    }));
   return {
     taxRate: r?.taxEnabled ? (r.taxRate ?? 13) : 0,
     serviceChargeRate: r?.serviceChargeEnabled
@@ -23,9 +39,15 @@ export async function getTaxConfig(restaurantId: string) {
   };
 }
 
-export async function generateBill(orderId: string) {
+export async function generateBill(
+  orderId: string,
+  opts?: { taxConfig?: Awaited<ReturnType<typeof getTaxConfig>>; restaurant?: TaxConfigSource | null },
+) {
   const order = await db.order.findUnique({
     where: { id: orderId },
+    // Only the columns used below — `items: true` and `restaurant: true` (the
+    // whole restaurant row) were fetched but never referenced, on a path that
+    // runs on every order-create and every item-add.
     select: {
       id: true,
       orderNo: true,
@@ -34,15 +56,16 @@ export async function generateBill(orderId: string) {
       total: true,
       deliveryFee: true,
       restaurantId: true,
-      items: true,
-      restaurant: true,
       bill: true,
     },
   });
 
   if (!order) throw new Error("Order not found");
 
-  const config = await getTaxConfig(order.restaurantId);
+  // Reuse a config the caller already has (order POST holds the restaurant row)
+  // instead of re-querying the restaurant here.
+  const config =
+    opts?.taxConfig ?? (await getTaxConfig(order.restaurantId, opts?.restaurant));
   const serviceCharge = config.serviceChargeEnabled
     ? Math.round(order.subtotal * (config.serviceChargeRate / 100) * 100) / 100
     : 0;
@@ -245,7 +268,10 @@ export async function getOrdersForBilling(
     where,
     select: {
       ...SAFE_ORDER_SELECT,
-      items: true,
+      // Project only the item columns the billing list actually renders —
+      // `items: true` hydrated every column of every line item (500-1500 rows
+      // per request on a busy list), the single heaviest part of this read.
+      items: { select: { id: true, name: true, quantity: true, price: true, addOns: true } },
       user: { select: { name: true, email: true, phone: true } },
       payment: true,
       bill: true,
@@ -269,8 +295,10 @@ export async function getDailySummary(restaurantId: string) {
       id: true,
       status: true,
       total: true,
-      payment: true,
-      bill: true,
+      // Only the fields the aggregation below reads — avoids hydrating full
+      // payment/bill rows for every order of the day just to sum scalars.
+      payment: { select: { status: true, method: true } },
+      bill: { select: { total: true, discount: true } },
     },
   });
 

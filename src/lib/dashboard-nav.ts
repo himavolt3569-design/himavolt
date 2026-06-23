@@ -211,6 +211,7 @@ export const LIVE_FEATURES = new Set<FeatureTabId>([
   "hotel-bookings",
   "hotel-qr",
   "hotel-hub",
+  "rooms",
 ]);
 
 export const SHORTCUTS: Record<string, DashTab> = {
