@@ -172,6 +172,12 @@ function useHotelHubAccess() {
 
   useEffect(() => {
     let cancelled = false;
+    // Safety net: if /api/staff-session hangs (e.g. pool saturation), don't
+    // strand the user on a permanent blank — default to owner access after 4s.
+    // The sub-panel APIs still enforce real RBAC server-side.
+    const timeout = setTimeout(() => {
+      if (!cancelled) setAccess((a) => a ?? { manage: true, frontdesk: true });
+    }, 4000);
     (async () => {
       try {
         const res = await fetch("/api/staff-session");
@@ -189,10 +195,13 @@ function useHotelHubAccess() {
         });
       } catch {
         if (!cancelled) setAccess({ manage: true, frontdesk: true });
+      } finally {
+        clearTimeout(timeout);
       }
     })();
     return () => {
       cancelled = true;
+      clearTimeout(timeout);
     };
   }, []);
 

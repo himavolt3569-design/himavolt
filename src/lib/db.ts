@@ -53,14 +53,16 @@ function createPrismaClient() {
   const isServerless =
     !!process.env.VERCEL || process.env.NODE_ENV === "production";
 
-  // Serverless + PgBouncer (transaction mode) pattern:
-  // each Lambda processes one request at a time, so it only needs ONE
-  // connection. Capping at 1 prevents N concurrent Lambdas × 10 connections
-  // from exhausting Supabase's shared pooler. Local dev gets a small pool
-  // for parallel queries during development.
+  // Serverless against Supabase's transaction-mode pooler (Supavisor, port
+  // 6543): the pooler multiplexes many short-lived client connections, so a
+  // small per-Lambda pool is safe AND lets a single request's queries overlap
+  // instead of serializing one-at-a-time. max:1 was over-conservative and made
+  // every multi-query request pay its queries back-to-back; 3 is the sweet spot
+  // (total backend conns ≈ concurrent_lambdas × 3, well within the pooler's
+  // client limit). Local dev keeps a slightly larger pool.
   const pool = new Pool({
     connectionString,
-    max: isServerless ? 1 : 5,
+    max: isServerless ? 3 : 5,
     ssl: isServerless ? { rejectUnauthorized: false } : undefined,
     // Recycle idle conns fast so other warm Lambdas can claim them.
     idleTimeoutMillis: isServerless ? 10000 : 30000,

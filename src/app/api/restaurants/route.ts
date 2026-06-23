@@ -50,20 +50,18 @@ export const GET = safeHandler(async () => {
     orderBy: { createdAt: "desc" },
   });
 
-  // Backfill: only runs for legacy rows missing a restaurantCode.
-  // Parallelized; fast-path skips when all rows already have codes.
+  // Backfill: only runs for legacy rows missing a restaurantCode (fast-path
+  // skips when all rows already have codes). Sequential, NOT Promise.all — on
+  // the 1-3 connection pool, firing these in parallel only queues them behind
+  // each other and risks pool contention on the app's most-loaded route.
   const missing = restaurants.filter((r) => !r.restaurantCode);
-  if (missing.length > 0) {
-    await Promise.all(
-      missing.map(async (r) => {
-        const code = await generateUniqueCode();
-        await db.restaurant.update({
-          where: { id: r.id },
-          data: { restaurantCode: code },
-        });
-        r.restaurantCode = code;
-      }),
-    );
+  for (const r of missing) {
+    const code = await generateUniqueCode();
+    await db.restaurant.update({
+      where: { id: r.id },
+      data: { restaurantCode: code },
+    });
+    r.restaurantCode = code;
   }
 
   return NextResponse.json(restaurants);

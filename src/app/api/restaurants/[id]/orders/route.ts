@@ -353,7 +353,7 @@ export const POST = safeHandler(
         (sum, item) => sum + item.price * item.quantity,
         0,
       );
-      const taxCfg = await getTaxConfig(id);
+      const taxCfg = await getTaxConfig(id, restaurant);
       const addTax = taxCfg.taxEnabled
         ? Math.round(addSubtotal * (taxCfg.taxRate / 100) * 100) / 100
         : 0;
@@ -396,8 +396,9 @@ export const POST = safeHandler(
         });
       }
 
-      // Regenerate bill with updated totals
-      await generateBill(existing.id);
+      // Regenerate bill with updated totals (reuse the tax config we just
+      // computed — no need to re-query the restaurant inside generateBill).
+      await generateBill(existing.id, { taxConfig: taxCfg });
 
       // Deduct stock for each added item (non-fatal — order is already updated)
       try {
@@ -457,7 +458,7 @@ export const POST = safeHandler(
       (sum, item) => sum + item.price * item.quantity,
       0,
     );
-    const taxCfgNew = await getTaxConfig(id);
+    const taxCfgNew = await getTaxConfig(id, restaurant);
     const tax = taxCfgNew.taxEnabled
       ? Math.round(subtotal * (taxCfgNew.taxRate / 100) * 100) / 100
       : 0;
@@ -729,7 +730,7 @@ export const POST = safeHandler(
     }
 
     try {
-      await generateBill(order.id);
+      await generateBill(order.id, { taxConfig: taxCfgNew });
     } catch (billErr) {
       console.error("[Orders POST] generateBill failed:", billErr);
       // Non-fatal: order is created, bill can be regenerated later
