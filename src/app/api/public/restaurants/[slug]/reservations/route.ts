@@ -3,6 +3,12 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
 
+// Optional free-text fields arrive from the form as "" rather than missing;
+// coerce blanks to undefined so .optional() applies instead of failing format
+// checks (notably .email() rejecting an empty string).
+const emptyToUndefined = (v: unknown) =>
+  typeof v === "string" && v.trim() === "" ? undefined : v;
+
 const reservationSchema = z.object({
   guestName: z.string().trim().min(1).max(60),
   // 10-digit phone matching the rest of the codebase.
@@ -11,14 +17,23 @@ const reservationSchema = z.object({
     .trim()
     .length(10, "Phone must be exactly 10 digits")
     .regex(/^\d{10}$/),
-  email: z.string().email().max(120).optional().nullable(),
+  email: z.preprocess(
+    emptyToUndefined,
+    z.string().email().max(120).optional().nullable(),
+  ),
   partySize: z.number().int().min(1).max(50),
   // YYYY-MM-DD; must be today or later.
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "date must be YYYY-MM-DD"),
   // HH:MM on 30-minute boundaries — same shape as the published TIME_SLOTS list.
   timeSlot: z.string().regex(/^([01]\d|2[0-3]):(00|30)$/, "Invalid timeSlot"),
-  tablePreference: z.string().max(200).optional().nullable(),
-  specialRequests: z.string().max(500).optional().nullable(),
+  tablePreference: z.preprocess(
+    emptyToUndefined,
+    z.string().max(200).optional().nullable(),
+  ),
+  specialRequests: z.preprocess(
+    emptyToUndefined,
+    z.string().max(500).optional().nullable(),
+  ),
 });
 
 /**
