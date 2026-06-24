@@ -46,9 +46,9 @@ async function migrateOrderStatuses(connectionString) {
     console.log("  pg module not found, using psql fallback…");
     const sql = `
       UPDATE "orders" SET "status" = 'ACCEPTED'::"OrderStatus"
-        WHERE "status" IN ('PREPARING', 'READY', 'DELIVERED');
+        WHERE "status"::text IN ('PREPARING', 'READY', 'DELIVERED');
       UPDATE "orders" SET "status" = 'REJECTED'::"OrderStatus"
-        WHERE "status" = 'CANCELLED';
+        WHERE "status"::text = 'CANCELLED';
     `;
     execSync(`psql "${connectionString}" -c "${sql.replace(/"/g, '\\"')}"`, {
       stdio: "inherit",
@@ -63,9 +63,9 @@ async function migrateOrderStatuses(connectionString) {
 
     // Check if legacy values still exist before running updates
     const { rows } = await client.query(
-      `SELECT "status", COUNT(*)::int AS cnt FROM "orders"
-       WHERE "status" IN ('PREPARING', 'READY', 'DELIVERED', 'CANCELLED')
-       GROUP BY "status"`
+      `SELECT "status"::text AS status, COUNT(*)::int AS cnt FROM "orders"
+       WHERE "status"::text IN ('PREPARING', 'READY', 'DELIVERED', 'CANCELLED')
+       GROUP BY "status"::text`
     );
 
     if (rows.length === 0) {
@@ -79,13 +79,13 @@ async function migrateOrderStatuses(connectionString) {
 
     // PREPARING, READY, DELIVERED → ACCEPTED (completed/in-progress orders)
     const r1 = await client.query(
-      `UPDATE "orders" SET "status" = 'ACCEPTED' WHERE "status" IN ('PREPARING', 'READY', 'DELIVERED')`
+      `UPDATE "orders" SET "status" = 'ACCEPTED' WHERE "status"::text IN ('PREPARING', 'READY', 'DELIVERED')`
     );
     console.log(`  ✓ ${r1.rowCount} orders → ACCEPTED`);
 
     // CANCELLED → REJECTED
     const r2 = await client.query(
-      `UPDATE "orders" SET "status" = 'REJECTED' WHERE "status" = 'CANCELLED'`
+      `UPDATE "orders" SET "status" = 'REJECTED' WHERE "status"::text = 'CANCELLED'`
     );
     console.log(`  ✓ ${r2.rowCount} orders → REJECTED`);
 
