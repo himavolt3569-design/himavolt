@@ -33,7 +33,7 @@ export async function POST(
     const hasOrdered = await db.order.findFirst({
       where: {
         userId: user.id,
-        status: "DELIVERED",
+        status: "ACCEPTED",
         items: { some: { menuItemId: itemId } },
       },
     });

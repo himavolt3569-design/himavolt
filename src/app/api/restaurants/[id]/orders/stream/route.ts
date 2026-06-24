@@ -91,11 +91,11 @@ export async function GET(
             // Legacy orders without a payment record
             { status: "PENDING", payment: { is: null } },
             // Active orders (already went through the billing gate)
-            { status: { in: ["ACCEPTED", "PREPARING", "READY"] } },
+            { status: { in: ["ACCEPTED", "ACCEPTED", "ACCEPTED"] } },
             { isHeld: true },
             // Recently completed (kitchen history window)
             {
-              status: { in: ["DELIVERED", "CANCELLED", "REJECTED"] },
+              status: { in: ["ACCEPTED", "REJECTED", "REJECTED"] },
               updatedAt: { gte: cutoff },
             },
             // Waiter / QR orders paid in cash or by bank transfer at the table:
@@ -135,14 +135,14 @@ export async function GET(
               tax: true,
               total: true,
               note: true,
-              estimatedTime: true,
+              
               deliveryFee: true,
               isHeld: true,
               heldAt: true,
               acceptedAt: true,
-              preparingAt: true,
-              readyAt: true,
-              deliveredAt: true,
+              
+              
+              
               createdAt: true,
               updatedAt: true,
               items: true,

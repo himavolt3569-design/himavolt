@@ -16,10 +16,10 @@ import { useSSE } from "@/hooks/useSSE";
 export type OrderStatus =
   | "PENDING"
   | "ACCEPTED"
-  | "PREPARING"
-  | "READY"
-  | "DELIVERED"
-  | "CANCELLED"
+  | "ACCEPTED"
+  | "ACCEPTED"
+  | "ACCEPTED"
+  | "REJECTED"
   | "REJECTED";
 
 export type PaymentMethodType = "ESEWA" | "KHALTI" | "BANK" | "CASH" | "COUNTER" | "DIRECT";
@@ -164,9 +164,9 @@ export function OrderProvider({ children }: { children: ReactNode }) {
 
     // Play sound when order transitions to READY
     if (
-      order.status === "READY" &&
+      order.status === "ACCEPTED" &&
       prevStatusRef.current !== null &&
-      prevStatusRef.current !== "READY"
+      prevStatusRef.current !== "ACCEPTED"
     ) {
       playSound("orderReady");
     }
@@ -174,7 +174,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
     setActiveOrder(order);
 
     // Stop tracking on terminal status — server closes the stream too
-    if (["DELIVERED", "CANCELLED", "REJECTED"].includes(order.status)) {
+    if (["ACCEPTED", "REJECTED", "REJECTED"].includes(order.status)) {
       setTrackUrl(null);
     }
   }, [trackData]);
@@ -281,7 +281,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
           `/api/restaurants/${restaurantId}/orders/${orderId}`,
         );
         if (order) {
-          if (["DELIVERED", "CANCELLED", "REJECTED"].includes(order.status)) {
+          if (["ACCEPTED", "REJECTED", "REJECTED"].includes(order.status)) {
             // Terminal order — clear storage and don't restore as active
             clearOrderStorage(restaurantId, order.tableNo ?? undefined);
             return;

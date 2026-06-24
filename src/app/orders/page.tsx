@@ -111,7 +111,7 @@ const STATUS_CONFIG: Record<
   },
 };
 
-const TERMINAL_STATUSES = ["DELIVERED", "CANCELLED", "REJECTED"];
+const TERMINAL_STATUSES = ["ACCEPTED", "REJECTED", "REJECTED"];
 
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr);

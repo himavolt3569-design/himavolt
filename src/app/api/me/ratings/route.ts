@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
   const hasOrdered = await db.orderItem.findFirst({
     where: {
       menuItemId,
-      order: { userId: user.id, status: "DELIVERED" },
+      order: { userId: user.id, status: "ACCEPTED" },
     },
   });
 

@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { requireStaffForRestaurant } from "@/lib/staff-auth";
 import { getAuthUser } from "@/lib/auth";
 
-const ACTIVE_ORDER_STATUSES = new Set(["DELIVERED", "READY", "ACCEPTED", "PREPARING"]);
+const ACTIVE_ORDER_STATUSES = new Set(["ACCEPTED", "ACCEPTED", "ACCEPTED", "ACCEPTED"]);
 
 /**
  * GET /api/restaurants/[id]/billing/reconciliation?date=2026-04-09

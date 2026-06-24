@@ -51,30 +51,10 @@ const STATUS_CONFIG: Record<
     text: "text-blue-700",
     icon: CheckCircle2,
   },
-  PREPARING: {
-    label: "Preparing",
-    bg: "bg-[var(--accent-muted)]",
-    text: "text-[var(--accent-text)]",
-    icon: ChefHat,
-  },
-  READY: {
-    label: "Ready",
-    bg: "bg-[var(--accent-muted)]",
-    text: "text-[var(--accent-text)]",
-    icon: PackageCheck,
-  },
-  DELIVERED: {
-    label: "Delivered",
-    bg: "bg-[var(--surface)]",
-    text: "text-[var(--text-2)]",
-    icon: Truck,
-  },
-  CANCELLED: {
-    label: "Cancelled",
-    bg: "bg-red-100",
-    text: "text-red-600",
-    icon: XCircle,
-  },
+  
+  
+  
+  
   REJECTED: {
     label: "Rejected",
     bg: "bg-red-100",
@@ -87,9 +67,9 @@ const FILTER_OPTIONS: { value: LiveOrderStatus | "ALL"; label: string }[] = [
   { value: "ALL", label: "All Orders" },
   { value: "PENDING", label: "New" },
   { value: "ACCEPTED", label: "Accepted" },
-  { value: "PREPARING", label: "Preparing" },
-  { value: "READY", label: "Ready" },
-  { value: "DELIVERED", label: "Delivered" },
+  
+  
+  
 ];
 
 function PreparingClock() {
@@ -130,7 +110,7 @@ function StatusBadge({ status }: { status: LiveOrderStatus }) {
     <span
       className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold ${cfg.bg} ${cfg.text}`}
     >
-      {status === "PREPARING" ? (
+      {status === "ACCEPTED" ? (
         <PreparingClock />
       ) : (
         <Icon className="h-3 w-3" />
@@ -379,9 +359,6 @@ export default function LiveOrdersTab() {
     refresh,
     acceptOrder,
     rejectOrder,
-    markPreparing,
-    markReady,
-    markDelivered,
   } = useLiveOrders();
   const [selectedOrder, setSelectedOrder] = useState<LiveOrder | null>(null);
   const [filterStatus, setFilterStatus] = useState<LiveOrderStatus | "ALL">(
@@ -596,11 +573,11 @@ export default function LiveOrdersTab() {
                         <OrderActions
                           order={order}
                           busy={updatingIds.has(order.id)}
-                          onAccept={(et) => acceptOrder(order.id, et)}
-                          onReject={() => rejectOrder(order.id)}
-                          onPreparing={() => markPreparing(order.id)}
-                          onReady={() => markReady(order.id)}
-                          onDelivered={() => markDelivered(order.id)}
+                          onAccept={() => acceptOrder(order.id)}
+                          onReject={(reason) => rejectOrder(order.id, reason)}
+                          
+                          
+                          
                         />
                       </td>
                     </motion.tr>
@@ -670,11 +647,11 @@ export default function LiveOrdersTab() {
                 <OrderActions
                   order={order}
                   busy={updatingIds.has(order.id)}
-                  onAccept={(et) => acceptOrder(order.id, et)}
-                  onReject={() => rejectOrder(order.id)}
-                  onPreparing={() => markPreparing(order.id)}
-                  onReady={() => markReady(order.id)}
-                  onDelivered={() => markDelivered(order.id)}
+                  onAccept={() => acceptOrder(order.id)}
+                  onReject={(reason) => rejectOrder(order.id, reason)}
+                  
+                  
+                  
                 />
               </motion.div>
             ))}
@@ -691,8 +668,8 @@ export default function LiveOrdersTab() {
           acceptOrder(id, undefined, print);
           setSelectedOrder(null);
         }}
-        onReject={(id) => {
-          rejectOrder(id);
+        onReject={(id, reason) => {
+          rejectOrder(id, reason);
           setSelectedOrder(null);
         }}
         onPrintKOT={() => {
@@ -754,20 +731,14 @@ function OrderActions({
   busy,
   onAccept,
   onReject,
-  onPreparing,
-  onReady,
-  onDelivered,
 }: {
   order: LiveOrder;
   busy: boolean;
-  onAccept: (estimatedTime?: number) => void;
-  onReject: () => void;
-  onPreparing: () => void;
-  onReady: () => void;
-  onDelivered: () => void;
+  onAccept: () => void;
+  onReject: (reason: string) => void;
 }) {
-  const [showTimeInput, setShowTimeInput] = useState(false);
-  const [estTime, setEstTime] = useState(order.estimatedTime || 20);
+  const [showRejectReason, setShowRejectReason] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
 
   const stop = (e: React.MouseEvent, fn: () => void) => {
     e.stopPropagation();
@@ -775,31 +746,31 @@ function OrderActions({
   };
 
   if (order.status === "PENDING") {
-    if (showTimeInput) {
+    if (showRejectReason) {
       return (
-        <div
-          className="flex items-center gap-2 flex-wrap"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] px-2 py-1">
-            <Clock className="h-3 w-3 text-[var(--text-3)]" />
-            <input
-              type="number"
-              min={5}
-              max={120}
-              value={estTime}
-              onChange={(e) => setEstTime(Number(e.target.value))}
-              disabled={busy}
-              className="w-10 text-center text-[11px] font-bold border-none outline-none bg-transparent"
-            />
-            <span className="text-[10px] text-[var(--text-3)]">min</span>
-          </div>
+        <div className="flex items-center gap-2 flex-wrap" onClick={(e) => e.stopPropagation()}>
+          <input
+            autoFocus
+            type="text"
+            placeholder="Reason for rejection..."
+            value={rejectReason}
+            onChange={(e) => setRejectReason(e.target.value)}
+            disabled={busy}
+            className="flex-1 rounded-lg border border-[var(--border)] px-2 py-1 text-[11px] font-medium outline-none focus:ring-2 focus:ring-red-500/20 text-black dark:text-white bg-transparent"
+          />
           <ActionButton
-            onClick={(e) => stop(e, () => onAccept(estTime))}
+            onClick={() => onReject(rejectReason)}
             busy={busy}
-            icon={CheckCircle2}
+            icon={XCircle}
             label="Confirm"
-            className="bg-[var(--text-1)] text-white hover:bg-[var(--text-2)]"
+            className="bg-red-500 text-white hover:bg-red-600"
+          />
+          <ActionButton
+            onClick={() => setShowRejectReason(false)}
+            disabled={busy}
+            icon={XCircle}
+            label="Cancel"
+            className="bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
           />
         </div>
       );
@@ -808,17 +779,17 @@ function OrderActions({
     return (
       <div className="flex items-center gap-2 flex-wrap">
         <ActionButton
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowTimeInput(true);
-          }}
+          onClick={(e) => stop(e, () => onAccept())}
           disabled={busy}
           icon={CheckCircle2}
           label="Accept"
           className="bg-[var(--text-1)] text-white hover:bg-[var(--text-2)]"
         />
         <ActionButton
-          onClick={(e) => stop(e, onReject)}
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowRejectReason(true);
+          }}
           busy={busy}
           icon={XCircle}
           label="Reject"
@@ -828,48 +799,12 @@ function OrderActions({
     );
   }
 
-  if (order.status === "ACCEPTED") {
-    return (
-      <ActionButton
-        onClick={(e) => stop(e, onPreparing)}
-        busy={busy}
-        icon={ChefHat}
-        label="Start Cooking"
-        className="bg-[var(--accent)] text-white hover:bg-[var(--accent-hover)]"
-      />
-    );
-  }
-
-  if (order.status === "PREPARING") {
-    return (
-      <ActionButton
-        onClick={(e) => stop(e, onReady)}
-        busy={busy}
-        icon={PackageCheck}
-        label="Mark Ready"
-        className="bg-[var(--accent)] text-white hover:bg-[var(--accent)]"
-      />
-    );
-  }
-
-  if (order.status === "READY") {
-    return (
-      <ActionButton
-        onClick={(e) => stop(e, onDelivered)}
-        busy={busy}
-        icon={Truck}
-        label="Delivered"
-        className="bg-[var(--text-1)] text-white hover:bg-[var(--text-2)]"
-      />
-    );
-  }
-
   return (
     <span className="flex items-center gap-2 text-xs">
       <span className="text-[var(--text-3)] italic">
-        {order.status === "DELIVERED" ? "Completed" : "Cancelled"}
+        {order.status === "ACCEPTED" ? "Completed" : "Rejected"}
       </span>
-      {order.status === "DELIVERED" && (
+      {order.status === "ACCEPTED" && (
         <a
           href={`/bill/${order.id}`}
           target="_blank"

@@ -302,7 +302,7 @@ export default function CustomerDashboard() {
   const memberSince  = user?.created_at
     ? new Date(user.created_at).toLocaleDateString("en-US", { month: "long", year: "numeric" })
     : "";
-  const activeOrder  = orders.find((o) => !["DELIVERED", "CANCELLED", "REJECTED"].includes(o.status));
+  const activeOrder  = orders.find((o) => !["ACCEPTED", "REJECTED", "REJECTED"].includes(o.status));
   const deliveryOrders = orders.filter((o) => o.type === "DELIVERY");
 
   const totalPoints = loyaltyAccounts.reduce((sum, a) => sum + a.points, 0);
@@ -865,7 +865,7 @@ function StatTile({
 function LiveOrderCard({ order }: { order: Order }) {
   const meta = STATUS_META[order.status] || STATUS_META.PENDING;
   const StatusIcon = meta.icon;
-  const steps = ["PENDING", "ACCEPTED", "PREPARING", "READY", "DELIVERED"];
+  const steps = ["PENDING", "ACCEPTED", "ACCEPTED", "ACCEPTED", "ACCEPTED"];
   const currentStep = steps.indexOf(order.status);
 
   return (
@@ -985,7 +985,7 @@ function OrdersTab({
   ];
 
   const filteredOrders = orders.filter((o) => {
-    if (filter === "active" && ["DELIVERED", "CANCELLED", "REJECTED"].includes(o.status)) return false;
+    if (filter === "active" && ["ACCEPTED", "REJECTED", "REJECTED"].includes(o.status)) return false;
     if (filter === "delivery" && o.type !== "DELIVERY") return false;
     if (filter === "dine-in" && o.type === "DELIVERY") return false;
     if (search) {
@@ -1222,7 +1222,7 @@ function OrderCard({
                 <p className="text-xs text-[var(--text-3)] italic">"{order.note}"</p>
               )}
 
-              {order.status === "DELIVERED" && (
+              {order.status === "ACCEPTED" && (
                 <Link
                   href={`/menu/${order.restaurant.slug}`}
                   className="flex items-center justify-center gap-1.5 rounded-xl bg-[var(--accent-muted)] py-2.5 text-xs font-semibold text-[var(--accent)] hover:bg-[var(--accent)]/15 transition-colors"

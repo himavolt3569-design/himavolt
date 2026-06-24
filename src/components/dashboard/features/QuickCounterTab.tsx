@@ -53,7 +53,7 @@ interface CartItem {
 
 export default function QuickCounterTab() {
   const { selectedRestaurant, restaurants } = useRestaurant();
-  const { orders, acceptOrder, markReady, markDelivered, updatingIds } = useLiveOrders();
+  const { orders, acceptOrder, rejectOrder, refresh, updatingIds } = useLiveOrders();
   const { showToast } = useToast();
   const restaurant = selectedRestaurant ?? restaurants[0];
 
@@ -75,14 +75,13 @@ export default function QuickCounterTab() {
   const counterOrders = orders.filter(
     (o) =>
       (o.type === "TAKEAWAY" || o.type === "COUNTER") &&
-      o.status !== "DELIVERED" &&
-      o.status !== "REJECTED" &&
-      o.status !== "CANCELLED",
+      o.status !== "ACCEPTED" &&
+      o.status !== "REJECTED",
   );
 
   const pendingOrders = counterOrders.filter((o) => o.status === "PENDING");
-  const activeOrders = counterOrders.filter((o) => ["ACCEPTED", "PREPARING"].includes(o.status));
-  const readyOrders = counterOrders.filter((o) => o.status === "READY");
+  const activeOrders = counterOrders.filter((o) => ["ACCEPTED"].includes(o.status));
+  const readyOrders = counterOrders.filter((o) => o.status === "ACCEPTED");
 
   const estimatedWait =
     activeOrders.length > 0 && stations.filter((s) => s.active).length > 0
@@ -158,14 +157,6 @@ export default function QuickCounterTab() {
     showToast(`Order #${order.orderNo} forwarded to kitchen`);
   };
 
-  const handleForwardBilling = async (order: LiveOrder) => {
-    await markReady(order.id);
-    showToast(`Order #${order.orderNo} sent to billing`);
-  };
-
-  const handleMarkDelivered = async (order: LiveOrder) => {
-    await markDelivered(order.id);
-  };
 
   const filteredMenu = menuItems.filter((i) =>
     i.name.toLowerCase().includes(search.toLowerCase()),
@@ -398,26 +389,6 @@ export default function QuickCounterTab() {
                             >
                               {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <ChefHat className="h-3 w-3" />}
                               Kitchen
-                            </button>
-                          )}
-                          {(order.status === "ACCEPTED" || order.status === "PREPARING") && (
-                            <button
-                              onClick={() => handleForwardBilling(order)}
-                              disabled={busy}
-                              className="flex items-center gap-1.5 rounded-lg bg-[var(--accent)] px-3 py-1.5 text-xs font-bold text-white hover:bg-[var(--accent-hover)] disabled:opacity-50 transition-colors"
-                            >
-                              {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Receipt className="h-3 w-3" />}
-                              Billing
-                            </button>
-                          )}
-                          {order.status === "READY" && (
-                            <button
-                              onClick={() => handleMarkDelivered(order)}
-                              disabled={busy}
-                              className="flex items-center gap-1.5 rounded-lg bg-[var(--text-2)] px-3 py-1.5 text-xs font-bold text-white hover:bg-[var(--text-2)] disabled:opacity-50 transition-colors"
-                            >
-                              {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3" />}
-                              Delivered
                             </button>
                           )}
                         </div>

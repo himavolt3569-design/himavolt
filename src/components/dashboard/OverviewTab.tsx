@@ -180,7 +180,7 @@ export default function OverviewTab({ userName }: { userName?: string }) {
   );
 
   const completed = useMemo(
-    () => todayOrders.filter((o) => o.status === "DELIVERED"),
+    () => todayOrders.filter((o) => o.status === "ACCEPTED"),
     [todayOrders],
   );
   const todayRevenue = useMemo(
@@ -212,7 +212,7 @@ export default function OverviewTab({ userName }: { userName?: string }) {
     todayOrders.forEach((o) => {
       const h = new Date(o.createdAt).getHours();
       buckets[h].orders += 1;
-      if (o.status === "DELIVERED") buckets[h].sales += o.total ?? 0;
+      if (o.status === "ACCEPTED") buckets[h].sales += o.total ?? 0;
     });
     return buckets;
   }, [todayOrders]);
@@ -234,7 +234,7 @@ export default function OverviewTab({ userName }: { userName?: string }) {
       const key = (o.type ?? "OTHER").replace(/_/g, " ");
       const cur2 = map[key] ?? { amount: 0, count: 0 };
       cur2.count += 1;
-      if (o.status === "DELIVERED") cur2.amount += o.total ?? 0;
+      if (o.status === "ACCEPTED") cur2.amount += o.total ?? 0;
       map[key] = cur2;
     }
     return Object.entries(map).map(([type, v]) => ({ type, ...v }));

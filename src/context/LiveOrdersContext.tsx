@@ -21,10 +21,6 @@ import { printKOT } from "@/lib/print-kot";
 export type LiveOrderStatus =
   | "PENDING"
   | "ACCEPTED"
-  | "PREPARING"
-  | "READY"
-  | "DELIVERED"
-  | "CANCELLED"
   | "REJECTED";
 
 export interface LiveOrderItem {
@@ -74,10 +70,7 @@ interface LiveOrdersContextType {
     estimatedTime?: number,
     forcePrint?: boolean,
   ) => Promise<void>;
-  rejectOrder: (id: string) => Promise<void>;
-  markPreparing: (id: string) => Promise<void>;
-  markReady: (id: string) => Promise<void>;
-  markDelivered: (id: string) => Promise<void>;
+  rejectOrder: (id: string, reason?: string) => Promise<void>;
   refresh: () => Promise<void>;
 }
 
@@ -218,26 +211,8 @@ export function LiveOrdersProvider({ children }: { children: ReactNode }) {
     [orders, updateStatus, selectedRestaurant],
   );
   const rejectOrder = useCallback(
-    async (id: string) => {
-      await updateStatus(id, "REJECTED");
-    },
-    [updateStatus],
-  );
-  const markPreparing = useCallback(
-    async (id: string) => {
-      await updateStatus(id, "PREPARING");
-    },
-    [updateStatus],
-  );
-  const markReady = useCallback(
-    async (id: string) => {
-      await updateStatus(id, "READY");
-    },
-    [updateStatus],
-  );
-  const markDelivered = useCallback(
-    async (id: string) => {
-      await updateStatus(id, "DELIVERED");
+    async (id: string, reason?: string) => {
+      await updateStatus(id, "REJECTED", reason ? { rejectReason: reason } : undefined);
     },
     [updateStatus],
   );
@@ -252,9 +227,6 @@ export function LiveOrdersProvider({ children }: { children: ReactNode }) {
         setRestaurantId,
         acceptOrder,
         rejectOrder,
-        markPreparing,
-        markReady,
-        markDelivered,
         refresh,
       }}
     >

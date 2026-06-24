@@ -225,13 +225,13 @@ const SAFE_ORDER_SELECT = {
   tax: true,
   total: true,
   note: true,
-  estimatedTime: true,
+  
   deliveryAddress: true,
   deliveryFee: true,
   acceptedAt: true,
-  preparingAt: true,
-  readyAt: true,
-  deliveredAt: true,
+  
+  
+  
   createdAt: true,
   updatedAt: true,
   userId: true,
@@ -252,7 +252,7 @@ export async function getOrdersForBilling(
       { payment: { is: null } },
       { payment: { status: { not: "COMPLETED" } } },
     ];
-    where.status = { notIn: ["CANCELLED", "REJECTED"] };
+    where.status = { notIn: ["REJECTED", "REJECTED"] };
   } else if (filter === "paid") {
     where.payment = { status: "COMPLETED" };
     where.createdAt = { gte: last24h };
@@ -289,7 +289,7 @@ export async function getDailySummary(restaurantId: string) {
     where: {
       restaurantId,
       createdAt: { gte: startOfDay },
-      status: { notIn: ["CANCELLED", "REJECTED"] },
+      status: { notIn: ["REJECTED"] },
     },
     select: {
       id: true,
@@ -303,7 +303,7 @@ export async function getDailySummary(restaurantId: string) {
   });
 
   const totalOrders = orders.length;
-  const completedOrders = orders.filter((o) => o.status === "DELIVERED").length;
+  const completedOrders = orders.filter((o) => o.status === "ACCEPTED").length;
   const paidOrders = orders.filter(
     (o) => o.payment?.status === "COMPLETED",
   ).length;
@@ -342,7 +342,6 @@ export async function getDailySummary(restaurantId: string) {
 
   const pendingAmount = orders
     .filter((o) => !o.payment || o.payment.status !== "COMPLETED")
-    .filter((o) => o.status !== "CANCELLED" && o.status !== "REJECTED")
     .reduce((sum, o) => sum + (o.bill?.total ?? o.total), 0);
 
   const totalDiscount = orders

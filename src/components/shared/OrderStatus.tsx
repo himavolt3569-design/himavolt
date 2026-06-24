@@ -19,73 +19,15 @@ import { useOrder, type OrderStatus as OrderStatusType } from "@/context/OrderCo
 import { formatPrice } from "@/lib/currency";
 import gsap from "gsap";
 
-function CountdownTimer({
-  estimatedTime,
-  startedAt,
-}: {
-  estimatedTime: number;
-  startedAt: string;
-}) {
-  const [remaining, setRemaining] = useState(0);
-
-  useEffect(() => {
-    function calc() {
-      const start = new Date(startedAt).getTime();
-      const end = start + estimatedTime * 60 * 1000;
-      const diff = Math.max(0, Math.floor((end - Date.now()) / 1000));
-      setRemaining(diff);
-    }
-    calc();
-    const interval = setInterval(calc, 1000);
-    return () => clearInterval(interval);
-  }, [estimatedTime, startedAt]);
-
-  const mins = Math.floor(remaining / 60);
-  const secs = remaining % 60;
-  const progress = Math.max(0, Math.min(1, 1 - remaining / (estimatedTime * 60)));
-
-  return (
-    <div className="flex flex-col items-center">
-      <div className="relative h-20 w-20 sm:h-24 sm:w-24">
-        <svg className="h-full w-full -rotate-90" viewBox="0 0 100 100">
-          <circle cx="50" cy="50" r="42" fill="none" stroke="#f3f4f6" strokeWidth="6" />
-          <motion.circle
-            cx="50" cy="50" r="42" fill="none" stroke="var(--accent)" strokeWidth="6"
-            strokeLinecap="round" strokeDasharray={264}
-            animate={{ strokeDashoffset: 264 * (1 - progress) }}
-            transition={{ duration: 1, ease: "easeOut" }}
-          />
-        </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <Timer className="h-3.5 w-3.5 text-[var(--accent)] mb-0.5" />
-          <span className="text-xl font-black text-[var(--text-1)] tabular-nums">
-            {mins}:{secs.toString().padStart(2, "0")}
-          </span>
-          <span className="text-[10px] font-medium text-[var(--text-3)]">remaining</span>
-        </div>
-      </div>
-      {remaining === 0 && (
-        <p className="mt-2 text-xs font-bold text-[var(--accent)]">Should be ready any moment!</p>
-      )}
-    </div>
-  );
-}
-
 const STEPS: { label: string; icon: typeof Clock }[] = [
   { label: "Placed",    icon: CheckCircle2   },
   { label: "Accepted",  icon: ClipboardCheck },
-  { label: "Preparing", icon: ChefHat        },
-  { label: "Ready",     icon: PackageCheck   },
-  { label: "Delivered", icon: Truck          },
 ];
 
 function statusToStep(status: OrderStatusType): number {
   switch (status) {
     case "PENDING":   return 0;
     case "ACCEPTED":  return 1;
-    case "PREPARING": return 2;
-    case "READY":     return 3;
-    case "DELIVERED": return 4;
     default:          return -1;
   }
 }
@@ -98,27 +40,9 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
 
   const currentIdx = activeOrder ? statusToStep(activeOrder.status) : -1;
   const isCancelled =
-    activeOrder?.status === "CANCELLED" || activeOrder?.status === "REJECTED";
+    activeOrder?.status === "REJECTED";
 
-  useEffect(() => {
-    if (activeOrder?.status === "PREPARING" && clockRef.current && handRef.current) {
-      const ctx = gsap.context(() => {
-        gsap.to(handRef.current!, {
-          rotation: 360,
-          duration: 1.5,
-          repeat: -1,
-          ease: "linear",
-          transformOrigin: "bottom center",
-        });
-        gsap.fromTo(
-          clockRef.current!,
-          { scale: 0.95 },
-          { scale: 1.05, yoyo: true, repeat: -1, duration: 0.8, ease: "power1.inOut" },
-        );
-      });
-      return () => ctx.revert();
-    }
-  }, [activeOrder?.status]);
+  useEffect(() => {}, [activeOrder?.status]);
 
   if (!activeOrder) {
     return (
@@ -161,18 +85,7 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
             >
               <AlertTriangle className="h-10 w-10 text-red-500" />
             </motion.div>
-          ) : activeOrder.status === "PREPARING" ? (
-            <div
-              ref={clockRef}
-              className="mx-auto relative flex h-20 w-20 items-center justify-center rounded-full border-[3px] border-[var(--accent)] bg-[var(--canvas)] shadow-xl mb-4"
-            >
-              <div className="absolute top-1/2 left-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--accent)] z-10" />
-              <div
-                ref={handRef}
-                className="absolute bottom-1/2 left-1/2 h-6 w-[2px] -translate-x-1/2 rounded-full bg-[var(--accent)] origin-bottom"
-              />
-            </div>
-          ) : activeOrder.status === "DELIVERED" ? (
+          ) : activeOrder.status === "ACCEPTED" ? (
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
@@ -192,38 +105,17 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
 
           <h2 className="text-xl font-bold text-[var(--text-1)]">
             {isCancelled
-              ? activeOrder.status === "REJECTED"
-                ? "Order Rejected"
-                : "Order Cancelled"
+              ? "Order Rejected"
               : activeOrder.status === "PENDING"
                 ? "Order Placed"
-                : activeOrder.status === "ACCEPTED"
-                  ? "Order Accepted"
-                  : activeOrder.status === "PREPARING"
-                    ? "Being Prepared"
-                    : activeOrder.status === "READY"
-                      ? "Ready for Pickup"
-                      : "Delivered"}
+                : "Order Accepted"}
           </h2>
           <p className="mt-1 text-sm text-[var(--text-3)]">
             {activeOrder.status === "PENDING"   && "Waiting for the restaurant to confirm…"}
             {activeOrder.status === "ACCEPTED"  && "Your order has been confirmed!"}
-            {activeOrder.status === "PREPARING" && "The chef is working on your food"}
-            {activeOrder.status === "READY"     && "Your food is ready for pickup!"}
-            {activeOrder.status === "DELIVERED" && "Enjoy your meal!"}
-            {activeOrder.status === "CANCELLED" && "Your order has been cancelled"}
             {activeOrder.status === "REJECTED"  && "The restaurant was unable to fulfil your order"}
           </p>
         </div>
-
-        {!isCancelled && activeOrder.estimatedTime && (activeOrder.preparingAt || activeOrder.acceptedAt) && (
-          <div className="flex justify-center">
-            <CountdownTimer
-              estimatedTime={activeOrder.estimatedTime}
-              startedAt={activeOrder.preparingAt || activeOrder.acceptedAt!}
-            />
-          </div>
-        )}
 
         <div className="flex items-start justify-between gap-1">
           {STEPS.map((step, i) => {
@@ -301,7 +193,7 @@ export default function OrderStatus({ onClose, currency = "NPR" }: { onClose: ()
           </div>
         </div>
 
-        {!isCancelled && activeOrder.status !== "DELIVERED" && (
+        {!isCancelled && activeOrder.status === "PENDING" && (
           <button
             onClick={() => setShowCancel(true)}
             className="w-full rounded-xl border-2 border-red-200 py-3.5 text-sm font-bold text-red-500 transition-all hover:bg-red-50 active:scale-[0.98]"

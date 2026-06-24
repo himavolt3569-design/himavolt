@@ -53,7 +53,7 @@ export default function TodayTab() {
   }, [load]);
 
   const liveCount = orders.filter(
-    (o) => o.status !== "DELIVERED" && o.status !== "CANCELLED",
+    (o) => o.status !== "ACCEPTED" && o.status !== "REJECTED",
   ).length;
 
   const hourly = Array.from({ length: 24 }, (_, h) => ({

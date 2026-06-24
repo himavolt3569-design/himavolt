@@ -90,14 +90,14 @@ export async function GET(
   })) as unknown as OrderRow[];
 
   const nonCancelled = allOrders.filter(
-    (o) => o.status !== "CANCELLED" && o.status !== "REJECTED",
+    (o) => o.status !== "REJECTED" && o.status !== "REJECTED",
   );
   const cancelledCount = allOrders.length - nonCancelled.length;
 
   const paidOrders = nonCancelled.filter(
     (o) => o.payment?.status === "COMPLETED",
   );
-  const deliveredOrders = nonCancelled.filter((o) => o.status === "DELIVERED");
+  const deliveredOrders = nonCancelled.filter((o) => o.status === "ACCEPTED");
 
   const collectedRevenue = paidOrders.reduce(
     (s, o) => s + (o.bill?.total ?? o.total),

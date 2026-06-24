@@ -126,9 +126,9 @@ function paymentLabel(method: string) {
 }
 
 function statusColor(status: string) {
-  if (status === "DELIVERED")
+  if (status === "ACCEPTED")
     return "bg-[#fef9ef] text-[var(--accent-text)] border-[var(--accent)]/30";
-  if (status === "CANCELLED" || status === "REJECTED")
+  if (status === "REJECTED" || status === "REJECTED")
     return "bg-red-50 text-red-700 border-red-200";
   return "bg-[var(--accent-muted)] text-[var(--accent-text)] border-[var(--accent-border)]";
 }
@@ -428,7 +428,7 @@ export default function BillPage() {
             <span
               className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-bold border ${statusColor(order.status)}`}
             >
-              {order.status === "DELIVERED" && (
+              {order.status === "ACCEPTED" && (
                 <CheckCircle2 className="h-3 w-3" />
               )}
               {order.status}

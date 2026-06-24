@@ -398,8 +398,8 @@ function playNewOrderSound() {
 const isPaid = (o: BillOrder) => o.payment?.status === "COMPLETED";
 
 function TokenBoard({ orders }: { orders: SSEOrder[] }) {
-  const readyOrders = orders.filter((o) => o.status === "READY");
-  const preparingOrders = orders.filter((o) => o.status === "PREPARING");
+  const readyOrders = orders.filter((o) => o.status === "ACCEPTED");
+  const preparingOrders = orders.filter((o) => o.status === "ACCEPTED");
 
   return (
     <div className="space-y-4">
@@ -1295,7 +1295,7 @@ function BillingPanel({
                 )}
 
                 {!isPaid(order) &&
-                  order.status !== "CANCELLED" &&
+                  order.status !== "REJECTED" &&
                   order.status !== "REJECTED" && (
                     <button
                       onClick={() => {
@@ -1729,7 +1729,7 @@ export default function CounterPage() {
 
               if (soundEnabled) {
                 const readyCount = data.orders.filter(
-                  (o: SSEOrder) => o.status === "READY",
+                  (o: SSEOrder) => o.status === "ACCEPTED",
                 ).length;
                 if (readyCount > prevReadyCountRef.current) {
                   playReadySound();

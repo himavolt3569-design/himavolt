@@ -143,7 +143,7 @@ export function useTableSession(
     loading,
     isRestored,
     order: session?.order ?? null,
-    hasActiveOrder: !!session?.order && session.order.status !== "DELIVERED" && session.order.status !== "CANCELLED",
+    hasActiveOrder: !!session?.order && session.order.status !== "ACCEPTED" && session.order.status !== "REJECTED",
     getBill,
     refreshSession,
   };

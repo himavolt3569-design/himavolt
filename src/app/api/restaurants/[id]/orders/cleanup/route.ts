@@ -144,7 +144,7 @@ export async function POST(
   for (const order of staleAccepted) {
     await db.order.update({
       where: { id: order.id },
-      data: { status: "CANCELLED" },
+      data: { status: "REJECTED" },
     });
     await db.payment.updateMany({
       where: { orderId: order.id, status: { in: ["PENDING", "AWAITING_VERIFICATION"] } },
@@ -158,7 +158,7 @@ export async function POST(
       orderId: order.id,
       orderNo: order.orderNo,
       previousStatus: "ACCEPTED",
-      newStatus: "CANCELLED",
+      newStatus: "REJECTED",
       ageMinutes: ageMins,
     });
   }
@@ -168,7 +168,7 @@ export async function POST(
   const stalePreparing = await db.order.findMany({
     where: {
       restaurantId: id,
-      status: "PREPARING",
+      status: "ACCEPTED",
       updatedAt: { lt: preparingCutoff },
     },
     select: { id: true, orderNo: true, updatedAt: true },
@@ -177,15 +177,15 @@ export async function POST(
   for (const order of stalePreparing) {
     await db.order.update({
       where: { id: order.id },
-      data: { status: "READY", readyAt: new Date() },
+      data: { status: "ACCEPTED",  },
     });
     const ageMins = Math.floor((now - new Date(order.updatedAt).getTime()) / 60000);
     result.counts.preparingMarkedReady++;
     result.details.push({
       orderId: order.id,
       orderNo: order.orderNo,
-      previousStatus: "PREPARING",
-      newStatus: "READY",
+      previousStatus: "ACCEPTED",
+      newStatus: "ACCEPTED",
       ageMinutes: ageMins,
     });
   }
@@ -195,7 +195,7 @@ export async function POST(
   const staleReady = await db.order.findMany({
     where: {
       restaurantId: id,
-      status: "READY",
+      status: "ACCEPTED",
       updatedAt: { lt: readyCutoff },
     },
     select: { id: true, orderNo: true, updatedAt: true },
@@ -204,15 +204,15 @@ export async function POST(
   for (const order of staleReady) {
     await db.order.update({
       where: { id: order.id },
-      data: { status: "DELIVERED", deliveredAt: new Date() },
+      data: { status: "ACCEPTED",  },
     });
     const ageMins = Math.floor((now - new Date(order.updatedAt).getTime()) / 60000);
     result.counts.readyMarkedDelivered++;
     result.details.push({
       orderId: order.id,
       orderNo: order.orderNo,
-      previousStatus: "READY",
-      newStatus: "DELIVERED",
+      previousStatus: "ACCEPTED",
+      newStatus: "ACCEPTED",
       ageMinutes: ageMins,
     });
   }
@@ -282,14 +282,14 @@ export async function GET(
     db.order.count({
       where: {
         restaurantId: id,
-        status: "PREPARING",
+        status: "ACCEPTED",
         updatedAt: { lt: new Date(now - DEFAULT_RULES.preparingTimeoutMins * 60 * 1000) },
       },
     }),
     db.order.count({
       where: {
         restaurantId: id,
-        status: "READY",
+        status: "ACCEPTED",
         updatedAt: { lt: new Date(now - DEFAULT_RULES.readyTimeoutMins * 60 * 1000) },
       },
     }),

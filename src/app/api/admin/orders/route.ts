@@ -60,11 +60,11 @@ export async function GET(req: NextRequest) {
     deliveryFee: true,
     deliveryAddress: true,
     note: true,
-    estimatedTime: true,
+    
     acceptedAt: true,
-    preparingAt: true,
-    readyAt: true,
-    deliveredAt: true,
+    
+    
+    
     createdAt: true,
     updatedAt: true,
     userId: true,
@@ -195,7 +195,7 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "orderId and status required" }, { status: 400 });
   }
 
-  const validStatuses = ["PENDING", "ACCEPTED", "PREPARING", "READY", "DELIVERED", "CANCELLED", "REJECTED"];
+  const validStatuses = ["PENDING", "ACCEPTED", "ACCEPTED", "ACCEPTED", "ACCEPTED", "REJECTED", "REJECTED"];
   if (!validStatuses.includes(status)) {
     return NextResponse.json({ error: "Invalid status" }, { status: 400 });
   }

@@ -476,11 +476,8 @@ model Order {
   total         Float
   note          String?
   type          OrderType   @default(DINE_IN)
-  estimatedTime Int? // estimated prep time in minutes
   acceptedAt    DateTime?
-  preparingAt   DateTime?
-  readyAt       DateTime?
-  deliveredAt   DateTime?
+  rejectReason  String?
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
@@ -538,10 +535,6 @@ model Order {
 enum OrderStatus {
   PENDING
   ACCEPTED
-  PREPARING
-  READY
-  DELIVERED
-  CANCELLED
   REJECTED
 }
 

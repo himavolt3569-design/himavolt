@@ -67,10 +67,10 @@ export async function GET(
       // Legacy orders without a payment record
       { status: "PENDING", payment: { is: null } },
       // Active orders (already passed through payment gate when accepted)
-      { status: { in: ["ACCEPTED", "PREPARING", "READY"] } },
+      { status: { in: ["ACCEPTED", "ACCEPTED", "ACCEPTED"] } },
       // Recently completed (for kitchen history)
       {
-        status: { in: ["DELIVERED", "CANCELLED", "REJECTED"] },
+        status: { in: ["ACCEPTED", "REJECTED", "REJECTED"] },
         createdAt: { gte: twoHoursAgo },
       },
       // QR customer orders with physical payment (CASH / BANK):
@@ -106,7 +106,7 @@ export async function GET(
     tax: true,
     total: true,
     note: true,
-    estimatedTime: true,
+    
     deliveryAddress: true,
     deliveryLat: true,
     deliveryLng: true,
@@ -114,9 +114,9 @@ export async function GET(
     deliveryNote: true,
     deliveryFee: true,
     acceptedAt: true,
-    preparingAt: true,
-    readyAt: true,
-    deliveredAt: true,
+    
+    
+    
     createdAt: true,
     updatedAt: true,
     userId: true,
@@ -298,7 +298,7 @@ export const POST = safeHandler(
       const sessionOrder = await db.order.findFirst({
         where: {
           restaurantId: id,
-          status: { in: ["PENDING", "ACCEPTED", "PREPARING"] },
+          status: { in: ["PENDING", "ACCEPTED", "ACCEPTED"] },
           tableSession: { id: tableSessionId, isActive: true },
           OR: [
             { payment: null },
@@ -316,7 +316,7 @@ export const POST = safeHandler(
         where: {
           id: appendOrderId,
           restaurantId: id,
-          status: { in: ["PENDING", "ACCEPTED", "PREPARING"] },
+          status: { in: ["PENDING", "ACCEPTED", "ACCEPTED"] },
         },
         include: { payment: true, tableSession: { select: { id: true } } },
       });
@@ -595,7 +595,7 @@ export const POST = safeHandler(
       //   3. Default                → PENDING    (await staff/owner accept)
       ...(isFastPayCounterSale
         ? {
-            status: "DELIVERED" as const,
+            status: "ACCEPTED" as const,
             acceptedAt: orderTimestamp,
             preparingAt: orderTimestamp,
             readyAt: orderTimestamp,
@@ -782,7 +782,7 @@ export const POST = safeHandler(
           tax: true,
           total: true,
           note: true,
-          estimatedTime: true,
+          
           deliveryFee: true,
           createdAt: true,
           items: true,

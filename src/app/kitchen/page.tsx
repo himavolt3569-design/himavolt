@@ -350,7 +350,7 @@ const ALL_TABS: {
   },
 ];
 
-const STATUS_ORDER = ["PENDING", "ACCEPTED", "PREPARING", "READY", "DELIVERED"];
+const STATUS_ORDER = ["PENDING", "ACCEPTED", "ACCEPTED", "ACCEPTED", "ACCEPTED"];
 
 const ROLE_CONFIG: Record<
   string,

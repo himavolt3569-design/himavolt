@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
 
   // Verify user has a delivered order from this restaurant
   const hasOrdered = await db.order.findFirst({
-    where: { userId: user.id, restaurantId, status: "DELIVERED" },
+    where: { userId: user.id, restaurantId, status: "ACCEPTED" },
   });
   if (!hasOrdered) {
     return NextResponse.json(

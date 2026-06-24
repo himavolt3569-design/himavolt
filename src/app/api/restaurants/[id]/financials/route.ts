@@ -26,7 +26,7 @@ export async function GET(
   const orders = await db.order.findMany({
     where: {
       restaurantId: id,
-      status: "DELIVERED",
+      status: "ACCEPTED",
     },
     select: {
       total: true,

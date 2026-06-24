@@ -1228,7 +1228,7 @@ function MenuPageContent() {
     if (restaurantId && !activeOrder && !addToOrderId) {
       if (
         sessionOrder &&
-        !["DELIVERED", "CANCELLED", "REJECTED"].includes(sessionOrder.status)
+        !["ACCEPTED", "REJECTED", "REJECTED"].includes(sessionOrder.status)
       ) {
         // Active table session — restore its order
         restoreOrder(restaurantId, sessionOrder.id);
@@ -1314,7 +1314,7 @@ function MenuPageContent() {
   // Terminal orders restored from storage are cleared immediately without reopening the overlay.
   useEffect(() => {
     if (activeOrder?.id) {
-      const isTerminal = ["DELIVERED", "CANCELLED", "REJECTED"].includes(
+      const isTerminal = ["ACCEPTED", "REJECTED", "REJECTED"].includes(
         activeOrder.status,
       );
       if (isTerminal) {
@@ -1337,8 +1337,7 @@ function MenuPageContent() {
 
   useEffect(() => {
     if (
-      activeOrder?.status === "DELIVERED" ||
-      activeOrder?.status === "CANCELLED" ||
+      activeOrder?.status === "ACCEPTED" ||
       activeOrder?.status === "REJECTED"
     ) {
       // Remove the tracking flag and close the overlay after a brief delay
@@ -1348,7 +1347,7 @@ function MenuPageContent() {
           localStorage.removeItem(`hh_tracking_${slug}`);
           setShowOrder(false);
         },
-        activeOrder.status === "DELIVERED" ? 4000 : 1500,
+        activeOrder.status === "ACCEPTED" ? 4000 : 1500,
       );
       return () => clearTimeout(t);
     }
@@ -2451,7 +2450,7 @@ function MenuPageContent() {
       {/* Floating "Track Order" button — shown when order is active but overlay is closed */}
       {activeOrder &&
         !showOrder &&
-        !["DELIVERED", "CANCELLED", "REJECTED"].includes(
+        !["ACCEPTED", "REJECTED", "REJECTED"].includes(
           activeOrder.status,
         ) && (
           <button

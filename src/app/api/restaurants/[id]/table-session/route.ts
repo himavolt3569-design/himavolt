@@ -48,7 +48,7 @@ export async function POST(req: NextRequest, { params }: Params) {
       // Restore if still active OR if it has an order that isn't done yet
       const orderAlive =
         byToken.order &&
-        !["DELIVERED", "CANCELLED", "REJECTED"].includes(byToken.order.status);
+        !["ACCEPTED", "REJECTED", "REJECTED"].includes(byToken.order.status);
 
       if (byToken.isActive || orderAlive) {
         return NextResponse.json({ session: byToken, restored: true });
@@ -73,7 +73,7 @@ export async function POST(req: NextRequest, { params }: Params) {
       restaurantId,
       tableNo,
       order: {
-        status: { notIn: ["DELIVERED", "CANCELLED", "REJECTED"] },
+        status: { notIn: ["ACCEPTED", "REJECTED", "REJECTED"] },
       },
     },
     include: { order: { include: orderInclude } },
