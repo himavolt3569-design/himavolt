@@ -55,30 +55,7 @@ export async function canAcceptOrder(orderId: string): Promise<{
     return { allowed: false, reason: "Order not found" };
   }
 
-  // Customer QR/self-service orders (no staff session) bypass the gate when not
-  // prepaid — kitchen accepts immediately, billing reconciles payment async.
-  if (!order.processedByStaffId && !order.isPrepaid) {
-    return { allowed: true };
-  }
-
-  // No payment record — allow (legacy orders or manual flow)
-  if (!order.payment) {
-    return { allowed: true };
-  }
-
-  const { method, status } = order.payment;
-
-  // Payment completed — allow regardless of method
-  if ((PAID_STATUSES as readonly string[]).includes(status)) {
-    return { allowed: true };
-  }
-
-  const methodLabel = METHOD_LABELS[method] || method;
-
-  return {
-    allowed: false,
-    reason: `Payment must be verified before accepting this order. ${methodLabel} payment is ${status.toLowerCase().replace("_", " ")}.`,
-    paymentMethod: method,
-    paymentStatus: status,
-  };
+  // Bypass payment gate: kitchen should be able to accept any order immediately
+  // regardless of payment status (e.g., cash later, staff orders, etc.)
+  return { allowed: true };
 }
