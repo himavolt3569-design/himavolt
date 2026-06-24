@@ -46,6 +46,21 @@ export async function GET(
   let closed = false;
   let lastUpdatedAt = new Date(0);
 
+  // Whether this restaurant forces prepayment before an order reaches the
+  // kitchen. When prepaid is NOT forced (the order-first / pay-at-end model),
+  // unpaid PENDING dine-in orders are allowed into the live feed. Loaded once —
+  // it changes rarely and we don't want to re-query it every poll tick.
+  let prepaidEnabled = true;
+  try {
+    const r = await db.restaurant.findUnique({
+      where: { id },
+      select: { prepaidEnabled: true },
+    });
+    if (r) prepaidEnabled = r.prepaidEnabled !== false;
+  } catch {
+    /* default to prepaid-enabled (stricter) if the lookup fails */
+  }
+
   const stream = new ReadableStream({
     async start(controller) {
       const send = (data: string) => {
@@ -61,26 +76,52 @@ export async function GET(
         if (closed) return;
 
         try {
-          // Fetch active orders + recently completed (last 30 min)
-          // KITCHEN ONLY: PENDING orders only appear after payment is COMPLETED (biller verified)
+          // Fetch active orders + recently completed (last 30 min).
+          //
+          // This filter MUST stay in sync with the `live=1` branch of
+          // GET /api/restaurants/[id]/orders/route.ts — they feed the same
+          // live kitchen view and drifting them apart hides orders. In
+          // particular, a waiter's "Send to Kitchen" creates a PENDING order
+          // with an unpaid CASH/BANK payment row; that has to appear here.
           const cutoff = new Date(Date.now() - 30 * 60 * 1000);
+
+          const liveConditions: any[] = [
+            // PENDING after billing marks payment COMPLETED (all methods)
+            { status: "PENDING", payment: { status: "COMPLETED" } },
+            // Legacy orders without a payment record
+            { status: "PENDING", payment: { is: null } },
+            // Active orders (already went through the billing gate)
+            { status: { in: ["ACCEPTED", "PREPARING", "READY"] } },
+            { isHeld: true },
+            // Recently completed (kitchen history window)
+            {
+              status: { in: ["DELIVERED", "CANCELLED", "REJECTED"] },
+              updatedAt: { gte: cutoff },
+            },
+            // Waiter / QR orders paid in cash or by bank transfer at the table:
+            // they go to the kitchen first and are settled at the end.
+            {
+              status: "PENDING",
+              payment: { method: { in: ["CASH", "BANK"] }, status: "PENDING" },
+            },
+          ];
+
+          // Pay-at-end restaurants: any unpaid PENDING dine-in order is live.
+          if (!prepaidEnabled) {
+            liveConditions.push({
+              status: "PENDING",
+              payment: { status: "PENDING" },
+              type: "DINE_IN",
+            });
+          }
 
           const orders = await db.order.findMany({
             where: {
               restaurantId: id,
-              OR: [
-                // PENDING: only after billing marks payment COMPLETED (all methods)
-                { status: "PENDING", payment: { status: "COMPLETED" } },
-                { status: "PENDING", payment: { is: null } },
-                // Active orders (already went through billing gate)
-                { status: { in: ["ACCEPTED", "PREPARING", "READY"] } },
-                { isHeld: true },
-                // Recently completed
-                {
-                  status: { in: ["DELIVERED", "CANCELLED", "REJECTED"] },
-                  updatedAt: { gte: cutoff },
-                },
-              ],
+              // Fast Pay (DIRECT) and Manual Pay (COUNTER) counter sales never
+              // belong in the kitchen queue — mirror the live=1 exclusion.
+              NOT: { payment: { method: { in: ["DIRECT", "COUNTER"] } } },
+              OR: liveConditions,
             },
             select: {
               id: true,
