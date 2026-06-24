@@ -308,7 +308,7 @@ export default function KitchenBoard({
             <p className="text-xs text-[var(--text-3)] mt-1">New KOTs appear the moment guests order</p>
           </div>
         ) : (
-          <div className="grid gap-3 sm:grid-cols-2 2xl:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2">
             <AnimatePresence>
               {visible.map((o, idx) => {
                 const meta = typeMeta(o);
@@ -399,28 +399,31 @@ export default function KitchenBoard({
 
                     {/* Footer */}
                     <div className="flex items-center gap-2 px-4 py-3 border-t border-[var(--border-soft)]">
-                      <button
-                        onClick={() => updateStatus(o.id, "DELIVERED")}
-                        disabled={terminal}
-                        className="flex-1 rounded-xl bg-emerald-600 py-2.5 text-[13px] font-bold text-white hover:bg-emerald-700 transition-colors active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
-                      >
-                        Mark as Served
-                      </button>
+                      {!terminal && (
+                        <button
+                          onClick={() => updateStatus(o.id, "DELIVERED")}
+                          className="flex-1 whitespace-nowrap rounded-xl bg-emerald-600 px-3 py-2.5 text-[13px] font-bold text-white hover:bg-emerald-700 transition-colors active:scale-[0.98]"
+                        >
+                          Mark as Served
+                        </button>
+                      )}
                       <button
                         onClick={() => handlePrint(o)}
-                        className="flex items-center gap-1.5 rounded-xl border border-[var(--border)] px-3.5 py-2.5 text-[13px] font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors"
+                        className={`flex items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border border-[var(--border)] px-3.5 py-2.5 text-[13px] font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors ${terminal ? "flex-1" : ""}`}
                       >
                         <Printer className="h-4 w-4" /> Print
                       </button>
-                      <button
-                        onClick={() => {
-                          if (confirm(`Cancel order #${o.orderNo}?`)) updateStatus(o.id, "CANCELLED");
-                        }}
-                        aria-label="Cancel order"
-                        className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--border)] text-[var(--text-3)] hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-colors"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
+                      {!terminal && (
+                        <button
+                          onClick={() => {
+                            if (confirm(`Cancel order #${o.orderNo}?`)) updateStatus(o.id, "CANCELLED");
+                          }}
+                          aria-label="Cancel order"
+                          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[var(--border)] text-[var(--text-3)] hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-colors"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      )}
                     </div>
                   </motion.div>
                 );

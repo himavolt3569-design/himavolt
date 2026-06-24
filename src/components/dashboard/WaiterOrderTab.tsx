@@ -232,12 +232,63 @@ export default function WaiterOrderTab({ restaurantId }: { restaurantId: string 
   }
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 min-h-[calc(100vh-200px)]">
-      <div className="flex-1 space-y-4">
-        <div>
-          <h2 className="text-lg font-bold text-[var(--text-1)]">New Order</h2>
-          <p className="text-sm text-[var(--text-3)]">Browse menu and build the order</p>
+    <div className="space-y-4">
+      {/* Order context bar — table & guest pinned to the top for quick access */}
+      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--canvas)] p-3">
+        <h2 className="shrink-0 pr-1 text-base font-bold text-[var(--text-1)]">New Order</h2>
+        <div className="relative min-w-[200px] flex-1">
+          <button
+            onClick={() => setShowTablePicker(!showTablePicker)}
+            className="w-full flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-2.5 text-sm transition-all hover:border-[var(--accent-border)]"
+          >
+            <div className="flex items-center gap-2">
+              <TableProperties className="h-4 w-4 text-[var(--text-3)]" />
+              <span className={selectedTable ? "font-semibold text-[var(--text-1)]" : "text-[var(--text-3)]"}>
+                {selectedTable ? `Table ${selectedTable}` : "Select table (optional)"}
+              </span>
+            </div>
+            <ChevronDown className={`h-4 w-4 text-[var(--text-3)] transition-transform ${showTablePicker ? "rotate-180" : ""}`} />
+          </button>
+          <AnimatePresence>
+            {showTablePicker && (
+              <motion.div
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -5 }}
+                className="absolute top-full left-0 right-0 z-30 mt-1 rounded-xl border border-[var(--border)] bg-[var(--canvas)] shadow-lg overflow-hidden max-h-52 overflow-y-auto"
+              >
+                <button
+                  onClick={() => { setSelectedTable(null); setShowTablePicker(false); }}
+                  className="w-full px-4 py-2.5 text-left text-sm text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors"
+                >
+                  No table (Takeaway)
+                </button>
+                {tables.map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => { setSelectedTable(t.tableNo); setShowTablePicker(false); }}
+                    className={`w-full px-4 py-2.5 text-left text-sm font-medium hover:bg-[var(--accent-muted)] transition-colors ${
+                      selectedTable === t.tableNo ? "bg-[var(--accent-muted)] text-[var(--accent-text)]" : "text-[var(--text-2)]"
+                    }`}
+                  >
+                    Table {t.tableNo}{t.label ? ` — ${t.label}` : ""}
+                    <span className="ml-1 text-xs text-[var(--text-3)]">({t.capacity} pax)</span>
+                  </button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
+        <input
+          value={guestName}
+          onChange={(e) => setGuestName(e.target.value)}
+          placeholder="Guest name (optional)"
+          className="min-w-[160px] flex-1 rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] focus:bg-[var(--canvas)] transition-all"
+        />
+      </div>
+
+      <div className="flex flex-col lg:flex-row gap-6 min-h-[calc(100vh-260px)]">
+        <div className="flex-1 space-y-4">
 
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-3)]" />
@@ -306,75 +357,16 @@ export default function WaiterOrderTab({ restaurantId }: { restaurantId: string 
         )}
       </div>
 
-      {/* Right: Cart & order details */}
+      {/* Right: Cart & order details (table & guest live in the top bar) */}
       <div className="lg:w-80 space-y-4">
         <div className="rounded-2xl border border-[var(--border)] bg-[var(--canvas)] p-4">
-          <label className="text-xs font-bold text-[var(--text-2)] uppercase tracking-wider block mb-2">Table</label>
-          <div className="relative">
-            <button
-              onClick={() => setShowTablePicker(!showTablePicker)}
-              className="w-full flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-2.5 text-sm transition-all hover:border-[var(--accent-border)]"
-            >
-              <div className="flex items-center gap-2">
-                <TableProperties className="h-4 w-4 text-[var(--text-3)]" />
-                <span className={selectedTable ? "font-semibold text-[var(--text-1)]" : "text-[var(--text-3)]"}>
-                  {selectedTable ? `Table ${selectedTable}` : "Select table (optional)"}
-                </span>
-              </div>
-              <ChevronDown className={`h-4 w-4 text-[var(--text-3)] transition-transform ${showTablePicker ? "rotate-180" : ""}`} />
-            </button>
-            <AnimatePresence>
-              {showTablePicker && (
-                <motion.div
-                  initial={{ opacity: 0, y: -5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -5 }}
-                  className="absolute top-full left-0 right-0 z-30 mt-1 rounded-xl border border-[var(--border)] bg-[var(--canvas)] shadow-lg overflow-hidden max-h-52 overflow-y-auto"
-                >
-                  <button
-                    onClick={() => { setSelectedTable(null); setShowTablePicker(false); }}
-                    className="w-full px-4 py-2.5 text-left text-sm text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors"
-                  >
-                    No table (Takeaway)
-                  </button>
-                  {tables.map((t) => (
-                    <button
-                      key={t.id}
-                      onClick={() => { setSelectedTable(t.tableNo); setShowTablePicker(false); }}
-                      className={`w-full px-4 py-2.5 text-left text-sm font-medium hover:bg-[var(--accent-muted)] transition-colors ${
-                        selectedTable === t.tableNo ? "bg-[var(--accent-muted)] text-[var(--accent-text)]" : "text-[var(--text-2)]"
-                      }`}
-                    >
-                      Table {t.tableNo}{t.label ? ` — ${t.label}` : ""}
-                      <span className="ml-1 text-xs text-[var(--text-3)]">({t.capacity} pax)</span>
-                    </button>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
-
-        {/* Guest name & note */}
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--canvas)] p-4 space-y-3">
-          <div>
-            <label className="text-xs font-bold text-[var(--text-2)] uppercase tracking-wider block mb-1.5">Guest Name</label>
-            <input
-              value={guestName}
-              onChange={(e) => setGuestName(e.target.value)}
-              placeholder="Optional"
-              className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] focus:bg-[var(--canvas)] transition-all"
-            />
-          </div>
-          <div>
-            <label className="text-xs font-bold text-[var(--text-2)] uppercase tracking-wider block mb-1.5">Note</label>
-            <input
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder="e.g. No spicy, extra sauce"
-              className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] focus:bg-[var(--canvas)] transition-all"
-            />
-          </div>
+          <label className="text-xs font-bold text-[var(--text-2)] uppercase tracking-wider block mb-1.5">Note</label>
+          <input
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="e.g. No spicy, extra sauce"
+            className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] focus:bg-[var(--canvas)] transition-all"
+          />
         </div>
 
         <div className="rounded-2xl border border-[var(--border)] bg-[var(--canvas)] overflow-hidden">
@@ -454,6 +446,7 @@ export default function WaiterOrderTab({ restaurantId }: { restaurantId: string 
             Direct — I&apos;ll go to kitchen
           </button>
         </div>
+      </div>
       </div>
     </div>
   );
