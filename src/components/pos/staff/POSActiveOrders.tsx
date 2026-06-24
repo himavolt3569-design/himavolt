@@ -21,13 +21,10 @@ interface Props {
 const STATUS_CONFIG: Record<string, { label: string; border: string; badge: string; icon: typeof Clock }> = {
   PENDING:   { label: "New",       border: "border-l-orange-400",  badge: "bg-orange-100 text-orange-700",  icon: Bell },
   ACCEPTED:  { label: "Accepted",  border: "border-l-blue-400",    badge: "bg-blue-100 text-blue-700",      icon: CheckCircle2 },
-  PREPARING: { label: "Preparing", border: "border-l-amber-400",   badge: "bg-amber-100 text-amber-700",    icon: ChefHat },
-  READY:     { label: "Ready",     border: "border-l-green-400",   badge: "bg-[var(--accent-muted)] text-[#b25c1c]",    icon: CheckCircle2 },
-  DELIVERED: { label: "Delivered", border: "border-l-gray-300",    badge: "bg-[var(--surface)] text-[var(--text-2)]",      icon: Truck },
-  CANCELLED: { label: "Cancelled", border: "border-l-red-300",     badge: "bg-red-100 text-red-600",        icon: XCircle },
+  REJECTED:  { label: "Rejected", border: "border-l-red-300",     badge: "bg-red-100 text-red-600",        icon: XCircle },
 };
 
-const FILTER_STATUSES = ["ALL", "PENDING", "ACCEPTED", "PREPARING", "READY", "DELIVERED"];
+const FILTER_STATUSES = ["ALL", "PENDING", "ACCEPTED", "REJECTED"];
 
 async function staffFetch<T = unknown>(url: string, opts?: RequestInit): Promise<T> {
   const res = await fetch(url, { ...opts, credentials: "include", headers: { "Content-Type": "application/json", ...(opts?.headers || {}) } });
@@ -68,18 +65,8 @@ export default function POSActiveOrders({ restaurantId, currency, orders, connec
 
   const filtered = filter === "ALL" ? orders : orders.filter((o) => o.status === filter);
 
-  const nextStatus: Record<string, string> = {
-    PENDING: "ACCEPTED",
-    ACCEPTED: "PREPARING",
-    PREPARING: "READY",
-    READY: "DELIVERED",
-  };
-
   const actionLabels: Record<string, string> = {
     PENDING: "Accept",
-    ACCEPTED: "Start Preparing",
-    PREPARING: "Mark Ready",
-    READY: "Mark Delivered",
   };
 
   return (
@@ -145,7 +132,6 @@ export default function POSActiveOrders({ restaurantId, currency, orders, connec
               {filtered.map((order) => {
                 const cfg = STATUS_CONFIG[order.status] ?? STATUS_CONFIG.PENDING;
                 const Icon = cfg.icon;
-                const next = nextStatus[order.status];
                 return (
                   <motion.div
                     key={order.id}
@@ -192,7 +178,7 @@ export default function POSActiveOrders({ restaurantId, currency, orders, connec
                         )}
                       </div>
 
-                      {next && (() => {
+                      {(() => {
                         const isUnpaid = order.status === "PENDING" && order.payment && order.payment.status !== "COMPLETED";
                         return isUnpaid ? (
                           <div className="pt-2 space-y-2">
@@ -211,27 +197,45 @@ export default function POSActiveOrders({ restaurantId, currency, orders, connec
                             </div>
                             <button
                               onClick={() => updateStatus(order.id, "REJECTED")}
-                              className="w-full rounded-lg bg-red-50 border border-red-100 py-2 text-xs font-semibold text-red-600 hover:bg-red-100 transition-colors"
+                              className="w-full mt-2 rounded-lg bg-red-50 border border-red-100 py-2 text-xs font-semibold text-red-600 hover:bg-red-100 transition-colors"
                             >
                               Reject
                             </button>
                           </div>
                         ) : (
-                          <div className="flex gap-2 pt-2">
+                          <div className="flex gap-2 shrink-0 mt-4">
                             {order.status === "PENDING" && (
-                              <button
-                                onClick={() => updateStatus(order.id, "REJECTED")}
-                                className="flex-1 rounded-lg bg-red-50 border border-red-100 py-2 text-xs font-semibold text-red-600 hover:bg-red-100 transition-colors"
-                              >
-                                Reject
-                              </button>
+                              <>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    updateStatus(order.id, "ACCEPTED");
+                                  }}
+                                  className="flex-1 bg-[var(--text-1)] text-white font-bold py-3 rounded-xl hover:bg-[#2d1508] transition-colors"
+                                >
+                                  Accept
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    const reason = prompt("Enter reason for rejection:");
+                                    if (reason !== null) {
+                                      onOptimisticUpdate(order.id, { status: "REJECTED" as any });
+                                      staffFetch(`/api/restaurants/${restaurantId}/orders/${order.id}`, {
+                                        method: "PATCH",
+                                        body: JSON.stringify({ status: "REJECTED", rejectReason: reason }),
+                                      }).catch(() => {
+                                        setToast("Failed to reject order");
+                                        setTimeout(() => setToast(null), 4000);
+                                      });
+                                    }
+                                  }}
+                                  className="flex-1 border-2 border-red-200 text-red-500 font-bold py-3 rounded-xl hover:bg-red-50 transition-colors"
+                                >
+                                  Reject
+                                </button>
+                              </>
                             )}
-                            <button
-                              onClick={() => updateStatus(order.id, next)}
-                              className="flex-1 rounded-lg bg-amber-600 py-2 text-xs font-semibold text-white hover:bg-amber-500 transition-colors"
-                            >
-                              {actionLabels[order.status]}
-                            </button>
                           </div>
                         );
                       })()}

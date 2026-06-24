@@ -19,6 +19,8 @@ import {
   Loader2,
   Hourglass,
   Ban,
+  Filter,
+  XCircle,
 } from "lucide-react";
 import { apiFetch } from "@/lib/api-client";
 import { playSound } from "@/lib/sounds";
@@ -53,23 +55,19 @@ interface KdsOrder {
 
 /* ── Status model (per-order; mapped onto RestroX's 4 KOT states) ───── */
 
-type Pill = "all" | "pending" | "preparing" | "ready" | "completed" | "cancelled";
+type Pill = "all" | "pending" | "accepted" | "rejected";
 
 const PILL_STATUSES: Record<Exclude<Pill, "all">, string[]> = {
-  pending: ["PENDING", "ACCEPTED"],
-  preparing: ["PREPARING"],
-  ready: ["READY"],
-  completed: ["DELIVERED"],
-  cancelled: ["CANCELLED", "REJECTED"],
+  pending: ["PENDING"],
+  accepted: ["ACCEPTED"],
+  rejected: ["REJECTED"],
 };
 
 const PILLS: { id: Pill; label: string; dot: string }[] = [
   { id: "all", label: "All", dot: "bg-[var(--accent)]" },
   { id: "pending", label: "Pending", dot: "bg-amber-500" },
-  { id: "preparing", label: "Preparing", dot: "bg-violet-500" },
-  { id: "ready", label: "Ready to pick", dot: "bg-blue-500" },
-  { id: "completed", label: "Completed", dot: "bg-emerald-500" },
-  { id: "cancelled", label: "Cancelled", dot: "bg-red-500" },
+  { id: "accepted", label: "Accepted", dot: "bg-blue-500" },
+  { id: "rejected", label: "Rejected", dot: "bg-red-500" },
 ];
 
 function pillOf(status: string): Exclude<Pill, "all"> {
@@ -81,26 +79,18 @@ function pillOf(status: string): Exclude<Pill, "all"> {
 
 const PILL_META: Record<Exclude<Pill, "all">, { label: string; dot: string; text: string; bg: string }> = {
   pending: { label: "Pending", dot: "bg-amber-500", text: "text-amber-600", bg: "bg-amber-50" },
-  preparing: { label: "Preparing", dot: "bg-violet-500", text: "text-violet-600", bg: "bg-violet-50" },
-  ready: { label: "Ready to pick", dot: "bg-blue-500", text: "text-blue-600", bg: "bg-blue-50" },
-  completed: { label: "Completed", dot: "bg-emerald-500", text: "text-emerald-600", bg: "bg-emerald-50" },
-  cancelled: { label: "Cancelled", dot: "bg-red-500", text: "text-red-600", bg: "bg-red-50" },
+  accepted: { label: "Accepted", dot: "bg-blue-500", text: "text-blue-600", bg: "bg-blue-50" },
+  rejected: { label: "Rejected", dot: "bg-red-500", text: "text-red-600", bg: "bg-red-50" },
 };
 
-// The one-tap forward action for each order status (no timing, no payment gate).
 function nextAction(status: string): { label: string; to: string; icon: typeof Flame } | null {
-  if (status === "PENDING" || status === "ACCEPTED")
-    return { label: "Start Preparing", to: "PREPARING", icon: Flame };
-  if (status === "PREPARING") return { label: "Ready To Pick", to: "READY", icon: CheckCircle2 };
-  if (status === "READY") return { label: "Completed", to: "DELIVERED", icon: Check };
   return null;
 }
 
-const MODAL_STATUSES: { value: string; label: string; desc: string; icon: typeof Flame; tint: string }[] = [
+const MODAL_STATUSES: { value: string; label: string; desc: string; icon: typeof Hourglass; tint: string }[] = [
   { value: "PENDING", label: "Pending", desc: "Waiting for kitchen action", icon: Hourglass, tint: "text-amber-500 bg-amber-50" },
-  { value: "PREPARING", label: "Preparing", desc: "Being prepared in the kitchen", icon: Flame, tint: "text-violet-500 bg-violet-50" },
-  { value: "READY", label: "Ready to pick", desc: "Ready for pickup / serving", icon: CheckCircle2, tint: "text-blue-500 bg-blue-50" },
-  { value: "DELIVERED", label: "Completed", desc: "Served to the guest", icon: Check, tint: "text-emerald-500 bg-emerald-50" },
+  { value: "ACCEPTED", label: "Accepted", desc: "Accepted by kitchen", icon: CheckCircle2, tint: "text-blue-500 bg-blue-50" },
+  { value: "REJECTED", label: "Rejected", desc: "Rejected by kitchen", icon: XCircle, tint: "text-red-500 bg-red-50" },
 ];
 
 function timeAgo(iso: string): string {
@@ -141,7 +131,7 @@ export default function KitchenBoard({
   const [pill, setPill] = useState<Pill>("all");
   const [dishSearch, setDishSearch] = useState("");
   const [statusModalId, setStatusModalId] = useState<string | null>(null);
-  const [modalChoice, setModalChoice] = useState<string>("PREPARING");
+  const [modalChoice, setModalChoice] = useState<string>("ACCEPTED");
   const prevPending = useRef<number | null>(null);
 
   const load = useCallback(async () => {
@@ -178,13 +168,13 @@ export default function KitchenBoard({
   // Optimistic status change — flip the card instantly, PATCH in the background,
   // reconcile via realtime/load, roll back on failure.
   const updateStatus = useCallback(
-    async (orderId: string, status: string) => {
+    async (orderId: string, status: string, rejectReason?: string) => {
       const snapshot = orders;
       setOrders((cur) => cur.map((o) => (o.id === orderId ? { ...o, status } : o)));
       try {
         await apiFetch(`/api/restaurants/${restaurantId}/orders/${orderId}`, {
           method: "PATCH",
-          body: { status },
+          body: { status, rejectReason },
         });
         load();
       } catch (err) {
@@ -225,7 +215,7 @@ export default function KitchenBoard({
   }, [orders, autoPrintKOT, handlePrint]);
 
   const counts = useMemo(() => {
-    const c: Record<Pill, number> = { all: 0, pending: 0, preparing: 0, ready: 0, completed: 0, cancelled: 0 };
+    const c: Record<Pill, number> = { all: 0, pending: 0, accepted: 0, rejected: 0 };
     for (const o of orders) {
       c.all++;
       c[pillOf(o.status)]++;
@@ -241,7 +231,7 @@ export default function KitchenBoard({
   // Dish List — informational roll-up of dishes across the visible KOTs.
   const dishes = useMemo(() => {
     const map = new Map<string, { name: string; qty: number; kots: number; pill: Exclude<Pill, "all"> }>();
-    const rank: Exclude<Pill, "all">[] = ["pending", "preparing", "ready", "completed", "cancelled"];
+    const rank: Exclude<Pill, "all">[] = ["pending", "accepted", "rejected"];
     for (const o of visible) {
       const p = pillOf(o.status);
       for (const it of o.items) {
@@ -313,9 +303,7 @@ export default function KitchenBoard({
               {visible.map((o, idx) => {
                 const meta = typeMeta(o);
                 const TypeIcon = meta.icon;
-                const action = nextAction(o.status);
                 const sp = pillOf(o.status);
-                const terminal = ["DELIVERED", "CANCELLED", "REJECTED"].includes(o.status);
                 return (
                   <motion.div
                     key={o.id}
@@ -374,15 +362,6 @@ export default function KitchenBoard({
                           </div>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
-                          {action && (
-                            <button
-                              onClick={() => updateStatus(o.id, action.to)}
-                              className="flex items-center gap-1.5 rounded-lg border border-[var(--accent-border)] bg-[var(--accent-muted)] px-3 py-2 text-[12px] font-bold text-[var(--accent-text)] hover:bg-[var(--accent)] hover:text-white transition-colors active:scale-95"
-                            >
-                              <action.icon className="h-3.5 w-3.5" />
-                              {action.label}
-                            </button>
-                          )}
                           <button
                             onClick={() => {
                               setStatusModalId(o.id);
@@ -395,28 +374,43 @@ export default function KitchenBoard({
                           </button>
                         </div>
                       </div>
+                      {o.status === "PENDING" && (
+                          <div className="mt-4 flex gap-2">
+                            <button
+                              onClick={() => {
+                                updateStatus(o.id, "ACCEPTED");
+                              }}
+                              className="flex-1 bg-[var(--text-1)] text-white font-bold py-3 rounded-xl hover:bg-[#2d1508] transition-colors"
+                            >
+                              Accept
+                            </button>
+                            <button
+                              onClick={() => {
+                                const reason = prompt("Enter reason for rejection:");
+                                if (reason !== null) {
+                                  updateStatus(o.id, "REJECTED", reason);
+                                }
+                              }}
+                              className="flex-1 border-2 border-red-200 text-red-500 font-bold py-3 rounded-xl hover:bg-red-50 transition-colors"
+                            >
+                              Reject
+                            </button>
+                          </div>
+                        )}
                     </div>
 
                     {/* Footer */}
                     <div className="flex items-center gap-2 px-4 py-3 border-t border-[var(--border-soft)]">
-                      {!terminal && (
                         <button
-                          onClick={() => updateStatus(o.id, "DELIVERED")}
-                          className="flex-1 whitespace-nowrap rounded-xl bg-emerald-600 px-3 py-2.5 text-[13px] font-bold text-white hover:bg-emerald-700 transition-colors active:scale-[0.98]"
+                          onClick={() => handlePrint(o)}
+                          className="flex items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border border-[var(--border)] px-3.5 py-2.5 text-[13px] font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors flex-1"
                         >
-                          Mark as Served
-                        </button>
-                      )}
-                      <button
-                        onClick={() => handlePrint(o)}
-                        className={`flex items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border border-[var(--border)] px-3.5 py-2.5 text-[13px] font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors ${terminal ? "flex-1" : ""}`}
-                      >
                         <Printer className="h-4 w-4" /> Print
                       </button>
-                      {!terminal && (
+                      {o.status !== "REJECTED" && (
                         <button
                           onClick={() => {
-                            if (confirm(`Cancel order #${o.orderNo}?`)) updateStatus(o.id, "CANCELLED");
+                            if (confirm(`Cancel order #${o.orderNo}?`)) updateStatus(o.id, "REJECTED");
                           }}
                           aria-label="Cancel order"
                           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[var(--border)] text-[var(--text-3)] hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-colors"
