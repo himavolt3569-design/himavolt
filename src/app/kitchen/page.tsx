@@ -42,6 +42,7 @@ import { restaurantOrdersTopic } from "@/lib/realtime-topics";
 import { apiFetch } from "@/lib/api-client";
 import { formatPrice } from "@/lib/currency";
 import { printKOT } from "@/lib/print-kot";
+import KitchenBoard from "@/components/kitchen/KitchenBoard";
 import {
   getFeatureTabsForType,
   type FeatureTabId,
@@ -2390,7 +2391,7 @@ export default function KitchenPage() {
             transition={{ duration: 0.2 }}
           >
             {activeTab === "orders" && (
-              <OrdersTab
+              <KitchenBoard
                 restaurantId={session.restaurantId}
                 currency={session.currency ?? "NPR"}
                 restaurantName={session.restaurantName}
