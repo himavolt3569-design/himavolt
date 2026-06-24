@@ -60,7 +60,7 @@ export async function POST(
   await Promise.all([
     db.payment.updateMany({
       where: { orderId, status: { in: ["PENDING", "AWAITING_VERIFICATION"] } },
-      data: { status: "REJECTED" },
+      data: { status: "FAILED" },
     }),
     restoreStock(order.items).catch((err: unknown) => {
       console.error("[Orders cancel] restoreStock failed:", err);

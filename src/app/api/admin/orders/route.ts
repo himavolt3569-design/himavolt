@@ -102,7 +102,7 @@ export async function GET(req: NextRequest) {
           SELECT o.id, o."orderNo", o."tableNo", o."roomNo", o.status, o.type,
                  o.subtotal, o.tax, o.total, o."deliveryFee", o."deliveryAddress",
                  o."createdAt", o."updatedAt", o."userId", o."restaurantId",
-                 o."acceptedAt", o."preparingAt", o."readyAt", o."deliveredAt"
+                 o."acceptedAt"
           FROM orders o
           ORDER BY o."createdAt" DESC
           LIMIT ${limit} OFFSET ${offset}
@@ -202,9 +202,6 @@ export async function PATCH(req: NextRequest) {
 
   const timestampField: Record<string, string> = {
     ACCEPTED: "acceptedAt",
-    PREPARING: "preparingAt",
-    READY: "readyAt",
-    DELIVERED: "deliveredAt",
   };
 
   const updateData: Record<string, unknown> = { status };

@@ -201,14 +201,14 @@ export async function PATCH(
     if (status === "ACCEPTED") {
       await db.delivery.update({
         where: { orderId },
-        data: { status: "ACCEPTED", deliveredAt: new Date() },
+        data: { status: "DELIVERED", deliveredAt: new Date() },
       });
     }
     if (status === "REJECTED") {
       await db.delivery.update({
         where: { orderId },
         data: {
-          status: "REJECTED",
+          status: "CANCELLED",
           cancelledAt: new Date(),
           cancelReason: `Order ${status.toLowerCase()}`,
         },

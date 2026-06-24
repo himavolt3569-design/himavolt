@@ -597,9 +597,6 @@ export const POST = safeHandler(
         ? {
             status: "ACCEPTED" as const,
             acceptedAt: orderTimestamp,
-            preparingAt: orderTimestamp,
-            readyAt: orderTimestamp,
-            deliveredAt: orderTimestamp,
           }
         : autoAccept && staffAuthorisedAutoAccept
           ? { status: "ACCEPTED" as const, acceptedAt: orderTimestamp }
@@ -611,7 +608,6 @@ export const POST = safeHandler(
       total,
       note: note ? note.slice(0, 500) : null,
       type: orderType,
-      estimatedTime: totalPrepTime,
       restaurantId: id,
       userId: userId ?? null,
       deliveryAddress:

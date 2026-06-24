@@ -8,37 +8,29 @@ import { restoreStock } from "@/lib/stock";
 /**
  * POST /api/restaurants/[id]/orders/cleanup
  *
- * Auto-cleanup stale orders that have been stuck in various statuses.
+ * Auto-cleanup stale orders that have been stuck in PENDING or ACCEPTED.
  * Accessible by restaurant owner or staff with manager/cashier roles.
  *
  * Default thresholds (overridable via request body):
- *   - PENDING  (paid but not accepted): 30 minutes  → auto-reject
- *   - ACCEPTED (not started):           2 hours     → auto-cancel
- *   - PREPARING (stuck cooking):        4 hours     → auto-mark READY
- *   - READY (not picked up):            1 hour      → auto-mark DELIVERED
+ *   - PENDING  (not accepted/rejected): 30 minutes  → auto-reject
+ *   - ACCEPTED (sitting too long):      2 hours     → auto-reject
  */
 
 interface CleanupRules {
   pendingTimeoutMins: number;
   acceptedTimeoutMins: number;
-  preparingTimeoutMins: number;
-  readyTimeoutMins: number;
 }
 
 const DEFAULT_RULES: CleanupRules = {
   pendingTimeoutMins: 30,
   acceptedTimeoutMins: 120,
-  preparingTimeoutMins: 240,
-  readyTimeoutMins: 60,
 };
 
 interface CleanupResult {
   status: string;
   counts: {
     pendingRejected: number;
-    acceptedCancelled: number;
-    preparingMarkedReady: number;
-    readyMarkedDelivered: number;
+    acceptedRejected: number;
   };
   details: Array<{
     orderId: string;
@@ -88,9 +80,7 @@ export async function POST(
     status: "completed",
     counts: {
       pendingRejected: 0,
-      acceptedCancelled: 0,
-      preparingMarkedReady: 0,
-      readyMarkedDelivered: 0,
+      acceptedRejected: 0,
     },
     details: [],
   };
@@ -109,7 +99,7 @@ export async function POST(
   for (const order of stalePending) {
     await db.order.update({
       where: { id: order.id },
-      data: { status: "REJECTED" },
+      data: { status: "REJECTED", rejectReason: "Auto-rejected: order timed out" },
     });
     // Cancel pending payments
     await db.payment.updateMany({
@@ -130,7 +120,7 @@ export async function POST(
     });
   }
 
-  // 2. ACCEPTED orders older than threshold → CANCELLED
+  // 2. ACCEPTED orders older than threshold → REJECTED
   const acceptedCutoff = new Date(now - rules.acceptedTimeoutMins * 60 * 1000);
   const staleAccepted = await db.order.findMany({
     where: {
@@ -144,16 +134,16 @@ export async function POST(
   for (const order of staleAccepted) {
     await db.order.update({
       where: { id: order.id },
-      data: { status: "REJECTED" },
+      data: { status: "REJECTED", rejectReason: "Auto-rejected: order stuck too long" },
     });
     await db.payment.updateMany({
       where: { orderId: order.id, status: { in: ["PENDING", "AWAITING_VERIFICATION"] } },
-      data: { status: "FAILED", rejectionNote: "Auto-cancelled: order stuck too long" },
+      data: { status: "FAILED", rejectionNote: "Auto-rejected: order stuck too long" },
     }).catch(() => {});
     restoreStock(order.items).catch(() => {});
 
     const ageMins = Math.floor((now - new Date(order.updatedAt).getTime()) / 60000);
-    result.counts.acceptedCancelled++;
+    result.counts.acceptedRejected++;
     result.details.push({
       orderId: order.id,
       orderNo: order.orderNo,
@@ -163,72 +153,16 @@ export async function POST(
     });
   }
 
-  // 3. PREPARING orders older than threshold → READY
-  const preparingCutoff = new Date(now - rules.preparingTimeoutMins * 60 * 1000);
-  const stalePreparing = await db.order.findMany({
-    where: {
-      restaurantId: id,
-      status: "ACCEPTED",
-      updatedAt: { lt: preparingCutoff },
-    },
-    select: { id: true, orderNo: true, updatedAt: true },
-  });
-
-  for (const order of stalePreparing) {
-    await db.order.update({
-      where: { id: order.id },
-      data: { status: "ACCEPTED",  },
-    });
-    const ageMins = Math.floor((now - new Date(order.updatedAt).getTime()) / 60000);
-    result.counts.preparingMarkedReady++;
-    result.details.push({
-      orderId: order.id,
-      orderNo: order.orderNo,
-      previousStatus: "ACCEPTED",
-      newStatus: "ACCEPTED",
-      ageMinutes: ageMins,
-    });
-  }
-
-  // 4. READY orders older than threshold → DELIVERED
-  const readyCutoff = new Date(now - rules.readyTimeoutMins * 60 * 1000);
-  const staleReady = await db.order.findMany({
-    where: {
-      restaurantId: id,
-      status: "ACCEPTED",
-      updatedAt: { lt: readyCutoff },
-    },
-    select: { id: true, orderNo: true, updatedAt: true },
-  });
-
-  for (const order of staleReady) {
-    await db.order.update({
-      where: { id: order.id },
-      data: { status: "ACCEPTED",  },
-    });
-    const ageMins = Math.floor((now - new Date(order.updatedAt).getTime()) / 60000);
-    result.counts.readyMarkedDelivered++;
-    result.details.push({
-      orderId: order.id,
-      orderNo: order.orderNo,
-      previousStatus: "ACCEPTED",
-      newStatus: "ACCEPTED",
-      ageMinutes: ageMins,
-    });
-  }
-
   const totalCleaned =
     result.counts.pendingRejected +
-    result.counts.acceptedCancelled +
-    result.counts.preparingMarkedReady +
-    result.counts.readyMarkedDelivered;
+    result.counts.acceptedRejected;
 
   if (totalCleaned > 0) {
     logAudit({
       action: "ORDER_CLEANUP",
       entity: "Order",
       entityId: id,
-      detail: `Auto-cleanup: ${totalCleaned} stale orders resolved (${result.counts.pendingRejected} rejected, ${result.counts.acceptedCancelled} cancelled, ${result.counts.preparingMarkedReady} marked ready, ${result.counts.readyMarkedDelivered} delivered)`,
+      detail: `Auto-cleanup: ${totalCleaned} stale orders resolved (${result.counts.pendingRejected} pending rejected, ${result.counts.acceptedRejected} accepted rejected)`,
       metadata: result.counts,
       userId: actorId,
       restaurantId: id,
@@ -264,7 +198,7 @@ export async function GET(
 
   const now = Date.now();
 
-  const [stalePending, staleAccepted, stalePreparing, staleReady] = await Promise.all([
+  const [stalePending, staleAccepted] = await Promise.all([
     db.order.count({
       where: {
         restaurantId: id,
@@ -279,29 +213,13 @@ export async function GET(
         updatedAt: { lt: new Date(now - DEFAULT_RULES.acceptedTimeoutMins * 60 * 1000) },
       },
     }),
-    db.order.count({
-      where: {
-        restaurantId: id,
-        status: "ACCEPTED",
-        updatedAt: { lt: new Date(now - DEFAULT_RULES.preparingTimeoutMins * 60 * 1000) },
-      },
-    }),
-    db.order.count({
-      where: {
-        restaurantId: id,
-        status: "ACCEPTED",
-        updatedAt: { lt: new Date(now - DEFAULT_RULES.readyTimeoutMins * 60 * 1000) },
-      },
-    }),
   ]);
 
   return NextResponse.json({
     stale: {
       pending: stalePending,
       accepted: staleAccepted,
-      preparing: stalePreparing,
-      ready: staleReady,
-      total: stalePending + staleAccepted + stalePreparing + staleReady,
+      total: stalePending + staleAccepted,
     },
     thresholds: DEFAULT_RULES,
   });

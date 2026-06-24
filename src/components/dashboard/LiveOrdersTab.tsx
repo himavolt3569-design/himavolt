@@ -192,8 +192,6 @@ function StaleOrdersBanner({
     total: number;
     pending: number;
     accepted: number;
-    preparing: number;
-    ready: number;
   } | null>(null);
   const [cleaning, setCleaning] = useState(false);
   const [result, setResult] = useState<{ total: number } | null>(null);
@@ -207,8 +205,6 @@ function StaleOrdersBanner({
           total: number;
           pending: number;
           accepted: number;
-          preparing: number;
-          ready: number;
         };
       }>(`/api/restaurants/${restaurantId}/orders/cleanup`);
       setStaleData(data.stale);
@@ -230,16 +226,12 @@ function StaleOrdersBanner({
       const data = await apiFetch<{
         counts: {
           pendingRejected: number;
-          acceptedCancelled: number;
-          preparingMarkedReady: number;
-          readyMarkedDelivered: number;
+          acceptedRejected: number;
         };
       }>(`/api/restaurants/${restaurantId}/orders/cleanup`, { method: "POST" });
       const total =
         data.counts.pendingRejected +
-        data.counts.acceptedCancelled +
-        data.counts.preparingMarkedReady +
-        data.counts.readyMarkedDelivered;
+        data.counts.acceptedRejected;
       setResult({ total });
       await refresh();
       await fetchStale();
@@ -273,8 +265,6 @@ function StaleOrdersBanner({
   const parts: string[] = [];
   if (staleData.pending > 0) parts.push(`${staleData.pending} pending`);
   if (staleData.accepted > 0) parts.push(`${staleData.accepted} accepted`);
-  if (staleData.preparing > 0) parts.push(`${staleData.preparing} preparing`);
-  if (staleData.ready > 0) parts.push(`${staleData.ready} ready`);
 
   return (
     <motion.div
