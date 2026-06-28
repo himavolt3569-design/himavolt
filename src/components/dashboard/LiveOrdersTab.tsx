@@ -654,8 +654,8 @@ export default function LiveOrdersTab() {
         order={selectedOrder}
         currency={cur}
         onClose={() => setSelectedOrder(null)}
-        onAccept={(id, print) => {
-          acceptOrder(id, undefined, print);
+        onAccept={(id) => {
+          acceptOrder(id, undefined);
           setSelectedOrder(null);
         }}
         onReject={(id, reason) => {

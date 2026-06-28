@@ -26,8 +26,9 @@ import { apiFetch } from "@/lib/api-client";
 import { playSound } from "@/lib/sounds";
 import { useToast } from "@/context/ToastContext";
 import { useRealtimeSignal } from "@/hooks/useRealtimeSignal";
-import { restaurantOrdersTopic } from "@/lib/realtime-topics";
+import { restaurantKitchenTopic } from "@/lib/realtime-topics";
 import { printKOT } from "@/lib/print-kot";
+import { useKotPrintJobs } from "@/hooks/useKotPrintJobs";
 
 /* ── Types ─────────────────────────────────────────────────────────── */
 
@@ -163,7 +164,7 @@ export default function KitchenBoard({
   }, [load]);
 
   // Instant push via Supabase Realtime; the interval above is the fallback.
-  useRealtimeSignal(restaurantId ? restaurantOrdersTopic(restaurantId) : null, load);
+  useRealtimeSignal(restaurantId ? restaurantKitchenTopic(restaurantId) : null, load);
 
   // Optimistic status change — flip the card instantly, PATCH in the background,
   // reconcile via realtime/load, roll back on failure.
@@ -202,18 +203,7 @@ export default function KitchenBoard({
     [restaurantName, kitchenWidth],
   );
 
-  // Auto-print a KOT the first time an order enters the board (if enabled).
-  const printedRef = useRef<Set<string>>(new Set());
-  useEffect(() => {
-    if (!autoPrintKOT) return;
-    for (const o of orders) {
-      if (o.status === "PENDING" && !printedRef.current.has(o.id)) {
-        printedRef.current.add(o.id);
-        handlePrint(o);
-      }
-    }
-  }, [orders, autoPrintKOT, handlePrint]);
-
+  useKotPrintJobs(restaurantId);
   const counts = useMemo(() => {
     const c: Record<Pill, number> = { all: 0, pending: 0, accepted: 0, rejected: 0 };
     for (const o of orders) {

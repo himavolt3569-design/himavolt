@@ -13,10 +13,10 @@ import { apiFetch } from "@/lib/api-client";
 import { playSound } from "@/lib/sounds";
 import { useSSE } from "@/hooks/useSSE";
 import { useRealtimeSignal } from "@/hooks/useRealtimeSignal";
-import { restaurantOrdersTopic } from "@/lib/realtime-topics";
+import { useKotPrintJobs } from "@/hooks/useKotPrintJobs";
+import { restaurantKitchenTopic } from "@/lib/realtime-topics";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { resolvePrintSettings } from "@/lib/print-settings";
-import { printKOT } from "@/lib/print-kot";
 
 export type LiveOrderStatus =
   | "PENDING"
@@ -83,6 +83,8 @@ export function LiveOrdersProvider({ children }: { children: ReactNode }) {
   const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set());
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
   const isFirstMessage = useRef(true);
+  const printSettings = resolvePrintSettings(selectedRestaurant);
+  useKotPrintJobs(restaurantId, printSettings.autoPrintKOT);
 
   const sseUrl = restaurantId
     ? `/api/restaurants/${restaurantId}/orders/stream`
@@ -136,7 +138,7 @@ export function LiveOrdersProvider({ children }: { children: ReactNode }) {
   // no 3s wait. The SSE stream above stays connected as a fallback (and still
   // drives the new-order sound), so nothing breaks if Realtime is unavailable.
   useRealtimeSignal(
-    restaurantId ? restaurantOrdersTopic(restaurantId) : null,
+    restaurantId ? restaurantKitchenTopic(restaurantId) : null,
     fetchOrders,
   );
 
@@ -181,34 +183,14 @@ export function LiveOrdersProvider({ children }: { children: ReactNode }) {
   );
 
   const acceptOrder = useCallback(
-    async (id: string, estimatedTime?: number, forcePrint = false) => {
-      // Snapshot the order (with items) before it leaves the PENDING list.
-      const order = orders.find((o) => o.id === id);
-      const ok = await updateStatus(
+    async (id: string, estimatedTime?: number) => {
+      await updateStatus(
         id,
         "ACCEPTED",
         estimatedTime ? { estimatedTime } : undefined,
       );
-      // Print the kitchen ticket only on a confirmed accept (the PATCH can be
-      // rejected by the payment gate). Still inside the click's transient
-      // activation window, so the print popup is allowed.
-      if (ok && order) {
-        const s = resolvePrintSettings(selectedRestaurant);
-        if (forcePrint || s.autoPrintKOT) {
-          printKOT(
-            order.items.map((i) => ({ name: i.name, quantity: i.quantity })),
-            {
-              restaurantName: selectedRestaurant?.name,
-              tableNo: order.tableNo,
-              orderNo: order.orderNo,
-              guestName: order.user?.name ?? null,
-              width: s.kitchenWidth,
-            },
-          );
-        }
-      }
     },
-    [orders, updateStatus, selectedRestaurant],
+    [updateStatus],
   );
   const rejectOrder = useCallback(
     async (id: string, reason?: string) => {

@@ -358,6 +358,37 @@ export async function appendToOrder(
       });
       await deductStock(input.items, tx);
 
+      const existingOrder = await tx.order.findUnique({
+        where: { id: input.orderId },
+        select: { orderNo: true, tableNo: true, roomNo: true, guestName: true, sourceType: true, restaurant: { select: { name: true } } }
+      });
+
+      if (existingOrder) {
+        const kotPayload = {
+          restaurantName: existingOrder.restaurant.name,
+          orderNo: existingOrder.orderNo,
+          tableNo: existingOrder.tableNo,
+          roomNo: existingOrder.roomNo,
+          guestName: existingOrder.guestName,
+          note: input.note,
+          sourceType: existingOrder.sourceType,
+          items: input.items.map((it) => ({
+            name: it.name,
+            quantity: it.quantity,
+            drinkCategory: it.drinkCategory ?? null,
+          })),
+        };
+        await tx.printJob.create({
+          data: {
+            restaurantId: input.restaurantId,
+            orderId: input.orderId,
+            type: "KOT",
+            status: "PENDING",
+            payload: kotPayload,
+          },
+        });
+      }
+
       return bill.id;
     },
     { timeout: 20000, maxWait: 10000 },

@@ -14,6 +14,14 @@ export const orderTopic = (orderId: string) => `order:${orderId}`;
 export const restaurantOrdersTopic = (restaurantId: string) =>
   `restaurant:${restaurantId}:orders`;
 
+/** Topic specifically for kitchen operations (KOT, prep status). */
+export const restaurantKitchenTopic = (restaurantId: string) =>
+  `restaurant:${restaurantId}:kitchen`;
+
+/** Topic specifically for billing operations (payments, totals). */
+export const restaurantBillingTopic = (restaurantId: string) =>
+  `restaurant:${restaurantId}:billing`;
+
 /** Topic for a restaurant's hotel booking feed (Hotel Hub bookings tab). */
 export const restaurantBookingsTopic = (restaurantId: string) =>
   `restaurant:${restaurantId}:bookings`;
