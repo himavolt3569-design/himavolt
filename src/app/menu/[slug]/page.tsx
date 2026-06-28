@@ -2,7 +2,7 @@
 
 import { Suspense, useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
 const containerVariants = {
@@ -76,7 +76,6 @@ function loadGsap() {
 }
 import Link from "next/link";
 import type { PopupMenuItem } from "@/components/food/FoodDetailPopup";
-import OrderStatus from "@/components/shared/OrderStatus";
 import OrderPlacedPopup from "@/components/checkout/OrderPlacedPopup";
 import CartSidebar from "@/components/cart/CartSidebar";
 import FoodSlider from "@/components/menu/FoodSlider";
@@ -1004,6 +1003,7 @@ export default function MenuPage() {
 function MenuPageContent() {
   const params = useParams<{ slug: string }>();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const slug = params.slug;
   // Secure table identity: `?t=<qrToken>` is the unguessable token from the QR;
   // the real table number is resolved server-side from it so a guest can't edit
@@ -1028,10 +1028,6 @@ function MenuPageContent() {
   const [selectedDish, setSelectedDish] = useState<MenuItem | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
-  const [showOrder, setShowOrder] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return localStorage.getItem(`hh_tracking_${slug}`) === "1";
-  });
   const [showHistory, setShowHistory] = useState(false);
   const [showOrderPlaced, setShowOrderPlaced] = useState(false);
   const [lastTrackToken, setLastTrackToken] = useState<string | null>(null);
@@ -1312,62 +1308,6 @@ function MenuPageContent() {
     [slug],
   );
 
-  // Auto-show order tracking whenever an active (non-terminal) order is loaded or restored.
-  // Terminal orders restored from storage are cleared immediately without reopening the overlay.
-  useEffect(() => {
-    if (activeOrder?.id) {
-      const isTerminal = ["ACCEPTED", "REJECTED", "REJECTED"].includes(
-        activeOrder.status,
-      );
-      if (isTerminal) {
-        // Order was already done before the page was refreshed — don't reopen overlay
-        localStorage.removeItem(`hh_tracking_${slug}`);
-        setShowOrder(false);
-      } else if (
-        !checkoutOpen &&
-        !showOrderPlaced &&
-        activeOrder.id !== freshOrderIdRef.current
-      ) {
-        // Don't hijack the UI while checkout is open, while the "Order Received"
-        // popup is showing, or for a just-placed order the guest chose to keep
-        // browsing on. This still auto-opens the tracker for orders restored on
-        // page reload (where freshOrderIdRef is null).
-        setShowOrder(true);
-      }
-    }
-  }, [activeOrder?.id, slug, checkoutOpen, showOrderPlaced]); // only fires when the ORDER IDENTITY changes, not on every status poll
-
-  useEffect(() => {
-    if (
-      activeOrder?.status === "ACCEPTED" ||
-      activeOrder?.status === "REJECTED"
-    ) {
-      // Remove the tracking flag and close the overlay after a brief delay
-      // (delay BEFORE removal so refresh within window still shows final state)
-      const t = setTimeout(
-        () => {
-          localStorage.removeItem(`hh_tracking_${slug}`);
-          setShowOrder(false);
-        },
-        activeOrder.status === "ACCEPTED" ? 4000 : 1500,
-      );
-      return () => clearTimeout(t);
-    }
-  }, [activeOrder?.status, slug]);
-
-  // If the tracking overlay is open but the order hasn't been restored after the
-  // restaurant has fully loaded, the order is likely gone (deleted/expired).
-  // Wait until restaurantId is available so we don't time out during the restaurant
-  // data fetch itself, then give a generous window for the order API call.
-  useEffect(() => {
-    if (!showOrder || activeOrder || !restaurantId) return;
-    const t = setTimeout(() => {
-      localStorage.removeItem(`hh_tracking_${slug}`);
-      setShowOrder(false);
-    }, 12000); // 12s from when restaurant data is ready (enough for slow order API)
-    return () => clearTimeout(t);
-  }, [showOrder, activeOrder, restaurantId, slug]);
-
   const allCategories = restaurant?.categories ?? [];
   const categories = allCategories.filter((c) => !c.parentId);
   const activeParentCat = categories.find((c) => c.name === activeCategory);
@@ -1448,17 +1388,6 @@ function MenuPageContent() {
   // Don't hijack the page with order tracking while checkout is open —
   // digital payment flows (Bank details, eSewa/Khalti gateway) run inside
   // the CheckoutSheet which is rendered in the main JSX below.
-  if (showOrder && !checkoutOpen) {
-    if (!activeOrder) return null;
-    return (
-      <OrderStatus
-        onClose={() => {
-          localStorage.removeItem(`hh_tracking_${slug}`);
-          setShowOrder(false);
-        }}
-      />
-    );
-  }
 
   if (loading) {
     return (
@@ -2445,24 +2374,24 @@ function MenuPageContent() {
         onClose={() => setShowOrderPlaced(false)}
         onTrack={() => {
           setShowOrderPlaced(false);
-          setShowOrder(true);
+          if (lastTrackToken) router.push(`/order-track/${lastTrackToken}`);
         }}
         trackToken={lastTrackToken}
       />
 
-      {/* Floating "Track Order" button — shown when order is active but overlay is closed */}
+      {/* Floating "Track Order" button */}
       {activeOrder &&
-        !showOrder &&
+        activeOrder.trackToken &&
         !["ACCEPTED", "REJECTED", "REJECTED"].includes(
           activeOrder.status,
         ) && (
-          <button
-            onClick={() => setShowOrder(true)}
+          <Link
+            href={`/order-track/${activeOrder.trackToken}`}
             className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 rounded-full bg-[var(--text-1)] px-5 py-3 text-sm font-bold text-white shadow-xl shadow-[var(--text-1)]/30 hover:bg-[#2d1508] active:scale-95 transition-all"
           >
             <Receipt className="h-4 w-4" />
             Track Order · {activeOrder.orderNo}
-          </button>
+          </Link>
         )}
 
       {/* Customer chat — visible as soon as user lands on menu */}
