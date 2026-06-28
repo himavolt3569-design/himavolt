@@ -127,27 +127,28 @@ interface OrderContextType {
     }[],
     note?: string,
     idempotencyKey?: string,
+    tableSessionId?: string | null,
   ) => Promise<Order>;
   cancelOrder: () => void;
   restoreOrder: (restaurantId: string, orderId: string) => Promise<void>;
-  restoreFromStorage: (restaurantId: string, tableNo?: number) => Promise<void>;
+  restoreFromStorage: (restaurantId: string, tableSessionId?: string | null) => Promise<void>;
 }
 
-function orderStorageKey(restaurantId: string, tableNo?: number) {
-  return tableNo ? `hh_order_${restaurantId}_${tableNo}` : `hh_order_${restaurantId}`;
+function orderStorageKey(restaurantId: string, tableSessionId?: string | null) {
+  return `himavolt:lastTrackToken:${restaurantId}:${tableSessionId || "none"}`;
 }
 
-function saveOrderToStorage(restaurantId: string, orderId: string, tableNo?: number) {
+function saveOrderToStorage(restaurantId: string, trackToken: string, tableSessionId?: string | null) {
   if (typeof window === "undefined") return;
   try {
-    localStorage.setItem(orderStorageKey(restaurantId, tableNo), orderId);
+    localStorage.setItem(orderStorageKey(restaurantId, tableSessionId), trackToken);
   } catch { /* ignore */ }
 }
 
-function clearOrderStorage(restaurantId: string, tableNo?: number) {
+function clearOrderStorage(restaurantId: string, tableSessionId?: string | null) {
   if (typeof window === "undefined") return;
   try {
-    localStorage.removeItem(orderStorageKey(restaurantId, tableNo));
+    localStorage.removeItem(orderStorageKey(restaurantId, tableSessionId));
   } catch { /* ignore */ }
 }
 
@@ -228,7 +229,9 @@ export function OrderProvider({ children }: { children: ReactNode }) {
         },
       );
       setActiveOrder(order);
-      saveOrderToStorage(restaurantId, order.id, tableNo);
+      if (order.trackToken) {
+        saveOrderToStorage(restaurantId, order.trackToken, tableSessionId);
+      }
       prevStatusRef.current = null;
       setTrackUrl(`/api/track/stream?orderId=${order.id}`);
       return order;
@@ -248,6 +251,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
       }[],
       note?: string,
       idempotencyKey?: string,
+      tableSessionId?: string | null,
     ) => {
       const order = await apiFetch<Order>(
         `/api/restaurants/${restaurantId}/orders`,
@@ -260,6 +264,10 @@ export function OrderProvider({ children }: { children: ReactNode }) {
             type: "DINE_IN",
             paymentMethod: "CASH",
             idempotencyKey: idempotencyKey || undefined,
+            // Required so the server's session-ownership check passes for
+            // anonymous QR guests (canAccessOrder relies on tableSessionId
+            // matching the session linked to the order).
+            tableSessionId: tableSessionId || undefined,
           },
         },
       );
@@ -273,48 +281,63 @@ export function OrderProvider({ children }: { children: ReactNode }) {
 
   const cancelOrder = useCallback(() => {
     setTrackUrl(null);
-    if (activeOrder) {
-      clearOrderStorage(activeOrder.restaurantId, activeOrder.tableNo ?? undefined);
+    if (activeOrder && activeOrder.trackToken) {
+      // We don't have tableSessionId easily accessible here, but we could try to clear both?
+      // For now, orderStorageKey expects tableSessionId. The context doesn't store tableSessionId natively.
+      // But we can clear the "none" fallback.
+      clearOrderStorage(activeOrder.restaurantId, null);
     }
     prevStatusRef.current = null;
     setActiveOrder(null);
   }, [activeOrder]);
 
   const restoreOrder = useCallback(
-    async (restaurantId: string, orderId: string) => {
-      if (activeOrder?.id === orderId) return; // already loaded
+    async (restaurantId: string, trackToken: string) => {
+      if (activeOrder?.trackToken === trackToken) return; // already loaded
       try {
-        const order = await apiFetch<Order>(
-          `/api/restaurants/${restaurantId}/orders/${orderId}`,
-        );
+        const order = await apiFetch<Order>(`/api/order-track/${encodeURIComponent(trackToken)}`);
         if (order) {
           if (["ACCEPTED", "REJECTED", "REJECTED"].includes(order.status)) {
             // Terminal order — clear storage and don't restore as active
-            clearOrderStorage(restaurantId, order.tableNo ?? undefined);
+            // We can't clear easily without tableSessionId here, but we can clear "none".
+            clearOrderStorage(restaurantId, null);
             return;
           } else {
             setActiveOrder(order);
             prevStatusRef.current = order.status as OrderStatus;
-            setTrackUrl(`/api/track/stream?orderId=${order.id}`);
+            setTrackUrl(`/api/order-track/${encodeURIComponent(trackToken)}/stream`);
           }
         }
       } catch {
         throw new Error("restore_failed");
       }
     },
-    [activeOrder?.id],
+    [activeOrder?.trackToken],
   );
 
   const restoreFromStorage = useCallback(
-    async (restaurantId: string, tableNo?: number) => {
+    async (restaurantId: string, tableSessionId?: string | null) => {
       if (activeOrder) return; // already have an active order
       if (typeof window === "undefined") return;
-      const storedId = localStorage.getItem(orderStorageKey(restaurantId, tableNo));
-      if (storedId) {
+      let storedToken = localStorage.getItem(orderStorageKey(restaurantId, tableSessionId));
+      
+      // If we didn't find one for the specific session (or none), try to find ANY active token for this restaurant
+      if (!storedToken) {
+        const prefix = `himavolt:lastTrackToken:${restaurantId}:`;
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith(prefix)) {
+            storedToken = localStorage.getItem(key);
+            break;
+          }
+        }
+      }
+
+      if (storedToken) {
         try {
-          await restoreOrder(restaurantId, storedId);
+          await restoreOrder(restaurantId, storedToken);
         } catch {
-          clearOrderStorage(restaurantId, tableNo);
+          clearOrderStorage(restaurantId, tableSessionId);
         }
       }
     },

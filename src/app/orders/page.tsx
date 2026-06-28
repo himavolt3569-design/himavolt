@@ -247,7 +247,7 @@ function TableSessionOrderView() {
   // proactively restore their order from localStorage here.
   useEffect(() => {
     if (!activeOrder && activeSession?.restaurantId) {
-      restoreFromStorage(activeSession.restaurantId, activeSession.tableNo);
+      restoreFromStorage(activeSession.restaurantId);
     }
     if (activeSession?.restaurantId && activeSession.restaurantSlug) {
       initForRestaurant(activeSession.restaurantId, activeSession.restaurantSlug, "NPR");

@@ -142,7 +142,7 @@ interface CheckoutSheetProps {
   tableNo: number | null;
   roomNo?: string | null;
   tableSessionId?: string;
-  onOrderPlaced: (orderId: string) => void;
+  onOrderPlaced: (orderId: string, trackToken?: string | null) => void;
 }
 
 export default function CheckoutSheet({
@@ -404,6 +404,7 @@ export default function CheckoutSheet({
     setCouponError("");
     submitLockRef.current = false;
     idempotencyKeyRef.current = null;
+    setLoading(false);
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -492,12 +493,14 @@ export default function CheckoutSheet({
           })),
           note || undefined,
           idemKey,
+          tableSessionId,
         );
         // Items committed — a later distinct add should get a fresh key.
         idempotencyKeyRef.current = null;
+        setLoading(false);
         clearCart();
         onClose();
-        onOrderPlaced(order.id);
+        onOrderPlaced(order.id, order.trackToken);
         return;
       }
 
@@ -659,7 +662,7 @@ export default function CheckoutSheet({
 
       clearCart();
       onClose();
-      onOrderPlaced(order.id);
+      onOrderPlaced(order.id, order.trackToken);
     } catch (err) {
       // Failure: keep the cart intact, surface a retry message. The idempotency
       // key is intentionally NOT cleared, so a retry dedupes if the order had in

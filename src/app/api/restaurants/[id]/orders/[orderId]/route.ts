@@ -151,6 +151,7 @@ export async function PATCH(
 
   const timestamps: Record<string, Date> = {};
   if (status === "ACCEPTED") timestamps.acceptedAt = new Date();
+  if (status === "REJECTED") timestamps.rejectedAt = new Date();
 
   const order = await db.order.update({
     where: { id: orderId },
@@ -216,7 +217,7 @@ export async function PATCH(
     }
   }
 
-  // Restore stock and clean up payments when order is cancelled or rejected (non-fatal)
+  // Restore stock, cancel payments, and cancel unprinted KOT jobs when rejected (non-fatal)
   if (status === "REJECTED") {
     const orderWithItems = await db.order.findUnique({
       where: { id: orderId },
@@ -229,12 +230,24 @@ export async function PATCH(
     }
 
     // Cancel pending payments
-    db.payment.updateMany({
-      where: { orderId, status: { in: ["PENDING", "AWAITING_VERIFICATION"] } },
-      data: { status: "FAILED", rejectionNote: `Order ${status.toLowerCase()} by staff` },
-    }).catch((err) =>
-      console.error("[Orders PATCH] Payment cleanup failed (non-fatal):", err),
-    );
+    db.payment
+      .updateMany({
+        where: { orderId, status: { in: ["PENDING", "AWAITING_VERIFICATION"] } },
+        data: { status: "FAILED", rejectionNote: `Order rejected by staff` },
+      })
+      .catch((err) =>
+        console.error("[Orders PATCH] Payment cleanup failed (non-fatal):", err),
+      );
+
+    // Cancel unprinted KOT jobs so the printer doesn't fire after rejection
+    db.printJob
+      .updateMany({
+        where: { orderId, type: "KOT", status: { in: ["PENDING", "RETRYING"] } },
+        data: { status: "FAILED", lastError: "Order rejected by staff" },
+      })
+      .catch((err) =>
+        console.error("[Orders PATCH] PrintJob cancel failed (non-fatal):", err),
+      );
   }
 
   logAudit({

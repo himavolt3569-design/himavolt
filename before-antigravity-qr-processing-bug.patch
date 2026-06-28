@@ -1,0 +1,144 @@
+diff --git a/src/app/menu/[slug]/page.tsx b/src/app/menu/[slug]/page.tsx
+index 3135612..584d428 100644
+--- a/src/app/menu/[slug]/page.tsx
++++ b/src/app/menu/[slug]/page.tsx
+@@ -1034,6 +1034,7 @@ function MenuPageContent() {
+   });
+   const [showHistory, setShowHistory] = useState(false);
+   const [showOrderPlaced, setShowOrderPlaced] = useState(false);
++  const [lastTrackToken, setLastTrackToken] = useState<string | null>(null);
+   const [filterVeg, setFilterVeg] = useState(false);
+   const { isSignedIn } = useAuth();
+   const [filterNonVeg, setFilterNonVeg] = useState(false);
+@@ -1298,9 +1299,10 @@ function MenuPageContent() {
+   const freshOrderIdRef = useRef<string | null>(null);
+ 
+   const handleOrderPlaced = useCallback(
+-    (orderId: string) => {
++    (orderId: string, trackToken?: string | null) => {
+       freshOrderIdRef.current = orderId;
+       localStorage.setItem(`hh_tracking_${slug}`, "1");
++      setLastTrackToken(trackToken ?? null);
+       setCheckoutOpen(false);
+       // Show the instant "Order Received" popup instead of force-opening the
+       // tracker — the guest chooses to track or keep ordering (one running bill).
+@@ -2445,6 +2447,7 @@ function MenuPageContent() {
+           setShowOrderPlaced(false);
+           setShowOrder(true);
+         }}
++        trackToken={lastTrackToken}
+       />
+ 
+       {/* Floating "Track Order" button — shown when order is active but overlay is closed */}
+diff --git a/src/components/checkout/CheckoutSheet.tsx b/src/components/checkout/CheckoutSheet.tsx
+index 228335b..edfa654 100644
+--- a/src/components/checkout/CheckoutSheet.tsx
++++ b/src/components/checkout/CheckoutSheet.tsx
+@@ -142,7 +142,7 @@ interface CheckoutSheetProps {
+   tableNo: number | null;
+   roomNo?: string | null;
+   tableSessionId?: string;
+-  onOrderPlaced: (orderId: string) => void;
++  onOrderPlaced: (orderId: string, trackToken?: string | null) => void;
+ }
+ 
+ export default function CheckoutSheet({
+@@ -492,12 +492,13 @@ export default function CheckoutSheet({
+           })),
+           note || undefined,
+           idemKey,
++          tableSessionId,
+         );
+         // Items committed — a later distinct add should get a fresh key.
+         idempotencyKeyRef.current = null;
+         clearCart();
+         onClose();
+-        onOrderPlaced(order.id);
++        onOrderPlaced(order.id, order.trackToken);
+         return;
+       }
+ 
+@@ -659,7 +660,7 @@ export default function CheckoutSheet({
+ 
+       clearCart();
+       onClose();
+-      onOrderPlaced(order.id);
++      onOrderPlaced(order.id, order.trackToken);
+     } catch (err) {
+       // Failure: keep the cart intact, surface a retry message. The idempotency
+       // key is intentionally NOT cleared, so a retry dedupes if the order had in
+diff --git a/src/components/checkout/OrderPlacedPopup.tsx b/src/components/checkout/OrderPlacedPopup.tsx
+index 32f9d77..cc88303 100644
+--- a/src/components/checkout/OrderPlacedPopup.tsx
++++ b/src/components/checkout/OrderPlacedPopup.tsx
+@@ -2,6 +2,7 @@
+ 
+ import { motion, AnimatePresence } from "framer-motion";
+ import { CheckCircle2, ChefHat, ArrowRight, X } from "lucide-react";
++import { useRouter } from "next/navigation";
+ 
+ /**
+  * Instant "Order Received" confirmation shown the moment an order is placed —
+@@ -12,11 +13,15 @@ export default function OrderPlacedPopup({
+   open,
+   onClose,
+   onTrack,
++  trackToken,
+ }: {
+   open: boolean;
+   onClose: () => void;
+   onTrack: () => void;
++  /** When provided, "Track Order" navigates to /order-track/[trackToken] instead of the in-page overlay. */
++  trackToken?: string | null;
+ }) {
++  const router = useRouter();
+   return (
+     <AnimatePresence>
+       {open && (
+@@ -68,7 +73,14 @@ export default function OrderPlacedPopup({
+ 
+             <div className="mt-6 flex flex-col gap-2.5">
+               <button
+-                onClick={onTrack}
++                onClick={() => {
++                  if (trackToken) {
++                    onClose();
++                    router.push(`/order-track/${encodeURIComponent(trackToken)}`);
++                  } else {
++                    onTrack();
++                  }
++                }}
+                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] px-6 py-3 text-sm font-bold text-white hover:bg-[#2d1508] active:scale-[0.97] transition-all"
+               >
+                 Track Order
+diff --git a/src/context/OrderContext.tsx b/src/context/OrderContext.tsx
+index c8abccf..c343996 100644
+--- a/src/context/OrderContext.tsx
++++ b/src/context/OrderContext.tsx
+@@ -127,6 +127,7 @@ interface OrderContextType {
+     }[],
+     note?: string,
+     idempotencyKey?: string,
++    tableSessionId?: string | null,
+   ) => Promise<Order>;
+   cancelOrder: () => void;
+   restoreOrder: (restaurantId: string, orderId: string) => Promise<void>;
+@@ -248,6 +249,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
+       }[],
+       note?: string,
+       idempotencyKey?: string,
++      tableSessionId?: string | null,
+     ) => {
+       const order = await apiFetch<Order>(
+         `/api/restaurants/${restaurantId}/orders`,
+@@ -260,6 +262,10 @@ export function OrderProvider({ children }: { children: ReactNode }) {
+             type: "DINE_IN",
+             paymentMethod: "CASH",
+             idempotencyKey: idempotencyKey || undefined,
++            // Required so the server's session-ownership check passes for
++            // anonymous QR guests (canAccessOrder relies on tableSessionId
++            // matching the session linked to the order).
++            tableSessionId: tableSessionId || undefined,
+           },
+         },
+       );

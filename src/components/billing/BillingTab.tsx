@@ -265,12 +265,15 @@ function LiveBilling({
   const [staffReportDate, setStaffReportDate] = useState(
     new Date().toISOString().split("T")[0],
   );
+  const ordersRef = useRef<BillOrder[]>([]);
+  ordersRef.current = orders;
   const knownOrderIds = useRef<Set<string>>(new Set());
   const knownPaymentStatuses = useRef<Map<string, string>>(new Map());
+  const knownOrderTotals = useRef<Map<string, number>>(new Map());
   const isFirstSSE = useRef(true);
   const { data: streamData } = useSSE<{
     type: string;
-    orders?: { id: string; payment?: { method: string; status: string; proofUrl?: string | null } | null }[];
+    orders?: { id: string; orderNo: string; total: number; payment?: { method: string; status: string; proofUrl?: string | null } | null }[];
     newProofCount?: number;
   }>(
     restaurantId ? `/api/restaurants/${restaurantId}/billing/stream` : null,
@@ -353,6 +356,7 @@ function LiveBilling({
     isFirstSSE.current = true;
     knownOrderIds.current = new Set();
     knownPaymentStatuses.current = new Map();
+    knownOrderTotals.current = new Map();
     apiFetch<{
       taxRate: number;
       taxEnabled: boolean;
@@ -378,6 +382,7 @@ function LiveBilling({
       knownOrderIds.current = new Set(incoming.map((o) => o.id));
       incoming.forEach((o) => {
         if (o.payment?.status) knownPaymentStatuses.current.set(o.id, o.payment.status);
+        knownOrderTotals.current.set(o.id, o.total);
       });
       isFirstSSE.current = false;
       return;
@@ -400,34 +405,40 @@ function LiveBilling({
       if (prev === "PENDING" && curr === "AWAITING_VERIFICATION") {
         needsRefresh = true;
         playBillingAlert();
-        setOrders((currentOrders) => {
-          const fullOrder = currentOrders.find((ord) => ord.id === o.id);
-          showToast(
-            fullOrder
-              ? `Order #${fullOrder.orderNo} — Customer uploaded payment proof. Verify to send to kitchen.`
-              : "Customer uploaded payment proof — verification required",
-            "info",
-          );
-          return currentOrders;
-        });
+        const fullOrder = ordersRef.current.find((ord) => ord.id === o.id);
+        showToast(
+          fullOrder
+            ? `Order #${fullOrder.orderNo} — Customer uploaded payment proof. Verify to send to kitchen.`
+            : "Customer uploaded payment proof — verification required",
+          "info",
+        );
       }
 
       // Any status → COMPLETED: payment confirmed
       if (prev !== undefined && prev !== "COMPLETED" && curr === "COMPLETED") {
         needsRefresh = true;
         playBillingAlert();
-        setOrders((currentOrders) => {
-          const fullOrder = currentOrders.find((ord) => ord.id === o.id);
-          showToast(
-            fullOrder ? buildPaymentToast(fullOrder) : "Payment confirmed for a recent order",
-            "success",
-          );
-          return currentOrders;
-        });
+        const fullOrder = ordersRef.current.find((ord) => ord.id === o.id);
+        showToast(
+          fullOrder ? buildPaymentToast(fullOrder) : "Payment confirmed for a recent order",
+          "success",
+        );
+      }
+
+      // Detect total changes (customer added more items to the same running bill)
+      const prevTotal = knownOrderTotals.current.get(o.id);
+      if (prevTotal !== undefined && prevTotal !== o.total) {
+        needsRefresh = true;
+        playBillingAlert();
+        showToast(
+          `New items added to Order #${o.orderNo} (${formatPrice(o.total, selectedRestaurant?.currency ?? "NPR")})`,
+          "info"
+        );
       }
 
       // Update known statuses
       if (curr) knownPaymentStatuses.current.set(o.id, curr);
+      knownOrderTotals.current.set(o.id, o.total);
     }
 
     knownOrderIds.current = new Set(incoming.map((o) => o.id));

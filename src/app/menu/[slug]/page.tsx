@@ -1034,6 +1034,7 @@ function MenuPageContent() {
   });
   const [showHistory, setShowHistory] = useState(false);
   const [showOrderPlaced, setShowOrderPlaced] = useState(false);
+  const [lastTrackToken, setLastTrackToken] = useState<string | null>(null);
   const [filterVeg, setFilterVeg] = useState(false);
   const { isSignedIn } = useAuth();
   const [filterNonVeg, setFilterNonVeg] = useState(false);
@@ -1235,7 +1236,7 @@ function MenuPageContent() {
       } else {
         // No active session order (no session, terminal session, or sessionOrder still loading):
         // always fall back to localStorage so the tracking overlay is recovered on refresh.
-        restoreFromStorage(restaurantId, tableNo ?? undefined);
+        restoreFromStorage(restaurantId, tableSession?.id ?? undefined);
       }
     }
   }, [
@@ -1298,9 +1299,10 @@ function MenuPageContent() {
   const freshOrderIdRef = useRef<string | null>(null);
 
   const handleOrderPlaced = useCallback(
-    (orderId: string) => {
+    (orderId: string, trackToken?: string | null) => {
       freshOrderIdRef.current = orderId;
       localStorage.setItem(`hh_tracking_${slug}`, "1");
+      setLastTrackToken(trackToken ?? null);
       setCheckoutOpen(false);
       // Show the instant "Order Received" popup instead of force-opening the
       // tracker — the guest chooses to track or keep ordering (one running bill).
@@ -2445,6 +2447,7 @@ function MenuPageContent() {
           setShowOrderPlaced(false);
           setShowOrder(true);
         }}
+        trackToken={lastTrackToken}
       />
 
       {/* Floating "Track Order" button — shown when order is active but overlay is closed */}

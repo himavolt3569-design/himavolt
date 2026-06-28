@@ -542,11 +542,19 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
             const name = tableName(table);
 
             return (
-              <motion.button
+              <motion.div
                 key={table.id}
                 layout
+                role="button"
+                tabIndex={0}
                 onClick={() => setSelected(table)}
-                className={`group relative rounded-2xl border-2 p-4 text-left transition-all hover:-translate-y-0.5 hover:shadow-md ${bgClass}`}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setSelected(table);
+                  }
+                }}
+                className={`group relative rounded-2xl border-2 p-4 text-left transition-all hover:-translate-y-0.5 hover:shadow-md cursor-pointer ${bgClass}`}
               >
                 {canManage && editId === table.id ? (
                   <div className="space-y-1.5" onClick={(e) => e.stopPropagation()}>
@@ -650,7 +658,7 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
                     <ChevronRight className="absolute bottom-3 right-3 h-3 w-3 text-[var(--text-3)]" />
                   </>
                 )}
-              </motion.button>
+              </motion.div>
             );
           })}
         </div>

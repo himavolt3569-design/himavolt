@@ -56,8 +56,10 @@ export async function GET(
     const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
     delete where.status;
 
-    // Exclude Manual Pay (COUNTER) and Fast Pay (DIRECT) entirely from Live Orders
+    // Exclude Manual Pay (COUNTER) and Fast Pay (DIRECT) from POS entirely
+    // so fast-pay walk-ins don't clog the kitchen queue.
     where.NOT = {
+      sourceType: "POS",
       payment: {
         method: {
           in: ["DIRECT", "COUNTER"]
@@ -77,10 +79,10 @@ export async function GET(
         status: { in: ["ACCEPTED", "REJECTED", "REJECTED"] },
         createdAt: { gte: twoHoursAgo },
       },
-      // QR customer orders with physical payment (CASH / BANK):
+      // QR customer orders with physical payment (CASH / BANK / COUNTER / DIRECT):
       {
         status: "PENDING",
-        payment: { method: { in: ["CASH", "BANK"] }, status: "PENDING" },
+        payment: { method: { in: ["CASH", "BANK", "COUNTER", "DIRECT"] }, status: "PENDING" },
       },
     ];
 
@@ -422,6 +424,17 @@ export const POST = safeHandler(
         where: { id: existing.id },
         include: { items: true, payment: true, bill: true, delivery: true },
       });
+
+      // Ensure trackToken exists for older orders that might not have one (Phase 2.5e fallback)
+      if (updated && !updated.trackToken) {
+        const { randomBytes } = require("crypto");
+        const trackToken = randomBytes(24).toString("hex");
+        await db.order.update({
+          where: { id: updated.id },
+          data: { trackToken },
+        });
+        updated.trackToken = trackToken;
+      }
 
       // ── Side effects AFTER commit only ──
       logAudit({
