@@ -136,7 +136,7 @@ export default function Navbar() {
                     Login
                   </Link>
                   <Link href="/sign-up" className={`rounded-xl bg-slate-900 px-5 py-2 text-xs font-black text-white hover:bg-slate-800 transition-all ${scrolled ? 'hidden' : 'block'}`}>
-                    Join
+                    Sign Up
                   </Link>
                 </div>
               )}
