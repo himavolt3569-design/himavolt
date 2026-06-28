@@ -15,10 +15,13 @@ import {
   TrendingDown,
   Box,
   Filter,
+  GlassWater,
 } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { formatPrice } from "@/lib/currency";
 import { apiFetch, peekApiCache } from "@/lib/api-client";
+import DrinksTab from "@/components/dashboard/DrinksTab";
 
 interface UsedInMenuItem {
   id: string;
@@ -57,9 +60,63 @@ const CATEGORIES = [
   "Snacks",
   "Other",
 ];
-const DRINK_CATEGORIES = ["Soft Drinks", "Hard Drinks", "Alcohol", "Juices", "Water", "Hot Beverages"];
+/**
+ * Stock page = two tabs: Stock (inventory) + Drinks (menu drinks). The Drinks
+ * page was merged in here; `/dashboard/drinks` deep-links open this page with
+ * the Drinks tab selected (see app/dashboard/[tab]/page.tsx).
+ */
+export default function StockTab({
+  initialStockTab,
+}: {
+  initialStockTab?: "stock" | "drinks";
+} = {}) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
 
-export default function StockTab() {
+  const initial: "stock" | "drinks" =
+    initialStockTab ?? (searchParams.get("tab") === "drinks" ? "drinks" : "stock");
+  const [tab, setTab] = useState<"stock" | "drinks">(initial);
+
+  const switchTab = (t: "stock" | "drinks") => {
+    setTab(t);
+    // Canonicalize the URL on the Stock route so the Drinks tab is shareable and
+    // the Stock nav item stays highlighted. (No-op on the legacy /drinks path.)
+    if (pathname.endsWith("/stock")) {
+      router.replace(t === "drinks" ? "/dashboard/stock?tab=drinks" : "/dashboard/stock", {
+        scroll: false,
+      });
+    }
+  };
+
+  return (
+    <div className="space-y-6 max-w-5xl mx-auto">
+      <div className="flex w-fit gap-1 rounded-xl bg-[var(--surface)] p-1">
+        {([
+          ["stock", "Stock", Package],
+          ["drinks", "Drinks", GlassWater],
+        ] as const).map(([id, label, Icon]) => (
+          <button
+            key={id}
+            onClick={() => switchTab(id)}
+            className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold transition-all ${
+              tab === id
+                ? "bg-[var(--canvas)] text-[var(--text-1)] shadow-sm"
+                : "text-[var(--text-2)] hover:text-[var(--text-1)]"
+            }`}
+          >
+            <Icon className="h-4 w-4" />
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {tab === "stock" ? <InventoryView /> : <DrinksTab />}
+    </div>
+  );
+}
+
+function InventoryView() {
   const { selectedRestaurant, restaurants } = useRestaurant();
   const restaurant = selectedRestaurant ?? restaurants[0];
   const cur = selectedRestaurant?.currency ?? "NPR";
@@ -514,10 +571,6 @@ function AddEditModal({
   const [costPerUnit, setCostPerUnit] = useState("");
   const [category, setCategory] = useState("General");
   const [notes, setNotes] = useState("");
-  const [isDrink, setIsDrink] = useState(false);
-  const [drinkCategory, setDrinkCategory] = useState("");
-  const [sellingPrice, setSellingPrice] = useState("");
-  const [showOnMenu, setShowOnMenu] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -530,10 +583,6 @@ function AddEditModal({
       setCostPerUnit(String(item.costPerUnit));
       setCategory(item.category);
       setNotes(item.notes ?? "");
-      setIsDrink(item.isDrink ?? false);
-      setDrinkCategory(item.drinkCategory ?? "");
-      setSellingPrice(item.sellingPrice != null ? String(item.sellingPrice) : "");
-      setShowOnMenu(item.showOnMenu ?? false);
     } else {
       setName("");
       setUnit("kg");
@@ -542,10 +591,6 @@ function AddEditModal({
       setCostPerUnit("");
       setCategory("General");
       setNotes("");
-      setIsDrink(false);
-      setDrinkCategory("");
-      setSellingPrice("");
-      setShowOnMenu(false);
     }
     setError("");
   }, [item, open]);
@@ -563,10 +608,13 @@ function AddEditModal({
         costPerUnit: costPerUnit === "" ? 0 : Number(costPerUnit),
         category,
         notes: notes.trim() || null,
-        isDrink,
-        drinkCategory: isDrink ? (drinkCategory || null) : null,
-        sellingPrice: sellingPrice === "" ? null : Number(sellingPrice),
-        showOnMenu,
+        // Drinks are managed in the dedicated Drinks tab now. Inventory items
+        // default to non-drink; on edit we preserve any existing flags so we
+        // never mutate legacy data by removing the toggles from this form.
+        isDrink: item?.isDrink ?? false,
+        drinkCategory: item?.drinkCategory ?? null,
+        sellingPrice: item?.sellingPrice ?? null,
+        showOnMenu: item?.showOnMenu ?? false,
       };
       if (item) {
         await apiFetch(
@@ -730,72 +778,11 @@ function AddEditModal({
                 />
               </div>
 
-              <div className="border-t border-[var(--border-soft)] pt-4">
-                <p className="text-sm font-bold text-[var(--text-1)] mb-3">Drink & Menu Settings</p>
-
-                <div className="flex items-center justify-between rounded-xl bg-purple-50/50 border border-purple-100 px-4 py-3 mb-3">
-                  <div>
-                    <p className="text-sm font-bold text-[var(--text-1)]">This is a drink</p>
-                    <p className="text-xs text-[var(--text-2)]">Mark this as a drink/beverage item</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setIsDrink(!isDrink)}
-                    className={`relative h-6 w-11 rounded-full transition-colors ${isDrink ? "bg-purple-500" : "bg-[var(--border)]"}`}
-                  >
-                    <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${isDrink ? "left-[calc(100%-1.375rem)]" : "left-0.5"}`} />
-                  </button>
-                </div>
-
-                {isDrink && (
-                  <div className="mb-3">
-                    <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">
-                      Drink Category
-                    </label>
-                    <select
-                      value={drinkCategory}
-                      onChange={(e) => setDrinkCategory(e.target.value)}
-                      className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
-                    >
-                      <option value="">Select category</option>
-                      {DRINK_CATEGORIES.map((c) => (
-                        <option key={c} value={c}>{c}</option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between rounded-xl bg-[#fef9ef]/50 border border-[var(--accent-border)] px-4 py-3 mb-3">
-                  <div>
-                    <p className="text-sm font-bold text-[var(--text-1)]">Show on customer menu</p>
-                    <p className="text-xs text-[var(--text-2)]">Display as purchasable item for customers</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setShowOnMenu(!showOnMenu)}
-                    className={`relative h-6 w-11 rounded-full transition-colors ${showOnMenu ? "bg-[var(--accent)]" : "bg-[var(--border)]"}`}
-                  >
-                    <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${showOnMenu ? "left-[calc(100%-1.375rem)]" : "left-0.5"}`} />
-                  </button>
-                </div>
-
-                {/* Selling Price (shown if showOnMenu is true) */}
-                {showOnMenu && (
-                  <div>
-                    <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">
-                      Selling Price
-                    </label>
-                    <input
-                      type="number"
-                      value={sellingPrice}
-                      onChange={(e) => setSellingPrice(e.target.value)}
-                      placeholder="0"
-                      min="0"
-                      className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
-                    />
-                  </div>
-                )}
-              </div>
+              <p className="text-xs text-[var(--text-3)]">
+                Selling drinks to customers? Add them in the{" "}
+                <span className="font-semibold text-[var(--text-2)]">Drinks</span> tab —
+                they appear on the menu automatically.
+              </p>
             </div>
 
             {error && (

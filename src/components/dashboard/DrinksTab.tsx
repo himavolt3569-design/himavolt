@@ -7,6 +7,7 @@ import {
   Coffee,
   Wine,
   Plus,
+  Pencil,
   Trash2,
   Loader2,
   Save,
@@ -37,6 +38,8 @@ interface DrinkItem {
   drinkCategory: DrinkCategory | null;
   stockEnabled: boolean;
   stockQuantity: number;
+  bottleCount: number | null;
+  volumeMl: number | null;
   categoryId: string;
 }
 
@@ -65,8 +68,12 @@ const BLANK_FORM = {
   description: "",
   price: "",
   drinkCategory: "COLD" as DrinkCategory,
-  stockEnabled: false,
+  bottleCount: "",
+  volumeMl: "",
+  // Orderable stock count — the field that auto-decrements on each order.
+  // Stock tracking turns ON implicitly when this has a value; blank = untracked.
   stockQuantity: "",
+  isAvailable: true,
   imageUrl: "",
 };
 
@@ -83,6 +90,7 @@ export default function DrinksTab() {
   const [categories, setCategories] = useState<MenuCategory[]>([]);
   const [loading, setLoading] = useState(() => !peekApiCache(drinksPath));
   const [showForm, setShowForm] = useState(false);
+  const [editingDrink, setEditingDrink] = useState<DrinkItem | null>(null);
   const [form, setForm] = useState(BLANK_FORM);
   const [submitting, setSubmitting] = useState(false);
   const [activeSection, setActiveSection] = useState<DrinkCategory | "ALL">("ALL");
@@ -133,37 +141,81 @@ export default function DrinksTab() {
     return sub?.id ?? parent.id;
   }, [categories, form.drinkCategory]);
 
-  const handleAddDrink = async () => {
+  const openAdd = () => {
+    setEditingDrink(null);
+    setForm(BLANK_FORM);
+    setShowForm(true);
+  };
+
+  const openEdit = (item: DrinkItem) => {
+    setEditingDrink(item);
+    setForm({
+      name: item.name,
+      description: item.description ?? "",
+      price: String(item.price),
+      drinkCategory: item.drinkCategory ?? "COLD",
+      bottleCount: item.bottleCount != null ? String(item.bottleCount) : "",
+      volumeMl: item.volumeMl != null ? String(item.volumeMl) : "",
+      stockQuantity: item.stockEnabled ? String(item.stockQuantity) : "",
+      isAvailable: item.isAvailable,
+      imageUrl: item.imageUrl ?? "",
+    });
+    setShowForm(true);
+  };
+
+  const closeForm = () => {
+    setShowForm(false);
+    setEditingDrink(null);
+  };
+
+  const handleSubmit = async () => {
     if (!restaurant || !form.name.trim() || !form.price) return;
 
     const categoryId = getDrinksCategoryId();
     if (!categoryId) {
-      showToast("Please generate categories for your place first (Menu tab → Generate Categories)", "error");
+      showToast("Add drink categories first (Menu tab) before adding drinks", "error");
       return;
     }
 
+    // Stock tracking is implicit: a stock count makes the drink stock-tracked
+    // (auto-decrements on order); leaving it blank sells it without tracking.
+    const stockTracked = form.stockQuantity.trim() !== "";
+    const payload = {
+      name: form.name.trim(),
+      description: form.description.trim() || "–",
+      price: parseFloat(form.price),
+      categoryId,
+      isDrink: true,
+      drinkCategory: form.drinkCategory,
+      bottleCount: form.bottleCount ? parseInt(form.bottleCount, 10) : null,
+      volumeMl: form.volumeMl ? parseInt(form.volumeMl, 10) : null,
+      stockEnabled: stockTracked,
+      stockQuantity: stockTracked ? parseFloat(form.stockQuantity || "0") : 0,
+      imageUrl: form.imageUrl || null,
+    };
+
     setSubmitting(true);
     try {
-      const newItem = await apiFetch<DrinkItem>(`/api/restaurants/${restaurant.id}/menu`, {
-        method: "POST",
-        body: {
-          name: form.name.trim(),
-          description: form.description.trim() || "–",
-          price: parseFloat(form.price),
-          categoryId,
-          isDrink: true,
-          drinkCategory: form.drinkCategory,
-          stockEnabled: form.stockEnabled,
-          stockQuantity: form.stockEnabled ? parseFloat(form.stockQuantity || "0") : 0,
-          imageUrl: form.imageUrl || undefined,
-        },
-      });
-      setDrinks((prev) => [...prev, newItem]);
+      if (editingDrink) {
+        const updated = await apiFetch<DrinkItem>(
+          `/api/restaurants/${restaurant.id}/menu/${editingDrink.id}`,
+          { method: "PATCH", body: { ...payload, isAvailable: form.isAvailable } },
+        );
+        setDrinks((prev) => prev.map((d) => (d.id === editingDrink.id ? updated : d)));
+        showToast(`${updated.name} updated`);
+      } else {
+        const newItem = await apiFetch<DrinkItem>(
+          `/api/restaurants/${restaurant.id}/menu`,
+          { method: "POST", body: payload },
+        );
+        setDrinks((prev) => [...prev, newItem]);
+        showToast(`${newItem.name} added to drinks!`);
+      }
       setForm(BLANK_FORM);
+      setEditingDrink(null);
       setShowForm(false);
-      showToast(`${newItem.name} added to drinks!`);
     } catch (err) {
-      showToast(err instanceof Error ? err.message : "Failed to add drink", "error");
+      showToast(err instanceof Error ? err.message : "Failed to save drink", "error");
     } finally {
       setSubmitting(false);
     }
@@ -221,11 +273,11 @@ export default function DrinksTab() {
         <div>
           <h2 className="text-lg font-bold text-[var(--text-1)]">Drinks</h2>
           <p className="text-sm text-[var(--text-3)]">
-            Manage Cold, Hot & Alcohol drinks with optional stock tracking.
+            Manage Cold, Hot & Alcohol drinks. Set a stock count to auto-track on orders.
           </p>
         </div>
         <button
-          onClick={() => setShowForm(true)}
+          onClick={openAdd}
           className="flex items-center gap-2 rounded-xl bg-[var(--accent-hover)] px-5 py-2.5 text-sm font-bold text-white hover:bg-[var(--accent-hover)] shadow-md shadow-[var(--accent)]/20/20 transition-all active:scale-[0.97]"
         >
           <Plus className="h-4 w-4" />
@@ -259,7 +311,7 @@ export default function DrinksTab() {
         {showForm && (
           <>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              onClick={() => setShowForm(false)}
+              onClick={closeForm}
               className="fixed inset-0 z-50 bg-black/50 backdrop-blur-[2px]" />
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -269,8 +321,8 @@ export default function DrinksTab() {
               className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[95%] max-w-md rounded-2xl bg-[var(--canvas)] shadow-2xl overflow-y-auto max-h-[90vh]"
             >
               <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-soft)]">
-                <h3 className="text-base font-bold text-[var(--text-1)]">Add Drink Item</h3>
-                <button onClick={() => setShowForm(false)} className="rounded-full p-2 text-[var(--text-3)] hover:bg-[var(--surface)] transition-colors">
+                <h3 className="text-base font-bold text-[var(--text-1)]">{editingDrink ? "Edit Drink" : "Add Drink Item"}</h3>
+                <button onClick={closeForm} className="rounded-full p-2 text-[var(--text-3)] hover:bg-[var(--surface)] transition-colors">
                   <X className="h-4 w-4" />
                 </button>
               </div>
@@ -360,41 +412,82 @@ export default function DrinksTab() {
                   />
                 </div>
 
+                {/* Orderable stock — the single source of truth that decrements
+                    automatically on each order. Implicit tracking: a value here
+                    turns tracking ON; blank = sells without stock tracking. */}
                 <div className="rounded-xl border border-[var(--border)] p-3">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={form.stockEnabled}
-                      onChange={(e) => setForm((f) => ({ ...f, stockEnabled: e.target.checked }))}
-                      className="h-4 w-4 rounded accent-[var(--accent)]"
-                    />
-                    <span className="text-sm font-semibold text-[var(--text-2)] flex items-center gap-1.5">
-                      <Package className="h-4 w-4 text-[var(--text-3)]" />
-                      Track stock quantity
-                    </span>
+                  <label className="text-xs font-bold text-[var(--text-2)] uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
+                    <Package className="h-3.5 w-3.5 text-[var(--text-3)]" />
+                    Stock count (orderable)
                   </label>
-                  {form.stockEnabled && (
-                    <div className="mt-3">
-                      <label className="text-xs font-bold text-[var(--text-2)] uppercase tracking-wider block mb-1.5">Initial Stock</label>
-                      <input
-                        type="number"
-                        value={form.stockQuantity}
-                        onChange={(e) => setForm((f) => ({ ...f, stockQuantity: e.target.value }))}
-                        placeholder="e.g. 24"
-                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] focus:bg-[var(--canvas)] transition-all"
-                      />
-                      <p className="text-[11px] text-[var(--text-3)] mt-1">Stock will auto-decrease when orders include this drink.</p>
-                    </div>
-                  )}
+                  <input
+                    type="number"
+                    min="0"
+                    value={form.stockQuantity}
+                    onChange={(e) => setForm((f) => ({ ...f, stockQuantity: e.target.value }))}
+                    placeholder="e.g. 24"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] focus:bg-[var(--canvas)] transition-all"
+                  />
+                  <p className="text-[11px] text-[var(--text-3)] mt-1.5">
+                    {form.stockQuantity.trim() !== ""
+                      ? "Auto-decreases by 1 per unit ordered. Hits 0 → hidden from the menu."
+                      : "Leave blank to sell without stock tracking (never auto-decrements)."}
+                  </p>
                 </div>
 
+                {/* Reference-only packaging info — NOT used for decrement. */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-bold text-[var(--text-2)] uppercase tracking-wider block mb-1.5">Bottles <span className="font-normal normal-case text-[var(--text-3)]">(ref)</span></label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={form.bottleCount}
+                      onChange={(e) => setForm((f) => ({ ...f, bottleCount: e.target.value }))}
+                      placeholder="e.g. 24"
+                      className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] focus:bg-[var(--canvas)] transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-[var(--text-2)] uppercase tracking-wider block mb-1.5">Volume (ml) <span className="font-normal normal-case text-[var(--text-3)]">(ref)</span></label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={form.volumeMl}
+                      onChange={(e) => setForm((f) => ({ ...f, volumeMl: e.target.value }))}
+                      placeholder="e.g. 250"
+                      className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] focus:bg-[var(--canvas)] transition-all"
+                    />
+                  </div>
+                  <p className="col-span-2 text-[11px] text-[var(--text-3)] -mt-1">
+                    For your records only — bottles/ml are <strong>not</strong> deducted when drinks are ordered.
+                  </p>
+                </div>
+
+                {/* Availability is editable on existing drinks. */}
+                {editingDrink && (
+                  <div className="flex items-center justify-between rounded-xl border border-[var(--border)] px-4 py-3">
+                    <div>
+                      <p className="text-sm font-bold text-[var(--text-1)]">Available on menu</p>
+                      <p className="text-xs text-[var(--text-3)]">Turn off to hide without deleting.</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setForm((f) => ({ ...f, isAvailable: !f.isAvailable }))}
+                      className={`relative h-6 w-11 rounded-full transition-colors ${form.isAvailable ? "bg-[var(--accent)]" : "bg-[var(--border)]"}`}
+                    >
+                      <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${form.isAvailable ? "left-[calc(100%-1.375rem)]" : "left-0.5"}`} />
+                    </button>
+                  </div>
+                )}
+
                 <button
-                  onClick={handleAddDrink}
+                  onClick={handleSubmit}
                   disabled={!form.name.trim() || !form.price || submitting}
                   className="w-full rounded-xl bg-[var(--accent-hover)] py-3 text-sm font-bold text-white hover:bg-[var(--accent-hover)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-                  {submitting ? "Adding..." : "Add Drink"}
+                  {submitting ? "Saving..." : editingDrink ? "Save Changes" : "Add Drink"}
                 </button>
               </div>
             </motion.div>
@@ -448,6 +541,18 @@ export default function DrinksTab() {
                           Low stock ({item.stockQuantity})
                         </span>
                       )}
+                      {!item.isAvailable && (
+                        <span className="rounded-full bg-[var(--surface)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--text-3)]">
+                          Unavailable
+                        </span>
+                      )}
+                      {(item.bottleCount != null || item.volumeMl != null) && (
+                        <span className="text-[10px] text-[var(--text-3)]">
+                          {[item.bottleCount != null ? `${item.bottleCount} btl` : null, item.volumeMl != null ? `${item.volumeMl}ml` : null]
+                            .filter(Boolean)
+                            .join(" · ")}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -473,6 +578,13 @@ export default function DrinksTab() {
                       )}
                     </div>
                   )}
+                  <button
+                    onClick={() => openEdit(item)}
+                    className="flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)] hover:text-[var(--text-1)] transition-colors"
+                    title="Edit"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </button>
                   <button
                     onClick={() => handleDelete(item)}
                     className="flex h-8 w-8 items-center justify-center rounded-xl bg-red-50 text-red-400 hover:bg-red-100 hover:text-red-600 transition-colors"

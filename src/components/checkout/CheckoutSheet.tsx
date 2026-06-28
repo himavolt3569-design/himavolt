@@ -187,6 +187,12 @@ export default function CheckoutSheet({
   const totalRef = useRef<HTMLSpanElement>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const paymentWindowRef = useRef<Window | null>(null);
+  // Hard re-entry guard against double-clicks before `loading` re-renders.
+  const submitLockRef = useRef(false);
+  // Stable idempotency key for the current logical submit. Kept across retries
+  // (so a retried request dedupes server-side) and cleared once an order is
+  // actually created, so a later distinct order gets a fresh key.
+  const idempotencyKeyRef = useRef<string | null>(null);
   const [waitingOrderId, setWaitingOrderId] = useState<string | null>(null);
   // "gateway" = waiting for eSewa/Khalti window; "staff-confirm" = waiting for staff to mark paid
   const [waitingReason, setWaitingReason] = useState<"gateway" | "staff-confirm">("gateway");
@@ -396,6 +402,8 @@ export default function CheckoutSheet({
     setCouponDiscount(0);
     setCouponApplied(false);
     setCouponError("");
+    submitLockRef.current = false;
+    idempotencyKeyRef.current = null;
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -450,13 +458,25 @@ export default function CheckoutSheet({
   };
 
   const handlePlaceOrder = async () => {
+    // Hard duplicate-submit guard: ignore re-entry while a submit is in flight.
+    if (loading || submitLockRef.current) return;
     if (items.length === 0 || !restaurantId) return;
     if (
       orderType === "DELIVERY" &&
       (!deliveryAddress.trim() || !deliveryPhone.trim())
     )
       return;
+    submitLockRef.current = true;
     setLoading(true);
+
+    // One stable idempotency key per logical submit (reused on retry).
+    if (!idempotencyKeyRef.current) {
+      idempotencyKeyRef.current =
+        typeof crypto !== "undefined" && crypto.randomUUID
+          ? crypto.randomUUID()
+          : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    }
+    const idemKey = idempotencyKeyRef.current;
 
     try {
       // For cash: add to existing active order if available
@@ -471,7 +491,10 @@ export default function CheckoutSheet({
             menuItemId: i.id,
           })),
           note || undefined,
+          idemKey,
         );
+        // Items committed — a later distinct add should get a fresh key.
+        idempotencyKeyRef.current = null;
         clearCart();
         onClose();
         onOrderPlaced(order.id);
@@ -503,7 +526,10 @@ export default function CheckoutSheet({
         roomNo || undefined,
         tableSessionId,
         couponApplied ? couponCode : undefined,
+        idemKey,
       );
+      // Order is committed — a later distinct order should get a fresh key.
+      idempotencyKeyRef.current = null;
 
       if (selectedPayment === "ESEWA") {
         const paymentRes = await apiFetch<{
@@ -635,8 +661,18 @@ export default function CheckoutSheet({
       onClose();
       onOrderPlaced(order.id);
     } catch (err) {
+      // Failure: keep the cart intact, surface a retry message. The idempotency
+      // key is intentionally NOT cleared, so a retry dedupes if the order had in
+      // fact been committed server-side.
       setLoading(false);
-      setPaymentError(err instanceof Error ? err.message : "Payment failed. Please try another method.");
+      setPaymentError(
+        err instanceof Error
+          ? err.message
+          : "Couldn't place your order. Please try again.",
+      );
+    } finally {
+      // Release the synchronous re-entry guard; `loading` still gates the UI.
+      submitLockRef.current = false;
     }
   };
 

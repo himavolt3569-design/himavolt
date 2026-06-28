@@ -29,6 +29,7 @@ import { useLiveOrders, type LiveOrder } from "@/context/LiveOrdersContext";
 import { apiFetch } from "@/lib/api-client";
 import { useToast } from "@/context/ToastContext";
 import { formatPrice } from "@/lib/currency";
+import { newIdempotencyKey } from "@/lib/idempotency";
 
 interface CounterStation {
   id: string;
@@ -137,6 +138,7 @@ export default function QuickCounterTab() {
           type: "TAKEAWAY",
           paymentMethod: "DIRECT",
           guestName: guestName.trim() || undefined,
+          idempotencyKey: newIdempotencyKey(),
           items: cart.map((c) => ({ menuItemId: c.menuItemId, quantity: c.quantity })),
         },
       });

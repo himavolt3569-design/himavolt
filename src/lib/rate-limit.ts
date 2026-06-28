@@ -110,6 +110,40 @@ export async function rateLimit(
   return inMemoryRateLimit(key, windowMs, max);
 }
 
+// ── Idempotency claim ─────────────────────────────────────────────────────────
+// One-shot claim used to dedupe operations that don't have a durable DB unique
+// (e.g. add-items-to-order). `claimOnce` returns true the FIRST time a key is
+// seen within the TTL and false afterwards; `releaseClaim` frees it so a failed
+// operation can be retried. Durable when Upstash is configured (production);
+// falls back to per-instance in-memory state for local dev.
+
+const claimBuckets = new Map<string, number>(); // key → expiry epoch ms
+
+export async function claimOnce(key: string, ttlSeconds: number): Promise<boolean> {
+  const r = getRedis();
+  if (r) {
+    const res = await r.set(key, "1", { nx: true, ex: ttlSeconds });
+    return res === "OK";
+  }
+  const now = Date.now();
+  const exp = claimBuckets.get(key);
+  if (exp && exp > now) return false;
+  claimBuckets.set(key, now + ttlSeconds * 1000);
+  if (claimBuckets.size > 10_000) {
+    for (const [k, e] of claimBuckets) if (e <= now) claimBuckets.delete(k);
+  }
+  return true;
+}
+
+export async function releaseClaim(key: string): Promise<void> {
+  const r = getRedis();
+  if (r) {
+    await r.del(key);
+    return;
+  }
+  claimBuckets.delete(key);
+}
+
 export function clientKey(req: Request, prefix: string): string {
   const h = req.headers;
   const ip =

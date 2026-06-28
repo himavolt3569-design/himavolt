@@ -13,6 +13,9 @@ import {
   Check,
   Copy,
   Sparkles,
+  BedDouble,
+  UtensilsCrossed,
+  type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -22,6 +25,7 @@ import {
   getTypeLabel,
   getFeatureTabsForType,
   isFeatureAvailable,
+  type FeatureTabId,
 } from "@/lib/restaurant-types";
 import {
   DashTab,
@@ -248,6 +252,105 @@ function NavItem({
   );
 }
 
+// A plain uppercase divider label for flat sections (Catalog / Team / More).
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="px-3 pt-4 pb-1 text-[10px] font-bold uppercase tracking-widest text-[var(--text-3)]">
+      {children}
+    </p>
+  );
+}
+
+// Collapsible sidebar group with a header + chevron. Used to split the dynamic
+// feature tabs into clearly separated Hotel vs Restaurant dropdowns. Open state
+// persists per group in localStorage so the owner's preference sticks.
+function NavGroup({
+  label,
+  icon: Icon,
+  items,
+  active,
+  newOrderCount,
+  onClose,
+  storageKey,
+}: {
+  label: string;
+  icon: LucideIcon;
+  items: { id: DashTab; label: string; icon: LucideIcon; badge?: string }[];
+  active: string;
+  newOrderCount: number;
+  onClose?: () => void;
+  storageKey: string;
+}) {
+  const lsKey = `himavolt:navgroup:${storageKey}`;
+  // SSR-safe lazy init: the dashboard sidebar only paints after client-side auth
+  // resolves, so reading the persisted open state here avoids both a flash and a
+  // setState-in-effect.
+  const [open, setOpen] = useState<boolean>(() => {
+    if (typeof window === "undefined") return true;
+    try {
+      const saved = window.localStorage.getItem(lsKey);
+      return saved == null ? true : saved === "1";
+    } catch {
+      return true;
+    }
+  });
+
+  const toggle = () => {
+    setOpen((prev) => {
+      const next = !prev;
+      try {
+        window.localStorage.setItem(lsKey, next ? "1" : "0");
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  };
+
+  // Keep an active group open even if the owner collapsed it, so the highlighted
+  // tab is never hidden.
+  const hasActive = items.some((i) => i.id === active);
+  const expanded = open || hasActive;
+
+  if (items.length === 0) return null;
+
+  return (
+    <div className="pt-2">
+      <button
+        onClick={toggle}
+        className="group flex w-full items-center gap-2 rounded-xl px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-[var(--text-3)] hover:text-[var(--text-1)] transition-colors"
+      >
+        <Icon className="h-3.5 w-3.5 shrink-0 text-[var(--text-3)] group-hover:text-[var(--accent)] transition-colors" />
+        <span className="flex-1 text-left">{label}</span>
+        <ChevronDown
+          className={`h-3.5 w-3.5 transition-transform duration-200 ${expanded ? "" : "-rotate-90"}`}
+        />
+      </button>
+      <AnimatePresence initial={false}>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.18 }}
+            className="overflow-hidden space-y-0.5"
+          >
+            {items.map((item) => (
+              <NavItem
+                key={item.id}
+                item={item}
+                active={active}
+                newOrderCount={newOrderCount}
+                onClose={onClose}
+              />
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 function SlugCopyStrip() {
   const { selectedRestaurant } = useRestaurant();
   const [copied, setCopied] = useState(false);
@@ -278,6 +381,14 @@ function SlugCopyStrip() {
     </button>
   );
 }
+
+// Feature ids that belong under the "Hotel" group in the sidebar. Everything
+// else in the dynamic feature set is treated as a restaurant feature.
+const HOTEL_FEATURE_IDS = new Set<FeatureTabId>([
+  ...HUB_FEATURE_IDS,
+  "room-service",
+  "guest-billing",
+]);
 
 export default function DashboardSidebar({
   newOrderCount,
@@ -333,6 +444,26 @@ export default function DashboardSidebar({
           })
         : false,
     [restaurantType, featuresEnabled, featuresDisabled],
+  );
+
+  // Split the dynamic feature tabs into Hotel vs Restaurant buckets so each gets
+  // its own collapsible dropdown. The Hotel group also picks up the dedicated
+  // Hotel Hub entry when the venue has it enabled.
+  const hotelGroupItems = useMemo(() => {
+    const items = featureNavItems.filter((f) =>
+      HOTEL_FEATURE_IDS.has(f.id as FeatureTabId),
+    );
+    return showHotelHub
+      ? [{ ...HOTEL_HUB_NAV_ITEM, id: HOTEL_HUB_NAV_ITEM.id as DashTab }, ...items]
+      : items;
+  }, [featureNavItems, showHotelHub]);
+
+  const restaurantGroupItems = useMemo(
+    () =>
+      featureNavItems.filter(
+        (f) => !HOTEL_FEATURE_IDS.has(f.id as FeatureTabId),
+      ),
+    [featureNavItems],
   );
 
   if (isCollapsed) {
@@ -434,14 +565,64 @@ export default function DashboardSidebar({
       />
 
       <nav className="flex-1 overflow-y-auto px-3 pb-2 scrollbar-slim space-y-0.5">
-        {[
-          ...NAV_MAIN,
-          ...(showHotelHub ? [HOTEL_HUB_NAV_ITEM] : []),
-          ...featureNavItems,
-          ...NAV_CATALOG,
-          ...NAV_PEOPLE,
-          ...NAV_MORE,
-        ].map((item) => (
+        {/* Core operations — always visible, flat. */}
+        {NAV_MAIN.map((item) => (
+          <NavItem
+            key={item.id}
+            item={item}
+            active={active}
+            newOrderCount={newOrderCount}
+            onClose={onClose}
+          />
+        ))}
+
+        {/* Hotel features — collapsible group. */}
+        <NavGroup
+          label="Hotel"
+          icon={BedDouble}
+          items={hotelGroupItems}
+          active={active}
+          newOrderCount={newOrderCount}
+          onClose={onClose}
+          storageKey="hotel"
+        />
+
+        {/* Restaurant features — collapsible group. */}
+        <NavGroup
+          label="Restaurant"
+          icon={UtensilsCrossed}
+          items={restaurantGroupItems}
+          active={active}
+          newOrderCount={newOrderCount}
+          onClose={onClose}
+          storageKey="restaurant"
+        />
+
+        {/* Catalog / Team / More — flat sections with labels. */}
+        <SectionLabel>Catalog</SectionLabel>
+        {NAV_CATALOG.map((item) => (
+          <NavItem
+            key={item.id}
+            item={item}
+            active={active}
+            newOrderCount={newOrderCount}
+            onClose={onClose}
+          />
+        ))}
+
+        <SectionLabel>Team</SectionLabel>
+        {NAV_PEOPLE.map((item) => (
+          <NavItem
+            key={item.id}
+            item={item}
+            active={active}
+            newOrderCount={newOrderCount}
+            onClose={onClose}
+          />
+        ))}
+
+        <SectionLabel>More</SectionLabel>
+        {NAV_MORE.map((item) => (
           <NavItem
             key={item.id}
             item={item}

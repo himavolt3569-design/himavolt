@@ -57,6 +57,7 @@ export interface OrderDelivery {
 export interface Order {
   id: string;
   orderNo: string;
+  trackToken?: string | null;
   tableNo: number | null;
   roomNo: string | null;
   status: OrderStatus;
@@ -113,6 +114,7 @@ interface OrderContextType {
     roomNo?: string,
     tableSessionId?: string,
     couponCode?: string,
+    idempotencyKey?: string,
   ) => Promise<Order>;
   addToOrder: (
     restaurantId: string,
@@ -124,6 +126,7 @@ interface OrderContextType {
       menuItemId?: string;
     }[],
     note?: string,
+    idempotencyKey?: string,
   ) => Promise<Order>;
   cancelOrder: () => void;
   restoreOrder: (restaurantId: string, orderId: string) => Promise<void>;
@@ -196,6 +199,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
       roomNo?: string,
       tableSessionId?: string,
       couponCode?: string,
+      idempotencyKey?: string,
     ) => {
       const order = await apiFetch<Order>(
         `/api/restaurants/${restaurantId}/orders`,
@@ -210,6 +214,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
             paymentMethod: paymentMethod || "CASH",
             tableSessionId: tableSessionId || undefined,
             couponCode: couponCode || undefined,
+            idempotencyKey: idempotencyKey || undefined,
             ...(orderType === "DELIVERY" && deliveryInfo
               ? {
                   deliveryAddress: deliveryInfo.address,
@@ -242,6 +247,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
         menuItemId?: string;
       }[],
       note?: string,
+      idempotencyKey?: string,
     ) => {
       const order = await apiFetch<Order>(
         `/api/restaurants/${restaurantId}/orders`,
@@ -253,6 +259,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
             note,
             type: "DINE_IN",
             paymentMethod: "CASH",
+            idempotencyKey: idempotencyKey || undefined,
           },
         },
       );
