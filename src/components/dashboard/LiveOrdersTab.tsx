@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Clock,
@@ -68,9 +68,7 @@ const FILTER_OPTIONS: { value: LiveOrderStatus | "ALL"; label: string }[] = [
   { value: "ALL", label: "All Orders" },
   { value: "PENDING", label: "New" },
   { value: "ACCEPTED", label: "Accepted" },
-  
-  
-  
+  { value: "REJECTED", label: "Archived (Rejected)" },
 ];
 
 function PreparingClock() {
@@ -353,9 +351,7 @@ export default function LiveOrdersTab() {
   } = useLiveOrders();
   const { showToast } = useToast();
   const [selectedOrder, setSelectedOrder] = useState<LiveOrder | null>(null);
-  const [filterStatus, setFilterStatus] = useState<LiveOrderStatus | "ALL">(
-    "ALL",
-  );
+  const [filterStatus, setFilterStatus] = useState<LiveOrderStatus | "ALL" | "ARCHIVED">("PENDING");
   const [busyOrderIds, setBusyOrderIds] = useState<Set<string>>(new Set());
 
   // Accept / reject one ordering round (initial order or an add-on batch). The
@@ -388,9 +384,14 @@ export default function LiveOrdersTab() {
     [selectedRestaurant?.id, refresh, showToast],
   );
 
-  const filtered = orders.filter(
-    (o) => filterStatus === "ALL" || o.status === filterStatus,
-  );
+  const filtered = useMemo(() => {
+    return orders.filter((o) => {
+      if (filterStatus === "ALL") return o.status !== "REJECTED" && !(o.status === "ACCEPTED" && o.payment?.status === "COMPLETED");
+      if (filterStatus === "ARCHIVED") return o.status === "REJECTED" || (o.status === "ACCEPTED" && o.payment?.status === "COMPLETED");
+      if (filterStatus === "ACCEPTED") return o.status === "ACCEPTED" && o.payment?.status !== "COMPLETED";
+      return o.status === filterStatus;
+    });
+  }, [orders, filterStatus]);
 
   const newCount = orders.filter((o) => o.status === "PENDING").length;
 
@@ -480,7 +481,7 @@ export default function LiveOrdersTab() {
             No orders matching this status
           </div>
         </div>
-      ) : (
+      ) : filterStatus !== "ARCHIVED" ? (
         <TableOrderBoard
           orders={filtered}
           currency={cur}
@@ -488,10 +489,7 @@ export default function LiveOrdersTab() {
           onAcceptRound={(o, roundAt) => roundAction(o.id, roundAt, "ACCEPT")}
           onRejectRound={(o, roundAt) => roundAction(o.id, roundAt, "REJECT")}
         />
-      )}
-
-      {/* Legacy flat table/list — superseded by TableOrderBoard above. */}
-      {false && (
+      ) : (
       <div>
         <div className="hidden md:block overflow-x-auto overflow-y-hidden rounded-2xl border border-[var(--border)]/60 bg-[var(--canvas)]/70 backdrop-blur-xl shadow-sm">
           <table className="w-full text-sm">
@@ -614,15 +612,20 @@ export default function LiveOrdersTab() {
                         </div>
                       </td>
                       <td className="px-5 py-4">
-                        <OrderActions
-                          order={order}
-                          busy={updatingIds.has(order.id)}
-                          onAccept={() => acceptOrder(order.id)}
-                          onReject={(reason) => rejectOrder(order.id, reason)}
-                          
-                          
-                          
-                        />
+                        {order.status === "REJECTED" ? (
+                          <span className="text-[11px] font-bold text-red-500">Rejected</span>
+                        ) : (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openBillWindow(order.id);
+                            }}
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--accent)] px-3 py-1.5 text-[11px] font-bold text-white transition-all hover:bg-[var(--accent-hover)]"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                            View Bill
+                          </button>
+                        )}
                       </td>
                     </motion.tr>
                   ))
@@ -688,15 +691,24 @@ export default function LiveOrdersTab() {
                     </div>
                   ))}
                 </div>
-                <OrderActions
-                  order={order}
-                  busy={updatingIds.has(order.id)}
-                  onAccept={() => acceptOrder(order.id)}
-                  onReject={(reason) => rejectOrder(order.id, reason)}
-                  
-                  
-                  
-                />
+                {order.status === "REJECTED" ? (
+                  <div className="mt-3 flex justify-end">
+                    <span className="text-[11px] font-bold text-red-500">Rejected</span>
+                  </div>
+                ) : (
+                  <div className="mt-3 flex justify-end">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openBillWindow(order.id);
+                      }}
+                      className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-[var(--accent)] px-3 py-2.5 text-[12px] font-bold text-white transition-all hover:bg-[var(--accent-hover)]"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                      View Bill
+                    </button>
+                  </div>
+                )}
               </motion.div>
             ))}
           </AnimatePresence>

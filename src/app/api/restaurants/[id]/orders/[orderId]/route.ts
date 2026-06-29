@@ -151,7 +151,6 @@ export async function PATCH(
 
   const timestamps: Record<string, Date> = {};
   if (status === "ACCEPTED") timestamps.acceptedAt = new Date();
-  if (status === "REJECTED") timestamps.rejectedAt = new Date();
 
   const order = await db.order.update({
     where: { id: orderId },

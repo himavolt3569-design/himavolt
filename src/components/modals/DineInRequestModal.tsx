@@ -19,6 +19,7 @@ import {
 import { type LiveOrder } from "@/context/LiveOrdersContext";
 import { useToast } from "@/context/ToastContext";
 import { formatPrice } from "@/lib/currency";
+import { useRestaurant } from "@/context/RestaurantContext";
 
 export default function DineInRequestModal({
   order,
@@ -38,6 +39,7 @@ export default function DineInRequestModal({
   currency?: string;
 }) {
   const { showToast } = useToast();
+  const { selectedRestaurant } = useRestaurant();
   const [showRejectReason, setShowRejectReason] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
 
@@ -259,11 +261,17 @@ export default function DineInRequestModal({
               ) : (
                 <div className="flex gap-2">
                   <button
-                    onClick={handlePrint}
+                    onClick={() => {
+                      if (order) {
+                        import("@/lib/print-bill").then((mod) =>
+                          mod.openBillWindow(order.id)
+                        );
+                      }
+                    }}
                     className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[var(--surface)] py-3.5 text-sm font-bold text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-all"
                   >
                     <Printer className="h-4 w-4" />
-                    Print Receipt
+                    View Bill
                   </button>
                   <button
                     onClick={onClose}

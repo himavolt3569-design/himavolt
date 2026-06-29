@@ -81,11 +81,23 @@ export async function PATCH(
   });
   if (!order) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
+  // Use a 1000ms window because stringified ISO dates can lose sub-millisecond
+  // precision when bouncing through the DB and JSON APIs.
   const roundItems = order.items.filter(
-    (it) => it.createdAt.getTime() === roundMs,
+    (it) => Math.abs(it.createdAt.getTime() - roundMs) < 1000,
   );
   if (roundItems.length === 0) {
-    return NextResponse.json({ error: "Round not found" }, { status: 404 });
+    return NextResponse.json(
+      { 
+        error: "Round not found", 
+        debug: {
+          requestedRoundMs: roundMs,
+          requestedRoundAt: roundAt,
+          availableRounds: order.items.map(it => it.createdAt.getTime())
+        }
+      }, 
+      { status: 404 }
+    );
   }
   const roundItemIds = roundItems.map((it) => it.id);
 
@@ -95,7 +107,7 @@ export async function PATCH(
     (min, it) => Math.min(min, it.createdAt.getTime()),
     Number.POSITIVE_INFINITY,
   );
-  const isFirstRound = roundMs === earliestMs;
+  const isFirstRound = Math.abs(roundMs - earliestMs) < 1000;
   const isWholeOrder = roundItems.length === order.items.length;
 
   if (action === "ACCEPT") {
@@ -169,7 +181,7 @@ export async function PATCH(
     if (isWholeOrder && order.status === "PENDING") {
       await db.order.update({
         where: { id: orderId },
-        data: { status: "REJECTED", rejectedAt: new Date() },
+        data: { status: "REJECTED" },
       });
       db.payment
         .updateMany({
@@ -218,5 +230,6 @@ export async function PATCH(
       },
     },
   });
+  
   return NextResponse.json(updated);
 }

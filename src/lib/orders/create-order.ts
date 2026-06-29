@@ -154,7 +154,6 @@ export async function createOrder(
                   price: it.price,
                   menuItemId: it.menuItemId,
                   kitchenStatus: "PENDING",
-                  createdAt: batchAt,
                   ...(it.addOns ? { addOns: it.addOns } : {}),
                   ...(it.prepTimeSnapshot
                     ? { prepTimeSnapshot: it.prepTimeSnapshot }
@@ -337,7 +336,6 @@ export async function appendToOrder(
           price: it.price,
           menuItemId: it.menuItemId,
           kitchenStatus: "PENDING",
-          createdAt: batchAt,
           ...(it.addOns ? { addOns: it.addOns } : {}),
           ...(it.prepTimeSnapshot
             ? { prepTimeSnapshot: it.prepTimeSnapshot }
