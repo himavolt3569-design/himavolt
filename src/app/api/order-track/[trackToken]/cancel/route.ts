@@ -85,7 +85,6 @@ export async function POST(req: NextRequest, { params }: Params) {
     data: {
       status: "REJECTED",
       rejectReason: "Cancelled by customer",
-      rejectedAt: new Date(),
     },
   });
 

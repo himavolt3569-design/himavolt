@@ -65,7 +65,6 @@ export async function GET(
               sourceType: true,
               createdAt: true,
               acceptedAt: true,
-              rejectedAt: true,
               items: {
                 select: {
                   id: true,

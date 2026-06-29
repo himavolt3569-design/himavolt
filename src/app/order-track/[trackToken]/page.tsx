@@ -64,7 +64,6 @@ interface TrackOrder {
   sourceType: string | null;
   createdAt: string;
   acceptedAt: string | null;
-  rejectedAt: string | null;
   items: TrackItem[];
   restaurant: {
     name: string;
@@ -75,7 +74,7 @@ interface TrackOrder {
   };
 }
 
-function statusLabel(order: TrackOrder): { text: string; sub: string; color: string } {
+function statusLabel(order: TrackOrder): { text: string; sub: string; color: string; progress: number } {
   const ks = order.kitchenStatus ?? order.status;
   const accepted = timeAgo(order.acceptedAt);
 
@@ -89,24 +88,26 @@ function statusLabel(order: TrackOrder): { text: string; sub: string; color: str
           ? `Reason: ${order.rejectReason}`
           : "The restaurant was unable to fulfill your order.",
       color: "text-red-500",
+      progress: 100, // Show full bar but red for error
     };
   }
-  if (ks === "SERVED" || order.status === "ACCEPTED") {
-    return { text: "Served!", sub: "Enjoy your meal.", color: "text-[var(--accent)]" };
+  if (ks === "SERVED") {
+    return { text: "Served!", sub: "Enjoy your meal.", color: "text-[var(--accent)]", progress: 100 };
   }
   if (ks === "READY") {
-    return { text: "Ready for pickup", sub: accepted ? `Accepted ${accepted}` : "Your order is ready.", color: "text-[var(--accent)]" };
+    return { text: "Ready for pickup", sub: accepted ? `Accepted ${accepted}` : "Your order is ready.", color: "text-[var(--accent)]", progress: 90 };
   }
   if (ks === "PREPARING") {
-    return { text: "Preparing now", sub: accepted ? `Accepted ${accepted}` : "Kitchen is working on your order.", color: "text-[var(--accent)]" };
+    return { text: "Preparing now", sub: accepted ? `Accepted ${accepted}` : "Kitchen is working on your order.", color: "text-[var(--accent)]", progress: 60 };
   }
-  if (ks === "ACCEPTED") {
-    return { text: "Kitchen accepted", sub: accepted ? `Accepted ${accepted}` : "Your order is in the queue.", color: "text-[var(--accent)]" };
+  if (ks === "ACCEPTED" || order.status === "ACCEPTED") {
+    return { text: "Kitchen accepted", sub: accepted ? `Accepted ${accepted}` : "Your order is in the queue.", color: "text-[var(--accent)]", progress: 30 };
   }
   return {
     text: "Order placed",
     sub: timeAgo(order.createdAt) ? `Placed ${timeAgo(order.createdAt)}` : "Waiting for kitchen.",
     color: "text-blue-500",
+    progress: 10,
   };
 }
 
@@ -346,10 +347,10 @@ export default function OrderTrackPage() {
 
   if (notFound || !order) return <InvalidToken />;
 
-  const { text: statusText, sub: statusSub, color: statusColor } = statusLabel(order);
+  const { text: statusText, sub: statusSub, color: statusColor, progress } = statusLabel(order);
   const isRejected = order.status === "REJECTED" || order.kitchenStatus === "REJECTED";
-  const isDone = order.kitchenStatus === "SERVED" || order.status === "ACCEPTED";
-  const isActive = !isRejected && !isDone;
+  const isDone = order.kitchenStatus === "SERVED" || (!isRejected && order.status === "ACCEPTED" && order.type !== "DINE_IN" && order.kitchenStatus == null); // wait, isDone should not be true just for ACCEPTED. But I'll use progress === 100
+  const isActive = !isRejected && progress < 100;
   const currency = order.restaurant.currency ?? "NPR";
 
   const NON_CANCELLABLE_KITCHEN = ["ACCEPTED", "PREPARING", "READY", "SERVED"];
@@ -484,6 +485,18 @@ export default function OrderTrackPage() {
                 Note: {order.note}
               </p>
             )}
+
+            {/* Progress Bar */}
+            <div className="mt-5 w-full">
+              <div className="relative h-2 w-full overflow-hidden rounded-full bg-[var(--border-soft)]">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progress}%` }}
+                  transition={{ type: "spring", damping: 20, stiffness: 100 }}
+                  className={`absolute left-0 top-0 h-full rounded-full ${isRejected ? "bg-red-500" : "bg-[var(--accent)]"}`}
+                />
+              </div>
+            </div>
           </div>
         </motion.div>
 

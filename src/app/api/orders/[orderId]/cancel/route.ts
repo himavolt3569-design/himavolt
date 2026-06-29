@@ -47,7 +47,7 @@ export async function POST(
   // and skips the stock restore step.
   const flip = await db.order.updateMany({
     where: { id: orderId, status: "PENDING" },
-    data: { status: "REJECTED", rejectReason: "Cancelled by customer", rejectedAt: new Date() },
+    data: { status: "REJECTED", rejectReason: "Cancelled by customer" },
   });
 
   if (flip.count === 0) {
