@@ -12,6 +12,7 @@ import { formatPrice } from "@/lib/currency";
 import { useToast } from "@/context/ToastContext";
 import { buildQRCanvas } from "@/components/dashboard/qr/qrCanvas";
 import { apiFetch, peekApiCache } from "@/lib/api-client";
+import { openBillWindow } from "@/lib/print-bill";
 import QRCodesTab from "./QRCodesTab";
 
 
@@ -55,7 +56,8 @@ function tableName(t: { label: string | null; tableNo: number }) {
 
 function statusOf(t: TableData): TableStatus {
   if (!t.isOccupied) return "free";
-  return t.session?.order?.payment?.status === "COMPLETED" ? "paid" : "occupied";
+  if (t.session?.order?.payment?.status === "COMPLETED" && t.session?.order?.status !== "REJECTED") return "paid";
+  return "occupied";
 }
 
 const STATUS_DOT: Record<TableStatus, string> = {
@@ -635,22 +637,35 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
                       <span>{table.capacity} seats</span>
                     </div>
 
-                    {table.isOccupied && table.session?.order ? (
-                      <div className="space-y-1">
-                        <div className={`inline-flex rounded-md px-1.5 py-0.5 text-[9px] font-bold ${STATUS_COLOR[table.session.order.status] ?? "bg-[var(--surface)] text-[var(--text-2)]"}`}>
-                          {table.session.order.status}
+                    {table.isOccupied ? (
+                      table.session?.order ? (
+                        <div className="space-y-1">
+                          <div className={`inline-flex rounded-md px-1.5 py-0.5 text-[9px] font-bold ${STATUS_COLOR[table.session.order.status] ?? "bg-[var(--surface)] text-[var(--text-2)]"}`}>
+                            {table.session.order.status}
+                          </div>
+                          <p className="text-[10px] text-[var(--text-2)] truncate">
+                            #{table.session.order.orderNo}
+                          </p>
+                          <p className="text-xs font-bold text-[var(--text-1)]">
+                            {formatPrice(table.session.order.total, cur)}
+                          </p>
+                          <div className="flex items-center gap-1 text-[9px] text-[var(--text-3)]">
+                            <Clock className="h-2.5 w-2.5" />
+                            {elapsed(table.session.startedAt)}
+                          </div>
                         </div>
-                        <p className="text-[10px] text-[var(--text-2)] truncate">
-                          #{table.session.order.orderNo}
-                        </p>
-                        <p className="text-xs font-bold text-[var(--text-1)]">
-                          {formatPrice(table.session.order.total, cur)}
-                        </p>
-                        <div className="flex items-center gap-1 text-[9px] text-[var(--text-3)]">
-                          <Clock className="h-2.5 w-2.5" />
-                          {elapsed(table.session.startedAt)}
+                      ) : (
+                        <div className="space-y-1">
+                          <div className="inline-flex rounded-md px-1.5 py-0.5 text-[9px] font-bold bg-amber-100 text-amber-700">
+                            BROWSING
+                          </div>
+                          <p className="text-[10px] text-[var(--text-2)]">Reading menu</p>
+                          <div className="flex items-center gap-1 text-[9px] text-[var(--text-3)] mt-2">
+                            <Clock className="h-2.5 w-2.5" />
+                            {table.session?.startedAt ? elapsed(table.session.startedAt) : "just now"}
+                          </div>
                         </div>
-                      </div>
+                      )
                     ) : (
                       <p className="text-xs font-semibold text-emerald-600">Available</p>
                     )}
@@ -754,14 +769,12 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
                     </div>
 
                     <div className="flex gap-2">
-                      <a
-                        href={`/bill/${order.id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <button
+                        onClick={() => openBillWindow(order.id, false)}
                         className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-[var(--border)] py-2.5 text-xs font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors"
                       >
                         View Bill
-                      </a>
+                      </button>
                       {canManage && (
                         <button
                           onClick={() => handleClearSession(order.id)}

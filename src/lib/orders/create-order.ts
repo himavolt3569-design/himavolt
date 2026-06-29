@@ -112,6 +112,8 @@ export async function createOrder(
   const orderNo = `HH-${Date.now().toString(36).toUpperCase()}`;
   const trackToken = randomBytes(24).toString("hex");
   const isDelivery = input.type === "DELIVERY";
+  // One timestamp shared by every item in this initial batch — its "round".
+  const batchAt = new Date();
 
   try {
     const { orderId, billId } = await db.$transaction(
@@ -151,6 +153,8 @@ export async function createOrder(
                   quantity: it.quantity,
                   price: it.price,
                   menuItemId: it.menuItemId,
+                  kitchenStatus: "PENDING",
+                  createdAt: batchAt,
                   ...(it.addOns ? { addOns: it.addOns } : {}),
                   ...(it.prepTimeSnapshot
                     ? { prepTimeSnapshot: it.prepTimeSnapshot }
@@ -320,6 +324,9 @@ export async function appendToOrder(
       : input.note.slice(0, 500)
     : undefined;
 
+  // One timestamp shared by every item in this add-on batch — its "round".
+  const batchAt = new Date();
+
   const billId = await db.$transaction(
     async (tx) => {
       await tx.orderItem.createMany({
@@ -329,6 +336,8 @@ export async function appendToOrder(
           quantity: it.quantity,
           price: it.price,
           menuItemId: it.menuItemId,
+          kitchenStatus: "PENDING",
+          createdAt: batchAt,
           ...(it.addOns ? { addOns: it.addOns } : {}),
           ...(it.prepTimeSnapshot
             ? { prepTimeSnapshot: it.prepTimeSnapshot }
@@ -372,6 +381,8 @@ export async function appendToOrder(
           guestName: existingOrder.guestName,
           note: input.note,
           sourceType: existingOrder.sourceType,
+          isAddOn: true,
+          batchLabel: "Add-on",
           items: input.items.map((it) => ({
             name: it.name,
             quantity: it.quantity,

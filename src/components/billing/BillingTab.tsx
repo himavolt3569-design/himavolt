@@ -35,7 +35,7 @@ import { formatPrice, getCurrencySymbol } from "@/lib/currency";
 import { useToast } from "@/context/ToastContext";
 import { apiFetch, peekApiCache } from "@/lib/api-client";
 import { useRestaurant } from "@/context/RestaurantContext";
-import { autoPrintBill } from "@/lib/print-bill";
+import { autoPrintBill, printBillForOrder } from "@/lib/print-bill";
 import ManualBillingTab from "@/components/dashboard/ManualBillingTab";
 import { Zap } from "lucide-react";
 
@@ -452,27 +452,32 @@ function LiveBilling({
   const handleCollectPayment = async () => {
     if (!selectedOrder) return;
     const paidOrderId = selectedOrder.id;
-    setActionLoading(true);
+    const orderNo = selectedOrder.orderNo;
+    const method = collectMethod;
+    const txn = collectTxn || undefined;
+    const autoPrint = selectedRestaurant?.printAutoReceipt;
+
+    // Optimistic close
+    setShowCollect(false);
+    setSelectedOrder(null);
+    setCollectTxn("");
+
     try {
       await apiFetch(`/api/restaurants/${restaurantId}/billing/collect`, {
         method: "POST",
         body: {
           orderId: paidOrderId,
-          method: collectMethod,
-          transactionId: collectTxn || undefined,
+          method,
+          transactionId: txn,
         },
       });
-      showToast(`Payment collected for Order #${selectedOrder.orderNo}`, "success");
-      if (selectedRestaurant?.printAutoReceipt) autoPrintBill(paidOrderId);
-      setShowCollect(false);
-      setCollectTxn("");
-      setSelectedOrder(null);
+      showToast(`Payment collected for Order #${orderNo}`, "success");
+      if (autoPrint) autoPrintBill(paidOrderId);
       loadOrders();
       loadSummary();
     } catch (err) {
       showToast(err instanceof Error ? err.message : "Failed to collect payment", "error");
     }
-    setActionLoading(false);
   };
 
   const handleVerifyBank = async (order: BillOrder, action: "VERIFY" | "REJECT") => {
@@ -1248,32 +1253,22 @@ function LiveBilling({
               </div>
 
               <div className="flex items-center gap-1.5 flex-wrap">
-                {/* View Bill / Receipt */}
-                <a
-                  href={`/bill/${order.id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                {/* Print Bill — merged action. One click opens the print dialog
+                    with the thermal receipt; it never opens a separate tab. */}
+                <button
+                  onClick={() => printBillForOrder(order.id)}
                   className={`flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[10px] font-bold transition-all ${
                     order.payment && order.payment.method !== "CASH"
                       ? "bg-purple-50 text-purple-700 hover:bg-purple-100"
                       : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
                   }`}
+                  title="Print bill"
                 >
-                  <ExternalLink className="h-3 w-3" />
+                  <Printer className="h-3 w-3" />
                   {order.payment && order.payment.method !== "CASH"
                     ? "Receipt"
                     : "Bill"}
-                </a>
-
-                <a
-                  href={`/bill/${order.id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1 rounded-lg bg-[var(--surface)] px-2.5 py-1.5 text-[10px] font-bold text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-all"
-                  title="Print"
-                >
-                  <Printer className="h-3 w-3" />
-                </a>
+                </button>
 
                 {/* Discount button — only for Manager/SuperAdmin */}
                 {canDiscount && !isPaid(order) && (
@@ -1919,6 +1914,7 @@ export default function BillingTab(props: BillingTabProps) {
           taxEnabled={r?.taxEnabled ?? true}
           counterWidth={r?.printCounterWidth ?? 80}
           kitchenWidth={r?.printKitchenWidth ?? 80}
+          printAutoReceipt={r?.printAutoReceipt ?? false}
         />
       )}
     </div>

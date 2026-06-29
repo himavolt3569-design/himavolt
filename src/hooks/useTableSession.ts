@@ -100,6 +100,26 @@ export function useTableSession(
     initSession();
   }, [initSession]);
 
+  // Clear browsing session if user closes the tab before placing an order
+  useEffect(() => {
+    if (!session?.sessionToken || session.orderId || !restaurantId) return;
+
+    const handleUnload = () => {
+      // Send a beacon to the server to delete the browsing session
+      navigator.sendBeacon(
+        `/api/restaurants/${restaurantId}/table-session/browse/clear`,
+        JSON.stringify({ sessionToken: session.sessionToken })
+      );
+    };
+
+    window.addEventListener("pagehide", handleUnload);
+    window.addEventListener("beforeunload", handleUnload);
+    return () => {
+      window.removeEventListener("pagehide", handleUnload);
+      window.removeEventListener("beforeunload", handleUnload);
+    };
+  }, [session?.sessionToken, session?.orderId, restaurantId]);
+
   const refreshSession = useCallback(async () => {
     const effectiveTableNo = session?.tableNo ?? tableNo;
     if (!restaurantId || !effectiveTableNo) return;

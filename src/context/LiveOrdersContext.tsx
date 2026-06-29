@@ -28,6 +28,10 @@ export interface LiveOrderItem {
   name: string;
   quantity: number;
   price: number;
+  kitchenStatus?: string | null;
+  // Round marker — items submitted together share this. Lets the board split an
+  // order into ordering rounds (initial + each add-on batch).
+  createdAt?: string;
 }
 
 export interface LiveOrderPayment {

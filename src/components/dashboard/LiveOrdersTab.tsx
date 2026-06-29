@@ -6,9 +6,7 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
-  ChefHat,
   PackageCheck,
-  Truck,
   RefreshCw,
   Loader2,
   CreditCard,
@@ -30,9 +28,12 @@ import { useRestaurant } from "@/context/RestaurantContext";
 import { formatPrice } from "@/lib/currency";
 import { resolvePrintSettings } from "@/lib/print-settings";
 import { printKOT } from "@/lib/print-kot";
+import { openBillWindow } from "@/lib/print-bill";
 import DineInRequestModal from "@/components/modals/DineInRequestModal";
 import { SkeletonOrderCard } from "@/components/shared/Skeleton";
 import { apiFetch } from "@/lib/api-client";
+import { useToast } from "@/context/ToastContext";
+import TableOrderBoard from "@/components/orders/TableOrderBoard";
 import gsap from "gsap";
 
 const STATUS_CONFIG: Record<
@@ -350,9 +351,41 @@ export default function LiveOrdersTab() {
     acceptOrder,
     rejectOrder,
   } = useLiveOrders();
+  const { showToast } = useToast();
   const [selectedOrder, setSelectedOrder] = useState<LiveOrder | null>(null);
   const [filterStatus, setFilterStatus] = useState<LiveOrderStatus | "ALL">(
     "ALL",
+  );
+  const [busyOrderIds, setBusyOrderIds] = useState<Set<string>>(new Set());
+
+  // Accept / reject one ordering round (initial order or an add-on batch). The
+  // server scopes the action to that round's items + handles the first-round
+  // payment gate and order status, so earlier rounds stay untouched.
+  const roundAction = useCallback(
+    async (orderId: string, roundAt: string, action: "ACCEPT" | "REJECT") => {
+      const rid = selectedRestaurant?.id;
+      if (!rid) return;
+      setBusyOrderIds((prev) => new Set(prev).add(orderId));
+      try {
+        await apiFetch(`/api/restaurants/${rid}/orders/${orderId}/round`, {
+          method: "PATCH",
+          body: { roundAt, action },
+        });
+        await refresh();
+      } catch (err) {
+        showToast(
+          err instanceof Error ? err.message : "Action failed — please retry",
+          "error",
+        );
+      } finally {
+        setBusyOrderIds((prev) => {
+          const next = new Set(prev);
+          next.delete(orderId);
+          return next;
+        });
+      }
+    },
+    [selectedRestaurant?.id, refresh, showToast],
   );
 
   const filtered = orders.filter(
@@ -438,6 +471,27 @@ export default function LiveOrdersTab() {
       </div>
 
       {/* Orders — desktop table + mobile cards */}
+      {filtered.length === 0 ? (
+        <div className="py-20 text-center text-sm font-medium text-[var(--text-3)]">
+          <div className="flex flex-col items-center justify-center gap-3">
+            <div className="h-12 w-12 rounded-full bg-[var(--canvas-sub)] flex items-center justify-center border border-[var(--border-soft)]">
+              <PackageCheck className="h-5 w-5 text-[var(--text-3)]" />
+            </div>
+            No orders matching this status
+          </div>
+        </div>
+      ) : (
+        <TableOrderBoard
+          orders={filtered}
+          currency={cur}
+          busyOrderIds={busyOrderIds}
+          onAcceptRound={(o, roundAt) => roundAction(o.id, roundAt, "ACCEPT")}
+          onRejectRound={(o, roundAt) => roundAction(o.id, roundAt, "REJECT")}
+        />
+      )}
+
+      {/* Legacy flat table/list — superseded by TableOrderBoard above. */}
+      {false && (
       <div>
         <div className="hidden md:block overflow-x-auto overflow-y-hidden rounded-2xl border border-[var(--border)]/60 bg-[var(--canvas)]/70 backdrop-blur-xl shadow-sm">
           <table className="w-full text-sm">
@@ -648,6 +702,7 @@ export default function LiveOrdersTab() {
           </AnimatePresence>
         </div>
       </div>
+      )}
 
       {/* Dine-in modal */}
       <DineInRequestModal
@@ -795,16 +850,16 @@ function OrderActions({
         {order.status === "ACCEPTED" ? "Completed" : "Rejected"}
       </span>
       {order.status === "ACCEPTED" && (
-        <a
-          href={`/bill/${order.id}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={(e) => e.stopPropagation()}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            openBillWindow(order.id, false);
+          }}
           className="inline-flex items-center gap-1 rounded-lg bg-[var(--surface)] px-2 py-1 text-[10px] font-bold text-[var(--text-2)] hover:bg-[var(--surface-alt)] hover:text-[var(--accent)] transition-all"
         >
           <ExternalLink className="h-2.5 w-2.5" />
           View Bill
-        </a>
+        </button>
       )}
     </span>
   );

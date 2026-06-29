@@ -28,7 +28,6 @@ import {
   AlertCircle,
   Wallet,
   Banknote,
-  ExternalLink,
   Filter,
   Utensils,
   ScanLine,
@@ -42,6 +41,7 @@ import { useToast } from "@/context/ToastContext";
 import { useRealtimeSignal } from "@/hooks/useRealtimeSignal";
 import { restaurantOrdersTopic } from "@/lib/realtime-topics";
 import { formatPrice } from "@/lib/currency";
+import { autoPrintBill, printBillForOrder } from "@/lib/print-bill";
 import { type FeatureTabId } from "@/lib/restaurant-types";
 
 const CounterTabLoader = () => (
@@ -223,6 +223,7 @@ interface StaffSession {
   taxRate: number;
   taxEnabled: boolean;
   posEnabled?: boolean;
+  printAutoReceipt?: boolean;
 }
 
 interface OrderItem {
@@ -553,11 +554,13 @@ function BillingPanel({
   staffRole,
   currency,
   onRefresh,
+  printAutoReceipt = false,
 }: {
   restaurantId: string;
   staffRole: string;
   currency: string;
   onRefresh: () => void;
+  printAutoReceipt?: boolean;
 }) {
   const { showToast } = useToast();
   const [orders, setOrders] = useState<BillOrder[]>([]);
@@ -666,8 +669,11 @@ function BillingPanel({
       });
       setShowCollect(false);
       setCollectTxn("");
+      const paidOrderId = selectedOrder.id;
       setSelectedOrder(null);
       showToast("Payment collected!", "success");
+      // Auto-print the settled receipt when the venue has it enabled.
+      if (printAutoReceipt) autoPrintBill(paidOrderId);
       loadOrders();
       loadSummary();
       onRefresh();
@@ -1261,25 +1267,16 @@ function BillingPanel({
               </div>
 
               <div className="flex items-center gap-1.5 flex-wrap">
-                <a
-                  href={`/bill/${order.id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                {/* Print Bill — merged action. One click opens the print dialog
+                    with the thermal receipt; it never opens a separate tab. */}
+                <button
+                  onClick={() => printBillForOrder(order.id)}
                   className="flex items-center gap-1 rounded-lg bg-[var(--surface)] px-2.5 py-1.5 text-[10px] font-bold text-[var(--text-2)] hover:bg-gray-200 transition-all"
-                >
-                  <ExternalLink className="h-3 w-3" />
-                  Bill
-                </a>
-
-                <a
-                  href={`/bill/${order.id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1 rounded-lg bg-[var(--surface)] px-2.5 py-1.5 text-[10px] font-bold text-[var(--text-2)] hover:bg-gray-200 transition-all"
-                  title="Print"
+                  title="Print bill"
                 >
                   <Printer className="h-3 w-3" />
-                </a>
+                  Bill
+                </button>
 
                 {canDiscount && !isPaid(order) && (
                   <button
@@ -1970,6 +1967,7 @@ export default function CounterPage() {
             staffRole={session.role}
             currency={session.currency ?? "NPR"}
             onRefresh={loadOrders}
+            printAutoReceipt={session.printAutoReceipt ?? false}
           />
         )}
 
@@ -1988,6 +1986,7 @@ export default function CounterPage() {
                 staffRole={session.role}
                 currency={session.currency ?? "NPR"}
                 onRefresh={loadOrders}
+                printAutoReceipt={session.printAutoReceipt ?? false}
               />
             </div>
           </div>
@@ -2008,6 +2007,7 @@ export default function CounterPage() {
             restaurantPhone={session.restaurantPhone}
             taxRate={session.taxRate}
             taxEnabled={session.taxEnabled}
+            printAutoReceipt={session.printAutoReceipt ?? false}
           />
         )}
         {viewMode === "stock" && <StockTab />}

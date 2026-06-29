@@ -569,6 +569,12 @@ model OrderItem {
   price    Float
   addOns   String?
 
+  // Round marker: all items submitted together (initial order or one add-on
+  // batch) share this timestamp, set explicitly in code per batch. Lets the
+  // kitchen/live boards reconstruct ordering "rounds" and surface a new add-on
+  // round distinctly. @default(now()) only backfills legacy rows.
+  createdAt DateTime @default(now())
+
   // ── Per-item kitchen status (Phase 2.5) — additive/nullable ──
   kitchenStatus  String? // PENDING|ACCEPTED|REJECTED|PREPARING|READY|SERVED
   rejectedReason String?

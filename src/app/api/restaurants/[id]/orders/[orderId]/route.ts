@@ -159,6 +159,12 @@ export async function PATCH(
       status,
       ...timestamps,
       ...(rejectReason !== undefined ? { rejectReason } : {}),
+      items: status === "ACCEPTED" ? {
+        updateMany: {
+          where: { kitchenStatus: "PENDING" },
+          data: { kitchenStatus: "ACCEPTED" }
+        }
+      } : undefined,
     },
     select: {
       id: true,

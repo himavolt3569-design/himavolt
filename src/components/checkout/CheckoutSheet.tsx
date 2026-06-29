@@ -779,7 +779,11 @@ export default function CheckoutSheet({
                       {AVAILABLE_ORDER_TYPES.map((ot) => {
                         const Icon = ot.icon;
                         const isActive = orderType === ot.id;
-                        const isDisabled = ot.id === "DINE_IN" && !tableNo;
+                        // Dine In is always selectable — a guest can choose to
+                        // dine in even without scanning a specific table QR (they
+                        // give staff the table, or it's a room/resort). Gating it
+                        // on tableNo wrongly grayed it out on the plain menu URL.
+                        const isDisabled = false;
                         return (
                           <button
                             key={ot.id}

@@ -10,7 +10,7 @@ import { createOrderSchema } from "@/lib/validations";
 import { logAudit, getClientIp } from "@/lib/audit";
 import { getCurrencySymbol } from "@/lib/currency";
 import { rateLimit, clientKey, claimOnce, releaseClaim } from "@/lib/rate-limit";
-import { setOrderTrackCookie } from "@/lib/order-access";
+import { setOrderTrackCookie, canAccessOrder } from "@/lib/order-access";
 import {
   createOrder,
   appendToOrder,
@@ -362,20 +362,21 @@ export const POST = safeHandler(
         );
       }
 
-      // Tighten add-to-order ownership: only the order's user, a staff member
-      // of this restaurant, or someone holding the matching tableSessionId can
-      // tack items onto an existing active order. Anonymous strangers with the
-      // raw orderId are no longer allowed to grow someone else's tab.
-      const addStaff = await getStaffSession(req);
-      const addUser = await getOrCreateUser().catch(() => null);
+      // Add-to-order ownership. Reuse the canonical canAccessOrder helper —
+      // it accepts staff of this restaurant, the order's owning user, the
+      // restaurant owner, AND an anonymous guest presenting the order's track
+      // cookie (set on the order POST, auto-sent on later requests). We also
+      // allow a table co-diner holding the matching tableSessionId, proving
+      // they're physically at the table even if they didn't place the order.
+      // The previous hand-rolled check missed the track-cookie path, which
+      // 403'd anonymous guests adding to their OWN running tab (e.g. Takeaway,
+      // or Dine-In placed without scanning a table QR).
       const sessionMatch =
-        tableSessionId &&
-        existing.tableSession?.id &&
+        !!tableSessionId &&
+        !!existing.tableSession?.id &&
         tableSessionId === existing.tableSession.id;
       const isAuthorisedToAdd =
-        (addStaff && addStaff.restaurantId === id) ||
-        (addUser && existing.userId && addUser.id === existing.userId) ||
-        sessionMatch;
+        (await canAccessOrder(req, existing)) || sessionMatch;
       if (!isAuthorisedToAdd) {
         return NextResponse.json(
           { error: "Not allowed to modify this order" },

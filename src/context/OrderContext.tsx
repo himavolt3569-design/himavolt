@@ -134,14 +134,56 @@ interface OrderContextType {
   restoreFromStorage: (restaurantId: string, tableSessionId?: string | null) => Promise<void>;
 }
 
+export interface TrackTokenData {
+  trackToken: string;
+  restaurantId: string;
+  tableSessionId: string | null;
+  createdAt: string;
+}
+
 function orderStorageKey(restaurantId: string, tableSessionId?: string | null) {
   return `himavolt:lastTrackToken:${restaurantId}:${tableSessionId || "none"}`;
+}
+
+function recentTokensKey(restaurantId: string) {
+  return `himavolt:trackTokens:${restaurantId}`;
+}
+
+export function getRecentTrackTokens(restaurantId: string): TrackTokenData[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const key = recentTokensKey(restaurantId);
+    const existing = localStorage.getItem(key);
+    return existing ? JSON.parse(existing) : [];
+  } catch {
+    return [];
+  }
 }
 
 function saveOrderToStorage(restaurantId: string, trackToken: string, tableSessionId?: string | null) {
   if (typeof window === "undefined") return;
   try {
+    // Save as last track token
     localStorage.setItem(orderStorageKey(restaurantId, tableSessionId), trackToken);
+    
+    // Also save to recent history
+    const key = recentTokensKey(restaurantId);
+    const existing = localStorage.getItem(key);
+    let history: TrackTokenData[] = existing ? JSON.parse(existing) : [];
+    
+    // Remove if already exists to push to front
+    history = history.filter(t => t.trackToken !== trackToken);
+    
+    history.unshift({
+      trackToken,
+      restaurantId,
+      tableSessionId: tableSessionId || null,
+      createdAt: new Date().toISOString()
+    });
+    
+    if (history.length > 20) history = history.slice(0, 20);
+    
+    localStorage.setItem(key, JSON.stringify(history));
   } catch { /* ignore */ }
 }
 
@@ -149,6 +191,7 @@ function clearOrderStorage(restaurantId: string, tableSessionId?: string | null)
   if (typeof window === "undefined") return;
   try {
     localStorage.removeItem(orderStorageKey(restaurantId, tableSessionId));
+    // We intentionally do NOT clear the recent history so completed orders remain visible
   } catch { /* ignore */ }
 }
 
@@ -264,9 +307,9 @@ export function OrderProvider({ children }: { children: ReactNode }) {
             type: "DINE_IN",
             paymentMethod: "CASH",
             idempotencyKey: idempotencyKey || undefined,
-            // Required so the server's session-ownership check passes for
-            // anonymous QR guests (canAccessOrder relies on tableSessionId
-            // matching the session linked to the order).
+            // A table guest proves ownership via tableSessionId; an anonymous
+            // guest with no table session is authorised server-side by the
+            // track cookie set on the original order POST (auto-sent here).
             tableSessionId: tableSessionId || undefined,
           },
         },

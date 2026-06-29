@@ -10,6 +10,7 @@ import {
 import { formatPrice } from "@/lib/currency";
 import { apiFetch, peekApiCache } from "@/lib/api-client";
 import { printKOT, printBOT } from "@/lib/print-kot";
+import { openBillWindow, autoPrintBill } from "@/lib/print-bill";
 
 
 interface MenuItem {
@@ -54,6 +55,7 @@ export default function ManualBillingTab({
   taxEnabled: taxEnabledProp = true,
   counterWidth = 80,
   kitchenWidth = 80,
+  printAutoReceipt = false,
 }: {
   restaurantId: string;
   currency?: string;
@@ -64,6 +66,7 @@ export default function ManualBillingTab({
   taxEnabled?: boolean;
   counterWidth?: number;
   kitchenWidth?: number;
+  printAutoReceipt?: boolean;
 }) {
   const rid      = restaurantId;
   // Paper widths from account print settings — bill uses the counter roll,
@@ -203,6 +206,8 @@ export default function ManualBillingTab({
         method: "POST",
         body: { orderId, method: "DIRECT" },
       });
+      // Auto-print the settled receipt when the venue has it enabled.
+      if (printAutoReceipt) autoPrintBill(orderId);
     } catch {
       setIsPaid(false); // revert on failure
     } finally {
@@ -439,14 +444,12 @@ export default function ManualBillingTab({
               </button>
             )}
             {orderId && (
-              <a
-                href={`/bill/${orderId}`}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                onClick={() => openBillWindow(orderId, false)}
                 className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-[var(--border)] px-3 py-2.5 text-sm font-semibold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors"
               >
                 <Receipt className="h-4 w-4" /> Bill
-              </a>
+              </button>
             )}
             <button
               onClick={handleReset}
@@ -502,14 +505,12 @@ export default function ManualBillingTab({
             </button>
           )}
           {orderId && (
-            <a
-              href={`/bill/${orderId}`}
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              onClick={() => openBillWindow(orderId, false)}
               className="flex items-center gap-2 rounded-xl border border-[var(--border)] px-5 py-2.5 text-sm font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors"
             >
               <Receipt className="h-4 w-4" /> View Bill
-            </a>
+            </button>
           )}
           <button
             onClick={handleReset}

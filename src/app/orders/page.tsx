@@ -20,7 +20,7 @@ import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api-client";
 import { formatPrice } from "@/lib/currency";
 import { useActiveTableSession } from "@/hooks/useActiveTableSession";
-import { useOrder } from "@/context/OrderContext";
+import { useOrder, getRecentTrackTokens } from "@/context/OrderContext";
 import { useCart } from "@/context/CartContext";
 
 interface OrderItem {
@@ -168,6 +168,10 @@ function OrderCard({
 }) {
   const isActive = !TERMINAL_STATUSES.includes(order.status);
 
+  const href = (order as any).trackToken 
+    ? `/order-track/${(order as any).trackToken}` 
+    : `/track/${order.id}`;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 15 }}
@@ -175,7 +179,7 @@ function OrderCard({
       transition={{ delay: index * 0.05, duration: 0.3 }}
     >
       <Link
-        href={`/track/${order.id}`}
+        href={href}
         className={`block rounded-2xl border bg-[var(--canvas)] p-4 shadow-sm transition-all hover:shadow-md active:scale-[0.98] ${
           isActive
             ? "border-[var(--accent-border)] ring-1 ring-[var(--accent-border)]"
@@ -241,10 +245,10 @@ function TableSessionOrderView() {
   const { activeOrder, restoreFromStorage } = useOrder();
   const { initForRestaurant } = useCart();
   const activeSession = useActiveTableSession();
+  const [historyOrders, setHistoryOrders] = useState<UserOrder[]>([]);
+  const [loading, setLoading] = useState(false);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // If the customer navigates directly to /orders (e.g. re-scanned the QR and
-  // tapped the Orders tab before the menu page ran restoreFromStorage), we
-  // proactively restore their order from localStorage here.
   useEffect(() => {
     if (!activeOrder && activeSession?.restaurantId) {
       restoreFromStorage(activeSession.restaurantId);
@@ -255,7 +259,65 @@ function TableSessionOrderView() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeSession?.restaurantId, activeSession?.tableNo]);
 
-  if (!activeOrder) {
+  const fetchRecentOrders = useCallback(async () => {
+    if (!activeSession?.restaurantId) return;
+    const tokens = getRecentTrackTokens(activeSession.restaurantId);
+    if (tokens.length === 0) return;
+
+    try {
+      const results = await Promise.all(
+        tokens.map(async (t) => {
+          try {
+            const order = await apiFetch<UserOrder>(`/api/order-track/${encodeURIComponent(t.trackToken)}`);
+            (order as any).trackToken = t.trackToken;
+            return order;
+          } catch {
+            return null;
+          }
+        })
+      );
+      
+      const valid = results.filter((r): r is UserOrder => r !== null);
+      valid.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      
+      // Deduplicate in case token history got messy
+      const unique = valid.filter((v, i, a) => a.findIndex(t => t.id === v.id) === i);
+      setHistoryOrders(unique);
+    } catch (err) {
+      console.error("Failed to load history orders", err);
+    }
+  }, [activeSession?.restaurantId]);
+
+  useEffect(() => {
+    let mounted = true;
+    setLoading(true);
+    fetchRecentOrders().finally(() => {
+      if (mounted) setLoading(false);
+    });
+
+    return () => { mounted = false; };
+  }, [fetchRecentOrders]);
+
+  // Poll for active orders every 5 seconds
+  useEffect(() => {
+    const hasActiveOrders = historyOrders.some(
+      (o) => !TERMINAL_STATUSES.includes(o.status)
+    );
+
+    if (hasActiveOrders) {
+      pollRef.current = setInterval(fetchRecentOrders, 5000);
+    }
+
+    return () => {
+      if (pollRef.current) {
+        clearInterval(pollRef.current);
+        pollRef.current = null;
+      }
+    };
+  }, [historyOrders, fetchRecentOrders]);
+
+  // If no history yet, and no active order, fallback to empty state
+  if (!activeOrder && historyOrders.length === 0 && !loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[var(--canvas-sub)] p-6">
         <motion.div
@@ -286,9 +348,27 @@ function TableSessionOrderView() {
     );
   }
 
-  const isActive = !TERMINAL_STATUSES.includes(activeOrder.status);
-  const config = STATUS_CONFIG[activeOrder.status] || STATUS_CONFIG.PENDING;
-  const StatusIcon = config.icon;
+  // Combine activeOrder with historyOrders to ensure we don't miss the current active session one before history loads, and keep it up to date
+  let allOrders = [...historyOrders];
+  if (activeOrder) {
+    const existingIdx = allOrders.findIndex(o => o.id === activeOrder.id);
+    if (existingIdx >= 0) {
+      // Replace with live SSE order
+      const trackToken = (allOrders[existingIdx] as any).trackToken;
+      allOrders[existingIdx] = activeOrder as unknown as UserOrder;
+      (allOrders[existingIdx] as any).trackToken = trackToken || activeOrder.trackToken;
+    } else {
+      // Inject new
+      allOrders.unshift(activeOrder as unknown as UserOrder);
+    }
+  }
+
+  const activeOrders = allOrders.filter(
+    (o) => !TERMINAL_STATUSES.includes(o.status)
+  );
+  const pastOrders = allOrders.filter((o) =>
+    TERMINAL_STATUSES.includes(o.status)
+  );
 
   return (
     <div className="min-h-screen bg-[var(--canvas-sub)]">
@@ -300,20 +380,22 @@ function TableSessionOrderView() {
             </div>
             <div className="flex-1">
               <h1 className="text-base font-bold text-[var(--text-1)]">
-                Your Order
+                Your Orders
               </h1>
-              <p className="text-[11px] text-[var(--text-3)]">
-                Table {activeOrder.tableNo}
-              </p>
+              {allOrders.length > 0 && (
+                <p className="text-[11px] text-[var(--text-3)]">
+                  {allOrders.length} order{allOrders.length !== 1 && "s"}
+                </p>
+              )}
             </div>
-            {isActive && (
+            {activeOrders.length > 0 && (
               <div className="flex items-center gap-1.5">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--accent)] opacity-75" />
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--accent)]" />
                 </span>
                 <span className="text-[11px] font-bold text-[var(--accent-text)]">
-                  Active
+                  {activeOrders.length} Active
                 </span>
               </div>
             )}
@@ -321,68 +403,54 @@ function TableSessionOrderView() {
         </div>
       </header>
 
-      <div className="mx-auto max-w-2xl px-4 py-5 pb-20">
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <Link
-            href={`/track/${activeOrder.id}`}
-            className={`block rounded-2xl border bg-[var(--canvas)] p-5 shadow-sm transition-all hover:shadow-md active:scale-[0.98] ${
-              isActive
-                ? "border-[var(--accent-border)] ring-1 ring-[var(--accent-border)]"
-                : "border-[var(--border)]"
-            }`}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <p className="text-xs text-[var(--text-3)]">
-                  Order #{activeOrder.orderNo}
-                </p>
-                <p className="text-[11px] text-[var(--text-3)] mt-0.5">
-                  {new Date(activeOrder.createdAt).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </p>
-              </div>
-              <span
-                className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold ${config.bg} ${config.color}`}
-              >
-                <StatusIcon className="h-3 w-3" />
-                {config.label}
-              </span>
-            </div>
+      <div className="mx-auto max-w-2xl px-4 py-5 pb-20 space-y-6">
+        {loading && allOrders.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-10 gap-3">
+            <Loader2 className="h-6 w-6 animate-spin text-[var(--accent)]" />
+            <p className="text-sm font-medium text-[var(--text-2)]">
+              Loading your recent orders...
+            </p>
+          </div>
+        )}
 
-            <div className="space-y-2 mb-4">
-              {activeOrder.items.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between text-sm"
-                >
-                  <span className="text-[var(--text-2)]">
-                    {item.quantity}x {item.name}
-                  </span>
-                  <span className="text-[var(--text-2)] font-medium">
-                    Rs. {item.price * item.quantity}
-                  </span>
-                </div>
+        <AnimatePresence>
+          {activeOrders.length > 0 && (
+            <motion.section
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="space-y-3"
+            >
+              <div className="flex items-center gap-2">
+                <div className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] animate-pulse" />
+                <h2 className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider">
+                  Active Orders
+                </h2>
+              </div>
+              <div className="space-y-3">
+                {activeOrders.map((order, i) => (
+                  <OrderCard key={order.id} order={order} index={i} />
+                ))}
+              </div>
+            </motion.section>
+          )}
+        </AnimatePresence>
+
+        {pastOrders.length > 0 && (
+          <section className="space-y-3">
+            <h2 className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider">
+              Past Orders
+            </h2>
+            <div className="space-y-3">
+              {pastOrders.map((order, i) => (
+                <OrderCard
+                  key={order.id}
+                  order={order}
+                  index={activeOrders.length + i}
+                />
               ))}
             </div>
-
-            <div className="border-t border-[var(--border-soft)] pt-3 flex items-center justify-between">
-              <span className="text-sm font-bold text-[var(--text-1)]">Total</span>
-              <span className="text-base font-extrabold text-[var(--accent)]">
-                Rs. {activeOrder.total}
-              </span>
-            </div>
-
-            <div className="mt-3 flex items-center justify-center gap-1 text-xs text-[var(--text-3)]">
-              <span>Tap to track order</span>
-              <ChevronRight className="h-3 w-3" />
-            </div>
-          </Link>
-        </motion.div>
+          </section>
+        )}
       </div>
     </div>
   );
