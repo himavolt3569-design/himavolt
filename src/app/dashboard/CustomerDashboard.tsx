@@ -974,7 +974,7 @@ function OrdersTab({
   type OrderFilter = "all" | "active" | "delivery" | "dine-in" | "stays";
   const [filter, setFilter] = useState<OrderFilter>("all");
   const [search, setSearch] = useState("");
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({});
 
   const FILTER_CHIPS: { id: OrderFilter; label: string; icon: typeof History }[] = [
     { id: "all",      label: "All",      icon: History },
@@ -1064,8 +1064,8 @@ function OrdersTab({
             <OrderCard
               key={order.id}
               order={order}
-              expanded={expandedId === order.id}
-              onToggle={() => setExpandedId(expandedId === order.id ? null : order.id)}
+              expanded={!!expandedIds[order.id]}
+              onToggle={() => setExpandedIds(prev => ({ ...prev, [order.id]: !prev[order.id] }))}
             />
           ))}
         </div>

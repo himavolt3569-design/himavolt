@@ -169,7 +169,7 @@ export default function CheckoutSheet({
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<
-    "review" | "payment" | "scan-qr" | "waiting" | "bank-details" | "proof-upload"
+    "review" | "payment" | "scan-qr" | "waiting" | "bank-details" | "proof-upload" | "success"
   >("review");
   const [proofOrderId, setProofOrderId] = useState<string | null>(null);
   const [proofUploading, setProofUploading] = useState(false);
@@ -482,7 +482,9 @@ export default function CheckoutSheet({
     try {
       // For cash: add to existing active order if available
       if (canAddToExisting && activeOrder) {
-        const order = await addToOrder(
+        // Optimistic UI for add-to-existing-order
+        setStep("success");
+        addToOrder(
           restaurantId,
           activeOrder.id,
           items.map((i) => ({
@@ -494,13 +496,19 @@ export default function CheckoutSheet({
           note || undefined,
           idemKey,
           tableSessionId,
-        );
-        // Items committed — a later distinct add should get a fresh key.
-        idempotencyKeyRef.current = null;
-        setLoading(false);
-        clearCart();
-        onClose();
-        onOrderPlaced(order.id, order.trackToken);
+        ).then((order) => {
+          idempotencyKeyRef.current = null;
+          clearCart();
+          setTimeout(() => {
+            onClose();
+            onOrderPlaced(order.id, order.trackToken);
+            setLoading(false);
+          }, 1500);
+        }).catch((err) => {
+          setLoading(false);
+          setStep("review");
+          alert("Failed to add items to order. Please try again.");
+        });
         return;
       }
 
@@ -513,7 +521,7 @@ export default function CheckoutSheet({
             }
           : undefined;
 
-      const order = await placeOrder(
+      const placeOrderArgs = [
         restaurantId,
         items.map((i) => ({
           name: i.name,
@@ -530,7 +538,42 @@ export default function CheckoutSheet({
         tableSessionId,
         couponApplied ? couponCode : undefined,
         idemKey,
-      );
+      ] as const;
+
+      if (
+        (selectedPayment === "CASH" ||
+         selectedPayment === "COUNTER" ||
+         selectedPayment === "DIRECT") &&
+        !prepaidEnabled
+      ) {
+        setStep("success");
+        placeOrder(...placeOrderArgs).then(async (order) => {
+          idempotencyKeyRef.current = null;
+          try {
+            if (selectedPayment === "COUNTER") {
+              await apiFetch("/api/payments/initiate", { method: "POST", body: { orderId: order.id, method: "COUNTER" }});
+            }
+            if (selectedPayment === "DIRECT") {
+              await apiFetch("/api/payments/initiate", { method: "POST", body: { orderId: order.id, method: "DIRECT" }});
+            }
+          } catch (e) {
+            console.error("Failed to initiate payment", e);
+          }
+          clearCart();
+          setTimeout(() => {
+            onClose();
+            onOrderPlaced(order.id, order.trackToken);
+            setLoading(false);
+          }, 1500);
+        }).catch((err) => {
+          setLoading(false);
+          setStep("review");
+          alert("Failed to place order. Please try again.");
+        });
+        return;
+      }
+
+      const order = await placeOrder(...placeOrderArgs);
       // Order is committed — a later distinct order should get a fresh key.
       idempotencyKeyRef.current = null;
 

@@ -58,6 +58,11 @@ import {
   Calendar,
   AlertCircle,
   Gift,
+  SlidersHorizontal,
+  ChevronUp,
+  User as UserIcon,
+  CheckCircle,
+  Mail,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
@@ -82,6 +87,10 @@ import FoodSlider from "@/components/menu/FoodSlider";
 import MenuStories from "@/components/stories/MenuStories";
 
 import dynamic from "next/dynamic";
+const TrackOrderModal = dynamic(
+  () => import("@/components/tracking/TrackOrderModal"),
+  { ssr: false }
+);
 const FoodDetailPopup = dynamic(
   () => import("@/components/food/FoodDetailPopup"),
   { ssr: false },
@@ -105,7 +114,7 @@ import { isFeatureAvailable } from "@/lib/restaurant-types";
 import GetBillButton from "@/components/menu/GetBillButton";
 import { useTableSession } from "@/hooks/useTableSession";
 import { setActiveTableSession } from "@/hooks/useActiveTableSession";
-
+import LiveOrderWidget from "@/components/orders/LiveOrderWidget";
 const PLACEHOLDER_IMG =
   "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80";
 
@@ -613,11 +622,12 @@ function MenuItemCard({
   onSelect: (item: MenuItem) => void;
   surgeMultiplier?: number;
 }) {
-  const { addItem, getItemQty } = useCart();
+  const { addItem, getItemQty, increaseQty, decreaseQty } = useCart();
   const { showToast } = useToast();
-  const btnRef = useRef<HTMLButtonElement>(null);
   const qty = getItemQty(item.id);
-  const displayPrice = Math.round(item.price * surgeMultiplier);
+  const basePriceWithDiscount = item.discount > 0 ? item.price * (1 - item.discount / 100) : item.price;
+  const displayPrice = Math.round(basePriceWithDiscount * surgeMultiplier);
+  const originalDisplayPrice = Math.round(item.price * surgeMultiplier);
 
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -633,154 +643,106 @@ function MenuItemCard({
       restaurantCurrency,
     );
     showToast(`${item.name} added!`);
-    if (btnRef.current) {
-      const target = btnRef.current;
-      loadGsap().then((gsap) => {
-        gsap.fromTo(
-          target,
-          { scale: 1.35 },
-          { scale: 1, duration: 0.3, ease: "back.out(3)" },
-        );
-      });
-    }
   };
 
+  let itemAccent = "#eaa94d";
+  if (item.isDrink) itemAccent = "#3b82f6";
+  else if (item.isVeg) itemAccent = "#16a34a";
+  else if (!item.isVeg) itemAccent = "#ef4444";
+
   return (
-    <motion.div
-      variants={itemVariants}
-      whileHover={{ y: -3, boxShadow: "0 8px 30px rgba(0,0,0,0.08)" }}
-      transition={{ type: "spring", stiffness: 400, damping: 25 }}
-      className="group rounded-2xl bg-[var(--canvas)] border border-[var(--border-soft)] shadow-[0_2px_12px_rgba(0,0,0,0.04)] overflow-hidden"
+    <div
+      onClick={() => onSelect(item)}
+      className="group relative flex justify-between gap-4 py-3.5 border-b border-gray-100/60 cursor-pointer hover:bg-gray-50/50 transition-colors px-4 -mx-4 sm:px-6 sm:-mx-6"
+      style={{ "--item-accent": itemAccent } as React.CSSProperties}
     >
-      <div
-        className="flex gap-4 p-3 cursor-pointer"
-        onClick={() => onSelect(item)}
-      >
-        <div className="relative h-24 w-24 sm:h-28 sm:w-28 shrink-0 overflow-hidden rounded-xl bg-[var(--surface)]">
-          <img
-            src={img(item.imageUrl)}
-            alt={item.name}
-            loading="lazy"
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-          />
+      {/* Left Content (Text) */}
+      <div className="flex flex-1 flex-col justify-start min-w-0 pr-2 pt-0.5">
+        <div className="flex items-center gap-1.5 mb-1.5">
+          {!item.isDrink && (item.isVeg ? <VegIcon /> : <NonVegIcon />)}
+          {item.hasEgg && <Egg className="h-3 w-3 text-yellow-500" />}
           {item.badge && (
-            <motion.span
-              initial={{ opacity: 0, x: -8 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{
-                delay: 0.15,
-                type: "spring",
-                stiffness: 400,
-                damping: 20,
-              }}
-              className={`absolute top-1.5 left-1.5 rounded-full px-2 py-0.5 text-[10px] font-bold text-white shadow ${
-                item.badge === "Bestseller"
-                  ? "bg-[var(--accent)]"
-                  : item.badge === "Most Liked"
-                    ? "bg-[var(--text-1)]"
-                    : "bg-purple-500"
-              }`}
-            >
-              {item.badge === "Bestseller" ? "# Bestseller" : item.badge}
-            </motion.span>
+            <span className={`rounded-md px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-white shadow-sm ${
+              item.badge === "Bestseller" ? "bg-gradient-to-r from-amber-500 to-orange-500" : "bg-gradient-to-r from-purple-500 to-indigo-500"
+            }`}>
+              {item.badge === "Bestseller" ? "Bestseller" : item.badge}
+            </span>
+          )}
+        </div>
+        
+        <h3 className="text-[15px] sm:text-[16px] font-black text-gray-900 mb-0.5 leading-tight tracking-tight" style={{ fontFamily: "var(--font-poppins)" }}>
+          {stripEmojis(item.name)}
+        </h3>
+        
+        <div className="flex items-center gap-2 mb-1.5">
+          <span className="text-[14px] font-extrabold text-gray-900 tracking-tight">
+            {formatPrice(displayPrice, restaurantCurrency)}
+          </span>
+          {originalDisplayPrice !== displayPrice && (
+            <span className="text-[11px] font-medium text-gray-400 line-through">
+              {formatPrice(originalDisplayPrice, restaurantCurrency)}
+            </span>
           )}
         </div>
 
-        <div className="flex flex-1 flex-col justify-between min-w-0 py-0.5">
-          <div>
-            <div className="flex items-center gap-1.5 mb-0.5">
-              {item.isVeg ? <VegIcon /> : <NonVegIcon />}
-              {item.hasEgg && <Egg className="h-3 w-3 text-yellow-500" />}
-              {item.isDrink && (
-                <span className="rounded-full bg-blue-50 px-1.5 py-0.5 text-[8px] font-bold text-blue-600">
-                  {item.drinkCategory || "Drink"}
-                </span>
-              )}
-              {item.lowStock && !item.outOfStock && (
-                <span className="rounded-full bg-[var(--accent)] px-1.5 py-0.5 text-[8px] font-bold text-[var(--accent)]">
-                  Few left
-                </span>
-              )}
-            </div>
-            <h3 className="text-sm font-bold text-[var(--text-1)] truncate flex items-center gap-1">
-              {stripEmojis(item.name)}
-              {item.isFeatured && (
-                <Star className="h-3 w-3 fill-[var(--accent)] text-[var(--accent)] shrink-0" />
-              )}
-            </h3>
-            <p className="mt-0.5 text-[11px] text-[var(--text-3)] line-clamp-2 leading-relaxed">
-              {item.description}
-            </p>
+        {item.rating > 0 && (
+          <div className="flex items-center gap-1 mb-1.5">
+            <Star className="h-3 w-3 fill-[var(--item-accent)] text-[var(--item-accent)]" />
+            <span className="text-[11px] font-black text-[var(--item-accent)]">{item.rating.toFixed(1)}</span>
+            <span className="text-[11px] font-medium text-gray-400">(24+)</span>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm font-extrabold text-[var(--text-1)]">
-              {formatPrice(displayPrice, restaurantCurrency)}
-            </span>
-            {surgeMultiplier > 1 && (
-              <span className="text-[10px] text-[var(--text-3)] line-through">
-                {formatPrice(item.price, restaurantCurrency)}
-              </span>
-            )}
-            <span className="flex items-center gap-0.5 text-[11px] text-[var(--text-3)]">
-              <Star className="h-3 w-3 fill-[var(--accent)] text-[var(--accent)]" />
-              {item.rating.toFixed(1)}
-            </span>
-            <span className="flex items-center gap-0.5 text-[11px] text-[var(--text-3)]">
-              <Clock className="h-3 w-3" />
-              {item.prepTime}
-            </span>
-            <OfferCountdown expiresAt={item.offerExpiresAt} compact />
-          </div>
-          {/* Offer badge — right side */}
-          {item.discountLabel && (
-            <motion.span
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{
-                delay: 0.2,
-                type: "spring",
-                stiffness: 500,
-                damping: 15,
-              }}
-              className="mt-1 inline-flex w-fit items-center gap-1 rounded-md bg-[var(--accent)] px-2 py-0.5 text-[10px] font-extrabold text-white shadow"
-            >
-              {item.discountLabel}
-            </motion.span>
-          )}
-        </div>
+        )}
+        
+        <p className="text-[12px] font-light text-gray-500 line-clamp-2 leading-snug mt-0.5">
+          {item.description}
+        </p>
       </div>
 
-      {/* Add to Cart button — always visible below */}
-      <div className="px-3 pb-3 space-y-1.5">
-        {qty > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex items-center justify-center gap-1 text-[11px] font-semibold text-[var(--text-1)]"
-          >
-            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[var(--accent)] text-[9px] font-bold text-white">
-              {qty}
-            </span>
-            in cart
-          </motion.div>
-        )}
-        {item.outOfStock ? (
-          <div className="flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--surface-alt)] py-2.5 text-[13px] font-bold text-[var(--text-2)] cursor-not-allowed">
-            Out of Stock
+      {/* Right Content (Image & Add Button) */}
+      <div className="relative shrink-0 flex flex-col items-center justify-start pb-4">
+        {item.imageUrl ? (
+          <div className="h-[96px] w-[104px] rounded-[16px] overflow-hidden bg-gray-50 shadow-[0_2px_12px_rgba(0,0,0,0.06)] border border-gray-100/80">
+            <img
+              src={img(item.imageUrl)}
+              alt={item.name}
+              loading="lazy"
+              className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500"
+            />
           </div>
         ) : (
-          <motion.button
-            ref={btnRef}
-            onClick={handleQuickAdd}
-            whileTap={{ scale: 0.96 }}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--accent)] py-2.5 text-[13px] font-bold text-white shadow-sm shadow-[var(--accent)]/20 hover:bg-[var(--accent-hover)] transition-colors cursor-pointer"
-          >
-            <Plus className="h-4 w-4" strokeWidth={3} />
-            Add to Cart
-          </motion.button>
+          <div className="h-[96px] w-[104px] rounded-[16px] bg-gray-50 border border-gray-100/80 flex flex-col items-center justify-center text-gray-300 shadow-[0_2px_12px_rgba(0,0,0,0.06)]">
+             <Utensils className="h-6 w-6 mb-1 opacity-40" />
+          </div>
         )}
+        
+        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-[86px]" onClick={(e) => e.stopPropagation()}>
+          {qty === 0 ? (
+            <button
+              onClick={handleQuickAdd}
+              className="w-full flex items-center justify-center rounded-xl bg-white border border-gray-200 py-1.5 text-[12px] font-black text-[var(--item-accent)] shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-md hover:-translate-y-0.5 transition-all uppercase tracking-wide"
+            >
+              Add
+            </button>
+          ) : (
+            <div className="w-full flex items-center justify-between rounded-xl bg-white border border-[var(--item-accent)] py-1 px-1.5 text-[13px] font-black text-[var(--item-accent)] shadow-[0_2px_8px_var(--item-accent)]" style={{ boxShadow: "0 2px 8px var(--item-accent)" }}>
+              <button
+                onClick={(e) => { e.stopPropagation(); decreaseQty(item.id); }}
+                className="flex h-6 w-6 items-center justify-center text-lg hover:bg-gray-100 rounded-lg active:scale-95 transition-all"
+              >
+                −
+              </button>
+              <span>{qty}</span>
+              <button
+                onClick={(e) => { e.stopPropagation(); increaseQty(item.id); }}
+                className="flex h-6 w-6 items-center justify-center text-lg hover:bg-gray-100 rounded-lg active:scale-95 transition-all"
+              >
+                +
+              </button>
+            </div>
+          )}
+        </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -874,17 +836,17 @@ function FilterPill({
   return (
     <motion.button
       onClick={onClick}
-      whileTap={{ scale: 0.92 }}
+      whileTap={{ scale: 0.95 }}
       animate={active ? { scale: 1 } : { scale: 1 }}
       transition={{ type: "spring", stiffness: 400, damping: 17 }}
-      className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-[11px] font-bold tracking-wide transition-all ${
+      className={`flex items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-[11px] font-extrabold tracking-wide transition-all border ${
         active
-          ? "bg-[#1a1a1a] text-white shadow-md shadow-black/10"
-          : "bg-[var(--canvas)] text-[var(--text-2)] border border-[var(--border)] hover:border-[var(--border)] hover:bg-[var(--canvas-sub)] hover:text-[var(--text-1)]"
+          ? "bg-[#e8f6f0] border-[#1ba672] text-[#1ba672] shadow-sm"
+          : "bg-white text-gray-600 border-gray-200 hover:border-gray-300 shadow-sm"
       }`}
     >
       {icon}
-      {label}
+      <span>{label}</span>
     </motion.button>
   );
 }
@@ -991,6 +953,230 @@ function DesktopCartPreview({
     </div>
   );
 }
+const TIME_SLOTS = [
+  "11:00", "11:30", "12:00", "12:30", "13:00", "13:30",
+  "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00",
+];
+
+function InlineReservationForm({ slug }: { slug: string }) {
+  const today = new Date().toISOString().slice(0, 10);
+  const [form, setForm] = useState({
+    guestName: "",
+    phone: "",
+    email: "",
+    partySize: 2,
+    date: today,
+    timeSlot: "19:00",
+    specialRequests: "",
+  });
+
+  const [submitting, setSubmitting] = useState(false);
+  const [confirmed, setConfirmed] = useState<null | { id: string; date: string; timeSlot: string }>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [bookedSlots, setBookedSlots] = useState<Record<string, number>>({});
+  const [tableCount, setTableCount] = useState<number>(10);
+
+  useEffect(() => {
+    if (!slug || !form.date) return;
+    apiFetch<{ bookedSlots: Record<string, number>; tableCount: number }>(
+      `/api/public/restaurants/${slug}/reservations?date=${form.date}`,
+    )
+      .then((res) => {
+        setBookedSlots(res.bookedSlots || {});
+        setTableCount(res.tableCount || 10);
+      })
+      .catch(() => {});
+  }, [slug, form.date]);
+
+  const handleSubmit = async () => {
+    if (!form.guestName.trim() || !form.phone.trim()) {
+      setError("Name and phone are required");
+      return;
+    }
+    setSubmitting(true);
+    setError(null);
+    try {
+      const res = await apiFetch<{ id: string; date: string; timeSlot: string }>(
+        `/api/public/restaurants/${slug}/reservations`,
+        { method: "POST", body: form },
+      );
+      setConfirmed(res);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not submit reservation");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (confirmed) {
+    return (
+      <div className="flex items-center justify-center py-10 px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-md rounded-2xl bg-white border border-gray-100 p-8 shadow-sm text-center"
+        >
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-50">
+            <CheckCircle className="h-8 w-8 text-green-600" />
+          </div>
+          <h1 className="text-xl font-bold text-gray-800 mb-2">Reservation Requested</h1>
+          <p className="text-sm text-gray-500 mb-6">
+            We've received your request for <span className="font-semibold">{new Date(confirmed.date).toLocaleDateString()}</span> at <span className="font-semibold">{confirmed.timeSlot}</span>. The restaurant will confirm shortly.
+          </p>
+          <button
+            onClick={() => setConfirmed(null)}
+            className="inline-block w-full rounded-xl bg-[#1ba672] py-3 text-sm font-bold text-white shadow-sm"
+          >
+            Make Another Reservation
+          </button>
+        </motion.div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full max-w-2xl mx-auto py-6 space-y-5">
+      <div className="rounded-2xl border border-gray-100 bg-white p-5 sm:p-6 space-y-5 shadow-sm">
+        <div>
+          <label className="text-xs font-semibold text-gray-600 mb-1.5 flex items-center gap-1.5">
+            <UserIcon className="h-3.5 w-3.5" />
+            Your Name
+          </label>
+          <input
+            type="text"
+            value={form.guestName}
+            onChange={(e) => setForm({ ...form, guestName: e.target.value })}
+            placeholder="Full name"
+            className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-800 focus:outline-none focus:border-[#1ba672] focus:ring-1 focus:ring-[#1ba672]"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="text-xs font-semibold text-gray-600 mb-1.5 flex items-center gap-1.5">
+              <Phone className="h-3.5 w-3.5" />
+              Phone
+            </label>
+            <input
+              type="tel"
+              value={form.phone}
+              onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\D/g, "").slice(0, 10) })}
+              placeholder="98XXXXXXXX"
+              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-800 focus:outline-none focus:border-[#1ba672] focus:ring-1 focus:ring-[#1ba672]"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-gray-600 mb-1.5 flex items-center gap-1.5">
+              <Mail className="h-3.5 w-3.5" />
+              Email (optional)
+            </label>
+            <input
+              type="email"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              placeholder="you@example.com"
+              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-800 focus:outline-none focus:border-[#1ba672] focus:ring-1 focus:ring-[#1ba672]"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="text-xs font-semibold text-gray-600 mb-1.5 flex items-center gap-1.5">
+              <Calendar className="h-3.5 w-3.5" />
+              Date
+            </label>
+            <input
+              type="date"
+              min={today}
+              value={form.date}
+              onChange={(e) => setForm({ ...form, date: e.target.value })}
+              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-800 focus:outline-none focus:border-[#1ba672] focus:ring-1 focus:ring-[#1ba672]"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-gray-600 mb-1.5 flex items-center gap-1.5">
+              <Users className="h-3.5 w-3.5" />
+              Party Size
+            </label>
+            <input
+              type="number"
+              min={1}
+              max={20}
+              value={form.partySize}
+              onChange={(e) => setForm({ ...form, partySize: parseInt(e.target.value, 10) || 1 })}
+              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-800 focus:outline-none focus:border-[#1ba672] focus:ring-1 focus:ring-[#1ba672]"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="text-xs font-semibold text-gray-600 mb-2 flex items-center gap-1.5">
+            <Clock className="h-3.5 w-3.5" />
+            Time Slot
+          </label>
+          <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+            {TIME_SLOTS.map((slot) => {
+              const booked = bookedSlots[slot] || 0;
+              const full = booked >= tableCount;
+              const active = form.timeSlot === slot;
+              return (
+                <button
+                  key={slot}
+                  onClick={() => !full && setForm({ ...form, timeSlot: slot })}
+                  disabled={full}
+                  className={`rounded-xl border px-2 py-2 text-xs font-semibold transition-all ${
+                    active
+                      ? "bg-[#1ba672] text-white border-[#1ba672] shadow-sm"
+                      : full
+                        ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed line-through"
+                        : "bg-white text-gray-700 border-gray-200 hover:border-[#1ba672]"
+                  }`}
+                >
+                  {slot}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div>
+          <label className="text-xs font-semibold text-gray-600 mb-1.5 block">
+            Special Requests (optional)
+          </label>
+          <textarea
+            value={form.specialRequests}
+            onChange={(e) => setForm({ ...form, specialRequests: e.target.value })}
+            placeholder="Dietary needs, occasion..."
+            rows={3}
+            className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-800 focus:outline-none focus:border-[#1ba672] focus:ring-1 focus:ring-[#1ba672] resize-none"
+          />
+        </div>
+
+        {error && (
+          <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-600">
+            {error}
+          </div>
+        )}
+
+        <button
+          onClick={handleSubmit}
+          disabled={submitting}
+          className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#1ba672] py-4 text-sm font-bold text-white shadow-md shadow-[#1ba672]/20 hover:bg-[#158f60] transition-colors disabled:opacity-50"
+        >
+          {submitting ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Submitting...
+            </>
+          ) : (
+            "Request Reservation"
+          )}
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export default function MenuPage() {
   return (
@@ -1005,10 +1191,6 @@ function MenuPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const slug = params.slug;
-  // Secure table identity: `?t=<qrToken>` is the unguessable token from the QR;
-  // the real table number is resolved server-side from it so a guest can't edit
-  // the URL to order on another table. `?table=N` is the legacy (spoofable) form
-  // kept working only for QR codes printed before token QRs existed.
   const qrToken = searchParams.get("t") || null;
   const urlTableNo = searchParams.get("table")
     ? Number(searchParams.get("table"))
@@ -1021,15 +1203,17 @@ function MenuPageContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [activeTab, setActiveTab] = useState<"menu" | "reserve" | "rooms">("menu");
   const [activeCategory, setActiveCategory] = useState<string>("");
   const [activeSubCategory, setActiveSubCategory] = useState<string>("");
-  const [categoryView, setCategoryView] = useState<"scroll" | "grid">("scroll");
   const [searchQuery, setSearchQuery] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
   const [selectedDish, setSelectedDish] = useState<MenuItem | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [showOrderPlaced, setShowOrderPlaced] = useState(false);
+  const [showTrackModal, setShowTrackModal] = useState(false);
   const [lastTrackToken, setLastTrackToken] = useState<string | null>(null);
   const [filterVeg, setFilterVeg] = useState(false);
   const { isSignedIn } = useAuth();
@@ -1067,17 +1251,12 @@ function MenuPageContent() {
   const restaurantId = restaurant?.id ?? null;
   const cur = restaurant?.currency ?? "NPR";
 
-  // Re-load the saved cart for this specific restaurant as soon as we know its ID.
-  // This ensures re-scanning the same table QR always brings back the customer's cart.
   useEffect(() => {
     if (restaurantId && restaurant?.slug && restaurant?.currency) {
       initForRestaurant(restaurantId, restaurant.slug, restaurant.currency);
     }
-    // Only run when restaurantId becomes available — not on every render.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [restaurantId]);
 
-  // Preload popup and checkout chunks so they're cached before first interaction.
   useEffect(() => {
     const t = setTimeout(() => {
       import("@/components/food/FoodDetailPopup");
@@ -1098,23 +1277,18 @@ function MenuPageContent() {
       setLoading(true);
       setError(null);
       try {
-        // Load restaurant first — this is the critical fetch.
-        // Menu and secondary data are loaded separately so a menu failure
-        // doesn't prevent the restaurant from rendering at all.
         const rest = await apiFetch<Restaurant>(
           `/api/public/restaurants/${slug}`,
         );
         if (cancelled) return;
         setRestaurant(rest);
 
-        // Load menu independently so a failure here doesn't block the page
         apiFetch<MenuItem[]>(`/api/public/restaurants/${slug}/menu`)
           .then((menu) => {
             if (!cancelled) setMenuItems(menu);
           })
           .catch(() => {});
 
-        // Load rooms for hotel/resort/guesthouse types
         const hotelTypes = ["HOTEL", "RESORT", "GUEST_HOUSE"];
         if (hotelTypes.includes(rest.type)) {
           apiFetch<Room[]>(`/api/public/restaurants/${slug}/rooms`)
@@ -1167,7 +1341,6 @@ function MenuPageContent() {
           })
           .catch(() => {});
 
-        // Check if restaurant has active coupons
         apiFetch<{ valid: boolean }>(
           `/api/public/restaurants/${slug}/coupons/validate`,
           {
@@ -1175,7 +1348,6 @@ function MenuPageContent() {
             body: { code: "__CHECK__", orderTotal: 0 },
           },
         ).catch((err) => {
-          // If error message mentions "not found" it means no coupons; any other error means coupons exist
           if (
             err instanceof Error &&
             !err.message.toLowerCase().includes("not found")
@@ -1199,7 +1371,6 @@ function MenuPageContent() {
     };
   }, [slug]);
 
-  // Table session for persistent ordering
   const {
     session: tableSession,
     order: sessionOrder,
@@ -1207,31 +1378,22 @@ function MenuPageContent() {
     getBill,
   } = useTableSession(restaurantId, urlTableNo, qrToken);
 
-  // The authoritative table number comes from the server-resolved session (set
-  // securely from the QR token); fall back to the URL number only for legacy QRs.
   const tableNo = tableSession?.tableNo ?? urlTableNo;
 
-  // Restore active order when returning from tracking page with ?addTo=orderId
   useEffect(() => {
     if (addToOrderId && restaurantId) {
       restoreOrder(restaurantId, addToOrderId);
     }
   }, [addToOrderId, restaurantId, restoreOrder]);
 
-  // Auto-restore order from localStorage or table session.
-  // Always falls back to localStorage so a tracked order is never abandoned —
-  // including when sessionOrder is terminal or mismatched.
   useEffect(() => {
     if (restaurantId && !activeOrder && !addToOrderId) {
       if (
         sessionOrder &&
         !["ACCEPTED", "REJECTED", "REJECTED"].includes(sessionOrder.status)
       ) {
-        // Active table session — restore its order
         restoreOrder(restaurantId, sessionOrder.id);
       } else {
-        // No active session order (no session, terminal session, or sessionOrder still loading):
-        // always fall back to localStorage so the tracking overlay is recovered on refresh.
         restoreFromStorage(restaurantId, tableSession?.id ?? undefined);
       }
     }
@@ -1245,9 +1407,6 @@ function MenuPageContent() {
     restoreFromStorage,
   ]);
 
-  // Save last visited menu for BottomNav + active table session. Preserve the
-  // secure QR token in the return URL so re-entry stays token-based (not the
-  // spoofable ?table= form).
   useEffect(() => {
     if (slug && typeof window !== "undefined") {
       const qs = qrToken
@@ -1263,7 +1422,6 @@ function MenuPageContent() {
     }
   }, [slug, tableNo, qrToken, restaurantId]);
 
-  // Fetch loyalty config so we can prompt guests to sign up when loyalty is active
   useEffect(() => {
     if (!slug) return;
     let cancelled = false;
@@ -1276,9 +1434,7 @@ function MenuPageContent() {
           pointsPerCurrency: Number(d.pointsPerCurrency ?? 1),
         });
       })
-      .catch(() => {
-        /* silent — loyalty is optional */
-      });
+      .catch(() => {});
     return () => {
       cancelled = true;
     };
@@ -1289,9 +1445,6 @@ function MenuPageContent() {
     setCheckoutOpen(true);
   }, []);
 
-  // Remembers the just-placed order so the auto-show effect below does NOT
-  // force-open the tracker when the guest dismisses the "Order Received" popup
-  // with "Keep browsing". (Restored-on-reload orders still auto-open.)
   const freshOrderIdRef = useRef<string | null>(null);
 
   const handleOrderPlaced = useCallback(
@@ -1300,10 +1453,7 @@ function MenuPageContent() {
       localStorage.setItem(`hh_tracking_${slug}`, "1");
       setLastTrackToken(trackToken ?? null);
       setCheckoutOpen(false);
-      // Show the instant "Order Received" popup instead of force-opening the
-      // tracker — the guest chooses to track or keep ordering (one running bill).
       setShowOrderPlaced(true);
-      // Do NOT change the URL — preserves ?table=N so Dine-In stays available for repeat orders
     },
     [slug],
   );
@@ -1317,13 +1467,10 @@ function MenuPageContent() {
 
   const filteredItems = menuItems.filter((item) => {
     if (!item.isAvailable) return false;
-    // Category filter: match parent or child categories
     if (activeCategory) {
       if (activeSubCategory) {
-        // If subcategory selected, match only that subcategory
         if (item.category.name !== activeSubCategory) return false;
       } else {
-        // If only parent category, match parent + all its subcategories
         const childCatNames = subCategories.map((c) => c.name);
         if (
           item.category.name !== activeCategory &&
@@ -1350,23 +1497,16 @@ function MenuPageContent() {
     return true;
   });
 
-  // Smart AI sorting: featured → bestsellers → highest rated → rest
   const smartSorted = [...filteredItems].sort((a, b) => {
     if (a.isFeatured !== b.isFeatured) return a.isFeatured ? -1 : 1;
     if (a.discount > 0 !== b.discount > 0) return a.discount > 0 ? -1 : 1;
     const aBS = a.badge === "Bestseller" ? 1 : 0;
     const bBS = b.badge === "Bestseller" ? 1 : 0;
     if (aBS !== bBS) return bBS - aBS;
-    // Then by rating (highest first)
     if (a.rating !== b.rating) return b.rating - a.rating;
     return a.sortOrder - b.sortOrder;
   });
 
-  // Group items under their top-level category (parent + its sub-categories)
-  // for the "All" view. Matching is by category ID — matching by name caused
-  // sub-category items to be rendered twice (once under their parent group and
-  // again in the catch-all "Other" bucket). Each item is placed in exactly one
-  // group, and "Other" collects anything not already rendered above.
   const renderedItemIds = new Set<string>();
   const categoryGroups = categories
     .map((cat) => {
@@ -1384,10 +1524,6 @@ function MenuPageContent() {
   const otherItems = smartSorted.filter(
     (item) => !renderedItemIds.has(item.id),
   );
-
-  // Don't hijack the page with order tracking while checkout is open —
-  // digital payment flows (Bank details, eSewa/Khalti gateway) run inside
-  // the CheckoutSheet which is rendered in the main JSX below.
 
   if (loading) {
     return (
@@ -1425,7 +1561,6 @@ function MenuPageContent() {
     );
   }
 
-  // Build CSS custom properties from restaurant theme
   const themeStyle: React.CSSProperties = {
     ...(restaurant.primaryColor
       ? ({ "--menu-primary": restaurant.primaryColor } as React.CSSProperties)
@@ -1438,9 +1573,7 @@ function MenuPageContent() {
     ...(restaurant.accentColor
       ? ({ "--menu-accent": restaurant.accentColor } as React.CSSProperties)
       : {}),
-    ...(restaurant.fontFamily
-      ? { fontFamily: `${restaurant.fontFamily}, sans-serif` }
-      : {}),
+    fontFamily: "var(--font-poppins), sans-serif",
   };
 
   return (
@@ -1489,104 +1622,117 @@ function MenuPageContent() {
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="sticky top-0 z-40 bg-[var(--canvas)]/95 backdrop-blur-3xl shadow-sm border-b border-black/[0.04]"
+          className="sticky top-0 z-40 bg-white/95 backdrop-blur-3xl shadow-sm border-b border-black/[0.04]"
         >
-          <div className="px-4 md:px-6 py-2">
-            <div className="flex h-12 sm:h-14 items-center gap-3 sm:gap-4">
+          <div className="px-4 md:px-6 py-2 sm:py-3">
+            <div className="flex items-center gap-3">
               <Link
                 href="/"
-                className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)] hover:text-[var(--text-1)] transition-all shrink-0 shadow-sm"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all shrink-0 shadow-sm"
               >
-                <ArrowLeft className="h-4 w-4" />
+                <ArrowLeft className="h-5 w-5" />
               </Link>
-              <div className="flex-1 min-w-0 flex items-center">
-                {/* Only show Table/Room badges since Resto Name is in the cover banner now */}
-                {tableNo || roomNo ? (
-                  <div className="flex gap-2">
-                    {tableNo && (
-                      <span className="inline-flex items-center gap-1 rounded-md bg-[var(--accent)]/15 px-2.5 py-1 text-[13px] font-black text-[var(--accent)]">
-                        Table {tableNo}
-                      </span>
-                    )}
-                    {roomNo && (
-                      <span className="inline-flex items-center gap-1 rounded-md bg-[var(--accent)]/15 px-2.5 py-1 text-[13px] font-black text-[var(--accent)]">
-                        Room {roomNo}
-                      </span>
-                    )}
-                  </div>
-                ) : (
-                  <span className="text-sm font-bold text-[var(--text-1)] truncate hidden sm:inline-block">
-                    Menu
+              <div className="flex-1 min-w-0 flex flex-col justify-center">
+                <h1 className="text-base sm:text-lg font-black text-gray-900 truncate flex items-center gap-2">
+                  {restaurant.name}
+                  <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-gray-600">
+                    {restaurant.type}
                   </span>
-                )}
+                </h1>
+                <div className="flex items-center gap-1.5 text-[11px] font-semibold text-gray-500 mt-0.5">
+                  {tableNo ? (
+                     <span className="text-[#1ba672] font-extrabold tracking-tight">Table {tableNo}</span>
+                  ) : roomNo ? (
+                     <span className="text-[#1ba672] font-extrabold tracking-tight">Room {roomNo}</span>
+                  ) : (
+                     <span className="tracking-tight">Delivery & Takeaway</span>
+                  )}
+                  <span>•</span>
+                  <span className="flex items-center gap-0.5 text-gray-600">
+                    <Star className="h-3 w-3 fill-[#1ba672] text-[#1ba672]" /> 
+                    {restaurant.rating.toFixed(1)}
+                  </span>
+                  <span>•</span>
+                  <span className="truncate max-w-[120px]">{restaurant.address}</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2 shrink-0">
-                {restaurant.wifiName && (
-                  <WifiBadge
-                    name={restaurant.wifiName}
-                    password={restaurant.wifiPassword}
-                  />
-                )}
-                <PaymentQRBadge paymentQRs={restaurant.paymentQRs} />
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button
+                  onClick={() => {
+                    if (activeOrder?.trackToken) {
+                      router.push(`/order-track/${activeOrder.trackToken}`);
+                    } else {
+                      setShowTrackModal(true);
+                    }
+                  }}
+                  className="flex items-center gap-2 h-11 px-6 rounded-full bg-[#1ba672] text-white hover:bg-[#168a5d] transition-all border-none font-black text-[15px] shadow-[0_4px_12px_rgba(27,166,114,0.3)]"
+                  style={{ fontFamily: "var(--font-poppins)" }}
+                  title="Track Order"
+                >
+                  Track Order
+                </button>
                 {restaurant.phone && (
                   <a
                     href={`tel:${restaurant.phone}`}
-                    className="hidden sm:flex h-9 items-center gap-1.5 rounded-full bg-[var(--surface)] px-3 text-xs font-bold text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-colors"
+                    className="flex h-9 w-9 items-center justify-center rounded-full bg-green-50 text-green-600 hover:bg-green-100 transition-colors border border-green-200"
+                    title="Call Restaurant"
                   >
-                    <Phone className="h-3.5 w-3.5" />
-                    Call
+                    <Phone className="h-4 w-4" />
                   </a>
                 )}
                 {isSignedIn && (
                   <button
                     onClick={() => setShowHistory(true)}
-                    className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-colors"
+                    className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors border border-gray-200"
                     title="My Order History"
                   >
                     <History className="h-4 w-4" />
                   </button>
                 )}
-                <motion.button
-                  onClick={() => setCartOpen(true)}
-                  whileHover={{ scale: 1.04 }}
-                  whileTap={{ scale: 0.95 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                  className="relative flex h-9 items-center gap-1.5 rounded-xl bg-[var(--accent)] px-4 text-xs font-bold text-white shadow-md shadow-[var(--accent)]/20 hover:bg-[var(--accent-hover)]"
-                >
-                  <ShoppingBag className="h-4 w-4" />
-                  <span className="hidden sm:inline">Cart</span>
-                  {totalItems > 0 && (
-                    <motion.span
-                      key={totalItems}
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{
-                        type: "spring",
-                        stiffness: 500,
-                        damping: 15,
-                      }}
-                      className="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--canvas)] text-[10px] font-bold text-[var(--accent)]"
-                    >
-                      {totalItems}
-                    </motion.span>
-                  )}
-                </motion.button>
               </div>
+            </div>
+            
+            <div className="mt-3 flex items-center gap-6 overflow-x-auto no-scrollbar border-t border-gray-100 pt-2.5 pb-0.5">
+               <button 
+                 onClick={() => setActiveTab("menu")}
+                 className={`whitespace-nowrap pb-1.5 border-b-[3px] text-sm transition-colors ${activeTab === 'menu' ? 'border-black font-black text-black' : 'border-transparent font-bold text-gray-400 hover:text-gray-800'}`}
+               >
+                 Order Online
+               </button>
+               {isFeatureAvailable(restaurant.type, "table-reservations", { featuresEnabled: restaurant.featuresEnabled, featuresDisabled: restaurant.featuresDisabled }) && (
+                 <button 
+                   onClick={() => setActiveTab("reserve")}
+                   className={`whitespace-nowrap pb-1.5 border-b-[3px] text-sm transition-colors ${activeTab === 'reserve' ? 'border-black font-black text-black' : 'border-transparent font-bold text-gray-400 hover:text-gray-800'}`}
+                 >
+                   Book a Table
+                 </button>
+               )}
+               {isFeatureAvailable(restaurant.type, "hotel-bookings", { featuresEnabled: restaurant.featuresEnabled, featuresDisabled: restaurant.featuresDisabled }) && (
+                 <button 
+                   onClick={() => setActiveTab("rooms")}
+                   className={`whitespace-nowrap pb-1.5 border-b-[3px] text-sm transition-colors ${activeTab === 'rooms' ? 'border-black font-black text-black' : 'border-transparent font-bold text-gray-400 hover:text-gray-800'}`}
+                 >
+                   Rooms
+                 </button>
+               )}
             </div>
           </div>
         </motion.header>
 
         <div className="relative z-10 flex-1 px-4 md:px-6 pb-24">
-          <div className="flex flex-col md:flex-row gap-6 py-4 lg:py-6 w-full">
+          {activeTab === "reserve" ? (
+            <InlineReservationForm slug={slug} />
+          ) : activeTab === "rooms" ? (
+             <div className="py-6"><p>Hotel Rooms feature coming soon...</p></div>
+          ) : (
+            <div className="flex flex-col md:flex-row gap-6 py-4 lg:py-6 w-full">
             <div className="flex-1 min-w-0 space-y-5">
-              {/* Stories - with scroll reveal */}
               {restaurant.showStories && (
                 <ScrollStorySection fadeIn slideFrom="bottom" scrub={false}>
                   <MenuStories slug={slug} />
                 </ScrollStorySection>
               )}
 
-              {/* Display Counter - live availability view (type-gated) */}
               {isFeatureAvailable(restaurant.type, "display-counter", {
                 featuresEnabled: restaurant.featuresEnabled,
                 featuresDisabled: restaurant.featuresDisabled,
@@ -1604,30 +1750,28 @@ function MenuPageContent() {
                 />
               )}
 
-              {/* Search + Category bar — sticky seamlessly under header */}
-              <div className="sticky top-[64px] sm:top-[72px] z-30 -mx-4 px-4 md:-mx-6 md:px-6 pt-1 pb-2 bg-[var(--canvas)]/95 backdrop-blur-md space-y-3">
+              <div className="sticky top-[64px] sm:top-[72px] z-30 -mx-4 px-4 md:-ml-6 md:pl-6 md:mr-0 md:pr-0 pt-3 pb-3 bg-[#fbfbfb] space-y-4 shadow-sm border-b border-gray-200">
                 <motion.div
                   className="relative group"
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: 0.1 }}
                 >
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-3)] group-focus-within:text-[var(--accent)] transition-colors" />
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search dishes, cuisines..."
-                    className="w-full rounded-xl bg-[var(--canvas)] py-3 pl-11 pr-4 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 border border-[var(--border)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] focus:border-[var(--accent)]/40 transition-all shadow-sm"
+                    placeholder="Search for dishes, cuisines..."
+                    className="w-full rounded-2xl bg-white py-3.5 pl-12 pr-4 text-[15px] font-medium text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1ba672]/30 transition-all shadow-sm border border-gray-100"
                   />
                 </motion.div>
 
-                {/* Category bar with toggle + search */}
                 <motion.div
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: 0.15 }}
-                  className="space-y-2"
+                  className="space-y-3"
                 >
                   <div className="flex items-center gap-2">
                     <div
@@ -1639,10 +1783,10 @@ function MenuPageContent() {
                           setActiveCategory("");
                           setActiveSubCategory("");
                         }}
-                        className={`shrink-0 rounded-full px-6 py-2.5 text-[11px] font-bold tracking-wide uppercase transition-all ${
+                        className={`shrink-0 rounded-xl px-5 py-2 text-[13px] font-black tracking-wide transition-all border ${
                           activeCategory === ""
-                            ? "bg-[#1a1a1a] text-white shadow-md shadow-black/10"
-                            : "bg-[var(--canvas)] text-[var(--text-2)] border border-[var(--border)] hover:border-[var(--border)] hover:bg-[var(--canvas-sub)] hover:text-[#1a1a1a]"
+                            ? "bg-[#1ba672] text-white border-[#1ba672] shadow-md shadow-[#1ba672]/20"
+                            : "bg-white text-gray-600 border-gray-200 hover:border-gray-300 shadow-sm"
                         }`}
                       >
                         All
@@ -1656,68 +1800,18 @@ function MenuPageContent() {
                             );
                             setActiveSubCategory("");
                           }}
-                          className={`shrink-0 rounded-full px-6 py-2.5 text-[11px] font-bold tracking-wide uppercase transition-all flex items-center ${
+                          className={`shrink-0 rounded-xl px-5 py-2 text-[13px] font-black tracking-wide transition-all border flex items-center ${
                             activeCategory === cat.name
-                              ? "bg-[#1a1a1a] text-white shadow-md shadow-black/10"
-                              : "bg-[var(--canvas)] text-[var(--text-2)] border border-[var(--border)] hover:border-[var(--border)] hover:bg-[var(--canvas-sub)] hover:text-[#1a1a1a]"
+                              ? "bg-[#1ba672] text-white border-[#1ba672] shadow-md shadow-[#1ba672]/20"
+                              : "bg-white text-gray-600 border-gray-200 hover:border-gray-300 shadow-sm"
                           }`}
                         >
                           {stripEmojis(cat.name)}
                         </button>
                       ))}
                     </div>
-
-                    {/* Grid / Scroll toggle */}
-                    <button
-                      onClick={() =>
-                        setCategoryView((v) =>
-                          v === "scroll" ? "grid" : "scroll",
-                        )
-                      }
-                      className="shrink-0 flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--canvas)] text-[var(--text-3)] hover:text-[var(--accent-hover)] hover:border-[var(--accent)] transition-all"
-                      title={
-                        categoryView === "scroll" ? "Grid view" : "List view"
-                      }
-                    >
-                      {categoryView === "scroll" ? (
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-4 w-4"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth={2}
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <rect x="3" y="3" width="7" height="7" />
-                          <rect x="14" y="3" width="7" height="7" />
-                          <rect x="3" y="14" width="7" height="7" />
-                          <rect x="14" y="14" width="7" height="7" />
-                        </svg>
-                      ) : (
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-4 w-4"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth={2}
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <line x1="8" y1="6" x2="21" y2="6" />
-                          <line x1="8" y1="12" x2="21" y2="12" />
-                          <line x1="8" y1="18" x2="21" y2="18" />
-                          <line x1="3" y1="6" x2="3.01" y2="6" />
-                          <line x1="3" y1="12" x2="3.01" y2="12" />
-                          <line x1="3" y1="18" x2="3.01" y2="18" />
-                        </svg>
-                      )}
-                    </button>
                   </div>
 
-                  {/* Subcategory chips — appear when a parent category is selected */}
                   <AnimatePresence>
                     {activeCategory && subCategories.length > 0 && (
                       <motion.div
@@ -1764,50 +1858,72 @@ function MenuPageContent() {
                 </motion.div>
 
                 <motion.div
-                  className="flex flex-wrap gap-2"
+                  className="flex items-center justify-between"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: 0.2 }}
                 >
-                  <FilterPill
-                    active={filterVeg}
-                    onClick={() => setFilterVeg(!filterVeg)}
-                    icon={<Leaf className="h-3 w-3" />}
-                    label="Veg"
-                  />
-                  <FilterPill
-                    active={filterNonVeg}
-                    onClick={() => setFilterNonVeg(!filterNonVeg)}
-                    icon={<Flame className="h-3 w-3" />}
-                    label="Non-Veg"
-                  />
-                  <FilterPill
-                    active={filterEgg}
-                    onClick={() => setFilterEgg(!filterEgg)}
-                    icon={<Egg className="h-3 w-3" />}
-                    label="Egg"
-                  />
-                  <FilterPill
-                    active={filterNoOnionGarlic}
-                    onClick={() => setFilterNoOnionGarlic(!filterNoOnionGarlic)}
-                    icon={<X className="h-3 w-3" />}
-                    label="No Onion-Garlic"
-                  />
-                  <FilterPill
-                    active={filterBestseller}
-                    onClick={() => setFilterBestseller(!filterBestseller)}
-                    icon={<span className="text-[10px] font-black">#</span>}
-                    label="Bestseller"
-                  />
-                  {menuItems.some((i) => i.isDrink) && (
-                    <FilterPill
-                      active={filterDrinks}
-                      onClick={() => setFilterDrinks(!filterDrinks)}
-                      icon={<Wine className="h-3 w-3" />}
-                      label="Drinks"
-                    />
-                  )}
+                  <button
+                    onClick={() => setShowFilters(!showFilters)}
+                    className="flex items-center gap-1.5 rounded-xl px-4 py-2 bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 shadow-sm text-xs font-black tracking-wide transition-colors"
+                  >
+                    <SlidersHorizontal className="h-3.5 w-3.5" />
+                    Filters
+                    {showFilters ? <ChevronUp className="h-3 w-3 ml-1" /> : <ChevronDown className="h-3 w-3 ml-1" />}
+                  </button>
                 </motion.div>
+
+                <AnimatePresence>
+                  {showFilters && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="flex flex-wrap gap-2 pt-2 pb-1">
+                        <FilterPill
+                          active={filterVeg}
+                          onClick={() => setFilterVeg(!filterVeg)}
+                          icon={<Leaf className="h-3 w-3" />}
+                          label="Veg"
+                        />
+                        <FilterPill
+                          active={filterNonVeg}
+                          onClick={() => setFilterNonVeg(!filterNonVeg)}
+                          icon={<Flame className="h-3 w-3" />}
+                          label="Non-Veg"
+                        />
+                        <FilterPill
+                          active={filterEgg}
+                          onClick={() => setFilterEgg(!filterEgg)}
+                          icon={<Egg className="h-3 w-3" />}
+                          label="Egg"
+                        />
+                        <FilterPill
+                          active={filterNoOnionGarlic}
+                          onClick={() => setFilterNoOnionGarlic(!filterNoOnionGarlic)}
+                          icon={<X className="h-3 w-3" />}
+                          label="No Onion-Garlic"
+                        />
+                        <FilterPill
+                          active={filterBestseller}
+                          onClick={() => setFilterBestseller(!filterBestseller)}
+                          icon={<span className="text-[10px] font-black">#</span>}
+                          label="Bestseller"
+                        />
+                        {menuItems.some((i) => i.isDrink) && (
+                          <FilterPill
+                            active={filterDrinks}
+                            onClick={() => setFilterDrinks(!filterDrinks)}
+                            icon={<Wine className="h-3 w-3" />}
+                            label="Drinks"
+                          />
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
               {!searchQuery && (
@@ -1820,33 +1936,7 @@ function MenuPageContent() {
                 />
               )}
 
-              {isFeatureAvailable(restaurant.type, "table-reservations", {
-                featuresEnabled: restaurant.featuresEnabled,
-                featuresDisabled: restaurant.featuresDisabled,
-              }) && (
-                <motion.a
-                  href={`/menu/${slug}/reserve`}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4 }}
-                  className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-[var(--canvas-sub)] to-[var(--canvas)] border border-[var(--border)] px-4 py-3 hover:border-[var(--accent)] transition-all"
-                >
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent)] shrink-0">
-                    <Calendar className="h-4 w-4 text-white" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-[var(--text-1)]">
-                      Reserve a Table
-                    </p>
-                    <p className="text-[11px] text-[var(--text-2)]">
-                      Book your seat in advance
-                    </p>
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-[var(--text-3)]" />
-                </motion.a>
-              )}
-
-              {loyaltyInfo.enabled && !isSignedIn && (
+              {loyaltyInfo.enabled && !isSignedIn && activeTab === "menu" && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -2165,7 +2255,7 @@ function MenuPageContent() {
                   ) : activeCategory ? (
                     /* Single category selected */
                     <div key="single" className="space-y-3">
-                      <h3 className="text-sm font-bold text-[var(--text-3)] uppercase tracking-wider">
+                      <h3 className="text-sm font-bold text-[var(--text-3)] uppercase tracking-wider" style={{ fontFamily: "var(--font-poppins)" }}>
                         {stripEmojis(activeCategory)}
                         {activeSubCategory && (
                           <span className="text-[var(--accent)]">
@@ -2181,11 +2271,7 @@ function MenuPageContent() {
                         variants={containerVariants}
                         initial="hidden"
                         animate="visible"
-                        className={
-                          categoryView === "grid"
-                            ? "grid grid-cols-1 sm:grid-cols-2 gap-3"
-                            : "space-y-3"
-                        }
+                        className="flex flex-col mt-2"
                       >
                         {smartSorted.map((item) => (
                           <MenuItemCard
@@ -2206,7 +2292,7 @@ function MenuPageContent() {
                       {categoryGroups.map(({ cat, items: catItems }) => (
                         <div key={cat.id} className="space-y-3">
                           <div className="flex items-center gap-3">
-                            <h3 className="text-sm font-bold text-[var(--text-1)]">
+                            <h3 className="text-sm font-bold text-[var(--text-1)]" style={{ fontFamily: "var(--font-poppins)" }}>
                               {stripEmojis(cat.name)}
                             </h3>
                             <span className="text-[11px] font-semibold text-[var(--text-3)]">
@@ -2219,11 +2305,7 @@ function MenuPageContent() {
                             variants={containerVariants}
                             initial="hidden"
                             animate="visible"
-                            className={
-                              categoryView === "grid"
-                                ? "grid grid-cols-2 gap-3"
-                                : "space-y-3"
-                            }
+                            className="flex flex-col mt-2"
                           >
                             {catItems.map((item) => (
                               <MenuItemCard
@@ -2241,14 +2323,14 @@ function MenuPageContent() {
                       ))}
                       {otherItems.length > 0 && (
                         <div className="space-y-3">
-                          <h3 className="text-sm font-bold text-[var(--text-3)] uppercase tracking-wider">
+                          <h3 className="text-sm font-bold text-[var(--text-3)] uppercase tracking-wider" style={{ fontFamily: "var(--font-poppins)" }}>
                             Other
                           </h3>
                           <motion.div
                             variants={containerVariants}
                             initial="hidden"
                             animate="visible"
-                            className="space-y-3"
+                            className="flex flex-col mt-2"
                           >
                             {otherItems.map((item) => (
                               <MenuItemCard
@@ -2271,15 +2353,17 @@ function MenuPageContent() {
             </div>
 
             <div className="hidden md:block w-[280px] lg:w-[320px] shrink-0">
-              <div className="sticky top-[100px]">
+              <div className="sticky top-[72px] pt-3 space-y-4">
                 <DesktopCartPreview
                   currency={cur}
                   onProceed={handleProceedToCheckout}
                   onOpenFull={() => setCartOpen(true)}
                 />
+                <LiveOrderWidget currency={cur} />
               </div>
             </div>
-          </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -2296,26 +2380,19 @@ function MenuPageContent() {
             <motion.button
               onClick={() => setCartOpen(true)}
               whileTap={{ scale: 0.98 }}
-              className="flex w-full items-center justify-between bg-[var(--text-1)] px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] text-white shadow-[0_-4px_20px_rgba(0,0,0,0.15)]"
+              className="flex w-full items-center justify-between bg-[#1ba672] px-4 py-3.5 pb-[max(1rem,env(safe-area-inset-bottom))] text-white shadow-[0_-4px_20px_rgba(0,0,0,0.15)] rounded-t-xl"
             >
-              <div className="flex items-center gap-2">
-                <motion.span
-                  key={totalItems}
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: "spring", stiffness: 500, damping: 15 }}
-                  className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--canvas)]/20 text-xs font-bold"
-                >
-                  {totalItems}
-                </motion.span>
-                <span className="text-sm font-bold">
-                  {totalItems} {totalItems === 1 ? "item" : "items"} |{" "}
+              <div className="flex flex-col items-start text-left">
+                <span className="text-sm font-extrabold tracking-tight">
+                  {totalItems} {totalItems === 1 ? "ITEM" : "ITEMS"}
+                </span>
+                <span className="text-xs font-bold text-white/90">
                   {formatPrice(subtotal, cur)}
                 </span>
               </div>
-              <div className="flex items-center gap-1 text-sm font-bold">
+              <div className="flex items-center gap-1.5 text-sm font-extrabold tracking-wide uppercase">
                 View Cart
-                <ChevronRight className="h-4 w-4" />
+                <ChevronRight className="h-4 w-4 stroke-[3]" />
               </div>
             </motion.button>
           </motion.div>
@@ -2379,8 +2456,8 @@ function MenuPageContent() {
         trackToken={lastTrackToken}
       />
 
-      {/* Floating "Track Order" button */}
-      {activeOrder &&
+      {/* Floating "Track Order" button - HIDDEN AS PER USER REQUEST */}
+      {/* activeOrder &&
         activeOrder.trackToken &&
         activeOrder.status !== "REJECTED" && (
           <Link
@@ -2390,7 +2467,7 @@ function MenuPageContent() {
             <Receipt className="h-4 w-4" />
             Track Order · {activeOrder.orderNo}
           </Link>
-        )}
+        ) */}
 
       {/* Customer chat — visible as soon as user lands on menu */}
       {restaurantId && (tableNo || roomNo || activeOrder) && (
@@ -2424,6 +2501,11 @@ function MenuPageContent() {
           </p>
         </div>
       )}
+
+      <TrackOrderModal
+        isOpen={showTrackModal}
+        onClose={() => setShowTrackModal(false)}
+      />
     </div>
   );
 }
@@ -2477,7 +2559,7 @@ function OrderHistorySheet({
 }) {
   const [orders, setOrders] = useState<HistoryOrder[]>([]);
   const [loading, setLoading] = useState(false);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (!open) return;
@@ -2540,7 +2622,7 @@ function OrderHistorySheet({
               ) : (
                 orders.map((order) => {
                   const meta = H_STATUS[order.status] || H_STATUS.PENDING;
-                  const expanded = expandedId === order.id;
+                  const expanded = !!expandedIds[order.id];
                   return (
                     <div
                       key={order.id}
@@ -2548,7 +2630,7 @@ function OrderHistorySheet({
                     >
                       <button
                         onClick={() =>
-                          setExpandedId(expanded ? null : order.id)
+                          setExpandedIds((prev) => ({ ...prev, [order.id]: !prev[order.id] }))
                         }
                         className="w-full p-4 text-left"
                       >

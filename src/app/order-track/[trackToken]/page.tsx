@@ -14,6 +14,7 @@ import {
   MapPin,
   Phone,
   UtensilsCrossed,
+  Copy,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -50,6 +51,7 @@ interface TrackItem {
 interface TrackOrder {
   id: string;
   orderNo: string;
+  trackToken: string | null;
   status: string;
   kitchenStatus: string | null;
   rejectReason: string | null;
@@ -101,7 +103,7 @@ function statusLabel(order: TrackOrder): { text: string; sub: string; color: str
     return { text: "Preparing now", sub: accepted ? `Accepted ${accepted}` : "Kitchen is working on your order.", color: "text-[var(--accent)]", progress: 60 };
   }
   if (ks === "ACCEPTED" || order.status === "ACCEPTED") {
-    return { text: "Kitchen accepted", sub: accepted ? `Accepted ${accepted}` : "Your order is in the queue.", color: "text-[var(--accent)]", progress: 30 };
+    return { text: "Served!", sub: accepted ? `Completed ${accepted}` : "Enjoy your meal.", color: "text-[var(--accent)]", progress: 100 };
   }
   return {
     text: "Order placed",
@@ -349,7 +351,7 @@ export default function OrderTrackPage() {
 
   const { text: statusText, sub: statusSub, color: statusColor, progress } = statusLabel(order);
   const isRejected = order.status === "REJECTED" || order.kitchenStatus === "REJECTED";
-  const isDone = order.kitchenStatus === "SERVED" || (!isRejected && order.status === "ACCEPTED" && order.type !== "DINE_IN" && order.kitchenStatus == null); // wait, isDone should not be true just for ACCEPTED. But I'll use progress === 100
+  const isDone = order.kitchenStatus === "SERVED" || order.status === "ACCEPTED";
   const isActive = !isRejected && progress < 100;
   const currency = order.restaurant.currency ?? "NPR";
 
@@ -365,7 +367,7 @@ export default function OrderTrackPage() {
         <div className="mx-auto max-w-2xl px-4">
           <div className="flex h-14 items-center gap-3">
             <Link
-              href={`/menu/${order.restaurant.slug}`}
+              href={`/menu/${order.restaurant.slug}${order.tableNo ? `?table=${order.tableNo}` : ""}`}
               className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-colors"
             >
               <ArrowLeft className="h-4 w-4" />
@@ -399,7 +401,21 @@ export default function OrderTrackPage() {
               <p className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider">
                 Order
               </p>
-              <p className="text-xl font-black text-[var(--text-1)] mt-0.5">{order.orderNo}</p>
+              <div className="flex items-center gap-2 mt-0.5">
+                <p className="text-xl font-black text-[var(--text-1)]">{order.orderNo}</p>
+                <div 
+                  className="flex items-center gap-1.5 px-2 py-0.5 bg-[var(--surface-alt)] rounded border border-[var(--border)] cursor-pointer hover:bg-[var(--border-soft)] transition-colors active:scale-95"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigator.clipboard.writeText(order.trackToken || "");
+                    alert("Tracking code copied to clipboard!");
+                  }}
+                  title="Copy Tracking Code"
+                >
+                  <span className="text-[10px] font-mono text-[var(--text-2)]">{order.trackToken}</span>
+                  <Copy className="h-3 w-3 text-[var(--text-3)]" />
+                </div>
+              </div>
               <div className="flex flex-wrap items-center gap-2 mt-1">
                 {order.tableNo && (
                   <span className="text-xs text-[var(--text-2)]">Table {order.tableNo}</span>
@@ -479,6 +495,12 @@ export default function OrderTrackPage() {
 
             <h2 className={`text-lg font-extrabold ${statusColor}`}>{statusText}</h2>
             <p className="mt-1 text-sm text-[var(--text-2)]">{statusSub}</p>
+
+            {isRejected && order.rejectReason && (
+              <p className="mt-3 rounded-xl bg-red-50 border border-red-100 px-4 py-2 text-xs font-bold text-red-700 text-left w-full">
+                Reason: {order.rejectReason}
+              </p>
+            )}
 
             {order.note && (
               <p className="mt-3 rounded-xl bg-[var(--surface)] px-4 py-2 text-xs text-[var(--text-2)] italic">

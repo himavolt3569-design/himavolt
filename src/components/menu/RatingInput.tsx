@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Star, MessageSquare, Loader2, AlertCircle, Check } from "lucide-react";
+import Link from "next/link";
 
 interface RatingInputProps {
   menuItemId: string;
@@ -22,7 +23,7 @@ export default function RatingInput({
   const [showComment, setShowComment] = useState(false);
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<React.ReactNode | null>(null);
   const [success, setSuccess] = useState(false);
 
   const displayRating = hoveredStar || selectedRating;
@@ -52,7 +53,11 @@ export default function RatingInput({
       }
 
       if (res.status === 401) {
-        setError("Please sign in to rate this item");
+        setError(
+          <span>
+            Please <Link href="/sign-in" className="underline font-bold hover:text-red-700">sign in</Link> to rate this item
+          </span>
+        );
         return;
       }
 
@@ -166,7 +171,7 @@ export default function RatingInput({
               disabled={loading || selectedRating === 0}
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.98 }}
-              className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] px-5 py-2.5 text-[13px] font-bold text-white shadow-md shadow-[var(--accent)]/20/50 hover:shadow-lg hover:shadow-[var(--accent)]/20/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-5 py-2.5 text-[13px] font-bold text-white shadow-md shadow-[var(--accent)]/30 hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <>

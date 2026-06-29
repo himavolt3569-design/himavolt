@@ -348,6 +348,7 @@ export default function LiveOrdersTab() {
     refresh,
     acceptOrder,
     rejectOrder,
+    setOrders,
   } = useLiveOrders();
   const { showToast } = useToast();
   const [selectedOrder, setSelectedOrder] = useState<LiveOrder | null>(null);
@@ -358,14 +359,29 @@ export default function LiveOrdersTab() {
   // server scopes the action to that round's items + handles the first-round
   // payment gate and order status, so earlier rounds stay untouched.
   const roundAction = useCallback(
-    async (orderId: string, roundAt: string, action: "ACCEPT" | "REJECT") => {
+    async (orderId: string, roundAt: string, action: "ACCEPT" | "REJECT", reason?: string) => {
       const rid = selectedRestaurant?.id;
       if (!rid) return;
-      setBusyOrderIds((prev) => new Set(prev).add(orderId));
+      
+      // Optimistic update
+      setOrders((prev) =>
+        prev.map((o) => {
+          if (o.id !== orderId) return o;
+          return {
+            ...o,
+            items: o.items.map((i) =>
+              i.createdAt === roundAt
+                ? { ...i, kitchenStatus: action === "ACCEPT" ? "ACCEPTED" : "REJECTED" }
+                : i
+            ),
+          };
+        })
+      );
+
       try {
         await apiFetch(`/api/restaurants/${rid}/orders/${orderId}/round`, {
           method: "PATCH",
-          body: { roundAt, action },
+          body: { roundAt, action, reason },
         });
         await refresh();
       } catch (err) {
@@ -373,15 +389,10 @@ export default function LiveOrdersTab() {
           err instanceof Error ? err.message : "Action failed — please retry",
           "error",
         );
-      } finally {
-        setBusyOrderIds((prev) => {
-          const next = new Set(prev);
-          next.delete(orderId);
-          return next;
-        });
+        await refresh(); // revert optimistic on error
       }
     },
-    [selectedRestaurant?.id, refresh, showToast],
+    [selectedRestaurant?.id, showToast, refresh, setOrders],
   );
 
   const filtered = useMemo(() => {
@@ -487,7 +498,7 @@ export default function LiveOrdersTab() {
           currency={cur}
           busyOrderIds={busyOrderIds}
           onAcceptRound={(o, roundAt) => roundAction(o.id, roundAt, "ACCEPT")}
-          onRejectRound={(o, roundAt) => roundAction(o.id, roundAt, "REJECT")}
+          onRejectRound={(o, roundAt, meta, reason) => roundAction(o.id, roundAt, "REJECT", reason)}
         />
       ) : (
       <div>

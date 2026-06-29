@@ -128,7 +128,7 @@ function imgSrc(url: string | null | undefined) {
 function getAccent(item: PopupMenuItem): string {
   if (item.isDrink) return "#3b82f6";
   if (item.isVeg) return "#16a34a";
-  if ((item.spiceLevel ?? 0) >= 3) return "#ef4444";
+  if (!item.isVeg) return "#ef4444";
   return "#eaa94d";
 }
 
@@ -273,7 +273,7 @@ function SimilarCard({
         </div>
         <div className="p-2">
           <div className="flex items-center gap-1 mb-0.5">
-            <VegDot isVeg={item.isVeg} />
+            {!item.isDrink && <VegDot isVeg={item.isVeg} />}
             <p className="text-[11px] font-bold text-[var(--text-1)] truncate group-hover:text-[var(--accent)] transition-colors">
               {item.name}
             </p>
@@ -476,14 +476,21 @@ export default function FoodDetailPopup({
         .filter((a) => selectedAddOns.has(a.id))
         .reduce((s, a) => s + a.price, 0)
     : 0;
-  const unitPrice = item
-    ? Math.round((item.price + sizeAdd + addOnTotal) * surgeMultiplier)
-    : 0;
-  const total = unitPrice * qty;
+    
   const baseDiscounted =
     item && item.discount > 0
       ? Math.round(item.price * (1 - item.discount / 100))
-      : null;
+      : item ? item.price : 0;
+
+  const unitPrice = item
+    ? Math.round((baseDiscounted + sizeAdd + addOnTotal) * surgeMultiplier)
+    : 0;
+    
+  const originalUnitPrice = item
+    ? Math.round((item.price + sizeAdd + addOnTotal) * surgeMultiplier)
+    : 0;
+    
+  const total = unitPrice * qty;
   const cur = item?.restaurant?.currency ?? "NPR";
   const accent = item ? getAccent(item) : "#eaa94d";
 
@@ -577,7 +584,7 @@ export default function FoodDetailPopup({
               className="relative z-[1] flex items-center gap-2"
             >
               <ShoppingBag className="h-5 w-5" />
-              Order Now — {formatPrice(total, cur)}
+              Order Now {formatPrice(total, cur)}
             </motion.span>
           )}
         </AnimatePresence>
@@ -605,10 +612,14 @@ export default function FoodDetailPopup({
       <div className="space-y-5 p-5">
         {/* Dietary */}
         <div className="flex flex-wrap items-center gap-1.5">
-          <VegDot isVeg={item.isVeg} />
-          <span className="text-[11px] font-semibold text-[var(--text-3)]">
-            {item.isVeg ? "Pure Veg" : "Non-Veg"}
-          </span>
+          {!item.isDrink && (
+            <>
+              <VegDot isVeg={item.isVeg} />
+              <span className="text-[11px] font-semibold text-[var(--text-3)]">
+                {item.isVeg ? "Pure Veg" : "Non-Veg"}
+              </span>
+            </>
+          )}
           {item.hasEgg && (
             <span className="flex items-center gap-1 rounded-full border border-[var(--accent-border)] bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-bold text-[var(--accent-text)]">
               <Egg className="h-3 w-3" /> Contains Egg
@@ -827,9 +838,9 @@ export default function FoodDetailPopup({
               Total
             </p>
             <div className="flex items-baseline gap-1.5 mt-0.5">
-              {item.discount > 0 && (
+              {(item.discount > 0 || surgeMultiplier > 1) && (
                 <span className="text-sm text-[var(--text-3)] line-through">
-                  {formatPrice(item.price * qty, cur)}
+                  {formatPrice(originalUnitPrice * qty, cur)}
                 </span>
               )}
               <motion.span
@@ -1176,9 +1187,9 @@ export default function FoodDetailPopup({
               Total
             </p>
             <div className="flex items-baseline gap-1.5 mt-0.5">
-              {item.discount > 0 && (
+              {(item.discount > 0 || surgeMultiplier > 1) && (
                 <span className="text-sm text-[var(--text-3)] line-through">
-                  {formatPrice(item.price * qty, cur)}
+                  {formatPrice(originalUnitPrice * qty, cur)}
                 </span>
               )}
               <motion.span
@@ -1349,13 +1360,13 @@ export default function FoodDetailPopup({
               {/* Price */}
               {item && (
                 <div className="absolute bottom-3 right-3 text-right">
-                  {baseDiscounted != null ? (
+                  {item.discount > 0 || surgeMultiplier > 1 ? (
                     <>
                       <p className="text-white/55 text-[10px] line-through leading-none">
-                        {formatPrice(item.price, cur)}
+                        {formatPrice(item.price * surgeMultiplier, cur)}
                       </p>
                       <p className="text-lg font-extrabold text-[var(--accent)] leading-tight drop-shadow">
-                        {formatPrice(baseDiscounted, cur)}
+                        {formatPrice(Math.round(baseDiscounted * surgeMultiplier), cur)}
                       </p>
                     </>
                   ) : (
@@ -1489,13 +1500,13 @@ export default function FoodDetailPopup({
                 {/* Price (bottom-right) */}
                 {item && (
                   <div className="absolute bottom-16 right-3 text-right">
-                    {baseDiscounted != null ? (
+                    {item.discount > 0 || surgeMultiplier > 1 ? (
                       <>
                         <p className="text-white/55 text-[10px] line-through leading-none">
-                          {formatPrice(item.price, cur)}
+                          {formatPrice(item.price * surgeMultiplier, cur)}
                         </p>
                         <p className="text-xl font-extrabold text-[var(--accent)] leading-tight drop-shadow">
-                          {formatPrice(baseDiscounted, cur)}
+                          {formatPrice(Math.round((baseDiscounted ?? item.price) * surgeMultiplier), cur)}
                         </p>
                       </>
                     ) : (

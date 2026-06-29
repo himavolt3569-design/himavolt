@@ -26,6 +26,7 @@ const PUBLIC_ROUTES = [
   /^\/api\/webhooks(\/|$)/,
   /^\/api\/contact$/,
   /^\/api\/order-track(\/|$)/,
+  /^\/api\/track(\/|$)/,
   /^\/api\/restaurants\/[^/]+\/orders$/,
   /^\/api\/restaurants\/[^/]+\/table-session(\/|$)/,
   /^\/api\/orders\/[^/]+\/bill$/,

@@ -43,6 +43,7 @@ import { useRestaurant, useOptionalRestaurant } from "@/context/RestaurantContex
 import { apiFetch, peekApiCache } from "@/lib/api-client";
 import { useToast } from "@/context/ToastContext";
 import { formatPrice, getCurrencySymbol } from "@/lib/currency";
+import { FOOD_DESCRIPTION_TEMPLATES } from "@/lib/food-descriptions";
 import ImagePicker from "@/components/shared/ImagePicker";
 import { AnchoredMenu } from "@/components/shared/AnchoredMenu";
 import {
@@ -725,6 +726,9 @@ function DishForm({
   const [activeSection, setActiveSection] = useState<string>("basic");
   const [tagInput, setTagInput] = useState("");
 
+  const [suggestions, setSuggestions] = useState<{ id: string; thumb: string; url: string }[]>([]);
+  const [suggesting, setSuggesting] = useState(false);
+
   const [form, setForm] = useState<DishFormData>({
     name: initial?.name ?? "",
     description: initial?.description ?? "",
@@ -773,6 +777,35 @@ function DishForm({
       update({ tags: [...form.tags, t] });
       setTagInput("");
     }
+  };
+
+  useEffect(() => {
+    const q = form.name.trim();
+    if (!q || q.length < 3) {
+      setSuggestions([]);
+      return;
+    }
+    const ctrl = new AbortController();
+    const t = setTimeout(async () => {
+      setSuggesting(true);
+      try {
+        const res = await fetch(`/api/image-search?q=${encodeURIComponent(q + " food")}`, { signal: ctrl.signal });
+        const data = await res.json();
+        if (res.ok && data.images) {
+          setSuggestions(data.images.slice(0, 6));
+        }
+      } catch (err) {
+        // ignore
+      } finally {
+        setSuggesting(false);
+      }
+    }, 400);
+    return () => { clearTimeout(t); ctrl.abort(); };
+  }, [form.name]);
+
+  const generateDescription = () => {
+    const randomTemplate = FOOD_DESCRIPTION_TEMPLATES[Math.floor(Math.random() * FOOD_DESCRIPTION_TEMPLATES.length)];
+    update({ description: randomTemplate });
   };
 
   const sections = [
@@ -846,13 +879,44 @@ function DishForm({
                 onClose={() => setShowImagePicker(false)}
               />
 
-              <div className="flex-1 space-y-3">
-                <input
-                  value={form.name}
-                  onChange={(e) => update({ name: e.target.value })}
-                  placeholder="Dish name *"
-                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--canvas)] px-3 py-2.5 text-sm font-semibold text-[var(--text-1)] placeholder-gray-300 focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent-border)]"
-                />
+              <div className="flex-1 space-y-3 min-w-0">
+                <div className="space-y-1.5">
+                  <input
+                    value={form.name}
+                    onChange={(e) => update({ name: e.target.value })}
+                    placeholder="Dish name *"
+                    className="w-full rounded-lg border border-[var(--border)] bg-[var(--canvas)] px-3 py-2.5 text-sm font-semibold text-[var(--text-1)] placeholder-gray-300 focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent-border)]"
+                  />
+                  <AnimatePresence>
+                    {(suggestions.length > 0 || suggesting) && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide py-1">
+                          {suggesting && suggestions.length === 0 && (
+                            <div className="flex items-center gap-1.5 text-[10px] font-semibold text-[var(--text-3)] px-1">
+                              <Loader2 className="h-3 w-3 animate-spin" /> Suggesting images...
+                            </div>
+                          )}
+                          {suggestions.map((img) => (
+                            <button
+                              key={img.id}
+                              type="button"
+                              onClick={() => update({ imageUrl: img.url })}
+                              className="shrink-0 h-10 w-10 sm:h-11 sm:w-11 rounded-lg overflow-hidden border-2 border-transparent hover:border-[var(--accent)] transition-all bg-[var(--canvas-sub)] shadow-sm"
+                              title="Click to use this image"
+                            >
+                              <img src={img.thumb} alt="Suggestion" className="h-full w-full object-cover" />
+                            </button>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
                 <div className="grid grid-cols-2 gap-3">
                   <PriceInput value={form.price} onChange={(v) => update({ price: v })} placeholder="Price *" currencySymbol={getCurrencySymbol(currency)} />
                   <input
@@ -873,13 +937,25 @@ function DishForm({
               />
             </div>
 
-            <textarea
-              value={form.description}
-              onChange={(e) => update({ description: e.target.value })}
-              placeholder="Short description, helps customers decide"
-              rows={2}
-              className="w-full rounded-lg border border-[var(--border)] bg-[var(--canvas)] px-3 py-2.5 text-sm text-[var(--text-2)] placeholder-gray-300 focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent-border)] resize-none"
-            />
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <p className="text-[12px] font-semibold text-[var(--text-2)]">Description</p>
+                <button
+                  type="button"
+                  onClick={generateDescription}
+                  className="flex items-center gap-1 text-[11px] font-semibold text-[var(--accent)] hover:text-[var(--accent-hover)] transition-colors"
+                >
+                  <Sparkles className="h-3 w-3" /> Auto Generate
+                </button>
+              </div>
+              <textarea
+                value={form.description}
+                onChange={(e) => update({ description: e.target.value })}
+                placeholder="Short description, helps customers decide"
+                rows={3}
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--canvas)] px-3 py-2.5 text-sm text-[var(--text-2)] placeholder-gray-300 focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent-border)] resize-none"
+              />
+            </div>
           </div>
         )}
 

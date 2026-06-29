@@ -76,6 +76,7 @@ interface LiveOrdersContextType {
   ) => Promise<void>;
   rejectOrder: (id: string, reason?: string) => Promise<void>;
   refresh: () => Promise<void>;
+  setOrders: React.Dispatch<React.SetStateAction<LiveOrder[]>>;
 }
 
 const LiveOrdersContext = createContext<LiveOrdersContextType | null>(null);
@@ -214,6 +215,7 @@ export function LiveOrdersProvider({ children }: { children: ReactNode }) {
         acceptOrder,
         rejectOrder,
         refresh,
+        setOrders,
       }}
     >
       {children}

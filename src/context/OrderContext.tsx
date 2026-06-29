@@ -16,11 +16,9 @@ import { useSSE } from "@/hooks/useSSE";
 export type OrderStatus =
   | "PENDING"
   | "ACCEPTED"
-  | "ACCEPTED"
-  | "ACCEPTED"
-  | "ACCEPTED"
   | "REJECTED"
-  | "REJECTED";
+  | "COMPLETED"
+  | "CANCELLED";
 
 export type PaymentMethodType = "ESEWA" | "KHALTI" | "BANK" | "CASH" | "COUNTER" | "DIRECT";
 
@@ -58,6 +56,7 @@ export interface Order {
   id: string;
   orderNo: string;
   trackToken?: string | null;
+  kitchenStatus?: string | null;
   tableNo: number | null;
   roomNo: string | null;
   status: OrderStatus;

@@ -25,6 +25,7 @@ import { z } from "zod";
 const schema = z.object({
   roundAt: z.string(), // ISO timestamp identifying the round (item batch)
   action: z.enum(["ACCEPT", "REJECT"]),
+  reason: z.string().optional(),
 });
 
 export async function PATCH(
@@ -57,7 +58,7 @@ export async function PATCH(
       { status: 400 },
     );
   }
-  const { roundAt, action } = parsed.data;
+  const { roundAt, action, reason } = parsed.data;
   const roundMs = new Date(roundAt).getTime();
   if (Number.isNaN(roundMs)) {
     return NextResponse.json({ error: "Invalid roundAt" }, { status: 400 });
@@ -168,7 +169,10 @@ export async function PATCH(
   } else {
     await db.orderItem.updateMany({
       where: { id: { in: roundItemIds } },
-      data: { kitchenStatus: "REJECTED" },
+      data: { 
+        kitchenStatus: "REJECTED",
+        rejectedReason: reason || "No reason provided" 
+      },
     });
     // Restore stock for just this round's items (non-fatal).
     restoreStock(
@@ -181,7 +185,10 @@ export async function PATCH(
     if (isWholeOrder && order.status === "PENDING") {
       await db.order.update({
         where: { id: orderId },
-        data: { status: "REJECTED" },
+        data: { 
+          status: "REJECTED",
+          rejectReason: reason || "No reason provided",
+        },
       });
       db.payment
         .updateMany({
