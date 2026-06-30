@@ -132,11 +132,20 @@ export default function Navbar() {
                 </div>
               ) : (
                 <div className="flex items-center gap-2 ml-1">
-                  <Link href="/sign-in" className="hidden sm:block text-xs font-bold text-slate-500 hover:text-slate-900 px-3 py-2">
-                    Login
+                  <Link href="/sign-in" className="hidden sm:block font-poppins text-xs font-bold text-slate-500 hover:text-slate-900 px-3 py-2 rounded-xl hover:bg-slate-50 transition-all">
+                    Log In
                   </Link>
-                  <Link href="/sign-up" className={`rounded-xl bg-slate-900 px-5 py-2 text-xs font-black text-white hover:bg-slate-800 transition-all ${scrolled ? 'hidden' : 'block'}`}>
-                    Sign Up
+                  <Link
+                    href="/sign-up"
+                    className={`group relative font-poppins flex items-center gap-1.5 rounded-xl px-5 py-2 text-xs font-black text-white transition-all duration-300 overflow-hidden ${scrolled ? 'hidden' : 'block'}`}
+                    style={{ background: "var(--accent)" }}
+                  >
+                    {/* glow ring */}
+                    <span className="absolute inset-0 rounded-xl ring-2 ring-[var(--accent)] opacity-0 group-hover:opacity-60 blur-sm transition-all duration-300 pointer-events-none" />
+                    <span className="relative flex items-center gap-1.5">
+                      <span className="text-white/80 text-[10px]">✦</span>
+                      Get Started Free
+                    </span>
                   </Link>
                 </div>
               )}
