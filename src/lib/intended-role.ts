@@ -30,15 +30,6 @@ export function clearIntendedRole() {
   document.cookie = `${INTENDED_ROLE_COOKIE}=; path=/; max-age=0; samesite=lax`;
 }
 
-/** Read back whatever intent (if any) is already on file (client). */
-export function getIntendedRole(): IntendedRole | undefined {
-  if (typeof document === "undefined") return undefined;
-  const match = document.cookie.match(
-    new RegExp(`(?:^|; )${INTENDED_ROLE_COOKIE}=([^;]*)`),
-  );
-  return normalizeIntendedRole(match ? decodeURIComponent(match[1]) : undefined);
-}
-
 /** Normalize an arbitrary value into a safe role (never ADMIN). */
 export function normalizeIntendedRole(value: unknown): IntendedRole | undefined {
   if (typeof value !== "string") return undefined;

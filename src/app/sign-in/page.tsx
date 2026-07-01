@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
-import { rememberIntendedRole, getIntendedRole } from "@/lib/intended-role";
+import { rememberIntendedRole } from "@/lib/intended-role";
 import { Mountain, Loader2, Mail, Lock, Eye, EyeOff, Check, ArrowLeft, UtensilsCrossed, Store } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -105,14 +105,8 @@ export default function SignInPage() {
   };
 
   const handleGoogleClick = () => {
-    // If a referring page already told us why they're here (e.g. "Sign In"
-    // from the food-ordering nav sets CUSTOMER intent), respect it and skip
-    // asking again. Only ask when we genuinely don't know yet.
-    if (getIntendedRole()) {
-      handleGoogle();
-    } else {
-      setStep("choose-intent");
-    }
+    // Always ask, every time — never assume based on how they arrived here.
+    setStep("choose-intent");
   };
 
   return (
@@ -174,8 +168,8 @@ export default function SignInPage() {
                     <ArrowLeft className="h-4 w-4 text-[var(--text-2)]" />
                   </button>
                   <div>
-                    <h1 className="text-base font-bold text-[var(--text-1)]">Quick check</h1>
-                    <p className="text-[12px] text-[var(--text-3)]">Google sign-in is for restaurant &amp; hotel owners.</p>
+                    <h1 className="text-base font-bold text-[var(--text-1)]">Who are you?</h1>
+                    <p className="text-[12px] text-[var(--text-3)]">Pick one to continue.</p>
                   </div>
                 </div>
 
@@ -187,7 +181,7 @@ export default function SignInPage() {
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--surface-alt)] text-[var(--text-1)] group-hover:bg-[var(--canvas)] transition-colors">
                       <Store className="h-5 w-5" />
                     </div>
-                    <span className="text-sm font-semibold text-[var(--text-1)]">Yes, I run a restaurant or hotel</span>
+                    <span className="text-sm font-semibold text-[var(--text-1)]">I own a restaurant or hotel</span>
                   </button>
 
                   <button
@@ -202,7 +196,7 @@ export default function SignInPage() {
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--accent-muted)] text-[var(--accent)] group-hover:bg-[var(--canvas)] transition-colors">
                       <UtensilsCrossed className="h-5 w-5" />
                     </div>
-                    <span className="text-sm font-semibold text-[var(--text-1)]">No, I&apos;m just ordering food</span>
+                    <span className="text-sm font-semibold text-[var(--text-1)]">I&apos;m ordering food</span>
                   </button>
                 </div>
               </motion.div>
