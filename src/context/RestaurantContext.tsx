@@ -20,6 +20,7 @@ export interface StaffMember {
   createdAt: string;
   userId: string;
   restaurantId: string;
+  qrToken: string | null;
   user: {
     name: string;
     email: string;

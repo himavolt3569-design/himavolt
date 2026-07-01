@@ -25,6 +25,7 @@ import {
   ChevronDown,
   ArrowRight,
   Zap,
+  ScanLine,
 } from "lucide-react";
 import {
   useRestaurant,
@@ -35,6 +36,7 @@ import { apiFetch, peekApiCache } from "@/lib/api-client";
 import { SkeletonLine, SkeletonGrid } from "@/components/shared/Skeleton";
 import { AnchoredMenu } from "@/components/shared/AnchoredMenu";
 import ShiftsTab from "./ShiftsTab";
+import StaffQrBadgeModal from "./StaffQrBadgeModal";
 
 type StaffRole = "SUPER_ADMIN" | "MANAGER" | "CHEF" | "WAITER" | "CASHIER";
 
@@ -252,6 +254,7 @@ function StaffCard({
   const [newPin, setNewPin] = useState("");
   const [savingPin, setSavingPin] = useState(false);
   const [savingType, setSavingType] = useState(false);
+  const [qrModalOpen, setQrModalOpen] = useState(false);
   const { fetchRestaurants } = useRestaurant();
 
   const handleSavePin = async () => {
@@ -455,7 +458,15 @@ function StaffCard({
           )}
         </div>
 
-        <div className="mt-3 flex justify-end">
+        <div className="mt-3 flex items-center justify-between">
+          <button
+            onClick={() => setQrModalOpen(true)}
+            className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-bold text-[var(--text-3)] hover:text-[var(--accent-text)] hover:bg-[var(--accent-muted)] transition-all"
+            title="Personal login QR badge"
+          >
+            <ScanLine className="h-3 w-3" />
+            QR Badge
+          </button>
           <button
             onClick={() => removeStaff(restaurant.id, member.id)}
             className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-bold text-red-400 hover:text-red-600 hover:bg-red-50 transition-all"
@@ -465,6 +476,15 @@ function StaffCard({
           </button>
         </div>
       </div>
+
+      <StaffQrBadgeModal
+        open={qrModalOpen}
+        onOpenChange={setQrModalOpen}
+        staffId={member.id}
+        staffName={member.user.name}
+        restaurantId={restaurant.id}
+        qrToken={member.qrToken}
+      />
     </motion.div>
   );
 }

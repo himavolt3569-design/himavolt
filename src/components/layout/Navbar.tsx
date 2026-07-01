@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import ThemeToggle from "@/components/shared/ThemeToggle";
 import Link from "next/link";
+import { rememberIntendedRole } from "@/lib/intended-role";
 
 export default function Navbar() {
   const { isSignedIn, isLoaded, user, userRole, signOut } = useAuth();
@@ -132,11 +133,16 @@ export default function Navbar() {
                 </div>
               ) : (
                 <div className="flex items-center gap-2 ml-1">
-                  <Link href="/sign-in" className="hidden sm:block font-poppins text-xs font-bold text-slate-500 hover:text-slate-900 px-3 py-2 rounded-xl hover:bg-slate-50 transition-all">
+                  <Link
+                    href="/sign-in"
+                    onClick={() => rememberIntendedRole("CUSTOMER")}
+                    className="hidden sm:block font-poppins text-xs font-bold text-slate-500 hover:text-slate-900 px-3 py-2 rounded-xl hover:bg-slate-50 transition-all"
+                  >
                     Log In
                   </Link>
                   <Link
-                    href="/sign-up"
+                    href="/sign-in"
+                    onClick={() => rememberIntendedRole("CUSTOMER")}
                     className={`group relative font-poppins flex items-center gap-1.5 rounded-xl px-5 py-2 text-xs font-black text-white transition-all duration-300 overflow-hidden ${scrolled ? 'hidden' : 'block'}`}
                     style={{ background: "var(--accent)" }}
                   >

@@ -58,6 +58,12 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "images.unsplash.com" },
     ],
   },
+  async redirects() {
+    return [
+      { source: "/sign-up", destination: "/sign-in", permanent: false },
+      { source: "/auth/complete-profile", destination: "/dashboard", permanent: false },
+    ];
+  },
   async headers() {
     return [
       {

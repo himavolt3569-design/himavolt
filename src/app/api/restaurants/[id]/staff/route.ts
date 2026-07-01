@@ -5,6 +5,7 @@ import { safeHandler, unauthorized, forbidden } from "@/lib/api-helpers";
 import { createStaffSchema } from "@/lib/validations";
 import { logAudit } from "@/lib/audit";
 import { hashPin } from "@/lib/pin";
+import crypto from "crypto";
 
 export const GET = safeHandler(async (_req, { params }) => {
   const { id } = await params;
@@ -95,7 +96,12 @@ export const POST = safeHandler(
       // Reactivate the deactivated staff member with a fresh PIN and updated role
       const reactivated = await db.staffMember.update({
         where: { id: existing.id },
-        data: { isActive: true, pin: hashedPin, role },
+        data: {
+          isActive: true,
+          pin: hashedPin,
+          role,
+          qrToken: existing.qrToken ?? crypto.randomBytes(24).toString("base64url"),
+        },
         omit: { pin: true },
         include: {
           user: {
@@ -124,6 +130,7 @@ export const POST = safeHandler(
         role,
         userId: staffUser.id,
         restaurantId: id,
+        qrToken: crypto.randomBytes(24).toString("base64url"),
       },
       omit: { pin: true },
       include: {

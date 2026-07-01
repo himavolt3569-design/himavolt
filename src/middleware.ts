@@ -48,6 +48,7 @@ const PUBLIC_ROUTES = [
   /^\/api\/restaurants\/[^/]+\/stories(\/|$)/,
   /^\/api\/upload(\/|$)/,
   /^\/api\/me\/username-check(\/|$)/,
+  /^\/api\/auth\/account-check$/,
   /^\/api\/admin\/login(\/|$)/,
   /^\/api\/admin\/verify(\/|$)/,
   /^\/api\/admin\/logout(\/|$)/,

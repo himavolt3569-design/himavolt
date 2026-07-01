@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { db } from "@/lib/db";
 import { INTENDED_ROLE_COOKIE, normalizeIntendedRole } from "@/lib/intended-role";
+import { generateUniqueUsername } from "@/lib/username";
 
 type SafeRole = "CUSTOMER" | "OWNER";
 
@@ -86,8 +87,6 @@ export async function GET(req: NextRequest) {
   const phone = user.user_metadata?.phone ?? user.phone ?? null;
   const usernameFromMeta = (user.user_metadata?.username as string | undefined) ?? null;
 
-  const isGoogleUser = user.app_metadata?.provider === "google";
-
   let redirectTo = next;
 
   try {
@@ -110,6 +109,7 @@ export async function GET(req: NextRequest) {
     }
 
     const existingUser = existingUserById ?? existingUserByEmail;
+    const isNewAccount = !existingUser;
     // True when same email exists in DB under a different auth provider/ID
     const isAccountLink = !existingUserById && !!existingUserByEmail;
 
@@ -121,8 +121,12 @@ export async function GET(req: NextRequest) {
     const explicitRole: SafeRole | undefined =
       roleParam === "OWNER" || roleParam === "CUSTOMER" ? roleParam : undefined;
 
+    // Only ever used to provision a BRAND-NEW account below — an intent
+    // signal (cookie/query param) must never change an EXISTING account's
+    // role. Role upgrades for existing accounts only happen through an
+    // explicit in-app action (Get Started -> Create Restaurant, or creating
+    // a restaurant directly), never as a side effect of logging in.
     const finalRole: SafeRole = (() => {
-      if (dbRole === "OWNER" || dbRole === "ADMIN") return "OWNER";
       if (explicitRole === "OWNER") return "OWNER";
       if (explicitRole === "CUSTOMER") return "CUSTOMER";
       if (metadataRole === "OWNER") return "OWNER";
@@ -137,7 +141,6 @@ export async function GET(req: NextRequest) {
           name, imageUrl,
           isDeleted: false, deletedAt: null,
           ...(phone ? { phone } : {}),
-          ...(finalRole === "OWNER" ? { role: "OWNER" } : {}),
         },
       });
     } else {
@@ -147,29 +150,47 @@ export async function GET(req: NextRequest) {
           email, name, imageUrl,
           isDeleted: false, deletedAt: null,
           ...(phone ? { phone } : {}),
-          ...(finalRole === "OWNER" ? { role: "OWNER" } : {}),
         },
         create: {
           id: user.id, email, name, imageUrl, phone,
           role: finalRole,
-          username: usernameFromMeta,
+          username: usernameFromMeta ?? await generateUniqueUsername(name || email),
+          // Neither Google OAuth nor the magic-link flow ever sets a password
+          // at account-creation time — the mandatory /auth/set-password step
+          // flips this once the user actually sets one.
+          hasPassword: false,
         },
       });
     }
 
     const dbUser = await db.user.findUnique({ where: { id: user.id } })
       ?? (isAccountLink && email ? await db.user.findFirst({ where: { email } }) : null);
-    const hasUsername = !!dbUser?.username;
 
-    if (isGoogleUser && !hasUsername) {
-      redirectTo = `/auth/complete-profile${finalRole === "OWNER" ? "?role=OWNER" : ""}`;
-    } else if (finalRole === "CUSTOMER") {
-      redirectTo = "/dashboard";
-    } else if (finalRole === "OWNER" || dbRole === "OWNER" || dbRole === "ADMIN") {
-      // Owners always land on the dashboard; if they have no restaurant yet it
-      // opens the create-restaurant modal inline.
-      redirectTo = "/dashboard";
+    // Base destination, ignoring the password gate for a moment.
+    const explicitCustomerIntent = roleParam === "CUSTOMER";
+    let baseRedirect: string;
+    if (!isNewAccount) {
+      // Existing account: routing follows what's ACTUALLY on file, never an
+      // intent signal — a login can't misroute (or, per above, re-role) an
+      // established account. Owners always land on the dashboard (which opens
+      // the create-restaurant modal inline if they somehow have none yet);
+      // everyone else lands back where they came from.
+      baseRedirect = dbRole === "OWNER" || dbRole === "ADMIN" ? "/dashboard" : next;
+    } else if (explicitCustomerIntent) {
+      // Consumer-site entry points explicitly flag customer intent so plain
+      // customers never see the owner-onboarding screens.
+      baseRedirect = next;
+    } else {
+      // Brand-new account with owner-intent (or no signal at all, since this
+      // page is now B2B-framed by default) — let them pick create vs. join.
+      baseRedirect = "/auth/get-started";
     }
+
+    // The password step is unconditional and highest priority — it carries
+    // the real destination forward via `next` so it isn't lost.
+    redirectTo = dbUser?.hasPassword
+      ? baseRedirect
+      : `/auth/set-password?next=${encodeURIComponent(baseRedirect)}`;
   } catch (err: any) {
     console.error("[/auth/callback] DB error:", err?.message ?? err);
     // Session cookies are still valid — redirect to dashboard and let it recover

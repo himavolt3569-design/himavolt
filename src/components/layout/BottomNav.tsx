@@ -19,6 +19,7 @@ import {
 import clsx from "clsx";
 import { useActiveTableSession } from "@/hooks/useActiveTableSession";
 import { useAuth } from "@/context/AuthContext";
+import { rememberIntendedRole } from "@/lib/intended-role";
 
 interface NavItem {
   name: string;
@@ -144,6 +145,7 @@ export default function BottomNav() {
             <Link
               key={item.name}
               href={item.href}
+              onClick={item.href === "/sign-in" ? () => rememberIntendedRole("CUSTOMER") : undefined}
               className="relative flex flex-col items-center justify-center flex-1 h-full group"
             >
               {isActive && (

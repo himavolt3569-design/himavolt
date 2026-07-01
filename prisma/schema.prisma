@@ -17,6 +17,7 @@ model User {
   phone         String?
   imageUrl      String?
   role          UserRole @default(CUSTOMER)
+  hasPassword   Boolean   @default(true) @map("has_password")
   isDeleted     Boolean   @default(false) @map("is_deleted")
   deletedAt     DateTime? @map("deleted_at")
   isBlacklisted Boolean   @default(false) @map("is_blacklisted")
@@ -281,6 +282,7 @@ enum RestaurantType {
 model StaffMember {
   id        String    @id @default(cuid())
   pin       String
+  qrToken   String?   @unique @map("qr_token")
   role      StaffRole
   staffType StaffType @default(SHIFT_BASED)
   isActive  Boolean   @default(true)

@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { db } from "./db";
 import { getSupabaseServerClient } from "./supabase-server";
 import { INTENDED_ROLE_COOKIE, normalizeIntendedRole } from "./intended-role";
+import { generateUniqueUsername } from "./username";
 
 export const getAuthUser = cache(async () => {
   const supabase = await getSupabaseServerClient();
@@ -150,7 +151,8 @@ export const getOrCreateUser = cache(async () => {
       imageUrl,
       phone,
       role: intendedRole,
-      username: username ?? null,
+      username: username ?? (await generateUniqueUsername(name || email)),
+      hasPassword: false,
     },
   });
 

@@ -8,8 +8,8 @@ import { getSupabaseAdminClient } from "@/lib/supabase";
 export async function GET() {
   try {
     const user = await getOrCreateUser();
-    if (!user) return NextResponse.json({ role: null, username: null });
-    return NextResponse.json({ role: user.role, username: user.username });
+    if (!user) return NextResponse.json({ role: null, username: null, hasPassword: null });
+    return NextResponse.json({ role: user.role, username: user.username, hasPassword: user.hasPassword });
   } catch (err: any) {
     console.error("[GET /api/me]", err?.message ?? err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
@@ -30,12 +30,13 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json().catch(() => ({}));
-  const { role, username, name, phone, imageUrl } = body as {
+  const { role, username, name, phone, imageUrl, hasPassword } = body as {
     role?: string;
     username?: string;
     name?: string;
     phone?: string;
     imageUrl?: string;
+    hasPassword?: boolean;
   };
 
   const updateData: Record<string, unknown> = {};
@@ -92,13 +93,21 @@ export async function PATCH(req: NextRequest) {
     updateData.imageUrl = imageUrl;
   }
 
+  // Trusted client-side — this is only a UX flag deciding whether to show the
+  // "Set your Password" step again, not a security boundary. The real
+  // credential always lives in Supabase.
+  if (hasPassword !== undefined) {
+    updateData.hasPassword = hasPassword;
+  }
+
   if (Object.keys(updateData).length === 0) {
     if (
       role === undefined &&
       username === undefined &&
       name === undefined &&
       phone === undefined &&
-      imageUrl === undefined
+      imageUrl === undefined &&
+      hasPassword === undefined
     ) {
       return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
     }
@@ -107,6 +116,7 @@ export async function PATCH(req: NextRequest) {
       username: user.username,
       name: user.name,
       imageUrl: user.imageUrl,
+      hasPassword: user.hasPassword,
     });
   }
 
@@ -120,6 +130,7 @@ export async function PATCH(req: NextRequest) {
     username: updated.username,
     name: updated.name,
     imageUrl: updated.imageUrl,
+    hasPassword: updated.hasPassword,
   });
 }
 

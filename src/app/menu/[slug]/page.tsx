@@ -80,6 +80,7 @@ function loadGsap() {
   return _gsapPromise;
 }
 import Link from "next/link";
+import { rememberIntendedRole } from "@/lib/intended-role";
 import type { PopupMenuItem } from "@/components/food/FoodDetailPopup";
 import OrderPlacedPopup from "@/components/checkout/OrderPlacedPopup";
 import CartSidebar from "@/components/cart/CartSidebar";
@@ -1943,7 +1944,8 @@ function MenuPageContent() {
                   transition={{ duration: 0.4 }}
                 >
                   <Link
-                    href="/sign-up"
+                    href="/sign-in"
+                    onClick={() => rememberIntendedRole("CUSTOMER")}
                     className="flex items-center gap-3 rounded-2xl bg-[var(--accent-muted)] border border-[var(--accent-border)] px-4 py-3 hover:bg-[var(--surface)] transition-colors"
                   >
                     <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent)] shrink-0">

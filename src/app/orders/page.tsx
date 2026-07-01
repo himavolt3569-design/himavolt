@@ -17,6 +17,7 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
+import { rememberIntendedRole } from "@/lib/intended-role";
 import { apiFetch } from "@/lib/api-client";
 import { formatPrice } from "@/lib/currency";
 import { useActiveTableSession } from "@/hooks/useActiveTableSession";
@@ -537,6 +538,7 @@ export default function OrdersPage() {
           </p>
           <Link
             href="/sign-in"
+            onClick={() => rememberIntendedRole("CUSTOMER")}
             className="inline-flex items-center gap-2 rounded-xl bg-[var(--accent)] px-6 py-3 text-sm font-bold text-white hover:bg-[var(--accent-hover)] transition-colors"
           >
             Sign In

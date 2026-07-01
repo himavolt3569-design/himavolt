@@ -26,6 +26,7 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
+import { rememberIntendedRole } from "@/lib/intended-role";
 import { useToast } from "@/context/ToastContext";
 import { apiFetch } from "@/lib/api-client";
 
@@ -205,6 +206,7 @@ export default function ProfilePage() {
           </p>
           <Link
             href="/sign-in"
+            onClick={() => rememberIntendedRole("CUSTOMER")}
             className="inline-flex items-center gap-2 rounded-xl bg-[var(--accent)] px-6 py-3 text-sm font-bold text-white hover:bg-[var(--accent)]/90 transition-colors"
           >
             Sign In

@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { LogIn, X, Mountain } from "lucide-react";
 import Link from "next/link";
+import { rememberIntendedRole } from "@/lib/intended-role";
 
 interface AuthGateModalProps {
   open: boolean;
@@ -57,16 +58,11 @@ export default function AuthGateModal({
               <div className="space-y-2.5">
                 <Link
                   href="/sign-in"
+                  onClick={() => rememberIntendedRole("CUSTOMER")}
                   className="flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--accent)] py-3 text-sm font-bold text-white shadow-md shadow-[var(--accent)]/20/20 transition-all hover:bg-[var(--accent)] active:scale-[0.98]"
                 >
                   <LogIn className="h-4 w-4" />
                   Sign In
-                </Link>
-                <Link
-                  href="/sign-up"
-                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-[var(--border)] py-3 text-sm font-bold text-[var(--text-1)] transition-all hover:bg-[var(--accent-muted)] active:scale-[0.98]"
-                >
-                  Create Account
                 </Link>
               </div>
 

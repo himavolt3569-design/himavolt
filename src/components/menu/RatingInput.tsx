@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Star, MessageSquare, Loader2, AlertCircle, Check } from "lucide-react";
 import Link from "next/link";
+import { rememberIntendedRole } from "@/lib/intended-role";
 
 interface RatingInputProps {
   menuItemId: string;
@@ -55,7 +56,7 @@ export default function RatingInput({
       if (res.status === 401) {
         setError(
           <span>
-            Please <Link href="/sign-in" className="underline font-bold hover:text-red-700">sign in</Link> to rate this item
+            Please <Link href="/sign-in" onClick={() => rememberIntendedRole("CUSTOMER")} className="underline font-bold hover:text-red-700">sign in</Link> to rate this item
           </span>
         );
         return;
