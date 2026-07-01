@@ -24,23 +24,6 @@ export default function StaffQrBadgeModal({ open, onOpenChange, staffId, staffNa
   const [dataUrl, setDataUrl] = useState("");
   const [regenerating, setRegenerating] = useState(false);
 
-  useEffect(() => {
-    if (!open || !qrToken) {
-      setDataUrl("");
-      return;
-    }
-    const badgeUrl = `${window.location.origin}/staff-login?qr=${qrToken}`;
-    QRCode.toDataURL(badgeUrl, { width: 400, margin: 2, color: { dark: "#111827", light: "#ffffff" } }).then(setDataUrl);
-  }, [open, qrToken]);
-
-  const handleDownload = () => {
-    if (!dataUrl) return;
-    const a = document.createElement("a");
-    a.href = dataUrl;
-    a.download = `${staffName.replace(/\s+/g, "-").toLowerCase()}-badge.png`;
-    a.click();
-  };
-
   const handleRegenerate = async () => {
     setRegenerating(true);
     try {
@@ -52,6 +35,31 @@ export default function StaffQrBadgeModal({ open, onOpenChange, staffId, staffNa
     } finally {
       setRegenerating(false);
     }
+  };
+
+  useEffect(() => {
+    if (!open) {
+      setDataUrl("");
+      return;
+    }
+    if (!qrToken) {
+      // Staff added before badges existed have no token yet — generate one
+      // now instead of spinning forever. fetchRestaurants() flows the new
+      // token back in as a prop, which re-runs this effect and renders it.
+      if (!regenerating) handleRegenerate();
+      return;
+    }
+    const badgeUrl = `${window.location.origin}/staff-login?qr=${qrToken}`;
+    QRCode.toDataURL(badgeUrl, { width: 400, margin: 2, color: { dark: "#111827", light: "#ffffff" } }).then(setDataUrl);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, qrToken]);
+
+  const handleDownload = () => {
+    if (!dataUrl) return;
+    const a = document.createElement("a");
+    a.href = dataUrl;
+    a.download = `${staffName.replace(/\s+/g, "-").toLowerCase()}-badge.png`;
+    a.click();
   };
 
   return (
