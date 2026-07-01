@@ -22,11 +22,13 @@ export default function SignInPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleEmailContinue = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setNotice("");
     setLoading(true);
 
     try {
@@ -187,8 +189,11 @@ export default function SignInPage() {
                   <button
                     onClick={() => {
                       // Customers never use Google — send them back to finish
-                      // signing in with email + a confirmation code instead.
+                      // signing in with email + a confirmation code instead,
+                      // with a visible note so the switch doesn't feel like a
+                      // dead end.
                       rememberIntendedRole("CUSTOMER");
+                      setNotice("Got it — enter your email below and we'll send you a quick sign-in code.");
                       setStep("email");
                     }}
                     className="group flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--canvas)] p-4 text-left hover:border-[var(--accent)] hover:bg-[var(--accent-muted)] transition-all"
@@ -271,6 +276,13 @@ export default function SignInPage() {
                 </div>
 
                 <form onSubmit={handleEmailContinue} className="space-y-4">
+                  {notice && (
+                    <div className="flex items-start gap-2 rounded-xl border border-[var(--accent-border)] bg-[var(--accent-muted)] px-4 py-3 text-sm text-[var(--accent-text)]">
+                      <Check className="mt-0.5 h-4 w-4 shrink-0" />
+                      <span>{notice}</span>
+                    </div>
+                  )}
+
                   {error && (
                     <div className="rounded-xl border border-[var(--status-error-text)]/20 bg-[var(--status-error-bg)] px-4 py-3 text-sm text-[var(--status-error-text)]">
                       {error}
@@ -337,6 +349,9 @@ export default function SignInPage() {
                     Continue with Google
                   </span>
                 </button>
+                <p className="mt-2 text-center text-[11px] text-[var(--text-3)]">
+                  For restaurant &amp; hotel owners
+                </p>
               </motion.div>
             )}
           </AnimatePresence>
