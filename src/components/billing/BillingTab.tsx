@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useSSE } from "@/hooks/useSSE";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -33,7 +34,7 @@ import {
 } from "lucide-react";
 import { formatPrice, getCurrencySymbol } from "@/lib/currency";
 import { useToast } from "@/context/ToastContext";
-import { apiFetch, peekApiCache } from "@/lib/api-client";
+import { apiFetch } from "@/lib/api-client";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { autoPrintBill, printBillForOrder } from "@/lib/print-bill";
 import ManualBillingTab from "@/components/dashboard/ManualBillingTab";
@@ -233,14 +234,8 @@ function LiveBilling({
 }: BillingTabProps) {
   const { showToast } = useToast();
   const { selectedRestaurant } = useRestaurant();
+  const queryClient = useQueryClient();
   const cur = currency;
-  // Seed from the warm GET cache so re-opening Billing paints instantly — no
-  // skeleton — while the effects below revalidate in the background.
-  const initialOrdersPath = restaurantId ? `/api/restaurants/${restaurantId}/billing?filter=unpaid` : "";
-  const summaryPath = restaurantId ? `/api/restaurants/${restaurantId}/billing/summary` : "";
-  const [orders, setOrders] = useState<BillOrder[]>(() => peekApiCache<BillOrder[]>(initialOrdersPath) ?? []);
-  const [summary, setSummary] = useState<DailySummary | null>(() => peekApiCache<DailySummary>(summaryPath) ?? null);
-  const [loading, setLoading] = useState(() => !peekApiCache(initialOrdersPath));
   const [filter, setFilter] = useState<string>("unpaid");
   const [payType, setPayType] = useState<PayType>("all");
   const [search, setSearch] = useState("");
@@ -265,8 +260,6 @@ function LiveBilling({
   const [staffReportDate, setStaffReportDate] = useState(
     new Date().toISOString().split("T")[0],
   );
-  const ordersRef = useRef<BillOrder[]>([]);
-  ordersRef.current = orders;
   const knownOrderIds = useRef<Set<string>>(new Set());
   const knownPaymentStatuses = useRef<Map<string, string>>(new Map());
   const knownOrderTotals = useRef<Map<string, number>>(new Map());
@@ -288,43 +281,46 @@ function LiveBilling({
   const canDiscount =
     staffRole === "MANAGER" || staffRole === "SUPER_ADMIN" || !staffRole;
 
-  // apiFetch adds an in-memory cache, in-flight dedup, and automatic retry on
-  // the 503s prod's 1-connection pool throws — billing lists no longer blank
-  // out on a transient hiccup, and any mutation (collect/discount/split)
-  // invalidates these caches so the next load is fresh.
-  const loadOrders = useCallback(async () => {
-    // RestaurantContext resolves async — on a hard reload restaurantId is briefly
-    // undefined. Firing here would hit /api/restaurants/undefined/billing (404,
-    // "Billing not found") and leave the tab stuck loading. Wait for selection;
-    // the effect re-runs once restaurantId lands.
-    if (!restaurantId) return;
-    try {
+  const ordersQueryKey = ["billing", restaurantId, filter] as const;
+  const summaryQueryKey = ["billing-summary", restaurantId] as const;
+
+  // apiFetch still handles retry-on-503 (prod's 1-connection pool) and
+  // request timeout underneath — React Query just orchestrates the cache on
+  // top of it. `placeholderData: keepPreviousData` paints the previous
+  // filter's list instantly while the new one loads in the background,
+  // instead of a blank state.
+  const ordersQuery = useQuery({
+    queryKey: ordersQueryKey,
+    queryFn: async () => {
       const data = await apiFetch<BillOrder[] | { orders?: BillOrder[] }>(
         `/api/restaurants/${restaurantId}/billing?filter=${filter}`,
-        { cacheTtl: 15_000 },
       );
       // API returns an array directly; fall back to .orders wrapper for safety
-      const fetched: BillOrder[] = Array.isArray(data)
-        ? data
-        : data.orders || [];
-      setOrders(fetched);
-    } catch {
-      showToast("Failed to load billing orders", "error");
-    }
-    setLoading(false);
-  }, [restaurantId, filter]); // eslint-disable-line react-hooks/exhaustive-deps
+      return Array.isArray(data) ? data : data.orders || [];
+    },
+    enabled: !!restaurantId,
+    placeholderData: keepPreviousData,
+  });
+  const orders = ordersQuery.data ?? [];
+  const ordersRef = useRef<BillOrder[]>([]);
+  ordersRef.current = orders;
 
-  const loadSummary = useCallback(async () => {
-    try {
-      const data = await apiFetch<DailySummary>(
-        `/api/restaurants/${restaurantId}/billing/summary`,
-        { cacheTtl: 15_000 },
-      );
-      setSummary(data);
-    } catch {
-      /* ignore */
-    }
-  }, [restaurantId]);
+  const summaryQuery = useQuery({
+    queryKey: summaryQueryKey,
+    queryFn: () =>
+      apiFetch<DailySummary>(`/api/restaurants/${restaurantId}/billing/summary`),
+    enabled: !!restaurantId,
+    placeholderData: keepPreviousData,
+  });
+  const summary = summaryQuery.data ?? null;
+
+  const loadOrders = useCallback(() => {
+    return queryClient.invalidateQueries({ queryKey: ["billing", restaurantId] });
+  }, [queryClient, restaurantId]);
+
+  const loadSummary = useCallback(() => {
+    return queryClient.invalidateQueries({ queryKey: summaryQueryKey });
+  }, [queryClient, restaurantId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadStaffReport = useCallback(async (date: string) => {
     setStaffReportLoading(true);
@@ -340,19 +336,11 @@ function LiveBilling({
     setStaffReportLoading(false);
   }, [restaurantId, showToast]);
 
-  // Reload orders when filter or restaurantId changes (loadOrders deps cover
-  // both). Only force the skeleton on a cold cache — a warm tab already painted.
-  useEffect(() => {
-    if (!peekApiCache(`/api/restaurants/${restaurantId}/billing?filter=${filter}`)) {
-      setLoading(true);
-    }
-    loadOrders();
-  }, [loadOrders]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Load summary + tax config once per restaurant
+  // Reset SSE dedup state + fetch tax config once per restaurant. Orders and
+  // summary auto-fetch from their own useQuery above whenever restaurantId
+  // (or filter) changes — no manual reload effect needed for those anymore.
   useEffect(() => {
     if (!restaurantId) return;
-    loadSummary();
     isFirstSSE.current = true;
     knownOrderIds.current = new Set();
     knownPaymentStatuses.current = new Map();
@@ -449,6 +437,47 @@ function LiveBilling({
     }
   }, [streamData, loadOrders, loadSummary, showToast]);
 
+  // Marks the order paid in the cache immediately — if the current filter is
+  // "unpaid" it drops out of the list right away instead of waiting for the
+  // network round-trip and a full reload. Rolled back on failure.
+  const collectPaymentMutation = useMutation({
+    mutationFn: async (vars: { orderId: string; method: string; txn?: string }) => {
+      await apiFetch(`/api/restaurants/${restaurantId}/billing/collect`, {
+        method: "POST",
+        body: {
+          orderId: vars.orderId,
+          method: vars.method,
+          transactionId: vars.txn,
+        },
+      });
+    },
+    onMutate: async ({ orderId, method }) => {
+      await queryClient.cancelQueries({ queryKey: ordersQueryKey });
+      const previous = queryClient.getQueryData<BillOrder[]>(ordersQueryKey);
+      queryClient.setQueryData<BillOrder[]>(ordersQueryKey, (prev) => {
+        const list = prev ?? [];
+        if (filter === "unpaid") return list.filter((o) => o.id !== orderId);
+        return list.map((o) =>
+          o.id === orderId
+            ? {
+                ...o,
+                payment: {
+                  ...(o.payment ?? { id: "", transactionId: null, paidAt: null }),
+                  method,
+                  status: "COMPLETED",
+                  amount: o.bill?.total ?? o.total,
+                },
+              }
+            : o,
+        );
+      });
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) queryClient.setQueryData(ordersQueryKey, context.previous);
+    },
+  });
+
   const handleCollectPayment = async () => {
     if (!selectedOrder) return;
     const paidOrderId = selectedOrder.id;
@@ -463,17 +492,9 @@ function LiveBilling({
     setCollectTxn("");
 
     try {
-      await apiFetch(`/api/restaurants/${restaurantId}/billing/collect`, {
-        method: "POST",
-        body: {
-          orderId: paidOrderId,
-          method,
-          transactionId: txn,
-        },
-      });
+      await collectPaymentMutation.mutateAsync({ orderId: paidOrderId, method, txn });
       showToast(`Payment collected for Order #${orderNo}`, "success");
       if (autoPrint) autoPrintBill(paidOrderId);
-      loadOrders();
       loadSummary();
     } catch (err) {
       showToast(err instanceof Error ? err.message : "Failed to collect payment", "error");
@@ -1008,10 +1029,7 @@ function LiveBilling({
           ].map((f) => (
             <button
               key={f.key}
-              onClick={() => {
-                setFilter(f.key);
-                setLoading(true);
-              }}
+              onClick={() => setFilter(f.key)}
               className={`relative flex-1 lg:flex-none flex items-center justify-center gap-1.5 rounded-full px-5 py-2 text-xs font-bold transition-colors duration-300 ${
                 filter === f.key
                   ? "text-white"

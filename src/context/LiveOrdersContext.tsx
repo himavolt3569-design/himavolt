@@ -9,6 +9,7 @@ import {
   useRef,
   type ReactNode,
 } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api-client";
 import { playSound } from "@/lib/sounds";
 import { useSSE } from "@/hooks/useSSE";
@@ -81,22 +82,40 @@ interface LiveOrdersContextType {
 
 const LiveOrdersContext = createContext<LiveOrdersContextType | null>(null);
 
+function ordersQueryKey(restaurantId: string | null) {
+  return ["orders", "live", restaurantId] as const;
+}
+
 export function LiveOrdersProvider({ children }: { children: ReactNode }) {
   const { selectedRestaurant } = useRestaurant();
-  const [orders, setOrders] = useState<LiveOrder[]>([]);
-  const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
   const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set());
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
   const isFirstMessage = useRef(true);
   const printSettings = resolvePrintSettings(selectedRestaurant);
   useKotPrintJobs(restaurantId, printSettings.autoPrintKOT);
 
+  const queryKey = ordersQueryKey(restaurantId);
+
+  const { data: ordersData, isFetching } = useQuery({
+    queryKey,
+    queryFn: () =>
+      apiFetch<{ orders: LiveOrder[] }>(
+        `/api/restaurants/${restaurantId}/orders?limit=50&live=1`,
+      ).then((d) => d.orders),
+    enabled: !!restaurantId,
+  });
+  const orders = ordersData ?? [];
+  const loading = isFetching;
+
   const sseUrl = restaurantId
     ? `/api/restaurants/${restaurantId}/orders/stream`
     : null;
   const { data: streamData } = useSSE<StreamMessage>(sseUrl);
 
-  // Process incoming SSE messages
+  // Process incoming SSE messages — write straight into the query cache so
+  // mutations, the realtime signal, and the SSE fallback all share one
+  // source of truth instead of separate local state.
   useEffect(() => {
     if (!streamData || streamData.type !== "orders" || !streamData.orders)
       return;
@@ -106,37 +125,22 @@ export function LiveOrdersProvider({ children }: { children: ReactNode }) {
       playSound("newOrder");
     }
     isFirstMessage.current = false;
-    setOrders(incoming);
+    queryClient.setQueryData<LiveOrder[]>(queryKey, incoming);
 
     // Stale order cleanup is handled server-side via
     // POST /api/restaurants/[id]/orders/cleanup (triggered from the
     // StaleOrdersBanner in LiveOrdersTab). No client-side auto-reject.
   }, [streamData]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Reset when restaurant changes
+  // Reset the new-order-sound gate when the restaurant changes — the query
+  // cache itself already starts empty for a fresh restaurantId's query key.
   useEffect(() => {
     isFirstMessage.current = true;
-    setOrders([]);
-  }, [restaurantId]);
-
-  // One-off fetch used after mutations (for immediate server-truth sync)
-  const fetchOrders = useCallback(async () => {
-    if (!restaurantId) return;
-    try {
-      const data = await apiFetch<{ orders: LiveOrder[] }>(
-        `/api/restaurants/${restaurantId}/orders?limit=50&live=1`,
-      );
-      setOrders(data.orders);
-    } catch {
-      /* ignore */
-    }
   }, [restaurantId]);
 
   const refresh = useCallback(async () => {
-    setLoading(true);
-    await fetchOrders();
-    setLoading(false);
-  }, [fetchOrders]);
+    await queryClient.refetchQueries({ queryKey, exact: true });
+  }, [queryClient, queryKey]);
 
   // Instant WebSocket push via Supabase Realtime. Any order/payment change at
   // this restaurant fires a signal and we re-pull the live feed immediately —
@@ -144,64 +148,89 @@ export function LiveOrdersProvider({ children }: { children: ReactNode }) {
   // drives the new-order sound), so nothing breaks if Realtime is unavailable.
   useRealtimeSignal(
     restaurantId ? restaurantKitchenTopic(restaurantId) : null,
-    fetchOrders,
+    refresh,
   );
 
-  const updateStatus = useCallback(
-    async (
-      orderId: string,
-      status: string,
-      extra?: Record<string, unknown>,
-    ) => {
-      if (!restaurantId) return;
+  const setOrders = useCallback<React.Dispatch<React.SetStateAction<LiveOrder[]>>>(
+    (updater) => {
+      queryClient.setQueryData<LiveOrder[]>(queryKey, (prev) => {
+        const current = prev ?? [];
+        return typeof updater === "function"
+          ? (updater as (p: LiveOrder[]) => LiveOrder[])(current)
+          : updater;
+      });
+    },
+    [queryClient, queryKey],
+  );
 
-      // Optimistic update — instantly reflect the new status in UI
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({
+      orderId,
+      status,
+      extra,
+    }: {
+      orderId: string;
+      status: string;
+      extra?: Record<string, unknown>;
+    }) => {
+      if (!restaurantId) return;
+      await apiFetch(`/api/restaurants/${restaurantId}/orders/${orderId}`, {
+        method: "PATCH",
+        body: { status, ...extra },
+      });
+    },
+    onMutate: async ({ orderId, status }) => {
+      await queryClient.cancelQueries({ queryKey, exact: true });
+      const previous = queryClient.getQueryData<LiveOrder[]>(queryKey);
       setOrders((prev) =>
         prev.map((o) =>
           o.id === orderId ? { ...o, status: status as LiveOrderStatus } : o,
         ),
       );
       setUpdatingIds((prev) => new Set(prev).add(orderId));
-
-      let ok = false;
-      try {
-        await apiFetch(`/api/restaurants/${restaurantId}/orders/${orderId}`, {
-          method: "PATCH",
-          body: { status, ...extra },
-        });
-        ok = true;
-        // SSE will push updated state within ~3s; one-off fetch ensures immediate consistency
-        await fetchOrders();
-      } catch {
-        // Revert on failure — refetch real state
-        await fetchOrders();
-      } finally {
-        setUpdatingIds((prev) => {
-          const next = new Set(prev);
-          next.delete(orderId);
-          return next;
-        });
-      }
-      return ok;
+      return { previous };
     },
-    [restaurantId, fetchOrders],
-  );
+    onError: (_err, _vars, context) => {
+      // Revert the optimistic patch — the realtime signal / SSE stream will
+      // bring the query back to server truth shortly after anyway.
+      if (context?.previous) queryClient.setQueryData(queryKey, context.previous);
+    },
+    onSettled: (_data, _err, variables) => {
+      setUpdatingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(variables.orderId);
+        return next;
+      });
+    },
+  });
 
   const acceptOrder = useCallback(
     async (id: string, estimatedTime?: number) => {
-      await updateStatus(
-        id,
-        "ACCEPTED",
-        estimatedTime ? { estimatedTime } : undefined,
-      );
+      try {
+        await updateStatusMutation.mutateAsync({
+          orderId: id,
+          status: "ACCEPTED",
+          extra: estimatedTime ? { estimatedTime } : undefined,
+        });
+      } catch {
+        /* optimistic patch already rolled back in onError */
+      }
     },
-    [updateStatus],
+    [updateStatusMutation],
   );
   const rejectOrder = useCallback(
     async (id: string, reason?: string) => {
-      await updateStatus(id, "REJECTED", reason ? { rejectReason: reason } : undefined);
+      try {
+        await updateStatusMutation.mutateAsync({
+          orderId: id,
+          status: "REJECTED",
+          extra: reason ? { rejectReason: reason } : undefined,
+        });
+      } catch {
+        /* optimistic patch already rolled back in onError */
+      }
     },
-    [updateStatus],
+    [updateStatusMutation],
   );
 
   return (

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Clock,
   CheckCircle2,
@@ -354,16 +355,36 @@ export default function LiveOrdersTab() {
   const [selectedOrder, setSelectedOrder] = useState<LiveOrder | null>(null);
   const [filterStatus, setFilterStatus] = useState<LiveOrderStatus | "ALL" | "ARCHIVED">("PENDING");
   const [busyOrderIds, setBusyOrderIds] = useState<Set<string>>(new Set());
+  const queryClient = useQueryClient();
+  const ordersQueryKey = ["orders", "live", selectedRestaurant?.id ?? null] as const;
 
   // Accept / reject one ordering round (initial order or an add-on batch). The
   // server scopes the action to that round's items + handles the first-round
-  // payment gate and order status, so earlier rounds stay untouched.
-  const roundAction = useCallback(
-    async (orderId: string, roundAt: string, action: "ACCEPT" | "REJECT", reason?: string) => {
+  // payment gate and order status, so earlier rounds stay untouched. Realtime
+  // signal / SSE bring the query back to server truth shortly after — no
+  // forced refetch needed on success, only to roll back a failed mutation.
+  const roundActionMutation = useMutation({
+    mutationFn: async ({
+      orderId,
+      roundAt,
+      action,
+      reason,
+    }: {
+      orderId: string;
+      roundAt: string;
+      action: "ACCEPT" | "REJECT";
+      reason?: string;
+    }) => {
       const rid = selectedRestaurant?.id;
       if (!rid) return;
-      
-      // Optimistic update
+      await apiFetch(`/api/restaurants/${rid}/orders/${orderId}/round`, {
+        method: "PATCH",
+        body: { roundAt, action, reason },
+      });
+    },
+    onMutate: async ({ orderId, roundAt, action }) => {
+      await queryClient.cancelQueries({ queryKey: ordersQueryKey, exact: true });
+      const previous = queryClient.getQueryData<LiveOrder[]>(ordersQueryKey);
       setOrders((prev) =>
         prev.map((o) => {
           if (o.id !== orderId) return o;
@@ -377,22 +398,21 @@ export default function LiveOrdersTab() {
           };
         })
       );
-
-      try {
-        await apiFetch(`/api/restaurants/${rid}/orders/${orderId}/round`, {
-          method: "PATCH",
-          body: { roundAt, action, reason },
-        });
-        await refresh();
-      } catch (err) {
-        showToast(
-          err instanceof Error ? err.message : "Action failed — please retry",
-          "error",
-        );
-        await refresh(); // revert optimistic on error
-      }
+      return { previous };
     },
-    [selectedRestaurant?.id, showToast, refresh, setOrders],
+    onError: (err, _vars, context) => {
+      if (context?.previous) queryClient.setQueryData(ordersQueryKey, context.previous);
+      showToast(
+        err instanceof Error ? err.message : "Action failed — please retry",
+        "error",
+      );
+    },
+  });
+
+  const roundAction = useCallback(
+    (orderId: string, roundAt: string, action: "ACCEPT" | "REJECT", reason?: string) =>
+      roundActionMutation.mutateAsync({ orderId, roundAt, action, reason }).catch(() => {}),
+    [roundActionMutation],
   );
 
   const filtered = useMemo(() => {
