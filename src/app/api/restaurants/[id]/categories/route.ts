@@ -110,6 +110,55 @@ export async function POST(
   }
 }
 
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  const staff = await getStaffSession(req);
+  let authorized = staff?.restaurantId === id;
+  if (!authorized) {
+    const user = await getOrCreateUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const restaurant = await db.restaurant.findFirst({ where: { id, ownerId: user.id } });
+    if (!restaurant) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    authorized = true;
+  }
+
+  const body = await req.json().catch(() => ({}));
+  const categoryId: string | undefined = body.categoryId;
+  const name: string | undefined = body.name;
+  const icon: string | null | undefined = body.icon;
+  if (!categoryId) return NextResponse.json({ error: "categoryId is required" }, { status: 400 });
+  if (name !== undefined && !name.trim()) return NextResponse.json({ error: "Name cannot be empty" }, { status: 400 });
+
+  try {
+    const existing = await db.menuCategory.findFirst({ where: { id: categoryId, restaurantId: id } });
+    if (!existing) return NextResponse.json({ error: "Category not found" }, { status: 404 });
+
+    const data: Record<string, unknown> = {};
+    if (name !== undefined) data.name = name.trim();
+    if (icon !== undefined) data.icon = icon || null;
+
+    const category = await db.menuCategory.update({
+      where: { id: categoryId },
+      data,
+      include: { _count: { select: { items: true } } },
+    });
+
+    return NextResponse.json(category);
+  } catch (err: any) {
+    if (err?.code === "P2025") {
+      return NextResponse.json({ error: "Category not found" }, { status: 404 });
+    }
+    console.error("[Categories PATCH]", err);
+    return NextResponse.json(
+      { error: "Failed to update category. Please try again." },
+      { status: 503 },
+    );
+  }
+}
+
 export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }

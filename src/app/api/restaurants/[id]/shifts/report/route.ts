@@ -58,60 +58,61 @@ export async function GET(
   const rangeStart = new Date(dateParam + "T00:00:00.000Z");
   const rangeEnd = new Date(rangeStart.getTime() + 24 * 60 * 60 * 1000);
 
-  // Fetch all data in parallel
-  const [shifts, fullTimeStaff, orders, attendanceLogs] = await Promise.all([
-    db.shift.findMany({
-      where: { restaurantId: id, date: { gte: rangeStart, lt: rangeEnd } },
-      include: {
-        staff: {
-          omit: { pin: true },
-          include: {
-            user: { select: { name: true, email: true, phone: true } },
-          },
+  // Sequential, not Promise.all — 4 concurrent queries against the
+  // serverless pool's 3-connection cap risks queuing/P2024 under load (see
+  // src/lib/db.ts); each of these is already date-bounded to a single day,
+  // so the extra round-trips cost little.
+  const shifts = await db.shift.findMany({
+    where: { restaurantId: id, date: { gte: rangeStart, lt: rangeEnd } },
+    include: {
+      staff: {
+        omit: { pin: true },
+        include: {
+          user: { select: { name: true, email: true, phone: true } },
         },
       },
-      orderBy: { startTime: "asc" },
-    }),
-    db.staffMember.findMany({
-      where: { restaurantId: id, staffType: "FULL_TIME", isActive: true },
-      omit: { pin: true },
-      include: { user: { select: { name: true, email: true, phone: true } } },
-    }),
-    db.order.findMany({
-      where: {
-        restaurantId: id,
-        createdAt: { gte: rangeStart, lt: rangeEnd },
-        status: { notIn: ["REJECTED", "REJECTED"] },
-      },
-      select: {
-        id: true,
-        orderNo: true,
-        tableNo: true,
-        roomNo: true,
-        guestName: true,
-        total: true,
-        subtotal: true,
-        createdAt: true,
-        processedByStaffId: true,
-        payment: { select: { method: true, status: true, amount: true } },
-        bill: { select: { total: true } },
-        items: { select: { name: true, quantity: true, price: true } },
-      },
-      orderBy: { createdAt: "asc" },
-    }),
-    db.staffAttendance.findMany({
-      where: {
-        staff: { restaurantId: id },
-        date: { gte: rangeStart, lt: rangeEnd },
-      },
-      select: {
-        staffId: true,
-        checkIn: true,
-        checkOut: true,
-        status: true,
-      },
-    }),
-  ]);
+    },
+    orderBy: { startTime: "asc" },
+  });
+  const fullTimeStaff = await db.staffMember.findMany({
+    where: { restaurantId: id, staffType: "FULL_TIME", isActive: true },
+    omit: { pin: true },
+    include: { user: { select: { name: true, email: true, phone: true } } },
+  });
+  const orders = await db.order.findMany({
+    where: {
+      restaurantId: id,
+      createdAt: { gte: rangeStart, lt: rangeEnd },
+      status: { not: "REJECTED" },
+    },
+    select: {
+      id: true,
+      orderNo: true,
+      tableNo: true,
+      roomNo: true,
+      guestName: true,
+      total: true,
+      subtotal: true,
+      createdAt: true,
+      processedByStaffId: true,
+      payment: { select: { method: true, status: true, amount: true } },
+      bill: { select: { total: true } },
+      items: { select: { name: true, quantity: true, price: true } },
+    },
+    orderBy: { createdAt: "asc" },
+  });
+  const attendanceLogs = await db.staffAttendance.findMany({
+    where: {
+      staff: { restaurantId: id },
+      date: { gte: rangeStart, lt: rangeEnd },
+    },
+    select: {
+      staffId: true,
+      checkIn: true,
+      checkOut: true,
+      status: true,
+    },
+  });
 
   // Build attendance lookup map
   const attendanceByStaffId = new Map(

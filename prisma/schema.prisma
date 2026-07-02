@@ -540,6 +540,10 @@ model Order {
   @@index([status])
   @@index([createdAt])
   @@index([processedByStaffId])
+  // Reports (overview/shifts) filter on (restaurantId, createdAt range)
+  // with no status predicate, so the 3-column composite below can't be
+  // used efficiently for that shape.
+  @@index([restaurantId, createdAt])
   // Hot composite for the kitchen / live-orders SSE stream which filters on
   // (restaurantId, status) and orders by createdAt every poll.
   @@index([restaurantId, status, createdAt])

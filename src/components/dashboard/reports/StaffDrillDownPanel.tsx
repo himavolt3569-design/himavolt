@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   X,
@@ -80,26 +81,21 @@ export default function StaffDrillDownPanel({ staffId, onClose }: Props) {
   const { selectedRestaurant } = useRestaurant();
   const cur = selectedRestaurant?.currency ?? "NPR";
   const [range, setRange] = useState(() => presetRange("last30"));
-  const [data, setData] = useState<StaffPayload | null>(null);
-  const [loading, setLoading] = useState(true);
 
-  const load = useCallback(async () => {
-    if (!selectedRestaurant) return;
-    setLoading(true);
-    try {
-      const res = (await apiFetch(
-        `/api/restaurants/${selectedRestaurant.id}/reports/staff/${staffId}?from=${range.from}&to=${range.to}`,
-      )) as StaffPayload;
-      setData(res);
-    } catch {
-      /* ignore */
-    }
-    setLoading(false);
-  }, [selectedRestaurant, staffId, range]);
-
-  useEffect(() => {
-    load();
-  }, [load]);
+  // keepPreviousData paints the prior range's drill-down instantly while a
+  // new range loads, and re-opening the same staff member's panel (or
+  // switching between staff) reuses the cache instead of spinning.
+  const staffQuery = useQuery({
+    queryKey: ["reports-staff", selectedRestaurant?.id, staffId, range.from, range.to],
+    queryFn: () =>
+      apiFetch<StaffPayload>(
+        `/api/restaurants/${selectedRestaurant!.id}/reports/staff/${staffId}?from=${range.from}&to=${range.to}`,
+      ),
+    enabled: !!selectedRestaurant,
+    placeholderData: keepPreviousData,
+  });
+  const data = staffQuery.data ?? null;
+  const loading = staffQuery.isLoading;
 
   const trendForChart = (data?.trend ?? []).map((t) => ({
     bucket: t.date,
