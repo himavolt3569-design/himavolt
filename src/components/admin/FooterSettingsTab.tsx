@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Phone, Mail, MapPin, FileText, Save, RefreshCw, CheckCircle, AlertCircle } from "lucide-react";
 
@@ -54,19 +55,23 @@ const FIELDS: {
 ];
 
 export default function FooterSettingsTab() {
+  const queryClient = useQueryClient();
+  const settingsQuery = useQuery({
+    queryKey: ["footer-settings"],
+    queryFn: () => fetch("/api/admin/footer-settings").then((r) => r.json()),
+  });
   const [form, setForm] = useState<FooterSettings>(DEFAULTS);
-  const [loading, setLoading] = useState(true);
+  const hydratedRef = useRef(false);
+  useEffect(() => {
+    if (!hydratedRef.current && settingsQuery.data) {
+      setForm({ ...DEFAULTS, ...settingsQuery.data });
+      hydratedRef.current = true;
+    }
+  }, [settingsQuery.data]);
+  const loading = settingsQuery.isLoading;
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
-
-  useEffect(() => {
-    fetch("/api/admin/footer-settings")
-      .then((r) => r.json())
-      .then((data) => setForm({ ...DEFAULTS, ...data }))
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
 
   const handleChange = (key: keyof FooterSettings, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -88,6 +93,7 @@ export default function FooterSettingsTab() {
       }
       const updated = await res.json();
       setForm({ ...DEFAULTS, ...updated });
+      queryClient.setQueryData(["footer-settings"], updated);
       setStatus("success");
       setTimeout(() => setStatus("idle"), 3000);
     } catch (err) {
@@ -115,7 +121,7 @@ export default function FooterSettingsTab() {
     <div className="max-w-2xl">
       <div className="mb-6">
         <h2 className="text-xl font-bold text-[#1A2744]">Footer Settings</h2>
-        <p className="mt-1 text-sm text-slate-400">
+        <p className="mt-1 text-sm text-gray-400 font-semibold">
           Edit the contact details and description displayed in the public footer.
         </p>
       </div>
@@ -129,11 +135,11 @@ export default function FooterSettingsTab() {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.04 }}
-              className="overflow-hidden rounded-2xl border border-blue-100 bg-[var(--canvas)] shadow-sm"
+              className="overflow-hidden rounded-3xl border border-blue-100 bg-[var(--canvas)] shadow-sm"
             >
-              <label className="flex items-center gap-2 border-b border-slate-100 px-4 py-2.5">
+              <label className="flex items-center gap-2 border-b border-gray-100 px-4 py-2.5">
                 <Icon className="h-3.5 w-3.5 text-blue-400" />
-                <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                <span className="text-xs font-semibold uppercase tracking-wide text-gray-400 font-semibold">
                   {field.label}
                 </span>
               </label>
@@ -165,7 +171,7 @@ export default function FooterSettingsTab() {
         <motion.div
           initial={{ opacity: 0, y: -4 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mt-4 flex items-center gap-2 rounded-xl border border-[var(--accent-border)] bg-[var(--accent-muted)] px-4 py-2.5 text-sm text-[var(--accent-text)]"
+          className="mt-4 flex items-center gap-2 rounded-2xl border border-[var(--accent-border)] bg-[var(--accent-muted)] px-4 py-2.5 text-sm text-[var(--accent-text)]"
         >
           <CheckCircle className="h-4 w-4 shrink-0" />
           Footer settings saved successfully.
@@ -175,7 +181,7 @@ export default function FooterSettingsTab() {
         <motion.div
           initial={{ opacity: 0, y: -4 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mt-4 flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-2.5 text-sm text-red-500"
+          className="mt-4 flex items-center gap-2 rounded-2xl border border-red-100 bg-red-50 px-4 py-2.5 text-sm text-red-500"
         >
           <AlertCircle className="h-4 w-4 shrink-0" />
           {errorMsg}
@@ -186,7 +192,7 @@ export default function FooterSettingsTab() {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-500 px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-blue-200/60 transition-all hover:from-blue-600 hover:to-indigo-600 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-500 px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-blue-200/60 transition-all hover:from-blue-600 hover:to-indigo-600 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {saving ? (
             <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
@@ -198,7 +204,7 @@ export default function FooterSettingsTab() {
         <button
           onClick={handleReset}
           disabled={saving}
-          className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-500 transition-all hover:bg-slate-100 disabled:opacity-50"
+          className="flex items-center gap-2 rounded-2xl border border-gray-100 shadow-[0_4px_20px_rgb(0,0,0,0.02)] bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-500 font-medium transition-all hover:bg-gray-100 disabled:opacity-50"
         >
           <RefreshCw className="h-3.5 w-3.5" />
           Reset to Defaults

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence, Reorder } from "framer-motion";
 import {
   ImagePlus,
@@ -39,23 +40,28 @@ const DEFAULTS: HeroSettings = {
 };
 
 export default function HeroSettingsTab() {
+  const queryClient = useQueryClient();
+  // Query cache paints instantly on a re-opened tab (no fetch-on-every-visit
+  // spinner); `settings` stays local editable draft state, hydrated once
+  // from the fetched data.
+  const settingsQuery = useQuery({
+    queryKey: ["hero-settings"],
+    queryFn: () => fetch("/api/admin/hero-settings").then((r) => r.json()),
+  });
   const [settings, setSettings] = useState<HeroSettings>(DEFAULTS);
-  const [loading, setLoading] = useState(true);
+  const hydratedRef = useRef(false);
+  useEffect(() => {
+    if (!hydratedRef.current && settingsQuery.data) {
+      setSettings({ ...DEFAULTS, ...settingsQuery.data });
+      hydratedRef.current = true;
+    }
+  }, [settingsQuery.data]);
+  const loading = settingsQuery.isLoading;
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const [previewIndex, setPreviewIndex] = useState(0);
-
-  useEffect(() => {
-    fetch("/api/admin/hero-settings")
-      .then((r) => r.json())
-      .then((data) => {
-        setSettings({ ...DEFAULTS, ...data });
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
 
   // Auto-rotate preview
   useEffect(() => {
@@ -158,6 +164,7 @@ export default function HeroSettingsTab() {
       }
       const updated = await res.json();
       setSettings({ ...DEFAULTS, ...updated });
+      queryClient.setQueryData(["hero-settings"], updated);
       setStatus("success");
       setTimeout(() => setStatus("idle"), 3000);
     } catch (err) {
@@ -195,7 +202,7 @@ export default function HeroSettingsTab() {
         {/* Left Column - Images & Settings */}
         <div className="space-y-6">
           {/* Images Section */}
-          <div className="rounded-2xl border border-blue-100 bg-[var(--canvas)] p-5 shadow-sm">
+          <div className="rounded-3xl border border-blue-100 bg-[var(--canvas)] p-5 shadow-sm">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="flex items-center gap-2 text-sm font-semibold text-[#1A2744]">
                 <ImagePlus className="h-4 w-4 text-blue-400" />
@@ -218,7 +225,7 @@ export default function HeroSettingsTab() {
                   <Reorder.Item
                     key={image.id}
                     value={image}
-                    className="group relative flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-2 shadow-sm"
+                    className="group relative flex items-center gap-3 rounded-xl border border-white/40 shadow-sm bg-white/60 backdrop-blur-xl p-2 shadow-sm"
                   >
                     <div className="cursor-grab p-1 text-slate-300 hover:text-slate-500 active:cursor-grabbing">
                       <GripVertical className="h-5 w-5" />
@@ -245,7 +252,7 @@ export default function HeroSettingsTab() {
                 ))}
               </Reorder.Group>
             ) : (
-              <div className="rounded-xl border-2 border-dashed border-slate-200 p-8 text-center">
+              <div className="rounded-xl border-2 border-dashed border-white/40 shadow-sm p-8 text-center">
                 <ImagePlus className="mx-auto h-10 w-10 text-slate-200" />
                 <p className="mt-2 text-sm text-slate-400">No images yet</p>
                 <p className="text-xs text-slate-300">
@@ -280,7 +287,7 @@ export default function HeroSettingsTab() {
           </div>
 
           {/* Settings Section */}
-          <div className="rounded-2xl border border-blue-100 bg-[var(--canvas)] p-5 shadow-sm">
+          <div className="rounded-3xl border border-blue-100 bg-[var(--canvas)] p-5 shadow-sm">
             <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-[#1A2744]">
               <Settings className="h-4 w-4 text-blue-400" />
               Carousel Settings
@@ -306,7 +313,7 @@ export default function HeroSettingsTab() {
                   }`}
                 >
                   <span
-                    className={`absolute top-1 h-4 w-4 rounded-full bg-white transition-transform ${
+                    className={`absolute top-1 h-4 w-4 rounded-full bg-white/60 backdrop-blur-xl transition-transform ${
                       settings.autoplay ? "left-6" : "left-1"
                     }`}
                   />
@@ -373,7 +380,7 @@ export default function HeroSettingsTab() {
 
         {/* Right Column - Preview */}
         <div className="space-y-4">
-          <div className="rounded-2xl border border-blue-100 bg-[var(--canvas)] p-5 shadow-sm">
+          <div className="rounded-3xl border border-blue-100 bg-[var(--canvas)] p-5 shadow-sm">
             <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-[#1A2744]">
               <Eye className="h-4 w-4 text-blue-400" />
               Live Preview
@@ -433,8 +440,8 @@ export default function HeroSettingsTab() {
                       onClick={() => setPreviewIndex(i)}
                       className={`h-1.5 rounded-full transition-all ${
                         i === previewIndex
-                          ? "w-6 bg-white"
-                          : "w-1.5 bg-white/50 hover:bg-white/75"
+                          ? "w-6 bg-white/60 backdrop-blur-xl"
+                          : "w-1.5 bg-white/60 backdrop-blur-xl/50 hover:bg-white/60 backdrop-blur-xl/75"
                       }`}
                     />
                   ))}
@@ -522,7 +529,7 @@ export default function HeroSettingsTab() {
         <button
           onClick={handleReset}
           disabled={saving}
-          className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-500 transition-all hover:bg-slate-100 disabled:opacity-50"
+          className="flex items-center gap-2 rounded-xl border border-white/40 shadow-sm bg-slate-50/50 px-4 py-2.5 text-sm font-medium text-slate-500 transition-all hover:bg-slate-100 disabled:opacity-50"
         >
           <RefreshCw className="h-3.5 w-3.5" />
           Reset to Defaults
