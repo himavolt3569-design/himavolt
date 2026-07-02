@@ -24,7 +24,7 @@ interface Notification {
   detail: string;
   total: number;
   createdAt: number;
-  kind: "PENDING" | "ACCEPTED" | "PREPARING" | "READY" | "DELIVERED" | "CANCELLED";
+  kind: "PENDING" | "ACCEPTED" | "REJECTED";
 }
 
 function orderToNotification(o: LiveOrder): Notification {
@@ -40,10 +40,6 @@ function orderToNotification(o: LiveOrder): Notification {
   const titles: Record<LiveOrder["status"], string> = {
     PENDING: "New order received",
     ACCEPTED: "Order accepted",
-    PREPARING: "Order in the kitchen",
-    READY: "Order ready to serve",
-    DELIVERED: "Order delivered",
-    CANCELLED: "Order cancelled",
     REJECTED: "Order rejected",
   };
 
@@ -55,7 +51,7 @@ function orderToNotification(o: LiveOrder): Notification {
     detail,
     total: o.total,
     createdAt: new Date(ref).getTime(),
-    kind: (o.status === "REJECTED" ? "CANCELLED" : o.status) as Notification["kind"],
+    kind: o.status as Notification["kind"],
   };
 }
 
@@ -74,10 +70,7 @@ function timeAgo(ts: number): string {
 const KIND_STYLE: Record<Notification["kind"], { bg: string; fg: string; Icon: React.ComponentType<{ className?: string }> }> = {
   PENDING: { bg: "bg-[var(--accent-muted)]", fg: "text-[var(--accent-text)]", Icon: CircleDollarSign },
   ACCEPTED: { bg: "bg-blue-500/15", fg: "text-blue-600", Icon: CheckCircle2 },
-  PREPARING: { bg: "bg-amber-500/15", fg: "text-amber-600", Icon: ChefHat },
-  READY: { bg: "bg-emerald-500/15", fg: "text-emerald-600", Icon: PackageCheck },
-  DELIVERED: { bg: "bg-slate-500/15", fg: "text-slate-600", Icon: Truck },
-  CANCELLED: { bg: "bg-zinc-500/15", fg: "text-zinc-600", Icon: XCircle },
+  REJECTED: { bg: "bg-red-500/15", fg: "text-red-600", Icon: XCircle },
 };
 
 const STORAGE_KEY = "dashboard:notifications:lastSeen";
@@ -111,7 +104,7 @@ export default function NotificationBell({ onNavigateToOrders }: Props) {
   const unreadCount = useMemo(
     () =>
       notifications.filter(
-        (n) => n.createdAt > lastSeen && n.kind !== "DELIVERED" && n.kind !== "CANCELLED",
+        (n) => n.createdAt > lastSeen && n.kind !== "REJECTED",
       ).length,
     [notifications, lastSeen],
   );
@@ -225,8 +218,7 @@ export default function NotificationBell({ onNavigateToOrders }: Props) {
                     const Icon = style.Icon;
                     const isUnread =
                       n.createdAt > lastSeen &&
-                      n.kind !== "DELIVERED" &&
-                      n.kind !== "CANCELLED";
+                      n.kind !== "REJECTED";
                     return (
                       <li key={n.id}>
                         <button

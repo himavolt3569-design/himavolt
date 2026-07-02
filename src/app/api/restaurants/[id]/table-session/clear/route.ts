@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { requireStaffForRestaurant } from "@/lib/staff-auth";
 import { getAuthUser } from "@/lib/auth";
 import { logAudit, getClientIp } from "@/lib/audit";
-import { STAFF_BILLING_ROLES } from "@/lib/staff-roles";
+import { STAFF_BILLING_ROLES, STAFF_TABLE_MANAGE_ROLES } from "@/lib/staff-roles";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -33,7 +33,10 @@ export async function POST(req: NextRequest, { params }: Params) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
     actorId = user.id;
-  } else if (!(STAFF_BILLING_ROLES as readonly string[]).includes(staff.role)) {
+  } else if (
+    !(STAFF_BILLING_ROLES as readonly string[]).includes(staff.role) &&
+    !(STAFF_TABLE_MANAGE_ROLES as readonly string[]).includes(staff.role)
+  ) {
     return NextResponse.json({ error: "Insufficient permissions" }, { status: 403 });
   }
 
@@ -52,6 +55,24 @@ export async function POST(req: NextRequest, { params }: Params) {
     ? { restaurantId, orderId }
     : { restaurantId, tableNo: tableNo as number };
 
+  // 1. Resolve the tableNo
+  let resolvedTableNo = tableNo;
+  if (!resolvedTableNo && orderId) {
+    const active = await db.tableSession.findFirst({
+      where: { restaurantId, orderId, isActive: true },
+    });
+    resolvedTableNo = active?.tableNo;
+  }
+
+  // 2. Delete any existing inactive sessions for this table to avoid unique constraint error
+  // Prisma schema has @@unique([restaurantId, tableNo, isActive])
+  if (resolvedTableNo) {
+    await db.tableSession.deleteMany({
+      where: { restaurantId, tableNo: resolvedTableNo, isActive: false },
+    });
+  }
+
+  // 3. Safely end the active session
   const updated = await db.tableSession.updateMany({
     where: { ...where, isActive: true },
     data: { isActive: false, endedAt: new Date() },

@@ -48,7 +48,7 @@ export async function POST(req: NextRequest, { params }: Params) {
       // Restore if still active OR if it has an order that isn't done yet
       const orderAlive =
         byToken.order &&
-        !["DELIVERED", "CANCELLED", "REJECTED"].includes(byToken.order.status);
+        !["ACCEPTED", "REJECTED", "REJECTED"].includes(byToken.order.status);
 
       if (byToken.isActive || orderAlive) {
         return NextResponse.json({ session: byToken, restored: true });
@@ -73,7 +73,7 @@ export async function POST(req: NextRequest, { params }: Params) {
       restaurantId,
       tableNo,
       order: {
-        status: { notIn: ["DELIVERED", "CANCELLED", "REJECTED"] },
+        status: { notIn: ["ACCEPTED", "REJECTED", "REJECTED"] },
       },
     },
     include: { order: { include: orderInclude } },
@@ -90,13 +90,33 @@ export async function POST(req: NextRequest, { params }: Params) {
     return NextResponse.json({ session: reactivated, restored: true });
   }
 
-  // 4. Create new session
-  const session = await db.tableSession.create({
-    data: { tableNo, restaurantId },
-    include: { order: true },
-  });
-
-  return NextResponse.json({ session, restored: false });
+  // 4. Create new session — wrapped in P2002 catch for concurrent-request races.
+  // Two tabs / React Strict Mode double-effect can both pass the checks above
+  // simultaneously and then both attempt INSERT with isActive=true, violating
+  // @@unique([restaurantId, tableNo, isActive]). The loser refetches the winner.
+  try {
+    const session = await db.tableSession.create({
+      data: { tableNo, restaurantId },
+      include: { order: { include: orderInclude } },
+    });
+    return NextResponse.json({ session, restored: false });
+  } catch (err: unknown) {
+    const code =
+      err && typeof err === "object" && "code" in err
+        ? (err as { code: string }).code
+        : null;
+    if (code === "P2002") {
+      // Another concurrent request won the race — return the session it created.
+      const fallback = await db.tableSession.findFirst({
+        where: { restaurantId, tableNo, isActive: true },
+        include: { order: { include: orderInclude } },
+      });
+      if (fallback) {
+        return NextResponse.json({ session: fallback, restored: true });
+      }
+    }
+    throw err;
+  }
 }
 
 /** Check session status */

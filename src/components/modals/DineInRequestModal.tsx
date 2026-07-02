@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
@@ -18,6 +19,7 @@ import {
 import { type LiveOrder } from "@/context/LiveOrdersContext";
 import { useToast } from "@/context/ToastContext";
 import { formatPrice } from "@/lib/currency";
+import { useRestaurant } from "@/context/RestaurantContext";
 
 export default function DineInRequestModal({
   order,
@@ -31,12 +33,16 @@ export default function DineInRequestModal({
   onClose: () => void;
   /** print=true forces the kitchen ticket regardless of the auto-print setting. */
   onAccept: (id: string, print?: boolean) => void;
-  onReject: (id: string) => void;
+  onReject: (id: string, reason?: string) => void;
   /** Re-print the kitchen ticket for an already-accepted order. */
   onPrintKOT?: () => void;
   currency?: string;
 }) {
   const { showToast } = useToast();
+  const { selectedRestaurant } = useRestaurant();
+  const [showRejectReason, setShowRejectReason] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
+
 
   const handlePrint = () => {
     if (onPrintKOT) {
@@ -214,22 +220,58 @@ export default function DineInRequestModal({
                       Accept Order
                     </button>
                   </div>
-                  <button
-                    onClick={() => { onReject(order.id); }}
-                    className="flex w-full items-center justify-center gap-1.5 rounded-xl border-2 border-red-200 py-3 text-sm font-bold text-red-500 hover:bg-red-50 transition-all"
-                  >
-                    <XCircle className="h-4 w-4" />
-                    Reject Order
-                  </button>
+                  {showRejectReason ? (
+                    <div className="flex flex-col gap-2">
+                      <input
+                        autoFocus
+                        type="text"
+                        placeholder="Reason for rejection..."
+                        value={rejectReason}
+                        onChange={(e) => setRejectReason(e.target.value)}
+                        className="w-full rounded-xl border border-[var(--border)] px-3 py-3 text-sm font-medium outline-none focus:ring-2 focus:ring-red-500/20 text-black dark:text-white bg-transparent"
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => {
+                            onReject(order.id, rejectReason);
+                            onClose();
+                          }}
+                          className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-red-500 py-3.5 text-sm font-bold text-white hover:bg-red-600 transition-all"
+                        >
+                          Confirm
+                        </button>
+                        <button
+                          onClick={() => setShowRejectReason(false)}
+                          className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[var(--surface)] py-3.5 text-sm font-bold text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-all"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setShowRejectReason(true)}
+                      className="flex w-full items-center justify-center gap-1.5 rounded-xl border-2 border-red-200 py-3 text-sm font-bold text-red-500 hover:bg-red-50 transition-all"
+                    >
+                      <XCircle className="h-4 w-4" />
+                      Reject Order
+                    </button>
+                  )}
                 </>
               ) : (
                 <div className="flex gap-2">
                   <button
-                    onClick={handlePrint}
+                    onClick={() => {
+                      if (order) {
+                        import("@/lib/print-bill").then((mod) =>
+                          mod.openBillWindow(order.id)
+                        );
+                      }
+                    }}
                     className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[var(--surface)] py-3.5 text-sm font-bold text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-all"
                   >
                     <Printer className="h-4 w-4" />
-                    Print Receipt
+                    View Bill
                   </button>
                   <button
                     onClick={onClose}

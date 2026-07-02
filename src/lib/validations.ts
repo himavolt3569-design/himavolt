@@ -159,6 +159,9 @@ export const createOrderSchema = z.object({
   deliveryPhone: phoneSchema.optional().nullable(),
   deliveryNote: z.string().max(300).optional().nullable(),
   couponCode: z.string().max(50).optional().nullable(), // optional coupon code
+  // Restaurant-scoped duplicate-submit guard (Phase 2.5c). A repeat POST with
+  // the same key returns the original order instead of creating a second one.
+  idempotencyKey: z.string().max(100).optional().nullable(),
   // Fast Pay: server only honors this when a staff session is present for the
   // restaurant. Customer-direct callers cannot bypass the PENDING queue.
   autoAccept: z.boolean().optional(),

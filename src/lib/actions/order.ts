@@ -170,10 +170,10 @@ export async function updateOrderStatus(
   orderId: string,
   status:
     | "ACCEPTED"
-    | "PREPARING"
-    | "READY"
-    | "DELIVERED"
-    | "CANCELLED"
+    | "ACCEPTED"
+    | "ACCEPTED"
+    | "ACCEPTED"
+    | "REJECTED"
     | "REJECTED",
 ) {
   const user = await getOrCreateUser();
@@ -182,9 +182,9 @@ export async function updateOrderStatus(
   // Set timestamps for each status transition
   const timestamps: Record<string, Date> = {};
   if (status === "ACCEPTED") timestamps.acceptedAt = new Date();
-  if (status === "PREPARING") timestamps.preparingAt = new Date();
-  if (status === "READY") timestamps.readyAt = new Date();
-  if (status === "DELIVERED") timestamps.deliveredAt = new Date();
+  if (status === "ACCEPTED") timestamps.preparingAt = new Date();
+  if (status === "ACCEPTED") timestamps.readyAt = new Date();
+  if (status === "ACCEPTED") timestamps.deliveredAt = new Date();
 
   const order = await db.order.update({
     where: { id: orderId },
@@ -236,13 +236,13 @@ export async function getRestaurantOrders(
     tax: true,
     total: true,
     note: true,
-    estimatedTime: true,
+    
     deliveryAddress: true,
     deliveryFee: true,
     acceptedAt: true,
-    preparingAt: true,
-    readyAt: true,
-    deliveredAt: true,
+    
+    
+    
     createdAt: true,
     updatedAt: true,
     userId: true,
@@ -287,7 +287,7 @@ export async function getMyOrders() {
       subtotal: true,
       tax: true,
       total: true,
-      estimatedTime: true,
+      
       deliveryAddress: true,
       deliveryFee: true,
       createdAt: true,

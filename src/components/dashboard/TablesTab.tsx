@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import QRCode from "react-qr-code";
 import {
   Utensils, Plus, Trash2, Edit2, Check, X, Loader2,
@@ -11,7 +12,8 @@ import {
 import { formatPrice } from "@/lib/currency";
 import { useToast } from "@/context/ToastContext";
 import { buildQRCanvas } from "@/components/dashboard/qr/qrCanvas";
-import { apiFetch, peekApiCache } from "@/lib/api-client";
+import { apiFetch } from "@/lib/api-client";
+import { openBillWindow } from "@/lib/print-bill";
 import QRCodesTab from "./QRCodesTab";
 
 
@@ -55,7 +57,8 @@ function tableName(t: { label: string | null; tableNo: number }) {
 
 function statusOf(t: TableData): TableStatus {
   if (!t.isOccupied) return "free";
-  return t.session?.order?.payment?.status === "COMPLETED" ? "paid" : "occupied";
+  if (t.session?.order?.payment?.status === "COMPLETED" && t.session?.order?.status !== "REJECTED") return "paid";
+  return "occupied";
 }
 
 const STATUS_DOT: Record<TableStatus, string> = {
@@ -195,15 +198,34 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
   const rid  = restaurantId;
   const cur  = currency;
   const canManage = true; // staff portal — management allowed for all who have table tab access
-  const tablesPath = rid ? `/api/restaurants/${rid}/tables` : "";
+  const queryClient = useQueryClient();
 
-  // Seed from the in-memory API cache so a re-opened Tables page paints instantly.
-  const seeded = peekApiCache<{ tables?: TableData[]; restaurant?: { slug?: string; name?: string } }>(tablesPath);
-  const [tables,   setTables]   = useState<TableData[]>(() => seeded?.tables ?? []);
-  const [meta,     setMeta]     = useState<{ slug: string; name: string } | null>(
-    () => seeded?.restaurant ? { slug: seeded.restaurant.slug ?? "", name: seeded.restaurant.name ?? "" } : null,
-  );
-  const [loading,  setLoading]  = useState(() => !seeded);
+  // Query cache paints instantly on tab revisit; refetchInterval replaces
+  // the old manual 30s setInterval poll.
+  const tablesQueryKey = ["tables", rid] as const;
+  const tablesQuery = useQuery({
+    queryKey: tablesQueryKey,
+    queryFn: () =>
+      apiFetch<{ tables?: TableData[]; restaurant?: { slug?: string; name?: string } }>(
+        `/api/restaurants/${rid}/tables`,
+      ),
+    enabled: !!rid,
+    refetchInterval: 30_000,
+  });
+  const tables = tablesQuery.data?.tables ?? [];
+  const meta = tablesQuery.data?.restaurant
+    ? { slug: tablesQuery.data.restaurant.slug ?? "", name: tablesQuery.data.restaurant.name ?? "" }
+    : null;
+  const loading = tablesQuery.isLoading;
+  // Kept as a React.SetStateAction-compatible shim so the existing
+  // optimistic-update handlers below (which already do their own
+  // snapshot/rollback) don't need to change at all.
+  const setTables = (updater: React.SetStateAction<TableData[]>) =>
+    queryClient.setQueryData<typeof tablesQuery.data>(tablesQueryKey, (prev) => ({
+      restaurant: prev?.restaurant,
+      tables: typeof updater === "function" ? (updater as (p: TableData[]) => TableData[])(prev?.tables ?? []) : updater,
+    }));
+  const load = (_fresh = false) => queryClient.invalidateQueries({ queryKey: tablesQueryKey });
   const [selected, setSelected] = useState<TableData | null>(null);
   const [qrTable,  setQrTable]  = useState<TableData | null>(null);
   const [clearingId, setClearingId] = useState<string | null>(null);
@@ -230,27 +252,6 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
   const [editLabel, setEditLabel] = useState("");
   const [editCap,   setEditCap]   = useState("");
   const [editSaving,setEditSaving]= useState(false);
-
-  const load = useCallback(async (fresh = false) => {
-    if (!rid) return;
-    try {
-      const data = await apiFetch<{ tables?: TableData[]; restaurant?: { slug?: string; name?: string } }>(
-        `/api/restaurants/${rid}/tables`,
-        { cacheTtl: fresh ? 0 : 20_000 },
-      );
-      setTables(data.tables ?? []);
-      if (data.restaurant) setMeta({ slug: data.restaurant.slug ?? "", name: data.restaurant.name ?? "" });
-    } catch {
-      // silent on poll failures — table data is non-critical background refresh
-    }
-    setLoading(false);
-  }, [rid]);
-
-  useEffect(() => {
-    load();
-    const iv = setInterval(() => load(true), 30000);
-    return () => clearInterval(iv);
-  }, [load]);
 
   const handleAdd = async () => {
     if (!rid || addSaving) {
@@ -542,11 +543,19 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
             const name = tableName(table);
 
             return (
-              <motion.button
+              <motion.div
                 key={table.id}
                 layout
+                role="button"
+                tabIndex={0}
                 onClick={() => setSelected(table)}
-                className={`group relative rounded-2xl border-2 p-4 text-left transition-all hover:-translate-y-0.5 hover:shadow-md ${bgClass}`}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setSelected(table);
+                  }
+                }}
+                className={`group relative rounded-2xl border-2 p-4 text-left transition-all hover:-translate-y-0.5 hover:shadow-md cursor-pointer ${bgClass}`}
               >
                 {canManage && editId === table.id ? (
                   <div className="space-y-1.5" onClick={(e) => e.stopPropagation()}>
@@ -627,22 +636,35 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
                       <span>{table.capacity} seats</span>
                     </div>
 
-                    {table.isOccupied && table.session?.order ? (
-                      <div className="space-y-1">
-                        <div className={`inline-flex rounded-md px-1.5 py-0.5 text-[9px] font-bold ${STATUS_COLOR[table.session.order.status] ?? "bg-[var(--surface)] text-[var(--text-2)]"}`}>
-                          {table.session.order.status}
+                    {table.isOccupied ? (
+                      table.session?.order ? (
+                        <div className="space-y-1">
+                          <div className={`inline-flex rounded-md px-1.5 py-0.5 text-[9px] font-bold ${STATUS_COLOR[table.session.order.status] ?? "bg-[var(--surface)] text-[var(--text-2)]"}`}>
+                            {table.session.order.status}
+                          </div>
+                          <p className="text-[10px] text-[var(--text-2)] truncate">
+                            #{table.session.order.orderNo}
+                          </p>
+                          <p className="text-xs font-bold text-[var(--text-1)]">
+                            {formatPrice(table.session.order.total, cur)}
+                          </p>
+                          <div className="flex items-center gap-1 text-[9px] text-[var(--text-3)]">
+                            <Clock className="h-2.5 w-2.5" />
+                            {elapsed(table.session.startedAt)}
+                          </div>
                         </div>
-                        <p className="text-[10px] text-[var(--text-2)] truncate">
-                          #{table.session.order.orderNo}
-                        </p>
-                        <p className="text-xs font-bold text-[var(--text-1)]">
-                          {formatPrice(table.session.order.total, cur)}
-                        </p>
-                        <div className="flex items-center gap-1 text-[9px] text-[var(--text-3)]">
-                          <Clock className="h-2.5 w-2.5" />
-                          {elapsed(table.session.startedAt)}
+                      ) : (
+                        <div className="space-y-1">
+                          <div className="inline-flex rounded-md px-1.5 py-0.5 text-[9px] font-bold bg-amber-100 text-amber-700">
+                            BROWSING
+                          </div>
+                          <p className="text-[10px] text-[var(--text-2)]">Reading menu</p>
+                          <div className="flex items-center gap-1 text-[9px] text-[var(--text-3)] mt-2">
+                            <Clock className="h-2.5 w-2.5" />
+                            {table.session?.startedAt ? elapsed(table.session.startedAt) : "just now"}
+                          </div>
                         </div>
-                      </div>
+                      )
                     ) : (
                       <p className="text-xs font-semibold text-emerald-600">Available</p>
                     )}
@@ -650,7 +672,7 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
                     <ChevronRight className="absolute bottom-3 right-3 h-3 w-3 text-[var(--text-3)]" />
                   </>
                 )}
-              </motion.button>
+              </motion.div>
             );
           })}
         </div>
@@ -746,14 +768,12 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
                     </div>
 
                     <div className="flex gap-2">
-                      <a
-                        href={`/bill/${order.id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <button
+                        onClick={() => openBillWindow(order.id, false)}
                         className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-[var(--border)] py-2.5 text-xs font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors"
                       >
                         View Bill
-                      </a>
+                      </button>
                       {canManage && (
                         <button
                           onClick={() => handleClearSession(order.id)}

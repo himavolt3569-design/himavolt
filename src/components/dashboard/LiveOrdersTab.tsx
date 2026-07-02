@@ -1,14 +1,13 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Clock,
   CheckCircle2,
   XCircle,
-  ChefHat,
   PackageCheck,
-  Truck,
   RefreshCw,
   Loader2,
   CreditCard,
@@ -30,9 +29,12 @@ import { useRestaurant } from "@/context/RestaurantContext";
 import { formatPrice } from "@/lib/currency";
 import { resolvePrintSettings } from "@/lib/print-settings";
 import { printKOT } from "@/lib/print-kot";
+import { openBillWindow } from "@/lib/print-bill";
 import DineInRequestModal from "@/components/modals/DineInRequestModal";
 import { SkeletonOrderCard } from "@/components/shared/Skeleton";
 import { apiFetch } from "@/lib/api-client";
+import { useToast } from "@/context/ToastContext";
+import TableOrderBoard from "@/components/orders/TableOrderBoard";
 import gsap from "gsap";
 
 const STATUS_CONFIG: Record<
@@ -51,30 +53,10 @@ const STATUS_CONFIG: Record<
     text: "text-blue-700",
     icon: CheckCircle2,
   },
-  PREPARING: {
-    label: "Preparing",
-    bg: "bg-[var(--accent-muted)]",
-    text: "text-[var(--accent-text)]",
-    icon: ChefHat,
-  },
-  READY: {
-    label: "Ready",
-    bg: "bg-[var(--accent-muted)]",
-    text: "text-[var(--accent-text)]",
-    icon: PackageCheck,
-  },
-  DELIVERED: {
-    label: "Delivered",
-    bg: "bg-[var(--surface)]",
-    text: "text-[var(--text-2)]",
-    icon: Truck,
-  },
-  CANCELLED: {
-    label: "Cancelled",
-    bg: "bg-red-100",
-    text: "text-red-600",
-    icon: XCircle,
-  },
+  
+  
+  
+  
   REJECTED: {
     label: "Rejected",
     bg: "bg-red-100",
@@ -87,9 +69,7 @@ const FILTER_OPTIONS: { value: LiveOrderStatus | "ALL"; label: string }[] = [
   { value: "ALL", label: "All Orders" },
   { value: "PENDING", label: "New" },
   { value: "ACCEPTED", label: "Accepted" },
-  { value: "PREPARING", label: "Preparing" },
-  { value: "READY", label: "Ready" },
-  { value: "DELIVERED", label: "Delivered" },
+  { value: "REJECTED", label: "Archived (Rejected)" },
 ];
 
 function PreparingClock() {
@@ -130,7 +110,7 @@ function StatusBadge({ status }: { status: LiveOrderStatus }) {
     <span
       className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold ${cfg.bg} ${cfg.text}`}
     >
-      {status === "PREPARING" ? (
+      {status === "ACCEPTED" ? (
         <PreparingClock />
       ) : (
         <Icon className="h-3 w-3" />
@@ -212,8 +192,6 @@ function StaleOrdersBanner({
     total: number;
     pending: number;
     accepted: number;
-    preparing: number;
-    ready: number;
   } | null>(null);
   const [cleaning, setCleaning] = useState(false);
   const [result, setResult] = useState<{ total: number } | null>(null);
@@ -227,8 +205,6 @@ function StaleOrdersBanner({
           total: number;
           pending: number;
           accepted: number;
-          preparing: number;
-          ready: number;
         };
       }>(`/api/restaurants/${restaurantId}/orders/cleanup`);
       setStaleData(data.stale);
@@ -250,16 +226,12 @@ function StaleOrdersBanner({
       const data = await apiFetch<{
         counts: {
           pendingRejected: number;
-          acceptedCancelled: number;
-          preparingMarkedReady: number;
-          readyMarkedDelivered: number;
+          acceptedRejected: number;
         };
       }>(`/api/restaurants/${restaurantId}/orders/cleanup`, { method: "POST" });
       const total =
         data.counts.pendingRejected +
-        data.counts.acceptedCancelled +
-        data.counts.preparingMarkedReady +
-        data.counts.readyMarkedDelivered;
+        data.counts.acceptedRejected;
       setResult({ total });
       await refresh();
       await fetchStale();
@@ -293,8 +265,6 @@ function StaleOrdersBanner({
   const parts: string[] = [];
   if (staleData.pending > 0) parts.push(`${staleData.pending} pending`);
   if (staleData.accepted > 0) parts.push(`${staleData.accepted} accepted`);
-  if (staleData.preparing > 0) parts.push(`${staleData.preparing} preparing`);
-  if (staleData.ready > 0) parts.push(`${staleData.ready} ready`);
 
   return (
     <motion.div
@@ -379,18 +349,80 @@ export default function LiveOrdersTab() {
     refresh,
     acceptOrder,
     rejectOrder,
-    markPreparing,
-    markReady,
-    markDelivered,
+    setOrders,
   } = useLiveOrders();
+  const { showToast } = useToast();
   const [selectedOrder, setSelectedOrder] = useState<LiveOrder | null>(null);
-  const [filterStatus, setFilterStatus] = useState<LiveOrderStatus | "ALL">(
-    "ALL",
+  const [filterStatus, setFilterStatus] = useState<LiveOrderStatus | "ALL" | "ARCHIVED">("PENDING");
+  const [busyOrderIds, setBusyOrderIds] = useState<Set<string>>(new Set());
+  const queryClient = useQueryClient();
+  const ordersQueryKey = ["orders", "live", selectedRestaurant?.id ?? null] as const;
+
+  // Accept / reject one ordering round (initial order or an add-on batch). The
+  // server scopes the action to that round's items + handles the first-round
+  // payment gate and order status, so earlier rounds stay untouched. Realtime
+  // signal / SSE bring the query back to server truth shortly after — no
+  // forced refetch needed on success, only to roll back a failed mutation.
+  const roundActionMutation = useMutation({
+    mutationFn: async ({
+      orderId,
+      roundAt,
+      action,
+      reason,
+    }: {
+      orderId: string;
+      roundAt: string;
+      action: "ACCEPT" | "REJECT";
+      reason?: string;
+    }) => {
+      const rid = selectedRestaurant?.id;
+      if (!rid) return;
+      await apiFetch(`/api/restaurants/${rid}/orders/${orderId}/round`, {
+        method: "PATCH",
+        body: { roundAt, action, reason },
+      });
+    },
+    onMutate: async ({ orderId, roundAt, action }) => {
+      await queryClient.cancelQueries({ queryKey: ordersQueryKey, exact: true });
+      const previous = queryClient.getQueryData<LiveOrder[]>(ordersQueryKey);
+      setOrders((prev) =>
+        prev.map((o) => {
+          if (o.id !== orderId) return o;
+          return {
+            ...o,
+            items: o.items.map((i) =>
+              i.createdAt === roundAt
+                ? { ...i, kitchenStatus: action === "ACCEPT" ? "ACCEPTED" : "REJECTED" }
+                : i
+            ),
+          };
+        })
+      );
+      return { previous };
+    },
+    onError: (err, _vars, context) => {
+      if (context?.previous) queryClient.setQueryData(ordersQueryKey, context.previous);
+      showToast(
+        err instanceof Error ? err.message : "Action failed — please retry",
+        "error",
+      );
+    },
+  });
+
+  const roundAction = useCallback(
+    (orderId: string, roundAt: string, action: "ACCEPT" | "REJECT", reason?: string) =>
+      roundActionMutation.mutateAsync({ orderId, roundAt, action, reason }).catch(() => {}),
+    [roundActionMutation],
   );
 
-  const filtered = orders.filter(
-    (o) => filterStatus === "ALL" || o.status === filterStatus,
-  );
+  const filtered = useMemo(() => {
+    return orders.filter((o) => {
+      if (filterStatus === "ALL") return o.status !== "REJECTED" && !(o.status === "ACCEPTED" && o.payment?.status === "COMPLETED");
+      if (filterStatus === "ARCHIVED") return o.status === "REJECTED" || (o.status === "ACCEPTED" && o.payment?.status === "COMPLETED");
+      if (filterStatus === "ACCEPTED") return o.status === "ACCEPTED" && o.payment?.status !== "COMPLETED";
+      return o.status === filterStatus;
+    });
+  }, [orders, filterStatus]);
 
   const newCount = orders.filter((o) => o.status === "PENDING").length;
 
@@ -471,6 +503,24 @@ export default function LiveOrdersTab() {
       </div>
 
       {/* Orders — desktop table + mobile cards */}
+      {filtered.length === 0 ? (
+        <div className="py-20 text-center text-sm font-medium text-[var(--text-3)]">
+          <div className="flex flex-col items-center justify-center gap-3">
+            <div className="h-12 w-12 rounded-full bg-[var(--canvas-sub)] flex items-center justify-center border border-[var(--border-soft)]">
+              <PackageCheck className="h-5 w-5 text-[var(--text-3)]" />
+            </div>
+            No orders matching this status
+          </div>
+        </div>
+      ) : filterStatus !== "ARCHIVED" ? (
+        <TableOrderBoard
+          orders={filtered}
+          currency={cur}
+          busyOrderIds={busyOrderIds}
+          onAcceptRound={(o, roundAt) => roundAction(o.id, roundAt, "ACCEPT")}
+          onRejectRound={(o, roundAt, meta, reason) => roundAction(o.id, roundAt, "REJECT", reason)}
+        />
+      ) : (
       <div>
         <div className="hidden md:block overflow-x-auto overflow-y-hidden rounded-2xl border border-[var(--border)]/60 bg-[var(--canvas)]/70 backdrop-blur-xl shadow-sm">
           <table className="w-full text-sm">
@@ -593,15 +643,20 @@ export default function LiveOrdersTab() {
                         </div>
                       </td>
                       <td className="px-5 py-4">
-                        <OrderActions
-                          order={order}
-                          busy={updatingIds.has(order.id)}
-                          onAccept={(et) => acceptOrder(order.id, et)}
-                          onReject={() => rejectOrder(order.id)}
-                          onPreparing={() => markPreparing(order.id)}
-                          onReady={() => markReady(order.id)}
-                          onDelivered={() => markDelivered(order.id)}
-                        />
+                        {order.status === "REJECTED" ? (
+                          <span className="text-[11px] font-bold text-red-500">Rejected</span>
+                        ) : (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openBillWindow(order.id);
+                            }}
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--accent)] px-3 py-1.5 text-[11px] font-bold text-white transition-all hover:bg-[var(--accent-hover)]"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                            View Bill
+                          </button>
+                        )}
                       </td>
                     </motion.tr>
                   ))
@@ -667,32 +722,42 @@ export default function LiveOrdersTab() {
                     </div>
                   ))}
                 </div>
-                <OrderActions
-                  order={order}
-                  busy={updatingIds.has(order.id)}
-                  onAccept={(et) => acceptOrder(order.id, et)}
-                  onReject={() => rejectOrder(order.id)}
-                  onPreparing={() => markPreparing(order.id)}
-                  onReady={() => markReady(order.id)}
-                  onDelivered={() => markDelivered(order.id)}
-                />
+                {order.status === "REJECTED" ? (
+                  <div className="mt-3 flex justify-end">
+                    <span className="text-[11px] font-bold text-red-500">Rejected</span>
+                  </div>
+                ) : (
+                  <div className="mt-3 flex justify-end">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openBillWindow(order.id);
+                      }}
+                      className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-[var(--accent)] px-3 py-2.5 text-[12px] font-bold text-white transition-all hover:bg-[var(--accent-hover)]"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                      View Bill
+                    </button>
+                  </div>
+                )}
               </motion.div>
             ))}
           </AnimatePresence>
         </div>
       </div>
+      )}
 
       {/* Dine-in modal */}
       <DineInRequestModal
         order={selectedOrder}
         currency={cur}
         onClose={() => setSelectedOrder(null)}
-        onAccept={(id, print) => {
-          acceptOrder(id, undefined, print);
+        onAccept={(id) => {
+          acceptOrder(id, undefined);
           setSelectedOrder(null);
         }}
-        onReject={(id) => {
-          rejectOrder(id);
+        onReject={(id, reason) => {
+          rejectOrder(id, reason);
           setSelectedOrder(null);
         }}
         onPrintKOT={() => {
@@ -754,20 +819,14 @@ function OrderActions({
   busy,
   onAccept,
   onReject,
-  onPreparing,
-  onReady,
-  onDelivered,
 }: {
   order: LiveOrder;
   busy: boolean;
-  onAccept: (estimatedTime?: number) => void;
-  onReject: () => void;
-  onPreparing: () => void;
-  onReady: () => void;
-  onDelivered: () => void;
+  onAccept: () => void;
+  onReject: (reason: string) => void;
 }) {
-  const [showTimeInput, setShowTimeInput] = useState(false);
-  const [estTime, setEstTime] = useState(order.estimatedTime || 20);
+  const [showRejectReason, setShowRejectReason] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
 
   const stop = (e: React.MouseEvent, fn: () => void) => {
     e.stopPropagation();
@@ -775,31 +834,31 @@ function OrderActions({
   };
 
   if (order.status === "PENDING") {
-    if (showTimeInput) {
+    if (showRejectReason) {
       return (
-        <div
-          className="flex items-center gap-2 flex-wrap"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] px-2 py-1">
-            <Clock className="h-3 w-3 text-[var(--text-3)]" />
-            <input
-              type="number"
-              min={5}
-              max={120}
-              value={estTime}
-              onChange={(e) => setEstTime(Number(e.target.value))}
-              disabled={busy}
-              className="w-10 text-center text-[11px] font-bold border-none outline-none bg-transparent"
-            />
-            <span className="text-[10px] text-[var(--text-3)]">min</span>
-          </div>
+        <div className="flex items-center gap-2 flex-wrap" onClick={(e) => e.stopPropagation()}>
+          <input
+            autoFocus
+            type="text"
+            placeholder="Reason for rejection..."
+            value={rejectReason}
+            onChange={(e) => setRejectReason(e.target.value)}
+            disabled={busy}
+            className="flex-1 rounded-lg border border-[var(--border)] px-2 py-1 text-[11px] font-medium outline-none focus:ring-2 focus:ring-red-500/20 text-black dark:text-white bg-transparent"
+          />
           <ActionButton
-            onClick={(e) => stop(e, () => onAccept(estTime))}
+            onClick={() => onReject(rejectReason)}
             busy={busy}
-            icon={CheckCircle2}
+            icon={XCircle}
             label="Confirm"
-            className="bg-[var(--text-1)] text-white hover:bg-[var(--text-2)]"
+            className="bg-red-500 text-white hover:bg-red-600"
+          />
+          <ActionButton
+            onClick={() => setShowRejectReason(false)}
+            disabled={busy}
+            icon={XCircle}
+            label="Cancel"
+            className="bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
           />
         </div>
       );
@@ -808,17 +867,17 @@ function OrderActions({
     return (
       <div className="flex items-center gap-2 flex-wrap">
         <ActionButton
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowTimeInput(true);
-          }}
+          onClick={(e) => stop(e, () => onAccept())}
           disabled={busy}
           icon={CheckCircle2}
           label="Accept"
           className="bg-[var(--text-1)] text-white hover:bg-[var(--text-2)]"
         />
         <ActionButton
-          onClick={(e) => stop(e, onReject)}
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowRejectReason(true);
+          }}
           busy={busy}
           icon={XCircle}
           label="Reject"
@@ -828,58 +887,22 @@ function OrderActions({
     );
   }
 
-  if (order.status === "ACCEPTED") {
-    return (
-      <ActionButton
-        onClick={(e) => stop(e, onPreparing)}
-        busy={busy}
-        icon={ChefHat}
-        label="Start Cooking"
-        className="bg-[var(--accent)] text-white hover:bg-[var(--accent-hover)]"
-      />
-    );
-  }
-
-  if (order.status === "PREPARING") {
-    return (
-      <ActionButton
-        onClick={(e) => stop(e, onReady)}
-        busy={busy}
-        icon={PackageCheck}
-        label="Mark Ready"
-        className="bg-[var(--accent)] text-white hover:bg-[var(--accent)]"
-      />
-    );
-  }
-
-  if (order.status === "READY") {
-    return (
-      <ActionButton
-        onClick={(e) => stop(e, onDelivered)}
-        busy={busy}
-        icon={Truck}
-        label="Delivered"
-        className="bg-[var(--text-1)] text-white hover:bg-[var(--text-2)]"
-      />
-    );
-  }
-
   return (
     <span className="flex items-center gap-2 text-xs">
       <span className="text-[var(--text-3)] italic">
-        {order.status === "DELIVERED" ? "Completed" : "Cancelled"}
+        {order.status === "ACCEPTED" ? "Completed" : "Rejected"}
       </span>
-      {order.status === "DELIVERED" && (
-        <a
-          href={`/bill/${order.id}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={(e) => e.stopPropagation()}
+      {order.status === "ACCEPTED" && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            openBillWindow(order.id, false);
+          }}
           className="inline-flex items-center gap-1 rounded-lg bg-[var(--surface)] px-2 py-1 text-[10px] font-bold text-[var(--text-2)] hover:bg-[var(--surface-alt)] hover:text-[var(--accent)] transition-all"
         >
           <ExternalLink className="h-2.5 w-2.5" />
           View Bill
-        </a>
+        </button>
       )}
     </span>
   );

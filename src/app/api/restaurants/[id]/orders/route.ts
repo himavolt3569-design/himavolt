@@ -4,14 +4,18 @@ import { getOrCreateUser } from "@/lib/auth";
 import { getStaffSession } from "@/lib/staff-auth";
 import { notifyKitchenNewOrder } from "@/lib/notifications";
 import { notifyOrderChanged, notifyRestaurantOrders } from "@/lib/realtime";
-import { generateBill, getTaxConfig } from "@/lib/billing";
+import { getTaxConfig } from "@/lib/billing";
 import { safeHandler, notFound } from "@/lib/api-helpers";
 import { createOrderSchema } from "@/lib/validations";
 import { logAudit, getClientIp } from "@/lib/audit";
 import { getCurrencySymbol } from "@/lib/currency";
-import { deductStock } from "@/lib/stock";
-import { rateLimit, clientKey } from "@/lib/rate-limit";
-import { setOrderTrackCookie } from "@/lib/order-access";
+import { rateLimit, clientKey, claimOnce, releaseClaim } from "@/lib/rate-limit";
+import { setOrderTrackCookie, canAccessOrder } from "@/lib/order-access";
+import {
+  createOrder,
+  appendToOrder,
+  type OrderSourceType,
+} from "@/lib/orders/create-order";
 
 export async function GET(
   req: NextRequest,
@@ -52,8 +56,10 @@ export async function GET(
     const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
     delete where.status;
 
-    // Exclude Manual Pay (COUNTER) and Fast Pay (DIRECT) entirely from Live Orders
+    // Exclude Manual Pay (COUNTER) and Fast Pay (DIRECT) from POS entirely
+    // so fast-pay walk-ins don't clog the kitchen queue.
     where.NOT = {
+      sourceType: "POS",
       payment: {
         method: {
           in: ["DIRECT", "COUNTER"]
@@ -67,16 +73,16 @@ export async function GET(
       // Legacy orders without a payment record
       { status: "PENDING", payment: { is: null } },
       // Active orders (already passed through payment gate when accepted)
-      { status: { in: ["ACCEPTED", "PREPARING", "READY"] } },
+      { status: { in: ["ACCEPTED", "ACCEPTED", "ACCEPTED"] } },
       // Recently completed (for kitchen history)
       {
-        status: { in: ["DELIVERED", "CANCELLED", "REJECTED"] },
+        status: { in: ["ACCEPTED", "REJECTED", "REJECTED"] },
         createdAt: { gte: twoHoursAgo },
       },
-      // QR customer orders with physical payment (CASH / BANK):
+      // QR customer orders with physical payment (CASH / BANK / COUNTER / DIRECT):
       {
         status: "PENDING",
-        payment: { method: { in: ["CASH", "BANK"] }, status: "PENDING" },
+        payment: { method: { in: ["CASH", "BANK", "COUNTER", "DIRECT"] }, status: "PENDING" },
       },
     ];
 
@@ -106,7 +112,7 @@ export async function GET(
     tax: true,
     total: true,
     note: true,
-    estimatedTime: true,
+    
     deliveryAddress: true,
     deliveryLat: true,
     deliveryLng: true,
@@ -114,9 +120,9 @@ export async function GET(
     deliveryNote: true,
     deliveryFee: true,
     acceptedAt: true,
-    preparingAt: true,
-    readyAt: true,
-    deliveredAt: true,
+    
+    
+    
     createdAt: true,
     updatedAt: true,
     userId: true,
@@ -199,6 +205,7 @@ export const POST = safeHandler(
       deliveryNote,
       couponCode,
       autoAccept,
+      idempotencyKey,
     } = body;
 
     const restaurant = await db.restaurant.findUnique({ where: { id } });
@@ -221,6 +228,7 @@ export const POST = safeHandler(
             discount: true,
             prepTime: true,
             isDrink: true,
+            drinkCategory: true,
             stockEnabled: true,
             stockQuantity: true,
             sizes: { select: { priceAdd: true } },
@@ -272,6 +280,8 @@ export const POST = safeHandler(
       price: number;
       menuItemId: string;
       addOns?: string;
+      prepTimeSnapshot?: string | null;
+      drinkCategory?: string | null;
     }> = [];
     for (const line of items) {
       const result = priceForLine(line);
@@ -285,7 +295,31 @@ export const POST = safeHandler(
         price: result.price,
         menuItemId: line.menuItemId!,
         ...(line.addOns ? { addOns: line.addOns } : {}),
+        // Snapshot the item's configured prep time at order time (2.5b/2.5c) so
+        // the tracking page (2.5e) shows the value as it was when ordered.
+        prepTimeSnapshot: m?.prepTime ?? null,
+        drinkCategory: m?.drinkCategory ?? null,
       });
+    }
+
+    // Idempotency short-circuit (Phase 2.5c): a repeat submit whose key already
+    // produced an order (any source) returns that order before we decide
+    // create-vs-append, so a retry can never become a second order OR a stray
+    // append. (createOrder also re-checks this for direct callers.)
+    if (idempotencyKey) {
+      const prior = await db.order.findFirst({
+        where: { restaurantId: id, idempotencyKey },
+        select: { id: true },
+      });
+      if (prior) {
+        const dupOrder = await db.order.findUnique({
+          where: { id: prior.id },
+          include: { items: true, payment: true, bill: true, delivery: true },
+        });
+        const dupRes = NextResponse.json(dupOrder, { status: 200 });
+        setOrderTrackCookie(dupRes, prior.id);
+        return dupRes;
+      }
     }
 
     // One running bill per table: when the client didn't pass an explicit
@@ -298,7 +332,7 @@ export const POST = safeHandler(
       const sessionOrder = await db.order.findFirst({
         where: {
           restaurantId: id,
-          status: { in: ["PENDING", "ACCEPTED", "PREPARING"] },
+          status: { in: ["PENDING", "ACCEPTED", "ACCEPTED"] },
           tableSession: { id: tableSessionId, isActive: true },
           OR: [
             { payment: null },
@@ -316,7 +350,7 @@ export const POST = safeHandler(
         where: {
           id: appendOrderId,
           restaurantId: id,
-          status: { in: ["PENDING", "ACCEPTED", "PREPARING"] },
+          status: { in: ["PENDING", "ACCEPTED", "ACCEPTED"] },
         },
         include: { payment: true, tableSession: { select: { id: true } } },
       });
@@ -328,20 +362,21 @@ export const POST = safeHandler(
         );
       }
 
-      // Tighten add-to-order ownership: only the order's user, a staff member
-      // of this restaurant, or someone holding the matching tableSessionId can
-      // tack items onto an existing active order. Anonymous strangers with the
-      // raw orderId are no longer allowed to grow someone else's tab.
-      const addStaff = await getStaffSession(req);
-      const addUser = await getOrCreateUser().catch(() => null);
+      // Add-to-order ownership. Reuse the canonical canAccessOrder helper —
+      // it accepts staff of this restaurant, the order's owning user, the
+      // restaurant owner, AND an anonymous guest presenting the order's track
+      // cookie (set on the order POST, auto-sent on later requests). We also
+      // allow a table co-diner holding the matching tableSessionId, proving
+      // they're physically at the table even if they didn't place the order.
+      // The previous hand-rolled check missed the track-cookie path, which
+      // 403'd anonymous guests adding to their OWN running tab (e.g. Takeaway,
+      // or Dine-In placed without scanning a table QR).
       const sessionMatch =
-        tableSessionId &&
-        existing.tableSession?.id &&
+        !!tableSessionId &&
+        !!existing.tableSession?.id &&
         tableSessionId === existing.tableSession.id;
       const isAuthorisedToAdd =
-        (addStaff && addStaff.restaurantId === id) ||
-        (addUser && existing.userId && addUser.id === existing.userId) ||
-        sessionMatch;
+        (await canAccessOrder(req, existing)) || sessionMatch;
       if (!isAuthorisedToAdd) {
         return NextResponse.json(
           { error: "Not allowed to modify this order" },
@@ -349,76 +384,69 @@ export const POST = safeHandler(
         );
       }
 
-      const addSubtotal = resolvedItems.reduce(
-        (sum, item) => sum + item.price * item.quantity,
-        0,
-      );
       const taxCfg = await getTaxConfig(id, restaurant);
-      const addTax = taxCfg.taxEnabled
-        ? Math.round(addSubtotal * (taxCfg.taxRate / 100) * 100) / 100
-        : 0;
 
-      await db.orderItem.createMany({
-        data: resolvedItems.map((item) => ({
+      // Idempotency for append: a repeat submit with the same key (that didn't
+      // already create an order — handled above) must not add items twice. Claim
+      // the key; a lost claim means a duplicate, so return the order unchanged.
+      const appendClaimKey = idempotencyKey
+        ? `order-append:${id}:${idempotencyKey}`
+        : null;
+      if (appendClaimKey) {
+        const fresh = await claimOnce(appendClaimKey, 120);
+        if (!fresh) {
+          const current = await db.order.findUnique({
+            where: { id: existing.id },
+            include: { items: true, payment: true, bill: true, delivery: true },
+          });
+          return NextResponse.json(current, { status: 200 });
+        }
+      }
+
+      // Atomic append: items + totals + payment amount + bill + stock in ONE
+      // transaction. No side effects inside.
+      let appendResult;
+      try {
+        appendResult = await appendToOrder({
+          restaurantId: id,
           orderId: existing.id,
-          name: item.name,
-          quantity: item.quantity,
-          price: item.price,
-          menuItemId: item.menuItemId,
-          ...(item.addOns ? { addOns: item.addOns } : {}),
-        })),
-      });
+          existingNote: existing.note,
+          items: resolvedItems,
+          note: note ?? null,
+          taxConfig: taxCfg,
+        });
+      } catch (appendErr) {
+        // Free the claim so a genuine retry can re-attempt the failed append.
+        if (appendClaimKey) await releaseClaim(appendClaimKey);
+        throw appendErr;
+      }
 
-      // Cap concatenated note length so we don't grow it unbounded over many
-      // add-to-order rounds.
-      const mergedNote = note
-        ? existing.note
-          ? `${existing.note}; ${note}`.slice(0, 500)
-          : note.slice(0, 500)
-        : undefined;
-
-      const updated = await db.order.update({
+      const updated = await db.order.findUnique({
         where: { id: existing.id },
-        data: {
-          subtotal: { increment: addSubtotal },
-          tax: { increment: addTax },
-          total: { increment: addSubtotal + addTax },
-          note: mergedNote,
-        },
         include: { items: true, payment: true, bill: true, delivery: true },
       });
 
-      // Update payment amount to match new total
-      if (existing.payment) {
-        await db.payment.update({
-          where: { id: existing.payment.id },
-          data: { amount: { increment: addSubtotal + addTax } },
+      // Ensure trackToken exists for older orders that might not have one (Phase 2.5e fallback)
+      if (updated && !updated.trackToken) {
+        const { randomBytes } = require("crypto");
+        const trackToken = randomBytes(24).toString("hex");
+        await db.order.update({
+          where: { id: updated.id },
+          data: { trackToken },
         });
+        updated.trackToken = trackToken;
       }
 
-      // Regenerate bill with updated totals (reuse the tax config we just
-      // computed — no need to re-query the restaurant inside generateBill).
-      await generateBill(existing.id, { taxConfig: taxCfg });
-
-      // Deduct stock for each added item (non-fatal — order is already updated)
-      try {
-        await deductStock(resolvedItems);
-      } catch (stockErr) {
-        console.error(
-          "[Orders POST addToOrder] Stock deduction failed (non-fatal):",
-          stockErr,
-        );
-      }
-
+      // ── Side effects AFTER commit only ──
       logAudit({
         action: "ORDER_UPDATED",
         entity: "Order",
         entityId: existing.id,
-        detail: `Added ${resolvedItems.length} items to order ${existing.orderNo} (+${getCurrencySymbol(restaurant.currency ?? "NPR")}${addSubtotal + addTax})`,
+        detail: `Added ${resolvedItems.length} items to order ${existing.orderNo} (+${getCurrencySymbol(restaurant.currency ?? "NPR")}${appendResult.addedTotal})`,
         metadata: {
           orderNo: existing.orderNo,
           addedItems: resolvedItems.length,
-          addedTotal: addSubtotal + addTax,
+          addedTotal: appendResult.addedTotal,
         },
         restaurantId: id,
         ipAddress: getClientIp(req.headers),
@@ -477,54 +505,51 @@ export const POST = safeHandler(
       }
     }
 
+    // Validate the coupon READ-ONLY here. The usedCount increment happens inside
+    // createOrder's transaction (Phase 2.5c), so a coupon is never consumed
+    // unless the order actually commits.
     let couponDiscount = 0;
     let couponId: string | null = null;
     if (couponCode) {
       try {
-        // Use a transaction to atomically validate + increment coupon usage
-        const couponResult = await db.$transaction(async (tx) => {
-          const coupon = await tx.coupon.findFirst({
-            where: {
-              restaurantId: id,
-              code: couponCode.toUpperCase(),
-              isActive: true,
-              startsAt: { lte: new Date() },
-              OR: [{ expiresAt: null }, { expiresAt: { gte: new Date() } }],
-            },
-          });
-          if (!coupon) return { error: "Invalid or expired coupon code" };
-          if (coupon.maxUses && coupon.usedCount >= coupon.maxUses) {
-            return { error: "Coupon usage limit reached" };
-          }
-          if (subtotal < coupon.minOrder) {
-            return {
-              error: `Minimum order of ${coupon.minOrder} required for this coupon`,
-            };
-          }
-          let discount = 0;
-          if (coupon.type === "PERCENTAGE") {
-            discount = Math.round(subtotal * (coupon.value / 100) * 100) / 100;
-            if (coupon.maxDiscount && discount > coupon.maxDiscount) {
-              discount = coupon.maxDiscount;
-            }
-          } else {
-            discount = Math.min(coupon.value, subtotal);
-          }
-          // Increment usage count atomically within the transaction
-          await tx.coupon.update({
-            where: { id: coupon.id },
-            data: { usedCount: { increment: 1 } },
-          });
-          return { couponId: coupon.id, discount };
+        const coupon = await db.coupon.findFirst({
+          where: {
+            restaurantId: id,
+            code: couponCode.toUpperCase(),
+            isActive: true,
+            startsAt: { lte: new Date() },
+            OR: [{ expiresAt: null }, { expiresAt: { gte: new Date() } }],
+          },
         });
-        if ("error" in couponResult) {
+        if (!coupon) {
           return NextResponse.json(
-            { error: couponResult.error },
+            { error: "Invalid or expired coupon code" },
             { status: 400 },
           );
         }
-        couponDiscount = couponResult.discount;
-        couponId = couponResult.couponId;
+        if (coupon.maxUses && coupon.usedCount >= coupon.maxUses) {
+          return NextResponse.json(
+            { error: "Coupon usage limit reached" },
+            { status: 400 },
+          );
+        }
+        if (subtotal < coupon.minOrder) {
+          return NextResponse.json(
+            {
+              error: `Minimum order of ${coupon.minOrder} required for this coupon`,
+            },
+            { status: 400 },
+          );
+        }
+        if (coupon.type === "PERCENTAGE") {
+          couponDiscount = Math.round(subtotal * (coupon.value / 100) * 100) / 100;
+          if (coupon.maxDiscount && couponDiscount > coupon.maxDiscount) {
+            couponDiscount = coupon.maxDiscount;
+          }
+        } else {
+          couponDiscount = Math.min(coupon.value, subtotal);
+        }
+        couponId = coupon.id;
       } catch {
         // Coupon table may not exist yet — skip coupon
         console.warn("Coupon validation skipped — table may not exist");
@@ -537,7 +562,6 @@ export const POST = safeHandler(
     // Floor at 0 — coupons can't take the order negative.
     const rawTotal = subtotal + tax + deliveryFee - couponDiscount;
     const total = Math.max(0, Math.round(rawTotal * 100) / 100);
-    const orderNo = `HH-${Date.now().toString(36).toUpperCase()}`;
 
     let userId: string | undefined;
     try {
@@ -562,191 +586,86 @@ export const POST = safeHandler(
       // no staff session — customer order
     }
 
-    // Skip drink items when calculating prep time (drinks are served immediately).
-    // prepTime now comes from the menu item, not the client request — clients
-    // could otherwise lie to make their orders look high-priority.
-    const totalPrepTime = resolvedItems.reduce((max, item) => {
-      const meta = menuItemMap.get(item.menuItemId);
-      if (!meta) return max;
-      if (meta.isDrink) return max;
-      if (!meta.prepTime) return max;
-      const match = meta.prepTime.match(/(\d+)/);
-      const mins = match ? parseInt(match[1], 10) : 0;
-      return Math.max(max, mins);
-    }, 15);
-
-    // Fast Pay (DIRECT) is a counter sale: the customer is at the till, the
-    // food is being handed over right now, the staff just bills it. The order
-    // should NOT enter the kitchen / live-orders queue — it's already done.
-    // We jump straight to DELIVERED and stamp every stage timestamp so reports
-    // & billing keep working consistently.
+    // Fast Pay (DIRECT) is a counter sale — the food is handed over now, so the
+    // order skips the PENDING queue (ACCEPTED immediately) and the kitchen push.
     const isFastPayCounterSale =
       staffAuthorisedAutoAccept && paymentMethod === "DIRECT";
+    const accepted =
+      isFastPayCounterSale || (autoAccept && staffAuthorisedAutoAccept);
+    const status: "PENDING" | "ACCEPTED" = accepted ? "ACCEPTED" : "PENDING";
+    const acceptedAt = accepted ? new Date() : null;
 
-    const orderTimestamp = new Date();
+    // Best-effort order source classification from request context.
+    const sourceType: OrderSourceType | null = processedByStaffId
+      ? "POS"
+      : roomNo
+        ? "HOTEL_ROOM_QR"
+        : tableSessionId || resolvedTableNo != null
+          ? "TABLE_QR"
+          : null;
 
-    // Build order data. Only include columns that exist in all DB versions.
-    // Newer columns are moved to extendedData and dropped on retry.
-    const baseOrderData = {
-      orderNo,
-      // Status priority:
-      //   1. Fast Pay counter sale  → DELIVERED (skip kitchen entirely)
-      //   2. Staff autoAccept       → ACCEPTED   (skip PENDING; queue in kitchen)
-      //   3. Default                → PENDING    (await staff/owner accept)
-      ...(isFastPayCounterSale
-        ? {
-            status: "DELIVERED" as const,
-            acceptedAt: orderTimestamp,
-            preparingAt: orderTimestamp,
-            readyAt: orderTimestamp,
-            deliveredAt: orderTimestamp,
-          }
-        : autoAccept && staffAuthorisedAutoAccept
-          ? { status: "ACCEPTED" as const, acceptedAt: orderTimestamp }
-          : {}),
-      tableNo: resolvedTableNo,
-      roomNo: roomNo ?? null,
+    // ── Atomic create (Phase 2.5c): Order+items+prepTimeSnapshot, Payment,
+    //    Bill, session link, delivery/prepaid, stock, counter — one transaction.
+    //    Idempotent on (restaurantId, idempotencyKey). NO side effects inside. ──
+    const created = await createOrder({
+      restaurantId: id,
+      status,
+      acceptedAt,
+      type: orderType,
+      items: resolvedItems,
       subtotal,
       tax,
       total,
-      note: note ? note.slice(0, 500) : null,
-      type: orderType,
-      estimatedTime: totalPrepTime,
-      restaurantId: id,
-      userId: userId ?? null,
-      deliveryAddress:
-        orderType === "DELIVERY" ? (deliveryAddress ?? null) : null,
-      deliveryLat: orderType === "DELIVERY" ? (deliveryLat ?? null) : null,
-      deliveryLng: orderType === "DELIVERY" ? (deliveryLng ?? null) : null,
-      deliveryPhone: orderType === "DELIVERY" ? (deliveryPhone ?? null) : null,
-      deliveryNote: orderType === "DELIVERY" ? (deliveryNote ?? null) : null,
       deliveryFee,
-      items: {
-        createMany: {
-          // Only include addOns when it has a value — omitting the key entirely
-          // avoids a Prisma error if the column doesn't exist in production yet.
-          data: resolvedItems.map((item) => ({
-            name: item.name,
-            quantity: item.quantity,
-            price: item.price,
-            menuItemId: item.menuItemId,
-            ...(item.addOns ? { addOns: item.addOns } : {}),
-          })),
-        },
-      },
-    };
-
-    // Newer columns that may not exist in production DB yet — dropped on retry.
-    const extendedData = {
-      ...(guestName?.trim() ? { guestName: guestName.trim() } : {}),
-      ...(isPrepaid ? { isPrepaid: true } : {}),
-      ...(couponId ? { couponId } : {}),
-      ...(couponDiscount > 0 ? { couponDiscount } : {}),
-      ...(processedByStaffId ? { processedByStaffId } : {}),
-    };
-
-    let order;
-    try {
-      // First attempt: include all fields including newer ones
-      order = await db.order.create({
-        data: { ...baseOrderData, ...extendedData },
-        include: { items: true },
-      });
-    } catch (createErr) {
-      // Retry without newer columns if they don't exist in the database
-      console.warn(
-        "[Orders POST] Retrying create without extended columns:",
-        createErr,
-      );
-      order = await db.order.create({
-        data: baseOrderData,
-        include: { items: true },
-      });
-    }
-
-    // Generate prepaid token if prepaid mode
-    if (isPrepaid) {
-      try {
-        const prepaidToken = await db.prepaidToken.create({
-          data: {
-            amount: total,
-            restaurantId: id,
-          },
-        });
-        await db.order.update({
-          where: { id: order.id },
-          data: { prepaidTokenId: prepaidToken.id },
-        });
-      } catch {
-        console.warn("PrepaidToken creation skipped — table may not exist");
-      }
-    }
-
-    if (orderType === "DELIVERY") {
-      await db.delivery.create({
-        data: {
-          orderId: order.id,
-          status: "PENDING",
-          dropoffLat: deliveryLat ?? null,
-          dropoffLng: deliveryLng ?? null,
-          fee: deliveryFee,
-        },
-      });
-    }
-
-    {
-      const effectiveMethod:
-        | "CASH"
-        | "ESEWA"
-        | "KHALTI"
-        | "BANK"
-        | "COUNTER"
-        | "DIRECT" = paymentMethod ?? "COUNTER";
-      // Every payment row starts as PENDING. The customer-claimed "DIRECT"
-      // method requires the owner to verify the transfer (via /api/billing/...
-      // or by inspecting the proof) before flipping to COMPLETED. The previous
-      // shortcut auto-marked DIRECT paid, which let any customer claim free
-      // food by passing paymentMethod:"DIRECT".
-      await db.payment.create({
-        data: {
-          orderId: order.id,
-          method: effectiveMethod,
-          status: "PENDING",
-          amount: total,
-        },
-      });
-    }
-
-    // Link to table session if provided
-    if (tableSessionId) {
-      await db.tableSession
-        .update({
-          where: { id: tableSessionId },
-          data: { orderId: order.id },
-        })
-        .catch(() => {
-          // Session might not exist or already linked — non-critical
-        });
-    }
-
-    try {
-      await generateBill(order.id, { taxConfig: taxCfgNew });
-    } catch (billErr) {
-      console.error("[Orders POST] generateBill failed:", billErr);
-      // Non-fatal: order is created, bill can be regenerated later
-    }
-
-    await db.restaurant.update({
-      where: { id },
-      data: { totalOrders: { increment: 1 } },
+      note: note ? note.slice(0, 500) : null,
+      tableNo: resolvedTableNo,
+      roomNo: roomNo ?? null,
+      guestName: guestName?.trim() || null,
+      userId: userId ?? null,
+      processedByStaffId,
+      isPrepaid,
+      paymentMethod: paymentMethod ?? "COUNTER",
+      couponId,
+      couponDiscount,
+      tableSessionId: tableSessionId ?? null,
+      delivery:
+        orderType === "DELIVERY"
+          ? {
+              address: deliveryAddress ?? null,
+              lat: deliveryLat ?? null,
+              lng: deliveryLng ?? null,
+              phone: deliveryPhone ?? null,
+              note: deliveryNote ?? null,
+            }
+          : null,
+      sourceType,
+      idempotencyKey: idempotencyKey ?? null,
+      taxConfig: taxCfgNew,
+      restaurantName: restaurant.name ?? null,
     });
 
-    // Fast Pay sales never enter the kitchen workflow, so skip the push
-    // notification too — it would just create noise on staff devices.
+    const fullOrder = await db.order.findUnique({
+      where: { id: created.orderId },
+      include: { items: true, payment: true, bill: true, delivery: true },
+    });
+
+    const response = NextResponse.json(fullOrder, {
+      status: created.deduped ? 200 : 201,
+    });
+    setOrderTrackCookie(response, created.orderId);
+
+    // Duplicate submit (same idempotencyKey) — return the original order WITHOUT
+    // re-running any side effects (no double notify / kitchen push / audit).
+    if (created.deduped) {
+      return response;
+    }
+
+    // ── Side effects AFTER commit only (never inside the transaction) ──
+    // Fast Pay sales never enter the kitchen workflow, so skip the push too.
     if (!isFastPayCounterSale) {
       notifyKitchenNewOrder(
         id,
-        orderNo,
+        created.orderNo,
         total,
         resolvedTableNo,
         restaurant.currency ?? "NPR",
@@ -755,61 +674,13 @@ export const POST = safeHandler(
       });
     }
 
-    let fullOrder;
-    try {
-      fullOrder = await db.order.findUnique({
-        where: { id: order.id },
-        include: {
-          items: true,
-          payment: true,
-          bill: true,
-          delivery: true,
-        },
-      });
-    } catch {
-      // Fallback: use select to avoid missing columns
-      fullOrder = await db.order.findUnique({
-        where: { id: order.id },
-        select: {
-          id: true,
-          orderNo: true,
-          tableNo: true,
-          roomNo: true,
-          guestName: true,
-          status: true,
-          type: true,
-          subtotal: true,
-          tax: true,
-          total: true,
-          note: true,
-          estimatedTime: true,
-          deliveryFee: true,
-          createdAt: true,
-          items: true,
-          payment: true,
-          bill: true,
-          delivery: true,
-        },
-      });
-    }
-
-    // Deduct stock for each ordered item (non-fatal — order is already created)
-    try {
-      await deductStock(resolvedItems);
-    } catch (stockErr) {
-      console.error(
-        "[Orders POST] Stock deduction failed (non-fatal):",
-        stockErr,
-      );
-    }
-
     logAudit({
       action: "ORDER_CREATED",
       entity: "Order",
-      entityId: order.id,
-      detail: `Order ${orderNo} placed (${orderType}, ${resolvedItems.length} items, ${getCurrencySymbol(restaurant.currency ?? "NPR")}${total})`,
+      entityId: created.orderId,
+      detail: `Order ${created.orderNo} placed (${orderType}, ${resolvedItems.length} items, ${getCurrencySymbol(restaurant.currency ?? "NPR")}${total})`,
       metadata: {
-        orderNo,
+        orderNo: created.orderNo,
         type: orderType,
         total,
         itemCount: resolvedItems.length,
@@ -819,14 +690,9 @@ export const POST = safeHandler(
       ipAddress: getClientIp(req.headers),
     });
 
-    // Issue a per-order track cookie so the (possibly anonymous) customer can
-    // read /track, /bill, /cancel for this order without those endpoints having
-    // to be unauthenticated. Authenticated users and staff bypass the cookie.
     // Push to the kitchen/dashboard live feed instantly over WebSocket.
-    notifyRestaurantOrders(id, { reason: "new-order", orderId: order.id });
+    notifyRestaurantOrders(id, { reason: "new-order", orderId: created.orderId });
 
-    const response = NextResponse.json(fullOrder, { status: 201 });
-    setOrderTrackCookie(response, order.id);
     return response;
   },
   { schema: createOrderSchema },

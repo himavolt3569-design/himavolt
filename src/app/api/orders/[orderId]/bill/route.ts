@@ -30,8 +30,14 @@ export async function GET(
     try {
       await generateBill(orderId);
       bill = await getBillByOrderId(orderId);
-    } catch {
-      return NextResponse.json({ error: "Bill not found" }, { status: 404 });
+    } catch (error) {
+      console.error("Error generating bill:", error);
+      // It's possible another concurrent request generated the bill and caused a unique constraint error here.
+      // Let's try to fetch it one more time.
+      bill = await getBillByOrderId(orderId);
+      if (!bill) {
+        return NextResponse.json({ error: "Bill not found" }, { status: 404 });
+      }
     }
   }
 

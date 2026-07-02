@@ -88,8 +88,8 @@ export async function PATCH(
       "ASSIGNED",
       "PICKED_UP",
       "IN_TRANSIT",
-      "DELIVERED",
-      "CANCELLED",
+      "ACCEPTED",
+      "REJECTED",
     ];
     if (!validStatuses.includes(status)) {
       return NextResponse.json(
@@ -101,8 +101,8 @@ export async function PATCH(
     updateData.status = status;
 
     if (status === "PICKED_UP") updateData.pickedUpAt = new Date();
-    if (status === "DELIVERED") updateData.deliveredAt = new Date();
-    if (status === "CANCELLED") {
+    if (status === "ACCEPTED") updateData.deliveredAt = new Date();
+    if (status === "REJECTED") {
       updateData.cancelledAt = new Date();
       updateData.cancelReason = cancelReason || "Cancelled";
     }
@@ -129,10 +129,10 @@ export async function PATCH(
   });
 
   // Sync order status when delivery is delivered
-  if (status === "DELIVERED") {
+  if (status === "ACCEPTED") {
     await db.order.update({
       where: { id: orderId },
-      data: { status: "DELIVERED", deliveredAt: new Date() },
+      data: { status: "ACCEPTED",  },
     });
 
     // Update driver's trip count

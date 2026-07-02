@@ -109,7 +109,7 @@ export async function PATCH(
     if (!reason) {
       return NextResponse.json({ error: "A cancellation reason is required" }, { status: 400 });
     }
-    if (["CANCELLED", "CHECKED_OUT"].includes(existing.status)) {
+    if (["REJECTED", "CHECKED_OUT"].includes(existing.status)) {
       return NextResponse.json({ error: "This booking can no longer be cancelled" }, { status: 400 });
     }
     data.cancelReason = reason;

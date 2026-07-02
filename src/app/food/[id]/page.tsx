@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft,
@@ -184,11 +185,7 @@ export default function FoodDetailsPage() {
   const router = useRouter();
   const { addItem } = useCart();
   const { showToast } = useToast();
-
-  const [food, setFood] = useState<MenuItemData | null>(null);
-  const [suggested, setSuggested] = useState<MenuItemData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const queryClient = useQueryClient();
 
   const [qty, setQty] = useState(1);
   const [sizeIdx, setSizeIdx] = useState(0);
@@ -196,44 +193,45 @@ export default function FoodDetailsPage() {
   const [liked, setLiked] = useState(false);
   const [added, setAdded] = useState(false);
 
+  // useQuery (vs. the old useState+useEffect) can paint straight from cache
+  // on the very first render — no one-tick flash of the skeleton when a
+  // dish was already fetched this session (e.g. navigating back).
+  const foodQueryKey = ["food-detail", params.id] as const;
+  const foodQuery = useQuery({
+    queryKey: foodQueryKey,
+    queryFn: () =>
+      apiFetch<{
+        item: MenuItemData;
+        related: MenuItemData[];
+        topRated: MenuItemData[];
+        trending: MenuItemData[];
+      }>(`/api/public/menu-items/${params.id}`),
+    enabled: !!params.id,
+  });
+  const food = foodQuery.data?.item ?? null;
+  const suggested = (() => {
+    const data = foodQuery.data;
+    if (!data) return [];
+    // Deduplicate all suggested lists into one set
+    const seen = new Set<string>();
+    const all: MenuItemData[] = [];
+    for (const item of [...(data.related ?? []), ...(data.topRated ?? []), ...(data.trending ?? [])]) {
+      if (!seen.has(item.id)) {
+        seen.add(item.id);
+        all.push(item);
+      }
+    }
+    return all;
+  })();
+  const loading = foodQuery.isLoading;
+  const error = foodQuery.isError;
+
   const cur = food?.restaurant?.currency ?? "NPR";
 
-  /* Fetch */
   useEffect(() => {
-    setLoading(true);
-    setError(false);
     setQty(1);
     setSizeIdx(0);
     setSelectedAddOns(new Set());
-
-    // apiFetch picks up the in-memory GET cache (60s TTL) so navigating
-    // back-and-forth between food items doesn't re-hit the API.
-    apiFetch<{
-      item: MenuItemData;
-      related: MenuItemData[];
-      topRated: MenuItemData[];
-      trending: MenuItemData[];
-    }>(`/api/public/menu-items/${params.id}`)
-      .then((data) => {
-        setFood(data.item);
-
-        // Deduplicate all suggested lists into one set
-        const seen = new Set<string>();
-        const all: MenuItemData[] = [];
-        for (const item of [
-          ...(data.related ?? []),
-          ...(data.topRated ?? []),
-          ...(data.trending ?? []),
-        ]) {
-          if (!seen.has(item.id)) {
-            seen.add(item.id);
-            all.push(item);
-          }
-        }
-        setSuggested(all);
-      })
-      .catch(() => setError(true))
-      .finally(() => setLoading(false));
   }, [params.id]);
 
   const sizeAdd = food && food.sizes.length > 0 ? food.sizes[sizeIdx].priceAdd : 0;
@@ -754,7 +752,9 @@ export default function FoodDetailsPage() {
               menuItemId={food.id}
               restaurantId={food.restaurant.id}
               onRated={(avg) =>
-                setFood((prev) => (prev ? { ...prev, rating: avg } : prev))
+                queryClient.setQueryData(foodQueryKey, (prev: typeof foodQuery.data) =>
+                  prev ? { ...prev, item: { ...prev.item, rating: avg } } : prev,
+                )
               }
             />
 

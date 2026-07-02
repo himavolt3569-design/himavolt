@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
 import {
   Receipt,
   Clock,
@@ -17,10 +18,11 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
+import { rememberIntendedRole } from "@/lib/intended-role";
 import { apiFetch } from "@/lib/api-client";
 import { formatPrice } from "@/lib/currency";
 import { useActiveTableSession } from "@/hooks/useActiveTableSession";
-import { useOrder } from "@/context/OrderContext";
+import { useOrder, getRecentTrackTokens } from "@/context/OrderContext";
 import { useCart } from "@/context/CartContext";
 
 interface OrderItem {
@@ -111,7 +113,7 @@ const STATUS_CONFIG: Record<
   },
 };
 
-const TERMINAL_STATUSES = ["DELIVERED", "CANCELLED", "REJECTED"];
+const TERMINAL_STATUSES = ["ACCEPTED", "REJECTED", "REJECTED"];
 
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr);
@@ -168,6 +170,10 @@ function OrderCard({
 }) {
   const isActive = !TERMINAL_STATUSES.includes(order.status);
 
+  const href = (order as any).trackToken 
+    ? `/order-track/${(order as any).trackToken}` 
+    : `/track/${order.id}`;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 15 }}
@@ -175,7 +181,7 @@ function OrderCard({
       transition={{ delay: index * 0.05, duration: 0.3 }}
     >
       <Link
-        href={`/track/${order.id}`}
+        href={href}
         className={`block rounded-2xl border bg-[var(--canvas)] p-4 shadow-sm transition-all hover:shadow-md active:scale-[0.98] ${
           isActive
             ? "border-[var(--accent-border)] ring-1 ring-[var(--accent-border)]"
@@ -242,12 +248,9 @@ function TableSessionOrderView() {
   const { initForRestaurant } = useCart();
   const activeSession = useActiveTableSession();
 
-  // If the customer navigates directly to /orders (e.g. re-scanned the QR and
-  // tapped the Orders tab before the menu page ran restoreFromStorage), we
-  // proactively restore their order from localStorage here.
   useEffect(() => {
     if (!activeOrder && activeSession?.restaurantId) {
-      restoreFromStorage(activeSession.restaurantId, activeSession.tableNo);
+      restoreFromStorage(activeSession.restaurantId);
     }
     if (activeSession?.restaurantId && activeSession.restaurantSlug) {
       initForRestaurant(activeSession.restaurantId, activeSession.restaurantSlug, "NPR");
@@ -255,7 +258,41 @@ function TableSessionOrderView() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeSession?.restaurantId, activeSession?.tableNo]);
 
-  if (!activeOrder) {
+  // Polls only while there's an active (non-terminal) order in the last
+  // result — refetchInterval reads the query's own cached data each tick,
+  // so it naturally stops once everything settles instead of a manual timer.
+  const historyQuery = useQuery({
+    queryKey: ["order-track-history", activeSession?.restaurantId],
+    queryFn: async () => {
+      const tokens = getRecentTrackTokens(activeSession!.restaurantId);
+      if (tokens.length === 0) return [] as UserOrder[];
+      const results = await Promise.all(
+        tokens.map(async (t) => {
+          try {
+            const order = await apiFetch<UserOrder>(`/api/order-track/${encodeURIComponent(t.trackToken)}`);
+            (order as any).trackToken = t.trackToken;
+            return order;
+          } catch {
+            return null;
+          }
+        }),
+      );
+      const valid = results.filter((r): r is UserOrder => r !== null);
+      valid.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      // Deduplicate in case token history got messy
+      return valid.filter((v, i, a) => a.findIndex((t) => t.id === v.id) === i);
+    },
+    enabled: !!activeSession?.restaurantId,
+    refetchInterval: (query) => {
+      const data = query.state.data ?? [];
+      return data.some((o) => !TERMINAL_STATUSES.includes(o.status)) ? 5000 : false;
+    },
+  });
+  const historyOrders = historyQuery.data ?? [];
+  const loading = historyQuery.isLoading;
+
+  // If no history yet, and no active order, fallback to empty state
+  if (!activeOrder && historyOrders.length === 0 && !loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[var(--canvas-sub)] p-6">
         <motion.div
@@ -286,9 +323,27 @@ function TableSessionOrderView() {
     );
   }
 
-  const isActive = !TERMINAL_STATUSES.includes(activeOrder.status);
-  const config = STATUS_CONFIG[activeOrder.status] || STATUS_CONFIG.PENDING;
-  const StatusIcon = config.icon;
+  // Combine activeOrder with historyOrders to ensure we don't miss the current active session one before history loads, and keep it up to date
+  let allOrders = [...historyOrders];
+  if (activeOrder) {
+    const existingIdx = allOrders.findIndex(o => o.id === activeOrder.id);
+    if (existingIdx >= 0) {
+      // Replace with live SSE order
+      const trackToken = (allOrders[existingIdx] as any).trackToken;
+      allOrders[existingIdx] = activeOrder as unknown as UserOrder;
+      (allOrders[existingIdx] as any).trackToken = trackToken || activeOrder.trackToken;
+    } else {
+      // Inject new
+      allOrders.unshift(activeOrder as unknown as UserOrder);
+    }
+  }
+
+  const activeOrders = allOrders.filter(
+    (o) => !TERMINAL_STATUSES.includes(o.status)
+  );
+  const pastOrders = allOrders.filter((o) =>
+    TERMINAL_STATUSES.includes(o.status)
+  );
 
   return (
     <div className="min-h-screen bg-[var(--canvas-sub)]">
@@ -300,20 +355,22 @@ function TableSessionOrderView() {
             </div>
             <div className="flex-1">
               <h1 className="text-base font-bold text-[var(--text-1)]">
-                Your Order
+                Your Orders
               </h1>
-              <p className="text-[11px] text-[var(--text-3)]">
-                Table {activeOrder.tableNo}
-              </p>
+              {allOrders.length > 0 && (
+                <p className="text-[11px] text-[var(--text-3)]">
+                  {allOrders.length} order{allOrders.length !== 1 && "s"}
+                </p>
+              )}
             </div>
-            {isActive && (
+            {activeOrders.length > 0 && (
               <div className="flex items-center gap-1.5">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--accent)] opacity-75" />
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--accent)]" />
                 </span>
                 <span className="text-[11px] font-bold text-[var(--accent-text)]">
-                  Active
+                  {activeOrders.length} Active
                 </span>
               </div>
             )}
@@ -321,68 +378,54 @@ function TableSessionOrderView() {
         </div>
       </header>
 
-      <div className="mx-auto max-w-2xl px-4 py-5 pb-20">
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <Link
-            href={`/track/${activeOrder.id}`}
-            className={`block rounded-2xl border bg-[var(--canvas)] p-5 shadow-sm transition-all hover:shadow-md active:scale-[0.98] ${
-              isActive
-                ? "border-[var(--accent-border)] ring-1 ring-[var(--accent-border)]"
-                : "border-[var(--border)]"
-            }`}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <p className="text-xs text-[var(--text-3)]">
-                  Order #{activeOrder.orderNo}
-                </p>
-                <p className="text-[11px] text-[var(--text-3)] mt-0.5">
-                  {new Date(activeOrder.createdAt).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </p>
-              </div>
-              <span
-                className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold ${config.bg} ${config.color}`}
-              >
-                <StatusIcon className="h-3 w-3" />
-                {config.label}
-              </span>
-            </div>
+      <div className="mx-auto max-w-2xl px-4 py-5 pb-20 space-y-6">
+        {loading && allOrders.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-10 gap-3">
+            <Loader2 className="h-6 w-6 animate-spin text-[var(--accent)]" />
+            <p className="text-sm font-medium text-[var(--text-2)]">
+              Loading your recent orders...
+            </p>
+          </div>
+        )}
 
-            <div className="space-y-2 mb-4">
-              {activeOrder.items.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between text-sm"
-                >
-                  <span className="text-[var(--text-2)]">
-                    {item.quantity}x {item.name}
-                  </span>
-                  <span className="text-[var(--text-2)] font-medium">
-                    Rs. {item.price * item.quantity}
-                  </span>
-                </div>
+        <AnimatePresence>
+          {activeOrders.length > 0 && (
+            <motion.section
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="space-y-3"
+            >
+              <div className="flex items-center gap-2">
+                <div className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] animate-pulse" />
+                <h2 className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider">
+                  Active Orders
+                </h2>
+              </div>
+              <div className="space-y-3">
+                {activeOrders.map((order, i) => (
+                  <OrderCard key={order.id} order={order} index={i} />
+                ))}
+              </div>
+            </motion.section>
+          )}
+        </AnimatePresence>
+
+        {pastOrders.length > 0 && (
+          <section className="space-y-3">
+            <h2 className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider">
+              Past Orders
+            </h2>
+            <div className="space-y-3">
+              {pastOrders.map((order, i) => (
+                <OrderCard
+                  key={order.id}
+                  order={order}
+                  index={activeOrders.length + i}
+                />
               ))}
             </div>
-
-            <div className="border-t border-[var(--border-soft)] pt-3 flex items-center justify-between">
-              <span className="text-sm font-bold text-[var(--text-1)]">Total</span>
-              <span className="text-base font-extrabold text-[var(--accent)]">
-                Rs. {activeOrder.total}
-              </span>
-            </div>
-
-            <div className="mt-3 flex items-center justify-center gap-1 text-xs text-[var(--text-3)]">
-              <span>Tap to track order</span>
-              <ChevronRight className="h-3 w-3" />
-            </div>
-          </Link>
-        </motion.div>
+          </section>
+        )}
       </div>
     </div>
   );
@@ -391,52 +434,25 @@ function TableSessionOrderView() {
 export default function OrdersPage() {
   const { isSignedIn, isLoaded } = useAuth();
   const activeSession = useActiveTableSession();
-  const [orders, setOrders] = useState<UserOrder[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const fetchOrders = useCallback(async () => {
-    try {
-      const data = await apiFetch<UserOrder[]>("/api/orders?limit=20");
-      setOrders(data);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load orders");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!isLoaded) return;
-    if (!isSignedIn) {
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    fetchOrders();
-  }, [isLoaded, isSignedIn, fetchOrders]);
-
-  // Poll for active orders every 5 seconds
-  useEffect(() => {
-    if (!isSignedIn) return;
-
-    const hasActiveOrders = orders.some(
-      (o) => !TERMINAL_STATUSES.includes(o.status)
-    );
-
-    if (hasActiveOrders) {
-      pollRef.current = setInterval(fetchOrders, 5000);
-    }
-
-    return () => {
-      if (pollRef.current) {
-        clearInterval(pollRef.current);
-        pollRef.current = null;
-      }
-    };
-  }, [isSignedIn, orders, fetchOrders]);
+  // Polls only while there's an active (non-terminal) order — stops itself
+  // once everything settles, no manual interval/cleanup bookkeeping.
+  const ordersQuery = useQuery({
+    queryKey: ["my-orders"],
+    queryFn: () => apiFetch<UserOrder[]>("/api/orders?limit=20"),
+    enabled: isLoaded && isSignedIn,
+    refetchInterval: (query) => {
+      const data = query.state.data ?? [];
+      return data.some((o) => !TERMINAL_STATUSES.includes(o.status)) ? 5000 : false;
+    },
+  });
+  const orders = ordersQuery.data ?? [];
+  const loading = !isLoaded || (isSignedIn && ordersQuery.isLoading);
+  const error = ordersQuery.error
+    ? ordersQuery.error instanceof Error
+      ? ordersQuery.error.message
+      : "Failed to load orders"
+    : null;
 
   const activeOrders = orders.filter(
     (o) => !TERMINAL_STATUSES.includes(o.status)
@@ -469,6 +485,7 @@ export default function OrdersPage() {
           </p>
           <Link
             href="/sign-in"
+            onClick={() => rememberIntendedRole("CUSTOMER")}
             className="inline-flex items-center gap-2 rounded-xl bg-[var(--accent)] px-6 py-3 text-sm font-bold text-white hover:bg-[var(--accent-hover)] transition-colors"
           >
             Sign In
@@ -507,11 +524,7 @@ export default function OrdersPage() {
           </h2>
           <p className="text-sm text-[var(--text-2)] mb-6">{error}</p>
           <button
-            onClick={() => {
-              setLoading(true);
-              setError(null);
-              fetchOrders();
-            }}
+            onClick={() => ordersQuery.refetch()}
             className="inline-flex items-center gap-2 rounded-xl bg-[var(--accent)] px-6 py-3 text-sm font-bold text-white hover:bg-[var(--accent-hover)] transition-colors"
           >
             Try Again

@@ -3,7 +3,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@/generated/prisma";
 
 const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined;
+  prisma_v2: PrismaClient | undefined;
 };
 
 // Retry only true transient drops. Aggressive retries amplify pool-saturation
@@ -87,10 +87,10 @@ function createPrismaClient() {
 }
 
 export function getDb() {
-  if (!globalForPrisma.prisma) {
-    globalForPrisma.prisma = createPrismaClient();
+  if (!globalForPrisma.prisma_v2) {
+    globalForPrisma.prisma_v2 = createPrismaClient();
   }
-  return globalForPrisma.prisma;
+  return globalForPrisma.prisma_v2;
 }
 
 export const db = new Proxy({} as PrismaClient, {

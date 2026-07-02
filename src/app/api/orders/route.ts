@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
       tax: true,
       total: true,
       note: true,
-      estimatedTime: true,
+      
       deliveryAddress: true,
       deliveryFee: true,
       createdAt: true,

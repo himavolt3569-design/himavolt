@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { useToast } from "@/context/ToastContext";
 import { formatPrice } from "@/lib/currency";
+import { newIdempotencyKey } from "@/lib/idempotency";
 import POSMenuGrid from "./POSMenuGrid";
 import POSOrderPanel from "./POSOrderPanel";
 import { useCFDSync } from "@/hooks/useCFDSync";
@@ -191,6 +192,7 @@ export default function POSRegister({
         tableNo: tableNo ?? undefined,
         guestName: guestName || undefined,
         note: note || undefined,
+        idempotencyKey: newIdempotencyKey(),
         items: orderItems.map((i) => ({
           menuItemId: i.menuItemId,
           name: i.name,
@@ -230,6 +232,7 @@ export default function POSRegister({
           paymentMethod: "CASH",
           guestName: guestName || "Held Order",
           note: note ? `[HELD] ${note}` : "[HELD]",
+          idempotencyKey: newIdempotencyKey(),
           items: snapshot.map((i) => ({
             menuItemId: i.menuItemId,
             name: i.name,

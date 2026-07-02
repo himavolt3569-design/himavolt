@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   motion,
   AnimatePresence,
@@ -83,6 +83,9 @@ function PinSlot({ filled, active }: { filled: boolean; active: boolean }) {
 
 export default function StaffLoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const qrToken = searchParams.get("qr");
+
   const [code, setCode] = useState("");
   const [pin, setPin] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
@@ -90,8 +93,51 @@ export default function StaffLoginPage() {
   const [success, setSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [formShake, setFormShake] = useState(false);
-  
+  const [qrChecking, setQrChecking] = useState(!!qrToken);
+
   const hiddenInputRef = useRef<HTMLInputElement>(null);
+
+  // Scan-to-login: a badge QR lands here with ?qr=<token> — try it silently
+  // before showing the Terminal ID / PIN form at all.
+  useEffect(() => {
+    if (!qrToken) return;
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const res = await fetch("/api/staff-login/qr", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ qrToken }),
+        });
+        const data = await res.json();
+        if (cancelled) return;
+
+        if (!res.ok) {
+          setErrorMsg(data.error || "This badge is invalid or expired. Sign in with your PIN instead.");
+          setQrChecking(false);
+          return;
+        }
+
+        setSuccess(true);
+        await new Promise((r) => setTimeout(r, 1200));
+        if (!cancelled) {
+          router.push("/kitchen");
+          router.refresh();
+        }
+      } catch {
+        if (!cancelled) {
+          setErrorMsg("Couldn't reach the server. Sign in with your PIN instead.");
+          setQrChecking(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [qrToken]);
 
   const handlePinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value.replace(/\D/g, "").slice(0, 4);
@@ -165,6 +211,14 @@ export default function StaffLoginPage() {
           animate={formShake ? { x: [-8, 8, -4, 4, 0] } : {}}
           className="bg-white border border-slate-200 p-8 md:p-10 rounded-[2rem] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.05)] overflow-hidden"
         >
+          {qrChecking ? (
+            <div className="flex flex-col items-center justify-center py-10 text-center">
+              <Loader2 className="h-8 w-8 animate-spin text-slate-900 mb-4" />
+              <h2 className="text-lg font-bold tracking-tight text-slate-900 mb-1">Reading your badge...</h2>
+              <p className="text-slate-400 text-[11px] font-medium">Hold on while we log you in.</p>
+            </div>
+          ) : (
+          <>
           <div className="mb-10 text-center">
             <h2 className="text-2xl font-bold tracking-tight text-slate-900 mb-2">Staff Authentication</h2>
             <p className="text-slate-400 text-[11px] font-medium leading-relaxed">Enter your credentials to access the operational portal.</p>
@@ -262,6 +316,8 @@ export default function StaffLoginPage() {
               )}
             </motion.button>
           </form>
+          </>
+          )}
 
           {/* Success Overlay */}
           <AnimatePresence>

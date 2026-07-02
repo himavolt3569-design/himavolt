@@ -81,7 +81,7 @@ export async function GET(
       where: {
         restaurantId: id,
         createdAt: { gte: rangeStart, lt: rangeEnd },
-        status: { notIn: ["CANCELLED", "REJECTED"] },
+        status: { notIn: ["REJECTED", "REJECTED"] },
       },
       select: {
         id: true,

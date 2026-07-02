@@ -96,7 +96,7 @@ export async function GET(
   ]);
 
   const nonCancelled = orders.filter(
-    (o) => o.status !== "CANCELLED" && o.status !== "REJECTED",
+    (o) => o.status !== "REJECTED",
   );
   const paid = nonCancelled.filter((o) => o.payment?.status === "COMPLETED");
   const revenue = paid.reduce((s, o) => s + (o.bill?.total ?? o.total), 0);

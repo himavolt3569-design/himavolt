@@ -79,17 +79,15 @@ export async function GET(req: NextRequest) {
             return;
           }
 
-          // Send update if status, estimatedTime, or payment status changed
+          // Send update if status,  or payment status changed
           const currentPaymentStatus = order.payment?.status ?? "";
           const changed =
             force ||
             order.status !== lastStatus ||
-            order.estimatedTime !== lastEstimatedTime ||
             currentPaymentStatus !== lastPaymentStatus;
 
           if (changed) {
             lastStatus = order.status;
-            lastEstimatedTime = order.estimatedTime;
             lastPaymentStatus = currentPaymentStatus;
             send(JSON.stringify({ type: "order", order }));
           } else {
@@ -102,7 +100,7 @@ export async function GET(req: NextRequest) {
           }
 
           // Stop streaming for terminal statuses
-          if (["DELIVERED", "CANCELLED", "REJECTED"].includes(order.status)) {
+          if (["REJECTED"].includes(order.status)) {
             closed = true;
             controller.close();
             return;

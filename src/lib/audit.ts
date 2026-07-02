@@ -17,6 +17,7 @@ export type AuditAction =
   | "STAFF_ADDED"
   | "STAFF_REMOVED"
   | "STAFF_UPDATED"
+  | "STAFF_JOIN_REQUESTED"
   | "STAFF_LOGIN"
   | "STAFF_LOGOUT"
   | "STAFF_CHECKIN"

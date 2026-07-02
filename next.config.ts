@@ -21,8 +21,8 @@ const securityHeaders = [
       // va.vercel-scripts.com = Vercel Speed Insights; gstatic.com = Firebase SDK (service worker)
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://www.gstatic.com https://www.googleapis.com",
       "style-src 'self' 'unsafe-inline'",
-      // Images from Supabase storage + Google profile pics + data URIs
-      "img-src 'self' data: blob: https://*.supabase.co https://*.storage.supabase.co https://lh3.googleusercontent.com https://images.unsplash.com",
+      // Images from any HTTPS source (needed for Openverse/Wikimedia image search) + data URIs
+      "img-src 'self' data: blob: https: http:",
       "font-src 'self' data:",
       "media-src 'self' blob: https://*.supabase.co https://*.storage.supabase.co",
       // API calls: self + Supabase (auth + realtime) + Vercel Speed Insights telemetry
@@ -53,11 +53,16 @@ const nextConfig: NextConfig = {
     // support neither still get the original via Next/image's last fallback.
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
-      { protocol: "https", hostname: "**.supabase.co" },
-      { protocol: "https", hostname: "**.storage.supabase.co" },
-      { protocol: "https", hostname: "lh3.googleusercontent.com" },
+      { protocol: "https", hostname: "**" },
+      { protocol: "https", hostname: "upload.wikimedia.org" },
       { protocol: "https", hostname: "images.unsplash.com" },
     ],
+  },
+  async redirects() {
+    return [
+      { source: "/sign-up", destination: "/sign-in", permanent: false },
+      { source: "/auth/complete-profile", destination: "/dashboard", permanent: false },
+    ];
   },
   async headers() {
     return [

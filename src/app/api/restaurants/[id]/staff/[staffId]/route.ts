@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getOrCreateUser } from "@/lib/auth";
 import { hashPin } from "@/lib/pin";
+import crypto from "crypto";
 
 export async function PATCH(
   req: NextRequest,
@@ -36,6 +37,10 @@ export async function PATCH(
   if (body.isActive !== undefined) data.isActive = body.isActive;
   // staffType is Owner-only — this route already enforces owner auth
   if (body.staffType !== undefined) data.staffType = body.staffType;
+  // Regenerate the QR badge token — invalidates any previously printed badge
+  if (body.regenerateQr === true) {
+    data.qrToken = crypto.randomBytes(24).toString("base64url");
+  }
 
   const member = await db.staffMember.update({
     where: { id: staffId },

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import {
   Activity,
   Search,
@@ -231,9 +232,8 @@ function AuditRow({ log, isNew }: { log: AuditLog; isNew?: boolean }) {
 }
 
 export default function AuditTab() {
-  const [logs, setLogs] = useState<AuditLog[]>([]);
-  const [pagination, setPagination] = useState<Pagination | null>(null);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [entityFilter, setEntityFilter] = useState("All");
   const [page, setPage] = useState(1);
@@ -243,50 +243,38 @@ export default function AuditTab() {
   const eventSourceRef = useRef<EventSource | null>(null);
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
 
-  const fetchLogs = useCallback(
-    async (p = page) => {
-      setLoading(true);
-      try {
-        const params = new URLSearchParams({ page: String(p), limit: "30" });
-        if (search) params.set("search", search);
-        if (entityFilter !== "All") params.set("entity", entityFilter);
-
-        const res = await fetch(`/api/admin/audit?${params}`);
-        if (!res.ok) throw new Error("Failed");
-        const data = await res.json();
-        setLogs(data.logs);
-        setPagination(data.pagination);
-      } catch {
-        // silent
-      } finally {
-        setLoading(false);
-      }
+  const logsQueryKey = ["admin-audit", page, search, entityFilter] as const;
+  const logsQueryKeyRef = useRef(logsQueryKey);
+  logsQueryKeyRef.current = logsQueryKey;
+  const logsQuery = useQuery({
+    queryKey: logsQueryKey,
+    queryFn: async () => {
+      const params = new URLSearchParams({ page: String(page), limit: "30" });
+      if (search) params.set("search", search);
+      if (entityFilter !== "All") params.set("entity", entityFilter);
+      const res = await fetch(`/api/admin/audit?${params}`);
+      if (!res.ok) throw new Error("Failed");
+      const data = await res.json();
+      return { logs: data.logs as AuditLog[], pagination: data.pagination as Pagination };
     },
-    [page, search, entityFilter],
-  );
+    placeholderData: keepPreviousData,
+  });
+  const logs = logsQuery.data?.logs ?? [];
+  const pagination = logsQuery.data?.pagination ?? null;
+  const loading = logsQuery.isLoading;
 
-  useEffect(() => {
-    fetchLogs(1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    if (!loading) fetchLogs(page);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, entityFilter]);
-
-  useEffect(() => {
+  const handleSearchChange = (val: string) => {
+    setSearchInput(val);
     if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
     searchTimeoutRef.current = setTimeout(() => {
+      setSearch(val);
       setPage(1);
-      fetchLogs(1);
     }, 400);
-    return () => {
-      if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search]);
+  };
 
+  // Live stream prepends new events straight into the current query's cache
+  // — same "SSE writes into the query cache" pattern used elsewhere, so the
+  // paginated fetch and the live feed share one source of truth.
   useEffect(() => {
     if (!liveEnabled) {
       eventSourceRef.current?.close();
@@ -301,21 +289,25 @@ export default function AuditTab() {
       try {
         const data = JSON.parse(event.data);
         if (data.type === "logs" && data.logs?.length > 0) {
-          setLogs((prev) => {
-            const existing = new Set(prev.map((l) => l.id));
-            const incoming = (data.logs as AuditLog[]).filter((l) => !existing.has(l.id));
-            if (incoming.length === 0) return prev;
-            setNewLogIds((ids) => new Set([...ids, ...incoming.map((l) => l.id)]));
+          const incoming = data.logs as AuditLog[];
+          queryClient.setQueryData<typeof logsQuery.data>(logsQueryKeyRef.current, (prev) => {
+            if (!prev) return prev;
+            const existing = new Set(prev.logs.map((l) => l.id));
+            const fresh = incoming.filter((l) => !existing.has(l.id));
+            if (fresh.length === 0) return prev;
+            setNewLogIds((ids) => new Set([...ids, ...fresh.map((l) => l.id)]));
             setTimeout(() => {
               setNewLogIds((ids) => {
                 const next = new Set(ids);
-                incoming.forEach((l) => next.delete(l.id));
+                fresh.forEach((l) => next.delete(l.id));
                 return next;
               });
             }, 5000);
-            return [...incoming, ...prev].slice(0, 50);
+            return {
+              logs: [...fresh, ...prev.logs].slice(0, 50),
+              pagination: prev.pagination ? { ...prev.pagination, total: prev.pagination.total + fresh.length } : prev.pagination,
+            };
           });
-          setPagination((p) => (p ? { ...p, total: p.total + data.logs.length } : p));
         }
       } catch {
         // ignore
@@ -336,7 +328,7 @@ export default function AuditTab() {
       es.close();
       eventSourceRef.current = null;
     };
-  }, [liveEnabled]);
+  }, [liveEnabled, queryClient]);
 
   return (
     <div className="space-y-4">
@@ -346,19 +338,26 @@ export default function AuditTab() {
           <input
             type="text"
             placeholder="Search audit logs..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] py-2 pl-9 pr-3 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
+            value={searchInput}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            className="w-full rounded-2xl border border-[var(--border)] bg-[var(--canvas)] py-2 pl-9 pr-3 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
           />
-          {search && (
-            <button onClick={() => setSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--text-3)] hover:text-[var(--accent)]">
+          {searchInput && (
+            <button
+              onClick={() => {
+                setSearchInput("");
+                setSearch("");
+                setPage(1);
+              }}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--text-3)] hover:text-[var(--accent)]"
+            >
               <X className="h-3.5 w-3.5" />
             </button>
           )}
         </div>
         <button
           onClick={() => setShowFilters((p) => !p)}
-          className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-medium transition-all ${
+          className={`flex items-center gap-1.5 rounded-2xl border px-3 py-2 text-xs font-medium transition-all ${
             showFilters || entityFilter !== "All"
               ? "border-[var(--accent)] bg-[var(--accent)]/5 text-[var(--accent)]"
               : "border-[var(--border)] text-[var(--text-2)] hover:bg-[var(--accent-muted)]"
@@ -369,7 +368,7 @@ export default function AuditTab() {
         </button>
         <button
           onClick={() => setLiveEnabled((p) => !p)}
-          className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-medium transition-all ${
+          className={`flex items-center gap-1.5 rounded-2xl border px-3 py-2 text-xs font-medium transition-all ${
             liveEnabled
               ? "border-[var(--accent)] bg-[var(--accent-muted)] text-[var(--accent-text)]"
               : "border-[var(--border)] text-[var(--text-2)] hover:bg-[var(--canvas-sub)]"
@@ -379,8 +378,8 @@ export default function AuditTab() {
           {liveEnabled ? "Live" : "Paused"}
         </button>
         <button
-          onClick={() => fetchLogs(page)}
-          className="flex items-center gap-1.5 rounded-xl border border-[var(--border)] px-3 py-2 text-xs font-medium text-[var(--text-2)] hover:bg-[var(--accent-muted)]"
+          onClick={() => queryClient.invalidateQueries({ queryKey: ["admin-audit"] })}
+          className="flex items-center gap-1.5 rounded-2xl border border-[var(--border)] px-3 py-2 text-xs font-medium text-[var(--text-2)] hover:bg-[var(--accent-muted)]"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
           Refresh
@@ -407,7 +406,7 @@ export default function AuditTab() {
         )}
       </AnimatePresence>
 
-      <div className="overflow-hidden rounded-2xl border border-[var(--accent-muted)] bg-[var(--canvas)] shadow-sm">
+      <div className="overflow-hidden rounded-3xl border border-[var(--accent-muted)] bg-[var(--canvas)] shadow-sm">
         <div className="flex items-center justify-between border-b border-[var(--accent-muted)] px-4 py-2.5">
           <div className="flex items-center gap-2">
             <Activity className="h-4 w-4 text-[var(--accent)]" />

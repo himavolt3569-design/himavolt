@@ -1,4 +1,9 @@
 import { db } from "./db";
+import type { Prisma } from "@/generated/prisma";
+
+/** Prisma client OR an interactive-transaction client. Lets billing/stock writes
+ * run inside the order-create transaction (Phase 2.5c) or standalone. */
+type DbClient = typeof db | Prisma.TransactionClient;
 
 /** Fields needed to compute tax/service-charge — a structural subset of the
  * restaurant row, so callers that already hold the full row can pass it to
@@ -41,9 +46,14 @@ export async function getTaxConfig(
 
 export async function generateBill(
   orderId: string,
-  opts?: { taxConfig?: Awaited<ReturnType<typeof getTaxConfig>>; restaurant?: TaxConfigSource | null },
+  opts?: {
+    taxConfig?: Awaited<ReturnType<typeof getTaxConfig>>;
+    restaurant?: TaxConfigSource | null;
+    tx?: DbClient;
+  },
 ) {
-  const order = await db.order.findUnique({
+  const client = opts?.tx ?? db;
+  const order = await client.order.findUnique({
     where: { id: orderId },
     // Only the columns used below — `items: true` and `restaurant: true` (the
     // whole restaurant row) were fetched but never referenced, on a path that
@@ -79,7 +89,7 @@ export async function generateBill(
 
   // Update existing bill with current order totals (e.g. after items are added)
   if (order.bill) {
-    const updated = await db.bill.update({
+    const updated = await client.bill.update({
       where: { orderId },
       data: {
         subtotal: order.subtotal,
@@ -94,7 +104,7 @@ export async function generateBill(
 
   const billNo = `INV-${order.orderNo.replace("HH-", "")}`;
 
-  const bill = await db.bill.create({
+  const bill = await client.bill.create({
     data: {
       billNo,
       orderId,
@@ -225,13 +235,13 @@ const SAFE_ORDER_SELECT = {
   tax: true,
   total: true,
   note: true,
-  estimatedTime: true,
+  
   deliveryAddress: true,
   deliveryFee: true,
   acceptedAt: true,
-  preparingAt: true,
-  readyAt: true,
-  deliveredAt: true,
+  
+  
+  
   createdAt: true,
   updatedAt: true,
   userId: true,
@@ -252,7 +262,7 @@ export async function getOrdersForBilling(
       { payment: { is: null } },
       { payment: { status: { not: "COMPLETED" } } },
     ];
-    where.status = { notIn: ["CANCELLED", "REJECTED"] };
+    where.status = { notIn: ["REJECTED", "REJECTED"] };
   } else if (filter === "paid") {
     where.payment = { status: "COMPLETED" };
     where.createdAt = { gte: last24h };
@@ -289,7 +299,7 @@ export async function getDailySummary(restaurantId: string) {
     where: {
       restaurantId,
       createdAt: { gte: startOfDay },
-      status: { notIn: ["CANCELLED", "REJECTED"] },
+      status: { notIn: ["REJECTED"] },
     },
     select: {
       id: true,
@@ -303,7 +313,7 @@ export async function getDailySummary(restaurantId: string) {
   });
 
   const totalOrders = orders.length;
-  const completedOrders = orders.filter((o) => o.status === "DELIVERED").length;
+  const completedOrders = orders.filter((o) => o.status === "ACCEPTED").length;
   const paidOrders = orders.filter(
     (o) => o.payment?.status === "COMPLETED",
   ).length;
@@ -342,7 +352,6 @@ export async function getDailySummary(restaurantId: string) {
 
   const pendingAmount = orders
     .filter((o) => !o.payment || o.payment.status !== "COMPLETED")
-    .filter((o) => o.status !== "CANCELLED" && o.status !== "REJECTED")
     .reduce((sum, o) => sum + (o.bill?.total ?? o.total), 0);
 
   const totalDiscount = orders

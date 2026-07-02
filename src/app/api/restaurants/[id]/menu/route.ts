@@ -28,6 +28,8 @@ const menuItemSchema = z.object({
   drinkCategory: z.string().max(50).optional().nullable(),
   stockEnabled: z.boolean().optional(),
   stockQuantity: z.number().int().min(0).max(100_000).optional(),
+  bottleCount: z.number().int().min(0).max(1_000_000).optional().nullable(),
+  volumeMl: z.number().int().min(0).max(1_000_000).optional().nullable(),
   sizes: z.array(z.object({
     label: z.string().min(1).max(50),
     grams: z.string().max(20),
@@ -154,6 +156,7 @@ export async function POST(
     discount, discountLabel, isFeatured,
     spiceLevel, calories, allergens,
     isDrink, drinkCategory, stockEnabled, stockQuantity,
+    bottleCount, volumeMl,
   } = parsed.data;
 
   const item = await db.menuItem.create({
@@ -178,6 +181,8 @@ export async function POST(
       drinkCategory: drinkCategory ?? null,
       stockEnabled: stockEnabled ?? false,
       stockQuantity: stockQuantity ?? 0,
+      bottleCount: bottleCount ?? null,
+      volumeMl: volumeMl ?? null,
       restaurantId: id,
       categoryId,
       sizes: sizes?.length

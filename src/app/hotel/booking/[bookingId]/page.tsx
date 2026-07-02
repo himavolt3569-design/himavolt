@@ -124,7 +124,7 @@ const STATUS_TO_STEP: Record<string, number> = {
 
 /** Airbnb-style horizontal progress so the guest always sees where their stay is. */
 function BookingProgress({ status }: { status: string }) {
-  if (status === "CANCELLED") return null;
+  if (status === "REJECTED") return null;
   const current = STATUS_TO_STEP[status] ?? 0;
   return (
     <div className="rounded-3xl bg-[var(--canvas)] ring-1 ring-[var(--border)] p-5 shadow-sm">
@@ -475,7 +475,7 @@ export default function BookingConfirmationPage() {
         )}
 
         {/* Payment receipt — send proof so the hotel can confirm your payment */}
-        {!booking.advancePaid && booking.status !== "CANCELLED" && (
+        {!booking.advancePaid && booking.status !== "REJECTED" && (
           <div className="rounded-2xl bg-[var(--canvas)] ring-1 ring-[var(--border)] p-5 shadow-sm space-y-3">
             <div>
               <h4 className="text-[13px] font-bold text-[var(--text-1)]">Payment receipt</h4>

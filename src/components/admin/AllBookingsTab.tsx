@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRealtimeSignal } from "@/hooks/useRealtimeSignal";
 import { adminTopic } from "@/lib/realtime-topics";
 import {
@@ -76,10 +77,21 @@ const STAT_COLOR_STYLES: Record<string, { tile: string; value: string; label: st
   emerald: { tile: "bg-emerald-50 ring-emerald-100", value: "text-emerald-700", label: "text-emerald-600" },
 };
 
+const bookingsQueryKey = ["admin-bookings"] as const;
+
 export default function AllBookingsTab() {
-  const [bookings, setBookings] = useState<AdminBooking[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const queryClient = useQueryClient();
+  const bookingsQuery = useQuery({
+    queryKey: bookingsQueryKey,
+    queryFn: async () => {
+      const res = await fetch("/api/admin/bookings?limit=200", { cache: "no-store" });
+      const data = await res.json();
+      return Array.isArray(data.bookings) ? (data.bookings as AdminBooking[]) : [];
+    },
+  });
+  const bookings = bookingsQuery.data ?? [];
+  const loading = bookingsQuery.isLoading;
+  const refreshing = bookingsQuery.isFetching;
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [deleteTarget, setDeleteTarget] = useState<AdminBooking | null>(null);
@@ -87,17 +99,7 @@ export default function AllBookingsTab() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
 
-  const fetchBookings = async (showRefreshing = false) => {
-    if (showRefreshing) setRefreshing(true); else setLoading(true);
-    try {
-      const res = await fetch("/api/admin/bookings?limit=200", { cache: "no-store" });
-      const data = await res.json();
-      setBookings(Array.isArray(data.bookings) ? data.bookings : []);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
+  const refreshBookings = () => queryClient.invalidateQueries({ queryKey: bookingsQueryKey });
 
   const handleBulkDelete = async () => {
     setDeleting(true);
@@ -108,7 +110,9 @@ export default function AllBookingsTab() {
         body: JSON.stringify({ ids: Array.from(selectedIds) }),
       });
       if (res.ok) {
-        setBookings((prev) => prev.filter((b) => !selectedIds.has(b.id)));
+        queryClient.setQueryData<AdminBooking[]>(bookingsQueryKey, (prev) =>
+          (prev ?? []).filter((b) => !selectedIds.has(b.id)),
+        );
         setSelectedIds(new Set());
       }
     } catch {
@@ -129,7 +133,9 @@ export default function AllBookingsTab() {
         body: JSON.stringify({ bookingId: deleteTarget.id }),
       });
       if (res.ok) {
-        setBookings((prev) => prev.filter((b) => b.id !== deleteTarget.id));
+        queryClient.setQueryData<AdminBooking[]>(bookingsQueryKey, (prev) =>
+          (prev ?? []).filter((b) => b.id !== deleteTarget.id),
+        );
       }
     } catch {
       // silent
@@ -139,9 +145,8 @@ export default function AllBookingsTab() {
     }
   };
 
-  useEffect(() => { fetchBookings(); }, []);
   // Live refresh on any booking change across all restaurants.
-  useRealtimeSignal(adminTopic(), () => fetchBookings(true));
+  useRealtimeSignal(adminTopic(), refreshBookings);
 
   const filtered = bookings.filter((b) => {
     const matchStatus = statusFilter === "ALL" || b.status === statusFilter;
@@ -180,9 +185,9 @@ export default function AllBookingsTab() {
           <p className="text-[12px] text-[var(--text-2)]">System-wide room reservations</p>
         </div>
         <button
-          onClick={() => fetchBookings(true)}
+          onClick={refreshBookings}
           disabled={refreshing}
-          className="flex items-center gap-1.5 rounded-xl bg-[var(--accent-muted)] px-3 py-2 text-[12px] font-semibold text-[var(--accent-text)] hover:bg-[var(--accent-muted)] transition-colors"
+          className="flex items-center gap-1.5 rounded-2xl bg-[var(--accent-muted)] px-3 py-2 text-[12px] font-semibold text-[var(--accent-text)] hover:bg-[var(--accent-muted)] transition-colors"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
           Refresh
@@ -196,7 +201,7 @@ export default function AllBookingsTab() {
           { label: "Checked In", value: stats.active, color: "blue" },
           { label: "Advance Collected", value: `NPR ${stats.revenue.toLocaleString()}`, color: "emerald", isText: true },
         ].map((s) => (
-          <div key={s.label} className={`rounded-2xl ring-1 p-4 ${STAT_COLOR_STYLES[s.color].tile}`}>
+          <div key={s.label} className={`rounded-3xl ring-1 p-4 ${STAT_COLOR_STYLES[s.color].tile}`}>
             <p className={`${s.isText ? "text-[14px]" : "text-[22px]"} font-black ${STAT_COLOR_STYLES[s.color].value}`}>{s.value}</p>
             <p className={`text-[11px] font-semibold ${STAT_COLOR_STYLES[s.color].label}`}>{s.label}</p>
           </div>
@@ -211,7 +216,7 @@ export default function AllBookingsTab() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search guest, hotel, room..."
-            className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] pl-9 pr-4 py-2.5 text-[13px] text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:border-[var(--accent)] focus:outline-none focus:bg-[var(--canvas)] transition-all"
+            className="w-full rounded-2xl border border-[var(--border)] bg-[var(--canvas-sub)] pl-9 pr-4 py-2.5 text-[13px] text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:border-[var(--accent)] focus:outline-none focus:bg-[var(--canvas)] transition-all"
           />
         </div>
         <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
@@ -230,7 +235,7 @@ export default function AllBookingsTab() {
       </div>
 
       {selectedIds.size > 0 && (
-        <div className="flex items-center gap-3 rounded-xl border border-red-100 bg-red-50 px-4 py-2.5">
+        <div className="flex items-center gap-3 rounded-2xl border border-red-100 bg-red-50 px-4 py-2.5">
           <CheckSquare className="h-4 w-4 text-red-500 shrink-0" />
           <span className="text-sm font-semibold text-red-600">{selectedIds.size} selected</span>
           <button onClick={() => setSelectedIds(new Set())} className="text-xs text-red-400 hover:text-red-600">Clear</button>
@@ -250,7 +255,7 @@ export default function AllBookingsTab() {
           <p className="text-[14px] font-medium text-[var(--text-3)]">No bookings found</p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-2xl bg-[var(--canvas)] ring-1 ring-[var(--border)] shadow-sm">
+        <div className="overflow-hidden rounded-3xl bg-[var(--canvas)] ring-1 ring-[var(--border)] shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full text-[12px]">
               <thead className="border-b border-[var(--border-soft)] bg-[var(--canvas-sub)]">

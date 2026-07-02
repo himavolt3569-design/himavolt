@@ -79,6 +79,7 @@ export const NAV_MAIN: {
 }[] = [
   { id: "overview", label: "Dashboard", icon: LayoutDashboard },
   { id: "orders", label: "Live Orders", icon: ClipboardList, badge: "live" },
+  { id: "manual-billing", label: "Fast Payment", icon: Zap },
   { id: "billing", label: "Billing", icon: Receipt },
   { id: "tables", label: "Tables", icon: LayoutGrid },
   { id: "chat", label: "Chats", icon: MessageCircle },
@@ -109,10 +110,11 @@ export const HUB_FEATURE_IDS = new Set<FeatureTabId>([
 // Catalog / day-to-day operations.
 export const NAV_CATALOG: typeof NAV_MAIN = [
   { id: "menu", label: "Menu", icon: UtensilsCrossed },
+  // Drinks were merged into Stock (Stock page → Drinks tab). The standalone
+  // Drinks nav item was removed; /dashboard/drinks still deep-links there.
   { id: "stock", label: "Stock", icon: Package },
   { id: "offers", label: "Offers", icon: Tag },
   { id: "coupons", label: "Coupons", icon: Tag },
-  { id: "drinks", label: "Drinks", icon: Package },
 ];
 
 // Team management. Shifts now lives as a tab inside the Staff page (Team

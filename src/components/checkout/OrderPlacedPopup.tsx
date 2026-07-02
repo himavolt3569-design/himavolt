@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle2, ChefHat, ArrowRight, X } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 /**
  * Instant "Order Received" confirmation shown the moment an order is placed —
@@ -12,11 +13,15 @@ export default function OrderPlacedPopup({
   open,
   onClose,
   onTrack,
+  trackToken,
 }: {
   open: boolean;
   onClose: () => void;
   onTrack: () => void;
+  /** When provided, "Track Order" navigates to /order-track/[trackToken] instead of the in-page overlay. */
+  trackToken?: string | null;
 }) {
+  const router = useRouter();
   return (
     <AnimatePresence>
       {open && (
@@ -68,7 +73,14 @@ export default function OrderPlacedPopup({
 
             <div className="mt-6 flex flex-col gap-2.5">
               <button
-                onClick={onTrack}
+                onClick={() => {
+                  if (trackToken) {
+                    onClose();
+                    router.push(`/order-track/${encodeURIComponent(trackToken)}`);
+                  } else {
+                    onTrack();
+                  }
+                }}
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] px-6 py-3 text-sm font-bold text-white hover:bg-[#2d1508] active:scale-[0.97] transition-all"
               >
                 Track Order

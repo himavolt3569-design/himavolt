@@ -97,21 +97,21 @@ const STEPS = [
     bg: "bg-[var(--accent)]",
   },
   {
-    key: "PREPARING",
+    key: "ACCEPTED",
     label: "Preparing",
     icon: ChefHat,
     color: "text-[var(--accent)]",
     bg: "bg-[var(--accent)]",
   },
   {
-    key: "READY",
+    key: "ACCEPTED",
     label: "Ready",
     icon: PackageCheck,
     color: "text-[var(--accent-hover)]",
     bg: "bg-[var(--accent)]",
   },
   {
-    key: "DELIVERED",
+    key: "ACCEPTED",
     label: "Delivered",
     icon: Truck,
     color: "text-[var(--text-1)]",
@@ -124,81 +124,7 @@ function getStepIndex(status: string): number {
   return idx >= 0 ? idx : 0;
 }
 
-function CountdownTimer({
-  estimatedTime,
-  startedAt,
-}: {
-  estimatedTime: number;
-  startedAt: string;
-}) {
-  const [remaining, setRemaining] = useState(0);
 
-  useEffect(() => {
-    function calc() {
-      const start = new Date(startedAt).getTime();
-      const end = start + estimatedTime * 60 * 1000;
-      const diff = Math.max(0, Math.floor((end - Date.now()) / 1000));
-      setRemaining(diff);
-    }
-    calc();
-    const interval = setInterval(calc, 1000);
-    return () => clearInterval(interval);
-  }, [estimatedTime, startedAt]);
-
-  const mins = Math.floor(remaining / 60);
-  const secs = remaining % 60;
-  const progress = Math.max(
-    0,
-    Math.min(1, 1 - remaining / (estimatedTime * 60)),
-  );
-
-  return (
-    <div className="relative flex flex-col items-center">
-      <div className="relative h-28 w-28">
-        <svg className="h-full w-full -rotate-90" viewBox="0 0 100 100">
-          <circle
-            cx="50"
-            cy="50"
-            r="42"
-            fill="none"
-            stroke="var(--border)"
-            strokeWidth="6"
-          />
-          <motion.circle
-            cx="50"
-            cy="50"
-            r="42"
-            fill="none"
-            stroke="var(--accent)"
-            strokeWidth="6"
-            strokeLinecap="round"
-            strokeDasharray={264}
-            animate={{ strokeDashoffset: 264 * (1 - progress) }}
-            transition={{ duration: 1, ease: "easeOut" }}
-          />
-        </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <Timer className="h-4 w-4 text-[var(--accent)] mb-0.5" />
-          <span className="text-2xl font-black text-[var(--text-1)] tabular-nums">
-            {mins}:{secs.toString().padStart(2, "0")}
-          </span>
-          <span className="text-[10px] font-medium text-[var(--text-3)]">
-            remaining
-          </span>
-        </div>
-      </div>
-      {remaining === 0 && (
-        <motion.p
-          initial={{ opacity: 0, y: 5 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mt-2 text-xs font-bold text-[var(--accent)]"
-        >
-          Should be ready any moment!
-        </motion.p>
-      )}
-    </div>
-  );
-}
 
 function PaymentBadge({ method, status }: { method: string; status: string }) {
   const methods: Record<string, { label: string; color: string }> = {
@@ -423,8 +349,8 @@ export default function TrackOrderPage() {
 
   useEffect(() => {
     if (
-      order?.status === "DELIVERED" ||
-      order?.status === "CANCELLED" ||
+      order?.status === "ACCEPTED" ||
+      order?.status === "REJECTED" ||
       order?.status === "REJECTED"
     ) {
       return;
@@ -432,7 +358,7 @@ export default function TrackOrderPage() {
   }, [order?.status]);
 
   useEffect(() => {
-    if (order?.status === "PREPARING" && clockRef.current && handRef.current) {
+    if (order?.status === "ACCEPTED" && clockRef.current && handRef.current) {
       const ctx = gsap.context(() => {
         gsap.to(handRef.current!, {
           rotation: 360,
@@ -451,7 +377,7 @@ export default function TrackOrderPage() {
     setCancelling(true);
     try {
       await apiFetch(`/api/orders/${order.id}/cancel`, { method: "POST" });
-      setOrder((prev) => prev ? { ...prev, status: "CANCELLED" } : prev);
+      setOrder((prev) => prev ? { ...prev, status: "REJECTED" } : prev);
       setCancelConfirm(false);
     } catch (err) {
       alert(err instanceof Error ? err.message : "Failed to cancel order");
@@ -501,15 +427,10 @@ export default function TrackOrderPage() {
 
   const currentStep = getStepIndex(order.status);
   const isCancelled =
-    order.status === "CANCELLED" || order.status === "REJECTED";
-  const isComplete = order.status === "DELIVERED";
+    order.status === "REJECTED" || order.status === "REJECTED";
+  const isComplete = order.status === "ACCEPTED";
   const isActive = !isCancelled && !isComplete;
   const isDirectPay = order.payment?.method === "DIRECT";
-  const showTimer =
-    isActive &&
-    !isDirectPay &&
-    order.estimatedTime &&
-    (order.preparingAt || order.acceptedAt);
 
   return (
     <div className="min-h-screen bg-[var(--canvas-sub)]">
@@ -955,18 +876,7 @@ export default function TrackOrderPage() {
             </motion.div>
           )}
 
-        {showTimer && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="rounded-2xl bg-[var(--canvas)] border border-[var(--border)] p-6 flex justify-center shadow-sm"
-          >
-            <CountdownTimer
-              estimatedTime={order.estimatedTime!}
-              startedAt={order.preparingAt || order.acceptedAt!}
-            />
-          </motion.div>
-        )}
+
 
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -1012,7 +922,7 @@ export default function TrackOrderPage() {
             </div>
           ) : (
             <div className="flex flex-col items-center mb-6">
-              {order.status === "PREPARING" ? (
+              {order.status === "ACCEPTED" ? (
                 <div
                   ref={clockRef}
                   className="relative flex h-16 w-16 items-center justify-center rounded-full border-[3px] border-[var(--accent)] bg-[var(--canvas)] shadow-lg mb-3"
@@ -1041,8 +951,8 @@ export default function TrackOrderPage() {
                   "Your order has been sent to the kitchen"}
                 {order.status === "ACCEPTED" &&
                   "Restaurant confirmed your order"}
-                {order.status === "PREPARING" && "Chef is working on your food"}
-                {order.status === "READY" && "Your food is ready for pickup!"}
+                {order.status === "ACCEPTED" && "Chef is working on your food"}
+                {order.status === "ACCEPTED" && "Your food is ready for pickup!"}
               </p>
             </div>
           )}
@@ -1243,7 +1153,7 @@ export default function TrackOrderPage() {
         {/* Cash/Counter/Direct — payment pending, waiting for staff verification */}
         {["CASH", "COUNTER", "DIRECT"].includes(order.payment?.method ?? "") &&
           order.payment?.status !== "COMPLETED" &&
-          !["DELIVERED", "CANCELLED", "REJECTED"].includes(order.status) && (
+          !["ACCEPTED", "REJECTED", "REJECTED"].includes(order.status) && (
             <div className="rounded-2xl border-2 border-[var(--accent-border)] bg-[var(--accent-muted)] p-4 space-y-3">
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-[var(--accent-text)]" />
@@ -1266,7 +1176,7 @@ export default function TrackOrderPage() {
 
         {/* Any payment method — COMPLETED confirmation */}
         {order.payment?.status === "COMPLETED" &&
-          !["DELIVERED", "CANCELLED", "REJECTED"].includes(order.status) && (
+          !["ACCEPTED", "REJECTED", "REJECTED"].includes(order.status) && (
             <div className="rounded-2xl border-2 border-[var(--accent-border)] bg-[#fef9ef]/60 p-4 space-y-2">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-[var(--accent-text)]" />

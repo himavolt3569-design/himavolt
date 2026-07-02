@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import {
   Truck,
   RefreshCw,
@@ -93,9 +94,7 @@ function timeAgo(date: string): string {
 }
 
 export default function AllDeliveriesTab() {
-  const [deliveries, setDeliveries] = useState<Delivery[]>([]);
-  const [pagination, setPagination] = useState<Pagination | null>(null);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState("All");
   const [page, setPage] = useState(1);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -104,44 +103,25 @@ export default function AllDeliveriesTab() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
 
-  const allSelected = deliveries.length > 0 && selectedIds.size === deliveries.length;
-
-  const fetchDeliveries = useCallback(
-    async (p = page) => {
-      setLoading(true);
-      try {
-        const params = new URLSearchParams({ page: String(p), limit: "30" });
-        if (statusFilter !== "All") params.set("status", statusFilter);
-
-        const res = await fetch(`/api/admin/deliveries?${params}`, { cache: "no-store" });
-        if (!res.ok) throw new Error("Failed");
-        const data = await res.json();
-        setDeliveries(data.deliveries);
-        setPagination(data.pagination);
-      } catch {
-        // silent
-      } finally {
-        setLoading(false);
-      }
+  const deliveriesQueryKey = ["admin-deliveries", page, statusFilter] as const;
+  const deliveriesQuery = useQuery({
+    queryKey: deliveriesQueryKey,
+    queryFn: async () => {
+      const params = new URLSearchParams({ page: String(page), limit: "30" });
+      if (statusFilter !== "All") params.set("status", statusFilter);
+      const res = await fetch(`/api/admin/deliveries?${params}`, { cache: "no-store" });
+      if (!res.ok) throw new Error("Failed");
+      const data = await res.json();
+      return { deliveries: data.deliveries as Delivery[], pagination: data.pagination as Pagination };
     },
-    [page, statusFilter],
-  );
+    placeholderData: keepPreviousData,
+    refetchInterval: 10_000,
+  });
+  const deliveries = deliveriesQuery.data?.deliveries ?? [];
+  const pagination = deliveriesQuery.data?.pagination ?? null;
+  const loading = deliveriesQuery.isLoading;
 
-  useEffect(() => {
-    fetchDeliveries(1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    if (!loading) fetchDeliveries(page);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, statusFilter]);
-
-  // Auto-refresh every 10s
-  useEffect(() => {
-    const interval = setInterval(() => fetchDeliveries(page), 10000);
-    return () => clearInterval(interval);
-  }, [fetchDeliveries, page]);
+  const allSelected = deliveries.length > 0 && selectedIds.size === deliveries.length;
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -153,8 +133,14 @@ export default function AllDeliveriesTab() {
         body: JSON.stringify({ deliveryId: deleteTarget.id }),
       });
       if (res.ok) {
-        setDeliveries((prev) => prev.filter((d) => d.id !== deleteTarget.id));
-        if (pagination) setPagination((p) => p ? { ...p, total: p.total - 1 } : p);
+        queryClient.setQueryData<typeof deliveriesQuery.data>(deliveriesQueryKey, (prev) =>
+          prev
+            ? {
+                deliveries: prev.deliveries.filter((d) => d.id !== deleteTarget.id),
+                pagination: prev.pagination ? { ...prev.pagination, total: prev.pagination.total - 1 } : prev.pagination,
+              }
+            : prev,
+        );
       }
     } catch {
       // silent
@@ -173,8 +159,14 @@ export default function AllDeliveriesTab() {
         body: JSON.stringify({ ids: Array.from(selectedIds) }),
       });
       if (res.ok) {
-        setDeliveries((prev) => prev.filter((d) => !selectedIds.has(d.id)));
-        if (pagination) setPagination((p) => p ? { ...p, total: p.total - selectedIds.size } : p);
+        queryClient.setQueryData<typeof deliveriesQuery.data>(deliveriesQueryKey, (prev) =>
+          prev
+            ? {
+                deliveries: prev.deliveries.filter((d) => !selectedIds.has(d.id)),
+                pagination: prev.pagination ? { ...prev.pagination, total: prev.pagination.total - selectedIds.size } : prev.pagination,
+              }
+            : prev,
+        );
         setSelectedIds(new Set());
       }
     } catch {
@@ -202,8 +194,8 @@ export default function AllDeliveriesTab() {
           ))}
         </div>
         <button
-          onClick={() => fetchDeliveries(page)}
-          className="flex items-center gap-1.5 rounded-xl border border-[var(--border)] px-3 py-2 text-xs font-medium text-[var(--text-2)] hover:bg-[var(--accent-muted)]"
+          onClick={() => queryClient.invalidateQueries({ queryKey: ["admin-deliveries"] })}
+          className="flex items-center gap-1.5 rounded-2xl border border-[var(--border)] px-3 py-2 text-xs font-medium text-[var(--text-2)] hover:bg-[var(--accent-muted)]"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
           Refresh
@@ -214,7 +206,7 @@ export default function AllDeliveriesTab() {
       </div>
 
       {selectedIds.size > 0 && (
-        <div className="flex items-center gap-3 rounded-xl border border-red-100 bg-red-50 px-4 py-2.5">
+        <div className="flex items-center gap-3 rounded-2xl border border-red-100 bg-red-50 px-4 py-2.5">
           <CheckSquare className="h-4 w-4 text-red-500 shrink-0" />
           <span className="text-sm font-semibold text-red-600">{selectedIds.size} selected</span>
           <button onClick={() => setSelectedIds(new Set())} className="text-xs text-red-400 hover:text-red-600">Clear</button>
@@ -228,7 +220,7 @@ export default function AllDeliveriesTab() {
         </div>
       )}
 
-      <div className="overflow-hidden rounded-2xl border border-[var(--accent-muted)] bg-[var(--canvas)] shadow-sm">
+      <div className="overflow-hidden rounded-3xl border border-[var(--accent-muted)] bg-[var(--canvas)] shadow-sm">
         <div className="flex items-center justify-between border-b border-[var(--accent-muted)] px-4 py-2.5">
           <div className="flex items-center gap-2">
             <input

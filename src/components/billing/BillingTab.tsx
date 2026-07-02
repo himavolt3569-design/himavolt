@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useSSE } from "@/hooks/useSSE";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -33,9 +34,9 @@ import {
 } from "lucide-react";
 import { formatPrice, getCurrencySymbol } from "@/lib/currency";
 import { useToast } from "@/context/ToastContext";
-import { apiFetch, peekApiCache } from "@/lib/api-client";
+import { apiFetch } from "@/lib/api-client";
 import { useRestaurant } from "@/context/RestaurantContext";
-import { autoPrintBill } from "@/lib/print-bill";
+import { autoPrintBill, printBillForOrder } from "@/lib/print-bill";
 import ManualBillingTab from "@/components/dashboard/ManualBillingTab";
 import { Zap } from "lucide-react";
 
@@ -233,14 +234,8 @@ function LiveBilling({
 }: BillingTabProps) {
   const { showToast } = useToast();
   const { selectedRestaurant } = useRestaurant();
+  const queryClient = useQueryClient();
   const cur = currency;
-  // Seed from the warm GET cache so re-opening Billing paints instantly — no
-  // skeleton — while the effects below revalidate in the background.
-  const initialOrdersPath = restaurantId ? `/api/restaurants/${restaurantId}/billing?filter=unpaid` : "";
-  const summaryPath = restaurantId ? `/api/restaurants/${restaurantId}/billing/summary` : "";
-  const [orders, setOrders] = useState<BillOrder[]>(() => peekApiCache<BillOrder[]>(initialOrdersPath) ?? []);
-  const [summary, setSummary] = useState<DailySummary | null>(() => peekApiCache<DailySummary>(summaryPath) ?? null);
-  const [loading, setLoading] = useState(() => !peekApiCache(initialOrdersPath));
   const [filter, setFilter] = useState<string>("unpaid");
   const [payType, setPayType] = useState<PayType>("all");
   const [search, setSearch] = useState("");
@@ -267,10 +262,11 @@ function LiveBilling({
   );
   const knownOrderIds = useRef<Set<string>>(new Set());
   const knownPaymentStatuses = useRef<Map<string, string>>(new Map());
+  const knownOrderTotals = useRef<Map<string, number>>(new Map());
   const isFirstSSE = useRef(true);
   const { data: streamData } = useSSE<{
     type: string;
-    orders?: { id: string; payment?: { method: string; status: string; proofUrl?: string | null } | null }[];
+    orders?: { id: string; orderNo: string; total: number; payment?: { method: string; status: string; proofUrl?: string | null } | null }[];
     newProofCount?: number;
   }>(
     restaurantId ? `/api/restaurants/${restaurantId}/billing/stream` : null,
@@ -285,43 +281,46 @@ function LiveBilling({
   const canDiscount =
     staffRole === "MANAGER" || staffRole === "SUPER_ADMIN" || !staffRole;
 
-  // apiFetch adds an in-memory cache, in-flight dedup, and automatic retry on
-  // the 503s prod's 1-connection pool throws — billing lists no longer blank
-  // out on a transient hiccup, and any mutation (collect/discount/split)
-  // invalidates these caches so the next load is fresh.
-  const loadOrders = useCallback(async () => {
-    // RestaurantContext resolves async — on a hard reload restaurantId is briefly
-    // undefined. Firing here would hit /api/restaurants/undefined/billing (404,
-    // "Billing not found") and leave the tab stuck loading. Wait for selection;
-    // the effect re-runs once restaurantId lands.
-    if (!restaurantId) return;
-    try {
+  const ordersQueryKey = ["billing", restaurantId, filter] as const;
+  const summaryQueryKey = ["billing-summary", restaurantId] as const;
+
+  // apiFetch still handles retry-on-503 (prod's 1-connection pool) and
+  // request timeout underneath — React Query just orchestrates the cache on
+  // top of it. `placeholderData: keepPreviousData` paints the previous
+  // filter's list instantly while the new one loads in the background,
+  // instead of a blank state.
+  const ordersQuery = useQuery({
+    queryKey: ordersQueryKey,
+    queryFn: async () => {
       const data = await apiFetch<BillOrder[] | { orders?: BillOrder[] }>(
         `/api/restaurants/${restaurantId}/billing?filter=${filter}`,
-        { cacheTtl: 15_000 },
       );
       // API returns an array directly; fall back to .orders wrapper for safety
-      const fetched: BillOrder[] = Array.isArray(data)
-        ? data
-        : data.orders || [];
-      setOrders(fetched);
-    } catch {
-      showToast("Failed to load billing orders", "error");
-    }
-    setLoading(false);
-  }, [restaurantId, filter]); // eslint-disable-line react-hooks/exhaustive-deps
+      return Array.isArray(data) ? data : data.orders || [];
+    },
+    enabled: !!restaurantId,
+    placeholderData: keepPreviousData,
+  });
+  const orders = ordersQuery.data ?? [];
+  const ordersRef = useRef<BillOrder[]>([]);
+  ordersRef.current = orders;
 
-  const loadSummary = useCallback(async () => {
-    try {
-      const data = await apiFetch<DailySummary>(
-        `/api/restaurants/${restaurantId}/billing/summary`,
-        { cacheTtl: 15_000 },
-      );
-      setSummary(data);
-    } catch {
-      /* ignore */
-    }
-  }, [restaurantId]);
+  const summaryQuery = useQuery({
+    queryKey: summaryQueryKey,
+    queryFn: () =>
+      apiFetch<DailySummary>(`/api/restaurants/${restaurantId}/billing/summary`),
+    enabled: !!restaurantId,
+    placeholderData: keepPreviousData,
+  });
+  const summary = summaryQuery.data ?? null;
+
+  const loadOrders = useCallback(() => {
+    return queryClient.invalidateQueries({ queryKey: ["billing", restaurantId] });
+  }, [queryClient, restaurantId]);
+
+  const loadSummary = useCallback(() => {
+    return queryClient.invalidateQueries({ queryKey: summaryQueryKey });
+  }, [queryClient, restaurantId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadStaffReport = useCallback(async (date: string) => {
     setStaffReportLoading(true);
@@ -337,22 +336,15 @@ function LiveBilling({
     setStaffReportLoading(false);
   }, [restaurantId, showToast]);
 
-  // Reload orders when filter or restaurantId changes (loadOrders deps cover
-  // both). Only force the skeleton on a cold cache — a warm tab already painted.
-  useEffect(() => {
-    if (!peekApiCache(`/api/restaurants/${restaurantId}/billing?filter=${filter}`)) {
-      setLoading(true);
-    }
-    loadOrders();
-  }, [loadOrders]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Load summary + tax config once per restaurant
+  // Reset SSE dedup state + fetch tax config once per restaurant. Orders and
+  // summary auto-fetch from their own useQuery above whenever restaurantId
+  // (or filter) changes — no manual reload effect needed for those anymore.
   useEffect(() => {
     if (!restaurantId) return;
-    loadSummary();
     isFirstSSE.current = true;
     knownOrderIds.current = new Set();
     knownPaymentStatuses.current = new Map();
+    knownOrderTotals.current = new Map();
     apiFetch<{
       taxRate: number;
       taxEnabled: boolean;
@@ -378,6 +370,7 @@ function LiveBilling({
       knownOrderIds.current = new Set(incoming.map((o) => o.id));
       incoming.forEach((o) => {
         if (o.payment?.status) knownPaymentStatuses.current.set(o.id, o.payment.status);
+        knownOrderTotals.current.set(o.id, o.total);
       });
       isFirstSSE.current = false;
       return;
@@ -400,34 +393,40 @@ function LiveBilling({
       if (prev === "PENDING" && curr === "AWAITING_VERIFICATION") {
         needsRefresh = true;
         playBillingAlert();
-        setOrders((currentOrders) => {
-          const fullOrder = currentOrders.find((ord) => ord.id === o.id);
-          showToast(
-            fullOrder
-              ? `Order #${fullOrder.orderNo} — Customer uploaded payment proof. Verify to send to kitchen.`
-              : "Customer uploaded payment proof — verification required",
-            "info",
-          );
-          return currentOrders;
-        });
+        const fullOrder = ordersRef.current.find((ord) => ord.id === o.id);
+        showToast(
+          fullOrder
+            ? `Order #${fullOrder.orderNo} — Customer uploaded payment proof. Verify to send to kitchen.`
+            : "Customer uploaded payment proof — verification required",
+          "info",
+        );
       }
 
       // Any status → COMPLETED: payment confirmed
       if (prev !== undefined && prev !== "COMPLETED" && curr === "COMPLETED") {
         needsRefresh = true;
         playBillingAlert();
-        setOrders((currentOrders) => {
-          const fullOrder = currentOrders.find((ord) => ord.id === o.id);
-          showToast(
-            fullOrder ? buildPaymentToast(fullOrder) : "Payment confirmed for a recent order",
-            "success",
-          );
-          return currentOrders;
-        });
+        const fullOrder = ordersRef.current.find((ord) => ord.id === o.id);
+        showToast(
+          fullOrder ? buildPaymentToast(fullOrder) : "Payment confirmed for a recent order",
+          "success",
+        );
+      }
+
+      // Detect total changes (customer added more items to the same running bill)
+      const prevTotal = knownOrderTotals.current.get(o.id);
+      if (prevTotal !== undefined && prevTotal !== o.total) {
+        needsRefresh = true;
+        playBillingAlert();
+        showToast(
+          `New items added to Order #${o.orderNo} (${formatPrice(o.total, selectedRestaurant?.currency ?? "NPR")})`,
+          "info"
+        );
       }
 
       // Update known statuses
       if (curr) knownPaymentStatuses.current.set(o.id, curr);
+      knownOrderTotals.current.set(o.id, o.total);
     }
 
     knownOrderIds.current = new Set(incoming.map((o) => o.id));
@@ -438,30 +437,68 @@ function LiveBilling({
     }
   }, [streamData, loadOrders, loadSummary, showToast]);
 
-  const handleCollectPayment = async () => {
-    if (!selectedOrder) return;
-    const paidOrderId = selectedOrder.id;
-    setActionLoading(true);
-    try {
+  // Marks the order paid in the cache immediately — if the current filter is
+  // "unpaid" it drops out of the list right away instead of waiting for the
+  // network round-trip and a full reload. Rolled back on failure.
+  const collectPaymentMutation = useMutation({
+    mutationFn: async (vars: { orderId: string; method: string; txn?: string }) => {
       await apiFetch(`/api/restaurants/${restaurantId}/billing/collect`, {
         method: "POST",
         body: {
-          orderId: paidOrderId,
-          method: collectMethod,
-          transactionId: collectTxn || undefined,
+          orderId: vars.orderId,
+          method: vars.method,
+          transactionId: vars.txn,
         },
       });
-      showToast(`Payment collected for Order #${selectedOrder.orderNo}`, "success");
-      if (selectedRestaurant?.printAutoReceipt) autoPrintBill(paidOrderId);
-      setShowCollect(false);
-      setCollectTxn("");
-      setSelectedOrder(null);
-      loadOrders();
+    },
+    onMutate: async ({ orderId, method }) => {
+      await queryClient.cancelQueries({ queryKey: ordersQueryKey });
+      const previous = queryClient.getQueryData<BillOrder[]>(ordersQueryKey);
+      queryClient.setQueryData<BillOrder[]>(ordersQueryKey, (prev) => {
+        const list = prev ?? [];
+        if (filter === "unpaid") return list.filter((o) => o.id !== orderId);
+        return list.map((o) =>
+          o.id === orderId
+            ? {
+                ...o,
+                payment: {
+                  ...(o.payment ?? { id: "", transactionId: null, paidAt: null }),
+                  method,
+                  status: "COMPLETED",
+                  amount: o.bill?.total ?? o.total,
+                },
+              }
+            : o,
+        );
+      });
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) queryClient.setQueryData(ordersQueryKey, context.previous);
+    },
+  });
+
+  const handleCollectPayment = async () => {
+    if (!selectedOrder) return;
+    const paidOrderId = selectedOrder.id;
+    const orderNo = selectedOrder.orderNo;
+    const method = collectMethod;
+    const txn = collectTxn || undefined;
+    const autoPrint = selectedRestaurant?.printAutoReceipt;
+
+    // Optimistic close
+    setShowCollect(false);
+    setSelectedOrder(null);
+    setCollectTxn("");
+
+    try {
+      await collectPaymentMutation.mutateAsync({ orderId: paidOrderId, method, txn });
+      showToast(`Payment collected for Order #${orderNo}`, "success");
+      if (autoPrint) autoPrintBill(paidOrderId);
       loadSummary();
     } catch (err) {
       showToast(err instanceof Error ? err.message : "Failed to collect payment", "error");
     }
-    setActionLoading(false);
   };
 
   const handleVerifyBank = async (order: BillOrder, action: "VERIFY" | "REJECT") => {
@@ -992,10 +1029,7 @@ function LiveBilling({
           ].map((f) => (
             <button
               key={f.key}
-              onClick={() => {
-                setFilter(f.key);
-                setLoading(true);
-              }}
+              onClick={() => setFilter(f.key)}
               className={`relative flex-1 lg:flex-none flex items-center justify-center gap-1.5 rounded-full px-5 py-2 text-xs font-bold transition-colors duration-300 ${
                 filter === f.key
                   ? "text-white"
@@ -1237,32 +1271,22 @@ function LiveBilling({
               </div>
 
               <div className="flex items-center gap-1.5 flex-wrap">
-                {/* View Bill / Receipt */}
-                <a
-                  href={`/bill/${order.id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                {/* Print Bill — merged action. One click opens the print dialog
+                    with the thermal receipt; it never opens a separate tab. */}
+                <button
+                  onClick={() => printBillForOrder(order.id)}
                   className={`flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[10px] font-bold transition-all ${
                     order.payment && order.payment.method !== "CASH"
                       ? "bg-purple-50 text-purple-700 hover:bg-purple-100"
                       : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
                   }`}
+                  title="Print bill"
                 >
-                  <ExternalLink className="h-3 w-3" />
+                  <Printer className="h-3 w-3" />
                   {order.payment && order.payment.method !== "CASH"
                     ? "Receipt"
                     : "Bill"}
-                </a>
-
-                <a
-                  href={`/bill/${order.id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1 rounded-lg bg-[var(--surface)] px-2.5 py-1.5 text-[10px] font-bold text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-all"
-                  title="Print"
-                >
-                  <Printer className="h-3 w-3" />
-                </a>
+                </button>
 
                 {/* Discount button — only for Manager/SuperAdmin */}
                 {canDiscount && !isPaid(order) && (
@@ -1908,6 +1932,7 @@ export default function BillingTab(props: BillingTabProps) {
           taxEnabled={r?.taxEnabled ?? true}
           counterWidth={r?.printCounterWidth ?? 80}
           kitchenWidth={r?.printKitchenWidth ?? 80}
+          printAutoReceipt={r?.printAutoReceipt ?? false}
         />
       )}
     </div>

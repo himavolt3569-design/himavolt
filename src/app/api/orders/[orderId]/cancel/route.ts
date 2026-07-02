@@ -47,21 +47,28 @@ export async function POST(
   // and skips the stock restore step.
   const flip = await db.order.updateMany({
     where: { id: orderId, status: "PENDING" },
-    data: { status: "CANCELLED" },
+    data: { status: "REJECTED", rejectReason: "Cancelled by customer" },
   });
 
   if (flip.count === 0) {
     // Someone else already moved the order out of PENDING — nothing to do.
-    return NextResponse.json({ success: true, orderId, status: "CANCELLED" });
+    return NextResponse.json({ success: true, orderId, status: "REJECTED" });
   }
 
-  // Cancel any pending/awaiting-verification payments and restore stock in
-  // parallel. Both are non-fatal — losing them doesn't undo the cancellation.
+  // Cancel payments, restore stock, and cancel unprinted KOT jobs — all non-fatal.
   await Promise.all([
     db.payment.updateMany({
       where: { orderId, status: { in: ["PENDING", "AWAITING_VERIFICATION"] } },
       data: { status: "CANCELLED" },
     }),
+    db.printJob
+      .updateMany({
+        where: { orderId, type: "KOT", status: { in: ["PENDING", "RETRYING"] } },
+        data: { status: "FAILED", lastError: "Order cancelled by customer" },
+      })
+      .catch((err: unknown) =>
+        console.error("[Orders cancel] PrintJob cancel failed:", err),
+      ),
     restoreStock(order.items).catch((err: unknown) => {
       console.error("[Orders cancel] restoreStock failed:", err);
     }),
@@ -99,7 +106,7 @@ export async function POST(
     ipAddress: getClientIp(req.headers),
   });
 
-  notifyOrderChanged(orderId, order.restaurantId, { status: "CANCELLED" });
+  notifyOrderChanged(orderId, order.restaurantId, { status: "REJECTED" });
 
-  return NextResponse.json({ success: true, orderId, status: "CANCELLED" });
+  return NextResponse.json({ success: true, orderId, status: "REJECTED" });
 }

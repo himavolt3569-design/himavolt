@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Plus,
   Pencil,
@@ -40,9 +41,10 @@ import {
   Info,
 } from "lucide-react";
 import { useRestaurant, useOptionalRestaurant } from "@/context/RestaurantContext";
-import { apiFetch, peekApiCache } from "@/lib/api-client";
+import { apiFetch } from "@/lib/api-client";
 import { useToast } from "@/context/ToastContext";
 import { formatPrice, getCurrencySymbol } from "@/lib/currency";
+import { FOOD_DESCRIPTION_TEMPLATES } from "@/lib/food-descriptions";
 import ImagePicker from "@/components/shared/ImagePicker";
 import { AnchoredMenu } from "@/components/shared/AnchoredMenu";
 import {
@@ -725,6 +727,9 @@ function DishForm({
   const [activeSection, setActiveSection] = useState<string>("basic");
   const [tagInput, setTagInput] = useState("");
 
+  const [suggestions, setSuggestions] = useState<{ id: string; thumb: string; url: string }[]>([]);
+  const [suggesting, setSuggesting] = useState(false);
+
   const [form, setForm] = useState<DishFormData>({
     name: initial?.name ?? "",
     description: initial?.description ?? "",
@@ -773,6 +778,35 @@ function DishForm({
       update({ tags: [...form.tags, t] });
       setTagInput("");
     }
+  };
+
+  useEffect(() => {
+    const q = form.name.trim();
+    if (!q || q.length < 3) {
+      setSuggestions([]);
+      return;
+    }
+    const ctrl = new AbortController();
+    const t = setTimeout(async () => {
+      setSuggesting(true);
+      try {
+        const res = await fetch(`/api/image-search?q=${encodeURIComponent(q + " food")}`, { signal: ctrl.signal });
+        const data = await res.json();
+        if (res.ok && data.images) {
+          setSuggestions(data.images.slice(0, 6));
+        }
+      } catch (err) {
+        // ignore
+      } finally {
+        setSuggesting(false);
+      }
+    }, 400);
+    return () => { clearTimeout(t); ctrl.abort(); };
+  }, [form.name]);
+
+  const generateDescription = () => {
+    const randomTemplate = FOOD_DESCRIPTION_TEMPLATES[Math.floor(Math.random() * FOOD_DESCRIPTION_TEMPLATES.length)];
+    update({ description: randomTemplate });
   };
 
   const sections = [
@@ -846,13 +880,44 @@ function DishForm({
                 onClose={() => setShowImagePicker(false)}
               />
 
-              <div className="flex-1 space-y-3">
-                <input
-                  value={form.name}
-                  onChange={(e) => update({ name: e.target.value })}
-                  placeholder="Dish name *"
-                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--canvas)] px-3 py-2.5 text-sm font-semibold text-[var(--text-1)] placeholder-gray-300 focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent-border)]"
-                />
+              <div className="flex-1 space-y-3 min-w-0">
+                <div className="space-y-1.5">
+                  <input
+                    value={form.name}
+                    onChange={(e) => update({ name: e.target.value })}
+                    placeholder="Dish name *"
+                    className="w-full rounded-lg border border-[var(--border)] bg-[var(--canvas)] px-3 py-2.5 text-sm font-semibold text-[var(--text-1)] placeholder-gray-300 focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent-border)]"
+                  />
+                  <AnimatePresence>
+                    {(suggestions.length > 0 || suggesting) && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide py-1">
+                          {suggesting && suggestions.length === 0 && (
+                            <div className="flex items-center gap-1.5 text-[10px] font-semibold text-[var(--text-3)] px-1">
+                              <Loader2 className="h-3 w-3 animate-spin" /> Suggesting images...
+                            </div>
+                          )}
+                          {suggestions.map((img) => (
+                            <button
+                              key={img.id}
+                              type="button"
+                              onClick={() => update({ imageUrl: img.url })}
+                              className="shrink-0 h-10 w-10 sm:h-11 sm:w-11 rounded-lg overflow-hidden border-2 border-transparent hover:border-[var(--accent)] transition-all bg-[var(--canvas-sub)] shadow-sm"
+                              title="Click to use this image"
+                            >
+                              <img src={img.thumb} alt="Suggestion" className="h-full w-full object-cover" />
+                            </button>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
                 <div className="grid grid-cols-2 gap-3">
                   <PriceInput value={form.price} onChange={(v) => update({ price: v })} placeholder="Price *" currencySymbol={getCurrencySymbol(currency)} />
                   <input
@@ -873,13 +938,25 @@ function DishForm({
               />
             </div>
 
-            <textarea
-              value={form.description}
-              onChange={(e) => update({ description: e.target.value })}
-              placeholder="Short description, helps customers decide"
-              rows={2}
-              className="w-full rounded-lg border border-[var(--border)] bg-[var(--canvas)] px-3 py-2.5 text-sm text-[var(--text-2)] placeholder-gray-300 focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent-border)] resize-none"
-            />
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <p className="text-[12px] font-semibold text-[var(--text-2)]">Description</p>
+                <button
+                  type="button"
+                  onClick={generateDescription}
+                  className="flex items-center gap-1 text-[11px] font-semibold text-[var(--accent)] hover:text-[var(--accent-hover)] transition-colors"
+                >
+                  <Sparkles className="h-3 w-3" /> Auto Generate
+                </button>
+              </div>
+              <textarea
+                value={form.description}
+                onChange={(e) => update({ description: e.target.value })}
+                placeholder="Short description, helps customers decide"
+                rows={3}
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--canvas)] px-3 py-2.5 text-sm text-[var(--text-2)] placeholder-gray-300 focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent-border)] resize-none"
+              />
+            </div>
           </div>
         )}
 
@@ -1280,17 +1357,35 @@ export default function MenuManagementTab({
   const cur = overrideCurrency || ctx?.selectedRestaurant?.currency || "NPR";
   const curSymbol = getCurrencySymbol(cur);
   const { showToast } = useToast();
-  const menuPath = restaurantId ? `/api/restaurants/${restaurantId}/menu` : "";
-  const catPath = restaurantId ? `/api/restaurants/${restaurantId}/categories` : "";
-  // Seed from the in-memory API cache so a re-opened tab paints instantly, then
-  // revalidate in the background (stale-while-revalidate).
-  const [items, setItems] = useState<MenuItem[]>(
-    () => peekApiCache<MenuItem[]>(menuPath) ?? [],
-  );
-  const [categories, setCategories] = useState<MenuCategory[]>(
-    () => peekApiCache<MenuCategory[]>(catPath) ?? [],
-  );
-  const [loading, setLoading] = useState(() => !peekApiCache(menuPath));
+  const queryClient = useQueryClient();
+  // Query cache paints instantly on a re-opened tab; each list keeps its own
+  // key/setter shim so the many optimistic mutation handlers below (which
+  // already do their own snapshot/rollback via setItems) don't need to change.
+  const itemsQueryKey = ["menu-items", restaurantId] as const;
+  const itemsQuery = useQuery({
+    queryKey: itemsQueryKey,
+    queryFn: () => apiFetch<MenuItem[]>(`/api/restaurants/${restaurantId}/menu`),
+    enabled: !!restaurantId,
+  });
+  const items = itemsQuery.data ?? [];
+  const setItems = (updater: React.SetStateAction<MenuItem[]>) =>
+    queryClient.setQueryData<MenuItem[]>(itemsQueryKey, (prev) =>
+      typeof updater === "function" ? (updater as (p: MenuItem[]) => MenuItem[])(prev ?? []) : updater,
+    );
+
+  const catQueryKey = ["menu-categories", restaurantId] as const;
+  const catQuery = useQuery({
+    queryKey: catQueryKey,
+    queryFn: () => apiFetch<MenuCategory[]>(`/api/restaurants/${restaurantId}/categories`),
+    enabled: !!restaurantId,
+  });
+  const categories = catQuery.data ?? [];
+  const setCategories = (updater: React.SetStateAction<MenuCategory[]>) =>
+    queryClient.setQueryData<MenuCategory[]>(catQueryKey, (prev) =>
+      typeof updater === "function" ? (updater as (p: MenuCategory[]) => MenuCategory[])(prev ?? []) : updater,
+    );
+
+  const loading = itemsQuery.isLoading || catQuery.isLoading;
   const [search, setSearch] = useState("");
   const [selectedCatId, setSelectedCatId] = useState("All");
   const [showAddForm, setShowAddForm] = useState(false);
@@ -1334,34 +1429,13 @@ export default function MenuManagementTab({
     }
   };
 
-  // `silent` reconciles state in the background without blanking the grid with
-  // a loading skeleton. Mutations update local state optimistically (instant),
-  // then call fetchData(true) to sync canonical data (real IDs, item counts).
-  const fetchData = useCallback(async (silent = false) => {
-    if (!restaurantId) {
-      // No restaurant resolved yet — don't sit in a blank loading state.
-      if (!silent) setLoading(false);
-      return;
-    }
-    if (!silent) setLoading(true);
-    try {
-      // Cache the lists so a re-opened tab serves them instantly; mutations
-      // invalidate this prefix in api-client, so reconciliation stays correct.
-      const [menuRes, catRes] = await Promise.all([
-        apiFetch<MenuItem[]>(`/api/restaurants/${restaurantId}/menu`, { cacheTtl: 120_000 }),
-        apiFetch<MenuCategory[]>(`/api/restaurants/${restaurantId}/categories`, { cacheTtl: 120_000 }),
-      ]);
-      setItems(Array.isArray(menuRes) ? menuRes : []);
-      setCategories(Array.isArray(catRes) ? catRes : []);
-    } catch (err) {
-      if (!silent) showToast(err instanceof Error ? err.message : "Failed to load menu data");
-    } finally {
-      if (!silent) setLoading(false);
-    }
-  }, [restaurantId, showToast]);
-
-  // If we already painted cached data, refresh silently so the grid never blanks.
-  useEffect(() => { fetchData(!!peekApiCache(menuPath)); }, [fetchData, menuPath]);
+  // Mutations update local state optimistically (instant), then call
+  // fetchData(true) to reconcile canonical data (real IDs, item counts) —
+  // now a background invalidate on both query caches instead of a manual fetch.
+  const fetchData = (_silent = false) => {
+    queryClient.invalidateQueries({ queryKey: itemsQueryKey });
+    queryClient.invalidateQueries({ queryKey: catQueryKey });
+  };
 
   useEffect(() => {
     if (showNewCat && newCatInputRef.current) newCatInputRef.current.focus();

@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
 import {
   Plus,
   Search,
@@ -25,16 +26,18 @@ import {
   ChevronDown,
   ArrowRight,
   Zap,
+  ScanLine,
 } from "lucide-react";
 import {
   useRestaurant,
   type Restaurant,
   type StaffMember,
 } from "@/context/RestaurantContext";
-import { apiFetch, peekApiCache } from "@/lib/api-client";
+import { apiFetch } from "@/lib/api-client";
 import { SkeletonLine, SkeletonGrid } from "@/components/shared/Skeleton";
 import { AnchoredMenu } from "@/components/shared/AnchoredMenu";
 import ShiftsTab from "./ShiftsTab";
+import StaffQrBadgeModal from "./StaffQrBadgeModal";
 
 type StaffRole = "SUPER_ADMIN" | "MANAGER" | "CHEF" | "WAITER" | "CASHIER";
 
@@ -252,6 +255,7 @@ function StaffCard({
   const [newPin, setNewPin] = useState("");
   const [savingPin, setSavingPin] = useState(false);
   const [savingType, setSavingType] = useState(false);
+  const [qrModalOpen, setQrModalOpen] = useState(false);
   const { fetchRestaurants } = useRestaurant();
 
   const handleSavePin = async () => {
@@ -455,7 +459,15 @@ function StaffCard({
           )}
         </div>
 
-        <div className="mt-3 flex justify-end">
+        <div className="mt-3 flex items-center justify-between">
+          <button
+            onClick={() => setQrModalOpen(true)}
+            className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-bold text-[var(--text-3)] hover:text-[var(--accent-text)] hover:bg-[var(--accent-muted)] transition-all"
+            title="Personal login QR badge"
+          >
+            <ScanLine className="h-3 w-3" />
+            QR Badge
+          </button>
           <button
             onClick={() => removeStaff(restaurant.id, member.id)}
             className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-bold text-red-400 hover:text-red-600 hover:bg-red-50 transition-all"
@@ -465,6 +477,15 @@ function StaffCard({
           </button>
         </div>
       </div>
+
+      <StaffQrBadgeModal
+        open={qrModalOpen}
+        onOpenChange={setQrModalOpen}
+        staffId={member.id}
+        staffName={member.user.name}
+        restaurantId={restaurant.id}
+        qrToken={member.qrToken}
+      />
     </motion.div>
   );
 }
@@ -611,32 +632,18 @@ function StaffDirectoryView({
 }
 
 function AttendanceLogsView({ restaurantId }: { restaurantId: string }) {
-  // Seed from the warm GET cache (warmed on nav hover) so switching to the
-  // Attendance tab paints instantly instead of showing "Loading attendance…".
-  const logsPath = restaurantId ? `/api/restaurants/${restaurantId}/attendance` : "";
-  const [logs, setLogs] = useState<AttendanceLog[]>(() => peekApiCache<AttendanceLog[]>(logsPath) ?? []);
-  const [loading, setLoading] = useState(() => !peekApiCache(logsPath));
+  // Query cache paints instantly on tab revisit instead of showing
+  // "Loading attendance…" every time.
+  const logsQuery = useQuery({
+    queryKey: ["attendance-logs", restaurantId],
+    queryFn: () => apiFetch<AttendanceLog[]>(`/api/restaurants/${restaurantId}/attendance`),
+    enabled: !!restaurantId,
+  });
+  const logs = logsQuery.data ?? [];
+  const loading = logsQuery.isLoading;
   const [dateFilter, setDateFilter] = useState<string>("");
 
-  const loadLogs = useCallback(async () => {
-    if (!restaurantId) return;
-    try {
-      const data = await apiFetch<AttendanceLog[]>(
-        `/api/restaurants/${restaurantId}/attendance`,
-      );
-      setLogs(data ?? []);
-    } catch {
-      setLogs([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [restaurantId]);
-
-  useEffect(() => {
-    loadLogs();
-  }, [loadLogs]);
-
-  if (loading && logs.length === 0) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center py-20 gap-2 text-[var(--text-3)]">
         <Loader2 className="h-5 w-5 animate-spin" />

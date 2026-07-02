@@ -16,11 +16,9 @@ import { useSSE } from "@/hooks/useSSE";
 export type OrderStatus =
   | "PENDING"
   | "ACCEPTED"
-  | "PREPARING"
-  | "READY"
-  | "DELIVERED"
-  | "CANCELLED"
-  | "REJECTED";
+  | "REJECTED"
+  | "COMPLETED"
+  | "CANCELLED";
 
 export type PaymentMethodType = "ESEWA" | "KHALTI" | "BANK" | "CASH" | "COUNTER" | "DIRECT";
 
@@ -57,6 +55,8 @@ export interface OrderDelivery {
 export interface Order {
   id: string;
   orderNo: string;
+  trackToken?: string | null;
+  kitchenStatus?: string | null;
   tableNo: number | null;
   roomNo: string | null;
   status: OrderStatus;
@@ -113,6 +113,7 @@ interface OrderContextType {
     roomNo?: string,
     tableSessionId?: string,
     couponCode?: string,
+    idempotencyKey?: string,
   ) => Promise<Order>;
   addToOrder: (
     restaurantId: string,
@@ -124,27 +125,72 @@ interface OrderContextType {
       menuItemId?: string;
     }[],
     note?: string,
+    idempotencyKey?: string,
+    tableSessionId?: string | null,
   ) => Promise<Order>;
   cancelOrder: () => void;
   restoreOrder: (restaurantId: string, orderId: string) => Promise<void>;
-  restoreFromStorage: (restaurantId: string, tableNo?: number) => Promise<void>;
+  restoreFromStorage: (restaurantId: string, tableSessionId?: string | null) => Promise<void>;
 }
 
-function orderStorageKey(restaurantId: string, tableNo?: number) {
-  return tableNo ? `hh_order_${restaurantId}_${tableNo}` : `hh_order_${restaurantId}`;
+export interface TrackTokenData {
+  trackToken: string;
+  restaurantId: string;
+  tableSessionId: string | null;
+  createdAt: string;
 }
 
-function saveOrderToStorage(restaurantId: string, orderId: string, tableNo?: number) {
+function orderStorageKey(restaurantId: string, tableSessionId?: string | null) {
+  return `himavolt:lastTrackToken:${restaurantId}:${tableSessionId || "none"}`;
+}
+
+function recentTokensKey(restaurantId: string) {
+  return `himavolt:trackTokens:${restaurantId}`;
+}
+
+export function getRecentTrackTokens(restaurantId: string): TrackTokenData[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const key = recentTokensKey(restaurantId);
+    const existing = localStorage.getItem(key);
+    return existing ? JSON.parse(existing) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveOrderToStorage(restaurantId: string, trackToken: string, tableSessionId?: string | null) {
   if (typeof window === "undefined") return;
   try {
-    localStorage.setItem(orderStorageKey(restaurantId, tableNo), orderId);
+    // Save as last track token
+    localStorage.setItem(orderStorageKey(restaurantId, tableSessionId), trackToken);
+    
+    // Also save to recent history
+    const key = recentTokensKey(restaurantId);
+    const existing = localStorage.getItem(key);
+    let history: TrackTokenData[] = existing ? JSON.parse(existing) : [];
+    
+    // Remove if already exists to push to front
+    history = history.filter(t => t.trackToken !== trackToken);
+    
+    history.unshift({
+      trackToken,
+      restaurantId,
+      tableSessionId: tableSessionId || null,
+      createdAt: new Date().toISOString()
+    });
+    
+    if (history.length > 20) history = history.slice(0, 20);
+    
+    localStorage.setItem(key, JSON.stringify(history));
   } catch { /* ignore */ }
 }
 
-function clearOrderStorage(restaurantId: string, tableNo?: number) {
+function clearOrderStorage(restaurantId: string, tableSessionId?: string | null) {
   if (typeof window === "undefined") return;
   try {
-    localStorage.removeItem(orderStorageKey(restaurantId, tableNo));
+    localStorage.removeItem(orderStorageKey(restaurantId, tableSessionId));
+    // We intentionally do NOT clear the recent history so completed orders remain visible
   } catch { /* ignore */ }
 }
 
@@ -164,9 +210,9 @@ export function OrderProvider({ children }: { children: ReactNode }) {
 
     // Play sound when order transitions to READY
     if (
-      order.status === "READY" &&
+      order.status === "ACCEPTED" &&
       prevStatusRef.current !== null &&
-      prevStatusRef.current !== "READY"
+      prevStatusRef.current !== "ACCEPTED"
     ) {
       playSound("orderReady");
     }
@@ -174,7 +220,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
     setActiveOrder(order);
 
     // Stop tracking on terminal status — server closes the stream too
-    if (["DELIVERED", "CANCELLED", "REJECTED"].includes(order.status)) {
+    if (["ACCEPTED", "REJECTED", "REJECTED"].includes(order.status)) {
       setTrackUrl(null);
     }
   }, [trackData]);
@@ -196,6 +242,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
       roomNo?: string,
       tableSessionId?: string,
       couponCode?: string,
+      idempotencyKey?: string,
     ) => {
       const order = await apiFetch<Order>(
         `/api/restaurants/${restaurantId}/orders`,
@@ -210,6 +257,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
             paymentMethod: paymentMethod || "CASH",
             tableSessionId: tableSessionId || undefined,
             couponCode: couponCode || undefined,
+            idempotencyKey: idempotencyKey || undefined,
             ...(orderType === "DELIVERY" && deliveryInfo
               ? {
                   deliveryAddress: deliveryInfo.address,
@@ -223,7 +271,9 @@ export function OrderProvider({ children }: { children: ReactNode }) {
         },
       );
       setActiveOrder(order);
-      saveOrderToStorage(restaurantId, order.id, tableNo);
+      if (order.trackToken) {
+        saveOrderToStorage(restaurantId, order.trackToken, tableSessionId);
+      }
       prevStatusRef.current = null;
       setTrackUrl(`/api/track/stream?orderId=${order.id}`);
       return order;
@@ -242,6 +292,8 @@ export function OrderProvider({ children }: { children: ReactNode }) {
         menuItemId?: string;
       }[],
       note?: string,
+      idempotencyKey?: string,
+      tableSessionId?: string | null,
     ) => {
       const order = await apiFetch<Order>(
         `/api/restaurants/${restaurantId}/orders`,
@@ -253,6 +305,11 @@ export function OrderProvider({ children }: { children: ReactNode }) {
             note,
             type: "DINE_IN",
             paymentMethod: "CASH",
+            idempotencyKey: idempotencyKey || undefined,
+            // A table guest proves ownership via tableSessionId; an anonymous
+            // guest with no table session is authorised server-side by the
+            // track cookie set on the original order POST (auto-sent here).
+            tableSessionId: tableSessionId || undefined,
           },
         },
       );
@@ -266,48 +323,63 @@ export function OrderProvider({ children }: { children: ReactNode }) {
 
   const cancelOrder = useCallback(() => {
     setTrackUrl(null);
-    if (activeOrder) {
-      clearOrderStorage(activeOrder.restaurantId, activeOrder.tableNo ?? undefined);
+    if (activeOrder && activeOrder.trackToken) {
+      // We don't have tableSessionId easily accessible here, but we could try to clear both?
+      // For now, orderStorageKey expects tableSessionId. The context doesn't store tableSessionId natively.
+      // But we can clear the "none" fallback.
+      clearOrderStorage(activeOrder.restaurantId, null);
     }
     prevStatusRef.current = null;
     setActiveOrder(null);
   }, [activeOrder]);
 
   const restoreOrder = useCallback(
-    async (restaurantId: string, orderId: string) => {
-      if (activeOrder?.id === orderId) return; // already loaded
+    async (restaurantId: string, trackToken: string) => {
+      if (activeOrder?.trackToken === trackToken) return; // already loaded
       try {
-        const order = await apiFetch<Order>(
-          `/api/restaurants/${restaurantId}/orders/${orderId}`,
-        );
+        const order = await apiFetch<Order>(`/api/order-track/${encodeURIComponent(trackToken)}`);
         if (order) {
-          if (["DELIVERED", "CANCELLED", "REJECTED"].includes(order.status)) {
+          if (["ACCEPTED", "REJECTED", "REJECTED"].includes(order.status)) {
             // Terminal order — clear storage and don't restore as active
-            clearOrderStorage(restaurantId, order.tableNo ?? undefined);
+            // We can't clear easily without tableSessionId here, but we can clear "none".
+            clearOrderStorage(restaurantId, null);
             return;
           } else {
             setActiveOrder(order);
             prevStatusRef.current = order.status as OrderStatus;
-            setTrackUrl(`/api/track/stream?orderId=${order.id}`);
+            setTrackUrl(`/api/order-track/${encodeURIComponent(trackToken)}/stream`);
           }
         }
       } catch {
         throw new Error("restore_failed");
       }
     },
-    [activeOrder?.id],
+    [activeOrder?.trackToken],
   );
 
   const restoreFromStorage = useCallback(
-    async (restaurantId: string, tableNo?: number) => {
+    async (restaurantId: string, tableSessionId?: string | null) => {
       if (activeOrder) return; // already have an active order
       if (typeof window === "undefined") return;
-      const storedId = localStorage.getItem(orderStorageKey(restaurantId, tableNo));
-      if (storedId) {
+      let storedToken = localStorage.getItem(orderStorageKey(restaurantId, tableSessionId));
+      
+      // If we didn't find one for the specific session (or none), try to find ANY active token for this restaurant
+      if (!storedToken) {
+        const prefix = `himavolt:lastTrackToken:${restaurantId}:`;
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith(prefix)) {
+            storedToken = localStorage.getItem(key);
+            break;
+          }
+        }
+      }
+
+      if (storedToken) {
         try {
-          await restoreOrder(restaurantId, storedId);
+          await restoreOrder(restaurantId, storedToken);
         } catch {
-          clearOrderStorage(restaurantId, tableNo);
+          clearOrderStorage(restaurantId, tableSessionId);
         }
       }
     },

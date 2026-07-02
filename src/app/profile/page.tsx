@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   User,
@@ -26,6 +27,7 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
+import { rememberIntendedRole } from "@/lib/intended-role";
 import { useToast } from "@/context/ToastContext";
 import { apiFetch } from "@/lib/api-client";
 
@@ -59,8 +61,10 @@ export default function ProfilePage() {
   const [phone, setPhone] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
   
-  // Avatar state
-  const [avatarUploading, setAvatarUploading] = useState(false);
+  // Avatar state — overrides the Supabase-session avatar_url instantly on
+  // upload, since the DB's imageUrl and the auth session metadata are two
+  // separate stores that don't sync until the next full session refresh.
+  const [avatarOverride, setAvatarOverride] = useState<string | null>(null);
   
   // Deletion state
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -112,12 +116,8 @@ export default function ProfilePage() {
     }
   };
 
-  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setAvatarUploading(true);
-    try {
+  const avatarUploadMutation = useMutation({
+    mutationFn: async (file: File) => {
       // 1. Get signed upload URL
       const { signedUrl, publicUrl } = await apiFetch<{ signedUrl: string, publicUrl: string }>("/api/upload", {
         method: "POST",
@@ -135,7 +135,6 @@ export default function ProfilePage() {
         body: file,
         headers: { "Content-Type": file.type },
       });
-
       if (!uploadRes.ok) throw new Error("Upload failed");
 
       // 3. Update DB
@@ -144,14 +143,21 @@ export default function ProfilePage() {
         body: JSON.stringify({ imageUrl: publicUrl }),
       });
 
+      return publicUrl;
+    },
+    onSuccess: (publicUrl) => {
+      setAvatarOverride(publicUrl);
       showToast("Avatar updated", "success");
-      // Refresh to see change (auth context doesn't auto-sync DB imageUrl yet)
-      window.location.reload();
-    } catch (err: any) {
+    },
+    onError: (err: Error) => {
       showToast(err.message || "Failed to upload avatar", "error");
-    } finally {
-      setAvatarUploading(false);
-    }
+    },
+  });
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    avatarUploadMutation.mutate(file);
   };
 
   const handleDeleteAccount = async () => {
@@ -205,6 +211,7 @@ export default function ProfilePage() {
           </p>
           <Link
             href="/sign-in"
+            onClick={() => rememberIntendedRole("CUSTOMER")}
             className="inline-flex items-center gap-2 rounded-xl bg-[var(--accent)] px-6 py-3 text-sm font-bold text-white hover:bg-[var(--accent)]/90 transition-colors"
           >
             Sign In
@@ -220,6 +227,7 @@ export default function ProfilePage() {
     user.email?.split("@")[0] ??
     "User";
   const avatarUrl =
+    avatarOverride ||
     user.user_metadata?.avatar_url ||
     user.user_metadata?.picture ||
     null;
@@ -289,7 +297,7 @@ export default function ProfilePage() {
                     <User className="h-12 w-12" />
                   </div>
                 )}
-                {avatarUploading && (
+                {avatarUploadMutation.isPending && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm">
                     <Loader2 className="h-8 w-8 text-white animate-spin" />
                   </div>
@@ -303,7 +311,7 @@ export default function ProfilePage() {
                   className="hidden"
                   accept="image/*"
                   onChange={handleAvatarChange}
-                  disabled={avatarUploading}
+                  disabled={avatarUploadMutation.isPending}
                 />
               </label>
             </div>

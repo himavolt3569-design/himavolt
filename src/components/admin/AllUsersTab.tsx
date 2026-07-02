@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import {
   Search,
   RefreshCw,
@@ -60,9 +61,8 @@ function roleLabel(role: string) {
 }
 
 export default function AllUsersTab() {
-  const [users, setUsers] = useState<UserRecord[]>([]);
-  const [pagination, setPagination] = useState<Pagination | null>(null);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("All");
   const [page, setPage] = useState(1);
@@ -72,34 +72,37 @@ export default function AllUsersTab() {
   const [deleting, setDeleting] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
 
-  const fetchUsers = useCallback(
-    async (p = page) => {
-      setLoading(true);
-      try {
-        const params = new URLSearchParams({ page: String(p), limit: "30" });
-        if (search) params.set("search", search);
-        if (roleFilter !== "All") params.set("role", roleFilter);
-
-        const res = await fetch(`/api/admin/users?${params}`, { cache: "no-store" });
-        if (!res.ok) return;
-        const data = await res.json();
-        setUsers(data.users || []);
-        setPagination(data.pagination);
-      } catch {
-        // Network errors are non-fatal here — keep the last good list on screen.
-      } finally {
-        setLoading(false);
-      }
+  const usersQueryKey = ["admin-users", page, search, roleFilter] as const;
+  const usersQuery = useQuery({
+    queryKey: usersQueryKey,
+    queryFn: async () => {
+      const params = new URLSearchParams({ page: String(page), limit: "30" });
+      if (search) params.set("search", search);
+      if (roleFilter !== "All") params.set("role", roleFilter);
+      const res = await fetch(`/api/admin/users?${params}`, { cache: "no-store" });
+      if (!res.ok) throw new Error("Failed to load users");
+      const data = await res.json();
+      return { users: (data.users ?? []) as UserRecord[], pagination: data.pagination as Pagination };
     },
-    [page, search, roleFilter],
-  );
+    placeholderData: keepPreviousData,
+  });
+  const users = usersQuery.data?.users ?? [];
+  const pagination = usersQuery.data?.pagination ?? null;
+  const loading = usersQuery.isFetching;
+  const refreshUsers = () => queryClient.invalidateQueries({ queryKey: ["admin-users"] });
 
-  useEffect(() => {
-    fetchUsers(1);
-  }, [fetchUsers]);
+  const handleSearchChange = (val: string) => {
+    setSearchInput(val);
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    searchTimeoutRef.current = setTimeout(() => {
+      setSearch(val);
+      setPage(1);
+    }, 500);
+  };
 
-  const handleDelete = useCallback(async () => {
+  const handleDelete = async () => {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
@@ -109,8 +112,14 @@ export default function AllUsersTab() {
         body: JSON.stringify({ userId: deleteTarget.id }),
       });
       if (res.ok) {
-        setUsers((prev) => prev.filter((u) => u.id !== deleteTarget.id));
-        if (pagination) setPagination((p) => (p ? { ...p, total: p.total - 1 } : p));
+        queryClient.setQueryData<typeof usersQuery.data>(usersQueryKey, (prev) =>
+          prev
+            ? {
+                users: prev.users.filter((u) => u.id !== deleteTarget.id),
+                pagination: prev.pagination ? { ...prev.pagination, total: prev.pagination.total - 1 } : prev.pagination,
+              }
+            : prev,
+        );
       }
     } catch {
       /* silent */
@@ -118,9 +127,9 @@ export default function AllUsersTab() {
       setDeleting(false);
       setDeleteTarget(null);
     }
-  }, [deleteTarget, pagination]);
+  };
 
-  const handleBulkDelete = useCallback(async () => {
+  const handleBulkDelete = async () => {
     if (selectedIds.size === 0) return;
     setDeleting(true);
     try {
@@ -130,7 +139,14 @@ export default function AllUsersTab() {
         body: JSON.stringify({ ids: Array.from(selectedIds) }),
       });
       if (res.ok) {
-        fetchUsers(page);
+        queryClient.setQueryData<typeof usersQuery.data>(usersQueryKey, (prev) =>
+          prev
+            ? {
+                users: prev.users.filter((u) => !selectedIds.has(u.id)),
+                pagination: prev.pagination ? { ...prev.pagination, total: prev.pagination.total - selectedIds.size } : prev.pagination,
+              }
+            : prev,
+        );
         setSelectedIds(new Set());
       }
     } catch {
@@ -139,19 +155,25 @@ export default function AllUsersTab() {
       setDeleting(false);
       setBulkDeleteOpen(false);
     }
-  }, [selectedIds, page, fetchUsers]);
+  };
 
+  // Optimistic role flip — patches the row immediately instead of waiting on
+  // a full re-fetch of the page.
   const changeRole = async (userId: string, role: string) => {
     setChangingRole(userId);
+    const previous = queryClient.getQueryData<typeof usersQuery.data>(usersQueryKey);
+    queryClient.setQueryData<typeof usersQuery.data>(usersQueryKey, (prev) =>
+      prev ? { ...prev, users: prev.users.map((u) => (u.id === userId ? { ...u, role } : u)) } : prev,
+    );
     try {
       const res = await fetch("/api/admin/users", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, role }),
       });
-      if (res.ok) fetchUsers(page);
+      if (!res.ok) throw new Error("Failed");
     } catch {
-      /* silent */
+      if (previous) queryClient.setQueryData(usersQueryKey, previous);
     } finally {
       setChangingRole(null);
     }
@@ -162,28 +184,28 @@ export default function AllUsersTab() {
   return (
     <div className="space-y-6">
       {/* ── Controls ── */}
-      <div className="flex flex-col gap-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-4 rounded-[2rem] border border-gray-100 shadow-[0_4px_20px_rgb(0,0,0,0.02)] bg-white p-6 shadow-sm md:flex-row md:items-center md:justify-between">
         <div>
-          <h3 className="text-xl font-bold tracking-tight text-slate-900">Users</h3>
-          <p className="mt-0.5 text-sm text-slate-500">
+          <h3 className="text-xl font-bold tracking-tight text-gray-900 font-bold tracking-tight">Users</h3>
+          <p className="mt-0.5 text-sm text-gray-500 font-medium">
             {(pagination?.total ?? 0).toLocaleString()} total · search, filter and manage roles.
           </p>
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="relative">
-            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 font-semibold" />
             <input
               type="text"
               placeholder="Search name, email, phone…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-200 transition-all sm:w-64"
+              value={searchInput}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              className="w-full rounded-2xl border border-gray-100 shadow-[0_4px_20px_rgb(0,0,0,0.02)] bg-gray-50 py-2.5 pl-10 pr-4 text-sm text-gray-900 font-bold tracking-tight placeholder:text-gray-400 font-semibold focus:border-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-200 transition-all sm:w-64"
             />
           </div>
           <button
-            onClick={() => fetchUsers(page)}
-            className="flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 active:scale-[0.98] transition-all"
+            onClick={refreshUsers}
+            className="flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 active:scale-[0.98] transition-all"
           >
             <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
             Refresh
@@ -199,8 +221,8 @@ export default function AllUsersTab() {
             onClick={() => setRoleFilter(r)}
             className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all ${
               roleFilter === r
-                ? "bg-slate-900 text-white shadow-sm"
-                : "bg-white border border-slate-200 text-slate-500 hover:bg-slate-50"
+                ? "bg-gray-900 text-white shadow-xl shadow-gray-900/20 shadow-sm"
+                : "bg-white border border-gray-100 shadow-[0_4px_20px_rgb(0,0,0,0.02)] text-gray-500 font-medium hover:bg-gray-50"
             }`}
           >
             {r === "All" ? "All" : roleLabel(r)}
@@ -215,21 +237,21 @@ export default function AllUsersTab() {
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            className="flex items-center gap-3 rounded-2xl border border-rose-100 bg-rose-50 px-5 py-3"
+            className="flex items-center gap-3 rounded-3xl border border-rose-100 bg-rose-50 px-5 py-3"
           >
             <span className="text-sm font-semibold text-rose-600">
               {selectedIds.size} selected
             </span>
             <button
               onClick={() => setSelectedIds(new Set())}
-              className="text-xs font-medium text-slate-500 hover:text-slate-700"
+              className="text-xs font-medium text-gray-500 font-medium hover:text-slate-700"
             >
               Clear
             </button>
             <div className="flex-1" />
             <button
               onClick={() => setBulkDeleteOpen(true)}
-              className="flex items-center gap-2 rounded-xl bg-rose-600 px-4 py-2 text-xs font-semibold text-white hover:bg-rose-700 transition-colors"
+              className="flex items-center gap-2 rounded-2xl bg-rose-600 px-4 py-2 text-xs font-semibold text-white hover:bg-rose-700 transition-colors"
             >
               <Trash2 className="h-3.5 w-3.5" />
               Delete {selectedIds.size}
@@ -248,7 +270,7 @@ export default function AllUsersTab() {
           }
           className="h-4 w-4 rounded border-slate-300 accent-slate-900 cursor-pointer"
         />
-        <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+        <span className="text-xs font-semibold uppercase tracking-wider text-gray-400 font-semibold">
           Select all on this page
         </span>
       </div>
@@ -259,9 +281,9 @@ export default function AllUsersTab() {
           <Loader2 className="h-7 w-7 animate-spin text-slate-300" />
         </div>
       ) : users.length === 0 ? (
-        <div className="rounded-3xl border border-slate-200 bg-white py-20 text-center shadow-sm">
+        <div className="rounded-[2rem] border border-gray-100 shadow-[0_4px_20px_rgb(0,0,0,0.02)] bg-white py-20 text-center shadow-sm">
           <p className="text-sm font-semibold text-slate-700">No users found</p>
-          <p className="mt-1 text-sm text-slate-400">Try a different search or filter.</p>
+          <p className="mt-1 text-sm text-gray-400 font-semibold">Try a different search or filter.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -274,8 +296,8 @@ export default function AllUsersTab() {
               <motion.div
                 key={user.id}
                 layout
-                className={`overflow-hidden rounded-3xl border bg-white shadow-sm transition-all ${
-                  isExpanded ? "border-slate-300 shadow-md" : "border-slate-200 hover:border-slate-300"
+                className={`overflow-hidden rounded-[2rem] border bg-white shadow-sm transition-all ${
+                  isExpanded ? "border-slate-300 shadow-md" : "border-gray-100 shadow-[0_4px_20px_rgb(0,0,0,0.02)] hover:border-slate-300"
                 }`}
               >
                 <div className="flex items-center gap-4 p-4 md:p-5">
@@ -298,12 +320,12 @@ export default function AllUsersTab() {
                     className="relative shrink-0 cursor-pointer"
                     onClick={() => setExpandedId(isExpanded ? null : user.id)}
                   >
-                    <div className="h-12 w-12 overflow-hidden rounded-full border border-slate-200 bg-slate-50">
+                    <div className="h-12 w-12 overflow-hidden rounded-full border border-gray-100 shadow-[0_4px_20px_rgb(0,0,0,0.02)] bg-gray-50">
                       {user.imageUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={user.imageUrl} alt="" className="h-full w-full object-cover" />
                       ) : (
-                        <div className="flex h-full w-full items-center justify-center text-sm font-bold uppercase text-slate-400">
+                        <div className="flex h-full w-full items-center justify-center text-sm font-bold uppercase text-gray-400 font-semibold">
                           {user.name?.slice(0, 2) || "U"}
                         </div>
                       )}
@@ -321,7 +343,7 @@ export default function AllUsersTab() {
                     onClick={() => setExpandedId(isExpanded ? null : user.id)}
                   >
                     <div className="flex flex-wrap items-center gap-2">
-                      <h4 className="truncate text-sm font-bold text-slate-900">
+                      <h4 className="truncate text-sm font-bold text-gray-900 font-bold tracking-tight">
                         {user.name || "Unnamed user"}
                       </h4>
                       <span
@@ -342,8 +364,8 @@ export default function AllUsersTab() {
                         </span>
                       )}
                     </div>
-                    <p className="mt-0.5 flex items-center gap-1.5 truncate text-xs text-slate-500">
-                      <Mail className="h-3 w-3 shrink-0 text-slate-400" />
+                    <p className="mt-0.5 flex items-center gap-1.5 truncate text-xs text-gray-500 font-medium">
+                      <Mail className="h-3 w-3 shrink-0 text-gray-400 font-semibold" />
                       {user.email}
                     </p>
                   </div>
@@ -351,16 +373,16 @@ export default function AllUsersTab() {
                   {/* Counts */}
                   <div className="hidden items-center gap-6 sm:flex">
                     <div className="text-center">
-                      <p className="text-sm font-bold text-slate-900">{user._count.orders}</p>
-                      <p className="text-[10px] font-medium uppercase tracking-wide text-slate-400">
+                      <p className="text-sm font-bold text-gray-900 font-bold tracking-tight">{user._count.orders}</p>
+                      <p className="text-[10px] font-medium uppercase tracking-wide text-gray-400 font-semibold">
                         Orders
                       </p>
                     </div>
                     <div className="text-center">
-                      <p className="text-sm font-bold text-slate-900">
+                      <p className="text-sm font-bold text-gray-900 font-bold tracking-tight">
                         {user._count.ownedRestaurants}
                       </p>
-                      <p className="text-[10px] font-medium uppercase tracking-wide text-slate-400">
+                      <p className="text-[10px] font-medium uppercase tracking-wide text-gray-400 font-semibold">
                         Restaurants
                       </p>
                     </div>
@@ -370,14 +392,14 @@ export default function AllUsersTab() {
                     <p className="text-xs font-semibold text-slate-700">
                       {new Date(user.createdAt).toLocaleDateString()}
                     </p>
-                    <p className="text-[10px] font-medium uppercase tracking-wide text-slate-400">
+                    <p className="text-[10px] font-medium uppercase tracking-wide text-gray-400 font-semibold">
                       Joined
                     </p>
                   </div>
 
                   <button
                     onClick={() => setExpandedId(isExpanded ? null : user.id)}
-                    className="shrink-0 rounded-lg p-1.5 text-slate-400 hover:bg-slate-50 hover:text-slate-700"
+                    className="shrink-0 rounded-lg p-1.5 text-gray-400 font-semibold hover:bg-gray-50 hover:text-slate-700"
                     aria-label="Toggle details"
                   >
                     <ChevronDown
@@ -392,12 +414,12 @@ export default function AllUsersTab() {
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      className="overflow-hidden border-t border-slate-100 bg-slate-50/60"
+                      className="overflow-hidden border-t border-gray-100 bg-gray-50/60"
                     >
                       <div className="grid gap-8 p-5 md:grid-cols-3 md:p-6">
                         {/* Details */}
                         <div className="md:col-span-2">
-                          <h5 className="mb-4 text-xs font-semibold uppercase tracking-wider text-slate-400">
+                          <h5 className="mb-4 text-xs font-semibold uppercase tracking-wider text-gray-400 font-semibold">
                             Account details
                           </h5>
                           <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
@@ -416,11 +438,11 @@ export default function AllUsersTab() {
                               },
                             ].map((meta) => (
                               <div key={meta.label} className="min-w-0">
-                                <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                                <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-wide text-gray-400 font-semibold">
                                   {meta.label}
                                 </p>
                                 <p
-                                  className={`truncate text-sm font-semibold text-slate-900 ${
+                                  className={`truncate text-sm font-semibold text-gray-900 font-bold tracking-tight ${
                                     meta.mono ? "font-mono text-xs" : ""
                                   }`}
                                 >
@@ -432,9 +454,9 @@ export default function AllUsersTab() {
                         </div>
 
                         {/* Actions */}
-                        <div className="flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-5">
+                        <div className="flex flex-col gap-5 rounded-3xl border border-gray-100 shadow-[0_4px_20px_rgb(0,0,0,0.02)] bg-white p-5">
                           <div>
-                            <p className="mb-3 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                            <p className="mb-3 text-[10px] font-semibold uppercase tracking-wide text-gray-400 font-semibold">
                               Change role
                             </p>
                             <div className="grid grid-cols-3 gap-2">
@@ -445,8 +467,8 @@ export default function AllUsersTab() {
                                   disabled={changingRole === user.id || user.role === role}
                                   className={`flex items-center justify-center rounded-lg py-2 text-xs font-semibold transition-all disabled:cursor-not-allowed ${
                                     user.role === role
-                                      ? "bg-slate-900 text-white"
-                                      : "bg-slate-50 text-slate-600 hover:bg-slate-100 disabled:opacity-50"
+                                      ? "bg-gray-900 text-white shadow-xl shadow-gray-900/20"
+                                      : "bg-gray-50 text-slate-600 hover:bg-gray-100 disabled:opacity-50"
                                   }`}
                                 >
                                   {changingRole === user.id ? (
@@ -461,7 +483,7 @@ export default function AllUsersTab() {
 
                           <button
                             onClick={() => setDeleteTarget(user)}
-                            className="flex w-full items-center justify-center gap-2 rounded-xl bg-rose-50 py-2.5 text-xs font-semibold text-rose-600 hover:bg-rose-100 transition-colors"
+                            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-rose-50 py-2.5 text-xs font-semibold text-rose-600 hover:bg-rose-100 transition-colors"
                           >
                             <Trash2 className="h-3.5 w-3.5" /> Delete user
                           </button>
@@ -482,17 +504,17 @@ export default function AllUsersTab() {
           <button
             disabled={page <= 1}
             onClick={() => setPage((p) => p - 1)}
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 hover:text-slate-900 disabled:opacity-30 transition-all"
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-100 shadow-[0_4px_20px_rgb(0,0,0,0.02)] bg-white text-gray-500 font-medium hover:text-gray-900 font-bold tracking-tight disabled:opacity-30 transition-all"
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
-          <span className="rounded-full border border-slate-200 bg-white px-5 py-2 text-xs font-semibold text-slate-700 shadow-sm">
+          <span className="rounded-full border border-gray-100 shadow-[0_4px_20px_rgb(0,0,0,0.02)] bg-white px-5 py-2 text-xs font-semibold text-slate-700 shadow-sm">
             Page {page} of {pagination.totalPages}
           </span>
           <button
             disabled={page >= pagination.totalPages}
             onClick={() => setPage((p) => p + 1)}
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 hover:text-slate-900 disabled:opacity-30 transition-all"
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-100 shadow-[0_4px_20px_rgb(0,0,0,0.02)] bg-white text-gray-500 font-medium hover:text-gray-900 font-bold tracking-tight disabled:opacity-30 transition-all"
           >
             <ChevronRight className="h-5 w-5" />
           </button>

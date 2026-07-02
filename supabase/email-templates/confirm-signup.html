@@ -1,0 +1,61 @@
+<!--
+  HimaVolt-branded "Confirm signup" email template.
+
+  Where to paste: Supabase Dashboard -> Authentication -> Email Templates
+  -> "Confirm signup" tab -> replace the body with this file's contents.
+  Subject heading field: "Welcome to HimaVolt — confirm your email"
+
+  When this fires: only if your project has "Confirm email" enabled for
+  password-based signups (supabase.auth.signUp). The current app's email
+  flow uses signInWithOtp (see magic-link.html) for everything, so this
+  template is mostly a safety net / for future use — but Supabase ships it
+  by default, so it's worth branding too.
+
+  Double-check the "insert variable" list shown in this tab before saving —
+  {{ .ConfirmationURL }} and {{ .Email }} are safe, universal variables.
+-->
+<!doctype html>
+<html>
+  <body style="margin:0; padding:0; background-color:#fcfaf8; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#fcfaf8; padding: 32px 16px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width: 440px; background-color:#ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #eee0d2;">
+            <tr>
+              <td style="padding: 32px 32px 8px 32px; text-align:center;">
+                <div style="font-size: 22px; font-weight: 900; letter-spacing: -0.5px; color:#2c1a0e;">
+                  Hima<span style="color:#eaa94d;">Volt</span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 16px 32px 0 32px; text-align:center;">
+                <h1 style="margin:0 0 8px 0; font-size: 20px; color:#2c1a0e;">Welcome to HimaVolt 👋</h1>
+                <p style="margin:0; font-size: 14px; line-height:1.6; color:#5c4131;">
+                  Confirm your email address to finish setting up your account.
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 28px 32px; text-align:center;">
+                <a href="{{ .ConfirmationURL }}" style="display:inline-block; background-color:#eaa94d; color:#ffffff; text-decoration:none; font-weight:700; font-size:14px; padding: 14px 32px; border-radius: 12px;">
+                  Confirm Email
+                </a>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 0 32px 28px 32px; text-align:center;">
+                <p style="margin:0; font-size: 12px; color:#a08b76;">
+                  Didn&rsquo;t create this account? You can safely ignore this email.
+                </p>
+              </td>
+            </tr>
+          </table>
+          <p style="margin: 20px 0 0 0; font-size: 11px; color:#a08b76; text-align:center;">
+            HimaVolt &middot; Nepal&rsquo;s smart ordering &amp; restaurant management platform
+          </p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

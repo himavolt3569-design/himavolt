@@ -13,17 +13,14 @@ import { z } from "zod";
 import { restoreStock } from "@/lib/stock";
 
 const ORDER_STATUSES = [
+  "PENDING",
   "ACCEPTED",
-  "PREPARING",
-  "READY",
-  "DELIVERED",
-  "CANCELLED",
   "REJECTED",
 ] as const;
 
 const updateOrderSchema = z.object({
   status: z.enum(ORDER_STATUSES),
-  estimatedTime: z.number().int().positive().optional(),
+  rejectReason: z.string().max(255).optional(),
 });
 
 export async function GET(
@@ -46,7 +43,7 @@ export async function GET(
       tax: true,
       total: true,
       note: true,
-      estimatedTime: true,
+      
       deliveryAddress: true,
       deliveryLat: true,
       deliveryLng: true,
@@ -54,9 +51,9 @@ export async function GET(
       deliveryNote: true,
       deliveryFee: true,
       acceptedAt: true,
-      preparingAt: true,
-      readyAt: true,
-      deliveredAt: true,
+      
+      
+      
       createdAt: true,
       updatedAt: true,
       userId: true,
@@ -125,7 +122,7 @@ export async function PATCH(
       { status: 400 },
     );
   }
-  const { status, estimatedTime } = parsed.data;
+  const { status, rejectReason } = parsed.data;
 
   // ── Payment Gate: block ACCEPTED if digital payment not completed ──
   if (status === "ACCEPTED") {
@@ -154,16 +151,19 @@ export async function PATCH(
 
   const timestamps: Record<string, Date> = {};
   if (status === "ACCEPTED") timestamps.acceptedAt = new Date();
-  if (status === "PREPARING") timestamps.preparingAt = new Date();
-  if (status === "READY") timestamps.readyAt = new Date();
-  if (status === "DELIVERED") timestamps.deliveredAt = new Date();
 
   const order = await db.order.update({
     where: { id: orderId },
     data: {
       status,
       ...timestamps,
-      ...(estimatedTime !== undefined ? { estimatedTime } : {}),
+      ...(rejectReason !== undefined ? { rejectReason } : {}),
+      items: status === "ACCEPTED" ? {
+        updateMany: {
+          where: { kitchenStatus: "PENDING" },
+          data: { kitchenStatus: "ACCEPTED" }
+        }
+      } : undefined,
     },
     select: {
       id: true,
@@ -175,7 +175,7 @@ export async function PATCH(
       tax: true,
       total: true,
       note: true,
-      estimatedTime: true,
+      
       deliveryFee: true,
       createdAt: true,
       userId: true,
@@ -201,16 +201,16 @@ export async function PATCH(
 
   // Auto-update delivery status when order status changes
   if (order.delivery) {
-    if (status === "READY" && order.delivery.status === "PENDING") {
+    if (status === "ACCEPTED" && order.delivery.status === "PENDING") {
       // Order ready, delivery still pending — keep as pending for driver assignment
     }
-    if (status === "DELIVERED") {
+    if (status === "ACCEPTED") {
       await db.delivery.update({
         where: { orderId },
         data: { status: "DELIVERED", deliveredAt: new Date() },
       });
     }
-    if (status === "CANCELLED" || status === "REJECTED") {
+    if (status === "REJECTED") {
       await db.delivery.update({
         where: { orderId },
         data: {
@@ -222,8 +222,8 @@ export async function PATCH(
     }
   }
 
-  // Restore stock and clean up payments when order is cancelled or rejected (non-fatal)
-  if (status === "CANCELLED" || status === "REJECTED") {
+  // Restore stock, cancel payments, and cancel unprinted KOT jobs when rejected (non-fatal)
+  if (status === "REJECTED") {
     const orderWithItems = await db.order.findUnique({
       where: { id: orderId },
       select: { id: true, items: { select: { menuItemId: true, quantity: true } } },
@@ -235,12 +235,24 @@ export async function PATCH(
     }
 
     // Cancel pending payments
-    db.payment.updateMany({
-      where: { orderId, status: { in: ["PENDING", "AWAITING_VERIFICATION"] } },
-      data: { status: "FAILED", rejectionNote: `Order ${status.toLowerCase()} by staff` },
-    }).catch((err) =>
-      console.error("[Orders PATCH] Payment cleanup failed (non-fatal):", err),
-    );
+    db.payment
+      .updateMany({
+        where: { orderId, status: { in: ["PENDING", "AWAITING_VERIFICATION"] } },
+        data: { status: "FAILED", rejectionNote: `Order rejected by staff` },
+      })
+      .catch((err) =>
+        console.error("[Orders PATCH] Payment cleanup failed (non-fatal):", err),
+      );
+
+    // Cancel unprinted KOT jobs so the printer doesn't fire after rejection
+    db.printJob
+      .updateMany({
+        where: { orderId, type: "KOT", status: { in: ["PENDING", "RETRYING"] } },
+        data: { status: "FAILED", lastError: "Order rejected by staff" },
+      })
+      .catch((err) =>
+        console.error("[Orders PATCH] PrintJob cancel failed (non-fatal):", err),
+      );
   }
 
   logAudit({
@@ -248,14 +260,14 @@ export async function PATCH(
     entity: "Order",
     entityId: orderId,
     detail: `Order ${order.orderNo} status changed to ${status}`,
-    metadata: { orderNo: order.orderNo, status, estimatedTime },
+    metadata: { orderNo: order.orderNo, status, rejectReason },
     userId: actorId,
     restaurantId: id,
     ipAddress: getClientIp(req.headers),
   });
 
   // Notify counter staff when order is ready for pickup/serving
-  if (status === "READY") {
+  if (status === "ACCEPTED") {
     notifyCounterOrderReady(id, order.orderNo, order.tableNo).catch(
       (err: unknown) => {
         console.error("[Orders] Failed to send counter notification:", err);

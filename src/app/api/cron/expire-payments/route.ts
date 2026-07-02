@@ -58,7 +58,7 @@ export async function GET(req: NextRequest) {
     if (payment.order.status === "PENDING") {
       await db.order.update({
         where: { id: payment.orderId },
-        data: { status: "CANCELLED" },
+        data: { status: "REJECTED", rejectReason: "Payment expired" },
       });
       cancelledCount++;
     }
@@ -94,7 +94,7 @@ export async function GET(req: NextRequest) {
     await db.roomBooking.update({
       where: { id: hold.id },
       data: {
-        status: "CANCELLED",
+        status: "REJECTED",
         cancelledBy: "SYSTEM",
         cancelReason: "Reservation hold expired — payment not completed in time",
         cancelRequestedAt: new Date(),

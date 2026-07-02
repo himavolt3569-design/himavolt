@@ -27,6 +27,7 @@ export async function PATCH(
     "discount", "discountLabel", "isFeatured",
     "spiceLevel", "calories", "allergens",
     "isDrink", "drinkCategory", "stockEnabled", "stockQuantity",
+    "bottleCount", "volumeMl",
   ];
 
   const data: Record<string, unknown> = {};

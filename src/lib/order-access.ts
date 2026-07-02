@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createHmac, randomBytes, timingSafeEqual } from "crypto";
 import { getOrCreateUser } from "@/lib/auth";
 import { getStaffSession } from "@/lib/staff-auth";
+import { db } from "@/lib/db";
 
 /**
  * Per-order track tokens. The token is HMAC(orderId) using the JWT_SECRET, so
@@ -69,14 +70,20 @@ export async function canAccessOrder(
   const staff = await getStaffSession(req);
   if (staff && staff.restaurantId === order.restaurantId) return true;
 
-  // Authenticated owner of the order
-  if (order.userId) {
-    try {
-      const user = await getOrCreateUser();
-      if (user && user.id === order.userId) return true;
-    } catch {
-      // ignore — fall through to track-cookie check
+  // Authenticated owner of the order or restaurant owner
+  try {
+    const user = await getOrCreateUser();
+    if (user) {
+      if (order.userId && user.id === order.userId) return true;
+      
+      const restaurant = await db.restaurant.findUnique({
+        where: { id: order.restaurantId },
+        select: { ownerId: true }
+      });
+      if (restaurant && restaurant.ownerId === user.id) return true;
     }
+  } catch {
+    // ignore — fall through to track-cookie check
   }
 
   // Track-cookie path (guests + people with their own freshly-placed order).

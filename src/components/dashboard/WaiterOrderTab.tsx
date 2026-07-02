@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { apiFetch, peekApiCache } from "@/lib/api-client";
+import { newIdempotencyKey } from "@/lib/idempotency";
 import {
   Utensils,
   Search,
@@ -156,6 +157,7 @@ export default function WaiterOrderTab({ restaurantId }: { restaurantId: string 
       tableNo: selectedTable ?? undefined,
       guestName: guestName.trim() || undefined,
       note: fullNote,
+      idempotencyKey: newIdempotencyKey(),
       items: cart.map((c) => ({
         menuItemId: c.menuItemId,
         name: c.name,

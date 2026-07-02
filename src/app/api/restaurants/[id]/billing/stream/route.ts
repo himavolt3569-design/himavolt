@@ -67,11 +67,11 @@ export async function GET(
                 // ALL pending orders — unpaid ones go to biller first
                 { status: "PENDING" },
                 // Active kitchen orders (already accepted through billing)
-                { status: { in: ["ACCEPTED", "PREPARING", "READY"] } },
+                { status: { in: ["ACCEPTED", "ACCEPTED", "ACCEPTED"] } },
                 { isHeld: true },
                 // Recent completed
                 {
-                  status: { in: ["DELIVERED", "CANCELLED", "REJECTED"] },
+                  status: { in: ["ACCEPTED", "REJECTED", "REJECTED"] },
                   updatedAt: { gte: cutoff },
                 },
               ],
@@ -88,7 +88,7 @@ export async function GET(
               tax: true,
               total: true,
               note: true,
-              estimatedTime: true,
+              
               deliveryFee: true,
               isHeld: true,
               heldAt: true,

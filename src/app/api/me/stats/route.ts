@@ -9,7 +9,7 @@ export async function GET() {
   const [orderCount, spentAgg, ratingCount, topRestaurants] = await Promise.all([
     db.order.count({ where: { userId: user.id } }),
     db.order.aggregate({
-      where: { userId: user.id, status: "DELIVERED" },
+      where: { userId: user.id, status: "ACCEPTED" },
       _sum: { total: true },
     }),
     db.menuItemRating.count({ where: { userId: user.id } }),
@@ -32,7 +32,7 @@ export async function GET() {
 
   return NextResponse.json({
     totalOrders: orderCount,
-    totalSpent: spentAgg._sum.total ?? 0,
+    totalSpent: spentAgg._sum?.total ?? 0,
     ratingsGiven: ratingCount,
     favoriteRestaurant,
   });

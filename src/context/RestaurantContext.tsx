@@ -20,6 +20,7 @@ export interface StaffMember {
   createdAt: string;
   userId: string;
   restaurantId: string;
+  qrToken: string | null;
   user: {
     name: string;
     email: string;
@@ -150,6 +151,13 @@ function writeStoredRestaurantId(id: string | null) {
   }
 }
 
+// On a hard refresh the restaurant list is fetched exactly once. If that single
+// request fails (prod's 1-connection Prisma pool can 503 / time out during the
+// refresh request storm, or a brief session race returns 401), the dashboard
+// must not be permanently stranded with no restaurant — so we retry the load a
+// few times with exponential backoff before surfacing an empty state.
+const MAX_FETCH_RETRIES = 5;
+
 export function RestaurantProvider({ children }: { children: ReactNode }) {
   const { isSignedIn, isLoaded, refreshRole } = useAuth();
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
@@ -159,6 +167,11 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
   const [hasFetched, setHasFetched] = useState(false);
   const hasFetchedRef = useRef(false);
   const fetchingRef = useRef(false);
+  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const retryAttemptRef = useRef(0);
+  // Stable handle to the latest fetch fn so the backoff retry can re-invoke it
+  // without making fetchRestaurants depend on itself.
+  const fetchRef = useRef<() => Promise<void>>(async () => {});
 
   const fetchRestaurants = useCallback(async () => {
     if (!isSignedIn) {
@@ -173,6 +186,7 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
       setRestaurants(data);
       hasFetchedRef.current = true;
       setHasFetched(true);
+      retryAttemptRef.current = 0;
       setSelectedRestaurant((prev) => {
         // Prefer the current selection, then the last-selected (localStorage),
         // then the first restaurant — so we never land on a blank dashboard
@@ -186,13 +200,30 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
         );
       });
     } catch {
-      setRestaurants([]);
-      setHasFetched(true);
+      // Transient failure — keep any restaurants we already have (don't blank
+      // the dashboard) and retry with backoff. Only surface the empty/"create
+      // your first restaurant" state once retries are spent, so a flaky load
+      // doesn't wrongly look like an owner with zero restaurants.
+      if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
+      if (retryAttemptRef.current < MAX_FETCH_RETRIES) {
+        const delay = Math.min(1000 * 2 ** retryAttemptRef.current, 8000);
+        retryAttemptRef.current += 1;
+        retryTimerRef.current = setTimeout(() => {
+          void fetchRef.current();
+        }, delay);
+      } else {
+        setHasFetched(true);
+      }
     } finally {
       fetchingRef.current = false;
       setLoading(false);
     }
   }, [isSignedIn]);
+
+  // Keep the stable handle pointed at the latest fetch fn for the backoff retry.
+  useEffect(() => {
+    fetchRef.current = fetchRestaurants;
+  }, [fetchRestaurants]);
 
   const fetchIfNeeded = useCallback(async () => {
     if (hasFetchedRef.current || !isLoaded || !isSignedIn) return;
@@ -203,9 +234,21 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
     if (!isSignedIn) {
       hasFetchedRef.current = false;
       fetchingRef.current = false;
+      retryAttemptRef.current = 0;
+      if (retryTimerRef.current) {
+        clearTimeout(retryTimerRef.current);
+        retryTimerRef.current = null;
+      }
       setRestaurants([]);
     }
   }, [isSignedIn]);
+
+  // Clear any pending retry timer on unmount.
+  useEffect(() => {
+    return () => {
+      if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
+    };
+  }, []);
 
   // Patch a single restaurant in both the list and the current selection so a
   // mutation reflects on click without a full refetch round-trip.

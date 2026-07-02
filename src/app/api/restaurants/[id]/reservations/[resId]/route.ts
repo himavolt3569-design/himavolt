@@ -8,7 +8,7 @@ const VALID_STATUSES = [
   "PENDING",
   "CONFIRMED",
   "SEATED",
-  "CANCELLED",
+  "REJECTED",
   "NO_SHOW",
   "COMPLETED",
 ];

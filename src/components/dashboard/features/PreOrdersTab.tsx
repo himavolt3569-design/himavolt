@@ -35,7 +35,7 @@ interface PreOrderItem {
   specialInstructions: string;
   depositAmount: number;
   totalAmount: number;
-  status: "Pending" | "Baking" | "Ready" | "Picked Up";
+  status: "Pending" | "Ready" | "Picked Up";
   createdAt: string;
 }
 
@@ -68,13 +68,12 @@ const TIME_SLOTS = [
 ];
 
 const STATUS_COLORS: Record<PreOrderItem["status"], string> = {
-  Pending: "bg-[var(--accent-muted)] text-[var(--accent-text)] border-[var(--accent-border)]",
-  Baking: "bg-[var(--accent)] text-[var(--accent)] border-[var(--accent-border)]",
-  Ready: "bg-[var(--accent-muted)] text-[var(--accent-text)] border-[var(--accent-border)]",
-  "Picked Up": "bg-[var(--surface)] text-[var(--text-2)] border-[var(--border)]",
+  Pending: "bg-amber-100 text-amber-700",
+  Ready: "bg-green-100 text-green-700",
+  "Picked Up": "bg-[var(--surface)] text-[var(--text-2)]",
 };
 
-const STATUS_FLOW: PreOrderItem["status"][] = ["Pending", "Baking", "Ready", "Picked Up"];
+const STATUS_FLOW: PreOrderItem["status"][] = ["Pending", "Ready", "Picked Up"];
 
 export default function PreOrdersTab() {
   const [orders, setOrders] = useState<PreOrderItem[]>([]);
@@ -494,9 +493,7 @@ export default function PreOrdersTab() {
                           >
                             <Check className="w-3 h-3" />
                             {order.status === "Pending"
-                              ? "Start Baking"
-                              : order.status === "Baking"
-                              ? "Mark Ready"
+                              ? "Accept & Mark Ready"
                               : "Picked Up"}
                           </button>
                         </div>

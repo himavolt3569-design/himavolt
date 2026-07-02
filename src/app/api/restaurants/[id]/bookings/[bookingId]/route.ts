@@ -79,7 +79,7 @@ export async function PATCH(
     "CONFIRMED",
     "CHECKED_IN",
     "CHECKED_OUT",
-    "CANCELLED",
+    "REJECTED",
   ];
   if (status && !VALID_STATUSES.includes(status)) {
     return NextResponse.json(
@@ -106,7 +106,7 @@ export async function PATCH(
       where: { id: existing.roomId },
       data: { isAvailable: false },
     });
-  } else if (status === "CHECKED_OUT" || status === "CANCELLED") {
+  } else if (status === "CHECKED_OUT" || status === "REJECTED") {
     await db.room.update({
       where: { id: existing.roomId },
       data: { isAvailable: true },
@@ -134,7 +134,7 @@ export async function PATCH(
   }
 
   // Cancelling: stamp who/why, and flag a refund when money had been collected.
-  if (status === "CANCELLED") {
+  if (status === "REJECTED") {
     data.cancelledBy = cancelledBy ?? "HOTEL";
     data.cancelRequestedAt = existing.cancelRequestedAt ?? new Date();
     const wasPaid = existing.paymentStatus === "PAID" || existing.advancePaid;

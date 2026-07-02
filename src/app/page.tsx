@@ -7,13 +7,8 @@ import Navbar from "@/components/layout/Navbar";
 import LandingHero from "@/components/home/LandingHero";
 import TrustMarquee from "@/components/home/TrustMarquee";
 import LocationBar from "@/components/home/LocationBar";
-import FloatingCart from "@/components/shared/FloatingCart";
 import { LocationProvider } from "@/context/LocationContext";
 
-const FoodCategories = dynamic(
-  () => import("@/components/home/FoodCategories"),
-  { ssr: false },
-);
 const PopularFoods = dynamic(() => import("@/components/home/PopularFoods"), {
   ssr: false,
 });
@@ -33,13 +28,9 @@ const Testimonials = dynamic(() => import("@/components/home/Testimonials"), {
 const Footer = dynamic(() => import("@/components/layout/Footer"), {
   ssr: false,
 });
-const CartSidebar = dynamic(() => import("@/components/cart/CartSidebar"), {
-  ssr: false,
-});
 
 export default function Home() {
-  const [cartOpen, setCartOpen] = useState(false);
-  const [activeCategory, setActiveCategory] = useState("All");
+  const [activeCategory] = useState("All");
 
   return (
     <LocationProvider>
@@ -49,7 +40,7 @@ export default function Home() {
         transition={{ duration: 0.25, ease: "easeOut" }}
         className="min-h-screen relative bg-[var(--canvas)]"
       >
-        <Navbar onCartClick={() => setCartOpen(true)} />
+        <Navbar />
 
         <LocationBar />
 
@@ -68,10 +59,6 @@ export default function Home() {
         <Testimonials />
 
         <Footer />
-
-        <CartSidebar open={cartOpen} onClose={() => setCartOpen(false)} />
-
-        <FloatingCart onOpen={() => setCartOpen(true)} />
       </motion.main>
     </LocationProvider>
   );

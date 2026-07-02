@@ -21,6 +21,8 @@ import {
   REALTIME_EVENT,
   orderTopic,
   restaurantOrdersTopic,
+  restaurantKitchenTopic,
+  restaurantBillingTopic,
   restaurantBookingsTopic,
   adminTopic,
 } from "@/lib/realtime-topics";
@@ -29,6 +31,8 @@ export {
   REALTIME_EVENT,
   orderTopic,
   restaurantOrdersTopic,
+  restaurantKitchenTopic,
+  restaurantBillingTopic,
   restaurantBookingsTopic,
   adminTopic,
 };
@@ -95,10 +99,34 @@ export function notifyOrderChanged(
     { topic: adminTopic(), payload: { orderId, ...payload } },
   ];
   if (restaurantId) {
+    // Legacy compatibility (keep sending broadly if needed, but narrow down logic)
     messages.push({
       topic: restaurantOrdersTopic(restaurantId),
       payload: { orderId, ...payload },
     });
+
+    const hasPaymentChanges = "payment" in payload;
+    const hasKitchenChanges = "status" in payload || "reason" in payload || "items" in payload;
+    
+    if (hasPaymentChanges || payload.reason === "bill-changed") {
+      messages.push({
+        topic: restaurantBillingTopic(restaurantId),
+        payload: { orderId, ...payload },
+      });
+    }
+    if (hasKitchenChanges) {
+      messages.push({
+        topic: restaurantKitchenTopic(restaurantId),
+        payload: { orderId, ...payload },
+      });
+      // Billing also cares when new items are added or order is cancelled
+      if (!hasPaymentChanges) {
+        messages.push({
+          topic: restaurantBillingTopic(restaurantId),
+          payload: { orderId, ...payload },
+        });
+      }
+    }
   }
   void broadcast(messages);
 }

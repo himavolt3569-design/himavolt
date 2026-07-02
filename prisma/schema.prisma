@@ -17,6 +17,7 @@ model User {
   phone         String?
   imageUrl      String?
   role          UserRole @default(CUSTOMER)
+  hasPassword   Boolean   @default(true) @map("has_password")
   isDeleted     Boolean   @default(false) @map("is_deleted")
   deletedAt     DateTime? @map("deleted_at")
   isBlacklisted Boolean   @default(false) @map("is_blacklisted")
@@ -170,6 +171,7 @@ model Restaurant {
   loyaltyConfig        LoyaltyConfig?
   loyaltyRewards       LoyaltyReward[]
   loyaltyAccounts      LoyaltyAccount[]
+  printJobs            PrintJob[]
 
   @@index([ownerId])
   @@index([slug])
@@ -280,6 +282,7 @@ enum RestaurantType {
 model StaffMember {
   id        String    @id @default(cuid())
   pin       String
+  qrToken   String?   @unique @map("qr_token")
   role      StaffRole
   staffType StaffType @default(SHIFT_BASED)
   isActive  Boolean   @default(true)
@@ -411,6 +414,8 @@ model MenuItem {
   drinkCategory String? // "COLD" | "HOT" | "ALCOHOL"
   stockEnabled  Boolean @default(false) // track stock for this item
   stockQuantity Float   @default(0) // current stock count
+  bottleCount   Int?    // drinks: number of bottles in stock (Phase 2)
+  volumeMl      Int?    // drinks: volume per serving/bottle in ml (Phase 2)
 
   offerExpiresAt DateTime?
   offerStartedAt DateTime?
@@ -476,11 +481,8 @@ model Order {
   total         Float
   note          String?
   type          OrderType   @default(DINE_IN)
-  estimatedTime Int? // estimated prep time in minutes
   acceptedAt    DateTime?
-  preparingAt   DateTime?
-  readyAt       DateTime?
-  deliveredAt   DateTime?
+  rejectReason  String?
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
@@ -513,6 +515,16 @@ model Order {
   couponId       String?
   couponDiscount Float   @default(0) // discount amount applied from coupon
 
+  // ── Production order pipeline (Phase 2.5) — all additive/nullable ──
+  // `status`, `acceptedAt`, `rejectReason` above are reused, not duplicated.
+  sourceType     String? // TABLE_QR | HOTEL_ROOM_QR | POS | STAFF
+  trackToken     String? @unique // opaque public tracking token (/order-track/[trackToken])
+  idempotencyKey String? // restaurant-scoped duplicate-submit guard (see @@unique below)
+  kitchenStatus  String? // PENDING|ACCEPTED|REJECTED|PREPARING|READY|SERVED (layers on top of status)
+  rejectedAt     DateTime?
+  printedAt      DateTime?
+  roomBookingId  String? // links a HOTEL_ROOM_QR order to its RoomBooking
+
   items        OrderItem[]
   payment      Payment?
   bill         Bill?
@@ -521,6 +533,7 @@ model Order {
   tableSession TableSession?
   prepaidToken PrepaidToken? @relation(fields: [prepaidTokenId], references: [id])
   feedbacks    Feedback[]
+  printJobs    PrintJob[]
 
   @@index([restaurantId])
   @@index([userId])
@@ -532,16 +545,16 @@ model Order {
   @@index([restaurantId, status, createdAt])
   // Customer-side "my orders" view filters by (userId, createdAt desc).
   @@index([userId, createdAt])
+  // Restaurant-scoped idempotency (NOT global): a duplicate submit with the same
+  // (restaurantId, idempotencyKey) returns the existing order. NULLs are distinct
+  // in Postgres, so existing all-NULL rows never collide.
+  @@unique([restaurantId, idempotencyKey])
   @@map("orders")
 }
 
 enum OrderStatus {
   PENDING
   ACCEPTED
-  PREPARING
-  READY
-  DELIVERED
-  CANCELLED
   REJECTED
 }
 
@@ -557,6 +570,22 @@ model OrderItem {
   quantity Int
   price    Float
   addOns   String?
+
+  // Round marker: all items submitted together (initial order or one add-on
+  // batch) share this timestamp, set explicitly in code per batch. Lets the
+  // kitchen/live boards reconstruct ordering "rounds" and surface a new add-on
+  // round distinctly. @default(now()) only backfills legacy rows.
+  createdAt DateTime @default(now())
+
+  // ── Per-item kitchen status (Phase 2.5) — additive/nullable ──
+  kitchenStatus  String? // PENDING|ACCEPTED|REJECTED|PREPARING|READY|SERVED
+  rejectedReason String?
+  preparedAt     DateTime?
+  servedAt       DateTime?
+  // Snapshot of MenuItem.prepTime at order time, so the customer tracking page
+  // shows the prep time that was configured when the order was placed (a later
+  // menu edit must not retroactively change an existing order). Populated in 2.5c.
+  prepTimeSnapshot String?
 
   orderId    String
   order      Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
@@ -632,7 +661,40 @@ model Bill {
   orderId String @unique
   order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
+  printJobs PrintJob[]
+
   @@map("bills")
+}
+
+// ─── Print Outbox (Phase 2.5) ───────────────────────────────────────
+// Durable KOT/BILL print jobs so printing survives a closed kitchen tab and
+// supports atomic claim (PENDING → PRINTING) to avoid double-printing.
+model PrintJob {
+  id           String    @id @default(cuid())
+  restaurantId String
+  orderId      String?
+  billId       String?
+  type         String // KOT | BILL
+  status       String    @default("PENDING") // PENDING|PRINTING|PRINTED|FAILED|RETRYING
+  payload      Json
+  attempts     Int       @default(0)
+  lastError    String?
+  claimedBy    String? // print-client id that owns the current attempt
+  claimedAt    DateTime?
+  lockedUntil  DateTime? // claim lease expiry, so a dead client's job can be reclaimed
+  printedAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  order      Order?     @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  bill       Bill?      @relation(fields: [billId], references: [id], onDelete: SetNull)
+
+  @@index([restaurantId, status])
+  @@index([status, lockedUntil])
+  @@index([orderId])
+  @@index([billId])
+  @@map("print_jobs")
 }
 
 // ─── FCM Tokens ─────────────────────────────────────────────────────

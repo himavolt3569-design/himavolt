@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { apiFetch } from "@/lib/api-client";
 import { clearActiveTableSession } from "@/hooks/useActiveTableSession";
 
@@ -46,12 +46,17 @@ export function useTableSession(
   const [session, setSession] = useState<TableSession | null>(null);
   const [loading, setLoading] = useState(false);
   const [isRestored, setIsRestored] = useState(false);
+  // Prevents duplicate concurrent POSTs from the same hook instance
+  // (e.g. React Strict Mode double-effect in dev, rapid re-renders)
+  const initInflight = useRef(false);
 
   // Identity key for localStorage: prefer the secure QR token, else the table no.
   const idKey = qrToken ? `tok_${qrToken}` : tableNo;
 
   const initSession = useCallback(async () => {
     if (!restaurantId || (!tableNo && !qrToken)) return;
+    if (initInflight.current) return;
+    initInflight.current = true;
 
     setLoading(true);
     try {
@@ -87,12 +92,33 @@ export function useTableSession(
       // Silent failure — user can still browse
     } finally {
       setLoading(false);
+      initInflight.current = false;
     }
   }, [restaurantId, tableNo, qrToken, idKey]);
 
   useEffect(() => {
     initSession();
   }, [initSession]);
+
+  // Clear browsing session if user closes the tab before placing an order
+  useEffect(() => {
+    if (!session?.sessionToken || session.orderId || !restaurantId) return;
+
+    const handleUnload = () => {
+      // Send a beacon to the server to delete the browsing session
+      navigator.sendBeacon(
+        `/api/restaurants/${restaurantId}/table-session/browse/clear`,
+        JSON.stringify({ sessionToken: session.sessionToken })
+      );
+    };
+
+    window.addEventListener("pagehide", handleUnload);
+    window.addEventListener("beforeunload", handleUnload);
+    return () => {
+      window.removeEventListener("pagehide", handleUnload);
+      window.removeEventListener("beforeunload", handleUnload);
+    };
+  }, [session?.sessionToken, session?.orderId, restaurantId]);
 
   const refreshSession = useCallback(async () => {
     const effectiveTableNo = session?.tableNo ?? tableNo;
@@ -143,7 +169,7 @@ export function useTableSession(
     loading,
     isRestored,
     order: session?.order ?? null,
-    hasActiveOrder: !!session?.order && session.order.status !== "DELIVERED" && session.order.status !== "CANCELLED",
+    hasActiveOrder: !!session?.order && session.order.status !== "ACCEPTED" && session.order.status !== "REJECTED",
     getBill,
     refreshSession,
   };

@@ -78,7 +78,6 @@ const TableReservationsTab = lazyTab(() => import("@/components/dashboard/featur
 const WaitlistTab = lazyTab(() => import("@/components/dashboard/features/WaitlistTab"));
 const PrivateDiningTab = lazyTab(() => import("@/components/dashboard/features/PrivateDiningTab"));
 const WifiSettingsTab = lazyTab(() => import("@/components/dashboard/features/WifiSettingsTab"));
-const DrinksTab = lazyTab(() => import("@/components/dashboard/DrinksTab"));
 const GuestCheckInTab = lazyTab(() => import("@/components/dashboard/GuestCheckInTab"));
 const MediaTab = lazyTab(() => import("@/components/dashboard/MediaTab"));
 const ManualBillingTab = lazyTab(() => import("@/components/dashboard/ManualBillingTab"));
@@ -115,7 +114,9 @@ const COMPONENTS: Record<string, React.ComponentType<any>> = {
   rooms: HotelHubTab,
   "owner-control": OwnerControlPanel,
   stories: StoryManager,
-  drinks: DrinksTab,
+  // Drinks merged into Stock — /dashboard/drinks deep-links to the Stock page's
+  // Drinks tab (initialStockTab set in the props mapping below).
+  drinks: StockTab,
   "manual-billing": ManualBillingTab,
   feedback: FeedbackTab,
   printing: PrintingSettingsTab,
@@ -270,7 +271,13 @@ export default function DynamicDashboardTab({ params }: { params: Promise<{ tab:
 
   // Props mapping for specific components
   const props: any = { restaurantId: selectedRestaurant?.id };
-  
+
+  // Legacy /dashboard/drinks deep-link opens the merged Stock page on its
+  // Drinks tab.
+  if (tab === "drinks") {
+    props.initialStockTab = "drinks";
+  }
+
   if (tab === "manual-billing") {
     props.currency = selectedRestaurant?.currency ?? "NPR";
     props.restaurantName = selectedRestaurant?.name ?? "";
