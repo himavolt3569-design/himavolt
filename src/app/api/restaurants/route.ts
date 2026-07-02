@@ -15,6 +15,7 @@ const staffSelect = {
   createdAt: true,
   userId: true,
   restaurantId: true,
+  qrToken: true,
   user: {
     select: {
       name: true,
