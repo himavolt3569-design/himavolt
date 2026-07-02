@@ -6,11 +6,15 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-sans: var(--font-inter);
-  --font-serif: var(--font-fraunces);
-  --font-display: var(--font-syne);
-  --font-fraunces: var(--font-fraunces);
-  --font-syne: var(--font-syne);
+  /* Poppins is the only typeface in the app. Every font token below still
+     exists so existing font-sans/font-serif/font-display/font-fraunces/
+     font-syne classes across the codebase keep working — they all just
+     resolve to Poppins now instead of pulling in separate display faces. */
+  --font-sans: var(--font-poppins);
+  --font-serif: var(--font-poppins);
+  --font-display: var(--font-poppins);
+  --font-fraunces: var(--font-poppins);
+  --font-syne: var(--font-poppins);
   --font-poppins: var(--font-poppins);
   --font-mono: var(--font-geist-mono);
 
@@ -141,15 +145,15 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-fraunces), serif;
+    font-family: var(--font-poppins), sans-serif;
     letter-spacing: -0.03em;
     font-weight: 700;
   }
 
   /* Fun accent highlights */
   .text-fun {
-    font-family: var(--font-syne), sans-serif;
-    letter-spacing: -0.05em;
+    font-family: var(--font-poppins), sans-serif;
+    letter-spacing: -0.03em;
     font-weight: 800;
     text-transform: uppercase;
   }
