@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
 import {
   Plus,
   Search,
@@ -32,7 +33,7 @@ import {
   type Restaurant,
   type StaffMember,
 } from "@/context/RestaurantContext";
-import { apiFetch, peekApiCache } from "@/lib/api-client";
+import { apiFetch } from "@/lib/api-client";
 import { SkeletonLine, SkeletonGrid } from "@/components/shared/Skeleton";
 import { AnchoredMenu } from "@/components/shared/AnchoredMenu";
 import ShiftsTab from "./ShiftsTab";
@@ -631,32 +632,18 @@ function StaffDirectoryView({
 }
 
 function AttendanceLogsView({ restaurantId }: { restaurantId: string }) {
-  // Seed from the warm GET cache (warmed on nav hover) so switching to the
-  // Attendance tab paints instantly instead of showing "Loading attendance…".
-  const logsPath = restaurantId ? `/api/restaurants/${restaurantId}/attendance` : "";
-  const [logs, setLogs] = useState<AttendanceLog[]>(() => peekApiCache<AttendanceLog[]>(logsPath) ?? []);
-  const [loading, setLoading] = useState(() => !peekApiCache(logsPath));
+  // Query cache paints instantly on tab revisit instead of showing
+  // "Loading attendance…" every time.
+  const logsQuery = useQuery({
+    queryKey: ["attendance-logs", restaurantId],
+    queryFn: () => apiFetch<AttendanceLog[]>(`/api/restaurants/${restaurantId}/attendance`),
+    enabled: !!restaurantId,
+  });
+  const logs = logsQuery.data ?? [];
+  const loading = logsQuery.isLoading;
   const [dateFilter, setDateFilter] = useState<string>("");
 
-  const loadLogs = useCallback(async () => {
-    if (!restaurantId) return;
-    try {
-      const data = await apiFetch<AttendanceLog[]>(
-        `/api/restaurants/${restaurantId}/attendance`,
-      );
-      setLogs(data ?? []);
-    } catch {
-      setLogs([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [restaurantId]);
-
-  useEffect(() => {
-    loadLogs();
-  }, [loadLogs]);
-
-  if (loading && logs.length === 0) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center py-20 gap-2 text-[var(--text-3)]">
         <Loader2 className="h-5 w-5 animate-spin" />

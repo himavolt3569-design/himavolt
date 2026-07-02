@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft, Search, SlidersHorizontal, ChevronDown,
@@ -99,8 +100,12 @@ function getOfferBadge(index: number): OfferBadge {
 }
 
 export default function OffersPage() {
-  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
-  const [loading, setLoading] = useState(true);
+  const restaurantsQuery = useQuery({
+    queryKey: ["public-restaurants", "offers"],
+    queryFn: () => apiFetch<Restaurant[]>("/api/public/restaurants?limit=20"),
+  });
+  const restaurants = restaurantsQuery.data ?? [];
+  const loading = restaurantsQuery.isLoading;
   const [wishlist, setWishlist] = useState<Set<string>>(new Set());
   const [sortBy, setSortBy] = useState<SortOption>("relevance");
   const [vegFilter, setVegFilter] = useState<VegFilter>("all");
@@ -110,13 +115,6 @@ export default function OffersPage() {
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [showVegMenu, setShowVegMenu] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    apiFetch<Restaurant[]>("/api/public/restaurants?limit=20")
-      .then(setRestaurants)
-      .catch(() => setRestaurants([]))
-      .finally(() => setLoading(false));
-  }, []);
 
   useEffect(() => {
     if (searchOpen) searchInputRef.current?.focus();

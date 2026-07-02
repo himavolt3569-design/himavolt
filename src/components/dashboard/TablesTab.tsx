@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import QRCode from "react-qr-code";
 import {
   Utensils, Plus, Trash2, Edit2, Check, X, Loader2,
@@ -11,7 +12,7 @@ import {
 import { formatPrice } from "@/lib/currency";
 import { useToast } from "@/context/ToastContext";
 import { buildQRCanvas } from "@/components/dashboard/qr/qrCanvas";
-import { apiFetch, peekApiCache } from "@/lib/api-client";
+import { apiFetch } from "@/lib/api-client";
 import { openBillWindow } from "@/lib/print-bill";
 import QRCodesTab from "./QRCodesTab";
 
@@ -197,15 +198,34 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
   const rid  = restaurantId;
   const cur  = currency;
   const canManage = true; // staff portal — management allowed for all who have table tab access
-  const tablesPath = rid ? `/api/restaurants/${rid}/tables` : "";
+  const queryClient = useQueryClient();
 
-  // Seed from the in-memory API cache so a re-opened Tables page paints instantly.
-  const seeded = peekApiCache<{ tables?: TableData[]; restaurant?: { slug?: string; name?: string } }>(tablesPath);
-  const [tables,   setTables]   = useState<TableData[]>(() => seeded?.tables ?? []);
-  const [meta,     setMeta]     = useState<{ slug: string; name: string } | null>(
-    () => seeded?.restaurant ? { slug: seeded.restaurant.slug ?? "", name: seeded.restaurant.name ?? "" } : null,
-  );
-  const [loading,  setLoading]  = useState(() => !seeded);
+  // Query cache paints instantly on tab revisit; refetchInterval replaces
+  // the old manual 30s setInterval poll.
+  const tablesQueryKey = ["tables", rid] as const;
+  const tablesQuery = useQuery({
+    queryKey: tablesQueryKey,
+    queryFn: () =>
+      apiFetch<{ tables?: TableData[]; restaurant?: { slug?: string; name?: string } }>(
+        `/api/restaurants/${rid}/tables`,
+      ),
+    enabled: !!rid,
+    refetchInterval: 30_000,
+  });
+  const tables = tablesQuery.data?.tables ?? [];
+  const meta = tablesQuery.data?.restaurant
+    ? { slug: tablesQuery.data.restaurant.slug ?? "", name: tablesQuery.data.restaurant.name ?? "" }
+    : null;
+  const loading = tablesQuery.isLoading;
+  // Kept as a React.SetStateAction-compatible shim so the existing
+  // optimistic-update handlers below (which already do their own
+  // snapshot/rollback) don't need to change at all.
+  const setTables = (updater: React.SetStateAction<TableData[]>) =>
+    queryClient.setQueryData<typeof tablesQuery.data>(tablesQueryKey, (prev) => ({
+      restaurant: prev?.restaurant,
+      tables: typeof updater === "function" ? (updater as (p: TableData[]) => TableData[])(prev?.tables ?? []) : updater,
+    }));
+  const load = (_fresh = false) => queryClient.invalidateQueries({ queryKey: tablesQueryKey });
   const [selected, setSelected] = useState<TableData | null>(null);
   const [qrTable,  setQrTable]  = useState<TableData | null>(null);
   const [clearingId, setClearingId] = useState<string | null>(null);
@@ -232,27 +252,6 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
   const [editLabel, setEditLabel] = useState("");
   const [editCap,   setEditCap]   = useState("");
   const [editSaving,setEditSaving]= useState(false);
-
-  const load = useCallback(async (fresh = false) => {
-    if (!rid) return;
-    try {
-      const data = await apiFetch<{ tables?: TableData[]; restaurant?: { slug?: string; name?: string } }>(
-        `/api/restaurants/${rid}/tables`,
-        { cacheTtl: fresh ? 0 : 20_000 },
-      );
-      setTables(data.tables ?? []);
-      if (data.restaurant) setMeta({ slug: data.restaurant.slug ?? "", name: data.restaurant.name ?? "" });
-    } catch {
-      // silent on poll failures — table data is non-critical background refresh
-    }
-    setLoading(false);
-  }, [rid]);
-
-  useEffect(() => {
-    load();
-    const iv = setInterval(() => load(true), 30000);
-    return () => clearInterval(iv);
-  }, [load]);
 
   const handleAdd = async () => {
     if (!rid || addSaving) {

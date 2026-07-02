@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Plus,
   Trash2,
@@ -22,7 +23,8 @@ import {
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { formatPrice } from "@/lib/currency";
-import { apiFetch, peekApiCache } from "@/lib/api-client";
+import { apiFetch } from "@/lib/api-client";
+import { cn } from "@/lib/utils";
 import { useToast } from "@/context/ToastContext";
 import { uploadFile } from "@/lib/upload";
 import QRCode from "react-qr-code";
@@ -66,10 +68,13 @@ interface Booking {
   guestEmail: string | null;
   checkIn: string;
   checkOut: string;
-  guests: number;
+  nights: number;
+  adults: number;
+  children: number;
   advanceAmount: number;
-  totalAmount: number;
-  note: string | null;
+  advancePaid: boolean;
+  totalPrice: number;
+  notes: string | null;
   status: BookingStatus;
   createdAt: string;
   room?: { roomNumber: string; name: string; type: RoomType };
@@ -156,44 +161,21 @@ export default function RoomManagementTab() {
   if (!restaurant) return null;
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto pb-12">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-3">
-            <h2 className="text-2xl font-extrabold tracking-tight text-[var(--text-1)]">
-              Room Management
-            </h2>
-          </div>
-          <p className="mt-1.5 text-sm font-medium text-[var(--text-2)]">
-            Manage rooms &amp; bookings for{" "}
-            <strong className="text-[var(--text-1)]">{restaurant.name}</strong>
-          </p>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-4 border-b border-[var(--border)]/60 pb-px">
-        <button
-          onClick={() => setActiveTab("rooms")}
-          className={`group flex items-center gap-2 border-b-2 px-2 py-3 text-sm font-extrabold transition-all outline-none ${
-            activeTab === "rooms"
-              ? "border-[var(--accent)] text-[var(--accent-text)]"
-              : "border-transparent text-[var(--text-2)] hover:border-[var(--border)] hover:text-[var(--text-2)]"
-          }`}
-        >
-          <BedDouble className="h-4 w-4" />
-          Rooms
-        </button>
-        <button
-          onClick={() => setActiveTab("bookings")}
-          className={`group flex items-center gap-2 border-b-2 px-2 py-3 text-sm font-extrabold transition-all outline-none ${
-            activeTab === "bookings"
-              ? "border-[var(--accent)] text-[var(--accent-text)]"
-              : "border-transparent text-[var(--text-2)] hover:border-[var(--border)] hover:text-[var(--text-2)]"
-          }`}
-        >
-          <Calendar className="h-4 w-4" />
-          Bookings
-        </button>
+    <div className="space-y-4">
+      <div className="flex items-center gap-1 p-1 rounded-xl bg-[var(--canvas-sub)] ring-1 ring-[var(--border)] w-fit">
+        {(["rooms", "bookings"] as const).map((t) => (
+          <button
+            key={t}
+            onClick={() => setActiveTab(t)}
+            className={cn(
+              "flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-[13px] font-bold capitalize transition-all",
+              activeTab === t ? "bg-[var(--canvas)] text-[var(--text-1)] shadow-sm" : "text-[var(--text-3)] hover:text-[var(--text-1)]"
+            )}
+          >
+            {t === "rooms" ? <BedDouble className="h-3.5 w-3.5" /> : <Calendar className="h-3.5 w-3.5" />}
+            {t}
+          </button>
+        ))}
       </div>
 
       {activeTab === "rooms" ? (
@@ -209,10 +191,19 @@ export default function RoomManagementTab() {
 
 function RoomsView({ restaurantId, currency, slug, hotelName }: { restaurantId: string; currency: string; slug: string; hotelName: string }) {
   const { showToast } = useToast();
-  const roomsPath = `/api/restaurants/${restaurantId}/rooms`;
-  // Seed from the in-memory API cache so the rooms grid paints instantly.
-  const [rooms, setRooms] = useState<Room[]>(() => peekApiCache<Room[]>(roomsPath) ?? []);
-  const [loading, setLoading] = useState(() => !peekApiCache(roomsPath));
+  const queryClient = useQueryClient();
+  const roomsQueryKey = ["rooms", restaurantId] as const;
+  const roomsQuery = useQuery({
+    queryKey: roomsQueryKey,
+    queryFn: () => apiFetch<Room[]>(`/api/restaurants/${restaurantId}/rooms`),
+    enabled: !!restaurantId,
+  });
+  const rooms = roomsQuery.data ?? [];
+  const loading = roomsQuery.isLoading;
+  const setRooms = (updater: React.SetStateAction<Room[]>) =>
+    queryClient.setQueryData<Room[]>(roomsQueryKey, (prev) =>
+      typeof updater === "function" ? (updater as (p: Room[]) => Room[])(prev ?? []) : updater,
+    );
   const [showForm, setShowForm] = useState(false);
   const [editingRoom, setEditingRoom] = useState<Room | null>(null);
   const [form, setForm] = useState(BLANK_ROOM);
@@ -220,21 +211,6 @@ function RoomsView({ restaurantId, currency, slug, hotelName }: { restaurantId: 
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
   const [showQrId, setShowQrId] = useState<string | null>(null);
-
-  const fetchRooms = useCallback(async () => {
-    try {
-      const data = await apiFetch<Room[]>(`/api/restaurants/${restaurantId}/rooms`);
-      setRooms(Array.isArray(data) ? data : []);
-    } catch {
-      setRooms([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [restaurantId]);
-
-  useEffect(() => {
-    fetchRooms();
-  }, [fetchRooms]);
 
   const openCreate = () => {
     setEditingRoom(null);
@@ -367,27 +343,28 @@ function RoomsView({ restaurantId, currency, slug, hotelName }: { restaurantId: 
   const occupiedRooms = totalRooms - availableRooms;
 
   return (
-    <div className="space-y-5">
-      <div className="grid grid-cols-3 gap-3">
-        {[
-          { label: "Total Rooms", value: totalRooms, color: "text-[var(--text-1)]" },
-          { label: "Available", value: availableRooms, color: "text-[var(--accent-text)]" },
-          { label: "Occupied", value: occupiedRooms, color: "text-[var(--accent-text)]" },
-        ].map((stat) => (
-          <div
-            key={stat.label}
-            className="rounded-2xl bg-[var(--canvas)]/70 backdrop-blur-md border border-[var(--border-soft)]/50 p-4 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)]"
-          >
-            <p className="text-xs font-semibold text-[var(--text-2)]">{stat.label}</p>
-            <p className={`text-2xl font-black ${stat.color}`}>{stat.value}</p>
+    <div className="space-y-4">
+      <div className="flex items-center gap-3">
+        <div className="grid grid-cols-3 gap-2.5 flex-1">
+          <div className="rounded-2xl bg-[var(--canvas)] ring-1 ring-[var(--border)] p-4">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-3)]">Total</p>
+            <p className="text-[28px] font-black text-[var(--text-1)] leading-none">{totalRooms}</p>
+            <p className="text-[10px] text-[var(--text-3)] mt-0.5">rooms</p>
           </div>
-        ))}
-      </div>
-
-      <div className="flex justify-end">
+          <div className="rounded-2xl bg-green-50 ring-1 ring-green-200 p-4">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-green-700">Available</p>
+            <p className="text-[28px] font-black text-green-700 leading-none">{availableRooms}</p>
+            <p className="text-[10px] text-green-600 mt-0.5">rooms free</p>
+          </div>
+          <div className="rounded-2xl bg-amber-50 ring-1 ring-amber-200 p-4">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-amber-700">Occupied</p>
+            <p className="text-[28px] font-black text-amber-700 leading-none">{occupiedRooms}</p>
+            <p className="text-[10px] text-amber-600 mt-0.5">rooms taken</p>
+          </div>
+        </div>
         <button
           onClick={openCreate}
-          className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] px-5 py-2.5 text-sm font-bold text-white shadow-[0_4px_14px_0_rgba(245,158,11,0.39)] transition-all hover:shadow-[0_6px_20px_rgba(245,158,11,0.23)] hover:-translate-y-0.5 active:scale-[0.97]"
+          className="flex items-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-2.5 text-[13px] font-bold text-white shadow-md shadow-[var(--accent)]/20 hover:bg-[var(--accent-hover)] active:scale-[0.97] transition-all self-center shrink-0"
         >
           <Plus className="h-4 w-4" strokeWidth={2.5} />
           Add Room
@@ -398,141 +375,90 @@ function RoomsView({ restaurantId, currency, slug, hotelName }: { restaurantId: 
         <div className="flex flex-col items-center py-16 text-center">
           <BedDouble className="h-10 w-10 text-[var(--text-3)] mb-3" />
           <p className="font-bold text-[var(--text-2)]">No rooms yet</p>
-          <p className="text-sm text-[var(--text-3)] mt-1">
-            Add your first room to start managing bookings
-          </p>
+          <p className="text-sm text-[var(--text-3)] mt-1">Add your first room to start managing bookings</p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
           {rooms.map((room, i) => {
-              const typeColors = ROOM_TYPE_COLORS[room.type];
-              const isQrOpen = showQrId === room.id;
-              return (
+            const isQrOpen = showQrId === room.id;
+            return (
               <div
                 key={room.id}
-                className={`rounded-2xl overflow-hidden border transition-all ${
-                  isQrOpen
-                    ? "border-[var(--accent-border)] shadow-[0_4px_20px_-4px_rgba(0,0,0,0.08)]"
-                    : "border-[var(--border-soft)] shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)]"
-                }`}
+                className="rounded-2xl border border-[var(--border-soft)] bg-[var(--canvas)] overflow-hidden shadow-sm hover:shadow-md hover:border-[var(--border)] transition-all group"
               >
-                <motion.div
-                  layout
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.03 }}
-                  className="group flex items-center gap-4 bg-[var(--canvas)]/90 backdrop-blur-xl p-4"
-                >
-                  <div className={`h-12 w-12 shrink-0 rounded-2xl overflow-hidden ${typeColors.bg}`}>
-                    {room.imageUrls?.length > 0 ? (
-                      <img
-                        src={room.imageUrls[0]}
-                        alt={room.name}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center">
-                        <BedDouble className={`h-5 w-5 ${typeColors.text}`} />
-                      </div>
+                <div className="relative aspect-[4/3] bg-[var(--canvas-sub)]">
+                  {room.imageUrls?.length > 0 ? (
+                    <img src={room.imageUrls[0]} alt={room.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="flex h-full items-center justify-center">
+                      <BedDouble className="h-10 w-10 text-[var(--border)]" />
+                    </div>
+                  )}
+                  <div className="absolute top-2.5 left-2.5 flex gap-1.5">
+                    <span className={cn("rounded-full px-2.5 py-0.5 text-[10px] font-black shadow-sm",
+                      room.isAvailable ? "bg-green-500 text-white" : "bg-rose-500 text-white"
+                    )}>
+                      {room.isAvailable ? "Available" : "Occupied"}
+                    </span>
+                    <span className="rounded-full bg-black/40 backdrop-blur-sm px-2.5 py-0.5 text-[10px] font-bold text-white">
+                      {room.type}
+                    </span>
+                  </div>
+                  <div className="absolute bottom-2.5 right-2.5 flex h-8 min-w-[32px] items-center justify-center rounded-xl bg-black/50 backdrop-blur-sm px-2">
+                    <span className="text-[12px] font-black text-white">#{room.roomNumber}</span>
+                  </div>
+                </div>
+
+                <div className="p-3.5">
+                  <div className="flex items-start justify-between gap-2 mb-1.5">
+                    <p className="text-[14px] font-bold text-[var(--text-1)] leading-tight truncate">{room.name}</p>
+                    <p className="text-[14px] font-black text-[var(--accent-text)] shrink-0 leading-tight">
+                      {formatPrice(room.price, currency)}<span className="text-[10px] font-semibold text-[var(--text-3)]">/n</span>
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 text-[11px] text-[var(--text-3)] mb-2.5 flex-wrap">
+                    <span>Floor {room.floor}</span>
+                    <span>·</span>
+                    <span className="flex items-center gap-0.5"><Users className="h-3 w-3" /> {room.maxGuests}</span>
+                    {room.bedType && (
+                      <><span>·</span><span className="flex items-center gap-0.5"><BedDouble className="h-3 w-3" /> {room.bedCount > 1 ? `${room.bedCount}× ` : ""}{room.bedType}</span></>
                     )}
                   </div>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h4 className="font-bold text-[var(--text-1)] truncate">
-                        #{room.roomNumber} &mdash; {room.name}
-                      </h4>
-                      <span
-                        className={`shrink-0 rounded-md border px-2 py-0.5 text-[10px] font-bold ${typeColors.bg} ${typeColors.text} ${typeColors.border}`}
-                      >
-                        {room.type}
-                      </span>
-                      <span
-                        className={`shrink-0 rounded-md border px-2 py-0.5 text-[10px] font-bold ${
-                          room.isAvailable
-                            ? "bg-[var(--accent-muted)] text-[var(--accent-text)] border-[var(--accent-border)]"
-                            : "bg-[var(--status-error-bg)] text-[var(--status-error-text)] border-[var(--status-error-bg)]"
-                        }`}
-                      >
-                        {room.isAvailable ? "Available" : "Occupied"}
-                      </span>
+                  {room.amenities.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mb-3">
+                      {room.amenities.slice(0, 4).map((a) => (
+                        <span key={a} className="rounded-md bg-[var(--canvas-sub)] px-2 py-0.5 text-[10px] font-medium text-[var(--text-3)]">{a}</span>
+                      ))}
+                      {room.amenities.length > 4 && <span className="text-[10px] text-[var(--text-3)] py-0.5">+{room.amenities.length - 4}</span>}
                     </div>
-                    <div className="flex items-center gap-3 mt-1 text-xs text-[var(--text-2)]">
-                      <span className="font-semibold">
-                        {formatPrice(room.price, currency)}/night
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Users className="h-3 w-3" />
-                        Max {room.maxGuests}
-                      </span>
-                      <span>Floor {room.floor}</span>
-                      {room.bedType && (
-                        <span className="flex items-center gap-1">
-                          <BedDouble className="h-3 w-3" />
-                          {room.bedCount > 1 ? `${room.bedCount}x ` : ""}{room.bedType}
-                        </span>
-                      )}
-                      {room.imageUrls?.length > 0 && (
-                        <span className="flex items-center gap-1 text-[var(--accent-text)]">
-                          <ImageIcon className="h-3 w-3" />
-                          {room.imageUrls.length}
-                        </span>
-                      )}
-                    </div>
-                    {room.amenities.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-1.5">
-                        {room.amenities.slice(0, 5).map((a) => (
-                          <span
-                            key={a}
-                            className="rounded-md bg-[var(--canvas-sub)] border border-[var(--border-soft)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--text-2)]"
-                          >
-                            {a}
-                          </span>
-                        ))}
-                        {room.amenities.length > 5 && (
-                          <span className="text-[10px] font-medium text-[var(--text-3)]">
-                            +{room.amenities.length - 5} more
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-1.5 shrink-0">
+                  )}
+                  <div className="flex items-center gap-1.5 pt-2 border-t border-[var(--border-soft)]">
                     <button
                       onClick={() => setShowQrId(isQrOpen ? null : room.id)}
-                      title="Room QR code"
-                      className={`flex h-8 w-8 items-center justify-center rounded-lg transition-all ${
-                        isQrOpen
-                          ? "bg-[var(--accent)] text-white"
-                          : "bg-[var(--accent-muted)] text-[var(--accent-text)] hover:opacity-80"
-                      }`}
+                      className={cn("flex h-8 w-8 items-center justify-center rounded-lg transition-all",
+                        isQrOpen ? "bg-[var(--accent)] text-white" : "bg-[var(--canvas-sub)] text-[var(--text-3)] hover:text-[var(--accent-text)]"
+                      )}
+                      title="Room QR"
                     >
                       <QrCode className="h-3.5 w-3.5" />
                     </button>
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => openEdit(room)}
-                        className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent-muted)] text-[var(--accent-text)] hover:bg-[var(--accent-muted)] transition-all"
-                        title="Edit"
-                      >
-                        <Edit2 className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(room.id)}
-                        disabled={deletingId === room.id}
-                        className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--status-error-bg)] text-[var(--status-error-text)] hover:brightness-110 transition-all disabled:opacity-40"
-                        title="Delete"
-                      >
-                        {deletingId === room.id ? (
-                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        ) : (
-                          <Trash2 className="h-3.5 w-3.5" />
-                        )}
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => openEdit(room)}
+                      className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--canvas-sub)] text-[var(--text-3)] hover:text-[var(--accent-text)] transition-all"
+                      title="Edit"
+                    >
+                      <Edit2 className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(room.id)}
+                      disabled={deletingId === room.id}
+                      className="ml-auto flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--canvas-sub)] text-[var(--text-3)] hover:bg-rose-50 hover:text-rose-600 transition-all disabled:opacity-40"
+                      title="Delete"
+                    >
+                      {deletingId === room.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                    </button>
                   </div>
-                </motion.div>
+                </div>
 
                 <AnimatePresence>
                   {isQrOpen && (
@@ -543,12 +469,7 @@ function RoomsView({ restaurantId, currency, slug, hotelName }: { restaurantId: 
                       transition={{ duration: 0.2 }}
                       className="overflow-hidden border-t border-[var(--accent-border)] bg-[var(--accent-muted)]/20"
                     >
-                      <RoomQRInline
-                        room={room}
-                        slug={slug}
-                        hotelName={hotelName}
-                        currency={currency}
-                      />
+                      <RoomQRInline room={room} slug={slug} hotelName={hotelName} currency={currency} />
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -654,183 +575,192 @@ function RoomFormModal({
             transition={{ type: "spring", damping: 28, stiffness: 340, mass: 0.7 }}
             className="fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-3xl bg-[var(--canvas)] p-6 shadow-2xl sm:p-8 max-h-[90dvh]"
           >
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-extrabold text-[var(--text-1)]">
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-[16px] font-black text-[var(--text-1)]">
                 {isEditing ? "Edit Room" : "Add Room"}
               </h3>
               <button
                 onClick={onClose}
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-[var(--border)] text-[var(--text-3)] hover:bg-[var(--canvas-sub)] hover:text-[var(--text-2)] transition-all"
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--canvas-sub)] text-[var(--text-3)] hover:bg-[var(--surface)] transition-all"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            <div className="space-y-4">
-              {/* Room Number & Name */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">
-                    Room Number <span className="text-[var(--accent)]">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={form.roomNumber}
-                    onChange={(e) => setForm((f) => ({ ...f, roomNumber: e.target.value }))}
-                    placeholder="e.g. 101"
-                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
-                  />
+            <div className="space-y-5">
+              {/* Section 1: Basic Info */}
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--accent)] text-white text-[10px] font-black">1</span>
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-[var(--text-3)]">Basic Info</span>
                 </div>
-                <div>
-                  <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">
-                    Name <span className="text-[var(--accent)]">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={form.name}
-                    onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                    placeholder="e.g. Mountain View"
-                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
-                  />
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider mb-1.5">
+                        Room No. <span className="text-rose-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={form.roomNumber}
+                        onChange={(e) => setForm((f) => ({ ...f, roomNumber: e.target.value }))}
+                        placeholder="e.g. 101"
+                        className="w-full rounded-xl bg-[var(--canvas-sub)] px-3.5 py-2.5 text-[13px] font-semibold text-[var(--text-1)] outline-none ring-1 ring-[var(--border)] focus:ring-[var(--accent)] transition-all placeholder:text-[var(--text-3)] placeholder:font-normal"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider mb-1.5">
+                        Name <span className="text-rose-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={form.name}
+                        onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                        placeholder="e.g. Mountain View"
+                        className="w-full rounded-xl bg-[var(--canvas-sub)] px-3.5 py-2.5 text-[13px] font-semibold text-[var(--text-1)] outline-none ring-1 ring-[var(--border)] focus:ring-[var(--accent)] transition-all placeholder:text-[var(--text-3)] placeholder:font-normal"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider mb-2">Type</label>
+                    <div className="flex flex-wrap gap-2">
+                      {ROOM_TYPES.map((t) => {
+                        const colors = ROOM_TYPE_COLORS[t];
+                        return (
+                          <button
+                            key={t}
+                            type="button"
+                            onClick={() => setForm((f) => ({ ...f, type: t }))}
+                            className={cn("rounded-xl border px-3.5 py-2 text-[11px] font-bold transition-all",
+                              form.type === t
+                                ? `${colors.bg} ${colors.text} ${colors.border}`
+                                : "border-[var(--border)] bg-[var(--canvas-sub)] text-[var(--text-2)] hover:bg-[var(--surface)]"
+                            )}
+                          >
+                            {t}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
               </div>
 
+              <div className="border-t border-[var(--border-soft)]" />
+
+              {/* Section 2: Room Details */}
               <div>
-                <label className="block text-sm font-bold text-[var(--text-1)] mb-2">
-                  Type <span className="text-[var(--accent)]">*</span>
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {ROOM_TYPES.map((t) => {
-                    const colors = ROOM_TYPE_COLORS[t];
-                    return (
-                      <button
-                        key={t}
-                        type="button"
-                        onClick={() => setForm((f) => ({ ...f, type: t }))}
-                        className={`rounded-lg border px-3 py-2 text-xs font-bold transition-all ${
-                          form.type === t
-                            ? `${colors.bg} ${colors.text} ${colors.border}`
-                            : "border-[var(--border)] bg-[var(--canvas)] text-[var(--text-2)] hover:bg-[var(--canvas-sub)]"
-                        }`}
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--accent)] text-white text-[10px] font-black">2</span>
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-[var(--text-3)]">Room Details</span>
+                </div>
+                <div className="space-y-3">
+                  <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider mb-1.5">Floor</label>
+                      <input
+                        type="number"
+                        value={form.floor}
+                        onChange={(e) => setForm((f) => ({ ...f, floor: parseInt(e.target.value) || 1 }))}
+                        min={0}
+                        className="w-full rounded-xl bg-[var(--canvas-sub)] px-3.5 py-2.5 text-[13px] font-semibold text-[var(--text-1)] outline-none ring-1 ring-[var(--border)] focus:ring-[var(--accent)] transition-all text-center"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider mb-1.5">Price/Night <span className="text-rose-500">*</span></label>
+                      <input
+                        type="number"
+                        value={form.price || ""}
+                        onChange={(e) => setForm((f) => ({ ...f, price: parseFloat(e.target.value) || 0 }))}
+                        min={0}
+                        step={100}
+                        placeholder="0"
+                        className="w-full rounded-xl bg-[var(--canvas-sub)] px-3.5 py-2.5 text-[13px] font-semibold text-[var(--text-1)] outline-none ring-1 ring-[var(--border)] focus:ring-[var(--accent)] transition-all text-center"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider mb-1.5">Max Guests</label>
+                      <input
+                        type="number"
+                        value={form.maxGuests}
+                        onChange={(e) => setForm((f) => ({ ...f, maxGuests: parseInt(e.target.value) || 1 }))}
+                        min={1}
+                        max={20}
+                        className="w-full rounded-xl bg-[var(--canvas-sub)] px-3.5 py-2.5 text-[13px] font-semibold text-[var(--text-1)] outline-none ring-1 ring-[var(--border)] focus:ring-[var(--accent)] transition-all text-center"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider mb-1.5">Bed Type</label>
+                      <select
+                        value={form.bedType}
+                        onChange={(e) => setForm((f) => ({ ...f, bedType: e.target.value }))}
+                        className="w-full rounded-xl bg-[var(--canvas-sub)] px-3.5 py-2.5 text-[13px] font-semibold text-[var(--text-1)] outline-none ring-1 ring-[var(--border)] focus:ring-[var(--accent)] transition-all"
                       >
-                        {t}
-                      </button>
-                    );
-                  })}
+                        <option value="">Select bed type</option>
+                        {BED_TYPES.map((bt) => <option key={bt} value={bt}>{bt}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider mb-1.5">Bed Count</label>
+                      <input
+                        type="number"
+                        value={form.bedCount}
+                        onChange={(e) => setForm((f) => ({ ...f, bedCount: parseInt(e.target.value) || 1 }))}
+                        min={1}
+                        max={10}
+                        className="w-full rounded-xl bg-[var(--canvas-sub)] px-3.5 py-2.5 text-[13px] font-semibold text-[var(--text-1)] outline-none ring-1 ring-[var(--border)] focus:ring-[var(--accent)] transition-all text-center"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider mb-1.5">Description</label>
+                    <textarea
+                      value={form.description}
+                      onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                      placeholder="A brief description of the room..."
+                      rows={2}
+                      className="w-full rounded-xl bg-[var(--canvas-sub)] px-3.5 py-2.5 text-[13px] font-semibold text-[var(--text-1)] outline-none ring-1 ring-[var(--border)] focus:ring-[var(--accent)] transition-all resize-none placeholder:text-[var(--text-3)] placeholder:font-normal"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider mb-1.5">Location Note</label>
+                    <input
+                      type="text"
+                      value={form.locationNote}
+                      onChange={(e) => setForm((f) => ({ ...f, locationNote: e.target.value }))}
+                      placeholder="e.g. 3rd floor, sea-facing wing"
+                      className="w-full rounded-xl bg-[var(--canvas-sub)] px-3.5 py-2.5 text-[13px] font-semibold text-[var(--text-1)] outline-none ring-1 ring-[var(--border)] focus:ring-[var(--accent)] transition-all placeholder:text-[var(--text-3)] placeholder:font-normal"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider mb-1.5">
+                      Offerings <span className="font-normal text-[var(--text-3)] normal-case tracking-normal">(comma separated)</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={form.offerings.join(", ")}
+                      onChange={(e) => setForm((f) => ({ ...f, offerings: e.target.value.split(",").map((o) => o.trimStart()) }))}
+                      placeholder="e.g. 2 BHK, Kitchen, Private balcony"
+                      className="w-full rounded-xl bg-[var(--canvas-sub)] px-3.5 py-2.5 text-[13px] font-semibold text-[var(--text-1)] outline-none ring-1 ring-[var(--border)] focus:ring-[var(--accent)] transition-all placeholder:text-[var(--text-3)] placeholder:font-normal"
+                    />
+                  </div>
                 </div>
               </div>
 
-              {/* Floor, Price, Max Guests */}
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">Floor</label>
-                  <input
-                    type="number"
-                    value={form.floor}
-                    onChange={(e) => setForm((f) => ({ ...f, floor: parseInt(e.target.value) || 1 }))}
-                    min={0}
-                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">
-                    Price/Night <span className="text-[var(--accent)]">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    value={form.price || ""}
-                    onChange={(e) => setForm((f) => ({ ...f, price: parseFloat(e.target.value) || 0 }))}
-                    min={0}
-                    step={100}
-                    placeholder="0"
-                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">Max Guests</label>
-                  <input
-                    type="number"
-                    value={form.maxGuests}
-                    onChange={(e) => setForm((f) => ({ ...f, maxGuests: parseInt(e.target.value) || 1 }))}
-                    min={1}
-                    max={20}
-                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
-                  />
-                </div>
-              </div>
+              <div className="border-t border-[var(--border-soft)]" />
 
-              {/* Bed type & count */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">Bed Type</label>
-                  <select
-                    value={form.bedType}
-                    onChange={(e) => setForm((f) => ({ ...f, bedType: e.target.value }))}
-                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
-                  >
-                    <option value="">Select bed type</option>
-                    {BED_TYPES.map((bt) => (
-                      <option key={bt} value={bt}>{bt}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">Bed Count</label>
-                  <input
-                    type="number"
-                    value={form.bedCount}
-                    onChange={(e) => setForm((f) => ({ ...f, bedCount: parseInt(e.target.value) || 1 }))}
-                    min={1}
-                    max={10}
-                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">Description</label>
-                <textarea
-                  value={form.description}
-                  onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                  placeholder="A brief description of the room..."
-                  rows={2}
-                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15 resize-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">Exact location</label>
-                <input
-                  type="text"
-                  value={form.locationNote}
-                  onChange={(e) => setForm((f) => ({ ...f, locationNote: e.target.value }))}
-                  placeholder="e.g. 3rd floor, sea-facing wing"
-                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">
-                  Offerings <span className="font-normal text-[var(--text-3)]">(comma separated)</span>
-                </label>
-                <input
-                  type="text"
-                  value={form.offerings.join(", ")}
-                  onChange={(e) =>
-                    setForm((f) => ({
-                      ...f,
-                      offerings: e.target.value.split(",").map((o) => o.trimStart()),
-                    }))
-                  }
-                  placeholder="e.g. 2 BHK, Kitchen, Private balcony"
-                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
-                />
+              {/* Section 3 header before amenities */}
+              <div className="flex items-center gap-2">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--accent)] text-white text-[10px] font-black">3</span>
+                <span className="text-[11px] font-bold uppercase tracking-widest text-[var(--text-3)]">Amenities &amp; Photos</span>
               </div>
 
               {/* Amenities — categorized quick-pick + custom add */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="block text-sm font-bold text-[var(--text-1)]">
+                  <label className="block text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider">
                     Amenities &amp; Features
                   </label>
                   {form.amenities.length > 0 && (
@@ -839,7 +769,7 @@ function RoomFormModal({
                     </span>
                   )}
                 </div>
-                <div className="space-y-3 rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)]/40 p-3">
+                <div className="space-y-3 rounded-xl ring-1 ring-[var(--border)] bg-[var(--canvas-sub)] p-3">
                   {AMENITY_CATALOG.map((group) => (
                     <div key={group.group}>
                       <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-3)] mb-1.5">
@@ -999,33 +929,25 @@ function RoomFormModal({
             </div>
 
             {errorMsg && (
-              <p className="mt-4 rounded-xl bg-[var(--status-error-bg)] border border-[var(--status-error-bg)] px-4 py-2.5 text-sm font-medium text-[var(--status-error-text)]">
+              <p className="mt-4 rounded-xl bg-[var(--status-error-bg)] px-4 py-2.5 text-[13px] font-medium text-[var(--status-error-text)]">
                 {errorMsg}
               </p>
             )}
 
-            <div className="mt-6 flex items-center justify-end gap-3">
-              <button
-                onClick={onClose}
-                className="rounded-xl px-5 py-2.5 text-sm font-bold text-[var(--text-2)] hover:text-[var(--text-1)] hover:bg-[var(--canvas-sub)] transition-all"
-              >
-                Cancel
-              </button>
+            <div className="mt-5 space-y-2">
               <button
                 onClick={onSave}
                 disabled={saving}
-                className={`flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-bold text-white shadow-lg transition-all active:scale-[0.97] ${
-                  !saving
-                    ? "bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] shadow-[var(--accent)]/20/20 hover:shadow-[var(--accent)]/20/30"
-                    : "bg-[var(--border)] shadow-none cursor-not-allowed"
-                }`}
+                className="w-full rounded-xl bg-[var(--accent)] py-3.5 text-[14px] font-black text-white shadow-md hover:bg-[var(--accent-hover)] active:scale-[0.98] disabled:opacity-60 transition-all flex items-center justify-center gap-2"
               >
-                {saving ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Check className="h-4 w-4" />
-                )}
-                {saving ? "Saving..." : isEditing ? "Update Room" : "Add Room"}
+                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                {saving ? "Saving..." : isEditing ? "Save Changes" : "Add Room"}
+              </button>
+              <button
+                onClick={onClose}
+                className="w-full rounded-xl py-2.5 text-[13px] font-semibold text-[var(--text-3)] hover:text-[var(--text-1)] hover:bg-[var(--canvas-sub)] transition-all"
+              >
+                Cancel
               </button>
             </div>
           </motion.div>
@@ -1038,36 +960,33 @@ function RoomFormModal({
 /*  Bookings View                                                      */
 
 function BookingsView({ restaurantId, currency }: { restaurantId: string; currency: string }) {
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [rooms, setRooms] = useState<Room[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const bookingsQueryKey = ["room-bookings", restaurantId] as const;
+  const roomsQueryKey = ["rooms", restaurantId] as const; // shared cache key with RoomsView
+  const bookingsQuery = useQuery({
+    queryKey: bookingsQueryKey,
+    queryFn: async () => {
+      const bData = await apiFetch<{ bookings?: Booking[] } | Booking[]>(
+        `/api/restaurants/${restaurantId}/bookings?limit=100`,
+      );
+      return Array.isArray(bData) ? bData : bData.bookings ?? [];
+    },
+    enabled: !!restaurantId,
+  });
+  const bookings = bookingsQuery.data ?? [];
+  const roomsQuery = useQuery({
+    queryKey: roomsQueryKey,
+    queryFn: () => apiFetch<Room[]>(`/api/restaurants/${restaurantId}/rooms`),
+    enabled: !!restaurantId,
+  });
+  const rooms = roomsQuery.data ?? [];
+  const loading = bookingsQuery.isLoading || roomsQuery.isLoading;
   const [statusFilter, setStatusFilter] = useState<BookingStatus | "ALL">("ALL");
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(BLANK_BOOKING);
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
-  const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
-
-  const fetchData = useCallback(async () => {
-    try {
-      const [bookingsData, roomsData] = await Promise.all([
-        apiFetch<Booking[]>(`/api/restaurants/${restaurantId}/bookings`),
-        apiFetch<Room[]>(`/api/restaurants/${restaurantId}/rooms`),
-      ]);
-      setBookings(Array.isArray(bookingsData) ? bookingsData : []);
-      setRooms(Array.isArray(roomsData) ? roomsData : []);
-    } catch {
-      setBookings([]);
-      setRooms([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [restaurantId]);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
 
   const openCreate = () => {
     setForm(BLANK_BOOKING);
@@ -1080,6 +999,15 @@ function BookingsView({ restaurantId, currency }: { restaurantId: string; curren
     setForm(BLANK_BOOKING);
     setErrorMsg("");
   };
+
+  const createBookingMutation = useMutation({
+    mutationFn: (body: Record<string, unknown>) =>
+      apiFetch(`/api/restaurants/${restaurantId}/bookings`, { method: "POST", body }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: bookingsQueryKey });
+      queryClient.invalidateQueries({ queryKey: roomsQueryKey });
+    },
+  });
 
   const handleCreateBooking = async () => {
     if (!form.roomId || !form.guestName.trim() || !form.checkIn || !form.checkOut) {
@@ -1094,23 +1022,18 @@ function BookingsView({ restaurantId, currency }: { restaurantId: string; curren
     setErrorMsg("");
 
     try {
-      await apiFetch(`/api/restaurants/${restaurantId}/bookings`, {
-        method: "POST",
-        body: {
-          roomId: form.roomId,
-          guestName: form.guestName.trim(),
-          guestPhone: form.guestPhone.trim() || null,
-          guestEmail: form.guestEmail.trim() || null,
-          checkIn: new Date(form.checkIn).toISOString(),
-          checkOut: new Date(form.checkOut).toISOString(),
-          guests: form.guests,
-          advanceAmount: form.advanceAmount,
-          totalAmount: form.totalAmount,
-          note: form.note.trim() || null,
-        },
+      await createBookingMutation.mutateAsync({
+        roomId: form.roomId,
+        guestName: form.guestName.trim(),
+        guestPhone: form.guestPhone.trim() || null,
+        guestEmail: form.guestEmail.trim() || null,
+        checkIn: new Date(form.checkIn).toISOString(),
+        checkOut: new Date(form.checkOut).toISOString(),
+        adults: form.guests,
+        advanceAmount: form.advanceAmount,
+        notes: form.note.trim() || null,
       });
       closeForm();
-      await fetchData();
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : "Failed to create booking");
     } finally {
@@ -1118,19 +1041,36 @@ function BookingsView({ restaurantId, currency }: { restaurantId: string; curren
     }
   };
 
-  const handleStatusUpdate = async (bookingId: string, newStatus: BookingStatus) => {
-    setUpdatingId(bookingId);
-    try {
-      await apiFetch(`/api/restaurants/${restaurantId}/bookings/${bookingId}`, {
+  // Optimistic status flip — the row updates instantly instead of waiting on
+  // a round-trip that used to re-fetch both bookings AND rooms. Rolled back
+  // on failure; rooms invalidated on settle since availability may change.
+  const updateBookingStatusMutation = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: BookingStatus }) =>
+      apiFetch(`/api/restaurants/${restaurantId}/bookings/${id}`, {
         method: "PATCH",
-        body: { status: newStatus },
-      });
-      await fetchData();
-    } catch {
-      // silent
-    } finally {
-      setUpdatingId(null);
-    }
+        body: { status },
+      }),
+    onMutate: async ({ id, status }) => {
+      await queryClient.cancelQueries({ queryKey: bookingsQueryKey });
+      const previous = queryClient.getQueryData<Booking[]>(bookingsQueryKey);
+      queryClient.setQueryData<Booking[]>(bookingsQueryKey, (prev) =>
+        (prev ?? []).map((b) => (b.id === id ? { ...b, status } : b)),
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) queryClient.setQueryData(bookingsQueryKey, context.previous);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: roomsQueryKey });
+    },
+  });
+  const updatingId = updateBookingStatusMutation.isPending
+    ? (updateBookingStatusMutation.variables?.id ?? null)
+    : null;
+
+  const handleStatusUpdate = (bookingId: string, newStatus: BookingStatus) => {
+    updateBookingStatusMutation.mutate({ id: bookingId, status: newStatus });
   };
 
   const filteredBookings =
@@ -1138,29 +1078,20 @@ function BookingsView({ restaurantId, currency }: { restaurantId: string; curren
       ? bookings
       : bookings.filter((b) => b.status === statusFilter);
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20">
-        <Loader2 className="h-6 w-6 animate-spin text-[var(--accent)] mb-3" />
-        <p className="text-sm font-bold text-[var(--text-3)]">Loading bookings...</p>
-      </div>
-    );
-  }
+  if (loading) return null;
 
   return (
-    <div className="space-y-5">
-      {/* Top bar: filters + create */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex gap-1 p-1 rounded-xl bg-[var(--canvas-sub)] ring-1 ring-[var(--border)] overflow-x-auto scrollbar-hide">
           {(["ALL", ...BOOKING_STATUSES] as const).map((s) => (
             <button
               key={s}
               onClick={() => setStatusFilter(s)}
-              className={`shrink-0 rounded-lg px-3 py-2 text-xs font-bold transition-all shadow-sm ${
-                statusFilter === s
-                  ? "bg-[var(--text-1)] text-white"
-                  : "bg-[var(--canvas)] border border-[var(--border-soft)] text-[var(--text-2)] hover:bg-[var(--canvas-sub)]"
-              }`}
+              className={cn(
+                "shrink-0 rounded-lg px-3 py-1.5 text-[11px] font-bold transition-all",
+                statusFilter === s ? "bg-[var(--canvas)] text-[var(--text-1)] shadow-sm" : "text-[var(--text-3)] hover:text-[var(--text-1)]"
+              )}
             >
               {s === "ALL" ? "All" : BOOKING_STATUS_LABELS[s]}
             </button>
@@ -1168,7 +1099,7 @@ function BookingsView({ restaurantId, currency }: { restaurantId: string; curren
         </div>
         <button
           onClick={openCreate}
-          className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] px-5 py-2.5 text-sm font-bold text-white shadow-[0_4px_14px_0_rgba(245,158,11,0.39)] transition-all hover:shadow-[0_6px_20px_rgba(245,158,11,0.23)] hover:-translate-y-0.5 active:scale-[0.97]"
+          className="flex items-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-2 text-[13px] font-bold text-white shadow-md shadow-[var(--accent)]/20 hover:bg-[var(--accent-hover)] active:scale-[0.97] transition-all shrink-0"
         >
           <Plus className="h-4 w-4" strokeWidth={2.5} />
           New Booking
@@ -1227,7 +1158,7 @@ function BookingsView({ restaurantId, currency }: { restaurantId: string; curren
                         )}
                         <span className="flex items-center gap-1">
                           <Users className="h-3 w-3" />
-                          {booking.guests} guest{booking.guests !== 1 ? "s" : ""}
+                          {booking.adults + booking.children} guest{(booking.adults + booking.children) !== 1 ? "s" : ""}
                         </span>
                       </div>
                       <div className="flex items-center gap-3 mt-0.5 text-xs text-[var(--text-3)]">
@@ -1244,7 +1175,7 @@ function BookingsView({ restaurantId, currency }: { restaurantId: string; curren
                           })}
                         </span>
                         <span className="font-semibold text-[var(--text-2)]">
-                          {formatPrice(booking.totalAmount, currency)}
+                          {formatPrice(booking.totalPrice, currency)}
                         </span>
                         {booking.advanceAmount > 0 && (
                           <span className="text-[var(--accent-text)] font-semibold">
@@ -1369,7 +1300,7 @@ function BookingsView({ restaurantId, currency }: { restaurantId: string; curren
                               Total
                             </p>
                             <p className="font-bold text-[var(--text-2)]">
-                              {formatPrice(booking.totalAmount, currency)}
+                              {formatPrice(booking.totalPrice, currency)}
                             </p>
                           </div>
                           <div>
@@ -1380,12 +1311,12 @@ function BookingsView({ restaurantId, currency }: { restaurantId: string; curren
                               {formatPrice(booking.advanceAmount, currency)}
                             </p>
                           </div>
-                          {booking.note && (
+                          {booking.notes && (
                             <div className="col-span-2 sm:col-span-3">
                               <p className="font-semibold text-[var(--text-3)] uppercase tracking-wider mb-0.5">
-                                Note
+                                Notes
                               </p>
-                              <p className="font-medium text-[var(--text-2)]">{booking.note}</p>
+                              <p className="font-medium text-[var(--text-2)]">{booking.notes}</p>
                             </div>
                           )}
                         </div>

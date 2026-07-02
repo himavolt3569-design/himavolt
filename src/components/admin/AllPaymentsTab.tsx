@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useState, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useRealtimeSignal } from "@/hooks/useRealtimeSignal";
 import { adminTopic } from "@/lib/realtime-topics";
 import {
@@ -57,6 +58,12 @@ interface Pagination {
   totalPages: number;
 }
 
+interface PaymentsResponse {
+  payments: Payment[];
+  pagination: Pagination | null;
+  summary: { totalAmount: number; totalCount: number };
+}
+
 const STATUS_THEMES: Record<string, { bg: string, text: string, icon: any }> = {
   PENDING: { bg: "bg-orange-50", text: "text-orange-500", icon: Clock },
   COMPLETED: { bg: "bg-emerald-50", text: "text-emerald-500", icon: CheckCircle2 },
@@ -84,10 +91,8 @@ function timeAgo(date: string): string {
 }
 
 export default function AllPaymentsTab() {
-  const [payments, setPayments] = useState<Payment[]>([]);
-  const [pagination, setPagination] = useState<Pagination | null>(null);
-  const [summary, setSummary] = useState<{ totalAmount: number; totalCount: number }>({ totalAmount: 0, totalCount: 0 });
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [methodFilter, setMethodFilter] = useState("All");
@@ -97,26 +102,31 @@ export default function AllPaymentsTab() {
   const [deleting, setDeleting] = useState(false);
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
 
-  const fetchPayments = useCallback(
-    async (p = page) => {
-      setLoading(true);
-      try {
-        const params = new URLSearchParams({ page: String(p), limit: "30" });
-        if (search) params.set("search", search);
-        if (statusFilter !== "All") params.set("status", statusFilter);
-        if (methodFilter !== "All") params.set("method", methodFilter);
-
-        const res = await fetch(`/api/admin/payments?${params}`, { cache: "no-store" });
-        const data = await res.json();
-        setPayments(data.payments || []);
-        setPagination(data.pagination);
-        setSummary(data.summary || { totalAmount: 0, totalCount: 0 });
-      } catch {} finally {
-        setLoading(false);
-      }
+  const paymentsQueryKey = ["admin-payments", page, search, statusFilter, methodFilter] as const;
+  const paymentsQuery = useQuery({
+    queryKey: paymentsQueryKey,
+    queryFn: async () => {
+      const params = new URLSearchParams({ page: String(page), limit: "30" });
+      if (search) params.set("search", search);
+      if (statusFilter !== "All") params.set("status", statusFilter);
+      if (methodFilter !== "All") params.set("method", methodFilter);
+      const res = await fetch(`/api/admin/payments?${params}`, { cache: "no-store" });
+      const data = await res.json();
+      return {
+        payments: data.payments || [],
+        pagination: data.pagination ?? null,
+        summary: data.summary || { totalAmount: 0, totalCount: 0 },
+      } as PaymentsResponse;
     },
-    [page, search, statusFilter, methodFilter],
-  );
+    placeholderData: keepPreviousData,
+  });
+  const payments = paymentsQuery.data?.payments ?? [];
+  const pagination = paymentsQuery.data?.pagination ?? null;
+  const summary = paymentsQuery.data?.summary ?? { totalAmount: 0, totalCount: 0 };
+  const loading = paymentsQuery.isFetching;
+
+  const refreshPayments = () =>
+    queryClient.invalidateQueries({ queryKey: ["admin-payments"] });
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -128,22 +138,30 @@ export default function AllPaymentsTab() {
         body: JSON.stringify({ paymentId: deleteTarget.id }),
       });
       if (res.ok) {
-        setPayments((prev) => prev.filter((p) => p.id !== deleteTarget.id));
-        if (pagination) setPagination((p) => p ? { ...p, total: p.total - 1 } : p);
+        queryClient.setQueryData<PaymentsResponse>(paymentsQueryKey, (prev) =>
+          prev
+            ? {
+                ...prev,
+                payments: prev.payments.filter((p) => p.id !== deleteTarget.id),
+                pagination: prev.pagination ? { ...prev.pagination, total: prev.pagination.total - 1 } : prev.pagination,
+              }
+            : prev,
+        );
       }
     } catch { /* silent */ }
     finally { setDeleting(false); setDeleteTarget(null); }
   };
 
-  useEffect(() => { fetchPayments(1); }, []);
-  useEffect(() => { if (!loading) fetchPayments(page); }, [page, statusFilter, methodFilter]);
   // Live refresh on any payment change across all restaurants.
-  useRealtimeSignal(adminTopic(), () => fetchPayments(page));
+  useRealtimeSignal(adminTopic(), refreshPayments);
 
   const handleSearchChange = (val: string) => {
-    setSearch(val);
+    setSearchInput(val);
     if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
-    searchTimeoutRef.current = setTimeout(() => fetchPayments(1), 500);
+    searchTimeoutRef.current = setTimeout(() => {
+      setSearch(val);
+      setPage(1);
+    }, 500);
   };
 
   // Simulated revenue data
@@ -173,10 +191,10 @@ export default function AllPaymentsTab() {
             </div>
          </div>
 
-         <div className="rounded-[2.5rem] bg-white border border-slate-100 p-10 shadow-xl flex flex-col justify-between">
+         <div className="rounded-[2.5rem] bg-white border border-gray-100 p-10 shadow-xl flex flex-col justify-between">
             <div className="space-y-6">
                <div>
-                  <h3 className="text-xl font-black tracking-tighter text-slate-900 mb-1 uppercase italic">Total Settlement</h3>
+                  <h3 className="text-xl font-black tracking-tighter text-gray-900 font-bold tracking-tight mb-1 uppercase italic">Total Settlement</h3>
                   <p className="text-3xl font-black text-[var(--accent)] tracking-tighter">{formatPrice(summary.totalAmount, "NPR")}</p>
                </div>
                
@@ -186,9 +204,9 @@ export default function AllPaymentsTab() {
                      <input 
                         type="text" 
                         placeholder="Search TXID, User..."
-                        value={search}
+                        value={searchInput}
                         onChange={(e) => handleSearchChange(e.target.value)}
-                        className="w-full bg-slate-50 border-none rounded-2xl py-4 pl-12 pr-4 text-sm font-black focus:ring-2 focus:ring-[var(--accent)] transition-all"
+                        className="w-full bg-gray-50 border-none rounded-3xl py-4 pl-12 pr-4 text-sm font-black focus:ring-2 focus:ring-[var(--accent)] transition-all"
                      />
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -196,7 +214,7 @@ export default function AllPaymentsTab() {
                         <button 
                            key={m}
                            onClick={() => setMethodFilter(m)}
-                           className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${methodFilter === m ? 'bg-slate-900 text-white shadow-lg' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'}`}
+                           className={`px-4 py-2 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all ${methodFilter === m ? 'bg-gray-900 text-white shadow-xl shadow-gray-900/20 shadow-lg' : 'bg-gray-50 text-gray-400 font-semibold hover:bg-gray-100'}`}
                         >
                            {m}
                         </button>
@@ -205,9 +223,9 @@ export default function AllPaymentsTab() {
                </div>
             </div>
             
-            <button 
-               onClick={() => fetchPayments(page)}
-               className="w-full py-4 rounded-2xl bg-slate-900 text-white font-black uppercase tracking-[0.2em] text-[10px] shadow-xl flex items-center justify-center gap-3 active:scale-[0.98] transition-all"
+            <button
+               onClick={refreshPayments}
+               className="w-full py-4 rounded-3xl bg-gray-900 text-white shadow-xl shadow-gray-900/20 font-black uppercase tracking-[0.2em] text-[10px] shadow-xl flex items-center justify-center gap-3 active:scale-[0.98] transition-all"
             >
                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
                Sync Ledger
@@ -218,8 +236,8 @@ export default function AllPaymentsTab() {
       {/* ── The Settlement Stream ── */}
       <div className="space-y-4">
          <div className="flex items-center justify-between px-6">
-            <h3 className="text-sm font-black uppercase tracking-[0.3em] text-slate-400">Transaction Ledger</h3>
-            <div className="flex items-center gap-4 text-[10px] font-bold text-slate-400">
+            <h3 className="text-sm font-black uppercase tracking-[0.3em] text-gray-400 font-semibold">Transaction Ledger</h3>
+            <div className="flex items-center gap-4 text-[10px] font-bold text-gray-400 font-semibold">
                <span>Global: {pagination?.total || 0}</span>
                <div className="h-1 w-1 rounded-full bg-slate-200" />
                <Zap className="h-4 w-4 opacity-40 text-emerald-500" />
@@ -238,26 +256,26 @@ export default function AllPaymentsTab() {
                      initial={{ opacity: 0, scale: 0.98 }}
                      animate={{ opacity: 1, scale: 1 }}
                      transition={{ delay: i * 0.05 }}
-                     className={`relative overflow-hidden rounded-[2rem] bg-white border border-slate-100 transition-all duration-500 hover:shadow-2xl hover:shadow-slate-200/50 ${isExpanded ? 'ring-2 ring-emerald-500' : ''}`}
+                     className={`relative overflow-hidden rounded-[2rem] bg-white border border-gray-100 transition-all duration-500 hover:shadow-2xl hover:shadow-slate-200/50 ${isExpanded ? 'ring-2 ring-emerald-500' : ''}`}
                   >
                      <div 
                         onClick={() => setExpandedId(isExpanded ? null : p.id)}
                         className="flex flex-col md:flex-row md:items-center gap-6 p-6 md:p-8 cursor-pointer"
                      >
                         {/* Method Node */}
-                        <div className={`h-14 w-14 shrink-0 rounded-2xl flex items-center justify-center bg-slate-50 text-slate-400`}>
+                        <div className={`h-14 w-14 shrink-0 rounded-3xl flex items-center justify-center bg-gray-50 text-gray-400 font-semibold`}>
                            <MethodIcon className="h-6 w-6" />
                         </div>
 
                         {/* Primary Info */}
                         <div className="flex-1 min-w-0">
                            <div className="flex items-center gap-3 mb-1">
-                              <h4 className="text-lg font-black text-slate-900 tracking-tighter">{formatPrice(p.amount, "NPR")}</h4>
+                              <h4 className="text-lg font-black text-gray-900 font-bold tracking-tight tracking-tighter">{formatPrice(p.amount, "NPR")}</h4>
                               <div className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${theme.bg} ${theme.text}`}>
                                  {p.status}
                               </div>
                            </div>
-                           <div className="flex items-center gap-4 text-xs font-bold text-slate-400 uppercase tracking-widest">
+                           <div className="flex items-center gap-4 text-xs font-bold text-gray-400 font-semibold uppercase tracking-widest">
                               <span className="flex items-center gap-1.5"><Store className="h-3 w-3 opacity-40" /> {p.order.restaurant.name}</span>
                               <div className="h-1 w-1 rounded-full bg-slate-200" />
                               <span className="flex items-center gap-1.5"><User className="h-3 w-3 opacity-40" /> {p.order.user?.name || "Guest"}</span>
@@ -267,12 +285,12 @@ export default function AllPaymentsTab() {
                         {/* Transaction & Chevron */}
                         <div className="flex items-center gap-8 text-right shrink-0">
                            <div className="hidden sm:block text-right">
-                              <p className="text-xs font-black text-slate-900 uppercase tracking-widest">Order #{p.order.orderNo}</p>
-                              <p className="text-[10px] font-bold text-slate-400 uppercase">{p.method}</p>
+                              <p className="text-xs font-black text-gray-900 font-bold tracking-tight uppercase tracking-widest">Order #{p.order.orderNo}</p>
+                              <p className="text-[10px] font-bold text-gray-400 font-semibold uppercase">{p.method}</p>
                            </div>
                            <div className="text-right">
-                              <p className="text-xs font-black text-slate-900">{timeAgo(p.createdAt)}</p>
-                              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Settled</p>
+                              <p className="text-xs font-black text-gray-900 font-bold tracking-tight">{timeAgo(p.createdAt)}</p>
+                              <p className="text-[9px] font-bold text-gray-400 font-semibold uppercase tracking-widest">Settled</p>
                            </div>
                            <ChevronDown className={`h-5 w-5 text-slate-300 transition-transform duration-500 ${isExpanded ? 'rotate-180 text-emerald-500' : ''}`} />
                         </div>
@@ -284,13 +302,13 @@ export default function AllPaymentsTab() {
                               initial={{ height: 0, opacity: 0 }}
                               animate={{ height: "auto", opacity: 1 }}
                               exit={{ height: 0, opacity: 0 }}
-                              className="border-t border-slate-50 bg-slate-50/30 overflow-hidden"
+                              className="border-t border-slate-50 bg-gray-50/30 overflow-hidden"
                            >
                               <div className="p-8 md:p-10 space-y-10">
                                  <div className="grid md:grid-cols-3 gap-12">
                                     {/* Tech Metadata */}
                                     <div className="space-y-8 col-span-2">
-                                       <h5 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Ledger Details</h5>
+                                       <h5 className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 font-semibold">Ledger Details</h5>
                                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-8">
                                           {[
                                              { label: "Transaction ID", val: p.transactionId || "INTERNAL", mono: true },
@@ -300,18 +318,18 @@ export default function AllPaymentsTab() {
                                              { label: "Settled At", val: p.paidAt ? new Date(p.paidAt).toLocaleString() : "Awaiting" },
                                           ].map(meta => (
                                              <div key={meta.label}>
-                                                <p className="text-[9px] font-black text-slate-400 uppercase mb-1 tracking-widest">{meta.label}</p>
-                                                <p className={`text-sm font-black text-slate-900 ${meta.mono ? 'font-mono tracking-tighter' : ''}`}>{meta.val}</p>
+                                                <p className="text-[9px] font-black text-gray-400 font-semibold uppercase mb-1 tracking-widest">{meta.label}</p>
+                                                <p className={`text-sm font-black text-gray-900 font-bold tracking-tight ${meta.mono ? 'font-mono tracking-tighter' : ''}`}>{meta.val}</p>
                                              </div>
                                           ))}
                                        </div>
                                     </div>
 
                                     {/* Action Command Hub */}
-                                    <div className="bg-white p-8 rounded-[3rem] shadow-xl border border-slate-100 flex flex-col justify-end">
+                                    <div className="bg-white p-8 rounded-[3rem] shadow-xl border border-gray-100 flex flex-col justify-end">
                                        <button 
                                           onClick={() => setDeleteTarget(p)}
-                                          className="w-full py-4 rounded-2xl bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-widest transition-all"
+                                          className="w-full py-4 rounded-3xl bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-widest transition-all"
                                        >
                                           <Trash2 className="h-4 w-4" /> Purge Ledger Entry
                                        </button>
@@ -332,17 +350,17 @@ export default function AllPaymentsTab() {
                <button 
                   disabled={page <= 1}
                   onClick={() => setPage(p => p - 1)}
-                  className="h-14 w-14 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-900 disabled:opacity-30 transition-all"
+                  className="h-14 w-14 rounded-full bg-white border border-gray-100 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex items-center justify-center text-gray-400 font-semibold hover:text-gray-900 font-bold tracking-tight disabled:opacity-30 transition-all"
                >
                   <ChevronLeft className="h-6 w-6" />
                </button>
-               <span className="text-[10px] font-black text-slate-900 uppercase tracking-widest px-10 py-4 bg-white rounded-full border border-slate-100 shadow-sm">
+               <span className="text-[10px] font-black text-gray-900 font-bold tracking-tight uppercase tracking-widest px-10 py-4 bg-white rounded-full border border-gray-100 shadow-sm">
                   Page {page} of {pagination.totalPages}
                </span>
                <button 
                   disabled={page >= pagination.totalPages}
                   onClick={() => setPage(p => p + 1)}
-                  className="h-14 w-14 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-900 disabled:opacity-30 transition-all"
+                  className="h-14 w-14 rounded-full bg-white border border-gray-100 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex items-center justify-center text-gray-400 font-semibold hover:text-gray-900 font-bold tracking-tight disabled:opacity-30 transition-all"
                >
                   <ChevronRight className="h-6 w-6" />
                </button>

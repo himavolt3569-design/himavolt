@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
 import {
   Receipt,
   Clock,
@@ -246,9 +247,6 @@ function TableSessionOrderView() {
   const { activeOrder, restoreFromStorage } = useOrder();
   const { initForRestaurant } = useCart();
   const activeSession = useActiveTableSession();
-  const [historyOrders, setHistoryOrders] = useState<UserOrder[]>([]);
-  const [loading, setLoading] = useState(false);
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     if (!activeOrder && activeSession?.restaurantId) {
@@ -260,12 +258,14 @@ function TableSessionOrderView() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeSession?.restaurantId, activeSession?.tableNo]);
 
-  const fetchRecentOrders = useCallback(async () => {
-    if (!activeSession?.restaurantId) return;
-    const tokens = getRecentTrackTokens(activeSession.restaurantId);
-    if (tokens.length === 0) return;
-
-    try {
+  // Polls only while there's an active (non-terminal) order in the last
+  // result — refetchInterval reads the query's own cached data each tick,
+  // so it naturally stops once everything settles instead of a manual timer.
+  const historyQuery = useQuery({
+    queryKey: ["order-track-history", activeSession?.restaurantId],
+    queryFn: async () => {
+      const tokens = getRecentTrackTokens(activeSession!.restaurantId);
+      if (tokens.length === 0) return [] as UserOrder[];
       const results = await Promise.all(
         tokens.map(async (t) => {
           try {
@@ -275,47 +275,21 @@ function TableSessionOrderView() {
           } catch {
             return null;
           }
-        })
+        }),
       );
-      
       const valid = results.filter((r): r is UserOrder => r !== null);
       valid.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-      
       // Deduplicate in case token history got messy
-      const unique = valid.filter((v, i, a) => a.findIndex(t => t.id === v.id) === i);
-      setHistoryOrders(unique);
-    } catch (err) {
-      console.error("Failed to load history orders", err);
-    }
-  }, [activeSession?.restaurantId]);
-
-  useEffect(() => {
-    let mounted = true;
-    setLoading(true);
-    fetchRecentOrders().finally(() => {
-      if (mounted) setLoading(false);
-    });
-
-    return () => { mounted = false; };
-  }, [fetchRecentOrders]);
-
-  // Poll for active orders every 5 seconds
-  useEffect(() => {
-    const hasActiveOrders = historyOrders.some(
-      (o) => !TERMINAL_STATUSES.includes(o.status)
-    );
-
-    if (hasActiveOrders) {
-      pollRef.current = setInterval(fetchRecentOrders, 5000);
-    }
-
-    return () => {
-      if (pollRef.current) {
-        clearInterval(pollRef.current);
-        pollRef.current = null;
-      }
-    };
-  }, [historyOrders, fetchRecentOrders]);
+      return valid.filter((v, i, a) => a.findIndex((t) => t.id === v.id) === i);
+    },
+    enabled: !!activeSession?.restaurantId,
+    refetchInterval: (query) => {
+      const data = query.state.data ?? [];
+      return data.some((o) => !TERMINAL_STATUSES.includes(o.status)) ? 5000 : false;
+    },
+  });
+  const historyOrders = historyQuery.data ?? [];
+  const loading = historyQuery.isLoading;
 
   // If no history yet, and no active order, fallback to empty state
   if (!activeOrder && historyOrders.length === 0 && !loading) {
@@ -460,52 +434,25 @@ function TableSessionOrderView() {
 export default function OrdersPage() {
   const { isSignedIn, isLoaded } = useAuth();
   const activeSession = useActiveTableSession();
-  const [orders, setOrders] = useState<UserOrder[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const fetchOrders = useCallback(async () => {
-    try {
-      const data = await apiFetch<UserOrder[]>("/api/orders?limit=20");
-      setOrders(data);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load orders");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!isLoaded) return;
-    if (!isSignedIn) {
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    fetchOrders();
-  }, [isLoaded, isSignedIn, fetchOrders]);
-
-  // Poll for active orders every 5 seconds
-  useEffect(() => {
-    if (!isSignedIn) return;
-
-    const hasActiveOrders = orders.some(
-      (o) => !TERMINAL_STATUSES.includes(o.status)
-    );
-
-    if (hasActiveOrders) {
-      pollRef.current = setInterval(fetchOrders, 5000);
-    }
-
-    return () => {
-      if (pollRef.current) {
-        clearInterval(pollRef.current);
-        pollRef.current = null;
-      }
-    };
-  }, [isSignedIn, orders, fetchOrders]);
+  // Polls only while there's an active (non-terminal) order — stops itself
+  // once everything settles, no manual interval/cleanup bookkeeping.
+  const ordersQuery = useQuery({
+    queryKey: ["my-orders"],
+    queryFn: () => apiFetch<UserOrder[]>("/api/orders?limit=20"),
+    enabled: isLoaded && isSignedIn,
+    refetchInterval: (query) => {
+      const data = query.state.data ?? [];
+      return data.some((o) => !TERMINAL_STATUSES.includes(o.status)) ? 5000 : false;
+    },
+  });
+  const orders = ordersQuery.data ?? [];
+  const loading = !isLoaded || (isSignedIn && ordersQuery.isLoading);
+  const error = ordersQuery.error
+    ? ordersQuery.error instanceof Error
+      ? ordersQuery.error.message
+      : "Failed to load orders"
+    : null;
 
   const activeOrders = orders.filter(
     (o) => !TERMINAL_STATUSES.includes(o.status)
@@ -577,11 +524,7 @@ export default function OrdersPage() {
           </h2>
           <p className="text-sm text-[var(--text-2)] mb-6">{error}</p>
           <button
-            onClick={() => {
-              setLoading(true);
-              setError(null);
-              fetchOrders();
-            }}
+            onClick={() => ordersQuery.refetch()}
             className="inline-flex items-center gap-2 rounded-xl bg-[var(--accent)] px-6 py-3 text-sm font-bold text-white hover:bg-[var(--accent-hover)] transition-colors"
           >
             Try Again

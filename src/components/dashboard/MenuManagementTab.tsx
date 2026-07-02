@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Plus,
   Pencil,
@@ -40,7 +41,7 @@ import {
   Info,
 } from "lucide-react";
 import { useRestaurant, useOptionalRestaurant } from "@/context/RestaurantContext";
-import { apiFetch, peekApiCache } from "@/lib/api-client";
+import { apiFetch } from "@/lib/api-client";
 import { useToast } from "@/context/ToastContext";
 import { formatPrice, getCurrencySymbol } from "@/lib/currency";
 import { FOOD_DESCRIPTION_TEMPLATES } from "@/lib/food-descriptions";
@@ -1356,17 +1357,35 @@ export default function MenuManagementTab({
   const cur = overrideCurrency || ctx?.selectedRestaurant?.currency || "NPR";
   const curSymbol = getCurrencySymbol(cur);
   const { showToast } = useToast();
-  const menuPath = restaurantId ? `/api/restaurants/${restaurantId}/menu` : "";
-  const catPath = restaurantId ? `/api/restaurants/${restaurantId}/categories` : "";
-  // Seed from the in-memory API cache so a re-opened tab paints instantly, then
-  // revalidate in the background (stale-while-revalidate).
-  const [items, setItems] = useState<MenuItem[]>(
-    () => peekApiCache<MenuItem[]>(menuPath) ?? [],
-  );
-  const [categories, setCategories] = useState<MenuCategory[]>(
-    () => peekApiCache<MenuCategory[]>(catPath) ?? [],
-  );
-  const [loading, setLoading] = useState(() => !peekApiCache(menuPath));
+  const queryClient = useQueryClient();
+  // Query cache paints instantly on a re-opened tab; each list keeps its own
+  // key/setter shim so the many optimistic mutation handlers below (which
+  // already do their own snapshot/rollback via setItems) don't need to change.
+  const itemsQueryKey = ["menu-items", restaurantId] as const;
+  const itemsQuery = useQuery({
+    queryKey: itemsQueryKey,
+    queryFn: () => apiFetch<MenuItem[]>(`/api/restaurants/${restaurantId}/menu`),
+    enabled: !!restaurantId,
+  });
+  const items = itemsQuery.data ?? [];
+  const setItems = (updater: React.SetStateAction<MenuItem[]>) =>
+    queryClient.setQueryData<MenuItem[]>(itemsQueryKey, (prev) =>
+      typeof updater === "function" ? (updater as (p: MenuItem[]) => MenuItem[])(prev ?? []) : updater,
+    );
+
+  const catQueryKey = ["menu-categories", restaurantId] as const;
+  const catQuery = useQuery({
+    queryKey: catQueryKey,
+    queryFn: () => apiFetch<MenuCategory[]>(`/api/restaurants/${restaurantId}/categories`),
+    enabled: !!restaurantId,
+  });
+  const categories = catQuery.data ?? [];
+  const setCategories = (updater: React.SetStateAction<MenuCategory[]>) =>
+    queryClient.setQueryData<MenuCategory[]>(catQueryKey, (prev) =>
+      typeof updater === "function" ? (updater as (p: MenuCategory[]) => MenuCategory[])(prev ?? []) : updater,
+    );
+
+  const loading = itemsQuery.isLoading || catQuery.isLoading;
   const [search, setSearch] = useState("");
   const [selectedCatId, setSelectedCatId] = useState("All");
   const [showAddForm, setShowAddForm] = useState(false);
@@ -1410,34 +1429,13 @@ export default function MenuManagementTab({
     }
   };
 
-  // `silent` reconciles state in the background without blanking the grid with
-  // a loading skeleton. Mutations update local state optimistically (instant),
-  // then call fetchData(true) to sync canonical data (real IDs, item counts).
-  const fetchData = useCallback(async (silent = false) => {
-    if (!restaurantId) {
-      // No restaurant resolved yet — don't sit in a blank loading state.
-      if (!silent) setLoading(false);
-      return;
-    }
-    if (!silent) setLoading(true);
-    try {
-      // Cache the lists so a re-opened tab serves them instantly; mutations
-      // invalidate this prefix in api-client, so reconciliation stays correct.
-      const [menuRes, catRes] = await Promise.all([
-        apiFetch<MenuItem[]>(`/api/restaurants/${restaurantId}/menu`, { cacheTtl: 120_000 }),
-        apiFetch<MenuCategory[]>(`/api/restaurants/${restaurantId}/categories`, { cacheTtl: 120_000 }),
-      ]);
-      setItems(Array.isArray(menuRes) ? menuRes : []);
-      setCategories(Array.isArray(catRes) ? catRes : []);
-    } catch (err) {
-      if (!silent) showToast(err instanceof Error ? err.message : "Failed to load menu data");
-    } finally {
-      if (!silent) setLoading(false);
-    }
-  }, [restaurantId, showToast]);
-
-  // If we already painted cached data, refresh silently so the grid never blanks.
-  useEffect(() => { fetchData(!!peekApiCache(menuPath)); }, [fetchData, menuPath]);
+  // Mutations update local state optimistically (instant), then call
+  // fetchData(true) to reconcile canonical data (real IDs, item counts) —
+  // now a background invalidate on both query caches instead of a manual fetch.
+  const fetchData = (_silent = false) => {
+    queryClient.invalidateQueries({ queryKey: itemsQueryKey });
+    queryClient.invalidateQueries({ queryKey: catQueryKey });
+  };
 
   useEffect(() => {
     if (showNewCat && newCatInputRef.current) newCatInputRef.current.focus();
