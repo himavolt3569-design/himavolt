@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { formatPrice } from "@/lib/currency";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { apiFetch, peekApiCache } from "@/lib/api-client";
+import { ScrollableRow } from "@/components/shared/ScrollableRow";
 import {
   Monitor,
   ChevronUp,
@@ -392,7 +393,7 @@ export default function DisplayCounterTab() {
                           />
                         </div>
                       </div>
-                      <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-1">
+                      <ScrollableRow innerClassName="flex gap-1.5 pb-1" edgeColor="var(--canvas)">
                         <button
                           onClick={() => setMenuCatFilter("all")}
                           className={`shrink-0 rounded-full px-3 py-1 text-[11px] font-semibold transition-all ${
@@ -412,7 +413,7 @@ export default function DisplayCounterTab() {
                             {c}
                           </button>
                         ))}
-                      </div>
+                      </ScrollableRow>
                       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 max-h-72 overflow-y-auto pr-1">
                         {filteredMenuItems.map((mi) => {
                           const alreadyAdded = counterItemNames.has(mi.name.toLowerCase());

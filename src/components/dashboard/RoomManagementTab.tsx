@@ -27,6 +27,7 @@ import {
 import { useRestaurant } from "@/context/RestaurantContext";
 import { formatPrice } from "@/lib/currency";
 import { apiFetch, peekApiCache } from "@/lib/api-client";
+import { ScrollableRow } from "@/components/shared/ScrollableRow";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/context/ToastContext";
 import { uploadFile } from "@/lib/upload";
@@ -1331,7 +1332,10 @@ function BookingsView({ restaurantId, currency }: { restaurantId: string; curren
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
-        <div className="flex gap-1 p-1 rounded-xl bg-[var(--canvas-sub)] ring-1 ring-[var(--border)] overflow-x-auto scrollbar-hide">
+        <ScrollableRow
+          innerClassName="flex gap-1 p-1 rounded-xl bg-[var(--canvas-sub)] ring-1 ring-[var(--border)]"
+          edgeColor="var(--canvas-sub)"
+        >
           {(["ALL", ...BOOKING_STATUSES] as const).map((s) => (
             <button
               key={s}
@@ -1344,7 +1348,7 @@ function BookingsView({ restaurantId, currency }: { restaurantId: string; curren
               {s === "ALL" ? "All" : BOOKING_STATUS_LABELS[s]}
             </button>
           ))}
-        </div>
+        </ScrollableRow>
         <button
           onClick={openCreate}
           className="flex items-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-2 text-[13px] font-bold text-white shadow-md shadow-[var(--accent)]/20 hover:bg-[var(--accent-hover)] active:scale-[0.97] transition-all shrink-0"

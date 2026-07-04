@@ -21,6 +21,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { formatPrice } from "@/lib/currency";
 import { apiFetch, peekApiCache } from "@/lib/api-client";
+import { ScrollableRow } from "@/components/shared/ScrollableRow";
 import DrinksTab from "@/components/dashboard/DrinksTab";
 
 interface UsedInMenuItem {
@@ -259,7 +260,7 @@ function InventoryView() {
             className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] py-2.5 pl-10 pr-4 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
           />
         </div>
-        <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+        <ScrollableRow innerClassName="flex gap-1.5 pb-1" edgeColor="var(--canvas-sub)">
           {(["all", "low", "ok"] as const).map((s) => (
             <button
               key={s}
@@ -287,7 +288,7 @@ function InventoryView() {
               {t === "all" ? "All Types" : t === "drinks" ? "Drinks" : "Ingredients"}
             </button>
           ))}
-        </div>
+        </ScrollableRow>
         <select
           value={filterCat}
           onChange={(e) => setFilterCat(e.target.value)}
