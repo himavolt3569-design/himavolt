@@ -329,7 +329,7 @@ export default function ChatWidget({
     <>
       <motion.button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-20 right-4 z-80 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--text-1)] text-white shadow-xl hover:bg-[#2d1508] transition-colors md:bottom-6"
+        className="fixed bottom-20 right-4 z-80 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--text-1)] text-[var(--canvas)] shadow-xl hover:opacity-90 transition-colors md:bottom-6"
         whileTap={{ scale: 0.95 }}
       >
         <MessageCircle className="h-6 w-6" />
@@ -422,7 +422,7 @@ export default function ChatWidget({
                 <div ref={messagesEndRef} />
               </div>
 
-              <div className="border-t border-[var(--border-soft)] px-4 py-3 shrink-0">
+              <div className="border-t border-[var(--border-soft)] px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shrink-0">
                 <div className="flex items-center gap-2">
                   <input
                     value={input}
@@ -434,7 +434,7 @@ export default function ChatWidget({
                   <button
                     onClick={sendMessage}
                     disabled={!input.trim() || sending}
-                    className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--text-1)] text-white hover:bg-[#2d1508] transition-colors disabled:opacity-50"
+                    className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--text-1)] text-[var(--canvas)] hover:opacity-90 transition-colors disabled:opacity-50"
                   >
                     {sending ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -654,7 +654,7 @@ function CompactChat({
           <button
             onClick={sendMessage}
             disabled={!input.trim() || sending}
-            className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--text-1)] text-white hover:bg-[#2d1508] transition-colors disabled:opacity-50"
+            className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--text-1)] text-[var(--canvas)] hover:opacity-90 transition-colors disabled:opacity-50"
           >
             {sending ? (
               <Loader2 className="h-4 w-4 animate-spin" />

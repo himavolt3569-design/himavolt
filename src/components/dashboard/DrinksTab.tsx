@@ -474,7 +474,7 @@ export default function DrinksTab() {
                     <button
                       type="button"
                       onClick={() => setForm((f) => ({ ...f, isAvailable: !f.isAvailable }))}
-                      className={`relative h-6 w-11 rounded-full transition-colors ${form.isAvailable ? "bg-[var(--accent)]" : "bg-[var(--border)]"}`}
+                      className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${form.isAvailable ? "bg-[var(--accent)]" : "bg-[var(--border)]"}`}
                     >
                       <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${form.isAvailable ? "left-[calc(100%-1.375rem)]" : "left-0.5"}`} />
                     </button>

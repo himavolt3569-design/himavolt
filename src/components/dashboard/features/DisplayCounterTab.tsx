@@ -294,7 +294,7 @@ export default function DisplayCounterTab() {
           </div>
           <button
             onClick={() => updateConfig({ isEnabled: !config.isEnabled })}
-            className={`relative h-6 w-11 rounded-full transition-colors ${config.isEnabled ? "bg-pink-500" : "bg-[var(--surface-alt)]"}`}
+            className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${config.isEnabled ? "bg-pink-500" : "bg-[var(--surface-alt)]"}`}
           >
             <span className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-[var(--canvas)] shadow transition-transform ${config.isEnabled ? "translate-x-5" : ""}`} />
           </button>
@@ -307,7 +307,7 @@ export default function DisplayCounterTab() {
           </div>
           <button
             onClick={() => updateConfig({ autoHideSoldOut: !config.autoHideSoldOut })}
-            className={`relative h-6 w-11 rounded-full transition-colors ${config.autoHideSoldOut ? "bg-pink-500" : "bg-[var(--surface-alt)]"}`}
+            className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${config.autoHideSoldOut ? "bg-pink-500" : "bg-[var(--surface-alt)]"}`}
           >
             <span className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-[var(--canvas)] shadow transition-transform ${config.autoHideSoldOut ? "translate-x-5" : ""}`} />
           </button>

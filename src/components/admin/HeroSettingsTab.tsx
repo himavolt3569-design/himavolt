@@ -308,7 +308,7 @@ export default function HeroSettingsTab() {
                   onClick={() =>
                     setSettings((prev) => ({ ...prev, autoplay: !prev.autoplay }))
                   }
-                  className={`relative h-6 w-11 rounded-full transition-colors ${
+                  className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
                     settings.autoplay ? "bg-blue-500" : "bg-slate-200"
                   }`}
                 >

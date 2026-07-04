@@ -146,7 +146,7 @@ export default function GuestBillingTab() {
         </div>
         <button
           onClick={() => setMaxLimitEnabled(!maxLimitEnabled)}
-          className={`relative h-6 w-11 rounded-full transition-colors ${maxLimitEnabled ? "bg-[var(--accent)]" : "bg-[var(--surface-alt)]"}`}
+          className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${maxLimitEnabled ? "bg-[var(--accent)]" : "bg-[var(--surface-alt)]"}`}
         >
           <span
             className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-[var(--canvas)] shadow transition-transform ${maxLimitEnabled ? "translate-x-5" : ""}`}

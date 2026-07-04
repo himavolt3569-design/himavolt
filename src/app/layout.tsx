@@ -63,6 +63,11 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: "#eaa94d",
+  // Required for env(safe-area-inset-*) to be non-zero on iOS — without it
+  // the pb-safe padding on fixed bottom bars resolves to 0.
+  viewportFit: "cover",
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({

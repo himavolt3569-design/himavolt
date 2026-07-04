@@ -1,9 +1,18 @@
 @import "tailwindcss";
+@import "../components/design-system/tokens/theme.css";
 
 /* Wire Tailwind v4's `dark:` variant to the `.dark` class on <html>
    (set by ThemeContext). Without this, `dark:` utilities only respond to the
    OS `prefers-color-scheme` and the manual theme toggle does nothing. */
 @custom-variant dark (&:where(.dark, .dark *));
+
+/* iOS safe-area padding for fixed bottom bars (home-indicator clearance).
+   BottomNav and the customer dashboard nav already use `pb-safe` — it was
+   never defined, so they sat flush under the gesture bar. Requires
+   viewport-fit=cover (set in the root layout's viewport export). */
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
 
 @theme {
   /* Poppins is the only typeface in the app. Every font token below still
@@ -234,6 +243,55 @@
   }
 }
 
+/* ── react-day-picker v10 — brand theme overrides ──────────────────── */
+.rdp-root {
+  --rdp-accent-color: var(--accent);
+  --rdp-accent-background-color: color-mix(in srgb, var(--accent) 15%, transparent);
+  font-family: var(--font-poppins), sans-serif;
+}
+/* Selected day */
+.rdp-day_button[aria-selected="true"],
+.rdp-selected .rdp-day_button {
+  background-color: var(--accent) !important;
+  color: white !important;
+  border-radius: 9999px !important;
+}
+/* Range middle */
+.rdp-range_middle .rdp-day_button {
+  background-color: color-mix(in srgb, var(--accent) 18%, transparent) !important;
+  color: var(--text-1) !important;
+  border-radius: 0 !important;
+}
+/* Range start / end caps */
+.rdp-range_start .rdp-day_button { border-radius: 9999px 0 0 9999px !important; }
+.rdp-range_end   .rdp-day_button { border-radius: 0 9999px 9999px 0 !important; }
+/* Today marker */
+.rdp-today .rdp-day_button {
+  color: var(--accent) !important;
+  font-weight: 700 !important;
+}
+/* Hover state for unselected days */
+.rdp-day_button:not([aria-selected="true"]):hover {
+  background-color: var(--surface-alt) !important;
+  border-radius: 9999px !important;
+}
+/* Nav chevrons */
+.rdp-button_previous,
+.rdp-button_next {
+  border-radius: 9999px !important;
+  width: 2rem !important;
+  height: 2rem !important;
+}
+.rdp-button_previous:hover,
+.rdp-button_next:hover {
+  background-color: var(--surface-alt) !important;
+}
+/* Caption label */
+.rdp-month_caption { font-weight: 600; color: var(--text-1); }
+/* Weekday labels */
+.rdp-weekday { color: var(--text-3); font-size: 0.7rem; font-weight: 700; }
+/* ── end DayPicker overrides ──────────────────────────────────────── */
+
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
   -webkit-appearance: none;
@@ -315,6 +373,15 @@ canvas[data-engine] {
   }
   .animate-marquee-left  { animation: marquee-left  35s linear infinite; }
   .animate-marquee-right { animation: marquee-right 40s linear infinite; }
+
+  /* Flashing border for tables/rounds awaiting action */
+  @keyframes hvFlash {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+    50% { box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.35); }
+  }
+  .hv-flash {
+    animation: hvFlash 1.4s ease-in-out infinite;
+  }
 
   /* Noise texture overlay — applied via pseudo-element */
   .noise-overlay { position: relative; }

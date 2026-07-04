@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Receipt, X, Loader2, CreditCard, Banknote } from "lucide-react";
+import { Receipt, X, CreditCard, Banknote } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
 
 interface GetBillButtonProps {
@@ -24,31 +24,33 @@ export default function GetBillButton({
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
 
-  const handleGetBill = async () => {
+  const handleGetBill = () => {
+    if (loading) return;
+    // Optimistic: show the confirmation instantly and finalize in the
+    // background — no "Processing…" spinner. The request runs to completion
+    // even after the modal auto-closes.
     setLoading(true);
-    try {
-      await onGetBill();
-      setDone(true);
-      setTimeout(() => {
-        setShowModal(false);
-        setDone(false);
-      }, 2000);
-    } catch {
-      // error handled upstream
-    } finally {
+    setDone(true);
+    void onGetBill();
+    setTimeout(() => {
+      setShowModal(false);
+      setDone(false);
       setLoading(false);
-    }
+    }, 1600);
   };
 
   return (
     <>
+      {/* Stacked above the chat bubble (bottom-20 + h-14 on mobile, bottom-6
+          on desktop) — both live in the right-4 column and used to overlap,
+          leaving Get Bill untappable whenever chat was mounted. */}
       <motion.button
         onClick={() => setShowModal(true)}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         whileHover={{ scale: 1.03 }}
         whileTap={{ scale: 0.97 }}
-        className="fixed bottom-24 right-4 z-40 flex items-center gap-2 rounded-full bg-gradient-to-r from-[#d67620] to-[var(--accent-hover)] px-5 py-3 text-sm font-bold text-white shadow-lg shadow-green-600/30 cursor-pointer md:bottom-6"
+        className="fixed bottom-[9.5rem] right-4 z-40 flex items-center gap-2 rounded-full bg-gradient-to-r from-[#d67620] to-[var(--accent-hover)] px-5 py-3 text-sm font-bold text-white shadow-lg shadow-green-600/30 cursor-pointer md:bottom-24"
       >
         <Receipt className="h-4 w-4" />
         Get Bill
@@ -139,12 +141,8 @@ export default function GetBillButton({
                       disabled={loading}
                       className="w-full rounded-xl bg-[var(--accent)] py-3 text-sm font-bold text-white hover:bg-[var(--accent-muted)]0 transition-colors disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
                     >
-                      {loading ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Receipt className="h-4 w-4" />
-                      )}
-                      {loading ? "Processing..." : "Confirm & Get Bill"}
+                      <Receipt className="h-4 w-4" />
+                      Confirm &amp; Get Bill
                     </button>
                   </>
                 )}
