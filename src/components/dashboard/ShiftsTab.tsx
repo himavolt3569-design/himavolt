@@ -338,7 +338,7 @@ export default function ShiftsTab() {
                 <select
                   value={addForm.staffId}
                   onChange={(e) => setAddForm((f) => ({ ...f, staffId: e.target.value }))}
-                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-3 py-2.5 text-sm font-medium text-[var(--text-1)] outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/10"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-3 py-2.5 text-sm font-medium text-[var(--text-1)] outline-none focus:border-[var(--text-1)] focus:ring-2 focus:ring-[var(--text-1)]/10"
                 >
                   {shiftBasedStaff.length === 0 && (
                     <option value="">No shift-based staff available</option>
@@ -361,7 +361,7 @@ export default function ShiftsTab() {
                   onChange={(e) => setAddForm((f) => ({ ...f, label: e.target.value }))}
                   placeholder="e.g. Morning Shift"
                   maxLength={80}
-                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-3 py-2.5 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/10"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-3 py-2.5 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none focus:border-[var(--text-1)] focus:ring-2 focus:ring-[var(--text-1)]/10"
                 />
               </div>
 
@@ -373,7 +373,7 @@ export default function ShiftsTab() {
                   type="time"
                   value={addForm.startTime}
                   onChange={(e) => setAddForm((f) => ({ ...f, startTime: e.target.value }))}
-                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-3 py-2.5 text-sm font-medium text-[var(--text-1)] outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/10"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-3 py-2.5 text-sm font-medium text-[var(--text-1)] outline-none focus:border-[var(--text-1)] focus:ring-2 focus:ring-[var(--text-1)]/10"
                 />
               </div>
 
@@ -385,7 +385,7 @@ export default function ShiftsTab() {
                   type="time"
                   value={addForm.endTime}
                   onChange={(e) => setAddForm((f) => ({ ...f, endTime: e.target.value }))}
-                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-3 py-2.5 text-sm font-medium text-[var(--text-1)] outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/10"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-3 py-2.5 text-sm font-medium text-[var(--text-1)] outline-none focus:border-[var(--text-1)] focus:ring-2 focus:ring-[var(--text-1)]/10"
                 />
               </div>
             </div>
@@ -458,7 +458,7 @@ export default function ShiftsTab() {
                         type="time"
                         value={editForm.startTime}
                         onChange={(e) => setEditForm((f) => ({ ...f, startTime: e.target.value }))}
-                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-3 py-2 text-sm font-medium text-[var(--text-1)] outline-none focus:border-[#3e1e0c]"
+                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-3 py-2 text-sm font-medium text-[var(--text-1)] outline-none focus:border-[var(--text-1)]"
                       />
                     </div>
                     <div className="space-y-1">
@@ -469,7 +469,7 @@ export default function ShiftsTab() {
                         type="time"
                         value={editForm.endTime}
                         onChange={(e) => setEditForm((f) => ({ ...f, endTime: e.target.value }))}
-                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-3 py-2 text-sm font-medium text-[var(--text-1)] outline-none focus:border-[#3e1e0c]"
+                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-3 py-2 text-sm font-medium text-[var(--text-1)] outline-none focus:border-[var(--text-1)]"
                       />
                     </div>
                     <div className="space-y-1">
@@ -481,7 +481,7 @@ export default function ShiftsTab() {
                         value={editForm.label}
                         onChange={(e) => setEditForm((f) => ({ ...f, label: e.target.value }))}
                         placeholder="Optional label"
-                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-3 py-2 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none focus:border-[#3e1e0c]"
+                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-3 py-2 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none focus:border-[var(--text-1)]"
                       />
                     </div>
                   </div>

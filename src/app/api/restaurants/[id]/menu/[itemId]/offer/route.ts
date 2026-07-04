@@ -44,6 +44,16 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     );
   }
 
+  // Scope the item to THIS restaurant — menu item ids are public, so guard against
+  // setting an offer on another restaurant's item (cross-tenant IDOR).
+  const owned = await db.menuItem.findFirst({
+    where: { id: itemId, restaurantId: id },
+    select: { id: true },
+  });
+  if (!owned) {
+    return NextResponse.json({ error: "Item not found" }, { status: 404 });
+  }
+
   const now = new Date();
   const expiresAt = new Date(now.getTime() + durationMinutes * 60 * 1000);
 
@@ -78,6 +88,15 @@ export async function DELETE(req: NextRequest, { params }: Params) {
     if (!restaurant) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
+  }
+
+  // Scope the item to THIS restaurant before clearing its offer (cross-tenant IDOR).
+  const owned = await db.menuItem.findFirst({
+    where: { id: itemId, restaurantId: id },
+    select: { id: true },
+  });
+  if (!owned) {
+    return NextResponse.json({ error: "Item not found" }, { status: 404 });
   }
 
   const item = await db.menuItem.update({

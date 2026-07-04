@@ -496,14 +496,23 @@ export default function OrdersPage() {
   }
 
   if (loading) {
+    // Show the real page chrome instantly (owner's standard: no full-screen
+    // spinner — the shell appears immediately, orders pop in when ready). On
+    // cached return visits React Query skips this branch entirely.
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[var(--canvas-sub)]">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-8 w-8 animate-spin text-[var(--accent)]" />
-          <p className="text-sm font-medium text-[var(--text-2)]">
-            Loading your orders...
-          </p>
-        </div>
+      <div className="min-h-screen bg-[var(--canvas-sub)]">
+        <header className="sticky top-0 z-40 bg-[var(--canvas)] border-b border-[var(--border-soft)] shadow-sm">
+          <div className="mx-auto max-w-2xl px-4">
+            <div className="flex h-14 items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent-muted)]">
+                <Receipt className="h-5 w-5 text-[var(--accent)]" />
+              </div>
+              <div className="flex-1">
+                <h1 className="text-base font-bold text-[var(--text-1)]">My Orders</h1>
+              </div>
+            </div>
+          </div>
+        </header>
       </div>
     );
   }

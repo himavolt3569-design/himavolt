@@ -455,7 +455,7 @@ export default function ImagePicker({
                   <button
                     onClick={handleUrlSubmit}
                     disabled={!urlInput.trim()}
-                    className="w-full rounded-xl bg-[var(--text-1)] py-3 text-sm font-bold text-white hover:bg-[#2d1508] transition-colors disabled:opacity-50"
+                    className="w-full rounded-xl bg-[var(--text-1)] py-3 text-sm font-bold text-[var(--canvas)] hover:opacity-90 transition-colors disabled:opacity-50"
                   >
                     Use This Image
                   </button>

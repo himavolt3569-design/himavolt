@@ -979,7 +979,7 @@ function AddStaffModal({
                     reset();
                     onClose();
                   }}
-                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] px-6 py-3 text-sm font-bold text-white hover:bg-[#2d1508] active:scale-[0.97] transition-all"
+                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] px-6 py-3 text-sm font-bold text-[var(--canvas)] hover:opacity-90 active:scale-[0.97] transition-all"
                 >
                   <Check className="h-4 w-4" />
                   Done
@@ -1114,10 +1114,10 @@ function AddStaffModal({
                   <button
                     onClick={handleSave}
                     disabled={!isValid || saving}
-                    className={`flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-bold text-white transition-all active:scale-[0.97] ${
+                    className={`flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-bold transition-all active:scale-[0.97] ${
                       isValid && !saving
-                        ? "bg-[var(--text-1)] shadow-lg shadow-[var(--text-1)]/20 hover:bg-[#2d1508]"
-                        : "bg-[var(--border)] cursor-not-allowed"
+                        ? "bg-[var(--text-1)] text-[var(--canvas)] shadow-lg shadow-[var(--text-1)]/20 hover:opacity-90"
+                        : "bg-[var(--border)] text-[var(--text-3)] cursor-not-allowed"
                     }`}
                   >
                     {saving ? (

@@ -226,6 +226,10 @@ export default function LocationPickerModal({
                 exit="exit"
                 className="fixed left-1/2 top-1/2 z-[60] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl bg-[var(--canvas)] shadow-2xl ring-1 ring-[var(--border)]/60 focus:outline-none"
               >
+                <Dialog.Title className="sr-only">Choose location</Dialog.Title>
+                <Dialog.Description className="sr-only">
+                  Search for a place, drag the map, or use your current location to set the exact spot.
+                </Dialog.Description>
                 <div className="relative">
                   <OsmPinpointMap
                     coords={coords}

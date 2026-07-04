@@ -2472,7 +2472,7 @@ function MenuPageContent() {
         activeOrder.status !== "REJECTED" && (
           <Link
             href={`/order-track/${activeOrder.trackToken}`}
-            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 rounded-full bg-[var(--text-1)] px-5 py-3 text-sm font-bold text-white shadow-xl shadow-[var(--text-1)]/30 hover:bg-[#2d1508] active:scale-95 transition-all"
+            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 rounded-full bg-[var(--text-1)] px-5 py-3 text-sm font-bold text-[var(--canvas)] shadow-xl shadow-[var(--text-1)]/30 hover:opacity-90 active:scale-95 transition-all"
           >
             <Receipt className="h-4 w-4" />
             Track Order · {activeOrder.orderNo}

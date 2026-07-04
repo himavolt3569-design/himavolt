@@ -108,7 +108,7 @@ export default function TaxChargesTab() {
               }
               className={`flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold transition-all border ${
                 config.currency === c.code
-                  ? "border-[#3e1e0c] bg-[var(--text-1)]/5 text-[var(--text-1)] ring-2 ring-[var(--text-1)]/10"
+                  ? "border-[var(--text-1)] bg-[var(--text-1)]/5 text-[var(--text-1)] ring-2 ring-[var(--text-1)]/10"
                   : "border-[var(--border)] bg-[var(--canvas)] text-[var(--text-2)] hover:bg-[var(--canvas-sub)]"
               }`}
             >
@@ -152,7 +152,7 @@ export default function TaxChargesTab() {
                 min="0"
                 max="100"
                 step="0.1"
-                className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 pr-10 text-sm font-bold text-[var(--text-1)] outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/10 transition-all"
+                className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 pr-10 text-sm font-bold text-[var(--text-1)] outline-none focus:border-[var(--text-1)] focus:ring-2 focus:ring-[var(--text-1)]/10 transition-all"
               />
               <Percent className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-3)]" />
             </div>
@@ -207,7 +207,7 @@ export default function TaxChargesTab() {
                 min="0"
                 max="100"
                 step="0.1"
-                className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 pr-10 text-sm font-bold text-[var(--text-1)] outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/10 transition-all"
+                className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 pr-10 text-sm font-bold text-[var(--text-1)] outline-none focus:border-[var(--text-1)] focus:ring-2 focus:ring-[var(--text-1)]/10 transition-all"
               />
               <Percent className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-3)]" />
             </div>
@@ -278,7 +278,7 @@ export default function TaxChargesTab() {
       <button
         onClick={handleSave}
         disabled={saving}
-        className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] py-3.5 text-sm font-bold text-white hover:bg-[#2d1508] disabled:bg-[var(--border)] transition-all shadow-sm"
+        className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] py-3.5 text-sm font-bold text-[var(--canvas)] hover:opacity-90 disabled:bg-[var(--border)] transition-all shadow-sm"
       >
         {saving ? (
           <Loader2 className="h-4 w-4 animate-spin" />

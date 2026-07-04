@@ -259,7 +259,7 @@ function ScanPageContent() {
         <div
           className={`relative mx-auto flex h-56 w-56 items-center justify-center rounded-3xl border-2 transition-all duration-500 overflow-hidden sm:h-64 sm:w-64 ${
             scanSuccess
-              ? "border-[#3e1e0c] bg-[var(--text-1)]/10 shadow-2xl shadow-[var(--text-1)]/20"
+              ? "border-[var(--text-1)] bg-[var(--text-1)]/10 shadow-2xl shadow-[var(--text-1)]/20"
               : cameraActive
                 ? "border-[var(--accent)] shadow-xl shadow-[var(--accent)]/15"
                 : "border-[var(--border)] bg-[var(--canvas-sub)]"
@@ -295,10 +295,10 @@ function ScanPageContent() {
             </button>
           )}
 
-          <div className="absolute top-0 left-0 h-10 w-10 rounded-tl-3xl border-t-4 border-l-4 border-[#3e1e0c] z-10 pointer-events-none" />
-          <div className="absolute top-0 right-0 h-10 w-10 rounded-tr-3xl border-t-4 border-r-4 border-[#3e1e0c] z-10 pointer-events-none" />
-          <div className="absolute bottom-0 left-0 h-10 w-10 rounded-bl-3xl border-b-4 border-l-4 border-[#3e1e0c] z-10 pointer-events-none" />
-          <div className="absolute bottom-0 right-0 h-10 w-10 rounded-br-3xl border-b-4 border-r-4 border-[#3e1e0c] z-10 pointer-events-none" />
+          <div className="absolute top-0 left-0 h-10 w-10 rounded-tl-3xl border-t-4 border-l-4 border-[var(--text-1)] z-10 pointer-events-none" />
+          <div className="absolute top-0 right-0 h-10 w-10 rounded-tr-3xl border-t-4 border-r-4 border-[var(--text-1)] z-10 pointer-events-none" />
+          <div className="absolute bottom-0 left-0 h-10 w-10 rounded-bl-3xl border-b-4 border-l-4 border-[var(--text-1)] z-10 pointer-events-none" />
+          <div className="absolute bottom-0 right-0 h-10 w-10 rounded-br-3xl border-b-4 border-r-4 border-[var(--text-1)] z-10 pointer-events-none" />
 
           <AnimatePresence mode="wait">
             {scanSuccess ? (
@@ -383,14 +383,14 @@ function ScanPageContent() {
         <button
           onClick={cameraActive ? stopCamera : startCamera}
           disabled={starting || scanSuccess}
-          className={`w-full rounded-2xl py-4 text-base font-bold text-white transition-all shadow-lg active:scale-[0.98] flex items-center justify-center gap-2 ${
+          className={`w-full rounded-2xl py-4 text-base font-bold transition-all shadow-lg active:scale-[0.98] flex items-center justify-center gap-2 ${
             scanSuccess
-              ? "bg-[var(--border)] cursor-not-allowed shadow-none"
+              ? "bg-[var(--border)] text-[var(--text-3)] cursor-not-allowed shadow-none"
               : cameraActive
-                ? "bg-red-600 hover:bg-red-700 shadow-red-200"
+                ? "bg-red-600 text-white hover:bg-red-700 shadow-red-500/25"
                 : starting
-                  ? "bg-[var(--border)] cursor-not-allowed shadow-none"
-                  : "bg-[var(--text-1)] hover:bg-[#2d1508] hover:shadow-xl hover:-translate-y-0.5 shadow-[var(--text-1)]/25"
+                  ? "bg-[var(--border)] text-[var(--text-3)] cursor-not-allowed shadow-none"
+                  : "bg-[var(--text-1)] text-[var(--canvas)] hover:opacity-90 hover:shadow-xl hover:-translate-y-0.5 shadow-[var(--text-1)]/25"
           }`}
         >
           {starting ? (

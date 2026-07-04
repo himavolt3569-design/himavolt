@@ -260,7 +260,7 @@ export default function OffersPage() {
                 onClick={() => { setShowSortMenu(!showSortMenu); setShowVegMenu(false); }}
                 className={`flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[13px] font-semibold transition-all active:scale-95 ${
                   sortBy !== "relevance"
-                    ? "border-[#3e1e0c] bg-[var(--text-1)] text-white"
+                    ? "border-[var(--text-1)] bg-[var(--text-1)] text-[var(--canvas)]"
                     : "border-[var(--border)] bg-[var(--canvas)] text-[var(--text-1)]"
                 }`}
               >
@@ -299,7 +299,7 @@ export default function OffersPage() {
                 onClick={() => { setShowVegMenu(!showVegMenu); setShowSortMenu(false); }}
                 className={`flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[13px] font-semibold transition-all active:scale-95 ${
                   vegFilter !== "all"
-                    ? "border-[#3e1e0c] bg-[var(--text-1)] text-white"
+                    ? "border-[var(--text-1)] bg-[var(--text-1)] text-[var(--canvas)]"
                     : "border-[var(--border)] bg-[var(--canvas)] text-[var(--text-1)]"
                 }`}
               >
@@ -344,7 +344,7 @@ export default function OffersPage() {
               onClick={() => setMinRating(minRating === 4 ? null : 4)}
               className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[13px] font-semibold transition-all active:scale-95 ${
                 minRating != null
-                  ? "border-[#3e1e0c] bg-[var(--text-1)] text-white"
+                  ? "border-[var(--text-1)] bg-[var(--text-1)] text-[var(--canvas)]"
                   : "border-[var(--border)] bg-[var(--canvas)] text-[var(--text-1)]"
               }`}
             >

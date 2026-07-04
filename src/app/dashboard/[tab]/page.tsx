@@ -78,13 +78,9 @@ const TableReservationsTab = lazyTab(() => import("@/components/dashboard/featur
 const WaitlistTab = lazyTab(() => import("@/components/dashboard/features/WaitlistTab"));
 const PrivateDiningTab = lazyTab(() => import("@/components/dashboard/features/PrivateDiningTab"));
 const WifiSettingsTab = lazyTab(() => import("@/components/dashboard/features/WifiSettingsTab"));
-const GuestCheckInTab = lazyTab(() => import("@/components/dashboard/GuestCheckInTab"));
 const MediaTab = lazyTab(() => import("@/components/dashboard/MediaTab"));
 const ManualBillingTab = lazyTab(() => import("@/components/dashboard/ManualBillingTab"));
 const CouponManagementTab = lazyTab(() => import("@/components/dashboard/CouponManagementTab"));
-const HotelBookingsTab = lazyTab(() => import("@/components/dashboard/HotelBookingsTab"));
-const HotelQRTab = lazyTab(() => import("@/components/dashboard/HotelQRTab"));
-const RoomQRTab = lazyTab(() => import("@/components/dashboard/RoomQRTab"));
 const HotelHubTab = lazyTab(() => import("@/components/dashboard/HotelHubTab"));
 const OwnerControlPanel = lazyTab(() => import("@/components/dashboard/OwnerControlPanel"));
 const FeedbackTab = lazyTab(() => import("@/components/dashboard/FeedbackTab"));
@@ -152,10 +148,12 @@ const COMPONENTS: Record<string, React.ComponentType<any>> = {
   waitlist: WaitlistTab,
   "private-dining": PrivateDiningTab,
   "wifi-settings": WifiSettingsTab,
-  "guest-checkin": GuestCheckInTab,
-  "room-qr-codes": RoomQRTab,
-  "hotel-bookings": HotelBookingsTab,
-  "hotel-qr": HotelQRTab,
+  // hotel-bookings, hotel-qr, guest-checkin, room-qr-codes are folded into
+  // Hotel Hub — navigating those direct URLs now redirects to Hotel Hub
+  "hotel-bookings": HotelHubTab,
+  "guest-checkin": HotelHubTab,
+  "room-qr-codes": HotelHubTab,
+  "hotel-qr": HotelHubTab,
 };
 
 // Primary GET endpoints each tab reads on mount. Warming them into the apiFetch

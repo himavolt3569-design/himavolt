@@ -16,6 +16,7 @@ import { useRestaurant } from "@/context/RestaurantContext";
 import { SkeletonLine, SkeletonGrid } from "@/components/shared/Skeleton";
 import { apiFetch, peekApiCache } from "@/lib/api-client";
 import { formatPrice } from "@/lib/currency";
+import { roomTypeLabel, roomFloorLabel } from "@/lib/room-display";
 
 const APP_URL =
   typeof window !== "undefined"
@@ -28,6 +29,7 @@ interface Room {
   name: string;
   type: string;
   floor: number;
+  floorLabel?: string | null;
   price: number;
   maxGuests: number;
   bedType: string | null;
@@ -37,6 +39,7 @@ interface Room {
 }
 
 const TYPE_COLORS: Record<string, string> = {
+  NORMAL: "bg-[var(--surface)] text-[var(--text-2)]",
   STANDARD: "bg-[var(--surface)] text-[var(--text-2)]",
   DELUXE: "bg-[var(--accent-muted)] text-[var(--accent-text)]",
   SUITE: "bg-[var(--accent-muted)] text-[var(--accent-text)] ring-1 ring-[var(--accent-border)]",
@@ -120,7 +123,7 @@ function RoomQRCard({
 
     ctx.font = "11px system-ui, sans-serif";
     ctx.fillStyle = "rgba(255,255,255,0.75)";
-    ctx.fillText(`Room #${room.roomNumber} · Floor ${room.floor} · ${room.type}`, CARD_W / 2, 60);
+    ctx.fillText(`Room #${room.roomNumber} · Floor ${roomFloorLabel(room)} · ${roomTypeLabel(room.type)}`, CARD_W / 2, 60);
 
     // QR
     const svgData = new XMLSerializer().serializeToString(svg);
@@ -185,8 +188,8 @@ function RoomQRCard({
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
         <div className="absolute bottom-2 left-3 flex gap-1.5">
-          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${TYPE_COLORS[room.type] || "bg-[var(--surface)] text-[var(--text-2)]"}`}>
-            {room.type}
+          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${TYPE_COLORS[roomTypeLabel(room.type).toUpperCase()] || "bg-[var(--surface)] text-[var(--text-2)]"}`}>
+            {roomTypeLabel(room.type)}
           </span>
           <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${room.isAvailable ? "bg-[var(--accent-muted)] text-[var(--accent-text)]" : "bg-[var(--status-error-bg)] text-[var(--status-error-text)]"}`}>
             {room.isAvailable ? "Available" : "Occupied"}

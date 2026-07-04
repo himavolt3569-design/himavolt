@@ -20,6 +20,9 @@ import {
   Copy,
   ExternalLink,
   Download,
+  MapPin,
+  ChevronDown,
+  Sparkles,
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { formatPrice } from "@/lib/currency";
@@ -28,6 +31,10 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/context/ToastContext";
 import { uploadFile } from "@/lib/upload";
 import QRCode from "react-qr-code";
+import RichTextEditor from "@/components/shared/RichTextEditor";
+import LocationPickerModal from "@/components/modals/LocationPickerModal";
+import { AnchoredMenu } from "@/components/shared/AnchoredMenu";
+import { roomTypeLabel, roomFloorLabel } from "@/lib/room-display";
 
 const APP_URL =
   typeof window !== "undefined"
@@ -36,7 +43,7 @@ const APP_URL =
 
 /*  Types                                                              */
 
-type RoomType = "STANDARD" | "DELUXE" | "SUITE" | "DORMITORY";
+type RoomType = string; // free-form label: Normal, Deluxe, Suite, or custom
 type BookingStatus = "CONFIRMED" | "CHECKED_IN" | "CHECKED_OUT" | "CANCELLED";
 
 interface Room {
@@ -45,12 +52,15 @@ interface Room {
   name: string;
   type: RoomType;
   floor: number;
+  floorLabel: string | null;
   price: number;
   maxGuests: number;
   description: string | null;
   amenities: string[];
   offerings: string[];
   locationNote: string | null;
+  latitude: number | null;
+  longitude: number | null;
   imageUrls: string[];
   videoUrl: string | null;
   bedType: string | null;
@@ -82,14 +92,11 @@ interface Booking {
 
 /*  Constants                                                          */
 
-const ROOM_TYPES: RoomType[] = ["STANDARD", "DELUXE", "SUITE", "DORMITORY"];
+// Preset quick-picks. Owners can still type any custom room type and save it.
+const ROOM_TYPE_PRESETS = ["Normal", "Deluxe", "Suite"];
 
-const ROOM_TYPE_COLORS: Record<RoomType, { bg: string; text: string; border: string }> = {
-  STANDARD: { bg: "bg-[var(--canvas-sub)]", text: "text-[var(--text-2)]", border: "border-[var(--border)]" },
-  DELUXE: { bg: "bg-[var(--accent-muted)]", text: "text-[var(--accent-text)]", border: "border-[var(--accent-border)]" },
-  SUITE: { bg: "bg-[var(--accent-muted)]", text: "text-[var(--accent-text)]", border: "border-[var(--accent-border)]" },
-  DORMITORY: { bg: "bg-[var(--status-info-bg)]", text: "text-[var(--status-info-text)]", border: "border-[var(--status-info-border)]" },
-};
+// Default map center when a room has no pin yet (Kathmandu).
+const DEFAULT_MAP_COORDS = { lat: 27.7172, lon: 85.324 };
 
 const BOOKING_STATUSES: BookingStatus[] = ["CONFIRMED", "CHECKED_IN", "CHECKED_OUT", "CANCELLED"];
 
@@ -107,7 +114,7 @@ const BOOKING_STATUS_LABELS: Record<BookingStatus, string> = {
   CANCELLED: "Cancelled",
 };
 
-const BED_TYPES = ["King", "Queen", "Twin", "Single", "Double", "Bunk Bed"];
+const BED_TYPES = ["King", "Queen", "Twin", "Single", "Double", "Bunk Bed", "Sofa Bed", "Floor Mattress"];
 
 // Curated amenities grouped by category for the quick-pick selector. Owners can
 // still type any custom amenity that isn't listed here.
@@ -123,14 +130,16 @@ const ALL_AMENITIES = AMENITY_CATALOG.flatMap((g) => g.items);
 const BLANK_ROOM = {
   roomNumber: "",
   name: "",
-  type: "STANDARD" as RoomType,
-  floor: 1,
+  type: "Normal" as RoomType,
+  floorLabel: "",
   price: 0,
   maxGuests: 2,
   description: "",
   amenities: [] as string[],
   offerings: [] as string[],
   locationNote: "",
+  latitude: null as number | null,
+  longitude: null as number | null,
   imageUrls: [] as string[],
   videoUrl: "",
   bedType: "",
@@ -224,14 +233,16 @@ function RoomsView({ restaurantId, currency, slug, hotelName }: { restaurantId: 
     setForm({
       roomNumber: room.roomNumber,
       name: room.name,
-      type: room.type,
-      floor: room.floor,
+      type: roomTypeLabel(room.type),
+      floorLabel: roomFloorLabel(room),
       price: room.price,
       maxGuests: room.maxGuests,
       description: room.description ?? "",
       amenities: room.amenities ?? [],
       offerings: room.offerings ?? [],
       locationNote: room.locationNote ?? "",
+      latitude: room.latitude ?? null,
+      longitude: room.longitude ?? null,
       imageUrls: room.imageUrls ?? [],
       videoUrl: room.videoUrl ?? "",
       bedType: room.bedType ?? "",
@@ -260,14 +271,16 @@ function RoomsView({ restaurantId, currency, slug, hotelName }: { restaurantId: 
     const payload = {
       roomNumber: form.roomNumber.trim(),
       name: form.name.trim(),
-      type: form.type,
-      floor: form.floor,
+      type: form.type.trim() || "Normal",
+      floorLabel: form.floorLabel.trim() || null,
       price: form.price,
       maxGuests: form.maxGuests,
       description: form.description.trim() || null,
       amenities: form.amenities.map((a) => a.trim()).filter(Boolean),
       offerings: form.offerings.map((o) => o.trim()).filter(Boolean),
       locationNote: form.locationNote.trim() || null,
+      latitude: form.latitude,
+      longitude: form.longitude,
       imageUrls: form.imageUrls,
       videoUrl: form.videoUrl.trim() || null,
       bedType: form.bedType.trim() || null,
@@ -401,7 +414,7 @@ function RoomsView({ restaurantId, currency, slug, hotelName }: { restaurantId: 
                       {room.isAvailable ? "Available" : "Occupied"}
                     </span>
                     <span className="rounded-full bg-black/40 backdrop-blur-sm px-2.5 py-0.5 text-[10px] font-bold text-white">
-                      {room.type}
+                      {roomTypeLabel(room.type)}
                     </span>
                   </div>
                   <div className="absolute bottom-2.5 right-2.5 flex h-8 min-w-[32px] items-center justify-center rounded-xl bg-black/50 backdrop-blur-sm px-2">
@@ -417,7 +430,7 @@ function RoomsView({ restaurantId, currency, slug, hotelName }: { restaurantId: 
                     </p>
                   </div>
                   <div className="flex items-center gap-2 text-[11px] text-[var(--text-3)] mb-2.5 flex-wrap">
-                    <span>Floor {room.floor}</span>
+                    <span>Floor {roomFloorLabel(room)}</span>
                     <span>·</span>
                     <span className="flex items-center gap-0.5"><Users className="h-3 w-3" /> {room.maxGuests}</span>
                     {room.bedType && (
@@ -518,6 +531,39 @@ function RoomFormModal({
   const [customAmenity, setCustomAmenity] = useState("");
   const imgInputRef = useRef<HTMLInputElement>(null);
 
+  // Custom room type entry
+  const [typeInput, setTypeInput] = useState("");
+  const [showTypeInput, setShowTypeInput] = useState(false);
+
+  // Bed-type dropdown
+  const bedBtnRef = useRef<HTMLButtonElement>(null);
+  const [bedOpen, setBedOpen] = useState(false);
+  const [customBed, setCustomBed] = useState("");
+
+  // Amenities dropdown
+  const amenityBtnRef = useRef<HTMLButtonElement>(null);
+  const [amenityOpen, setAmenityOpen] = useState(false);
+
+  // Location map picker
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
+
+  const isCustomType =
+    !!form.type && !ROOM_TYPE_PRESETS.some((p) => p.toLowerCase() === form.type.toLowerCase());
+
+  const applyCustomType = () => {
+    const v = typeInput.trim();
+    if (v) setForm((f) => ({ ...f, type: v }));
+    setTypeInput("");
+    setShowTypeInput(false);
+  };
+
+  const applyCustomBed = () => {
+    const v = customBed.trim();
+    if (v) setForm((f) => ({ ...f, bedType: v }));
+    setCustomBed("");
+    setBedOpen(false);
+  };
+
   const toggleAmenity = (amenity: string) => {
     setForm((f) =>
       f.amenities.includes(amenity)
@@ -540,13 +586,16 @@ function RoomFormModal({
   // Custom amenities the owner typed that aren't part of the curated catalog.
   const extraAmenities = form.amenities.filter((a) => !ALL_AMENITIES.includes(a));
 
+  // Multi-file upload — owners can pick several photos at once.
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files ?? []);
+    if (!files.length) return;
     setUploadingImg(true);
     try {
-      const url = await uploadFile(file, "rooms");
-      setForm((f) => ({ ...f, imageUrls: [...f.imageUrls, url] }));
+      for (const file of files) {
+        const url = await uploadFile(file, "rooms");
+        setForm((f) => ({ ...f, imageUrls: [...f.imageUrls, url] }));
+      }
     } finally {
       setUploadingImg(false);
       if (imgInputRef.current) imgInputRef.current.value = "";
@@ -624,16 +673,16 @@ function RoomFormModal({
                   <div>
                     <label className="block text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider mb-2">Type</label>
                     <div className="flex flex-wrap gap-2">
-                      {ROOM_TYPES.map((t) => {
-                        const colors = ROOM_TYPE_COLORS[t];
+                      {ROOM_TYPE_PRESETS.map((t) => {
+                        const active = form.type.toLowerCase() === t.toLowerCase();
                         return (
                           <button
                             key={t}
                             type="button"
-                            onClick={() => setForm((f) => ({ ...f, type: t }))}
+                            onClick={() => { setForm((f) => ({ ...f, type: t })); setShowTypeInput(false); }}
                             className={cn("rounded-xl border px-3.5 py-2 text-[11px] font-bold transition-all",
-                              form.type === t
-                                ? `${colors.bg} ${colors.text} ${colors.border}`
+                              active
+                                ? "border-[var(--accent-border)] bg-[var(--accent-muted)] text-[var(--accent-text)]"
                                 : "border-[var(--border)] bg-[var(--canvas-sub)] text-[var(--text-2)] hover:bg-[var(--surface)]"
                             )}
                           >
@@ -641,6 +690,51 @@ function RoomFormModal({
                           </button>
                         );
                       })}
+
+                      {/* Custom type chip (shown when the saved type isn't a preset) */}
+                      {isCustomType && (
+                        <span className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--accent-border)] bg-[var(--accent-muted)] px-3 py-2 text-[11px] font-bold text-[var(--accent-text)]">
+                          {form.type}
+                          <button
+                            type="button"
+                            onClick={() => setForm((f) => ({ ...f, type: "Normal" }))}
+                            className="opacity-70 hover:opacity-100"
+                          >
+                            <X className="h-3 w-3" strokeWidth={3} />
+                          </button>
+                        </span>
+                      )}
+
+                      {showTypeInput ? (
+                        <span className="inline-flex items-center gap-1">
+                          <input
+                            autoFocus
+                            value={typeInput}
+                            onChange={(e) => setTypeInput(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") { e.preventDefault(); applyCustomType(); }
+                              if (e.key === "Escape") { setShowTypeInput(false); setTypeInput(""); }
+                            }}
+                            placeholder="Custom type"
+                            className="w-32 rounded-xl border border-[var(--accent-border)] bg-[var(--canvas-sub)] px-3 py-2 text-[11px] font-bold text-[var(--text-1)] outline-none ring-1 ring-[var(--accent)] placeholder:font-medium placeholder:text-[var(--text-3)]"
+                          />
+                          <button
+                            type="button"
+                            onClick={applyCustomType}
+                            className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent)] text-white"
+                          >
+                            <Check className="h-3.5 w-3.5" strokeWidth={2.5} />
+                          </button>
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => { setShowTypeInput(true); setTypeInput(isCustomType ? form.type : ""); }}
+                          className="inline-flex items-center gap-1 rounded-xl border border-dashed border-[var(--border)] bg-[var(--canvas-sub)] px-3 py-2 text-[11px] font-bold text-[var(--text-2)] hover:border-[var(--accent)] hover:text-[var(--accent-text)] transition-all"
+                        >
+                          <Plus className="h-3 w-3" strokeWidth={2.5} /> Custom
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -659,11 +753,11 @@ function RoomFormModal({
                     <div>
                       <label className="block text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider mb-1.5">Floor</label>
                       <input
-                        type="number"
-                        value={form.floor}
-                        onChange={(e) => setForm((f) => ({ ...f, floor: parseInt(e.target.value) || 1 }))}
-                        min={0}
-                        className="w-full rounded-xl bg-[var(--canvas-sub)] px-3.5 py-2.5 text-[13px] font-semibold text-[var(--text-1)] outline-none ring-1 ring-[var(--border)] focus:ring-[var(--accent)] transition-all text-center"
+                        type="text"
+                        value={form.floorLabel}
+                        onChange={(e) => setForm((f) => ({ ...f, floorLabel: e.target.value }))}
+                        placeholder="Ground, 1, 2A…"
+                        className="w-full rounded-xl bg-[var(--canvas-sub)] px-3.5 py-2.5 text-[13px] font-semibold text-[var(--text-1)] outline-none ring-1 ring-[var(--border)] focus:ring-[var(--accent)] transition-all text-center placeholder:font-normal placeholder:text-[var(--text-3)]"
                       />
                     </div>
                     <div>
@@ -693,14 +787,61 @@ function RoomFormModal({
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider mb-1.5">Bed Type</label>
-                      <select
-                        value={form.bedType}
-                        onChange={(e) => setForm((f) => ({ ...f, bedType: e.target.value }))}
-                        className="w-full rounded-xl bg-[var(--canvas-sub)] px-3.5 py-2.5 text-[13px] font-semibold text-[var(--text-1)] outline-none ring-1 ring-[var(--border)] focus:ring-[var(--accent)] transition-all"
+                      <button
+                        ref={bedBtnRef}
+                        type="button"
+                        onClick={() => setBedOpen((o) => !o)}
+                        className="flex w-full items-center justify-between gap-2 rounded-xl bg-[var(--canvas-sub)] px-3.5 py-2.5 text-[13px] font-semibold text-[var(--text-1)] outline-none ring-1 ring-[var(--border)] focus:ring-[var(--accent)] transition-all"
                       >
-                        <option value="">Select bed type</option>
-                        {BED_TYPES.map((bt) => <option key={bt} value={bt}>{bt}</option>)}
-                      </select>
+                        <span className={cn("flex items-center gap-1.5 truncate", !form.bedType && "text-[var(--text-3)] font-normal")}>
+                          <BedDouble className="h-3.5 w-3.5 shrink-0 text-[var(--text-3)]" />
+                          {form.bedType || "Select bed type"}
+                        </span>
+                        <ChevronDown className={cn("h-4 w-4 shrink-0 text-[var(--text-3)] transition-transform", bedOpen && "rotate-180")} />
+                      </button>
+                      <AnchoredMenu
+                        anchorRef={bedBtnRef}
+                        open={bedOpen}
+                        onClose={() => setBedOpen(false)}
+                        width={230}
+                        className="rounded-xl border border-[var(--border)] bg-[var(--canvas)] p-1.5 shadow-xl shadow-black/10"
+                      >
+                        <div className="max-h-56 overflow-y-auto">
+                          {BED_TYPES.map((bt) => {
+                            const active = form.bedType === bt;
+                            return (
+                              <button
+                                key={bt}
+                                type="button"
+                                onClick={() => { setForm((f) => ({ ...f, bedType: bt })); setBedOpen(false); }}
+                                className={cn("flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-[13px] font-semibold transition-colors",
+                                  active ? "bg-[var(--accent-muted)] text-[var(--accent-text)]" : "text-[var(--text-1)] hover:bg-[var(--canvas-sub)]"
+                                )}
+                              >
+                                {bt}
+                                {active && <Check className="h-3.5 w-3.5" strokeWidth={2.5} />}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <div className="mt-1 flex items-center gap-1.5 border-t border-[var(--border-soft)] px-1.5 pt-2">
+                          <input
+                            value={customBed}
+                            onChange={(e) => setCustomBed(e.target.value)}
+                            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); applyCustomBed(); } }}
+                            placeholder="Custom bed type…"
+                            className="min-w-0 flex-1 rounded-lg border border-[var(--border)] bg-[var(--canvas-sub)] px-2.5 py-1.5 text-xs font-medium text-[var(--text-1)] outline-none focus:ring-1 focus:ring-[var(--accent)] placeholder:text-[var(--text-3)]"
+                          />
+                          <button
+                            type="button"
+                            onClick={applyCustomBed}
+                            disabled={!customBed.trim()}
+                            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[var(--accent)] text-white disabled:opacity-40"
+                          >
+                            <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
+                          </button>
+                        </div>
+                      </AnchoredMenu>
                     </div>
                     <div>
                       <label className="block text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider mb-1.5">Bed Count</label>
@@ -716,22 +857,58 @@ function RoomFormModal({
                   </div>
                   <div>
                     <label className="block text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider mb-1.5">Description</label>
-                    <textarea
+                    <RichTextEditor
                       value={form.description}
-                      onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                      placeholder="A brief description of the room..."
-                      rows={2}
-                      className="w-full rounded-xl bg-[var(--canvas-sub)] px-3.5 py-2.5 text-[13px] font-semibold text-[var(--text-1)] outline-none ring-1 ring-[var(--border)] focus:ring-[var(--accent)] transition-all resize-none placeholder:text-[var(--text-3)] placeholder:font-normal"
+                      onChange={(html) => setForm((f) => ({ ...f, description: html }))}
+                      placeholder="Describe the room — use bold, italic, underline and lists…"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider mb-1.5">Location Note</label>
+                    <label className="block text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider mb-1.5">Location</label>
+                    {form.latitude != null && form.longitude != null ? (
+                      <div className="flex items-center gap-3 rounded-xl bg-[var(--accent-muted)] ring-1 ring-[var(--accent-border)] px-3.5 py-2.5">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--accent)] text-white">
+                          <MapPin className="h-4 w-4" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-[13px] font-bold text-[var(--text-1)]">
+                            {form.locationNote || "Pinned location"}
+                          </p>
+                          <p className="font-mono text-[10px] text-[var(--text-3)]">
+                            {form.latitude.toFixed(5)}, {form.longitude.toFixed(5)}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setShowLocationPicker(true)}
+                          className="shrink-0 rounded-lg bg-[var(--canvas)] px-2.5 py-1.5 text-[11px] font-bold text-[var(--text-2)] ring-1 ring-[var(--border)] hover:text-[var(--text-1)] transition-all"
+                        >
+                          Change
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setForm((f) => ({ ...f, latitude: null, longitude: null }))}
+                          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[var(--text-3)] hover:bg-[var(--canvas)] hover:text-rose-500 transition-all"
+                          title="Remove pin"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setShowLocationPicker(true)}
+                        className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-[var(--border)] bg-[var(--canvas-sub)] px-3.5 py-3 text-[13px] font-bold text-[var(--text-2)] hover:border-[var(--accent)] hover:bg-[var(--accent-muted)] hover:text-[var(--accent-text)] transition-all"
+                      >
+                        <MapPin className="h-4 w-4" /> Pin location on map
+                      </button>
+                    )}
                     <input
                       type="text"
                       value={form.locationNote}
                       onChange={(e) => setForm((f) => ({ ...f, locationNote: e.target.value }))}
-                      placeholder="e.g. 3rd floor, sea-facing wing"
-                      className="w-full rounded-xl bg-[var(--canvas-sub)] px-3.5 py-2.5 text-[13px] font-semibold text-[var(--text-1)] outline-none ring-1 ring-[var(--border)] focus:ring-[var(--accent)] transition-all placeholder:text-[var(--text-3)] placeholder:font-normal"
+                      placeholder="Location note — e.g. 3rd floor, sea-facing wing"
+                      className="mt-2 w-full rounded-xl bg-[var(--canvas-sub)] px-3.5 py-2.5 text-[13px] font-semibold text-[var(--text-1)] outline-none ring-1 ring-[var(--border)] focus:ring-[var(--accent)] transition-all placeholder:text-[var(--text-3)] placeholder:font-normal"
                     />
                   </div>
                   <div>
@@ -757,114 +934,131 @@ function RoomFormModal({
                 <span className="text-[11px] font-bold uppercase tracking-widest text-[var(--text-3)]">Amenities &amp; Photos</span>
               </div>
 
-              {/* Amenities — categorized quick-pick + custom add */}
+              {/* Amenities — dropdown multi-select + custom add */}
               <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="block text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider">
-                    Amenities &amp; Features
-                  </label>
-                  {form.amenities.length > 0 && (
-                    <span className="text-[11px] font-bold text-[var(--accent-text)]">
-                      {form.amenities.length} selected
+                <label className="block text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider mb-1.5">
+                  Amenities &amp; Features
+                </label>
+                <button
+                  ref={amenityBtnRef}
+                  type="button"
+                  onClick={() => setAmenityOpen((o) => !o)}
+                  className="flex w-full items-center justify-between gap-2 rounded-xl bg-[var(--canvas-sub)] px-3.5 py-2.5 text-[13px] font-semibold outline-none ring-1 ring-[var(--border)] focus:ring-[var(--accent)] transition-all"
+                >
+                  <span className="flex items-center gap-1.5 truncate">
+                    <Sparkles className="h-3.5 w-3.5 shrink-0 text-[var(--text-3)]" />
+                    <span className={form.amenities.length ? "text-[var(--text-1)]" : "text-[var(--text-3)] font-normal"}>
+                      {form.amenities.length ? `${form.amenities.length} selected` : "Select amenities"}
                     </span>
-                  )}
-                </div>
-                <div className="space-y-3 rounded-xl ring-1 ring-[var(--border)] bg-[var(--canvas-sub)] p-3">
-                  {AMENITY_CATALOG.map((group) => (
-                    <div key={group.group}>
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-3)] mb-1.5">
-                        {group.group}
-                      </p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {group.items.map((item) => {
-                          const active = form.amenities.includes(item);
-                          return (
-                            <button
-                              key={item}
-                              type="button"
-                              onClick={() => toggleAmenity(item)}
-                              className={`flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-all ${
-                                active
-                                  ? "border-[var(--accent-border)] bg-[var(--accent-muted)] text-[var(--accent-text)]"
-                                  : "border-[var(--border)] bg-[var(--canvas)] text-[var(--text-2)] hover:border-[var(--accent-border)] hover:text-[var(--accent-text)]"
-                              }`}
-                            >
-                              {active && <Check className="h-3 w-3" strokeWidth={3} />}
-                              {item}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ))}
+                  </span>
+                  <ChevronDown className={cn("h-4 w-4 shrink-0 text-[var(--text-3)] transition-transform", amenityOpen && "rotate-180")} />
+                </button>
 
-                  {/* Custom amenities the owner added */}
-                  {extraAmenities.length > 0 && (
-                    <div>
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-3)] mb-1.5">
-                        Custom
-                      </p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {extraAmenities.map((item) => (
-                          <button
-                            key={item}
-                            type="button"
-                            onClick={() => toggleAmenity(item)}
-                            className="flex items-center gap-1 rounded-lg border border-[var(--accent-border)] bg-[var(--accent-muted)] px-2.5 py-1.5 text-xs font-semibold text-[var(--accent-text)] transition-all"
-                          >
-                            {item}
-                            <X className="h-3 w-3" strokeWidth={3} />
-                          </button>
-                        ))}
+                <AnchoredMenu
+                  anchorRef={amenityBtnRef}
+                  open={amenityOpen}
+                  onClose={() => setAmenityOpen(false)}
+                  width={320}
+                  className="rounded-xl border border-[var(--border)] bg-[var(--canvas)] shadow-xl shadow-black/10"
+                >
+                  <div className="max-h-64 space-y-3 overflow-y-auto p-3">
+                    {AMENITY_CATALOG.map((group) => (
+                      <div key={group.group}>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-3)] mb-1.5">
+                          {group.group}
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {group.items.map((item) => {
+                            const active = form.amenities.includes(item);
+                            return (
+                              <button
+                                key={item}
+                                type="button"
+                                onClick={() => toggleAmenity(item)}
+                                className={`flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-all ${
+                                  active
+                                    ? "border-[var(--accent-border)] bg-[var(--accent-muted)] text-[var(--accent-text)]"
+                                    : "border-[var(--border)] bg-[var(--canvas-sub)] text-[var(--text-2)] hover:border-[var(--accent-border)] hover:text-[var(--accent-text)]"
+                                }`}
+                              >
+                                {active && <Check className="h-3 w-3" strokeWidth={3} />}
+                                {item}
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  )}
-
-                  {/* Add a custom amenity */}
-                  <div className="flex items-center gap-2 pt-1">
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-2 border-t border-[var(--border-soft)] p-2.5">
                     <input
                       type="text"
                       value={customAmenity}
                       onChange={(e) => setCustomAmenity(e.target.value)}
                       onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          addCustomAmenity();
-                        }
+                        if (e.key === "Enter") { e.preventDefault(); addCustomAmenity(); }
                       }}
                       placeholder="Add a custom amenity…"
-                      className="flex-1 rounded-lg border border-[var(--border)] bg-[var(--canvas)] px-3 py-2 text-xs font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
+                      className="min-w-0 flex-1 rounded-lg border border-[var(--border)] bg-[var(--canvas-sub)] px-3 py-2 text-xs font-medium text-[var(--text-1)] outline-none transition-all focus:ring-1 focus:ring-[var(--accent)] placeholder:text-[var(--text-3)]"
                     />
                     <button
                       type="button"
                       onClick={addCustomAmenity}
                       disabled={!customAmenity.trim()}
-                      className="flex items-center gap-1 rounded-lg bg-[var(--text-1)] px-3 py-2 text-xs font-bold text-white transition-all hover:opacity-90 disabled:opacity-40"
+                      className="flex shrink-0 items-center gap-1 rounded-lg bg-[var(--accent)] px-3 py-2 text-xs font-bold text-white transition-all hover:bg-[var(--accent-hover)] disabled:opacity-40"
                     >
                       <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
                       Add
                     </button>
                   </div>
-                </div>
+                </AnchoredMenu>
+
+                {/* Selected amenities as removable chips */}
+                {form.amenities.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {form.amenities.map((item) => (
+                      <span
+                        key={item}
+                        className="inline-flex items-center gap-1 rounded-lg border border-[var(--accent-border)] bg-[var(--accent-muted)] px-2.5 py-1 text-xs font-semibold text-[var(--accent-text)]"
+                      >
+                        {item}
+                        <button type="button" onClick={() => toggleAmenity(item)} className="opacity-70 hover:opacity-100">
+                          <X className="h-3 w-3" strokeWidth={3} />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              {/* Room Images */}
+              {/* Room Images — clear multi-photo uploader */}
               <div>
-                <label className="block text-sm font-bold text-[var(--text-1)] mb-2">Room Photos</label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-bold text-[var(--text-1)]">Room Photos</label>
+                  {form.imageUrls.length > 0 && (
+                    <span className="text-[11px] font-bold text-[var(--accent-text)]">
+                      {form.imageUrls.length} photo{form.imageUrls.length !== 1 ? "s" : ""}
+                    </span>
+                  )}
+                </div>
+
                 {form.imageUrls.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mb-2">
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5 mb-3">
                     {form.imageUrls.map((url, idx) => (
-                      <div key={idx} className="relative group h-20 w-20 rounded-xl overflow-hidden border border-[var(--border)] shrink-0">
-                        <img src={url} alt={`Room ${idx + 1}`} className="h-full w-full object-cover" />
+                      <div key={idx} className="relative group aspect-square rounded-xl overflow-hidden ring-1 ring-[var(--border)] bg-[var(--canvas-sub)]">
+                        <img src={url} alt={`Room photo ${idx + 1}`} className="h-full w-full object-cover" />
                         <button
                           type="button"
                           onClick={() => removeImage(idx)}
-                          className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"
+                          className="absolute inset-0 flex items-center justify-center bg-black/55 opacity-0 group-hover:opacity-100 transition-opacity"
+                          title="Remove photo"
                         >
-                          <X className="h-4 w-4 text-white" />
+                          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-rose-600">
+                            <Trash2 className="h-4 w-4" />
+                          </span>
                         </button>
                         {idx === 0 && (
-                          <span className="absolute bottom-0 left-0 right-0 text-center text-[9px] font-bold bg-black/60 text-white py-0.5">
+                          <span className="absolute bottom-1.5 left-1.5 rounded-md bg-[var(--accent)] px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wide text-white shadow-sm">
                             Cover
                           </span>
                         )}
@@ -872,10 +1066,12 @@ function RoomFormModal({
                     ))}
                   </div>
                 )}
+
                 <input
                   ref={imgInputRef}
                   type="file"
                   accept="image/*"
+                  multiple
                   className="hidden"
                   onChange={handleImageUpload}
                 />
@@ -883,12 +1079,25 @@ function RoomFormModal({
                   type="button"
                   onClick={() => imgInputRef.current?.click()}
                   disabled={uploadingImg}
-                  className="flex items-center gap-2 rounded-xl border border-dashed border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-3 text-sm font-medium text-[var(--text-2)] hover:border-[var(--accent)] hover:bg-[var(--accent-muted)] hover:text-[var(--accent-text)] transition-all disabled:opacity-50 w-full justify-center"
+                  className="flex w-full flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-dashed border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-6 text-center hover:border-[var(--accent)] hover:bg-[var(--accent-muted)] transition-all disabled:opacity-60"
                 >
                   {uploadingImg ? (
-                    <><Loader2 className="h-4 w-4 animate-spin" /> Uploading...</>
+                    <>
+                      <Loader2 className="h-6 w-6 animate-spin text-[var(--accent)]" />
+                      <span className="text-[13px] font-bold text-[var(--text-2)]">Uploading photos…</span>
+                    </>
                   ) : (
-                    <><Upload className="h-4 w-4" /> Add Photo</>
+                    <>
+                      <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--accent-muted)] text-[var(--accent-text)]">
+                        <ImageIcon className="h-5 w-5" />
+                      </span>
+                      <span className="text-[13px] font-bold text-[var(--text-1)]">
+                        {form.imageUrls.length > 0 ? "Add more photos" : "Click to upload photos"}
+                      </span>
+                      <span className="text-[11px] text-[var(--text-3)]">
+                        JPG or PNG · You can select several · First photo is the cover
+                      </span>
+                    </>
                   )}
                 </button>
               </div>
@@ -904,7 +1113,7 @@ function RoomFormModal({
                   value={form.videoUrl}
                   onChange={(e) => setForm((f) => ({ ...f, videoUrl: e.target.value }))}
                   placeholder="https://youtube.com/…"
-                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[var(--text-1)] focus:ring-2 focus:ring-[var(--text-1)]/15"
                 />
               </div>
 
@@ -950,6 +1159,25 @@ function RoomFormModal({
                 Cancel
               </button>
             </div>
+
+            <LocationPickerModal
+              open={showLocationPicker}
+              onOpenChange={setShowLocationPicker}
+              initialCoords={
+                form.latitude != null && form.longitude != null
+                  ? { lat: form.latitude, lon: form.longitude }
+                  : DEFAULT_MAP_COORDS
+              }
+              initialAddress={form.locationNote}
+              onConfirm={({ address, coords }) =>
+                setForm((f) => ({
+                  ...f,
+                  latitude: coords.lat,
+                  longitude: coords.lon,
+                  locationNote: f.locationNote.trim() || address,
+                }))
+              }
+            />
           </motion.div>
         </>
       )}
@@ -1406,12 +1634,12 @@ function BookingFormModal({
                 <select
                   value={form.roomId}
                   onChange={(e) => setForm((f) => ({ ...f, roomId: e.target.value }))}
-                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15 appearance-none"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] outline-none transition-all focus:border-[var(--text-1)] focus:ring-2 focus:ring-[var(--text-1)]/15 appearance-none"
                 >
                   <option value="">Select a room</option>
                   {availableRooms.map((room) => (
                     <option key={room.id} value={room.id}>
-                      #{room.roomNumber} &mdash; {room.name} ({room.type}) &mdash;{" "}
+                      #{room.roomNumber} &mdash; {room.name} ({roomTypeLabel(room.type)}) &mdash;{" "}
                       {formatPrice(room.price, currency)}/night
                     </option>
                   ))}
@@ -1432,7 +1660,7 @@ function BookingFormModal({
                   value={form.guestName}
                   onChange={(e) => setForm((f) => ({ ...f, guestName: e.target.value }))}
                   placeholder="e.g. Sita Sharma"
-                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[var(--text-1)] focus:ring-2 focus:ring-[var(--text-1)]/15"
                 />
               </div>
 
@@ -1458,7 +1686,7 @@ function BookingFormModal({
                     inputMode="numeric"
                     title="Enter exactly 10 digits"
                     placeholder="98XXXXXXXX"
-                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[var(--text-1)] focus:ring-2 focus:ring-[var(--text-1)]/15"
                   />
                 </div>
                 <div>
@@ -1468,7 +1696,7 @@ function BookingFormModal({
                     value={form.guestEmail}
                     onChange={(e) => setForm((f) => ({ ...f, guestEmail: e.target.value }))}
                     placeholder="guest@email.com"
-                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[var(--text-1)] focus:ring-2 focus:ring-[var(--text-1)]/15"
                   />
                 </div>
               </div>
@@ -1483,7 +1711,7 @@ function BookingFormModal({
                     type="datetime-local"
                     value={form.checkIn}
                     onChange={(e) => setForm((f) => ({ ...f, checkIn: e.target.value }))}
-                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] outline-none transition-all focus:border-[var(--text-1)] focus:ring-2 focus:ring-[var(--text-1)]/15"
                   />
                 </div>
                 <div>
@@ -1494,7 +1722,7 @@ function BookingFormModal({
                     type="datetime-local"
                     value={form.checkOut}
                     onChange={(e) => setForm((f) => ({ ...f, checkOut: e.target.value }))}
-                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] outline-none transition-all focus:border-[var(--text-1)] focus:ring-2 focus:ring-[var(--text-1)]/15"
                   />
                 </div>
               </div>
@@ -1507,7 +1735,7 @@ function BookingFormModal({
                   onChange={(e) => setForm((f) => ({ ...f, guests: parseInt(e.target.value) || 1 }))}
                   min={1}
                   max={20}
-                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] outline-none transition-all focus:border-[var(--text-1)] focus:ring-2 focus:ring-[var(--text-1)]/15"
                 />
               </div>
 
@@ -1525,7 +1753,7 @@ function BookingFormModal({
                     min={0}
                     step={100}
                     placeholder="0"
-                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[var(--text-1)] focus:ring-2 focus:ring-[var(--text-1)]/15"
                   />
                 </div>
                 <div>
@@ -1541,7 +1769,7 @@ function BookingFormModal({
                     min={0}
                     step={100}
                     placeholder="0"
-                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[var(--text-1)] focus:ring-2 focus:ring-[var(--text-1)]/15"
                   />
                 </div>
               </div>
@@ -1553,7 +1781,7 @@ function BookingFormModal({
                   onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
                   placeholder="Any special requests or notes..."
                   rows={2}
-                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15 resize-none"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[var(--text-1)] focus:ring-2 focus:ring-[var(--text-1)]/15 resize-none"
                 />
               </div>
             </div>
@@ -1654,7 +1882,7 @@ function RoomQRInline({
     ctx.fillText(roomLabel, CARD_W / 2, 46);
     ctx.font = "11px system-ui, sans-serif";
     ctx.fillStyle = "rgba(255,255,255,0.75)";
-    ctx.fillText(`Room #${room.roomNumber} · Floor ${room.floor} · ${room.type}`, CARD_W / 2, 60);
+    ctx.fillText(`Room #${room.roomNumber} · Floor ${roomFloorLabel(room)} · ${roomTypeLabel(room.type)}`, CARD_W / 2, 60);
 
     const svgData = new XMLSerializer().serializeToString(svg);
     const img = new Image();

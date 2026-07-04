@@ -60,9 +60,23 @@ export async function PATCH(
   const body = await req.json();
   const { status, driverId, estimatedMins, cancelReason } = body;
 
-  const existing = await db.delivery.findUnique({ where: { orderId } });
+  const existing = await db.delivery.findUnique({
+    where: { orderId },
+    include: { order: { select: { restaurantId: true } } },
+  });
   if (!existing) {
     return NextResponse.json({ error: "Delivery not found" }, { status: 404 });
+  }
+
+  // Authorize: only the owner of the restaurant behind this order may manage its
+  // delivery. Previously ANY logged-in user could reassign drivers or flip the
+  // delivery/order status for any order id (broken access control).
+  const ownsRestaurant = await db.restaurant.findFirst({
+    where: { id: existing.order.restaurantId, ownerId: user.id },
+    select: { id: true },
+  });
+  if (!ownsRestaurant) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const updateData: Record<string, unknown> = {};

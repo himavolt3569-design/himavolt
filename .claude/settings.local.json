@@ -12,7 +12,21 @@
       "Bash(xargs grep \"NEXT_PUBLIC_\")",
       "PowerShell(gh pr view 12 --json url,number,state 2>&1)",
       "PowerShell(\"---UNPUSHED---\")",
-      "PowerShell(\"---PR12---\")"
+      "PowerShell(\"---PR12---\")",
+      "Bash(git *)",
+      "Bash(ls src/app/\\\\\\(checkout\\\\\\)/book/\\\\[roomId\\\\]/components/)",
+      "Bash(ls \"src/app/\\(checkout\\)/book/[roomId]/components/\")",
+      "Bash(npx tsc *)",
+      "Bash(node -e \"const z = require\\('zod'\\); console.log\\(z.ZodError.prototype\\)\")",
+      "Bash(perl -pi -e 's/\\\\[var\\\\\\(\\(--[a-zA-Z0-9-]+\\)\\\\\\)\\\\]/\\($1\\)/g' \"src/app/\\(stays\\)/hotel/[slug]/page.tsx\" \"src/components/orders/TableOrderBoard.tsx\" \"src/components/home/HardwareStoreCarousel.tsx\")",
+      "Bash(perl -pi -e 's/h-\\\\[34px\\\\]/h-8.5/g' \"src/components/orders/TableOrderBoard.tsx\")",
+      "Bash(npx eslint *)",
+      "PowerShell(cd D:\\\\Official_Projects\\\\himalhub; npx tsc --noEmit 2>&1 | Where-Object { $_ -notmatch \"admin/page\" } | Select-Object -First 30)",
+      "PowerShell(cd \"D:\\\\Official_Projects\\\\himalhub\"; npx tsc --noEmit 2>&1 | Where-Object { $_ -notmatch \"admin/page.tsx\" } | Select-Object -First 20)",
+      "Bash(node -e \"require\\('typescript'\\)\")",
+      "PowerShell(npx tsc --noEmit --pretty false)",
+      "PowerShell(npx tsc --noEmit --pretty false 2>&1)",
+      "mcp__visualize__read_me"
     ]
   }
 }

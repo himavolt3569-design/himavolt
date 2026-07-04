@@ -129,7 +129,7 @@ function QRCard({
               <style>
                 @media print { @page { margin: 0; } body { margin: 0; } }
                 body { margin:0; display:flex; align-items:center; justify-content:center; min-height:100vh; background:#f9fafb; }
-                img { width: 340px; height: auto; box-shadow: 0 4px 24px rgba(0,0,0,0.12); }
+                img { width: 340px; height: auto; border-radius: 24px; box-shadow: 0 4px 24px rgba(0,0,0,0.12); }
               </style>
             </head>
             <body>
@@ -164,10 +164,10 @@ function QRCard({
             <span className="shrink-0 rounded-full bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-bold text-[var(--accent-text)]">Active</span>
           </div>
 
-          <div className="relative w-[180px] h-[180px] max-w-full flex items-center justify-center rounded-xl bg-[var(--canvas)] p-4 mb-4 border border-[var(--border-soft)] shadow-sm">
+          <div className="relative w-[180px] h-[180px] max-w-full flex items-center justify-center rounded-xl bg-white p-4 mb-4 border border-black/5 shadow-sm">
             <QRCode value={tableUrl} size={256} style={{ height: "100%", maxWidth: "100%", width: "100%" }} fgColor="#3e1e0c" bgColor="transparent" level="M" />
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="rounded-sm bg-[var(--canvas)] flex items-center justify-center border border-[var(--border-soft)] px-1.5 py-1 shadow-sm">
+              <div className="rounded-sm bg-white flex items-center justify-center border border-black/10 px-1.5 py-1 shadow-sm">
                 <span className="text-[9px] font-black text-[var(--accent)] leading-none">
                   {restaurantName.split(/\s+/).map((w) => w[0]).join("").toUpperCase().slice(0, 3)}
                 </span>
@@ -180,7 +180,7 @@ function QRCard({
           <button
             ref={downloadRef}
             onClick={handleDownload}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[var(--text-1)] py-2.5 text-xs font-bold text-white hover:bg-[#2d1508] transition-all active:scale-[0.97]"
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[var(--text-1)] py-2.5 text-xs font-bold text-[var(--canvas)] hover:opacity-90 transition-all active:scale-[0.97]"
           >
             <Download className="h-3.5 w-3.5" />
             Download
@@ -313,12 +313,12 @@ export default function QRCodesTab() {
           className={`flex items-center gap-2 rounded-xl px-6 py-3 text-[13px] font-bold transition-all ${
             downloading
               ? "bg-[var(--surface)] text-[var(--text-3)] cursor-not-allowed"
-              : "bg-[var(--text-1)] text-white hover:bg-[var(--text-2)] shadow-md hover:shadow-lg hover:-translate-y-0.5 active:scale-[0.97]"
+              : "bg-[var(--text-1)] text-[var(--canvas)] hover:opacity-90 shadow-md hover:shadow-lg hover:-translate-y-0.5 active:scale-[0.97]"
           }`}
         >
           {downloading ? (
             <>
-              <div className="h-4 w-4 rounded-full border-2 border-[var(--border)] border-t-gray-500 animate-spin" />
+              <div className="h-4 w-4 rounded-full border-2 border-[var(--border)] border-t-[var(--text-3)] animate-spin" />
               Generating PDF...
             </>
           ) : (
@@ -341,7 +341,7 @@ export default function QRCodesTab() {
         <div className="flex items-center gap-3 rounded-2xl bg-[var(--canvas)]/70 backdrop-blur-md border border-[var(--border-soft)]/50 px-4 py-3 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] shrink-0">
           <Palette className="h-5 w-5 text-[var(--accent)]" />
           <span className="text-xs font-bold uppercase tracking-wide text-[var(--text-2)]">Style</span>
-          <div className="flex gap-1.5 p-1 bg-[var(--surface)] rounded-xl border border-black/5">
+          <div className="flex gap-1.5 p-1 bg-[var(--surface)] rounded-xl border border-[var(--border)]">
             {(Object.keys(STYLES) as CardStyle[]).map((s) => (
               <button
                 key={s}

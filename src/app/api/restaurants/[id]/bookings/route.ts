@@ -24,7 +24,8 @@ export async function GET(req: NextRequest, { params }: Params) {
   if (status) where.status = status;
   if (roomId) where.roomId = roomId;
 
-  const [bookings, total] = await Promise.all([
+  // Sequential transaction — prod DB pool = 1 connection; Promise.all would deadlock
+  const [bookings, total] = await db.$transaction([
     db.roomBooking.findMany({
       where,
       include: {

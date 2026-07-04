@@ -211,7 +211,7 @@ export default function POSActiveOrders({ restaurantId, currency, orders, connec
                                     e.stopPropagation();
                                     updateStatus(order.id, "ACCEPTED");
                                   }}
-                                  className="flex-1 bg-[var(--text-1)] text-white font-bold py-3 rounded-xl hover:bg-[#2d1508] transition-colors"
+                                  className="flex-1 bg-[var(--text-1)] text-[var(--canvas)] font-bold py-3 rounded-xl hover:opacity-90 transition-colors"
                                 >
                                   Accept
                                 </button>

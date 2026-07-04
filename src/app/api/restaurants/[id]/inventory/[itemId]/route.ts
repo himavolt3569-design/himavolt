@@ -24,6 +24,14 @@ export const PATCH = safeHandler(
 
     if (!(await authorise(req, id))) return unauthorized();
 
+    const owned = await db.inventoryItem.findFirst({
+      where: { id: itemId, restaurantId: id },
+      select: { id: true },
+    });
+    if (!owned) {
+      return NextResponse.json({ error: "Item not found" }, { status: 404 });
+    }
+
     const item = await db.inventoryItem.update({
       where: { id: itemId },
       data: body,
@@ -39,6 +47,14 @@ export const DELETE = safeHandler(async (req, { params }) => {
   const { id, itemId } = await params;
 
   if (!(await authorise(req, id))) return unauthorized();
+
+  const owned = await db.inventoryItem.findFirst({
+    where: { id: itemId, restaurantId: id },
+    select: { id: true },
+  });
+  if (!owned) {
+    return NextResponse.json({ error: "Item not found" }, { status: 404 });
+  }
 
   await db.inventoryItem.delete({ where: { id: itemId } });
 

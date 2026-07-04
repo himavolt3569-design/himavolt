@@ -12,6 +12,9 @@ import { LocationProvider } from "@/context/LocationContext";
 const PopularFoods = dynamic(() => import("@/components/home/PopularFoods"), {
   ssr: false,
 });
+const HardwareStoreCarousel = dynamic(() => import("@/components/home/HardwareStoreCarousel"), {
+  ssr: false,
+});
 const FeaturesSection = dynamic(
   () => import("@/components/home/FeaturesSection"),
   { ssr: false },
@@ -47,6 +50,8 @@ export default function Home() {
         <LandingHero />
 
         <TrustMarquee />
+
+        <HardwareStoreCarousel />
 
         <PopularFoods activeCategory={activeCategory} />
 

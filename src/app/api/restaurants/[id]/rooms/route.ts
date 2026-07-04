@@ -60,18 +60,27 @@ export async function POST(req: NextRequest, { params }: Params) {
     name,
     type,
     floor,
+    floorLabel,
     price,
     maxGuests,
     description,
     amenities,
     offerings,
     locationNote,
+    latitude,
+    longitude,
     imageUrls,
     videoUrl,
     bedType,
     bedCount,
     sortOrder,
   } = body;
+
+  // Floor accepts free text ("Ground", "2A"). Keep the legacy numeric column in
+  // sync when the label is a plain number so older consumers still get a value.
+  const floorText: string | null =
+    typeof floorLabel === "string" && floorLabel.trim() ? floorLabel.trim() : null;
+  const numericFloor = floorText && /^\d+$/.test(floorText) ? parseInt(floorText, 10) : (floor ?? 1);
 
   if (!roomNumber?.trim()) {
     return NextResponse.json(
@@ -108,14 +117,17 @@ export async function POST(req: NextRequest, { params }: Params) {
     data: {
       roomNumber: trimmedRoomNumber,
       name: name?.trim() || null,
-      type: type || "STANDARD",
-      floor: floor ?? 1,
+      type: type?.trim() || "Normal",
+      floor: numericFloor,
+      floorLabel: floorText,
       price: price ?? 0,
       maxGuests: maxGuests ?? 2,
       description: description?.trim() || null,
       amenities: amenities ?? [],
       offerings: offerings ?? [],
       locationNote: locationNote?.trim() || null,
+      latitude: typeof latitude === "number" ? latitude : null,
+      longitude: typeof longitude === "number" ? longitude : null,
       imageUrls: imageUrls ?? [],
       videoUrl: videoUrl?.trim() || null,
       bedType: bedType?.trim() || null,
