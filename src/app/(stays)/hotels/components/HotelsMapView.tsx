@@ -77,7 +77,9 @@ export function HotelsMapView({ hotels }: { hotels: MapHotel[] }) {
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
             transform: rotate(-45deg);
           ">
-            <span style="transform: rotate(45deg)">🏨</span>
+            <span style="transform: rotate(45deg); display:flex;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2c1a0e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4v16"/><path d="M2 8h18a2 2 0 0 1 2 2v10"/><path d="M2 17h20"/><path d="M6 8v9"/></svg>
+            </span>
           </div>
         `,
         iconSize: [32, 32],
@@ -104,7 +106,7 @@ export function HotelsMapView({ hotels }: { hotels: MapHotel[] }) {
                 display: inline-block; background: #eaa94d; color: #2c1a0e;
                 padding: 5px 14px; border-radius: 20px; font-size: 12px;
                 font-weight: 700; text-decoration: none;
-              ">View hotel →</a>
+              ">View hotel</a>
             </div>
           `, { maxWidth: 240 });
       });

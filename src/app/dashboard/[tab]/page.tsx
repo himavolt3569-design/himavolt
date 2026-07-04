@@ -189,8 +189,16 @@ const TAB_DATA: Record<string, (r: string) => string[]> = {
   "tax-charges": (r) => [`/api/restaurants/${r}/tax-config`],
   "room-qr-codes": (r) => [`/api/restaurants/${r}/rooms`],
   "hotel-bookings": (r) => [`/api/restaurants/${r}/bookings?limit=100`],
-  "hotel-hub": (r) => [`/api/restaurants/${r}/rooms`, `/api/restaurants/${r}/bookings?limit=100`],
-  rooms: (r) => [`/api/restaurants/${r}/rooms`, `/api/restaurants/${r}/bookings?limit=100`],
+  "hotel-hub": (r) => [
+    `/api/restaurants/${r}/rooms`,
+    `/api/restaurants/${r}/bookings?limit=100`,
+    `/api/restaurants/${r}/guest-checkins`,
+  ],
+  rooms: (r) => [
+    `/api/restaurants/${r}/rooms`,
+    `/api/restaurants/${r}/bookings?limit=100`,
+    `/api/restaurants/${r}/guest-checkins`,
+  ],
   "loyalty-rewards": (r) => [`/api/restaurants/${r}/loyalty`],
   "combo-meals": (r) => [
     `/api/restaurants/${r}/combo-meals`,

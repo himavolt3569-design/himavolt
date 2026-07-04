@@ -56,7 +56,7 @@ export default async function CheckoutPage(props: {
 
   const coverImage = room.imageUrls && room.imageUrls.length > 0 
     ? room.imageUrls[0] 
-    : "https://images.unsplash.com/photo-1542314831-c6a4d14d8373?auto=format&fit=crop&w=800&q=80";
+    : "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80";
 
   return (
     <div className="container mx-auto px-4 md:px-8 py-8 md:py-12 max-w-6xl">

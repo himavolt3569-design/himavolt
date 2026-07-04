@@ -26,7 +26,12 @@
       "Bash(node -e \"require\\('typescript'\\)\")",
       "PowerShell(npx tsc --noEmit --pretty false)",
       "PowerShell(npx tsc --noEmit --pretty false 2>&1)",
-      "mcp__visualize__read_me"
+      "mcp__visualize__read_me",
+      "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\(JSON.stringify\\(p.scripts,null,2\\)\\); console.log\\('gsap:', p.dependencies.gsap, '| tanstack query:', p.dependencies['@tanstack/react-query'], '| next:', p.dependencies.next, '| framer:', p.dependencies['framer-motion']\\)\")",
+      "Read(//tmp/**)",
+      "Bash(break)",
+      "Bash(curl -s -D - -o /dev/null http://localhost:3000/scrolltest)",
+      "PowerShell(npx eslint src/components/shared/ScrollableRow.tsx src/components/dashboard/MenuManagementTab.tsx src/components/dashboard/HotelHubTab.tsx src/components/dashboard/StaffManagementTab.tsx src/components/dashboard/TablesTab.tsx src/components/dashboard/RoomManagementTab.tsx src/components/dashboard/GuestCheckInTab.tsx \"src/app/dashboard/[tab]/page.tsx\" 2>&1)"
     ]
   }
 }

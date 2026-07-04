@@ -75,6 +75,23 @@ export default async function HotelDetailPage(props: {
         rooms: {
           where: { isActive: true },
           orderBy: [{ sortOrder: "asc" }, { type: "asc" }, { price: "asc" }],
+          // Explicit field list — selecting the full Room model pulls columns
+          // (floorLabel/latitude/longitude) that may not exist yet on a DB that
+          // hasn't run the latest `prisma db push`, which would throw P2022 and
+          // take the whole page down. Only request what the UI actually renders.
+          select: {
+            id: true,
+            roomNumber: true,
+            name: true,
+            type: true,
+            price: true,
+            maxGuests: true,
+            bedType: true,
+            bedCount: true,
+            description: true,
+            amenities: true,
+            imageUrls: true,
+          },
         },
       },
     }),
@@ -131,7 +148,7 @@ export default async function HotelDetailPage(props: {
   }
   if (hotel.coverUrl && !allImages.includes(hotel.coverUrl)) allImages.push(hotel.coverUrl);
   if (hotel.imageUrl && !allImages.includes(hotel.imageUrl)) allImages.push(hotel.imageUrl);
-  if (allImages.length === 0) allImages.push("https://images.unsplash.com/photo-1542314831-c6a4d14d8373?auto=format&fit=crop&w=2000&q=80");
+  if (allImages.length === 0) allImages.push("https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=2000&q=80");
   
   // Aggregate unique amenities from rooms to represent hotel-wide amenities
   const hotelAmenities = Array.from(new Set(hotel.rooms.flatMap(r => r.amenities))).slice(0, 8);

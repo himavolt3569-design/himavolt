@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { formatPrice } from "@/lib/currency";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, peekApiCache } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/context/ToastContext";
 import { uploadFile } from "@/lib/upload";
@@ -206,6 +206,10 @@ function RoomsView({ restaurantId, currency, slug, hotelName }: { restaurantId: 
     queryKey: roomsQueryKey,
     queryFn: () => apiFetch<Room[]>(`/api/restaurants/${restaurantId}/rooms`),
     enabled: !!restaurantId,
+    // Paint instantly from the hover/idle-warmed GET cache; revalidate after.
+    initialData: () =>
+      restaurantId ? peekApiCache<Room[]>(`/api/restaurants/${restaurantId}/rooms`) : undefined,
+    initialDataUpdatedAt: 0,
   });
   const rooms = roomsQuery.data ?? [];
   const loading = roomsQuery.isLoading;
@@ -1200,12 +1204,28 @@ function BookingsView({ restaurantId, currency }: { restaurantId: string; curren
       return Array.isArray(bData) ? bData : bData.bookings ?? [];
     },
     enabled: !!restaurantId,
+    // Paint instantly from the warm cache — normalize the same way the queryFn
+    // does so the seeded shape matches (Booking[]); revalidate after.
+    initialData: () => {
+      const raw = restaurantId
+        ? peekApiCache<{ bookings?: Booking[] } | Booking[]>(
+            `/api/restaurants/${restaurantId}/bookings?limit=100`,
+          )
+        : undefined;
+      if (!raw) return undefined;
+      return Array.isArray(raw) ? raw : raw.bookings ?? [];
+    },
+    initialDataUpdatedAt: 0,
   });
   const bookings = bookingsQuery.data ?? [];
   const roomsQuery = useQuery({
     queryKey: roomsQueryKey,
     queryFn: () => apiFetch<Room[]>(`/api/restaurants/${restaurantId}/rooms`),
     enabled: !!restaurantId,
+    // Paint instantly from the hover/idle-warmed GET cache; revalidate after.
+    initialData: () =>
+      restaurantId ? peekApiCache<Room[]>(`/api/restaurants/${restaurantId}/rooms`) : undefined,
+    initialDataUpdatedAt: 0,
   });
   const rooms = roomsQuery.data ?? [];
   const loading = bookingsQuery.isLoading || roomsQuery.isLoading;

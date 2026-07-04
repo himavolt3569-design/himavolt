@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { useToast } from "@/context/ToastContext";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, peekApiCache } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 import QRCode from "qrcode";
 import { createWorker } from "tesseract.js";
@@ -122,6 +122,10 @@ export default function GuestCheckInTab() {
     queryKey: checkInsQueryKey,
     queryFn: () => apiFetch<GuestCheckIn[]>(`/api/restaurants/${restaurant!.id}/guest-checkins`),
     enabled: !!restaurant,
+    // Paint instantly from the warm cache (hub warms this on hover); refetch after.
+    initialData: () =>
+      restaurant ? peekApiCache<GuestCheckIn[]>(`/api/restaurants/${restaurant.id}/guest-checkins`) : undefined,
+    initialDataUpdatedAt: 0,
   });
   const checkIns = checkInsQuery.data ?? [];
   const setCheckIns = (updater: React.SetStateAction<GuestCheckIn[]>) =>

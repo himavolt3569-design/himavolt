@@ -25,7 +25,7 @@ export function RoomCategoryCard({
 
   const images = room.imageUrls && room.imageUrls.length > 0
     ? room.imageUrls
-    : ["https://images.unsplash.com/photo-1542314831-c6a4d14d8373?auto=format&fit=crop&w=800&q=80"];
+    : ["https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80"];
 
   const handleSelect = () => {
     if (!hasValidDates) {

@@ -33,7 +33,7 @@ import {
   type Restaurant,
   type StaffMember,
 } from "@/context/RestaurantContext";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, peekApiCache } from "@/lib/api-client";
 import { SkeletonLine, SkeletonGrid } from "@/components/shared/Skeleton";
 import { AnchoredMenu } from "@/components/shared/AnchoredMenu";
 import ShiftsTab from "./ShiftsTab";
@@ -600,6 +600,11 @@ function AttendanceLogsView({ restaurantId }: { restaurantId: string }) {
     queryKey: ["attendance-logs", restaurantId],
     queryFn: () => apiFetch<AttendanceLog[]>(`/api/restaurants/${restaurantId}/attendance`),
     enabled: !!restaurantId,
+    // Seed from the hover/idle-warmed GET cache so the Attendance view paints
+    // instantly instead of flashing "Loading attendance…"; revalidates after.
+    initialData: () =>
+      restaurantId ? peekApiCache<AttendanceLog[]>(`/api/restaurants/${restaurantId}/attendance`) : undefined,
+    initialDataUpdatedAt: 0,
   });
   const logs = logsQuery.data ?? [];
   const loading = logsQuery.isLoading;

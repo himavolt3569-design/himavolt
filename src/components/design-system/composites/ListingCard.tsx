@@ -7,7 +7,7 @@ import { ChevronLeft, ChevronRight, Heart, Star } from "lucide-react";
 import { Typography } from "../primitives/Typography";
 import { cn } from "@/lib/utils";
 
-const FALLBACK = "https://images.unsplash.com/photo-1542314831-c6a4d14d8373?auto=format&fit=crop&w=800&q=80";
+const FALLBACK = "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80";
 
 export interface ListingCardProps {
   id: string;

@@ -12,7 +12,7 @@ import {
 import { formatPrice } from "@/lib/currency";
 import { useToast } from "@/context/ToastContext";
 import { buildQRCanvas } from "@/components/dashboard/qr/qrCanvas";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, peekApiCache } from "@/lib/api-client";
 import { openBillWindow } from "@/lib/print-bill";
 import QRCodesTab from "./QRCodesTab";
 
@@ -211,6 +211,15 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
       ),
     enabled: !!rid,
     refetchInterval: 30_000,
+    // Seed from the hover/idle-warmed GET cache so the grid paints instantly on
+    // open instead of flashing a skeleton; revalidates in the background.
+    initialData: () =>
+      rid
+        ? peekApiCache<{ tables?: TableData[]; restaurant?: { slug?: string; name?: string } }>(
+            `/api/restaurants/${rid}/tables`,
+          )
+        : undefined,
+    initialDataUpdatedAt: 0,
   });
   const tables = tablesQuery.data?.tables ?? [];
   const meta = tablesQuery.data?.restaurant

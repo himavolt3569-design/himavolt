@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { Search, X, Calendar as CalendarIcon, Users } from "lucide-react";
+import { Search, X, Calendar as CalendarIcon, Users, MapPin, Minus, Plus } from "lucide-react";
 import { format } from "date-fns";
 import { DayPicker, type DateRange } from "react-day-picker";
 import { motion, AnimatePresence } from "framer-motion";
@@ -13,12 +13,7 @@ import "react-day-picker/style.css";
 
 type Tab = "destination" | "checkin" | "guests" | null;
 
-const DESTINATIONS = [
-  { label: "Kathmandu", emoji: "🏙️" },
-  { label: "Pokhara",   emoji: "🏔️" },
-  { label: "Chitwan",   emoji: "🌿" },
-  { label: "Lumbini",   emoji: "🕌" },
-];
+const DESTINATIONS = ["Kathmandu", "Pokhara", "Chitwan", "Lumbini"];
 
 // Shared DayPicker v10 classNames — brand accent colours
 const pickerClassNames = {
@@ -89,25 +84,17 @@ export function HotelSearchHero() {
   };
 
   const dateLabel   = dateRange?.from
-    ? `${format(dateRange.from, "MMM d")}${dateRange.to ? ` – ${format(dateRange.to, "MMM d")}` : ""}`
+    ? `${format(dateRange.from, "MMM d")}${dateRange.to ? ` to ${format(dateRange.to, "MMM d")}` : ""}`
     : "Add dates";
   const guestsLabel = `${adults + children} guest${adults + children !== 1 ? "s" : ""}`;
 
   const close = () => setActiveTab(null);
 
   return (
-    <div className="relative z-20 flex flex-col items-center w-full max-w-5xl px-4 mt-10 md:mt-20">
-
-      {/* Headline */}
-      <h1 className="font-fraunces text-4xl md:text-7xl font-black text-white drop-shadow-lg text-center leading-tight mb-2">
-        Find Your Perfect Stay
-      </h1>
-      <p className="hidden md:block text-white/80 text-lg md:text-xl text-center mb-8 font-medium drop-shadow">
-        Luxury hotels &amp; boutique retreats across Nepal
-      </p>
+    <div className="relative z-20 flex flex-col items-center w-full px-4 mt-8">
 
       {/* ── Desktop pill search bar ── */}
-      <div className="hidden md:flex w-full max-w-4xl bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/30 divide-x divide-[var(--border)]">
+      <div className="hidden md:flex w-full max-w-4xl bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/30 divide-x divide-[var(--border)] transition-shadow hover:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)]">
 
         {/* WHERE */}
         <button
@@ -195,13 +182,15 @@ export function HotelSearchHero() {
         </div>
         <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-3)] mb-3">Popular destinations</p>
         <div className="grid grid-cols-2 gap-2">
-          {DESTINATIONS.map(({ label, emoji }) => (
+          {DESTINATIONS.map((label) => (
             <button
               key={label}
               onClick={() => { setDestination(label); setActiveTab("checkin"); }}
-              className="flex items-center gap-2.5 p-3 rounded-xl hover:bg-[var(--surface-alt)] transition-colors text-left"
+              className="flex items-center gap-2.5 p-3 rounded-xl hover:bg-[var(--surface-alt)] transition-colors text-left group/dest"
             >
-              <span className="text-lg">{emoji}</span>
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--accent)]/10 text-[var(--accent)] transition-transform group-hover/dest:scale-110">
+                <MapPin className="h-4 w-4" />
+              </span>
               <span className="text-sm font-semibold text-[var(--text-1)]">{label}</span>
             </button>
           ))}
@@ -308,7 +297,7 @@ export function HotelSearchHero() {
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  {DESTINATIONS.map(({ label, emoji }) => (
+                  {DESTINATIONS.map((label) => (
                     <button
                       key={label}
                       onClick={() => setDestination(label)}
@@ -319,7 +308,9 @@ export function HotelSearchHero() {
                           : "border-[var(--border)] hover:bg-[var(--surface-alt)]",
                       )}
                     >
-                      <span className="text-lg">{emoji}</span>
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--accent)]/10 text-[var(--accent)]">
+                        <MapPin className="h-4 w-4" />
+                      </span>
                       <span className="text-sm font-semibold">{label}</span>
                     </button>
                   ))}
@@ -391,17 +382,19 @@ function GuestCounter({
           type="button"
           onClick={() => onChange(Math.max(min, value - 1))}
           disabled={value <= min}
-          className="h-8 w-8 rounded-full border border-[var(--border)] flex items-center justify-center text-lg font-bold text-[var(--text-2)] hover:border-[var(--text-1)] hover:text-[var(--text-1)] disabled:opacity-30 transition-colors"
+          className="h-8 w-8 rounded-full border border-[var(--border)] flex items-center justify-center hover:border-[var(--text-1)] hover:text-[var(--text-1)] disabled:opacity-30 transition-colors active:scale-90"
+          aria-label={`Decrease ${label}`}
         >
-          −
+          <Minus className="h-4 w-4" />
         </button>
         <span className="w-4 text-center font-semibold text-[var(--text-1)]">{value}</span>
         <button
           type="button"
           onClick={() => onChange(value + 1)}
-          className="h-8 w-8 rounded-full border border-[var(--border)] flex items-center justify-center text-lg font-bold text-[var(--text-2)] hover:border-[var(--text-1)] hover:text-[var(--text-1)] transition-colors"
+          className="h-8 w-8 rounded-full border border-[var(--border)] flex items-center justify-center text-[var(--text-2)] hover:border-[var(--text-1)] hover:text-[var(--text-1)] transition-colors active:scale-90"
+          aria-label={`Increase ${label}`}
         >
-          +
+          <Plus className="h-4 w-4" />
         </button>
       </div>
     </div>
@@ -416,7 +409,7 @@ function GuestSelector({ adults, setAdults, children, setChildren }: {
     <div className="space-y-5 divide-y divide-[var(--border-soft)]">
       <GuestCounter label="Adults"   sub="Age 13+"  value={adults}   min={1} onChange={setAdults} />
       <div className="pt-5">
-        <GuestCounter label="Children" sub="Age 2–12" value={children} min={0} onChange={setChildren} />
+        <GuestCounter label="Children" sub="Age 2 to 12" value={children} min={0} onChange={setChildren} />
       </div>
     </div>
   );

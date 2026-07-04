@@ -41,12 +41,13 @@ import {
   Info,
 } from "lucide-react";
 import { useRestaurant, useOptionalRestaurant } from "@/context/RestaurantContext";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, peekApiCache } from "@/lib/api-client";
 import { useToast } from "@/context/ToastContext";
 import { formatPrice, getCurrencySymbol } from "@/lib/currency";
 import { FOOD_DESCRIPTION_TEMPLATES } from "@/lib/food-descriptions";
 import ImagePicker from "@/components/shared/ImagePicker";
 import { AnchoredMenu } from "@/components/shared/AnchoredMenu";
+import { ScrollableRow } from "@/components/shared/ScrollableRow";
 import {
   SkeletonStatGrid,
   SkeletonGrid,
@@ -202,7 +203,7 @@ function CategoryFilterChips({
 }) {
   const topLevel = categories.filter((c) => !c.parentId);
   return (
-    <div className="flex gap-2 overflow-x-auto scrollbar-hide items-center pb-1">
+    <ScrollableRow innerClassName="flex gap-2 items-center pb-1" edgeColor="var(--canvas-sub)">
       <button
         onClick={() => onSelect("All")}
         className={`shrink-0 rounded-full px-4 py-2 text-[12px] font-bold tracking-wide transition-all shadow-sm border ${
@@ -223,7 +224,7 @@ function CategoryFilterChips({
           {cat.name}
         </button>
       ))}
-    </div>
+    </ScrollableRow>
   );
 }
 
@@ -1000,7 +1001,7 @@ function DishForm({
         </button>
       </div>
 
-      <div className="flex gap-1 px-4 pt-3 overflow-x-auto scrollbar-hide shrink-0">
+      <ScrollableRow className="px-4 pt-3 shrink-0" innerClassName="flex gap-1">
         {sections.map((s) => (
           <button
             key={s.id}
@@ -1015,7 +1016,7 @@ function DishForm({
             {s.label}
           </button>
         ))}
-      </div>
+      </ScrollableRow>
 
       <div className="p-4 sm:p-5 space-y-5 overflow-y-auto overflow-x-hidden flex-1 custom-scrollbar">
         {/* ── BASIC INFO ──────────────────────────────────────── */}
@@ -1533,6 +1534,12 @@ export default function MenuManagementTab({
     queryKey: itemsQueryKey,
     queryFn: () => apiFetch<MenuItem[]>(`/api/restaurants/${restaurantId}/menu`),
     enabled: !!restaurantId,
+    // Seed from the hover/idle-warmed GET cache so the tab paints instantly on
+    // first open instead of flashing a skeleton; `updatedAt: 0` marks it stale
+    // so React Query still revalidates in the background.
+    initialData: () =>
+      restaurantId ? peekApiCache<MenuItem[]>(`/api/restaurants/${restaurantId}/menu`) : undefined,
+    initialDataUpdatedAt: 0,
   });
   const items = itemsQuery.data ?? [];
   const setItems = (updater: React.SetStateAction<MenuItem[]>) =>
@@ -1545,6 +1552,10 @@ export default function MenuManagementTab({
     queryKey: catQueryKey,
     queryFn: () => apiFetch<MenuCategory[]>(`/api/restaurants/${restaurantId}/categories`),
     enabled: !!restaurantId,
+    // Paint instantly from the warm cache (see itemsQuery above).
+    initialData: () =>
+      restaurantId ? peekApiCache<MenuCategory[]>(`/api/restaurants/${restaurantId}/categories`) : undefined,
+    initialDataUpdatedAt: 0,
   });
   const categories = catQuery.data ?? [];
   const setCategories = (updater: React.SetStateAction<MenuCategory[]>) =>

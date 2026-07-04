@@ -16,6 +16,7 @@ import { useToast } from "@/context/ToastContext";
 import { formatPrice } from "@/lib/currency";
 import { STAFF_MANAGER_ROLES, STAFF_BILLING_ROLES } from "@/lib/staff-roles";
 import { apiFetch } from "@/lib/api-client";
+import { ScrollableRow } from "@/components/shared/ScrollableRow";
 
 // Direct imports — no lazy/Suspense blank; the hub is itself deferred from the
 // dashboard shell so co-bundling sub-tabs only grows that single lazy chunk.
@@ -451,7 +452,7 @@ export default function HotelHubTab() {
       </div>
 
       {/* ── Tab pills — Swiggy/OYO style with count badges ── */}
-      <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide -mx-1 px-1 pb-1 mb-5">
+      <ScrollableRow className="-mx-1 px-1 pb-1 mb-5" innerClassName="flex items-center gap-1.5" edgeColor="var(--canvas-sub)">
         {visibleTabs.map(({ id, label, icon: Icon, badge }) => {
           const isActive = effectiveActive === id;
           const count = badge ? stats[badge] : 0;
@@ -481,7 +482,7 @@ export default function HotelHubTab() {
             </button>
           );
         })}
-      </div>
+      </ScrollableRow>
 
       {/* ── Tab panels — ALL mounted; inactive hidden via CSS only.
            This gives true-instant switching: no unmount, no refetch,
