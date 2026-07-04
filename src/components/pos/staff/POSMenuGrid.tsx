@@ -4,6 +4,7 @@ import { useState, useMemo, memo } from "react";
 import { motion } from "framer-motion";
 import { Search, X } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
+import { ScrollableRow } from "@/components/shared/ScrollableRow";
 
 interface Category {
   id: string;
@@ -84,7 +85,7 @@ function POSMenuGrid({ items, categories, currency, onItemTap }: Props) {
       </div>
 
       {/* Category filter pills */}
-      <div className="shrink-0 flex gap-2 px-4 pb-3 overflow-x-auto scrollbar-hide">
+      <ScrollableRow className="shrink-0" innerClassName="flex gap-2 px-4 pb-3" edgeColor="var(--canvas-sub)">
         <button
           onClick={() => setActiveCategory("ALL")}
           className={`shrink-0 rounded-full px-4 py-1.5 text-xs font-semibold border transition-all ${
@@ -108,7 +109,7 @@ function POSMenuGrid({ items, categories, currency, onItemTap }: Props) {
             {cat.name}
           </button>
         ))}
-      </div>
+      </ScrollableRow>
 
       {/* Items grid */}
       <div className="flex-1 overflow-y-auto px-4 pb-4">

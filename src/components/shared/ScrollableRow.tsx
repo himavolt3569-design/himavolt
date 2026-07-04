@@ -23,6 +23,7 @@ export function ScrollableRow({
   innerClassName = "",
   edgeColor = "var(--canvas)",
   buttonSize = "sm",
+  buttonClassName = "bg-[var(--canvas)] text-[var(--accent)] ring-1 ring-[var(--border)] hover:bg-[var(--accent-muted)]",
 }: {
   children: React.ReactNode;
   /** Applied to the positioned wrapper (layout: padding, shrink-0, etc.). */
@@ -33,6 +34,9 @@ export function ScrollableRow({
   edgeColor?: string;
   /** Chevron button size. */
   buttonSize?: "sm" | "md";
+  /** Chevron color/ring classes — override for non-CSS-var themes (e.g. the
+   *  customer menu's hardcoded green palette). Defaults to the app accent. */
+  buttonClassName?: string;
 }) {
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [canLeft, setCanLeft] = useState(false);
@@ -83,6 +87,7 @@ export function ScrollableRow({
       ? "h-8 w-8"
       : "h-6 w-6";
   const icon = buttonSize === "md" ? "h-4 w-4" : "h-3.5 w-3.5";
+  const btnBase = `top-1/2 z-20 -translate-y-1/2 flex ${btn} items-center justify-center rounded-full shadow-md active:scale-90 transition-all ${buttonClassName}`;
   const fadeStyle = (dir: "left" | "right") => ({
     background: `linear-gradient(to ${dir === "left" ? "right" : "left"}, ${edgeColor}, transparent)`,
   });
@@ -101,7 +106,7 @@ export function ScrollableRow({
             type="button"
             aria-label="Scroll left"
             onClick={() => scrollByStep(-1)}
-            className={`absolute left-0 top-1/2 z-20 -translate-y-1/2 flex ${btn} items-center justify-center rounded-full bg-[var(--canvas)] text-[var(--accent)] shadow-md ring-1 ring-[var(--border)] hover:bg-[var(--accent-muted)] active:scale-90 transition-all`}
+            className={`absolute left-0 ${btnBase}`}
           >
             <ChevronLeft className={icon} strokeWidth={2.5} />
           </button>
@@ -124,7 +129,7 @@ export function ScrollableRow({
             type="button"
             aria-label="Scroll right"
             onClick={() => scrollByStep(1)}
-            className={`absolute right-0 top-1/2 z-20 -translate-y-1/2 flex ${btn} items-center justify-center rounded-full bg-[var(--canvas)] text-[var(--accent)] shadow-md ring-1 ring-[var(--border)] hover:bg-[var(--accent-muted)] active:scale-90 transition-all`}
+            className={`absolute right-0 ${btnBase}`}
           >
             <ChevronRight className={icon} strokeWidth={2.5} />
           </button>

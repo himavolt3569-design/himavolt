@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ScrollableRow } from "@/components/shared/ScrollableRow";
 import { motion } from "framer-motion";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRealtimeSignal } from "@/hooks/useRealtimeSignal";
@@ -219,7 +220,7 @@ export default function AllBookingsTab() {
             className="w-full rounded-2xl border border-[var(--border)] bg-[var(--canvas-sub)] pl-9 pr-4 py-2.5 text-[13px] text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:border-[var(--accent)] focus:outline-none focus:bg-[var(--canvas)] transition-all"
           />
         </div>
-        <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
+        <ScrollableRow innerClassName="flex gap-1.5" edgeColor="var(--canvas)">
           {["ALL", "PENDING", "CONFIRMED", "CHECKED_IN", "CHECKED_OUT", "CANCELLED"].map((s) => (
             <button
               key={s}
@@ -231,7 +232,7 @@ export default function AllBookingsTab() {
               {s}
             </button>
           ))}
-        </div>
+        </ScrollableRow>
       </div>
 
       {selectedIds.size > 0 && (
