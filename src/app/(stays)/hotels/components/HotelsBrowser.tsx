@@ -9,6 +9,7 @@ import gsap from "gsap";
 import { Map, List, ChevronLeft, ChevronRight, SlidersHorizontal } from "lucide-react";
 import { apiFetch } from "@/lib/api-client";
 import { ListingCard } from "@/components/design-system/composites/ListingCard";
+import { ScrollableRow } from "@/components/shared/ScrollableRow";
 import { cn } from "@/lib/utils";
 import type { MapHotel } from "./HotelsMapView";
 
@@ -155,7 +156,11 @@ export function HotelsBrowser() {
     <>
       {/* Sticky category filter bar */}
       <div className="sticky top-[64px] z-30 bg-[var(--canvas)]/85 backdrop-blur-lg border-b border-[var(--border-soft)]">
-        <div className="container mx-auto px-4 md:px-8 flex items-center gap-1.5 overflow-x-auto scrollbar-hide py-3">
+        <ScrollableRow
+          className="container mx-auto px-4 md:px-8"
+          innerClassName="flex items-center gap-1.5 py-3"
+          edgeColor="var(--canvas)"
+        >
           {CATEGORIES.map((cat) => {
             const isActive = category === cat;
             return (
@@ -173,7 +178,7 @@ export function HotelsBrowser() {
               </button>
             );
           })}
-        </div>
+        </ScrollableRow>
       </div>
 
       <div className="container mx-auto px-4 md:px-8 py-8 md:py-10 flex-1">
