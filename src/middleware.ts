@@ -16,6 +16,7 @@ const PUBLIC_ROUTES = [
   /^\/orders(\/|$)/,
   /^\/offers(\/|$)/,
   /^\/hotel(\/|$)/,
+  /^\/hotels(\/|$)/,
   /^\/feedback(\/|$)/,
   /^\/sign-in(\/|$)/,
   /^\/sign-up(\/|$)/,
@@ -97,6 +98,42 @@ async function verifyMasterAdminJwt(req: NextRequest): Promise<boolean> {
 
 const BODY_SIZE_LIMIT = 1 * 1024 * 1024; // 1 MB for API JSON payloads
 const UPLOAD_PATHS = ["/api/upload"];
+const MUTATING_METHODS = ["POST", "PUT", "PATCH", "DELETE"];
+
+/**
+ * CSRF guard for the JWT cookie sessions (staff_session /
+ * master_admin_session). Those cookies are SameSite=Lax, which blocks most
+ * cross-site POSTs, but this closes the remaining vectors (e.g. top-level
+ * form navigations) by rejecting mutations whose Origin / Sec-Fetch-Site
+ * indicates another site. Requests without either header (same-origin fetch,
+ * curl, native apps) pass through.
+ */
+function isCrossSiteMutation(req: NextRequest): boolean {
+  if (!MUTATING_METHODS.includes(req.method)) return false;
+  const hasSessionCookie =
+    req.cookies.has("staff_session") || req.cookies.has("master_admin_session");
+  if (!hasSessionCookie) return false;
+
+  const secFetchSite = req.headers.get("sec-fetch-site");
+  if (secFetchSite && !["same-origin", "same-site", "none"].includes(secFetchSite)) {
+    return true;
+  }
+
+  const origin = req.headers.get("origin");
+  if (origin) {
+    try {
+      const originHost = new URL(origin).host;
+      const host =
+        req.headers.get("x-forwarded-host") ??
+        req.headers.get("host") ??
+        req.nextUrl.host;
+      if (originHost !== host) return true;
+    } catch {
+      return true; // malformed Origin — treat as hostile
+    }
+  }
+  return false;
+}
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -114,6 +151,14 @@ export async function middleware(req: NextRequest) {
         { status: 413 },
       );
     }
+  }
+
+  // Cross-site mutations riding on a staff/admin cookie are forged requests.
+  if (pathname.startsWith("/api/") && isCrossSiteMutation(req)) {
+    return NextResponse.json(
+      { error: "Cross-site request rejected" },
+      { status: 403 },
+    );
   }
 
   if (isStaffRoute(pathname)) {

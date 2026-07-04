@@ -171,12 +171,22 @@ export async function collectPayment(
   orderId: string,
   method: "CASH" | "ESEWA" | "KHALTI" | "BANK" | "COUNTER" | "DIRECT",
   transactionId?: string,
+  partial?: {
+    /** Amount actually collected now. When less than the bill total, the
+     * remainder is recorded as an open CreditEntry (dues) and the payment is
+     * marked PARTIALLY_PAID instead of COMPLETED. */
+    amountPaid: number;
+    customerName?: string;
+    customerPhone?: string;
+    note?: string;
+  },
 ) {
   const order = await db.order.findUnique({
     where: { id: orderId },
     select: {
       id: true,
       total: true,
+      restaurantId: true,
       payment: true,
       bill: true,
     },
@@ -190,14 +200,62 @@ export async function collectPayment(
   }
 
   // Use bill total if available (includes service charge), otherwise order total
-  const amount = order.bill?.total ?? order.total;
+  const total = order.bill?.total ?? order.total;
+
+  // A partial collection short of the total records the remainder as dues.
+  // (amountPaid >= total is just a full payment — fall through.)
+  const isPartial =
+    partial != null && partial.amountPaid > 0 && partial.amountPaid < total - 0.01;
+
+  if (isPartial) {
+    const remainder = Math.round((total - partial.amountPaid) * 100) / 100;
+    const [payment] = await db.$transaction([
+      db.payment.upsert({
+        where: { orderId },
+        update: {
+          method,
+          status: "PARTIALLY_PAID",
+          amount: partial.amountPaid,
+          transactionId: transactionId || null,
+          paidAt: new Date(),
+        },
+        create: {
+          orderId,
+          method,
+          status: "PARTIALLY_PAID",
+          amount: partial.amountPaid,
+          transactionId: transactionId || null,
+          paidAt: new Date(),
+        },
+      }),
+      db.creditEntry.create({
+        data: {
+          restaurantId: order.restaurantId,
+          orderId,
+          amount: remainder,
+          customerName: partial.customerName || null,
+          customerPhone: partial.customerPhone || null,
+          note: partial.note || null,
+        },
+      }),
+      ...(order.bill
+        ? [
+            db.bill.update({
+              where: { orderId },
+              data: { paidVia: `${method} (partial — dues pending)` },
+            }),
+          ]
+        : []),
+    ]);
+    return payment;
+  }
 
   const payment = await db.payment.upsert({
     where: { orderId },
     update: {
       method,
       status: "COMPLETED",
-      amount,
+      amount: total,
       transactionId: transactionId || null,
       paidAt: new Date(),
     },
@@ -205,10 +263,17 @@ export async function collectPayment(
       orderId,
       method,
       status: "COMPLETED",
-      amount,
+      amount: total,
       transactionId: transactionId || null,
       paidAt: new Date(),
     },
+  });
+
+  // A full payment closes out any open dues on the order (e.g. cashier
+  // re-collects the whole bill instead of settling the credit entry).
+  await db.creditEntry.updateMany({
+    where: { orderId, settledAt: null },
+    data: { settledAt: new Date(), settledVia: method },
   });
 
   if (order.bill) {
@@ -307,10 +372,21 @@ export async function getDailySummary(restaurantId: string) {
       total: true,
       // Only the fields the aggregation below reads — avoids hydrating full
       // payment/bill rows for every order of the day just to sum scalars.
-      payment: { select: { status: true, method: true } },
+      payment: { select: { status: true, method: true, amount: true } },
       bill: { select: { total: true, discount: true } },
     },
   });
+
+  type SummaryOrder = (typeof orders)[number];
+  // Cash actually in the drawer for this order: the full bill when COMPLETED,
+  // the collected portion when PARTIALLY_PAID (remainder is open dues), else 0.
+  const paidPortion = (o: SummaryOrder) => {
+    if (o.payment?.status === "COMPLETED") return o.bill?.total ?? o.total;
+    if (o.payment?.status === "PARTIALLY_PAID") return o.payment.amount;
+    return 0;
+  };
+  const duePortion = (o: SummaryOrder) =>
+    (o.bill?.total ?? o.total) - paidPortion(o);
 
   const totalOrders = orders.length;
   const completedOrders = orders.filter((o) => o.status === "ACCEPTED").length;
@@ -321,38 +397,26 @@ export async function getDailySummary(restaurantId: string) {
     (o) => !o.payment || o.payment.status !== "COMPLETED",
   ).length;
 
-  const totalRevenue = orders
-    .filter((o) => o.payment?.status === "COMPLETED")
-    .reduce((sum, o) => sum + (o.bill?.total ?? o.total), 0);
+  const totalRevenue = orders.reduce((sum, o) => sum + paidPortion(o), 0);
 
   const CASH_METHODS = ["CASH"];
   const DIGITAL_METHODS = ["ESEWA", "KHALTI"];
   const COUNTER_METHODS = ["COUNTER", "DIRECT", "BANK"];
 
-  const cashRevenue = orders
-    .filter(
-      (o) => o.payment?.status === "COMPLETED" && CASH_METHODS.includes(o.payment.method),
-    )
-    .reduce((sum, o) => sum + (o.bill?.total ?? o.total), 0);
+  const revenueByMethods = (methods: string[]) =>
+    orders
+      .filter((o) => o.payment && methods.includes(o.payment.method))
+      .reduce((sum, o) => sum + paidPortion(o), 0);
 
-  const digitalRevenue = orders
-    .filter(
-      (o) => o.payment?.status === "COMPLETED" && DIGITAL_METHODS.includes(o.payment.method),
-    )
-    .reduce((sum, o) => sum + (o.bill?.total ?? o.total), 0);
-
-  const counterRevenue = orders
-    .filter(
-      (o) => o.payment?.status === "COMPLETED" && COUNTER_METHODS.includes(o.payment.method),
-    )
-    .reduce((sum, o) => sum + (o.bill?.total ?? o.total), 0);
+  const cashRevenue = revenueByMethods(CASH_METHODS);
+  const digitalRevenue = revenueByMethods(DIGITAL_METHODS);
+  const counterRevenue = revenueByMethods(COUNTER_METHODS);
 
   // onlineRevenue = digital (eSewa/Khalti) for backward compat
   const onlineRevenue = digitalRevenue;
 
-  const pendingAmount = orders
-    .filter((o) => !o.payment || o.payment.status !== "COMPLETED")
-    .reduce((sum, o) => sum + (o.bill?.total ?? o.total), 0);
+  // Unpaid orders in full + the outstanding remainder of partial payments.
+  const pendingAmount = orders.reduce((sum, o) => sum + duePortion(o), 0);
 
   const totalDiscount = orders
     .filter((o) => o.bill)
@@ -361,9 +425,10 @@ export async function getDailySummary(restaurantId: string) {
   // Per-method breakdown
   const byMethod: Record<string, number> = {};
   for (const o of orders) {
-    if (o.payment?.status === "COMPLETED") {
+    const collected = paidPortion(o);
+    if (o.payment && collected > 0) {
       const m = o.payment.method;
-      byMethod[m] = (byMethod[m] ?? 0) + (o.bill?.total ?? o.total);
+      byMethod[m] = (byMethod[m] ?? 0) + collected;
     }
   }
 

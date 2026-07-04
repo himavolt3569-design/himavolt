@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
 import { getStaffSession } from "@/lib/staff-auth";
 import { getOrCreateUser } from "@/lib/auth";
+import { buildLiveOrdersWhere } from "@/lib/live-orders-where";
 
 // 5 s instead of 3 s. Each connected kitchen / live-orders client used to fan
 // out a `findMany(50)` every 3 s — at N staff devices that's a steady DB
@@ -76,53 +77,12 @@ export async function GET(
         if (closed) return;
 
         try {
-          // Fetch active orders + recently completed (last 30 min).
-          //
-          // This filter MUST stay in sync with the `live=1` branch of
-          // GET /api/restaurants/[id]/orders/route.ts — they feed the same
-          // live kitchen view and drifting them apart hides orders. In
-          // particular, a waiter's "Send to Kitchen" creates a PENDING order
-          // with an unpaid CASH/BANK payment row; that has to appear here.
-          const cutoff = new Date(Date.now() - 30 * 60 * 1000);
-
-          const liveConditions: any[] = [
-            // PENDING after billing marks payment COMPLETED (all methods)
-            { status: "PENDING", payment: { status: "COMPLETED" } },
-            // Legacy orders without a payment record
-            { status: "PENDING", payment: { is: null } },
-            // Active orders (already went through the billing gate)
-            { status: { in: ["ACCEPTED", "ACCEPTED", "ACCEPTED"] } },
-            { isHeld: true },
-            // Recently completed (kitchen history window)
-            {
-              status: { in: ["ACCEPTED", "REJECTED", "REJECTED"] },
-              updatedAt: { gte: cutoff },
-            },
-            // Waiter / QR orders paid in cash or by bank transfer at the table:
-            // they go to the kitchen first and are settled at the end.
-            {
-              status: "PENDING",
-              payment: { method: { in: ["CASH", "BANK"] }, status: "PENDING" },
-            },
-          ];
-
-          // Pay-at-end restaurants: any unpaid PENDING dine-in order is live.
-          if (!prepaidEnabled) {
-            liveConditions.push({
-              status: "PENDING",
-              payment: { status: "PENDING" },
-              type: "DINE_IN",
-            });
-          }
-
+          // Shared filter — identical to the `live=1` branch of
+          // GET /api/restaurants/[id]/orders/route.ts by construction. Both
+          // feed the same kitchen view; the filter definition lives in
+          // buildLiveOrdersWhere and nowhere else.
           const orders = await db.order.findMany({
-            where: {
-              restaurantId: id,
-              // Fast Pay (DIRECT) and Manual Pay (COUNTER) counter sales never
-              // belong in the kitchen queue — mirror the live=1 exclusion.
-              NOT: { payment: { method: { in: ["DIRECT", "COUNTER"] } } },
-              OR: liveConditions,
-            },
+            where: buildLiveOrdersWhere(id, prepaidEnabled),
             select: {
               id: true,
               orderNo: true,

@@ -172,6 +172,7 @@ model Restaurant {
   loyaltyRewards       LoyaltyReward[]
   loyaltyAccounts      LoyaltyAccount[]
   printJobs            PrintJob[]
+  creditEntries        CreditEntry[]
 
   @@index([ownerId])
   @@index([slug])
@@ -532,8 +533,9 @@ model Order {
   delivery     Delivery?
   tableSession TableSession?
   prepaidToken PrepaidToken? @relation(fields: [prepaidTokenId], references: [id])
-  feedbacks    Feedback[]
-  printJobs    PrintJob[]
+  feedbacks     Feedback[]
+  printJobs     PrintJob[]
+  creditEntries CreditEntry[]
 
   @@index([restaurantId])
   @@index([userId])
@@ -647,6 +649,29 @@ enum PaymentStatus {
   CANCELLED // order cancelled by customer
   REFUNDED
   EXPIRED // payment timed out
+  PARTIALLY_PAID // part collected now, remainder recorded as a CreditEntry (dues)
+}
+
+// Dues / credit ledger ("udharo"): the unpaid remainder of a partially paid
+// bill, attributed to a customer so it can be settled later at the counter.
+model CreditEntry {
+  id               String         @id @default(cuid())
+  restaurantId     String
+  restaurant       Restaurant     @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  orderId          String
+  order            Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  customerName     String?
+  customerPhone    String?
+  amount           Float // outstanding remainder at creation time
+  note             String?
+  settledAt        DateTime?
+  settledVia       PaymentMethod?
+  settledByStaffId String?
+  createdAt        DateTime       @default(now())
+
+  @@index([restaurantId, settledAt])
+  @@index([orderId])
+  @@map("credit_entries")
 }
 
 // ─── Bills / Invoices ───────────────────────────────────────────────
@@ -1155,16 +1180,19 @@ model Room {
   id          String   @id @default(cuid())
   roomNumber  String // e.g. "101", "A-201"
   name        String? // optional display name e.g. "Deluxe Suite"
-  type        String   @default("STANDARD") // STANDARD, DELUXE, SUITE, DORMITORY
-  floor       Int      @default(1)
+  type        String   @default("Normal") // Normal, Deluxe, Suite, or any custom label
+  floor       Int      @default(1) // legacy numeric floor; floorLabel is the display value
+  floorLabel  String? // free-text floor e.g. "Ground", "Mezzanine", "2A"
   price       Float    @default(0) // per night rate
   maxGuests   Int      @default(2)
-  description String?
-  bedType     String? // "King", "Queen", "Twin", "Single", "Double", "Bunk Bed"
+  description String? // rich-text (sanitized HTML) supported
+  bedType     String? // "King", "Queen", "Twin", "Single", "Double", "Bunk Bed", or custom
   bedCount    Int      @default(1) // number of beds in this room
   amenities   String[] @default([]) // ["WiFi","AC","TV","Balcony"]
   offerings   String[] @default([]) // place offerings e.g. ["2 BHK","Kitchen","Sea view"]
   locationNote String? // exact location hint e.g. "3rd floor, sea-facing wing"
+  latitude    Float? // optional map pin for the room's exact location
+  longitude   Float?
   imageUrls   String[] @default([]) // multiple room images
   videoUrl    String? // optional room video
   isAvailable Boolean  @default(true)

@@ -16,6 +16,7 @@ import {
   appendToOrder,
   type OrderSourceType,
 } from "@/lib/orders/create-order";
+import { buildLiveOrdersWhere } from "@/lib/live-orders-where";
 
 export async function GET(
   req: NextRequest,
@@ -50,52 +51,15 @@ export async function GET(
   const where: Record<string, unknown> = { restaurantId: id };
   if (status) where.status = status;
 
-  // For live-orders view: only show paid orders in the kitchen queue
+  // For live-orders view: shared filter — MUST match the SSE stream, which
+  // consumes the same buildLiveOrdersWhere helper.
   const liveMode = searchParams.get("live") === "1";
   if (liveMode) {
-    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
     delete where.status;
-
-    // Exclude Manual Pay (COUNTER) and Fast Pay (DIRECT) from POS entirely
-    // so fast-pay walk-ins don't clog the kitchen queue.
-    where.NOT = {
-      sourceType: "POS",
-      payment: {
-        method: {
-          in: ["DIRECT", "COUNTER"]
-        }
-      }
-    };
-
-    const liveConditions: any[] = [
-      // PENDING: only after payment verified (all methods)
-      { status: "PENDING", payment: { status: "COMPLETED" } },
-      // Legacy orders without a payment record
-      { status: "PENDING", payment: { is: null } },
-      // Active orders (already passed through payment gate when accepted)
-      { status: { in: ["ACCEPTED", "ACCEPTED", "ACCEPTED"] } },
-      // Recently completed (for kitchen history)
-      {
-        status: { in: ["ACCEPTED", "REJECTED", "REJECTED"] },
-        createdAt: { gte: twoHoursAgo },
-      },
-      // QR customer orders with physical payment (CASH / BANK / COUNTER / DIRECT):
-      {
-        status: "PENDING",
-        payment: { method: { in: ["CASH", "BANK", "COUNTER", "DIRECT"] }, status: "PENDING" },
-      },
-    ];
-
-    // If prepaid is NOT forced, allow DINE_IN orders to skip the payment gate
-    if (restaurant.prepaidEnabled === false) {
-      liveConditions.push({
-        status: "PENDING",
-        payment: { status: "PENDING" },
-        type: "DINE_IN",
-      });
-    }
-
-    where.OR = liveConditions;
+    Object.assign(
+      where,
+      buildLiveOrdersWhere(id, restaurant.prepaidEnabled !== false),
+    );
   }
 
   // Use explicit select to avoid pulling columns that may not exist in the

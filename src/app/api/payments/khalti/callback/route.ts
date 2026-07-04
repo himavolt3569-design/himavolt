@@ -52,22 +52,50 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Get order + payment row for amount verification
+    // Get order + payment row for amount + reference verification
     const order = await db.order.findUnique({
       where: { id: orderId },
       select: {
         restaurantId: true,
         orderNo: true,
         total: true,
-        payment: { select: { amount: true } },
+        payment: { select: { amount: true, pidx: true } },
       },
     });
+
+    // Bind the gateway reference to THIS order: initiate stored the pidx on
+    // the payment row, so a completed pidx from a different (same-priced)
+    // order can't be replayed against this one.
+    if (order?.payment?.pidx && order.payment.pidx !== pidx) {
+      await logWebhook("payment.ref_mismatch", orderId, rawPayload, 302, pidx);
+      await db.payment.updateMany({
+        where: { orderId, status: "PENDING" },
+        data: { status: "FAILED", rejectionNote: "Gateway reference did not match order" },
+      });
+      return NextResponse.redirect(`${APP_URL}/track/${orderId}?payment=failed`);
+    }
+
     const paymentConfig = order
       ? await db.paymentConfig.findUnique({
           where: { restaurantId: order.restaurantId },
         })
       : null;
     const secretKey = decryptIfPresent(paymentConfig?.khaltiSecretKey) || "";
+
+    // Missing/undecryptable secret → verification cannot succeed. Fail
+    // loudly instead of opaquely (the "payments silently broken" signature
+    // when ENCRYPTION_KEY changes).
+    if (!secretKey) {
+      console.error(
+        `[khalti.callback] payment.config_missing — secret key empty for restaurant ${order?.restaurantId ?? "?"} (order ${orderId})`,
+      );
+      await logWebhook("payment.config_missing", orderId, rawPayload, 302, pidx);
+      await db.payment.updateMany({
+        where: { orderId, status: "PENDING" },
+        data: { status: "FAILED", rejectionNote: "Khalti configuration missing or unreadable" },
+      });
+      return NextResponse.redirect(`${APP_URL}/track/${orderId}?payment=failed`);
+    }
 
     const verification = await verifyKhaltiPayment(pidx, secretKey);
 
