@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { rememberIntendedRole } from "@/lib/intended-role";
+import { friendlyAuthError, isRateLimitError, nextEmailCooldown, emailLinkExpiry } from "@/lib/auth-errors";
+import { useCountdown, formatCountdown } from "@/hooks/useCountdown";
 import { Mountain, Loader2, Mail, Lock, Eye, EyeOff, Check, ArrowLeft, UtensilsCrossed, Store } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -18,12 +20,24 @@ const labelClass = "mb-1.5 block text-[10px] font-bold uppercase tracking-[0.1em
 export default function SignInPage() {
   const router = useRouter();
   const [step, setStep] = useState<Step>("email");
+  // Whether the "Who are you?" screen was reached via the Google button or via
+  // the email "Continue" button — decides what picking a role actually does.
+  const [intentMode, setIntentMode] = useState<"google" | "email">("google");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(false);
+  // Remember which role the magic link was sent for, so "Resend" re-sends the
+  // same intent. Supabase throttles email per address (~60s) — track the next
+  // allowed send so we show a countdown instead of a raw rate-limit error.
+  const [chosenRole, setChosenRole] = useState<"CUSTOMER" | "OWNER">("CUSTOMER");
+  const [cooldownUntil, setCooldownUntil] = useState<string | null>(null);
+  const cooldownSec = Math.ceil(useCountdown(cooldownUntil) / 1000);
+  // Live "expires in MM:SS" for the emailed sign-in link.
+  const [linkExpiry, setLinkExpiry] = useState<string | null>(null);
+  const linkExpiryMs = useCountdown(linkExpiry);
 
   const handleEmailContinue = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,6 +64,28 @@ export default function SignInPage() {
         return;
       }
 
+      // No password on file → this is a new or passwordless account that will
+      // sign in via magic link. Ask which role they want FIRST (mirrors the
+      // Google flow), so a new owner isn't silently created as a CUSTOMER. The
+      // chosen role rides to /auth/callback via the hh_intended_role cookie.
+      setIntentMode("email");
+      setStep("choose-intent");
+      setLoading(false);
+    } catch {
+      setError("Something went wrong. Please try again.");
+      setLoading(false);
+    }
+  };
+
+  // Send the passwordless sign-in link, tagging the intended role first so a
+  // brand-new account is provisioned with the role the user actually picked.
+  const sendMagicLink = async (role: "CUSTOMER" | "OWNER") => {
+    setError("");
+    setNotice("");
+    setLoading(true);
+    setChosenRole(role);
+    rememberIntendedRole(role);
+    try {
       const supabase = getSupabaseBrowserClient();
       const { error: otpError } = await supabase.auth.signInWithOtp({
         email,
@@ -59,16 +95,29 @@ export default function SignInPage() {
         },
       });
       if (otpError) {
-        setError(otpError.message);
+        setError(friendlyAuthError(otpError));
+        // Keep them on the check-email screen if they were already there (a
+        // failed resend) so the cooldown is visible; otherwise fall back to
+        // the email step to show the error.
+        if (isRateLimitError(otpError)) setCooldownUntil(nextEmailCooldown());
+        if (step !== "check-email") setStep("email");
         setLoading(false);
         return;
       }
+      setCooldownUntil(nextEmailCooldown());
+      setLinkExpiry(emailLinkExpiry());
       setStep("check-email");
       setLoading(false);
     } catch {
       setError("Something went wrong. Please try again.");
+      if (step !== "check-email") setStep("email");
       setLoading(false);
     }
+  };
+
+  const resendMagicLink = () => {
+    if (cooldownSec > 0 || loading) return;
+    sendMagicLink(chosenRole);
   };
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
@@ -79,7 +128,7 @@ export default function SignInPage() {
     const supabase = getSupabaseBrowserClient();
     const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
     if (signInError) {
-      setError(signInError.message);
+      setError(friendlyAuthError(signInError, "Incorrect email or password."));
       setLoading(false);
       return;
     }
@@ -108,6 +157,7 @@ export default function SignInPage() {
 
   const handleGoogleClick = () => {
     // Always ask, every time — never assume based on how they arrived here.
+    setIntentMode("google");
     setStep("choose-intent");
   };
 
@@ -151,10 +201,42 @@ export default function SignInPage() {
                   We&apos;ve sent a sign-in link to <strong className="text-[var(--text-1)]">{email}</strong>. Click
                   it to continue.
                 </p>
+
+                {linkExpiryMs > 0 && (
+                  <p className="mt-3 text-xs font-medium text-[var(--text-3)]">
+                    Link expires in{" "}
+                    <span className="font-bold tabular-nums text-[var(--text-1)]">{formatCountdown(linkExpiryMs)}</span>
+                  </p>
+                )}
+
+                {error && (
+                  <div className="mt-4 rounded-xl border border-[var(--status-error-text)]/20 bg-[var(--status-error-bg)] px-4 py-3 text-sm text-[var(--status-error-text)]">
+                    {error}
+                  </div>
+                )}
+
+                <div className="mt-4 text-sm text-[var(--text-3)]">
+                  {cooldownSec > 0 ? (
+                    <span>Resend link in {cooldownSec}s</span>
+                  ) : (
+                    <>
+                      Didn&apos;t get it?{" "}
+                      <button
+                        type="button"
+                        onClick={resendMagicLink}
+                        disabled={loading}
+                        className="font-semibold text-[var(--accent)] hover:text-[var(--accent-hover)] disabled:opacity-50 transition-colors"
+                      >
+                        Resend link
+                      </button>
+                    </>
+                  )}
+                </div>
+
                 <button
                   type="button"
-                  onClick={() => setStep("email")}
-                  className="mt-6 inline-block text-sm font-bold text-[var(--accent)] hover:text-[var(--accent-hover)] transition-colors"
+                  onClick={() => { setStep("email"); setError(""); }}
+                  className="mt-5 inline-block text-sm font-bold text-[var(--accent)] hover:text-[var(--accent-hover)] transition-colors"
                 >
                   Use a different email
                 </button>
@@ -171,14 +253,19 @@ export default function SignInPage() {
                   </button>
                   <div>
                     <h1 className="text-base font-bold text-[var(--text-1)]">Who are you?</h1>
-                    <p className="text-[12px] text-[var(--text-3)]">Pick one to continue.</p>
+                    <p className="text-[12px] text-[var(--text-3)]">
+                      {intentMode === "email"
+                        ? "Pick one and we'll email your sign-in link."
+                        : "Pick one to continue."}
+                    </p>
                   </div>
                 </div>
 
                 <div className="flex flex-col gap-2.5">
                   <button
-                    onClick={() => handleGoogle("OWNER")}
-                    className="group flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--canvas)] p-4 text-left hover:border-[var(--text-1)] hover:bg-[var(--surface-alt)] transition-all"
+                    disabled={loading}
+                    onClick={() => (intentMode === "email" ? sendMagicLink("OWNER") : handleGoogle("OWNER"))}
+                    className="group flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--canvas)] p-4 text-left hover:border-[var(--text-1)] hover:bg-[var(--surface-alt)] disabled:opacity-50 transition-all"
                   >
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--surface-alt)] text-[var(--text-1)] group-hover:bg-[var(--canvas)] transition-colors">
                       <Store className="h-5 w-5" />
@@ -187,7 +274,13 @@ export default function SignInPage() {
                   </button>
 
                   <button
+                    disabled={loading}
                     onClick={() => {
+                      if (intentMode === "email") {
+                        // Magic-link flow: tag them CUSTOMER and email the link.
+                        sendMagicLink("CUSTOMER");
+                        return;
+                      }
                       // Customers never use Google — send them back to finish
                       // signing in with email + a confirmation code instead,
                       // with a visible note so the switch doesn't feel like a
@@ -196,7 +289,7 @@ export default function SignInPage() {
                       setNotice("Got it — enter your email below and we'll send you a quick sign-in code.");
                       setStep("email");
                     }}
-                    className="group flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--canvas)] p-4 text-left hover:border-[var(--accent)] hover:bg-[var(--accent-muted)] transition-all"
+                    className="group flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--canvas)] p-4 text-left hover:border-[var(--accent)] hover:bg-[var(--accent-muted)] disabled:opacity-50 transition-all"
                   >
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--accent-muted)] text-[var(--accent)] group-hover:bg-[var(--canvas)] transition-colors">
                       <UtensilsCrossed className="h-5 w-5" />
@@ -265,6 +358,34 @@ export default function SignInPage() {
                     {loading ? <Loader2 className="mx-auto h-4 w-4 animate-spin" /> : "Sign In"}
                   </button>
                 </form>
+
+                <div className="relative my-5">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-[var(--border)]" />
+                  </div>
+                  <div className="relative flex justify-center text-xs">
+                    <span className="bg-[var(--canvas)] px-3 text-[var(--text-3)]">or</span>
+                  </div>
+                </div>
+
+                {/* Returning users can log in with the same Google account
+                    instead of a password — no role prompt, their account
+                    already exists and keeps its DB role. */}
+                <button
+                  type="button"
+                  onClick={() => handleGoogle()}
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] py-3 text-sm font-semibold text-[var(--text-1)] hover:bg-[var(--surface)] transition-colors"
+                >
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="h-4 w-4" viewBox="0 0 24 24">
+                      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                    Continue with Google
+                  </span>
+                </button>
               </motion.div>
             ) : (
               <motion.div key="email" initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 16 }}>
