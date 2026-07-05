@@ -9,6 +9,7 @@ import {
   Building2,
   Coffee,
   ExternalLink,
+  Image as ImageIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRestaurant } from "@/context/RestaurantContext";
@@ -24,10 +25,11 @@ import RoomManagementTab from "./RoomManagementTab";
 import HotelBookingsTab from "./HotelBookingsTab";
 import GuestCheckInTab from "./GuestCheckInTab";
 import HotelQRTab from "./HotelQRTab";
+import HotelPhotosTab from "./HotelPhotosTab";
 
 // ── types ─────────────────────────────────────────────────────────────────────
 
-type HubTab = "rooms" | "bookings" | "guests" | "service" | "setup";
+type HubTab = "rooms" | "bookings" | "guests" | "service" | "photos" | "setup";
 type TabScope = "manage" | "frontdesk";
 
 interface BookingKPI {
@@ -300,6 +302,7 @@ const TABS: {
   { id: "bookings", label: "Reservations", icon: CalendarCheck, scope: "frontdesk", badge: "pendingBookings" },
   { id: "guests",   label: "Front Desk",   icon: ClipboardList, scope: "frontdesk", badge: "activeGuests" },
   { id: "service",  label: "Room Service", icon: Coffee,        scope: "manage" },
+  { id: "photos",   label: "Photos",       icon: ImageIcon,     scope: "manage" },
   { id: "setup",    label: "Setup",        icon: Settings,      scope: "manage" },
 ];
 
@@ -498,6 +501,9 @@ export default function HotelHubTab() {
       </div>
       <div className={effectiveActive === "service"  ? "" : "hidden"}>
         <RoomServicePanel />
+      </div>
+      <div className={effectiveActive === "photos"   ? "" : "hidden"}>
+        <HotelPhotosTab />
       </div>
       <div className={effectiveActive === "setup"    ? "" : "hidden"}>
         <HotelQRTab />

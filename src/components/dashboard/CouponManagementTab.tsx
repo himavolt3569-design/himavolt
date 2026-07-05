@@ -21,6 +21,7 @@ import {
 import { useRestaurant } from "@/context/RestaurantContext";
 import { useToast } from "@/context/ToastContext";
 import { apiFetch, peekApiCache } from "@/lib/api-client";
+import NumberInput from "@/components/shared/NumberInput";
 
 /*  Types                                                              */
 
@@ -531,14 +532,13 @@ export default function CouponManagementTab() {
                       ? "Discount Percentage"
                       : "Discount Amount"}
                   </label>
-                  <input
-                    type="number"
+                  <NumberInput
                     min={0}
                     max={form.type === "PERCENTAGE" ? 100 : undefined}
-                    value={form.value || ""}
-                    onChange={(e) =>
-                      updateField("value", Number(e.target.value))
-                    }
+                    value={form.value}
+                    onChange={(n) => updateField("value", n)}
+                    decimal
+                    hideZero
                     placeholder={
                       form.type === "PERCENTAGE" ? "e.g. 20" : "e.g. 100"
                     }

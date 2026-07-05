@@ -31,8 +31,10 @@ import { ScrollableRow } from "@/components/shared/ScrollableRow";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/context/ToastContext";
 import { uploadFile } from "@/lib/upload";
+import { runWithConcurrency } from "@/lib/concurrency";
 import QRCode from "react-qr-code";
 import RichTextEditor from "@/components/shared/RichTextEditor";
+import NumberInput from "@/components/shared/NumberInput";
 import LocationPickerModal from "@/components/modals/LocationPickerModal";
 import { AnchoredMenu } from "@/components/shared/AnchoredMenu";
 import { roomTypeLabel, roomFloorLabel } from "@/lib/room-display";
@@ -532,7 +534,12 @@ function RoomFormModal({
   errorMsg: string;
   isEditing: boolean;
 }) {
+  const { showToast } = useToast();
   const [uploadingImg, setUploadingImg] = useState(false);
+  // Local object-URL previews shown the instant photos are picked, before the
+  // network upload finishes — swapped out for the real hosted URLs in one go
+  // once the batch resolves, so nothing visibly reorders.
+  const [pendingPhotos, setPendingPhotos] = useState<{ id: string; previewUrl: string; file: File }[]>([]);
   const [customAmenity, setCustomAmenity] = useState("");
   const imgInputRef = useRef<HTMLInputElement>(null);
 
@@ -591,19 +598,32 @@ function RoomFormModal({
   // Custom amenities the owner typed that aren't part of the curated catalog.
   const extraAmenities = form.amenities.filter((a) => !ALL_AMENITIES.includes(a));
 
-  // Multi-file upload — owners can pick several photos at once.
+  // Multi-file upload — owners can pick several photos at once. Uploads run
+  // with a few in flight at a time instead of one-by-one so a batch of
+  // photos doesn't take N times as long as a single one. Picked photos show
+  // up in the grid immediately via local object URLs — the UI never blocks
+  // on the network, it just quietly swaps in the hosted URLs once ready.
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
+    if (imgInputRef.current) imgInputRef.current.value = "";
     if (!files.length) return;
+
+    const pending = files.map((file) => ({
+      id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      previewUrl: URL.createObjectURL(file),
+      file,
+    }));
+    setPendingPhotos((prev) => [...prev, ...pending]);
     setUploadingImg(true);
     try {
-      for (const file of files) {
-        const url = await uploadFile(file, "rooms");
-        setForm((f) => ({ ...f, imageUrls: [...f.imageUrls, url] }));
-      }
+      const urls = await runWithConcurrency(pending, 3, (p) => uploadFile(p.file, "rooms"));
+      setForm((f) => ({ ...f, imageUrls: [...f.imageUrls, ...urls] }));
+    } catch {
+      showToast("Some photos failed to upload", "error");
     } finally {
       setUploadingImg(false);
-      if (imgInputRef.current) imgInputRef.current.value = "";
+      setPendingPhotos((prev) => prev.filter((p) => !pending.includes(p)));
+      pending.forEach((p) => URL.revokeObjectURL(p.previewUrl));
     }
   };
 
@@ -767,22 +787,22 @@ function RoomFormModal({
                     </div>
                     <div>
                       <label className="block text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider mb-1.5">Price/Night <span className="text-rose-500">*</span></label>
-                      <input
-                        type="number"
-                        value={form.price || ""}
-                        onChange={(e) => setForm((f) => ({ ...f, price: parseFloat(e.target.value) || 0 }))}
+                      <NumberInput
+                        value={form.price}
+                        onChange={(n) => setForm((f) => ({ ...f, price: n }))}
                         min={0}
                         step={100}
+                        decimal
+                        hideZero
                         placeholder="0"
                         className="w-full rounded-xl bg-[var(--canvas-sub)] px-3.5 py-2.5 text-[13px] font-semibold text-[var(--text-1)] outline-none ring-1 ring-[var(--border)] focus:ring-[var(--accent)] transition-all text-center"
                       />
                     </div>
                     <div>
                       <label className="block text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider mb-1.5">Max Guests</label>
-                      <input
-                        type="number"
+                      <NumberInput
                         value={form.maxGuests}
-                        onChange={(e) => setForm((f) => ({ ...f, maxGuests: parseInt(e.target.value) || 1 }))}
+                        onChange={(n) => setForm((f) => ({ ...f, maxGuests: n }))}
                         min={1}
                         max={20}
                         className="w-full rounded-xl bg-[var(--canvas-sub)] px-3.5 py-2.5 text-[13px] font-semibold text-[var(--text-1)] outline-none ring-1 ring-[var(--border)] focus:ring-[var(--accent)] transition-all text-center"
@@ -850,10 +870,9 @@ function RoomFormModal({
                     </div>
                     <div>
                       <label className="block text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider mb-1.5">Bed Count</label>
-                      <input
-                        type="number"
+                      <NumberInput
                         value={form.bedCount}
-                        onChange={(e) => setForm((f) => ({ ...f, bedCount: parseInt(e.target.value) || 1 }))}
+                        onChange={(n) => setForm((f) => ({ ...f, bedCount: n }))}
                         min={1}
                         max={10}
                         className="w-full rounded-xl bg-[var(--canvas-sub)] px-3.5 py-2.5 text-[13px] font-semibold text-[var(--text-1)] outline-none ring-1 ring-[var(--border)] focus:ring-[var(--accent)] transition-all text-center"
@@ -1040,14 +1059,15 @@ function RoomFormModal({
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="block text-sm font-bold text-[var(--text-1)]">Room Photos</label>
-                  {form.imageUrls.length > 0 && (
+                  {(form.imageUrls.length > 0 || pendingPhotos.length > 0) && (
                     <span className="text-[11px] font-bold text-[var(--accent-text)]">
-                      {form.imageUrls.length} photo{form.imageUrls.length !== 1 ? "s" : ""}
+                      {form.imageUrls.length + pendingPhotos.length} photo
+                      {form.imageUrls.length + pendingPhotos.length !== 1 ? "s" : ""}
                     </span>
                   )}
                 </div>
 
-                {form.imageUrls.length > 0 && (
+                {(form.imageUrls.length > 0 || pendingPhotos.length > 0) && (
                   <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5 mb-3">
                     {form.imageUrls.map((url, idx) => (
                       <div key={idx} className="relative group aspect-square rounded-xl overflow-hidden ring-1 ring-[var(--border)] bg-[var(--canvas-sub)]">
@@ -1069,6 +1089,17 @@ function RoomFormModal({
                         )}
                       </div>
                     ))}
+                    {/* Picked photos appear instantly via local preview — the
+                        spinner overlay is the only sign the upload is still
+                        happening in the background. */}
+                    {pendingPhotos.map((p) => (
+                      <div key={p.id} className="relative aspect-square rounded-xl overflow-hidden ring-1 ring-[var(--border)] bg-[var(--canvas-sub)]">
+                        <img src={p.previewUrl} alt="Uploading" className="h-full w-full object-cover opacity-60" />
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                          <Loader2 className="h-5 w-5 animate-spin text-white" />
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
 
@@ -1083,27 +1114,19 @@ function RoomFormModal({
                 <button
                   type="button"
                   onClick={() => imgInputRef.current?.click()}
-                  disabled={uploadingImg}
-                  className="flex w-full flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-dashed border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-6 text-center hover:border-[var(--accent)] hover:bg-[var(--accent-muted)] transition-all disabled:opacity-60"
+                  className="flex w-full flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-dashed border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-6 text-center hover:border-[var(--accent)] hover:bg-[var(--accent-muted)] transition-all"
                 >
-                  {uploadingImg ? (
-                    <>
-                      <Loader2 className="h-6 w-6 animate-spin text-[var(--accent)]" />
-                      <span className="text-[13px] font-bold text-[var(--text-2)]">Uploading photos…</span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--accent-muted)] text-[var(--accent-text)]">
-                        <ImageIcon className="h-5 w-5" />
-                      </span>
-                      <span className="text-[13px] font-bold text-[var(--text-1)]">
-                        {form.imageUrls.length > 0 ? "Add more photos" : "Click to upload photos"}
-                      </span>
-                      <span className="text-[11px] text-[var(--text-3)]">
-                        JPG or PNG · You can select several · First photo is the cover
-                      </span>
-                    </>
-                  )}
+                  <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--accent-muted)] text-[var(--accent-text)]">
+                    <ImageIcon className="h-5 w-5" />
+                  </span>
+                  <span className="text-[13px] font-bold text-[var(--text-1)]">
+                    {form.imageUrls.length > 0 || pendingPhotos.length > 0 ? "Add more photos" : "Click to upload photos"}
+                  </span>
+                  <span className="text-[11px] text-[var(--text-3)]">
+                    {uploadingImg
+                      ? "Uploading in the background…"
+                      : "JPG or PNG · You can select several · First photo is the cover"}
+                  </span>
                 </button>
               </div>
 
@@ -1753,10 +1776,9 @@ function BookingFormModal({
 
               <div>
                 <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">Guests</label>
-                <input
-                  type="number"
+                <NumberInput
                   value={form.guests}
-                  onChange={(e) => setForm((f) => ({ ...f, guests: parseInt(e.target.value) || 1 }))}
+                  onChange={(n) => setForm((f) => ({ ...f, guests: n }))}
                   min={1}
                   max={20}
                   className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] outline-none transition-all focus:border-[var(--text-1)] focus:ring-2 focus:ring-[var(--text-1)]/15"
@@ -1768,14 +1790,13 @@ function BookingFormModal({
                   <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">
                     Advance Amount
                   </label>
-                  <input
-                    type="number"
-                    value={form.advanceAmount || ""}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, advanceAmount: parseFloat(e.target.value) || 0 }))
-                    }
+                  <NumberInput
+                    value={form.advanceAmount}
+                    onChange={(n) => setForm((f) => ({ ...f, advanceAmount: n }))}
                     min={0}
                     step={100}
+                    decimal
+                    hideZero
                     placeholder="0"
                     className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[var(--text-1)] focus:ring-2 focus:ring-[var(--text-1)]/15"
                   />
@@ -1784,14 +1805,13 @@ function BookingFormModal({
                   <label className="block text-sm font-bold text-[var(--text-1)] mb-1.5">
                     Total Amount
                   </label>
-                  <input
-                    type="number"
-                    value={form.totalAmount || ""}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, totalAmount: parseFloat(e.target.value) || 0 }))
-                    }
+                  <NumberInput
+                    value={form.totalAmount}
+                    onChange={(n) => setForm((f) => ({ ...f, totalAmount: n }))}
                     min={0}
                     step={100}
+                    decimal
+                    hideZero
                     placeholder="0"
                     className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[var(--text-1)] focus:ring-2 focus:ring-[var(--text-1)]/15"
                   />

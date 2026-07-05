@@ -21,6 +21,7 @@ import {
   Crown,
   Loader2,
 } from "lucide-react";
+import NumberInput from "@/components/shared/NumberInput";
 
 interface Reward {
   id: string;
@@ -436,14 +437,11 @@ export default function LoyaltyRewardsTab() {
                         onChange={(e) => setNewRewardName(e.target.value)}
                         className="border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                       />
-                      <input
-                        type="number"
+                      <NumberInput
                         placeholder="Points cost"
                         min={1}
                         value={newRewardPoints}
-                        onChange={(e) =>
-                          setNewRewardPoints(Number(e.target.value))
-                        }
+                        onChange={(n) => setNewRewardPoints(n)}
                         className="border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                       />
                       <input
@@ -498,12 +496,10 @@ export default function LoyaltyRewardsTab() {
                             onChange={(e) => setEditName(e.target.value)}
                             className="border border-[var(--border)] rounded-lg px-2 py-1.5 text-sm flex-1 focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                           />
-                          <input
-                            type="number"
+                          <NumberInput
                             value={editPoints}
-                            onChange={(e) =>
-                              setEditPoints(Number(e.target.value))
-                            }
+                            onChange={(n) => setEditPoints(n)}
+                            min={1}
                             className="w-20 border border-[var(--border)] rounded-lg px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                           />
                           <input

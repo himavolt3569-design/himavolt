@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { db } from "@/lib/db";
+import { decryptIfPresent } from "@/lib/encryption";
 
 const schema = z.object({
   roomId: z.string().min(1),
@@ -79,6 +80,35 @@ export async function createHotelBooking(raw: unknown): Promise<BookingResult> {
   }
 
   const isPayAtHotel = data.paymentMethod === "CASH";
+
+  // Reject unconfigured online gateways *before* creating anything. Without
+  // this, a booking gets created (holding the room), the later payment-init
+  // call 400s because the hotel never set up eSewa/Khalti, and the guest is
+  // left staring at a dead form while their own booking blocks a retry.
+  if (data.paymentMethod === "ESEWA" || data.paymentMethod === "KHALTI") {
+    const paymentConfig = await db.paymentConfig.findUnique({
+      where: { restaurantId: data.restaurantId },
+      select: {
+        esewaEnabled: true,
+        esewaMerchantCode: true,
+        esewaSecretKey: true,
+        khaltiEnabled: true,
+        khaltiSecretKey: true,
+      },
+    });
+    if (data.paymentMethod === "ESEWA") {
+      const merchantCode = decryptIfPresent(paymentConfig?.esewaMerchantCode);
+      const secretKey = decryptIfPresent(paymentConfig?.esewaSecretKey);
+      if (!merchantCode || !secretKey || !paymentConfig?.esewaEnabled) {
+        return { error: "eSewa is not set up for this hotel yet. Please choose another payment method." };
+      }
+    } else {
+      const secretKey = decryptIfPresent(paymentConfig?.khaltiSecretKey);
+      if (!secretKey || !paymentConfig?.khaltiEnabled) {
+        return { error: "Khalti is not set up for this hotel yet. Please choose another payment method." };
+      }
+    }
+  }
 
   // Compute advance amount from the hotel's configured advance policy
   let advanceAmount = 0;

@@ -38,35 +38,35 @@ const STATUS_CONFIG: Record<
   { bg: string; text: string; border: string; pulse?: boolean }
 > = {
   PENDING: {
-    bg: "bg-amber-500/10",
-    text: "text-amber-400",
-    border: "border-amber-500/30",
+    bg: "bg-[var(--status-pending-bg)]",
+    text: "text-[var(--status-pending-text)]",
+    border: "border-[var(--status-pending-text)]/25",
     pulse: true,
   },
   CONFIRMED: {
-    bg: "bg-emerald-500/10",
-    text: "text-emerald-400",
-    border: "border-emerald-500/30",
+    bg: "bg-[var(--status-success-bg)]",
+    text: "text-[var(--status-success-text)]",
+    border: "border-[var(--status-success-text)]/25",
   },
   SEATED: {
-    bg: "bg-blue-500/10",
-    text: "text-blue-400",
-    border: "border-blue-500/30",
+    bg: "bg-[var(--status-info-bg)]",
+    text: "text-[var(--status-info-text)]",
+    border: "border-[var(--status-info-text)]/25",
   },
   COMPLETED: {
-    bg: "bg-zinc-500/10",
-    text: "text-zinc-400",
-    border: "border-zinc-500/30",
+    bg: "bg-[var(--status-done-bg)]",
+    text: "text-[var(--status-done-text)]",
+    border: "border-[var(--status-done-text)]/25",
   },
   CANCELLED: {
-    bg: "bg-red-500/10",
-    text: "text-red-400",
-    border: "border-red-500/30",
+    bg: "bg-[var(--status-error-bg)]",
+    text: "text-[var(--status-error-text)]",
+    border: "border-[var(--status-error-text)]/25",
   },
   NO_SHOW: {
-    bg: "bg-rose-500/10",
-    text: "text-rose-400",
-    border: "border-rose-500/30",
+    bg: "bg-[var(--status-error-bg)]",
+    text: "text-[var(--status-error-text)]",
+    border: "border-[var(--status-error-text)]/25",
   },
 };
 
@@ -81,15 +81,15 @@ const STATUS_TRANSITIONS: Record<string, string[]> = {
 
 const ACTION_STYLES: Record<string, string> = {
   CONFIRMED:
-    "bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20 hover:border-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)]",
+    "bg-[var(--status-success-bg)] text-[var(--status-success-text)] border-[var(--status-success-text)]/25 hover:brightness-95",
   SEATED:
-    "bg-blue-500/10 text-blue-400 border-blue-500/30 hover:bg-blue-500/20 hover:border-blue-500/50 hover:shadow-[0_0_20px_rgba(59,130,246,0.15)]",
+    "bg-[var(--status-info-bg)] text-[var(--status-info-text)] border-[var(--status-info-text)]/25 hover:brightness-95",
   COMPLETED:
-    "bg-zinc-500/10 text-zinc-300 border-zinc-500/30 hover:bg-zinc-500/20 hover:border-zinc-500/50",
+    "bg-[var(--status-done-bg)] text-[var(--status-done-text)] border-[var(--status-done-text)]/25 hover:brightness-95",
   CANCELLED:
-    "bg-red-500/10 text-red-400 border-red-500/20 hover:bg-red-500/20 hover:border-red-500/40",
+    "bg-[var(--status-error-bg)] text-[var(--status-error-text)] border-[var(--status-error-text)]/20 hover:brightness-95",
   NO_SHOW:
-    "bg-red-500/10 text-red-400 border-red-500/20 hover:bg-red-500/20 hover:border-red-500/40",
+    "bg-[var(--status-error-bg)] text-[var(--status-error-text)] border-[var(--status-error-text)]/20 hover:brightness-95",
 };
 
 export default function TableReservationsTab() {
@@ -173,7 +173,7 @@ export default function TableReservationsTab() {
   }, [reservations, statusFilter, searchQuery]);
 
   if (!restaurantId) {
-    return <div className="text-zinc-400 p-4">No restaurant selected</div>;
+    return <div className="text-[var(--text-3)] p-4">No restaurant selected</div>;
   }
 
   return (
@@ -181,11 +181,11 @@ export default function TableReservationsTab() {
       {/* Header Section */}
       <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-6">
         <div>
-          <h3 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-brand-400 to-brand-200 flex items-center gap-3">
-            <CalendarDays className="w-8 h-8 text-brand-400" />
+          <h3 className="text-3xl font-extrabold text-[var(--text-1)] flex items-center gap-3">
+            <CalendarDays className="w-8 h-8 text-[var(--accent)]" />
             Table Reservations
           </h3>
-          <p className="text-zinc-400 mt-2 max-w-md leading-relaxed">
+          <p className="text-[var(--text-2)] mt-2 max-w-md leading-relaxed">
             Manage your table bookings, assign tables, and streamline the guest
             experience from arrival to departure.
           </p>
@@ -195,33 +195,33 @@ export default function TableReservationsTab() {
           {/* Search */}
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-4 w-4 text-zinc-500" />
+              <Search className="h-4 w-4 text-[var(--text-3)]" />
             </div>
             <input
               type="text"
               placeholder="Search guests or phone..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full sm:w-64 bg-black/40 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all backdrop-blur-md"
+              className="w-full sm:w-64 bg-[var(--canvas-sub)] ring-1 ring-[var(--border)] rounded-xl pl-10 pr-4 py-2.5 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/50 transition-all"
             />
           </div>
 
           {/* Filters */}
-          <div className="flex bg-black/40 p-1 rounded-xl border border-white/5 backdrop-blur-md overflow-x-auto scrollbar-hide">
+          <div className="flex bg-[var(--canvas-sub)] p-1 rounded-xl ring-1 ring-[var(--border)] overflow-x-auto scrollbar-hide">
             {["ALL", "PENDING", "CONFIRMED", "SEATED"].map((s) => (
               <button
                 key={s}
                 onClick={() => setStatusFilter(s)}
                 className={`relative px-4 py-2 text-sm font-semibold transition-colors rounded-lg z-10 whitespace-nowrap ${
                   statusFilter === s
-                    ? "text-brand-300"
-                    : "text-zinc-400 hover:text-zinc-200"
+                    ? "text-[var(--accent-text)]"
+                    : "text-[var(--text-3)] hover:text-[var(--text-1)]"
                 }`}
               >
                 {statusFilter === s && (
                   <motion.div
                     layoutId="resvFilter"
-                    className="absolute inset-0 bg-brand-500/10 border border-brand-500/30 rounded-lg -z-10"
+                    className="absolute inset-0 bg-[var(--canvas)] shadow-sm rounded-lg -z-10"
                     transition={{
                       type: "spring",
                       stiffness: 400,
@@ -240,7 +240,7 @@ export default function TableReservationsTab() {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-xl bg-red-500/10 border border-red-500/30 p-4 text-sm text-red-400 flex items-center gap-3"
+          className="rounded-xl bg-[var(--status-error-bg)] border border-[var(--status-error-text)]/20 p-4 text-sm text-[var(--status-error-text)] flex items-center gap-3"
         >
           <XCircle className="w-5 h-5 shrink-0" />
           {error}
@@ -248,9 +248,9 @@ export default function TableReservationsTab() {
       )}
 
       {loading && reservations.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-24 text-brand-400">
+        <div className="flex flex-col items-center justify-center py-24 text-[var(--accent)]">
           <Loader2 className="w-10 h-10 animate-spin mb-4" />
-          <p className="text-zinc-400 font-medium">Loading reservations...</p>
+          <p className="text-[var(--text-2)] font-medium">Loading reservations...</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4">
@@ -263,15 +263,15 @@ export default function TableReservationsTab() {
                 className="flex flex-col items-center justify-center py-24 text-center"
               >
                 <div className="relative w-24 h-24 mb-6">
-                  <div className="absolute inset-0 bg-brand-500/20 blur-2xl rounded-full animate-pulse" />
-                  <div className="relative flex items-center justify-center w-full h-full bg-white/5 border border-white/10 rounded-3xl backdrop-blur-xl">
-                    <CalendarDays className="w-10 h-10 text-brand-400" />
+                  <div className="absolute inset-0 bg-[var(--accent)]/15 blur-2xl rounded-full animate-pulse" />
+                  <div className="relative flex items-center justify-center w-full h-full bg-[var(--surface)] border border-[var(--border)] rounded-3xl">
+                    <CalendarDays className="w-10 h-10 text-[var(--accent)]" />
                   </div>
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2">
+                <h3 className="text-xl font-bold text-[var(--text-1)] mb-2">
                   No Reservations Found
                 </h3>
-                <p className="text-zinc-400 max-w-sm">
+                <p className="text-[var(--text-3)] max-w-sm">
                   {searchQuery
                     ? "No reservations match your search criteria."
                     : "You don't have any reservations matching this status yet."}
@@ -295,20 +295,20 @@ export default function TableReservationsTab() {
                       stiffness: 400,
                       damping: 30,
                     }}
-                    className="group relative bg-white/[0.02] backdrop-blur-xl rounded-2xl p-5 md:p-6 border border-white/5 hover:bg-white/[0.04] hover:border-white/10 transition-all duration-300 shadow-lg overflow-hidden"
+                    className="group relative bg-[var(--surface)] rounded-2xl p-5 md:p-6 border border-[var(--border)] hover:border-[var(--accent-border)] hover:shadow-md transition-all duration-300 shadow-sm overflow-hidden"
                   >
                     {/* Ambient Hover Glow */}
-                    <div className="absolute -inset-32 bg-gradient-to-br from-brand-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+                    <div className="absolute -inset-32 bg-gradient-to-br from-[var(--accent)]/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
 
                     <div className="relative flex flex-col md:flex-row gap-6 md:gap-8">
                       {/* Left: Time & Date Slot */}
-                      <div className="flex flex-row md:flex-col items-center md:justify-center gap-4 md:gap-0 min-w-[120px] p-4 rounded-xl bg-black/40 border border-white/5 shrink-0">
-                        <Clock className="hidden md:block w-6 h-6 text-brand-400 mb-3" />
-                        <span className="text-2xl font-black text-white tracking-tight">
+                      <div className="flex flex-row md:flex-col items-center md:justify-center gap-4 md:gap-0 min-w-[120px] p-4 rounded-xl bg-[var(--canvas-sub)] border border-[var(--border)] shrink-0">
+                        <Clock className="hidden md:block w-6 h-6 text-[var(--accent)] mb-3" />
+                        <span className="text-2xl font-black text-[var(--text-1)] tracking-tight">
                           {r.timeSlot}
                         </span>
-                        <div className="h-4 w-[1px] md:h-px md:w-8 bg-white/10 my-0 md:my-2" />
-                        <span className="text-xs text-brand-300/80 uppercase font-bold tracking-widest">
+                        <div className="h-4 w-[1px] md:h-px md:w-8 bg-[var(--border)] my-0 md:my-2" />
+                        <span className="text-xs text-[var(--accent-text)] uppercase font-bold tracking-widest">
                           {new Date(r.date).toLocaleDateString("en-US", {
                             month: "short",
                             day: "numeric",
@@ -319,7 +319,7 @@ export default function TableReservationsTab() {
                       {/* Middle: Core Details */}
                       <div className="flex-1 min-w-0 flex flex-col justify-center">
                         <div className="flex flex-wrap items-center gap-3 mb-3">
-                          <h4 className="text-2xl font-bold text-white truncate">
+                          <h4 className="text-2xl font-bold text-[var(--text-1)] truncate">
                             {r.guestName}
                           </h4>
                           <div
@@ -335,23 +335,23 @@ export default function TableReservationsTab() {
                           </div>
                         </div>
 
-                        <div className="flex flex-wrap gap-x-6 gap-y-3 text-sm text-zinc-400 font-medium">
+                        <div className="flex flex-wrap gap-x-6 gap-y-3 text-sm text-[var(--text-2)] font-medium">
                           <div className="flex items-center gap-2.5">
-                            <div className="p-1.5 rounded-md bg-white/5">
-                              <Users className="w-4 h-4 text-zinc-300" />
+                            <div className="p-1.5 rounded-md bg-[var(--canvas-sub)]">
+                              <Users className="w-4 h-4 text-[var(--text-3)]" />
                             </div>
-                            <span className="text-zinc-200">
+                            <span className="text-[var(--text-1)]">
                               {r.partySize} Guests
                             </span>
                           </div>
                           <div className="flex items-center gap-2.5">
-                            <div className="p-1.5 rounded-md bg-white/5">
-                              <Phone className="w-4 h-4 text-zinc-300" />
+                            <div className="p-1.5 rounded-md bg-[var(--canvas-sub)]">
+                              <Phone className="w-4 h-4 text-[var(--text-3)]" />
                             </div>
-                            <span className="text-zinc-200">{r.phone}</span>
+                            <span className="text-[var(--text-1)]">{r.phone}</span>
                           </div>
                           {r.tableNumber && (
-                            <div className="flex items-center gap-2.5 text-emerald-400 bg-emerald-400/10 px-3 py-1 rounded-lg border border-emerald-400/20">
+                            <div className="flex items-center gap-2.5 text-[var(--status-success-text)] bg-[var(--status-success-bg)] px-3 py-1 rounded-lg border border-[var(--status-success-text)]/20">
                               <Armchair className="w-4 h-4" />
                               <span className="font-bold">
                                 Table {r.tableNumber}
@@ -361,9 +361,9 @@ export default function TableReservationsTab() {
                         </div>
 
                         {r.specialRequests && (
-                          <div className="mt-4 p-4 rounded-xl bg-black/30 border border-white/5 text-sm text-zinc-300 flex items-start gap-3">
-                            <MessageSquare className="w-4 h-4 text-brand-400 shrink-0 mt-0.5" />
-                            <p className="leading-relaxed italic text-zinc-400">
+                          <div className="mt-4 p-4 rounded-xl bg-[var(--canvas-sub)] border border-[var(--border)] text-sm text-[var(--text-2)] flex items-start gap-3">
+                            <MessageSquare className="w-4 h-4 text-[var(--accent)] shrink-0 mt-0.5" />
+                            <p className="leading-relaxed italic text-[var(--text-3)]">
                               "{r.specialRequests}"
                             </p>
                           </div>
@@ -376,7 +376,7 @@ export default function TableReservationsTab() {
                           {transitions.map((t) => {
                             const actionStyle =
                               ACTION_STYLES[t] ||
-                              "bg-white/5 hover:bg-white/10 text-white border-white/10";
+                              "bg-[var(--canvas-sub)] hover:bg-[var(--surface-alt)] text-[var(--text-1)] border-[var(--border)]";
                             return (
                               <button
                                 key={t}

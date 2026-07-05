@@ -43,6 +43,7 @@ import { restaurantOrdersTopic } from "@/lib/realtime-topics";
 import { formatPrice } from "@/lib/currency";
 import { autoPrintBill, printBillForOrder } from "@/lib/print-bill";
 import { type FeatureTabId } from "@/lib/restaurant-types";
+import NumberInput from "@/components/shared/NumberInput";
 
 const CounterTabLoader = () => (
   <div className="flex min-h-[260px] items-center justify-center">
@@ -840,20 +841,13 @@ function BillingPanel({
                   </div>
                   {taxEnabled && (
                     <div className="flex items-center gap-1.5">
-                      <input
-                        type="number"
+                      <NumberInput
                         value={taxRate}
-                        onChange={(e) =>
-                          setTaxRate(
-                            Math.max(
-                              0,
-                              Math.min(100, parseFloat(e.target.value) || 0),
-                            ),
-                          )
-                        }
-                        min="0"
-                        max="100"
-                        step="0.1"
+                        onChange={(n) => setTaxRate(n)}
+                        min={0}
+                        max={100}
+                        step={0.1}
+                        decimal
                         className="w-full rounded-lg border border-[var(--border)] px-2 py-1.5 text-xs font-bold text-[var(--text-1)] outline-none focus:border-brand-400"
                       />
                       <span className="text-xs text-[var(--text-3)]">%</span>
@@ -876,20 +870,13 @@ function BillingPanel({
                   </div>
                   {scEnabled && (
                     <div className="flex items-center gap-1.5">
-                      <input
-                        type="number"
+                      <NumberInput
                         value={scRate}
-                        onChange={(e) =>
-                          setScRate(
-                            Math.max(
-                              0,
-                              Math.min(100, parseFloat(e.target.value) || 0),
-                            ),
-                          )
-                        }
-                        min="0"
-                        max="100"
-                        step="0.1"
+                        onChange={(n) => setScRate(n)}
+                        min={0}
+                        max={100}
+                        step={0.1}
+                        decimal
                         className="w-full rounded-lg border border-[var(--border)] px-2 py-1.5 text-xs font-bold text-[var(--text-1)] outline-none focus:border-brand-400"
                       />
                       <span className="text-xs text-[var(--text-3)]">%</span>

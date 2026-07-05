@@ -5,6 +5,7 @@ import { useRestaurant } from "@/context/RestaurantContext";
 import { Loader2, Save, Receipt, Percent, Coins } from "lucide-react";
 import { CURRENCIES, formatPrice, type CurrencyCode } from "@/lib/currency";
 import Toggle from "@/components/ui/Toggle";
+import NumberInput from "@/components/shared/NumberInput";
 import { apiFetch, peekApiCache, invalidateApiCache } from "@/lib/api-client";
 
 interface TaxConfig {
@@ -137,21 +138,13 @@ export default function TaxChargesTab() {
         {config.taxEnabled && (
           <div className="flex items-center gap-3">
             <div className="relative flex-1">
-              <input
-                type="number"
+              <NumberInput
                 value={config.taxRate}
-                onChange={(e) =>
-                  setConfig((c) => ({
-                    ...c,
-                    taxRate: Math.max(
-                      0,
-                      Math.min(100, parseFloat(e.target.value) || 0),
-                    ),
-                  }))
-                }
-                min="0"
-                max="100"
-                step="0.1"
+                onChange={(n) => setConfig((c) => ({ ...c, taxRate: n }))}
+                min={0}
+                max={100}
+                step={0.1}
+                decimal
                 className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 pr-10 text-sm font-bold text-[var(--text-1)] outline-none focus:border-[var(--text-1)] focus:ring-2 focus:ring-[var(--text-1)]/10 transition-all"
               />
               <Percent className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-3)]" />
@@ -192,21 +185,13 @@ export default function TaxChargesTab() {
         {config.serviceChargeEnabled && (
           <div className="flex items-center gap-3">
             <div className="relative flex-1">
-              <input
-                type="number"
+              <NumberInput
                 value={config.serviceChargeRate}
-                onChange={(e) =>
-                  setConfig((c) => ({
-                    ...c,
-                    serviceChargeRate: Math.max(
-                      0,
-                      Math.min(100, parseFloat(e.target.value) || 0),
-                    ),
-                  }))
-                }
-                min="0"
-                max="100"
-                step="0.1"
+                onChange={(n) => setConfig((c) => ({ ...c, serviceChargeRate: n }))}
+                min={0}
+                max={100}
+                step={0.1}
+                decimal
                 className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 pr-10 text-sm font-bold text-[var(--text-1)] outline-none focus:border-[var(--text-1)] focus:ring-2 focus:ring-[var(--text-1)]/10 transition-all"
               />
               <Percent className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-3)]" />

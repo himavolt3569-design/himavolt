@@ -22,6 +22,7 @@ import {
   Trash2,
   ChevronLeft,
 } from "lucide-react";
+import NumberInput from "@/components/shared/NumberInput";
 import NotPersistedBanner from "./_NotPersistedBanner";
 
 type EventStatus =
@@ -712,15 +713,10 @@ export default function EventCateringTab() {
                     <label className="mb-1.5 block text-sm font-medium text-stone-700">
                       Guest Count
                     </label>
-                    <input
-                      type="number"
+                    <NumberInput
                       value={newEvent.guestCount}
-                      onChange={(e) =>
-                        setNewEvent((ev) => ({
-                          ...ev,
-                          guestCount: parseInt(e.target.value) || 0,
-                        }))
-                      }
+                      onChange={(n) => setNewEvent((ev) => ({ ...ev, guestCount: n }))}
+                      min={0}
                       className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 focus:border-[var(--accent)] focus:outline-none"
                     />
                   </div>
@@ -728,15 +724,11 @@ export default function EventCateringTab() {
                     <label className="mb-1.5 block text-sm font-medium text-stone-700">
                       Budget ($)
                     </label>
-                    <input
-                      type="number"
+                    <NumberInput
                       value={newEvent.budget}
-                      onChange={(e) =>
-                        setNewEvent((ev) => ({
-                          ...ev,
-                          budget: parseFloat(e.target.value) || 0,
-                        }))
-                      }
+                      onChange={(n) => setNewEvent((ev) => ({ ...ev, budget: n }))}
+                      min={0}
+                      decimal
                       className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 focus:border-[var(--accent)] focus:outline-none"
                     />
                   </div>

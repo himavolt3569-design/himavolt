@@ -21,6 +21,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import NotPersistedBanner from "./_NotPersistedBanner";
+import NumberInput from "@/components/shared/NumberInput";
 
 type DeliveryStatus =
   | "Preparing"
@@ -224,12 +225,10 @@ export default function DeliveryOpsTab() {
               <label className="text-xs text-[var(--text-2)]">
                 Max orders per hour
               </label>
-              <input
-                type="number"
+              <NumberInput
                 value={maxOrdersPerHour}
-                onChange={(e) =>
-                  setMaxOrdersPerHour(Number(e.target.value) || 1)
-                }
+                onChange={(n) => setMaxOrdersPerHour(n)}
+                min={1}
                 className="mt-1 w-full px-3 py-1.5 border border-[var(--border)] rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none"
               />
             </motion.div>
@@ -313,25 +312,20 @@ export default function DeliveryOpsTab() {
         <div className="flex items-center gap-4 mt-4">
           <div className="flex-1">
             <label className="text-xs text-[var(--text-2)]">Max Concurrent</label>
-            <input
-              type="number"
+            <NumberInput
               value={maxConcurrent}
-              onChange={(e) =>
-                setMaxConcurrent(Math.max(1, Number(e.target.value) || 1))
-              }
+              onChange={(n) => setMaxConcurrent(n)}
+              min={1}
               className="mt-1 w-full px-3 py-1.5 border border-[var(--border)] rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none"
             />
           </div>
           <div className="flex-1">
             <label className="text-xs text-[var(--text-2)]">Current Load</label>
-            <input
-              type="number"
+            <NumberInput
               value={currentLoad}
-              onChange={(e) =>
-                setCurrentLoad(
-                  Math.max(0, Math.min(maxConcurrent, Number(e.target.value) || 0))
-                )
-              }
+              onChange={(n) => setCurrentLoad(n)}
+              min={0}
+              max={maxConcurrent}
               className="mt-1 w-full px-3 py-1.5 border border-[var(--border)] rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none"
             />
           </div>

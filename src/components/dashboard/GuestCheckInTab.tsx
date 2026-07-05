@@ -29,6 +29,7 @@ import { cn } from "@/lib/utils";
 import QRCode from "qrcode";
 import { createWorker } from "tesseract.js";
 import { uploadFile } from "@/lib/upload";
+import NumberInput from "@/components/shared/NumberInput";
 
 interface GuestCheckIn {
   id: string;
@@ -457,19 +458,19 @@ export default function GuestCheckInTab() {
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider block mb-1.5">Adults</label>
-                        <input
-                          type="number" min="1"
+                        <NumberInput
+                          min={1}
                           value={form.adults}
-                          onChange={(e) => setForm((f) => ({ ...f, adults: Number(e.target.value) }))}
+                          onChange={(n) => setForm((f) => ({ ...f, adults: n }))}
                           className="w-full rounded-xl bg-[var(--canvas-sub)] px-3.5 py-2.5 text-[13px] font-semibold text-[var(--text-1)] outline-none ring-1 ring-[var(--border)] focus:ring-[var(--accent)] transition-all text-center"
                         />
                       </div>
                       <div>
                         <label className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider block mb-1.5">Children</label>
-                        <input
-                          type="number" min="0"
+                        <NumberInput
+                          min={0}
                           value={form.children}
-                          onChange={(e) => setForm((f) => ({ ...f, children: Number(e.target.value) }))}
+                          onChange={(n) => setForm((f) => ({ ...f, children: n }))}
                           className="w-full rounded-xl bg-[var(--canvas-sub)] px-3.5 py-2.5 text-[13px] font-semibold text-[var(--text-1)] outline-none ring-1 ring-[var(--border)] focus:ring-[var(--accent)] transition-all text-center"
                         />
                       </div>

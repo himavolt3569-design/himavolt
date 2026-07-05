@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/design-system/primitives/Button";
 import { cn } from "@/lib/utils";
+import { rememberIntendedRole } from "@/lib/intended-role";
 
 type Booking = {
   id: string;
@@ -366,6 +367,37 @@ export function BookingStatusView({
             <li>Send it to the hotel via phone or email with your reference code <strong>{refCode}</strong>.</li>
             <li>The hotel will confirm your booking within 24 hours.</li>
           </ol>
+        </motion.div>
+      )}
+
+      {/* ── Optional signup nudge — booked as a guest, no account required.
+             "Maybe later" energy: a real perk (reward points, faster
+             checkout), never a gate. ── */}
+      {!isFailed && (
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="flex flex-col sm:flex-row sm:items-center gap-4 rounded-3xl border border-[var(--accent-border)] bg-[var(--accent-muted)] p-5"
+        >
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[var(--accent)]/15 text-2xl">
+            🎁
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold text-[var(--accent-text)]">
+              Booked as a guest — nice and quick!
+            </p>
+            <p className="text-sm text-[var(--text-2)] mt-0.5">
+              Create a free account to skip re-entering your details next time and start earning reward points on future stays.
+            </p>
+          </div>
+          <Link
+            href="/sign-in"
+            onClick={() => rememberIntendedRole("CUSTOMER")}
+            className="shrink-0 rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white hover:bg-[var(--accent-hover)] transition-colors text-center whitespace-nowrap"
+          >
+            Create free account
+          </Link>
         </motion.div>
       )}
 

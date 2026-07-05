@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatPrice, getCurrencySymbol } from "@/lib/currency";
 import { useRestaurant } from "@/context/RestaurantContext";
+import NumberInput from "@/components/shared/NumberInput";
 import {
   MapPin,
   Plus,
@@ -229,15 +230,11 @@ export default function DeliveryZonesTab() {
                   <label className="text-xs font-medium text-[var(--text-2)]">
                     Radius (km)
                   </label>
-                  <input
-                    type="number"
+                  <NumberInput
                     value={form.radiusKm}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        radiusKm: Number(e.target.value) || 1,
-                      })
-                    }
+                    onChange={(n) => setForm({ ...form, radiusKm: n })}
+                    min={0.1}
+                    decimal
                     className="mt-1 w-full px-3 py-2 border border-[var(--border)] rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none"
                   />
                 </div>
@@ -245,15 +242,11 @@ export default function DeliveryZonesTab() {
                   <label className="text-xs font-medium text-[var(--text-2)]">
                     {`Delivery Charge (${getCurrencySymbol(cur)})`}
                   </label>
-                  <input
-                    type="number"
+                  <NumberInput
                     value={form.deliveryFee}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        deliveryFee: Number(e.target.value) || 0,
-                      })
-                    }
+                    onChange={(n) => setForm({ ...form, deliveryFee: n })}
+                    min={0}
+                    decimal
                     className="mt-1 w-full px-3 py-2 border border-[var(--border)] rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none"
                   />
                 </div>
@@ -261,15 +254,11 @@ export default function DeliveryZonesTab() {
                   <label className="text-xs font-medium text-[var(--text-2)]">
                     {`Min Order Amount (${getCurrencySymbol(cur)})`}
                   </label>
-                  <input
-                    type="number"
+                  <NumberInput
                     value={form.minOrderAmount}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        minOrderAmount: Number(e.target.value) || 0,
-                      })
-                    }
+                    onChange={(n) => setForm({ ...form, minOrderAmount: n })}
+                    min={0}
+                    decimal
                     className="mt-1 w-full px-3 py-2 border border-[var(--border)] rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none"
                   />
                 </div>
@@ -277,15 +266,10 @@ export default function DeliveryZonesTab() {
                   <label className="text-xs font-medium text-[var(--text-2)]">
                     Estimated Time (min)
                   </label>
-                  <input
-                    type="number"
+                  <NumberInput
                     value={form.estimatedTimeMin}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        estimatedTimeMin: Number(e.target.value) || 10,
-                      })
-                    }
+                    onChange={(n) => setForm({ ...form, estimatedTimeMin: n })}
+                    min={1}
                     className="mt-1 w-full px-3 py-2 border border-[var(--border)] rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none"
                   />
                 </div>
@@ -293,15 +277,11 @@ export default function DeliveryZonesTab() {
                   <label className="text-xs font-medium text-[var(--text-2)]">
                     {`Free Delivery Threshold (${getCurrencySymbol(cur)})`}
                   </label>
-                  <input
-                    type="number"
+                  <NumberInput
                     value={form.freeDeliveryThreshold}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        freeDeliveryThreshold: Number(e.target.value) || 0,
-                      })
-                    }
+                    onChange={(n) => setForm({ ...form, freeDeliveryThreshold: n })}
+                    min={0}
+                    decimal
                     className="mt-1 w-full px-3 py-2 border border-[var(--border)] rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none"
                   />
                 </div>

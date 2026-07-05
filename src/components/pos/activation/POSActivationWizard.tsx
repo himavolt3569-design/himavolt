@@ -18,6 +18,7 @@ import {
   Copy,
   ExternalLink,
 } from "lucide-react";
+import NumberInput from "@/components/shared/NumberInput";
 
 interface Props {
   restaurantId: string;
@@ -384,12 +385,11 @@ export default function POSActivationWizard({
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-[var(--text-3)]">
                       Rs.
                     </span>
-                    <input
-                      type="number"
+                    <NumberInput
                       min={0}
                       step={100}
                       value={openingCash}
-                      onChange={(e) => setOpeningCash(Number(e.target.value))}
+                      onChange={(n) => setOpeningCash(n)}
                       className="w-full rounded-xl border border-[var(--border)] py-3 pl-12 pr-4 text-sm font-semibold focus:border-[var(--accent-border)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-border)]"
                     />
                   </div>
@@ -598,14 +598,14 @@ function ToggleRow({
         <p className="text-sm font-semibold text-[var(--text-1)]">{label}</p>
       </div>
       <div className="flex items-center gap-1">
-        <input
-          type="number"
+        <NumberInput
           min={0}
           max={100}
           step={0.5}
+          decimal
           value={value}
           disabled={!enabled}
-          onChange={(e) => onChange(Number(e.target.value))}
+          onChange={onChange}
           className="w-16 rounded-lg border border-[var(--border)] bg-[var(--canvas)] px-2 py-1 text-right text-sm font-semibold focus:border-[var(--accent-border)] focus:outline-none disabled:opacity-50"
         />
         <span className="text-sm font-semibold text-[var(--text-3)]">%</span>
