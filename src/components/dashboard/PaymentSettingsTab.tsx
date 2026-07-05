@@ -385,7 +385,7 @@ function PaymentSection({
         </div>
         <button
           onClick={() => onToggle(!enabled)}
-          className={`relative h-7 w-12 rounded-full transition-colors ${
+          className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${
             enabled ? "bg-[var(--accent-hover)]" : "bg-[var(--border)]"
           }`}
         >

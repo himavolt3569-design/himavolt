@@ -108,6 +108,13 @@ export const initiatePaymentSchema = z.object({
 });
 export type InitiatePaymentInput = z.infer<typeof initiatePaymentSchema>;
 
+export const settleDueSchema = z.object({
+  creditEntryId: z.string().min(1, "Credit entry ID is required"),
+  method: z.enum(["CASH", "ESEWA", "KHALTI", "BANK", "COUNTER", "DIRECT"]),
+  transactionId: z.string().max(120).optional(),
+});
+export type SettleDueInput = z.infer<typeof settleDueSchema>;
+
 export const updatePaymentConfigSchema = z.object({
   cashEnabled: z.boolean().optional(),
   esewaEnabled: z.boolean().optional(),

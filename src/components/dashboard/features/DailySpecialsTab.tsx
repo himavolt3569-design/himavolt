@@ -23,6 +23,7 @@ import {
   Cookie,
   Cake,
 } from "lucide-react";
+import NumberInput from "@/components/shared/NumberInput";
 
 interface DailySpecial {
   id: string;
@@ -527,10 +528,9 @@ export default function DailySpecialsTab() {
                     <label className="block text-xs font-medium text-[var(--text-2)] mb-1">
                       Quantity Baked *
                     </label>
-                    <input
-                      type="number"
+                    <NumberInput
                       value={form.batchQuantity}
-                      onChange={(e) => setForm({ ...form, batchQuantity: Number(e.target.value) })}
+                      onChange={(n) => setForm({ ...form, batchQuantity: n })}
                       className="w-full px-3 py-2 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
                       min={1}
                     />
@@ -539,13 +539,13 @@ export default function DailySpecialsTab() {
                     <label className="block text-xs font-medium text-[var(--text-2)] mb-1">
                       Price ($)
                     </label>
-                    <input
-                      type="number"
+                    <NumberInput
                       value={form.price}
-                      onChange={(e) => setForm({ ...form, price: Number(e.target.value) })}
+                      onChange={(n) => setForm({ ...form, price: n })}
                       className="w-full px-3 py-2 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
                       min={0}
                       step={0.5}
+                      decimal
                     />
                   </div>
                 </div>

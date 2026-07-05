@@ -10,6 +10,7 @@ import {
   Banknote,
   DollarSign,
   ChevronRight,
+  CheckCircle2,
   Shield,
   Loader2,
   StickyNote,
@@ -402,6 +403,7 @@ export default function CheckoutSheet({
     setCouponDiscount(0);
     setCouponApplied(false);
     setCouponError("");
+    setPaymentError(null);
     submitLockRef.current = false;
     idempotencyKeyRef.current = null;
     setLoading(false);
@@ -497,17 +499,18 @@ export default function CheckoutSheet({
           idemKey,
           tableSessionId,
         ).then((order) => {
+          // Hand off to the success popup the instant the order commits — no
+          // artificial delay, no spinner. The success checkmark above is already
+          // on screen (optimistic), so this feels instant.
           idempotencyKeyRef.current = null;
           clearCart();
-          setTimeout(() => {
-            onClose();
-            onOrderPlaced(order.id, order.trackToken);
-            setLoading(false);
-          }, 1500);
-        }).catch((err) => {
+          onClose();
+          onOrderPlaced(order.id, order.trackToken);
+          setLoading(false);
+        }).catch(() => {
           setLoading(false);
           setStep("review");
-          alert("Failed to add items to order. Please try again.");
+          setPaymentError("Couldn't add items to your order. Please try again.");
         });
         return;
       }
@@ -549,26 +552,24 @@ export default function CheckoutSheet({
         setStep("success");
         placeOrder(...placeOrderArgs).then(async (order) => {
           idempotencyKeyRef.current = null;
-          try {
-            if (selectedPayment === "COUNTER") {
-              await apiFetch("/api/payments/initiate", { method: "POST", body: { orderId: order.id, method: "COUNTER" }});
-            }
-            if (selectedPayment === "DIRECT") {
-              await apiFetch("/api/payments/initiate", { method: "POST", body: { orderId: order.id, method: "DIRECT" }});
-            }
-          } catch (e) {
-            console.error("Failed to initiate payment", e);
-          }
           clearCart();
-          setTimeout(() => {
-            onClose();
-            onOrderPlaced(order.id, order.trackToken);
-            setLoading(false);
-          }, 1500);
-        }).catch((err) => {
+          // Hand off to the success popup immediately — the optimistic success
+          // checkmark is already showing, so ordering feels instant. Fire the
+          // COUNTER/DIRECT payment-intent in the background (non-blocking); the
+          // order is already live in the kitchen regardless.
+          onClose();
+          onOrderPlaced(order.id, order.trackToken);
+          setLoading(false);
+          if (selectedPayment === "COUNTER" || selectedPayment === "DIRECT") {
+            apiFetch("/api/payments/initiate", {
+              method: "POST",
+              body: { orderId: order.id, method: selectedPayment },
+            }).catch((e) => console.error("Failed to initiate payment", e));
+          }
+        }).catch(() => {
           setLoading(false);
           setStep("review");
-          alert("Failed to place order. Please try again.");
+          setPaymentError("Couldn't place your order. Please try again.");
         });
         return;
       }
@@ -1406,6 +1407,28 @@ export default function CheckoutSheet({
                     </div>
                   </div>
                 </div>
+              ) : step === "success" ? (
+                /* ── Instant optimistic success — shown the moment the customer
+                   taps Place Order, while the order commits in the background.
+                   No spinner, no "processing" wait. ── */
+                <div className="px-6 py-14 flex flex-col items-center justify-center text-center gap-4">
+                  <motion.div
+                    initial={{ scale: 0.4, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ type: "spring", stiffness: 260, damping: 18 }}
+                    className="flex h-20 w-20 items-center justify-center rounded-full bg-green-50"
+                  >
+                    <CheckCircle2 className="h-11 w-11 text-green-600" />
+                  </motion.div>
+                  <div>
+                    <h3 className="text-xl font-extrabold text-[var(--text-1)]">
+                      {canAddToExisting ? "Added to your order!" : "Order placed!"}
+                    </h3>
+                    <p className="text-sm text-[var(--text-2)] mt-1">
+                      Sending it to the kitchen…
+                    </p>
+                  </div>
+                </div>
               ) : (
                 <div className="px-6 py-5 space-y-4">
                   <h3 className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider">
@@ -1569,20 +1592,32 @@ export default function CheckoutSheet({
 
             <div className="border-t border-[var(--border-soft)] px-6 py-4 shrink-0 space-y-3">
               {step === "review" ? (
-                <button
-                  onClick={() => setStep("payment")}
-                  disabled={items.length === 0 || !canProceed}
-                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--accent)] py-4 text-base font-bold text-white transition-all hover:bg-[var(--accent-hover)] active:scale-[0.98] shadow-lg shadow-[var(--accent)]/25 disabled:opacity-50"
-                >
-                  Continue to Payment
-                  <ChevronRight className="h-4 w-4" />
-                </button>
+                <>
+                  {paymentError && (
+                    <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-xs text-red-700 font-medium">
+                      {paymentError}
+                    </div>
+                  )}
+                  <button
+                    onClick={() => setStep("payment")}
+                    disabled={items.length === 0 || !canProceed}
+                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--accent)] py-4 text-base font-bold text-white transition-all hover:bg-[var(--accent-hover)] active:scale-[0.98] shadow-lg shadow-[var(--accent)]/25 disabled:opacity-50"
+                  >
+                    Continue to Payment
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </>
+              ) : step === "success" ? (
+                <div className="flex items-center justify-center gap-2 py-1 text-sm font-bold text-green-600">
+                  <CheckCircle2 className="h-4 w-4" />
+                  Done
+                </div>
               ) : step === "scan-qr" ? (
                 <div className="space-y-2">
                   <button
                     onClick={handlePlaceOrder}
                     disabled={loading}
-                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] py-4 text-base font-bold text-white transition-all hover:bg-[#2d1508] active:scale-[0.98] shadow-lg shadow-[var(--text-1)]/25 disabled:opacity-60"
+                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] py-4 text-base font-bold text-[var(--canvas)] transition-all hover:opacity-90 active:scale-[0.98] shadow-lg shadow-[var(--text-1)]/25 disabled:opacity-60"
                   >
                     {loading ? (
                       <>
@@ -1668,7 +1703,7 @@ export default function CheckoutSheet({
                       (paymentQRs.length > 0 ? handleContinueToPayment : handlePlaceOrder)();
                     }}
                     disabled={loading}
-                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] py-4 text-base font-bold text-white transition-all hover:bg-[#2d1508] active:scale-[0.98] shadow-lg shadow-[var(--text-1)]/25 disabled:opacity-60"
+                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] py-4 text-base font-bold text-[var(--canvas)] transition-all hover:opacity-90 active:scale-[0.98] shadow-lg shadow-[var(--text-1)]/25 disabled:opacity-60"
                   >
                     {loading ? (
                       <>

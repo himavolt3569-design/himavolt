@@ -30,6 +30,7 @@ import { cn } from "@/lib/utils";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { AnchoredMenu } from "@/components/shared/AnchoredMenu";
 import { apiFetch } from "@/lib/api-client";
+import { ScrollableRow } from "@/components/shared/ScrollableRow";
 import { formatPrice } from "@/lib/currency";
 import { useRealtimeSignal } from "@/hooks/useRealtimeSignal";
 import { restaurantBookingsTopic } from "@/lib/realtime-topics";
@@ -814,7 +815,7 @@ export default function HotelBookingsTab() {
       </div>
 
       {/* Status filter tabs */}
-      <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+      <ScrollableRow innerClassName="flex gap-1.5 pb-1" edgeColor="var(--canvas-sub)">
         {STATUSES.map((s) => (
           <button
             key={s}
@@ -829,7 +830,7 @@ export default function HotelBookingsTab() {
             {s === "ALL" ? "All Bookings" : s.replace("_", " ")}
           </button>
         ))}
-      </div>
+      </ScrollableRow>
 
       {/* Booking list */}
       {filtered.length === 0 ? (

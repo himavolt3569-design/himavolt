@@ -22,6 +22,7 @@ import {
   ChevronUp,
 } from "lucide-react";
 import NotPersistedBanner from "./_NotPersistedBanner";
+import NumberInput from "@/components/shared/NumberInput";
 
 type WaitlistStatus = "Waiting" | "Notified" | "Seated" | "Left";
 
@@ -382,12 +383,11 @@ export default function WaitlistTab() {
                     <label className="block text-sm font-medium text-[var(--text-2)] mb-1">
                       Party Size
                     </label>
-                    <input
-                      type="number"
+                    <NumberInput
                       min={1}
                       max={20}
                       value={formPartySize}
-                      onChange={(e) => setFormPartySize(Number(e.target.value))}
+                      onChange={(n) => setFormPartySize(n)}
                       className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[var(--accent)] focus:border-[var(--accent)] outline-none"
                     />
                   </div>

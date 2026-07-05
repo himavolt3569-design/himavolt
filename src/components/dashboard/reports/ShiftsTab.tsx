@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Calendar,
@@ -309,27 +310,21 @@ export default function ShiftsTab() {
   const { selectedRestaurant } = useRestaurant();
   const cur = selectedRestaurant?.currency ?? "NPR";
   const [shiftDate, setShiftDate] = useState<string>(toYMD(new Date()));
-  const [shiftReport, setShiftReport] = useState<ShiftReportData | null>(null);
-  const [loading, setLoading] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    if (!selectedRestaurant) return;
-    setLoading(true);
-    try {
-      const res = await apiFetch(
-        `/api/restaurants/${selectedRestaurant.id}/shifts/report?date=${shiftDate}`,
-      );
-      setShiftReport(res as ShiftReportData);
-    } catch {
-      /* ignore */
-    }
-    setLoading(false);
-  }, [selectedRestaurant, shiftDate]);
-
-  useEffect(() => {
-    load();
-  }, [load]);
+  // keepPreviousData paints the prior date's shift report instantly while a
+  // new date loads in the background, instead of blanking on every switch.
+  const shiftQuery = useQuery({
+    queryKey: ["shifts-report", selectedRestaurant?.id, shiftDate],
+    queryFn: () =>
+      apiFetch<ShiftReportData>(
+        `/api/restaurants/${selectedRestaurant!.id}/shifts/report?date=${shiftDate}`,
+      ),
+    enabled: !!selectedRestaurant,
+    placeholderData: keepPreviousData,
+  });
+  const shiftReport = shiftQuery.data ?? null;
+  const loading = shiftQuery.isLoading;
 
   const allOrders = shiftReport
     ? [

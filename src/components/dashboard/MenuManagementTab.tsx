@@ -41,12 +41,13 @@ import {
   Info,
 } from "lucide-react";
 import { useRestaurant, useOptionalRestaurant } from "@/context/RestaurantContext";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, peekApiCache } from "@/lib/api-client";
 import { useToast } from "@/context/ToastContext";
 import { formatPrice, getCurrencySymbol } from "@/lib/currency";
 import { FOOD_DESCRIPTION_TEMPLATES } from "@/lib/food-descriptions";
 import ImagePicker from "@/components/shared/ImagePicker";
 import { AnchoredMenu } from "@/components/shared/AnchoredMenu";
+import { ScrollableRow } from "@/components/shared/ScrollableRow";
 import {
   SkeletonStatGrid,
   SkeletonGrid,
@@ -104,19 +105,6 @@ interface MenuItem {
   allergens: string[];
 }
 
-
-const DEFAULT_CATEGORIES: { name: string; icon: string; subs: string[] }[] = [
-  { name: "Appetizers",    icon: "", subs: ["Fried", "Grilled", "Cold"] },
-  { name: "Momo",          icon: "", subs: ["Steam", "Fried", "Jhol", "Chilli", "Kothey", "C.Momo", "Tandoori"] },
-  { name: "Curry",         icon: "", subs: ["Chicken", "Mutton", "Paneer", "Vegetable", "Fish", "Dal"] },
-  { name: "Rice & Noodles",icon: "", subs: ["Fried Rice", "Biryani", "Chow Mein", "Thukpa", "Pulao"] },
-  { name: "Thali Sets",    icon: "", subs: ["Veg Thali", "Non-Veg Thali", "Special Thali"] },
-  { name: "Tandoori",      icon: "", subs: ["Chicken", "Paneer", "Fish", "Kebab"] },
-  { name: "Breads",        icon: "", subs: ["Naan", "Roti", "Paratha", "Kulcha"] },
-  { name: "Soups & Salads",icon: "", subs: ["Soups", "Salads"] },
-  { name: "Beverages",     icon: "", subs: ["Hot", "Cold", "Juices", "Lassi", "Mocktails"] },
-  { name: "Desserts",      icon: "", subs: ["Indian", "Western", "Ice Cream"] },
-];
 
 const BADGE_OPTIONS = ["Bestseller", "New", "Chef's Special", "Must Try", "Popular", "Seasonal"];
 const ALLERGEN_OPTIONS = ["Gluten", "Dairy", "Nuts", "Soy", "Eggs", "Shellfish", "Sesame", "Mustard"];
@@ -202,18 +190,177 @@ function MenuStats({ items, categories, currency }: { items: MenuItem[]; categor
 }
 
 
-function CategoryTree({
+/* ─── Category filter chips (Dishes tab) ────────────────────────────── */
+
+function CategoryFilterChips({
   categories,
   selectedCatId,
   onSelect,
-  onAddSub,
-  onDelete,
 }: {
   categories: MenuCategory[];
   selectedCatId: string;
   onSelect: (id: string) => void;
+}) {
+  const topLevel = categories.filter((c) => !c.parentId);
+  return (
+    <ScrollableRow innerClassName="flex gap-2 items-center pb-1" edgeColor="var(--canvas-sub)">
+      <button
+        onClick={() => onSelect("All")}
+        className={`shrink-0 rounded-full px-4 py-2 text-[12px] font-bold tracking-wide transition-all shadow-sm border ${
+          selectedCatId === "All" ? "bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] text-white border-transparent" : "bg-[var(--canvas)] text-[var(--text-2)] border-[var(--border)] hover:bg-[var(--canvas-sub)]"
+        }`}
+      >
+        All
+      </button>
+      {topLevel.map((cat) => (
+        <button
+          key={cat.id}
+          onClick={() => onSelect(cat.id)}
+          className={`shrink-0 flex items-center gap-1.5 rounded-full px-4 py-2 text-[12px] font-bold tracking-wide transition-all shadow-sm border ${
+            selectedCatId === cat.id ? "bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] text-white border-transparent" : "bg-[var(--canvas)] text-[var(--text-2)] border-[var(--border)] hover:bg-[var(--canvas-sub)]"
+          }`}
+        >
+          {cat.icon && <span className="leading-none">{cat.icon}</span>}
+          {cat.name}
+        </button>
+      ))}
+    </ScrollableRow>
+  );
+}
+
+/* ─── Categories tab: Templates picker ──────────────────────────────── */
+
+interface CategoryTemplateData {
+  name: string;
+  icon: string;
+  subs: string[];
+  slug: string;
+  added: boolean;
+}
+
+function TemplateCard({
+  template,
+  onAdd,
+}: {
+  template: CategoryTemplateData;
+  onAdd: () => void;
+}) {
+  return (
+    <motion.div
+      whileHover={template.added ? undefined : { y: -2 }}
+      className={`rounded-2xl border p-4 flex flex-col gap-3 transition-all ${
+        template.added
+          ? "border-[var(--border-soft)] bg-[var(--canvas-sub)]/50 opacity-70"
+          : "border-[var(--border)] bg-[var(--canvas)] shadow-sm hover:shadow-md hover:border-[var(--accent-border)]"
+      }`}
+    >
+      <div className="flex items-center gap-2.5">
+        <span className="text-2xl leading-none">{template.icon}</span>
+        <span className="text-sm font-bold text-[var(--text-1)] flex-1 truncate">{template.name}</span>
+      </div>
+      <div className="flex flex-wrap gap-1">
+        {template.subs.slice(0, 4).map((s) => (
+          <span key={s} className="rounded-md bg-[var(--surface)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--text-3)]">
+            {s}
+          </span>
+        ))}
+        {template.subs.length > 4 && (
+          <span className="text-[10px] text-[var(--text-3)] font-medium">+{template.subs.length - 4}</span>
+        )}
+      </div>
+      <button
+        onClick={onAdd}
+        disabled={template.added}
+        className={`mt-auto flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-[12px] font-bold transition-all ${
+          template.added
+            ? "bg-[var(--accent-muted)] text-[var(--accent-text)] cursor-default"
+            : "bg-[var(--accent)] text-white hover:bg-[var(--accent-hover)] active:scale-[0.97]"
+        } disabled:opacity-60`}
+      >
+        {template.added ? (
+          <><Check className="h-3.5 w-3.5" /> Added</>
+        ) : (
+          <><Plus className="h-3.5 w-3.5" /> Add to menu</>
+        )}
+      </button>
+    </motion.div>
+  );
+}
+
+/* ─── Categories tab: editable category row ─────────────────────────── */
+
+function CategoryEditableName({
+  name,
+  icon,
+  onRename,
+  className,
+}: {
+  name: string;
+  icon?: string | null;
+  onRename: (name: string) => void;
+  className?: string;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState(name);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => { if (editing) inputRef.current?.focus(); }, [editing]);
+  useEffect(() => { setValue(name); }, [name]);
+
+  const commit = () => {
+    const trimmed = value.trim();
+    setEditing(false);
+    if (trimmed && trimmed !== name) onRename(trimmed);
+    else setValue(name);
+  };
+
+  if (editing) {
+    return (
+      <input
+        ref={inputRef}
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") commit();
+          if (e.key === "Escape") { setValue(name); setEditing(false); }
+        }}
+        onClick={(e) => e.stopPropagation()}
+        className={`min-w-0 flex-1 bg-transparent border-b border-[var(--accent)] outline-none ${className ?? ""}`}
+      />
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={(e) => { e.stopPropagation(); setEditing(true); }}
+      className={`flex items-center gap-2 min-w-0 text-left hover:opacity-70 transition-opacity ${className ?? ""}`}
+      title="Click to rename"
+    >
+      {icon && <span className="leading-none shrink-0">{icon}</span>}
+      <span className="truncate">{name}</span>
+      <Pencil className="h-3 w-3 text-[var(--text-3)] shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+    </button>
+  );
+}
+
+function CategoryManager({
+  categories,
+  onAddSub,
+  onDelete,
+  onRename,
+  addSubParentId,
+  onCreateSub,
+  onCancelAddSub,
+}: {
+  categories: MenuCategory[];
   onAddSub: (parentId: string) => void;
   onDelete: (categoryId: string) => void;
+  onRename: (categoryId: string, name: string) => void;
+  addSubParentId: string | null;
+  onCreateSub: (parentId: string, name: string) => void;
+  onCancelAddSub: () => void;
 }) {
   const topLevel = categories.filter((c) => !c.parentId);
   const [expanded, setExpanded] = useState<Set<string>>(new Set(topLevel.map((c) => c.id)));
@@ -226,91 +373,92 @@ function CategoryTree({
     });
   };
 
-  return (
-    <div className="space-y-0.5">
-      <button
-        onClick={() => onSelect("All")}
-        className={`flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition-all ${
-          selectedCatId === "All" ? "bg-[var(--accent-muted)] text-[var(--accent-text)] font-semibold" : "text-[var(--text-2)] hover:bg-[var(--canvas-sub)]"
-        }`}
-      >
-        <Package className="h-3.5 w-3.5" />
-        <span className="flex-1 text-left">All Items</span>
-      </button>
+  if (topLevel.length === 0) {
+    return (
+      <div className="rounded-xl border border-dashed border-[var(--border)] py-10 text-center text-sm text-[var(--text-3)]">
+        No categories yet — add one below or pick a template above.
+      </div>
+    );
+  }
 
+  return (
+    <div className="space-y-2">
       {topLevel.map((cat) => {
         const subs = categories.filter((c) => c.parentId === cat.id);
-        const isExpanded = expanded.has(cat.id);
+        const isAddingSubHere = addSubParentId === cat.id;
+        const isExpanded = expanded.has(cat.id) || isAddingSubHere;
         const totalItems = cat._count.items + subs.reduce((s, c) => s + c._count.items, 0);
 
         return (
-          <div key={cat.id}>
-            <div className="flex items-center">
+          <div key={cat.id} className="rounded-xl border border-[var(--border)] bg-[var(--canvas)] overflow-hidden">
+            <div className="group flex items-center gap-2 px-4 py-3">
               <button
-                onClick={() => subs.length > 0 ? toggle(cat.id) : onSelect(cat.id)}
-                className="p-1 text-[var(--text-3)] hover:text-[var(--text-2)]"
+                onClick={() => toggle(cat.id)}
+                className="p-1 text-[var(--text-3)] hover:text-[var(--text-2)] shrink-0"
               >
                 {subs.length > 0 ? (
-                  <ChevronRight className={`h-3 w-3 transition-transform ${isExpanded ? "rotate-90" : ""}`} />
+                  <ChevronRight className={`h-4 w-4 transition-transform ${isExpanded ? "rotate-90" : ""}`} />
                 ) : (
-                  <span className="w-3" />
+                  <span className="w-4" />
                 )}
               </button>
-              <button
-                onClick={() => onSelect(cat.id)}
-                className={`flex flex-1 items-center gap-2 rounded-lg px-2 py-2 text-[13px] font-medium transition-all ${
-                  selectedCatId === cat.id ? "bg-[var(--accent-muted)] text-[var(--accent-text)] font-semibold" : "text-[var(--text-2)] hover:bg-[var(--canvas-sub)]"
-                }`}
-              >
-                {cat.icon ? <span className="text-sm leading-none">{cat.icon}</span> : <Tag className="h-3.5 w-3.5 text-[var(--text-3)]" />}
-                <span className="flex-1 text-left truncate">{cat.name}</span>
-                <span className="text-[10px] text-[var(--text-3)] font-normal">{totalItems}</span>
-              </button>
+              <CategoryEditableName
+                name={cat.name}
+                icon={cat.icon}
+                onRename={(name) => onRename(cat.id, name)}
+                className="flex-1 text-[14px] font-bold text-[var(--text-1)]"
+              />
+              <span className="text-[11px] text-[var(--text-3)] font-semibold shrink-0">{totalItems} item{totalItems !== 1 ? "s" : ""}</span>
               <button
                 onClick={() => onAddSub(cat.id)}
-                className="p-1 text-[var(--text-3)] hover:text-[var(--accent)] transition-colors"
+                className="p-1.5 rounded-md text-[var(--text-3)] hover:text-[var(--accent)] hover:bg-[var(--accent-muted)] transition-colors shrink-0"
                 title="Add subcategory"
               >
-                <PlusCircle className="h-3 w-3" />
+                <PlusCircle className="h-3.5 w-3.5" />
               </button>
               <button
-                onClick={(e) => { e.stopPropagation(); onDelete(cat.id); }}
-                className="p-1 text-[var(--text-3)] hover:text-red-500 transition-colors"
+                onClick={() => onDelete(cat.id)}
+                className="p-1.5 rounded-md text-[var(--text-3)] hover:text-red-500 hover:bg-red-50 transition-colors shrink-0"
                 title="Delete category"
               >
-                <Trash2 className="h-3 w-3" />
+                <Trash2 className="h-3.5 w-3.5" />
               </button>
             </div>
 
             <AnimatePresence>
-              {isExpanded && subs.length > 0 && (
+              {isExpanded && (subs.length > 0 || isAddingSubHere) && (
                 <motion.div
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: "auto", opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
                   transition={{ duration: 0.15 }}
-                  className="overflow-hidden pl-7"
+                  className="overflow-hidden border-t border-[var(--border-soft)]"
                 >
                   {subs.map((sub) => (
-                    <div key={sub.id} className="flex items-center group">
-                    <button
-                      onClick={() => onSelect(sub.id)}
-                      className={`flex flex-1 items-center gap-2 rounded-md px-2.5 py-1.5 text-[12px] transition-all ${
-                        selectedCatId === sub.id ? "bg-[var(--accent-muted)] text-[var(--accent-text)] font-semibold" : "text-[var(--text-2)] hover:bg-[var(--canvas-sub)]"
-                      }`}
-                    >
-                      <span className="flex-1 text-left truncate">{sub.name}</span>
-                      <span className="text-[10px] text-[var(--text-3)]">{sub._count.items}</span>
-                    </button>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); onDelete(sub.id); }}
-                      className="p-1 text-[var(--text-3)] hover:text-red-500 transition-colors"
-                      title="Delete subcategory"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </button>
+                    <div key={sub.id} className="group flex items-center gap-2 pl-11 pr-4 py-2.5 border-b border-[var(--border-soft)] last:border-0">
+                      <CategoryEditableName
+                        name={sub.name}
+                        onRename={(name) => onRename(sub.id, name)}
+                        className="flex-1 text-[13px] font-semibold text-[var(--text-2)]"
+                      />
+                      <span className="text-[10px] text-[var(--text-3)] font-medium shrink-0">{sub._count.items}</span>
+                      <button
+                        onClick={() => onDelete(sub.id)}
+                        className="p-1.5 rounded-md text-[var(--text-3)] hover:text-red-500 hover:bg-red-50 transition-colors shrink-0"
+                        title="Delete subcategory"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
                     </div>
                   ))}
+                  {isAddingSubHere && (
+                    <div className="pl-9 pr-3 py-2">
+                      <AddSubCategoryInline
+                        onCreate={(name) => onCreateSub(cat.id, name)}
+                        onCancel={onCancelAddSub}
+                      />
+                    </div>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -817,21 +965,43 @@ function DishForm({
     { id: "tags", label: "Tags & Badges", icon: Tag },
   ];
 
+  const isNew = submitLabel === "Add to menu";
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => { if (e.key === "Escape") onCancel(); };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [onCancel]);
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      className="rounded-xl border border-[var(--border)] bg-[var(--canvas)] shadow-lg overflow-hidden w-full max-w-full"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+      onClick={onCancel}
     >
-      <div className="flex items-center justify-between border-b border-[var(--border-soft)] px-5 py-3">
-        <span className="text-sm font-bold text-[var(--text-1)]">{submitLabel === "Add to menu" ? "New Dish" : "Edit Dish"}</span>
-        <button onClick={onCancel} className="rounded-md p-1 text-[var(--text-3)] hover:text-[var(--text-2)] hover:bg-[var(--surface)]">
-          <X className="h-4 w-4" />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96, y: 16 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.96, y: 16 }}
+        transition={{ type: "spring", stiffness: 380, damping: 32 }}
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-lg max-h-[90vh] rounded-2xl border border-[var(--border)] bg-[var(--canvas)] shadow-2xl overflow-hidden flex flex-col"
+      >
+      <div className="flex items-center justify-between border-b border-[var(--border-soft)] px-5 py-4 shrink-0">
+        <div>
+          <span className="text-base font-extrabold text-[var(--text-1)]">{isNew ? "New Dish" : "Edit Dish"}</span>
+          <p className="text-[11px] text-[var(--text-3)] font-medium mt-0.5">
+            {isNew ? "Add a new item to your menu" : "Update this dish's details"}
+          </p>
+        </div>
+        <button onClick={onCancel} className="rounded-full p-1.5 text-[var(--text-3)] hover:text-[var(--text-2)] hover:bg-[var(--surface)] transition-colors">
+          <X className="h-4.5 w-4.5" />
         </button>
       </div>
 
-      <div className="flex gap-1 px-4 pt-3 overflow-x-auto scrollbar-hide">
+      <ScrollableRow className="px-4 pt-3 shrink-0" innerClassName="flex gap-1">
         {sections.map((s) => (
           <button
             key={s.id}
@@ -846,9 +1016,9 @@ function DishForm({
             {s.label}
           </button>
         ))}
-      </div>
+      </ScrollableRow>
 
-      <div className="p-4 sm:p-5 space-y-5 overflow-x-hidden">
+      <div className="p-4 sm:p-5 space-y-5 overflow-y-auto overflow-x-hidden flex-1 custom-scrollbar">
         {/* ── BASIC INFO ──────────────────────────────────────── */}
         {activeSection === "basic" && (
           <div className="space-y-4">
@@ -1090,9 +1260,9 @@ function DishForm({
                 <button
                   type="button"
                   onClick={() => update({ isFeatured: !form.isFeatured })}
-                  className={`relative h-5 w-9 rounded-full transition-colors ${form.isFeatured ? "bg-[var(--accent)]" : "bg-[var(--surface-alt)]"}`}
+                  className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${form.isFeatured ? "bg-[var(--accent)]" : "bg-[var(--surface-alt)]"}`}
                 >
-                  <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${form.isFeatured ? "translate-x-4" : "translate-x-0.5"}`} />
+                  <span className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${form.isFeatured ? "translate-x-4" : ""}`} />
                 </button>
                 <div>
                   <p className="text-[12px] font-semibold text-[var(--text-2)]">Featured Item</p>
@@ -1276,19 +1446,20 @@ function DishForm({
             </div>
           </div>
         )}
-
-        <div className="flex items-center gap-3 pt-2 border-t border-[var(--border-soft)]">
-          <button
-            onClick={handleSubmit}
-            className="rounded-lg bg-[var(--accent)] px-6 py-2.5 text-[13px] font-bold text-white hover:bg-[var(--accent-hover)] active:scale-[0.98] transition-all"
-          >
-            {submitLabel}
-          </button>
-          <button onClick={onCancel} className="text-[13px] font-medium text-[var(--text-3)] hover:text-[var(--text-2)]">
-            Cancel
-          </button>
-        </div>
       </div>
+
+      <div className="flex items-center gap-3 px-5 py-4 border-t border-[var(--border-soft)] shrink-0">
+        <button
+          onClick={handleSubmit}
+          className="flex-1 sm:flex-none rounded-lg bg-[var(--accent)] px-6 py-2.5 text-[13px] font-bold text-white hover:bg-[var(--accent-hover)] active:scale-[0.98] transition-all"
+        >
+          {submitLabel}
+        </button>
+        <button onClick={onCancel} className="text-[13px] font-medium text-[var(--text-3)] hover:text-[var(--text-2)]">
+          Cancel
+        </button>
+      </div>
+      </motion.div>
     </motion.div>
   );
 }
@@ -1296,11 +1467,9 @@ function DishForm({
 /* ─── Add Sub-category Modal ────────────────────────────────────────── */
 
 function AddSubCategoryInline({
-  parentName,
   onCreate,
   onCancel,
 }: {
-  parentName: string;
   onCreate: (name: string) => void;
   onCancel: () => void;
 }) {
@@ -1315,9 +1484,8 @@ function AddSubCategoryInline({
       exit={{ opacity: 0, height: 0 }}
       className="overflow-hidden"
     >
-      <div className="flex items-center gap-2 rounded-lg border border-[var(--accent-border)] bg-[var(--accent-muted)] p-3">
-        <FolderPlus className="h-4 w-4 text-[var(--accent)] shrink-0" />
-        <span className="text-[12px] text-[var(--text-2)] shrink-0">Sub of <strong>{parentName}</strong>:</span>
+      <div className="flex items-center gap-2 rounded-lg border border-[var(--accent-border)] bg-[var(--accent-muted)] px-2.5 py-2">
+        <FolderPlus className="h-3.5 w-3.5 text-[var(--accent)] shrink-0" />
         <input
           ref={inputRef}
           value={name}
@@ -1366,6 +1534,12 @@ export default function MenuManagementTab({
     queryKey: itemsQueryKey,
     queryFn: () => apiFetch<MenuItem[]>(`/api/restaurants/${restaurantId}/menu`),
     enabled: !!restaurantId,
+    // Seed from the hover/idle-warmed GET cache so the tab paints instantly on
+    // first open instead of flashing a skeleton; `updatedAt: 0` marks it stale
+    // so React Query still revalidates in the background.
+    initialData: () =>
+      restaurantId ? peekApiCache<MenuItem[]>(`/api/restaurants/${restaurantId}/menu`) : undefined,
+    initialDataUpdatedAt: 0,
   });
   const items = itemsQuery.data ?? [];
   const setItems = (updater: React.SetStateAction<MenuItem[]>) =>
@@ -1378,6 +1552,10 @@ export default function MenuManagementTab({
     queryKey: catQueryKey,
     queryFn: () => apiFetch<MenuCategory[]>(`/api/restaurants/${restaurantId}/categories`),
     enabled: !!restaurantId,
+    // Paint instantly from the warm cache (see itemsQuery above).
+    initialData: () =>
+      restaurantId ? peekApiCache<MenuCategory[]>(`/api/restaurants/${restaurantId}/categories`) : undefined,
+    initialDataUpdatedAt: 0,
   });
   const categories = catQuery.data ?? [];
   const setCategories = (updater: React.SetStateAction<MenuCategory[]>) =>
@@ -1385,14 +1563,26 @@ export default function MenuManagementTab({
       typeof updater === "function" ? (updater as (p: MenuCategory[]) => MenuCategory[])(prev ?? []) : updater,
     );
 
+  const templatesQueryKey = ["category-templates", restaurantId] as const;
+  const templatesQuery = useQuery({
+    queryKey: templatesQueryKey,
+    queryFn: () => apiFetch<CategoryTemplateData[]>(`/api/restaurants/${restaurantId}/categories/templates`),
+    enabled: !!restaurantId,
+  });
+  const templates = templatesQuery.data ?? [];
+  const setTemplates = (updater: React.SetStateAction<CategoryTemplateData[]>) =>
+    queryClient.setQueryData<CategoryTemplateData[]>(templatesQueryKey, (prev) =>
+      typeof updater === "function" ? (updater as (p: CategoryTemplateData[]) => CategoryTemplateData[])(prev ?? []) : updater,
+    );
+
   const loading = itemsQuery.isLoading || catQuery.isLoading;
   const [search, setSearch] = useState("");
   const [selectedCatId, setSelectedCatId] = useState("All");
+  const [activeMenuTab, setActiveMenuTab] = useState<"dishes" | "categories">("dishes");
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [showNewCat, setShowNewCat] = useState(false);
   const [newCatName, setNewCatName] = useState("");
-  const [creatingCat, setCreatingCat] = useState(false);
   const [seedingCats, setSeedingCats] = useState(false);
   const [addSubParentId, setAddSubParentId] = useState<string | null>(null);
   const [deleteCatConfirm, setDeleteCatConfirm] = useState<{
@@ -1435,6 +1625,7 @@ export default function MenuManagementTab({
   const fetchData = (_silent = false) => {
     queryClient.invalidateQueries({ queryKey: itemsQueryKey });
     queryClient.invalidateQueries({ queryKey: catQueryKey });
+    queryClient.invalidateQueries({ queryKey: templatesQueryKey });
   };
 
   useEffect(() => {
@@ -1461,20 +1652,38 @@ export default function MenuManagementTab({
     }
     const catName = name || newCatName.trim();
     if (!catName) return;
-    setCreatingCat(true);
+
+    // Optimistic insert — the input closes and the category shows up
+    // instantly; reconcile with the real id in the background.
+    const tempId = `temp-${Date.now()}`;
+    const snapshot = categories;
+    if (parentId) {
+      setCategories((prev) =>
+        prev.map((c) =>
+          c.id === parentId
+            ? { ...c, children: [...(c.children ?? []), { id: tempId, name: catName, slug: tempId, icon: null, parentId, _count: { items: 0 }, children: [] }] }
+            : c,
+        ),
+      );
+    } else {
+      setCategories((prev) => [
+        ...prev,
+        { id: tempId, name: catName, slug: tempId, icon: null, parentId: null, _count: { items: 0 }, children: [] },
+      ]);
+    }
+    if (!name) { setNewCatName(""); setShowNewCat(false); }
+    setAddSubParentId(null);
+    showToast(`"${catName}" created!`);
+
     try {
       await apiFetch(`/api/restaurants/${restaurantId}/categories`, {
         method: "POST",
         body: { name: catName, parentId: parentId || null },
       });
-      showToast(`"${catName}" created!`);
-      if (!name) { setNewCatName(""); setShowNewCat(false); }
-      setAddSubParentId(null);
-      await fetchData(true);
+      fetchData(true);
     } catch (err) {
+      setCategories(snapshot);
       showToast(err instanceof Error ? err.message : "Failed to create category");
-    } finally {
-      setCreatingCat(false);
     }
   };
 
@@ -1492,6 +1701,75 @@ export default function MenuManagementTab({
       showToast("Failed to seed categories");
     } finally {
       setSeedingCats(false);
+    }
+  };
+
+  const addTemplate = async (name: string) => {
+    if (!restaurantId) return;
+    const template = templates.find((t) => t.name === name);
+    if (!template) return;
+
+    // Optimistic — the category (with its subs) and the "Added" state show
+    // up instantly; reconcile with real ids in the background.
+    const catSnapshot = categories;
+    const tplSnapshot = templates;
+    const tempId = `temp-${Date.now()}`;
+
+    setCategories((prev) => [
+      ...prev,
+      {
+        id: tempId,
+        name: template.name,
+        slug: template.slug,
+        icon: template.icon,
+        parentId: null,
+        _count: { items: 0 },
+        children: template.subs.map((s, i) => ({
+          id: `${tempId}-${i}`,
+          name: s,
+          slug: `${template.slug}--${i}`,
+          icon: null,
+          parentId: tempId,
+          _count: { items: 0 },
+          children: [],
+        })),
+      },
+    ]);
+    setTemplates((prev) => prev.map((t) => (t.name === name ? { ...t, added: true } : t)));
+    showToast(`"${name}" added to your menu!`);
+
+    try {
+      await apiFetch(`/api/restaurants/${restaurantId}/categories/templates`, {
+        method: "POST",
+        body: { name },
+      });
+      fetchData(true);
+    } catch (err) {
+      setCategories(catSnapshot);
+      setTemplates(tplSnapshot);
+      showToast(err instanceof Error ? err.message : "Failed to add category");
+    }
+  };
+
+  const renameCategory = async (categoryId: string, name: string) => {
+    if (!restaurantId) return;
+    const snapshot = categories;
+    setCategories((prev) =>
+      prev.map((c) =>
+        c.id === categoryId
+          ? { ...c, name }
+          : { ...c, children: c.children?.map((s) => (s.id === categoryId ? { ...s, name } : s)) },
+      ),
+    );
+    try {
+      await apiFetch(`/api/restaurants/${restaurantId}/categories`, {
+        method: "PATCH",
+        body: { categoryId, name },
+      });
+      fetchData(true);
+    } catch {
+      setCategories(snapshot);
+      showToast("Failed to rename category");
     }
   };
 
@@ -1763,8 +2041,6 @@ export default function MenuManagementTab({
     }
   };
 
-  const addSubParent = addSubParentId ? flatCategories.find((c) => c.id === addSubParentId) : null;
-
   if (loading && items.length === 0) {
     return (
       <div className="space-y-5">
@@ -1795,23 +2071,23 @@ export default function MenuManagementTab({
           </p>
         </div>
         <div className="flex gap-2.5">
-          {!showAddForm && !editingItem && (
-            <>
-              <button
-                onClick={() => setShowNewCat(true)}
-                className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--canvas)] shadow-sm px-4 py-2 text-[13px] font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] hover:text-[var(--accent-text)] transition-all active:scale-[0.97]"
-              >
-                <FolderPlus className="h-4 w-4" />
-                Category
-              </button>
-              <button
-                onClick={() => setShowAddForm(true)}
-                className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] shadow-[0_4px_14px_0_rgba(245,158,11,0.39)] px-5 py-2 text-[13px] font-bold text-white hover:shadow-[0_6px_20px_rgba(245,158,11,0.23)] hover:-translate-y-0.5 active:scale-[0.97] transition-all"
-              >
-                <Plus className="h-4 w-4" strokeWidth={2.5} />
-                Add Dish
-              </button>
-            </>
+          {activeMenuTab === "dishes" && !showAddForm && !editingItem && (
+            <button
+              onClick={() => setShowAddForm(true)}
+              className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] shadow-[0_4px_14px_0_rgba(245,158,11,0.39)] px-5 py-2 text-[13px] font-bold text-white hover:shadow-[0_6px_20px_rgba(245,158,11,0.23)] hover:-translate-y-0.5 active:scale-[0.97] transition-all"
+            >
+              <Plus className="h-4 w-4" strokeWidth={2.5} />
+              Add Dish
+            </button>
+          )}
+          {activeMenuTab === "categories" && !showNewCat && (
+            <button
+              onClick={() => setShowNewCat(true)}
+              className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--canvas)] shadow-sm px-4 py-2 text-[13px] font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] hover:text-[var(--accent-text)] transition-all active:scale-[0.97]"
+            >
+              <FolderPlus className="h-4 w-4" />
+              New Category
+            </button>
           )}
         </div>
       </div>
@@ -1839,8 +2115,8 @@ export default function MenuManagementTab({
               </p>
             </div>
           </div>
-          <div className={`relative h-6 w-11 rounded-full transition-colors ${isOpen ? "bg-[var(--accent)]" : "bg-[var(--border)]"}`}>
-            <div className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${isOpen ? "translate-x-5" : "translate-x-0.5"}`} />
+          <div className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${isOpen ? "bg-[var(--accent)]" : "bg-[var(--border)]"}`}>
+            <div className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${isOpen ? "translate-x-5" : ""}`} />
           </div>
         </button>
 
@@ -1866,140 +2142,83 @@ export default function MenuManagementTab({
               </p>
             </div>
           </div>
-          <div className={`relative h-6 w-11 rounded-full transition-colors ${deliveryEnabled ? "bg-blue-500" : "bg-[var(--border)]"}`}>
-            <div className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${deliveryEnabled ? "translate-x-5" : "translate-x-0.5"}`} />
+          <div className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${deliveryEnabled ? "bg-blue-500" : "bg-[var(--border)]"}`}>
+            <div className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${deliveryEnabled ? "translate-x-5" : ""}`} />
           </div>
         </button>
       </div>
 
       <MenuStats items={items} categories={flatCategories} currency={cur} />
 
-      {!loading && categories.length === 0 && !showNewCat && (
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col sm:flex-row items-center gap-4 rounded-xl border-2 border-dashed border-[var(--accent-border)] bg-[var(--accent-muted)] px-6 py-5"
+      {/* Dishes | Categories sub-tabs */}
+      <div className="flex items-center gap-1 rounded-xl bg-[var(--canvas-sub)] p-1 w-fit">
+        <button
+          onClick={() => setActiveMenuTab("dishes")}
+          className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-[13px] font-bold transition-all ${
+            activeMenuTab === "dishes" ? "bg-[var(--canvas)] text-[var(--text-1)] shadow-sm" : "text-[var(--text-3)] hover:text-[var(--text-2)]"
+          }`}
         >
-          <div className="flex items-center gap-3">
-            <Sparkles className="h-5 w-5 text-[var(--accent)]" />
-            <div>
-              <p className="text-sm font-semibold text-[var(--text-2)]">Quick Start</p>
-              <p className="text-[12px] text-[var(--text-2)]">Add 10 popular food categories with subcategories in one click</p>
-            </div>
-          </div>
-          <button
-            onClick={seedDefaults}
-            disabled={seedingCats}
-            className="flex items-center gap-1.5 rounded-lg bg-[var(--accent)] px-5 py-2.5 text-[13px] font-bold text-white hover:bg-[var(--accent-hover)] disabled:opacity-50 transition-all shrink-0"
-          >
-            {seedingCats ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5" />}
-            Generate Categories for My Place
-          </button>
-        </motion.div>
-      )}
+          <UtensilsCrossed className="h-3.5 w-3.5" /> Dishes
+          <span className="text-[10px] font-semibold text-[var(--text-3)]">{items.length}</span>
+        </button>
+        <button
+          onClick={() => setActiveMenuTab("categories")}
+          className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-[13px] font-bold transition-all ${
+            activeMenuTab === "categories" ? "bg-[var(--canvas)] text-[var(--text-1)] shadow-sm" : "text-[var(--text-3)] hover:text-[var(--text-2)]"
+          }`}
+        >
+          <Layers className="h-3.5 w-3.5" /> Categories
+          <span className="text-[10px] font-semibold text-[var(--text-3)]">{flatCategories.filter((c) => !c.parentId).length}</span>
+        </button>
+      </div>
 
-      <AnimatePresence>
-        {showNewCat && (
-          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
-            <div className="flex items-center gap-2.5 rounded-lg border border-[var(--border)] bg-[var(--canvas)] p-3 shadow-sm">
-              <Tag className="h-4 w-4 text-[var(--text-3)] shrink-0" />
-              <input
-                ref={newCatInputRef}
-                value={newCatName}
-                onChange={(e) => setNewCatName(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") createCategory(); if (e.key === "Escape") { setShowNewCat(false); setNewCatName(""); } }}
-                placeholder="New top-level category name"
-                className="flex-1 min-w-0 text-sm font-medium text-[var(--text-1)] outline-none placeholder-gray-400"
-              />
-              <button
-                onClick={() => createCategory()}
-                disabled={!newCatName.trim() || creatingCat}
-                className="flex items-center gap-1 rounded-md bg-[var(--accent)] px-3 py-1.5 text-[12px] font-bold text-white hover:bg-[var(--accent-hover)] disabled:opacity-40 transition-all"
-              >
-                {creatingCat ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
-                Create
-              </button>
-              <button onClick={() => { setShowNewCat(false); setNewCatName(""); }} className="p-1 text-[var(--text-3)] hover:text-[var(--text-2)]">
-                <X className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {addSubParent && (
-          <AddSubCategoryInline
-            parentName={addSubParent.name}
-            onCreate={(name) => createCategory(name, addSubParentId)}
-            onCancel={() => setAddSubParentId(null)}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Add / Edit form */}
-      <AnimatePresence>
-        {showAddForm && (
-          <DishForm
-            categories={flatCategories}
-            onSubmit={addItem}
-            onCancel={() => setShowAddForm(false)}
-            submitLabel="Add to menu"
-            currency={cur}
-          />
-        )}
-        {editingItem && (
-          <DishForm
-            key={editingItem.id}
-            categories={flatCategories}
-            initial={{
-              name: editingItem.name,
-              description: editingItem.description || "",
-              price: String(editingItem.price),
-              categoryId: editingItem.categoryId,
-              imageUrl: editingItem.imageUrl || "",
-              isVeg: editingItem.isVeg,
-              hasEgg: editingItem.hasEgg,
-              hasOnionGarlic: editingItem.hasOnionGarlic,
-              prepTime: editingItem.prepTime || "15-20 min",
-              badge: editingItem.badge || "",
-              tags: editingItem.tags,
-              spiceLevel: editingItem.spiceLevel,
-              calories: editingItem.calories ? String(editingItem.calories) : "",
-              allergens: editingItem.allergens,
-              isFeatured: editingItem.isFeatured,
-              discount: editingItem.discount ? String(editingItem.discount) : "",
-              discountLabel: editingItem.discountLabel || "",
-              sizes: editingItem.sizes.map((s) => ({ label: s.label, grams: s.grams, priceAdd: String(s.priceAdd) })),
-              addOns: editingItem.addOns.map((a) => ({ name: a.name, price: String(a.price) })),
-            }}
-            onSubmit={editItem}
-            onCancel={() => setEditingItem(null)}
-            submitLabel="Save Changes"
-            currency={cur}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Main layout: sidebar + grid */}
-      <div className="flex gap-5">
-        {flatCategories.length > 0 && (
-          <div className="hidden lg:block w-52 shrink-0">
-            <div className="sticky top-6 max-h-[calc(100vh-120px)] overflow-y-auto scrollbar-slim rounded-xl bg-[var(--canvas)] ring-1 ring-[var(--border)] p-3">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-3)] mb-2 px-2">Categories</p>
-              <CategoryTree
+      {activeMenuTab === "dishes" ? (
+        <>
+          {/* Add / Edit dish modal */}
+          <AnimatePresence>
+            {showAddForm && (
+              <DishForm
                 categories={flatCategories}
-                selectedCatId={selectedCatId}
-                onSelect={setSelectedCatId}
-                onAddSub={setAddSubParentId}
-                onDelete={initDeleteCategory}
+                onSubmit={addItem}
+                onCancel={() => setShowAddForm(false)}
+                submitLabel="Add to menu"
+                currency={cur}
               />
-            </div>
-          </div>
-        )}
+            )}
+            {editingItem && (
+              <DishForm
+                key={editingItem.id}
+                categories={flatCategories}
+                initial={{
+                  name: editingItem.name,
+                  description: editingItem.description || "",
+                  price: String(editingItem.price),
+                  categoryId: editingItem.categoryId,
+                  imageUrl: editingItem.imageUrl || "",
+                  isVeg: editingItem.isVeg,
+                  hasEgg: editingItem.hasEgg,
+                  hasOnionGarlic: editingItem.hasOnionGarlic,
+                  prepTime: editingItem.prepTime || "15-20 min",
+                  badge: editingItem.badge || "",
+                  tags: editingItem.tags,
+                  spiceLevel: editingItem.spiceLevel,
+                  calories: editingItem.calories ? String(editingItem.calories) : "",
+                  allergens: editingItem.allergens,
+                  isFeatured: editingItem.isFeatured,
+                  discount: editingItem.discount ? String(editingItem.discount) : "",
+                  discountLabel: editingItem.discountLabel || "",
+                  sizes: editingItem.sizes.map((s) => ({ label: s.label, grams: s.grams, priceAdd: String(s.priceAdd) })),
+                  addOns: editingItem.addOns.map((a) => ({ name: a.name, price: String(a.price) })),
+                }}
+                onSubmit={editItem}
+                onCancel={() => setEditingItem(null)}
+                submitLabel="Save Changes"
+                currency={cur}
+              />
+            )}
+          </AnimatePresence>
 
-        <div className="flex-1 min-w-0">
-          {/* Search & mobile category filter */}
+          {/* Search & category filter */}
           <div className="flex flex-col sm:flex-row gap-3 mb-6">
             <div className="relative flex-1 group">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-3)] group-focus-within:text-[var(--accent)] transition-colors" />
@@ -2010,48 +2229,30 @@ export default function MenuManagementTab({
                 className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)]/80 backdrop-blur-sm py-3 pl-10 pr-4 text-sm font-semibold text-[var(--text-1)] placeholder-gray-400 focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 shadow-sm transition-all"
               />
             </div>
-            <div className="lg:hidden flex gap-2 overflow-x-auto scrollbar-hide items-center pb-1">
-              {["All", ...flatCategories.filter((c) => !c.parentId).map((c) => c.name)].map((cat) => {
-                const catObj = flatCategories.find((c) => c.name === cat && !c.parentId);
-                const isActive = cat === "All" ? selectedCatId === "All" : selectedCatId === catObj?.id;
-                return cat === "All" ? (
-                  <button
-                    key="All"
-                    onClick={() => setSelectedCatId("All")}
-                    className={`shrink-0 rounded-full px-4 py-2 text-[12px] font-bold tracking-wide transition-all shadow-sm border ${
-                      isActive ? "bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] text-white border-transparent" : "bg-[var(--canvas)] text-[var(--text-2)] border-[var(--border)] hover:bg-[var(--canvas-sub)]"
-                    }`}
-                  >
-                    All
-                  </button>
-                ) : (
-                  <div key={cat} className="shrink-0 flex items-center gap-0.5">
-                    <button
-                      onClick={() => setSelectedCatId(catObj?.id || "All")}
-                      className={`rounded-l-full pl-4 pr-2 py-2 text-[12px] font-bold tracking-wide transition-all shadow-sm border-y border-l ${
-                        isActive ? "bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] text-white border-transparent" : "bg-[var(--canvas)] text-[var(--text-2)] border-[var(--border)] hover:bg-[var(--canvas-sub)]"
-                      }`}
-                    >
-                      {cat}
-                    </button>
-                    {catObj && (
-                      <button
-                        onClick={() => initDeleteCategory(catObj.id)}
-                        className={`rounded-r-full pl-1.5 pr-3 py-2 transition-all shadow-sm border-y border-r ${
-                          isActive ? "bg-[var(--accent)] text-white border-transparent" : "bg-[var(--canvas)] text-[var(--text-3)] border-[var(--border)] hover:text-red-500 hover:bg-red-50 hover:border-red-200"
-                        }`}
-                        title={`Delete "${cat}"`}
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+            {flatCategories.length > 0 && (
+              <CategoryFilterChips categories={flatCategories} selectedCatId={selectedCatId} onSelect={setSelectedCatId} />
+            )}
           </div>
 
-          <motion.div 
+          {!loading && flatCategories.length === 0 && (
+            <div className="flex flex-col sm:flex-row items-center gap-4 rounded-xl border-2 border-dashed border-[var(--accent-border)] bg-[var(--accent-muted)] px-6 py-5 mb-6">
+              <div className="flex items-center gap-3">
+                <Sparkles className="h-5 w-5 text-[var(--accent)]" />
+                <div>
+                  <p className="text-sm font-semibold text-[var(--text-2)]">Add categories first</p>
+                  <p className="text-[12px] text-[var(--text-2)]">Dishes need a category — pick from ready-made templates or add your own</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setActiveMenuTab("categories")}
+                className="flex items-center gap-1.5 rounded-lg bg-[var(--accent)] px-5 py-2.5 text-[13px] font-bold text-white hover:bg-[var(--accent-hover)] transition-all shrink-0"
+              >
+                <Layers className="h-3.5 w-3.5" /> Go to Categories
+              </button>
+            </div>
+          )}
+
+          <motion.div
             initial="hidden"
             animate="visible"
             variants={{
@@ -2074,7 +2275,7 @@ export default function MenuManagementTab({
                   <p className="text-sm text-[var(--text-3)]">
                     {items.length === 0 ? "Add your first dish to get started" : "No dishes match your search"}
                   </p>
-                  {items.length === 0 && !showAddForm && (
+                  {items.length === 0 && !showAddForm && flatCategories.length > 0 && (
                     <button
                       onClick={() => setShowAddForm(true)}
                       className="flex items-center gap-1.5 rounded-lg bg-[var(--accent)] px-4 py-2 text-[13px] font-bold text-white hover:bg-[var(--accent-hover)] mt-2"
@@ -2098,8 +2299,76 @@ export default function MenuManagementTab({
               )}
             </AnimatePresence>
           </motion.div>
+        </>
+      ) : (
+        <div className="space-y-6">
+          {templates.some((t) => !t.added) && (
+            <div>
+              <div className="flex items-center justify-between mb-3 gap-3">
+                <div>
+                  <h3 className="text-sm font-bold text-[var(--text-1)]">Templates</h3>
+                  <p className="text-[12px] text-[var(--text-2)]">Click one to add it — its subcategories come with it</p>
+                </div>
+                <button
+                  onClick={seedDefaults}
+                  disabled={seedingCats}
+                  className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--canvas)] px-3.5 py-2 text-[12px] font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] disabled:opacity-50 transition-all shrink-0"
+                >
+                  {seedingCats ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5" />}
+                  Add All
+                </button>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                {templates.filter((t) => !t.added).map((t) => (
+                  <TemplateCard key={t.name} template={t} onAdd={() => addTemplate(t.name)} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          <AnimatePresence>
+            {showNewCat && (
+              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
+                <div className="flex items-center gap-2.5 rounded-lg border border-[var(--border)] bg-[var(--canvas)] p-3 shadow-sm">
+                  <Tag className="h-4 w-4 text-[var(--text-3)] shrink-0" />
+                  <input
+                    ref={newCatInputRef}
+                    value={newCatName}
+                    onChange={(e) => setNewCatName(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") createCategory(); if (e.key === "Escape") { setShowNewCat(false); setNewCatName(""); } }}
+                    placeholder="New top-level category name"
+                    className="flex-1 min-w-0 text-sm font-medium text-[var(--text-1)] outline-none placeholder-gray-400"
+                  />
+                  <button
+                    onClick={() => createCategory()}
+                    disabled={!newCatName.trim()}
+                    className="flex items-center gap-1 rounded-md bg-[var(--accent)] px-3 py-1.5 text-[12px] font-bold text-white hover:bg-[var(--accent-hover)] disabled:opacity-40 transition-all"
+                  >
+                    <Check className="h-3 w-3" />
+                    Create
+                  </button>
+                  <button onClick={() => { setShowNewCat(false); setNewCatName(""); }} className="p-1 text-[var(--text-3)] hover:text-[var(--text-2)]">
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <div>
+            <h3 className="text-sm font-bold text-[var(--text-1)] mb-3">Your Categories</h3>
+            <CategoryManager
+              categories={flatCategories}
+              onAddSub={setAddSubParentId}
+              onDelete={initDeleteCategory}
+              onRename={renameCategory}
+              addSubParentId={addSubParentId}
+              onCreateSub={(parentId, name) => createCategory(name, parentId)}
+              onCancelAddSub={() => setAddSubParentId(null)}
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       <AnimatePresence>
         {deleteCatConfirm && (

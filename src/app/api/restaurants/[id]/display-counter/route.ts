@@ -115,18 +115,24 @@ export async function PATCH(
 
   if (body.itemId) {
     const { itemId, ...data } = body;
-    const item = await db.displayCounterItem.update({
-      where: { id: itemId },
+    // updateMany scopes by restaurantId so one restaurant can't edit another's
+    // display-counter item by id (cross-tenant IDOR).
+    const res = await db.displayCounterItem.updateMany({
+      where: { id: itemId, restaurantId: id },
       data,
     });
+    if (res.count === 0) {
+      return NextResponse.json({ error: "Item not found" }, { status: 404 });
+    }
+    const item = await db.displayCounterItem.findUnique({ where: { id: itemId } });
     return NextResponse.json(item);
   }
 
   if (body.reorder && Array.isArray(body.reorder)) {
     await Promise.all(
       body.reorder.map((r: { id: string; sortOrder: number }) =>
-        db.displayCounterItem.update({
-          where: { id: r.id },
+        db.displayCounterItem.updateMany({
+          where: { id: r.id, restaurantId: id },
           data: { sortOrder: r.sortOrder },
         })
       )
@@ -155,6 +161,7 @@ export async function DELETE(
     return NextResponse.json({ error: "itemId required" }, { status: 400 });
   }
 
-  await db.displayCounterItem.delete({ where: { id: itemId } });
+  // deleteMany scopes by restaurantId so one restaurant can't delete another's item.
+  await db.displayCounterItem.deleteMany({ where: { id: itemId, restaurantId: id } });
   return NextResponse.json({ ok: true });
 }

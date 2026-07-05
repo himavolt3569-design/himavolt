@@ -109,6 +109,24 @@ interface BillingTabProps {
   currency?: string;
 }
 
+interface CreditEntryRow {
+  id: string;
+  amount: number;
+  customerName: string | null;
+  customerPhone: string | null;
+  note: string | null;
+  createdAt: string;
+  settledAt: string | null;
+  settledVia: string | null;
+  order: {
+    id: string;
+    orderNo: string;
+    tableNo: number | null;
+    total: number;
+    payment: { amount: number; method: string; status: string } | null;
+  };
+}
+
 interface StaffReportEntry {
   staffId: string;
   staffName: string;
@@ -244,6 +262,10 @@ function LiveBilling({
   const [showDiscount, setShowDiscount] = useState(false);
   const [collectMethod, setCollectMethod] = useState<string>("CASH");
   const [collectTxn, setCollectTxn] = useState("");
+  // Partial collection (dues): blank = collect the full bill
+  const [collectAmount, setCollectAmount] = useState("");
+  const [duesName, setDuesName] = useState("");
+  const [duesPhone, setDuesPhone] = useState("");
   const [discountAmount, setDiscountAmount] = useState("");
   const [discountReason, setDiscountReason] = useState("");
   const [showSplit, setShowSplit] = useState(false);
@@ -298,7 +320,8 @@ function LiveBilling({
       // API returns an array directly; fall back to .orders wrapper for safety
       return Array.isArray(data) ? data : data.orders || [];
     },
-    enabled: !!restaurantId,
+    // "dues" renders the credit ledger (its own query), not the orders list
+    enabled: !!restaurantId && filter !== "dues",
     placeholderData: keepPreviousData,
   });
   const orders = ordersQuery.data ?? [];
@@ -313,6 +336,45 @@ function LiveBilling({
     placeholderData: keepPreviousData,
   });
   const summary = summaryQuery.data ?? null;
+
+  // Open dues (credit ledger). Fetched alongside the list so the "Dues"
+  // pill count is always live, not just when the tab is opened.
+  const duesQueryKey = ["billing-dues", restaurantId] as const;
+  const duesQuery = useQuery({
+    queryKey: duesQueryKey,
+    queryFn: () =>
+      apiFetch<{ entries: CreditEntryRow[]; totalOpen: number }>(
+        `/api/restaurants/${restaurantId}/billing/dues`,
+      ),
+    enabled: !!restaurantId,
+    placeholderData: keepPreviousData,
+  });
+  const duesEntries = duesQuery.data?.entries ?? [];
+  const duesTotalOpen = duesQuery.data?.totalOpen ?? 0;
+  const duesCount = duesEntries.length;
+
+  const settleDueMutation = useMutation({
+    mutationFn: (vars: { creditEntryId: string; method: string }) =>
+      apiFetch(`/api/restaurants/${restaurantId}/billing/dues`, {
+        method: "POST",
+        body: vars,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: duesQueryKey });
+      queryClient.invalidateQueries({ queryKey: ["billing", restaurantId] });
+      queryClient.invalidateQueries({ queryKey: ["tables", restaurantId] });
+      loadSummary();
+    },
+  });
+
+  const handleSettleDue = async (creditEntryId: string, method: string) => {
+    try {
+      await settleDueMutation.mutateAsync({ creditEntryId, method });
+      showToast("Dues settled", "success");
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Failed to settle dues", "error");
+    }
+  };
 
   const loadOrders = useCallback(() => {
     return queryClient.invalidateQueries({ queryKey: ["billing", restaurantId] });
@@ -441,17 +503,30 @@ function LiveBilling({
   // "unpaid" it drops out of the list right away instead of waiting for the
   // network round-trip and a full reload. Rolled back on failure.
   const collectPaymentMutation = useMutation({
-    mutationFn: async (vars: { orderId: string; method: string; txn?: string }) => {
+    mutationFn: async (vars: {
+      orderId: string;
+      method: string;
+      txn?: string;
+      amountPaid?: number;
+      customerName?: string;
+      customerPhone?: string;
+    }) => {
       await apiFetch(`/api/restaurants/${restaurantId}/billing/collect`, {
         method: "POST",
         body: {
           orderId: vars.orderId,
           method: vars.method,
           transactionId: vars.txn,
+          amountPaid: vars.amountPaid,
+          customerName: vars.customerName,
+          customerPhone: vars.customerPhone,
         },
       });
     },
-    onMutate: async ({ orderId, method }) => {
+    onMutate: async ({ orderId, method, amountPaid }) => {
+      // Partial collection leaves the order unpaid (dues) — skip the
+      // optimistic "mark paid" and let the refetch paint the real state.
+      if (amountPaid !== undefined) return { previous: undefined };
       await queryClient.cancelQueries({ queryKey: ordersQueryKey });
       const previous = queryClient.getQueryData<BillOrder[]>(ordersQueryKey);
       queryClient.setQueryData<BillOrder[]>(ordersQueryKey, (prev) => {
@@ -476,6 +551,17 @@ function LiveBilling({
     onError: (_err, _vars, context) => {
       if (context?.previous) queryClient.setQueryData(ordersQueryKey, context.previous);
     },
+    onSuccess: (_data, vars) => {
+      // Payment auto-clears the table session server-side — refresh the
+      // floor view so the table shows FREE immediately.
+      queryClient.invalidateQueries({ queryKey: ["tables", restaurantId] });
+      queryClient.invalidateQueries({ queryKey: ["billing-dues", restaurantId] });
+      if (vars.amountPaid !== undefined) {
+        // Partial: the order's payment state changed server-side in a way the
+        // optimistic path didn't model — refetch the list.
+        queryClient.invalidateQueries({ queryKey: ["billing", restaurantId] });
+      }
+    },
   });
 
   const handleCollectPayment = async () => {
@@ -486,15 +572,49 @@ function LiveBilling({
     const txn = collectTxn || undefined;
     const autoPrint = selectedRestaurant?.printAutoReceipt;
 
+    // Partial collection: an amount below the bill total records the
+    // remainder as dues against the named customer.
+    const billTotal = selectedOrder.bill?.total ?? selectedOrder.total;
+    const parsedAmount = collectAmount.trim() ? parseFloat(collectAmount) : undefined;
+    const isPartial = parsedAmount !== undefined && parsedAmount < billTotal - 0.01;
+
+    if (parsedAmount !== undefined && (!Number.isFinite(parsedAmount) || parsedAmount <= 0)) {
+      showToast("Amount received must be a positive number", "error");
+      return;
+    }
+    if (isPartial && !duesName.trim() && !duesPhone.trim()) {
+      showToast("Enter the customer's name or phone to record the dues", "error");
+      return;
+    }
+
     // Optimistic close
     setShowCollect(false);
     setSelectedOrder(null);
     setCollectTxn("");
+    setCollectAmount("");
+    setDuesName("");
+    setDuesPhone("");
 
     try {
-      await collectPaymentMutation.mutateAsync({ orderId: paidOrderId, method, txn });
-      showToast(`Payment collected for Order #${orderNo}`, "success");
-      if (autoPrint) autoPrintBill(paidOrderId);
+      await collectPaymentMutation.mutateAsync({
+        orderId: paidOrderId,
+        method,
+        txn,
+        ...(isPartial
+          ? {
+              amountPaid: parsedAmount,
+              customerName: duesName.trim() || undefined,
+              customerPhone: duesPhone.trim() || undefined,
+            }
+          : {}),
+      });
+      showToast(
+        isPartial
+          ? `Partial payment collected for Order #${orderNo} — ${formatPrice(billTotal - (parsedAmount as number), cur)} recorded as dues`
+          : `Payment collected for Order #${orderNo}`,
+        "success",
+      );
+      if (autoPrint && !isPartial) autoPrintBill(paidOrderId);
       loadSummary();
     } catch (err) {
       showToast(err instanceof Error ? err.message : "Failed to collect payment", "error");
@@ -586,6 +706,7 @@ function LiveBilling({
       setSplitEntries([{ method: "CASH", amount: "" }, { method: "ESEWA", amount: "" }]);
       loadOrders();
       loadSummary();
+      queryClient.invalidateQueries({ queryKey: ["tables", restaurantId] });
     } catch (err) {
       showToast(err instanceof Error ? err.message : "Failed to process split payment", "error");
     }
@@ -871,7 +992,7 @@ function LiveBilling({
           onClick={() => setActiveTab("orders")}
           className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-all -mb-px ${
             activeTab === "orders"
-              ? "border-[#3e1e0c] text-[var(--text-1)]"
+              ? "border-[var(--text-1)] text-[var(--text-1)]"
               : "border-transparent text-[var(--text-2)] hover:text-[var(--text-2)]"
           }`}
         >
@@ -887,7 +1008,7 @@ function LiveBilling({
           }}
           className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-all -mb-px ${
             activeTab === "staff-report"
-              ? "border-[#3e1e0c] text-[var(--text-1)]"
+              ? "border-[var(--text-1)] text-[var(--text-1)]"
               : "border-transparent text-[var(--text-2)] hover:text-[var(--text-2)]"
           }`}
         >
@@ -909,7 +1030,7 @@ function LiveBilling({
                 setStaffReportDate(e.target.value);
                 loadStaffReport(e.target.value);
               }}
-              className="rounded-xl border border-[var(--border)] px-3 py-2 text-sm font-medium text-[var(--text-2)] outline-none focus:border-[#3e1e0c] focus:ring-1 focus:ring-[var(--text-1)]/20"
+              className="rounded-xl border border-[var(--border)] px-3 py-2 text-sm font-medium text-[var(--text-2)] outline-none focus:border-[var(--text-1)] focus:ring-1 focus:ring-[var(--text-1)]/20"
             />
             <button
               onClick={() => loadStaffReport(staffReportDate)}
@@ -1026,6 +1147,7 @@ function LiveBilling({
             { key: "unpaid", label: "Unpaid", count: summary?.unpaidOrders },
             { key: "paid", label: "Paid", count: summary?.paidOrders },
             { key: "today", label: "All Today" },
+            { key: "dues", label: "Dues", count: duesCount },
           ].map((f) => (
             <button
               key={f.key}
@@ -1070,7 +1192,17 @@ function LiveBilling({
         </div>
       </div>
 
-      {filtered.length === 0 && (
+      {filter === "dues" && (
+        <DuesPanel
+          entries={duesEntries}
+          totalOpen={duesTotalOpen}
+          cur={cur}
+          settling={settleDueMutation.isPending}
+          onSettle={handleSettleDue}
+        />
+      )}
+
+      {filter !== "dues" && filtered.length === 0 && (
         <div className="text-center py-16 text-[var(--text-3)]">
           <Receipt className="mx-auto h-10 w-10 mb-3 opacity-40" />
           <p className="font-bold">No orders found</p>
@@ -1083,7 +1215,7 @@ function LiveBilling({
       )}
 
       <div className="space-y-4">
-        {filtered.map((order) => (
+        {filter !== "dues" && filtered.map((order) => (
           <motion.div
             key={order.id}
             layout
@@ -1536,11 +1668,57 @@ function LiveBilling({
                 </div>
               )}
 
+              {/* Partial collection → dues */}
+              <div className="mb-5">
+                <label className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider mb-1.5 block">
+                  Amount Received{" "}
+                  <span className="normal-case font-medium">
+                    (leave blank for full {formatPrice(selectedOrder.bill?.total ?? selectedOrder.total, cur)})
+                  </span>
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  value={collectAmount}
+                  onChange={(e) => setCollectAmount(e.target.value)}
+                  placeholder={`${selectedOrder.bill?.total ?? selectedOrder.total}`}
+                  className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-border)] transition-all"
+                />
+                {(() => {
+                  const total = selectedOrder.bill?.total ?? selectedOrder.total;
+                  const amt = collectAmount.trim() ? parseFloat(collectAmount) : NaN;
+                  const partial = Number.isFinite(amt) && amt > 0 && amt < total - 0.01;
+                  if (!partial) return null;
+                  return (
+                    <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 space-y-2">
+                      <p className="text-[11px] font-bold text-amber-700">
+                        {formatPrice(total - amt, cur)} will be recorded as dues — who owes it?
+                      </p>
+                      <input
+                        value={duesName}
+                        onChange={(e) => setDuesName(e.target.value)}
+                        placeholder="Customer name"
+                        className="w-full rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm outline-none focus:border-amber-400 transition-all"
+                      />
+                      <input
+                        value={duesPhone}
+                        onChange={(e) => setDuesPhone(e.target.value)}
+                        placeholder="Phone (optional if name given)"
+                        className="w-full rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm outline-none focus:border-amber-400 transition-all"
+                      />
+                    </div>
+                  );
+                })()}
+              </div>
+
               <div className="flex gap-2">
                 <button
                   onClick={() => {
                     setShowCollect(false);
                     setSelectedOrder(null);
+                    setCollectAmount("");
+                    setDuesName("");
+                    setDuesPhone("");
                   }}
                   className="flex-1 rounded-xl border border-[var(--border)] py-3 text-sm font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-all"
                 >
@@ -1885,6 +2063,112 @@ function SummaryCard({
         </div>
       </div>
     </motion.div>
+  );
+}
+
+/** Credit ledger ("udharo") — open dues from partial payments, settled here. */
+function DuesPanel({
+  entries,
+  totalOpen,
+  cur,
+  settling,
+  onSettle,
+}: {
+  entries: CreditEntryRow[];
+  totalOpen: number;
+  cur: string;
+  settling: boolean;
+  onSettle: (creditEntryId: string, method: string) => void;
+}) {
+  const [methodById, setMethodById] = useState<Record<string, string>>({});
+
+  if (entries.length === 0) {
+    return (
+      <div className="text-center py-16 text-[var(--text-3)]">
+        <Wallet className="mx-auto h-10 w-10 mb-3 opacity-40" />
+        <p className="font-bold">No open dues</p>
+        <p className="text-xs mt-1">Partial payments will show up here until settled</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
+        <span className="text-xs font-bold text-amber-700 uppercase tracking-wider">
+          Total outstanding
+        </span>
+        <span className="text-lg font-black text-amber-700">
+          {formatPrice(totalOpen, cur)}
+        </span>
+      </div>
+
+      {entries.map((entry) => {
+        const method = methodById[entry.id] ?? "CASH";
+        return (
+          <div
+            key={entry.id}
+            className="rounded-3xl border border-[var(--border-soft)] bg-[var(--canvas)]/80 p-5 space-y-3"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-sm font-extrabold text-[var(--text-1)] truncate">
+                  {entry.customerName || entry.customerPhone || "Unknown customer"}
+                </p>
+                <p className="text-xs text-[var(--text-3)] mt-0.5">
+                  Order #{entry.order.orderNo}
+                  {entry.order.tableNo != null && ` · Table ${entry.order.tableNo}`}
+                  {" · "}
+                  {timeAgo(entry.createdAt)}
+                </p>
+                {entry.customerName && entry.customerPhone && (
+                  <p className="text-xs text-[var(--text-3)]">{entry.customerPhone}</p>
+                )}
+                {entry.note && (
+                  <p className="text-xs text-[var(--text-2)] mt-1 italic">{entry.note}</p>
+                )}
+              </div>
+              <div className="text-right shrink-0">
+                <p className="text-lg font-black text-amber-600">
+                  {formatPrice(entry.amount, cur)}
+                </p>
+                <p className="text-[10px] text-[var(--text-3)]">
+                  of {formatPrice(entry.order.total, cur)} bill
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <select
+                value={method}
+                onChange={(e) =>
+                  setMethodById((prev) => ({ ...prev, [entry.id]: e.target.value }))
+                }
+                className="rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-3 py-2 text-xs font-bold text-[var(--text-1)] outline-none focus:border-[var(--accent)]"
+              >
+                {["CASH", "ESEWA", "KHALTI", "BANK", "COUNTER"].map((m) => (
+                  <option key={m} value={m}>
+                    {paymentMethodLabel(m)}
+                  </option>
+                ))}
+              </select>
+              <button
+                onClick={() => onSettle(entry.id, method)}
+                disabled={settling}
+                className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[var(--accent)] py-2.5 text-xs font-bold text-white hover:bg-[var(--accent-hover)] disabled:opacity-50 transition-all"
+              >
+                {settling ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Check className="h-3.5 w-3.5" />
+                )}
+                Settle {formatPrice(entry.amount, cur)}
+              </button>
+            </div>
+          </div>
+        );
+      })}
+    </div>
   );
 }
 

@@ -179,35 +179,27 @@ export const FEATURE_ICONS: Record<FeatureTabId, any> = {
   rooms: BedDouble,
 };
 
+// Features with a REAL backend. UI-only stubs (useState + mock data, nothing
+// persisted) were pulled from this set on 2026-07-03 so nothing fake is
+// clickable — they can return one by one as their backends get built:
+// multi-outlet*, multi-brand* (*superseded by the multi-branch consolidated
+// view), event-catering, buffet-manager, pre-orders, custom-cakes,
+// delivery-ops, package-tracking, tab-management, cocktail-menu, live-events,
+// seasonal-menu, brunch-mode, waitlist, private-dining.
 export const LIVE_FEATURES = new Set<FeatureTabId>([
   "quick-counter",
   "combo-meals",
   "rush-hour",
   "takeaway",
   "room-service",
-  "multi-outlet",
-  "event-catering",
   "guest-billing",
-  "buffet-manager",
-  "pre-orders",
-  "custom-cakes",
   "daily-specials",
   "display-counter",
-  "delivery-ops",
-  "multi-brand",
   "delivery-zones",
-  "package-tracking",
   "happy-hours",
-  "tab-management",
-  "cocktail-menu",
-  "live-events",
   "loyalty-rewards",
   "wifi-seating",
-  "seasonal-menu",
-  "brunch-mode",
   "table-reservations",
-  "waitlist",
-  "private-dining",
   "wifi-settings",
   "guest-checkin",
   "room-qr-codes",

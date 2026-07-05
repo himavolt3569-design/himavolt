@@ -1,5 +1,12 @@
 import type { Metadata } from "next";
 import AdminThemeLock from "./AdminThemeLock";
+import { Poppins } from "next/font/google";
+
+const poppins = Poppins({
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  subsets: ["latin"],
+  display: "swap",
+});
 
 export const dynamic = "force-dynamic";
 
@@ -15,10 +22,10 @@ export default function AdminLayout({
 }) {
   return (
     <div
+      className={poppins.className}
       style={{
         colorScheme: "light",
-        color: "#1e293b",         /* slate-800 — overrides brand #3e1e0c */
-        backgroundColor: "#F5F8FF",
+        backgroundColor: "#F7F9FC", // Soft, airy light background
         minHeight: "100vh",
       }}
     >

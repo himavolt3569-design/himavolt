@@ -21,6 +21,7 @@ import { useRestaurant } from "@/context/RestaurantContext";
 import { useToast } from "@/context/ToastContext";
 import { apiFetch, peekApiCache } from "@/lib/api-client";
 import { uploadFile } from "@/lib/upload";
+import NumberInput from "@/components/shared/NumberInput";
 
 interface OfferData {
   id: string;
@@ -78,8 +79,8 @@ export default function OffersTab() {
   }, [fetchOffers]);
 
   const handleUpload = async (file: File) => {
-    if (file.size > 5 * 1024 * 1024) {
-      showToast("File too large (max 5MB)", "error");
+    if (file.size > 20 * 1024 * 1024) {
+      showToast("File too large (max 20MB)", "error");
       return;
     }
     setUploading(true);
@@ -353,12 +354,11 @@ export default function OffersTab() {
                 <div>
                   <label className="text-xs font-bold text-[var(--accent-text)]/60 uppercase tracking-wider mb-1.5 block">Discount %</label>
                   <div className="flex items-center gap-2">
-                    <input
-                      type="number"
+                    <NumberInput
                       min={1}
                       max={100}
                       value={offerDiscount}
-                      onChange={(e) => setOfferDiscount(Number(e.target.value))}
+                      onChange={(n) => setOfferDiscount(n)}
                       className="w-20 rounded-xl border border-[var(--accent-border)]/60 bg-[var(--accent-muted)] px-3 py-2.5 text-sm text-[var(--text-1)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]/40"
                     />
                     <Percent className="h-4 w-4 text-[var(--accent)]" />

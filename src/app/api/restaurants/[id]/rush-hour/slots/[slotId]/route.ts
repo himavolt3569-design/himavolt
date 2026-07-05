@@ -21,6 +21,12 @@ export async function PATCH(
   if (!(await assertAccess(req, id)))
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const owned = await db.rushHourSlot.findFirst({
+    where: { id: slotId, config: { restaurantId: id } },
+    select: { id: true },
+  });
+  if (!owned) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
   const body = await req.json();
   const slot = await db.rushHourSlot.update({
     where: { id: slotId },
@@ -43,6 +49,12 @@ export async function DELETE(
   const { id, slotId } = await params;
   if (!(await assertAccess(req, id)))
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const owned = await db.rushHourSlot.findFirst({
+    where: { id: slotId, config: { restaurantId: id } },
+    select: { id: true },
+  });
+  if (!owned) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   await db.rushHourSlot.delete({ where: { id: slotId } });
   return NextResponse.json({ success: true });

@@ -6,6 +6,7 @@ import { sendNotificationToRestaurantStaff } from "@/lib/notifications";
 import { canAccessOrder } from "@/lib/order-access";
 import { restoreStock } from "@/lib/stock";
 import { notifyOrderChanged } from "@/lib/realtime";
+import { endTableSession } from "@/lib/table-session";
 
 export async function POST(
   req: NextRequest,
@@ -55,24 +56,43 @@ export async function POST(
     return NextResponse.json({ success: true, orderId, status: "REJECTED" });
   }
 
-  // Cancel payments, restore stock, and cancel unprinted KOT jobs — all non-fatal.
-  await Promise.all([
-    db.payment.updateMany({
-      where: { orderId, status: { in: ["PENDING", "AWAITING_VERIFICATION"] } },
-      data: { status: "CANCELLED" },
-    }),
-    db.printJob
-      .updateMany({
+  // Cancel payments, restore stock, and cancel unprinted KOT jobs — non-fatal,
+  // but failures are collected into the audit log below so a missed stock
+  // restore is diagnosable instead of vanishing into console noise.
+  const cleanupSteps: [string, Promise<unknown>][] = [
+    [
+      "paymentCancel",
+      db.payment.updateMany({
+        where: { orderId, status: { in: ["PENDING", "AWAITING_VERIFICATION"] } },
+        data: { status: "CANCELLED" },
+      }),
+    ],
+    [
+      "kotCancel",
+      db.printJob.updateMany({
         where: { orderId, type: "KOT", status: { in: ["PENDING", "RETRYING"] } },
         data: { status: "FAILED", lastError: "Order cancelled by customer" },
-      })
-      .catch((err: unknown) =>
-        console.error("[Orders cancel] PrintJob cancel failed:", err),
-      ),
-    restoreStock(order.items).catch((err: unknown) => {
-      console.error("[Orders cancel] restoreStock failed:", err);
-    }),
-  ]);
+      }),
+    ],
+    ["stockRestore", restoreStock(order.items)],
+  ];
+  const cleanupResults = await Promise.allSettled(cleanupSteps.map(([, p]) => p));
+  const cleanupFailures = cleanupResults.flatMap((r, i) =>
+    r.status === "rejected"
+      ? [`${cleanupSteps[i][0]}: ${r.reason instanceof Error ? r.reason.message : String(r.reason)}`]
+      : [],
+  );
+
+  // Free the table so the next customer gets a fresh start (sequential to
+  // stay within the small serverless connection pool).
+  const sessionResult = await endTableSession(order.restaurantId, { orderId });
+  if (sessionResult.error) {
+    cleanupFailures.push(`tableSessionClear: ${sessionResult.error}`);
+  }
+
+  if (cleanupFailures.length) {
+    console.error("[Orders cancel] Cleanup failures (non-fatal):", cleanupFailures);
+  }
 
   // Resolve the actor (best-effort) for the audit log.
   let actorUserId: string | undefined;
@@ -101,6 +121,7 @@ export async function POST(
     entity: "Order",
     entityId: orderId,
     detail: `Order ${order.orderNo} cancelled by customer`,
+    metadata: cleanupFailures.length ? { cleanupFailures } : undefined,
     userId: actorUserId,
     restaurantId: order.restaurantId,
     ipAddress: getClientIp(req.headers),

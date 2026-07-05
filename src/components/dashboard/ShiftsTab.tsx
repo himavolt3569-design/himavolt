@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus,
@@ -83,15 +83,15 @@ export default function ShiftsTab() {
     endTime: "17:00",
     label: "",
   });
-  const [addLoading, setAddLoading] = useState(false);
   const [editingShiftId, setEditingShiftId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({
     startTime: "",
     endTime: "",
     label: "",
   });
-  const [editLoading, setEditLoading] = useState(false);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  // Monotonic counter for optimistic temp ids — avoids calling an impure
+  // global (Date.now/crypto) from an event handler.
+  const nextTempId = useRef(0);
 
   const shiftBasedStaff = staffList.filter((s) => s.staffType === "SHIFT_BASED");
   const fullTimeStaff = staffList.filter((s) => s.staffType === "FULL_TIME");
@@ -145,26 +145,50 @@ export default function ShiftsTab() {
       showToast("Start time must be before end time", "error");
       return;
     }
-    setAddLoading(true);
+    const staffMember = shiftBasedStaff.find((s) => s.id === addForm.staffId);
+    if (!staffMember) {
+      showToast("Select a staff member", "error");
+      return;
+    }
+
+    // Optimistic insert — the form closes and the shift shows up instantly;
+    // the POST response (which already includes the `staff` relation) swaps
+    // in for the temp row, so no extra reconcile fetch is needed.
+    const savedForm = addForm;
+    const tempId = `temp-${nextTempId.current++}`;
+    const optimistic: ShiftRecord = {
+      id: tempId,
+      label: savedForm.label || null,
+      date: selectedDate,
+      startTime: savedForm.startTime,
+      endTime: savedForm.endTime,
+      actualEndTime: null,
+      staffId: savedForm.staffId,
+      staff: { id: staffMember.id, staffType: staffMember.staffType, user: staffMember.user },
+    };
+    setShifts((prev) => [...prev, optimistic]);
+    setShowAddForm(false);
+    setAddForm((f) => ({ ...f, label: "", startTime: "09:00", endTime: "17:00" }));
+    showToast("Shift created", "success");
+
     try {
-      await apiFetch(`/api/restaurants/${restaurantId}/shifts`, {
+      const created = await apiFetch<ShiftRecord>(`/api/restaurants/${restaurantId}/shifts`, {
         method: "POST",
         body: {
-          staffId: addForm.staffId,
+          staffId: savedForm.staffId,
           date: selectedDate,
-          startTime: addForm.startTime,
-          endTime: addForm.endTime,
-          label: addForm.label || undefined,
+          startTime: savedForm.startTime,
+          endTime: savedForm.endTime,
+          label: savedForm.label || undefined,
         },
       });
-      showToast("Shift created", "success");
-      setShowAddForm(false);
-      setAddForm((f) => ({ ...f, label: "", startTime: "09:00", endTime: "17:00" }));
-      loadShifts();
+      setShifts((prev) => prev.map((s) => (s.id === tempId ? created : s)));
     } catch (err) {
+      setShifts((prev) => prev.filter((s) => s.id !== tempId));
+      setAddForm(savedForm);
+      setShowAddForm(true);
       showToast(err instanceof Error ? err.message : "Failed to create shift", "error");
     }
-    setAddLoading(false);
   };
 
   const startEdit = (shift: ShiftRecord) => {
@@ -178,39 +202,51 @@ export default function ShiftsTab() {
 
   const handleSaveEdit = async (shiftId: string) => {
     if (!restaurantId) return;
-    setEditLoading(true);
+    // Optimistic edit — apply the change instantly, reconcile with the
+    // PATCH response (or roll back) in the background.
+    const snapshot = shifts;
+    const savedForm = editForm;
+    setShifts((prev) =>
+      prev.map((s) =>
+        s.id === shiftId
+          ? { ...s, startTime: savedForm.startTime, endTime: savedForm.endTime, label: savedForm.label || null }
+          : s,
+      ),
+    );
+    setEditingShiftId(null);
+    showToast("Shift updated", "success");
+
     try {
-      await apiFetch(`/api/restaurants/${restaurantId}/shifts/${shiftId}`, {
+      const updated = await apiFetch<ShiftRecord>(`/api/restaurants/${restaurantId}/shifts/${shiftId}`, {
         method: "PATCH",
         body: {
-          startTime: editForm.startTime,
-          endTime: editForm.endTime,
-          label: editForm.label || undefined,
+          startTime: savedForm.startTime,
+          endTime: savedForm.endTime,
+          label: savedForm.label || undefined,
         },
       });
-      showToast("Shift updated", "success");
-      setEditingShiftId(null);
-      loadShifts();
+      setShifts((prev) => prev.map((s) => (s.id === shiftId ? updated : s)));
     } catch (err) {
+      setShifts(snapshot);
       showToast(err instanceof Error ? err.message : "Failed to update shift", "error");
     }
-    setEditLoading(false);
   };
 
   const handleDelete = async (shiftId: string) => {
     if (!restaurantId) return;
     if (!window.confirm("Delete this shift? Orders during this window will move to Unassigned.")) return;
-    setDeletingId(shiftId);
+    // Optimistic removal — no full-list reload.
+    const snapshot = shifts;
+    setShifts((prev) => prev.filter((s) => s.id !== shiftId));
+    showToast("Shift deleted", "success");
     try {
       await apiFetch(`/api/restaurants/${restaurantId}/shifts/${shiftId}`, {
         method: "DELETE",
       });
-      showToast("Shift deleted", "success");
-      loadShifts();
     } catch {
+      setShifts(snapshot);
       showToast("Failed to delete shift", "error");
     }
-    setDeletingId(null);
   };
 
   const overlapping = hasOverlap(shifts);
@@ -302,7 +338,7 @@ export default function ShiftsTab() {
                 <select
                   value={addForm.staffId}
                   onChange={(e) => setAddForm((f) => ({ ...f, staffId: e.target.value }))}
-                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-3 py-2.5 text-sm font-medium text-[var(--text-1)] outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/10"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-3 py-2.5 text-sm font-medium text-[var(--text-1)] outline-none focus:border-[var(--text-1)] focus:ring-2 focus:ring-[var(--text-1)]/10"
                 >
                   {shiftBasedStaff.length === 0 && (
                     <option value="">No shift-based staff available</option>
@@ -325,7 +361,7 @@ export default function ShiftsTab() {
                   onChange={(e) => setAddForm((f) => ({ ...f, label: e.target.value }))}
                   placeholder="e.g. Morning Shift"
                   maxLength={80}
-                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-3 py-2.5 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/10"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-3 py-2.5 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none focus:border-[var(--text-1)] focus:ring-2 focus:ring-[var(--text-1)]/10"
                 />
               </div>
 
@@ -337,7 +373,7 @@ export default function ShiftsTab() {
                   type="time"
                   value={addForm.startTime}
                   onChange={(e) => setAddForm((f) => ({ ...f, startTime: e.target.value }))}
-                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-3 py-2.5 text-sm font-medium text-[var(--text-1)] outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/10"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-3 py-2.5 text-sm font-medium text-[var(--text-1)] outline-none focus:border-[var(--text-1)] focus:ring-2 focus:ring-[var(--text-1)]/10"
                 />
               </div>
 
@@ -349,7 +385,7 @@ export default function ShiftsTab() {
                   type="time"
                   value={addForm.endTime}
                   onChange={(e) => setAddForm((f) => ({ ...f, endTime: e.target.value }))}
-                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-3 py-2.5 text-sm font-medium text-[var(--text-1)] outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/10"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-3 py-2.5 text-sm font-medium text-[var(--text-1)] outline-none focus:border-[var(--text-1)] focus:ring-2 focus:ring-[var(--text-1)]/10"
                 />
               </div>
             </div>
@@ -363,14 +399,10 @@ export default function ShiftsTab() {
               </button>
               <button
                 onClick={handleAddShift}
-                disabled={addLoading || shiftBasedStaff.length === 0}
+                disabled={shiftBasedStaff.length === 0}
                 className="flex items-center gap-1.5 rounded-xl bg-[var(--text-1)] px-4 py-2 text-sm font-bold text-white hover:bg-[#2c1508] disabled:opacity-50 transition-all"
               >
-                {addLoading ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <Check className="h-3.5 w-3.5" />
-                )}
+                <Check className="h-3.5 w-3.5" />
                 Save Shift
               </button>
             </div>
@@ -426,7 +458,7 @@ export default function ShiftsTab() {
                         type="time"
                         value={editForm.startTime}
                         onChange={(e) => setEditForm((f) => ({ ...f, startTime: e.target.value }))}
-                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-3 py-2 text-sm font-medium text-[var(--text-1)] outline-none focus:border-[#3e1e0c]"
+                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-3 py-2 text-sm font-medium text-[var(--text-1)] outline-none focus:border-[var(--text-1)]"
                       />
                     </div>
                     <div className="space-y-1">
@@ -437,7 +469,7 @@ export default function ShiftsTab() {
                         type="time"
                         value={editForm.endTime}
                         onChange={(e) => setEditForm((f) => ({ ...f, endTime: e.target.value }))}
-                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-3 py-2 text-sm font-medium text-[var(--text-1)] outline-none focus:border-[#3e1e0c]"
+                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-3 py-2 text-sm font-medium text-[var(--text-1)] outline-none focus:border-[var(--text-1)]"
                       />
                     </div>
                     <div className="space-y-1">
@@ -449,7 +481,7 @@ export default function ShiftsTab() {
                         value={editForm.label}
                         onChange={(e) => setEditForm((f) => ({ ...f, label: e.target.value }))}
                         placeholder="Optional label"
-                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-3 py-2 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none focus:border-[#3e1e0c]"
+                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-3 py-2 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none focus:border-[var(--text-1)]"
                       />
                     </div>
                   </div>
@@ -462,10 +494,9 @@ export default function ShiftsTab() {
                     </button>
                     <button
                       onClick={() => handleSaveEdit(shift.id)}
-                      disabled={editLoading}
-                      className="flex items-center gap-1 rounded-xl bg-[var(--accent)] px-3 py-1.5 text-xs font-bold text-white hover:bg-[var(--accent-hover)] disabled:opacity-50"
+                      className="flex items-center gap-1 rounded-xl bg-[var(--accent)] px-3 py-1.5 text-xs font-bold text-white hover:bg-[var(--accent-hover)]"
                     >
-                      {editLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                      <Check className="h-3 w-3" />
                       Save
                     </button>
                   </div>
@@ -508,14 +539,9 @@ export default function ShiftsTab() {
                     </button>
                     <button
                       onClick={() => handleDelete(shift.id)}
-                      disabled={deletingId === shift.id}
-                      className="flex items-center gap-1 rounded-lg bg-red-50 px-2.5 py-1.5 text-[10px] font-bold text-red-600 hover:bg-red-100 transition-all disabled:opacity-50"
+                      className="flex items-center gap-1 rounded-lg bg-red-50 px-2.5 py-1.5 text-[10px] font-bold text-red-600 hover:bg-red-100 transition-all"
                     >
-                      {deletingId === shift.id ? (
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                      ) : (
-                        <Trash2 className="h-3 w-3" />
-                      )}
+                      <Trash2 className="h-3 w-3" />
                       Delete
                     </button>
                   </div>

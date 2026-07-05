@@ -12,7 +12,7 @@ import {
 import { formatPrice } from "@/lib/currency";
 import { useToast } from "@/context/ToastContext";
 import { buildQRCanvas } from "@/components/dashboard/qr/qrCanvas";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, peekApiCache } from "@/lib/api-client";
 import { openBillWindow } from "@/lib/print-bill";
 import QRCodesTab from "./QRCodesTab";
 
@@ -43,10 +43,10 @@ interface TableData {
 type TableStatus = "free" | "occupied" | "paid";
 
 const STATUS_COLOR: Record<string, string> = {
-  PENDING:   "bg-[var(--accent)] text-[var(--accent)]",
-  ACCEPTED:  "bg-blue-100 text-blue-700",
-  PREPARING: "bg-[var(--accent-muted)] text-[var(--accent-text)]",
-  READY:     "bg-[var(--accent-muted)] text-[var(--accent-text)]",
+  PENDING:   "bg-[var(--status-pending-bg)] text-[var(--status-pending-text)]",
+  ACCEPTED:  "bg-[var(--status-info-bg)] text-[var(--status-info-text)]",
+  PREPARING: "bg-[var(--status-preparing-bg)] text-[var(--status-preparing-text)]",
+  READY:     "bg-[var(--status-ready-bg)] text-[var(--status-ready-text)]",
   DELIVERED: "bg-[var(--surface)] text-[var(--text-2)]",
 };
 
@@ -121,7 +121,7 @@ function TableQRModal({
           <style>
             @media print { @page { margin: 0; } body { margin: 0; } }
             body { margin:0; display:flex; align-items:center; justify-content:center; min-height:100vh; background:#f9fafb; }
-            img { width: 340px; height: auto; box-shadow: 0 4px 24px rgba(0,0,0,0.12); }
+            img { width: 340px; height: auto; border-radius: 24px; box-shadow: 0 4px 24px rgba(0,0,0,0.12); }
           </style></head>
           <body><img src="${image}" onload="window.print();" /></body></html>`);
         w.document.close();
@@ -166,7 +166,7 @@ function TableQRModal({
           <button
             onClick={download}
             disabled={busy}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[var(--text-1)] py-2.5 text-xs font-bold text-white hover:bg-[#2d1508] transition-all disabled:opacity-50"
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[var(--text-1)] py-2.5 text-xs font-bold text-[var(--canvas)] hover:opacity-90 transition-all disabled:opacity-50"
           >
             {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
             Download
@@ -211,6 +211,15 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
       ),
     enabled: !!rid,
     refetchInterval: 30_000,
+    // Seed from the hover/idle-warmed GET cache so the grid paints instantly on
+    // open instead of flashing a skeleton; revalidates in the background.
+    initialData: () =>
+      rid
+        ? peekApiCache<{ tables?: TableData[]; restaurant?: { slug?: string; name?: string } }>(
+            `/api/restaurants/${rid}/tables`,
+          )
+        : undefined,
+    initialDataUpdatedAt: 0,
   });
   const tables = tablesQuery.data?.tables ?? [];
   const meta = tablesQuery.data?.restaurant
@@ -449,9 +458,9 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
           <div>
             <h2 className="text-base font-extrabold text-[var(--text-1)]">Table Management</h2>
             <p className="text-xs text-[var(--text-3)]">
-              {tables.length} tables · <span className="text-emerald-600 font-semibold">{freeCount} free</span>
-              {occupiedCount > 0 && <> · <span className="text-amber-600 font-semibold">{occupiedCount} occupied</span></>}
-              {paidCount > 0 && <> · <span className="text-sky-600 font-semibold">{paidCount} paid</span></>}
+              {tables.length} tables · <span className="text-emerald-500 font-semibold">{freeCount} free</span>
+              {occupiedCount > 0 && <> · <span className="text-amber-500 font-semibold">{occupiedCount} occupied</span></>}
+              {paidCount > 0 && <> · <span className="text-sky-500 font-semibold">{paidCount} paid</span></>}
             </p>
           </div>
         </div>
@@ -463,13 +472,13 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
             <>
               <button
                 onClick={() => setShowBulk(true)}
-                className="flex items-center gap-1.5 rounded-xl border border-[#3e1e0c] px-3 py-2 text-xs font-bold text-[var(--text-1)] hover:bg-[var(--accent-muted)] transition-colors"
+                className="flex items-center gap-1.5 rounded-xl border border-[var(--border)] px-3 py-2 text-xs font-bold text-[var(--text-1)] hover:bg-[var(--accent-muted)] hover:border-[var(--accent-border)] transition-colors"
               >
                 <Plus className="h-3.5 w-3.5" /> Bulk Create
               </button>
               <button
                 onClick={() => setShowAdd(true)}
-                className="flex items-center gap-1.5 rounded-xl bg-[var(--text-1)] px-3 py-2 text-xs font-bold text-white hover:bg-[#2d1508] transition-colors"
+                className="flex items-center gap-1.5 rounded-xl bg-[var(--text-1)] px-3 py-2 text-xs font-bold text-[var(--canvas)] hover:opacity-90 transition-colors"
               >
                 <Plus className="h-3.5 w-3.5" /> Add Table
               </button>
@@ -497,7 +506,7 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
                 onClick={() => setFilter(f.key)}
                 className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition-colors ${
                   filter === f.key
-                    ? "bg-[var(--text-1)] text-white"
+                    ? "bg-[var(--text-1)] text-[var(--canvas)]"
                     : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
                 }`}
               >
@@ -538,8 +547,8 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
             const bgClass = status === "free"
               ? "bg-[var(--accent-muted)] border-[var(--accent-border)] hover:border-[var(--accent)]"
               : status === "paid"
-                ? "bg-[var(--accent-muted)] border-[var(--accent)] hover:border-[var(--accent)]"
-                : "bg-[var(--accent)] border-[var(--accent-border)] hover:border-[var(--accent-border)]";
+                ? "bg-sky-500/10 border-sky-500/40 hover:border-sky-400"
+                : "bg-amber-500/15 border-amber-500/50 hover:border-amber-400";
             const name = tableName(table);
 
             return (
@@ -563,7 +572,7 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
                       value={editLabel}
                       onChange={(e) => setEditLabel(e.target.value)}
                       placeholder="Table name"
-                      className="w-full rounded-lg border border-[var(--border)] px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-[var(--accent-border)]"
+                      className="w-full rounded-lg border border-[var(--border)] bg-[var(--canvas)] text-[var(--text-1)] px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-[var(--accent-border)]"
                     />
                     <div className="flex items-center gap-1">
                       <Users className="h-3 w-3 text-[var(--text-3)] shrink-0" />
@@ -572,7 +581,7 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
                         value={editCap}
                         onChange={(e) => setEditCap(e.target.value)}
                         min={1} max={20}
-                        className="w-full rounded-lg border border-[var(--border)] px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-[var(--accent-border)]"
+                        className="w-full rounded-lg border border-[var(--border)] bg-[var(--canvas)] text-[var(--text-1)] px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-[var(--accent-border)]"
                       />
                     </div>
                     <div className="flex gap-1">
@@ -622,7 +631,7 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
                           </button>
                           <button
                             onClick={() => handleDelete(table.id)}
-                            className="rounded-md p-1 hover:bg-red-50"
+                            className="rounded-md p-1 hover:bg-red-500/10"
                             title="Delete"
                           >
                             <Trash2 className="h-2.5 w-2.5 text-red-400" />
@@ -655,7 +664,7 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
                         </div>
                       ) : (
                         <div className="space-y-1">
-                          <div className="inline-flex rounded-md px-1.5 py-0.5 text-[9px] font-bold bg-amber-100 text-amber-700">
+                          <div className="inline-flex rounded-md px-1.5 py-0.5 text-[9px] font-bold bg-[var(--status-pending-bg)] text-[var(--status-pending-text)]">
                             BROWSING
                           </div>
                           <p className="text-[10px] text-[var(--text-2)]">Reading menu</p>
@@ -666,7 +675,7 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
                         </div>
                       )
                     ) : (
-                      <p className="text-xs font-semibold text-emerald-600">Available</p>
+                      <p className="text-xs font-semibold text-emerald-500">Available</p>
                     )}
 
                     <ChevronRight className="absolute bottom-3 right-3 h-3 w-3 text-[var(--text-3)]" />
@@ -732,7 +741,7 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
                 const guestDisplay = order.guestName ?? order.user?.name ?? "Guest";
                 return (
                   <div className="space-y-4">
-                    <div className="rounded-2xl bg-[var(--accent)] border border-[var(--accent-border)] p-4 space-y-2">
+                    <div className="rounded-2xl bg-[var(--accent-muted)] border border-[var(--accent-border)] p-4 space-y-2">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-[var(--text-2)]">Order</span>
                         <span className={`rounded-lg px-2 py-0.5 text-[10px] font-bold ${STATUS_COLOR[order.status] ?? "bg-[var(--surface)]"}`}>
@@ -755,7 +764,7 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
                         <div className="flex items-center gap-1.5 text-[10px]">
                           <CreditCard className="h-3 w-3 text-[var(--text-3)]" />
                           <span className="text-[var(--text-2)]">{order.payment.method}</span>
-                          <span className={`rounded-md px-1.5 py-0.5 font-bold ${isPaid ? "bg-sky-100 text-sky-700" : "bg-amber-100 text-amber-700"}`}>
+                          <span className={`rounded-md px-1.5 py-0.5 font-bold ${isPaid ? "bg-sky-500/15 text-sky-500" : "bg-[var(--status-pending-bg)] text-[var(--status-pending-text)]"}`}>
                             {isPaid ? "PAID" : "PENDING"}
                           </span>
                         </div>
@@ -778,7 +787,7 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
                         <button
                           onClick={() => handleClearSession(order.id)}
                           disabled={clearingId === order.id}
-                          className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-red-50 border border-red-100 py-2.5 text-xs font-bold text-red-600 hover:bg-red-100 transition-colors disabled:opacity-60"
+                          className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-red-500/10 border border-red-500/20 py-2.5 text-xs font-bold text-red-500 hover:bg-red-500/20 transition-colors disabled:opacity-60"
                         >
                           {clearingId === order.id
                             ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -836,7 +845,7 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
                     placeholder="e.g. Garden Table, Window Seat, VIP 1"
                     autoFocus
                     onKeyDown={(e) => { if (e.key === "Enter" && !addSaving) handleAdd(); }}
-                    className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] text-[var(--text-1)] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                   />
                   <p className="text-[10px] text-[var(--text-3)] mt-1">Leave blank to name it by number automatically.</p>
                 </div>
@@ -845,7 +854,7 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
                   <input
                     type="number" value={addCap} onChange={(e) => setAddCap(e.target.value)}
                     min={1} max={30}
-                    className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] text-[var(--text-1)] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                   />
                 </div>
               </div>
@@ -856,7 +865,7 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
                   Cancel
                 </button>
                 <button onClick={handleAdd} disabled={addSaving}
-                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] py-3 text-sm font-bold text-white hover:bg-[#2d1508] disabled:opacity-40">
+                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] py-3 text-sm font-bold text-[var(--canvas)] hover:opacity-90 disabled:opacity-40">
                   {addSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
                   Add Table
                 </button>
@@ -895,7 +904,7 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
                     <input
                       type="number" value={bulkFrom} onChange={(e) => setBulkFrom(e.target.value)}
                       placeholder="1" min={1}
-                      className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
+                      className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] text-[var(--text-1)] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                     />
                   </div>
                   <div>
@@ -903,7 +912,7 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
                     <input
                       type="number" value={bulkTo} onChange={(e) => setBulkTo(e.target.value)}
                       placeholder="20" min={1}
-                      className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
+                      className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] text-[var(--text-1)] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                     />
                   </div>
                 </div>
@@ -912,7 +921,7 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
                   <input
                     type="number" value={bulkCap} onChange={(e) => setBulkCap(e.target.value)}
                     min={1} max={30}
-                    className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] text-[var(--text-1)] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                   />
                 </div>
                 {parseInt(bulkFrom) > 0 && parseInt(bulkTo) >= parseInt(bulkFrom) && (
@@ -946,7 +955,7 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
                   Cancel
                 </button>
                 <button onClick={handleBulkCreate} disabled={bulkSaving || !bulkFrom || !bulkTo || parseInt(bulkFrom) > parseInt(bulkTo)}
-                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] py-3 text-sm font-bold text-white hover:bg-[#2d1508] disabled:opacity-40">
+                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] py-3 text-sm font-bold text-[var(--canvas)] hover:opacity-90 disabled:opacity-40">
                   {bulkSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
                   {bulkSaving ? `Creating... ${bulkProgress}%` : "Create Tables"}
                 </button>

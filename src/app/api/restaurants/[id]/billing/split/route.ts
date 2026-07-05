@@ -6,6 +6,7 @@ import { getAuthUser } from "@/lib/auth";
 import { logAudit, getClientIp } from "@/lib/audit";
 import { getCurrencySymbol } from "@/lib/currency";
 import { STAFF_BILLING_ROLES } from "@/lib/staff-roles";
+import { endTableSession } from "@/lib/table-session";
 
 const VALID_METHODS = new Set(["CASH", "ESEWA", "KHALTI", "BANK", "COUNTER", "DIRECT"]);
 
@@ -134,10 +135,20 @@ export async function POST(
       data: { paidVia: `SPLIT: ${splitDescription}` },
     });
 
-    // Auto-clear table session — catch schema drift errors
-    db.tableSession
-      .updateMany({ where: { orderId, isActive: true }, data: { isActive: false } })
-      .catch(() => {});
+    // Auto-clear the table session via the shared helper (handles the
+    // delete-inactive-first dance for the unique constraint; never throws).
+    const sessionResult = await endTableSession(id, { orderId });
+    if (sessionResult.error) {
+      logAudit({
+        action: "TABLE_CLEAR_FAILED",
+        entity: "TableSession",
+        entityId: orderId,
+        detail: `Table session not cleared after split payment: ${sessionResult.error}`,
+        userId: actor.id,
+        restaurantId: id,
+        ipAddress: getClientIp(req.headers),
+      });
+    }
 
     logAudit({
       action: "PAYMENT_COLLECTED",

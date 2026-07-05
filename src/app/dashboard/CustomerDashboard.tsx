@@ -51,6 +51,7 @@ import Skeleton, {
   SkeletonOrderCard,
   SkeletonStatGrid,
 } from "@/components/shared/Skeleton";
+import { ScrollableRow } from "@/components/shared/ScrollableRow";
 
 const BRAND = "#eaa94d";
 
@@ -1021,7 +1022,7 @@ function OrdersTab({
         </div>
       )}
 
-      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+      <ScrollableRow innerClassName="flex gap-2 pb-1" edgeColor="var(--canvas-sub)">
         {FILTER_CHIPS.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
@@ -1036,7 +1037,7 @@ function OrdersTab({
             {label}
           </button>
         ))}
-      </div>
+      </ScrollableRow>
 
       {showStays ? (
         hotelBookings.length === 0 ? (

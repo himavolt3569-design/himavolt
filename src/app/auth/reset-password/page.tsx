@@ -64,6 +64,18 @@ function ResetPasswordForm() {
     if (!mountedRef.current) return;
     if (updateError) { setError(updateError.message); setLoading(false); return; }
 
+    // Keep the DB flag in sync so the sign-in page offers the password field
+    // next time instead of another magic link. Best-effort — the credential
+    // already lives in Supabase regardless.
+    try {
+      await fetch("/api/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ hasPassword: true }),
+      });
+    } catch {}
+
+    if (!mountedRef.current) return;
     setStatus("done");
     redirectTimerRef.current = setTimeout(() => {
       redirectTimerRef.current = null;

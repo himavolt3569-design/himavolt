@@ -185,24 +185,24 @@ export default function TableOrderBoard({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.97 }}
               transition={{ type: "spring", stiffness: 380, damping: 32 }}
-              className={`rounded-2xl border bg-[var(--canvas)] overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,0.04)] ${
-                g.hasNew ? "border-amber-300 hv-flash" : "border-[var(--border-soft)]"
+              className={`rounded-2xl border bg-(--canvas) overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,0.04)] ${
+                g.hasNew ? "border-amber-300 hv-flash" : "border-(--border-soft)"
               }`}
             >
               {/* Table header */}
               <button
                 onClick={() => toggleGroup(g.meta.key)}
-                className={`w-full flex items-center justify-between gap-2 px-4 py-3 bg-[var(--canvas-sub)] hover:bg-[var(--surface-alt)] transition-colors text-left border-b ${
-                  isCollapsed ? "border-transparent" : "border-[var(--border-soft)]"
+                className={`w-full flex items-center justify-between gap-2 px-4 py-3 bg-(--canvas-sub) hover:bg-(--surface-alt) transition-colors text-left border-b ${
+                  isCollapsed ? "border-transparent" : "border-(--border-soft)"
                 }`}
               >
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${g.hasNew ? "bg-amber-100 text-amber-700" : "bg-[var(--accent-muted)] text-[var(--accent-text)]"}`}>
+                  <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${g.hasNew ? "bg-amber-100 text-amber-700" : "bg-(--accent-muted) text-(--accent-text)"}`}>
                     <Icon className="h-4.5 w-4.5" />
                   </span>
                   <div className="min-w-0">
-                    <p className="text-sm font-extrabold text-[var(--text-1)] truncate">{g.meta.label}</p>
-                    <p className="text-[11px] text-[var(--text-3)] truncate">
+                    <p className="text-sm font-extrabold text-(--text-1) truncate">{g.meta.label}</p>
+                    <p className="text-[11px] text-(--text-3) truncate">
                       {g.meta.sub ? `${g.meta.sub} · ` : ""}
                       {g.rounds.length} round{g.rounds.length !== 1 ? "s" : ""}
                     </p>
@@ -210,7 +210,7 @@ export default function TableOrderBoard({
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
                   <div className="text-right">
-                    <p className="text-sm font-black text-[var(--text-1)] tabular-nums">{formatPrice(g.total, currency)}</p>
+                    <p className="text-sm font-black text-(--text-1) tabular-nums">{formatPrice(g.total, currency)}</p>
                     {g.hasNew && (
                       <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-extrabold text-amber-700 animate-pulse">
                         <span className="h-1.5 w-1.5 rounded-full bg-amber-500" /> NEW
@@ -218,7 +218,7 @@ export default function TableOrderBoard({
                     )}
                   </div>
                   <motion.div animate={{ rotate: isCollapsed ? 180 : 0 }} transition={{ duration: 0.2 }}>
-                    <ChevronDown className="h-5 w-5 text-[var(--text-3)]" />
+                    <ChevronDown className="h-5 w-5 text-(--text-3)" />
                   </motion.div>
                 </div>
               </button>
@@ -242,29 +242,29 @@ export default function TableOrderBoard({
                             ? "border-amber-400 bg-amber-50/70 hv-flash"
                             : round.state === "rejected"
                               ? "border-red-200 bg-red-50/60"
-                              : "border-[var(--border-soft)] bg-[var(--canvas)]";
+                              : "border-(--border-soft) bg-(--canvas)";
                         return (
                           <div key={`${order.id}:${round.key}`} className={`rounded-xl border ${tone} px-3 py-2.5`}>
                             <div className="flex items-center justify-between mb-1.5">
                               <span className="flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wide">
                                 {round.state === "new" && <span className="text-amber-700">● New · Round {round.no}</span>}
                                 {round.state === "accepted" && (
-                                  <span className="flex items-center gap-1 text-[var(--accent-text)]"><CheckCircle2 className="h-3 w-3" /> Round {round.no} · In kitchen</span>
+                                  <span className="flex items-center gap-1 text-(--accent-text)"><CheckCircle2 className="h-3 w-3" /> Round {round.no} · In kitchen</span>
                                 )}
                                 {round.state === "rejected" && (
                                   <span className="flex items-center gap-1 text-red-600"><Ban className="h-3 w-3" /> Round {round.no} · Rejected</span>
                                 )}
                               </span>
-                              <span className="text-[10px] font-bold text-[var(--text-3)]">#{order.orderNo}</span>
+                              <span className="text-[10px] font-bold text-(--text-3)">#{order.orderNo}</span>
                             </div>
 
                             <div className="space-y-0.5">
                               {round.items.map((it) => (
                                 <div key={it.id} className="flex items-baseline justify-between gap-2 text-[13px]">
-                                  <span className={`font-semibold ${round.state === "rejected" ? "text-red-400 line-through" : "text-[var(--text-1)]"}`}>
-                                    <span className="text-[var(--accent-text)]">{it.quantity}×</span> {it.name}
+                                  <span className={`font-semibold ${round.state === "rejected" ? "text-red-400 line-through" : "text-(--text-1)"}`}>
+                                    <span className="text-(--accent-text)">{it.quantity}×</span> {it.name}
                                   </span>
-                                  <span className="shrink-0 tabular-nums text-[12px] text-[var(--text-2)]">{formatPrice(it.price * it.quantity, currency)}</span>
+                                  <span className="shrink-0 tabular-nums text-[12px] text-(--text-2)">{formatPrice(it.price * it.quantity, currency)}</span>
                                 </div>
                               ))}
                             </div>
@@ -280,7 +280,7 @@ export default function TableOrderBoard({
                                       value={rejectReason}
                                       onChange={(e) => setRejectReason(e.target.value)}
                                       disabled={busy}
-                                      className="flex-1 rounded-lg border border-[var(--border)] px-2 py-2 text-[12px] font-medium outline-none focus:ring-2 focus:ring-red-500/20 text-black dark:text-white bg-transparent"
+                                      className="flex-1 rounded-lg border border-(--border) px-2 py-2 text-[12px] font-medium outline-none focus:ring-2 focus:ring-red-500/20 text-black dark:text-white bg-transparent"
                                     />
                                     <button
                                       disabled={busy}
@@ -289,14 +289,14 @@ export default function TableOrderBoard({
                                         setRejectId(null);
                                         setRejectReason("");
                                       }}
-                                      className="flex h-[34px] items-center justify-center rounded-lg bg-red-500 px-3 text-[12px] font-bold text-white hover:bg-red-600 disabled:opacity-50 transition-colors"
+                                      className="flex h-8.5 items-center justify-center rounded-lg bg-red-500 px-3 text-[12px] font-bold text-white hover:bg-red-600 disabled:opacity-50 transition-colors"
                                     >
                                       Confirm
                                     </button>
                                     <button
                                       disabled={busy}
                                       onClick={() => setRejectId(null)}
-                                      className="flex h-[34px] items-center justify-center rounded-lg bg-[var(--surface-alt)] px-3 text-[12px] font-bold text-[var(--text-2)] hover:bg-[var(--border-soft)] transition-colors"
+                                      className="flex h-8.5 items-center justify-center rounded-lg bg-(--surface-alt) px-3 text-[12px] font-bold text-(--text-2) hover:bg-(--border-soft) transition-colors"
                                     >
                                       Cancel
                                     </button>
@@ -306,7 +306,7 @@ export default function TableOrderBoard({
                                     <button
                                       disabled={busy}
                                       onClick={() => onAcceptRound(order, round.key, meta)}
-                                      className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-[var(--text-1)] py-2 text-[12px] font-bold text-white hover:bg-[#2d1508] disabled:opacity-50 transition-colors"
+                                      className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-(--text-1) py-2 text-[12px] font-bold text-[var(--canvas)] hover:opacity-90 disabled:opacity-50 transition-colors"
                                     >
                                       {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
                                       Accept
@@ -343,16 +343,6 @@ export default function TableOrderBoard({
         })}
       </AnimatePresence>
 
-      {/* Flashing border for tables/rounds awaiting action. */}
-      <style jsx global>{`
-        @keyframes hvFlash {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
-          50% { box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.35); }
-        }
-        .hv-flash {
-          animation: hvFlash 1.4s ease-in-out infinite;
-        }
-      `}</style>
     </div>
   );
 }

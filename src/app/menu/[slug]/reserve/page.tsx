@@ -8,7 +8,6 @@ import {
   Clock,
   Users,
   CheckCircle,
-  Loader2,
   ArrowLeft,
   Phone,
   Mail,
@@ -38,7 +37,6 @@ export default function ReservePage() {
     specialRequests: "",
   });
 
-  const [submitting, setSubmitting] = useState(false);
   const [confirmed, setConfirmed] = useState<null | { id: string; date: string; timeSlot: string }>(null);
   const [error, setError] = useState<string | null>(null);
   const [bookedSlots, setBookedSlots] = useState<Record<string, number>>({});
@@ -56,24 +54,25 @@ export default function ReservePage() {
       .catch(() => {});
   }, [slug, form.date]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!form.guestName.trim() || !form.phone.trim()) {
       setError("Name and phone are required");
       return;
     }
-    setSubmitting(true);
     setError(null);
-    try {
-      const res = await apiFetch<{ id: string; date: string; timeSlot: string }>(
-        `/api/public/restaurants/${slug}/reservations`,
-        { method: "POST", body: form },
-      );
-      setConfirmed(res);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not submit reservation");
-    } finally {
-      setSubmitting(false);
-    }
+    // Optimistic: this is a reservation *request* (the venue confirms later),
+    // and the confirmation screen only needs the date/time we already hold — so
+    // show it instantly and send in the background, rolling back on failure.
+    setConfirmed({ id: "pending", date: form.date, timeSlot: form.timeSlot });
+    apiFetch<{ id: string; date: string; timeSlot: string }>(
+      `/api/public/restaurants/${slug}/reservations`,
+      { method: "POST", body: form },
+    )
+      .then((res) => setConfirmed(res))
+      .catch((err) => {
+        setConfirmed(null);
+        setError(err instanceof Error ? err.message : "Could not submit reservation");
+      });
   };
 
   if (confirmed) {
@@ -267,17 +266,9 @@ export default function ReservePage() {
 
           <button
             onClick={handleSubmit}
-            disabled={submitting}
             className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--accent)] py-4 text-sm font-bold text-white hover:bg-[var(--accent-hover)] transition-colors disabled:opacity-50"
           >
-            {submitting ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Submitting...
-              </>
-            ) : (
-              "Request Reservation"
-            )}
+            Request Reservation
           </button>
         </div>
       </main>

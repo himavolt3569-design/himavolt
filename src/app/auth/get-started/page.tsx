@@ -20,6 +20,10 @@ export default function GetStartedPage() {
   const { isLoaded, isSignedIn, user } = useAuth();
 
   const [username, setUsername] = useState<string | null>(null);
+  // Whether this account already has a password. Owners who don't must set one
+  // when they choose to create a restaurant (magic-link/OAuth accounts start
+  // without a password now that the callback no longer forces it up front).
+  const [hasPassword, setHasPassword] = useState<boolean | null>(null);
   const [checking, setChecking] = useState(true);
   const [choice, setChoice] = useState<Choice | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -52,6 +56,7 @@ export default function GetStartedPage() {
         if (meRes.ok) {
           const me = await meRes.json();
           setUsername(me.username ?? null);
+          setHasPassword(me.hasPassword ?? null);
         }
       } finally {
         if (!cancelled) setChecking(false);
@@ -75,7 +80,14 @@ export default function GetStartedPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ role: "OWNER" }),
         });
-        router.push("/dashboard");
+        // Owners must have a password before running a restaurant. If they came
+        // in via magic link / Google and never set one, require it now (the
+        // set-password page carries them on to the dashboard afterwards).
+        if (hasPassword === false) {
+          router.push("/auth/set-password?next=/dashboard");
+        } else {
+          router.push("/dashboard");
+        }
       } else {
         router.push("/auth/join-restaurant");
       }

@@ -11,6 +11,7 @@ import { notifyOrderChanged } from "@/lib/realtime";
 import { canAcceptOrder } from "@/lib/payment-gate";
 import { z } from "zod";
 import { restoreStock } from "@/lib/stock";
+import { endTableSession } from "@/lib/table-session";
 
 const ORDER_STATUSES = [
   "PENDING",
@@ -110,6 +111,18 @@ export async function PATCH(
     if (!restaurant)
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     actorId = user.id;
+  }
+
+  // Scope the order to THIS restaurant before mutating it. Order ids leak via the
+  // public payment-status and bill endpoints, so without this a staff/owner of
+  // one restaurant could accept/reject/cancel another restaurant's order
+  // (cross-tenant IDOR).
+  const owned = await db.order.findFirst({
+    where: { id: orderId, restaurantId: id },
+    select: { id: true },
+  });
+  if (!owned) {
+    return NextResponse.json({ error: "Order not found" }, { status: 404 });
   }
 
   const parsed = updateOrderSchema.safeParse(await req.json());
@@ -222,37 +235,54 @@ export async function PATCH(
     }
   }
 
-  // Restore stock, cancel payments, and cancel unprinted KOT jobs when rejected (non-fatal)
+  // Restore stock, cancel payments/KOT jobs, and free the table when rejected.
+  // Each step stays non-fatal (the rejection itself already committed), but
+  // failures are collected and written to the audit log so "stock not
+  // restored" / "table stuck occupied" is diagnosable instead of silent.
+  let cleanupFailures: string[] = [];
   if (status === "REJECTED") {
     const orderWithItems = await db.order.findUnique({
       where: { id: orderId },
       select: { id: true, items: { select: { menuItemId: true, quantity: true } } },
     });
-    if (orderWithItems) {
-      restoreStock(orderWithItems.items).catch((err) =>
-        console.error("[Orders PATCH] Stock restore failed (non-fatal):", err),
-      );
+
+    const steps: [string, Promise<unknown>][] = [
+      [
+        "stockRestore",
+        orderWithItems ? restoreStock(orderWithItems.items) : Promise.resolve(),
+      ],
+      [
+        "paymentCancel",
+        db.payment.updateMany({
+          where: { orderId, status: { in: ["PENDING", "AWAITING_VERIFICATION"] } },
+          data: { status: "FAILED", rejectionNote: `Order rejected by staff` },
+        }),
+      ],
+      [
+        // Cancel unprinted KOT jobs so the printer doesn't fire after rejection
+        "kotCancel",
+        db.printJob.updateMany({
+          where: { orderId, type: "KOT", status: { in: ["PENDING", "RETRYING"] } },
+          data: { status: "FAILED", lastError: "Order rejected by staff" },
+        }),
+      ],
+      [
+        "tableSessionClear",
+        endTableSession(id, { orderId }).then((r) => {
+          if (r.error) throw new Error(r.error);
+        }),
+      ],
+    ];
+
+    const results = await Promise.allSettled(steps.map(([, p]) => p));
+    cleanupFailures = results.flatMap((r, i) =>
+      r.status === "rejected"
+        ? [`${steps[i][0]}: ${r.reason instanceof Error ? r.reason.message : String(r.reason)}`]
+        : [],
+    );
+    if (cleanupFailures.length) {
+      console.error("[Orders PATCH] Reject cleanup failures (non-fatal):", cleanupFailures);
     }
-
-    // Cancel pending payments
-    db.payment
-      .updateMany({
-        where: { orderId, status: { in: ["PENDING", "AWAITING_VERIFICATION"] } },
-        data: { status: "FAILED", rejectionNote: `Order rejected by staff` },
-      })
-      .catch((err) =>
-        console.error("[Orders PATCH] Payment cleanup failed (non-fatal):", err),
-      );
-
-    // Cancel unprinted KOT jobs so the printer doesn't fire after rejection
-    db.printJob
-      .updateMany({
-        where: { orderId, type: "KOT", status: { in: ["PENDING", "RETRYING"] } },
-        data: { status: "FAILED", lastError: "Order rejected by staff" },
-      })
-      .catch((err) =>
-        console.error("[Orders PATCH] PrintJob cancel failed (non-fatal):", err),
-      );
   }
 
   logAudit({
@@ -260,7 +290,12 @@ export async function PATCH(
     entity: "Order",
     entityId: orderId,
     detail: `Order ${order.orderNo} status changed to ${status}`,
-    metadata: { orderNo: order.orderNo, status, rejectReason },
+    metadata: {
+      orderNo: order.orderNo,
+      status,
+      rejectReason,
+      ...(cleanupFailures.length ? { cleanupFailures } : {}),
+    },
     userId: actorId,
     restaurantId: id,
     ipAddress: getClientIp(req.headers),

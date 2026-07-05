@@ -101,8 +101,8 @@ export default function HeroSlidesManager() {
   }, [showForm, fetchMenuItems]);
 
   const handleUpload = async (file: File) => {
-    if (file.size > 5 * 1024 * 1024) {
-      showToast("File too large (max 5MB)", "error");
+    if (file.size > 20 * 1024 * 1024) {
+      showToast("File too large (max 20MB)", "error");
       return;
     }
     setUploading(true);

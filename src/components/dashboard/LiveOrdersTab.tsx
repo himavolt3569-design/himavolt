@@ -33,6 +33,7 @@ import { openBillWindow } from "@/lib/print-bill";
 import DineInRequestModal from "@/components/modals/DineInRequestModal";
 import { SkeletonOrderCard } from "@/components/shared/Skeleton";
 import { apiFetch } from "@/lib/api-client";
+import { ScrollableRow } from "@/components/shared/ScrollableRow";
 import { useToast } from "@/context/ToastContext";
 import TableOrderBoard from "@/components/orders/TableOrderBoard";
 import gsap from "gsap";
@@ -479,7 +480,7 @@ export default function LiveOrdersTab() {
         </div>
       </div>
 
-      <div className="flex gap-2.5 overflow-x-auto scrollbar-hide pb-2">
+      <ScrollableRow innerClassName="flex gap-2.5 pb-2" edgeColor="var(--canvas-sub)">
         {FILTER_OPTIONS.map((opt) => (
           <button
             key={opt.value}
@@ -500,7 +501,7 @@ export default function LiveOrdersTab() {
             )}
           </button>
         ))}
-      </div>
+      </ScrollableRow>
 
       {/* Orders — desktop table + mobile cards */}
       {filtered.length === 0 ? (

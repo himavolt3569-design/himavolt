@@ -163,10 +163,7 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    const dbUser = await db.user.findUnique({ where: { id: user.id } })
-      ?? (isAccountLink && email ? await db.user.findFirst({ where: { email } }) : null);
-
-    // Base destination, ignoring the password gate for a moment.
+    // Base destination for this sign-in.
     const explicitCustomerIntent = roleParam === "CUSTOMER";
     let baseRedirect: string;
     if (!isNewAccount) {
@@ -186,11 +183,11 @@ export async function GET(req: NextRequest) {
       baseRedirect = "/auth/get-started";
     }
 
-    // The password step is unconditional and highest priority — it carries
-    // the real destination forward via `next` so it isn't lost.
-    redirectTo = dbUser?.hasPassword
-      ? baseRedirect
-      : `/auth/set-password?next=${encodeURIComponent(baseRedirect)}`;
+    // Magic link / OAuth is only the *entry* — we no longer force a password
+    // at sign-in time. A password is required later, at the moment an owner
+    // creates their restaurant (see /auth/get-started). Google users and
+    // customers can keep using OAuth / magic link without ever setting one.
+    redirectTo = baseRedirect;
   } catch (err: any) {
     console.error("[/auth/callback] DB error:", err?.message ?? err);
     // Session cookies are still valid — redirect to dashboard and let it recover

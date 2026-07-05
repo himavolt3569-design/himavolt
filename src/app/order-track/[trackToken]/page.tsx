@@ -227,7 +227,7 @@ function InvalidToken() {
         </p>
         <Link
           href="/"
-          className="inline-flex items-center gap-2 rounded-xl bg-[var(--text-1)] px-6 py-3 text-sm font-bold text-white hover:bg-[#2d1508] transition-colors"
+          className="inline-flex items-center gap-2 rounded-xl bg-[var(--text-1)] px-6 py-3 text-sm font-bold text-[var(--canvas)] hover:opacity-90 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           Go home
@@ -336,13 +336,28 @@ export default function OrderTrackPage() {
   // so status changes arrive instantly without waiting for the next SSE poll.
   useRealtimeSignal(order?.id ? orderTopic(order.id) : null, fetchOrder);
 
-  if (loading) {
+  // First paint: show the real page chrome instantly (no full-screen spinner —
+  // the owner's standard is that the shell appears immediately and content pops
+  // in). Guarded on `!order` so live SSE/realtime updates never re-flash this.
+  if (loading && !order && !notFound) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[var(--canvas-sub)]">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 rounded-full border-2 border-[var(--accent)] border-t-transparent animate-spin" />
-          <p className="text-sm text-[var(--text-3)]">Loading your order…</p>
-        </div>
+      <div className="min-h-screen bg-[var(--canvas-sub)]">
+        <header className="sticky top-0 z-40 bg-[var(--canvas)] border-b border-[var(--border-soft)] shadow-sm">
+          <div className="mx-auto max-w-2xl px-4">
+            <div className="flex h-14 items-center gap-3">
+              <Link
+                href="/"
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-colors"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Link>
+              <div className="flex-1 min-w-0">
+                <h1 className="text-sm font-bold text-[var(--text-1)]">Track Order</h1>
+                <p className="text-[11px] text-[var(--text-3)]">Fetching your order…</p>
+              </div>
+            </div>
+          </div>
+        </header>
       </div>
     );
   }
@@ -611,7 +626,7 @@ export default function OrderTrackPage() {
 
         <Link
           href={`/menu/${order.restaurant.slug}${order.tableNo ? `?table=${order.tableNo}` : ""}`}
-          className="block w-full rounded-xl bg-[var(--text-1)] py-4 text-center text-sm font-bold text-white hover:bg-[#2d1508] transition-colors shadow-md"
+          className="block w-full rounded-xl bg-[var(--text-1)] py-4 text-center text-sm font-bold text-[var(--canvas)] hover:opacity-90 transition-colors shadow-md"
         >
           Back to Menu
         </Link>

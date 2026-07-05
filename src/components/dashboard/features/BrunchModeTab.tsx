@@ -27,6 +27,7 @@ import {
   Croissant,
 } from "lucide-react";
 import NotPersistedBanner from "./_NotPersistedBanner";
+import NumberInput from "@/components/shared/NumberInput";
 
 interface BrunchMenuItem {
   id: string;
@@ -365,12 +366,13 @@ export default function BrunchModeTab() {
                         onChange={(e) => setNewPkgDesc(e.target.value)}
                         className="border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                       />
-                      <input
-                        type="number"
+                      <NumberInput
                         placeholder={`Price (${getCurrencySymbol(cur)})`}
                         min={0}
-                        value={newPkgPrice || ""}
-                        onChange={(e) => setNewPkgPrice(Number(e.target.value))}
+                        value={newPkgPrice}
+                        onChange={(n) => setNewPkgPrice(n)}
+                        decimal
+                        hideZero
                         className="border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                       />
                     </div>
@@ -473,12 +475,13 @@ export default function BrunchModeTab() {
                         <option value="Brunch Exclusive">Brunch Exclusive</option>
                         <option value="Main Menu">From Main Menu</option>
                       </select>
-                      <input
-                        type="number"
+                      <NumberInput
                         placeholder={`Price (${getCurrencySymbol(cur)})`}
                         min={0}
-                        value={newItemPrice || ""}
-                        onChange={(e) => setNewItemPrice(Number(e.target.value))}
+                        value={newItemPrice}
+                        onChange={(n) => setNewItemPrice(n)}
+                        decimal
+                        hideZero
                         className="border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                       />
                     </div>
@@ -541,10 +544,11 @@ export default function BrunchModeTab() {
                       {editingPrice === item.id ? (
                         <div className="flex items-center gap-1.5">
                           <span className="text-xs text-[var(--text-3)]">{getCurrencySymbol(cur)}</span>
-                          <input
-                            type="number"
+                          <NumberInput
                             value={editPriceValue}
-                            onChange={(e) => setEditPriceValue(Number(e.target.value))}
+                            onChange={(n) => setEditPriceValue(n)}
+                            min={0}
+                            decimal
                             className="w-20 border border-[var(--border)] rounded-lg px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                           />
                           <button onClick={() => savePriceEdit(item.id)} className="p-1 text-[var(--accent-text)] hover:bg-[var(--accent-muted)] rounded">

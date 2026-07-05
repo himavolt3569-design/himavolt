@@ -134,7 +134,7 @@ export default function ContactPage() {
           </div>
           <Link
             href="/"
-            className="flex items-center gap-1.5 rounded-xl bg-[var(--text-1)] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#2d1508] transition-all"
+            className="flex items-center gap-1.5 rounded-xl bg-[var(--text-1)] px-4 py-2.5 text-sm font-bold text-[var(--canvas)] hover:opacity-90 transition-all"
           >
             <Globe className="h-3.5 w-3.5" />
             Back to Home
@@ -235,7 +235,7 @@ export default function ContactPage() {
                       setSubmitted(false);
                       setForm({ name: "", email: "", phone: "", subject: "", message: "" });
                     }}
-                    className="mt-6 rounded-xl bg-[var(--text-1)] px-6 py-3 text-sm font-bold text-white hover:bg-[#2d1508] transition-all"
+                    className="mt-6 rounded-xl bg-[var(--text-1)] px-6 py-3 text-sm font-bold text-[var(--canvas)] hover:opacity-90 transition-all"
                   >
                     Send Another Message
                   </button>
@@ -332,7 +332,7 @@ export default function ContactPage() {
 
                   <button
                     type="submit"
-                    className="group flex w-full items-center justify-center gap-2.5 rounded-2xl bg-[var(--text-1)] py-4 text-[15px] font-extrabold text-white shadow-lg shadow-[var(--text-1)]/20 transition-all hover:bg-[#2d1508] active:scale-[0.98]"
+                    className="group flex w-full items-center justify-center gap-2.5 rounded-2xl bg-[var(--text-1)] py-4 text-[15px] font-extrabold text-[var(--canvas)] shadow-lg shadow-[var(--text-1)]/20 transition-all hover:opacity-90 active:scale-[0.98]"
                   >
                     <Send className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                     {submitting ? "Sending..." : "Send Message"}

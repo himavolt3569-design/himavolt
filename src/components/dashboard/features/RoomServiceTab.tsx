@@ -19,6 +19,7 @@ import {
   X,
   Search,
 } from "lucide-react";
+import NumberInput from "@/components/shared/NumberInput";
 
 type OrderStatus = "Received" | "Preparing" | "On the Way" | "Delivered";
 
@@ -597,15 +598,11 @@ export default function RoomServiceTab() {
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[var(--text-3)]">
                     {surcharge.type === "flat" ? "$" : ""}
                   </span>
-                  <input
-                    type="number"
+                  <NumberInput
                     value={surcharge.value}
-                    onChange={(e) =>
-                      setSurcharge((s) => ({
-                        ...s,
-                        value: parseFloat(e.target.value) || 0,
-                      }))
-                    }
+                    onChange={(n) => setSurcharge((s) => ({ ...s, value: n }))}
+                    min={0}
+                    decimal
                     className="w-24 rounded-lg border border-[var(--border)] py-2 pl-7 pr-3 text-sm text-[var(--text-1)] focus:border-[var(--accent)] focus:outline-none"
                   />
                   {surcharge.type === "percentage" && (

@@ -38,7 +38,7 @@ export default function DeleteConfirmDialog({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 8 }}
             transition={{ duration: 0.18 }}
-            className="fixed left-1/2 top-1/2 z-50 w-full max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-[var(--canvas)] p-6 shadow-2xl"
+            className="fixed left-1/2 top-1/2 z-50 w-full max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-3xl bg-[var(--canvas)] p-6 shadow-2xl"
           >
             <button
               onClick={onCancel}
@@ -58,7 +58,7 @@ export default function DeleteConfirmDialog({
               <button
                 onClick={onCancel}
                 disabled={loading}
-                className="flex-1 rounded-xl border border-slate-200 bg-slate-50 py-2.5 text-sm font-medium text-slate-600 transition-all hover:bg-slate-100 disabled:opacity-50"
+                className="flex-1 rounded-xl border border-white/40 shadow-sm bg-slate-50/50 py-2.5 text-sm font-medium text-slate-600 transition-all hover:bg-slate-100 disabled:opacity-50"
               >
                 Cancel
               </button>

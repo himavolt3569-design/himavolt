@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { Loader2, ArrowDown, ArrowUp, Users } from "lucide-react";
-import { apiFetch, peekApiCache } from "@/lib/api-client";
+import { apiFetch } from "@/lib/api-client";
 import { formatPrice } from "@/lib/currency";
 import { useRestaurant } from "@/context/RestaurantContext";
 import DateRangePicker from "./DateRangePicker";
@@ -29,31 +30,21 @@ export default function StaffTab({ onOpenStaff }: Props) {
   const { selectedRestaurant } = useRestaurant();
   const cur = selectedRestaurant?.currency ?? "NPR";
   const [range, setRange] = useState(() => presetRange("last30"));
-  // Seed from the warm GET cache so re-opening this report paints instantly.
-  const staffReportPath = selectedRestaurant
-    ? `/api/restaurants/${selectedRestaurant.id}/reports/overview?from=${range.from}&to=${range.to}&granularity=day`
-    : "";
-  const [rows, setRows] = useState<StaffRow[]>(() => peekApiCache<OverviewPayload>(staffReportPath)?.topStaff ?? []);
-  const [loading, setLoading] = useState(() => !peekApiCache(staffReportPath));
+  // keepPreviousData + React Query's cache means re-visiting Staff (or
+  // switching back from another tab) paints instantly instead of spinning.
+  const staffQuery = useQuery({
+    queryKey: ["reports-overview", selectedRestaurant?.id, range.from, range.to],
+    queryFn: () =>
+      apiFetch<OverviewPayload>(
+        `/api/restaurants/${selectedRestaurant!.id}/reports/overview?from=${range.from}&to=${range.to}&granularity=day`,
+      ),
+    enabled: !!selectedRestaurant,
+    placeholderData: keepPreviousData,
+  });
+  const rows = staffQuery.data?.topStaff ?? [];
+  const loading = staffQuery.isLoading;
   const [sortKey, setSortKey] = useState<SortKey>("revenue");
   const [sortDesc, setSortDesc] = useState(true);
-
-  const load = useCallback(async () => {
-    if (!selectedRestaurant) return;
-    const path = `/api/restaurants/${selectedRestaurant.id}/reports/overview?from=${range.from}&to=${range.to}&granularity=day`;
-    if (!peekApiCache(path)) setLoading(true);
-    try {
-      const res = (await apiFetch(path)) as OverviewPayload;
-      setRows(res.topStaff ?? []);
-    } catch {
-      /* ignore */
-    }
-    setLoading(false);
-  }, [selectedRestaurant, range]);
-
-  useEffect(() => {
-    load();
-  }, [load]);
 
   const sorted = useMemo(() => {
     const copy = [...rows];

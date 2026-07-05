@@ -21,6 +21,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { formatPrice } from "@/lib/currency";
 import { apiFetch, peekApiCache } from "@/lib/api-client";
+import { ScrollableRow } from "@/components/shared/ScrollableRow";
 import DrinksTab from "@/components/dashboard/DrinksTab";
 
 interface UsedInMenuItem {
@@ -195,7 +196,7 @@ function InventoryView() {
             setEditItem(null);
             setShowAdd(true);
           }}
-          className="flex items-center gap-2 rounded-xl bg-[var(--text-1)] px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-[var(--text-1)]/20 transition-all hover:bg-[#2d1508] active:scale-[0.97]"
+          className="flex items-center gap-2 rounded-xl bg-[var(--text-1)] px-5 py-2.5 text-sm font-bold text-[var(--canvas)] shadow-lg shadow-[var(--text-1)]/20 transition-all hover:opacity-90 active:scale-[0.97]"
         >
           <Plus className="h-4 w-4" />
           Add Item
@@ -259,7 +260,7 @@ function InventoryView() {
             className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] py-2.5 pl-10 pr-4 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
           />
         </div>
-        <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+        <ScrollableRow innerClassName="flex gap-1.5 pb-1" edgeColor="var(--canvas-sub)">
           {(["all", "low", "ok"] as const).map((s) => (
             <button
               key={s}
@@ -287,7 +288,7 @@ function InventoryView() {
               {t === "all" ? "All Types" : t === "drinks" ? "Drinks" : "Ingredients"}
             </button>
           ))}
-        </div>
+        </ScrollableRow>
         <select
           value={filterCat}
           onChange={(e) => setFilterCat(e.target.value)}
@@ -681,7 +682,7 @@ function AddEditModal({
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Chicken, Rice, Cooking Oil"
-                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[var(--text-1)] focus:ring-2 focus:ring-[var(--text-1)]/15"
                 />
               </div>
 
@@ -694,7 +695,7 @@ function AddEditModal({
                   <select
                     value={unit}
                     onChange={(e) => setUnit(e.target.value)}
-                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] outline-none focus:border-[var(--text-1)] focus:ring-2 focus:ring-[var(--text-1)]/15"
                   >
                     {UNITS.map((u) => (
                       <option key={u} value={u}>
@@ -710,7 +711,7 @@ function AddEditModal({
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] outline-none focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] outline-none focus:border-[var(--text-1)] focus:ring-2 focus:ring-[var(--text-1)]/15"
                   >
                     {CATEGORIES.map((c) => (
                       <option key={c} value={c}>
@@ -733,7 +734,7 @@ function AddEditModal({
                     onChange={(e) => setQuantity(e.target.value)}
                     placeholder="0"
                     min="0"
-                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[var(--text-1)] focus:ring-2 focus:ring-[var(--text-1)]/15"
                   />
                 </div>
                 <div>
@@ -746,7 +747,7 @@ function AddEditModal({
                     onChange={(e) => setMinStock(e.target.value)}
                     placeholder="5"
                     min="0"
-                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[var(--text-1)] focus:ring-2 focus:ring-[var(--text-1)]/15"
                   />
                 </div>
               </div>
@@ -761,7 +762,7 @@ function AddEditModal({
                   onChange={(e) => setCostPerUnit(e.target.value)}
                   placeholder="0"
                   min="0"
-                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[var(--text-1)] focus:ring-2 focus:ring-[var(--text-1)]/15"
                 />
               </div>
 
@@ -774,7 +775,7 @@ function AddEditModal({
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Optional notes..."
-                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[#3e1e0c] focus:ring-2 focus:ring-[var(--text-1)]/15"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[var(--text-1)] focus:ring-2 focus:ring-[var(--text-1)]/15"
                 />
               </div>
 
@@ -801,10 +802,10 @@ function AddEditModal({
               <button
                 onClick={handleSave}
                 disabled={!name.trim() || saving}
-                className={`flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-bold text-white shadow-lg transition-all active:scale-[0.97] ${
+                className={`flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-bold shadow-lg transition-all active:scale-[0.97] ${
                   name.trim() && !saving
-                    ? "bg-[var(--text-1)] shadow-[var(--text-1)]/20 hover:bg-[#2d1508]"
-                    : "bg-[var(--border)] shadow-none cursor-not-allowed"
+                    ? "bg-[var(--text-1)] text-[var(--canvas)] shadow-[var(--text-1)]/20 hover:opacity-90"
+                    : "bg-[var(--border)] text-[var(--text-3)] shadow-none cursor-not-allowed"
                 }`}
               >
                 {saving ? (

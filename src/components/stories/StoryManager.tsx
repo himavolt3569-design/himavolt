@@ -87,10 +87,10 @@ export default function StoryManager({
     if (!file) return;
 
     const isVideo = file.type.startsWith("video/");
-    const maxSize = isVideo ? 50 * 1024 * 1024 : 5 * 1024 * 1024;
+    const maxSize = isVideo ? 50 * 1024 * 1024 : 20 * 1024 * 1024;
 
     if (file.size > maxSize) {
-      showToast(`File too large. Max ${isVideo ? "50MB" : "5MB"}`, "error");
+      showToast(`File too large. Max ${isVideo ? "50MB" : "20MB"}`, "error");
       return;
     }
 

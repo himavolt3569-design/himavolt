@@ -1,4 +1,11 @@
-export async function uploadFile(file: File, folder?: string): Promise<string> {
+import { compressImage } from "./image-compress";
+
+export async function uploadFile(rawFile: File, folder?: string): Promise<string> {
+  // Shrink oversized phone photos client-side first — this is what makes
+  // uploads feel instant and stops legitimate photos from bouncing off the
+  // server's size cap. No-op for videos, GIFs, or already-small files.
+  const file = await compressImage(rawFile);
+
   // Step 1: Request a signed upload URL from our API
   const res = await fetch("/api/upload", {
     method: "POST",

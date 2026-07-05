@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { DollarSign, ShoppingBag, Activity, Loader2, TrendingUp } from "lucide-react";
-import { apiFetch, peekApiCache } from "@/lib/api-client";
+import { apiFetch } from "@/lib/api-client";
 import { formatPrice } from "@/lib/currency";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { useLiveOrders } from "@/context/LiveOrdersContext";
@@ -28,29 +28,19 @@ export default function TodayTab() {
   const cur = selectedRestaurant?.currency ?? "NPR";
   const { orders } = useLiveOrders();
   const today = toYMD(new Date());
-  // Seed from the warm GET cache so re-opening Today paints instantly.
-  const todayPath = selectedRestaurant
-    ? `/api/restaurants/${selectedRestaurant.id}/reports/overview?from=${today}&to=${today}&granularity=hour`
-    : "";
-  const [data, setData] = useState<OverviewData | null>(() => peekApiCache<OverviewData>(todayPath) ?? null);
-  const [loading, setLoading] = useState(() => !peekApiCache(todayPath));
-
-  const load = useCallback(async () => {
-    if (!selectedRestaurant) return;
-    const path = `/api/restaurants/${selectedRestaurant.id}/reports/overview?from=${today}&to=${today}&granularity=hour`;
-    if (!peekApiCache(path)) setLoading(true);
-    try {
-      const res = await apiFetch(path);
-      setData(res as OverviewData);
-    } catch {
-      /* ignore */
-    }
-    setLoading(false);
-  }, [selectedRestaurant, today]);
-
-  useEffect(() => {
-    load();
-  }, [load]);
+  // keepPreviousData + React Query's cache means re-visiting Today (or
+  // switching back from another tab) paints instantly instead of spinning.
+  const todayQuery = useQuery({
+    queryKey: ["reports-overview", selectedRestaurant?.id, today, today, "hour"],
+    queryFn: () =>
+      apiFetch<OverviewData>(
+        `/api/restaurants/${selectedRestaurant!.id}/reports/overview?from=${today}&to=${today}&granularity=hour`,
+      ),
+    enabled: !!selectedRestaurant,
+    placeholderData: keepPreviousData,
+  });
+  const data = todayQuery.data ?? null;
+  const loading = todayQuery.isLoading;
 
   const liveCount = orders.filter(
     (o) => o.status !== "ACCEPTED" && o.status !== "REJECTED",

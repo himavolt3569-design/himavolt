@@ -60,6 +60,19 @@ export async function GET(req: NextRequest) {
       const transactionUuid = decoded.transaction_uuid as string;
       const totalAmount = parseFloat(decoded.total_amount);
 
+      // Bind the gateway reference to THIS order. Initiate generates
+      // transaction_uuid as `${orderId}-${timestamp}`, so a completed
+      // transaction for a different (same-priced) order can't be replayed
+      // against this one.
+      if (!transactionUuid || !transactionUuid.startsWith(`${orderId}-`)) {
+        await logWebhook("payment.ref_mismatch", orderId, rawPayload, 302, transactionUuid || undefined);
+        await db.payment.updateMany({
+          where: { orderId, status: "PENDING" },
+          data: { status: "FAILED", rejectionNote: "Gateway reference did not match order" },
+        });
+        return NextResponse.redirect(`${APP_URL}/track/${orderId}?payment=failed`);
+      }
+
       // Idempotency: check if this webhook was already processed
       if (transactionUuid) {
         const existing = await db.webhookLog.findUnique({
@@ -110,6 +123,22 @@ export async function GET(req: NextRequest) {
         : null;
       const merchantCode =
         decryptIfPresent(paymentConfig?.esewaMerchantCode) || "";
+
+      // A missing/undecryptable merchant code means verification CANNOT
+      // succeed — fail explicitly and visibly instead of letting the verify
+      // call fail opaquely (this is the "payments silently broken" signature
+      // when ENCRYPTION_KEY changes).
+      if (!merchantCode) {
+        console.error(
+          `[esewa.callback] payment.config_missing — merchant code empty for restaurant ${order?.restaurantId ?? "?"} (order ${orderId})`,
+        );
+        await logWebhook("payment.config_missing", orderId, rawPayload, 302, transactionUuid);
+        await db.payment.updateMany({
+          where: { orderId, status: "PENDING" },
+          data: { status: "FAILED", rejectionNote: "eSewa merchant configuration missing or unreadable" },
+        });
+        return NextResponse.redirect(`${APP_URL}/track/${orderId}?payment=failed`);
+      }
 
       const verification = await verifyEsewaPayment(
         transactionUuid,

@@ -56,12 +56,15 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     name,
     type,
     floor,
+    floorLabel,
     price,
     maxGuests,
     description,
     amenities,
     offerings,
     locationNote,
+    latitude,
+    longitude,
     imageUrls,
     videoUrl,
     bedType,
@@ -69,6 +72,13 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     isAvailable,
     sortOrder,
   } = body;
+
+  // Keep the legacy numeric `floor` aligned with the free-text label when the
+  // label is a plain number, so older/read paths stay consistent.
+  const floorText: string | null | undefined =
+    floorLabel === undefined ? undefined : (typeof floorLabel === "string" && floorLabel.trim() ? floorLabel.trim() : null);
+  const numericFloor =
+    floorText != null && /^\d+$/.test(floorText) ? parseInt(floorText, 10) : undefined;
 
   // Recompute the QR target only when the room number actually changes, so the
   // stored unique link stays in sync without an extra query on every edit.
@@ -103,14 +113,18 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       ...(qrUrl !== undefined && { qrUrl }),
       ...(roomNumber !== undefined && { roomNumber: roomNumber.trim() }),
       ...(name !== undefined && { name: name?.trim() || null }),
-      ...(type !== undefined && { type }),
+      ...(type !== undefined && { type: type?.trim() || "Normal" }),
       ...(floor !== undefined && { floor }),
+      ...(floorText !== undefined && { floorLabel: floorText }),
+      ...(numericFloor !== undefined && { floor: numericFloor }),
       ...(price !== undefined && { price }),
       ...(maxGuests !== undefined && { maxGuests }),
       ...(description !== undefined && { description: description?.trim() || null }),
       ...(amenities !== undefined && { amenities }),
       ...(offerings !== undefined && { offerings }),
       ...(locationNote !== undefined && { locationNote: locationNote?.trim() || null }),
+      ...(latitude !== undefined && { latitude: typeof latitude === "number" ? latitude : null }),
+      ...(longitude !== undefined && { longitude: typeof longitude === "number" ? longitude : null }),
       ...(imageUrls !== undefined && { imageUrls }),
       ...(videoUrl !== undefined && { videoUrl: videoUrl?.trim() || null }),
       ...(bedType !== undefined && { bedType: bedType?.trim() || null }),

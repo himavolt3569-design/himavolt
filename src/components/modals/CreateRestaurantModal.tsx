@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -22,11 +22,15 @@ import {
   Candy,
   Croissant,
   Sun,
+  Sparkles,
+  ArrowRight,
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import type { MapCoords } from "@/components/maps/OsmPinpointMap";
 import LocationPickerModal from "@/components/modals/LocationPickerModal";
-import { RESTAURANT_TYPE_OPTIONS } from "@/lib/restaurant-types";
+import { RESTAURANT_TYPE_OPTIONS, getTypeLabel, getFeatureTabsForType } from "@/lib/restaurant-types";
+import { FEATURE_ICONS } from "@/lib/dashboard-nav";
+import { apiFetch } from "@/lib/api-client";
 import { isValidNepalMobile, normalizeNepalPhone } from "@/lib/phone";
 
 const TYPE_ICONS: Record<string, typeof Flame> = {
@@ -114,7 +118,7 @@ interface Props {
 }
 
 export default function CreateRestaurantModal({ open, onOpenChange }: Props) {
-  const { createRestaurant } = useRestaurant();
+  const { createRestaurant, fetchRestaurants } = useRestaurant();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [countryCode] = useState("+977");
@@ -126,6 +130,12 @@ export default function CreateRestaurantModal({ open, onOpenChange }: Props) {
   const [submitError, setSubmitError] = useState("");
   const [saving, setSaving] = useState(false);
 
+  // Two-phase flow: fill details → pick which features to enable → dashboard.
+  const [step, setStep] = useState<"details" | "features">("details");
+  const [createdId, setCreatedId] = useState<string | null>(null);
+  const [disabledFeatures, setDisabledFeatures] = useState<string[]>([]);
+  const [savingFeatures, setSavingFeatures] = useState(false);
+
   const reset = useCallback(() => {
     setName("");
     setPhone("");
@@ -135,6 +145,52 @@ export default function CreateRestaurantModal({ open, onOpenChange }: Props) {
     setCoords(null);
     setSubmitError("");
   }, []);
+
+  // Start every fresh open on the details step (the inner content persists
+  // across close/reopen since this component stays mounted).
+  useEffect(() => {
+    if (open) {
+      setStep("details");
+      setCreatedId(null);
+      setDisabledFeatures([]);
+      setSubmitError("");
+    }
+  }, [open]);
+
+  const toggleFeature = (id: string) =>
+    setDisabledFeatures((prev) =>
+      prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id],
+    );
+
+  const finishSetup = async () => {
+    if (savingFeatures) return;
+    if (!createdId) {
+      reset();
+      onOpenChange(false);
+      return;
+    }
+    setSavingFeatures(true);
+    setSubmitError("");
+    try {
+      // Only write overrides when the owner actually turned something off —
+      // an untouched selection already means "all type features on".
+      if (disabledFeatures.length > 0) {
+        await apiFetch(`/api/restaurants/${createdId}/features`, {
+          method: "PUT",
+          body: { featuresEnabled: [], featuresDisabled: disabledFeatures },
+        });
+        await fetchRestaurants(); // sync context so dashboard nav reflects choices
+      }
+      reset();
+      onOpenChange(false);
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error ? error.message : "Could not save your feature choices.",
+      );
+    } finally {
+      setSavingFeatures(false);
+    }
+  };
 
   const handleSave = async () => {
     const normalizedPhone = normalizeNepalPhone(phone);
@@ -160,7 +216,7 @@ export default function CreateRestaurantModal({ open, onOpenChange }: Props) {
     setSaving(true);
     setSubmitError("");
     try {
-      await createRestaurant({
+      const created = await createRestaurant({
         name: name.trim(),
         phone: normalizedPhone,
         countryCode,
@@ -171,8 +227,11 @@ export default function CreateRestaurantModal({ open, onOpenChange }: Props) {
         longitude: coords.lon,
         phoneOwnershipConfirmed: true,
       });
-      reset();
-      onOpenChange(false);
+      // Move to the feature-selection step instead of dropping straight into
+      // the dashboard. All type features start enabled; the owner opts out.
+      setCreatedId(created.id);
+      setDisabledFeatures([]);
+      setStep("features");
     } catch (error) {
       setSubmitError(
         error instanceof Error
@@ -183,6 +242,37 @@ export default function CreateRestaurantModal({ open, onOpenChange }: Props) {
       setSaving(false);
     }
   };
+
+  const bodyContent =
+    step === "features" ? (
+      <FeatureBody
+        name={name}
+        type={selectedType}
+        disabled={disabledFeatures}
+        onToggle={toggleFeature}
+        onEnableAll={() => setDisabledFeatures([])}
+        onFinish={finishSetup}
+        saving={savingFeatures}
+        submitError={submitError}
+      />
+    ) : (
+      <ModalBody
+        name={name}
+        setName={setName}
+        phone={phone}
+        setPhone={setPhone}
+        selectedType={selectedType}
+        setSelectedType={setSelectedType}
+        address={address}
+        coords={coords}
+        onOpenMap={() => setMapOpen(true)}
+        submitError={submitError}
+        onReset={reset}
+        onSave={handleSave}
+        onClose={() => onOpenChange(false)}
+        saving={saving}
+      />
+    );
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -211,22 +301,7 @@ export default function CreateRestaurantModal({ open, onOpenChange }: Props) {
                   className="fixed bottom-0 inset-x-0 z-50 max-h-[92dvh] overflow-y-auto rounded-t-2xl bg-[var(--canvas)] shadow-2xl md:hidden focus:outline-none"
                 >
                   <div className="mx-auto mt-3 mb-1 h-1 w-10 rounded-full bg-[var(--border)]" />
-                  <ModalBody
-                    name={name}
-                    setName={setName}
-                    phone={phone}
-                    setPhone={setPhone}
-                    selectedType={selectedType}
-                    setSelectedType={setSelectedType}
-                    address={address}
-                    coords={coords}
-                    onOpenMap={() => setMapOpen(true)}
-                    submitError={submitError}
-                    onReset={reset}
-                    onSave={handleSave}
-                    onClose={() => onOpenChange(false)}
-                    saving={saving}
-                  />
+                  {bodyContent}
                 </motion.div>
 
                 <motion.div
@@ -237,22 +312,7 @@ export default function CreateRestaurantModal({ open, onOpenChange }: Props) {
                   exit="exit"
                   className="fixed left-1/2 top-1/2 z-50 hidden max-h-[90dvh] w-full max-w-130 -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl bg-[var(--canvas)] shadow-2xl ring-1 ring-[var(--border)]/60 md:block focus:outline-none"
                 >
-                  <ModalBody
-                    name={name}
-                    setName={setName}
-                    phone={phone}
-                    setPhone={setPhone}
-                    selectedType={selectedType}
-                    setSelectedType={setSelectedType}
-                    address={address}
-                    coords={coords}
-                    onOpenMap={() => setMapOpen(true)}
-                    submitError={submitError}
-                    onReset={reset}
-                    onSave={handleSave}
-                    onClose={() => onOpenChange(false)}
-                    saving={saving}
-                  />
+                  {bodyContent}
                 </motion.div>
               </div>
             </Dialog.Content>
@@ -490,6 +550,140 @@ function ModalBody({
             {saving ? "Creating..." : "Save Restaurant"}
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Step 2: pick which features to enable ─────────────────────────────
+   Shown right after the restaurant is created, before the dashboard opens.
+   Every feature for the chosen type starts ON; the owner flips off what they
+   don't want. Choices persist as `featuresDisabled` via the features API. */
+function FeatureBody({
+  name,
+  type,
+  disabled,
+  onToggle,
+  onEnableAll,
+  onFinish,
+  saving,
+  submitError,
+}: {
+  name: string;
+  type: string | null;
+  disabled: string[];
+  onToggle: (id: string) => void;
+  onEnableAll: () => void;
+  onFinish: () => void;
+  saving: boolean;
+  submitError: string;
+}) {
+  const features = type ? getFeatureTabsForType(type) : [];
+  const enabledCount = features.filter((f) => !disabled.includes(f.id)).length;
+
+  return (
+    <div>
+      <div className="h-0.5 bg-linear-to-r from-[var(--accent)] via-[var(--accent)] to-[var(--accent-hover)]" />
+
+      <div className="p-6 sm:p-7">
+        <div className="flex items-start gap-3 mb-6">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--accent-muted)] text-[var(--accent)]">
+            <Sparkles className="h-5 w-5" />
+          </div>
+          <div className="min-w-0">
+            <Dialog.Title className="text-lg font-bold tracking-tight text-[var(--text-1)]">
+              Enable features
+            </Dialog.Title>
+            <Dialog.Description className="text-[13px] text-[var(--text-3)] mt-0.5">
+              Choose what <span className="font-semibold text-[var(--text-2)]">{name || "your place"}</span> needs
+              {type ? <> · <span className="font-semibold text-[var(--accent-text)]">{getTypeLabel(type)}</span></> : null}. Change anytime in Settings.
+            </Dialog.Description>
+          </div>
+        </div>
+
+        {features.length > 0 ? (
+          <>
+            <div className="mb-3 flex items-center justify-between">
+              <span className="text-[12px] font-semibold text-[var(--text-3)]">
+                {enabledCount} of {features.length} enabled
+              </span>
+              {enabledCount < features.length && (
+                <button
+                  type="button"
+                  onClick={onEnableAll}
+                  className="text-[12px] font-bold text-[var(--accent-text)] hover:underline"
+                >
+                  Enable all
+                </button>
+              )}
+            </div>
+
+            <div className="space-y-2 max-h-[46dvh] overflow-y-auto pr-0.5">
+              {features.map((f) => {
+                const Icon = FEATURE_ICONS[f.id] ?? Sparkles;
+                const enabled = !disabled.includes(f.id);
+                return (
+                  <button
+                    key={f.id}
+                    type="button"
+                    onClick={() => onToggle(f.id)}
+                    className={`flex w-full items-center gap-3 rounded-2xl p-3.5 text-left ring-1 transition-all ${
+                      enabled
+                        ? "bg-[var(--accent-muted)] ring-[var(--accent-border)]"
+                        : "bg-[var(--canvas-sub)] ring-[var(--border)]/70 hover:ring-[var(--border)]"
+                    }`}
+                  >
+                    <span
+                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors ${
+                        enabled ? "bg-[var(--accent)] text-white" : "bg-[var(--surface)] text-[var(--text-3)]"
+                      }`}
+                    >
+                      <Icon className="h-4.5 w-4.5" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[13px] font-bold text-[var(--text-1)]">{f.label}</p>
+                      <p className="truncate text-[11px] text-[var(--text-3)]">{f.desc}</p>
+                    </div>
+                    {/* Toggle switch (visual only — the whole row is the control) */}
+                    <span
+                      aria-hidden
+                      className={`relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ${
+                        enabled ? "bg-[var(--accent)]" : "bg-[var(--border)]"
+                      }`}
+                    >
+                      <span
+                        className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-lg transform transition duration-200 ${
+                          enabled ? "translate-x-5" : "translate-x-0"
+                        }`}
+                      />
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </>
+        ) : (
+          <div className="rounded-2xl bg-[var(--canvas-sub)] px-4 py-8 text-center ring-1 ring-[var(--border)]/70">
+            <p className="text-[13px] font-semibold text-[var(--text-2)]">You&apos;re ready to go</p>
+            <p className="mt-1 text-[12px] text-[var(--text-3)]">No optional features for this type — head to your dashboard.</p>
+          </div>
+        )}
+
+        {submitError && (
+          <div className="mt-4 flex items-start gap-2 rounded-xl bg-red-50 px-3.5 py-3 text-[12px] font-medium text-red-700 ring-1 ring-red-100">
+            <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+            <span>{submitError}</span>
+          </div>
+        )}
+
+        <button
+          onClick={onFinish}
+          disabled={saving}
+          className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-6 py-3 text-[13px] font-semibold text-white transition-all hover:bg-[var(--accent-hover)] active:scale-[0.98] shadow-sm shadow-[var(--accent)]/20 disabled:opacity-60"
+        >
+          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
+          {saving ? "Saving..." : "Enter Dashboard"}
+        </button>
       </div>
     </div>
   );

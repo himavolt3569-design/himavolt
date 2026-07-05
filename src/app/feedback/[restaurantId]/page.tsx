@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Star, Send, Check, Loader2, EyeOff, Eye, User, MessageSquare,
+  Star, Send, Check, EyeOff, Eye, User, MessageSquare,
   ChevronLeft, CornerDownRight, Clock,
 } from "lucide-react";
 import Link from "next/link";
@@ -135,7 +135,7 @@ function ReviewDisplay({
 
           <Link
             href={`/menu/${restaurant.slug}`}
-            className="block w-full rounded-xl bg-[var(--text-1)] py-3 text-center text-sm font-bold text-white hover:bg-[#2d1508] transition-colors"
+            className="block w-full rounded-xl bg-[var(--text-1)] py-3 text-center text-sm font-bold text-[var(--canvas)] hover:opacity-90 transition-colors"
           >
             Back to Menu
           </Link>
@@ -163,7 +163,6 @@ export default function FeedbackPage() {
   const [rating,      setRating]      = useState(0);
   const [hovered,     setHovered]     = useState(0);
   const [comment,     setComment]     = useState("");
-  const [submitting,  setSubmitting]  = useState(false);
 
   useEffect(() => {
     fetch(`/api/public/restaurant/${restaurantId}`)
@@ -184,24 +183,23 @@ export default function FeedbackPage() {
       .finally(() => setCheckingFb(false));
   }, [orderId]);
 
-  const handleSubmit = useCallback(async () => {
+  const handleSubmit = useCallback(() => {
     if (rating === 0 && !comment.trim()) return;
-    setSubmitting(true);
-    try {
-      await fetch(`/api/restaurants/${restaurantId}/feedback`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          rating: rating || undefined,
-          comment: comment.trim() || undefined,
-          name: isAnon ? undefined : (name.trim() || undefined),
-          isAnonymous: isAnon,
-          orderId,
-        }),
-      });
-      setStep("done");
-    } catch { /* ignore */ }
-    setSubmitting(false);
+    // Optimistic: show the thank-you instantly and submit in the background.
+    // Feedback is best-effort (errors were already ignored), so there's no
+    // reason to make the guest watch a "Sending…" spinner.
+    setStep("done");
+    fetch(`/api/restaurants/${restaurantId}/feedback`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        rating: rating || undefined,
+        comment: comment.trim() || undefined,
+        name: isAnon ? undefined : (name.trim() || undefined),
+        isAnonymous: isAnon,
+        orderId,
+      }),
+    }).catch(() => { /* best-effort — nothing to retry */ });
   }, [rating, comment, isAnon, name, restaurantId, orderId]);
 
   if (loadingR || checkingFb) return null;
@@ -264,7 +262,7 @@ export default function FeedbackPage() {
                     </div>
                   </div>
                   <div className={`h-5 w-9 rounded-full transition-colors ${isAnon ? "bg-[var(--text-3)]" : "bg-[var(--surface-alt)]"} relative`}>
-                    <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-[var(--canvas)] shadow transition-transform ${isAnon ? "translate-x-4" : "translate-x-0.5"}`} />
+                    <span className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-[var(--canvas)] shadow transition-transform ${isAnon ? "translate-x-4" : ""}`} />
                   </div>
                 </button>
 
@@ -288,7 +286,7 @@ export default function FeedbackPage() {
                   </button>
                   <button
                     onClick={() => setStep("review")}
-                    className="flex-1 rounded-xl bg-[var(--text-1)] py-3 text-sm font-bold text-white hover:bg-[#2d1508] transition-colors"
+                    className="flex-1 rounded-xl bg-[var(--text-1)] py-3 text-sm font-bold text-[var(--canvas)] hover:opacity-90 transition-colors"
                   >
                     Continue
                   </button>
@@ -352,11 +350,11 @@ export default function FeedbackPage() {
                   </button>
                   <button
                     onClick={handleSubmit}
-                    disabled={submitting || (rating === 0 && !comment.trim())}
+                    disabled={rating === 0 && !comment.trim()}
                     className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[var(--accent)] py-3 text-sm font-bold text-white hover:bg-[var(--accent-hover)] disabled:opacity-40 transition-colors shadow-sm"
                   >
-                    {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                    {submitting ? "Sending…" : "Submit Feedback"}
+                    <Send className="h-4 w-4" />
+                    Submit Feedback
                   </button>
                 </div>
               </motion.div>
@@ -374,7 +372,7 @@ export default function FeedbackPage() {
                 </p>
                 <Link
                   href={`/menu/${restaurant.slug}`}
-                  className="mt-2 rounded-xl bg-[var(--text-1)] px-6 py-3 text-sm font-bold text-white hover:bg-[#2d1508] transition-colors"
+                  className="mt-2 rounded-xl bg-[var(--text-1)] px-6 py-3 text-sm font-bold text-[var(--canvas)] hover:opacity-90 transition-colors"
                 >
                   Back to Menu
                 </Link>

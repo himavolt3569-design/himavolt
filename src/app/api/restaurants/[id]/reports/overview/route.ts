@@ -29,16 +29,15 @@ type OrderRow = {
   id: string;
   orderNo: string;
   total: number;
-  subtotal: number;
   type: string;
   status: string;
   createdAt: Date;
   processedByStaffId: string | null;
-  payment: { method: string; status: string; amount: number } | null;
+  payment: { method: string; status: string } | null;
   bill: { total: number } | null;
-  items: { name: string; quantity: number; price: number }[];
-  processedByStaff: { user: { name: string } } | null;
 };
+
+type TopItemRow = { name: string; quantity: number; revenue: number };
 
 function bucketKey(date: Date, granularity: "hour" | "day"): string {
   const iso = date.toISOString();
@@ -70,28 +69,46 @@ export async function GET(
   const granularityParam = searchParams.get("granularity");
   const granularity: "hour" | "day" = granularityParam === "hour" ? "hour" : "day";
 
-  const allOrders = (await db.order.findMany({
-    where: { restaurantId: id, createdAt: { gte: from, lte: to } },
-    select: {
-      id: true,
-      orderNo: true,
-      total: true,
-      subtotal: true,
-      type: true,
-      status: true,
-      createdAt: true,
-      processedByStaffId: true,
-      payment: { select: { method: true, status: true, amount: true } },
-      bill: { select: { total: true } },
-      items: { select: { name: true, quantity: true, price: true } },
-      processedByStaff: { select: { user: { select: { name: true } } } },
-    },
-    orderBy: { createdAt: "asc" },
-  })) as unknown as OrderRow[];
+  // Lean select — no nested `items`/`processedByStaff.user` joins, which used
+  // to multiply one row per order into one row per order-item (the dominant
+  // cost for busy restaurants, especially the "Lifetime" preset). topItems is
+  // now a single SQL aggregate below; topStaff aggregates from this lean set
+  // in JS and resolves names via one small follow-up lookup further down.
+  const [allOrders, topItemsRaw] = await Promise.all([
+    db.order.findMany({
+      where: { restaurantId: id, createdAt: { gte: from, lte: to } },
+      select: {
+        id: true,
+        orderNo: true,
+        total: true,
+        type: true,
+        status: true,
+        createdAt: true,
+        processedByStaffId: true,
+        payment: { select: { method: true, status: true } },
+        bill: { select: { total: true } },
+      },
+      orderBy: { createdAt: "asc" },
+    }) as unknown as Promise<OrderRow[]>,
+    // SUM(price * quantity) can't be expressed with Prisma's typed `_sum`
+    // (it only sums a single column), so this one aggregate stays raw SQL.
+    db.$queryRaw<{ name: string; quantity: bigint; revenue: number }[]>`
+      SELECT oi.name, SUM(oi.quantity)::int AS quantity, SUM(oi.price * oi.quantity) AS revenue
+      FROM order_items oi
+      JOIN orders o ON o.id = oi."orderId"
+      JOIN payments p ON p."orderId" = o.id
+      WHERE o."restaurantId" = ${id}
+        AND o."createdAt" >= ${from}
+        AND o."createdAt" <= ${to}
+        AND o.status != 'REJECTED'
+        AND p.status = 'COMPLETED'
+      GROUP BY oi.name
+      ORDER BY revenue DESC
+      LIMIT 10
+    `,
+  ]);
 
-  const nonCancelled = allOrders.filter(
-    (o) => o.status !== "REJECTED" && o.status !== "REJECTED",
-  );
+  const nonCancelled = allOrders.filter((o) => o.status !== "REJECTED");
   const cancelledCount = allOrders.length - nonCancelled.length;
 
   const paidOrders = nonCancelled.filter(
@@ -160,52 +177,45 @@ export async function GET(
     amount: Math.round(v.amount * 100) / 100,
   }));
 
-  const itemMap = new Map<string, { quantity: number; revenue: number }>();
-  for (const o of paidOrders) {
-    for (const it of o.items) {
-      const prev = itemMap.get(it.name) ?? { quantity: 0, revenue: 0 };
-      itemMap.set(it.name, {
-        quantity: prev.quantity + it.quantity,
-        revenue: prev.revenue + it.price * it.quantity,
-      });
-    }
-  }
-  const topItems = Array.from(itemMap.entries())
-    .map(([name, v]) => ({
-      name,
-      quantity: v.quantity,
-      revenue: Math.round(v.revenue * 100) / 100,
-    }))
-    .sort((a, b) => b.revenue - a.revenue)
-    .slice(0, 10);
+  const topItems: TopItemRow[] = topItemsRaw.map((r) => ({
+    name: r.name,
+    quantity: Number(r.quantity),
+    revenue: Math.round(Number(r.revenue) * 100) / 100,
+  }));
 
-  const staffMap = new Map<
-    string,
-    { name: string; orderCount: number; revenue: number }
-  >();
+  const staffMap = new Map<string, { orderCount: number; revenue: number }>();
   for (const o of paidOrders) {
     if (!o.processedByStaffId) continue;
-    const name = o.processedByStaff?.user.name ?? "Unknown";
-    const prev = staffMap.get(o.processedByStaffId) ?? {
-      name,
-      orderCount: 0,
-      revenue: 0,
-    };
+    const prev = staffMap.get(o.processedByStaffId) ?? { orderCount: 0, revenue: 0 };
     staffMap.set(o.processedByStaffId, {
-      name,
       orderCount: prev.orderCount + 1,
       revenue: prev.revenue + (o.bill?.total ?? o.total),
     });
   }
-  const topStaff = Array.from(staffMap.entries())
-    .map(([staffId, v]) => ({
+  const topStaffIds = Array.from(staffMap.entries())
+    .sort((a, b) => b[1].revenue - a[1].revenue)
+    .slice(0, 10)
+    .map(([staffId]) => staffId);
+
+  // One tiny lookup for just the top 10 names instead of an outer join
+  // (staff → user) repeated over every order row.
+  const topStaffMembers = topStaffIds.length
+    ? await db.staffMember.findMany({
+        where: { id: { in: topStaffIds } },
+        select: { id: true, user: { select: { name: true } } },
+      })
+    : [];
+  const staffNameById = new Map(topStaffMembers.map((s) => [s.id, s.user.name]));
+
+  const topStaff = topStaffIds.map((staffId) => {
+    const v = staffMap.get(staffId)!;
+    return {
       staffId,
-      name: v.name,
+      name: staffNameById.get(staffId) ?? "Unknown",
       orderCount: v.orderCount,
       revenue: Math.round(v.revenue * 100) / 100,
-    }))
-    .sort((a, b) => b.revenue - a.revenue)
-    .slice(0, 10);
+    };
+  });
 
   const discrepancies = deliveredOrders
     .filter((o) => o.payment?.status !== "COMPLETED")

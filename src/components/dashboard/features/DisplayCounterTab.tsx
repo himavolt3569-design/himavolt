@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { formatPrice } from "@/lib/currency";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { apiFetch, peekApiCache } from "@/lib/api-client";
+import { ScrollableRow } from "@/components/shared/ScrollableRow";
+import NumberInput from "@/components/shared/NumberInput";
 import {
   Monitor,
   ChevronUp,
@@ -294,7 +296,7 @@ export default function DisplayCounterTab() {
           </div>
           <button
             onClick={() => updateConfig({ isEnabled: !config.isEnabled })}
-            className={`relative h-6 w-11 rounded-full transition-colors ${config.isEnabled ? "bg-pink-500" : "bg-[var(--surface-alt)]"}`}
+            className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${config.isEnabled ? "bg-pink-500" : "bg-[var(--surface-alt)]"}`}
           >
             <span className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-[var(--canvas)] shadow transition-transform ${config.isEnabled ? "translate-x-5" : ""}`} />
           </button>
@@ -307,7 +309,7 @@ export default function DisplayCounterTab() {
           </div>
           <button
             onClick={() => updateConfig({ autoHideSoldOut: !config.autoHideSoldOut })}
-            className={`relative h-6 w-11 rounded-full transition-colors ${config.autoHideSoldOut ? "bg-pink-500" : "bg-[var(--surface-alt)]"}`}
+            className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${config.autoHideSoldOut ? "bg-pink-500" : "bg-[var(--surface-alt)]"}`}
           >
             <span className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-[var(--canvas)] shadow transition-transform ${config.autoHideSoldOut ? "translate-x-5" : ""}`} />
           </button>
@@ -392,7 +394,7 @@ export default function DisplayCounterTab() {
                           />
                         </div>
                       </div>
-                      <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-1">
+                      <ScrollableRow innerClassName="flex gap-1.5 pb-1" edgeColor="var(--canvas)">
                         <button
                           onClick={() => setMenuCatFilter("all")}
                           className={`shrink-0 rounded-full px-3 py-1 text-[11px] font-semibold transition-all ${
@@ -412,7 +414,7 @@ export default function DisplayCounterTab() {
                             {c}
                           </button>
                         ))}
-                      </div>
+                      </ScrollableRow>
                       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 max-h-72 overflow-y-auto pr-1">
                         {filteredMenuItems.map((mi) => {
                           const alreadyAdded = counterItemNames.has(mi.name.toLowerCase());
@@ -501,11 +503,13 @@ export default function DisplayCounterTab() {
                         ))}
                         {categoryNames.length === 0 && <option value="General">General</option>}
                       </select>
-                      <input
-                        type="number"
+                      <NumberInput
                         placeholder="Price"
-                        value={newItem.price || ""}
-                        onChange={(e) => setNewItem({ ...newItem, price: Number(e.target.value) })}
+                        value={newItem.price}
+                        onChange={(n) => setNewItem({ ...newItem, price: n })}
+                        min={0}
+                        decimal
+                        hideZero
                         className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-pink-400/20 focus:border-pink-400"
                       />
                     </div>

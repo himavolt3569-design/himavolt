@@ -126,6 +126,11 @@ interface RestaurantContextType {
   >;
   removeStaff: (restaurantId: string, staffId: string) => Promise<void>;
   toggleStaffActive: (restaurantId: string, staffId: string) => Promise<void>;
+  updateStaffMember: (
+    restaurantId: string,
+    staffId: string,
+    data: Partial<Pick<StaffMember, "role" | "staffType">>,
+  ) => Promise<void>;
 }
 
 const RestaurantContext = createContext<RestaurantContextType | null>(null);
@@ -152,7 +157,7 @@ function writeStoredRestaurantId(id: string | null) {
 }
 
 // On a hard refresh the restaurant list is fetched exactly once. If that single
-// request fails (prod's 1-connection Prisma pool can 503 / time out during the
+// request fails (prod's pooled DB connection can 503 / time out during the
 // refresh request storm, or a brief session race returns 401), the dashboard
 // must not be permanently stranded with no restaurant — so we retry the load a
 // few times with exponential backoff before surfacing an empty state.
@@ -427,6 +432,32 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
     [restaurants, patchRestaurant, fetchRestaurants],
   );
 
+  // Role / staffType change — same optimistic pattern as toggleStaffActive:
+  // apply the change locally so the badge updates on click, reconcile from
+  // the server (full refetch) only if the PATCH actually fails.
+  const updateStaffMember = useCallback(
+    async (
+      restaurantId: string,
+      staffId: string,
+      data: Partial<Pick<StaffMember, "role" | "staffType">>,
+    ) => {
+      patchRestaurant(restaurantId, (r) => ({
+        ...r,
+        staff: r.staff.map((s) => (s.id === staffId ? { ...s, ...data } : s)),
+      }));
+      try {
+        await apiFetch(`/api/restaurants/${restaurantId}/staff/${staffId}`, {
+          method: "PATCH",
+          body: data,
+        });
+      } catch (err) {
+        await fetchRestaurants();
+        throw err;
+      }
+    },
+    [patchRestaurant, fetchRestaurants],
+  );
+
   return (
     <RestaurantContext.Provider
       value={{
@@ -444,6 +475,7 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
         addStaff,
         removeStaff,
         toggleStaffActive,
+        updateStaffMember,
       }}
     >
       {children}

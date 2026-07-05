@@ -114,6 +114,7 @@ import TableSessionBanner from "@/components/menu/TableSessionBanner";
 import DisplayCounterView from "@/components/menu/DisplayCounterView";
 import { isFeatureAvailable } from "@/lib/restaurant-types";
 import GetBillButton from "@/components/menu/GetBillButton";
+import { ScrollableRow } from "@/components/shared/ScrollableRow";
 import { useTableSession } from "@/hooks/useTableSession";
 import { setActiveTableSession } from "@/hooks/useActiveTableSession";
 import LiveOrderWidget from "@/components/orders/LiveOrderWidget";
@@ -1323,7 +1324,6 @@ function MenuPageContent() {
     enabled: boolean;
     pointsPerCurrency: number;
   }>({ enabled: false, pointsPerCurrency: 1 });
-  const tabsRef = useRef<HTMLDivElement>(null);
   const { totalItems, items, subtotal, initForRestaurant } = useCart();
   const { activeOrder, restoreOrder, restoreFromStorage } = useOrder();
 
@@ -1783,9 +1783,11 @@ function MenuPageContent() {
                   className="space-y-3"
                 >
                   <div className="flex items-center gap-2">
-                    <div
-                      ref={tabsRef}
-                      className="flex flex-1 gap-2 overflow-x-auto scrollbar-hide pb-0.5"
+                    <ScrollableRow
+                      className="flex-1"
+                      innerClassName="flex gap-2 pb-0.5"
+                      edgeColor="#fbfbfb"
+                      buttonClassName="bg-white text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50"
                     >
                       <button
                         onClick={() => {
@@ -1818,7 +1820,7 @@ function MenuPageContent() {
                           {stripEmojis(cat.name)}
                         </button>
                       ))}
-                    </div>
+                    </ScrollableRow>
                   </div>
 
                   <AnimatePresence>
@@ -1830,7 +1832,11 @@ function MenuPageContent() {
                         transition={{ duration: 0.2 }}
                         className="overflow-hidden"
                       >
-                        <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-0.5">
+                        <ScrollableRow
+                          innerClassName="flex gap-1.5 pb-0.5"
+                          edgeColor="#fbfbfb"
+                          buttonClassName="bg-white text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50"
+                        >
                           <button
                             onClick={() => setActiveSubCategory("")}
                             className={`shrink-0 rounded-full px-4 py-1.5 text-[10px] font-bold tracking-wide uppercase transition-all ${
@@ -1860,7 +1866,7 @@ function MenuPageContent() {
                               {stripEmojis(sub.name)}
                             </button>
                           ))}
-                        </div>
+                        </ScrollableRow>
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -2472,7 +2478,7 @@ function MenuPageContent() {
         activeOrder.status !== "REJECTED" && (
           <Link
             href={`/order-track/${activeOrder.trackToken}`}
-            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 rounded-full bg-[var(--text-1)] px-5 py-3 text-sm font-bold text-white shadow-xl shadow-[var(--text-1)]/30 hover:bg-[#2d1508] active:scale-95 transition-all"
+            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 rounded-full bg-[var(--text-1)] px-5 py-3 text-sm font-bold text-[var(--canvas)] shadow-xl shadow-[var(--text-1)]/30 hover:opacity-90 active:scale-95 transition-all"
           >
             <Receipt className="h-4 w-4" />
             Track Order · {activeOrder.orderNo}

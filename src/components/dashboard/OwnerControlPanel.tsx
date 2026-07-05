@@ -589,7 +589,7 @@ function FeatureOverridesSection({
                   </p>
                 </div>
 
-                <div className="flex items-center gap-1">
+                <div className="flex shrink-0 items-center gap-1">
                   {(["default", "force-on", "force-off"] as OverrideState[]).map((opt) => {
                     const active = state === opt;
                     const baseCls =
@@ -628,7 +628,7 @@ function FeatureOverridesSection({
                   })}
                 </div>
 
-                <div className="w-14 text-right">
+                <div className="w-14 shrink-0 text-right">
                   <span
                     className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
                       eff

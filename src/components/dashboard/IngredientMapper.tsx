@@ -11,6 +11,7 @@ import {
   Trash2,
   Link2,
 } from "lucide-react";
+import NumberInput from "@/components/shared/NumberInput";
 
 interface InventoryItem {
   id: string;
@@ -306,14 +307,12 @@ export default function IngredientMapper({
                       {/* Quantity input (only when checked) */}
                       {isChecked && (
                         <div className="flex items-center gap-1.5">
-                          <input
-                            type="number"
-                            step="0.01"
-                            min="0.01"
+                          <NumberInput
+                            step={0.01}
+                            min={0.01}
                             value={qty}
-                            onChange={(e) =>
-                              setQuantity(item.id, parseFloat(e.target.value) || 0.01)
-                            }
+                            onChange={(n) => setQuantity(item.id, n)}
+                            decimal
                             className="w-20 rounded-lg border border-[var(--accent-border)] bg-[var(--accent-muted)] px-2 py-1.5 text-xs font-bold text-[var(--text-1)] text-center outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                           />
                           <span className="text-[10px] font-semibold text-[var(--accent-text)] w-6">

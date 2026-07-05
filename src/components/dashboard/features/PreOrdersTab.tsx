@@ -24,6 +24,7 @@ import {
   Filter,
 } from "lucide-react";
 import NotPersistedBanner from "./_NotPersistedBanner";
+import NumberInput from "@/components/shared/NumberInput";
 
 interface PreOrderItem {
   id: string;
@@ -268,10 +269,10 @@ export default function PreOrdersTab() {
                   <label className="block text-xs font-medium text-[var(--text-2)] mb-1">
                     Max Orders Per Day
                   </label>
-                  <input
-                    type="number"
+                  <NumberInput
                     value={maxOrdersPerDay}
-                    onChange={(e) => setMaxOrdersPerDay(Number(e.target.value))}
+                    onChange={(n) => setMaxOrdersPerDay(n)}
+                    min={1}
                     className="w-full px-3 py-2 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 focus:border-rose-300"
                   />
                 </div>
@@ -279,10 +280,10 @@ export default function PreOrdersTab() {
                   <label className="block text-xs font-medium text-[var(--text-2)] mb-1">
                     Max Orders Per Time Slot
                   </label>
-                  <input
-                    type="number"
+                  <NumberInput
                     value={maxOrdersPerSlot}
-                    onChange={(e) => setMaxOrdersPerSlot(Number(e.target.value))}
+                    onChange={(n) => setMaxOrdersPerSlot(n)}
+                    min={1}
                     className="w-full px-3 py-2 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 focus:border-rose-300"
                   />
                 </div>
@@ -291,10 +292,10 @@ export default function PreOrdersTab() {
                     <Bell className="w-3 h-3 inline mr-1" />
                     Notify Customer (hours before pickup)
                   </label>
-                  <input
-                    type="number"
+                  <NumberInput
                     value={notifyHoursBefore}
-                    onChange={(e) => setNotifyHoursBefore(Number(e.target.value))}
+                    onChange={(n) => setNotifyHoursBefore(n)}
+                    min={0}
                     className="w-full px-3 py-2 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 focus:border-rose-300"
                   />
                 </div>
@@ -638,30 +639,26 @@ export default function PreOrdersTab() {
                     <label className="block text-xs font-medium text-[var(--text-2)] mb-1">
                       Deposit Amount ($)
                     </label>
-                    <input
-                      type="number"
+                    <NumberInput
                       value={formData.depositAmount}
-                      onChange={(e) =>
-                        setFormData({ ...formData, depositAmount: Number(e.target.value) })
-                      }
+                      onChange={(n) => setFormData({ ...formData, depositAmount: n })}
                       className="w-full px-3 py-2 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
                       min={0}
                       step={0.01}
+                      decimal
                     />
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-[var(--text-2)] mb-1">
                       Total Amount ($)
                     </label>
-                    <input
-                      type="number"
+                    <NumberInput
                       value={formData.totalAmount}
-                      onChange={(e) =>
-                        setFormData({ ...formData, totalAmount: Number(e.target.value) })
-                      }
+                      onChange={(n) => setFormData({ ...formData, totalAmount: n })}
                       className="w-full px-3 py-2 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
                       min={0}
                       step={0.01}
+                      decimal
                     />
                   </div>
                 </div>

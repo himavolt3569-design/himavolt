@@ -165,9 +165,12 @@ export async function apiFetch<T = unknown>(
 
   const request = (async () => {
     // GETs are idempotent — retry transient pool/network failures so a single
-    // saturated lambda doesn't surface as a blank tab. Mutations are NOT
-    // retried automatically (could double-write); they only get the timeout.
-    const maxAttempts = method === "GET" ? MAX_GET_RETRIES + 1 : 1;
+    // saturated lambda doesn't surface as a blank tab. POST is NOT retried
+    // (could double-write). PATCH/DELETE are safe to retry on a *transient*
+    // failure (503/504 from pool saturation) — the server never applied the
+    // change, and re-sending the same overwrite/delete is idempotent.
+    const isIdempotentMutation = method === "PATCH" || method === "DELETE" || method === "PUT";
+    const maxAttempts = method === "GET" || isIdempotentMutation ? MAX_GET_RETRIES + 1 : 1;
 
     let lastErr: unknown;
     for (let i = 0; i < maxAttempts; i++) {
@@ -180,8 +183,18 @@ export async function apiFetch<T = unknown>(
             pruneCache();
           } else if (method !== "GET") {
             const basePath = path.split("?")[0];
-            const segments = basePath.split("/").slice(0, 4).join("/");
-            invalidateApiCache(segments);
+            const parts = basePath.split("/").filter(Boolean);
+            // Invalidate every ancestor path, not just the resource itself —
+            // list endpoints like GET /api/restaurants embed nested data
+            // (e.g. each staff member's qrToken) and are a *shorter* path
+            // than the mutated one, so a prefix match on the mutated path
+            // alone would never clear them, leaving the list stale for up
+            // to cacheTtl after the edit. Start at 2 segments (e.g.
+            // "/api/restaurants") rather than 1 ("/api") so this doesn't
+            // wipe every cached GET in the app on an unrelated mutation.
+            for (let i = 2; i <= parts.length; i++) {
+              invalidateApiCache("/" + parts.slice(0, i).join("/"));
+            }
           }
         }
 

@@ -33,7 +33,7 @@ import {
   type Restaurant,
   type StaffMember,
 } from "@/context/RestaurantContext";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, peekApiCache } from "@/lib/api-client";
 import { SkeletonLine, SkeletonGrid } from "@/components/shared/Skeleton";
 import { AnchoredMenu } from "@/components/shared/AnchoredMenu";
 import ShiftsTab from "./ShiftsTab";
@@ -148,35 +148,23 @@ function RoleDropdown({
   current,
   staffId,
   restaurantId,
-  onUpdated,
 }: {
   current: StaffRole;
   staffId: string;
   restaurantId: string;
-  onUpdated: () => void;
 }) {
+  const { updateStaffMember } = useRestaurant();
   const [open, setOpen] = useState(false);
-  const [saving, setSaving] = useState<StaffRole | null>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
-  const handleChange = async (role: StaffRole) => {
-    if (role === current) {
-      setOpen(false);
-      return;
-    }
-    setSaving(role);
-    try {
-      await apiFetch(`/api/restaurants/${restaurantId}/staff/${staffId}`, {
-        method: "PATCH",
-        body: { role },
-      });
-      onUpdated();
-    } catch {
-      /* keep open */
-    } finally {
-      setSaving(null);
-      setOpen(false);
-    }
+  // Optimistic — updateStaffMember patches the restaurant context directly,
+  // so `current` (driven by that context) flips the instant you click.
+  const handleChange = (role: StaffRole) => {
+    setOpen(false);
+    if (role === current) return;
+    updateStaffMember(restaurantId, staffId, { role }).catch(() => {
+      /* context already rolled back via its own reconcile */
+    });
   };
 
   const meta = ROLE_META[current] ?? ROLE_META.WAITER;
@@ -212,18 +200,13 @@ function RoleDropdown({
             <button
               key={role}
               onClick={() => handleChange(role)}
-              disabled={!!saving}
               className={`flex w-full items-center gap-2.5 px-3 py-2.5 text-xs font-semibold transition-colors ${
                 isActive
                   ? "bg-[var(--canvas-sub)] text-[var(--text-1)]"
                   : "text-[var(--text-2)] hover:bg-[var(--canvas-sub)] hover:text-[var(--text-1)]"
               }`}
             >
-              {saving === role ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin text-[var(--text-3)]" />
-              ) : (
-                <RI className={`h-3.5 w-3.5 ${rm.text}`} />
-              )}
+              <RI className={`h-3.5 w-3.5 ${rm.text}`} />
               <span className="flex-1 text-left">{rm.label}</span>
               {isActive && <Check className="h-3 w-3 text-[var(--text-3)]" />}
             </button>
@@ -239,13 +222,11 @@ function StaffCard({
   restaurant,
   removeStaff,
   toggleStaffActive,
-  onRoleUpdated,
 }: {
   member: StaffMember;
   restaurant: Restaurant;
   removeStaff: (rid: string, sid: string) => void;
   toggleStaffActive: (rid: string, sid: string) => void;
-  onRoleUpdated: () => void;
 }) {
   const roleKey = member.role as StaffRole;
   const meta = ROLE_META[roleKey] ?? ROLE_META.WAITER;
@@ -254,9 +235,8 @@ function StaffCard({
   const [editingPin, setEditingPin] = useState(false);
   const [newPin, setNewPin] = useState("");
   const [savingPin, setSavingPin] = useState(false);
-  const [savingType, setSavingType] = useState(false);
   const [qrModalOpen, setQrModalOpen] = useState(false);
-  const { fetchRestaurants } = useRestaurant();
+  const { fetchRestaurants, updateStaffMember } = useRestaurant();
 
   const handleSavePin = async () => {
     if (!/^\d{4}$/.test(newPin)) return;
@@ -274,19 +254,13 @@ function StaffCard({
     }
   };
 
-  const handleSetStaffType = async (newType: "FULL_TIME" | "SHIFT_BASED") => {
+  // Optimistic — updateStaffMember patches the restaurant context directly,
+  // so the Shift-Based/Full-Time toggle flips the instant you click it.
+  const handleSetStaffType = (newType: "FULL_TIME" | "SHIFT_BASED") => {
     if (newType === member.staffType) return;
-    setSavingType(true);
-    try {
-      await apiFetch(`/api/restaurants/${restaurant.id}/staff/${member.id}`, {
-        method: "PATCH",
-        body: { staffType: newType },
-      });
-      await fetchRestaurants();
-      onRoleUpdated();
-    } finally {
-      setSavingType(false);
-    }
+    updateStaffMember(restaurant.id, member.id, { staffType: newType }).catch(() => {
+      /* context already rolled back via its own reconcile */
+    });
   };
 
   return (
@@ -358,7 +332,6 @@ function StaffCard({
             current={roleKey}
             staffId={member.id}
             restaurantId={restaurant.id}
-            onUpdated={onRoleUpdated}
           />
         </div>
 
@@ -370,7 +343,6 @@ function StaffCard({
           <div className="flex items-center gap-1 rounded-lg bg-[var(--surface)] p-0.5">
             <button
               onClick={() => handleSetStaffType("SHIFT_BASED")}
-              disabled={savingType}
               title="Shift-Based: operates within defined time windows"
               className={`rounded-md px-2.5 py-1 text-[10px] font-bold transition-all ${
                 (member.staffType ?? "SHIFT_BASED") === "SHIFT_BASED"
@@ -378,15 +350,10 @@ function StaffCard({
                   : "text-[var(--text-3)] hover:text-[var(--text-2)]"
               }`}
             >
-              {savingType &&
-              (member.staffType ?? "SHIFT_BASED") !== "SHIFT_BASED" ? (
-                <Loader2 className="h-3 w-3 animate-spin inline" />
-              ) : null}{" "}
               Shift-Based
             </button>
             <button
               onClick={() => handleSetStaffType("FULL_TIME")}
-              disabled={savingType}
               title="Full-Time: always active, attributed by who processed the order"
               className={`rounded-md px-2.5 py-1 text-[10px] font-bold transition-all ${
                 member.staffType === "FULL_TIME"
@@ -394,9 +361,6 @@ function StaffCard({
                   : "text-[var(--text-3)] hover:text-[var(--text-2)]"
               }`}
             >
-              {savingType && member.staffType !== "FULL_TIME" ? (
-                <Loader2 className="h-3 w-3 animate-spin inline" />
-              ) : null}{" "}
               Full-Time
             </button>
           </div>
@@ -499,7 +463,6 @@ function StaffDirectoryView({
   removeStaff: (rid: string, sid: string) => void;
   toggleStaffActive: (rid: string, sid: string) => void;
 }) {
-  const { fetchRestaurants } = useRestaurant();
   const [search, setSearch] = useState("");
   const [filterRole, setFilterRole] = useState<StaffRole | "all">("all");
 
@@ -621,7 +584,6 @@ function StaffDirectoryView({
                 restaurant={restaurant}
                 removeStaff={removeStaff}
                 toggleStaffActive={toggleStaffActive}
-                onRoleUpdated={fetchRestaurants}
               />
             ))}
           </AnimatePresence>
@@ -638,6 +600,11 @@ function AttendanceLogsView({ restaurantId }: { restaurantId: string }) {
     queryKey: ["attendance-logs", restaurantId],
     queryFn: () => apiFetch<AttendanceLog[]>(`/api/restaurants/${restaurantId}/attendance`),
     enabled: !!restaurantId,
+    // Seed from the hover/idle-warmed GET cache so the Attendance view paints
+    // instantly instead of flashing "Loading attendance…"; revalidates after.
+    initialData: () =>
+      restaurantId ? peekApiCache<AttendanceLog[]>(`/api/restaurants/${restaurantId}/attendance`) : undefined,
+    initialDataUpdatedAt: 0,
   });
   const logs = logsQuery.data ?? [];
   const loading = logsQuery.isLoading;
@@ -1017,7 +984,7 @@ function AddStaffModal({
                     reset();
                     onClose();
                   }}
-                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] px-6 py-3 text-sm font-bold text-white hover:bg-[#2d1508] active:scale-[0.97] transition-all"
+                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] px-6 py-3 text-sm font-bold text-[var(--canvas)] hover:opacity-90 active:scale-[0.97] transition-all"
                 >
                   <Check className="h-4 w-4" />
                   Done
@@ -1152,10 +1119,10 @@ function AddStaffModal({
                   <button
                     onClick={handleSave}
                     disabled={!isValid || saving}
-                    className={`flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-bold text-white transition-all active:scale-[0.97] ${
+                    className={`flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-bold transition-all active:scale-[0.97] ${
                       isValid && !saving
-                        ? "bg-[var(--text-1)] shadow-lg shadow-[var(--text-1)]/20 hover:bg-[#2d1508]"
-                        : "bg-[var(--border)] cursor-not-allowed"
+                        ? "bg-[var(--text-1)] text-[var(--canvas)] shadow-lg shadow-[var(--text-1)]/20 hover:opacity-90"
+                        : "bg-[var(--border)] text-[var(--text-3)] cursor-not-allowed"
                     }`}
                   >
                     {saving ? (

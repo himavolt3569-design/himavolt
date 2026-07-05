@@ -20,6 +20,7 @@ import { SkeletonLine, SkeletonGrid } from "@/components/shared/Skeleton";
 import { useToast } from "@/context/ToastContext";
 import { apiFetch, peekApiCache, invalidateApiCache } from "@/lib/api-client";
 import { uploadFile } from "@/lib/upload";
+import { runWithConcurrency } from "@/lib/concurrency";
 
 interface MediaItem {
   id: string;
@@ -67,8 +68,9 @@ export default function MediaTab({ restaurantId: propRestaurantId }: { restauran
     if (!files || !restaurantId) return;
     const fileArr = Array.from(files);
     setUploading(true);
-    let success = 0;
-    for (const file of fileArr) {
+    // A few files upload in parallel instead of one-by-one — a batch of
+    // photos no longer takes N times as long as a single upload.
+    const results = await runWithConcurrency(fileArr, 3, async (file) => {
       try {
         const url = await uploadFile(file, "media-library");
 
@@ -84,11 +86,13 @@ export default function MediaTab({ restaurantId: propRestaurantId }: { restauran
             mimeType: file.type,
           }),
         });
-        success++;
+        return true;
       } catch (err) {
         showToast(err instanceof Error ? err.message : "Upload failed", "error");
+        return false;
       }
-    }
+    });
+    const success = results.filter(Boolean).length;
     if (success > 0) showToast(`${success} file${success > 1 ? "s" : ""} uploaded`, "success");
     setUploading(false);
     invalidateApiCache(`/api/restaurants/${restaurantId}/media`);

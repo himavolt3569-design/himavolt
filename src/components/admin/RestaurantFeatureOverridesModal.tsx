@@ -134,7 +134,7 @@ export default function RestaurantFeatureOverridesModal({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 10 }}
           onClick={(e) => e.stopPropagation()}
-          className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-[var(--canvas)] shadow-2xl"
+          className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-3xl bg-[var(--canvas)] shadow-2xl"
         >
           <div className="flex items-center justify-between border-b border-[var(--border)] px-5 py-3.5">
             <div className="min-w-0">

@@ -4,6 +4,8 @@ import {
   getRestaurantAccess,
   requireOwnerOrStaffBilling,
 } from "@/lib/access-control";
+import { notifyRestaurantBookings } from "@/lib/realtime";
+import { syncRoomAvailabilityForStatus } from "@/lib/room-availability";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -21,10 +23,16 @@ export async function GET(req: NextRequest, { params }: Params) {
   const offset = Math.max(parseInt(searchParams.get("offset") || "0", 10), 0);
 
   const where: Record<string, unknown> = { restaurantId: id };
-  if (status) where.status = status;
+  // Front Desk needs "CONFIRMED,CHECKED_IN" in one call (arrivals + in-house)
+  // rather than one request per status.
+  if (status) {
+    const statuses = status.split(",").map((s) => s.trim()).filter(Boolean);
+    where.status = statuses.length > 1 ? { in: statuses } : statuses[0];
+  }
   if (roomId) where.roomId = roomId;
 
-  const [bookings, total] = await Promise.all([
+  // Sequential transaction — prod DB pool = 1 connection; Promise.all would deadlock
+  const [bookings, total] = await db.$transaction([
     db.roomBooking.findMany({
       where,
       include: {
@@ -117,6 +125,9 @@ export async function POST(req: NextRequest, { params }: Params) {
   );
   const totalPrice = nights * room.price;
 
+  const resolvedStatus = bookingStatus || "CONFIRMED";
+  const { guestIdImageUrl } = body;
+
   const booking = await db.roomBooking.create({
     data: {
       guestName: guestName.trim(),
@@ -125,6 +136,7 @@ export async function POST(req: NextRequest, { params }: Params) {
       guestAddress: guestAddress?.trim() || null,
       guestIdType: guestIdType || null,
       guestIdNumber: guestIdNumber?.trim() || null,
+      guestIdImageUrl: guestIdImageUrl || null,
       adults: adults ?? 1,
       children: children ?? 0,
       checkIn: checkInDate,
@@ -133,7 +145,7 @@ export async function POST(req: NextRequest, { params }: Params) {
       totalPrice,
       advanceAmount: advanceAmount ?? 0,
       advancePaid: advancePaid ?? false,
-      status: bookingStatus || "CONFIRMED",
+      status: resolvedStatus,
       notes: notes?.trim() || null,
       roomId,
       restaurantId: id,
@@ -144,6 +156,11 @@ export async function POST(req: NextRequest, { params }: Params) {
       },
     },
   });
+
+  // A walk-in created directly as CHECKED_IN (Front Desk) must flip the room's
+  // availability immediately — same rule the PATCH transition uses.
+  await syncRoomAvailabilityForStatus(roomId, resolvedStatus);
+  notifyRestaurantBookings(id, { bookingId: booking.id });
 
   return NextResponse.json(booking, { status: 201 });
 }

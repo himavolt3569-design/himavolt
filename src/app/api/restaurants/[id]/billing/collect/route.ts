@@ -9,6 +9,7 @@ import { touchOrderUpdatedAt } from "@/lib/order-sync";
 import { STAFF_BILLING_ROLES } from "@/lib/staff-roles";
 import { notifyKitchenNewOrder } from "@/lib/notifications";
 import { notifyOrderChanged } from "@/lib/realtime";
+import { endTableSession } from "@/lib/table-session";
 
 async function verifyStaffAccess(req: NextRequest, restaurantId: string) {
   const staff = await requireStaffForRestaurant(req, restaurantId);
@@ -47,7 +48,7 @@ export async function POST(
   }
 
   const body = await req.json();
-  const { orderId, method, transactionId } = body;
+  const { orderId, method, transactionId, amountPaid, customerName, customerPhone, note } = body;
 
   if (!orderId || !method) {
     return NextResponse.json(
@@ -64,9 +65,22 @@ export async function POST(
     );
   }
 
+  // Optional partial collection: remainder is recorded as dues (CreditEntry).
+  if (amountPaid !== undefined) {
+    if (typeof amountPaid !== "number" || !Number.isFinite(amountPaid) || amountPaid <= 0) {
+      return NextResponse.json(
+        { error: "amountPaid must be a positive number" },
+        { status: 400 },
+      );
+    }
+  }
+
   // Verify the order belongs to this restaurant
   const [order, restaurantForCurrency] = await Promise.all([
-    db.order.findFirst({ where: { id: orderId, restaurantId: id } }),
+    db.order.findFirst({
+      where: { id: orderId, restaurantId: id },
+      include: { bill: { select: { total: true } } },
+    }),
     db.restaurant.findUnique({ where: { id }, select: { currency: true } }),
   ]);
   const currSym = getCurrencySymbol(restaurantForCurrency?.currency ?? "NPR");
@@ -75,25 +89,48 @@ export async function POST(
     return NextResponse.json({ error: "Order not found" }, { status: 404 });
   }
 
+  // Dues need someone to chase: partial collections must name the customer.
+  const billTotal = order.bill?.total ?? order.total;
+  const isPartial = typeof amountPaid === "number" && amountPaid < billTotal - 0.01;
+  if (isPartial && !customerName && !customerPhone) {
+    return NextResponse.json(
+      { error: "Partial payment requires a customer name or phone so the dues can be settled later" },
+      { status: 400 },
+    );
+  }
+
   try {
-    const payment = await collectPayment(orderId, method, transactionId);
+    const payment = await collectPayment(
+      orderId,
+      method,
+      transactionId,
+      typeof amountPaid === "number"
+        ? { amountPaid, customerName, customerPhone, note }
+        : undefined,
+    );
 
     // Touch order so SSE streams detect the payment change
     await touchOrderUpdatedAt(orderId);
 
     // Instant realtime push to the customer's track page + staff feeds, so the
     // paid state reflects immediately instead of waiting for the SSE poll.
-    notifyOrderChanged(orderId, id, { payment: "COMPLETED" });
+    notifyOrderChanged(orderId, id, { payment: payment.status });
 
     // Auto-clear the table session so the next customer gets a fresh start.
-    // Run separately so a missing endedAt column (schema drift) doesn't
-    // abort the payment response — the session is still marked inactive.
-    db.tableSession
-      .updateMany({
-        where: { orderId, isActive: true },
-        data: { isActive: false },
-      })
-      .catch(() => {});
+    // Shared helper handles the delete-inactive-first dance required by the
+    // @@unique([restaurantId, tableNo, isActive]) constraint and never throws.
+    const sessionResult = await endTableSession(id, { orderId });
+    if (sessionResult.error) {
+      logAudit({
+        action: "TABLE_CLEAR_FAILED",
+        entity: "TableSession",
+        entityId: orderId,
+        detail: `Table session not cleared after payment: ${sessionResult.error}`,
+        userId: actorId,
+        restaurantId: id,
+        ipAddress: getClientIp(req.headers),
+      });
+    }
 
     // Tag the order with the staff who collected payment (for shift attribution)
     // Only set if not already attributed (customer-placed orders have null processedByStaffId)
@@ -128,12 +165,18 @@ export async function POST(
       action: "PAYMENT_COLLECTED",
       entity: "Payment",
       entityId: orderId,
-      detail: `Payment collected via ${method} for order ${order.orderNo} (${currSym}${payment.amount})`,
+      detail:
+        payment.status === "PARTIALLY_PAID"
+          ? `Partial payment collected via ${method} for order ${order.orderNo} (${currSym}${payment.amount} of ${currSym}${billTotal} — remainder recorded as dues)`
+          : `Payment collected via ${method} for order ${order.orderNo} (${currSym}${payment.amount})`,
       metadata: {
         method,
         orderNo: order.orderNo,
         amount: payment.amount,
         transactionId,
+        ...(payment.status === "PARTIALLY_PAID"
+          ? { duesAmount: Math.round((billTotal - payment.amount) * 100) / 100 }
+          : {}),
       },
       userId: actorId,
       restaurantId: id,

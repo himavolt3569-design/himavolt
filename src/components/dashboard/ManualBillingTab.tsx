@@ -11,6 +11,7 @@ import { formatPrice } from "@/lib/currency";
 import { apiFetch, peekApiCache } from "@/lib/api-client";
 import { printKOT, printBOT } from "@/lib/print-kot";
 import { openBillWindow, autoPrintBill } from "@/lib/print-bill";
+import NumberInput from "@/components/shared/NumberInput";
 
 
 interface MenuItem {
@@ -786,12 +787,11 @@ export default function ManualBillingTab({
                       </div>
                       <div className="flex items-center gap-1 mt-0.5">
                         <span className="text-[10px] text-[var(--text-3)]">Price:</span>
-                        <input
-                          type="number"
+                        <NumberInput
                           value={item.price}
-                          onChange={(e) => updatePrice(item.menuItemId, parseFloat(e.target.value) || 0)}
+                          onChange={(n) => updatePrice(item.menuItemId, n)}
                           className="w-16 rounded border border-[var(--border)] px-1 py-0.5 text-xs text-center focus:outline-none focus:ring-1 focus:ring-[var(--accent-border)]"
-                          min={0} step={10}
+                          min={0} step={10} decimal
                         />
                       </div>
                     </div>

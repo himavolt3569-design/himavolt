@@ -6,6 +6,7 @@ import {
   CheckCircle2, Clock, ChefHat, Truck, XCircle,
   Bell, Wifi, WifiOff,
 } from "lucide-react";
+import { ScrollableRow } from "@/components/shared/ScrollableRow";
 import { formatPrice } from "@/lib/currency";
 import type { SSEStatus } from "@/hooks/useSSE";
 import type { POSOrder } from "@/hooks/usePOSOrders";
@@ -94,7 +95,7 @@ export default function POSActiveOrders({ restaurantId, currency, orders, connec
         </div>
 
         {/* Filter pills */}
-        <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+        <ScrollableRow innerClassName="flex gap-2" edgeColor="var(--canvas)">
           {FILTER_STATUSES.map((s) => {
             const count = s === "ALL" ? orders.length : orders.filter((o) => o.status === s).length;
             const active = filter === s;
@@ -117,7 +118,7 @@ export default function POSActiveOrders({ restaurantId, currency, orders, connec
               </button>
             );
           })}
-        </div>
+        </ScrollableRow>
       </div>
 
       {/* Orders grid */}
@@ -211,7 +212,7 @@ export default function POSActiveOrders({ restaurantId, currency, orders, connec
                                     e.stopPropagation();
                                     updateStatus(order.id, "ACCEPTED");
                                   }}
-                                  className="flex-1 bg-[var(--text-1)] text-white font-bold py-3 rounded-xl hover:bg-[#2d1508] transition-colors"
+                                  className="flex-1 bg-[var(--text-1)] text-[var(--canvas)] font-bold py-3 rounded-xl hover:opacity-90 transition-colors"
                                 >
                                   Accept
                                 </button>

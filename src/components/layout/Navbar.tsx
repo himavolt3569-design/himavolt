@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Mountain, LogOut, KeyRound } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
@@ -10,6 +11,7 @@ import { rememberIntendedRole } from "@/lib/intended-role";
 
 export default function Navbar() {
   const { isSignedIn, isLoaded, user, userRole, signOut } = useAuth();
+  const router = useRouter();
 
   const [scrolled, setScrolled] = useState(false);
 
@@ -58,8 +60,26 @@ export default function Navbar() {
 
   // Profile image routing: Admin/Owner manage their business → /dashboard,
   // customers go to their personal profile → /profile.
+  const roleResolved = userRole === "OWNER" || userRole === "ADMIN" || userRole === "CUSTOMER";
   const profileHref =
     userRole === "OWNER" || userRole === "ADMIN" ? "/dashboard" : "/profile";
+
+  // Right after login the role can still be loading (AuthContext is fetching
+  // /api/me). If an owner clicks the avatar in that window, the fallback above
+  // would wrongly send them to /profile. Guard the click: when the role isn't
+  // known yet, ask the server before routing so owners always land on the
+  // dashboard, never the customer profile page.
+  const handleAvatarClick = async (e: React.MouseEvent) => {
+    if (roleResolved) return; // href is already correct — let the Link navigate
+    e.preventDefault();
+    try {
+      const r = await fetch("/api/me", { cache: "no-store" });
+      const d = r.ok ? await r.json() : {};
+      router.push(d.role === "OWNER" || d.role === "ADMIN" ? "/dashboard" : "/profile");
+    } catch {
+      router.push("/profile");
+    }
+  };
 
   return (
     <nav
@@ -89,6 +109,13 @@ export default function Navbar() {
         {/* Actions Area */}
         <div className="flex items-center gap-1 sm:gap-2 shrink-0">
 
+          <Link
+            href="/hotels"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-bold text-slate-700 hover:text-[var(--accent)] hover:bg-slate-50 transition-all"
+          >
+            Hotels
+          </Link>
+
           {!scrolled && (
             <Link
               href="/staff-login"
@@ -109,6 +136,7 @@ export default function Navbar() {
                   {/* Profile avatar → role-based destination */}
                   <Link
                     href={profileHref}
+                    onClick={handleAvatarClick}
                     title={profileHref === "/dashboard" ? "Go to dashboard" : "Go to profile"}
                     className={`flex items-center justify-center rounded-xl overflow-hidden transition-all duration-300 ${scrolled ? 'h-9 w-9 ring-1 ring-slate-100' : 'h-10 w-10'} hover:ring-2 hover:ring-[var(--accent)]`}
                   >

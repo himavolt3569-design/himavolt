@@ -27,6 +27,7 @@ import {
   Award,
   Eye,
 } from "lucide-react";
+import NumberInput from "@/components/shared/NumberInput";
 import NotPersistedBanner from "./_NotPersistedBanner";
 
 type Season = "Spring" | "Summer" | "Autumn" | "Winter";
@@ -288,12 +289,13 @@ export default function SeasonalMenuTab() {
                       <option>Snack</option>
                       <option>Meal</option>
                     </select>
-                    <input
-                      type="number"
+                    <NumberInput
                       placeholder={`Price (${getCurrencySymbol(cur)})`}
                       min={0}
-                      value={newItem.price || ""}
-                      onChange={(e) => setNewItem((p) => ({ ...p, price: Number(e.target.value) }))}
+                      value={newItem.price ?? 0}
+                      onChange={(n) => setNewItem((p) => ({ ...p, price: n }))}
+                      decimal
+                      hideZero
                       className="border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                     />
                     <input

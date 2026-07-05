@@ -108,6 +108,9 @@ export async function POST(
 
   const room = await db.room.findFirst({
     where: { id: data.roomId, restaurantId: restaurant.id, isActive: true },
+    // Only the fields used below — avoids selecting columns that may not exist
+    // on a DB pending the latest schema push (would throw P2022).
+    select: { id: true, maxGuests: true, price: true },
   });
   if (!room) {
     return NextResponse.json({ error: "Room not found" }, { status: 404 });

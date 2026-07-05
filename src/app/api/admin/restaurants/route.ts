@@ -1,7 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/require-admin";
 import { unauthorized } from "@/lib/api-helpers";
+import { logAudit, getClientIp } from "@/lib/audit";
+
+const deleteRestaurantsSchema = z
+  .object({
+    ids: z.array(z.string().cuid()).min(1).max(25).optional(),
+    restaurantId: z.string().cuid().optional(),
+  })
+  .refine((v) => (v.ids?.length ?? 0) > 0 || v.restaurantId, {
+    message: "restaurantId or ids required",
+  });
 
 /**
  * GET /api/admin/restaurants
@@ -62,27 +73,46 @@ export async function DELETE(req: NextRequest) {
   const admin = await requireAdmin();
   if (!admin) return unauthorized("Admin access required");
 
-  const body = await req.json();
+  const parsed = deleteRestaurantsSchema.safeParse(await req.json());
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: parsed.error.issues[0]?.message ?? "Invalid request" },
+      { status: 400 },
+    );
+  }
   // Support both single (restaurantId) and bulk (ids: string[]) delete
-  const ids: string[] = body.ids ?? (body.restaurantId ? [body.restaurantId] : []);
-  if (ids.length === 0) {
-    return NextResponse.json({ error: "restaurantId or ids required" }, { status: 400 });
-  }
+  const ids = parsed.data.ids ?? [parsed.data.restaurantId as string];
 
-  for (const restaurantId of ids) {
-    await db.$transaction([
-      db.delivery.deleteMany({ where: { order: { restaurantId } } }),
-      db.payment.deleteMany({ where: { order: { restaurantId } } }),
-      db.bill.deleteMany({ where: { order: { restaurantId } } }),
-      db.tableSession.deleteMany({ where: { order: { restaurantId } } }),
-      db.feedback.deleteMany({ where: { restaurantId } }),
-      db.orderItem.deleteMany({ where: { order: { restaurantId } } }),
-      db.order.deleteMany({ where: { restaurantId } }),
-      db.restaurant.delete({ where: { id: restaurantId } }),
-    ]);
-  }
+  // Snapshot names for the audit trail before they're gone.
+  const targets = await db.restaurant.findMany({
+    where: { id: { in: ids } },
+    select: { id: true, name: true, slug: true },
+  });
 
-  return NextResponse.json({ success: true, deleted: ids.length });
+  // One transaction for the whole batch instead of a per-id loop — the old
+  // sequential per-restaurant transactions queued 8 queries × N ids against
+  // the tiny serverless pool.
+  await db.$transaction([
+    db.delivery.deleteMany({ where: { order: { restaurantId: { in: ids } } } }),
+    db.payment.deleteMany({ where: { order: { restaurantId: { in: ids } } } }),
+    db.bill.deleteMany({ where: { order: { restaurantId: { in: ids } } } }),
+    db.tableSession.deleteMany({ where: { order: { restaurantId: { in: ids } } } }),
+    db.feedback.deleteMany({ where: { restaurantId: { in: ids } } }),
+    db.orderItem.deleteMany({ where: { order: { restaurantId: { in: ids } } } }),
+    db.order.deleteMany({ where: { restaurantId: { in: ids } } }),
+    db.restaurant.deleteMany({ where: { id: { in: ids } } }),
+  ]);
+
+  logAudit({
+    action: "RESTAURANT_DELETED",
+    entity: "Restaurant",
+    entityId: ids.join(","),
+    detail: `Admin deleted ${targets.length} restaurant(s): ${targets.map((t) => t.name).join(", ")}`,
+    metadata: { restaurants: targets },
+    ipAddress: getClientIp(req.headers),
+  });
+
+  return NextResponse.json({ success: true, deleted: targets.length });
 }
 
 /**

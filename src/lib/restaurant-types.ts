@@ -301,14 +301,41 @@ export function isFeatureAvailable(
   return features.some((f) => f.id === featureId);
 }
 
-/** Get the effective feature tab list for a restaurant: type defaults minus force-disabled, plus force-enabled. */
+/**
+ * Feature tabs whose components are UI-only stubs (local useState, mock data,
+ * nothing persisted). Hidden from the nav by default so nothing fake is
+ * clickable; a master-admin force-enable via `featuresEnabled` still surfaces
+ * one for a specific restaurant (e.g. to demo it). Remove an id from this set
+ * once its backend is actually built.
+ */
+export const STUB_FEATURE_IDS = new Set<string>([
+  "multi-outlet",
+  "multi-brand",
+  "event-catering",
+  "buffet-manager",
+  "pre-orders",
+  "custom-cakes",
+  "delivery-ops",
+  "package-tracking",
+  "tab-management",
+  "cocktail-menu",
+  "live-events",
+  "seasonal-menu",
+  "brunch-mode",
+  "waitlist",
+  "private-dining",
+]);
+
+/** Get the effective feature tab list for a restaurant: type defaults minus force-disabled and stubs, plus force-enabled. */
 export function getFeatureTabsForType(
   restaurantType: string,
   overrides?: FeatureOverride,
 ): FeatureTabDef[] {
   const base = TYPE_FEATURE_TABS[restaurantType] ?? [];
   const disabled = new Set<string>(overrides?.featuresDisabled ?? []);
-  const filtered = base.filter((f) => !disabled.has(f.id));
+  const filtered = base.filter(
+    (f) => !disabled.has(f.id) && !STUB_FEATURE_IDS.has(f.id),
+  );
   const existingIds = new Set<string>(filtered.map((f) => f.id));
   const extras = (overrides?.featuresEnabled ?? [])
     .filter((id) => !disabled.has(id) && !existingIds.has(id))

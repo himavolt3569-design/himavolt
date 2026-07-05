@@ -15,6 +15,7 @@ import {
   UtensilsCrossed,
   LayoutDashboard,
   Shield,
+  BedDouble,
 } from "lucide-react";
 import clsx from "clsx";
 import { useActiveTableSession } from "@/hooks/useActiveTableSession";
@@ -106,6 +107,7 @@ export default function BottomNav() {
       return [
         { name: "Home", href: "/", icon: Home },
         { name: "Explore", href: "/menu", icon: Search },
+        { name: "Hotels", href: "/hotels", icon: BedDouble },
         { name: "Orders", href: "/orders", icon: Receipt },
         {
           name: "Account",
@@ -120,17 +122,27 @@ export default function BottomNav() {
 
     return [
       { name: "Home", href: "/", icon: Home },
-      { name: "Explore", href: "/menu", icon: Search },
+      { name: "Hotels", href: "/hotels", icon: BedDouble },
       { name: "Staff", href: "/staff-login", icon: KeyRound },
       { name: "Sign In", href: "/sign-in", icon: UserPlus },
     ];
   }, [activeSession, isSignedIn, avatarUrl, userInitials, userRole]);
 
   if (pathname === "/scan" && !activeSession) return null;
-  if (pathname === "/kitchen" || pathname === "/counter") return null;
-  if (pathname === "/dashboard") return null;
-  if (pathname === "/admin") return null;
-  if (pathname === "/staff-login") return null;
+  // Owner/staff/admin surfaces are full-screen apps with their own nav —
+  // the customer bottom bar overlapping them (e.g. /dashboard/orders on a
+  // phone) blocked their action bars. Hide on the whole subtree, not just
+  // the index route.
+  if (
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/kitchen") ||
+    pathname.startsWith("/counter") ||
+    pathname.startsWith("/pos") ||
+    pathname.startsWith("/staff-login")
+  ) {
+    return null;
+  }
   if (!isLoaded) return null;
 
   return (

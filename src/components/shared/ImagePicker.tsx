@@ -129,8 +129,8 @@ export default function ImagePicker({
 
   const handleFileUpload = useCallback(
     (file: File) => {
-      if (file.size > 5 * 1024 * 1024) {
-        showToast("File too large (max 5MB)", "error");
+      if (file.size > 20 * 1024 * 1024) {
+        showToast("File too large (max 20MB)", "error");
         return;
       }
       const src = URL.createObjectURL(file);
@@ -412,7 +412,7 @@ export default function ImagePicker({
                             Click to upload or drag & drop
                           </p>
                           <p className="text-xs text-[var(--text-3)] mt-0.5">
-                            JPEG, PNG, WebP, GIF (max 5MB)
+                            JPEG, PNG, WebP, GIF (max 20MB)
                           </p>
                         </div>
                       </>
@@ -455,7 +455,7 @@ export default function ImagePicker({
                   <button
                     onClick={handleUrlSubmit}
                     disabled={!urlInput.trim()}
-                    className="w-full rounded-xl bg-[var(--text-1)] py-3 text-sm font-bold text-white hover:bg-[#2d1508] transition-colors disabled:opacity-50"
+                    className="w-full rounded-xl bg-[var(--text-1)] py-3 text-sm font-bold text-[var(--canvas)] hover:opacity-90 transition-colors disabled:opacity-50"
                   >
                     Use This Image
                   </button>
