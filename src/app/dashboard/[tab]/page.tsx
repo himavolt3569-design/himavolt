@@ -183,7 +183,13 @@ const TAB_DATA: Record<string, (r: string) => string[]> = {
   feedback: (r) => [`/api/restaurants/${r}/feedback?limit=100`],
   media: (r) => [`/api/restaurants/${r}/media`],
   "hero-slides": (r) => [`/api/restaurants/${r}/hero-slides`],
-  "guest-checkin": (r) => [`/api/restaurants/${r}/guest-checkins`],
+  // Front Desk now checks guests in/out on RoomBooking (see GuestCheckInTab),
+  // so it warms the same bookings query the Hub and Reservations already use
+  // instead of the retired guest-checkins register.
+  "guest-checkin": (r) => [
+    `/api/restaurants/${r}/rooms`,
+    `/api/restaurants/${r}/bookings?status=CONFIRMED,CHECKED_IN&limit=100`,
+  ],
   "payment-qr": (r) => [`/api/restaurants/${r}/payment-qrs`],
   "payment-settings": (r) => [`/api/restaurants/${r}/payment-config`],
   "tax-charges": (r) => [`/api/restaurants/${r}/tax-config`],
@@ -192,12 +198,11 @@ const TAB_DATA: Record<string, (r: string) => string[]> = {
   "hotel-hub": (r) => [
     `/api/restaurants/${r}/rooms`,
     `/api/restaurants/${r}/bookings?limit=100`,
-    `/api/restaurants/${r}/guest-checkins`,
+    `/api/restaurants/${r}/bookings?status=CONFIRMED,CHECKED_IN&limit=100`,
   ],
   rooms: (r) => [
     `/api/restaurants/${r}/rooms`,
     `/api/restaurants/${r}/bookings?limit=100`,
-    `/api/restaurants/${r}/guest-checkins`,
   ],
   "loyalty-rewards": (r) => [`/api/restaurants/${r}/loyalty`],
   "combo-meals": (r) => [

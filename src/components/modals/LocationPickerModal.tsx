@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, MapPin, X, Loader2, Check } from "lucide-react";
+import { Search, MapPin, X, Loader2, Check, TriangleAlert } from "lucide-react";
 import OsmPinpointMap, { type MapCoords } from "@/components/maps/OsmPinpointMap";
 
 interface NominatimResult {
@@ -83,9 +83,29 @@ export default function LocationPickerModal({
   const [searching, setSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [locatingMe, setLocatingMe] = useState(false);
+  const [locateError, setLocateError] = useState("");
   const [reverseSearching, setReverseSearching] = useState(false);
+  // Meters of uncertainty on the current GPS fix (null when not GPS-sourced),
+  // so the UI can show how precise the pin actually is.
+  const [accuracy, setAccuracy] = useState<number | null>(null);
+  // Tracks how the pin got where it is, so the UI never presents a rough
+  // IP-based guess with the same confidence as a real GPS fix or a place the
+  // owner explicitly picked.
+  const [locationSource, setLocationSource] = useState<"gps" | "ip" | "manual" | null>(null);
   const searchBoxRef = useRef<HTMLDivElement>(null);
   const sourceRef = useRef<"map" | "search-preview" | "selected" | "locate">("map");
+  // Live geolocation stream handles (see handleLocateMe). watchPosition gives a
+  // fast first fix that then sharpens as the GPS chip locks on; we keep the id
+  // and a hard-cap timer so we can stop draining the sensor once it's precise
+  // enough (or the user takes over by dragging/searching).
+  const watchIdRef = useRef<number | null>(null);
+  const watchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const bestAccuracyRef = useRef<number>(Infinity);
+  // When the picker opens with no address yet, we're about to auto-locate —
+  // skip the reverse-geocode call for the throwaway Kathmandu placeholder so
+  // it doesn't fire a second Nominatim request within ~1s of the real one
+  // (Nominatim rate-limits bursts, which was silently swallowing the result).
+  const skipReverseRef = useRef(false);
 
   useEffect(() => {
     if (!open) return;
@@ -93,6 +113,10 @@ export default function LocationPickerModal({
     setAddress(initialAddress ?? "");
     setCity(initialCity ?? "Kathmandu");
     setQuery(initialAddress ?? "");
+    setLocateError("");
+    setAccuracy(null);
+    setLocationSource(initialAddress ? "manual" : null);
+    skipReverseRef.current = !initialAddress;
   }, [open, initialCoords, initialAddress, initialCity]);
 
   useEffect(() => {
@@ -115,10 +139,7 @@ export default function LocationPickerModal({
     const timer = setTimeout(async () => {
       setSearching(true);
       try {
-        const res = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1&countrycodes=np`,
-          { headers: { "Accept-Language": "en" } },
-        );
+        const res = await fetch(`/api/geocode?mode=search&q=${encodeURIComponent(query)}`);
         const data: NominatimResult[] = await res.json();
         setResults(data);
         setShowResults(true);
@@ -131,10 +152,28 @@ export default function LocationPickerModal({
     return () => clearTimeout(timer);
   }, [query, open]);
 
+  // Stop any in-flight geolocation stream + its hard-cap timer. Called both on
+  // cleanup and whenever the user takes manual control, so a late GPS fix can
+  // never yank the pin off a place they deliberately chose.
+  const clearWatch = useCallback(() => {
+    if (watchIdRef.current !== null && typeof navigator !== "undefined" && navigator.geolocation) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+    }
+    watchIdRef.current = null;
+    if (watchTimerRef.current) {
+      clearTimeout(watchTimerRef.current);
+      watchTimerRef.current = null;
+    }
+  }, []);
+
   const handleSelectResult = (result: NominatimResult) => {
     const nextCoords = { lat: parseFloat(result.lat), lon: parseFloat(result.lon) };
     const shortAddr = compactAddress(result.display_name, nextCoords);
+    clearWatch();
+    setAccuracy(null);
     sourceRef.current = "selected";
+    skipReverseRef.current = false;
+    setLocationSource("manual");
     setAddress(shortAddr);
     setCity(cityFromAddress(result.address));
     setQuery(shortAddr);
@@ -145,13 +184,11 @@ export default function LocationPickerModal({
 
   useEffect(() => {
     if (!open) return;
+    if (skipReverseRef.current) return;
     const timer = setTimeout(async () => {
       setReverseSearching(true);
       try {
-        const res = await fetch(
-          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.lat}&lon=${coords.lon}&addressdetails=1`,
-          { headers: { "Accept-Language": "en" } },
-        );
+        const res = await fetch(`/api/geocode?mode=reverse&lat=${coords.lat}&lon=${coords.lon}`);
         const data: NominatimReverseResult = await res.json();
         const nextAddress = compactAddress(data.display_name, coords);
         setAddress(nextAddress);
@@ -169,35 +206,142 @@ export default function LocationPickerModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [coords, open]);
 
-  const handleLocateMe = () => {
-    if (!navigator.geolocation) return;
+  // Rough, city-level guess from the request's IP (see /api/geoip) — used
+  // ONLY as a last-resort fallback when real GPS fails, and always flagged
+  // via locationSource so the UI never presents it with the confidence of an
+  // actual device location.
+  const detectByIp = useCallback(async (): Promise<boolean> => {
+    try {
+      const res = await fetch("/api/geoip");
+      if (!res.ok) return false;
+      const data: { lat?: number; lon?: number; city?: string } = await res.json();
+      if (typeof data.lat !== "number" || typeof data.lon !== "number") return false;
+      sourceRef.current = "locate";
+      skipReverseRef.current = false;
+      setLocationSource("ip");
+      setCoords({ lat: data.lat, lon: data.lon });
+      if (data.city) setCity(data.city);
+      return true;
+    } catch {
+      return false;
+    }
+  }, []);
+
+  // Always asks for real GPS permission first — that's what the owner
+  // expects, and it's the only source accurate enough to trust outright.
+  // The IP guess only kicks in if GPS is denied/unavailable, and stays
+  // clearly labeled as approximate (see locationSource in the render below).
+  const applyGpsFix = useCallback((pos: GeolocationPosition) => {
+    // Move the pin on the precise fix — the reverse-geocode effect below
+    // fills in the address text separately, so a flaky Nominatim call
+    // (blocked by an ad-blocker, rate limited, offline) can no longer
+    // prevent the pin itself from updating.
+    sourceRef.current = "locate";
+    skipReverseRef.current = false;
+    setLocationSource("gps");
+    setAccuracy(pos.coords.accuracy);
+    setCoords({ lat: pos.coords.latitude, lon: pos.coords.longitude });
+    setResults([]);
+    setShowResults(false);
+    setLocatingMe(false);
+  }, []);
+
+  const handleLocateMe = useCallback(() => {
+    if (!navigator.geolocation) {
+      detectByIp().then((ok) => {
+        if (!ok) setLocateError("Your browser doesn't support location detection.");
+      });
+      return;
+    }
+
+    // Restart cleanly if the user taps locate again mid-stream.
+    clearWatch();
+    setLocateError("");
     setLocatingMe(true);
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        try {
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&addressdetails=1`,
-            { headers: { "Accept-Language": "en" } },
-          );
-          const data: NominatimReverseResult = await res.json();
-          const nextCoords = { lat: pos.coords.latitude, lon: pos.coords.longitude };
-          const addr = compactAddress(data.display_name, nextCoords);
-          sourceRef.current = "locate";
-          setAddress(addr);
-          setCity(cityFromAddress(data.address));
-          setQuery(addr);
-          setCoords(nextCoords);
-          setResults([]);
-          setShowResults(false);
-        } catch {
-          /* silent fail */
+    bestAccuracyRef.current = Infinity;
+    let gotFix = false;
+
+    // Stream progressively-sharper fixes instead of a single one-shot request.
+    // The first reading (usually WiFi/network positioning, a couple seconds)
+    // drops the real pin immediately so there's no dead wait; the GPS chip then
+    // refines it over the next few seconds. We only accept a fix that's at
+    // least as accurate as the best so far, so a stray coarse reading can't
+    // bump the pin back off a precise one, and we stop the moment it's
+    // street-level precise (~25 m) to avoid draining the sensor.
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      (pos) => {
+        gotFix = true;
+        if (pos.coords.accuracy <= bestAccuracyRef.current) {
+          bestAccuracyRef.current = pos.coords.accuracy;
+          applyGpsFix(pos);
         }
         setLocatingMe(false);
+        if (bestAccuracyRef.current <= 25) clearWatch();
       },
-      () => setLocatingMe(false),
-      { enableHighAccuracy: true, timeout: 10000 },
+      (err) => {
+        // A fix already landed — ignore late errors from the ongoing stream.
+        if (gotFix) return;
+        clearWatch();
+        if (err.code === err.PERMISSION_DENIED) {
+          setLocatingMe(false);
+          setLocateError(
+            "Location access was denied. Enable it in your browser's site settings, or search / drag the pin instead.",
+          );
+          return;
+        }
+        // Precise GPS is genuinely unavailable — almost always because the OS's
+        // Location Services (or the browser's OS-location permission) is turned
+        // off, not something this app can fix. Offer the rough IP-based area as
+        // a last resort, but keep the error visible so it's clear this ISN'T
+        // the device's real location.
+        detectByIp().then((ok) => {
+          setLocatingMe(false);
+          if (!ok && skipReverseRef.current) {
+            skipReverseRef.current = false;
+            setCoords((prev) => ({ ...prev }));
+          }
+          setLocateError(
+            ok
+              ? "Couldn't get a precise fix — likely your OS's Location Services is turned off. Dropped an approximate pin from your network instead; enable Location Services for an exact position."
+              : "Couldn't determine your location. Try again, or search / drag the pin instead.",
+          );
+        });
+      },
+      { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 },
     );
-  };
+
+    // Hard cap: after 20s keep whatever's best and stop draining the GPS. If
+    // nothing at all came back, fall back to the coarse IP guess.
+    watchTimerRef.current = setTimeout(() => {
+      clearWatch();
+      setLocatingMe(false);
+      if (!gotFix) {
+        detectByIp().then((ok) => {
+          setLocateError(
+            ok
+              ? "Couldn't get a precise fix — likely your OS's Location Services is turned off. Dropped an approximate pin from your network instead; enable Location Services for an exact position."
+              : "Couldn't determine your location. Try again, or search / drag the pin instead.",
+          );
+        });
+      }
+    }, 20000);
+  }, [detectByIp, applyGpsFix, clearWatch]);
+
+  // Stop any live geolocation stream when the picker closes or unmounts, so it
+  // isn't left running in the background after the owner is done.
+  useEffect(() => {
+    if (!open) clearWatch();
+    return clearWatch;
+  }, [open, clearWatch]);
+
+  // Reduce friction for first-time setup: if the owner hasn't already
+  // confirmed an address, ask for their real location the instant the
+  // picker opens instead of leaving it on the Kathmandu placeholder.
+  useEffect(() => {
+    if (!open || initialAddress) return;
+    handleLocateMe();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const handleConfirm = useCallback(() => {
     onConfirm({ address, city, coords });
@@ -224,7 +368,7 @@ export default function LocationPickerModal({
                 initial="hidden"
                 animate="visible"
                 exit="exit"
-                className="fixed left-1/2 top-1/2 z-[60] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl bg-[var(--canvas)] shadow-2xl ring-1 ring-[var(--border)]/60 focus:outline-none"
+                className="fixed left-1/2 top-1/2 z-[60] max-h-[92dvh] w-[calc(100%-2rem)] max-w-xl -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl bg-[var(--canvas)] shadow-2xl ring-1 ring-[var(--border)]/60 focus:outline-none"
               >
                 <Dialog.Title className="sr-only">Choose location</Dialog.Title>
                 <Dialog.Description className="sr-only">
@@ -234,12 +378,13 @@ export default function LocationPickerModal({
                   <OsmPinpointMap
                     coords={coords}
                     onChange={(next) => {
+                      clearWatch();
+                      setAccuracy(null);
                       sourceRef.current = "map";
+                      skipReverseRef.current = false;
+                      setLocationSource("manual");
                       setCoords(next);
                     }}
-                    label={address}
-                    city={city}
-                    loadingLabel={reverseSearching || locatingMe}
                     onLocate={handleLocateMe}
                     locating={locatingMe}
                   />
@@ -314,22 +459,48 @@ export default function LocationPickerModal({
                 </div>
 
                 <div className="p-4">
+                  {locateError && (
+                    <div className="mb-3 rounded-xl bg-red-50 px-3.5 py-2.5 text-[11px] font-medium text-red-700 ring-1 ring-red-100">
+                      {locateError}
+                    </div>
+                  )}
                   <div className="mb-4 flex items-center gap-2.5 rounded-xl bg-[var(--canvas-sub)] px-3.5 py-3 ring-1 ring-[var(--border)]/70">
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--accent)] text-white">
-                      <MapPin className="h-4 w-4" />
+                      {reverseSearching || locatingMe ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <MapPin className="h-4 w-4" />
+                      )}
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-[13px] font-semibold text-[var(--text-1)]">
-                        {address || "Move the map to choose a location"}
+                        {locatingMe
+                          ? "Finding your location..."
+                          : reverseSearching
+                            ? "Looking up address..."
+                            : address || "Move the map to choose a location"}
                       </p>
                       <p className="text-[10px] text-[var(--text-3)]">
-                        {coords.lat.toFixed(5)}, {coords.lon.toFixed(5)}
+                        {city} · {coords.lat.toFixed(5)}, {coords.lon.toFixed(5)}
+                        {locationSource === "gps" && accuracy != null && (
+                          <> · ±{Math.round(accuracy)} m</>
+                        )}
                       </p>
                     </div>
-                    <span className="flex shrink-0 items-center gap-1 rounded-full bg-[var(--accent-muted)] px-2 py-1 text-[10px] font-bold text-[var(--accent-text)]">
-                      <Check className="h-3 w-3" />
-                      Selected
-                    </span>
+                    {!reverseSearching &&
+                      !locatingMe &&
+                      locationSource &&
+                      (locationSource === "ip" ? (
+                        <span className="flex shrink-0 items-center gap-1 rounded-full bg-amber-100 px-2 py-1 text-[10px] font-bold text-amber-700">
+                          <TriangleAlert className="h-3 w-3" />
+                          Approximate
+                        </span>
+                      ) : (
+                        <span className="flex shrink-0 items-center gap-1 rounded-full bg-[var(--accent-muted)] px-2 py-1 text-[10px] font-bold text-[var(--accent-text)]">
+                          <Check className="h-3 w-3" />
+                          {locationSource === "gps" ? "Your location" : "Selected"}
+                        </span>
+                      ))}
                   </div>
 
                   <div className="flex items-center justify-end gap-2.5">

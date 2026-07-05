@@ -1119,7 +1119,11 @@ model CustomerCheckIn {
   @@map("customer_check_ins")
 }
 
-// ─── Guest Check-In (for Guest House / Hotel / Resort) ───────────────
+// ─── Guest Check-In (legacy walk-in register) ────────────────────────
+// Superseded by RoomBooking-driven Front Desk (GuestCheckInTab.tsx): the
+// Front Desk tab now checks guests in/out on the same RoomBooking record
+// used by Reservations, so occupancy can't drift between the two tabs.
+// Kept read-only for historical data — not written to by any current UI.
 
 model GuestCheckIn {
   id          String    @id @default(cuid())

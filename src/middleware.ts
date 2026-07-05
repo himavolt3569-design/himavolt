@@ -25,6 +25,8 @@ const PUBLIC_ROUTES = [
   /^\/staff-login(\/|$)/,
   /^\/manifest\.json$/,
   /^\/api\/public(\/|$)/,
+  /^\/api\/geocode(\/|$)/,
+  /^\/api\/geoip(\/|$)/,
   /^\/api\/webhooks(\/|$)/,
   /^\/api\/contact$/,
   /^\/api\/order-track(\/|$)/,

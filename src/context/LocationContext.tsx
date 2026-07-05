@@ -64,16 +64,13 @@ export function LocationProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  /* Reverse geocode via Nominatim */
+  /* Reverse geocode via our server-side Nominatim proxy (see /api/geocode) —
+     browsers can't set a custom User-Agent and direct client calls to
+     nominatim.openstreetmap.org are often blocked by ad-blockers/ISPs. */
   const reverseGeocode = useCallback(
     async (lat: number, lng: number): Promise<string> => {
       try {
-        const res = await fetch(
-          `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
-          {
-            headers: { "User-Agent": "HimaVolt/1.0 (hello@himavolt.com)" },
-          },
-        );
+        const res = await fetch(`/api/geocode?mode=reverse&lat=${lat}&lon=${lng}`);
         const data = await res.json();
         const addr = data?.address;
         return (

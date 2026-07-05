@@ -6,6 +6,7 @@ import {
   requireOwnerOrStaffManager,
 } from "@/lib/access-control";
 import { notifyRestaurantBookings } from "@/lib/realtime";
+import { syncRoomAvailabilityForStatus } from "@/lib/room-availability";
 
 type Params = { params: Promise<{ id: string; bookingId: string }> };
 
@@ -72,6 +73,17 @@ export async function PATCH(
     cancelReason,
     cancelledBy,
     receiptUrl,
+    // Guest identity fields — Front Desk amends/completes these at arrival
+    // (e.g. capturing an ID photo for a booking that was made with phone-only).
+    guestName,
+    guestPhone,
+    guestEmail,
+    guestAddress,
+    guestIdType,
+    guestIdNumber,
+    guestIdImageUrl,
+    adults,
+    children,
   } = body;
 
   const VALID_STATUSES = [
@@ -99,18 +111,14 @@ export async function PATCH(
   if (cancelledBy !== undefined && !["CUSTOMER", "HOTEL", "SYSTEM"].includes(cancelledBy)) {
     return NextResponse.json({ error: "Invalid cancelledBy" }, { status: 400 });
   }
+  if (guestName !== undefined && !guestName?.trim()) {
+    return NextResponse.json({ error: "Guest name cannot be empty" }, { status: 400 });
+  }
 
-  // When checking in, mark the room as unavailable; when checking out or cancelling, mark available
-  if (status === "CHECKED_IN") {
-    await db.room.update({
-      where: { id: existing.roomId },
-      data: { isAvailable: false },
-    });
-  } else if (status === "CHECKED_OUT" || status === "REJECTED") {
-    await db.room.update({
-      where: { id: existing.roomId },
-      data: { isAvailable: true },
-    });
+  // When checking in, mark the room as unavailable; when checking out or
+  // cancelling, mark it available again.
+  if (status !== undefined) {
+    await syncRoomAvailabilityForStatus(existing.roomId, status);
   }
 
   const data: Record<string, unknown> = {};
@@ -121,6 +129,15 @@ export async function PATCH(
   if (paymentStatus !== undefined) data.paymentStatus = paymentStatus;
   if (refundStatus !== undefined) data.refundStatus = refundStatus;
   if (cancelReason !== undefined) data.cancelReason = cancelReason?.trim() || null;
+  if (guestName !== undefined) data.guestName = guestName.trim();
+  if (guestPhone !== undefined) data.guestPhone = guestPhone?.trim() || null;
+  if (guestEmail !== undefined) data.guestEmail = guestEmail?.trim() || null;
+  if (guestAddress !== undefined) data.guestAddress = guestAddress?.trim() || null;
+  if (guestIdType !== undefined) data.guestIdType = guestIdType || null;
+  if (guestIdNumber !== undefined) data.guestIdNumber = guestIdNumber?.trim() || null;
+  if (guestIdImageUrl !== undefined) data.guestIdImageUrl = guestIdImageUrl || null;
+  if (adults !== undefined) data.adults = Math.max(1, Number(adults) || 1);
+  if (children !== undefined) data.children = Math.max(0, Number(children) || 0);
 
   // Staff marks the advance as paid → confirm the reservation and record the
   // payment instantly so the room shows as paid/reserved in real time.
@@ -178,13 +195,11 @@ export async function DELETE(
 
   // If the booking was checked in, make the room available again
   if (existing.status === "CHECKED_IN") {
-    await db.room.update({
-      where: { id: existing.roomId },
-      data: { isAvailable: true },
-    });
+    await syncRoomAvailabilityForStatus(existing.roomId, "CHECKED_OUT");
   }
 
   await db.roomBooking.delete({ where: { id: bookingId } });
+  notifyRestaurantBookings(id, { bookingId, deleted: true });
 
   return NextResponse.json({ success: true });
 }
