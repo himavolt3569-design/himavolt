@@ -61,7 +61,9 @@ export async function GET(
         }
 
         if (!closed) {
-          setTimeout(poll, 2000);
+          // 3s (was 2s): ~33% fewer DB round-trips per open chat with no
+          // perceptible chat latency, easing the small serverless pg pool.
+          setTimeout(poll, 3000);
         }
       };
 

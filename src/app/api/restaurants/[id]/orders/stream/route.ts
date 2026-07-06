@@ -191,11 +191,11 @@ export async function GET(
         }
       };
 
+      // `fetchAndSend` self-schedules its next tick at the end of the function,
+      // so this single call drives the entire poll loop. A second setTimeout
+      // used to be started here too, which ran two parallel loops = 2× the DB
+      // poll rate per connected kitchen client.
       await fetchAndSend(true);
-
-      if (!closed) {
-        setTimeout(fetchAndSend, POLL_MS);
-      }
     },
     cancel() {
       closed = true;

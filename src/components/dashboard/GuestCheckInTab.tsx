@@ -27,7 +27,9 @@ import { useToast } from "@/context/ToastContext";
 import { apiFetch } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 import QRCode from "qrcode";
-import { createWorker } from "tesseract.js";
+// tesseract.js (OCR engine — several MB of JS + WASM + language data) is
+// imported dynamically inside handleIdUpload so it stays out of the initial,
+// eagerly-warmed dashboard bundle and only loads when a guest ID is scanned.
 import { uploadFile } from "@/lib/upload";
 
 interface GuestCheckIn {
@@ -203,6 +205,7 @@ export default function GuestCheckInTab() {
       // Auto-extract fields via free client-side OCR (Tesseract.js)
       setExtractingOcr(true);
       try {
+        const { createWorker } = await import("tesseract.js");
         const worker = await createWorker("eng");
         const { data: { text } } = await worker.recognize(file);
         await worker.terminate();
