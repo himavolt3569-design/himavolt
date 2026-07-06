@@ -93,7 +93,10 @@ export async function GET(
 
   return NextResponse.json(enrichedItems, {
     headers: {
-      "Cache-Control": "public, s-maxage=30, stale-while-revalidate=120",
+      // Short edge cache so menu edits (new items, price/availability changes)
+      // reach customers within ~10s instead of the previous ~30-150s window,
+      // while still absorbing bursts of menu scans off the DB pool.
+      "Cache-Control": "public, s-maxage=10, stale-while-revalidate=30",
     },
   });
 }

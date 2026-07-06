@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { SignJWT } from "jose";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
 import { z } from "zod";
-import { timingSafeEqual } from "crypto";
+import { createHash, timingSafeEqual } from "crypto";
 
 const adminLoginSchema = z.object({
   adminId: z.string().min(1).max(100),
@@ -43,8 +43,13 @@ export async function POST(req: NextRequest) {
   }
 
   // Constant-time comparison prevents timing-based credential enumeration.
-  const idMatch = timingSafeEqual(Buffer.from(adminId), Buffer.from(expectedId));
-  const pwMatch = timingSafeEqual(Buffer.from(password), Buffer.from(expectedPassword));
+  // Compare fixed-length SHA-256 digests: timingSafeEqual throws (→ 500) when
+  // the two buffers differ in length, which both leaks the expected length and
+  // breaks the constant-time property for mismatched-length inputs. Hashing
+  // first normalizes every input to 32 bytes.
+  const digest = (s: string) => createHash("sha256").update(s).digest();
+  const idMatch = timingSafeEqual(digest(adminId), digest(expectedId));
+  const pwMatch = timingSafeEqual(digest(password), digest(expectedPassword));
   if (!idMatch || !pwMatch) {
     return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
   }

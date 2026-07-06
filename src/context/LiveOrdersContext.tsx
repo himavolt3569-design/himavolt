@@ -97,7 +97,7 @@ export function LiveOrdersProvider({ children }: { children: ReactNode }) {
 
   const queryKey = ordersQueryKey(restaurantId);
 
-  const { data: ordersData, isFetching } = useQuery({
+  const { data: ordersData, isLoading } = useQuery({
     queryKey,
     queryFn: () =>
       apiFetch<{ orders: LiveOrder[] }>(
@@ -106,7 +106,10 @@ export function LiveOrdersProvider({ children }: { children: ReactNode }) {
     enabled: !!restaurantId,
   });
   const orders = ordersData ?? [];
-  const loading = isFetching;
+  // First-load only. `isFetching` also flips true on every background refetch
+  // (each realtime signal / SSE tick), which made the whole board flash a
+  // loading state even though data was already on screen.
+  const loading = isLoading;
 
   const sseUrl = restaurantId
     ? `/api/restaurants/${restaurantId}/orders/stream`
