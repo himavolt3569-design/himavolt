@@ -1344,6 +1344,150 @@ function AddSubCategoryInline({
   );
 }
 
+/* ─── Category card (Categories view) ───────────────────────────────── */
+
+function CategoryCard({
+  category,
+  itemCount,
+  countByCat,
+  isAddingSub,
+  onAddSub,
+  onCancelAddSub,
+  onCreateSub,
+  onDelete,
+  onRename,
+}: {
+  category: MenuCategory;
+  itemCount: number;
+  countByCat: Record<string, number>;
+  isAddingSub: boolean;
+  onAddSub: () => void;
+  onCancelAddSub: () => void;
+  onCreateSub: (name: string) => void;
+  onDelete: (id: string) => void;
+  onRename: (id: string, name: string) => void;
+}) {
+  const subs = category.children ?? [];
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(category.name);
+  useEffect(() => setName(category.name), [category.name]);
+
+  const saveRename = () => {
+    const trimmed = name.trim();
+    if (trimmed && trimmed !== category.name) onRename(category.id, trimmed);
+    setEditing(false);
+  };
+
+  return (
+    <div className="flex flex-col rounded-2xl border border-[var(--border)] bg-[var(--canvas)] p-4 shadow-sm">
+      {/* Header: name + item count */}
+      <div className="flex items-start justify-between gap-2">
+        {editing ? (
+          <input
+            autoFocus
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onBlur={saveRename}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") saveRename();
+              if (e.key === "Escape") {
+                setName(category.name);
+                setEditing(false);
+              }
+            }}
+            className="min-w-0 flex-1 rounded-md border border-[var(--accent-border)] bg-[var(--canvas)] px-2 py-1 text-[15px] font-bold text-[var(--text-1)] outline-none"
+          />
+        ) : (
+          <div className="flex min-w-0 items-center gap-2">
+            {category.icon ? (
+              <span className="text-base leading-none">{category.icon}</span>
+            ) : null}
+            <h3 className="truncate text-[15px] font-bold text-[var(--text-1)]">
+              {category.name}
+            </h3>
+          </div>
+        )}
+        <span className="shrink-0 rounded-full border border-[var(--border)] px-2.5 py-0.5 text-[11px] font-semibold text-[var(--text-3)]">
+          {itemCount} {itemCount === 1 ? "item" : "items"}
+        </span>
+      </div>
+
+      {/* Subcategories */}
+      <div className="mt-4 flex-1">
+        <div className="flex items-center justify-between">
+          <p className="text-[12px] font-bold text-[var(--text-2)]">Subcategories</p>
+          <button
+            onClick={onAddSub}
+            className="flex items-center gap-1 text-[12px] font-bold text-[var(--accent-text)] transition-colors hover:text-[var(--accent)]"
+          >
+            <Plus className="h-3.5 w-3.5" /> Add Subcategories
+          </button>
+        </div>
+
+        {isAddingSub && (
+          <div className="mt-2">
+            <AddSubCategoryInline
+              parentName={category.name}
+              onCreate={onCreateSub}
+              onCancel={onCancelAddSub}
+            />
+          </div>
+        )}
+
+        {subs.length > 0 ? (
+          <div className="mt-2 space-y-1.5">
+            {subs.map((sub) => (
+              <div
+                key={sub.id}
+                className="group flex items-center justify-between rounded-lg border border-[var(--border)] bg-[var(--canvas-sub)] px-3 py-2"
+              >
+                <span className="truncate text-[13px] font-medium text-[var(--text-1)]">
+                  {sub.name}
+                </span>
+                <div className="flex shrink-0 items-center gap-2">
+                  <span className="text-[10px] text-[var(--text-3)]">
+                    {countByCat[sub.id] ?? 0}
+                  </span>
+                  <button
+                    onClick={() => onDelete(sub.id)}
+                    className="text-[var(--text-3)] opacity-0 transition-all hover:text-red-500 group-hover:opacity-100"
+                    title={`Delete "${sub.name}"`}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          !isAddingSub && (
+            <p className="mt-2 text-[12px] italic text-[var(--text-3)]">
+              No subcategories yet. Add options like Steam, Jhol, Fried, or Cold
+              Drinks.
+            </p>
+          )
+        )}
+      </div>
+
+      {/* Footer */}
+      <div className="mt-4 flex items-center justify-between border-t border-[var(--border)] pt-3">
+        <button
+          onClick={() => setEditing(true)}
+          className="text-[12px] font-bold text-[var(--text-2)] transition-colors hover:text-[var(--accent-text)]"
+        >
+          Edit
+        </button>
+        <button
+          onClick={() => onDelete(category.id)}
+          className="text-[12px] font-bold text-[var(--text-3)] transition-colors hover:text-red-500"
+        >
+          Delete Category
+        </button>
+      </div>
+    </div>
+  );
+}
+
 
 export default function MenuManagementTab({
   overrideRestaurantId,
@@ -1407,6 +1551,17 @@ export default function MenuManagementTab({
   const [deliveryEnabled, setDeliveryEnabled] = useState(false);
   const [statusSaving, setStatusSaving] = useState(false);
 
+  // Two views inside Menu Management: the dish grid ("items") and a dedicated
+  // category manager ("categories"). A restaurant with no categories yet opens
+  // straight to Categories, since a dish can't be added without one.
+  const [view, setView] = useState<"items" | "categories">("items");
+  const didAutoPickView = useRef(false);
+  useEffect(() => {
+    if (didAutoPickView.current || catQuery.isLoading) return;
+    didAutoPickView.current = true;
+    if (categories.length === 0) setView("categories");
+  }, [catQuery.isLoading, categories.length]);
+
   useEffect(() => {
     if (!restaurantId) return;
     apiFetch<{ isOpen: boolean; deliveryEnabled: boolean }>(`/api/restaurants/${restaurantId}/status`)
@@ -1453,6 +1608,43 @@ export default function MenuManagementTab({
     }
     return flat;
   }, [categories]);
+
+  // Live per-category item count (direct items), computed from the loaded list
+  // so it stays accurate through optimistic add/delete before the refetch.
+  const countByCat = useMemo(() => {
+    const m: Record<string, number> = {};
+    for (const it of items) m[it.categoryId] = (m[it.categoryId] ?? 0) + 1;
+    return m;
+  }, [items]);
+
+  const renameCategory = async (categoryId: string, name: string) => {
+    if (!restaurantId) return;
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    setCategories((prev) =>
+      prev.map((c) =>
+        c.id === categoryId
+          ? { ...c, name: trimmed }
+          : {
+              ...c,
+              children:
+                c.children?.map((s) =>
+                  s.id === categoryId ? { ...s, name: trimmed } : s,
+                ) ?? c.children,
+            },
+      ),
+    );
+    try {
+      await apiFetch(`/api/restaurants/${restaurantId}/categories`, {
+        method: "PATCH",
+        body: { categoryId, name: trimmed },
+      });
+      fetchData(true);
+    } catch {
+      fetchData(true);
+      showToast("Failed to rename category");
+    }
+  };
 
   const createCategory = async (name?: string, parentId?: string | null) => {
     if (!restaurantId) {
@@ -1763,8 +1955,6 @@ export default function MenuManagementTab({
     }
   };
 
-  const addSubParent = addSubParentId ? flatCategories.find((c) => c.id === addSubParentId) : null;
-
   if (loading && items.length === 0) {
     return (
       <div className="space-y-5">
@@ -1795,15 +1985,30 @@ export default function MenuManagementTab({
           </p>
         </div>
         <div className="flex gap-2.5">
-          {!showAddForm && !editingItem && (
-            <>
-              <button
-                onClick={() => setShowNewCat(true)}
-                className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--canvas)] shadow-sm px-4 py-2 text-[13px] font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] hover:text-[var(--accent-text)] transition-all active:scale-[0.97]"
-              >
-                <FolderPlus className="h-4 w-4" />
-                Category
-              </button>
+          {!showAddForm && !editingItem &&
+            (view === "categories" ? (
+              <>
+                <button
+                  onClick={seedDefaults}
+                  disabled={seedingCats}
+                  className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--canvas)] shadow-sm px-4 py-2 text-[13px] font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] hover:text-[var(--accent-text)] transition-all active:scale-[0.97] disabled:opacity-50"
+                >
+                  {seedingCats ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-4 w-4" />
+                  )}
+                  Template Categories
+                </button>
+                <button
+                  onClick={() => setShowNewCat(true)}
+                  className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] shadow-[0_4px_14px_0_rgba(245,158,11,0.39)] px-5 py-2 text-[13px] font-bold text-white hover:shadow-[0_6px_20px_rgba(245,158,11,0.23)] hover:-translate-y-0.5 active:scale-[0.97] transition-all"
+                >
+                  <FolderPlus className="h-4 w-4" />
+                  Add Category
+                </button>
+              </>
+            ) : (
               <button
                 onClick={() => setShowAddForm(true)}
                 className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] shadow-[0_4px_14px_0_rgba(245,158,11,0.39)] px-5 py-2 text-[13px] font-bold text-white hover:shadow-[0_6px_20px_rgba(245,158,11,0.23)] hover:-translate-y-0.5 active:scale-[0.97] transition-all"
@@ -1811,8 +2016,7 @@ export default function MenuManagementTab({
                 <Plus className="h-4 w-4" strokeWidth={2.5} />
                 Add Dish
               </button>
-            </>
-          )}
+            ))}
         </div>
       </div>
 
@@ -1874,6 +2078,40 @@ export default function MenuManagementTab({
 
       <MenuStats items={items} categories={flatCategories} currency={cur} />
 
+      {/* Items | Categories view switch */}
+      <div className="inline-flex items-center gap-1 rounded-xl bg-[var(--canvas-sub)] p-1">
+        {(
+          [
+            ["items", "Dishes", items.length],
+            ["categories", "Categories", flatCategories.length],
+          ] as const
+        ).map(([id, label, count]) => (
+          <button
+            key={id}
+            onClick={() => setView(id)}
+            className={`flex items-center gap-2 rounded-lg px-4 py-2 text-[13px] font-bold transition-colors ${
+              view === id
+                ? "bg-[var(--canvas)] text-[var(--text-1)] shadow-sm"
+                : "text-[var(--text-3)] hover:text-[var(--text-2)]"
+            }`}
+          >
+            {id === "items" ? <UtensilsCrossed className="h-4 w-4" /> : <Layers className="h-4 w-4" />}
+            {label}
+            <span
+              className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
+                view === id
+                  ? "bg-[var(--accent-muted)] text-[var(--accent-text)]"
+                  : "bg-[var(--surface)] text-[var(--text-3)]"
+              }`}
+            >
+              {count}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {view === "categories" && (
+        <>
       {!loading && categories.length === 0 && !showNewCat && (
         <motion.div
           initial={{ opacity: 0, y: 8 }}
@@ -1927,16 +2165,30 @@ export default function MenuManagementTab({
         )}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {addSubParent && (
-          <AddSubCategoryInline
-            parentName={addSubParent.name}
-            onCreate={(name) => createCategory(name, addSubParentId)}
-            onCancel={() => setAddSubParentId(null)}
-          />
-        )}
-      </AnimatePresence>
+      {/* Category cards */}
+      {categories.length > 0 && (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {categories.map((cat) => (
+            <CategoryCard
+              key={cat.id}
+              category={cat}
+              itemCount={countByCat[cat.id] ?? 0}
+              countByCat={countByCat}
+              isAddingSub={addSubParentId === cat.id}
+              onAddSub={() => setAddSubParentId(cat.id)}
+              onCancelAddSub={() => setAddSubParentId(null)}
+              onCreateSub={(name) => createCategory(name, cat.id)}
+              onDelete={initDeleteCategory}
+              onRename={renameCategory}
+            />
+          ))}
+        </div>
+      )}
+        </>
+      )}
 
+      {view === "items" && (
+        <>
       {/* Add / Edit form */}
       <AnimatePresence>
         {showAddForm && (
@@ -1981,24 +2233,9 @@ export default function MenuManagementTab({
         )}
       </AnimatePresence>
 
-      {/* Main layout: sidebar + grid */}
-      <div className="flex gap-5">
-        {flatCategories.length > 0 && (
-          <div className="hidden lg:block w-52 shrink-0">
-            <div className="sticky top-6 max-h-[calc(100vh-120px)] overflow-y-auto scrollbar-slim rounded-xl bg-[var(--canvas)] ring-1 ring-[var(--border)] p-3">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-3)] mb-2 px-2">Categories</p>
-              <CategoryTree
-                categories={flatCategories}
-                selectedCatId={selectedCatId}
-                onSelect={setSelectedCatId}
-                onAddSub={setAddSubParentId}
-                onDelete={initDeleteCategory}
-              />
-            </div>
-          </div>
-        )}
-
-        <div className="flex-1 min-w-0">
+      {/* Dishes grid — filter via the category chip strip below (no sidebar) */}
+      <div>
+        <div className="min-w-0">
           {/* Search & mobile category filter */}
           <div className="flex flex-col sm:flex-row gap-3 mb-6">
             <div className="relative flex-1 group">
@@ -2010,7 +2247,7 @@ export default function MenuManagementTab({
                 className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)]/80 backdrop-blur-sm py-3 pl-10 pr-4 text-sm font-semibold text-[var(--text-1)] placeholder-gray-400 focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 shadow-sm transition-all"
               />
             </div>
-            <div className="lg:hidden flex gap-2 overflow-x-auto scrollbar-hide items-center pb-1">
+            <div className="flex gap-2 overflow-x-auto scrollbar-hide items-center pb-1">
               {["All", ...flatCategories.filter((c) => !c.parentId).map((c) => c.name)].map((cat) => {
                 const catObj = flatCategories.find((c) => c.name === cat && !c.parentId);
                 const isActive = cat === "All" ? selectedCatId === "All" : selectedCatId === catObj?.id;
@@ -2100,6 +2337,8 @@ export default function MenuManagementTab({
           </motion.div>
         </div>
       </div>
+        </>
+      )}
 
       <AnimatePresence>
         {deleteCatConfirm && (
