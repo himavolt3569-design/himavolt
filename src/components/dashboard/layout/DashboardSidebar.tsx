@@ -475,6 +475,7 @@ export default function DashboardSidebar({
         {onToggleCollapse && (
           <button
             onClick={onToggleCollapse}
+            aria-label="Expand sidebar"
             className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-[var(--surface)] transition-colors text-[var(--text-2)]"
             title="Expand sidebar"
           >
@@ -537,6 +538,7 @@ export default function DashboardSidebar({
           {onToggleCollapse && (
             <button
               onClick={onToggleCollapse}
+              aria-label="Collapse sidebar"
               className="rounded-lg p-1.5 hover:bg-[var(--surface)] transition-colors hidden lg:flex text-[var(--text-3)] hover:text-[var(--text-2)]"
               title="Collapse sidebar"
             >
@@ -546,6 +548,7 @@ export default function DashboardSidebar({
           {onClose && (
             <button
               onClick={onClose}
+              aria-label="Close menu"
               className="rounded-lg p-1.5 hover:bg-[var(--surface)] transition-colors lg:hidden text-[var(--text-2)]"
             >
               <X className="h-4 w-4" />

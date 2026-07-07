@@ -247,7 +247,8 @@ export default function DashboardLayout({
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setMobileSidebarOpen(true)}
-                  className="rounded-lg p-2 text-[var(--text-2)] hover:bg-[var(--surface)] transition-colors lg:hidden"
+                  aria-label="Open menu"
+                  className="rounded-lg p-2 text-[var(--text-2)] hover:bg-[var(--surface)] transition-colors active:scale-[0.95] lg:hidden"
                 >
                   <Menu className="h-5 w-5" />
                 </button>
@@ -266,6 +267,7 @@ export default function DashboardLayout({
                   <input
                     type="text"
                     placeholder="Search..."
+                    aria-label="Search"
                     className="w-36 bg-transparent text-[13px] outline-none placeholder:text-[var(--text-3)] text-[var(--text-1)]"
                   />
                 </div>
@@ -299,7 +301,8 @@ export default function DashboardLayout({
 
                 <Link
                   href="/profile"
-                  className="flex h-8 w-8 items-center justify-center rounded-full ring-2 ring-[var(--border)] hover:ring-[var(--accent)] transition-colors overflow-hidden bg-[var(--accent-muted)]"
+                  aria-label="Your profile"
+                  className="flex h-8 w-8 items-center justify-center rounded-full ring-2 ring-[var(--border)] hover:ring-[var(--accent)] transition-colors active:scale-[0.95] overflow-hidden bg-[var(--accent-muted)]"
                 >
                   {user?.user_metadata?.avatar_url ? (
                     <img
