@@ -22,7 +22,6 @@ import {
   Clock,
   Star,
   ChevronDown,
-  ChevronRight,
   Zap,
   Award,
   AlertTriangle,
@@ -32,7 +31,6 @@ import {
   GripVertical,
   Copy,
   MoreVertical,
-  PlusCircle,
   Package,
   TrendingUp,
   UtensilsCrossed,
@@ -197,126 +195,6 @@ function MenuStats({ items, categories, currency }: { items: MenuItem[]; categor
           </div>
         </motion.div>
       ))}
-    </div>
-  );
-}
-
-
-function CategoryTree({
-  categories,
-  selectedCatId,
-  onSelect,
-  onAddSub,
-  onDelete,
-}: {
-  categories: MenuCategory[];
-  selectedCatId: string;
-  onSelect: (id: string) => void;
-  onAddSub: (parentId: string) => void;
-  onDelete: (categoryId: string) => void;
-}) {
-  const topLevel = categories.filter((c) => !c.parentId);
-  const [expanded, setExpanded] = useState<Set<string>>(new Set(topLevel.map((c) => c.id)));
-
-  const toggle = (id: string) => {
-    setExpanded((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
-  };
-
-  return (
-    <div className="space-y-0.5">
-      <button
-        onClick={() => onSelect("All")}
-        className={`flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition-all ${
-          selectedCatId === "All" ? "bg-[var(--accent-muted)] text-[var(--accent-text)] font-semibold" : "text-[var(--text-2)] hover:bg-[var(--canvas-sub)]"
-        }`}
-      >
-        <Package className="h-3.5 w-3.5" />
-        <span className="flex-1 text-left">All Items</span>
-      </button>
-
-      {topLevel.map((cat) => {
-        const subs = categories.filter((c) => c.parentId === cat.id);
-        const isExpanded = expanded.has(cat.id);
-        const totalItems = cat._count.items + subs.reduce((s, c) => s + c._count.items, 0);
-
-        return (
-          <div key={cat.id}>
-            <div className="flex items-center">
-              <button
-                onClick={() => subs.length > 0 ? toggle(cat.id) : onSelect(cat.id)}
-                className="p-1 text-[var(--text-3)] hover:text-[var(--text-2)]"
-              >
-                {subs.length > 0 ? (
-                  <ChevronRight className={`h-3 w-3 transition-transform ${isExpanded ? "rotate-90" : ""}`} />
-                ) : (
-                  <span className="w-3" />
-                )}
-              </button>
-              <button
-                onClick={() => onSelect(cat.id)}
-                className={`flex flex-1 items-center gap-2 rounded-lg px-2 py-2 text-[13px] font-medium transition-all ${
-                  selectedCatId === cat.id ? "bg-[var(--accent-muted)] text-[var(--accent-text)] font-semibold" : "text-[var(--text-2)] hover:bg-[var(--canvas-sub)]"
-                }`}
-              >
-                {cat.icon ? <span className="text-sm leading-none">{cat.icon}</span> : <Tag className="h-3.5 w-3.5 text-[var(--text-3)]" />}
-                <span className="flex-1 text-left truncate">{cat.name}</span>
-                <span className="text-[10px] text-[var(--text-3)] font-normal">{totalItems}</span>
-              </button>
-              <button
-                onClick={() => onAddSub(cat.id)}
-                className="p-1 text-[var(--text-3)] hover:text-[var(--accent)] transition-colors"
-                title="Add subcategory"
-              >
-                <PlusCircle className="h-3 w-3" />
-              </button>
-              <button
-                onClick={(e) => { e.stopPropagation(); onDelete(cat.id); }}
-                className="p-1 text-[var(--text-3)] hover:text-red-500 transition-colors"
-                title="Delete category"
-              >
-                <Trash2 className="h-3 w-3" />
-              </button>
-            </div>
-
-            <AnimatePresence>
-              {isExpanded && subs.length > 0 && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.15 }}
-                  className="overflow-hidden pl-7"
-                >
-                  {subs.map((sub) => (
-                    <div key={sub.id} className="flex items-center group">
-                    <button
-                      onClick={() => onSelect(sub.id)}
-                      className={`flex flex-1 items-center gap-2 rounded-md px-2.5 py-1.5 text-[12px] transition-all ${
-                        selectedCatId === sub.id ? "bg-[var(--accent-muted)] text-[var(--accent-text)] font-semibold" : "text-[var(--text-2)] hover:bg-[var(--canvas-sub)]"
-                      }`}
-                    >
-                      <span className="flex-1 text-left truncate">{sub.name}</span>
-                      <span className="text-[10px] text-[var(--text-3)]">{sub._count.items}</span>
-                    </button>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); onDelete(sub.id); }}
-                      className="p-1 text-[var(--text-3)] hover:text-red-500 transition-colors"
-                      title="Delete subcategory"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </button>
-                    </div>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        );
-      })}
     </div>
   );
 }
