@@ -67,6 +67,18 @@ export async function GET(
         }
       };
 
+      // Bail cheaply if the room doesn't exist so a bogus/expired roomId can't
+      // keep a connection polling the DB every few seconds indefinitely.
+      const room = await db.chatRoom.findUnique({
+        where: { id: roomId },
+        select: { id: true },
+      });
+      if (!room) {
+        closed = true;
+        controller.close();
+        return;
+      }
+
       controller.enqueue(encoder.encode(": connected\n\n"));
       poll();
 

@@ -69,9 +69,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const ext = fileName.split(".").pop() || (isVideo ? "mp4" : "jpg");
+    // Sanitize the client-supplied folder + extension into safe path segments:
+    // strip anything that isn't alphanumeric / - / _ per segment. This kills
+    // `..` traversal, absolute paths, and odd characters that could otherwise
+    // produce unexpected object keys in the shared bucket.
+    const cleanSegment = (s: string) => s.replace(/[^a-zA-Z0-9_-]/g, "");
+    const uploadFolder =
+      (typeof folder === "string" ? folder : "")
+        .split("/")
+        .map(cleanSegment)
+        .filter(Boolean)
+        .join("/") || "menu";
+    const ext =
+      cleanSegment(fileName.split(".").pop() || "") || (isVideo ? "mp4" : "jpg");
     const uniqueName = `${uuid()}.${ext}`;
-    const uploadFolder = folder || "menu";
     const filePath = `${uploadFolder}/${uniqueName}`;
 
     // Request a secure signed URL from Supabase Admin (Server)

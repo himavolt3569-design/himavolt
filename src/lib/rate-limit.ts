@@ -100,6 +100,8 @@ function inMemoryRateLimit(
 
 // ── Public API ────────────────────────────────────────────────────────────────
 
+let warnedNoUpstash = false;
+
 export async function rateLimit(
   key: string,
   windowMs: number,
@@ -107,6 +109,20 @@ export async function rateLimit(
 ): Promise<RateLimitResult> {
   const r = getRedis();
   if (r) return upstashRateLimit(key, windowMs, max);
+  // In-memory fallback is per-instance and resets on every serverless cold
+  // start, so it does NOT enforce a shared limit across instances. Warn once
+  // when this happens in production so a missing Upstash config is visible.
+  if (
+    !warnedNoUpstash &&
+    (process.env.VERCEL || process.env.NODE_ENV === "production")
+  ) {
+    warnedNoUpstash = true;
+    console.error(
+      "[RateLimit] Upstash not configured — using per-instance in-memory limits " +
+        "that reset on cold starts and don't enforce across serverless instances. " +
+        "Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN.",
+    );
+  }
   return inMemoryRateLimit(key, windowMs, max);
 }
 

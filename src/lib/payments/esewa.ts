@@ -10,6 +10,19 @@ const APP_URL =
   process.env.NEXT_PUBLIC_APP_URL ||
   (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "");
 
+// Fail loud (in logs) if production is silently using eSewa's sandbox endpoints
+// because the env vars weren't set — otherwise real payments verify against a
+// test environment with no visible symptom.
+if (
+  (process.env.VERCEL || process.env.NODE_ENV === "production") &&
+  (!process.env.ESEWA_GATEWAY_URL || !process.env.ESEWA_VERIFY_URL)
+) {
+  console.error(
+    "[Payments] eSewa is falling back to SANDBOX endpoints in production. " +
+      "Set ESEWA_GATEWAY_URL and ESEWA_VERIFY_URL to the live eSewa URLs.",
+  );
+}
+
 function generateSignature(message: string, secretKey: string): string {
   return crypto
     .createHmac("sha256", secretKey)

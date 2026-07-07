@@ -8,6 +8,18 @@ const APP_URL =
   process.env.NEXT_PUBLIC_APP_URL ||
   (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "");
 
+// Fail loud (in logs) if production is silently using Khalti's sandbox
+// (a.khalti.com) because the env vars weren't set.
+if (
+  (process.env.VERCEL || process.env.NODE_ENV === "production") &&
+  (!process.env.KHALTI_GATEWAY_URL || !process.env.KHALTI_VERIFY_URL)
+) {
+  console.error(
+    "[Payments] Khalti is falling back to SANDBOX endpoints in production. " +
+      "Set KHALTI_GATEWAY_URL and KHALTI_VERIFY_URL to the live Khalti URLs.",
+  );
+}
+
 export async function initiateKhaltiPayment(params: {
   orderId: string;
   orderNo: string;
