@@ -5,6 +5,7 @@ import { safeHandler, unauthorized } from "@/lib/api-helpers";
 import { createRestaurantSchema } from "@/lib/validations";
 import { logAudit } from "@/lib/audit";
 import { isValidNepalMobile, normalizeNepalPhone } from "@/lib/phone";
+import { seedDefaultCategories } from "@/lib/category-templates";
 import crypto from "crypto";
 
 const staffSelect = {
@@ -114,12 +115,23 @@ export const POST = safeHandler(
         longitude: body.longitude,
         ownerId: user.id,
         restaurantCode,
+        posWelcomeSeenAt: new Date(),
       },
       include: {
         staff: { select: staffSelect },
         _count: { select: { orders: true, menuItems: true } },
       },
     });
+
+    // Seed the default category tree for the chosen type inline, so the owner
+    // sees a fully-populated Categories tab the moment they open Menu — no
+    // client-side round-trip, no empty-state race. Non-fatal: a seed failure
+    // must not fail restaurant creation (the owner can re-seed from Menu).
+    try {
+      await seedDefaultCategories(restaurant.id, body.type);
+    } catch (err) {
+      console.error("[Restaurant Create] category seed failed", err);
+    }
 
     logAudit({
       action: "RESTAURANT_CREATED",

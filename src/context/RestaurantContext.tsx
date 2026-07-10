@@ -289,7 +289,9 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
       writeStoredRestaurantId(restaurant.id);
       // Creating a restaurant upgrades a CUSTOMER to OWNER server-side; refresh
       // the cached role in the background so the owner UI appears without
-      // blocking the create flow on an extra round-trip.
+      // blocking the create flow on an extra round-trip. The default category
+      // tree is seeded inline by the POST handler, so Menu → Categories is
+      // already populated — nothing to trigger here.
       void refreshRole();
       return restaurant;
     },
