@@ -1548,7 +1548,7 @@ export default function MenuManagementTab({
     }
   };
 
-  const seedDefaults = async () => {
+  const seedDefaults = async (opts?: { silent?: boolean }) => {
     if (!restaurantId) return;
     setSeedingCats(true);
     try {
@@ -1556,14 +1556,32 @@ export default function MenuManagementTab({
         `/api/restaurants/${restaurantId}/categories/seed`,
         { method: "POST" }
       );
-      showToast(result.message || `${result.categories.length} categories added!`);
+      if (!opts?.silent) {
+        showToast(result.message || `${result.categories.length} categories added!`);
+      }
       await fetchData(true);
     } catch {
-      showToast("Failed to seed categories");
+      if (!opts?.silent) showToast("Failed to seed categories");
     } finally {
       setSeedingCats(false);
     }
   };
+
+  // Safety net: any restaurant that lands here with zero categories (created
+  // before server-side auto-seed, or a seed that didn't run) gets its default
+  // category tree generated automatically — silently, once per restaurant — so
+  // the owner never sees an empty Categories tab and never has to seed by hand.
+  const autoSeededRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (catQuery.isLoading || !restaurantId) return;
+    if (categories.length > 0 || seedingCats) return;
+    if (autoSeededRef.current === restaurantId) return;
+    autoSeededRef.current = restaurantId;
+    void seedDefaults({ silent: true });
+    // seedDefaults is a stable closure over restaurantId; guarded by the ref so
+    // it runs at most once per restaurant.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [catQuery.isLoading, categories.length, restaurantId, seedingCats]);
 
   const initDeleteCategory = async (categoryId: string) => {
     if (!restaurantId) return;
@@ -1867,7 +1885,7 @@ export default function MenuManagementTab({
             (view === "categories" ? (
               <>
                 <button
-                  onClick={seedDefaults}
+                  onClick={() => seedDefaults()}
                   disabled={seedingCats}
                   className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--canvas)] shadow-sm px-4 py-2 text-[13px] font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] hover:text-[var(--accent-text)] transition-all active:scale-[0.97] disabled:opacity-50"
                 >
@@ -2004,7 +2022,7 @@ export default function MenuManagementTab({
             </div>
           </div>
           <button
-            onClick={seedDefaults}
+            onClick={() => seedDefaults()}
             disabled={seedingCats}
             className="flex items-center gap-1.5 rounded-lg bg-[var(--accent)] px-5 py-2.5 text-[13px] font-bold text-white hover:bg-[var(--accent-hover)] disabled:opacity-50 transition-all shrink-0"
           >
