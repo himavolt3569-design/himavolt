@@ -13,7 +13,6 @@ import {
   Truck,
   MessageCircle,
   ArrowUpRight,
-  Zap,
   Menu,
   X,
   Lock,
@@ -24,63 +23,39 @@ import {
   BedDouble,
   LayoutTemplate,
   UserX,
-  Image,
+  Image as ImageIcon,
   Loader2,
+  Cpu,
+  Landmark,
+  Zap,
+  LogOut,
 } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import MasterOverview from "@/components/admin/MasterOverview";
 
 const AdminTabLoader = () => (
-  <div className="flex min-h-[320px] items-center justify-center">
-    <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-slate-900" />
+  <div className="flex min-h-[400px] items-center justify-center">
+    <div className="flex flex-col items-center gap-4">
+      <div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-100 border-t-[var(--accent)]" />
+      <p className="text-sm font-semibold tracking-widest uppercase text-gray-400">Loading module</p>
+    </div>
   </div>
 );
 
-const AllOrdersTab = dynamic(() => import("@/components/admin/AllOrdersTab"), {
-  loading: AdminTabLoader,
-  ssr: false,
-});
-const AllRestaurantsTab = dynamic(
-  () => import("@/components/admin/AllRestaurantsTab"),
-  { loading: AdminTabLoader, ssr: false },
-);
-const AllUsersTab = dynamic(() => import("@/components/admin/AllUsersTab"), {
-  loading: AdminTabLoader,
-  ssr: false,
-});
-const InactiveUsersTab = dynamic(
-  () => import("@/components/admin/InactiveUsersTab"),
-  { loading: AdminTabLoader, ssr: false },
-);
-const AllChatsTab = dynamic(() => import("@/components/admin/AllChatsTab"), {
-  loading: AdminTabLoader,
-  ssr: false,
-});
-const AllPaymentsTab = dynamic(
-  () => import("@/components/admin/AllPaymentsTab"),
-  { loading: AdminTabLoader, ssr: false },
-);
-const AllDeliveriesTab = dynamic(
-  () => import("@/components/admin/AllDeliveriesTab"),
-  { loading: AdminTabLoader, ssr: false },
-);
-const AuditTab = dynamic(() => import("@/components/admin/AuditTab"), {
-  loading: AdminTabLoader,
-  ssr: false,
-});
-const AllBookingsTab = dynamic(
-  () => import("@/components/admin/AllBookingsTab"),
-  { loading: AdminTabLoader, ssr: false },
-);
-const FooterSettingsTab = dynamic(
-  () => import("@/components/admin/FooterSettingsTab"),
-  { loading: AdminTabLoader, ssr: false },
-);
-const HeroSettingsTab = dynamic(
-  () => import("@/components/admin/HeroSettingsTab"),
-  { loading: AdminTabLoader, ssr: false },
-);
+const AllOrdersTab = dynamic(() => import("@/components/admin/AllOrdersTab"), { loading: AdminTabLoader, ssr: false });
+const AllRestaurantsTab = dynamic(() => import("@/components/admin/AllRestaurantsTab"), { loading: AdminTabLoader, ssr: false });
+const AllUsersTab = dynamic(() => import("@/components/admin/AllUsersTab"), { loading: AdminTabLoader, ssr: false });
+const InactiveUsersTab = dynamic(() => import("@/components/admin/InactiveUsersTab"), { loading: AdminTabLoader, ssr: false });
+const AllChatsTab = dynamic(() => import("@/components/admin/AllChatsTab"), { loading: AdminTabLoader, ssr: false });
+const AllPaymentsTab = dynamic(() => import("@/components/admin/AllPaymentsTab"), { loading: AdminTabLoader, ssr: false });
+const AllDeliveriesTab = dynamic(() => import("@/components/admin/AllDeliveriesTab"), { loading: AdminTabLoader, ssr: false });
+const AuditTab = dynamic(() => import("@/components/admin/AuditTab"), { loading: AdminTabLoader, ssr: false });
+const AllBookingsTab = dynamic(() => import("@/components/admin/AllBookingsTab"), { loading: AdminTabLoader, ssr: false });
+const HardwareTab = dynamic(() => import("@/components/admin/HardwareTab"), { loading: AdminTabLoader, ssr: false });
+const GatewaySettingsTab = dynamic(() => import("@/components/admin/GatewaySettingsTab"), { loading: AdminTabLoader, ssr: false });
+const FooterSettingsTab = dynamic(() => import("@/components/admin/FooterSettingsTab"), { loading: AdminTabLoader, ssr: false });
+const HeroSettingsTab = dynamic(() => import("@/components/admin/HeroSettingsTab"), { loading: AdminTabLoader, ssr: false });
 
 /* ═══════════════════════════════════════════════════════════════════
    Types & Constants
@@ -89,74 +64,97 @@ const HeroSettingsTab = dynamic(
 type AdminTab =
   | "overview"
   | "orders"
+  | "bookings"
   | "restaurants"
   | "users"
   | "inactive-users"
-  | "chats"
   | "payments"
   | "deliveries"
-  | "bookings"
+  | "chats"
+  | "hardware"
+  | "gateway-settings"
   | "audit"
   | "footer-settings"
   | "hero-settings";
 
-const TABS: {
-  id: AdminTab;
-  label: string;
-  icon: typeof Activity;
-  mobileLabel?: string;
-}[] = [
-  { id: "overview", label: "Overview", icon: Activity, mobileLabel: "Home" },
-  {
-    id: "orders",
-    label: "All Orders",
-    icon: ShoppingBag,
-    mobileLabel: "Orders",
-  },
-  {
-    id: "restaurants",
-    label: "Restaurants",
-    icon: Store,
-    mobileLabel: "Restaurants",
-  },
-  { id: "users", label: "Users", icon: Users, mobileLabel: "Users" },
-  {
-    id: "inactive-users",
-    label: "Inactive Users",
-    icon: UserX,
-    mobileLabel: "Inactive",
-  },
-  { id: "chats", label: "Chats", icon: MessageCircle, mobileLabel: "Chats" },
-  { id: "payments", label: "Payments", icon: CreditCard, mobileLabel: "Pay" },
-  {
-    id: "deliveries",
-    label: "Deliveries",
-    icon: Truck,
-    mobileLabel: "Delivery",
-  },
-  { id: "audit", label: "Activity Log", icon: Zap, mobileLabel: "Activity" },
-  {
-    id: "bookings",
-    label: "Hotel Bookings",
-    icon: BedDouble,
-    mobileLabel: "Bookings",
-  },
-  {
-    id: "footer-settings",
-    label: "Footer",
-    icon: LayoutTemplate,
-    mobileLabel: "Footer",
-  },
-  {
-    id: "hero-settings",
-    label: "Homepage Banner",
-    icon: Image,
-    mobileLabel: "Banner",
-  },
+const TABS: { id: AdminTab; label: string; icon: typeof Activity; category: string }[] = [
+  { id: "overview", label: "Overview", icon: Activity, category: "Core" },
+  { id: "orders", label: "Orders", icon: ShoppingBag, category: "Core" },
+  { id: "bookings", label: "Stays & Bookings", icon: BedDouble, category: "Core" },
+
+  { id: "restaurants", label: "Restaurants", icon: Store, category: "Network" },
+  { id: "users", label: "Active Users", icon: Users, category: "Network" },
+  { id: "inactive-users", label: "Inactive Users", icon: UserX, category: "Network" },
+
+  { id: "payments", label: "Payments", icon: CreditCard, category: "Operations" },
+  { id: "deliveries", label: "Deliveries", icon: Truck, category: "Operations" },
+  { id: "chats", label: "Support", icon: MessageCircle, category: "Operations" },
+
+  { id: "hardware", label: "Hardware Nodes", icon: Cpu, category: "System" },
+  { id: "gateway-settings", label: "Payment Gateways", icon: Landmark, category: "System" },
+  { id: "audit", label: "Audit Log", icon: Zap, category: "System" },
+  { id: "hero-settings", label: "Homepage Banner", icon: ImageIcon, category: "System" },
+  { id: "footer-settings", label: "Footer Layout", icon: LayoutTemplate, category: "System" },
 ];
 
+const CATEGORIES = Array.from(new Set(TABS.map((t) => t.category)));
+
+const SUBTITLES: Partial<Record<AdminTab, string>> = {
+  orders: "Every order across all restaurants and hotels",
+  bookings: "Hotel stays and room reservations",
+  restaurants: "Manage partner restaurants and hotels",
+  users: "Active customers, owners, and staff",
+  "inactive-users": "Dormant and never-activated accounts",
+  payments: "Collected payments and settlements",
+  deliveries: "Live and completed deliveries",
+  chats: "Customer support conversations",
+  hardware: "POS terminals, displays, and printers you sell",
+  "gateway-settings": "Payment gateway credentials and webhooks",
+  audit: "Every privileged action, logged",
+  "hero-settings": "Homepage banner carousel",
+  "footer-settings": "Public site footer content",
+};
+
 /* ═══════════════════════════════════════════════════════════════════
-   Login Gate Component
+   Sidebar navigation (shared by desktop rail + mobile drawer)
+   ═══════════════════════════════════════════════════════════════════ */
+
+function SidebarNav({
+  current,
+  onSelect,
+}: {
+  current: AdminTab;
+  onSelect: (t: AdminTab) => void;
+}) {
+  return (
+    <div className="space-y-8">
+      {CATEGORIES.map((category) => (
+        <div key={category}>
+          <h3 className="px-4 text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-3">{category}</h3>
+          <div className="space-y-1">
+            {TABS.filter((t) => t.category === category).map((t) => (
+              <button
+                key={t.id}
+                onClick={() => onSelect(t.id)}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all font-semibold text-sm ${
+                  current === t.id
+                    ? "bg-[var(--accent)] text-white shadow-md shadow-[var(--accent)]/20"
+                    : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                }`}
+              >
+                <t.icon className={`h-5 w-5 ${current === t.id ? "text-white" : "text-gray-400"}`} />
+                <span>{t.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Login Gate
    ═══════════════════════════════════════════════════════════════════ */
 
 function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
@@ -181,7 +179,7 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
 
       if (!res.ok) {
         const data = await res.json();
-        setError(data.error || "Invalid credentials");
+        setError(data.error || "Incorrect credentials");
         return;
       }
 
@@ -195,97 +193,93 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#F8FAFC] p-4 overflow-hidden relative">
-      {/* ── Technical Background ── */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: `linear-gradient(to right, #000 1px, transparent 1px), linear-gradient(to bottom, #000 1px, transparent 1px)`, backgroundSize: '40px 40px' }} />
-        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-blue-500/[0.03] rounded-full blur-[120px] -mr-64 -mt-64" />
-        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-indigo-500/[0.03] rounded-full blur-[100px] -ml-32 -mb-32" />
+    <div className="flex min-h-screen items-center justify-center bg-[#F7F9FC] p-4 relative overflow-hidden">
+      {/* Soft aesthetic background */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <motion.div
+          animate={{ scale: [1, 1.05, 1], rotate: [0, 5, 0] }}
+          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+          className="absolute -top-[20%] -right-[10%] w-[70vw] h-[70vw] rounded-full bg-gradient-to-br from-[var(--accent)]/10 to-transparent blur-[120px]"
+        />
+        <motion.div
+          animate={{ scale: [1, 1.1, 1], rotate: [0, -5, 0] }}
+          transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+          className="absolute -bottom-[20%] -left-[10%] w-[60vw] h-[60vw] rounded-full bg-gradient-to-tr from-blue-500/5 to-transparent blur-[100px]"
+        />
       </div>
 
       <motion.div
-        initial={{ opacity: 0, scale: 0.98, y: 10 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        className="relative w-full max-w-[420px] z-10"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        className="relative w-full max-w-md z-10"
       >
-        <div className="bg-white border border-slate-200 p-8 md:p-10 rounded-3xl shadow-[0_24px_48px_-16px_rgba(0,0,0,0.08)] relative overflow-hidden">
-
-          {/* Top accent bar */}
-          <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-transparent via-blue-500/20 to-transparent" />
-
+        <div className="bg-white/80 backdrop-blur-3xl border border-white p-8 sm:p-12 rounded-[2.5rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.08)]">
           <AnimatePresence mode="wait">
             {success ? (
               <motion.div
                 key="success"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
                 className="flex flex-col items-center text-center py-10"
               >
                 <motion.div
-                  initial={{ scale: 0.5 }}
+                  initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  className="h-20 w-20 rounded-full bg-slate-900 flex items-center justify-center mb-8 shadow-2xl"
+                  transition={{ type: "spring", bounce: 0.6 }}
+                  className="h-20 w-20 rounded-3xl bg-[var(--accent)] flex items-center justify-center shadow-[0_20px_40px_-10px_var(--accent)] mb-6"
                 >
                   <ShieldCheck className="h-10 w-10 text-white" />
                 </motion.div>
-                <h2 className="text-2xl font-bold text-slate-900 tracking-tight mb-2">Signed in</h2>
-                <p className="text-slate-500 text-sm">Taking you to the dashboard…</p>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome back</h2>
+                <p className="text-gray-500 text-sm">Redirecting to your dashboard…</p>
               </motion.div>
             ) : (
               <div key="form">
-                {/* Header */}
-                <div className="mb-12 text-center">
-                  <motion.div
-                    whileHover={{ rotate: 360 }}
-                    transition={{ duration: 0.7 }}
-                    className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-900 shadow-xl"
-                  >
-                    <Shield className="h-8 w-8 text-white" />
-                  </motion.div>
-                  <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Admin sign in</h1>
-                  <div className="mt-3 flex items-center justify-center gap-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-blue-500" />
-                    <span className="text-xs font-semibold text-slate-400 tracking-wide">HimaVolt Admin</span>
+                <div className="mb-10 text-center">
+                  <div className="inline-flex items-center justify-center p-4 rounded-3xl bg-[var(--accent)]/10 text-[var(--accent)] mb-6">
+                    <Shield className="h-8 w-8" />
                   </div>
+                  <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Master Admin</h1>
+                  <p className="text-sm font-medium text-gray-400 mt-2">Sign in to manage HimaVolt</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-5">
-                  <div className="space-y-2">
-                    <label className="text-xs font-semibold text-slate-600 ml-1">Admin ID</label>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 mb-2 ml-1">Admin ID</label>
                     <div className="relative group">
                       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <KeyRound className="h-4 w-4 text-slate-300 group-focus-within:text-blue-500 transition-colors" />
+                        <KeyRound className="h-5 w-5 text-gray-400 group-focus-within:text-[var(--accent)] transition-colors" />
                       </div>
                       <input
                         type="text"
                         value={adminId}
                         onChange={(e) => { setAdminId(e.target.value); setError(""); }}
-                        placeholder="Your admin ID"
+                        placeholder="Enter your ID"
                         required
-                        className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all placeholder:text-slate-400"
+                        className="w-full pl-12 pr-4 py-4 bg-gray-50/50 border border-gray-200 rounded-2xl text-sm text-gray-900 font-medium focus:outline-none focus:border-[var(--accent)] focus:bg-white focus:ring-4 focus:ring-[var(--accent)]/10 transition-all placeholder:text-gray-400"
                       />
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="text-xs font-semibold text-slate-600 ml-1">Password</label>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 mb-2 ml-1">Password</label>
                     <div className="relative group">
                       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <Lock className="h-4 w-4 text-slate-300 group-focus-within:text-blue-500 transition-colors" />
+                        <Lock className="h-5 w-5 text-gray-400 group-focus-within:text-[var(--accent)] transition-colors" />
                       </div>
                       <input
                         type={showPassword ? "text" : "password"}
                         value={password}
                         onChange={(e) => { setPassword(e.target.value); setError(""); }}
-                        placeholder="Your password"
+                        placeholder="Enter your password"
                         required
-                        className="w-full pl-11 pr-12 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all placeholder:text-slate-400"
+                        className="w-full pl-12 pr-12 py-4 bg-gray-50/50 border border-gray-200 rounded-2xl text-sm text-gray-900 font-medium focus:outline-none focus:border-[var(--accent)] focus:bg-white focus:ring-4 focus:ring-[var(--accent)]/10 transition-all placeholder:text-gray-400"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 h-8 w-8 flex items-center justify-center text-slate-300 hover:text-slate-600 transition-colors"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 h-8 w-8 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors bg-white rounded-xl shadow-sm border border-gray-100"
                       >
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
@@ -294,48 +288,37 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
 
                   {error && (
                     <motion.div
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      className="flex items-center gap-2.5 p-3.5 rounded-xl bg-red-50 border border-red-100 text-red-600"
+                      initial={{ opacity: 0, y: -5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex items-center gap-3 p-4 rounded-2xl bg-red-50 text-red-600 text-sm font-semibold"
                     >
-                      <AlertCircle className="h-4 w-4 shrink-0" />
-                      <span className="text-sm font-medium">{error}</span>
+                      <AlertCircle className="h-5 w-5 shrink-0" />
+                      <span>{error}</span>
                     </motion.div>
                   )}
 
-                  <motion.button
+                  <button
                     type="submit"
                     disabled={loading || !adminId || !password}
-                    whileHover={{ scale: 1.01 }}
-                    whileTap={{ scale: 0.99 }}
-                    className={`w-full py-3.5 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 shadow-lg ${
-                      loading || !adminId || !password
-                        ? "bg-slate-100 text-slate-300 cursor-not-allowed"
-                        : "bg-slate-900 text-white shadow-slate-900/10 hover:bg-slate-800"
-                    }`}
+                    className="w-full py-4 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2 mt-4 disabled:opacity-50 disabled:cursor-not-allowed bg-[var(--accent)] text-white hover:bg-[var(--accent-hover)] shadow-xl shadow-[var(--accent)]/20 active:scale-[0.98]"
                   >
                     {loading ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <Loader2 className="h-5 w-5 animate-spin" />
                     ) : (
                       <>
-                        Sign in
-                        <ArrowUpRight className="h-4 w-4" />
+                        Sign in <ArrowUpRight className="h-4 w-4" />
                       </>
                     )}
-                  </motion.button>
+                  </button>
                 </form>
               </div>
             )}
           </AnimatePresence>
         </div>
 
-        {/* Footer Link */}
-        <div className="mt-10 text-center">
-          <Link 
-            href="/" 
-            className="text-sm font-medium text-slate-400 hover:text-slate-900 transition-colors"
-          >
-            &larr; Back to website
+        <div className="mt-8 text-center">
+          <Link href="/" className="text-sm font-semibold text-gray-400 hover:text-gray-700 transition-colors">
+            &larr; Return to website
           </Link>
         </div>
       </motion.div>
@@ -344,7 +327,7 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   Master Admin Page
+   Master Admin Dashboard
    ═══════════════════════════════════════════════════════════════════ */
 
 const ADMIN_TAB_KEY = "hh_admin_tab";
@@ -352,9 +335,6 @@ const ADMIN_TAB_KEY = "hh_admin_tab";
 export default function MasterAdminPage() {
   const [authenticated, setAuthenticated] = useState(false);
   const [checking, setChecking] = useState(true);
-  // Restore the last-viewed tab from localStorage. Safe as a lazy initializer:
-  // the tab-dependent UI isn't rendered until the async `checking` state
-  // resolves, so there's no SSR/hydration mismatch on first paint.
   const [tab, setTab] = useState<AdminTab>(() => {
     if (typeof window === "undefined") return "overview";
     return (localStorage.getItem(ADMIN_TAB_KEY) as AdminTab | null) ?? "overview";
@@ -364,9 +344,9 @@ export default function MasterAdminPage() {
   const handleSetTab = (t: AdminTab) => {
     setTab(t);
     localStorage.setItem(ADMIN_TAB_KEY, t);
+    setMobileMenuOpen(false);
   };
 
-  // Check for an existing admin session on mount.
   useEffect(() => {
     fetch("/api/admin/verify")
       .then((res) => {
@@ -383,11 +363,8 @@ export default function MasterAdminPage() {
 
   if (checking) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-[#EFF6FF] via-[#F5F8FF] to-[#EDF2FF]">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-400 border-t-transparent" />
-          <p className="text-sm text-slate-400">Verifying session...</p>
-        </div>
+      <div className="flex min-h-screen items-center justify-center bg-[#F7F9FC]">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-[var(--accent)]" />
       </div>
     );
   }
@@ -396,177 +373,150 @@ export default function MasterAdminPage() {
     return <AdminLoginGate onSuccess={() => setAuthenticated(true)} />;
   }
 
-  // Authenticated — show dashboard
+  const active = TABS.find((t) => t.id === tab);
+
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 selection:bg-blue-500/10">
-      {/* ── High-Precision Global Header ────────────────────────── */}
-      <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-[1600px] items-center justify-between px-4 py-4 md:px-8">
-          <div className="flex items-center gap-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 shadow-lg shadow-slate-900/10">
+    <div className="min-h-screen bg-[#F7F9FC] text-gray-900 flex overflow-hidden">
+      {/* ── Bright sidebar ── */}
+      <aside className="hidden lg:flex flex-col w-72 bg-white h-screen shrink-0 relative z-20 border-r border-gray-100 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+        <div className="p-8 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 bg-[var(--accent)] rounded-2xl flex items-center justify-center shadow-lg shadow-[var(--accent)]/30">
               <Shield className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h1 className="text-sm font-black uppercase tracking-[0.2em] text-slate-900 leading-none">HimaVolt Admin</h1>
-              <div className="mt-1.5 flex items-center gap-2">
-                <div className="h-1 w-1 rounded-full bg-emerald-500" />
-                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Live</span>
-              </div>
+              <h1 className="text-xl font-bold tracking-tight text-gray-900 leading-tight">HimaVolt</h1>
+              <span className="text-xs font-semibold text-gray-400">Master Admin</span>
             </div>
           </div>
+        </div>
 
+        <div className="flex-1 overflow-y-auto py-6 px-4 scrollbar-hide">
+          <SidebarNav current={tab} onSelect={handleSetTab} />
+        </div>
+
+        <div className="p-6 space-y-2">
+          <Link
+            href="/"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-gray-50 hover:bg-gray-100 text-gray-500 hover:text-gray-900 transition-all text-sm font-semibold"
+          >
+            <ArrowUpRight className="h-4 w-4" />
+            View website
+          </Link>
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl bg-gray-50 hover:bg-red-50 text-gray-500 hover:text-red-600 transition-all text-sm font-semibold group"
+          >
+            <LogOut className="h-4 w-4 group-hover:scale-110 transition-transform" />
+            Sign out
+          </button>
+        </div>
+      </aside>
+
+      {/* ── Main content ── */}
+      <main className="flex-1 h-screen overflow-y-auto relative">
+        {/* Mobile header */}
+        <div className="lg:hidden sticky top-0 z-30 bg-white border-b border-gray-100 px-4 py-4 flex items-center justify-between shadow-sm">
           <div className="flex items-center gap-2">
-            <Link
-              href="/"
-              className="hidden md:flex h-10 px-4 items-center gap-2 rounded-xl border border-slate-200 text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-all"
-            >
-              View Site <ArrowUpRight className="h-3 w-3 opacity-40" />
-            </Link>
-
-            <button
-              onClick={handleLogout}
-              className="h-10 px-5 rounded-xl bg-slate-100 text-slate-900 text-[10px] font-bold uppercase tracking-widest hover:bg-slate-200 transition-all active:scale-[0.98]"
-            >
-              Sign Out
-            </button>
-
-            <button
-              onClick={() => setMobileMenuOpen((p) => !p)}
-              className="md:hidden h-10 w-10 flex items-center justify-center rounded-xl bg-slate-50 text-slate-500 border border-slate-200"
-            >
-              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* ── Precision Ribbon Navigation (Desktop) ───────────────── */}
-      <div className="sticky top-[73px] z-40 hidden md:block border-b border-slate-200 bg-white/60 backdrop-blur-lg">
-        <div className="mx-auto max-w-[1600px] px-8 py-3">
-          <div className="flex gap-1 overflow-x-auto scrollbar-none">
-            {TABS.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => handleSetTab(t.id)}
-                className={`relative px-5 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${
-                  tab === t.id
-                    ? "bg-slate-900 text-white shadow-md"
-                    : "text-slate-400 hover:text-slate-700 hover:bg-slate-50"
-                }`}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* ── Enterprise Mobile Overlay ─────────────────────────── */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] bg-slate-900/40 backdrop-blur-md flex items-end sm:items-center justify-center p-4 sm:p-6"
-            onClick={() => setMobileMenuOpen(false)}
-          >
-             <motion.div
-               initial={{ y: 100 }}
-               animate={{ y: 0 }}
-               exit={{ y: 100 }}
-               className="w-full max-w-lg bg-white rounded-[2.5rem] p-8 shadow-2xl overflow-hidden"
-               onClick={(e) => e.stopPropagation()}
-             >
-                <div className="flex items-center justify-between mb-8">
-                   <h2 className="text-xl font-black tracking-tight text-slate-900 uppercase">Menu</h2>
-                   <button onClick={() => setMobileMenuOpen(false)} className="h-10 w-10 flex items-center justify-center rounded-xl bg-slate-50 text-slate-400">
-                      <X className="h-5 w-5" />
-                   </button>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2">
-                   {TABS.map((t) => (
-                      <button
-                        key={t.id}
-                        onClick={() => { handleSetTab(t.id); setMobileMenuOpen(false); }}
-                        className={`flex items-center gap-3 p-4 rounded-2xl transition-all ${
-                          tab === t.id ? "bg-slate-900 text-white" : "bg-slate-50 hover:bg-slate-100"
-                        }`}
-                      >
-                         <t.icon className={`h-4 w-4 ${tab === t.id ? "text-white" : "text-slate-400"}`} />
-                         <span className="text-[10px] font-bold uppercase tracking-widest">{t.label}</span>
-                      </button>
-                   ))}
-                </div>
-             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ── Main Command Canvas ────────────────────────────────── */}
-      <main className="mx-auto max-w-[1600px] px-4 py-8 md:px-8 md:py-12 pb-24 md:pb-12">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={tab}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-          >
-            {tab === "overview" && (
-              <MasterOverview onNavigate={(t) => handleSetTab(t as AdminTab)} />
-            )}
-            <div className={`${tab === "overview" ? "hidden" : "block"}`}>
-               <section className="rounded-3xl bg-white border border-slate-200 p-6 md:p-8 shadow-sm min-h-[600px]">
-                  <header className="mb-8">
-                     <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">HimaVolt Admin</span>
-                     <h2 className="mt-1 text-2xl font-bold text-slate-900 tracking-tight">
-                        {TABS.find(t => t.id === tab)?.label}
-                     </h2>
-                  </header>
-
-                  <div className="grid gap-8">
-                     {tab === "orders" && <AllOrdersTab />}
-                     {tab === "restaurants" && <AllRestaurantsTab />}
-                     {tab === "users" && <AllUsersTab />}
-                     {tab === "inactive-users" && <InactiveUsersTab />}
-                     {tab === "chats" && <AllChatsTab />}
-                     {tab === "payments" && <AllPaymentsTab />}
-                     {tab === "deliveries" && <AllDeliveriesTab />}
-                     {tab === "audit" && <AuditTab />}
-                     {tab === "bookings" && <AllBookingsTab />}
-                     {tab === "footer-settings" && <FooterSettingsTab />}
-                     {tab === "hero-settings" && <HeroSettingsTab />}
-                  </div>
-               </section>
+            <div className="h-8 w-8 bg-[var(--accent)] rounded-xl flex items-center justify-center">
+              <Shield className="h-4 w-4 text-white" />
             </div>
-          </motion.div>
-        </AnimatePresence>
+            <span className="text-sm font-bold text-gray-900">HimaVolt Admin</span>
+          </div>
+          <button
+            onClick={() => setMobileMenuOpen(true)}
+            className="p-2 bg-gray-50 rounded-xl text-gray-600"
+            aria-label="Open menu"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="p-4 md:p-10 max-w-[1600px] mx-auto pb-24 lg:pb-10">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={tab}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+            >
+              {/* Every tab except the Overview (which has its own banner) gets a page header */}
+              {tab !== "overview" && (
+                <div className="mb-8">
+                  <h2 className="text-3xl font-bold tracking-tight text-gray-900">{active?.label}</h2>
+                  <p className="text-sm font-medium text-gray-500 mt-1">
+                    {SUBTITLES[tab] ?? "Manage and monitor your operations"}
+                  </p>
+                </div>
+              )}
+
+              <div className="min-h-[70vh]">
+                {tab === "overview" && <MasterOverview onNavigate={(t) => handleSetTab(t as AdminTab)} />}
+                {tab === "orders" && <AllOrdersTab />}
+                {tab === "restaurants" && <AllRestaurantsTab />}
+                {tab === "users" && <AllUsersTab />}
+                {tab === "inactive-users" && <InactiveUsersTab />}
+                {tab === "chats" && <AllChatsTab />}
+                {tab === "payments" && <AllPaymentsTab />}
+                {tab === "deliveries" && <AllDeliveriesTab />}
+                {tab === "audit" && <AuditTab />}
+                {tab === "bookings" && <AllBookingsTab />}
+                {tab === "hardware" && <HardwareTab />}
+                {tab === "gateway-settings" && <GatewaySettingsTab />}
+                {tab === "footer-settings" && <FooterSettingsTab />}
+                {tab === "hero-settings" && <HeroSettingsTab />}
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
       </main>
 
-      {/* ── Discrete Mobile Dock ───────────────────────────────── */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 md:hidden w-[90vw] max-w-[400px]">
-         <div className="bg-white border border-slate-200 rounded-3xl p-1.5 flex items-center justify-around shadow-2xl">
-            {TABS.slice(0, 4).map((t) => (
-              <button
-                key={t.id}
-                onClick={() => handleSetTab(t.id)}
-                className={`flex h-12 w-12 items-center justify-center rounded-2xl transition-all ${
-                  tab === t.id ? "bg-slate-900 text-white shadow-lg" : "text-slate-400 hover:bg-slate-50"
-                }`}
-              >
-                <t.icon className="h-5 w-5" />
-              </button>
-            ))}
-            <button
-              onClick={() => setMobileMenuOpen(true)}
-              className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-50 text-slate-900 border border-slate-100"
+      {/* ── Mobile drawer ── */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMobileMenuOpen(false)}
+              className="fixed inset-0 z-40 bg-gray-900/40 backdrop-blur-sm lg:hidden"
+            />
+            <motion.div
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", bounce: 0, duration: 0.5 }}
+              className="fixed inset-y-0 left-0 z-50 w-4/5 max-w-sm bg-white shadow-2xl flex flex-col lg:hidden"
             >
-              <Menu className="h-5 w-5" />
-            </button>
-         </div>
-      </div>
+              <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 bg-[var(--accent)] rounded-xl flex items-center justify-center">
+                    <Shield className="h-4 w-4 text-white" />
+                  </div>
+                  <span className="text-lg font-bold text-gray-900">Menu</span>
+                </div>
+                <button onClick={() => setMobileMenuOpen(false)} className="text-gray-400 hover:text-gray-900" aria-label="Close menu">
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto py-4 px-4">
+                <SidebarNav current={tab} onSelect={handleSetTab} />
+              </div>
+              <div className="p-4 border-t border-gray-100">
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-gray-50 hover:bg-red-50 text-gray-500 hover:text-red-600 transition-all text-sm font-semibold"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Sign out
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

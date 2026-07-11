@@ -143,6 +143,13 @@ export const CATEGORIES_BY_TYPE: Record<string, CategoryTemplate[]> = {
 // Fallback for unknown types (use RESTAURANT template)
 export const DEFAULT_CATEGORIES = CATEGORIES_BY_TYPE.RESTAURANT;
 
+// Templates for a restaurant type, falling back to the RESTAURANT set for any
+// type we don't have a bespoke list for. Single lookup shared by the templates
+// route and the seed route.
+export function getCategoryTemplates(type: string): CategoryTemplate[] {
+  return CATEGORIES_BY_TYPE[type] ?? DEFAULT_CATEGORIES;
+}
+
 export function toSlug(name: string) {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }

@@ -50,6 +50,9 @@ export async function GET() {
   const now = new Date();
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  // Start of the 7-day window shown in the Overview area chart (today + prior 6).
+  const seriesStart = new Date(todayStart);
+  seriesStart.setDate(todayStart.getDate() - 6);
 
   const totalUsers = await safe("totalUsers", () => db.user.count(), 0);
   const totalRestaurants = await safe("totalRestaurants", () => db.restaurant.count(), 0);
@@ -137,6 +140,41 @@ export async function GET() {
     }[],
   );
 
+  // ── Real 7-day daily revenue for the Overview area chart ──
+  // One extra sequential raw query (pool-safe). Days with no orders are
+  // back-filled to 0 in JS so the chart always renders a full week.
+  const revenueRows = await safe(
+    "revenueSeries",
+    () =>
+      db.$queryRaw<{ day: string; val: number }[]>`
+        SELECT to_char(date_trunc('day', "createdAt"), 'YYYY-MM-DD') AS day,
+               COALESCE(SUM(total), 0)::float8 AS val
+        FROM orders
+        WHERE "createdAt" >= ${seriesStart}
+        GROUP BY 1
+      `,
+    [] as { day: string; val: number }[],
+  );
+  const revByDay = new Map(revenueRows.map((r) => [r.day, Number(r.val) || 0]));
+  const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const revenueSeries = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(seriesStart);
+    d.setDate(seriesStart.getDate() + i);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    return { label: WEEKDAYS[d.getDay()], val: revByDay.get(key) ?? 0 };
+  });
+
+  // ── Restaurants vs hotels split for the distribution donut ──
+  const hotelPartners = await safe(
+    "hotelPartners",
+    () =>
+      db.restaurant.count({
+        where: { type: { in: ["HOTEL", "RESORT", "GUEST_HOUSE"] } },
+      }),
+    0,
+  );
+  const restaurantPartners = Math.max(0, totalRestaurants - hotelPartners);
+
   const statusBreakdown = Object.fromEntries(
     ordersByStatus.map((s) => [s.status, s._count.status]),
   );
@@ -162,6 +200,8 @@ export async function GET() {
     deliveries: { active: activeDeliveries },
     payments: { completed: totalPayments },
     audit: { today: recentAuditCount },
+    revenueSeries,
+    partners: { restaurants: restaurantPartners, hotels: hotelPartners },
     topRestaurants,
   };
 

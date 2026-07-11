@@ -106,6 +106,13 @@ export default function LocationPickerModal({
   // it doesn't fire a second Nominatim request within ~1s of the real one
   // (Nominatim rate-limits bursts, which was silently swallowing the result).
   const skipReverseRef = useRef(false);
+  // Wall-clock backstop for the auto-locate: some browsers leave
+  // getCurrentPosition pending indefinitely while its permission prompt sits
+  // unanswered (the spec timeout only starts counting once the user responds),
+  // which would spin "Finding your location..." forever. locateSettledRef keeps
+  // the resolution single-shot so a late fix can't fight the fallback.
+  const locateSettledRef = useRef(false);
+  const locateTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -130,24 +137,38 @@ export default function LocationPickerModal({
   }, []);
 
   useEffect(() => {
-    if (!open || query.length < 3) {
+    if (!open) return;
+    // Only a live query the user is typing should drive the search dropdown.
+    // When `query` changes because a result was picked / the pin moved /
+    // reverse-geocode filled it in, sourceRef won't be "search-preview" — so we
+    // close the list instead of reopening it with the just-chosen place.
+    if (sourceRef.current !== "search-preview") {
+      setShowResults(false);
+      setSearching(false);
+      return;
+    }
+    if (query.trim().length < 3) {
       setResults([]);
       setShowResults(false);
+      setSearching(false);
       return;
     }
 
+    // Open the panel immediately so the user sees a "Searching…" state during
+    // the debounce + request, instead of a silent, seemingly-broken box.
+    setShowResults(true);
+    setSearching(true);
     const timer = setTimeout(async () => {
-      setSearching(true);
       try {
         const res = await fetch(`/api/geocode?mode=search&q=${encodeURIComponent(query)}`);
-        const data: NominatimResult[] = await res.json();
-        setResults(data);
-        setShowResults(true);
+        const data = await res.json();
+        setResults(Array.isArray(data) ? data : []);
       } catch {
-        /* silent fail */
+        setResults([]);
+      } finally {
+        setSearching(false);
       }
-      setSearching(false);
-    }, 500);
+    }, 450);
 
     return () => clearTimeout(timer);
   }, [query, open]);
@@ -164,6 +185,15 @@ export default function LocationPickerModal({
       clearTimeout(watchTimerRef.current);
       watchTimerRef.current = null;
     }
+    if (locateTimeoutRef.current) {
+      clearTimeout(locateTimeoutRef.current);
+      locateTimeoutRef.current = null;
+    }
+    // Any getCurrentPosition callback still pending is now stale — mark the
+    // locate settled so a late fix can't yank the pin off a place the user
+    // just chose, and drop the spinner.
+    locateSettledRef.current = true;
+    setLocatingMe(false);
   }, []);
 
   const handleSelectResult = (result: NominatimResult) => {
@@ -248,7 +278,9 @@ export default function LocationPickerModal({
 
   const handleLocateMe = useCallback(() => {
     if (!navigator.geolocation) {
+      setLocatingMe(true);
       detectByIp().then((ok) => {
+        setLocatingMe(false);
         if (!ok) setLocateError("Your browser doesn't support location detection.");
       });
       return;
@@ -257,13 +289,48 @@ export default function LocationPickerModal({
     clearWatch();
     setLocateError("");
     setLocatingMe(true);
+    locateSettledRef.current = false;
+
+    const clearLocateTimer = () => {
+      if (locateTimeoutRef.current) {
+        clearTimeout(locateTimeoutRef.current);
+        locateTimeoutRef.current = null;
+      }
+    };
+
+    // Hard cap: if the geolocation callback never fires (a permission prompt
+    // left unanswered can keep it pending past its own timeout), fall back to
+    // the IP guess so the picker never spins forever.
+    locateTimeoutRef.current = setTimeout(() => {
+      if (locateSettledRef.current) return;
+      locateSettledRef.current = true;
+      locateTimeoutRef.current = null;
+      detectByIp().then((ok) => {
+        setLocatingMe(false);
+        if (!ok && skipReverseRef.current) {
+          skipReverseRef.current = false;
+          setCoords((prev) => ({ ...prev }));
+        }
+      });
+    }, 9000);
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
+        clearLocateTimer();
+        if (locateSettledRef.current) {
+          setLocatingMe(false);
+          return;
+        }
+        locateSettledRef.current = true;
         applyGpsFix(pos);
-        setLocatingMe(false);
       },
       (err) => {
+        clearLocateTimer();
+        if (locateSettledRef.current) {
+          setLocatingMe(false);
+          return;
+        }
+        locateSettledRef.current = true;
         if (err.code === err.PERMISSION_DENIED) {
           setLocatingMe(false);
           setLocateError(
@@ -362,9 +429,14 @@ export default function LocationPickerModal({
                           sourceRef.current = "search-preview";
                           setQuery(e.target.value);
                         }}
-                        onFocus={() => results.length > 0 && setShowResults(true)}
-                        placeholder="Search for a place in Nepal..."
-                        className="w-full rounded-xl bg-white pl-10 pr-9 py-3 text-sm text-[var(--text-1)] placeholder-gray-400 shadow-lg outline-none ring-1 ring-black/5 focus:ring-[var(--accent)]"
+                        onFocus={() => {
+                          if (results.length > 0 || query.trim().length >= 3) {
+                            sourceRef.current = "search-preview";
+                            setShowResults(true);
+                          }
+                        }}
+                        placeholder="Search a place, area or landmark…"
+                        className="w-full rounded-xl bg-white pl-10 pr-9 py-3 text-sm text-[var(--text-1)] placeholder-gray-400 shadow-lg outline-none ring-1 ring-black/5 focus:ring-2 focus:ring-[var(--accent)]"
                       />
                       {query && (
                         <button
@@ -382,35 +454,46 @@ export default function LocationPickerModal({
                     </div>
 
                     <AnimatePresence>
-                      {showResults && results.length > 0 && (
+                      {showResults && query.trim().length >= 3 && (
                         <motion.div
                           initial={{ opacity: 0, y: -4 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -4 }}
                           transition={{ duration: 0.15 }}
-                          className="mt-1.5 overflow-hidden rounded-xl bg-white shadow-xl ring-1 ring-black/5"
+                          className="mt-1.5 max-h-64 overflow-y-auto overscroll-contain rounded-xl bg-white shadow-xl ring-1 ring-black/5"
                         >
-                          {results.map((result) => {
-                            const parts = result.display_name.split(",");
-                            const primary = parts.slice(0, 2).join(",").trim();
-                            const secondary = parts.slice(2, 4).join(",").trim();
-                            return (
-                              <button
-                                key={result.place_id}
-                                type="button"
-                                onClick={() => handleSelectResult(result)}
-                                className="flex w-full items-start gap-2.5 border-b border-black/5 px-3.5 py-2.5 text-left last:border-0 hover:bg-[var(--accent-muted)]"
-                              >
-                                <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--accent)]" />
-                                <div className="min-w-0 flex-1">
-                                  <p className="truncate text-[12px] font-semibold text-[var(--text-1)]">{primary}</p>
-                                  {secondary && (
-                                    <p className="truncate text-[10px] text-[var(--text-3)]">{secondary}</p>
-                                  )}
-                                </div>
-                              </button>
-                            );
-                          })}
+                          {searching && results.length === 0 ? (
+                            <div className="flex items-center gap-2.5 px-3.5 py-3 text-[12px] text-[var(--text-3)]">
+                              <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-[var(--accent)]" />
+                              Searching…
+                            </div>
+                          ) : results.length === 0 ? (
+                            <div className="px-3.5 py-3 text-[12px] text-[var(--text-3)]">
+                              No matches. Try a broader name, or drag the map to place the pin.
+                            </div>
+                          ) : (
+                            results.map((result) => {
+                              const parts = result.display_name.split(",");
+                              const primary = parts.slice(0, 2).join(",").trim();
+                              const secondary = parts.slice(2, 4).join(",").trim();
+                              return (
+                                <button
+                                  key={result.place_id}
+                                  type="button"
+                                  onClick={() => handleSelectResult(result)}
+                                  className="flex w-full items-start gap-2.5 border-b border-black/5 px-3.5 py-3 text-left last:border-0 hover:bg-[var(--accent-muted)] active:bg-[var(--accent-muted)]"
+                                >
+                                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[var(--accent)]" />
+                                  <div className="min-w-0 flex-1">
+                                    <p className="truncate text-[13px] font-semibold text-[var(--text-1)]">{primary}</p>
+                                    {secondary && (
+                                      <p className="truncate text-[11px] text-[var(--text-3)]">{secondary}</p>
+                                    )}
+                                  </div>
+                                </button>
+                              );
+                            })
+                          )}
                         </motion.div>
                       )}
                     </AnimatePresence>

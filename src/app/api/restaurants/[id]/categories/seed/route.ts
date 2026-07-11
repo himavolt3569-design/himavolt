@@ -36,68 +36,96 @@ export async function POST(
   const templates = CATEGORIES_BY_TYPE[restaurantData.type] ?? DEFAULT_CATEGORIES;
 
   try {
-    // Use create-if-not-exists (by slug) so existing categories and their
-    // menu items are never touched. Running this multiple times is idempotent.
-    const created: { name: string; subs: string[] }[] = [];
-
-    // Get the current max sortOrder among top-level categories so new ones
-    // are appended rather than placed at position 1.
-    const maxSort = await db.menuCategory.aggregate({
-      where: { restaurantId: id, parentId: null },
-      _max: { sortOrder: true },
+    // Create-if-not-exists (by slug) so existing categories and their menu
+    // items are never touched — running this repeatedly is idempotent.
+    //
+    // This used to run a findFirst + create per category AND per subcategory
+    // (~120 sequential round-trips for a 10-category template), which made the
+    // "Generate Categories" button spin for seconds on the serverless pool.
+    // It's now a fixed ~4 queries: one read of what already exists, one
+    // createMany for the missing parents, one read to map parent slug → id,
+    // and one createMany for the missing subs. `skipDuplicates` leans on the
+    // @@unique([restaurantId, slug]) constraint so concurrent seeds can't
+    // collide.
+    const existing = await db.menuCategory.findMany({
+      where: { restaurantId: id },
+      select: { slug: true, parentId: true, sortOrder: true },
     });
-    let nextSort = (maxSort._max.sortOrder ?? 0) + 1;
+    const existingSlugs = new Set(existing.map((c) => c.slug));
+    const maxParentSort = existing.reduce(
+      (max, c) => (c.parentId === null && c.sortOrder > max ? c.sortOrder : max),
+      0,
+    );
 
+    // 1) Insert any missing top-level categories in one write.
+    let nextSort = maxParentSort + 1;
+    const newParentSlugs = new Set<string>();
+    const parentData: {
+      name: string;
+      slug: string;
+      icon: string;
+      sortOrder: number;
+      restaurantId: string;
+    }[] = [];
     for (const cat of templates) {
       const parentSlug = toSlug(cat.name);
-
-      const existingParent = await db.menuCategory.findFirst({
-        where: { restaurantId: id, slug: parentSlug, parentId: null },
+      if (existingSlugs.has(parentSlug)) continue;
+      newParentSlugs.add(parentSlug);
+      parentData.push({
+        name: cat.name,
+        slug: parentSlug,
+        icon: cat.icon,
+        sortOrder: nextSort++,
+        restaurantId: id,
       });
+    }
+    if (parentData.length > 0) {
+      await db.menuCategory.createMany({ data: parentData, skipDuplicates: true });
+    }
 
-      let parentId: string;
-      let isNewParent = false;
+    // 2) Map every template parent slug → id (existing + just-created).
+    const parentSlugs = templates.map((cat) => toSlug(cat.name));
+    const parents = await db.menuCategory.findMany({
+      where: { restaurantId: id, parentId: null, slug: { in: parentSlugs } },
+      select: { id: true, slug: true },
+    });
+    const parentIdBySlug = new Map(parents.map((p) => [p.slug, p.id]));
 
-      if (existingParent) {
-        parentId = existingParent.id;
-      } else {
-        const parent = await db.menuCategory.create({
-          data: {
-            name: cat.name,
-            slug: parentSlug,
-            icon: cat.icon,
-            sortOrder: nextSort++,
-            restaurantId: id,
-          },
-        });
-        parentId = parent.id;
-        isNewParent = true;
-      }
+    // 3) Insert any missing subcategories in one write, and build the summary.
+    const created: { name: string; subs: string[] }[] = [];
+    const subData: {
+      name: string;
+      slug: string;
+      sortOrder: number;
+      restaurantId: string;
+      parentId: string;
+    }[] = [];
+    for (const cat of templates) {
+      const parentSlug = toSlug(cat.name);
+      const parentId = parentIdBySlug.get(parentSlug);
+      if (!parentId) continue; // parent creation raced/failed — skip its subs
 
       const newSubs: string[] = [];
       let subSort = 1;
       for (const subName of cat.subs) {
         const subSlug = `${parentSlug}--${toSlug(subName)}`;
-        const existingSub = await db.menuCategory.findFirst({
-          where: { restaurantId: id, slug: subSlug },
+        if (existingSlugs.has(subSlug)) continue;
+        subData.push({
+          name: subName,
+          slug: subSlug,
+          sortOrder: subSort++,
+          restaurantId: id,
+          parentId,
         });
-        if (!existingSub) {
-          await db.menuCategory.create({
-            data: {
-              name: subName,
-              slug: subSlug,
-              sortOrder: subSort++,
-              restaurantId: id,
-              parentId,
-            },
-          });
-          newSubs.push(subName);
-        }
+        newSubs.push(subName);
       }
 
-      if (isNewParent || newSubs.length > 0) {
+      if (newParentSlugs.has(parentSlug) || newSubs.length > 0) {
         created.push({ name: cat.name, subs: newSubs });
       }
+    }
+    if (subData.length > 0) {
+      await db.menuCategory.createMany({ data: subData, skipDuplicates: true });
     }
 
     return NextResponse.json({
