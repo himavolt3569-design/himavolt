@@ -172,10 +172,32 @@ model Restaurant {
   loyaltyRewards       LoyaltyReward[]
   loyaltyAccounts      LoyaltyAccount[]
   printJobs            PrintJob[]
+  featureConfigs       FeatureConfig[]
 
   @@index([ownerId])
   @@index([slug])
   @@map("restaurants")
+}
+
+// ─── Feature-tab persistence ───────────────────────────────────────
+// Generic per-restaurant, per-feature config store. Each dashboard feature tab
+// (Brunch Mode, Happy Hours, Waitlist, …) saves its whole editable state as a
+// single JSON blob keyed by a stable featureId, so we get durable persistence
+// for every feature without a bespoke table per feature.
+
+model FeatureConfig {
+  id           String   @id @default(cuid())
+  restaurantId String
+  featureId    String // stable slug, e.g. "brunch-mode", "happy-hours"
+  data         Json // the feature tab's saved state
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@unique([restaurantId, featureId])
+  @@index([restaurantId])
+  @@map("feature_configs")
 }
 
 // ─── Inventory / Stock ─────────────────────────────────────────────

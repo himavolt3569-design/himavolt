@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import type { ReactNode } from "react";
 import { Zap, ArrowUpRight, Sparkles } from "lucide-react";
 import type { Restaurant } from "@/context/RestaurantContext";
 
@@ -8,18 +9,24 @@ interface Props {
   restaurant: Restaurant | null;
   onRequestActivate: () => void;
   compact?: boolean;
+  /** Render just the button, without the mx-3 wrapper — for embedding in the POS card. */
+  bare?: boolean;
 }
 
 export default function POSLauncher({
   restaurant,
   onRequestActivate,
   compact,
+  bare,
 }: Props) {
   const router = useRouter();
 
   if (!restaurant) return null;
 
   const isActive = !!restaurant.posEnabled;
+
+  const wrap = (btn: ReactNode) =>
+    bare ? <>{btn}</> : <div className="mx-3 mb-3">{btn}</div>;
 
   if (compact) {
     return (
@@ -40,49 +47,45 @@ export default function POSLauncher({
   }
 
   if (isActive) {
-    return (
-      <div className="mx-3 mb-3">
-        <button
-          onClick={() => router.push("/pos/staff")}
-          className="group flex w-full items-center gap-3 overflow-hidden rounded-xl bg-[var(--accent)] p-3 text-left text-white shadow-sm shadow-[var(--accent)]/20 transition-all hover:opacity-90 hover:shadow-md hover:shadow-[var(--accent)]/30 active:scale-[0.98]"
-        >
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/15 ring-1 ring-white/25">
-            <Zap className="h-4 w-4" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-[13px] font-bold leading-tight">Open POS</p>
-            <p className="truncate text-[10px] text-white/75">
-              {restaurant.posTerminalName ?? "Terminal"} &middot; Ready
-            </p>
-          </div>
-          <ArrowUpRight className="h-4 w-4 shrink-0 opacity-80 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-        </button>
-      </div>
+    return wrap(
+      <button
+        onClick={() => router.push("/pos/staff")}
+        className="group flex w-full items-center gap-3 overflow-hidden rounded-xl bg-[var(--accent)] p-3 text-left text-white shadow-sm shadow-[var(--accent)]/20 transition-all hover:opacity-90 hover:shadow-md hover:shadow-[var(--accent)]/30 active:scale-[0.98]"
+      >
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/15 ring-1 ring-white/25">
+          <Zap className="h-4 w-4" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-[13px] font-bold leading-tight">Open POS</p>
+          <p className="truncate text-[10px] text-white/75">
+            {restaurant.posTerminalName ?? "Terminal"} &middot; Ready
+          </p>
+        </div>
+        <ArrowUpRight className="h-4 w-4 shrink-0 opacity-80 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+      </button>,
     );
   }
 
-  return (
-    <div className="mx-3 mb-3">
-      <button
-        onClick={onRequestActivate}
-        className="group flex w-full items-center gap-3 overflow-hidden rounded-xl border border-dashed border-[var(--accent-border)] bg-[var(--accent-muted)] p-3 text-left transition-all hover:border-solid hover:bg-[var(--accent)]/15 hover:shadow-sm"
-      >
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--canvas)] ring-1 ring-[var(--accent-border)]">
-          <Sparkles className="h-4 w-4 text-[var(--accent)]" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-[13px] font-bold text-[var(--accent-text)] leading-tight">
-            Set up POS
-          </p>
-          <p className="truncate text-[10px] text-[var(--accent-text)]/80">
-            Take orders &amp; bill in seconds
-          </p>
-        </div>
-        <span className="relative flex h-2 w-2 shrink-0">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--accent)] opacity-50" />
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--accent)]" />
-        </span>
-      </button>
-    </div>
+  return wrap(
+    <button
+      onClick={onRequestActivate}
+      className="group flex w-full items-center gap-3 overflow-hidden rounded-xl border border-dashed border-[var(--accent-border)] bg-[var(--accent-muted)] p-3 text-left transition-all hover:border-solid hover:bg-[var(--accent)]/15 hover:shadow-sm"
+    >
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--canvas)] ring-1 ring-[var(--accent-border)]">
+        <Sparkles className="h-4 w-4 text-[var(--accent)]" />
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-[13px] font-bold text-[var(--accent-text)] leading-tight">
+          Set up POS
+        </p>
+        <p className="truncate text-[10px] text-[var(--accent-text)]/80">
+          Take orders &amp; bill in seconds
+        </p>
+      </div>
+      <span className="relative flex h-2 w-2 shrink-0">
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--accent)] opacity-50" />
+        <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--accent)]" />
+      </span>
+    </button>,
   );
 }

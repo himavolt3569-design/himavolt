@@ -7,7 +7,7 @@ import { Download, Printer, Share2, Check, Palette, TableProperties } from "luci
 import { useToast } from "@/context/ToastContext";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { apiFetch, peekApiCache } from "@/lib/api-client";
-import { STYLES, buildQRCanvas, type CardStyle } from "@/components/dashboard/qr/qrCanvas";
+import { STYLES, buildQRCanvas, type CardStyle, type StyleConfig } from "@/components/dashboard/qr/qrCanvas";
 import gsap from "gsap";
 
 
@@ -78,6 +78,12 @@ function QRCard({
   const qrRef = useRef<HTMLDivElement>(null);
 
   const displayName = label?.trim() || `Table ${tableNo}`;
+  // The on-screen preview mirrors the exact palette that will be downloaded /
+  // printed, so switching Classic/Modern/Minimal updates the cards live. It also
+  // fixes dark mode: each style carries its own bg + QR foreground (never theme
+  // vars), so the QR is always high-contrast and scannable regardless of the
+  // app's light/dark theme.
+  const style: StyleConfig = STYLES[cardStyle];
   // Encode the unguessable QR token so the table can't be spoofed via the URL.
   const tableUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/menu/${slug}?${qrToken ? `t=${qrToken}` : `table=${tableNo}`}`;
 
@@ -153,22 +159,41 @@ function QRCard({
         transition={{ duration: 0.3 }}
         className="group relative flex flex-col items-center rounded-3xl border border-[var(--border-soft)]/60 bg-[var(--canvas)]/80 backdrop-blur-md p-6 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.08)] transition-all hover:-translate-y-1"
       >
-        <div ref={qrRef} id={`qr-printable-${tableNo}`} className="w-full flex flex-col items-center bg-[var(--canvas)] pb-4 rounded-xl">
+        <div
+          ref={qrRef}
+          id={`qr-printable-${tableNo}`}
+          className="w-full flex flex-col items-center pb-4 rounded-2xl border p-4 transition-colors duration-300"
+          style={{ background: style.bg, borderColor: style.border }}
+        >
           <div className="mb-4 flex w-full items-center justify-between gap-2">
             <div className="flex items-center gap-2 min-w-0">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[var(--text-1)]/10 text-xs font-bold text-[var(--text-1)]">
+              <span
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-bold"
+                style={{ background: `${style.accent}26`, color: style.textPrimary }}
+              >
                 {tableNo}
               </span>
-              <span className="truncate text-sm font-bold text-[var(--text-1)]" title={displayName}>{displayName}</span>
+              <span className="truncate text-sm font-bold" style={{ color: style.textPrimary }} title={displayName}>{displayName}</span>
             </div>
-            <span className="shrink-0 rounded-full bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-bold text-[var(--accent-text)]">Active</span>
+            <span
+              className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold"
+              style={{ background: `${style.accent}26`, color: style.accent }}
+            >
+              Active
+            </span>
           </div>
 
-          <div className="relative w-[180px] h-[180px] max-w-full flex items-center justify-center rounded-xl bg-[var(--canvas)] p-4 mb-4 border border-[var(--border-soft)] shadow-sm">
-            <QRCode value={tableUrl} size={256} style={{ height: "100%", maxWidth: "100%", width: "100%" }} fgColor="#3e1e0c" bgColor="transparent" level="M" />
+          <div
+            className="relative w-[180px] h-[180px] max-w-full flex items-center justify-center rounded-xl p-4 shadow-sm"
+            style={{ background: style.bg }}
+          >
+            <QRCode value={tableUrl} size={256} style={{ height: "100%", maxWidth: "100%", width: "100%" }} fgColor={style.qrFg} bgColor="transparent" level="M" />
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="rounded-sm bg-[var(--canvas)] flex items-center justify-center border border-[var(--border-soft)] px-1.5 py-1 shadow-sm">
-                <span className="text-[9px] font-black text-[var(--accent)] leading-none">
+              <div
+                className="rounded-sm flex items-center justify-center px-1.5 py-1 shadow-sm"
+                style={{ background: style.bg, border: `1px solid ${style.border}` }}
+              >
+                <span className="text-[9px] font-black leading-none" style={{ color: style.accent }}>
                   {restaurantName.split(/\s+/).map((w) => w[0]).join("").toUpperCase().slice(0, 3)}
                 </span>
               </div>

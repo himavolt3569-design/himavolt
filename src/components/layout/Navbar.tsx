@@ -56,10 +56,13 @@ export default function Navbar() {
     return name.slice(0, 2).toUpperCase();
   })();
 
-  // Profile image routing: Admin/Owner manage their business → /dashboard,
-  // customers go to their personal profile → /profile.
-  const profileHref =
-    userRole === "OWNER" || userRole === "ADMIN" ? "/dashboard" : "/profile";
+  // Profile image routing: owners/admins manage their business → /dashboard.
+  // While the role is still resolving (userRole is null for a beat right after
+  // load) we also default to /dashboard, so a quick click never strands a
+  // signed-in owner on /profile — /dashboard already renders the correct
+  // experience per role (customers get CustomerDashboard). Only a *confirmed*
+  // customer is sent to their personal profile page.
+  const profileHref = userRole === "CUSTOMER" ? "/profile" : "/dashboard";
 
   return (
     <nav

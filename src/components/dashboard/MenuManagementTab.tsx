@@ -24,6 +24,7 @@ import {
   Star,
   ChevronDown,
   ChevronRight,
+  ChevronLeft,
   Zap,
   Award,
   AlertTriangle,
@@ -615,6 +616,27 @@ function DishForm({
   const [activeSection, setActiveSection] = useState<string>("basic");
   const [tagInput, setTagInput] = useState("");
 
+  // Section-tab strip scroll affordances (chevrons appear when more tabs are
+  // hidden off either edge).
+  const tabsRef = useRef<HTMLDivElement>(null);
+  const [tabScroll, setTabScroll] = useState({ left: false, right: false });
+  const updateTabScroll = () => {
+    const el = tabsRef.current;
+    if (!el) return;
+    setTabScroll({
+      left: el.scrollLeft > 4,
+      right: el.scrollLeft + el.clientWidth < el.scrollWidth - 4,
+    });
+  };
+  const scrollTabs = (dir: number) => {
+    tabsRef.current?.scrollBy({ left: dir * 140, behavior: "smooth" });
+  };
+  useEffect(() => {
+    updateTabScroll();
+    window.addEventListener("resize", updateTabScroll);
+    return () => window.removeEventListener("resize", updateTabScroll);
+  }, []);
+
   const [suggestions, setSuggestions] = useState<{ id: string; thumb: string; url: string }[]>([]);
   const [suggesting, setSuggesting] = useState(false);
 
@@ -707,33 +729,63 @@ function DishForm({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      className="rounded-xl border border-[var(--border)] bg-[var(--canvas)] shadow-lg overflow-hidden w-full max-w-full"
+      initial={{ opacity: 0, scale: 0.98, y: 8 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.98, y: 8 }}
+      className="rounded-2xl border border-[var(--border)] bg-[var(--canvas)] shadow-2xl overflow-hidden w-full max-w-full"
     >
-      <div className="flex items-center justify-between border-b border-[var(--border-soft)] px-5 py-3">
-        <span className="text-sm font-bold text-[var(--text-1)]">{submitLabel === "Add to menu" ? "New Dish" : "Edit Dish"}</span>
-        <button onClick={onCancel} className="rounded-md p-1 text-[var(--text-3)] hover:text-[var(--text-2)] hover:bg-[var(--surface)]">
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-
-      <div className="flex gap-1 px-4 pt-3 overflow-x-auto scrollbar-hide">
-        {sections.map((s) => (
-          <button
-            key={s.id}
-            onClick={() => setActiveSection(s.id)}
-            className={`flex items-center gap-1.5 shrink-0 rounded-lg px-3 py-1.5 text-[11px] font-semibold transition-all ${
-              activeSection === s.id
-                ? "bg-[var(--accent-muted)] text-[var(--accent-text)]"
-                : "text-[var(--text-3)] hover:bg-[var(--canvas-sub)] hover:text-[var(--text-2)]"
-            }`}
-          >
-            <s.icon className="h-3 w-3" />
-            {s.label}
+      {/* Sticky header + section tabs so navigation stays reachable while the
+          form body scrolls inside the modal. */}
+      <div className="sticky top-0 z-10 bg-[var(--canvas)]/95 backdrop-blur border-b border-[var(--border-soft)]">
+        <div className="flex items-center justify-between px-5 py-3">
+          <span className="text-sm font-bold text-[var(--text-1)]">{submitLabel === "Add to menu" ? "New Dish" : "Edit Dish"}</span>
+          <button onClick={onCancel} className="rounded-md p-1 text-[var(--text-3)] hover:text-[var(--text-2)] hover:bg-[var(--surface)]">
+            <X className="h-4 w-4" />
           </button>
-        ))}
+        </div>
+
+        <div className="relative px-4 pb-3">
+          {tabScroll.left && (
+            <button
+              type="button"
+              onClick={() => scrollTabs(-1)}
+              aria-label="Scroll tabs left"
+              className="absolute left-4 top-1/2 z-10 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full bg-[var(--canvas)] text-[var(--text-2)] shadow-md ring-1 ring-[var(--border)] hover:text-[var(--accent)]"
+            >
+              <ChevronLeft className="h-3.5 w-3.5" />
+            </button>
+          )}
+          <div
+            ref={tabsRef}
+            onScroll={updateTabScroll}
+            className="flex gap-1 overflow-x-auto scrollbar-hide scroll-smooth"
+          >
+            {sections.map((s) => (
+              <button
+                key={s.id}
+                onClick={() => setActiveSection(s.id)}
+                className={`flex items-center gap-1.5 shrink-0 rounded-lg px-3 py-1.5 text-[11px] font-semibold transition-all ${
+                  activeSection === s.id
+                    ? "bg-[var(--accent-muted)] text-[var(--accent-text)]"
+                    : "text-[var(--text-3)] hover:bg-[var(--canvas-sub)] hover:text-[var(--text-2)]"
+                }`}
+              >
+                <s.icon className="h-3 w-3" />
+                {s.label}
+              </button>
+            ))}
+          </div>
+          {tabScroll.right && (
+            <button
+              type="button"
+              onClick={() => scrollTabs(1)}
+              aria-label="Scroll tabs right"
+              className="absolute right-4 top-1/2 z-10 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full bg-[var(--canvas)] text-[var(--text-2)] shadow-md ring-1 ring-[var(--border)] hover:text-[var(--accent)]"
+            >
+              <ChevronRight className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="p-4 sm:p-5 space-y-5 overflow-x-hidden">
@@ -1530,7 +1582,6 @@ export default function MenuManagementTab({
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [showNewCat, setShowNewCat] = useState(false);
   const [newCatName, setNewCatName] = useState("");
-  const [creatingCat, setCreatingCat] = useState(false);
   const [seedingCats, setSeedingCats] = useState(false);
   const [addSubParentId, setAddSubParentId] = useState<string | null>(null);
   const [deleteCatConfirm, setDeleteCatConfirm] = useState<{
@@ -1641,20 +1692,40 @@ export default function MenuManagementTab({
     }
     const catName = name || newCatName.trim();
     if (!catName) return;
-    setCreatingCat(true);
+
+    const pid = parentId || null;
+    const catSnapshot = categories;
+    const tempId = `temp-${Date.now()}`;
+    const slug = catName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    const optimisticNode: MenuCategory = {
+      id: tempId, name: catName, slug, icon: null, parentId: pid,
+      _count: { items: 0 }, children: [],
+    };
+
+    // Optimistic: the category (or subcategory) appears instantly and the input
+    // closes — no spinner, reconciled with the real id in the background.
+    setCategories((prev) =>
+      pid
+        ? prev.map((c) =>
+            c.id === pid
+              ? { ...c, children: [...(c.children ?? []), optimisticNode] }
+              : c,
+          )
+        : [...prev, optimisticNode],
+    );
+    if (!name) { setNewCatName(""); setShowNewCat(false); }
+    setAddSubParentId(null);
+    showToast(`"${catName}" created!`);
+
     try {
       await apiFetch(`/api/restaurants/${restaurantId}/categories`, {
         method: "POST",
-        body: { name: catName, parentId: parentId || null },
+        body: { name: catName, parentId: pid },
       });
-      showToast(`"${catName}" created!`);
-      if (!name) { setNewCatName(""); setShowNewCat(false); }
-      setAddSubParentId(null);
-      await fetchData(true);
+      fetchData(true);
     } catch (err) {
+      setCategories(catSnapshot); // rollback
       showToast(err instanceof Error ? err.message : "Failed to create category");
-    } finally {
-      setCreatingCat(false);
     }
   };
 
@@ -2193,10 +2264,10 @@ export default function MenuManagementTab({
                   />
                   <button
                     onClick={() => createCategory()}
-                    disabled={!newCatName.trim() || creatingCat}
+                    disabled={!newCatName.trim()}
                     className="flex items-center gap-1 rounded-md bg-[var(--accent)] px-3 py-1.5 text-[12px] font-bold text-white hover:bg-[var(--accent-hover)] disabled:opacity-40 transition-all"
                   >
-                    {creatingCat ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                    <Check className="h-3 w-3" />
                     Create
                   </button>
                   <button onClick={() => { setShowNewCat(false); setNewCatName(""); }} className="p-1 text-[var(--text-3)] hover:text-[var(--text-2)]">
@@ -2225,100 +2296,101 @@ export default function MenuManagementTab({
 
       {view === "items" && (
         <>
-      {/* Add / Edit form */}
+      {/* Add / Edit form — modal popup */}
       <AnimatePresence>
-        {showAddForm && (
-          <DishForm
-            categories={flatCategories}
-            onSubmit={addItem}
-            onCancel={() => setShowAddForm(false)}
-            submitLabel="Add to menu"
-            currency={cur}
-          />
-        )}
-        {editingItem && (
-          <DishForm
-            key={editingItem.id}
-            categories={flatCategories}
-            initial={{
-              name: editingItem.name,
-              description: editingItem.description || "",
-              price: String(editingItem.price),
-              categoryId: editingItem.categoryId,
-              imageUrl: editingItem.imageUrl || "",
-              isVeg: editingItem.isVeg,
-              hasEgg: editingItem.hasEgg,
-              hasOnionGarlic: editingItem.hasOnionGarlic,
-              prepTime: editingItem.prepTime || "15-20 min",
-              badge: editingItem.badge || "",
-              tags: editingItem.tags,
-              spiceLevel: editingItem.spiceLevel,
-              calories: editingItem.calories ? String(editingItem.calories) : "",
-              allergens: editingItem.allergens,
-              isFeatured: editingItem.isFeatured,
-              discount: editingItem.discount ? String(editingItem.discount) : "",
-              discountLabel: editingItem.discountLabel || "",
-              sizes: editingItem.sizes.map((s) => ({ label: s.label, grams: s.grams, priceAdd: String(s.priceAdd) })),
-              addOns: editingItem.addOns.map((a) => ({ name: a.name, price: String(a.price) })),
-            }}
-            onSubmit={editItem}
-            onCancel={() => setEditingItem(null)}
-            submitLabel="Save Changes"
-            currency={cur}
-          />
+        {(showAddForm || editingItem) && (
+          <div
+            className="fixed inset-0 z-[90] flex items-start sm:items-center justify-center bg-black/50 backdrop-blur-sm p-3 sm:p-6 overflow-y-auto"
+            onClick={() => { setShowAddForm(false); setEditingItem(null); }}
+          >
+            <div
+              className="w-full max-w-2xl my-auto max-h-[92dvh] overflow-y-auto rounded-2xl shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {editingItem ? (
+                <DishForm
+                  key={editingItem.id}
+                  categories={flatCategories}
+                  initial={{
+                    name: editingItem.name,
+                    description: editingItem.description || "",
+                    price: String(editingItem.price),
+                    categoryId: editingItem.categoryId,
+                    imageUrl: editingItem.imageUrl || "",
+                    isVeg: editingItem.isVeg,
+                    hasEgg: editingItem.hasEgg,
+                    hasOnionGarlic: editingItem.hasOnionGarlic,
+                    prepTime: editingItem.prepTime || "15-20 min",
+                    badge: editingItem.badge || "",
+                    tags: editingItem.tags,
+                    spiceLevel: editingItem.spiceLevel,
+                    calories: editingItem.calories ? String(editingItem.calories) : "",
+                    allergens: editingItem.allergens,
+                    isFeatured: editingItem.isFeatured,
+                    discount: editingItem.discount ? String(editingItem.discount) : "",
+                    discountLabel: editingItem.discountLabel || "",
+                    sizes: editingItem.sizes.map((s) => ({ label: s.label, grams: s.grams, priceAdd: String(s.priceAdd) })),
+                    addOns: editingItem.addOns.map((a) => ({ name: a.name, price: String(a.price) })),
+                  }}
+                  onSubmit={editItem}
+                  onCancel={() => setEditingItem(null)}
+                  submitLabel="Save Changes"
+                  currency={cur}
+                />
+              ) : (
+                <DishForm
+                  categories={flatCategories}
+                  onSubmit={addItem}
+                  onCancel={() => setShowAddForm(false)}
+                  submitLabel="Add to menu"
+                  currency={cur}
+                />
+              )}
+            </div>
+          </div>
         )}
       </AnimatePresence>
 
       {/* Dishes grid — filter via the category chip strip below (no sidebar) */}
       <div>
         <div className="min-w-0">
-          {/* Search & mobile category filter */}
-          <div className="flex flex-col sm:flex-row gap-3 mb-6">
-            <div className="relative flex-1 group">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-3)] group-focus-within:text-[var(--accent)] transition-colors" />
+          {/* Search & category filter (managing categories lives in the
+              Categories tab — this strip is filter-only, no delete) */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
+            <div className="relative sm:w-72 group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-3)] group-focus-within:text-[var(--accent)] transition-colors" />
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search dishes…"
-                className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)]/80 backdrop-blur-sm py-3 pl-10 pr-4 text-sm font-semibold text-[var(--text-1)] placeholder-gray-400 focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 shadow-sm transition-all"
+                className="w-full rounded-full border border-[var(--border)] bg-[var(--canvas-sub)] py-2.5 pl-11 pr-10 text-sm font-medium text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:outline-none focus:border-[var(--accent)] focus:bg-[var(--canvas)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
               />
+              {search && (
+                <button
+                  onClick={() => setSearch("")}
+                  aria-label="Clear search"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-[var(--text-3)] hover:bg-[var(--surface)] hover:text-[var(--text-1)] transition-colors"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
             </div>
-            <div className="flex gap-2 overflow-x-auto scrollbar-hide items-center pb-1">
+            <div className="flex gap-2 overflow-x-auto scrollbar-hide items-center pb-1 sm:flex-1">
               {["All", ...flatCategories.filter((c) => !c.parentId).map((c) => c.name)].map((cat) => {
                 const catObj = flatCategories.find((c) => c.name === cat && !c.parentId);
                 const isActive = cat === "All" ? selectedCatId === "All" : selectedCatId === catObj?.id;
-                return cat === "All" ? (
+                return (
                   <button
-                    key="All"
-                    onClick={() => setSelectedCatId("All")}
-                    className={`shrink-0 rounded-full px-4 py-2 text-[12px] font-bold tracking-wide transition-all shadow-sm border ${
-                      isActive ? "bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] text-white border-transparent" : "bg-[var(--canvas)] text-[var(--text-2)] border-[var(--border)] hover:bg-[var(--canvas-sub)]"
+                    key={cat}
+                    onClick={() => setSelectedCatId(cat === "All" ? "All" : catObj?.id || "All")}
+                    className={`shrink-0 rounded-full px-4 py-2 text-[12px] font-bold tracking-wide transition-all border ${
+                      isActive
+                        ? "bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] text-white border-transparent shadow-sm"
+                        : "bg-[var(--canvas)] text-[var(--text-2)] border-[var(--border)] hover:bg-[var(--canvas-sub)] hover:text-[var(--text-1)]"
                     }`}
                   >
-                    All
+                    {cat}
                   </button>
-                ) : (
-                  <div key={cat} className="shrink-0 flex items-center gap-0.5">
-                    <button
-                      onClick={() => setSelectedCatId(catObj?.id || "All")}
-                      className={`rounded-l-full pl-4 pr-2 py-2 text-[12px] font-bold tracking-wide transition-all shadow-sm border-y border-l ${
-                        isActive ? "bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] text-white border-transparent" : "bg-[var(--canvas)] text-[var(--text-2)] border-[var(--border)] hover:bg-[var(--canvas-sub)]"
-                      }`}
-                    >
-                      {cat}
-                    </button>
-                    {catObj && (
-                      <button
-                        onClick={() => initDeleteCategory(catObj.id)}
-                        className={`rounded-r-full pl-1.5 pr-3 py-2 transition-all shadow-sm border-y border-r ${
-                          isActive ? "bg-[var(--accent)] text-white border-transparent" : "bg-[var(--canvas)] text-[var(--text-3)] border-[var(--border)] hover:text-red-500 hover:bg-red-50 hover:border-red-200"
-                        }`}
-                        title={`Delete "${cat}"`}
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                    )}
-                  </div>
                 );
               })}
             </div>

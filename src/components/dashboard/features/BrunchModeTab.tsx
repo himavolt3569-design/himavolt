@@ -26,7 +26,7 @@ import {
   ChevronRight,
   Croissant,
 } from "lucide-react";
-import NotPersistedBanner from "./_NotPersistedBanner";
+import { useFeatureConfig } from "@/hooks/useFeatureConfig";
 
 interface BrunchMenuItem {
   id: string;
@@ -56,16 +56,32 @@ interface ReservationSlot {
 
 type DayOfWeek = "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun";
 
+interface BrunchConfig {
+  brunchEnabled: boolean;
+  brunchDays: DayOfWeek[];
+  startTime: string;
+  endTime: string;
+  menuItems: BrunchMenuItem[];
+  packages: BrunchPackage[];
+}
+
+const BRUNCH_DEFAULTS: BrunchConfig = {
+  brunchEnabled: true,
+  brunchDays: ["Sat", "Sun"],
+  startTime: "09:00",
+  endTime: "14:00",
+  menuItems: [],
+  packages: [],
+};
+
 export default function BrunchModeTab() {
   const { selectedRestaurant } = useRestaurant();
   const cur = selectedRestaurant?.currency ?? "NPR";
-  const [brunchEnabled, setBrunchEnabled] = useState(true);
-  const [brunchDays, setBrunchDays] = useState<DayOfWeek[]>(["Sat", "Sun"]);
-  const [startTime, setStartTime] = useState("09:00");
-  const [endTime, setEndTime] = useState("14:00");
 
-  const [menuItems, setMenuItems] = useState<BrunchMenuItem[]>([]);
-  const [packages, setPackages] = useState<BrunchPackage[]>([]);
+  // Persisted feature state — saved per restaurant, restored on reload.
+  const { config, setConfig } = useFeatureConfig<BrunchConfig>("brunch-mode", BRUNCH_DEFAULTS);
+  const { brunchEnabled, brunchDays, startTime, endTime, menuItems, packages } = config;
+
   const [slots] = useState<ReservationSlot[]>([]);
 
   const [showAddItem, setShowAddItem] = useState(false);
@@ -92,36 +108,45 @@ export default function BrunchModeTab() {
   const allDays: DayOfWeek[] = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
   const toggleDay = (day: DayOfWeek) => {
-    setBrunchDays((prev) =>
-      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
-    );
+    setConfig((c) => ({
+      ...c,
+      brunchDays: c.brunchDays.includes(day)
+        ? c.brunchDays.filter((d) => d !== day)
+        : [...c.brunchDays, day],
+    }));
   };
 
   const addMenuItem = () => {
     if (!newItemName.trim() || !newItemPrice) return;
-    setMenuItems((prev) => [
-      ...prev,
-      {
-        id: Date.now().toString(),
-        name: newItemName.trim(),
-        category: newItemCategory,
-        regularPrice: newItemPrice,
-        brunchPrice: newItemPrice,
-        hasPriceOverride: false,
-        popular: false,
-      },
-    ]);
+    setConfig((c) => ({
+      ...c,
+      menuItems: [
+        ...c.menuItems,
+        {
+          id: Date.now().toString(),
+          name: newItemName.trim(),
+          category: newItemCategory,
+          regularPrice: newItemPrice,
+          brunchPrice: newItemPrice,
+          hasPriceOverride: false,
+          popular: false,
+        },
+      ],
+    }));
     setNewItemName("");
     setNewItemPrice(0);
     setShowAddItem(false);
   };
 
   const removeMenuItem = (id: string) => {
-    setMenuItems((prev) => prev.filter((i) => i.id !== id));
+    setConfig((c) => ({ ...c, menuItems: c.menuItems.filter((i) => i.id !== id) }));
   };
 
   const togglePopular = (id: string) => {
-    setMenuItems((prev) => prev.map((i) => (i.id === id ? { ...i, popular: !i.popular } : i)));
+    setConfig((c) => ({
+      ...c,
+      menuItems: c.menuItems.map((i) => (i.id === id ? { ...i, popular: !i.popular } : i)),
+    }));
   };
 
   const startPriceEdit = (item: BrunchMenuItem) => {
@@ -130,29 +155,33 @@ export default function BrunchModeTab() {
   };
 
   const savePriceEdit = (id: string) => {
-    setMenuItems((prev) =>
-      prev.map((i) =>
+    setConfig((c) => ({
+      ...c,
+      menuItems: c.menuItems.map((i) =>
         i.id === id
           ? { ...i, brunchPrice: editPriceValue, hasPriceOverride: editPriceValue !== i.regularPrice }
-          : i
-      )
-    );
+          : i,
+      ),
+    }));
     setEditingPrice(null);
   };
 
   const addPackage = () => {
     if (!newPkgName.trim() || !newPkgPrice) return;
-    setPackages((prev) => [
-      ...prev,
-      {
-        id: Date.now().toString(),
-        name: newPkgName.trim(),
-        description: newPkgDesc.trim(),
-        items: [],
-        price: newPkgPrice,
-        active: true,
-      },
-    ]);
+    setConfig((c) => ({
+      ...c,
+      packages: [
+        ...c.packages,
+        {
+          id: Date.now().toString(),
+          name: newPkgName.trim(),
+          description: newPkgDesc.trim(),
+          items: [],
+          price: newPkgPrice,
+          active: true,
+        },
+      ],
+    }));
     setNewPkgName("");
     setNewPkgDesc("");
     setNewPkgPrice(0);
@@ -160,11 +189,14 @@ export default function BrunchModeTab() {
   };
 
   const togglePackage = (id: string) => {
-    setPackages((prev) => prev.map((p) => (p.id === id ? { ...p, active: !p.active } : p)));
+    setConfig((c) => ({
+      ...c,
+      packages: c.packages.map((p) => (p.id === id ? { ...p, active: !p.active } : p)),
+    }));
   };
 
   const removePackage = (id: string) => {
-    setPackages((prev) => prev.filter((p) => p.id !== id));
+    setConfig((c) => ({ ...c, packages: c.packages.filter((p) => p.id !== id) }));
   };
 
   return (
@@ -174,7 +206,6 @@ export default function BrunchModeTab() {
       transition={{ duration: 0.4 }}
       className="space-y-6"
     >
-      <NotPersistedBanner />
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="p-2.5 bg-[var(--accent-muted)] rounded-xl">
@@ -186,7 +217,7 @@ export default function BrunchModeTab() {
           </div>
         </div>
         <button
-          onClick={() => setBrunchEnabled(!brunchEnabled)}
+          onClick={() => setConfig((c) => ({ ...c, brunchEnabled: !c.brunchEnabled }))}
           className="flex items-center gap-2 text-sm font-medium"
         >
           {brunchEnabled ? (
@@ -263,7 +294,7 @@ export default function BrunchModeTab() {
                     <input
                       type="time"
                       value={startTime}
-                      onChange={(e) => setStartTime(e.target.value)}
+                      onChange={(e) => setConfig((c) => ({ ...c, startTime: e.target.value }))}
                       className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                     />
                   </div>
@@ -274,7 +305,7 @@ export default function BrunchModeTab() {
                     <input
                       type="time"
                       value={endTime}
-                      onChange={(e) => setEndTime(e.target.value)}
+                      onChange={(e) => setConfig((c) => ({ ...c, endTime: e.target.value }))}
                       className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                     />
                   </div>

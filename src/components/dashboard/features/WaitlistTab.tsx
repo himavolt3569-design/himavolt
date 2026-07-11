@@ -21,7 +21,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
-import NotPersistedBanner from "./_NotPersistedBanner";
+import { useFeatureConfig } from "@/hooks/useFeatureConfig";
 
 type WaitlistStatus = "Waiting" | "Notified" | "Seated" | "Left";
 
@@ -61,10 +61,17 @@ const statusIcons: Record<WaitlistStatus, typeof Clock> = {
   Left: LogOut,
 };
 
+interface WaitlistConfig {
+  waitlist: WaitlistEntry[];
+  history: WaitlistEntry[];
+  tables: TableInfo[];
+}
+
+const WAITLIST_DEFAULTS: WaitlistConfig = { waitlist: [], history: [], tables: [] };
+
 export default function WaitlistTab() {
-  const [waitlist, setWaitlist] = useState<WaitlistEntry[]>([]);
-  const [history, setHistory] = useState<WaitlistEntry[]>([]);
-  const [tables, setTables] = useState<TableInfo[]>([]);
+  const { config, setConfig } = useFeatureConfig<WaitlistConfig>("waitlist", WAITLIST_DEFAULTS);
+  const { waitlist, history, tables } = config;
   const [showForm, setShowForm] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [currentTime, setCurrentTime] = useState(Date.now());
@@ -123,7 +130,7 @@ export default function WaitlistTab() {
       addedAt: Date.now(),
       estimatedWait: est,
     };
-    setWaitlist((prev) => [...prev, entry]);
+    setConfig((c) => ({ ...c, waitlist: [...c.waitlist, entry] }));
     setFormName("");
     setFormPartySize(2);
     setFormPhone("");
@@ -131,54 +138,50 @@ export default function WaitlistTab() {
   };
 
   const notifyGuest = (id: string) => {
-    setWaitlist((prev) =>
-      prev.map((w) =>
-        w.id === id ? { ...w, status: "Notified" as WaitlistStatus, notifiedAt: Date.now() } : w
-      )
-    );
+    setConfig((c) => ({
+      ...c,
+      waitlist: c.waitlist.map((w) =>
+        w.id === id ? { ...w, status: "Notified" as WaitlistStatus, notifiedAt: Date.now() } : w,
+      ),
+    }));
   };
 
   const seatGuest = (id: string) => {
-    const entry = waitlist.find((w) => w.id === id);
-    if (!entry) return;
-
-    // Find and occupy a suitable free table
-    const freeTable = tables.find(
-      (t) => !t.occupied && t.capacity >= entry.partySize
-    );
-    if (freeTable) {
-      setTables((prev) =>
-        prev.map((t) =>
-          t.id === freeTable.id
-            ? { ...t, occupied: true, occupiedSince: Date.now() }
-            : t
-        )
-      );
-    }
-
-    const seated: WaitlistEntry = {
-      ...entry,
-      status: "Seated",
-      seatedAt: Date.now(),
-    };
-    setWaitlist((prev) => prev.filter((w) => w.id !== id));
-    setHistory((prev) => [seated, ...prev]);
+    setConfig((c) => {
+      const entry = c.waitlist.find((w) => w.id === id);
+      if (!entry) return c;
+      // Find and occupy a suitable free table
+      const freeTable = c.tables.find((t) => !t.occupied && t.capacity >= entry.partySize);
+      const nextTables = freeTable
+        ? c.tables.map((t) =>
+            t.id === freeTable.id ? { ...t, occupied: true, occupiedSince: Date.now() } : t,
+          )
+        : c.tables;
+      const seated: WaitlistEntry = { ...entry, status: "Seated", seatedAt: Date.now() };
+      return {
+        ...c,
+        tables: nextTables,
+        waitlist: c.waitlist.filter((w) => w.id !== id),
+        history: [seated, ...c.history],
+      };
+    });
   };
 
   const markAsLeft = (id: string) => {
-    const entry = waitlist.find((w) => w.id === id);
-    if (!entry) return;
-    const left: WaitlistEntry = {
-      ...entry,
-      status: "Left",
-      leftAt: Date.now(),
-    };
-    setWaitlist((prev) => prev.filter((w) => w.id !== id));
-    setHistory((prev) => [left, ...prev]);
+    setConfig((c) => {
+      const entry = c.waitlist.find((w) => w.id === id);
+      if (!entry) return c;
+      const left: WaitlistEntry = { ...entry, status: "Left", leftAt: Date.now() };
+      return {
+        ...c,
+        waitlist: c.waitlist.filter((w) => w.id !== id),
+        history: [left, ...c.history],
+      };
+    });
   };
 
   const removeFromWaitlist = (id: string) => {
-    setWaitlist((prev) => prev.filter((w) => w.id !== id));
+    setConfig((c) => ({ ...c, waitlist: c.waitlist.filter((w) => w.id !== id) }));
   };
 
   const activeWaitlist = waitlist.filter(
@@ -219,7 +222,6 @@ export default function WaitlistTab() {
 
   return (
     <div className="space-y-6">
-      <NotPersistedBanner />
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-[var(--text-1)] flex items-center gap-2">

@@ -199,9 +199,15 @@ export async function GET(req: NextRequest) {
       baseRedirect = "/auth/get-started";
     }
 
-    // The password step is unconditional and highest priority — it carries
-    // the real destination forward via `next` so it isn't lost.
-    redirectTo = dbUser?.hasPassword
+    // A RETURNING owner/admin headed to their dashboard skips the set-password
+    // gate and lands straight on the dashboard. This is the fix for the owner's
+    // complaint that a Google login bounced them onto an onboarding screen
+    // instead of their dashboard: existing accounts should just be *in* the
+    // dashboard the moment they sign in. Brand-new accounts still pass through
+    // set-password during first-run onboarding, so the password model (and the
+    // set-password page) is preserved untouched.
+    const returningToDashboard = !isNewAccount && baseRedirect === "/dashboard";
+    redirectTo = dbUser?.hasPassword || returningToDashboard
       ? baseRedirect
       : `/auth/set-password?next=${encodeURIComponent(baseRedirect)}`;
   } catch (err: any) {
