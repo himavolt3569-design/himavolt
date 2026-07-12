@@ -715,7 +715,20 @@ function DishForm({
   }, [form.name]);
 
   const generateDescription = () => {
-    const randomTemplate = FOOD_DESCRIPTION_TEMPLATES[Math.floor(Math.random() * FOOD_DESCRIPTION_TEMPLATES.length)];
+    let randomTemplate = FOOD_DESCRIPTION_TEMPLATES[Math.floor(Math.random() * FOOD_DESCRIPTION_TEMPLATES.length)];
+    randomTemplate = randomTemplate.replace(/\[Name\]/g, form.name || "dish");
+    
+    let spiceStr = "mild";
+    if (form.spiceLevel === 1) spiceStr = "mildly spiced";
+    else if (form.spiceLevel === 2) spiceStr = "medium spiced";
+    else if (form.spiceLevel === 3) spiceStr = "spicy";
+    else if (form.spiceLevel === 4) spiceStr = "extra spicy";
+    else if (form.spiceLevel === 5) spiceStr = "fiery hot";
+    randomTemplate = randomTemplate.replace(/\[Spice\]/g, spiceStr);
+    
+    const flavors = ["savory", "tangy", "rich", "mouth-watering", "delicious", "sweet and savory"];
+    randomTemplate = randomTemplate.replace(/\[Flavor\]/g, flavors[Math.floor(Math.random() * flavors.length)]);
+    
     update({ description: randomTemplate });
   };
 
@@ -728,12 +741,13 @@ function DishForm({
   ];
 
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.98, y: 8 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.98, y: 8 }}
-      className="rounded-2xl border border-[var(--border)] bg-[var(--canvas)] shadow-2xl overflow-hidden w-full max-w-full"
-    >
+    <div className="flex flex-col lg:flex-row gap-4 w-full">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.98, y: 8 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.98, y: 8 }}
+        className="rounded-2xl border border-[var(--border)] bg-[var(--canvas)] shadow-2xl overflow-hidden flex-1 max-w-full"
+      >
       {/* Sticky header + section tabs so navigation stays reachable while the
           form body scrolls inside the modal. */}
       <div className="sticky top-0 z-10 bg-[var(--canvas)]/95 backdrop-blur border-b border-[var(--border-soft)]">
@@ -1230,6 +1244,52 @@ function DishForm({
         </div>
       </div>
     </motion.div>
+
+      {/* Live Preview Pane */}
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.98, x: 20 }}
+        animate={{ opacity: 1, scale: 1, x: 0 }}
+        exit={{ opacity: 0, scale: 0.98, x: 20 }}
+        className="hidden lg:flex w-[22rem] shrink-0 flex-col gap-3"
+      >
+        <h3 className="text-sm font-bold text-[var(--text-1)] px-1">Live Preview</h3>
+        <div className="pointer-events-none">
+          <MenuItemCard
+            item={{
+              id: "preview",
+              name: form.name || "Dish name",
+              description: form.description || "Description will appear here",
+              price: Number(form.price) || 0,
+              imageUrl: form.imageUrl || null,
+              rating: 0,
+              prepTime: form.prepTime || "15-20 min",
+              isVeg: form.isVeg,
+              hasEgg: form.hasEgg,
+              hasOnionGarlic: form.hasOnionGarlic,
+              isAvailable: true,
+              badge: form.badge || null,
+              tags: form.tags,
+              sortOrder: 0,
+              categoryId: form.categoryId || "temp",
+              category: { id: form.categoryId || "temp", name: "", slug: "", parentId: null },
+              sizes: form.sizes.map((s, i) => ({ id: `s${i}`, label: s.label, grams: s.grams, priceAdd: Number(s.priceAdd) || 0 })),
+              addOns: form.addOns.map((a, i) => ({ id: `a${i}`, name: a.name, price: Number(a.price) || 0 })),
+              discount: Number(form.discount) || 0,
+              discountLabel: form.discountLabel || null,
+              isFeatured: form.isFeatured,
+              spiceLevel: form.spiceLevel,
+              calories: form.calories ? Number(form.calories) : null,
+              allergens: form.allergens
+            }}
+            currency={currency}
+            onEdit={() => {}}
+            onDelete={() => {}}
+            onToggle={() => {}}
+            onDuplicate={() => {}}
+          />
+        </div>
+      </motion.div>
+    </div>
   );
 }
 
