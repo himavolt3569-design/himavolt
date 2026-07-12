@@ -2364,7 +2364,7 @@ export default function MenuManagementTab({
             onClick={() => { setShowAddForm(false); setEditingItem(null); }}
           >
             <div
-              className="w-full max-w-2xl my-auto max-h-[92dvh] overflow-y-auto rounded-2xl shadow-2xl"
+              className="w-full max-w-5xl my-auto max-h-[92dvh] overflow-y-auto rounded-2xl shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
               {editingItem ? (
