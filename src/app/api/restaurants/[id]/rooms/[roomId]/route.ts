@@ -104,7 +104,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       ...(roomNumber !== undefined && { roomNumber: roomNumber.trim() }),
       ...(name !== undefined && { name: name?.trim() || null }),
       ...(type !== undefined && { type }),
-      ...(floor !== undefined && { floor }),
+      ...(floor !== undefined && { floor: String(floor) }),
       ...(price !== undefined && { price }),
       ...(maxGuests !== undefined && { maxGuests }),
       ...(description !== undefined && { description: description?.trim() || null }),

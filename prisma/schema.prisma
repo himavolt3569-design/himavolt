@@ -1173,8 +1173,8 @@ model Room {
   id          String   @id @default(cuid())
   roomNumber  String // e.g. "101", "A-201"
   name        String? // optional display name e.g. "Deluxe Suite"
-  type        String   @default("STANDARD") // STANDARD, DELUXE, SUITE, DORMITORY
-  floor       Int      @default(1)
+  type        String   @default("STANDARD") // STANDARD, DELUXE, SUITE, DORMITORY, etc.
+  floor       String   @default("1")
   price       Float    @default(0) // per night rate
   maxGuests   Int      @default(2)
   description String?

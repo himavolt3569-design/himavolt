@@ -27,8 +27,6 @@ import {
   type FeatureTabId,
 } from "@/lib/restaurant-types";
 
-type OverrideState = "default" | "force-on" | "force-off";
-
 const FEATURE_CATALOG: FeatureTabDef[] = (() => {
   const map = new Map<string, FeatureTabDef>();
   Object.values(TYPE_FEATURE_TABS).forEach((list) =>
@@ -426,32 +424,32 @@ function FeatureOverridesSection({
   restaurantType: string;
   onSaved: () => void;
 }) {
-  // Seed from the warm GET cache so re-opening the panel paints instantly.
-  const featuresPath = `/api/restaurants/${restaurantId}/features`;
-  const buildStates = (data?: {
-    restaurant?: { featuresEnabled?: string[]; featuresDisabled?: string[] };
-  }): Record<string, OverrideState> => {
-    const enabled = data?.restaurant?.featuresEnabled ?? [];
-    const disabled = data?.restaurant?.featuresDisabled ?? [];
-    const next: Record<string, OverrideState> = {};
-    FEATURE_CATALOG.forEach((f) => {
-      if (disabled.includes(f.id)) next[f.id] = "force-off";
-      else if (enabled.includes(f.id)) next[f.id] = "force-on";
-      else next[f.id] = "default";
-    });
-    return next;
-  };
-  const featuresSeed = peekApiCache<{ restaurant: { featuresEnabled: string[]; featuresDisabled: string[] } }>(featuresPath);
-  const [states, setStates] = useState<Record<string, OverrideState>>(() => featuresSeed ? buildStates(featuresSeed) : {});
-  const [loading, setLoading] = useState(() => !featuresSeed);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [savedAt, setSavedAt] = useState<number | null>(null);
-
   const typeDefaultIds = useMemo(
     () => new Set((TYPE_FEATURE_TABS[restaurantType] ?? []).map((f) => f.id)),
     [restaurantType],
   );
+
+  // Seed from the warm GET cache so re-opening the panel paints instantly.
+  const featuresPath = `/api/restaurants/${restaurantId}/features`;
+  const buildStates = (data?: {
+    restaurant?: { featuresEnabled?: string[]; featuresDisabled?: string[] };
+  }): Record<string, boolean> => {
+    const enabled = data?.restaurant?.featuresEnabled ?? [];
+    const disabled = data?.restaurant?.featuresDisabled ?? [];
+    const next: Record<string, boolean> = {};
+    FEATURE_CATALOG.forEach((f) => {
+      if (disabled.includes(f.id)) next[f.id] = false;
+      else if (enabled.includes(f.id)) next[f.id] = true;
+      else next[f.id] = typeDefaultIds.has(f.id);
+    });
+    return next;
+  };
+  const featuresSeed = peekApiCache<{ restaurant: { featuresEnabled: string[]; featuresDisabled: string[] } }>(featuresPath);
+  const [states, setStates] = useState<Record<string, boolean>>(() => featuresSeed ? buildStates(featuresSeed) : {});
+  const [loading, setLoading] = useState(() => !featuresSeed);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [savedAt, setSavedAt] = useState<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -478,28 +476,21 @@ function FeatureOverridesSection({
     };
   }, [restaurantId]);
 
-  const effectiveFor = (id: FeatureTabId) => {
-    const s = states[id];
-    if (s === "force-off") return false;
-    if (s === "force-on") return true;
-    return typeDefaultIds.has(id);
+  const toggleState = (id: string) => {
+    setStates((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const setState = (id: string, value: OverrideState) => {
-    setStates((prev) => ({ ...prev, [id]: value }));
-  };
-
-  const overrideCount = Object.values(states).filter((v) => v !== "default").length;
+  const overrideCount = Object.entries(states).filter(([k, v]) => v !== typeDefaultIds.has(k as FeatureTabId)).length;
 
   const handleSave = async () => {
     setSaving(true);
     setError(null);
     try {
       const featuresEnabled = Object.entries(states)
-        .filter(([, v]) => v === "force-on")
+        .filter(([k, v]) => v === true && !typeDefaultIds.has(k as FeatureTabId))
         .map(([k]) => k);
       const featuresDisabled = Object.entries(states)
-        .filter(([, v]) => v === "force-off")
+        .filter(([k, v]) => v === false && typeDefaultIds.has(k as FeatureTabId))
         .map(([k]) => k);
 
       await apiFetch(`/api/restaurants/${restaurantId}/features`, {
@@ -561,83 +552,47 @@ function FeatureOverridesSection({
       ) : (
         <ul className="divide-y divide-[var(--border-soft)]">
           {FEATURE_CATALOG.map((f) => {
-            const state = states[f.id] ?? "default";
+            const state = states[f.id] ?? typeDefaultIds.has(f.id);
             const isDefaultOn = typeDefaultIds.has(f.id);
-            const eff = effectiveFor(f.id);
             return (
               <li
                 key={f.id}
-                className="flex items-center gap-4 px-5 py-3 hover:bg-[var(--canvas-sub)] transition-colors"
+                className="flex items-center gap-4 px-5 py-4 hover:bg-[var(--canvas-sub)] transition-colors cursor-pointer"
+                onClick={() => toggleState(f.id)}
               >
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-semibold text-[var(--text-1)] truncate">
+                    <span className="text-[13px] font-bold text-[var(--text-1)] truncate">
                       {f.label}
                     </span>
                     <span
-                      className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold ${
+                      className={`rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
                         isDefaultOn
-                          ? "bg-[var(--accent-muted)] text-[var(--accent-text)]"
+                          ? "bg-[var(--surface)] text-[var(--text-3)]"
                           : "bg-[var(--surface)] text-[var(--text-3)]"
                       }`}
                     >
                       {isDefaultOn ? "type default: on" : "type default: off"}
                     </span>
                   </div>
-                  <p className="text-[11px] text-[var(--text-3)] truncate mt-0.5">
+                  <p className="text-[11.5px] font-medium text-[var(--text-3)] truncate mt-0.5">
                     {f.desc}
                   </p>
                 </div>
 
-                <div className="flex items-center gap-1">
-                  {(["default", "force-on", "force-off"] as OverrideState[]).map((opt) => {
-                    const active = state === opt;
-                    const baseCls =
-                      "flex h-7 w-7 items-center justify-center rounded-md border text-[10px] font-bold transition-all";
-                    const activeCls =
-                      opt === "force-on"
-                        ? "border-[var(--accent)] bg-[var(--accent)] text-white"
-                        : opt === "force-off"
-                          ? "border-red-500 bg-red-500 text-white"
-                          : "border-[var(--text-2)] bg-[var(--text-1)] text-[var(--canvas)]";
-                    const idleCls =
-                      "border-[var(--border)] bg-[var(--canvas)] text-[var(--text-3)] hover:border-[var(--text-3)]";
-                    return (
-                      <button
-                        key={opt}
-                        type="button"
-                        onClick={() => setState(f.id, opt)}
-                        className={`${baseCls} ${active ? activeCls : idleCls}`}
-                        title={
-                          opt === "default"
-                            ? "Use type default"
-                            : opt === "force-on"
-                              ? "Force enable"
-                              : "Force disable"
-                        }
-                      >
-                        {opt === "default" ? (
-                          <Minus className="h-3 w-3" />
-                        ) : opt === "force-on" ? (
-                          <Check className="h-3 w-3" />
-                        ) : (
-                          <X className="h-3 w-3" />
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <div className="w-14 text-right">
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                      eff
-                        ? "bg-[var(--accent-muted)] text-[var(--accent-text)]"
-                        : "bg-[var(--surface)] text-[var(--text-3)]"
+                <div className="flex items-center justify-end w-12 shrink-0">
+                  <button
+                    type="button"
+                    className={`relative inline-flex h-6 w-10 shrink-0 items-center rounded-full border border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                      state ? "bg-[var(--text-1)]" : "bg-[var(--border)]"
                     }`}
                   >
-                    {eff ? "ON" : "OFF"}
-                  </span>
+                    <span
+                      className={`pointer-events-none inline-block h-[18px] w-[18px] transform rounded-full bg-[var(--canvas)] shadow ring-0 transition duration-200 ease-in-out ${
+                        state ? "translate-x-[18px]" : "translate-x-0.5"
+                      }`}
+                    />
+                  </button>
                 </div>
               </li>
             );
@@ -734,13 +689,13 @@ export default function OwnerControlPanel() {
       </div>
 
       {/* ── Owner-only notice ────────────────────────────────────── */}
-      <div className="flex items-start gap-3 rounded-2xl bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] border border-[var(--accent-border)]/60 p-4">
-        <Crown className="h-4.5 w-4.5 text-[var(--accent)] shrink-0 mt-0.5" />
+      <div className="flex items-start gap-3 rounded-2xl bg-[var(--surface)] border border-[var(--border)] p-4">
+        <Crown className="h-4.5 w-4.5 text-[var(--text-2)] shrink-0 mt-0.5" />
         <div>
-          <p className="text-sm font-bold text-[var(--accent-text)]">
+          <p className="text-sm font-bold text-[var(--text-1)]">
             Owner-only section
           </p>
-          <p className="text-xs text-[var(--accent-text)] mt-0.5">
+          <p className="text-xs text-[var(--text-2)] mt-0.5">
             Changes made here take effect immediately. Staff members will use
             their new permissions on next login.
           </p>
@@ -748,9 +703,9 @@ export default function OwnerControlPanel() {
       </div>
 
       {/* ── Global Enable All toggle ─────────────────────────────── */}
-      <div className="rounded-2xl border border-[var(--border-soft)] bg-[var(--canvas)] shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] overflow-hidden">
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--canvas)] shadow-sm overflow-hidden">
         <div className="flex items-center gap-4 p-5">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-50 to-purple-100">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-purple-50">
             <Zap className="h-5 w-5 text-purple-600" />
           </div>
           <div className="flex-1">
@@ -769,8 +724,8 @@ export default function OwnerControlPanel() {
             }
             className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition-all active:scale-[0.97] ${
               allSuperAdmin
-                ? "bg-purple-50 text-purple-600 border border-purple-100 cursor-default"
-                : "bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] text-white shadow-[0_4px_14px_0_rgba(245,158,11,0.3)] hover:shadow-[0_6px_20px_rgba(245,158,11,0.2)] hover:-translate-y-0.5"
+                ? "bg-[var(--surface)] text-[var(--text-3)] border border-[var(--border)] cursor-default"
+                : "bg-[var(--text-1)] text-[var(--canvas)] shadow-sm hover:opacity-90"
             }`}
           >
             {allSuperAdmin ? (
