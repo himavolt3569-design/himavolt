@@ -89,6 +89,16 @@ export default function Navbar() {
           </span>
         </Link>
 
+        {/* Center Navigation Links */}
+        <div className="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
+          <Link href="/restaurants" className="text-[13px] font-bold text-[var(--text-2)] hover:text-[var(--accent)] transition-colors">
+            Restaurants
+          </Link>
+          <Link href="/hotel" className="text-[13px] font-bold text-[var(--text-2)] hover:text-[var(--accent)] transition-colors">
+            Hotels
+          </Link>
+        </div>
+
         {/* Actions Area */}
         <div className="flex items-center gap-1 sm:gap-2 shrink-0">
 

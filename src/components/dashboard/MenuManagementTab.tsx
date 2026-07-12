@@ -248,9 +248,9 @@ function MenuItemCard({
       {/* Mobile: image-left / text-right  |  sm+: image-top / content-below */}
       <div className="flex sm:block">
 
-        <div className="relative w-28 shrink-0 sm:w-full sm:h-36 h-auto overflow-hidden bg-gradient-to-br from-[var(--accent)] to-[var(--accent-hover)]/20">
+        <div className="relative w-28 aspect-square shrink-0 sm:w-full sm:aspect-[4/3] sm:h-auto overflow-hidden bg-gradient-to-br from-[var(--accent)] to-[var(--accent-hover)]/20">
           {item.imageUrl ? (
-            <img src={item.imageUrl} alt={item.name} className={`h-full w-full object-cover aspect-square sm:aspect-auto transition-transform duration-700 group-hover:scale-110 ${!item.isAvailable ? 'grayscale-[40%]' : ''}`} loading="lazy" />
+            <img src={item.imageUrl} alt={item.name} className={`h-full w-full object-cover transition-transform duration-700 group-hover:scale-110 ${!item.isAvailable ? 'grayscale-[40%]' : ''}`} loading="lazy" />
           ) : (
             <div className="h-full w-full flex items-center justify-center min-h-[7rem]">
               <UtensilsCrossed className="h-8 w-8 sm:h-10 sm:w-10 text-[var(--accent)]/50" />
@@ -260,9 +260,9 @@ function MenuItemCard({
           {/* Veg indicator — always visible */}
           <div className="absolute top-2 right-2 z-10">
             <span className={`flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center rounded-md border-2 shadow-sm bg-[var(--canvas)]/90 ${
-              item.isVeg ? "border-[var(--accent)]" : "border-red-500"
+              item.isVeg ? "border-green-600" : "border-red-500"
             }`}>
-              <span className={`h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full ${item.isVeg ? "bg-[var(--accent)]" : "bg-red-500"}`} />
+              <span className={`h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full ${item.isVeg ? "bg-green-600" : "bg-red-500"}`} />
             </span>
           </div>
 
@@ -1271,7 +1271,7 @@ function DishForm({
               tags: form.tags,
               sortOrder: 0,
               categoryId: form.categoryId || "temp",
-              category: { id: form.categoryId || "temp", name: "", slug: "", parentId: null },
+              category: { id: form.categoryId || "temp", name: categories.find(c => c.id === form.categoryId)?.name || "Category", slug: "", parentId: null },
               sizes: form.sizes.map((s, i) => ({ id: `s${i}`, label: s.label, grams: s.grams, priceAdd: Number(s.priceAdd) || 0 })),
               addOns: form.addOns.map((a, i) => ({ id: `a${i}`, name: a.name, price: Number(a.price) || 0 })),
               discount: Number(form.discount) || 0,
