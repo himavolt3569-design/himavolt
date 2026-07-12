@@ -39,7 +39,6 @@ import {
   NAV_PEOPLE,
   NAV_MORE,
   HOTEL_HUB_NAV_ITEM,
-  ROOM_ENABLED_TYPES,
   HUB_FEATURE_IDS,
   FEATURE_ICONS,
   ALL_NAV,
@@ -595,28 +594,10 @@ export default function DashboardSidebar({
   const featuresEnabled = selectedRestaurant?.featuresEnabled;
   const featuresDisabled = selectedRestaurant?.featuresDisabled;
 
-  const featureNavItems = useMemo(() => {
-    if (!restaurantType) return [];
-    const features = getFeatureTabsForType(restaurantType, {
-      featuresEnabled,
-      featuresDisabled,
-    });
-    const isHotelType = ROOM_ENABLED_TYPES.has(restaurantType);
-    return features
-      // Hotel Hub has a dedicated nav entry; the rest of the folded cluster is
-      // never shown standalone for hotel-type venues.
-      .filter((f) => f.id !== "hotel-hub")
-      .filter((f) => !(isHotelType && HUB_FEATURE_IDS.has(f.id)))
-      .map((f) => ({
-        id: f.id as DashTab,
-        label: f.label,
-        icon: FEATURE_ICONS[f.id] ?? Sparkles,
-      }));
-  }, [restaurantType, featuresEnabled, featuresDisabled]);
-
   // Hotel Hub is shown when the venue's effective feature set includes it —
-  // i.e. a hotel-type venue whose owner hasn't force-disabled it (or any venue
-  // that force-enabled it via Owner Controls).
+  // i.e. a hotel-type venue whose owner hasn't force-disabled it, OR any venue
+  // that force-enabled it via Owner Controls. Enabling Hotel Hub turns on the
+  // whole hotel cluster at once.
   const showHotelHub = useMemo(
     () =>
       restaurantType
@@ -627,6 +608,24 @@ export default function DashboardSidebar({
         : false,
     [restaurantType, featuresEnabled, featuresDisabled],
   );
+
+  const featureNavItems = useMemo(() => {
+    if (!restaurantType) return [];
+    const features = getFeatureTabsForType(restaurantType, {
+      featuresEnabled,
+      featuresDisabled,
+    });
+    return features
+      // Hotel Hub has a dedicated nav entry; whenever the Hub is enabled the rest
+      // of the folded cluster lives INSIDE it, never as standalone nav items.
+      .filter((f) => f.id !== "hotel-hub")
+      .filter((f) => !(showHotelHub && HUB_FEATURE_IDS.has(f.id)))
+      .map((f) => ({
+        id: f.id as DashTab,
+        label: f.label,
+        icon: FEATURE_ICONS[f.id] ?? Sparkles,
+      }));
+  }, [restaurantType, featuresEnabled, featuresDisabled, showHotelHub]);
 
   // Split the dynamic feature tabs into Hotel vs Restaurant buckets so each gets
   // its own collapsible dropdown. The Hotel group also picks up the dedicated

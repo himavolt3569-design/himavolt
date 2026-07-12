@@ -47,7 +47,7 @@ const PaymentQRTab = lazyTab(() => import("@/components/dashboard/PaymentQRTab")
 const PaymentSettingsTab = lazyTab(() => import("@/components/dashboard/PaymentSettingsTab"));
 const TaxChargesTab = lazyTab(() => import("@/components/dashboard/TaxChargesTab"));
 const StockTab = lazyTab(() => import("@/components/dashboard/StockTab"));
-const OffersTab = lazyTab(() => import("@/components/dashboard/OffersTab"));
+const OffersCouponsTab = lazyTab(() => import("@/components/dashboard/OffersCouponsTab"));
 const HeroSlidesManager = lazyTab(() => import("@/components/dashboard/HeroSlidesManager"));
 const QuickCounterTab = lazyTab(() => import("@/components/dashboard/features/QuickCounterTab"));
 const ComboMealsTab = lazyTab(() => import("@/components/dashboard/features/ComboMealsTab"));
@@ -81,7 +81,6 @@ const WifiSettingsTab = lazyTab(() => import("@/components/dashboard/features/Wi
 const GuestCheckInTab = lazyTab(() => import("@/components/dashboard/GuestCheckInTab"));
 const MediaTab = lazyTab(() => import("@/components/dashboard/MediaTab"));
 const ManualBillingTab = lazyTab(() => import("@/components/dashboard/ManualBillingTab"));
-const CouponManagementTab = lazyTab(() => import("@/components/dashboard/CouponManagementTab"));
 const HotelBookingsTab = lazyTab(() => import("@/components/dashboard/HotelBookingsTab"));
 const HotelQRTab = lazyTab(() => import("@/components/dashboard/HotelQRTab"));
 const RoomQRTab = lazyTab(() => import("@/components/dashboard/RoomQRTab"));
@@ -106,10 +105,10 @@ const COMPONENTS: Record<string, React.ComponentType<any>> = {
   "payment-settings": PaymentSettingsTab,
   "tax-charges": TaxChargesTab,
   stock: StockTab,
-  offers: OffersTab,
+  offers: OffersCouponsTab,
   "hero-slides": HeroSlidesManager,
   media: MediaTab,
-  coupons: CouponManagementTab,
+  coupons: OffersCouponsTab,
   "hotel-hub": HotelHubTab,
   rooms: HotelHubTab,
   "owner-control": OwnerControlPanel,
@@ -179,8 +178,9 @@ const TAB_DATA: Record<string, (r: string) => string[]> = {
     `/api/restaurants/${r}/staff`,
   ],
   stock: (r) => [`/api/restaurants/${r}/inventory`],
-  offers: (r) => [`/api/restaurants/${r}/stories`],
-  coupons: (r) => [`/api/restaurants/${r}/coupons`],
+  // Offers & Coupons is one page now — warm both datasets from either entry.
+  offers: (r) => [`/api/restaurants/${r}/stories`, `/api/restaurants/${r}/coupons`],
+  coupons: (r) => [`/api/restaurants/${r}/coupons`, `/api/restaurants/${r}/stories`],
   drinks: (r) => [`/api/restaurants/${r}/menu?isDrink=true`, `/api/restaurants/${r}/categories`],
   feedback: (r) => [`/api/restaurants/${r}/feedback?limit=100`],
   media: (r) => [`/api/restaurants/${r}/media`],
@@ -292,6 +292,12 @@ export default function DynamicDashboardTab({ params }: { params: Promise<{ tab:
   if (tab === "stories" && selectedRestaurant) {
     props.restaurantName = selectedRestaurant.name;
     props.restaurantAvatar = selectedRestaurant.imageUrl ?? undefined;
+  }
+
+  // /dashboard/coupons deep-links open the merged Offers & Coupons page on its
+  // Coupons sub-tab.
+  if (tab === "coupons") {
+    props.initialTab = "coupons";
   }
 
   return <Component {...props} />;

@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus, Minus, Trash2, Printer, Search, Receipt,
   Loader2, Check, X, User, Utensils, ChevronDown,
-  Banknote, CheckCircle2, Zap, Wine, Coffee, GlassWater,
+  Banknote, CheckCircle2, Zap, Wine, Coffee, GlassWater, ChefHat,
 } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
 import { apiFetch, peekApiCache } from "@/lib/api-client";
@@ -165,7 +165,8 @@ export default function ManualBillingTab({
             })),
             type: "DINE_IN",
             paymentMethod: payMethod,
-            // Fast Pay: skip PENDING queue, go directly to kitchen
+            // Fast Pay = counter sale: auto-accept so it skips the PENDING queue
+            // AND the kitchen push (food is handed over at the counter now).
             ...(payMethod === "DIRECT" ? { autoAccept: true } : {}),
             note: `Counter order${tableNo ? ` - Table ${tableNo}` : ""}${guestName.trim() ? ` - ${guestName.trim()}` : ""}`,
           },
@@ -524,35 +525,9 @@ export default function ManualBillingTab({
   }
 
   return (
-    <div className="space-y-4 p-1">
-
-      {/* Payment method toggle — always at top on mobile */}
-      <div className="grid grid-cols-2 gap-2 lg:hidden">
-        <button
-          type="button"
-          onClick={() => setPayMethod("COUNTER")}
-          className={`flex items-center justify-center gap-2 rounded-xl border-2 p-2.5 text-center transition-all ${
-            payMethod === "COUNTER"
-              ? "border-[var(--accent)] bg-[var(--accent-muted)]"
-              : "border-[var(--border)] bg-[var(--canvas)] hover:border-[var(--border)]"
-          }`}
-        >
-          <Receipt className={`h-4 w-4 ${payMethod === "COUNTER" ? "text-[var(--accent-text)]" : "text-[var(--text-3)]"}`} />
-          <span className={`text-[11px] font-bold ${payMethod === "COUNTER" ? "text-[var(--accent-text)]" : "text-[var(--text-2)]"}`}>Manual Pay</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => setPayMethod("DIRECT")}
-          className={`flex items-center justify-center gap-2 rounded-xl border-2 p-2.5 text-center transition-all ${
-            payMethod === "DIRECT"
-              ? "border-teal-400 bg-teal-50"
-              : "border-[var(--border)] bg-[var(--canvas)] hover:border-[var(--border)]"
-          }`}
-        >
-          <Printer className={`h-4 w-4 ${payMethod === "DIRECT" ? "text-teal-600" : "text-[var(--text-3)]"}`} />
-          <span className={`text-[11px] font-bold ${payMethod === "DIRECT" ? "text-teal-700" : "text-[var(--text-2)]"}`}>Fast Pay</span>
-        </button>
-      </div>
+    // Extra bottom padding on mobile so the Total + Pay buttons clear the fixed
+    // bottom nav bar and the floating chat button.
+    <div className="space-y-4 p-1 pb-28 lg:pb-1">
 
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
@@ -710,33 +685,42 @@ export default function ManualBillingTab({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => setPayMethod("COUNTER")}
-              className={`flex flex-col items-center rounded-xl border-2 p-2.5 text-center transition-all ${
-                payMethod === "COUNTER"
-                  ? "border-[var(--accent)] bg-[var(--accent-muted)]"
-                  : "border-[var(--border)] bg-[var(--canvas)] hover:border-[var(--border)]"
-              }`}
-            >
-              <Receipt className={`h-4 w-4 mb-1 ${payMethod === "COUNTER" ? "text-[var(--accent-text)]" : "text-[var(--text-3)]"}`} />
-              <span className={`text-[11px] font-bold ${payMethod === "COUNTER" ? "text-[var(--accent-text)]" : "text-[var(--text-2)]"}`}>Manual Pay</span>
-              <span className="text-[10px] text-[var(--text-3)] leading-tight">Staff records payment</span>
-            </button>
+          <div className="grid grid-cols-2 gap-2.5">
             <button
               type="button"
               onClick={() => setPayMethod("DIRECT")}
-              className={`flex flex-col items-center rounded-xl border-2 p-2.5 text-center transition-all ${
+              className={`flex flex-col items-center rounded-xl border-2 p-3.5 text-center transition-all ${
                 payMethod === "DIRECT"
                   ? "border-teal-400 bg-teal-50"
                   : "border-[var(--border)] bg-[var(--canvas)] hover:border-[var(--border)]"
               }`}
             >
-              <Printer className={`h-4 w-4 mb-1 ${payMethod === "DIRECT" ? "text-teal-600" : "text-[var(--text-3)]"}`} />
-              <span className={`text-[11px] font-bold ${payMethod === "DIRECT" ? "text-teal-700" : "text-[var(--text-2)]"}`}>Fast Pay</span>
-              <span className="text-[10px] text-[var(--text-3)] leading-tight">Goes directly to kitchen</span>
+              <Zap className={`h-6 w-6 mb-1 ${payMethod === "DIRECT" ? "text-teal-600" : "text-[var(--text-3)]"}`} />
+              <span className={`text-sm font-bold ${payMethod === "DIRECT" ? "text-teal-700" : "text-[var(--text-2)]"}`}>Fast Pay</span>
+              <span className="text-[11px] text-[var(--text-3)] leading-tight">Pay now</span>
             </button>
+            <button
+              type="button"
+              onClick={() => setPayMethod("COUNTER")}
+              className={`flex flex-col items-center rounded-xl border-2 p-3.5 text-center transition-all ${
+                payMethod === "COUNTER"
+                  ? "border-[var(--accent)] bg-[var(--accent-muted)]"
+                  : "border-[var(--border)] bg-[var(--canvas)] hover:border-[var(--border)]"
+              }`}
+            >
+              <ChefHat className={`h-6 w-6 mb-1 ${payMethod === "COUNTER" ? "text-[var(--accent-text)]" : "text-[var(--text-3)]"}`} />
+              <span className={`text-sm font-bold ${payMethod === "COUNTER" ? "text-[var(--accent-text)]" : "text-[var(--text-2)]"}`}>Manual Pay</span>
+              <span className="text-[11px] text-[var(--text-3)] leading-tight">Pay later</span>
+            </button>
+          </div>
+
+          {/* Simple, plain-English explainer of the selected mode. */}
+          <div className="rounded-lg bg-[var(--canvas-sub)] px-3.5 py-2.5 text-xs leading-relaxed text-[var(--text-2)] ring-1 ring-[var(--border-soft)]">
+            {payMethod === "COUNTER" ? (
+              <><span className="font-bold text-[var(--accent-text)]">Kitchen cooks this order.</span> Take the payment later at the counter.</>
+            ) : (
+              <><span className="font-bold text-teal-700">Take the payment now.</span> For ready items — this does not go to the kitchen.</>
+            )}
           </div>
         </div>
 
@@ -761,72 +745,72 @@ export default function ManualBillingTab({
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
-                    className={`flex items-center gap-2 rounded-lg p-2 ${item.isDrink ? "bg-blue-50 ring-1 ring-blue-100" : "bg-[var(--canvas-sub)]"}`}
+                    className={`flex items-center gap-2.5 rounded-xl p-2.5 ${item.isDrink ? "bg-blue-50 ring-1 ring-blue-100" : "bg-[var(--canvas-sub)]"}`}
                   >
                     {item.imageUrl ? (
                       <img
                         src={item.imageUrl}
                         alt={item.name}
-                        className="h-9 w-9 rounded-md object-cover flex-shrink-0"
+                        className="h-12 w-12 rounded-lg object-cover flex-shrink-0"
                       />
                     ) : (
-                      <div className={`h-9 w-9 rounded-md flex items-center justify-center flex-shrink-0 ${item.isDrink ? "bg-blue-100" : "bg-[var(--accent-muted)]"}`}>
+                      <div className={`h-12 w-12 rounded-lg flex items-center justify-center flex-shrink-0 ${item.isDrink ? "bg-blue-100" : "bg-[var(--accent-muted)]"}`}>
                         {item.isDrink
-                          ? <Wine className="h-4 w-4 text-blue-400" />
-                          : <Utensils className="h-4 w-4 text-[var(--accent)]" />
+                          ? <Wine className="h-5 w-5 text-blue-400" />
+                          : <Utensils className="h-5 w-5 text-[var(--accent)]" />
                         }
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1">
-                        <p className="text-xs font-semibold text-[var(--text-1)] truncate">{item.name}</p>
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-sm font-semibold text-[var(--text-1)] truncate">{item.name}</p>
                         {item.isDrink && (
                           <span className="text-[9px] font-bold px-1 rounded bg-blue-200 text-blue-700 flex-shrink-0">BOT</span>
                         )}
                       </div>
-                      <div className="flex items-center gap-1 mt-0.5">
-                        <span className="text-[10px] text-[var(--text-3)]">Price:</span>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <span className="text-[11px] text-[var(--text-3)]">Price:</span>
                         <input
                           type="number"
                           value={item.price}
                           onChange={(e) => updatePrice(item.menuItemId, parseFloat(e.target.value) || 0)}
-                          className="w-16 rounded border border-[var(--border)] px-1 py-0.5 text-xs text-center focus:outline-none focus:ring-1 focus:ring-[var(--accent-border)]"
+                          className="w-20 rounded-md border border-[var(--border)] px-2 py-1 text-sm text-center focus:outline-none focus:ring-1 focus:ring-[var(--accent-border)]"
                           min={0} step={10}
                         />
                       </div>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <button onClick={() => updateQuantity(item.menuItemId, -1)} className="flex h-6 w-6 items-center justify-center rounded-md bg-[var(--surface-alt)] hover:bg-[var(--border)] transition-colors">
-                        <Minus className="h-3 w-3" />
+                    <div className="flex items-center gap-1.5">
+                      <button onClick={() => updateQuantity(item.menuItemId, -1)} className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--surface-alt)] hover:bg-[var(--border)] transition-colors">
+                        <Minus className="h-4 w-4" />
                       </button>
-                      <span className="w-6 text-center text-xs font-bold">{item.quantity}</span>
-                      <button onClick={() => updateQuantity(item.menuItemId, 1)} className={`flex h-6 w-6 items-center justify-center rounded-md transition-colors ${item.isDrink ? "bg-blue-100 hover:bg-blue-200 text-blue-700" : "bg-[var(--accent-muted)] hover:bg-[var(--accent-muted)] text-[var(--accent-text)]"}`}>
-                        <Plus className="h-3 w-3" />
+                      <span className="w-8 text-center text-base font-bold">{item.quantity}</span>
+                      <button onClick={() => updateQuantity(item.menuItemId, 1)} className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${item.isDrink ? "bg-blue-100 hover:bg-blue-200 text-blue-700" : "bg-[var(--accent-muted)] hover:bg-[var(--accent-muted)] text-[var(--accent-text)]"}`}>
+                        <Plus className="h-4 w-4" />
                       </button>
                     </div>
-                    <span className="text-xs font-bold text-[var(--text-2)] w-16 text-right">{formatPrice(item.price * item.quantity, currency)}</span>
-                    <button onClick={() => removeItem(item.menuItemId)} className="text-[var(--text-3)] hover:text-red-500 transition-colors">
-                      <X className="h-3.5 w-3.5" />
+                    <span className="text-sm font-bold text-[var(--text-2)] w-20 text-right">{formatPrice(item.price * item.quantity, currency)}</span>
+                    <button onClick={() => removeItem(item.menuItemId)} className="text-[var(--text-3)] hover:text-red-500 transition-colors p-1">
+                      <X className="h-4 w-4" />
                     </button>
                   </motion.div>
                 ))}
               </AnimatePresence>
             </div>
 
-            <div className="border-t border-[var(--border)] pt-3 space-y-1.5">
-              <div className="flex justify-between text-xs">
+            <div className="border-t border-[var(--border)] pt-3 space-y-2">
+              <div className="flex justify-between text-sm">
                 <span className="text-[var(--text-2)]">Subtotal</span>
                 <span className="font-semibold">{formatPrice(subtotal, currency)}</span>
               </div>
               {taxEnabled && (
-                <div className="flex justify-between text-xs">
+                <div className="flex justify-between text-sm">
                   <span className="text-[var(--text-2)]">Tax ({taxRate}%)</span>
                   <span className="font-semibold">{formatPrice(tax, currency)}</span>
                 </div>
               )}
-              <div className="flex justify-between text-sm font-bold pt-1 border-t border-[var(--border-soft)]">
+              <div className="flex justify-between items-center text-base font-bold pt-2 border-t border-[var(--border-soft)]">
                 <span>Total</span>
-                <span className="text-[var(--accent-text)]">{formatPrice(total, currency)}</span>
+                <span className="text-lg text-[var(--accent-text)]">{formatPrice(total, currency)}</span>
               </div>
             </div>
 
@@ -836,17 +820,17 @@ export default function ManualBillingTab({
                   <button
                     onClick={handleDirectPay}
                     disabled={submitting || billItems.length === 0}
-                    className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-teal-500 py-2.5 text-sm font-bold text-white hover:bg-teal-600 disabled:opacity-40 transition-colors"
+                    className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-teal-500 py-3.5 text-base font-bold text-white hover:bg-teal-600 disabled:opacity-40 transition-colors active:scale-[0.98]"
                   >
-                    {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Printer className="h-4 w-4" /> Print &amp; Confirm</>}
+                    {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <><Printer className="h-5 w-5" /> Print Bill</>}
                   </button>
                   <button
                     onClick={handleDirectConfirmOnly}
                     disabled={submitting || billItems.length === 0}
-                    title="Confirm without printing"
-                    className="flex items-center justify-center gap-1.5 rounded-xl border-2 border-teal-300 px-3 py-2.5 text-sm font-semibold text-teal-700 hover:bg-teal-50 disabled:opacity-40 transition-colors"
+                    title="Save without printing"
+                    className="flex items-center justify-center gap-1.5 rounded-xl border-2 border-teal-300 px-4 py-3.5 text-base font-semibold text-teal-700 hover:bg-teal-50 disabled:opacity-40 transition-colors active:scale-[0.98]"
                   >
-                    <Check className="h-4 w-4" />
+                    <Check className="h-5 w-5" />
                   </button>
                 </>
               ) : (
@@ -854,28 +838,28 @@ export default function ManualBillingTab({
                   <button
                     onClick={handleSubmit}
                     disabled={submitting || billItems.length === 0}
-                    className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[var(--accent)] py-2.5 text-sm font-bold text-white hover:bg-[var(--accent-hover)] disabled:opacity-40 transition-colors"
+                    className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[var(--accent)] py-3.5 text-base font-bold text-white hover:bg-[var(--accent-hover)] disabled:opacity-40 transition-colors active:scale-[0.98]"
                   >
-                    {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Check className="h-4 w-4" /> Send to Kitchen</>}
+                    {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <><Check className="h-5 w-5" /> Send to Kitchen</>}
                   </button>
                   {/* KOT print */}
                   <button
                     onClick={() => handlePrintKOT()}
                     disabled={billItems.length === 0}
-                    title="Print KOT (Kitchen Order Ticket)"
-                    className="flex items-center gap-1.5 rounded-xl border border-[var(--border)] px-3 py-2.5 text-sm font-semibold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] disabled:opacity-40 transition-colors"
+                    title="Print kitchen ticket"
+                    className="flex items-center gap-1.5 rounded-xl border border-[var(--border)] px-4 py-3.5 text-base font-semibold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] disabled:opacity-40 transition-colors active:scale-[0.98]"
                   >
-                    <Printer className="h-4 w-4" />
+                    <Printer className="h-5 w-5" />
                   </button>
                   {/* BOT print — only shown when there are drink items */}
                   {hasDrinks && (
                     <button
                       onClick={() => handlePrintBOT()}
                       disabled={billItems.length === 0}
-                      title="Print BOT (Bar Order Ticket)"
-                      className="flex items-center gap-1.5 rounded-xl border-2 border-blue-300 bg-blue-50 px-3 py-2.5 text-sm font-semibold text-blue-700 hover:bg-blue-100 disabled:opacity-40 transition-colors"
+                      title="Print bar ticket"
+                      className="flex items-center gap-1.5 rounded-xl border-2 border-blue-300 bg-blue-50 px-4 py-3.5 text-base font-semibold text-blue-700 hover:bg-blue-100 disabled:opacity-40 transition-colors active:scale-[0.98]"
                     >
-                      <Wine className="h-4 w-4" />
+                      <Wine className="h-5 w-5" />
                     </button>
                   )}
                 </>

@@ -21,7 +21,7 @@ import {
   Star,
   Check,
 } from "lucide-react";
-import NotPersistedBanner from "./_NotPersistedBanner";
+import { useFeatureConfig } from "@/hooks/useFeatureConfig";
 
 type RoomStatus = "available" | "occupied" | "reserved" | "maintenance";
 type BookingStatus = "pending" | "confirmed" | "active" | "completed";
@@ -74,11 +74,18 @@ const BOOKING_STATUS_CONFIG: Record<BookingStatus, { label: string; color: strin
   completed: { label: "Completed", color: "text-[var(--text-2)]", bg: "bg-[var(--canvas-sub)]" },
 };
 
+interface PrivateDiningConfig {
+  rooms: DiningRoom[];
+  bookings: RoomBooking[];
+}
+
+const PRIVATE_DINING_DEFAULTS: PrivateDiningConfig = { rooms: [], bookings: [] };
+
 export default function PrivateDiningTab() {
   const { selectedRestaurant } = useRestaurant();
   const cur = selectedRestaurant?.currency ?? "NPR";
-  const [rooms, setRooms] = useState<DiningRoom[]>([]);
-  const [bookings, setBookings] = useState<RoomBooking[]>([]);
+  const { config, setConfig } = useFeatureConfig<PrivateDiningConfig>("private-dining", PRIVATE_DINING_DEFAULTS);
+  const { rooms, bookings } = config;
   const [setMenus] = useState<SetMenu[]>([]);
   const [activeView, setActiveView] = useState<"rooms" | "bookings" | "menus">("bookings");
   const [showCreateBooking, setShowCreateBooking] = useState(false);
@@ -100,38 +107,46 @@ export default function PrivateDiningTab() {
     const hours = parseInt(newBooking.duration) || 3;
     const estimate = (menu ? menu.pricePerPerson * partySize : 0) + (room ? room.hourlyRate * hours : 0);
 
-    setBookings((prev) => [
-      ...prev,
-      {
-        id: `b${Date.now()}`,
-        roomId: newBooking.roomId,
-        guestName: newBooking.guestName,
-        partySize,
-        date: newBooking.date,
-        startTime: newBooking.startTime,
-        duration: hours,
-        eventType: newBooking.eventType,
-        menuType: newBooking.menuType,
-        specialRequests: newBooking.specialRequests,
-        status: "pending",
-        totalEstimate: estimate,
-      },
-    ]);
+    setConfig((c) => ({
+      ...c,
+      bookings: [
+        ...c.bookings,
+        {
+          id: `b${Date.now()}`,
+          roomId: newBooking.roomId,
+          guestName: newBooking.guestName,
+          partySize,
+          date: newBooking.date,
+          startTime: newBooking.startTime,
+          duration: hours,
+          eventType: newBooking.eventType,
+          menuType: newBooking.menuType,
+          specialRequests: newBooking.specialRequests,
+          status: "pending",
+          totalEstimate: estimate,
+        },
+      ],
+    }));
     setNewBooking({ roomId: "", guestName: "", partySize: "", date: "", startTime: "", duration: "3", eventType: "Birthday", menuType: "", specialRequests: "" });
     setShowCreateBooking(false);
   };
 
   const handleBookingStatus = (id: string, status: BookingStatus) => {
-    setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status } : b)));
+    setConfig((c) => ({
+      ...c,
+      bookings: c.bookings.map((b) => (b.id === id ? { ...b, status } : b)),
+    }));
   };
 
   const handleRoomStatus = (id: string, status: RoomStatus) => {
-    setRooms((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
+    setConfig((c) => ({
+      ...c,
+      rooms: c.rooms.map((r) => (r.id === id ? { ...r, status } : r)),
+    }));
   };
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-10">
-      <NotPersistedBanner />
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-[var(--text-1)] flex items-center gap-2">

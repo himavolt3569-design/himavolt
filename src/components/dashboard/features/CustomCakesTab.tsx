@@ -23,7 +23,7 @@ import {
   List,
   Calculator,
 } from "lucide-react";
-import NotPersistedBanner from "./_NotPersistedBanner";
+import { useFeatureConfig } from "@/hooks/useFeatureConfig";
 
 interface CustomCakeOrder {
   id: string;
@@ -91,8 +91,11 @@ const LAYER_MULTIPLIER: Record<number, number> = {
 
 const PAST_GALLERY: { id: number; name: string; size: string; layers: number }[] = [];
 
+const CAKES_DEFAULTS: { orders: CustomCakeOrder[] } = { orders: [] };
+
 export default function CustomCakesTab() {
-  const [orders, setOrders] = useState<CustomCakeOrder[]>([]);
+  const { config, setConfig } = useFeatureConfig<{ orders: CustomCakeOrder[] }>("custom-cakes", CAKES_DEFAULTS);
+  const orders = config.orders;
   const [showForm, setShowForm] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -136,7 +139,7 @@ export default function CustomCakesTab() {
       price: computedPrice,
       createdAt: new Date().toISOString().split("T")[0],
     };
-    setOrders([newOrder, ...orders]);
+    setConfig((c) => ({ orders: [newOrder, ...c.orders] }));
     setForm({
       customerName: "",
       phone: "",
@@ -152,16 +155,16 @@ export default function CustomCakesTab() {
   };
 
   const advanceStatus = (id: string) => {
-    setOrders(
-      orders.map((o) => {
+    setConfig((c) => ({
+      orders: c.orders.map((o) => {
         if (o.id !== id) return o;
         const idx = STATUS_FLOW.indexOf(o.status);
         if (idx < STATUS_FLOW.length - 1) {
           return { ...o, status: STATUS_FLOW[idx + 1] };
         }
         return o;
-      })
-    );
+      }),
+    }));
   };
 
   const toggleDietary = (option: string) => {
@@ -175,7 +178,6 @@ export default function CustomCakesTab() {
 
   return (
     <div className="space-y-6">
-      <NotPersistedBanner />
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-[var(--text-1)]">Custom Cakes</h2>

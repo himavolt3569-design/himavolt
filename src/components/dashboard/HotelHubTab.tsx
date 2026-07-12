@@ -13,6 +13,7 @@ import {
 import { useRestaurant } from "@/context/RestaurantContext";
 import { useToast } from "@/context/ToastContext";
 import { formatPrice } from "@/lib/currency";
+import { isFeatureAvailable } from "@/lib/restaurant-types";
 import { STAFF_MANAGER_ROLES, STAFF_BILLING_ROLES } from "@/lib/staff-roles";
 
 const RoomManagementTab = lazy(() => import("./RoomManagementTab"));
@@ -229,18 +230,27 @@ export default function HotelHubTab() {
 
   if (!selectedRestaurant) return null;
 
-  const isHotelType = ["HOTEL", "RESORT", "GUEST_HOUSE"].includes(selectedRestaurant.type);
+  // Hotel Hub renders whenever it's ENABLED for this venue — either the venue
+  // type is Hotel/Resort/Guest House (on by default), or the owner force-enabled
+  // it from Owner Controls on any venue. Turning Hotel Hub on = every hotel
+  // service (rooms, bookings, guest check-in, QR codes & room service) is on.
+  const hubEnabled = isFeatureAvailable(selectedRestaurant.type, "hotel-hub", {
+    featuresEnabled: selectedRestaurant.featuresEnabled,
+    featuresDisabled: selectedRestaurant.featuresDisabled,
+  });
 
-  if (!isHotelType) {
+  if (!hubEnabled) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center gap-3">
         <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--surface)]">
           <Building2 className="h-7 w-7 text-[var(--text-3)]" />
         </div>
         <div>
-          <p className="text-[15px] font-semibold text-[var(--text-1)]">Hotel features are disabled</p>
+          <p className="text-[15px] font-semibold text-[var(--text-1)]">Hotel Hub is turned off</p>
           <p className="mt-1 text-[12px] text-[var(--text-2)] max-w-sm">
-            Switch venue type to Hotel, Resort, or Guest House to manage rooms and bookings here.
+            Turn on Hotel Hub in Settings → Owner Controls to manage rooms, bookings,
+            guest check-in, QR codes &amp; room service — or set the venue type to Hotel,
+            Resort or Guest House, which have it on by default.
           </p>
         </div>
       </div>

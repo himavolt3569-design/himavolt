@@ -23,7 +23,7 @@ import {
   DollarSign,
   Timer,
 } from "lucide-react";
-import NotPersistedBanner from "./_NotPersistedBanner";
+import { useFeatureConfig } from "@/hooks/useFeatureConfig";
 
 interface Tab {
   id: string;
@@ -65,8 +65,11 @@ const MENU_ITEMS = [
   { name: "Fries", price: 300 },
 ];
 
+const TAB_MGMT_DEFAULTS: { tabs: Tab[] } = { tabs: [] };
+
 export default function TabManagementTab() {
-  const [tabs, setTabs] = useState<Tab[]>([]);
+  const { config, setConfig } = useFeatureConfig<{ tabs: Tab[] }>("tab-management", TAB_MGMT_DEFAULTS);
+  const tabs = config.tabs;
   const [closedTabs] = useState<ClosedTab[]>([]);
   const [showNewTabForm, setShowNewTabForm] = useState(false);
   const [selectedTab, setSelectedTab] = useState<string | null>(null);
@@ -100,14 +103,14 @@ export default function TabManagementTab() {
       status: "Open",
       limit: newTab.limit ? parseInt(newTab.limit) : null,
     };
-    setTabs((prev) => [...prev, tab]);
+    setConfig((c) => ({ tabs: [...c.tabs, tab] }));
     setNewTab({ customerName: "", tableNumber: "", limit: "" });
     setShowNewTabForm(false);
   };
 
   const addItemToTab = (tabId: string, menuItem: { name: string; price: number }) => {
-    setTabs((prev) =>
-      prev.map((tab) => {
+    setConfig((c) => ({
+      tabs: c.tabs.map((tab) => {
         if (tab.id !== tabId) return tab;
         const existingIdx = tab.items.findIndex((i) => i.name === menuItem.name);
         let newItems: TabItem[];
@@ -123,49 +126,51 @@ export default function TabManagementTab() {
           items: newItems,
           runningTotal: newItems.reduce((sum, i) => sum + i.price * i.quantity, 0),
         };
-      })
-    );
+      }),
+    }));
   };
 
   const settleTab = (tabId: string) => {
-    setTabs((prev) =>
-      prev.map((tab) => (tab.id === tabId ? { ...tab, status: "Settling" as const } : tab))
-    );
+    setConfig((c) => ({
+      tabs: c.tabs.map((tab) => (tab.id === tabId ? { ...tab, status: "Settling" as const } : tab)),
+    }));
     setSelectedTab(tabId);
   };
 
   const closeTab = (tabId: string) => {
-    setTabs((prev) =>
-      prev.map((tab) => (tab.id === tabId ? { ...tab, status: "Closed" as const } : tab))
-    );
+    setConfig((c) => ({
+      tabs: c.tabs.map((tab) => (tab.id === tabId ? { ...tab, status: "Closed" as const } : tab)),
+    }));
     setSelectedTab(null);
   };
 
   const mergeTabs = () => {
     if (selectedForMerge.length < 2) return;
-    const mergingTabs = tabs.filter((t) => selectedForMerge.includes(t.id));
-    const firstTab = mergingTabs[0];
-    const mergedItems: TabItem[] = [];
-    mergingTabs.forEach((tab) => {
-      tab.items.forEach((item) => {
-        const existing = mergedItems.find((i) => i.name === item.name);
-        if (existing) {
-          existing.quantity += item.quantity;
-        } else {
-          mergedItems.push({ ...item });
-        }
+    setConfig((c) => {
+      const mergingTabs = c.tabs.filter((t) => selectedForMerge.includes(t.id));
+      if (mergingTabs.length < 2) return c;
+      const firstTab = mergingTabs[0];
+      const mergedItems: TabItem[] = [];
+      mergingTabs.forEach((tab) => {
+        tab.items.forEach((item) => {
+          const existing = mergedItems.find((i) => i.name === item.name);
+          if (existing) {
+            existing.quantity += item.quantity;
+          } else {
+            mergedItems.push({ ...item });
+          }
+        });
       });
+      const mergedTab: Tab = {
+        ...firstTab,
+        customerName: `Merged: ${mergingTabs.map((t) => t.customerName).join(" + ")}`,
+        items: mergedItems,
+        runningTotal: mergedItems.reduce((sum, i) => sum + i.price * i.quantity, 0),
+      };
+      return {
+        tabs: [...c.tabs.filter((t) => !selectedForMerge.includes(t.id)), mergedTab],
+      };
     });
-    const mergedTab: Tab = {
-      ...firstTab,
-      customerName: `Merged: ${mergingTabs.map((t) => t.customerName).join(" + ")}`,
-      items: mergedItems,
-      runningTotal: mergedItems.reduce((sum, i) => sum + i.price * i.quantity, 0),
-    };
-    setTabs((prev) => [
-      ...prev.filter((t) => !selectedForMerge.includes(t.id)),
-      mergedTab,
-    ]);
     setSelectedForMerge([]);
   };
 
@@ -179,7 +184,6 @@ export default function TabManagementTab() {
 
   return (
     <div className="space-y-6">
-      <NotPersistedBanner />
       <AnimatePresence>
         {alertTabs.length > 0 && (
           <motion.div

@@ -25,7 +25,7 @@ import {
   ToggleLeft,
   ToggleRight,
 } from "lucide-react";
-import NotPersistedBanner from "./_NotPersistedBanner";
+import { useFeatureConfig } from "@/hooks/useFeatureConfig";
 
 interface Ingredient {
   name: string;
@@ -60,8 +60,11 @@ const CATEGORIES: Cocktail["category"][] = ["Classic", "Signature", "Mocktail", 
 
 const ingredientStock: IngredientStock[] = [];
 
+const COCKTAIL_DEFAULTS: { cocktails: Cocktail[] } = { cocktails: [] };
+
 export default function CocktailMenuTab() {
-  const [cocktails, setCocktails] = useState<Cocktail[]>([]);
+  const { config, setConfig } = useFeatureConfig<{ cocktails: Cocktail[] }>("cocktail-menu", COCKTAIL_DEFAULTS);
+  const cocktails = config.cocktails;
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState("");
@@ -133,7 +136,7 @@ export default function CocktailMenuTab() {
       isFeatured: false,
       isSeasonal: false,
     };
-    setCocktails((prev) => [...prev, cocktail]);
+    setConfig((c) => ({ cocktails: [...c.cocktails, cocktail] }));
     setNewCocktail({
       name: "",
       category: "Classic",
@@ -149,19 +152,19 @@ export default function CocktailMenuTab() {
   };
 
   const toggleFeatured = (id: string) => {
-    setCocktails((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, isFeatured: !c.isFeatured } : c))
-    );
+    setConfig((cfg) => ({
+      cocktails: cfg.cocktails.map((c) => (c.id === id ? { ...c, isFeatured: !c.isFeatured } : c)),
+    }));
   };
 
   const toggleSeasonal = (id: string) => {
-    setCocktails((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, isSeasonal: !c.isSeasonal } : c))
-    );
+    setConfig((cfg) => ({
+      cocktails: cfg.cocktails.map((c) => (c.id === id ? { ...c, isSeasonal: !c.isSeasonal } : c)),
+    }));
   };
 
   const deleteCocktail = (id: string) => {
-    setCocktails((prev) => prev.filter((c) => c.id !== id));
+    setConfig((cfg) => ({ cocktails: cfg.cocktails.filter((c) => c.id !== id) }));
   };
 
   const getCategoryIcon = (category: string) => {
@@ -196,7 +199,6 @@ export default function CocktailMenuTab() {
 
   return (
     <div className="space-y-6">
-      <NotPersistedBanner />
       <AnimatePresence>
         {showStockWarnings && lowStockIngredients.length > 0 && (
           <motion.div

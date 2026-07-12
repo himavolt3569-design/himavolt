@@ -22,7 +22,7 @@ import {
   Trash2,
   ChevronLeft,
 } from "lucide-react";
-import NotPersistedBanner from "./_NotPersistedBanner";
+import { useFeatureConfig } from "@/hooks/useFeatureConfig";
 
 type EventStatus =
   | "Inquiry"
@@ -70,7 +70,7 @@ const STATUS_CONFIG: Record<
   "Quote Sent": { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-200" },
   Confirmed: { bg: "bg-[var(--accent-muted)]", text: "text-[var(--accent-text)]", border: "border-[var(--accent-border)]" },
   "In Progress": { bg: "bg-[var(--accent-muted)]", text: "text-[var(--accent-text)]", border: "border-[var(--accent-border)]" },
-  Completed: { bg: "bg-stone-50", text: "text-stone-600", border: "border-stone-200" },
+  Completed: { bg: "bg-[var(--canvas-sub)]", text: "text-[var(--text-2)]", border: "border-[var(--border)]" },
 };
 
 const STATUS_FLOW: EventStatus[] = [
@@ -114,8 +114,11 @@ const MENU_OPTIONS = [
   "Wine Selection",
 ];
 
+const CATERING_DEFAULTS: { events: CateringEvent[] } = { events: [] };
+
 export default function EventCateringTab() {
-  const [events, setEvents] = useState<CateringEvent[]>([]);
+  const { config, setConfig } = useFeatureConfig<{ events: CateringEvent[] }>("event-catering", CATERING_DEFAULTS);
+  const events = config.events;
   const [packages] = useState<EventPackage[]>([]);
   const [activeView, setActiveView] = useState<"events" | "calendar" | "packages">("events");
   const [showNewEvent, setShowNewEvent] = useState(false);
@@ -135,20 +138,20 @@ export default function EventCateringTab() {
   });
 
   const advanceStatus = (eventId: string) => {
-    setEvents((prev) =>
-      prev.map((e) => {
+    setConfig((c) => ({
+      events: c.events.map((e) => {
         if (e.id !== eventId) return e;
         const idx = STATUS_FLOW.indexOf(e.status);
         if (idx < STATUS_FLOW.length - 1) {
           return { ...e, status: STATUS_FLOW[idx + 1] };
         }
         return e;
-      })
-    );
+      }),
+    }));
   };
 
   const deleteEvent = (eventId: string) => {
-    setEvents((prev) => prev.filter((e) => e.id !== eventId));
+    setConfig((c) => ({ events: c.events.filter((e) => e.id !== eventId) }));
     if (selectedEvent === eventId) setSelectedEvent(null);
   };
 
@@ -168,7 +171,7 @@ export default function EventCateringTab() {
       ...newEvent,
       status: "Inquiry",
     };
-    setEvents((prev) => [...prev, event]);
+    setConfig((c) => ({ events: [...c.events, event] }));
     setNewEvent({
       name: "",
       type: "Wedding",
@@ -204,13 +207,12 @@ export default function EventCateringTab() {
 
   return (
     <div className="space-y-6">
-      <NotPersistedBanner />
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-stone-800">
+          <h2 className="text-2xl font-bold text-[var(--text-1)]">
             Event & Conference Catering
           </h2>
-          <p className="text-sm text-stone-500">
+          <p className="text-sm text-[var(--text-3)]">
             Manage event bookings, packages, and catering menus
           </p>
         </div>
@@ -258,12 +260,12 @@ export default function EventCateringTab() {
             key={stat.label}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`rounded-xl ${stat.bg} border border-stone-100 p-4 shadow-sm`}
+            className={`rounded-xl ${stat.bg} border border-[var(--border-soft)] p-4 shadow-sm`}
           >
             <div className="flex items-center gap-3">
               <stat.icon className={`h-5 w-5 ${stat.color}`} />
               <div>
-                <p className="text-xs font-medium text-stone-500">
+                <p className="text-xs font-medium text-[var(--text-3)]">
                   {stat.label}
                 </p>
                 <p className={`text-lg font-bold ${stat.color}`}>
@@ -275,15 +277,15 @@ export default function EventCateringTab() {
         ))}
       </div>
 
-      <div className="flex gap-1 rounded-xl bg-stone-100 p-1">
+      <div className="flex gap-1 rounded-xl bg-[var(--surface)] p-1">
         {(["events", "calendar", "packages"] as const).map((view) => (
           <button
             key={view}
             onClick={() => setActiveView(view)}
             className={`flex-1 rounded-lg px-4 py-2 text-sm font-medium capitalize transition ${
               activeView === view
-                ? "bg-[var(--canvas)] text-stone-800 shadow-sm"
-                : "text-stone-500 hover:text-stone-700"
+                ? "bg-[var(--canvas)] text-[var(--text-1)] shadow-sm"
+                : "text-[var(--text-3)] hover:text-[var(--text-2)]"
             }`}
           >
             {view}
@@ -311,7 +313,7 @@ export default function EventCateringTab() {
                       {status}
                     </span>
                     {idx < STATUS_FLOW.length - 1 && (
-                      <ChevronRight className="h-3.5 w-3.5 text-stone-300 flex-shrink-0" />
+                      <ChevronRight className="h-3.5 w-3.5 text-[var(--text-3)] flex-shrink-0" />
                     )}
                   </div>
                 );
@@ -330,7 +332,7 @@ export default function EventCateringTab() {
                   className={`rounded-xl border bg-[var(--canvas)] p-5 shadow-sm cursor-pointer transition hover:shadow-md ${
                     selectedEvent === event.id
                       ? "border-[var(--accent-border)] ring-2 ring-[var(--accent-border)]"
-                      : "border-stone-200"
+                      : "border-[var(--border)]"
                   }`}
                   onClick={() =>
                     setSelectedEvent(
@@ -344,10 +346,10 @@ export default function EventCateringTab() {
                         <Icon className="h-5 w-5 text-[var(--accent-text)]" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-stone-800">
+                        <h3 className="font-semibold text-[var(--text-1)]">
                           {event.name}
                         </h3>
-                        <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-stone-500">
+                        <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-[var(--text-3)]">
                           <span className="flex items-center gap-1">
                             <CalendarDays className="h-3.5 w-3.5" />
                             {new Date(event.date).toLocaleDateString("en-US", {
@@ -394,7 +396,7 @@ export default function EventCateringTab() {
                           e.stopPropagation();
                           deleteEvent(event.id);
                         }}
-                        className="rounded-lg p-1.5 text-stone-400 hover:bg-red-50 hover:text-red-500"
+                        className="rounded-lg p-1.5 text-[var(--text-3)] hover:bg-red-50 hover:text-red-500"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -409,24 +411,24 @@ export default function EventCateringTab() {
                         exit={{ height: 0, opacity: 0 }}
                         className="overflow-hidden"
                       >
-                        <div className="mt-4 space-y-3 border-t border-stone-100 pt-4">
+                        <div className="mt-4 space-y-3 border-t border-[var(--border-soft)] pt-4">
                           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                            <div className="rounded-lg bg-stone-50 p-3">
-                              <p className="text-xs font-medium text-stone-500">
+                            <div className="rounded-lg bg-[var(--canvas-sub)] p-3">
+                              <p className="text-xs font-medium text-[var(--text-3)]">
                                 Contact
                               </p>
-                              <p className="text-sm text-stone-700">
+                              <p className="text-sm text-[var(--text-2)]">
                                 {event.contactPerson}
                               </p>
-                              <p className="text-xs text-stone-500">
+                              <p className="text-xs text-[var(--text-3)]">
                                 {event.contactPhone}
                               </p>
                             </div>
-                            <div className="rounded-lg bg-stone-50 p-3">
-                              <p className="text-xs font-medium text-stone-500">
+                            <div className="rounded-lg bg-[var(--canvas-sub)] p-3">
+                              <p className="text-xs font-medium text-[var(--text-3)]">
                                 Event Type
                               </p>
-                              <p className="text-sm text-stone-700">
+                              <p className="text-sm text-[var(--text-2)]">
                                 {event.type}
                               </p>
                             </div>
@@ -434,14 +436,14 @@ export default function EventCateringTab() {
 
                           {event.menuSelections.length > 0 && (
                             <div className="rounded-lg bg-[var(--accent-muted)] p-3">
-                              <p className="mb-2 text-xs font-medium text-stone-500">
+                              <p className="mb-2 text-xs font-medium text-[var(--text-3)]">
                                 Menu Selections
                               </p>
                               <div className="flex flex-wrap gap-1.5">
                                 {event.menuSelections.map((item) => (
                                   <span
                                     key={item}
-                                    className="rounded-full bg-[var(--canvas)] px-2.5 py-1 text-xs text-stone-600 shadow-sm"
+                                    className="rounded-full bg-[var(--canvas)] px-2.5 py-1 text-xs text-[var(--text-2)] shadow-sm"
                                   >
                                     {item}
                                   </span>
@@ -451,11 +453,11 @@ export default function EventCateringTab() {
                           )}
 
                           {event.specialRequirements && (
-                            <div className="rounded-lg bg-stone-50 p-3">
-                              <p className="text-xs font-medium text-stone-500">
+                            <div className="rounded-lg bg-[var(--canvas-sub)] p-3">
+                              <p className="text-xs font-medium text-[var(--text-3)]">
                                 Special Requirements
                               </p>
-                              <p className="text-sm text-stone-600">
+                              <p className="text-sm text-[var(--text-2)]">
                                 {event.specialRequirements}
                               </p>
                             </div>
@@ -476,7 +478,7 @@ export default function EventCateringTab() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="rounded-xl border border-stone-200 bg-[var(--canvas)] p-5 shadow-sm"
+            className="rounded-xl border border-[var(--border)] bg-[var(--canvas)] p-5 shadow-sm"
           >
             <div className="mb-4 flex items-center justify-between">
               <button
@@ -488,11 +490,11 @@ export default function EventCateringTab() {
                     )
                   )
                 }
-                className="rounded-lg p-2 text-stone-500 hover:bg-stone-100"
+                className="rounded-lg p-2 text-[var(--text-3)] hover:bg-[var(--surface)]"
               >
                 <ChevronLeft className="h-5 w-5" />
               </button>
-              <h3 className="text-lg font-semibold text-stone-800">
+              <h3 className="text-lg font-semibold text-[var(--text-1)]">
                 {calendarMonth.toLocaleDateString("en-US", {
                   month: "long",
                   year: "numeric",
@@ -507,7 +509,7 @@ export default function EventCateringTab() {
                     )
                   )
                 }
-                className="rounded-lg p-2 text-stone-500 hover:bg-stone-100"
+                className="rounded-lg p-2 text-[var(--text-3)] hover:bg-[var(--surface)]"
               >
                 <ChevronRight className="h-5 w-5" />
               </button>
@@ -517,7 +519,7 @@ export default function EventCateringTab() {
               {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
                 <div
                   key={d}
-                  className="py-2 text-center text-xs font-medium text-stone-400"
+                  className="py-2 text-center text-xs font-medium text-[var(--text-3)]"
                 >
                   {d}
                 </div>
@@ -534,11 +536,11 @@ export default function EventCateringTab() {
                     className={`min-h-[60px] rounded-lg border p-1.5 text-xs ${
                       dayEvents.length > 0
                         ? "border-[var(--accent-border)] bg-[var(--accent-muted)]"
-                        : "border-stone-100"
+                        : "border-[var(--border-soft)]"
                     }`}
                   >
                     <span
-                      className={`font-medium ${dayEvents.length > 0 ? "text-[var(--accent-text)]" : "text-stone-600"}`}
+                      className={`font-medium ${dayEvents.length > 0 ? "text-[var(--accent-text)]" : "text-[var(--text-2)]"}`}
                     >
                       {day}
                     </span>
@@ -575,17 +577,17 @@ export default function EventCateringTab() {
                   key={pkg.id}
                   initial={{ opacity: 0, scale: 0.98 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="rounded-xl border border-stone-200 bg-[var(--canvas)] p-5 shadow-sm"
+                  className="rounded-xl border border-[var(--border)] bg-[var(--canvas)] p-5 shadow-sm"
                 >
                   <div className="flex items-start gap-3 mb-4">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--accent-muted)]">
                       <Icon className="h-5 w-5 text-[var(--accent-text)]" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-stone-800">
+                      <h3 className="font-semibold text-[var(--text-1)]">
                         {pkg.name}
                       </h3>
-                      <p className="text-xs text-stone-500">
+                      <p className="text-xs text-[var(--text-3)]">
                         {pkg.type} &middot; Min {pkg.minGuests} guests
                       </p>
                     </div>
@@ -595,7 +597,7 @@ export default function EventCateringTab() {
                     {pkg.items.map((item) => (
                       <div
                         key={item}
-                        className="flex items-center gap-2 text-sm text-stone-600"
+                        className="flex items-center gap-2 text-sm text-[var(--text-2)]"
                       >
                         <div className="h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
                         {item}
@@ -604,7 +606,7 @@ export default function EventCateringTab() {
                   </div>
 
                   <div className="flex items-center justify-between rounded-lg bg-[var(--accent-muted)] px-4 py-2">
-                    <span className="text-sm text-stone-600">
+                    <span className="text-sm text-[var(--text-2)]">
                       Price per head
                     </span>
                     <span className="text-lg font-bold text-[var(--accent-text)]">
@@ -635,12 +637,12 @@ export default function EventCateringTab() {
               className="w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl bg-[var(--canvas)] p-6 shadow-xl"
             >
               <div className="mb-6 flex items-center justify-between">
-                <h3 className="text-lg font-bold text-stone-800">
+                <h3 className="text-lg font-bold text-[var(--text-1)]">
                   Create New Event
                 </h3>
                 <button
                   onClick={() => setShowNewEvent(false)}
-                  className="rounded-lg p-1.5 text-stone-400 hover:bg-stone-100"
+                  className="rounded-lg p-1.5 text-[var(--text-3)] hover:bg-[var(--surface)]"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -648,7 +650,7 @@ export default function EventCateringTab() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium text-stone-700">
+                  <label className="mb-1.5 block text-sm font-medium text-[var(--text-2)]">
                     Event Name
                   </label>
                   <input
@@ -658,13 +660,13 @@ export default function EventCateringTab() {
                       setNewEvent((ev) => ({ ...ev, name: e.target.value }))
                     }
                     placeholder="e.g., Annual Gala Dinner"
-                    className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 placeholder:text-stone-400 focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
+                    className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm text-[var(--text-2)] placeholder:text-[var(--text-3)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-stone-700">
+                    <label className="mb-1.5 block text-sm font-medium text-[var(--text-2)]">
                       Event Type
                     </label>
                     <select
@@ -675,7 +677,7 @@ export default function EventCateringTab() {
                           type: e.target.value as EventType,
                         }))
                       }
-                      className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 focus:border-[var(--accent)] focus:outline-none"
+                      className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm text-[var(--text-2)] focus:border-[var(--accent)] focus:outline-none"
                     >
                       {(
                         [
@@ -693,7 +695,7 @@ export default function EventCateringTab() {
                     </select>
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-stone-700">
+                    <label className="mb-1.5 block text-sm font-medium text-[var(--text-2)]">
                       Date
                     </label>
                     <input
@@ -702,14 +704,14 @@ export default function EventCateringTab() {
                       onChange={(e) =>
                         setNewEvent((ev) => ({ ...ev, date: e.target.value }))
                       }
-                      className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 focus:border-[var(--accent)] focus:outline-none"
+                      className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm text-[var(--text-2)] focus:border-[var(--accent)] focus:outline-none"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-stone-700">
+                    <label className="mb-1.5 block text-sm font-medium text-[var(--text-2)]">
                       Guest Count
                     </label>
                     <input
@@ -721,11 +723,11 @@ export default function EventCateringTab() {
                           guestCount: parseInt(e.target.value) || 0,
                         }))
                       }
-                      className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 focus:border-[var(--accent)] focus:outline-none"
+                      className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm text-[var(--text-2)] focus:border-[var(--accent)] focus:outline-none"
                     />
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-stone-700">
+                    <label className="mb-1.5 block text-sm font-medium text-[var(--text-2)]">
                       Budget ($)
                     </label>
                     <input
@@ -737,13 +739,13 @@ export default function EventCateringTab() {
                           budget: parseFloat(e.target.value) || 0,
                         }))
                       }
-                      className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 focus:border-[var(--accent)] focus:outline-none"
+                      className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm text-[var(--text-2)] focus:border-[var(--accent)] focus:outline-none"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium text-stone-700">
+                  <label className="mb-1.5 block text-sm font-medium text-[var(--text-2)]">
                     Venue / Room
                   </label>
                   <input
@@ -753,13 +755,13 @@ export default function EventCateringTab() {
                       setNewEvent((ev) => ({ ...ev, venue: e.target.value }))
                     }
                     placeholder="e.g., Grand Ballroom"
-                    className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 placeholder:text-stone-400 focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
+                    className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm text-[var(--text-2)] placeholder:text-[var(--text-3)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-stone-700">
+                    <label className="mb-1.5 block text-sm font-medium text-[var(--text-2)]">
                       Contact Person
                     </label>
                     <input
@@ -772,11 +774,11 @@ export default function EventCateringTab() {
                         }))
                       }
                       placeholder="Name"
-                      className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 placeholder:text-stone-400 focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
+                      className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm text-[var(--text-2)] placeholder:text-[var(--text-3)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                     />
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-stone-700">
+                    <label className="mb-1.5 block text-sm font-medium text-[var(--text-2)]">
                       Phone <span className="text-[var(--accent)]">*</span>
                     </label>
                     <input
@@ -795,16 +797,16 @@ export default function EventCateringTab() {
                       inputMode="numeric"
                       title="Enter exactly 10 digits"
                       placeholder="98XXXXXXXX"
-                      className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 placeholder:text-stone-400 focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
+                      className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm text-[var(--text-2)] placeholder:text-[var(--text-3)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium text-stone-700">
+                  <label className="mb-1.5 block text-sm font-medium text-[var(--text-2)]">
                     Menu Selections
                   </label>
-                  <div className="flex flex-wrap gap-2 rounded-xl border border-stone-200 p-3">
+                  <div className="flex flex-wrap gap-2 rounded-xl border border-[var(--border)] p-3">
                     {MENU_OPTIONS.map((item) => {
                       const selected = newEvent.menuSelections.includes(item);
                       return (
@@ -814,7 +816,7 @@ export default function EventCateringTab() {
                           className={`rounded-lg px-2.5 py-1 text-xs font-medium transition ${
                             selected
                               ? "bg-[var(--accent-muted)] text-[var(--accent-text)]"
-                              : "bg-stone-100 text-stone-500 hover:bg-stone-200"
+                              : "bg-[var(--surface)] text-[var(--text-3)] hover:bg-[var(--surface-alt)]"
                           }`}
                         >
                           {item}
@@ -825,7 +827,7 @@ export default function EventCateringTab() {
                 </div>
 
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium text-stone-700">
+                  <label className="mb-1.5 block text-sm font-medium text-[var(--text-2)]">
                     Special Requirements
                   </label>
                   <textarea
@@ -838,7 +840,7 @@ export default function EventCateringTab() {
                     }
                     placeholder="Dietary restrictions, setup requirements, etc."
                     rows={3}
-                    className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 placeholder:text-stone-400 focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] resize-none"
+                    className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm text-[var(--text-2)] placeholder:text-[var(--text-3)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] resize-none"
                   />
                 </div>
 

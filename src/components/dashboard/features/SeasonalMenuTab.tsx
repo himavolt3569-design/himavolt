@@ -27,7 +27,7 @@ import {
   Award,
   Eye,
 } from "lucide-react";
-import NotPersistedBanner from "./_NotPersistedBanner";
+import { useFeatureConfig } from "@/hooks/useFeatureConfig";
 
 type Season = "Spring" | "Summer" | "Autumn" | "Winter";
 
@@ -63,13 +63,26 @@ const seasonConfig: Record<Season, { icon: typeof Sun; color: string; bg: string
   Winter: { icon: Snowflake, color: "text-blue-600", bg: "bg-blue-50" },
 };
 
+interface SeasonalConfig {
+  currentSeason: Season;
+  items: SeasonalItem[];
+  autoRotate: boolean;
+  seasonalTheme: boolean;
+}
+
+const SEASONAL_DEFAULTS: SeasonalConfig = {
+  currentSeason: "Spring",
+  items: [],
+  autoRotate: true,
+  seasonalTheme: true,
+};
+
 export default function SeasonalMenuTab() {
   const { selectedRestaurant } = useRestaurant();
   const cur = selectedRestaurant?.currency ?? "NPR";
-  const [currentSeason, setCurrentSeason] = useState<Season>("Spring");
-  const [items, setItems] = useState<SeasonalItem[]>([]);
-  const [autoRotate, setAutoRotate] = useState(true);
-  const [seasonalTheme, setSeasonalTheme] = useState(true);
+  const { config, setConfig } = useFeatureConfig<SeasonalConfig>("seasonal-menu", SEASONAL_DEFAULTS);
+  const { currentSeason, items, autoRotate, seasonalTheme } = config;
+  const setCurrentSeason = (s: Season) => setConfig((c) => ({ ...c, currentSeason: s }));
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [newItem, setNewItem] = useState<Partial<SeasonalItem>>({
@@ -97,24 +110,22 @@ export default function SeasonalMenuTab() {
 
   const addItem = () => {
     if (!newItem.name?.trim() || !newItem.price) return;
-    setItems((prev) => [
-      ...prev,
-      {
-        id: Date.now().toString(),
-        name: newItem.name!.trim(),
-        description: newItem.description || "",
-        category: newItem.category || "Beverages",
-        price: newItem.price || 0,
-        season: newItem.season || currentSeason,
-        startDate: newItem.startDate || "",
-        endDate: newItem.endDate || "",
-        featured: newItem.featured || false,
-        limitedQuantity: newItem.limitedQuantity || false,
-        quantityLeft: newItem.limitedQuantity ? 20 : undefined,
-        sourcingNotes: newItem.sourcingNotes || "",
-        soldCount: 0,
-      },
-    ]);
+    const created: SeasonalItem = {
+      id: Date.now().toString(),
+      name: newItem.name!.trim(),
+      description: newItem.description || "",
+      category: newItem.category || "Beverages",
+      price: newItem.price || 0,
+      season: newItem.season || currentSeason,
+      startDate: newItem.startDate || "",
+      endDate: newItem.endDate || "",
+      featured: newItem.featured || false,
+      limitedQuantity: newItem.limitedQuantity || false,
+      quantityLeft: newItem.limitedQuantity ? 20 : undefined,
+      sourcingNotes: newItem.sourcingNotes || "",
+      soldCount: 0,
+    };
+    setConfig((c) => ({ ...c, items: [...c.items, created] }));
     setNewItem({
       name: "", description: "", category: "Beverages", price: 0,
       season: currentSeason, startDate: "", endDate: "", featured: false,
@@ -124,11 +135,14 @@ export default function SeasonalMenuTab() {
   };
 
   const removeItem = (id: string) => {
-    setItems((prev) => prev.filter((i) => i.id !== id));
+    setConfig((c) => ({ ...c, items: c.items.filter((i) => i.id !== id) }));
   };
 
   const toggleFeatured = (id: string) => {
-    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, featured: !i.featured } : i)));
+    setConfig((c) => ({
+      ...c,
+      items: c.items.map((i) => (i.id === id ? { ...i, featured: !i.featured } : i)),
+    }));
   };
 
   return (
@@ -138,7 +152,6 @@ export default function SeasonalMenuTab() {
       transition={{ duration: 0.4 }}
       className="space-y-6"
     >
-      <NotPersistedBanner />
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className={`p-2.5 rounded-xl ${seasonConfig[currentSeason].bg}`}>
@@ -196,7 +209,7 @@ export default function SeasonalMenuTab() {
               <p className="text-xs text-[var(--text-3)]">Automatically switch based on date ranges</p>
             </div>
           </div>
-          <button onClick={() => setAutoRotate(!autoRotate)}>
+          <button onClick={() => setConfig((c) => ({ ...c, autoRotate: !c.autoRotate }))}>
             {autoRotate ? (
               <ToggleRight className="w-7 h-7 text-[var(--accent)]" />
             ) : (
@@ -212,7 +225,7 @@ export default function SeasonalMenuTab() {
               <p className="text-xs text-[var(--text-3)]">Apply seasonal decorations to customer menu</p>
             </div>
           </div>
-          <button onClick={() => setSeasonalTheme(!seasonalTheme)}>
+          <button onClick={() => setConfig((c) => ({ ...c, seasonalTheme: !c.seasonalTheme }))}>
             {seasonalTheme ? (
               <ToggleRight className="w-7 h-7 text-[var(--accent)]" />
             ) : (
