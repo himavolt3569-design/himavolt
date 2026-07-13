@@ -9,6 +9,8 @@ import {
   Building2,
   ChevronRight,
   Coffee,
+  Camera,
+  Loader2,
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { useToast } from "@/context/ToastContext";
@@ -20,8 +22,9 @@ const RoomManagementTab = lazy(() => import("./RoomManagementTab"));
 const HotelBookingsTab = lazy(() => import("./HotelBookingsTab"));
 const GuestCheckInTab = lazy(() => import("./GuestCheckInTab"));
 const HotelQRTab = lazy(() => import("./HotelQRTab"));
+const HeroSlidesManager = lazy(() => import("./HeroSlidesManager"));
 
-type HubTab = "rooms" | "bookings" | "guests" | "service" | "setup";
+type HubTab = "rooms" | "bookings" | "guests" | "media" | "service" | "setup";
 
 /**
  * Each sub-tab is gated by a permission scope (mirrors the server RBAC):
@@ -57,6 +60,13 @@ const TABS: {
     desc: "Walk-in check-in, ID scan & guest records",
     icon: ClipboardList,
     scope: "frontdesk",
+  },
+  {
+    id: "media",
+    label: "Media Library",
+    desc: "Manage main property photos",
+    icon: Camera,
+    scope: "manage",
   },
   {
     id: "service",
@@ -347,11 +357,12 @@ export default function HotelHubTab() {
         <span className="hidden sm:inline text-[12px] text-[var(--text-3)]">· {activeTab.desc}</span>
       </div>
 
-      {/* Panel — no skeleton fallback; lazy chunks resolve near-instantly */}
-      <Suspense fallback={null}>
+      {/* Panel */}
+      <Suspense fallback={<div className="h-40 flex items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-[var(--text-3)]" /></div>}>
         {effectiveActive === "rooms" && <RoomManagementTab />}
         {effectiveActive === "bookings" && <HotelBookingsTab />}
         {effectiveActive === "guests" && <GuestCheckInTab />}
+        {effectiveActive === "media" && <div className="-mx-2 sm:-mx-6 -mt-2"><HeroSlidesManager /></div>}
         {effectiveActive === "service" && <RoomServicePanel />}
         {effectiveActive === "setup" && <HotelQRTab />}
       </Suspense>

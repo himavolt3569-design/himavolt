@@ -17,7 +17,6 @@ import PaymentSettingsTab from "./PaymentSettingsTab";
 import TaxChargesTab from "./TaxChargesTab";
 import PrintingSettingsTab from "./PrintingSettingsTab";
 import OwnerControlPanel from "./OwnerControlPanel";
-import HeroSlidesManager from "./HeroSlidesManager";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/context/ToastContext";
@@ -31,8 +30,7 @@ type SectionId =
   | "tax-charges"
   | "printing"
   | "notifications"
-  | "owner-control"
-  | "hero-slides";
+  | "owner-control";
 
 const SECTIONS: {
   id: SectionId;
@@ -47,7 +45,6 @@ const SECTIONS: {
   { id: "printing", label: "Printing & Receipts", desc: "Receipt layout & widths", icon: Printer },
   { id: "notifications", label: "Notifications", desc: "Push & order alerts", icon: Bell },
   { id: "owner-control", label: "Owner Controls", desc: "Feature toggles & access", icon: Crown },
-  { id: "hero-slides", label: "Hero Slides", desc: "Manage main property photos", icon: Camera },
 ];
 
 function NotificationsSection() {
@@ -251,7 +248,6 @@ export default function SettingsTab() {
           {active === "printing" && <PrintingSettingsTab />}
           {active === "notifications" && <NotificationsSection />}
           {active === "owner-control" && <OwnerControlPanel />}
-          {active === "hero-slides" && <HeroSlidesManager />}
         </div>
       </div>
     </div>
