@@ -22,7 +22,7 @@ const RoomManagementTab = lazy(() => import("./RoomManagementTab"));
 const HotelBookingsTab = lazy(() => import("./HotelBookingsTab"));
 const GuestCheckInTab = lazy(() => import("./GuestCheckInTab"));
 const HotelQRTab = lazy(() => import("./HotelQRTab"));
-const HeroSlidesManager = lazy(() => import("./HeroSlidesManager"));
+const HotelMediaLibrary = lazy(() => import("./HotelMediaLibrary"));
 
 type HubTab = "rooms" | "bookings" | "guests" | "media" | "service" | "setup";
 
@@ -362,7 +362,7 @@ export default function HotelHubTab() {
         {effectiveActive === "rooms" && <RoomManagementTab />}
         {effectiveActive === "bookings" && <HotelBookingsTab />}
         {effectiveActive === "guests" && <GuestCheckInTab />}
-        {effectiveActive === "media" && <div className="-mx-2 sm:-mx-6 -mt-2"><HeroSlidesManager /></div>}
+        {effectiveActive === "media" && <div className="-mx-2 sm:-mx-6 -mt-2"><HotelMediaLibrary /></div>}
         {effectiveActive === "service" && <RoomServicePanel />}
         {effectiveActive === "setup" && <HotelQRTab />}
       </Suspense>
