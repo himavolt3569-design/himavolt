@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
     : {
         OR: [
           { type: { in: [...HOTEL_TYPES] } },
-          { featuresEnabled: { has: "HOTEL_HUB" } },
+          { featuresEnabled: { has: "hotel-hub" } },
         ],
       };
 
