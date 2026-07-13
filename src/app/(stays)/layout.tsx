@@ -101,29 +101,6 @@ function HotelNavbar() {
           </span>
         </Link>
 
-        {/* Center search pill — appears when solid */}
-        <Link
-          href="/hotels"
-          className={cn(
-            "hidden md:flex items-center rounded-full border shadow-sm transition-all duration-300 overflow-hidden hover:shadow-md cursor-pointer",
-            shouldBeSolid
-              ? "opacity-100 translate-y-0 border-[var(--border)] bg-[var(--surface)]"
-              : "opacity-0 -translate-y-4 pointer-events-none bg-white/10 backdrop-blur-md border-white/20 text-white",
-          )}
-        >
-          <div className="px-4 py-2 text-sm font-semibold border-r border-[var(--border)] text-[var(--text-1)]">
-            Anywhere
-          </div>
-          <div className="px-4 py-2 text-sm font-semibold border-r border-[var(--border)] text-[var(--text-1)]">
-            Any week
-          </div>
-          <div className="px-4 py-2 text-sm flex items-center gap-3 text-[var(--text-3)]">
-            Add guests
-            <span className="bg-[var(--accent)] rounded-full p-1.5 text-white">
-              <Search className="h-4 w-4" />
-            </span>
-          </div>
-        </Link>
 
         {/* Right actions */}
         <div className="flex items-center gap-2 shrink-0">
