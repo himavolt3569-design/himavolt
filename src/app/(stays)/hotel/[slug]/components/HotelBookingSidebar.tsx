@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
 import { Typography } from "@/components/design-system/primitives/Typography";
 import { Button } from "@/components/design-system/primitives/Button";
-import { ChevronDown, X } from "lucide-react";
+import { ChevronDown, X, Minus, Plus } from "lucide-react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { DayPicker, DateRange } from "react-day-picker";
 import { AnchoredMenu } from "@/components/shared/AnchoredMenu";
@@ -119,22 +119,32 @@ export function HotelBookingSidebar({
         </div>
 
         {/* Guests */}
-        <div className="p-3 relative hover:bg-[var(--surface-alt)] transition-colors rounded-b-xl">
-          <label className="uppercase text-[10px] tracking-wider text-[var(--text-3)] font-bold block mb-1 cursor-pointer">
-            Guests
-          </label>
-          <select
-            value={guests}
-            onChange={(e) => setGuests(Number(e.target.value))}
-            className="w-full bg-transparent outline-none text-sm font-semibold text-[var(--text-1)] appearance-none cursor-pointer"
-          >
-            {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
-              <option key={num} value={num}>
-                {num} guest{num > 1 ? "s" : ""}
-              </option>
-            ))}
-          </select>
-          <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[var(--text-2)] pointer-events-none" />
+        <div className="p-3 relative rounded-b-xl flex justify-between items-center bg-[var(--surface-alt)]/30">
+          <div>
+            <label className="uppercase text-[10px] tracking-wider text-[var(--text-3)] font-bold block mb-1">
+              Guests
+            </label>
+            <div className="text-sm font-semibold text-[var(--text-1)]">
+              {guests} guest{guests > 1 ? "s" : ""}
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <button
+              className="w-8 h-8 flex items-center justify-center rounded-full border border-[var(--border-soft)] hover:border-[var(--text-1)] text-[var(--text-1)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              onClick={() => setGuests(Math.max(1, guests - 1))}
+              disabled={guests <= 1}
+            >
+              <Minus className="h-4 w-4" />
+            </button>
+            <span className="w-4 text-center font-semibold">{guests}</span>
+            <button
+              className="w-8 h-8 flex items-center justify-center rounded-full border border-[var(--border-soft)] hover:border-[var(--text-1)] text-[var(--text-1)] transition-colors"
+              onClick={() => setGuests(guests + 1)}
+            >
+              <Plus className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       </div>
 

@@ -127,10 +127,10 @@ export function HotelHeroGallery({
         {/* 2×2 thumbnail grid */}
         <div className="flex-[2] min-w-0 grid grid-cols-2 grid-rows-2 gap-2">
           {[1, 2, 3, 4].map((offset, i) => {
-            const img = displayImages[offset];
+            const img = displayImages[offset % displayImages.length];
             const isTopRight    = i === 1;
             const isBottomRight = i === 3;
-            const isLastSlot    = i === 3 && displayImages.length > 4;
+            const isLastSlot    = i === 3 && displayImages.length > 5;
 
             return (
               <div

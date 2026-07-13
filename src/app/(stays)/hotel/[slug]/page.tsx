@@ -148,6 +148,13 @@ export default async function HotelDetailPage(props: {
   }
   if (hotel.coverUrl && !allImages.includes(hotel.coverUrl)) allImages.push(hotel.coverUrl);
   if (hotel.imageUrl && !allImages.includes(hotel.imageUrl)) allImages.push(hotel.imageUrl);
+
+  // Backfill with room images if needed for the gallery grid
+  for (const room of hotel.rooms) {
+    for (const img of room.imageUrls) {
+      if (!allImages.includes(img)) allImages.push(img);
+    }
+  }
   if (allImages.length === 0) allImages.push("https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=2000&q=80");
   
   // Aggregate unique amenities from rooms to represent hotel-wide amenities

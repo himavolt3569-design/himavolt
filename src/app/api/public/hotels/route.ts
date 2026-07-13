@@ -31,17 +31,34 @@ export async function GET(req: NextRequest) {
   const typeFilter = CATEGORY_TYPE[category];
 
   const where: Prisma.RestaurantWhereInput = {
-    type: typeFilter ?? { in: [...HOTEL_TYPES] },
     isActive: true,
     rooms: { some: { isActive: true, maxGuests: { gte: totalGuests } } },
   };
 
+  // Base type filter: either specific type, or any stay-type venue OR any venue with HOTEL_HUB enabled
+  const typeCondition: Prisma.RestaurantWhereInput = typeFilter
+    ? { type: typeFilter }
+    : {
+        OR: [
+          { type: { in: [...HOTEL_TYPES] } },
+          { featuresEnabled: { has: "HOTEL_HUB" } },
+        ],
+      };
+
   if (dest) {
-    where.OR = [
-      { city: { contains: dest, mode: "insensitive" } },
-      { address: { contains: dest, mode: "insensitive" } },
-      { name: { contains: dest, mode: "insensitive" } },
+    where.AND = [
+      typeCondition,
+      {
+        OR: [
+          { city: { contains: dest, mode: "insensitive" } },
+          { address: { contains: dest, mode: "insensitive" } },
+          { name: { contains: dest, mode: "insensitive" } },
+        ],
+      },
     ];
+  } else {
+    // Merge the type condition directly if no destination filter
+    Object.assign(where, typeCondition);
   }
 
   // Sequential transaction — prod DB pool is small; keep queries batched.
