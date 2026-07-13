@@ -7,6 +7,14 @@ import { Button } from "@/components/design-system/primitives/Button";
 import { CreditCard, Wallet, Banknote, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createHotelBooking } from "../actions";
+import { z } from "zod";
+
+const formSchema = z.object({
+  firstName: z.string().min(2, "First name must be at least 2 characters").regex(/^[A-Za-z\s]+$/, "Only letters allowed"),
+  lastName: z.string().min(2, "Last name must be at least 2 characters").regex(/^[A-Za-z\s]+$/, "Only letters allowed"),
+  email: z.string().email("Please enter a valid email address").optional().or(z.literal("")),
+  phone: z.string().min(7, "Phone number must be at least 7 digits").max(15, "Phone number is too long").regex(/^[0-9+\-\s()]+$/, "Invalid phone format"),
+});
 
 export function CheckoutForm({
   roomId,
@@ -27,6 +35,7 @@ export function CheckoutForm({
   const [paymentMethod, setPaymentMethod] = useState("CASH");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   // Controlled guest fields
   const [firstName, setFirstName] = useState("");
@@ -38,7 +47,19 @@ export function CheckoutForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setFieldErrors({});
     setIsSubmitting(true);
+
+    const parsed = formSchema.safeParse({ firstName, lastName, email, phone });
+    if (!parsed.success) {
+      const formattedErrors: Record<string, string> = {};
+      parsed.error.issues.forEach((issue) => {
+        formattedErrors[issue.path[0]] = issue.message;
+      });
+      setFieldErrors(formattedErrors);
+      setIsSubmitting(false);
+      return;
+    }
 
     try {
       const result = await createHotelBooking({
@@ -140,10 +161,14 @@ export function CheckoutForm({
                 required
                 type="text"
                 value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                className={inputClass}
+                onChange={(e) => {
+                  setFirstName(e.target.value);
+                  if (fieldErrors.firstName) setFieldErrors((p) => ({ ...p, firstName: "" }));
+                }}
+                className={cn(inputClass, fieldErrors.firstName && "border-red-500 focus:border-red-500 focus:ring-red-500")}
                 placeholder="John"
               />
+              {fieldErrors.firstName && <p className="text-xs text-red-500 font-medium">{fieldErrors.firstName}</p>}
             </div>
             <div className="space-y-1.5">
               <label className="text-sm font-semibold text-[var(--text-1)]">Last name</label>
@@ -151,10 +176,14 @@ export function CheckoutForm({
                 required
                 type="text"
                 value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                className={inputClass}
+                onChange={(e) => {
+                  setLastName(e.target.value);
+                  if (fieldErrors.lastName) setFieldErrors((p) => ({ ...p, lastName: "" }));
+                }}
+                className={cn(inputClass, fieldErrors.lastName && "border-red-500 focus:border-red-500 focus:ring-red-500")}
                 placeholder="Doe"
               />
+              {fieldErrors.lastName && <p className="text-xs text-red-500 font-medium">{fieldErrors.lastName}</p>}
             </div>
           </div>
 
@@ -163,13 +192,19 @@ export function CheckoutForm({
             <input
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className={inputClass}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (fieldErrors.email) setFieldErrors((p) => ({ ...p, email: "" }));
+              }}
+              className={cn(inputClass, fieldErrors.email && "border-red-500 focus:border-red-500 focus:ring-red-500")}
               placeholder="john.doe@example.com"
             />
-            <Typography variant="small" className="text-[var(--text-3)]">
-              We&apos;ll send your booking confirmation here.
-            </Typography>
+            {fieldErrors.email && <p className="text-xs text-red-500 font-medium">{fieldErrors.email}</p>}
+            {!fieldErrors.email && (
+              <Typography variant="small" className="text-[var(--text-3)]">
+                We&apos;ll send your booking confirmation here.
+              </Typography>
+            )}
           </div>
 
           <div className="space-y-1.5">
@@ -180,10 +215,14 @@ export function CheckoutForm({
               required
               type="tel"
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className={inputClass}
+              onChange={(e) => {
+                setPhone(e.target.value);
+                if (fieldErrors.phone) setFieldErrors((p) => ({ ...p, phone: "" }));
+              }}
+              className={cn(inputClass, fieldErrors.phone && "border-red-500 focus:border-red-500 focus:ring-red-500")}
               placeholder="+977 9800000000"
             />
+            {fieldErrors.phone && <p className="text-xs text-red-500 font-medium">{fieldErrors.phone}</p>}
           </div>
         </div>
       </section>
