@@ -92,6 +92,13 @@ export default function Navbar() {
         {/* Actions Area */}
         <div className="flex items-center gap-1 sm:gap-2 shrink-0">
 
+          <Link
+            href="/hotels"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-bold text-slate-700 hover:text-[var(--accent)] hover:bg-slate-50 transition-all"
+          >
+            Hotels
+          </Link>
+
           {!scrolled && (
             <Link
               href="/staff-login"
