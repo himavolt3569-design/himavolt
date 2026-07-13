@@ -45,11 +45,12 @@ export default function POSActivationGate({
   const localFlowForRestaurant =
     dismissedRestaurantId === restaurant.id ? flow : "idle";
 
-  const welcomeAlreadySeen = !!restaurant.posWelcomeSeenAt;
-  const shouldShowWelcome =
-    !openWizard &&
-    !welcomeAlreadySeen &&
-    localFlowForRestaurant === "idle";
+  // The first-run welcome tour is intentionally never auto-shown when a
+  // restaurant is created — owners land straight on their dashboard, with the
+  // default categories already generated for them. The POSWelcomeTour component
+  // below is kept for the on-demand activation path (and possible future use);
+  // only the automatic popup is disabled here.
+  const shouldShowWelcome = false;
 
   const shouldShowWizard =
     openWizard || localFlowForRestaurant === "welcome-accepted";

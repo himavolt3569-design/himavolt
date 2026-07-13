@@ -33,7 +33,10 @@ export function useKotPrintJobs(restaurantId: string | null | undefined, enabled
             `/api/restaurants/${restaurantId}/print-jobs/${job.id}`,
             {
               method: "POST",
-              body: JSON.stringify({ action: "claim", clientId }),
+              // apiFetch JSON-stringifies the body itself — pass the object, not
+              // a pre-stringified string (that double-encodes it and the server
+              // reads `clientId` as undefined → "clientId is required").
+              body: { action: "claim", clientId },
             }
           );
 
@@ -53,7 +56,7 @@ export function useKotPrintJobs(restaurantId: string | null | undefined, enabled
               `/api/restaurants/${restaurantId}/print-jobs/${job.id}`,
               {
                 method: "POST",
-                body: JSON.stringify({ action: "printed", clientId }),
+                body: { action: "printed", clientId },
               }
             );
           }

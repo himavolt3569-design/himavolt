@@ -126,6 +126,11 @@ interface RestaurantContextType {
   >;
   removeStaff: (restaurantId: string, staffId: string) => Promise<void>;
   toggleStaffActive: (restaurantId: string, staffId: string) => Promise<void>;
+  updateStaffRole: (
+    restaurantId: string,
+    staffId: string,
+    role: string,
+  ) => Promise<void>;
 }
 
 const RestaurantContext = createContext<RestaurantContextType | null>(null);
@@ -182,7 +187,12 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
     fetchingRef.current = true;
     setLoading(true);
     try {
-      const data = await apiFetch<Restaurant[]>("/api/restaurants");
+      // cacheTtl: 0 — always fetch the list fresh. This function is the
+      // reconcile step after staff/restaurant mutations, and apiFetch's default
+      // 60s GET cache made those refetches return the pre-mutation list (child
+      // writes only bust the `/api/restaurants/:id` prefix, never the list key),
+      // so edits looked like they "did nothing until a refresh".
+      const data = await apiFetch<Restaurant[]>("/api/restaurants", { cacheTtl: 0 });
       setRestaurants(data);
       hasFetchedRef.current = true;
       setHasFetched(true);
@@ -289,7 +299,9 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
       writeStoredRestaurantId(restaurant.id);
       // Creating a restaurant upgrades a CUSTOMER to OWNER server-side; refresh
       // the cached role in the background so the owner UI appears without
-      // blocking the create flow on an extra round-trip.
+      // blocking the create flow on an extra round-trip. The default category
+      // tree is seeded inline by the POST handler, so Menu → Categories is
+      // already populated — nothing to trigger here.
       void refreshRole();
       return restaurant;
     },
@@ -427,6 +439,38 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
     [restaurants, patchRestaurant, fetchRestaurants],
   );
 
+  const updateStaffRole = useCallback(
+    async (restaurantId: string, staffId: string, role: string) => {
+      const restaurant = restaurants.find((r) => r.id === restaurantId);
+      const member = restaurant?.staff.find((s) => s.id === staffId);
+      if (!member || member.role === role) return;
+      const prevRole = member.role;
+      // Optimistic: the new role badge shows instantly. Previously this went
+      // through a full /api/restaurants refetch which read that list's 60s cache
+      // (child mutations only bust the /api/restaurants/:id prefix, not the list)
+      // — so the change appeared to do nothing until the cache expired.
+      patchRestaurant(restaurantId, (r) => ({
+        ...r,
+        staff: r.staff.map((s) => (s.id === staffId ? { ...s, role } : s)),
+      }));
+      try {
+        await apiFetch(`/api/restaurants/${restaurantId}/staff/${staffId}`, {
+          method: "PATCH",
+          body: { role },
+        });
+      } catch (err) {
+        patchRestaurant(restaurantId, (r) => ({
+          ...r,
+          staff: r.staff.map((s) =>
+            s.id === staffId ? { ...s, role: prevRole } : s,
+          ),
+        }));
+        throw err;
+      }
+    },
+    [restaurants, patchRestaurant],
+  );
+
   return (
     <RestaurantContext.Provider
       value={{
@@ -444,6 +488,7 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
         addStaff,
         removeStaff,
         toggleStaffActive,
+        updateStaffRole,
       }}
     >
       {children}

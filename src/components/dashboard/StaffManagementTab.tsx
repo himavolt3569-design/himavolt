@@ -148,35 +148,21 @@ function RoleDropdown({
   current,
   staffId,
   restaurantId,
-  onUpdated,
 }: {
   current: StaffRole;
   staffId: string;
   restaurantId: string;
-  onUpdated: () => void;
 }) {
+  const { updateStaffRole } = useRestaurant();
   const [open, setOpen] = useState(false);
-  const [saving, setSaving] = useState<StaffRole | null>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
-  const handleChange = async (role: StaffRole) => {
-    if (role === current) {
-      setOpen(false);
-      return;
-    }
-    setSaving(role);
-    try {
-      await apiFetch(`/api/restaurants/${restaurantId}/staff/${staffId}`, {
-        method: "PATCH",
-        body: { role },
-      });
-      onUpdated();
-    } catch {
-      /* keep open */
-    } finally {
-      setSaving(null);
-      setOpen(false);
-    }
+  const handleChange = (role: StaffRole) => {
+    setOpen(false);
+    if (role === current) return;
+    // Optimistic: the badge updates instantly via the context patch (which also
+    // rolls back on failure) — no spinner, no post-write refetch to wait on.
+    void updateStaffRole(restaurantId, staffId, role).catch(() => {});
   };
 
   const meta = ROLE_META[current] ?? ROLE_META.WAITER;
@@ -212,18 +198,13 @@ function RoleDropdown({
             <button
               key={role}
               onClick={() => handleChange(role)}
-              disabled={!!saving}
               className={`flex w-full items-center gap-2.5 px-3 py-2.5 text-xs font-semibold transition-colors ${
                 isActive
                   ? "bg-[var(--canvas-sub)] text-[var(--text-1)]"
                   : "text-[var(--text-2)] hover:bg-[var(--canvas-sub)] hover:text-[var(--text-1)]"
               }`}
             >
-              {saving === role ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin text-[var(--text-3)]" />
-              ) : (
-                <RI className={`h-3.5 w-3.5 ${rm.text}`} />
-              )}
+              <RI className={`h-3.5 w-3.5 ${rm.text}`} />
               <span className="flex-1 text-left">{rm.label}</span>
               {isActive && <Check className="h-3 w-3 text-[var(--text-3)]" />}
             </button>
@@ -358,7 +339,6 @@ function StaffCard({
             current={roleKey}
             staffId={member.id}
             restaurantId={restaurant.id}
-            onUpdated={onRoleUpdated}
           />
         </div>
 

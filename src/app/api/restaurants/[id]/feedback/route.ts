@@ -112,7 +112,9 @@ export async function GET(req: NextRequest, { params }: Params) {
   const limit = Math.min(parseInt(searchParams.get("limit") ?? "50"), 100);
   const offset = parseInt(searchParams.get("offset") ?? "0");
 
-  const [feedbacks, total] = await Promise.all([
+  // One parallel batch instead of (findMany+count) then a separate avg query —
+  // saves a serial round-trip on the small serverless pool.
+  const [feedbacks, total, avgRating] = await Promise.all([
     db.feedback.findMany({
       where: { restaurantId },
       include: {
@@ -123,12 +125,11 @@ export async function GET(req: NextRequest, { params }: Params) {
       skip: offset,
     }),
     db.feedback.count({ where: { restaurantId } }),
+    db.feedback.aggregate({
+      where: { restaurantId, rating: { not: null } },
+      _avg: { rating: true },
+    }),
   ]);
-
-  const avgRating = await db.feedback.aggregate({
-    where: { restaurantId, rating: { not: null } },
-    _avg: { rating: true },
-  });
 
   return NextResponse.json({
     feedbacks,

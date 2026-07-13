@@ -25,6 +25,9 @@ import {
   Eye,
   Settings,
   AlertCircle,
+  Settings2,
+  CalendarDays,
+  Hash,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRestaurant } from "@/context/RestaurantContext";
@@ -171,28 +174,38 @@ function BookingRow({
         booking.status === "CANCELLED" ? "border-l-rose-400" : "border-l-[var(--border)]"
       )}
     >
-      <div className="p-4 flex flex-col sm:flex-row sm:items-center gap-3">
-        <div className={cn(
-          "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-[15px] font-black",
-          booking.status === "CHECKED_IN" ? "bg-[var(--accent-muted)] text-[var(--accent-text)]" :
-          booking.status === "CONFIRMED" ? "bg-[var(--status-info-bg)] text-[var(--status-info-text)]" :
-          "bg-[var(--canvas-sub)] text-[var(--text-2)]"
-        )}>
-          {booking.guestName?.[0]?.toUpperCase() ?? "?"}
+      <div className="p-4 flex flex-col sm:flex-row sm:items-center gap-4">
+        <div className="flex flex-col items-center gap-1.5 shrink-0">
+          <div className={cn(
+            "flex h-12 w-12 items-center justify-center rounded-2xl text-[18px] font-black shadow-sm",
+            booking.status === "CHECKED_IN" ? "bg-[var(--accent)] text-white ring-2 ring-[var(--accent-muted)] ring-offset-1" :
+            booking.status === "CONFIRMED" ? "bg-blue-500 text-white ring-2 ring-blue-100 ring-offset-1" :
+            booking.status === "PENDING" ? "bg-amber-400 text-white ring-2 ring-amber-50 ring-offset-1" :
+            "bg-[var(--canvas-sub)] text-[var(--text-2)]"
+          )}>
+            {booking.guestName?.[0]?.toUpperCase() ?? "?"}
+          </div>
+          <span className="flex items-center gap-0.5 text-[10px] font-bold text-[var(--text-3)] bg-[var(--canvas-sub)] px-1.5 py-0.5 rounded-md">
+            <Hash className="h-2.5 w-2.5" />
+            {booking.id.slice(-6).toUpperCase()}
+          </span>
         </div>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <p className="font-bold text-[14px] text-[var(--text-1)] truncate">{booking.guestName}</p>
+          <div className="flex items-center gap-2 flex-wrap mb-1.5">
+            <p className="font-extrabold text-[15px] text-[var(--text-1)] truncate">{booking.guestName}</p>
             <StatusBadge status={booking.status} />
           </div>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1 text-[12px] text-[var(--text-3)]">
-            <span className="font-bold text-[var(--text-2)]">Room {booking.room.roomNumber}</span>
-            <span>·</span>
-            <span>{fmtDate(booking.checkIn)} → {fmtDate(booking.checkOut)}</span>
-            <span>·</span>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 mt-1 text-[12.5px] text-[var(--text-3)]">
+            <span className="inline-flex items-center gap-1 font-bold text-[var(--text-2)] bg-[var(--canvas-sub)] px-2 py-0.5 rounded-full">
+              Room {booking.room.roomNumber}
+            </span>
+            <span className="inline-flex items-center gap-1 font-medium bg-[var(--canvas-sub)] px-2 py-0.5 rounded-full">
+              <CalendarDays className="h-3.5 w-3.5 text-[var(--text-3)]" />
+              {fmtDate(booking.checkIn)} <span className="text-[10px]">→</span> {fmtDate(booking.checkOut)}
+            </span>
             <span className="font-semibold">{booking.nights} night{booking.nights !== 1 ? "s" : ""}</span>
-            {booking.guestPhone && <><span>·</span><span>{booking.guestPhone}</span></>}
+            {booking.guestPhone && <span className="text-[var(--text-2)]">{booking.guestPhone}</span>}
           </div>
         </div>
 

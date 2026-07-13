@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { safeHandler, unauthorized } from "@/lib/api-helpers";
+import { safeHandler, forbidden } from "@/lib/api-helpers";
 import { createChatRoomSchema } from "@/lib/validations";
-import { getStaffSession } from "@/lib/staff-auth";
-import { getAuthUser } from "@/lib/auth";
+import { getRestaurantAccess } from "@/lib/access-control";
 
 /** How long a table chat stays "active" before a new scan gets a fresh room */
 const TABLE_CHAT_TTL_MS = 2 * 60 * 60 * 1000; // 2 hours
@@ -83,17 +82,14 @@ export const POST = safeHandler(
 );
 
 export const GET = safeHandler(async (req) => {
-  const staff = await getStaffSession(req);
-  const user = staff ? null : await getAuthUser();
-  const isAuth = !!staff || !!user;
-
   const { searchParams } = new URL(req.url);
   const orderId = searchParams.get("orderId");
   const restaurantId = searchParams.get("restaurantId");
   const type = searchParams.get("type");
 
   if (orderId) {
-    // Customer can access by orderId — no login required
+    // Customer can access by orderId — no login required (possession of the
+    // order id acts as the access capability, same model as order-track).
     const room = await db.chatRoom.findUnique({
       where: { orderId },
       include: {
@@ -105,7 +101,11 @@ export const GET = safeHandler(async (req) => {
   }
 
   if (restaurantId) {
-    if (!isAuth) return unauthorized();
+    // Staff/owner ONLY, and scoped to THIS restaurant. Previously any
+    // authenticated user (incl. a customer, or staff of a different
+    // restaurant) could list another tenant's chat rooms + customer names.
+    const access = await getRestaurantAccess(req, restaurantId);
+    if (!access) return forbidden();
 
     // Return or create the single broadcast room for this restaurant
     if (type === "BROADCAST") {

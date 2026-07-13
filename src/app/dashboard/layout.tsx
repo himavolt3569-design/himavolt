@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Menu,
@@ -47,6 +47,42 @@ export default function DashboardLayout({
   const [currentTime, setCurrentTime] = useState(new Date());
   const [posWizardOpen, setPosWizardOpen] = useState(false);
   const [createRestaurantOpen, setCreateRestaurantOpen] = useState(false);
+
+  // Drag-resizable desktop sidebar — width persisted per user.
+  const [sidebarWidth, setSidebarWidth] = useState(224);
+  const [resizing, setResizing] = useState(false);
+  const sidebarWidthRef = useRef(224);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("himavolt:sidebarWidth");
+      if (saved) {
+        const w = Math.min(400, Math.max(190, Number(saved)));
+        sidebarWidthRef.current = w;
+        setSidebarWidth(w);
+      }
+    } catch {}
+  }, []);
+
+  const startSidebarResize = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setResizing(true);
+    const onMove = (ev: MouseEvent) => {
+      const w = Math.min(400, Math.max(190, ev.clientX));
+      sidebarWidthRef.current = w;
+      setSidebarWidth(w);
+    };
+    const onUp = () => {
+      setResizing(false);
+      try {
+        localStorage.setItem("himavolt:sidebarWidth", String(sidebarWidthRef.current));
+      } catch {}
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+  };
 
   // Wave 1 — most-visited tabs warmed almost immediately so a click lands on a
   // ready chunk (no skeleton, instant render).
@@ -189,8 +225,11 @@ export default function DashboardLayout({
 
   return (
     <div className="flex h-screen overflow-hidden bg-[var(--canvas-sub)] font-sans text-[var(--text-1)]">
-      {/* ── Desktop sidebar ───────────────────────────────────── */}
-      <div className={`hidden lg:block shrink-0 h-full transition-all duration-300 ${sidebarCollapsed ? "w-14" : "w-56"}`}>
+      {/* ── Desktop sidebar (drag-resizable) ──────────────────── */}
+      <div
+        className={`relative hidden lg:block shrink-0 h-full ${sidebarCollapsed ? "w-14" : ""} ${resizing ? "" : "transition-all duration-200"}`}
+        style={sidebarCollapsed ? undefined : { width: sidebarWidth }}
+      >
         {!isActuallyLoaded ? null : (
           <DashboardSidebar
             newOrderCount={newOrderCount}
@@ -199,6 +238,17 @@ export default function DashboardLayout({
             onRequestPOSActivate={() => setPosWizardOpen(true)}
             onRequestCreateRestaurant={() => setCreateRestaurantOpen(true)}
           />
+        )}
+        {/* Drag handle — only when expanded */}
+        {!sidebarCollapsed && isActuallyLoaded && (
+          <div
+            onMouseDown={startSidebarResize}
+            onDoubleClick={() => { sidebarWidthRef.current = 224; setSidebarWidth(224); try { localStorage.setItem("himavolt:sidebarWidth", "224"); } catch {} }}
+            title="Drag to resize · double-click to reset"
+            className="group absolute inset-y-0 -right-1 z-20 w-2 cursor-col-resize"
+          >
+            <div className={`absolute inset-y-0 right-1 w-px transition-colors ${resizing ? "bg-[var(--accent)]" : "bg-transparent group-hover:bg-[var(--accent)]"}`} />
+          </div>
         )}
       </div>
 
@@ -247,7 +297,8 @@ export default function DashboardLayout({
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setMobileSidebarOpen(true)}
-                  className="rounded-lg p-2 text-[var(--text-2)] hover:bg-[var(--surface)] transition-colors lg:hidden"
+                  aria-label="Open menu"
+                  className="rounded-lg p-2 text-[var(--text-2)] hover:bg-[var(--surface)] transition-colors active:scale-[0.95] lg:hidden"
                 >
                   <Menu className="h-5 w-5" />
                 </button>
@@ -266,6 +317,7 @@ export default function DashboardLayout({
                   <input
                     type="text"
                     placeholder="Search..."
+                    aria-label="Search"
                     className="w-36 bg-transparent text-[13px] outline-none placeholder:text-[var(--text-3)] text-[var(--text-1)]"
                   />
                 </div>
@@ -299,7 +351,8 @@ export default function DashboardLayout({
 
                 <Link
                   href="/profile"
-                  className="flex h-8 w-8 items-center justify-center rounded-full ring-2 ring-[var(--border)] hover:ring-[var(--accent)] transition-colors overflow-hidden bg-[var(--accent-muted)]"
+                  aria-label="Your profile"
+                  className="flex h-8 w-8 items-center justify-center rounded-full ring-2 ring-[var(--border)] hover:ring-[var(--accent)] transition-colors active:scale-[0.95] overflow-hidden bg-[var(--accent-muted)]"
                 >
                   {user?.user_metadata?.avatar_url ? (
                     <img

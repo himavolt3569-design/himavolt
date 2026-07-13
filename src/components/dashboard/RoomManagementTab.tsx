@@ -43,8 +43,8 @@ interface Room {
   id: string;
   roomNumber: string;
   name: string;
-  type: RoomType;
-  floor: number;
+  type: string;
+  floor: string;
   price: number;
   maxGuests: number;
   description: string | null;
@@ -77,18 +77,21 @@ interface Booking {
   notes: string | null;
   status: BookingStatus;
   createdAt: string;
-  room?: { roomNumber: string; name: string; type: RoomType };
+  room?: { roomNumber: string; name: string; type: string };
 }
 
 /*  Constants                                                          */
 
-const ROOM_TYPES: RoomType[] = ["STANDARD", "DELUXE", "SUITE", "DORMITORY"];
+const ROOM_TYPES = ["NORMAL", "DELUXE", "SUITE", "OTHERS"];
 
-const ROOM_TYPE_COLORS: Record<RoomType, { bg: string; text: string; border: string }> = {
-  STANDARD: { bg: "bg-[var(--canvas-sub)]", text: "text-[var(--text-2)]", border: "border-[var(--border)]" },
-  DELUXE: { bg: "bg-[var(--accent-muted)]", text: "text-[var(--accent-text)]", border: "border-[var(--accent-border)]" },
-  SUITE: { bg: "bg-[var(--accent-muted)]", text: "text-[var(--accent-text)]", border: "border-[var(--accent-border)]" },
-  DORMITORY: { bg: "bg-[var(--status-info-bg)]", text: "text-[var(--status-info-text)]", border: "border-[var(--status-info-border)]" },
+const getRoomTypeColors = (type: string) => {
+  const colors: Record<string, { bg: string; text: string; border: string }> = {
+    NORMAL: { bg: "bg-[var(--canvas-sub)]", text: "text-[var(--text-2)]", border: "border-[var(--border)]" },
+    DELUXE: { bg: "bg-[var(--accent-muted)]", text: "text-[var(--accent-text)]", border: "border-[var(--accent-border)]" },
+    SUITE: { bg: "bg-[var(--accent-muted)]", text: "text-[var(--accent-text)]", border: "border-[var(--accent-border)]" },
+    OTHERS: { bg: "bg-[var(--status-info-bg)]", text: "text-[var(--status-info-text)]", border: "border-[var(--status-info-border)]" },
+  };
+  return colors[type] || colors["OTHERS"];
 };
 
 const BOOKING_STATUSES: BookingStatus[] = ["CONFIRMED", "CHECKED_IN", "CHECKED_OUT", "CANCELLED"];
@@ -123,8 +126,8 @@ const ALL_AMENITIES = AMENITY_CATALOG.flatMap((g) => g.items);
 const BLANK_ROOM = {
   roomNumber: "",
   name: "",
-  type: "STANDARD" as RoomType,
-  floor: 1,
+  type: "NORMAL",
+  floor: "1",
   price: 0,
   maxGuests: 2,
   description: "",
@@ -623,24 +626,38 @@ function RoomFormModal({
                   </div>
                   <div>
                     <label className="block text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider mb-2">Type</label>
-                    <div className="flex flex-wrap gap-2">
-                      {ROOM_TYPES.map((t) => {
-                        const colors = ROOM_TYPE_COLORS[t];
-                        return (
-                          <button
-                            key={t}
-                            type="button"
-                            onClick={() => setForm((f) => ({ ...f, type: t }))}
-                            className={cn("rounded-xl border px-3.5 py-2 text-[11px] font-bold transition-all",
-                              form.type === t
-                                ? `${colors.bg} ${colors.text} ${colors.border}`
-                                : "border-[var(--border)] bg-[var(--canvas-sub)] text-[var(--text-2)] hover:bg-[var(--surface)]"
-                            )}
-                          >
-                            {t}
-                          </button>
-                        );
-                      })}
+                    <div className="flex flex-col gap-3">
+                      <div className="flex flex-wrap gap-2">
+                        {ROOM_TYPES.map((t) => {
+                          const isCustom = !ROOM_TYPES.slice(0, 3).includes(form.type);
+                          const isActive = t === "OTHERS" ? isCustom : form.type === t;
+                          const colors = getRoomTypeColors(isActive ? form.type : t);
+                          return (
+                            <button
+                              key={t}
+                              type="button"
+                              onClick={() => setForm((f) => ({ ...f, type: t === "OTHERS" ? "" : t }))}
+                              className={cn("rounded-xl border px-3.5 py-2 text-[11px] font-bold transition-all",
+                                isActive
+                                  ? `${colors.bg} ${colors.text} ${colors.border}`
+                                  : "border-[var(--border)] bg-[var(--canvas-sub)] text-[var(--text-2)] hover:bg-[var(--surface)]"
+                              )}
+                            >
+                              {t}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {!ROOM_TYPES.slice(0, 3).includes(form.type) && (
+                        <input
+                          type="text"
+                          value={form.type}
+                          onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}
+                          placeholder="e.g. Treehouse, Tent..."
+                          className="w-full rounded-xl bg-[var(--canvas-sub)] px-3.5 py-2.5 text-[13px] font-semibold text-[var(--text-1)] outline-none ring-1 ring-[var(--border)] focus:ring-[var(--accent)] transition-all placeholder:text-[var(--text-3)] placeholder:font-normal"
+                          autoFocus
+                        />
+                      )}
                     </div>
                   </div>
                 </div>
@@ -659,11 +676,11 @@ function RoomFormModal({
                     <div>
                       <label className="block text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider mb-1.5">Floor</label>
                       <input
-                        type="number"
+                        type="text"
                         value={form.floor}
-                        onChange={(e) => setForm((f) => ({ ...f, floor: parseInt(e.target.value) || 1 }))}
-                        min={0}
-                        className="w-full rounded-xl bg-[var(--canvas-sub)] px-3.5 py-2.5 text-[13px] font-semibold text-[var(--text-1)] outline-none ring-1 ring-[var(--border)] focus:ring-[var(--accent)] transition-all text-center"
+                        onChange={(e) => setForm((f) => ({ ...f, floor: e.target.value }))}
+                        placeholder="e.g. 1st, Ground, -1"
+                        className="w-full rounded-xl bg-[var(--canvas-sub)] px-3.5 py-2.5 text-[13px] font-semibold text-[var(--text-1)] outline-none ring-1 ring-[var(--border)] focus:ring-[var(--accent)] transition-all text-center placeholder:text-[var(--text-3)] placeholder:font-normal"
                       />
                     </div>
                     <div>
@@ -691,16 +708,24 @@ function RoomFormModal({
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    <div>
+                    <div className="col-span-2 sm:col-span-1">
                       <label className="block text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider mb-1.5">Bed Type</label>
-                      <select
-                        value={form.bedType}
-                        onChange={(e) => setForm((f) => ({ ...f, bedType: e.target.value }))}
-                        className="w-full rounded-xl bg-[var(--canvas-sub)] px-3.5 py-2.5 text-[13px] font-semibold text-[var(--text-1)] outline-none ring-1 ring-[var(--border)] focus:ring-[var(--accent)] transition-all"
-                      >
-                        <option value="">Select bed type</option>
-                        {BED_TYPES.map((bt) => <option key={bt} value={bt}>{bt}</option>)}
-                      </select>
+                      <div className="flex flex-wrap gap-1.5">
+                        {BED_TYPES.map((bt) => (
+                          <button
+                            key={bt}
+                            type="button"
+                            onClick={() => setForm((f) => ({ ...f, bedType: f.bedType === bt ? "" : bt }))}
+                            className={cn("rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold transition-all",
+                              form.bedType === bt
+                                ? "border-[var(--accent-border)] bg-[var(--accent-muted)] text-[var(--accent-text)]"
+                                : "border-[var(--border)] bg-[var(--canvas-sub)] text-[var(--text-2)] hover:border-[var(--accent-border)] hover:text-[var(--accent-text)]"
+                            )}
+                          >
+                            {bt}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                     <div>
                       <label className="block text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider mb-1.5">Bed Count</label>
@@ -752,17 +777,14 @@ function RoomFormModal({
               <div className="border-t border-[var(--border-soft)]" />
 
               {/* Section 3 header before amenities */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 mb-3">
                 <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--accent)] text-white text-[10px] font-black">3</span>
-                <span className="text-[11px] font-bold uppercase tracking-widest text-[var(--text-3)]">Amenities &amp; Photos</span>
+                <span className="text-[11px] font-bold uppercase tracking-widest text-[var(--text-3)]">Amenities &amp; Features</span>
               </div>
 
               {/* Amenities — categorized quick-pick + custom add */}
               <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="block text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider">
-                    Amenities &amp; Features
-                  </label>
+                <div className="flex items-center justify-end mb-2">
                   {form.amenities.length > 0 && (
                     <span className="text-[11px] font-bold text-[var(--accent-text)]">
                       {form.amenities.length} selected
@@ -848,49 +870,61 @@ function RoomFormModal({
                 </div>
               </div>
 
-              {/* Room Images */}
+              <div className="border-t border-[var(--border-soft)]" />
+
+              {/* Room Photos */}
               <div>
-                <label className="block text-sm font-bold text-[var(--text-1)] mb-2">Room Photos</label>
-                {form.imageUrls.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mb-2">
-                    {form.imageUrls.map((url, idx) => (
-                      <div key={idx} className="relative group h-20 w-20 rounded-xl overflow-hidden border border-[var(--border)] shrink-0">
-                        <img src={url} alt={`Room ${idx + 1}`} className="h-full w-full object-cover" />
-                        <button
-                          type="button"
-                          onClick={() => removeImage(idx)}
-                          className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"
-                        >
-                          <X className="h-4 w-4 text-white" />
-                        </button>
-                        {idx === 0 && (
-                          <span className="absolute bottom-0 left-0 right-0 text-center text-[9px] font-bold bg-black/60 text-white py-0.5">
-                            Cover
-                          </span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-                <input
-                  ref={imgInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleImageUpload}
-                />
-                <button
-                  type="button"
-                  onClick={() => imgInputRef.current?.click()}
-                  disabled={uploadingImg}
-                  className="flex items-center gap-2 rounded-xl border border-dashed border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-3 text-sm font-medium text-[var(--text-2)] hover:border-[var(--accent)] hover:bg-[var(--accent-muted)] hover:text-[var(--accent-text)] transition-all disabled:opacity-50 w-full justify-center"
-                >
-                  {uploadingImg ? (
-                    <><Loader2 className="h-4 w-4 animate-spin" /> Uploading...</>
-                  ) : (
-                    <><Upload className="h-4 w-4" /> Add Photo</>
+                <label className="block text-[11px] font-bold text-[var(--text-1)] mb-3 uppercase tracking-widest flex items-center gap-2">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--accent)] text-white text-[10px] font-black">4</span>
+                  Room Photos
+                </label>
+                
+                <div className="rounded-2xl border-2 border-dashed border-[var(--accent-border)] bg-[var(--accent-muted)]/20 p-5 text-center">
+                  {form.imageUrls.length > 0 && (
+                    <div className="flex flex-wrap justify-center gap-3 mb-4">
+                      {form.imageUrls.map((url, idx) => (
+                        <div key={idx} className="relative group h-24 w-24 rounded-xl overflow-hidden border-2 border-[var(--border)] shrink-0 shadow-sm">
+                          <img src={url} alt={`Room ${idx + 1}`} className="h-full w-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => removeImage(idx)}
+                            className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X className="h-5 w-5 text-white" />
+                          </button>
+                          {idx === 0 && (
+                            <span className="absolute bottom-0 left-0 right-0 text-center text-[10px] font-bold bg-black/70 text-white py-0.5">
+                              Cover
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   )}
-                </button>
+                  
+                  <input
+                    ref={imgInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageUpload}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => imgInputRef.current?.click()}
+                    disabled={uploadingImg}
+                    className="mx-auto flex items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-5 py-3 text-[13px] font-bold text-white shadow-md shadow-[var(--accent)]/20 hover:bg-[var(--accent-hover)] active:scale-[0.97] transition-all disabled:opacity-50"
+                  >
+                    {uploadingImg ? (
+                      <><Loader2 className="h-4 w-4 animate-spin" /> Uploading...</>
+                    ) : (
+                      <><Upload className="h-4 w-4" /> Add Photo</>
+                    )}
+                  </button>
+                  <p className="text-[10px] font-semibold text-[var(--text-3)] mt-2">
+                    {form.imageUrls.length === 0 ? "Upload at least one photo" : "You can add more photos"}
+                  </p>
+                </div>
               </div>
 
               {/* Room video (optional) */}

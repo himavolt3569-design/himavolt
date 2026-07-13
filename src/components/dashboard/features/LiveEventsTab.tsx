@@ -21,7 +21,7 @@ import {
   MapPin,
   Ticket,
 } from "lucide-react";
-import NotPersistedBanner from "./_NotPersistedBanner";
+import { useFeatureConfig } from "@/hooks/useFeatureConfig";
 
 type EventType = "live-band" | "dj-night" | "karaoke" | "comedy" | "open-mic" | "sports";
 type EventStatus = "upcoming" | "ongoing" | "completed" | "cancelled";
@@ -59,10 +59,13 @@ const STATUS_COLORS: Record<EventStatus, { label: string; color: string; bg: str
   cancelled: { label: "Cancelled", color: "text-red-600", bg: "bg-red-50" },
 };
 
+const LIVE_EVENTS_DEFAULTS: { events: BarEvent[] } = { events: [] };
+
 export default function LiveEventsTab() {
   const { selectedRestaurant } = useRestaurant();
   const cur = selectedRestaurant?.currency ?? "NPR";
-  const [events, setEvents] = useState<BarEvent[]>([]);
+  const { config, setConfig } = useFeatureConfig<{ events: BarEvent[] }>("live-events", LIVE_EVENTS_DEFAULTS);
+  const events = config.events;
   const [showCreate, setShowCreate] = useState(false);
   const [filter, setFilter] = useState<EventStatus | "all">("all");
   const [newEvent, setNewEvent] = useState({
@@ -81,42 +84,39 @@ export default function LiveEventsTab() {
 
   const handleCreate = () => {
     if (!newEvent.name || !newEvent.date || !newEvent.startTime) return;
-    setEvents((prev) => [
-      ...prev,
-      {
-        id: `e${Date.now()}`,
-        name: newEvent.name,
-        type: newEvent.type,
-        date: newEvent.date,
-        startTime: newEvent.startTime,
-        endTime: newEvent.endTime,
-        performer: newEvent.performer,
-        coverCharge: parseFloat(newEvent.coverCharge) || 0,
-        capacity: parseInt(newEvent.capacity) || 50,
-        ticketsSold: 0,
-        status: "upcoming",
-        description: newEvent.description,
-        recurring: newEvent.recurring,
-        revenue: 0,
-      },
-    ]);
+    const created: BarEvent = {
+      id: `e${Date.now()}`,
+      name: newEvent.name,
+      type: newEvent.type,
+      date: newEvent.date,
+      startTime: newEvent.startTime,
+      endTime: newEvent.endTime,
+      performer: newEvent.performer,
+      coverCharge: parseFloat(newEvent.coverCharge) || 0,
+      capacity: parseInt(newEvent.capacity) || 50,
+      ticketsSold: 0,
+      status: "upcoming",
+      description: newEvent.description,
+      recurring: newEvent.recurring,
+      revenue: 0,
+    };
+    setConfig((c) => ({ events: [...c.events, created] }));
     setNewEvent({ name: "", type: "live-band", date: "", startTime: "", endTime: "", performer: "", coverCharge: "", capacity: "", description: "", recurring: false });
     setShowCreate(false);
   };
 
   const handleStatusChange = (id: string, status: EventStatus) => {
-    setEvents((prev) =>
-      prev.map((e) => {
+    setConfig((c) => ({
+      events: c.events.map((e) => {
         if (e.id !== id) return e;
         const revenue = status === "completed" ? e.ticketsSold * e.coverCharge : e.revenue;
         return { ...e, status, revenue };
       }),
-    );
+    }));
   };
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-10">
-      <NotPersistedBanner />
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-[var(--text-1)] flex items-center gap-2">

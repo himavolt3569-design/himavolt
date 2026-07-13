@@ -20,7 +20,7 @@ import {
   DollarSign,
   ShoppingBag,
 } from "lucide-react";
-import NotPersistedBanner from "./_NotPersistedBanner";
+import { useFeatureConfig } from "@/hooks/useFeatureConfig";
 
 interface Brand {
   id: string;
@@ -68,10 +68,13 @@ const emptyForm = {
   brandColor: "#7c3aed",
 };
 
+const MULTI_BRAND_DEFAULTS: { brands: Brand[] } = { brands: [] };
+
 export default function MultiBrandTab() {
   const { selectedRestaurant } = useRestaurant();
   const cur = selectedRestaurant?.currency ?? "NPR";
-  const [brands, setBrands] = useState<Brand[]>([]);
+  const { config, setConfig } = useFeatureConfig<{ brands: Brand[] }>("multi-brand", MULTI_BRAND_DEFAULTS);
+  const brands = config.brands;
   const [showAddForm, setShowAddForm] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
@@ -95,28 +98,28 @@ export default function MultiBrandTab() {
       menuCategories: [],
       sharedInventory: true,
     };
-    setBrands((prev) => [...prev, newBrand]);
+    setConfig((c) => ({ brands: [...c.brands, newBrand] }));
     setForm(emptyForm);
     setShowAddForm(false);
   };
 
   const toggleBrand = (id: string) => {
-    setBrands((prev) =>
-      prev.map((b) => (b.id === id ? { ...b, active: !b.active } : b))
-    );
+    setConfig((c) => ({
+      brands: c.brands.map((b) => (b.id === id ? { ...b, active: !b.active } : b)),
+    }));
   };
 
   const toggleSharedInventory = (id: string) => {
-    setBrands((prev) =>
-      prev.map((b) =>
+    setConfig((c) => ({
+      brands: c.brands.map((b) =>
         b.id === id ? { ...b, sharedInventory: !b.sharedInventory } : b
-      )
-    );
+      ),
+    }));
   };
 
   const toggleMenuCategory = (brandId: string, category: string) => {
-    setBrands((prev) =>
-      prev.map((b) => {
+    setConfig((cfg) => ({
+      brands: cfg.brands.map((b) => {
         if (b.id !== brandId) return b;
         const has = b.menuCategories.includes(category);
         return {
@@ -125,13 +128,12 @@ export default function MultiBrandTab() {
             ? b.menuCategories.filter((c) => c !== category)
             : [...b.menuCategories, category],
         };
-      })
-    );
+      }),
+    }));
   };
 
   return (
     <div className="space-y-6">
-      <NotPersistedBanner />
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-[var(--text-1)]">

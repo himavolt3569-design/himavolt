@@ -1,10 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { db } from "@/lib/db";
 import { getOrCreateUser } from "@/lib/auth";
 import { safeHandler, unauthorized } from "@/lib/api-helpers";
 import { createRestaurantSchema } from "@/lib/validations";
 import { logAudit } from "@/lib/audit";
 import { isValidNepalMobile, normalizeNepalPhone } from "@/lib/phone";
+import { seedDefaultCategories } from "@/lib/category-templates";
 import crypto from "crypto";
 
 const staffSelect = {
@@ -114,11 +115,27 @@ export const POST = safeHandler(
         longitude: body.longitude,
         ownerId: user.id,
         restaurantCode,
+        posWelcomeSeenAt: new Date(),
       },
       include: {
         staff: { select: staffSelect },
         _count: { select: { orders: true, menuItems: true } },
       },
+    });
+
+    // Seed the default category tree AFTER the response is sent. Seeding is
+    // ~10 sequential writes on the small serverless pool — keeping it in the
+    // request path was the main reason "create restaurant" felt slow. `after()`
+    // runs it in the same invocation once the owner already has their new
+    // restaurant, so the create returns instantly. Non-fatal, and the owner
+    // reaches Menu → Categories a few seconds later at the earliest, by which
+    // point this has finished (empty-Menu auto-seed remains the safety net).
+    after(async () => {
+      try {
+        await seedDefaultCategories(restaurant.id, body.type);
+      } catch (err) {
+        console.error("[Restaurant Create] category seed failed", err);
+      }
     });
 
     logAudit({

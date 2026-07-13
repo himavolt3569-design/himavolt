@@ -109,7 +109,7 @@ export async function POST(req: NextRequest, { params }: Params) {
       roomNumber: trimmedRoomNumber,
       name: name?.trim() || null,
       type: type || "STANDARD",
-      floor: floor ?? 1,
+      floor: floor !== undefined ? String(floor) : "1",
       price: price ?? 0,
       maxGuests: maxGuests ?? 2,
       description: description?.trim() || null,

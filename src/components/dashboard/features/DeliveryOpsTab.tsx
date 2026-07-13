@@ -20,7 +20,7 @@ import {
   Zap,
   TrendingUp,
 } from "lucide-react";
-import NotPersistedBanner from "./_NotPersistedBanner";
+import { useFeatureConfig } from "@/hooks/useFeatureConfig";
 
 type DeliveryStatus =
   | "Preparing"
@@ -61,14 +61,29 @@ const DELIVERY_PARTNERS = [
   "Unassigned",
 ];
 
+interface DeliveryOpsConfig {
+  deliveryOnly: boolean;
+  autoAccept: boolean;
+  peakThrottle: boolean;
+  maxOrdersPerHour: number;
+  maxConcurrent: number;
+  currentLoad: number;
+  orders: DeliveryOrder[];
+}
+
+const DELIVERY_OPS_DEFAULTS: DeliveryOpsConfig = {
+  deliveryOnly: true,
+  autoAccept: false,
+  peakThrottle: false,
+  maxOrdersPerHour: 30,
+  maxConcurrent: 15,
+  currentLoad: 9,
+  orders: [],
+};
+
 export default function DeliveryOpsTab() {
-  const [deliveryOnly, setDeliveryOnly] = useState(true);
-  const [autoAccept, setAutoAccept] = useState(false);
-  const [peakThrottle, setPeakThrottle] = useState(false);
-  const [maxOrdersPerHour, setMaxOrdersPerHour] = useState(30);
-  const [maxConcurrent, setMaxConcurrent] = useState(15);
-  const [currentLoad, setCurrentLoad] = useState(9);
-  const [orders, setOrders] = useState<DeliveryOrder[]>([]);
+  const { config, setConfig } = useFeatureConfig<DeliveryOpsConfig>("delivery-ops", DELIVERY_OPS_DEFAULTS);
+  const { deliveryOnly, autoAccept, peakThrottle, maxOrdersPerHour, maxConcurrent, currentLoad, orders } = config;
   const [avgDeliveryTime] = useState(34);
 
   const loadPercent = Math.min(
@@ -77,27 +92,30 @@ export default function DeliveryOpsTab() {
   );
 
   const movePriority = (index: number, direction: "up" | "down") => {
-    const newOrders = [...orders];
-    const swapIndex = direction === "up" ? index - 1 : index + 1;
-    if (swapIndex < 0 || swapIndex >= newOrders.length) return;
-    [newOrders[index], newOrders[swapIndex]] = [
-      newOrders[swapIndex],
-      newOrders[index],
-    ];
-    newOrders.forEach((o, i) => (o.priority = i + 1));
-    setOrders(newOrders);
+    setConfig((c) => {
+      const newOrders = [...c.orders];
+      const swapIndex = direction === "up" ? index - 1 : index + 1;
+      if (swapIndex < 0 || swapIndex >= newOrders.length) return c;
+      [newOrders[index], newOrders[swapIndex]] = [
+        newOrders[swapIndex],
+        newOrders[index],
+      ];
+      return { ...c, orders: newOrders.map((o, i) => ({ ...o, priority: i + 1 })) };
+    });
   };
 
   const updateStatus = (id: string, status: DeliveryStatus) => {
-    setOrders((prev) =>
-      prev.map((o) => (o.id === id ? { ...o, status } : o))
-    );
+    setConfig((c) => ({
+      ...c,
+      orders: c.orders.map((o) => (o.id === id ? { ...o, status } : o)),
+    }));
   };
 
   const assignPartner = (id: string, partner: string) => {
-    setOrders((prev) =>
-      prev.map((o) => (o.id === id ? { ...o, deliveryPartner: partner } : o))
-    );
+    setConfig((c) => ({
+      ...c,
+      orders: c.orders.map((o) => (o.id === id ? { ...o, deliveryPartner: partner } : o)),
+    }));
   };
 
   const activeOrders = orders.filter((o) => o.status !== "Delivered");
@@ -105,7 +123,6 @@ export default function DeliveryOpsTab() {
 
   return (
     <div className="space-y-6">
-      <NotPersistedBanner />
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-[var(--text-1)]">
@@ -143,7 +160,7 @@ export default function DeliveryOpsTab() {
               </div>
             </div>
             <button
-              onClick={() => setDeliveryOnly(!deliveryOnly)}
+              onClick={() => setConfig((c) => ({ ...c, deliveryOnly: !c.deliveryOnly }))}
               className="focus:outline-none"
             >
               {deliveryOnly ? (
@@ -174,7 +191,7 @@ export default function DeliveryOpsTab() {
               </div>
             </div>
             <button
-              onClick={() => setAutoAccept(!autoAccept)}
+              onClick={() => setConfig((c) => ({ ...c, autoAccept: !c.autoAccept }))}
               className="focus:outline-none"
             >
               {autoAccept ? (
@@ -205,7 +222,7 @@ export default function DeliveryOpsTab() {
               </div>
             </div>
             <button
-              onClick={() => setPeakThrottle(!peakThrottle)}
+              onClick={() => setConfig((c) => ({ ...c, peakThrottle: !c.peakThrottle }))}
               className="focus:outline-none"
             >
               {peakThrottle ? (
@@ -228,7 +245,7 @@ export default function DeliveryOpsTab() {
                 type="number"
                 value={maxOrdersPerHour}
                 onChange={(e) =>
-                  setMaxOrdersPerHour(Number(e.target.value) || 1)
+                  setConfig((c) => ({ ...c, maxOrdersPerHour: Number(e.target.value) || 1 }))
                 }
                 className="mt-1 w-full px-3 py-1.5 border border-[var(--border)] rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none"
               />
@@ -317,7 +334,7 @@ export default function DeliveryOpsTab() {
               type="number"
               value={maxConcurrent}
               onChange={(e) =>
-                setMaxConcurrent(Math.max(1, Number(e.target.value) || 1))
+                setConfig((c) => ({ ...c, maxConcurrent: Math.max(1, Number(e.target.value) || 1) }))
               }
               className="mt-1 w-full px-3 py-1.5 border border-[var(--border)] rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none"
             />
@@ -328,9 +345,10 @@ export default function DeliveryOpsTab() {
               type="number"
               value={currentLoad}
               onChange={(e) =>
-                setCurrentLoad(
-                  Math.max(0, Math.min(maxConcurrent, Number(e.target.value) || 0))
-                )
+                setConfig((c) => ({
+                  ...c,
+                  currentLoad: Math.max(0, Math.min(c.maxConcurrent, Number(e.target.value) || 0)),
+                }))
               }
               className="mt-1 w-full px-3 py-1.5 border border-[var(--border)] rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none"
             />

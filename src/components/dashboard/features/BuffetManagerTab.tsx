@@ -18,7 +18,7 @@ import {
   Sun,
   Moon,
 } from "lucide-react";
-import NotPersistedBanner from "./_NotPersistedBanner";
+import { useFeatureConfig } from "@/hooks/useFeatureConfig";
 
 type MealType = "breakfast" | "lunch" | "dinner";
 
@@ -53,22 +53,28 @@ const MEAL_COLORS: Record<MealType, string> = {
   dinner: "text-indigo-500 bg-indigo-50",
 };
 
+interface BuffetConfig {
+  items: BuffetItem[];
+  templates: BuffetTemplate[];
+  wasteLog: { item: string; qty: number; time: string }[];
+}
+
+const BUFFET_DEFAULTS: BuffetConfig = { items: [], templates: [], wasteLog: [] };
+
 export default function BuffetManagerTab() {
   const { selectedRestaurant } = useRestaurant();
   const cur = selectedRestaurant?.currency ?? "NPR";
-  const [items, setItems] = useState<BuffetItem[]>([]);
-  const [templates, setTemplates] = useState<BuffetTemplate[]>([]);
+  const { config, setConfig } = useFeatureConfig<BuffetConfig>("buffet-manager", BUFFET_DEFAULTS);
+  const { items, templates, wasteLog } = config;
   const [activeMeal, setActiveMeal] = useState<MealType>("lunch");
   const [showAddItem, setShowAddItem] = useState(false);
   const [newName, setNewName] = useState("");
   const [newCategory, setNewCategory] = useState(CATEGORIES[0]);
   const [newQuantity, setNewQuantity] = useState("");
   const [newCost, setNewCost] = useState("");
-  const [wasteLog, setWasteLog] = useState<{ item: string; qty: number; time: string }[]>([]);
   const [showWaste, setShowWaste] = useState(false);
   const [wasteItem, setWasteItem] = useState("");
   const [wasteQty, setWasteQty] = useState("");
-  const [costPerPlate, setCostPerPlate] = useState(0);
 
   const totalCost = items.reduce((sum, i) => sum + i.quantityTotal * i.costPerKg, 0);
   const estimatedPlates = 80;
@@ -78,18 +84,16 @@ export default function BuffetManagerTab() {
 
   const handleAddItem = () => {
     if (!newName || !newQuantity) return;
-    setItems((prev) => [
-      ...prev,
-      {
-        id: `i${Date.now()}`,
-        name: newName,
-        category: newCategory,
-        quantityTotal: parseFloat(newQuantity),
-        quantityRemaining: parseFloat(newQuantity),
-        lastRefilled: new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }),
-        costPerKg: parseFloat(newCost) || 0,
-      },
-    ]);
+    const created: BuffetItem = {
+      id: `i${Date.now()}`,
+      name: newName,
+      category: newCategory,
+      quantityTotal: parseFloat(newQuantity),
+      quantityRemaining: parseFloat(newQuantity),
+      lastRefilled: new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }),
+      costPerKg: parseFloat(newCost) || 0,
+    };
+    setConfig((c) => ({ ...c, items: [...c.items, created] }));
     setNewName("");
     setNewQuantity("");
     setNewCost("");
@@ -97,8 +101,9 @@ export default function BuffetManagerTab() {
   };
 
   const handleRefill = (id: string) => {
-    setItems((prev) =>
-      prev.map((i) =>
+    setConfig((c) => ({
+      ...c,
+      items: c.items.map((i) =>
         i.id === id
           ? {
               ...i,
@@ -107,19 +112,17 @@ export default function BuffetManagerTab() {
             }
           : i,
       ),
-    );
+    }));
   };
 
   const handleRemoveItem = (id: string) => {
-    setItems((prev) => prev.filter((i) => i.id !== id));
+    setConfig((c) => ({ ...c, items: c.items.filter((i) => i.id !== id) }));
   };
 
   const handleLogWaste = () => {
     if (!wasteItem || !wasteQty) return;
-    setWasteLog((prev) => [
-      { item: wasteItem, qty: parseFloat(wasteQty), time: new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) },
-      ...prev,
-    ]);
+    const entry = { item: wasteItem, qty: parseFloat(wasteQty), time: new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) };
+    setConfig((c) => ({ ...c, wasteLog: [entry, ...c.wasteLog] }));
     setWasteItem("");
     setWasteQty("");
     setShowWaste(false);
@@ -133,7 +136,6 @@ export default function BuffetManagerTab() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-10">
-      <NotPersistedBanner />
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-[var(--text-1)] flex items-center gap-2">

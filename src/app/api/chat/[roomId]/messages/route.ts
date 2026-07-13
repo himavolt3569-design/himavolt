@@ -4,9 +4,10 @@ import {
   sendNotificationToUser,
   sendNotificationToRestaurantStaff,
 } from "@/lib/notifications";
-import { safeHandler, notFound } from "@/lib/api-helpers";
+import { safeHandler, notFound, forbidden } from "@/lib/api-helpers";
 import { sendMessageSchema } from "@/lib/validations";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
+import { getRestaurantAccess } from "@/lib/access-control";
 
 export const GET = safeHandler(async (_req, { params }) => {
   const { roomId } = await params;
@@ -51,6 +52,15 @@ export const POST = safeHandler(
     });
 
     if (!room) return notFound("Chat room not found");
+
+    // Anti-impersonation: only a staff/owner of this restaurant may post as
+    // KITCHEN or BILLING. Anonymous customers (no verified staff/owner session)
+    // can only post as CUSTOMER. Prevents a customer holding a roomId from
+    // spoofing "Kitchen"/"Billing" messages to the other party.
+    if (sender === "KITCHEN" || sender === "BILLING") {
+      const access = await getRestaurantAccess(req, room.restaurantId);
+      if (!access) return forbidden("Not authorized to send as staff");
+    }
 
     const message = await db.chatMessage.create({
       data: {

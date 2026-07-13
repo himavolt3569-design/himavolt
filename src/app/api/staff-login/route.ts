@@ -51,15 +51,18 @@ export const POST = safeHandler(
     }
 
     // 2. Verify PIN against each active staff member (hashed or legacy plaintext).
-    // Iterate without an early break so timing doesn't leak which slot matched
-    // (and so a missing match doesn't return faster than a late match).
+    // Stop at the first match so a legitimate login doesn't run a (deliberately
+    // slow) bcrypt compare against EVERY other staff member — the O(N) scan was
+    // the main reason "staff login feels slow" on larger teams. The residual
+    // timing signal only differs between *valid* PIN submissions and is already
+    // behind a 5-attempt / 15-min rate limit, so it is not a practical oracle.
     let staffMember = null;
     let legacyMatched = false;
     for (const member of restaurant.staff) {
-      const matches = await verifyPin(pin, member.pin);
-      if (matches && !staffMember) {
+      if (await verifyPin(pin, member.pin)) {
         staffMember = member;
         legacyMatched = !member.pin.startsWith("$2");
+        break;
       }
     }
     if (!staffMember) {

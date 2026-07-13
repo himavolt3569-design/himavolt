@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Plus,
+  PlusCircle,
   Pencil,
   Trash2,
   Check,
@@ -23,6 +24,7 @@ import {
   Star,
   ChevronDown,
   ChevronRight,
+  ChevronLeft,
   Zap,
   Award,
   AlertTriangle,
@@ -32,7 +34,6 @@ import {
   GripVertical,
   Copy,
   MoreVertical,
-  PlusCircle,
   Package,
   TrendingUp,
   UtensilsCrossed,
@@ -62,6 +63,14 @@ interface MenuCategory {
   parentId: string | null;
   _count: { items: number };
   children: MenuCategory[];
+}
+
+interface CategoryTemplateData {
+  name: string;
+  icon: string;
+  subs: string[];
+  slug: string;
+  added: boolean;
 }
 
 interface MenuItemSize {
@@ -202,126 +211,6 @@ function MenuStats({ items, categories, currency }: { items: MenuItem[]; categor
 }
 
 
-function CategoryTree({
-  categories,
-  selectedCatId,
-  onSelect,
-  onAddSub,
-  onDelete,
-}: {
-  categories: MenuCategory[];
-  selectedCatId: string;
-  onSelect: (id: string) => void;
-  onAddSub: (parentId: string) => void;
-  onDelete: (categoryId: string) => void;
-}) {
-  const topLevel = categories.filter((c) => !c.parentId);
-  const [expanded, setExpanded] = useState<Set<string>>(new Set(topLevel.map((c) => c.id)));
-
-  const toggle = (id: string) => {
-    setExpanded((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
-  };
-
-  return (
-    <div className="space-y-0.5">
-      <button
-        onClick={() => onSelect("All")}
-        className={`flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition-all ${
-          selectedCatId === "All" ? "bg-[var(--accent-muted)] text-[var(--accent-text)] font-semibold" : "text-[var(--text-2)] hover:bg-[var(--canvas-sub)]"
-        }`}
-      >
-        <Package className="h-3.5 w-3.5" />
-        <span className="flex-1 text-left">All Items</span>
-      </button>
-
-      {topLevel.map((cat) => {
-        const subs = categories.filter((c) => c.parentId === cat.id);
-        const isExpanded = expanded.has(cat.id);
-        const totalItems = cat._count.items + subs.reduce((s, c) => s + c._count.items, 0);
-
-        return (
-          <div key={cat.id}>
-            <div className="flex items-center">
-              <button
-                onClick={() => subs.length > 0 ? toggle(cat.id) : onSelect(cat.id)}
-                className="p-1 text-[var(--text-3)] hover:text-[var(--text-2)]"
-              >
-                {subs.length > 0 ? (
-                  <ChevronRight className={`h-3 w-3 transition-transform ${isExpanded ? "rotate-90" : ""}`} />
-                ) : (
-                  <span className="w-3" />
-                )}
-              </button>
-              <button
-                onClick={() => onSelect(cat.id)}
-                className={`flex flex-1 items-center gap-2 rounded-lg px-2 py-2 text-[13px] font-medium transition-all ${
-                  selectedCatId === cat.id ? "bg-[var(--accent-muted)] text-[var(--accent-text)] font-semibold" : "text-[var(--text-2)] hover:bg-[var(--canvas-sub)]"
-                }`}
-              >
-                {cat.icon ? <span className="text-sm leading-none">{cat.icon}</span> : <Tag className="h-3.5 w-3.5 text-[var(--text-3)]" />}
-                <span className="flex-1 text-left truncate">{cat.name}</span>
-                <span className="text-[10px] text-[var(--text-3)] font-normal">{totalItems}</span>
-              </button>
-              <button
-                onClick={() => onAddSub(cat.id)}
-                className="p-1 text-[var(--text-3)] hover:text-[var(--accent)] transition-colors"
-                title="Add subcategory"
-              >
-                <PlusCircle className="h-3 w-3" />
-              </button>
-              <button
-                onClick={(e) => { e.stopPropagation(); onDelete(cat.id); }}
-                className="p-1 text-[var(--text-3)] hover:text-red-500 transition-colors"
-                title="Delete category"
-              >
-                <Trash2 className="h-3 w-3" />
-              </button>
-            </div>
-
-            <AnimatePresence>
-              {isExpanded && subs.length > 0 && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.15 }}
-                  className="overflow-hidden pl-7"
-                >
-                  {subs.map((sub) => (
-                    <div key={sub.id} className="flex items-center group">
-                    <button
-                      onClick={() => onSelect(sub.id)}
-                      className={`flex flex-1 items-center gap-2 rounded-md px-2.5 py-1.5 text-[12px] transition-all ${
-                        selectedCatId === sub.id ? "bg-[var(--accent-muted)] text-[var(--accent-text)] font-semibold" : "text-[var(--text-2)] hover:bg-[var(--canvas-sub)]"
-                      }`}
-                    >
-                      <span className="flex-1 text-left truncate">{sub.name}</span>
-                      <span className="text-[10px] text-[var(--text-3)]">{sub._count.items}</span>
-                    </button>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); onDelete(sub.id); }}
-                      className="p-1 text-[var(--text-3)] hover:text-red-500 transition-colors"
-                      title="Delete subcategory"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </button>
-                    </div>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-
 function MenuItemCard({
   item,
   onEdit,
@@ -359,9 +248,9 @@ function MenuItemCard({
       {/* Mobile: image-left / text-right  |  sm+: image-top / content-below */}
       <div className="flex sm:block">
 
-        <div className="relative w-28 shrink-0 sm:w-full sm:h-36 h-auto overflow-hidden bg-gradient-to-br from-[var(--accent)] to-[var(--accent-hover)]/20">
+        <div className="relative w-28 aspect-square shrink-0 sm:w-full sm:aspect-[4/3] sm:h-auto overflow-hidden bg-gradient-to-br from-[var(--accent)] to-[var(--accent-hover)]/20">
           {item.imageUrl ? (
-            <img src={item.imageUrl} alt={item.name} className={`h-full w-full object-cover aspect-square sm:aspect-auto transition-transform duration-700 group-hover:scale-110 ${!item.isAvailable ? 'grayscale-[40%]' : ''}`} loading="lazy" />
+            <img src={item.imageUrl} alt={item.name} className={`h-full w-full object-cover transition-transform duration-700 group-hover:scale-110 ${!item.isAvailable ? 'grayscale-[40%]' : ''}`} loading="lazy" />
           ) : (
             <div className="h-full w-full flex items-center justify-center min-h-[7rem]">
               <UtensilsCrossed className="h-8 w-8 sm:h-10 sm:w-10 text-[var(--accent)]/50" />
@@ -371,9 +260,9 @@ function MenuItemCard({
           {/* Veg indicator — always visible */}
           <div className="absolute top-2 right-2 z-10">
             <span className={`flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center rounded-md border-2 shadow-sm bg-[var(--canvas)]/90 ${
-              item.isVeg ? "border-[var(--accent)]" : "border-red-500"
+              item.isVeg ? "border-green-600" : "border-red-500"
             }`}>
-              <span className={`h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full ${item.isVeg ? "bg-[var(--accent)]" : "bg-red-500"}`} />
+              <span className={`h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full ${item.isVeg ? "bg-green-600" : "bg-red-500"}`} />
             </span>
           </div>
 
@@ -727,6 +616,27 @@ function DishForm({
   const [activeSection, setActiveSection] = useState<string>("basic");
   const [tagInput, setTagInput] = useState("");
 
+  // Section-tab strip scroll affordances (chevrons appear when more tabs are
+  // hidden off either edge).
+  const tabsRef = useRef<HTMLDivElement>(null);
+  const [tabScroll, setTabScroll] = useState({ left: false, right: false });
+  const updateTabScroll = () => {
+    const el = tabsRef.current;
+    if (!el) return;
+    setTabScroll({
+      left: el.scrollLeft > 4,
+      right: el.scrollLeft + el.clientWidth < el.scrollWidth - 4,
+    });
+  };
+  const scrollTabs = (dir: number) => {
+    tabsRef.current?.scrollBy({ left: dir * 140, behavior: "smooth" });
+  };
+  useEffect(() => {
+    updateTabScroll();
+    window.addEventListener("resize", updateTabScroll);
+    return () => window.removeEventListener("resize", updateTabScroll);
+  }, []);
+
   const [suggestions, setSuggestions] = useState<{ id: string; thumb: string; url: string }[]>([]);
   const [suggesting, setSuggesting] = useState(false);
 
@@ -805,7 +715,20 @@ function DishForm({
   }, [form.name]);
 
   const generateDescription = () => {
-    const randomTemplate = FOOD_DESCRIPTION_TEMPLATES[Math.floor(Math.random() * FOOD_DESCRIPTION_TEMPLATES.length)];
+    let randomTemplate = FOOD_DESCRIPTION_TEMPLATES[Math.floor(Math.random() * FOOD_DESCRIPTION_TEMPLATES.length)];
+    randomTemplate = randomTemplate.replace(/\[Name\]/g, form.name || "dish");
+    
+    let spiceStr = "mild";
+    if (form.spiceLevel === 1) spiceStr = "mildly spiced";
+    else if (form.spiceLevel === 2) spiceStr = "medium spiced";
+    else if (form.spiceLevel === 3) spiceStr = "spicy";
+    else if (form.spiceLevel === 4) spiceStr = "extra spicy";
+    else if (form.spiceLevel === 5) spiceStr = "fiery hot";
+    randomTemplate = randomTemplate.replace(/\[Spice\]/g, spiceStr);
+    
+    const flavors = ["savory", "tangy", "rich", "mouth-watering", "delicious", "sweet and savory"];
+    randomTemplate = randomTemplate.replace(/\[Flavor\]/g, flavors[Math.floor(Math.random() * flavors.length)]);
+    
     update({ description: randomTemplate });
   };
 
@@ -818,34 +741,65 @@ function DishForm({
   ];
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      className="rounded-xl border border-[var(--border)] bg-[var(--canvas)] shadow-lg overflow-hidden w-full max-w-full"
-    >
-      <div className="flex items-center justify-between border-b border-[var(--border-soft)] px-5 py-3">
-        <span className="text-sm font-bold text-[var(--text-1)]">{submitLabel === "Add to menu" ? "New Dish" : "Edit Dish"}</span>
-        <button onClick={onCancel} className="rounded-md p-1 text-[var(--text-3)] hover:text-[var(--text-2)] hover:bg-[var(--surface)]">
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-
-      <div className="flex gap-1 px-4 pt-3 overflow-x-auto scrollbar-hide">
-        {sections.map((s) => (
-          <button
-            key={s.id}
-            onClick={() => setActiveSection(s.id)}
-            className={`flex items-center gap-1.5 shrink-0 rounded-lg px-3 py-1.5 text-[11px] font-semibold transition-all ${
-              activeSection === s.id
-                ? "bg-[var(--accent-muted)] text-[var(--accent-text)]"
-                : "text-[var(--text-3)] hover:bg-[var(--canvas-sub)] hover:text-[var(--text-2)]"
-            }`}
-          >
-            <s.icon className="h-3 w-3" />
-            {s.label}
+    <div className="flex flex-col lg:flex-row gap-4 w-full">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.98, y: 8 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.98, y: 8 }}
+        className="rounded-2xl border border-[var(--border)] bg-[var(--canvas)] shadow-2xl overflow-hidden flex-1 max-w-full"
+      >
+      {/* Sticky header + section tabs so navigation stays reachable while the
+          form body scrolls inside the modal. */}
+      <div className="sticky top-0 z-10 bg-[var(--canvas)]/95 backdrop-blur border-b border-[var(--border-soft)]">
+        <div className="flex items-center justify-between px-5 py-3">
+          <span className="text-sm font-bold text-[var(--text-1)]">{submitLabel === "Add to menu" ? "New Dish" : "Edit Dish"}</span>
+          <button onClick={onCancel} className="rounded-md p-1 text-[var(--text-3)] hover:text-[var(--text-2)] hover:bg-[var(--surface)]">
+            <X className="h-4 w-4" />
           </button>
-        ))}
+        </div>
+
+        <div className="relative px-4 pb-3">
+          {tabScroll.left && (
+            <button
+              type="button"
+              onClick={() => scrollTabs(-1)}
+              aria-label="Scroll tabs left"
+              className="absolute left-4 top-1/2 z-10 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full bg-[var(--canvas)] text-[var(--text-2)] shadow-md ring-1 ring-[var(--border)] hover:text-[var(--accent)]"
+            >
+              <ChevronLeft className="h-3.5 w-3.5" />
+            </button>
+          )}
+          <div
+            ref={tabsRef}
+            onScroll={updateTabScroll}
+            className="flex gap-1 overflow-x-auto scrollbar-hide scroll-smooth"
+          >
+            {sections.map((s) => (
+              <button
+                key={s.id}
+                onClick={() => setActiveSection(s.id)}
+                className={`flex items-center gap-1.5 shrink-0 rounded-lg px-3 py-1.5 text-[11px] font-semibold transition-all ${
+                  activeSection === s.id
+                    ? "bg-[var(--accent-muted)] text-[var(--accent-text)]"
+                    : "text-[var(--text-3)] hover:bg-[var(--canvas-sub)] hover:text-[var(--text-2)]"
+                }`}
+              >
+                <s.icon className="h-3 w-3" />
+                {s.label}
+              </button>
+            ))}
+          </div>
+          {tabScroll.right && (
+            <button
+              type="button"
+              onClick={() => scrollTabs(1)}
+              aria-label="Scroll tabs right"
+              className="absolute right-4 top-1/2 z-10 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full bg-[var(--canvas)] text-[var(--text-2)] shadow-md ring-1 ring-[var(--border)] hover:text-[var(--accent)]"
+            >
+              <ChevronRight className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="p-4 sm:p-5 space-y-5 overflow-x-hidden">
@@ -1290,6 +1244,52 @@ function DishForm({
         </div>
       </div>
     </motion.div>
+
+      {/* Live Preview Pane */}
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.98, x: 20 }}
+        animate={{ opacity: 1, scale: 1, x: 0 }}
+        exit={{ opacity: 0, scale: 0.98, x: 20 }}
+        className="hidden lg:flex w-[22rem] shrink-0 flex-col gap-3"
+      >
+        <h3 className="text-sm font-bold text-[var(--text-1)] px-1">Live Preview</h3>
+        <div className="pointer-events-none">
+          <MenuItemCard
+            item={{
+              id: "preview",
+              name: form.name || "Dish name",
+              description: form.description || "Description will appear here",
+              price: Number(form.price) || 0,
+              imageUrl: form.imageUrl || null,
+              rating: 0,
+              prepTime: form.prepTime || "15-20 min",
+              isVeg: form.isVeg,
+              hasEgg: form.hasEgg,
+              hasOnionGarlic: form.hasOnionGarlic,
+              isAvailable: true,
+              badge: form.badge || null,
+              tags: form.tags,
+              sortOrder: 0,
+              categoryId: form.categoryId || "temp",
+              category: { id: form.categoryId || "temp", name: categories.find(c => c.id === form.categoryId)?.name || "Category", slug: "", parentId: null },
+              sizes: form.sizes.map((s, i) => ({ id: `s${i}`, label: s.label, grams: s.grams, priceAdd: Number(s.priceAdd) || 0 })),
+              addOns: form.addOns.map((a, i) => ({ id: `a${i}`, name: a.name, price: Number(a.price) || 0 })),
+              discount: Number(form.discount) || 0,
+              discountLabel: form.discountLabel || null,
+              isFeatured: form.isFeatured,
+              spiceLevel: form.spiceLevel,
+              calories: form.calories ? Number(form.calories) : null,
+              allergens: form.allergens
+            }}
+            currency={currency}
+            onEdit={() => {}}
+            onDelete={() => {}}
+            onToggle={() => {}}
+            onDuplicate={() => {}}
+          />
+        </div>
+      </motion.div>
+    </div>
   );
 }
 
@@ -1344,6 +1344,241 @@ function AddSubCategoryInline({
   );
 }
 
+/* ─── Categories view: type templates the owner can one-tap add ─────── */
+
+function TemplateCard({
+  template,
+  onAdd,
+}: {
+  template: CategoryTemplateData;
+  onAdd: () => void;
+}) {
+  return (
+    <motion.div
+      whileHover={template.added ? undefined : { y: -2 }}
+      className={`rounded-2xl border p-4 flex flex-col gap-3 transition-all ${
+        template.added
+          ? "border-[var(--border)] bg-[var(--canvas-sub)]/50 opacity-70"
+          : "border-[var(--border)] bg-[var(--canvas)] shadow-sm hover:shadow-md hover:border-[var(--accent-border)]"
+      }`}
+    >
+      <div className="flex items-center gap-2.5">
+        <span className="text-2xl leading-none">{template.icon}</span>
+        <span className="text-sm font-bold text-[var(--text-1)] flex-1 truncate">{template.name}</span>
+      </div>
+      <div className="flex flex-wrap gap-1">
+        {template.subs.slice(0, 4).map((s) => (
+          <span key={s} className="rounded-md bg-[var(--canvas-sub)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--text-3)]">
+            {s}
+          </span>
+        ))}
+        {template.subs.length > 4 && (
+          <span className="text-[10px] text-[var(--text-3)] font-medium">+{template.subs.length - 4}</span>
+        )}
+      </div>
+      <button
+        onClick={onAdd}
+        disabled={template.added}
+        className={`mt-auto flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-[12px] font-bold transition-all ${
+          template.added
+            ? "bg-[var(--accent-muted)] text-[var(--accent-text)] cursor-default"
+            : "bg-[var(--accent)] text-white hover:bg-[var(--accent-hover)] active:scale-[0.97]"
+        } disabled:opacity-60`}
+      >
+        {template.added ? (
+          <><Check className="h-3.5 w-3.5" /> Added</>
+        ) : (
+          <><Plus className="h-3.5 w-3.5" /> Add to menu</>
+        )}
+      </button>
+    </motion.div>
+  );
+}
+
+/* ─── Categories view: editable tree with inline subcategories ──────── */
+
+function CategoryEditableName({
+  name,
+  icon,
+  onRename,
+  className,
+}: {
+  name: string;
+  icon?: string | null;
+  onRename: (name: string) => void;
+  className?: string;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState(name);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => { if (editing) inputRef.current?.focus(); }, [editing]);
+  useEffect(() => { setValue(name); }, [name]);
+
+  const commit = () => {
+    const trimmed = value.trim();
+    setEditing(false);
+    if (trimmed && trimmed !== name) onRename(trimmed);
+    else setValue(name);
+  };
+
+  if (editing) {
+    return (
+      <input
+        ref={inputRef}
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") commit();
+          if (e.key === "Escape") { setValue(name); setEditing(false); }
+        }}
+        onClick={(e) => e.stopPropagation()}
+        className={`min-w-0 flex-1 bg-transparent border-b border-[var(--accent)] outline-none ${className ?? ""}`}
+      />
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={(e) => { e.stopPropagation(); setEditing(true); }}
+      className={`flex items-center gap-2 min-w-0 text-left hover:opacity-70 transition-opacity ${className ?? ""}`}
+      title="Click to rename"
+    >
+      {icon && <span className="leading-none shrink-0">{icon}</span>}
+      <span className="truncate">{name}</span>
+      <Pencil className="h-3 w-3 text-[var(--text-3)] shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+    </button>
+  );
+}
+
+function CategoryManager({
+  categories,
+  onAddSub,
+  onDelete,
+  onRename,
+  addSubParentId,
+  onCreateSub,
+  onCancelAddSub,
+}: {
+  categories: MenuCategory[];
+  onAddSub: (parentId: string) => void;
+  onDelete: (categoryId: string) => void;
+  onRename: (categoryId: string, name: string) => void;
+  addSubParentId: string | null;
+  onCreateSub: (parentId: string, name: string) => void;
+  onCancelAddSub: () => void;
+}) {
+  const topLevel = categories.filter((c) => !c.parentId);
+  const [expanded, setExpanded] = useState<Set<string>>(() => new Set(topLevel.map((c) => c.id)));
+
+  const toggle = (id: string) => {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  if (topLevel.length === 0) {
+    return (
+      <div className="rounded-xl border border-dashed border-[var(--border)] py-10 text-center text-sm text-[var(--text-3)]">
+        No categories yet — add one below or pick a template above.
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      {topLevel.map((cat) => {
+        const subs = categories.filter((c) => c.parentId === cat.id);
+        const isAddingSubHere = addSubParentId === cat.id;
+        const isExpanded = expanded.has(cat.id) || isAddingSubHere;
+        const totalItems = cat._count.items + subs.reduce((s, c) => s + c._count.items, 0);
+
+        return (
+          <div key={cat.id} className="rounded-xl border border-[var(--border)] bg-[var(--canvas)] overflow-hidden">
+            <div className="group flex items-center gap-2 px-4 py-3">
+              <button
+                onClick={() => toggle(cat.id)}
+                className="p-1 text-[var(--text-3)] hover:text-[var(--text-2)] shrink-0"
+                title={isExpanded ? "Collapse" : "Expand"}
+              >
+                {subs.length > 0 ? (
+                  <ChevronRight className={`h-4 w-4 transition-transform ${isExpanded ? "rotate-90" : ""}`} />
+                ) : (
+                  <span className="block w-4" />
+                )}
+              </button>
+              <CategoryEditableName
+                name={cat.name}
+                icon={cat.icon}
+                onRename={(name) => onRename(cat.id, name)}
+                className="flex-1 text-[14px] font-bold text-[var(--text-1)]"
+              />
+              <span className="text-[11px] text-[var(--text-3)] font-semibold shrink-0">{totalItems} item{totalItems !== 1 ? "s" : ""}</span>
+              <button
+                onClick={() => onAddSub(cat.id)}
+                className="p-1.5 rounded-md text-[var(--text-3)] hover:text-[var(--accent)] hover:bg-[var(--accent-muted)] transition-colors shrink-0"
+                title="Add subcategory"
+              >
+                <PlusCircle className="h-3.5 w-3.5" />
+              </button>
+              <button
+                onClick={() => onDelete(cat.id)}
+                className="p-1.5 rounded-md text-[var(--text-3)] hover:text-red-500 hover:bg-red-50 transition-colors shrink-0"
+                title="Delete category"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            </div>
+
+            <AnimatePresence>
+              {isExpanded && (subs.length > 0 || isAddingSubHere) && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                  className="overflow-hidden border-t border-[var(--border)]"
+                >
+                  {subs.map((sub) => (
+                    <div key={sub.id} className="group flex items-center gap-2 pl-11 pr-4 py-2.5 border-b border-[var(--border)] last:border-0">
+                      <CategoryEditableName
+                        name={sub.name}
+                        onRename={(name) => onRename(sub.id, name)}
+                        className="flex-1 text-[13px] font-semibold text-[var(--text-2)]"
+                      />
+                      <span className="text-[10px] text-[var(--text-3)] font-medium shrink-0">{sub._count.items}</span>
+                      <button
+                        onClick={() => onDelete(sub.id)}
+                        className="p-1.5 rounded-md text-[var(--text-3)] hover:text-red-500 hover:bg-red-50 transition-colors shrink-0"
+                        title="Delete subcategory"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                  {isAddingSubHere && (
+                    <div className="pl-9 pr-3 py-2">
+                      <AddSubCategoryInline
+                        parentName={cat.name}
+                        onCreate={(name) => onCreateSub(cat.id, name)}
+                        onCancel={onCancelAddSub}
+                      />
+                    </div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 
 export default function MenuManagementTab({
   overrideRestaurantId,
@@ -1385,6 +1620,21 @@ export default function MenuManagementTab({
       typeof updater === "function" ? (updater as (p: MenuCategory[]) => MenuCategory[])(prev ?? []) : updater,
     );
 
+  // Per-type category templates the owner can one-tap add (with their subs).
+  // The `added` flag greys out ones already on the menu; refetched alongside
+  // categories so it stays in sync after adds/deletes.
+  const templatesQueryKey = ["category-templates", restaurantId] as const;
+  const templatesQuery = useQuery({
+    queryKey: templatesQueryKey,
+    queryFn: () => apiFetch<CategoryTemplateData[]>(`/api/restaurants/${restaurantId}/categories/templates`),
+    enabled: !!restaurantId,
+  });
+  const templates = templatesQuery.data ?? [];
+  const setTemplates = (updater: React.SetStateAction<CategoryTemplateData[]>) =>
+    queryClient.setQueryData<CategoryTemplateData[]>(templatesQueryKey, (prev) =>
+      typeof updater === "function" ? (updater as (p: CategoryTemplateData[]) => CategoryTemplateData[])(prev ?? []) : updater,
+    );
+
   const loading = itemsQuery.isLoading || catQuery.isLoading;
   const [search, setSearch] = useState("");
   const [selectedCatId, setSelectedCatId] = useState("All");
@@ -1392,7 +1642,6 @@ export default function MenuManagementTab({
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [showNewCat, setShowNewCat] = useState(false);
   const [newCatName, setNewCatName] = useState("");
-  const [creatingCat, setCreatingCat] = useState(false);
   const [seedingCats, setSeedingCats] = useState(false);
   const [addSubParentId, setAddSubParentId] = useState<string | null>(null);
   const [deleteCatConfirm, setDeleteCatConfirm] = useState<{
@@ -1406,6 +1655,17 @@ export default function MenuManagementTab({
   const [isOpen, setIsOpen] = useState(true);
   const [deliveryEnabled, setDeliveryEnabled] = useState(false);
   const [statusSaving, setStatusSaving] = useState(false);
+
+  // Two views inside Menu Management: the dish grid ("items") and a dedicated
+  // category manager ("categories"). A restaurant with no categories yet opens
+  // straight to Categories, since a dish can't be added without one.
+  const [view, setView] = useState<"items" | "categories">("items");
+  const didAutoPickView = useRef(false);
+  useEffect(() => {
+    if (didAutoPickView.current || catQuery.isLoading) return;
+    didAutoPickView.current = true;
+    if (categories.length === 0) setView("categories");
+  }, [catQuery.isLoading, categories.length]);
 
   useEffect(() => {
     if (!restaurantId) return;
@@ -1435,6 +1695,7 @@ export default function MenuManagementTab({
   const fetchData = (_silent = false) => {
     queryClient.invalidateQueries({ queryKey: itemsQueryKey });
     queryClient.invalidateQueries({ queryKey: catQueryKey });
+    queryClient.invalidateQueries({ queryKey: templatesQueryKey });
   };
 
   useEffect(() => {
@@ -1454,6 +1715,36 @@ export default function MenuManagementTab({
     return flat;
   }, [categories]);
 
+
+  const renameCategory = async (categoryId: string, name: string) => {
+    if (!restaurantId) return;
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    setCategories((prev) =>
+      prev.map((c) =>
+        c.id === categoryId
+          ? { ...c, name: trimmed }
+          : {
+              ...c,
+              children:
+                c.children?.map((s) =>
+                  s.id === categoryId ? { ...s, name: trimmed } : s,
+                ) ?? c.children,
+            },
+      ),
+    );
+    try {
+      await apiFetch(`/api/restaurants/${restaurantId}/categories`, {
+        method: "PATCH",
+        body: { categoryId, name: trimmed },
+      });
+      fetchData(true);
+    } catch {
+      fetchData(true);
+      showToast("Failed to rename category");
+    }
+  };
+
   const createCategory = async (name?: string, parentId?: string | null) => {
     if (!restaurantId) {
       showToast("No restaurant selected — please refresh");
@@ -1461,24 +1752,92 @@ export default function MenuManagementTab({
     }
     const catName = name || newCatName.trim();
     if (!catName) return;
-    setCreatingCat(true);
+
+    const pid = parentId || null;
+    const catSnapshot = categories;
+    const tempId = `temp-${Date.now()}`;
+    const slug = catName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    const optimisticNode: MenuCategory = {
+      id: tempId, name: catName, slug, icon: null, parentId: pid,
+      _count: { items: 0 }, children: [],
+    };
+
+    // Optimistic: the category (or subcategory) appears instantly and the input
+    // closes — no spinner, reconciled with the real id in the background.
+    setCategories((prev) =>
+      pid
+        ? prev.map((c) =>
+            c.id === pid
+              ? { ...c, children: [...(c.children ?? []), optimisticNode] }
+              : c,
+          )
+        : [...prev, optimisticNode],
+    );
+    if (!name) { setNewCatName(""); setShowNewCat(false); }
+    setAddSubParentId(null);
+    showToast(`"${catName}" created!`);
+
     try {
       await apiFetch(`/api/restaurants/${restaurantId}/categories`, {
         method: "POST",
-        body: { name: catName, parentId: parentId || null },
+        body: { name: catName, parentId: pid },
       });
-      showToast(`"${catName}" created!`);
-      if (!name) { setNewCatName(""); setShowNewCat(false); }
-      setAddSubParentId(null);
-      await fetchData(true);
+      fetchData(true);
     } catch (err) {
+      setCategories(catSnapshot); // rollback
       showToast(err instanceof Error ? err.message : "Failed to create category");
-    } finally {
-      setCreatingCat(false);
     }
   };
 
-  const seedDefaults = async () => {
+  // One-tap add of a single template category (with its subcategories).
+  // Optimistic: the category + "Added" state show instantly, reconciled with
+  // real ids in the background.
+  const addTemplate = async (name: string) => {
+    if (!restaurantId) return;
+    const template = templates.find((t) => t.name === name);
+    if (!template) return;
+
+    const catSnapshot = categories;
+    const tplSnapshot = templates;
+    const tempId = `temp-${Date.now()}`;
+
+    setCategories((prev) => [
+      ...prev,
+      {
+        id: tempId,
+        name: template.name,
+        slug: template.slug,
+        icon: template.icon,
+        parentId: null,
+        _count: { items: 0 },
+        children: template.subs.map((s, i) => ({
+          id: `${tempId}-${i}`,
+          name: s,
+          slug: `${template.slug}--${i}`,
+          icon: null,
+          parentId: tempId,
+          _count: { items: 0 },
+          children: [],
+        })),
+      },
+    ]);
+    setTemplates((prev) => prev.map((t) => (t.name === name ? { ...t, added: true } : t)));
+    showToast(`"${name}" added to your menu!`);
+
+    try {
+      await apiFetch(`/api/restaurants/${restaurantId}/categories/templates`, {
+        method: "POST",
+        body: { name },
+      });
+      fetchData(true);
+    } catch (err) {
+      setCategories(catSnapshot);
+      setTemplates(tplSnapshot);
+      showToast(err instanceof Error ? err.message : "Failed to add category");
+    }
+  };
+
+  const seedDefaults = async (opts?: { silent?: boolean }) => {
     if (!restaurantId) return;
     setSeedingCats(true);
     try {
@@ -1486,14 +1845,32 @@ export default function MenuManagementTab({
         `/api/restaurants/${restaurantId}/categories/seed`,
         { method: "POST" }
       );
-      showToast(result.message || `${result.categories.length} categories added!`);
+      if (!opts?.silent) {
+        showToast(result.message || `${result.categories.length} categories added!`);
+      }
       await fetchData(true);
     } catch {
-      showToast("Failed to seed categories");
+      if (!opts?.silent) showToast("Failed to seed categories");
     } finally {
       setSeedingCats(false);
     }
   };
+
+  // Safety net: any restaurant that lands here with zero categories (created
+  // before server-side auto-seed, or a seed that didn't run) gets its default
+  // category tree generated automatically — silently, once per restaurant — so
+  // the owner never sees an empty Categories tab and never has to seed by hand.
+  const autoSeededRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (catQuery.isLoading || !restaurantId) return;
+    if (categories.length > 0 || seedingCats) return;
+    if (autoSeededRef.current === restaurantId) return;
+    autoSeededRef.current = restaurantId;
+    void seedDefaults({ silent: true });
+    // seedDefaults is a stable closure over restaurantId; guarded by the ref so
+    // it runs at most once per restaurant.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [catQuery.isLoading, categories.length, restaurantId, seedingCats]);
 
   const initDeleteCategory = async (categoryId: string) => {
     if (!restaurantId) return;
@@ -1763,8 +2140,6 @@ export default function MenuManagementTab({
     }
   };
 
-  const addSubParent = addSubParentId ? flatCategories.find((c) => c.id === addSubParentId) : null;
-
   if (loading && items.length === 0) {
     return (
       <div className="space-y-5">
@@ -1795,15 +2170,16 @@ export default function MenuManagementTab({
           </p>
         </div>
         <div className="flex gap-2.5">
-          {!showAddForm && !editingItem && (
-            <>
+          {!showAddForm && !editingItem &&
+            (view === "categories" ? (
               <button
                 onClick={() => setShowNewCat(true)}
-                className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--canvas)] shadow-sm px-4 py-2 text-[13px] font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] hover:text-[var(--accent-text)] transition-all active:scale-[0.97]"
+                className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] shadow-[0_4px_14px_0_rgba(245,158,11,0.39)] px-5 py-2 text-[13px] font-bold text-white hover:shadow-[0_6px_20px_rgba(245,158,11,0.23)] hover:-translate-y-0.5 active:scale-[0.97] transition-all"
               >
                 <FolderPlus className="h-4 w-4" />
-                Category
+                Add Category
               </button>
+            ) : (
               <button
                 onClick={() => setShowAddForm(true)}
                 className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] shadow-[0_4px_14px_0_rgba(245,158,11,0.39)] px-5 py-2 text-[13px] font-bold text-white hover:shadow-[0_6px_20px_rgba(245,158,11,0.23)] hover:-translate-y-0.5 active:scale-[0.97] transition-all"
@@ -1811,8 +2187,7 @@ export default function MenuManagementTab({
                 <Plus className="h-4 w-4" strokeWidth={2.5} />
                 Add Dish
               </button>
-            </>
-          )}
+            ))}
         </div>
       </div>
 
@@ -1874,178 +2249,208 @@ export default function MenuManagementTab({
 
       <MenuStats items={items} categories={flatCategories} currency={cur} />
 
-      {!loading && categories.length === 0 && !showNewCat && (
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col sm:flex-row items-center gap-4 rounded-xl border-2 border-dashed border-[var(--accent-border)] bg-[var(--accent-muted)] px-6 py-5"
-        >
-          <div className="flex items-center gap-3">
-            <Sparkles className="h-5 w-5 text-[var(--accent)]" />
-            <div>
-              <p className="text-sm font-semibold text-[var(--text-2)]">Quick Start</p>
-              <p className="text-[12px] text-[var(--text-2)]">Add 10 popular food categories with subcategories in one click</p>
-            </div>
-          </div>
+      {/* Items | Categories view switch */}
+      <div className="inline-flex items-center gap-1 rounded-xl bg-[var(--canvas-sub)] p-1">
+        {(
+          [
+            ["items", "Dishes", items.length],
+            ["categories", "Categories", flatCategories.length],
+          ] as const
+        ).map(([id, label, count]) => (
           <button
-            onClick={seedDefaults}
-            disabled={seedingCats}
-            className="flex items-center gap-1.5 rounded-lg bg-[var(--accent)] px-5 py-2.5 text-[13px] font-bold text-white hover:bg-[var(--accent-hover)] disabled:opacity-50 transition-all shrink-0"
+            key={id}
+            onClick={() => setView(id)}
+            className={`flex items-center gap-2 rounded-lg px-4 py-2 text-[13px] font-bold transition-colors ${
+              view === id
+                ? "bg-[var(--canvas)] text-[var(--text-1)] shadow-sm"
+                : "text-[var(--text-3)] hover:text-[var(--text-2)]"
+            }`}
           >
-            {seedingCats ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5" />}
-            Generate Categories for My Place
+            {id === "items" ? <UtensilsCrossed className="h-4 w-4" /> : <Layers className="h-4 w-4" />}
+            {label}
+            <span
+              className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
+                view === id
+                  ? "bg-[var(--accent-muted)] text-[var(--accent-text)]"
+                  : "bg-[var(--surface)] text-[var(--text-3)]"
+              }`}
+            >
+              {count}
+            </span>
           </button>
-        </motion.div>
+        ))}
+      </div>
+
+      {view === "categories" && (
+        <div className="space-y-6">
+          {/* One-tap templates for this restaurant type (only the un-added) */}
+          {templates.some((t) => !t.added) && (
+            <div>
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-sm font-bold text-[var(--text-1)]">Quick add for your place</h3>
+                  <p className="text-[12px] text-[var(--text-2)]">Tap one to add it with its subcategories — or add them all</p>
+                </div>
+                <button
+                  onClick={() => seedDefaults()}
+                  disabled={seedingCats}
+                  className="flex shrink-0 items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--canvas)] px-3.5 py-2 text-[12px] font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] disabled:opacity-50 transition-all"
+                >
+                  {seedingCats ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5" />}
+                  Add all
+                </button>
+              </div>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                {templates.filter((t) => !t.added).map((t) => (
+                  <TemplateCard key={t.name} template={t} onAdd={() => addTemplate(t.name)} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Inline new top-level category */}
+          <AnimatePresence>
+            {showNewCat && (
+              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
+                <div className="flex items-center gap-2.5 rounded-lg border border-[var(--border)] bg-[var(--canvas)] p-3 shadow-sm">
+                  <Tag className="h-4 w-4 text-[var(--text-3)] shrink-0" />
+                  <input
+                    ref={newCatInputRef}
+                    value={newCatName}
+                    onChange={(e) => setNewCatName(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") createCategory(); if (e.key === "Escape") { setShowNewCat(false); setNewCatName(""); } }}
+                    placeholder="New top-level category name"
+                    className="flex-1 min-w-0 text-sm font-medium text-[var(--text-1)] outline-none placeholder-gray-400"
+                  />
+                  <button
+                    onClick={() => createCategory()}
+                    disabled={!newCatName.trim()}
+                    className="flex items-center gap-1 rounded-md bg-[var(--accent)] px-3 py-1.5 text-[12px] font-bold text-white hover:bg-[var(--accent-hover)] disabled:opacity-40 transition-all"
+                  >
+                    <Check className="h-3 w-3" />
+                    Create
+                  </button>
+                  <button onClick={() => { setShowNewCat(false); setNewCatName(""); }} className="p-1 text-[var(--text-3)] hover:text-[var(--text-2)]">
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* The editable category tree (categories → subcategories) */}
+          <div>
+            <h3 className="mb-3 text-sm font-bold text-[var(--text-1)]">Your categories</h3>
+            <CategoryManager
+              categories={flatCategories}
+              onAddSub={setAddSubParentId}
+              onDelete={initDeleteCategory}
+              onRename={renameCategory}
+              addSubParentId={addSubParentId}
+              onCreateSub={(parentId, name) => createCategory(name, parentId)}
+              onCancelAddSub={() => setAddSubParentId(null)}
+            />
+          </div>
+        </div>
       )}
 
+      {view === "items" && (
+        <>
+      {/* Add / Edit form — modal popup */}
       <AnimatePresence>
-        {showNewCat && (
-          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
-            <div className="flex items-center gap-2.5 rounded-lg border border-[var(--border)] bg-[var(--canvas)] p-3 shadow-sm">
-              <Tag className="h-4 w-4 text-[var(--text-3)] shrink-0" />
-              <input
-                ref={newCatInputRef}
-                value={newCatName}
-                onChange={(e) => setNewCatName(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") createCategory(); if (e.key === "Escape") { setShowNewCat(false); setNewCatName(""); } }}
-                placeholder="New top-level category name"
-                className="flex-1 min-w-0 text-sm font-medium text-[var(--text-1)] outline-none placeholder-gray-400"
-              />
-              <button
-                onClick={() => createCategory()}
-                disabled={!newCatName.trim() || creatingCat}
-                className="flex items-center gap-1 rounded-md bg-[var(--accent)] px-3 py-1.5 text-[12px] font-bold text-white hover:bg-[var(--accent-hover)] disabled:opacity-40 transition-all"
-              >
-                {creatingCat ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
-                Create
-              </button>
-              <button onClick={() => { setShowNewCat(false); setNewCatName(""); }} className="p-1 text-[var(--text-3)] hover:text-[var(--text-2)]">
-                <X className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {addSubParent && (
-          <AddSubCategoryInline
-            parentName={addSubParent.name}
-            onCreate={(name) => createCategory(name, addSubParentId)}
-            onCancel={() => setAddSubParentId(null)}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Add / Edit form */}
-      <AnimatePresence>
-        {showAddForm && (
-          <DishForm
-            categories={flatCategories}
-            onSubmit={addItem}
-            onCancel={() => setShowAddForm(false)}
-            submitLabel="Add to menu"
-            currency={cur}
-          />
-        )}
-        {editingItem && (
-          <DishForm
-            key={editingItem.id}
-            categories={flatCategories}
-            initial={{
-              name: editingItem.name,
-              description: editingItem.description || "",
-              price: String(editingItem.price),
-              categoryId: editingItem.categoryId,
-              imageUrl: editingItem.imageUrl || "",
-              isVeg: editingItem.isVeg,
-              hasEgg: editingItem.hasEgg,
-              hasOnionGarlic: editingItem.hasOnionGarlic,
-              prepTime: editingItem.prepTime || "15-20 min",
-              badge: editingItem.badge || "",
-              tags: editingItem.tags,
-              spiceLevel: editingItem.spiceLevel,
-              calories: editingItem.calories ? String(editingItem.calories) : "",
-              allergens: editingItem.allergens,
-              isFeatured: editingItem.isFeatured,
-              discount: editingItem.discount ? String(editingItem.discount) : "",
-              discountLabel: editingItem.discountLabel || "",
-              sizes: editingItem.sizes.map((s) => ({ label: s.label, grams: s.grams, priceAdd: String(s.priceAdd) })),
-              addOns: editingItem.addOns.map((a) => ({ name: a.name, price: String(a.price) })),
-            }}
-            onSubmit={editItem}
-            onCancel={() => setEditingItem(null)}
-            submitLabel="Save Changes"
-            currency={cur}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Main layout: sidebar + grid */}
-      <div className="flex gap-5">
-        {flatCategories.length > 0 && (
-          <div className="hidden lg:block w-52 shrink-0">
-            <div className="sticky top-6 max-h-[calc(100vh-120px)] overflow-y-auto scrollbar-slim rounded-xl bg-[var(--canvas)] ring-1 ring-[var(--border)] p-3">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-3)] mb-2 px-2">Categories</p>
-              <CategoryTree
-                categories={flatCategories}
-                selectedCatId={selectedCatId}
-                onSelect={setSelectedCatId}
-                onAddSub={setAddSubParentId}
-                onDelete={initDeleteCategory}
-              />
+        {(showAddForm || editingItem) && (
+          <div
+            className="fixed inset-0 z-[90] flex items-start sm:items-center justify-center bg-black/50 backdrop-blur-sm p-3 sm:p-6 overflow-y-auto"
+            onClick={() => { setShowAddForm(false); setEditingItem(null); }}
+          >
+            <div
+              className="w-full max-w-5xl my-auto max-h-[92dvh] overflow-y-auto rounded-2xl shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {editingItem ? (
+                <DishForm
+                  key={editingItem.id}
+                  categories={flatCategories}
+                  initial={{
+                    name: editingItem.name,
+                    description: editingItem.description || "",
+                    price: String(editingItem.price),
+                    categoryId: editingItem.categoryId,
+                    imageUrl: editingItem.imageUrl || "",
+                    isVeg: editingItem.isVeg,
+                    hasEgg: editingItem.hasEgg,
+                    hasOnionGarlic: editingItem.hasOnionGarlic,
+                    prepTime: editingItem.prepTime || "15-20 min",
+                    badge: editingItem.badge || "",
+                    tags: editingItem.tags,
+                    spiceLevel: editingItem.spiceLevel,
+                    calories: editingItem.calories ? String(editingItem.calories) : "",
+                    allergens: editingItem.allergens,
+                    isFeatured: editingItem.isFeatured,
+                    discount: editingItem.discount ? String(editingItem.discount) : "",
+                    discountLabel: editingItem.discountLabel || "",
+                    sizes: editingItem.sizes.map((s) => ({ label: s.label, grams: s.grams, priceAdd: String(s.priceAdd) })),
+                    addOns: editingItem.addOns.map((a) => ({ name: a.name, price: String(a.price) })),
+                  }}
+                  onSubmit={editItem}
+                  onCancel={() => setEditingItem(null)}
+                  submitLabel="Save Changes"
+                  currency={cur}
+                />
+              ) : (
+                <DishForm
+                  categories={flatCategories}
+                  onSubmit={addItem}
+                  onCancel={() => setShowAddForm(false)}
+                  submitLabel="Add to menu"
+                  currency={cur}
+                />
+              )}
             </div>
           </div>
         )}
+      </AnimatePresence>
 
-        <div className="flex-1 min-w-0">
-          {/* Search & mobile category filter */}
-          <div className="flex flex-col sm:flex-row gap-3 mb-6">
-            <div className="relative flex-1 group">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-3)] group-focus-within:text-[var(--accent)] transition-colors" />
+      {/* Dishes grid — filter via the category chip strip below (no sidebar) */}
+      <div>
+        <div className="min-w-0">
+          {/* Search & category filter (managing categories lives in the
+              Categories tab — this strip is filter-only, no delete) */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
+            <div className="relative sm:w-72 group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-3)] group-focus-within:text-[var(--accent)] transition-colors" />
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search dishes…"
-                className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)]/80 backdrop-blur-sm py-3 pl-10 pr-4 text-sm font-semibold text-[var(--text-1)] placeholder-gray-400 focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 shadow-sm transition-all"
+                className="w-full rounded-full border border-[var(--border)] bg-[var(--canvas-sub)] py-2.5 pl-11 pr-10 text-sm font-medium text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:outline-none focus:border-[var(--accent)] focus:bg-[var(--canvas)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
               />
+              {search && (
+                <button
+                  onClick={() => setSearch("")}
+                  aria-label="Clear search"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-[var(--text-3)] hover:bg-[var(--surface)] hover:text-[var(--text-1)] transition-colors"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
             </div>
-            <div className="lg:hidden flex gap-2 overflow-x-auto scrollbar-hide items-center pb-1">
+            <div className="flex gap-2 overflow-x-auto scrollbar-hide items-center pb-1 sm:flex-1">
               {["All", ...flatCategories.filter((c) => !c.parentId).map((c) => c.name)].map((cat) => {
                 const catObj = flatCategories.find((c) => c.name === cat && !c.parentId);
                 const isActive = cat === "All" ? selectedCatId === "All" : selectedCatId === catObj?.id;
-                return cat === "All" ? (
+                return (
                   <button
-                    key="All"
-                    onClick={() => setSelectedCatId("All")}
-                    className={`shrink-0 rounded-full px-4 py-2 text-[12px] font-bold tracking-wide transition-all shadow-sm border ${
-                      isActive ? "bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] text-white border-transparent" : "bg-[var(--canvas)] text-[var(--text-2)] border-[var(--border)] hover:bg-[var(--canvas-sub)]"
+                    key={cat}
+                    onClick={() => setSelectedCatId(cat === "All" ? "All" : catObj?.id || "All")}
+                    className={`shrink-0 rounded-full px-4 py-2 text-[12px] font-bold tracking-wide transition-all border ${
+                      isActive
+                        ? "bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] text-white border-transparent shadow-sm"
+                        : "bg-[var(--canvas)] text-[var(--text-2)] border-[var(--border)] hover:bg-[var(--canvas-sub)] hover:text-[var(--text-1)]"
                     }`}
                   >
-                    All
+                    {cat}
                   </button>
-                ) : (
-                  <div key={cat} className="shrink-0 flex items-center gap-0.5">
-                    <button
-                      onClick={() => setSelectedCatId(catObj?.id || "All")}
-                      className={`rounded-l-full pl-4 pr-2 py-2 text-[12px] font-bold tracking-wide transition-all shadow-sm border-y border-l ${
-                        isActive ? "bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] text-white border-transparent" : "bg-[var(--canvas)] text-[var(--text-2)] border-[var(--border)] hover:bg-[var(--canvas-sub)]"
-                      }`}
-                    >
-                      {cat}
-                    </button>
-                    {catObj && (
-                      <button
-                        onClick={() => initDeleteCategory(catObj.id)}
-                        className={`rounded-r-full pl-1.5 pr-3 py-2 transition-all shadow-sm border-y border-r ${
-                          isActive ? "bg-[var(--accent)] text-white border-transparent" : "bg-[var(--canvas)] text-[var(--text-3)] border-[var(--border)] hover:text-red-500 hover:bg-red-50 hover:border-red-200"
-                        }`}
-                        title={`Delete "${cat}"`}
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                    )}
-                  </div>
                 );
               })}
             </div>
@@ -2100,6 +2505,8 @@ export default function MenuManagementTab({
           </motion.div>
         </div>
       </div>
+        </>
+      )}
 
       <AnimatePresence>
         {deleteCatConfirm && (

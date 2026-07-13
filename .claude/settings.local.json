@@ -46,7 +46,17 @@
       "Bash(powershell -Command \"Get-NetTCPConnection -LocalPort 60522 -ErrorAction SilentlyContinue | Select-Object LocalPort,State,OwningProcess\")",
       "Bash(curl -s -m 5 http://localhost:3000/api/geoip -w \"\\\\nHTTP_STATUS:%{http_code}\\\\n\")",
       "Bash(curl -s -m 8 -o /dev/null -w \"HTTP_STATUS:%{http_code}\\\\n\" http://localhost:3000/)",
-      "Bash(curl -s -m 8 http://localhost:3000/api/geoip -w \"\\\\nHTTP_STATUS:%{http_code}\\\\n\")"
+      "Bash(curl -s -m 8 http://localhost:3000/api/geoip -w \"\\\\nHTTP_STATUS:%{http_code}\\\\n\")",
+      "Bash(pkill -f \"npm run dev\")",
+      "Bash(npm run *)",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" http://localhost:3000/api/geoip)",
+      "Bash(curl -s http://localhost:3000/api/geoip)",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" \"http://localhost:3000/api/geocode?mode=reverse&lat=27.7172&lon=85.3240\")",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" \"http://localhost:3000/api/geocode?mode=search&q=thamel\")",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" \"http://localhost:3000/api/geocode\")",
+      "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\('next', p.dependencies.next\\); console.log\\('react-query', p.dependencies['@tanstack/react-query']\\); console.log\\('react', p.dependencies.react\\);\")",
+      "Bash(node -e \"const s=require\\('./package.json'\\).scripts; console.log\\(JSON.stringify\\(s,null,2\\)\\)\")",
+      "Bash(echo \"EXIT_CODE=$?\")"
     ]
   }
 }

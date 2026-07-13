@@ -12,7 +12,7 @@ import {
 import { formatPrice } from "@/lib/currency";
 import { useToast } from "@/context/ToastContext";
 import { buildQRCanvas } from "@/components/dashboard/qr/qrCanvas";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, invalidateApiCache } from "@/lib/api-client";
 import { openBillWindow } from "@/lib/print-bill";
 import QRCodesTab from "./QRCodesTab";
 
@@ -205,9 +205,16 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
   const tablesQueryKey = ["tables", rid] as const;
   const tablesQuery = useQuery({
     queryKey: tablesQueryKey,
+    // cacheTtl: 0 — bypass apiFetch's own 60s GET cache. React Query is the
+    // single source of truth for this list; letting apiFetch also cache it made
+    // the post-create reconcile (and the 30s poll) read a stale list and CLOBBER
+    // the just-added table, so it "vanished until a page refresh". Always fetch
+    // fresh here; React Query still paints instantly from its own cache on tab
+    // revisit.
     queryFn: () =>
       apiFetch<{ tables?: TableData[]; restaurant?: { slug?: string; name?: string } }>(
         `/api/restaurants/${rid}/tables`,
+        { cacheTtl: 0 },
       ),
     enabled: !!rid,
     refetchInterval: 30_000,
@@ -225,7 +232,13 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
       restaurant: prev?.restaurant,
       tables: typeof updater === "function" ? (updater as (p: TableData[]) => TableData[])(prev?.tables ?? []) : updater,
     }));
-  const load = (_fresh = false) => queryClient.invalidateQueries({ queryKey: tablesQueryKey });
+  const load = (_fresh = false) => {
+    // Also drop apiFetch's own cache for this path so sibling views that read it
+    // (e.g. the QR Codes tab, which lists tables via apiFetch) immediately see a
+    // newly created/renamed/removed table instead of a 60s-stale copy.
+    invalidateApiCache(`/api/restaurants/${rid}/tables`);
+    return queryClient.invalidateQueries({ queryKey: tablesQueryKey });
+  };
   const [selected, setSelected] = useState<TableData | null>(null);
   const [qrTable,  setQrTable]  = useState<TableData | null>(null);
   const [clearingId, setClearingId] = useState<string | null>(null);
@@ -375,7 +388,7 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
   };
 
   const handleBulkCreate = async () => {
-    if (!rid) return;
+    if (!rid || bulkSaving) return;
     const from = parseInt(bulkFrom);
     const to   = parseInt(bulkTo);
     const cap  = parseInt(bulkCap) || 4;
@@ -383,39 +396,55 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
       alert("Invalid range. Max 100 tables at once.");
       return;
     }
-    setBulkSaving(true);
-    setBulkProgress(0);
-    let created = 0;
-    let lastError = "";
+
+    // Optimistic: drop the whole range in instantly (skipping numbers that
+    // already exist) and close the modal. One request to the bulk endpoint
+    // replaces the old per-table request loop, then we reconcile real ids.
+    const existing = new Set(tables.map((t) => t.tableNo));
+    const snapshot = tables;
+    const optimistic: TableData[] = [];
     for (let n = from; n <= to; n++) {
-      try {
-        const res = await fetch(`/api/restaurants/${rid}/tables`, {
-          method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ tableNo: n, capacity: cap }),
-        });
-        if (res.ok) {
-          created++;
-        } else if (res.status !== 409) {
-          // 409 = duplicate, skip silently; other errors capture message
-          const body = await res.json().catch(() => ({}));
-          lastError = body.error ?? `HTTP ${res.status}`;
-        }
-      } catch { /* network error, skip */ }
-      setBulkProgress(Math.round(((n - from + 1) / (to - from + 1)) * 100));
+      if (existing.has(n)) continue;
+      optimistic.push({
+        id: `temp-bulk-${n}`, tableNo: n, label: null, capacity: cap,
+        isActive: true, isOccupied: false, session: null,
+      });
     }
-    setBulkSaving(false);
+
+    setBulkSaving(true);
+    setTables((prev) => [...prev, ...optimistic]);
     setShowBulk(false);
     setBulkFrom("1");
     setBulkTo("20");
     setBulkCap("4");
-    setBulkProgress(0);
-    await load(true);
-    if (created > 0) {
-      alert(`Created ${created} table(s) successfully.`);
-    } else if (lastError) {
-      alert(`Failed to create tables: ${lastError}`);
+
+    try {
+      const res = await fetch(`/api/restaurants/${rid}/tables/bulk`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ from, to, capacity: cap }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        setTables(snapshot); // rollback
+        showToast(body.error ?? "Failed to create tables", "error");
+        return;
+      }
+      const data = await res.json().catch(() => ({}));
+      showToast(
+        data.created > 0
+          ? `Created ${data.created} table(s)`
+          : "Those tables already exist",
+        "success",
+      );
+      load(true); // reconcile real ids/numbers
+    } catch {
+      setTables(snapshot); // rollback
+      showToast("Failed to create tables", "error");
+    } finally {
+      setBulkSaving(false);
+      setBulkProgress(0);
     }
   };
 

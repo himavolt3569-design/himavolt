@@ -36,6 +36,8 @@ export async function GET(
       roomServiceEnabled: true,
       roomServiceCharge: true,
       isActive: true,
+      featuresEnabled: true,
+      featuresDisabled: true,
       heroSlides: {
         where: { isActive: true },
         orderBy: { sortOrder: "asc" },
@@ -48,7 +50,12 @@ export async function GET(
     return NextResponse.json({ error: "Hotel not found" }, { status: 404 });
   }
 
-  if (!HOTEL_TYPES.includes(restaurant.type)) {
+  const isHotelType = HOTEL_TYPES.includes(restaurant.type);
+  const isHotelHubEnabled =
+    restaurant.featuresEnabled?.includes("HOTEL_HUB") ||
+    (isHotelType && !restaurant.featuresDisabled?.includes("HOTEL_HUB"));
+
+  if (!isHotelHubEnabled) {
     return NextResponse.json(
       { error: "This venue does not support room bookings" },
       { status: 400 },

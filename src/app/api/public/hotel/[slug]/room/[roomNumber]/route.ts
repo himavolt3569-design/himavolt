@@ -43,6 +43,8 @@ export async function GET(
       hotelAdvanceType: true,
       hotelAdvanceValue: true,
       isActive: true,
+      featuresEnabled: true,
+      featuresDisabled: true,
       wifiName: true,
       wifiPassword: true,
     },
@@ -51,7 +53,12 @@ export async function GET(
   if (!restaurant || !restaurant.isActive) {
     return NextResponse.json({ error: "Hotel not found" }, { status: 404 });
   }
-  if (!HOTEL_TYPES.includes(restaurant.type)) {
+  const isHotelType = HOTEL_TYPES.includes(restaurant.type);
+  const isHotelHubEnabled =
+    restaurant.featuresEnabled?.includes("HOTEL_HUB") ||
+    (isHotelType && !restaurant.featuresDisabled?.includes("HOTEL_HUB"));
+
+  if (!isHotelHubEnabled) {
     return NextResponse.json(
       { error: "This venue does not support rooms" },
       { status: 400 },

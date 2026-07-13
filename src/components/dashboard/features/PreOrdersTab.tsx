@@ -23,7 +23,7 @@ import {
   Search,
   Filter,
 } from "lucide-react";
-import NotPersistedBanner from "./_NotPersistedBanner";
+import { useFeatureConfig } from "@/hooks/useFeatureConfig";
 
 interface PreOrderItem {
   id: string;
@@ -75,18 +75,30 @@ const STATUS_COLORS: Record<PreOrderItem["status"], string> = {
 
 const STATUS_FLOW: PreOrderItem["status"][] = ["Pending", "Ready", "Picked Up"];
 
+interface PreOrderConfig {
+  orders: PreOrderItem[];
+  acceptingPreOrders: boolean;
+  maxOrdersPerDay: number;
+  maxOrdersPerSlot: number;
+  notifyHoursBefore: number;
+}
+
+const PREORDER_DEFAULTS: PreOrderConfig = {
+  orders: [],
+  acceptingPreOrders: true,
+  maxOrdersPerDay: 20,
+  maxOrdersPerSlot: 5,
+  notifyHoursBefore: 2,
+};
+
 export default function PreOrdersTab() {
-  const [orders, setOrders] = useState<PreOrderItem[]>([]);
+  const { config, setConfig } = useFeatureConfig<PreOrderConfig>("pre-orders", PREORDER_DEFAULTS);
+  const { orders, acceptingPreOrders, maxOrdersPerDay, maxOrdersPerSlot, notifyHoursBefore } = config;
   const [showForm, setShowForm] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [activeView, setActiveView] = useState<"list" | "calendar">("list");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<PreOrderItem["status"] | "All">("All");
-  const [acceptingPreOrders, setAcceptingPreOrders] = useState(true);
-
-  const [maxOrdersPerDay, setMaxOrdersPerDay] = useState(20);
-  const [maxOrdersPerSlot, setMaxOrdersPerSlot] = useState(5);
-  const [notifyHoursBefore, setNotifyHoursBefore] = useState(2);
 
   const [formData, setFormData] = useState({
     customerName: "",
@@ -117,7 +129,7 @@ export default function PreOrdersTab() {
       status: "Pending",
       createdAt: new Date().toISOString().split("T")[0],
     };
-    setOrders([newOrder, ...orders]);
+    setConfig((c) => ({ ...c, orders: [newOrder, ...c.orders] }));
     setFormData({
       customerName: "",
       phone: "",
@@ -132,8 +144,9 @@ export default function PreOrdersTab() {
   };
 
   const updateOrderStatus = (id: string, direction: "next" | "prev") => {
-    setOrders(
-      orders.map((o) => {
+    setConfig((c) => ({
+      ...c,
+      orders: c.orders.map((o) => {
         if (o.id !== id) return o;
         const idx = STATUS_FLOW.indexOf(o.status);
         if (direction === "next" && idx < STATUS_FLOW.length - 1) {
@@ -143,8 +156,8 @@ export default function PreOrdersTab() {
           return { ...o, status: STATUS_FLOW[idx - 1] };
         }
         return o;
-      })
-    );
+      }),
+    }));
   };
 
   const toggleItemSelection = (item: string) => {
@@ -214,7 +227,6 @@ export default function PreOrdersTab() {
 
   return (
     <div className="space-y-6">
-      <NotPersistedBanner />
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-[var(--text-1)]">Pre-Orders</h2>
@@ -224,7 +236,7 @@ export default function PreOrdersTab() {
         </div>
         <div className="flex items-center gap-3">
           <button
-            onClick={() => setAcceptingPreOrders(!acceptingPreOrders)}
+            onClick={() => setConfig((c) => ({ ...c, acceptingPreOrders: !c.acceptingPreOrders }))}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
               acceptingPreOrders
                 ? "bg-[var(--accent-muted)] text-[var(--accent-text)] hover:bg-[#fde9ba]"
@@ -271,7 +283,7 @@ export default function PreOrdersTab() {
                   <input
                     type="number"
                     value={maxOrdersPerDay}
-                    onChange={(e) => setMaxOrdersPerDay(Number(e.target.value))}
+                    onChange={(e) => setConfig((c) => ({ ...c, maxOrdersPerDay: Number(e.target.value) }))}
                     className="w-full px-3 py-2 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 focus:border-rose-300"
                   />
                 </div>
@@ -282,7 +294,7 @@ export default function PreOrdersTab() {
                   <input
                     type="number"
                     value={maxOrdersPerSlot}
-                    onChange={(e) => setMaxOrdersPerSlot(Number(e.target.value))}
+                    onChange={(e) => setConfig((c) => ({ ...c, maxOrdersPerSlot: Number(e.target.value) }))}
                     className="w-full px-3 py-2 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 focus:border-rose-300"
                   />
                 </div>
@@ -294,7 +306,7 @@ export default function PreOrdersTab() {
                   <input
                     type="number"
                     value={notifyHoursBefore}
-                    onChange={(e) => setNotifyHoursBefore(Number(e.target.value))}
+                    onChange={(e) => setConfig((c) => ({ ...c, notifyHoursBefore: Number(e.target.value) }))}
                     className="w-full px-3 py-2 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 focus:border-rose-300"
                   />
                 </div>

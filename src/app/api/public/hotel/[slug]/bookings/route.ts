@@ -93,13 +93,20 @@ export async function POST(
       hotelAdvanceValue: true,
       roomServiceEnabled: true,
       roomServiceCharge: true,
+      featuresEnabled: true,
+      featuresDisabled: true,
     },
   });
 
   if (!restaurant || !restaurant.isActive) {
     return NextResponse.json({ error: "Hotel not found" }, { status: 404 });
   }
-  if (!HOTEL_TYPES.includes(restaurant.type)) {
+  const isHotelType = HOTEL_TYPES.includes(restaurant.type);
+  const isHotelHubEnabled =
+    restaurant.featuresEnabled?.includes("HOTEL_HUB") ||
+    (isHotelType && !restaurant.featuresDisabled?.includes("HOTEL_HUB"));
+
+  if (!isHotelHubEnabled) {
     return NextResponse.json(
       { error: "Room bookings not supported for this venue" },
       { status: 400 },

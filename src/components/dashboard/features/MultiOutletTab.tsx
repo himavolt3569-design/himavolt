@@ -20,7 +20,7 @@ import {
   CheckSquare,
   Square,
 } from "lucide-react";
-import NotPersistedBanner from "./_NotPersistedBanner";
+import { useFeatureConfig } from "@/hooks/useFeatureConfig";
 
 interface Outlet {
   id: string;
@@ -63,8 +63,11 @@ const ALL_STAFF = [
   "Maya P.",
 ];
 
+const MULTI_OUTLET_DEFAULTS: { outlets: Outlet[] } = { outlets: [] };
+
 export default function MultiOutletTab() {
-  const [outlets, setOutlets] = useState<Outlet[]>([]);
+  const { config, setConfig } = useFeatureConfig<{ outlets: Outlet[] }>("multi-outlet", MULTI_OUTLET_DEFAULTS);
+  const outlets = config.outlets;
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -79,13 +82,13 @@ export default function MultiOutletTab() {
   });
 
   const toggleOutlet = (id: string) => {
-    setOutlets((prev) =>
-      prev.map((o) => (o.id === id ? { ...o, isActive: !o.isActive } : o))
-    );
+    setConfig((c) => ({
+      outlets: c.outlets.map((o) => (o.id === id ? { ...o, isActive: !o.isActive } : o)),
+    }));
   };
 
   const deleteOutlet = (id: string) => {
-    setOutlets((prev) => prev.filter((o) => o.id !== id));
+    setConfig((c) => ({ outlets: c.outlets.filter((o) => o.id !== id) }));
   };
 
   const toggleCategory = (category: string) => {
@@ -107,8 +110,8 @@ export default function MultiOutletTab() {
   };
 
   const toggleOutletCategory = (outletId: string, category: string) => {
-    setOutlets((prev) =>
-      prev.map((o) =>
+    setConfig((cfg) => ({
+      outlets: cfg.outlets.map((o) =>
         o.id === outletId
           ? {
               ...o,
@@ -117,13 +120,13 @@ export default function MultiOutletTab() {
                 : [...o.menuCategories, category],
             }
           : o
-      )
-    );
+      ),
+    }));
   };
 
   const toggleOutletStaff = (outletId: string, staff: string) => {
-    setOutlets((prev) =>
-      prev.map((o) =>
+    setConfig((cfg) => ({
+      outlets: cfg.outlets.map((o) =>
         o.id === outletId
           ? {
               ...o,
@@ -132,8 +135,8 @@ export default function MultiOutletTab() {
                 : [...o.assignedStaff, staff],
             }
           : o
-      )
-    );
+      ),
+    }));
   };
 
   const submitNewOutlet = () => {
@@ -150,7 +153,7 @@ export default function MultiOutletTab() {
       todayRevenue: 0,
       totalOrders: 0,
     };
-    setOutlets((prev) => [...prev, outlet]);
+    setConfig((c) => ({ outlets: [...c.outlets, outlet] }));
     setNewOutlet({
       name: "",
       location: "",
@@ -169,13 +172,12 @@ export default function MultiOutletTab() {
 
   return (
     <div className="space-y-6">
-      <NotPersistedBanner />
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-stone-800">
+          <h2 className="text-2xl font-bold text-[var(--text-1)]">
             Multi-Outlet Management
           </h2>
-          <p className="text-sm text-stone-500">
+          <p className="text-sm text-[var(--text-3)]">
             Manage all dining outlets across your resort
           </p>
         </div>
@@ -223,12 +225,12 @@ export default function MultiOutletTab() {
             key={stat.label}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`rounded-xl ${stat.bg} border border-stone-100 p-4 shadow-sm`}
+            className={`rounded-xl ${stat.bg} border border-[var(--border-soft)] p-4 shadow-sm`}
           >
             <div className="flex items-center gap-3">
               <stat.icon className={`h-5 w-5 ${stat.color}`} />
               <div>
-                <p className="text-xs font-medium text-stone-500">
+                <p className="text-xs font-medium text-[var(--text-3)]">
                   {stat.label}
                 </p>
                 <p className={`text-lg font-bold ${stat.color}`}>
@@ -247,34 +249,34 @@ export default function MultiOutletTab() {
             layout
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="rounded-xl border border-stone-200 bg-[var(--canvas)] shadow-sm overflow-hidden"
+            className="rounded-xl border border-[var(--border)] bg-[var(--canvas)] shadow-sm overflow-hidden"
           >
             <div className="p-5">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-4">
                   <div
-                    className={`flex h-12 w-12 items-center justify-center rounded-xl ${outlet.isActive ? "bg-[var(--accent-muted)]" : "bg-stone-100"}`}
+                    className={`flex h-12 w-12 items-center justify-center rounded-xl ${outlet.isActive ? "bg-[var(--accent-muted)]" : "bg-[var(--surface)]"}`}
                   >
                     <Store
-                      className={`h-6 w-6 ${outlet.isActive ? "text-[var(--accent-text)]" : "text-stone-400"}`}
+                      className={`h-6 w-6 ${outlet.isActive ? "text-[var(--accent-text)]" : "text-[var(--text-3)]"}`}
                     />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-stone-800">
+                      <h3 className="font-semibold text-[var(--text-1)]">
                         {outlet.name}
                       </h3>
                       <span
                         className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                           outlet.isActive
                             ? "bg-[var(--accent-muted)] text-[var(--accent-text)]"
-                            : "bg-stone-100 text-stone-500"
+                            : "bg-[var(--surface)] text-[var(--text-3)]"
                         }`}
                       >
                         {outlet.isActive ? "Open" : "Closed"}
                       </span>
                     </div>
-                    <div className="flex items-center gap-3 text-sm text-stone-500">
+                    <div className="flex items-center gap-3 text-sm text-[var(--text-3)]">
                       <span className="flex items-center gap-1">
                         <MapPin className="h-3.5 w-3.5" />
                         {outlet.location}
@@ -290,13 +292,13 @@ export default function MultiOutletTab() {
 
                 <div className="flex items-center gap-2">
                   <div className="rounded-lg bg-[var(--accent-muted)] px-3 py-1.5 text-right">
-                    <p className="text-xs text-stone-500">Revenue</p>
+                    <p className="text-xs text-[var(--text-3)]">Revenue</p>
                     <p className="text-sm font-bold text-[var(--accent-text)]">
                       ${outlet.todayRevenue.toLocaleString()}
                     </p>
                   </div>
                   <div className="rounded-lg bg-blue-50 px-3 py-1.5 text-right">
-                    <p className="text-xs text-stone-500">Orders</p>
+                    <p className="text-xs text-[var(--text-3)]">Orders</p>
                     <p className="text-sm font-bold text-blue-700">
                       {outlet.totalOrders}
                     </p>
@@ -310,13 +312,13 @@ export default function MultiOutletTab() {
                     {outlet.isActive ? (
                       <ToggleRight className="h-7 w-7 text-[var(--accent-text)]" />
                     ) : (
-                      <ToggleLeft className="h-7 w-7 text-stone-300" />
+                      <ToggleLeft className="h-7 w-7 text-[var(--text-3)]" />
                     )}
                   </button>
 
                   <button
                     onClick={() => deleteOutlet(outlet.id)}
-                    className="rounded-lg p-2 text-stone-400 hover:bg-red-50 hover:text-red-500"
+                    className="rounded-lg p-2 text-[var(--text-3)] hover:bg-red-50 hover:text-red-500"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -327,7 +329,7 @@ export default function MultiOutletTab() {
                         expandedId === outlet.id ? null : outlet.id
                       )
                     }
-                    className="rounded-lg p-2 text-stone-400 hover:bg-stone-100"
+                    className="rounded-lg p-2 text-[var(--text-3)] hover:bg-[var(--surface)]"
                   >
                     {expandedId === outlet.id ? (
                       <ChevronUp className="h-4 w-4" />
@@ -339,7 +341,7 @@ export default function MultiOutletTab() {
               </div>
 
               {outlet.description && (
-                <p className="mt-2 text-sm text-stone-500 ml-16">
+                <p className="mt-2 text-sm text-[var(--text-3)] ml-16">
                   {outlet.description}
                 </p>
               )}
@@ -351,11 +353,11 @@ export default function MultiOutletTab() {
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: "auto", opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
-                  className="border-t border-stone-100 overflow-hidden"
+                  className="border-t border-[var(--border-soft)] overflow-hidden"
                 >
                   <div className="p-5 space-y-5">
                     <div>
-                      <p className="mb-2 text-sm font-medium text-stone-700 flex items-center gap-2">
+                      <p className="mb-2 text-sm font-medium text-[var(--text-2)] flex items-center gap-2">
                         <UtensilsCrossed className="h-4 w-4 text-[var(--accent-text)]" />
                         Menu Categories
                       </p>
@@ -371,7 +373,7 @@ export default function MultiOutletTab() {
                               className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition ${
                                 active
                                   ? "bg-[var(--accent-muted)] text-[var(--accent-text)]"
-                                  : "bg-stone-100 text-stone-400"
+                                  : "bg-[var(--surface)] text-[var(--text-3)]"
                               }`}
                             >
                               {active ? (
@@ -387,7 +389,7 @@ export default function MultiOutletTab() {
                     </div>
 
                     <div>
-                      <p className="mb-2 text-sm font-medium text-stone-700 flex items-center gap-2">
+                      <p className="mb-2 text-sm font-medium text-[var(--text-2)] flex items-center gap-2">
                         <Users className="h-4 w-4 text-blue-600" />
                         Assigned Staff
                       </p>
@@ -404,7 +406,7 @@ export default function MultiOutletTab() {
                               className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
                                 assigned
                                   ? "bg-blue-100 text-blue-700"
-                                  : "bg-stone-100 text-stone-400"
+                                  : "bg-[var(--surface)] text-[var(--text-3)]"
                               }`}
                             >
                               {staff}
@@ -438,12 +440,12 @@ export default function MultiOutletTab() {
               className="w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl bg-[var(--canvas)] p-6 shadow-xl"
             >
               <div className="mb-6 flex items-center justify-between">
-                <h3 className="text-lg font-bold text-stone-800">
+                <h3 className="text-lg font-bold text-[var(--text-1)]">
                   Add New Outlet
                 </h3>
                 <button
                   onClick={() => setShowAddForm(false)}
-                  className="rounded-lg p-1.5 text-stone-400 hover:bg-stone-100"
+                  className="rounded-lg p-1.5 text-[var(--text-3)] hover:bg-[var(--surface)]"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -451,7 +453,7 @@ export default function MultiOutletTab() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium text-stone-700">
+                  <label className="mb-1.5 block text-sm font-medium text-[var(--text-2)]">
                     Outlet Name
                   </label>
                   <input
@@ -461,12 +463,12 @@ export default function MultiOutletTab() {
                       setNewOutlet((o) => ({ ...o, name: e.target.value }))
                     }
                     placeholder="e.g., Rooftop Lounge"
-                    className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 placeholder:text-stone-400 focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
+                    className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm text-[var(--text-2)] placeholder:text-[var(--text-3)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                   />
                 </div>
 
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium text-stone-700">
+                  <label className="mb-1.5 block text-sm font-medium text-[var(--text-2)]">
                     Location
                   </label>
                   <input
@@ -476,12 +478,12 @@ export default function MultiOutletTab() {
                       setNewOutlet((o) => ({ ...o, location: e.target.value }))
                     }
                     placeholder="e.g., Main Building, 5th Floor"
-                    className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 placeholder:text-stone-400 focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
+                    className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm text-[var(--text-2)] placeholder:text-[var(--text-3)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]"
                   />
                 </div>
 
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium text-stone-700">
+                  <label className="mb-1.5 block text-sm font-medium text-[var(--text-2)]">
                     Description
                   </label>
                   <textarea
@@ -494,13 +496,13 @@ export default function MultiOutletTab() {
                     }
                     placeholder="Brief description of this outlet..."
                     rows={2}
-                    className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 placeholder:text-stone-400 focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] resize-none"
+                    className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm text-[var(--text-2)] placeholder:text-[var(--text-3)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] resize-none"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-stone-700">
+                    <label className="mb-1.5 block text-sm font-medium text-[var(--text-2)]">
                       Open Time
                     </label>
                     <input
@@ -512,11 +514,11 @@ export default function MultiOutletTab() {
                           openTime: e.target.value,
                         }))
                       }
-                      className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 focus:border-[var(--accent)] focus:outline-none"
+                      className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm text-[var(--text-2)] focus:border-[var(--accent)] focus:outline-none"
                     />
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-stone-700">
+                    <label className="mb-1.5 block text-sm font-medium text-[var(--text-2)]">
                       Close Time
                     </label>
                     <input
@@ -528,13 +530,13 @@ export default function MultiOutletTab() {
                           closeTime: e.target.value,
                         }))
                       }
-                      className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-700 focus:border-[var(--accent)] focus:outline-none"
+                      className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm text-[var(--text-2)] focus:border-[var(--accent)] focus:outline-none"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium text-stone-700">
+                  <label className="mb-1.5 block text-sm font-medium text-[var(--text-2)]">
                     Menu Categories
                   </label>
                   <div className="flex flex-wrap gap-2">
@@ -547,7 +549,7 @@ export default function MultiOutletTab() {
                           className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
                             selected
                               ? "bg-[var(--accent-muted)] text-[var(--accent-text)]"
-                              : "bg-stone-100 text-stone-500 hover:bg-stone-200"
+                              : "bg-[var(--surface)] text-[var(--text-3)] hover:bg-[var(--surface-alt)]"
                           }`}
                         >
                           {cat}
@@ -558,7 +560,7 @@ export default function MultiOutletTab() {
                 </div>
 
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium text-stone-700">
+                  <label className="mb-1.5 block text-sm font-medium text-[var(--text-2)]">
                     Assign Staff
                   </label>
                   <div className="flex flex-wrap gap-2">
@@ -571,7 +573,7 @@ export default function MultiOutletTab() {
                           className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
                             selected
                               ? "bg-blue-100 text-blue-700"
-                              : "bg-stone-100 text-stone-500 hover:bg-stone-200"
+                              : "bg-[var(--surface)] text-[var(--text-3)] hover:bg-[var(--surface-alt)]"
                           }`}
                         >
                           {staff}

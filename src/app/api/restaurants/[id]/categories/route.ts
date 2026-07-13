@@ -110,6 +110,60 @@ export async function POST(
   }
 }
 
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+
+  const staff = await getStaffSession(req);
+  let authorized = staff?.restaurantId === id;
+  if (!authorized) {
+    const user = await getOrCreateUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const restaurant = await db.restaurant.findFirst({ where: { id, ownerId: user.id } });
+    if (!restaurant) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    authorized = true;
+  }
+
+  const body = await req.json().catch(() => ({}));
+  const categoryId: string | undefined = body.categoryId;
+  const name: string | undefined =
+    typeof body.name === "string" ? body.name.trim() : undefined;
+  if (!categoryId || !name) {
+    return NextResponse.json(
+      { error: "categoryId and name are required" },
+      { status: 400 },
+    );
+  }
+  if (name.length > 100) {
+    return NextResponse.json({ error: "Name too long" }, { status: 400 });
+  }
+
+  try {
+    // Scope the update to this restaurant so a category can't be renamed by id
+    // across tenants.
+    const result = await db.menuCategory.updateMany({
+      where: { id: categoryId, restaurantId: id },
+      data: { name },
+    });
+    if (result.count === 0) {
+      return NextResponse.json({ error: "Category not found" }, { status: 404 });
+    }
+    const category = await db.menuCategory.findUnique({
+      where: { id: categoryId },
+      include: { _count: { select: { items: true } } },
+    });
+    return NextResponse.json(category);
+  } catch (err) {
+    console.error("[Categories PATCH]", err);
+    return NextResponse.json(
+      { error: "Failed to rename category" },
+      { status: 500 },
+    );
+  }
+}
+
 export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }

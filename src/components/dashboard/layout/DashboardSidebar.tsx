@@ -15,11 +15,16 @@ import {
   Sparkles,
   BedDouble,
   UtensilsCrossed,
+  Trash2,
+  TriangleAlert,
+  Loader2,
   type LucideIcon,
 } from "lucide-react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useRestaurant } from "@/context/RestaurantContext";
+import { useRestaurant, type Restaurant } from "@/context/RestaurantContext";
+import { useToast } from "@/context/ToastContext";
 import POSLauncher from "@/components/pos/activation/POSLauncher";
 import {
   getTypeLabel,
@@ -34,12 +39,133 @@ import {
   NAV_PEOPLE,
   NAV_MORE,
   HOTEL_HUB_NAV_ITEM,
-  ROOM_ENABLED_TYPES,
   HUB_FEATURE_IDS,
   FEATURE_ICONS,
   ALL_NAV,
 } from "@/lib/dashboard-nav";
 import { preloadTab } from "@/app/dashboard/[tab]/page";
+
+// Irreversible restaurant deletion — requires typing the exact name to confirm
+// and spells out everything that will be permanently removed.
+function DeleteRestaurantModal({
+  restaurant,
+  onClose,
+  onDeleted,
+}: {
+  restaurant: Restaurant;
+  onClose: () => void;
+  onDeleted: () => void;
+}) {
+  const { deleteRestaurant } = useRestaurant();
+  const { showToast } = useToast();
+  const [confirmText, setConfirmText] = useState("");
+  const [deleting, setDeleting] = useState(false);
+
+  const canDelete = confirmText.trim() === restaurant.name.trim() && !deleting;
+
+  const losses = [
+    { label: "Menu items", value: restaurant._count?.menuItems ?? 0 },
+    { label: "Tables & QR codes", value: restaurant.tableCount ?? 0 },
+    { label: "Staff members", value: restaurant.staff?.length ?? 0 },
+    { label: "Orders & billing history", value: restaurant._count?.orders ?? 0 },
+  ];
+
+  const handleDelete = async () => {
+    if (!canDelete) return;
+    setDeleting(true);
+    try {
+      await deleteRestaurant(restaurant.id);
+      showToast(`"${restaurant.name}" deleted`, "success");
+      onDeleted();
+    } catch {
+      showToast("Could not delete restaurant. Please try again.", "error");
+      setDeleting(false);
+    }
+  };
+
+  // Rendered through a portal to <body>: the sidebar is inside a
+  // transformed (framer-motion) ancestor, and `position: fixed` resolves
+  // against the nearest transformed ancestor — which was squashing this modal
+  // into the narrow sidebar column. The portal escapes that so it centers on
+  // the whole viewport.
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96, y: 8 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.96 }}
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-md rounded-2xl bg-[var(--canvas)] p-6 shadow-2xl ring-1 ring-[var(--border)]"
+      >
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-500/10 text-red-500">
+            <TriangleAlert className="h-5 w-5" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h3 className="text-lg font-bold text-[var(--text-1)]">Delete restaurant?</h3>
+            <p className="mt-1 text-[13px] text-[var(--text-3)] leading-snug">
+              This permanently deletes <span className="font-semibold text-[var(--text-1)]">{restaurant.name}</span> and everything in it. This cannot be undone.
+            </p>
+          </div>
+          <button onClick={onClose} className="rounded-lg p-1.5 text-[var(--text-3)] hover:bg-[var(--surface)] hover:text-[var(--text-2)] transition-colors">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="mt-5 rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] p-4">
+          <p className="mb-2.5 text-[11px] font-bold uppercase tracking-wider text-[var(--text-3)]">
+            You will lose
+          </p>
+          <ul className="space-y-1.5">
+            {losses.map((l) => (
+              <li key={l.label} className="flex items-center justify-between text-[13px]">
+                <span className="text-[var(--text-2)]">{l.label}</span>
+                <span className="font-bold text-[var(--text-1)] tabular-nums">{l.value}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="mt-4">
+          <label className="mb-1.5 block text-[12px] font-medium text-[var(--text-2)]">
+            Type <span className="font-bold text-[var(--text-1)]">{restaurant.name}</span> to confirm
+          </label>
+          <input
+            value={confirmText}
+            onChange={(e) => setConfirmText(e.target.value)}
+            autoFocus
+            placeholder={restaurant.name}
+            onKeyDown={(e) => { if (e.key === "Enter" && canDelete) handleDelete(); }}
+            className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-3.5 py-2.5 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-500/20 transition-all"
+          />
+        </div>
+
+        <div className="mt-5 flex gap-2.5">
+          <button
+            onClick={onClose}
+            className="flex-1 rounded-xl border border-[var(--border)] py-2.5 text-[13px] font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleDelete}
+            disabled={!canDelete}
+            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-red-500 py-2.5 text-[13px] font-bold text-white hover:bg-red-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          >
+            {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+            Delete forever
+          </button>
+        </div>
+      </motion.div>
+    </div>,
+    document.body,
+  );
+}
 
 function RestaurantSwitcher({
   onNavigate,
@@ -51,6 +177,7 @@ function RestaurantSwitcher({
   const { restaurants, selectedRestaurant, selectRestaurant } = useRestaurant();
   const [open, setOpen] = useState(false);
   const [slugCopied, setSlugCopied] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Restaurant | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
   const current = selectedRestaurant ?? restaurants[0];
@@ -157,32 +284,44 @@ function RestaurantSwitcher({
                 </p>
                 <div className="space-y-1">
                   {otherRestaurants.map((r) => (
-                    <button
+                    <div
                       key={r.id}
-                      onClick={() => handleSwitch(r.id)}
-                      className="flex w-full items-center gap-3 rounded-lg p-2 hover:bg-[var(--canvas-sub)] transition-colors"
+                      className="group/row flex items-center gap-1 rounded-lg pr-1 hover:bg-[var(--canvas-sub)] transition-colors"
                     >
-                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--surface)]">
-                        <Store className="h-3.5 w-3.5 text-[var(--text-2)]" />
-                      </div>
-                      <div className="min-w-0 flex-1 text-left">
-                        <p className="truncate text-[12px] font-semibold text-[var(--text-2)]">
-                          {r.name}
-                        </p>
-                        {r.address && (
-                          <span className="flex items-center gap-0.5 text-[10px] text-[var(--text-3)] truncate">
-                            <MapPin className="h-2.5 w-2.5 shrink-0" />
-                            {r.address}
-                          </span>
-                        )}
-                      </div>
-                    </button>
+                      <button
+                        onClick={() => handleSwitch(r.id)}
+                        className="flex min-w-0 flex-1 items-center gap-3 rounded-lg p-2 text-left"
+                      >
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--surface)]">
+                          <Store className="h-3.5 w-3.5 text-[var(--text-2)]" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-[12px] font-semibold text-[var(--text-2)]">
+                            {r.name}
+                          </p>
+                          {r.address && (
+                            <span className="flex items-center gap-0.5 text-[10px] text-[var(--text-3)] truncate">
+                              <MapPin className="h-2.5 w-2.5 shrink-0" />
+                              {r.address}
+                            </span>
+                          )}
+                        </div>
+                      </button>
+                      <button
+                        onClick={() => { setOpen(false); setDeleteTarget(r); }}
+                        title={`Delete ${r.name}`}
+                        aria-label={`Delete ${r.name}`}
+                        className="shrink-0 rounded-lg p-1.5 text-[var(--text-3)] opacity-0 group-hover/row:opacity-100 hover:bg-red-500/10 hover:text-red-500 transition-all"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
                   ))}
                 </div>
               </div>
             )}
 
-            <div className="p-2">
+            <div className="p-2 space-y-1.5">
               <button
                 onClick={() => {
                   setOpen(false);
@@ -194,8 +333,25 @@ function RestaurantSwitcher({
                 <Plus className="h-3 w-3" />
                 New Restaurant
               </button>
+              <button
+                onClick={() => { setOpen(false); setDeleteTarget(current); }}
+                className="w-full flex items-center justify-center gap-1.5 rounded-lg py-2 text-[12px] font-semibold text-[var(--text-3)] hover:bg-red-500/10 hover:text-red-500 transition-colors"
+              >
+                <Trash2 className="h-3 w-3" />
+                Delete this restaurant
+              </button>
             </div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {deleteTarget && (
+          <DeleteRestaurantModal
+            restaurant={deleteTarget}
+            onClose={() => setDeleteTarget(null)}
+            onDeleted={() => setDeleteTarget(null)}
+          />
         )}
       </AnimatePresence>
     </div>
@@ -351,7 +507,7 @@ function NavGroup({
   );
 }
 
-function SlugCopyStrip() {
+function SlugCopyStrip({ bare = false }: { bare?: boolean }) {
   const { selectedRestaurant } = useRestaurant();
   const [copied, setCopied] = useState(false);
   const slug = selectedRestaurant?.slug;
@@ -367,7 +523,11 @@ function SlugCopyStrip() {
     <button
       onClick={handleCopy}
       title="Copy customer POS link"
-      className="mx-3 mb-3 flex items-center gap-2 rounded-lg border border-dashed border-[var(--accent-border)] bg-[var(--accent-muted)] px-3 py-2 text-left transition-colors hover:bg-[var(--surface)] group"
+      className={
+        bare
+          ? "flex w-full items-center gap-2 rounded-lg bg-[var(--canvas)] ring-1 ring-[var(--border)] px-3 py-2 text-left transition-colors hover:bg-[var(--surface)] group"
+          : "mx-3 mb-3 flex items-center gap-2 rounded-lg border border-dashed border-[var(--accent-border)] bg-[var(--accent-muted)] px-3 py-2 text-left transition-colors hover:bg-[var(--surface)] group"
+      }
     >
       <div className="min-w-0 flex-1">
         <p className="text-[9px] font-bold uppercase tracking-widest text-[var(--accent)] mb-0.5">POS Link</p>
@@ -379,6 +539,27 @@ function SlugCopyStrip() {
         <Copy className="h-3.5 w-3.5 text-[var(--text-3)] group-hover:text-[var(--accent)] shrink-0 transition-colors" />
       )}
     </button>
+  );
+}
+
+// One "POS" card grouping the launcher (Set up / Open POS) with the copyable
+// customer POS link — previously two separate loose strips in the sidebar.
+function PosSection({
+  restaurant,
+  onRequestActivate,
+}: {
+  restaurant: Restaurant | null;
+  onRequestActivate: () => void;
+}) {
+  if (!restaurant) return null;
+  return (
+    <div className="mx-3 mb-3 rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)]/50 p-2 space-y-2">
+      <p className="px-1 pt-0.5 text-[9px] font-bold uppercase tracking-widest text-[var(--text-3)]">
+        POS
+      </p>
+      <POSLauncher restaurant={restaurant} onRequestActivate={onRequestActivate} bare />
+      <SlugCopyStrip bare />
+    </div>
   );
 }
 
@@ -413,28 +594,10 @@ export default function DashboardSidebar({
   const featuresEnabled = selectedRestaurant?.featuresEnabled;
   const featuresDisabled = selectedRestaurant?.featuresDisabled;
 
-  const featureNavItems = useMemo(() => {
-    if (!restaurantType) return [];
-    const features = getFeatureTabsForType(restaurantType, {
-      featuresEnabled,
-      featuresDisabled,
-    });
-    const isHotelType = ROOM_ENABLED_TYPES.has(restaurantType);
-    return features
-      // Hotel Hub has a dedicated nav entry; the rest of the folded cluster is
-      // never shown standalone for hotel-type venues.
-      .filter((f) => f.id !== "hotel-hub")
-      .filter((f) => !(isHotelType && HUB_FEATURE_IDS.has(f.id)))
-      .map((f) => ({
-        id: f.id as DashTab,
-        label: f.label,
-        icon: FEATURE_ICONS[f.id] ?? Sparkles,
-      }));
-  }, [restaurantType, featuresEnabled, featuresDisabled]);
-
   // Hotel Hub is shown when the venue's effective feature set includes it —
-  // i.e. a hotel-type venue whose owner hasn't force-disabled it (or any venue
-  // that force-enabled it via Owner Controls).
+  // i.e. a hotel-type venue whose owner hasn't force-disabled it, OR any venue
+  // that force-enabled it via Owner Controls. Enabling Hotel Hub turns on the
+  // whole hotel cluster at once.
   const showHotelHub = useMemo(
     () =>
       restaurantType
@@ -445,6 +608,24 @@ export default function DashboardSidebar({
         : false,
     [restaurantType, featuresEnabled, featuresDisabled],
   );
+
+  const featureNavItems = useMemo(() => {
+    if (!restaurantType) return [];
+    const features = getFeatureTabsForType(restaurantType, {
+      featuresEnabled,
+      featuresDisabled,
+    });
+    return features
+      // Hotel Hub has a dedicated nav entry; whenever the Hub is enabled the rest
+      // of the folded cluster lives INSIDE it, never as standalone nav items.
+      .filter((f) => f.id !== "hotel-hub")
+      .filter((f) => !(showHotelHub && HUB_FEATURE_IDS.has(f.id)))
+      .map((f) => ({
+        id: f.id as DashTab,
+        label: f.label,
+        icon: FEATURE_ICONS[f.id] ?? Sparkles,
+      }));
+  }, [restaurantType, featuresEnabled, featuresDisabled, showHotelHub]);
 
   // Split the dynamic feature tabs into Hotel vs Restaurant buckets so each gets
   // its own collapsible dropdown. The Hotel group also picks up the dedicated
@@ -475,6 +656,7 @@ export default function DashboardSidebar({
         {onToggleCollapse && (
           <button
             onClick={onToggleCollapse}
+            aria-label="Expand sidebar"
             className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-[var(--surface)] transition-colors text-[var(--text-2)]"
             title="Expand sidebar"
           >
@@ -537,6 +719,7 @@ export default function DashboardSidebar({
           {onToggleCollapse && (
             <button
               onClick={onToggleCollapse}
+              aria-label="Collapse sidebar"
               className="rounded-lg p-1.5 hover:bg-[var(--surface)] transition-colors hidden lg:flex text-[var(--text-3)] hover:text-[var(--text-2)]"
               title="Collapse sidebar"
             >
@@ -546,6 +729,7 @@ export default function DashboardSidebar({
           {onClose && (
             <button
               onClick={onClose}
+              aria-label="Close menu"
               className="rounded-lg p-1.5 hover:bg-[var(--surface)] transition-colors lg:hidden text-[var(--text-2)]"
             >
               <X className="h-4 w-4" />
@@ -555,8 +739,7 @@ export default function DashboardSidebar({
       </div>
 
       <RestaurantSwitcher onNavigate={onClose} onCreate={onRequestCreateRestaurant} />
-      <SlugCopyStrip />
-      <POSLauncher
+      <PosSection
         restaurant={selectedRestaurant}
         onRequestActivate={() => {
           onRequestPOSActivate();

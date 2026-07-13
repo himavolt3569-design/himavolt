@@ -166,16 +166,29 @@ export async function GET(req: NextRequest) {
     const dbUser = await db.user.findUnique({ where: { id: user.id } })
       ?? (isAccountLink && email ? await db.user.findFirst({ where: { email } }) : null);
 
+    // Whether THIS sign-in came through Google. Google is exclusively the owner
+    // entry point in the app (the sign-in page only ever offers it on the
+    // "I own a restaurant or hotel" button, which always stamps OWNER intent),
+    // so a Google login should always land on the dashboard — which renders the
+    // owner console, or the customer dashboard for a customer-role account —
+    // never the marketing homepage. `provider` is the current-session signal;
+    // the OWNER intent cookie is the reliable backup when Supabase drops it.
+    const signedInWithGoogle =
+      user.app_metadata?.provider === "google" || roleParam === "OWNER";
+
     // Base destination, ignoring the password gate for a moment.
     const explicitCustomerIntent = roleParam === "CUSTOMER";
     let baseRedirect: string;
     if (!isNewAccount) {
-      // Existing account: routing follows what's ACTUALLY on file, never an
-      // intent signal — a login can't misroute (or, per above, re-role) an
-      // established account. Owners always land on the dashboard (which opens
-      // the create-restaurant modal inline if they somehow have none yet);
-      // everyone else lands back where they came from.
-      baseRedirect = dbRole === "OWNER" || dbRole === "ADMIN" ? "/dashboard" : next;
+      // Existing account: never re-role off an intent signal (the DB stays the
+      // source of truth for role). Owners/admins, and anyone arriving via
+      // Google, land on the dashboard (which opens the create-restaurant modal
+      // inline if they somehow have none yet); everyone else lands back where
+      // they came from.
+      baseRedirect =
+        signedInWithGoogle || dbRole === "OWNER" || dbRole === "ADMIN"
+          ? "/dashboard"
+          : next;
     } else if (explicitCustomerIntent) {
       // Consumer-site entry points explicitly flag customer intent so plain
       // customers never see the owner-onboarding screens.
@@ -186,9 +199,15 @@ export async function GET(req: NextRequest) {
       baseRedirect = "/auth/get-started";
     }
 
-    // The password step is unconditional and highest priority — it carries
-    // the real destination forward via `next` so it isn't lost.
-    redirectTo = dbUser?.hasPassword
+    // A RETURNING owner/admin headed to their dashboard skips the set-password
+    // gate and lands straight on the dashboard. This is the fix for the owner's
+    // complaint that a Google login bounced them onto an onboarding screen
+    // instead of their dashboard: existing accounts should just be *in* the
+    // dashboard the moment they sign in. Brand-new accounts still pass through
+    // set-password during first-run onboarding, so the password model (and the
+    // set-password page) is preserved untouched.
+    const returningToDashboard = !isNewAccount && baseRedirect === "/dashboard";
+    redirectTo = dbUser?.hasPassword || returningToDashboard
       ? baseRedirect
       : `/auth/set-password?next=${encodeURIComponent(baseRedirect)}`;
   } catch (err: any) {

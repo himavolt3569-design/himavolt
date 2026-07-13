@@ -9,18 +9,22 @@ import {
   Building2,
   ChevronRight,
   Coffee,
+  Camera,
+  Loader2,
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { useToast } from "@/context/ToastContext";
 import { formatPrice } from "@/lib/currency";
+import { isFeatureAvailable } from "@/lib/restaurant-types";
 import { STAFF_MANAGER_ROLES, STAFF_BILLING_ROLES } from "@/lib/staff-roles";
 
 const RoomManagementTab = lazy(() => import("./RoomManagementTab"));
 const HotelBookingsTab = lazy(() => import("./HotelBookingsTab"));
 const GuestCheckInTab = lazy(() => import("./GuestCheckInTab"));
 const HotelQRTab = lazy(() => import("./HotelQRTab"));
+const HotelMediaLibrary = lazy(() => import("./HotelMediaLibrary"));
 
-type HubTab = "rooms" | "bookings" | "guests" | "service" | "setup";
+type HubTab = "rooms" | "bookings" | "guests" | "media" | "service" | "setup";
 
 /**
  * Each sub-tab is gated by a permission scope (mirrors the server RBAC):
@@ -56,6 +60,13 @@ const TABS: {
     desc: "Walk-in check-in, ID scan & guest records",
     icon: ClipboardList,
     scope: "frontdesk",
+  },
+  {
+    id: "media",
+    label: "Media Library",
+    desc: "Manage main property photos",
+    icon: Camera,
+    scope: "manage",
   },
   {
     id: "service",
@@ -229,18 +240,21 @@ export default function HotelHubTab() {
 
   if (!selectedRestaurant) return null;
 
-  const isHotelType = ["HOTEL", "RESORT", "GUEST_HOUSE"].includes(selectedRestaurant.type);
+  const hubEnabled = isFeatureAvailable(selectedRestaurant.type, "hotel-hub", {
+    featuresEnabled: selectedRestaurant.featuresEnabled,
+    featuresDisabled: selectedRestaurant.featuresDisabled,
+  });
 
-  if (!isHotelType) {
+  if (!hubEnabled) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center gap-3">
         <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--surface)]">
           <Building2 className="h-7 w-7 text-[var(--text-3)]" />
         </div>
         <div>
-          <p className="text-[15px] font-semibold text-[var(--text-1)]">Hotel features are disabled</p>
+          <p className="text-[15px] font-semibold text-[var(--text-1)]">Hotel Hub is turned off</p>
           <p className="mt-1 text-[12px] text-[var(--text-2)] max-w-sm">
-            Switch venue type to Hotel, Resort, or Guest House to manage rooms and bookings here.
+            Turn on Hotel Hub in Settings → Owner Controls to manage rooms, bookings, guest check-in, QR codes &amp; room service — or set the venue type to Hotel, Resort or Guest House, which have it on by default.
           </p>
         </div>
       </div>
@@ -343,11 +357,12 @@ export default function HotelHubTab() {
         <span className="hidden sm:inline text-[12px] text-[var(--text-3)]">· {activeTab.desc}</span>
       </div>
 
-      {/* Panel — no skeleton fallback; lazy chunks resolve near-instantly */}
-      <Suspense fallback={null}>
+      {/* Panel */}
+      <Suspense fallback={<div className="h-40 flex items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-[var(--text-3)]" /></div>}>
         {effectiveActive === "rooms" && <RoomManagementTab />}
         {effectiveActive === "bookings" && <HotelBookingsTab />}
         {effectiveActive === "guests" && <GuestCheckInTab />}
+        {effectiveActive === "media" && <div className="-mx-2 sm:-mx-6 -mt-2"><HotelMediaLibrary /></div>}
         {effectiveActive === "service" && <RoomServicePanel />}
         {effectiveActive === "setup" && <HotelQRTab />}
       </Suspense>

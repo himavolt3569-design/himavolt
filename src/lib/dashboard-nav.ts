@@ -113,8 +113,9 @@ export const NAV_CATALOG: typeof NAV_MAIN = [
   // Drinks were merged into Stock (Stock page → Drinks tab). The standalone
   // Drinks nav item was removed; /dashboard/drinks still deep-links there.
   { id: "stock", label: "Stock", icon: Package },
-  { id: "offers", label: "Offers", icon: Tag },
-  { id: "coupons", label: "Coupons", icon: Tag },
+  // Offers + Coupons merged into one page (sub-tabs). The /dashboard/coupons
+  // route still resolves and deep-links to the Coupons sub-tab.
+  { id: "offers", label: "Offers & Coupons", icon: Tag },
 ];
 
 // Team management. Shifts now lives as a tab inside the Staff page (Team

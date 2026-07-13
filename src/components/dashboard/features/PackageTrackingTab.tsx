@@ -21,7 +21,7 @@ import {
   CircleDot,
   ArrowRight,
 } from "lucide-react";
-import NotPersistedBanner from "./_NotPersistedBanner";
+import { useFeatureConfig } from "@/hooks/useFeatureConfig";
 
 type PipelineStage =
   | "Order Received"
@@ -132,14 +132,23 @@ const PACKAGING_TEMPLATES: PackagingTemplate[] = [
   },
 ];
 
+interface PackageTrackingConfig {
+  orders: PipelineOrder[];
+  materials: PackagingMaterial[];
+  qcChecklist: QualityCheckItem[];
+  dispatchLog: DispatchLog[];
+}
+
+const PACKAGE_TRACKING_DEFAULTS: PackageTrackingConfig = {
+  orders: [],
+  materials: [],
+  qcChecklist: [],
+  dispatchLog: [],
+};
+
 export default function PackageTrackingTab() {
-  const [orders, setOrders] = useState<PipelineOrder[]>([]);
-  const [materials, setMaterials] =
-    useState<PackagingMaterial[]>([]);
-  const [qcChecklist, setQcChecklist] =
-    useState<QualityCheckItem[]>([]);
-  const [dispatchLog, setDispatchLog] =
-    useState<DispatchLog[]>([]);
+  const { config, setConfig } = useFeatureConfig<PackageTrackingConfig>("package-tracking", PACKAGE_TRACKING_DEFAULTS);
+  const { orders, materials, qcChecklist, dispatchLog } = config;
   const [selectedStageFilter, setSelectedStageFilter] = useState<
     PipelineStage | "All"
   >("All");
@@ -147,14 +156,15 @@ export default function PackageTrackingTab() {
   const [selectedForBatch, setSelectedForBatch] = useState<string[]>([]);
 
   const advanceStage = (orderId: string) => {
-    setOrders((prev) =>
-      prev.map((o) => {
+    setConfig((c) => {
+      let dispatchLog = c.dispatchLog;
+      const orders = c.orders.map((o) => {
         if (o.id !== orderId) return o;
         const currentIdx = PIPELINE_STAGES.indexOf(o.stage);
         if (currentIdx >= PIPELINE_STAGES.length - 1) return o;
         const nextStage = PIPELINE_STAGES[currentIdx + 1];
         if (nextStage === "Dispatched") {
-          setDispatchLog((logs) => [
+          dispatchLog = [
             {
               id: Date.now().toString(),
               orderNumber: o.orderNumber,
@@ -165,24 +175,29 @@ export default function PackageTrackingTab() {
               partner: "Assigned partner",
               itemsCount: o.itemsCount,
             },
-            ...logs,
-          ]);
+            ...dispatchLog,
+          ];
         }
         return { ...o, stage: nextStage, timeInStageMin: 0 };
-      })
-    );
+      });
+      return { ...c, orders, dispatchLog };
+    });
   };
 
   const toggleQcItem = (id: string) => {
-    setQcChecklist((prev) =>
-      prev.map((item) =>
+    setConfig((c) => ({
+      ...c,
+      qcChecklist: c.qcChecklist.map((item) =>
         item.id === id ? { ...item, checked: !item.checked } : item
-      )
-    );
+      ),
+    }));
   };
 
   const resetQc = () => {
-    setQcChecklist((prev) => prev.map((item) => ({ ...item, checked: false })));
+    setConfig((c) => ({
+      ...c,
+      qcChecklist: c.qcChecklist.map((item) => ({ ...item, checked: false })),
+    }));
   };
 
   const toggleBatchSelect = (orderId: string) => {
@@ -198,13 +213,12 @@ export default function PackageTrackingTab() {
     const batchName = `Batch-${String.fromCharCode(
       65 + Math.floor(Math.random() * 26)
     )}${Math.floor(Math.random() * 9) + 1}`;
-    setOrders((prev) =>
-      prev.map((o) =>
-        selectedForBatch.includes(o.id)
-          ? { ...o, batchGroup: batchName }
-          : o
-      )
-    );
+    setConfig((c) => ({
+      ...c,
+      orders: c.orders.map((o) =>
+        selectedForBatch.includes(o.id) ? { ...o, batchGroup: batchName } : o
+      ),
+    }));
     setSelectedForBatch([]);
     setBatchMode(false);
   };
@@ -219,7 +233,6 @@ export default function PackageTrackingTab() {
 
   return (
     <div className="space-y-6">
-      <NotPersistedBanner />
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-[var(--text-1)]">
@@ -438,13 +451,14 @@ export default function PackageTrackingTab() {
                     <div className="flex items-center gap-1">
                       <button
                         onClick={() =>
-                          setMaterials((prev) =>
-                            prev.map((m) =>
+                          setConfig((c) => ({
+                            ...c,
+                            materials: c.materials.map((m) =>
                               m.id === mat.id
                                 ? { ...m, stock: Math.max(0, m.stock - 10) }
                                 : m
-                            )
-                          )
+                            ),
+                          }))
                         }
                         className="w-6 h-6 flex items-center justify-center rounded bg-[var(--surface-alt)] hover:bg-[var(--border)] text-[var(--text-2)] text-xs font-bold transition-colors"
                       >
@@ -459,13 +473,14 @@ export default function PackageTrackingTab() {
                       </span>
                       <button
                         onClick={() =>
-                          setMaterials((prev) =>
-                            prev.map((m) =>
+                          setConfig((c) => ({
+                            ...c,
+                            materials: c.materials.map((m) =>
                               m.id === mat.id
                                 ? { ...m, stock: m.stock + 10 }
                                 : m
-                            )
-                          )
+                            ),
+                          }))
                         }
                         className="w-6 h-6 flex items-center justify-center rounded bg-violet-200 hover:bg-violet-300 text-violet-700 text-xs font-bold transition-colors"
                       >
