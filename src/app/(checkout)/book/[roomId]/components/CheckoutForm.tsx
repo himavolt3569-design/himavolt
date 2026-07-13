@@ -13,7 +13,15 @@ const formSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters").regex(/^[A-Za-z\s]+$/, "Only letters allowed"),
   lastName: z.string().min(2, "Last name must be at least 2 characters").regex(/^[A-Za-z\s]+$/, "Only letters allowed"),
   email: z.string().email("Please enter a valid email address").optional().or(z.literal("")),
-  phone: z.string().min(7, "Phone number must be at least 7 digits").max(15, "Phone number is too long").regex(/^[0-9+\-\s()]+$/, "Invalid phone format"),
+  phone: z.string()
+    .regex(/^[0-9+\-\s()]+$/, "Phone number cannot contain letters")
+    .refine((val) => {
+      const digitsOnly = val.replace(/\D/g, "");
+      if (val.trim().startsWith("+")) {
+        return digitsOnly.length >= 7 && digitsOnly.length <= 15;
+      }
+      return digitsOnly.length === 10;
+    }, "Must be exactly 10 digits (or include country code like +977)"),
 });
 
 export function CheckoutForm({
