@@ -9,6 +9,7 @@ import {
   Building2,
   ChevronRight,
   Coffee,
+  Images,
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { useToast } from "@/context/ToastContext";
@@ -20,8 +21,9 @@ const RoomManagementTab = lazy(() => import("./RoomManagementTab"));
 const HotelBookingsTab = lazy(() => import("./HotelBookingsTab"));
 const GuestCheckInTab = lazy(() => import("./GuestCheckInTab"));
 const HotelQRTab = lazy(() => import("./HotelQRTab"));
+const HeroSlidesManager = lazy(() => import("./HeroSlidesManager"));
 
-type HubTab = "rooms" | "bookings" | "guests" | "service" | "setup";
+type HubTab = "rooms" | "bookings" | "guests" | "service" | "setup" | "images";
 
 /**
  * Each sub-tab is gated by a permission scope (mirrors the server RBAC):
@@ -70,6 +72,13 @@ const TABS: {
     label: "Setup",
     desc: "Hotel QR card & booking config",
     icon: Settings,
+    scope: "manage",
+  },
+  {
+    id: "images",
+    label: "Hotel Images",
+    desc: "Manage the main hotel gallery",
+    icon: Images,
     scope: "manage",
   },
 ];
@@ -354,6 +363,7 @@ export default function HotelHubTab() {
         {effectiveActive === "guests" && <GuestCheckInTab />}
         {effectiveActive === "service" && <RoomServicePanel />}
         {effectiveActive === "setup" && <HotelQRTab />}
+        {effectiveActive === "images" && <HeroSlidesManager />}
       </Suspense>
     </div>
   );
