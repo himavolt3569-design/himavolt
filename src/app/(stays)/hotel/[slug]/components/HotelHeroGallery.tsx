@@ -2,9 +2,29 @@
 
 import React, { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Images, ChevronLeft, ChevronRight, X, MapPin, Star } from "lucide-react";
+import { Images, MapPin, Star, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { SafeImage } from "@/components/design-system/SafeImage";
 import { cn } from "@/lib/utils";
+
+function HotelInfoOverlay({ hotelName, address, city, rating }: { hotelName: string, address: string, city: string, rating: number }) {
+  return (
+    <div className="absolute bottom-0 inset-x-0 p-7 pb-8 pointer-events-none">
+      <h1 className="font-fraunces text-4xl xl:text-5xl font-black text-white leading-tight drop-shadow-xl mb-3">
+        {hotelName}
+      </h1>
+      <div className="flex items-center gap-3 flex-wrap">
+        <span className="flex items-center gap-1.5 text-white/80 text-sm font-semibold">
+          <MapPin className="h-4 w-4 shrink-0" />
+          {address}, {city}
+        </span>
+        <span className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/20 text-white text-sm font-bold px-3 py-1.5 rounded-full shadow-lg">
+          <Star className="h-3.5 w-3.5 fill-[var(--accent)] text-[var(--accent)]" />
+          {rating.toFixed(2)}
+        </span>
+      </div>
+    </div>
+  );
+}
 
 export function HotelHeroGallery({
   images,
@@ -88,86 +108,105 @@ export function HotelHeroGallery({
         </button>
       </div>
 
-      {/* ── Desktop: main image left (60%) + 2×2 thumbnail right (40%) ── */}
+      {/* ── Desktop: Dynamic Layouts ── */}
       <div className="hidden md:flex h-[600px] gap-2">
-
-        {/* Main hero image */}
-        <div
-          className="relative flex-[3] min-w-0 cursor-pointer group overflow-hidden rounded-l-3xl"
-          onClick={() => open(0)}
-        >
-          <SafeImage
-            src={displayImages[0]}
-            alt={hotelName}
-            priority
-            sizes="(max-width: 768px) 100vw, 60vw"
-            className="transition-transform duration-700 group-hover:scale-[1.03]"
-          />
-          {/* Strong bottom gradient */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
-
-          {/* Hotel info overlaid */}
-          <div className="absolute bottom-0 inset-x-0 p-7 pb-8">
-            <h1 className="font-fraunces text-4xl xl:text-5xl font-black text-white leading-tight drop-shadow-xl mb-3">
-              {hotelName}
-            </h1>
-            <div className="flex items-center gap-3 flex-wrap">
-              <span className="flex items-center gap-1.5 text-white/80 text-sm font-semibold">
-                <MapPin className="h-4 w-4 shrink-0" />
-                {address}, {city}
-              </span>
-              <span className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/20 text-white text-sm font-bold px-3 py-1.5 rounded-full">
-                <Star className="h-3.5 w-3.5 fill-[var(--accent)] text-[var(--accent)]" />
-                {rating.toFixed(2)}
-              </span>
-            </div>
+        {displayImages.length === 1 && (
+          <div className="relative w-full h-full cursor-pointer group overflow-hidden rounded-3xl" onClick={() => open(0)}>
+            <SafeImage src={displayImages[0]} alt={hotelName} priority sizes="100vw" className="transition-transform duration-700 group-hover:scale-[1.03]" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
+            <HotelInfoOverlay hotelName={hotelName} address={address} city={city} rating={rating} />
           </div>
-        </div>
+        )}
+        
+        {displayImages.length === 2 && (
+          <>
+            <div className="relative flex-[2] cursor-pointer group overflow-hidden rounded-l-3xl" onClick={() => open(0)}>
+              <SafeImage src={displayImages[0]} alt={hotelName} priority sizes="60vw" className="transition-transform duration-700 group-hover:scale-[1.03]" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
+              <HotelInfoOverlay hotelName={hotelName} address={address} city={city} rating={rating} />
+            </div>
+            <div className="relative flex-1 cursor-pointer group overflow-hidden rounded-r-3xl" onClick={() => open(1)}>
+              <SafeImage src={displayImages[1]} alt={hotelName} sizes="40vw" className="transition-transform duration-700 group-hover:scale-[1.05]" />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-colors duration-300" />
+            </div>
+          </>
+        )}
 
-        {/* 2×2 thumbnail grid */}
-        <div className="flex-[2] min-w-0 grid grid-cols-2 grid-rows-2 gap-2">
-          {[1, 2, 3, 4].map((offset, i) => {
-            const img = displayImages[offset % displayImages.length];
-            const isTopRight    = i === 1;
-            const isBottomRight = i === 3;
-            const isLastSlot    = i === 3 && displayImages.length > 5;
-
-            return (
-              <div
-                key={i}
-                onClick={() => open(img ? offset : 0)}
-                className={cn(
-                  "relative cursor-pointer group overflow-hidden",
-                  isTopRight    && "rounded-tr-3xl",
-                  isBottomRight && "rounded-br-3xl",
-                )}
-              >
-                {img ? (
-                  <>
-                    <SafeImage
-                      src={img}
-                      alt={`${hotelName} ${offset + 1}`}
-                      sizes="(max-width: 768px) 100vw, 20vw"
-                      className="transition-transform duration-700 group-hover:scale-[1.05]"
-                    />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-colors duration-300" />
-                    {/* Overflow indicator on last slot */}
-                    {isLastSlot && (
-                      <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center gap-1.5">
-                        <Images className="h-6 w-6 text-white" />
-                        <span className="text-white font-bold text-sm">
-                          +{displayImages.length - 4} more
-                        </span>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <div className="w-full h-full bg-[var(--surface-alt)]" />
-                )}
+        {displayImages.length === 3 && (
+          <>
+            <div className="relative flex-[2] cursor-pointer group overflow-hidden rounded-l-3xl" onClick={() => open(0)}>
+              <SafeImage src={displayImages[0]} alt={hotelName} priority sizes="66vw" className="transition-transform duration-700 group-hover:scale-[1.03]" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
+              <HotelInfoOverlay hotelName={hotelName} address={address} city={city} rating={rating} />
+            </div>
+            <div className="flex-1 flex flex-col gap-2">
+              <div className="relative flex-1 cursor-pointer group overflow-hidden rounded-tr-3xl" onClick={() => open(1)}>
+                <SafeImage src={displayImages[1]} alt={hotelName} sizes="33vw" className="transition-transform duration-700 group-hover:scale-[1.05]" />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-colors duration-300" />
               </div>
-            );
-          })}
-        </div>
+              <div className="relative flex-1 cursor-pointer group overflow-hidden rounded-br-3xl" onClick={() => open(2)}>
+                <SafeImage src={displayImages[2]} alt={hotelName} sizes="33vw" className="transition-transform duration-700 group-hover:scale-[1.05]" />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-colors duration-300" />
+              </div>
+            </div>
+          </>
+        )}
+
+        {displayImages.length >= 4 && (
+          <>
+            {/* Main hero image */}
+            <div className="relative flex-[3] min-w-0 cursor-pointer group overflow-hidden rounded-l-3xl" onClick={() => open(0)}>
+              <SafeImage src={displayImages[0]} alt={hotelName} priority sizes="60vw" className="transition-transform duration-700 group-hover:scale-[1.03]" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
+              <HotelInfoOverlay hotelName={hotelName} address={address} city={city} rating={rating} />
+            </div>
+
+            {/* 2×2 thumbnail grid */}
+            <div className="flex-[2] min-w-0 grid grid-cols-2 grid-rows-2 gap-2">
+              {[1, 2, 3, 4].map((offset, i) => {
+                const img = displayImages[offset];
+                const isTopRight = i === 1;
+                const isBottomRight = i === 3;
+                const isLastSlot = i === 3 && displayImages.length > 5;
+
+                return (
+                  <div
+                    key={i}
+                    onClick={() => img ? open(offset) : open(0)}
+                    className={cn(
+                      "relative cursor-pointer group overflow-hidden",
+                      isTopRight && "rounded-tr-3xl",
+                      isBottomRight && "rounded-br-3xl",
+                    )}
+                  >
+                    {img ? (
+                      <>
+                        <SafeImage
+                          src={img}
+                          alt={`${hotelName} ${offset + 1}`}
+                          sizes="(max-width: 768px) 100vw, 20vw"
+                          className="transition-transform duration-700 group-hover:scale-[1.05]"
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-colors duration-300" />
+                        {/* Overflow indicator on last slot */}
+                        {isLastSlot && (
+                          <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center gap-1.5">
+                            <Images className="h-6 w-6 text-white" />
+                            <span className="text-white font-bold text-sm">
+                              +{displayImages.length - 5} more
+                            </span>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <div className="w-full h-full bg-[var(--surface-alt)]" />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
       </div>
 
       {/* "Show all photos" button — desktop, below grid */}
