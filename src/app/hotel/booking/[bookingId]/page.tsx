@@ -21,6 +21,7 @@ import {
   Ban,
   LogIn,
   LogOut,
+  Copy,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
@@ -382,12 +383,43 @@ export default function BookingConfirmationPage() {
           </motion.div>
         )}
 
-        <div className={`rounded-3xl p-6 text-center ring-1 ${statusCfg.card}`}>
-          <div className={`mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full ${statusCfg.iconWrap}`}>
-            <StatusIcon className={`h-7 w-7 ${statusCfg.icon}`} />
+        <div className={`rounded-3xl p-6 text-center ring-1 ${statusCfg.card} relative overflow-hidden`}>
+          <div className="absolute top-0 left-0 w-full h-1.5 bg-[var(--accent)]/20" />
+          <div className={`mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl shadow-sm ${statusCfg.iconWrap}`}>
+            <StatusIcon className={`h-8 w-8 ${statusCfg.icon}`} />
           </div>
-          <p className={`text-[16px] font-bold ${statusCfg.labelColor}`}>{statusCfg.label}</p>
-          <p className="mt-1 text-[11px] text-[var(--text-2)]">Booking #{bookingId.slice(-8).toUpperCase()}</p>
+          <p className={`text-[18px] font-extrabold ${statusCfg.labelColor}`}>{statusCfg.label}</p>
+          
+          <div className="mt-5 flex flex-col items-center gap-2">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-3)]">Booking Reference</p>
+            <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl ring-1 ring-[var(--border)] shadow-sm">
+              <span className="font-mono text-[16px] font-black tracking-widest text-[var(--text-1)]">
+                {bookingId.slice(-6).toUpperCase()}
+              </span>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(bookingId.slice(-6).toUpperCase());
+                  setActionMsg("Reference number copied!");
+                  setTimeout(() => setActionMsg(""), 3000);
+                }}
+                className="p-1.5 rounded-lg text-[var(--text-3)] hover:text-[var(--accent-text)] hover:bg-[var(--accent-muted)] transition-colors"
+                title="Copy Reference"
+              >
+                <Copy className="h-4 w-4" />
+              </button>
+            </div>
+            
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(window.location.href);
+                setActionMsg("Tracking link copied! Save this link to check your status later.");
+                setTimeout(() => setActionMsg(""), 4000);
+              }}
+              className="mt-2 text-[12px] font-semibold text-[var(--accent)] hover:text-[var(--accent-hover)] transition-colors underline underline-offset-2 decoration-[var(--accent)]/30"
+            >
+              Copy tracking link
+            </button>
+          </div>
         </div>
 
         <BookingProgress status={booking.status} />

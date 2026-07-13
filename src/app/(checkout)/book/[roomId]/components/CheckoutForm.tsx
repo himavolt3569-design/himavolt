@@ -54,7 +54,9 @@ export function CheckoutForm({
     if (!parsed.success) {
       const formattedErrors: Record<string, string> = {};
       parsed.error.issues.forEach((issue) => {
-        formattedErrors[issue.path[0]] = issue.message;
+        if (issue.path[0]) {
+          formattedErrors[String(issue.path[0])] = issue.message;
+        }
       });
       setFieldErrors(formattedErrors);
       setIsSubmitting(false);
