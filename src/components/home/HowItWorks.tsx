@@ -1,121 +1,111 @@
 "use client";
 
-import { motion } from "framer-motion";
-import {
-  QrCode,
-  UtensilsCrossed,
-  Bell,
-  CreditCard,
-  ArrowRight,
-} from "lucide-react";
+import { useEffect, useRef } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { QrCode, MonitorSmartphone, ChefHat, CheckCircle2 } from "lucide-react";
+
+gsap.registerPlugin(ScrollTrigger);
 
 const steps = [
   {
-    Icon: QrCode,
-    title: "Scan & Browse",
-    desc: "Scan the QR code at your table or browse restaurants near you.",
-    accent: "from-[var(--accent)] to-[#e58f2a]",
+    id: "01",
+    title: "Scan & Order",
+    description: "Customers scan the QR code to view the digital menu and place their orders directly from the table.",
+    icon: QrCode,
+    color: "bg-blue-50 text-blue-600",
   },
   {
-    Icon: UtensilsCrossed,
-    title: "Pick & Order",
-    desc: "Choose from digital menus and customize your order effortlessly.",
-    accent: "from-[var(--accent)] to-[#f1c980]",
+    id: "02",
+    title: "Sync to POS",
+    description: "Orders instantly appear on the POS terminal without any staff intervention, saving time.",
+    icon: MonitorSmartphone,
+    color: "bg-purple-50 text-purple-600",
   },
   {
-    Icon: Bell,
-    title: "Live Tracking",
-    desc: "Real-time updates while we prepare and deliver your food.",
-    accent: "from-[var(--accent)] to-[#34D399]",
+    id: "03",
+    title: "Kitchen Prep",
+    description: "The Kitchen Display System (KDS) receives the KOT live, alerting chefs to start preparation.",
+    icon: ChefHat,
+    color: "bg-orange-50 text-orange-600",
   },
   {
-    Icon: CreditCard,
-    title: "Pay & Enjoy",
-    desc: "Pay securely via your phone and savor the premium experience.",
-    accent: "from-[#6366F1] to-[#818CF8]",
+    id: "04",
+    title: "Serve & Pay",
+    description: "Staff are pinged when food is ready. Customers can easily split the bill and pay digitally.",
+    icon: CheckCircle2,
+    color: "bg-emerald-50 text-emerald-600",
   },
 ];
 
 export default function HowItWorks() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const stepsRef = useRef<(HTMLDivElement | null)[]>([]);
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        stepsRef.current,
+        { opacity: 0, y: 40 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          stagger: 0.2,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: containerRef.current,
+            start: "top 75%",
+          },
+        }
+      );
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, []);
+
   return (
-    <section className="relative overflow-hidden bg-[#0F1219] text-white py-20 md:py-28">
-      <div className="absolute top-0 left-1/4 h-[500px] w-[500px] rounded-full bg-[var(--accent)]/[0.04] blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-0 right-1/4 h-[400px] w-[400px] rounded-full bg-[var(--accent)]/[0.04] blur-[100px] pointer-events-none" />
-
-      <div
-        className="absolute inset-0 opacity-[0.03] pointer-events-none"
-        style={{
-          backgroundImage:
-            "url(\"data:image/svg+xml,%3Csvg width='6' height='6' viewBox='0 0 6 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23fff' fill-opacity='1'%3E%3Ccircle cx='1' cy='1' r='0.6'/%3E%3C/g%3E%3C/svg%3E\")",
-        }}
-      />
-
-      <div className="relative z-10 mx-auto max-w-[1440px] px-4 md:px-8 lg:px-12">
-        {/* Header — left-aligned for asymmetry */}
-        <div className="mb-14 md:mb-20 max-w-xl">
-          <motion.div
-            initial={{ opacity: 0, x: -16 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--canvas)]/[0.06] backdrop-blur-sm px-3.5 py-1.5 text-[11px] font-bold text-white/70 uppercase tracking-wider border border-white/[0.06] mb-5">
-              <ArrowRight className="h-3 w-3 text-[var(--accent)]" />
-              How it works
-            </span>
-          </motion.div>
-          <motion.h2
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.05, ease: [0.16, 1, 0.3, 1] }}
-            className="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight leading-[1.1]"
-          >
-            From scan to savour
-            <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--accent)] to-[#f1c980]">
-              in four easy steps.
-            </span>
-          </motion.h2>
+    <section ref={containerRef} className="py-12 md:py-24 bg-[var(--canvas)] relative overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-12">
+        <div className="text-center max-w-2xl mx-auto mb-20">
+          <h2 className="text-3xl md:text-5xl font-black text-[var(--text-1)] tracking-tight">
+            How HimalHub Works
+          </h2>
+          <p className="mt-4 text-lg text-[var(--text-2)] font-medium">
+            A fully automated, end-to-end digital ecosystem that eliminates manual bottlenecks.
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-6">
-          {steps.map((step, idx) => (
-            <motion.div
-              key={idx}
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-40px" }}
-              transition={{
-                duration: 0.5,
-                delay: idx * 0.08,
-                ease: [0.16, 1, 0.3, 1],
-              }}
-              className="group relative rounded-2xl border border-white/[0.06] bg-[var(--canvas)]/[0.03] backdrop-blur-sm p-7 transition-all duration-300 hover:bg-[var(--canvas)]/[0.06] hover:border-white/[0.1]"
-            >
-              {/* Step number — large, faded */}
-              <div className="absolute top-5 right-6 text-[64px] font-extrabold leading-none text-white/[0.03] select-none pointer-events-none">
-                {idx + 1}
-              </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8 relative">
+          {/* Connecting Line (Desktop only) */}
+          <div className="hidden lg:block absolute top-12 left-[10%] right-[10%] h-0.5 bg-linear-to-r from-transparent via-[var(--border)] to-transparent" />
 
+          {steps.map((step, i) => {
+            const Icon = step.icon;
+            return (
               <div
-                className={`flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${step.accent} shadow-lg mb-5 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3`}
+                key={step.id}
+                ref={(el) => { stepsRef.current[i] = el; }}
+                className="relative flex flex-col items-center text-center group"
               >
-                <step.Icon className="h-5 w-5 text-white" strokeWidth={2} />
+                {/* Step Number Badge */}
+                <div className="absolute -top-4 -left-4 md:-left-0 text-[10px] font-black text-white bg-[var(--text-1)] px-2 py-1 rounded-full z-20 shadow-md">
+                  STEP {step.id}
+                </div>
+
+                <div className={`h-24 w-24 rounded-3xl ${step.color} bg-opacity-40 flex items-center justify-center mb-6 relative z-10 shadow-sm border border-white transition-transform duration-500 group-hover:-translate-y-2 group-hover:shadow-xl`}>
+                  <Icon className="h-10 w-10" strokeWidth={1.5} />
+                </div>
+                
+                <h3 className="text-xl font-black text-[var(--text-1)] mb-3">
+                  {step.title}
+                </h3>
+                <p className="text-[15px] text-[var(--text-2)] leading-relaxed max-w-[260px]">
+                  {step.description}
+                </p>
               </div>
-
-              <h3 className="text-base font-bold text-white mb-2 tracking-tight">
-                {step.title}
-              </h3>
-              <p className="text-sm text-[var(--text-2)] leading-relaxed">
-                {step.desc}
-              </p>
-
-              <div
-                className={`absolute bottom-0 left-7 right-7 h-px bg-gradient-to-r ${step.accent} opacity-0 group-hover:opacity-40 transition-opacity duration-300`}
-              />
-            </motion.div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

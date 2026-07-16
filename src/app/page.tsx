@@ -1,37 +1,22 @@
 "use client";
 
-import { useState } from "react";
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
 import Navbar from "@/components/layout/Navbar";
 import LandingHero from "@/components/home/LandingHero";
-import TrustMarquee from "@/components/home/TrustMarquee";
 import LocationBar from "@/components/home/LocationBar";
 import { LocationProvider } from "@/context/LocationContext";
 
-const PopularFoods = dynamic(() => import("@/components/home/PopularFoods"), {
-  ssr: false,
-});
-const FeaturesSection = dynamic(
-  () => import("@/components/home/FeaturesSection"),
-  { ssr: false },
-);
-const TopPlaces = dynamic(() => import("@/components/home/TopPlaces"), {
-  ssr: false,
-});
-const DealsSection = dynamic(() => import("@/components/home/DealsSection"), {
-  ssr: false,
-});
-const Testimonials = dynamic(() => import("@/components/home/Testimonials"), {
-  ssr: false,
-});
-const Footer = dynamic(() => import("@/components/layout/Footer"), {
-  ssr: false,
-});
+const PlatformModules = dynamic(() => import("@/components/home/PlatformModules"), { ssr: false });
+const CoreFeatures = dynamic(() => import("@/components/home/CoreFeatures"), { ssr: false });
+const HowItWorks = dynamic(() => import("@/components/home/HowItWorks"), { ssr: false });
+const BusinessMetrics = dynamic(() => import("@/components/home/BusinessMetrics"), { ssr: false });
+const FAQSection = dynamic(() => import("@/components/home/FAQSection"), { ssr: false });
+const CTASection = dynamic(() => import("@/components/home/CTASection"), { ssr: false });
+const Testimonials = dynamic(() => import("@/components/home/Testimonials"), { ssr: false });
+const Footer = dynamic(() => import("@/components/layout/Footer"), { ssr: false });
 
 export default function Home() {
-  const [activeCategory] = useState("All");
-
   return (
     <LocationProvider>
       <motion.main
@@ -46,17 +31,19 @@ export default function Home() {
 
         <LandingHero />
 
-        <TrustMarquee />
+        <PlatformModules />
 
-        <PopularFoods activeCategory={activeCategory} />
+        <CoreFeatures />
 
-        <FeaturesSection />
+        <HowItWorks />
 
-        <TopPlaces />
-
-        <DealsSection />
+        <BusinessMetrics />
 
         <Testimonials />
+
+        <FAQSection />
+
+        <CTASection />
 
         <Footer />
       </motion.main>

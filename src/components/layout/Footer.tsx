@@ -17,23 +17,16 @@ const FOOTER_DEFAULTS: FooterSettings = {
   email: "hello@himavolt.com",
   address: "Thamel, Kathmandu",
   description:
-    "Nepal's smartest food platform. Scan QR, browse the menu, order instantly, or get it delivered to your door.",
+    "Nepal's premier enterprise hardware solutions. Reliable POS, networking, and enterprise equipment for modern businesses.",
 };
 
-function FooterLink({
-  href,
-  children,
-}: {
-  href: string;
-  children: React.ReactNode;
-}) {
+function FooterLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (
     <li>
       <Link
         href={href}
-        className="relative inline-flex items-center gap-1.5 text-[13px] text-white/40 hover:text-[var(--accent)] transition-colors duration-300 group py-0.5"
+        className="text-[13px] text-[var(--text-2)] hover:text-[var(--accent)] transition-colors duration-300 font-medium"
       >
-        <span className="h-px w-0 bg-[var(--accent)]/60 transition-all duration-300 group-hover:w-3 shrink-0" />
         {children}
       </Link>
     </li>
@@ -44,17 +37,12 @@ function SocialIcon({ label, path }: { label: string; path: string }) {
   return (
     <motion.a
       href="#"
-      whileHover={{ scale: 1.15, y: -2 }}
-      whileTap={{ scale: 0.9 }}
-      className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/5 text-white/30 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 border border-white/4 hover:border-[var(--accent)]/20 transition-colors duration-300"
+      whileHover={{ scale: 1.1, y: -2 }}
+      whileTap={{ scale: 0.95 }}
+      className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--canvas)] text-[var(--text-3)] hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 border border-[var(--border-soft)] hover:border-[var(--accent)]/20 transition-all duration-300 shadow-sm"
       aria-label={label}
     >
-      <svg
-        className="h-3.5 w-3.5"
-        fill="currentColor"
-        viewBox="0 0 24 24"
-        aria-hidden="true"
-      >
+      <svg className="h-3.5 w-3.5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
         <path fillRule="evenodd" d={path} clipRule="evenodd" />
       </svg>
     </motion.a>
@@ -73,11 +61,7 @@ const socials = [
   {
     label: "X",
     path: "M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z",
-  },
-  {
-    label: "TikTok",
-    path: "M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z",
-  },
+  }
 ];
 
 export default function Footer() {
@@ -95,54 +79,40 @@ export default function Footer() {
   };
 
   return (
-    <footer className="relative bg-[#111111] font-poppins">
-      {/* Top accent line */}
-      <div className="h-0.5 bg-linear-to-r from-transparent via-[var(--accent)]/30 to-transparent" />
-
-      {/* Main footer grid */}
-      <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-12 pt-16 md:pt-20 pb-10">
+    <footer className="bg-[var(--surface-alt)] font-poppins pt-20 border-t border-[var(--border-soft)]">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-12 pb-12">
         <div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr] gap-12 lg:gap-16">
-          {/* Left: Logo + description + contact */}
+          
+          {/* Left: Brand & Contact */}
           <div>
             <Link href="/" className="inline-flex items-center gap-2 group">
-              <motion.div
-                whileHover={{ rotate: -12 }}
-                transition={{ type: "spring", stiffness: 300, damping: 15 }}
-              >
-                <Mountain
-                  className="h-6 w-6 text-[var(--accent)]"
-                  strokeWidth={2.5}
-                />
+              <motion.div whileHover={{ rotate: -12 }} transition={{ type: "spring", stiffness: 300, damping: 15 }}>
+                <Mountain className="h-6 w-6 text-[var(--accent)]" strokeWidth={2.5} />
               </motion.div>
-              <span className="text-lg font-serif font-extrabold text-white tracking-tight">
+              <span className="text-xl font-black text-[var(--text-1)] tracking-tight">
                 Hima<span className="text-[var(--accent)]">Volt</span>
               </span>
             </Link>
-            <p className="mt-4 text-[13px] leading-relaxed text-white/30 max-w-xs">
+            
+            <p className="mt-4 text-[14px] leading-relaxed text-[var(--text-2)] max-w-sm">
               {settings.description}
             </p>
 
-            <div className="mt-6 space-y-3">
-              <a
-                href={`tel:${settings.phone.replace(/\s+/g, "")}`}
-                className="group flex items-center gap-3 text-[13px] text-white/30 hover:text-[var(--accent)] transition-colors duration-300"
-              >
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/5 group-hover:bg-[var(--accent)]/10 transition-colors duration-300">
+            <div className="mt-8 space-y-4">
+              <a href={`tel:${settings.phone.replace(/\s+/g, "")}`} className="group flex items-center gap-3 text-[13px] text-[var(--text-2)] hover:text-[var(--accent)] transition-colors font-medium">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--canvas)] border border-[var(--border-soft)] group-hover:border-[var(--accent)]/30 group-hover:bg-[var(--accent)]/10 transition-colors shadow-sm">
                   <Phone className="h-3.5 w-3.5" />
                 </span>
                 {settings.phone}
               </a>
-              <a
-                href={`mailto:${settings.email}`}
-                className="group flex items-center gap-3 text-[13px] text-white/30 hover:text-[var(--accent)] transition-colors duration-300"
-              >
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/5 group-hover:bg-[var(--accent)]/10 transition-colors duration-300">
+              <a href={`mailto:${settings.email}`} className="group flex items-center gap-3 text-[13px] text-[var(--text-2)] hover:text-[var(--accent)] transition-colors font-medium">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--canvas)] border border-[var(--border-soft)] group-hover:border-[var(--accent)]/30 group-hover:bg-[var(--accent)]/10 transition-colors shadow-sm">
                   <Mail className="h-3.5 w-3.5" />
                 </span>
                 {settings.email}
               </a>
-              <span className="flex items-center gap-3 text-[13px] text-white/30">
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/5">
+              <span className="flex items-center gap-3 text-[13px] text-[var(--text-2)] font-medium">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--canvas)] border border-[var(--border-soft)] shadow-sm">
                   <MapPin className="h-3.5 w-3.5" />
                 </span>
                 {settings.address}
@@ -150,42 +120,44 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Right: 3 link columns */}
+          {/* Right: Links Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-8">
             <div>
-              <h4 className="text-[11px] font-bold text-[var(--accent)]/50 mb-5 uppercase tracking-[0.18em]">
+              <h4 className="text-[11px] font-black text-[var(--text-1)] mb-6 uppercase tracking-widest">
+                Products
+              </h4>
+              <ul className="space-y-4">
+                <FooterLink href="/category/pos">POS Systems</FooterLink>
+                <FooterLink href="/category/printers">Printers</FooterLink>
+                <FooterLink href="/category/barcode">Barcode Scanners</FooterLink>
+                <FooterLink href="/category/networking">Networking</FooterLink>
+                <FooterLink href="/category/accessories">Accessories</FooterLink>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="text-[11px] font-black text-[var(--text-1)] mb-6 uppercase tracking-widest">
                 Company
               </h4>
-              <ul className="space-y-3">
-                <FooterLink href="#">About Us</FooterLink>
-                <FooterLink href="#">Careers</FooterLink>
-                <FooterLink href="/contact">Contact</FooterLink>
-                <FooterLink href="#">Blog</FooterLink>
+              <ul className="space-y-4">
+                <FooterLink href="/about">About Us</FooterLink>
+                <FooterLink href="/contact">Contact Sales</FooterLink>
+                <FooterLink href="/careers">Careers</FooterLink>
+                <FooterLink href="/blog">Blog</FooterLink>
+                <FooterLink href="/partners">Partner Program</FooterLink>
               </ul>
             </div>
 
             <div>
-              <h4 className="text-[11px] font-bold text-[var(--accent)]/50 mb-5 uppercase tracking-[0.18em]">
-                Product
+              <h4 className="text-[11px] font-black text-[var(--text-1)] mb-6 uppercase tracking-widest">
+                Support
               </h4>
-              <ul className="space-y-3">
-                <FooterLink href="/menu">Browse Menu</FooterLink>
-                <FooterLink href="/scan">Scan QR</FooterLink>
-                <FooterLink href="/staff-login">Staff Portal</FooterLink>
-                <FooterLink href="/contact">Partner with Us</FooterLink>
-                <FooterLink href="/contact">For Restaurants</FooterLink>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="text-[11px] font-bold text-[var(--accent)]/50 mb-5 uppercase tracking-[0.18em]">
-                Legal
-              </h4>
-              <ul className="space-y-3">
-                <FooterLink href="/legal/terms">Terms</FooterLink>
-                <FooterLink href="/legal/privacy">Privacy</FooterLink>
-                <FooterLink href="/legal/refund">Refund Policy</FooterLink>
-                <FooterLink href="/contact">Help Center</FooterLink>
+              <ul className="space-y-4">
+                <FooterLink href="/help">Help Center</FooterLink>
+                <FooterLink href="/warranty">Warranty Info</FooterLink>
+                <FooterLink href="/returns">Returns</FooterLink>
+                <FooterLink href="/legal/terms">Terms of Service</FooterLink>
+                <FooterLink href="/legal/privacy">Privacy Policy</FooterLink>
               </ul>
             </div>
           </div>
@@ -193,43 +165,36 @@ export default function Footer() {
       </div>
 
       {/* Divider */}
-      <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-12">
-        <div className="h-px bg-linear-to-r from-transparent via-white/6 to-transparent" />
-      </div>
+      <div className="h-px bg-[var(--border-soft)] w-full" />
 
-      {/* Bottom bar */}
-      <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-12 py-6">
+      {/* Bottom Bar */}
+      <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-12 py-6">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          {/* Copyright */}
           <div className="flex items-center gap-3">
-            <p className="text-xs text-white/25">
-              &copy; {new Date().getFullYear()} HimaVolt
+            <p className="text-xs text-[var(--text-3)] font-medium">
+              &copy; {new Date().getFullYear()} HimaVolt. All rights reserved.
             </p>
-            <span className="h-3 w-px bg-white/10" />
-            <p className="text-xs text-[var(--accent)]/40 font-medium">
-              Made for Nepal.
+            <span className="h-3 w-px bg-[var(--border-soft)] hidden sm:block" />
+            <p className="text-xs font-bold text-[var(--accent)] hidden sm:block">
+              Made for Nepal
             </p>
           </div>
 
-          {/* Social icons */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             {socials.map((s) => (
               <SocialIcon key={s.label} label={s.label} path={s.path} />
             ))}
           </div>
 
-          {/* Back to top */}
-          <motion.button
-            whileHover={{ scale: 1.1, y: -2 }}
-            whileTap={{ scale: 0.9 }}
+          <button
             onClick={scrollToTop}
-            className="group flex items-center gap-2 text-xs text-white/25 hover:text-[var(--accent)] transition-colors duration-300"
+            className="group flex items-center gap-2 text-xs font-semibold text-[var(--text-2)] hover:text-[var(--text-1)] transition-colors"
           >
             Back to top
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/5 group-hover:bg-[var(--accent)]/10 border border-white/4 group-hover:border-[var(--accent)]/20 transition-all duration-300">
-              <ArrowUp className="h-3.5 w-3.5" />
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--canvas)] border border-[var(--border-soft)] group-hover:border-[var(--text-1)] transition-colors shadow-sm">
+              <ArrowUp className="h-3 w-3" />
             </span>
-          </motion.button>
+          </button>
         </div>
       </div>
     </footer>

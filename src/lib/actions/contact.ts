@@ -25,3 +25,18 @@ export async function submitContactForm(data: {
 
   return { id: submission.id, success: true };
 }
+
+export async function getContactSubmissions() {
+  const submissions = await db.contactSubmission.findMany({
+    orderBy: { createdAt: "desc" },
+  });
+  return submissions;
+}
+
+export async function markContactAsRead(id: string) {
+  await db.contactSubmission.update({
+    where: { id },
+    data: { status: "read" },
+  });
+  return { success: true };
+}

@@ -90,7 +90,7 @@ function TestimonialCard({ review }: { review: (typeof reviews)[0] }) {
 
 export default function Testimonials() {
   return (
-    <section className="relative bg-[var(--canvas-sub)] py-24 md:py-32 overflow-hidden">
+    <section className="relative bg-[var(--canvas-sub)] py-12 md:py-24 overflow-hidden">
       <div className="relative mx-auto max-w-7xl px-4 md:px-8 lg:px-12">
         {/* Aggregate rating */}
         <motion.div
