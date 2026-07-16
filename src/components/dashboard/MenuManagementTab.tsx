@@ -1688,7 +1688,7 @@ export default function MenuManagementTab({
   };
 
   // Mutations update local state optimistically (instant), then call
-  // fetchData(true) to reconcile canonical data (real IDs, item counts) —
+  // fetchData() to reconcile canonical data (real IDs, item counts) —
   // now a background invalidate on both query caches instead of a manual fetch.
   const fetchData = () => {
     queryClient.invalidateQueries({ queryKey: itemsQueryKey });
@@ -1736,9 +1736,9 @@ export default function MenuManagementTab({
         method: "PATCH",
         body: { categoryId, name: trimmed },
       });
-      fetchData(true);
+      fetchData();
     } catch {
-      fetchData(true);
+      fetchData();
       showToast("Failed to rename category");
     }
   };
@@ -1780,7 +1780,7 @@ export default function MenuManagementTab({
         method: "POST",
         body: { name: catName, parentId: pid },
       });
-      fetchData(true);
+      fetchData();
     } catch (err) {
       setCategories(catSnapshot); // rollback
       showToast(err instanceof Error ? err.message : "Failed to create category");
@@ -1827,7 +1827,7 @@ export default function MenuManagementTab({
         method: "POST",
         body: { name },
       });
-      fetchData(true);
+      fetchData();
     } catch (err) {
       setCategories(catSnapshot);
       setTemplates(tplSnapshot);
@@ -1846,7 +1846,7 @@ export default function MenuManagementTab({
       if (!opts?.silent) {
         showToast(result.message || `${result.categories.length} categories added!`);
       }
-      await fetchData(true);
+      fetchData();
     } catch {
       if (!opts?.silent) showToast("Failed to seed categories");
     } finally {
@@ -1893,7 +1893,7 @@ export default function MenuManagementTab({
       showToast(`"${deleteCatConfirm.name}" deleted`);
       if (selectedCatId === deleteCatConfirm.categoryId) setSelectedCatId("All");
       setDeleteCatConfirm(null);
-      await fetchData(true);
+      fetchData();
     } catch {
       showToast("Failed to delete category");
     }
@@ -1922,7 +1922,7 @@ export default function MenuManagementTab({
     setItems((prev) => prev.map((i) => (i.id === id ? { ...i, ...patch } : i)));
     try {
       await apiFetch(`/api/restaurants/${restaurantId}/menu/${id}`, { method: "PATCH", body: patch });
-      fetchData(true);
+      fetchData();
     } catch {
       setItems(snapshot);
       showToast("Failed to update item");
@@ -1937,7 +1937,7 @@ export default function MenuManagementTab({
     showToast("Item deleted");
     try {
       await apiFetch(`/api/restaurants/${restaurantId}/menu/${id}`, { method: "DELETE" });
-      fetchData(true);
+      fetchData();
     } catch {
       setItems(snapshot);
       showToast("Failed to delete item");
@@ -2018,7 +2018,7 @@ export default function MenuManagementTab({
         },
       });
       // Reconcile silently — swaps the temp row for the canonical one, fixes counts.
-      fetchData(true);
+      fetchData();
     } catch (err) {
       setItems((prev) => prev.filter((i) => i.id !== tempId));
       setShowAddForm(true);
@@ -2096,7 +2096,7 @@ export default function MenuManagementTab({
           addOns: formData.addOns.filter((a) => a.name.trim()).map((a) => ({ name: a.name, price: Number(a.price) || 0 })),
         },
       });
-      fetchData(true);
+      fetchData();
     } catch {
       setItems(snapshot);
       showToast("Failed to update dish");
@@ -2131,7 +2131,7 @@ export default function MenuManagementTab({
           addOns: item.addOns.map((a) => ({ name: a.name, price: a.price })),
         },
       });
-      fetchData(true);
+      fetchData();
     } catch {
       setItems((prev) => prev.filter((i) => i.id !== tempId));
       showToast("Failed to duplicate item");

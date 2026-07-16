@@ -253,7 +253,8 @@ function RoomsView({ restaurantId, currency, slug, hotelName }: { restaurantId: 
   };
 
   const handleSave = async () => {
-    if (!form.roomNumber.trim() || !form.name.trim() || form.price <= 0) {
+    const normalizedPrice = Number(form.price) || 0;
+    if (!form.roomNumber.trim() || !form.name.trim() || normalizedPrice <= 0) {
       setErrorMsg("Room number, name, and a valid price are required.");
       return;
     }
